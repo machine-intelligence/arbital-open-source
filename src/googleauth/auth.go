@@ -13,7 +13,7 @@ import (
 	"net/url"
 	"strings"
 
-	"xelaie/src/go/config"
+	"zanaduu3/src/config"
 
 	"code.google.com/p/goauth2/oauth"
 	"github.com/golang/glog"

@@ -5,9 +5,9 @@ import (
 	//"fmt"
 	"net/http"
 
-	"xelaie/src/go/sessions"
-	//"xelaie/src/go/tasks"
-	"xelaie/src/go/user"
+	"zanaduu3/src/sessions"
+	//"zanaduu3/src/tasks"
+	"zanaduu3/src/user"
 
 	"github.com/hkjn/pages"
 )

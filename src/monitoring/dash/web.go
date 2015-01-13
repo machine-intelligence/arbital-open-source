@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"xelaie/src/go/config"
-	"xelaie/src/go/googleauth"
-	"xelaie/src/go/monitoring/prober"
+	"zanaduu3/src/config"
+	"zanaduu3/src/googleauth"
+	"zanaduu3/src/monitoring/prober"
 
 	"github.com/golang/glog"
 	"github.com/hkjn/pages"

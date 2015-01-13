@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"xelaie/src/go/config"
+	"zanaduu3/src/config"
 
 	"github.com/golang/glog"
 	"github.com/hkjn/pages"

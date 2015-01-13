@@ -1,7 +1,7 @@
 // xelaiemon is a wrapper binary around the dash package that just runs it.
 package main
 
-import "xelaie/src/go/monitoring/dash"
+import "zanaduu3/src/monitoring/dash"
 
 func main() {
 	dash.Run()

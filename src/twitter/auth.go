@@ -8,8 +8,8 @@ import (
 
 	"appengine/urlfetch"
 
-	"xelaie/src/go/config"
-	"xelaie/src/go/sessions"
+	"zanaduu3/src/config"
+	"zanaduu3/src/sessions"
 
 	"github.com/garyburd/go-oauth/oauth"
 	"github.com/gorilla/mux"

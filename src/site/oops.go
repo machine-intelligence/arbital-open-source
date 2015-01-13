@@ -4,8 +4,8 @@ package site
 import (
 	"net/http"
 
-	"xelaie/src/go/sessions"
-	"xelaie/src/go/user"
+	"zanaduu3/src/sessions"
+	"zanaduu3/src/user"
 
 	"github.com/hkjn/pages"
 )

@@ -8,13 +8,12 @@ import (
 	"io"
 	"net/http"
 
-	"xelaie/src/go/sessions"
-	"xelaie/src/go/twitter"
-	"xelaie/src/go/xelaie"
+	"zanaduu3/src/sessions"
+	"zanaduu3/src/twitter"
 )
 
 var (
-	userKey   = "user5" // key for session storage
+	userKey   = "user" // key for session storage
 	EmptyUser = User{}
 	fakeUser  = User{Twitter: twitter.TwitterUser{ScreenName: "Fakey fakeson", Id: 1, ProfileURL: "http://sophosnews.files.wordpress.com/2013/09/fake-sign_thumb.jpg"}}
 )
@@ -24,7 +23,6 @@ var (
 type User struct {
 	Twitter      twitter.TwitterUser   // info loaded from corresponding twitter account
 	TwitterCreds *sessions.Credentials // Twitter credentials
-	Currency     xelaie.BaseCurrency   // the user's base currency
 }
 
 // Currency returns an English description of the user's currency.

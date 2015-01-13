@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"xelaie/src/go/database"
-	"xelaie/src/go/sessions"
-	"xelaie/src/go/twitter"
+	"zanaduu3/src/database"
+	"zanaduu3/src/sessions"
+	"zanaduu3/src/twitter"
 )
 
 // UpdateContestTask is the object that's put into the daemon queue.

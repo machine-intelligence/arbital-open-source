@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"xelaie/src/go/config"
+	"zanaduu3/src/config"
 
 	"github.com/gorilla/sessions"
 )

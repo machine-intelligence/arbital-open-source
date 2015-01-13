@@ -4,9 +4,9 @@ package site
 import (
 	"net/http"
 
-	"xelaie/src/go/config"
-	"xelaie/src/go/sessions"
-	"xelaie/src/go/twitter"
+	"zanaduu3/src/config"
+	"zanaduu3/src/sessions"
+	"zanaduu3/src/twitter"
 
 	"github.com/gorilla/mux"
 )

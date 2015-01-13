@@ -7,7 +7,7 @@ import (
 
 	"appengine/urlfetch"
 
-	"xelaie/src/go/sessions"
+	"zanaduu3/src/sessions"
 )
 
 var monitoringAPI = getMonitoringAPI()

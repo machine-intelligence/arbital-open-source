@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"flag"
 	"net/http"
-	"xelaie/src/go/database/dbcore"
+	"zanaduu3/src/database/dbcore"
 
 	"github.com/hkjn/pages"
 )

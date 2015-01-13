@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"xelaie/src/go/config"
+	"zanaduu3/src/config"
 
 	"github.com/hkjn/pages"
 )

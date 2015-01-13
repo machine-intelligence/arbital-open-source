@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"xelaie/src/go/database/dbcore"
-	"xelaie/src/go/sessions"
+	"zanaduu3/src/database/dbcore"
+	"zanaduu3/src/sessions"
 )
 
 const TimeLayout = "2006-01-02 15:04:05"

@@ -12,8 +12,8 @@ import (
 	"appengine/mail"
 	"appengine/urlfetch"
 
-	"xelaie/src/go/database"
-	"xelaie/src/go/sessions"
+	"zanaduu3/src/database"
+	"zanaduu3/src/sessions"
 )
 
 // ReferEmailtask is the object that's put into the daemon queue.

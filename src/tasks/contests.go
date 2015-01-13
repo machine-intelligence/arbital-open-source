@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"xelaie/src/go/database"
-	"xelaie/src/go/sessions"
+	"zanaduu3/src/database"
+	"zanaduu3/src/sessions"
 )
 
 var (
