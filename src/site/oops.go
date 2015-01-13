@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/hkjn/pages"
 )
@@ -19,8 +18,7 @@ var oopsPage = pages.Add(
 		return pages.StatusOK(
 			struct {
 				ErrorMsg string
-				User     *user.User
-			}{r.URL.Query().Get("error_msg"), nil})
+			}{r.URL.Query().Get("error_msg")})
 	},
 	append(baseTmpls, "tmpl/oops.tmpl")...)
 

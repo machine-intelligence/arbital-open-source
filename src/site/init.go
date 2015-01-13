@@ -39,7 +39,7 @@ func init() {
 
 	r.HandleFunc("/authorize_callback", handler(twitter.AuthHandler).monitor()).Methods("GET").Queries("oauth_token", "{token}", "oauth_verifier", "{verifier}")
 	r.HandleFunc(oopsPage.URI, handler(oopsPage.ServeHTTP).monitor()).Methods("GET")
-	r.HandleFunc(indexPage.URI, handler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(indexPage.URI, stdHandler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
 	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
 

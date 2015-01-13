@@ -7,7 +7,6 @@ import (
 
 	"zanaduu3/src/sessions"
 	//"zanaduu3/src/tasks"
-	"zanaduu3/src/user"
 
 	"github.com/hkjn/pages"
 )
@@ -15,7 +14,6 @@ import (
 // indexTmplData stores the data that we pass to the index.tmpl to render the page
 type indexTmplData struct {
 	ErrorMsg string
-	User     *user.User
 }
 
 // indexPage serves the index page.

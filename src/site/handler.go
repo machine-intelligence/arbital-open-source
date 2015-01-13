@@ -6,13 +6,12 @@ import (
 	"net/http"
 
 	"appengine/taskqueue"
+	"appengine/user"
 
-	"zanaduu3/src/config"
+	//"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/twitter"
-	"zanaduu3/src/user"
 
-	"github.com/hkjn/pages"
+	//"github.com/hkjn/pages"
 )
 
 // Handler serves HTTP.
@@ -33,7 +32,7 @@ func stdHandler(h handler) handler {
 
 // sendToAuth redirects to an authentication URL.
 func sendToAuth(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+	/*c := sessions.NewContext(r)
 
 	var authUrl string
 	var err error
@@ -49,7 +48,7 @@ func sendToAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.Infof("redirecting to auth URL %q..\n", authUrl)
-	http.Redirect(w, r, authUrl, http.StatusSeeOther)
+	http.Redirect(w, r, authUrl, http.StatusSeeOther)*/
 }
 
 // domain redirects to proper HTML domain if user arrives elsewhere.
@@ -76,38 +75,25 @@ func (fn handler) domain() handler {
 }
 
 // loggedIn forwards to specified handler iff we have sign in info for the user.
-//
-// If there is no currently signed in user, loggedIn forwards to the
-// authentication URL to connect with Twitter, then calls /verify_credentials
-// to retrieve user info.
-//
-// Note that we don't check that the credentials stay current, since
-// Twitter access tokens don't expire.
 func (fn handler) loggedIn() handler {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := sessions.NewContext(r)
 		c.Debugf("loggedIn check for %q", r.URL)
-		q := r.URL.Query()
-		errorMsg := q.Get("error_msg")
-		var u *user.User
-		s, err := sessions.GetSession(r)
-		if err != nil {
-			pages.ShowError(w, r, fmt.Errorf("failed to get session: %v", err))
+
+		u := user.Current(c)
+		if u == nil {
+			url, _ := user.LoginURL(c, "/")
+			fmt.Fprintf(w, `<a href="%s">Sign in or register</a>`, url)
 			return
 		}
-		creds, err := sessions.LoadCreds(c, s)
-		if err != nil {
-			pages.ShowError(w, r, fmt.Errorf("error loading credentials: %v", err))
-			return
-		}
-		if creds == nil && errorMsg == "" {
-			// NOTE: We check errorMsg here and below to avoid going into
-			// redirect loop between Twitter and us in case of programming bug
-			// in auth handling within /authorize_callback.
+		url, _ := user.LogoutURL(c, "/")
+		fmt.Fprintf(w, `Welcome, %s! (<a href="%s">sign out</a>)`, u, url)
+		return
+		/*if creds == nil {
 			c.Debugf("no real credentials, sending user to auth URL..\n")
 			sendToAuth(w, r)
 			return
-		} else if creds != nil {
+		} else {
 			c.Debugf("we have real credentials, now checking user info..\n")
 			var err error
 			u, err = user.LoadUser(r)
@@ -126,10 +112,8 @@ func (fn handler) loggedIn() handler {
 			twitterUser, err = twitter.NewUser(w, r, creds)
 			if err != nil {
 				c.Errorf("error fetching user info, sending user to auth URL to start over: %v", err)
-				if errorMsg == "" {
-					sendToAuth(w, r)
-					return
-				}
+				sendToAuth(w, r)
+				return
 			}
 			u := user.User{Twitter: *twitterUser, TwitterCreds: creds}
 			err = u.Save(w, r)
@@ -140,7 +124,7 @@ func (fn handler) loggedIn() handler {
 				c.Debugf("created new user, welcome %q (%d), and onward to the handler..\n", u.Twitter.ScreenName, u.Twitter.Id)
 				fn(w, r)
 			}
-		}
+		}*/
 	}
 }
 
