@@ -1,0 +1,18 @@
+application: zanaduu3
+version: 001a
+runtime: go
+api_version: go1
+manual_scaling:
+  instances: 1
+
+handlers:
+- url: /static
+  static_dir: static
+
+- url: /.*
+  script: _go_app
+
+- url: /daemon
+  script: _go_app
+  login: admin
+

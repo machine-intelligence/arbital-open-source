@@ -1,0 +1,11 @@
+{{/* index.tmpl: simple monitoring dashboard */}}
+{{define "main"}}
+
+{{with .ErrorMsg}}<p class="error"><strong>{{.}}</strong></p>{{end}}
+{{template "links" .Links}}
+{{with .ProberDisabled}}
+  <h1 class="bad">Prober disabled</h1>
+{{else}}
+  {{template "prober" .Probes}}
+{{end}}
+{{end}}

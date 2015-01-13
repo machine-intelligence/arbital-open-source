@@ -1,0 +1,28 @@
+{{/* base.tmpl; root template */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+{{/* Scale viewport in resolution-independent way. */}}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{{template "scripts"}}
+{{with .LoginInfo}}
+<script src="https://apis.google.com/js/client:platform.js" async defer></script>
+{{end}}
+<style>
+{{template "style"}}
+</style>
+</head>
+<body>
+
+<div id="main">
+{{with .LoginInfo}}
+  {{template "login" .}}
+{{else}}
+  {{template "main" .}}
+{{end}}
+</div>
+</body>
+</html>
+{{end}}

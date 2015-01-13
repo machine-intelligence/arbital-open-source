@@ -1,0 +1,8 @@
+{{/* oops.tmpl; static catch-all error page */}}
+{{define "main"}}
+{{if .ErrorMsg}}
+<p class="alert alert-danger">{{.ErrorMsg}}</p>
+{{end}}
+
+<p>Sorry about that! For now, check out <a href="http://www.xelaie.com/">http://www.xelaie.com/</a>.</p>
+{{end}}

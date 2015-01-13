@@ -1,0 +1,93 @@
+@import "mixins.less";
+
+.currency {
+  font-size: 20px;
+
+  img {
+		margin: 0 15px 0 0;
+		max-width: 32px;
+		max-height: 32px;
+		vertical-align:middle;
+	}
+
+	span {
+		vertical-align:middle;
+	  white-space:nowrap;
+	}
+}
+
+.rewards {
+  background-color: #fff;
+  border: 1px solid #bbb;
+
+  .column-titles {
+    font-size: 14px;
+    color: #777;
+    background-color: #d5d5d5;
+
+    .text {
+      display: block;
+      padding: 5px 0;
+    }
+  }
+
+  .reward {
+    border: 1px solid #bbb;
+    padding: 10px 0;
+    font-size: 16px;
+  }
+
+  .new {
+    background-color: @new;
+    font-weight: 400;
+    text-transform: uppercase;
+  }
+
+  .redeem {
+    text-transform: uppercase;
+    color: #fff;
+    padding: 5px 20px;
+
+    &.success {
+      background-color: @success;
+      cursor: default;
+    }
+
+    &:not(.success) {
+      background-color: @action;
+
+      &:hover {
+        background-color: darken(@action, 10%);
+      }
+
+      &:active {
+        background-color: darken(@action, 15%);
+      }
+    }
+  }
+
+	.recycle {
+		font-size: 14px;
+	}
+}
+
+#emailModal {
+  input.email {
+    display: block;
+    width: 80%;
+    margin: auto;
+  }
+
+  .email-message {
+    display: none;
+    margin-right: 10px;
+
+    &.error {
+      color: @error;
+    }
+
+    &.success {
+      color: @success;
+    }
+  }  
+}

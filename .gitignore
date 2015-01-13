@@ -1,0 +1,12 @@
+.#*
+*~
+.gcloud/*
+index.yaml
+config.yaml
+overrides.yaml
+*.pyc
+*.log*
+.DS_Store
+/prober
+/xelaiemon
+*.cp

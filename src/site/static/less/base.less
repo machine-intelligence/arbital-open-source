@@ -1,0 +1,73 @@
+@import "mixins.less";
+
+body, input, select {
+  font-family: 'Roboto', sans-serif;
+}
+
+body {
+  background-color: @bg;
+}
+
+#main, .content {
+  max-width: 960px;
+  margin: auto;
+  padding: 15px;
+}
+
+select, input[type="text"] {
+  width: 10em;
+}
+
+a {
+  color: #222;
+  font-weight: 700;
+}
+
+textarea {
+  font-size: 1.0em;
+  width: 100%;
+  height: 15em;
+}
+
+h2 {
+  color: #fff;
+  font-size: 22px;
+  margin: 20px 0;
+}
+
+#base_header {
+  background-color: #000;
+
+  .profile_username {
+    color: #fff;
+    margin-left: 5px;
+  }
+}
+
+#header_link {
+  float: left;
+  text-transform: uppercase;
+
+  a {
+    color: #fff;
+    font-weight: 400;
+
+    &:hover {
+      color: #eee;
+      text-decoration: none;
+    }
+  }
+}
+
+#profile_info {
+  float: right;
+  margin-top: 5px;
+}
+
+#success p {
+  margin: 5px;
+}
+
+.error {
+  color: @error;
+}

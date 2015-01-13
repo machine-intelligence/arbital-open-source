@@ -1,0 +1,39 @@
+{{/* prober.tmpl: shows probe results */}}
+{{define "prober"}}
+<h1>Probe results</h1>
+<a href="#" class="show hidden">Show probe results</a>
+<a href="#" class="hide">Hide probe results</a>
+<div id="probe_info">
+{{range $i, $p := .}}
+<h2>{{$p.Name}}</h2>
+{{if $p.Disabled}}
+<p class="bad">Disabled</p>
+{{else}}
+<p>{{$p.Desc}}</p>
+<h3 {{with $p.Alerting}}class="bad"{{end}}>Badness: {{$p.Badness}}</h3>
+{{range $j, $r := $p.Records }}
+<div class="probe_result">
+	{{if $r.Passed}}
+	<strong title="{{$r.Timestamp}} ({{$r.Ago}})" class="good">✓</strong>
+	{{else}}
+	<strong title="{{$r.Timestamp}} ({{$r.Ago}})" class="bad">x</strong>
+	{{end}}
+</div>
+{{end}}
+<br class="fixfloat" />
+{{with $p.Records.RecentFailures}}
+<h3>Recent {{$p.Name}} failures</h3>
+{{range $i, $r := .}}
+<div class="probe_failure">
+	<h3>{{$r.Timestamp}} ({{$r.Ago}})</h3>
+	<p>{{$r.Details}}</p>
+</div>
+{{end}}
+{{end}}
+{{end}}
+</div>
+{{end}}
+
+</div>
+
+{{end}}

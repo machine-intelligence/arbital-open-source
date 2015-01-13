@@ -1,0 +1,34 @@
+{{/* dash.tmpl: dashboards */}}
+{{define "main"}}
+
+{{range $w := .Widgets}}
+  {{if $w.EverQueried}}
+    {{template "table" $w}}
+  {{else}}
+    <p class="bad">Widget {{$w.Name}} never queried DB!</p>
+  {{end}}
+{{end}}
+{{end}}
+
+{{define "table"}}
+<h1>{{.Name}}</h1>
+<p>{{.Desc}}<sup title="{{.DBQuery}}">?</sup></p>
+{{if .Labels}}
+<table border="1">
+  <tr>
+  {{range $l := .Labels}}
+    <td><strong>{{$l}}</strong></td>
+  {{end}}
+  </tr>
+{{range $r := .Rows}}
+  <tr>
+  {{range $v := $r.Values}}
+    <td>{{$v}}</td>
+  {{end}}
+  </tr>
+{{end}}
+</table>
+{{else}}
+<p class="bad">No results from query</p>
+{{end}}
+{{end}}
