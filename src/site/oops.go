@@ -20,7 +20,7 @@ var oopsPage = pages.Add(
 				ErrorMsg string
 			}{r.URL.Query().Get("error_msg")})
 	},
-	append(baseTmpls, "tmpl/oops.tmpl")...)
+	append(baseTmpls, "tmpl/base.tmpl", "tmpl/oops.tmpl")...)
 
 // showOops redirects to the "oops" page, showing a standard message
 // and logging specified error.

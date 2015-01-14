@@ -21,6 +21,7 @@ var indexPage = pages.Add(
 	"/",
 	indexRenderer,
 	append(baseTmpls,
+		"tmpl/base.tmpl",
 		"tmpl/main.tmpl")...)
 
 // indexRenderer renders the index page.

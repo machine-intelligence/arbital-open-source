@@ -1,0 +1,18 @@
+{{/* statement.tmpl is the main body of the statement page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	{{template "scripts"}}
+</head>
+
+<body>
+{{with .Statement}}
+	<p>Id: {{.Id}}</p>
+	<p>Text: {{.Text}}</p>
+{{end}}
+	<p>Error: {{.Error}}</p>
+</body>
+</html>
+{{end}}
