@@ -11,8 +11,21 @@
 {{with .Statement}}
 	<p>Id: {{.Id}}</p>
 	<p>Text: {{.Text}}</p>
+	<div class="facts">
+		{{range $i, $r := .SupportFacts}}
+			{{template "fact" $r}}
+		{{end}}
+	</div>
+	
+	<div class="facts">
+		{{range $i, $r := .OppositionFacts}}
+			{{template "fact" $r}}
+		{{end}}
+	</div>
 {{end}}
-	<p>Error: {{.Error}}</p>
+
+<p>Error: {{.Error}}</p>
+
 </body>
 </html>
 {{end}}
