@@ -5,7 +5,5 @@ function cdroot()
 }
 cdroot
 
-FILE_PATH=src/go/site/static
-lessc ${FILE_PATH}/less/rewards.less > ${FILE_PATH}/css/rewards.css
-lessc ${FILE_PATH}/less/refer.less > ${FILE_PATH}/css/refer.css
+FILE_PATH=src/site/static
 lessc ${FILE_PATH}/less/base.less > ${FILE_PATH}/css/base.css

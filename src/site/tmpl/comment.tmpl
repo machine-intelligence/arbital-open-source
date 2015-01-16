@@ -1,0 +1,13 @@
+{{/* comment.tmpl is the template for a given comment */}}
+{{define "comment"}}
+<div class="comment">
+	{{.Text}}</br>
+	{{if .Replies}}
+		<div class="replies">
+			{{range .Replies}}
+				{{template "comment" .}}
+			{{end}}
+		</div>
+	{{end}}
+</div>
+{{end}}

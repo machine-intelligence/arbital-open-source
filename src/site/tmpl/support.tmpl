@@ -1,0 +1,21 @@
+{{/* support.tmpl is the template for a given support */}}
+{{define "support"}}
+<div class="support">
+	<div class="supportBody">
+		{{if .Prior.Valid}}
+			Prior for {{.Answer}} is {{.Prior.Int64}}</br>
+			Text: {{.Text}}</br>
+		{{else}}
+			Text: {{.Text}}
+		{{end}}
+	</div>
+	{{if .Comments}}
+		<div class="comments">
+			Comments:</br>
+			{{range .Comments}}
+				{{template "comment" .}}
+			{{end}}
+		</div>
+	{{end}}
+</div>
+{{end}}

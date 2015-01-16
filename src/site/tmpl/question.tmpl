@@ -1,0 +1,37 @@
+{{/* question.tmpl is the main body of the question page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	{{template "scripts"}}
+</head>
+
+<body>
+<div class="bQuestion">
+	{{.Question.Text}}
+</div>
+
+<div class="bPriors">
+	{{range .Priors}}
+		<div class="supportColumn">
+			{{template "support" .}}
+		</div>
+	{{end}}
+</div>
+
+<div class="bSupport">
+	{{range .Support}}
+		<div class="supportColumn">
+			{{range .}}
+				{{template "support" .}}
+			{{end}}
+		</div>
+	{{end}}
+</div>
+
+<div>Error: {{.Error}}</div>
+
+</body>
+</html>
+{{end}}
