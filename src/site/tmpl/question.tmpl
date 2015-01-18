@@ -8,8 +8,27 @@
 </head>
 
 <body>
+<nav id="primary_nav_wrap" class="bHeader">
+	<ul>
+		{{if .User.IsLoggedIn}}
+			<li><a href="#">&#x25BC; {{.User.Email}}</a>
+				<ul>
+					<li><a href="{{.User.LogoutLink}}" id="logout">Logout</a></li>
+				</ul>
+			</li>
+		{{else}}
+			<li><a href="{{.User.LoginLink}}">LOGIN</a></li>
+		{{end}}
+	</ul>
+	<div class="clearfix"></div>
+</nav>
+
+
 <div class="bQuestion">
 	{{.Question.Text}}
+	{{if IsAdmin}}
+		<p class="admin">asked by {{.Question.CreatorName}}</p>
+	{{end}}
 </div>
 
 <div class="bPriors">

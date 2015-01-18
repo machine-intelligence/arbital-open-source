@@ -12,6 +12,8 @@ CREATE TABLE comments (
   createdAt DATETIME NOT NULL,
 	/* User id of the creator. */
   creatorId BIGINT NOT NULL,
+	/* Full name of the user who commented. */
+	creatorName VARCHAR(128) NOT NULL,
 	/* Text supplied by the user. */
   text VARCHAR(2048) NOT NULL,
   PRIMARY KEY(id)

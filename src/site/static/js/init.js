@@ -8,6 +8,10 @@ $(document).ready(function() {
       });
     };
   }
+
+	$("#logout").click(function() {
+		$.removeCookie("zanaduu", {path: "/"});
+	});
 });
 
 // Helpful function to serialize an object

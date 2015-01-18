@@ -12,7 +12,7 @@ import (
 // oopsPage serves the "oops" page.
 var oopsPage = pages.Add(
 	"/oops",
-	func(w http.ResponseWriter, r *http.Request) pages.Result {
+	func(w http.ResponseWriter, r *http.Request) *pages.Result {
 		c := sessions.NewContext(r)
 		c.Inc("oops_page_served_success")
 		return pages.StatusOK(

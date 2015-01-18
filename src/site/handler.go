@@ -6,12 +6,9 @@ import (
 	"net/http"
 
 	"appengine/taskqueue"
-	"appengine/user"
 
 	//"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
-
-	//"github.com/hkjn/pages"
 )
 
 // Handler serves HTTP.
@@ -27,28 +24,7 @@ type handler http.HandlerFunc
 // is incorrect) that may cause further checks not to run (e.g. we
 // wouldn't even check if the user was logged in).
 func stdHandler(h handler) handler {
-	return h.loggedIn().domain().monitor()
-}
-
-// sendToAuth redirects to an authentication URL.
-func sendToAuth(w http.ResponseWriter, r *http.Request) {
-	/*c := sessions.NewContext(r)
-
-	var authUrl string
-	var err error
-	if !sessions.Live && config.XC.Site.Dev.Auth == "fake" {
-		// On dev when requested we use a fake static user instead of real auth.
-		authUrl = "/"
-		err = user.BecomeFakeUser(w, r)
-	} else {
-		authUrl, err = twitter.GetAuthUrl(w, r)
-	}
-	if err != nil {
-		showOops(w, r, fmt.Errorf("error fetching auth URL: %v", err))
-		return
-	}
-	c.Infof("redirecting to auth URL %q..\n", authUrl)
-	http.Redirect(w, r, authUrl, http.StatusSeeOther)*/
+	return h.domain().monitor()
 }
 
 // domain redirects to proper HTML domain if user arrives elsewhere.
@@ -71,60 +47,6 @@ func (fn handler) domain() handler {
 			fn(w, r)
 		}
 		return
-	}
-}
-
-// loggedIn forwards to specified handler iff we have sign in info for the user.
-func (fn handler) loggedIn() handler {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c := sessions.NewContext(r)
-		c.Debugf("loggedIn check for %q", r.URL)
-
-		u := user.Current(c)
-		if u == nil {
-			url, _ := user.LoginURL(c, "/")
-			fmt.Fprintf(w, `<a href="%s">Sign in or register</a>`, url)
-			return
-		}
-		url, _ := user.LogoutURL(c, "/")
-		fmt.Fprintf(w, `Welcome, %s! (<a href="%s">sign out</a>)`, u, url)
-		return
-		/*if creds == nil {
-			c.Debugf("no real credentials, sending user to auth URL..\n")
-			sendToAuth(w, r)
-			return
-		} else {
-			c.Debugf("we have real credentials, now checking user info..\n")
-			var err error
-			u, err = user.LoadUser(r)
-			if err != nil {
-				pages.ShowError(w, r, fmt.Errorf("error loading user: %v", err))
-				return
-			}
-			if u != nil {
-				c.Debugf("an existing user, welcome %q (%d), and onward to the handler..\n", u.Twitter.ScreenName, u.Twitter.Id)
-				u.TwitterCreds = creds
-				fn(w, r)
-				return
-			}
-			c.Debugf("no user in session, fetching new one using credentials\n")
-			var twitterUser *twitter.TwitterUser
-			twitterUser, err = twitter.NewUser(w, r, creds)
-			if err != nil {
-				c.Errorf("error fetching user info, sending user to auth URL to start over: %v", err)
-				sendToAuth(w, r)
-				return
-			}
-			u := user.User{Twitter: *twitterUser, TwitterCreds: creds}
-			err = u.Save(w, r)
-			if err != nil {
-				pages.ShowError(w, r, fmt.Errorf("error saving user: %v", err))
-				return
-			} else {
-				c.Debugf("created new user, welcome %q (%d), and onward to the handler..\n", u.Twitter.ScreenName, u.Twitter.Id)
-				fn(w, r)
-			}
-		}*/
 	}
 }
 

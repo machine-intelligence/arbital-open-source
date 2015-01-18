@@ -8,6 +8,9 @@
 		{{else}}
 			Text: {{.Text}}
 		{{end}}
+		{{if IsAdmin}}
+			<p class="admin">asked by {{.CreatorName}}</p>
+		{{end}}
 	</div>
 	{{if .Comments}}
 		<div class="comments">

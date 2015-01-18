@@ -1,5 +1,12 @@
-body {
-  padding: 3em;
+.clearfix {
+  content: "";
+  display: table;
+  clear: both;
+}
+.bHeader {
+  background-color: Yellow;
+  text-align: right;
+  padding: 0.5em 1em;
 }
 .bQuestion {
   background-color: LightPink;
@@ -18,6 +25,7 @@ body {
   vertical-align: top;
   width: 50%;
   font-size: 14px;
+  padding: 0 3em;
 }
 .support {
   background-color: LightBlue;
@@ -25,4 +33,37 @@ body {
 }
 .comment {
   padding: 0 2em;
+}
+.bHeader ul {
+  position: relative;
+  float: right;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.bHeader ul a {
+  display: block;
+  color: #333;
+  text-decoration: none;
+  font-size: 1em;
+  padding: 0.5em 1em;
+}
+.bHeader ul li {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+.bHeader ul li:hover {
+  background: #f6f6f6;
+}
+.bHeader ul ul {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  padding: 0;
+}
+.bHeader ul li:hover > ul {
+  display: block;
 }

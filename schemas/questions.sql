@@ -8,6 +8,8 @@ CREATE TABLE questions (
   createdAt DATETIME NOT NULL,
 	/* User id of the creator of this question. */
   creatorId BIGINT NOT NULL,
+	/* Full name of the user who asked. */
+	creatorName VARCHAR(128) NOT NULL,
 	/* Text of the question. */
   text VARCHAR(512) NOT NULL,
   PRIMARY KEY(id)

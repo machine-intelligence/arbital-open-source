@@ -5,41 +5,50 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strconv"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
 	"github.com/hkjn/pages"
 )
 
 type comment struct {
-	Id        int64
-	SupportId int64
-	CreatedAt string
-	Text      string
-	ReplyToId sql.NullInt64
-	Replies   []*comment
+	Id          int64
+	SupportId   int64
+	CreatedAt   string
+	Text        string
+	ReplyToId   sql.NullInt64
+	CreatorId   int64
+	CreatorName string
+	Replies     []*comment
 }
 
 type support struct {
-	Id        int64
-	CreatedAt string
-	Text      string
-	Answer    string
-	Prior     sql.NullInt64
-	Comments  []*comment
+	Id          int64
+	CreatedAt   string
+	Text        string
+	Answer      string
+	Prior       sql.NullInt64
+	CreatorId   int64
+	CreatorName string
+	Comments    []*comment
 }
 
 type question struct {
-	Id   int64
-	Text string
+	Id          int64
+	Text        string
+	CreatorId   int64
+	CreatorName string
 }
 
 // questionTmplData stores the data that we pass to the index.tmpl to render the page
 type questionTmplData struct {
+	User     *user.User
 	Question *question
 	Priors   map[string]*support
 	Support  map[string][]*support // answer -> []*support
@@ -63,8 +72,8 @@ func loadQuestion(c sessions.Context, idStr string) (*question, error) {
 	}
 
 	c.Infof("querying DB for question with id = %s\n", idStr)
-	sql := fmt.Sprintf("SELECT text FROM questions WHERE id=%s", idStr)
-	exists, err := database.QueryRowSql(c, sql, &question.Text)
+	sql := fmt.Sprintf("SELECT text,creatorId,creatorName FROM questions WHERE id=%s", idStr)
+	exists, err := database.QueryRowSql(c, sql, &question.Text, &question.CreatorId, &question.CreatorName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a question: %v", err)
 	} else if !exists {
@@ -79,7 +88,7 @@ func loadSupport(c sessions.Context, db *sql.DB, idStr string) ([]support, error
 
 	c.Infof("querying DB for support with questionId = %s\n", idStr)
 	rows, err := db.Query(`
-		SELECT id,createdAt,text,answer,prior
+		SELECT id,createdAt,text,answer,prior,creatorId,creatorName
 		FROM support
 		WHERE questionId=?`, idStr)
 	if err != nil {
@@ -93,7 +102,9 @@ func loadSupport(c sessions.Context, db *sql.DB, idStr string) ([]support, error
 			&s.CreatedAt,
 			&s.Text,
 			&s.Answer,
-			&s.Prior)
+			&s.Prior,
+			&s.CreatorId,
+			&s.CreatorName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan for support: %v", err)
 		}
@@ -109,7 +120,7 @@ func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]
 	c.Infof("querying DB for comments with supportIds = %v", supportIds)
 	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
 	query := fmt.Sprintf(`
-		SELECT id,supportId,createdAt,text,replyToId
+		SELECT id,supportId,createdAt,text,replyToId,creatorId,creatorName
 		FROM comments
 		WHERE supportId IN (%s)`, supportIds)
 	rows, err := db.Query(query)
@@ -124,7 +135,9 @@ func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]
 			&ct.SupportId,
 			&ct.CreatedAt,
 			&ct.Text,
-			&ct.ReplyToId)
+			&ct.ReplyToId,
+			&ct.CreatorId,
+			&ct.CreatorName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan for comments: %v", err)
 		}
@@ -134,7 +147,7 @@ func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]
 }
 
 // questionRenderer renders the question page.
-func questionRenderer(w http.ResponseWriter, r *http.Request) pages.Result {
+func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	var data questionTmplData
 	c := sessions.NewContext(r)
 
@@ -202,6 +215,16 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) pages.Result {
 		}
 	}
 
+	// Load user, if possible
+	data.User, err = user.LoadUser(w, r)
+	if err != nil {
+		c.Errorf("Couldn't load user: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
+	funcMap := template.FuncMap{
+		"IsAdmin": func() bool { return data.User.IsAdmin },
+	}
 	c.Inc("question_page_served_success")
-	return pages.StatusOK(data)
+	return pages.StatusOK(data).SetFuncMap(funcMap)
 }

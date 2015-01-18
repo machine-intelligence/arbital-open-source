@@ -25,7 +25,7 @@ var indexPage = pages.Add(
 		"tmpl/main.tmpl")...)
 
 // indexRenderer renders the index page.
-func indexRenderer(w http.ResponseWriter, r *http.Request) pages.Result {
+func indexRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	var data indexTmplData
 	c := sessions.NewContext(r)
 	q := r.URL.Query()
