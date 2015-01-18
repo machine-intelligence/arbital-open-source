@@ -8,8 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"zanaduu3/src/config"
-
-	"github.com/hkjn/pages"
+	"zanaduu3/src/pages"
 )
 
 var (

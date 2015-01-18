@@ -10,11 +10,11 @@ import (
 	"strconv"
 
 	"zanaduu3/src/database"
+	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
-	"github.com/hkjn/pages"
 )
 
 type comment struct {

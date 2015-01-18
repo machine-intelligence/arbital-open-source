@@ -9,11 +9,11 @@ import (
 	"appengine/urlfetch"
 
 	"zanaduu3/src/config"
+	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 
 	"github.com/garyburd/go-oauth/oauth"
 	"github.com/gorilla/mux"
-	"github.com/hkjn/pages"
 )
 
 var (

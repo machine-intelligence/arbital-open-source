@@ -4,9 +4,8 @@ package site
 import (
 	"net/http"
 
+	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
-
-	"github.com/hkjn/pages"
 )
 
 // oopsPage serves the "oops" page.

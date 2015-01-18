@@ -7,11 +7,11 @@ import (
 	"appengine"
 
 	"zanaduu3/src/config"
+	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/twitter"
 
 	"github.com/gorilla/mux"
-	"github.com/hkjn/pages"
 )
 
 var (
