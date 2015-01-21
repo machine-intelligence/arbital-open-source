@@ -55,6 +55,7 @@ func init() {
 	r.HandleFunc("/updateQuestion/", updateQuestionHandler).Methods("POST")
 	r.HandleFunc("/updateSupport/", updateSupportHandler).Methods("POST")
 	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
+	r.HandleFunc("/updatePriorVote/", updatePriorVoteHandler).Methods("POST")
 
 	http.Handle("/", r)
 }

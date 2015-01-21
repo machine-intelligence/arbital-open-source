@@ -20,6 +20,15 @@
 .support {
   background-color: LightBlue;
   padding: 2em 0;
+  overflow: auto;
+}
+.supportLeft {
+  float: left;
+  width: 10%;
+}
+.supportRight {
+  float: right;
+  width: 90%;
 }
 .comments {
   padding: 0 2em;

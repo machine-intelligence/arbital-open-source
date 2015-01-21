@@ -1,28 +1,36 @@
 {{/* support.tmpl is the template for a given support */}}
 {{define "support"}}
 <div class="support" support-id="{{.Id}}">
-	<div class="supportBody">
-		{{if .Prior.Valid}}
-			Prior for {{.Answer}} is {{.Prior.Int64}}</br>
-		{{end}}
-		<p class="supportText">{{.Text}}</p>
-		{{if IsAdmin}}
-			<p class="admin">
-				<span>asked by {{.CreatorName}}</span></br>
-				<textarea class="inputSupport"></textarea>
-				<a href="#" class="saveSupport">Save</a>
-				<a href="#" class="cancelSupport">Cancel</a>
-				<a href="#" class="editSupport">Edit</a>
-			</p>
+	<div class="supportLeft">
+		<a href="#" class="priorVote" {{if .Vote}}vote-id="{{.Vote.Id}}"{{end}}>Vote</a>
+		{{if .Vote}}
+			<p>My vote: {{.Vote.Value}}</p>
 		{{end}}
 	</div>
-
-	<span>Comments:</span></br>
-	<div class="comments">
-		{{range .Comments}}
-			{{template "comment" .}}
-		{{end}}
-		{{template "newComment" "New Comment"}}
+	<div class="supportRight">
+		<div class="supportBody">
+			{{if .Prior.Valid}}
+				Prior for {{.AnswerIndex}} is {{.Prior.Int64}}</br>
+			{{end}}
+			<p class="supportText">{{.Text}}</p>
+			{{if IsAdmin}}
+				<p class="admin">
+					<span>asked by {{.CreatorName}}</span></br>
+					<textarea class="inputSupport"></textarea>
+					<a href="#" class="saveSupport">Save</a>
+					<a href="#" class="cancelSupport">Cancel</a>
+					<a href="#" class="editSupport">Edit</a>
+				</p>
+			{{end}}
+		</div>
+	
+		<span>Comments:</span></br>
+		<div class="comments">
+			{{range .Comments}}
+				{{template "comment" .}}
+			{{end}}
+			{{template "newComment" "New Comment"}}
+		</div>
 	</div>
 </div>
 {{end}}

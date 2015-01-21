@@ -14,9 +14,9 @@ CREATE TABLE support (
 	creatorName VARCHAR(128) NOT NULL,
 	/* Text supplied by the user. */
   text VARCHAR(2048) NOT NULL,
-	/* What answer this statement supports. */
-  answer VARCHAR(512) NOT NULL,
+	/* Index of the answer this statement supports. */
+  answerIndex TINYINT UNSIGNED NOT NULL,
 	/* Prior percent for this answer. */
-	prior SMALLINT,
+	prior FLOAT,
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

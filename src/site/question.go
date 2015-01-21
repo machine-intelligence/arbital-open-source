@@ -38,11 +38,12 @@ type support struct {
 	Id          int64
 	CreatedAt   string
 	Text        string
-	Answer      string
+	AnswerIndex int
 	Prior       sql.NullInt64
 	CreatorId   int64
 	CreatorName string
 	Comments    []*comment
+	Vote        *vote
 }
 
 type question struct {
@@ -52,12 +53,18 @@ type question struct {
 	CreatorName string
 }
 
+type vote struct {
+	Id        int64
+	SupportId int64
+	Value     float32
+}
+
 // questionTmplData stores the data that we pass to the index.tmpl to render the page
 type questionTmplData struct {
 	User     *user.User
 	Question *question
-	Priors   map[string]*support
-	Support  map[string][]*support // answer -> []*support
+	Priors   map[int]*support
+	Support  map[int][]*support // answer -> []*support
 	Error    string
 }
 
@@ -94,7 +101,7 @@ func loadSupport(c sessions.Context, db *sql.DB, idStr string) ([]support, error
 
 	c.Infof("querying DB for support with questionId = %s\n", idStr)
 	rows, err := db.Query(`
-		SELECT id,createdAt,text,answer,prior,creatorId,creatorName
+		SELECT id,createdAt,text,answerIndex,prior,creatorId,creatorName
 		FROM support
 		WHERE questionId=?`, idStr)
 	if err != nil {
@@ -107,7 +114,7 @@ func loadSupport(c sessions.Context, db *sql.DB, idStr string) ([]support, error
 			&s.Id,
 			&s.CreatedAt,
 			&s.Text,
-			&s.Answer,
+			&s.AnswerIndex,
 			&s.Prior,
 			&s.CreatorId,
 			&s.CreatorName)
@@ -154,6 +161,33 @@ func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]
 	return comments, sortedCommentIds, nil
 }
 
+// setPriorVotes loads and sets the current user's vote values for priors.
+func setPriorVotes(c sessions.Context, db *sql.DB, userId int64, supportIds string, supportMap map[int64]*support) error {
+	c.Infof("querying DB for prior votes with userId=%v, supportIds=%v", userId, supportIds)
+	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
+	query := fmt.Sprintf(`
+		SELECT id,supportId,value
+		FROM priorVotes
+		WHERE userId=%d AND supportId IN (%s)`, userId, supportIds)
+	rows, err := db.Query(query)
+	if err != nil {
+		return fmt.Errorf("failed to query for votes: %v", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var v vote
+		err := rows.Scan(
+			&v.Id,
+			&v.SupportId,
+			&v.Value)
+		if err != nil {
+			return fmt.Errorf("failed to scan for votes: %v", err)
+		}
+		supportMap[v.SupportId].Vote = &v
+	}
+	return nil
+}
+
 // questionRenderer renders the question page.
 func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	var data questionTmplData
@@ -185,13 +219,13 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 	var buffer bytes.Buffer
 	supportMap := make(map[int64]*support)
-	data.Priors = make(map[string]*support)
-	data.Support = make(map[string][]*support)
+	data.Priors = make(map[int]*support)
+	data.Support = make(map[int][]*support)
 	for i, s := range supportSlice {
 		if s.Prior.Valid {
-			data.Priors[s.Answer] = &supportSlice[i]
+			data.Priors[s.AnswerIndex] = &supportSlice[i]
 		} else {
-			data.Support[s.Answer] = append(data.Support[s.Answer], &supportSlice[i])
+			data.Support[s.AnswerIndex] = append(data.Support[s.AnswerIndex], &supportSlice[i])
 		}
 		buffer.WriteString(strconv.FormatInt(s.Id, 10))
 		buffer.WriteString(",")
@@ -231,7 +265,13 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
-	c.Debugf("========= %v", data.User)
+	// Load all the votes and update priors
+	err = setPriorVotes(c, db, data.User.Id, supportIds, supportMap)
+	if err != nil {
+		c.Errorf("Couldn't load votes: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
 	funcMap := template.FuncMap{
 		"UserId":  func() int64 { return data.User.Id },
 		"IsAdmin": func() bool { return data.User.IsAdmin },

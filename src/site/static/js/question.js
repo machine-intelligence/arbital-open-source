@@ -170,4 +170,26 @@ $(document).ready(function() {
 		return false;
 	});
 
+	// Voting stuff.
+	$(".priorVote").on("click", function(event) {
+		var $target = $(event.target);
+		var $support = $target.closest(".support");
+		var data = {
+			value: "5.0",
+		};
+		if ($target.attr("vote-id") === undefined) {
+			data["supportId"] = $support.attr("support-id");
+		} else {
+			data["id"] = $target.attr("vote-id");
+		}
+		$.ajax({
+			type: 'POST',
+			url: '/updatePriorVote/',
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+		});
+		return false;
+	});
+	
 });
