@@ -32,6 +32,25 @@ type User struct {
 	LogoutLink string
 }
 
+func (user *User) FullName() string {
+	return user.FirstName + " " + user.LastName
+}
+
+// Save stores the user in the session.
+func (user *User) Save(w http.ResponseWriter, r *http.Request) error {
+	s, err := sessions.GetSession(r)
+	if err != nil {
+		return fmt.Errorf("couldn't get session: %v", err)
+	}
+
+	s.Values[userKey] = user
+	err = s.Save(r, w)
+	if err != nil {
+		return fmt.Errorf("failed to save user to session: %v", err)
+	}
+	return nil
+}
+
 // Get the currently logged in user from App Engine. The users database is
 // updated if this user is newly created.
 func current(r *http.Request, c sessions.Context) (*User, error) {
@@ -41,8 +60,8 @@ func current(r *http.Request, c sessions.Context) (*User, error) {
 	}
 
 	var u User
-	sql := fmt.Sprintf("SELECT id,email,firstName,lastName FROM users WHERE email='%s'", appEngineUser.Email)
-	exists, err := database.QueryRowSql(c, sql, &u.Id, &u.Email, &u.FirstName, &u.LastName)
+	sql := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin FROM users WHERE email='%s'", appEngineUser.Email)
+	exists, err := database.QueryRowSql(c, sql, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
@@ -123,21 +142,6 @@ func ParseUser(rc io.ReadCloser) (*User, error) {
 		return nil, fmt.Errorf("Error decoding the user: %v", err)
 	}
 	return &user, nil
-}
-
-// Save stores the user in the session.
-func (user *User) Save(w http.ResponseWriter, r *http.Request) error {
-	s, err := sessions.GetSession(r)
-	if err != nil {
-		return fmt.Errorf("couldn't get session: %v", err)
-	}
-
-	s.Values[userKey] = user
-	err = s.Save(r, w)
-	if err != nil {
-		return fmt.Errorf("failed to save user to session: %v", err)
-	}
-	return nil
 }
 
 // BecomeFakeUser sets the current user's cookie to a static fake profile.

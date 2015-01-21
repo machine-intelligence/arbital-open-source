@@ -1,24 +1,28 @@
 {{/* support.tmpl is the template for a given support */}}
 {{define "support"}}
-<div class="support">
+<div class="support" support-id="{{.Id}}">
 	<div class="supportBody">
 		{{if .Prior.Valid}}
 			Prior for {{.Answer}} is {{.Prior.Int64}}</br>
-			Text: {{.Text}}</br>
-		{{else}}
-			Text: {{.Text}}
 		{{end}}
+		<p class="supportText">{{.Text}}</p>
 		{{if IsAdmin}}
-			<p class="admin">asked by {{.CreatorName}}</p>
+			<p class="admin">
+				<span>asked by {{.CreatorName}}</span></br>
+				<textarea class="inputSupport"></textarea>
+				<a href="#" class="saveSupport">Save</a>
+				<a href="#" class="cancelSupport">Cancel</a>
+				<a href="#" class="editSupport">Edit</a>
+			</p>
 		{{end}}
 	</div>
-	{{if .Comments}}
-		<div class="comments">
-			Comments:</br>
-			{{range .Comments}}
-				{{template "comment" .}}
-			{{end}}
-		</div>
-	{{end}}
+
+	<span>Comments:</span></br>
+	<div class="comments">
+		{{range .Comments}}
+			{{template "comment" .}}
+		{{end}}
+		{{template "newComment" "New Comment"}}
+	</div>
 </div>
 {{end}}

@@ -1,0 +1,11 @@
+{{/* newComment.tmpl is the template for url and textarea used to create new a comment. */}}
+{{define "newComment"}}
+<div class="newComment">
+	<a href="#" class="newCommentLink">{{.}}</a>
+	<div class="editNewComment">
+		<textarea class="inputNewComment"></textarea>
+		<a href="#" class="saveNewComment">Save</a>
+		<a href="#" class="cancelNewComment">Cancel</a>
+	</div>
+</div>
+{{end}}

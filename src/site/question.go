@@ -28,6 +28,12 @@ type comment struct {
 	Replies     []*comment
 }
 
+type byDate []comment
+
+func (a byDate) Len() int           { return len(a) }
+func (a byDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byDate) Less(i, j int) bool { return a[i].CreatedAt < a[j].CreatedAt }
+
 type support struct {
 	Id          int64
 	CreatedAt   string
@@ -60,7 +66,7 @@ var questionPage = pages.Add(
 	"/questions/{id:[0-9]+}",
 	questionRenderer,
 	append(baseTmpls,
-		"tmpl/question.tmpl", "tmpl/support.tmpl", "tmpl/comment.tmpl")...)
+		"tmpl/question.tmpl", "tmpl/support.tmpl", "tmpl/comment.tmpl", "tmpl/newComment.tmpl")...)
 
 // loadQuestion loads and returns the question with the correeponding id from the db.
 func loadQuestion(c sessions.Context, idStr string) (*question, error) {
@@ -114,8 +120,9 @@ func loadSupport(c sessions.Context, db *sql.DB, idStr string) ([]support, error
 }
 
 // loadComments loads and returns all the comments for the given support ids from the db.
-func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]*comment, error) {
+func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]*comment, []int64, error) {
 	comments := make(map[int64]*comment)
+	sortedCommentIds := make([]int64, 0)
 
 	c.Infof("querying DB for comments with supportIds = %v", supportIds)
 	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
@@ -125,7 +132,7 @@ func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]
 		WHERE supportId IN (%s)`, supportIds)
 	rows, err := db.Query(query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query for comments: %v", err)
+		return nil, nil, fmt.Errorf("failed to query for comments: %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -139,11 +146,12 @@ func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]
 			&ct.CreatorId,
 			&ct.CreatorName)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan for comments: %v", err)
+			return nil, nil, fmt.Errorf("failed to scan for comments: %v", err)
 		}
 		comments[ct.Id] = &ct
+		sortedCommentIds = append(sortedCommentIds, ct.Id)
 	}
-	return comments, nil
+	return comments, sortedCommentIds, nil
 }
 
 // questionRenderer renders the question page.
@@ -194,14 +202,15 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 
 	// Load all the comments
 	var comments map[int64]*comment
-	comments, err = loadComments(c, db, supportIds)
+	var sortedCommentKeys []int64 // need this for in-order iteration
+	comments, sortedCommentKeys, err = loadComments(c, db, supportIds)
 	if err != nil {
 		c.Inc("comments_fetch_fail")
 		c.Errorf("error while fetching comments for question id: %s\n%v", idStr, err)
 		return pages.InternalErrorWith(err)
 	}
-	for key, comment := range comments {
-		var supportObj *support
+	for _, key := range sortedCommentKeys {
+		comment := comments[key]
 		supportObj, ok := supportMap[comment.SupportId]
 		if !ok {
 			c.Errorf("couldn't find support for a comment: %d\n%v", key, err)
@@ -222,7 +231,9 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
+	c.Debugf("========= %v", data.User)
 	funcMap := template.FuncMap{
+		"UserId":  func() int64 { return data.User.Id },
 		"IsAdmin": func() bool { return data.User.IsAdmin },
 	}
 	c.Inc("question_page_served_success")

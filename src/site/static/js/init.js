@@ -1,5 +1,4 @@
 $(document).ready(function() {
-  console.log('== init ==')
   if (!String.prototype.format) {
     String.prototype.format = function() {
       var args = arguments;

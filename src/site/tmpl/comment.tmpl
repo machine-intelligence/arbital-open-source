@@ -1,13 +1,26 @@
 {{/* comment.tmpl is the template for a given comment */}}
 {{define "comment"}}
-<div class="comment">
-	{{.Text}}</br>
-	{{if .Replies}}
-		<div class="replies">
-			{{range .Replies}}
-				{{template "comment" .}}
-			{{end}}
-		</div>
-	{{end}}
+<div class="comment" comment-id="{{.Id}}">
+	<div class="commentBody">
+		<span class="commentCreatorName">{{.CreatorName}}: </span>
+		{{if eq .CreatorId UserId}}
+			<a href="#" class="commentText">{{.Text}}</a>
+			<div class="editComment">
+				<textarea class="inputComment"></textarea>
+				<a href="#" class="saveComment">Save</a>
+				<a href="#" class="cancelComment">Cancel</a>
+			</div>
+		{{else}}
+			<span class="commentText">{{.Text}}</span>
+		{{end}}
+	</div>
+	<div class="replies">
+		{{range .Replies}}
+			{{template "comment" .}}
+		{{end}}
+		{{if not .ReplyToId.Valid}}
+			{{template "newComment" "Reply"}}
+		{{end}}
+	</div>
 </div>
 {{end}}

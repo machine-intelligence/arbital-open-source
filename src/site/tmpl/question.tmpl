@@ -4,10 +4,13 @@
 <html>
 <head>
 	{{template "style"}}
+	<link href="/static/css/question.css" rel="stylesheet">
 	{{template "scripts"}}
+	<script src="/static/js/question.js"></script>
 </head>
 
 <body>
+
 <nav id="primary_nav_wrap" class="bHeader">
 	<ul>
 		{{if .User.IsLoggedIn}}
@@ -25,9 +28,15 @@
 
 
 <div class="bQuestion">
-	{{.Question.Text}}
+	<p class="questionText" question-id="{{.Question.Id}}">{{.Question.Text}}</p>
 	{{if IsAdmin}}
-		<p class="admin">asked by {{.Question.CreatorName}}</p>
+		<p class="admin">
+			<input type="text" class="inputQuestion"></br>
+			<a href="#" class="saveQuestion">Save</a>
+			<a href="#" class="cancelQuestion">Cancel</a>
+			<a href="#" class="editQuestion">Edit</a>
+			asked by {{.Question.CreatorName}}
+		</p>
 	{{end}}
 </div>
 
