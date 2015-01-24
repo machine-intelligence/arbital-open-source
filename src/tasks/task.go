@@ -21,7 +21,7 @@ type QueueTask interface {
 }
 
 // Add the task to the queue.
-func Enqueue(c sessions.Context, task interface{}, tag string) (err error) {
+func EnqueueWithName(c sessions.Context, task interface{}, tag string, name string) (err error) {
 	buffer := new(bytes.Buffer)
 	err = gob.NewEncoder(buffer).Encode(task)
 	if err != nil {
@@ -31,13 +31,19 @@ func Enqueue(c sessions.Context, task interface{}, tag string) (err error) {
 	newTask := &taskqueue.Task{
 		Method:  "PULL",
 		Payload: buffer.Bytes(),
-		Tag:     tag}
+		Tag:     tag,
+		Name:    name}
 	newTask, err = taskqueue.Add(c, newTask, "daemon-queue")
 	if err != nil {
 		err = fmt.Errorf("Failed to insert task: %v", err)
 		return
 	}
 	return
+}
+
+// Add the task to the queue.
+func Enqueue(c sessions.Context, task interface{}, tag string) (err error) {
+	return EnqueueWithName(c, task, tag, "")
 }
 
 // Convert byte stream into a QueueTask.

@@ -14,7 +14,7 @@ CREATE TABLE support (
 	creatorName VARCHAR(128) NOT NULL,
 	/* Text supplied by the user. */
   text VARCHAR(2048) NOT NULL,
-	/* Index of the answer this statement supports. */
+	/* Index of the answer this statement supports. Start at 1. */
   answerIndex TINYINT UNSIGNED NOT NULL,
 	/* Prior percent for this answer. */
 	prior FLOAT,

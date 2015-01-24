@@ -51,12 +51,14 @@ type question struct {
 	Text        string
 	CreatorId   int64
 	CreatorName string
+	PriorVote   *priorVote
+}
+
+type priorVote struct {
+	Value float32
 }
 
 type vote struct {
-	Id        int64
-	SupportId int64
-	Value     float32
 }
 
 // questionTmplData stores the data that we pass to the index.tmpl to render the page
@@ -161,31 +163,23 @@ func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]
 	return comments, sortedCommentIds, nil
 }
 
-// setPriorVotes loads and sets the current user's vote values for priors.
-func setPriorVotes(c sessions.Context, db *sql.DB, userId int64, supportIds string, supportMap map[int64]*support) error {
-	c.Infof("querying DB for prior votes with userId=%v, supportIds=%v", userId, supportIds)
-	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
+// loadPriorVote loads and returns the current user's most recent prior vote for this question.
+func loadPriorVote(c sessions.Context, db *sql.DB, userId int64, questionId int64) (*priorVote, error) {
+	c.Infof("querying DB for prior votes with userId=%v, questionId=%v", userId, questionId)
+	var vote priorVote
 	query := fmt.Sprintf(`
-		SELECT id,supportId,value
+		SELECT value
 		FROM priorVotes
-		WHERE userId=%d AND supportId IN (%s)`, userId, supportIds)
-	rows, err := db.Query(query)
+		WHERE userId=%d AND questionId=%d
+		ORDER BY createdAt DESC
+		LIMIT 1`, userId, questionId)
+	exists, err := database.QueryRowSql(c, query, &vote.Value)
 	if err != nil {
-		return fmt.Errorf("failed to query for votes: %v", err)
+		return nil, fmt.Errorf("Couldn't retrieve a prior vote: %v", err)
+	} else if !exists {
+		return nil, nil
 	}
-	defer rows.Close()
-	for rows.Next() {
-		var v vote
-		err := rows.Scan(
-			&v.Id,
-			&v.SupportId,
-			&v.Value)
-		if err != nil {
-			return fmt.Errorf("failed to scan for votes: %v", err)
-		}
-		supportMap[v.SupportId].Vote = &v
-	}
-	return nil
+	return &vote, nil
 }
 
 // questionRenderer renders the question page.
@@ -265,10 +259,10 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
-	// Load all the votes and update priors
-	err = setPriorVotes(c, db, data.User.Id, supportIds, supportMap)
+	// Load prior vote
+	data.Question.PriorVote, err = loadPriorVote(c, db, data.User.Id, data.Question.Id)
 	if err != nil {
-		c.Errorf("Couldn't load votes: %v", err)
+		c.Errorf("Couldn't load prior vote: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 

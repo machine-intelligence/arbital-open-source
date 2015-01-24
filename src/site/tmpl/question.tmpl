@@ -46,6 +46,9 @@
 			{{template "support" .}}
 		</div>
 	{{end}}
+	{{if .Question.PriorVote}}
+		<p style="font-size:15px">You voted: {{.Question.PriorVote.Value}}</p>
+	{{end}}
 </div>
 
 <div class="bSupport">

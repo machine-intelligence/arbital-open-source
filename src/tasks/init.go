@@ -6,8 +6,5 @@ import (
 )
 
 func init() {
-	gob.Register(&UpdateContestTask{})
-	gob.Register(&TweetTask{})
-	gob.Register(&FollowTask{})
-	gob.Register(&ReferEmailTask{})
+	gob.Register(&TickTask{})
 }

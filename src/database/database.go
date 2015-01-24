@@ -21,7 +21,7 @@ var (
 
 // ProcessRow is the type of function that will be called once for each row
 // loaded from an sql query.
-type ProcessRow func(rows *sql.Rows) error
+type ProcessRow func(c sessions.Context, rows *sql.Rows) error
 
 // InsertMap is the map passed in to various database helper functions.
 type InsertMap map[string]interface{}
@@ -123,7 +123,7 @@ func QuerySql(c sessions.Context, command string, f ProcessRow) error {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err = f(rows); err != nil {
+		if err = f(c, rows); err != nil {
 			return err
 		}
 	}
