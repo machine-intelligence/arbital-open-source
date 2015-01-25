@@ -51,9 +51,13 @@ func init() {
 	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
 
 	r.HandleFunc(questionPage.URI, stdHandler(questionPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(newQuestionPage.URI, stdHandler(newQuestionPage.ServeHTTP)).Methods("GET", "HEAD")
 
+	r.HandleFunc("/newQuestion/", newQuestionHandler).Methods("POST")
+	r.HandleFunc("/newInput/", newInputHandler).Methods("POST")
+	r.HandleFunc("/newComment/", newCommentHandler).Methods("POST")
 	r.HandleFunc("/updateQuestion/", updateQuestionHandler).Methods("POST")
-	r.HandleFunc("/updateSupport/", updateSupportHandler).Methods("POST")
+	r.HandleFunc("/updateInput/", updateInputHandler).Methods("POST")
 	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
 	r.HandleFunc("/priorVote/", priorVoteHandler).Methods("POST")
 

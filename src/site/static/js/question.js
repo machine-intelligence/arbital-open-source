@@ -1,9 +1,9 @@
-function toggleEditSupport($support) {
-	$support.find(".editSupport").toggle();
-	$support.find(".supportText").toggle();
-	$support.find(".saveSupport").toggle();
-	$support.find(".cancelSupport").toggle();
-	$support.find(".inputSupport").toggle();
+function toggleEditInput($input) {
+	$input.find(".editInput").toggle();
+	$input.find(".inputText").toggle();
+	$input.find(".saveInput").toggle();
+	$input.find(".cancelInput").toggle();
+	$input.find(".inputInput").toggle();
 }
 
 function toggleEditQuestion() {
@@ -24,6 +24,11 @@ function toggleEditNewComment($newComment) {
 	$newComment.find(".editNewComment").toggle();
 }
 
+function toggleEditNewInput($bInput) {
+	$bInput.find(".newInputLink").toggle();
+	$bInput.find(".editNewInput").toggle();
+}
+
 $(document).ready(function() {
 	// Question editing stuff.
 	$(".editQuestion").on("click", function(event) {
@@ -38,7 +43,7 @@ $(document).ready(function() {
 		$(".inputQuestion").val("");
 
 		var data = {
-			id: $(".questionText").attr("question-id"),
+			id: $(".bQuestion").attr("question-id"),
 			text: $(".questionText").text(),
 		};
 		$.ajax({
@@ -55,41 +60,41 @@ $(document).ready(function() {
 		return false;
 	});
 
-	// Support editing stuff.
-	$(".editSupport").on("click", function(event) {
-		var $support = $(event.target).closest(".support");
-		var $inputSupport = $support.find(".inputSupport");
-		var $supportText = $support.find(".supportText");
-		toggleEditSupport($support);
-		$inputSupport.val($supportText.text());
-		$inputSupport.focus();
+	// Input editing stuff.
+	$(".editInput").on("click", function(event) {
+		var $input = $(event.target).closest(".input");
+		var $inputInput = $input.find(".inputInput");
+		var $inputText = $input.find(".inputText");
+		toggleEditInput($input);
+		$inputInput.val($inputText.text());
+		$inputInput.focus();
 		return false;
 	});
-	$(".saveSupport").on("click", function(event) {
-		var $support = $(event.target).closest(".support");
-		var $inputSupport = $support.find(".inputSupport");
-		var $supportText = $support.find(".supportText");
+	$(".saveInput").on("click", function(event) {
+		var $input = $(event.target).closest(".input");
+		var $inputInput = $input.find(".inputInput");
+		var $inputText = $input.find(".inputText");
 
-		toggleEditSupport($support);
-		$supportText.text($inputSupport.val());
-		$inputSupport.val("");
+		toggleEditInput($input);
+		$inputText.text($inputInput.val());
+		$inputInput.val("");
 
 		var data = {
-			id: $support.attr("support-id"),
-			text: $supportText.text(),
+			id: $input.attr("input-id"),
+			text: $inputText.text(),
 		};
 		$.ajax({
 			type: 'POST',
-			url: '/updateSupport/',
+			url: '/updateInput/',
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
 		});
 		return false;
 	});
-	$(".cancelSupport").on("click", function(event) {
-		var $support = $(event.target).closest(".support");
-		toggleEditSupport($support);
+	$(".cancelInput").on("click", function(event) {
+		var $input = $(event.target).closest(".input");
+		toggleEditInput($input);
 		return false;
 	});
 
@@ -133,11 +138,14 @@ $(document).ready(function() {
 	});
 
 	// New comment stuff.
-	$(".newCommentLink").on("click", function(event) {
+	var toggleNewComment = function(event) {
 		var $newComment = $(event.target).closest(".newComment");
 		toggleEditNewComment($newComment);
+		$newComment.find(".inputNewComment").focus();
 		return false;
-	});
+	};
+	$(".newCommentLink").on("click", toggleNewComment);
+	$(".cancelNewComment").on("click", toggleNewComment);
 	$(".saveNewComment").on("click", function(event) {
 		var $newComment = $(event.target).closest(".newComment");
 		var $inputNewComment = $newComment.find(".inputNewComment");
@@ -149,7 +157,7 @@ $(document).ready(function() {
 		//$inputNewComment.val("");
 
 		var data = {
-			supportId: $newComment.closest(".support").attr("support-id"),
+			inputId: $newComment.closest(".input").attr("input-id"),
 			text: $inputNewComment.val(),
 		};
 		if ($parentComment.length > 0) {
@@ -157,16 +165,44 @@ $(document).ready(function() {
 		}
 		$.ajax({
 			type: 'POST',
-			url: '/updateComment/',
+			url: '/newComment/',
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
 		});
 		return false;
 	});
-	$(".cancelNewComment").on("click", function(event) {
-		var $newComment = $(event.target).closest(".newComment");
-		toggleEditNewComment($newComment);
+
+	// New input stuff.
+	$(".newInputLink").on("click", function(event) {
+		var $bInput = $(event.target).closest(".bInput");
+		toggleEditNewInput($bInput);
+		return false;
+	});
+	$(".addNewInput").on("click", function(event) {
+		var $bInput = $(event.target).closest(".bInput");
+		var $newInputTextarea = $bInput.find(".newInputTextarea");
+
+		toggleEditNewInput($bInput);
+
+		var data = {
+			questionId: $bInput.siblings(".bQuestion").attr("question-id"),
+			text: $newInputTextarea.val(),
+		};
+		console.log(data);
+		$.ajax({
+			type: 'POST',
+			url: '/newInput/',
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+			$newInputTextarea.val("");
+		});
+		return false;
+	});
+	$(".cancelNewInput").on("click", function(event) {
+		var $bInput = $(event.target).closest(".bInput");
+		toggleEditNewInput($bInput);
 		return false;
 	});
 
@@ -174,7 +210,7 @@ $(document).ready(function() {
 	$(".priorVote").on("click", function(event) {
 		var $target = $(event.target);
 		var data = {
-			questionId: $(".questionText").attr("question-id"),
+			questionId: $(".bQuestion").attr("question-id"),
 			value: "5.0",
 		};
 		$.ajax({
@@ -186,5 +222,4 @@ $(document).ready(function() {
 		});
 		return false;
 	});
-	
 });

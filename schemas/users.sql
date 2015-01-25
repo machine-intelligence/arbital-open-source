@@ -9,9 +9,9 @@ CREATE TABLE users (
 	/* User's email. */
   email VARCHAR(255) NOT NULL,
   /* User's self-assigned first name. */
-  firstName VARCHAR(64) NOT NULL,
+  firstName VARCHAR(32) NOT NULL,
   /* User's self-assigned last name. */
-  lastName VARCHAR(64) NOT NULL,
+  lastName VARCHAR(32) NOT NULL,
   /* Date of the last website visit. */
   lastWebsiteVisit DATETIME NOT NULL,
 	/* True iff the user is an admin. */

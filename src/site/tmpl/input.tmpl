@@ -1,0 +1,33 @@
+{{/* input.tmpl is the template for a given input */}}
+{{define "input"}}
+<div class="input" input-id="{{.Id}}">
+	<div class="inputLeft">
+		<a href="#" class="priorVote" {{if .Vote}}vote-id="{{.Vote.Id}}"{{end}}>Vote</a>
+		{{if .Vote}}
+			<p>My vote: {{.Vote.Value}}</p>
+		{{end}}
+	</div>
+	<div class="inputRight">
+		<div class="inputBody">
+			<p class="inputText">{{.Text}}</p>
+			{{if IsAdmin}}
+				<p class="admin">
+					<span>asked by {{.CreatorName}}</span></br>
+					<textarea class="inputInput"></textarea>
+					<a href="#" class="saveInput">Save</a>
+					<a href="#" class="cancelInput">Cancel</a>
+					<a href="#" class="editInput">Edit</a>
+				</p>
+			{{end}}
+		</div>
+	
+		<span>Comments:</span></br>
+		<div class="comments">
+			{{range .Comments}}
+				{{template "comment" .}}
+			{{end}}
+			{{template "newComment" "New Comment"}}
+		</div>
+	</div>
+</div>
+{{end}}

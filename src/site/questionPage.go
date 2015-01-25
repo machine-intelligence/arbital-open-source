@@ -19,7 +19,7 @@ import (
 
 type comment struct {
 	Id          int64
-	SupportId   int64
+	InputId     int64
 	CreatedAt   string
 	Text        string
 	ReplyToId   sql.NullInt64
@@ -34,12 +34,10 @@ func (a byDate) Len() int           { return len(a) }
 func (a byDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byDate) Less(i, j int) bool { return a[i].CreatedAt < a[j].CreatedAt }
 
-type support struct {
+type input struct {
 	Id          int64
 	CreatedAt   string
 	Text        string
-	AnswerIndex int
-	Prior       sql.NullInt64
 	CreatorId   int64
 	CreatorName string
 	Comments    []*comment
@@ -51,6 +49,8 @@ type question struct {
 	Text        string
 	CreatorId   int64
 	CreatorName string
+	Answers     []string
+	InputIds    []int64
 	PriorVote   *priorVote
 }
 
@@ -65,9 +65,8 @@ type vote struct {
 type questionTmplData struct {
 	User     *user.User
 	Question *question
-	Priors   map[int]*support
-	Support  map[int][]*support // answer -> []*support
-	Error    string
+	Priors   []*input
+	Inputs   []*input
 }
 
 // questionPage serves the question page.
@@ -75,11 +74,11 @@ var questionPage = pages.Add(
 	"/questions/{id:[0-9]+}",
 	questionRenderer,
 	append(baseTmpls,
-		"tmpl/question.tmpl", "tmpl/support.tmpl", "tmpl/comment.tmpl", "tmpl/newComment.tmpl")...)
+		"tmpl/question.tmpl", "tmpl/input.tmpl", "tmpl/comment.tmpl", "tmpl/newComment.tmpl", "tmpl/navbar.tmpl")...)
 
 // loadQuestion loads and returns the question with the correeponding id from the db.
 func loadQuestion(c sessions.Context, idStr string) (*question, error) {
-	var question question
+	question := question{Answers: make([]string, 2, 2), InputIds: make([]int64, 2, 2)}
 	var err error
 	question.Id, err = strconv.ParseInt(idStr, 10, 63)
 	if err != nil {
@@ -87,8 +86,14 @@ func loadQuestion(c sessions.Context, idStr string) (*question, error) {
 	}
 
 	c.Infof("querying DB for question with id = %s\n", idStr)
-	sql := fmt.Sprintf("SELECT text,creatorId,creatorName FROM questions WHERE id=%s", idStr)
-	exists, err := database.QueryRowSql(c, sql, &question.Text, &question.CreatorId, &question.CreatorName)
+	sql := fmt.Sprintf(`
+		SELECT text,creatorId,creatorName,answer1,answer2,inputId1,inputId2
+		FROM questions
+		WHERE id=%s`, idStr)
+	exists, err := database.QueryRowSql(c, sql, &question.Text,
+		&question.CreatorId, &question.CreatorName,
+		&question.Answers[0], &question.Answers[1],
+		&question.InputIds[0], &question.InputIds[1])
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a question: %v", err)
 	} else if !exists {
@@ -97,70 +102,61 @@ func loadQuestion(c sessions.Context, idStr string) (*question, error) {
 	return &question, nil
 }
 
-// loadSupport loads and returns the support with the corresponding question id from the db.
-func loadSupport(c sessions.Context, db *sql.DB, idStr string) ([]support, error) {
-	supportSlice := make([]support, 0)
+// loadInputs loads and returns the inputs associated with the corresponding question id from the db.
+func loadInputs(c sessions.Context, db *sql.DB, idStr string) ([]input, error) {
+	inputs := make([]input, 0)
 
-	c.Infof("querying DB for support with questionId = %s\n", idStr)
-	rows, err := db.Query(`
-		SELECT id,createdAt,text,answerIndex,prior,creatorId,creatorName
-		FROM support
-		WHERE questionId=?`, idStr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query for support: %v", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var s support
+	c.Infof("querying DB for input with questionId = %s\n", idStr)
+	query := fmt.Sprintf(`
+		SELECT id,createdAt,text,creatorId,creatorName
+		FROM inputs
+		WHERE questionId=%s`, idStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var i input
 		err := rows.Scan(
-			&s.Id,
-			&s.CreatedAt,
-			&s.Text,
-			&s.AnswerIndex,
-			&s.Prior,
-			&s.CreatorId,
-			&s.CreatorName)
+			&i.Id,
+			&i.CreatedAt,
+			&i.Text,
+			&i.CreatorId,
+			&i.CreatorName)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan for support: %v", err)
+			return fmt.Errorf("failed to scan for input: %v", err)
 		}
-		supportSlice = append(supportSlice, s)
-	}
-	return supportSlice, nil
+		inputs = append(inputs, i)
+		return nil
+	})
+	return inputs, err
 }
 
-// loadComments loads and returns all the comments for the given support ids from the db.
-func loadComments(c sessions.Context, db *sql.DB, supportIds string) (map[int64]*comment, []int64, error) {
+// loadComments loads and returns all the comments for the given input ids from the db.
+func loadComments(c sessions.Context, db *sql.DB, inputIds string) (map[int64]*comment, []int64, error) {
 	comments := make(map[int64]*comment)
 	sortedCommentIds := make([]int64, 0)
 
-	c.Infof("querying DB for comments with supportIds = %v", supportIds)
+	c.Infof("querying DB for comments with inputIds = %v", inputIds)
 	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
 	query := fmt.Sprintf(`
-		SELECT id,supportId,createdAt,text,replyToId,creatorId,creatorName
+		SELECT id,inputId,createdAt,text,replyToId,creatorId,creatorName
 		FROM comments
-		WHERE supportId IN (%s)`, supportIds)
-	rows, err := db.Query(query)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to query for comments: %v", err)
-	}
-	defer rows.Close()
-	for rows.Next() {
+		WHERE inputId IN (%s)`, inputIds)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var ct comment
 		err := rows.Scan(
 			&ct.Id,
-			&ct.SupportId,
+			&ct.InputId,
 			&ct.CreatedAt,
 			&ct.Text,
 			&ct.ReplyToId,
 			&ct.CreatorId,
 			&ct.CreatorName)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to scan for comments: %v", err)
+			return fmt.Errorf("failed to scan for comments: %v", err)
 		}
 		comments[ct.Id] = &ct
 		sortedCommentIds = append(sortedCommentIds, ct.Id)
-	}
-	return comments, sortedCommentIds, nil
+		return nil
+	})
+	return comments, sortedCommentIds, err
 }
 
 // loadPriorVote loads and returns the current user's most recent prior vote for this question.
@@ -203,35 +199,37 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 	data.Question = question
 
-	// Load all the support
-	var supportSlice []support
-	supportSlice, err = loadSupport(c, db, idStr)
+	// Load all the input
+	var inputs []input
+	inputs, err = loadInputs(c, db, idStr)
 	if err != nil {
-		c.Inc("support_fetch_fail")
-		c.Errorf("error while fetching support for question id: %s\n%v", idStr, err)
+		c.Inc("input_fetch_fail")
+		c.Errorf("error while fetching input for question id: %s\n%v", idStr, err)
 		return pages.InternalErrorWith(err)
 	}
 	var buffer bytes.Buffer
-	supportMap := make(map[int64]*support)
-	data.Priors = make(map[int]*support)
-	data.Support = make(map[int][]*support)
-	for i, s := range supportSlice {
-		if s.Prior.Valid {
-			data.Priors[s.AnswerIndex] = &supportSlice[i]
+	inputMap := make(map[int64]*input)
+	data.Priors = make([]*input, 2, 2)
+	data.Inputs = make([]*input, 0, len(inputs)-2)
+	for i, s := range inputs {
+		if s.Id == question.InputIds[0] {
+			data.Priors[0] = &inputs[i]
+		} else if s.Id == question.InputIds[1] {
+			data.Priors[1] = &inputs[i]
 		} else {
-			data.Support[s.AnswerIndex] = append(data.Support[s.AnswerIndex], &supportSlice[i])
+			data.Inputs = append(data.Inputs, &inputs[i])
 		}
 		buffer.WriteString(strconv.FormatInt(s.Id, 10))
 		buffer.WriteString(",")
-		supportMap[s.Id] = &supportSlice[i]
+		inputMap[s.Id] = &inputs[i]
 	}
-	supportIds := buffer.String()
-	supportIds = supportIds[0 : len(supportIds)-1] // remove last comma
+	inputIds := buffer.String()
+	inputIds = inputIds[0 : len(inputIds)-1] // remove last comma
 
 	// Load all the comments
 	var comments map[int64]*comment
 	var sortedCommentKeys []int64 // need this for in-order iteration
-	comments, sortedCommentKeys, err = loadComments(c, db, supportIds)
+	comments, sortedCommentKeys, err = loadComments(c, db, inputIds)
 	if err != nil {
 		c.Inc("comments_fetch_fail")
 		c.Errorf("error while fetching comments for question id: %s\n%v", idStr, err)
@@ -239,16 +237,16 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 	for _, key := range sortedCommentKeys {
 		comment := comments[key]
-		supportObj, ok := supportMap[comment.SupportId]
+		inputObj, ok := inputMap[comment.InputId]
 		if !ok {
-			c.Errorf("couldn't find support for a comment: %d\n%v", key, err)
+			c.Errorf("couldn't find input for a comment: %d\n%v", key, err)
 			return pages.InternalErrorWith(err)
 		}
 		if comment.ReplyToId.Valid {
 			parent := comments[comment.ReplyToId.Int64]
 			parent.Replies = append(parent.Replies, comments[key])
 		} else {
-			supportObj.Comments = append(supportObj.Comments, comments[key])
+			inputObj.Comments = append(inputObj.Comments, comments[key])
 		}
 	}
 

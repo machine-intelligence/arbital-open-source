@@ -25,7 +25,7 @@ echo "Creating user ${DB_USER}.."
 # http://justcheckingonall.wordpress.com/2011/07/31/create-user-if-not-exists/
 mysql --host ${HOST} -u root -p"${ROOT_PW}" -e "GRANT ALL ON ${DB_NAME}.* TO '${DB_USER}'@'%' IDENTIFIED BY '${USER_PW}';"
 
-for s in priorVotes.sql; do
+for s in comments.sql inputs.sql questions.sql priorVotes.sql users.sql; do
 	echo "Importing schema ${s}.."
 	cat schemas/${s} | mysql --host ${HOST} -u ${DB_USER} -p${USER_PW} ${DB_NAME}
 done

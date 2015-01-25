@@ -1,0 +1,18 @@
+{{/* navbar.tmpl contains the navigation drop down menu shown at the top right of some pages. */}}
+{{define "navbar"}}
+<nav id="primary_nav_wrap" class="bHeader">
+	<ul>
+		{{if .IsLoggedIn}}
+			<li><a href="#">&#x25BC; {{.Email}}</a>
+				<ul>
+					<li><a href="{{.LogoutLink}}" id="logout">Logout</a></li>
+					<li><a href="/questions/new" id="newQuestion">New Question</a></li>
+				</ul>
+			</li>
+		{{else}}
+			<li><a href="{{.LoginLink}}">LOGIN</a></li>
+		{{end}}
+	</ul>
+	<div class="clearfix"></div>
+</nav>
+{{end}}

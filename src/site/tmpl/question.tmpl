@@ -10,40 +10,25 @@
 </head>
 
 <body>
+{{template "navbar" .User}}
 
-<nav id="primary_nav_wrap" class="bHeader">
-	<ul>
-		{{if .User.IsLoggedIn}}
-			<li><a href="#">&#x25BC; {{.User.Email}}</a>
-				<ul>
-					<li><a href="{{.User.LogoutLink}}" id="logout">Logout</a></li>
-				</ul>
-			</li>
-		{{else}}
-			<li><a href="{{.User.LoginLink}}">LOGIN</a></li>
-		{{end}}
-	</ul>
-	<div class="clearfix"></div>
-</nav>
-
-
-<div class="bQuestion">
-	<p class="questionText" question-id="{{.Question.Id}}">{{.Question.Text}}</p>
+<div class="bQuestion" question-id="{{.Question.Id}}">
+	<p class="questionText">{{.Question.Text}}</p>
 	{{if IsAdmin}}
 		<p class="admin">
 			<input type="text" class="inputQuestion"></br>
 			<a href="#" class="saveQuestion">Save</a>
 			<a href="#" class="cancelQuestion">Cancel</a>
-			<a href="#" class="editQuestion">Edit</a>
 			asked by {{.Question.CreatorName}}
+			<a href="#" class="editQuestion">Edit</a>
 		</p>
 	{{end}}
 </div>
 
 <div class="bPriors">
 	{{range .Priors}}
-		<div class="supportColumn">
-			{{template "support" .}}
+		<div class="inputColumn">
+			{{template "input" .}}
 		</div>
 	{{end}}
 	{{if .Question.PriorVote}}
@@ -51,17 +36,17 @@
 	{{end}}
 </div>
 
-<div class="bSupport">
-	{{range .Support}}
-		<div class="supportColumn">
-			{{range .}}
-				{{template "support" .}}
-			{{end}}
-		</div>
+<div class="bInput">
+	{{range .Inputs}}
+		{{template "input" .}}
 	{{end}}
+	<a href="#" class="newInputLink">New Input</a>
+	<div class="editNewInput">
+		<textarea class="newInputTextarea"></textarea>
+		<a href="#" class="addNewInput">Add</a>
+		<a href="#" class="cancelNewInput">Cancel</a>
+	</div>
 </div>
-
-<div>Error: {{.Error}}</div>
 
 </body>
 </html>

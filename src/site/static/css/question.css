@@ -7,28 +7,28 @@
   font-size: 0px;
   border: 5px solid green;
 }
-.bSupport {
-  font-size: 0px;
-}
-.supportColumn {
+.inputColumn {
   display: inline-block;
   vertical-align: top;
   width: 50%;
   font-size: 14px;
   padding: 0 3em;
 }
-.support {
+.input {
   background-color: LightBlue;
   padding: 2em 0;
   overflow: auto;
 }
-.supportLeft {
+.inputLeft {
   float: left;
   width: 10%;
 }
-.supportRight {
+.inputRight {
   float: right;
   width: 90%;
+}
+.editNewInput {
+  display: none;
 }
 .comments {
   padding: 0 2em;
@@ -49,13 +49,13 @@
 .cancelQuestion {
   display: none;
 }
-.inputSupport {
+.inputInput {
   display: none;
 }
-.saveSupport {
+.saveInput {
   display: none;
 }
-.cancelSupport {
+.cancelInput {
   display: none;
 }
 .editComment {
