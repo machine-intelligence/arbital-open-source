@@ -9,7 +9,6 @@ import (
 	"zanaduu3/src/config"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/twitter"
 
 	"github.com/gorilla/mux"
 )
@@ -44,15 +43,13 @@ func init() {
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 
-	r.HandleFunc("/authorize_callback", handler(twitter.AuthHandler).monitor()).Methods("GET").Queries("oauth_token", "{token}", "oauth_verifier", "{verifier}")
-	r.HandleFunc(oopsPage.URI, handler(oopsPage.ServeHTTP).monitor()).Methods("GET")
+	// Public facing handlers for pages
 	r.HandleFunc(indexPage.URI, handler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
-	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
-	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
-
 	r.HandleFunc(questionPage.URI, stdHandler(questionPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(questionsPage.URI, stdHandler(questionsPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(newQuestionPage.URI, stdHandler(newQuestionPage.ServeHTTP)).Methods("GET", "HEAD")
 
+	// POST handlers (API)
 	r.HandleFunc("/newQuestion/", newQuestionHandler).Methods("POST")
 	r.HandleFunc("/newInput/", newInputHandler).Methods("POST")
 	r.HandleFunc("/newComment/", newCommentHandler).Methods("POST")
@@ -60,6 +57,11 @@ func init() {
 	r.HandleFunc("/updateInput/", updateInputHandler).Methods("POST")
 	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
 	r.HandleFunc("/priorVote/", priorVoteHandler).Methods("POST")
+
+	// Various internal handlers
+	r.HandleFunc(oopsPage.URI, handler(oopsPage.ServeHTTP).monitor()).Methods("GET")
+	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
+	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
 
 	http.Handle("/", r)
 }
