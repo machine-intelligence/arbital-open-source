@@ -11,6 +11,7 @@
 			</li>
 		{{else}}
 			<li><a href="{{.LoginLink}}">LOGIN</a></li>
+			<li><a href="/login/?continueUri={{.CurrentUri}}">(2)</a></li>
 		{{end}}
 	</ul>
 	<div class="clearfix"></div>

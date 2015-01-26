@@ -1,0 +1,29 @@
+{{/* login.tmpl is the main body of the login page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	{{template "scripts"}}
+</head>
+
+<body>
+
+<form method="GET" action="/_ah/login" class="bLoginForm">
+	<div>
+		<h3>Not logged in</h3>
+		<p>
+			<label for="email">Email:</label>
+			<input name="email" type="email" value="test@example.com" id="email"/>
+		</p>
+		<p>
+			<input name="action" value="Login" type="submit" id="submit-login" />
+			<input name="action" value="Logout" type="submit" id="submit-logout" />
+		</p>
+	</div>
+	<input name="continue" type="hidden" value="{{.ContinueUri}}"/>
+</form>
+
+</body>
+</html>
+{{end}}

@@ -28,6 +28,7 @@ type User struct {
 	LastName   string
 	IsLoggedIn bool
 	IsAdmin    bool
+	CurrentUri string
 	LoginLink  string
 	LogoutLink string
 }
@@ -96,6 +97,7 @@ func setLinksForUser(r *http.Request, c sessions.Context, u *User) (err error) {
 	if err != nil {
 		return fmt.Errorf("error getting logout url: %v", err)
 	}
+	u.CurrentUri = r.URL.String()
 	return nil
 }
 

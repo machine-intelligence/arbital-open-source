@@ -15,7 +15,7 @@ import (
 
 var (
 	xc        = config.Load()
-	baseTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl", "tmpl/base_header.tmpl"}
+	baseTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl"}
 )
 
 // notFoundHandler serves HTTP 404 when no matching handler is registered.
@@ -45,6 +45,7 @@ func init() {
 
 	// Public facing handlers for pages
 	r.HandleFunc(indexPage.URI, handler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(loginPage.URI, handler(loginPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(questionPage.URI, stdHandler(questionPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(questionsPage.URI, stdHandler(questionsPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(newQuestionPage.URI, stdHandler(newQuestionPage.ServeHTTP)).Methods("GET", "HEAD")

@@ -4,8 +4,8 @@
 
 source init.sh || exit
 
-HOST=localhost
-#HOST=173.194.86.21
+#HOST=localhost
+HOST=173.194.86.21
 
 read -r -p "This script will DROP ALL DB DATA and rebuild the database at ${HOST}. Is this your intent? [y/N] " response
 if [[ ! $response =~ ^([yY][eE][sS]|[yY])$ ]]; then

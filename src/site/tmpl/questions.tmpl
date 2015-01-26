@@ -1,0 +1,24 @@
+{{/* questions.tmpl is the main body of the questions page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	<link href="/static/css/questions.css" rel="stylesheet">
+	{{template "scripts"}}
+</head>
+
+<body>
+{{template "navbar" .User}}
+
+<div class="bQuestions">
+	<ul class="questionsList">
+		{{range .Questions}}
+			<li class="questionText"><a href="/questions/{{.Id}}">{{.Text}}</a></li>
+		{{end}}
+	</ul>
+</div>
+
+</body>
+</html>
+{{end}}

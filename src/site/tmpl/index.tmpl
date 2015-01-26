@@ -1,4 +1,4 @@
-{{/* base.tmpl; root template */}}
+{{/* index.tmpl is the template for the index page */}}
 {{define "base"}}
 <!DOCTYPE html>
 <html>
@@ -11,10 +11,7 @@
 </head>
 <body>
 
-{{template "base_header" .}}
-<div id="main">
-  {{template "main" .}}
-</div>
+{{template "navbar" .User}}
 
 </body>
 </html>
