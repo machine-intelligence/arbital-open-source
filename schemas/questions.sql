@@ -18,5 +18,7 @@ CREATE TABLE questions (
 	/* Text for the answers. */
 	answer1 VARCHAR(32) NOT NULL,
 	answer2 VARCHAR(32) NOT NULL,
+	/* Privacy key. If not NULL, the question is accessible only with the right link. */
+	privacyKey BIGINT,
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

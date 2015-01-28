@@ -18,7 +18,7 @@ type newQuestionTmplData struct {
 
 // newQuestionPage serves the question page.
 var newQuestionPage = pages.Add(
-	"/questions/new",
+	"/questions/new/",
 	newQuestionRenderer,
 	append(baseTmpls,
 		"tmpl/newQuestion.tmpl", "tmpl/navbar.tmpl")...)

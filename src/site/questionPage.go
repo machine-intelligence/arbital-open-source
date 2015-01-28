@@ -49,6 +49,7 @@ type question struct {
 	Text        string
 	CreatorId   int64
 	CreatorName string
+	PrivacyKey  sql.NullInt64
 	Answers     []string
 	InputIds    []int64
 	PriorVote   *priorVote
@@ -76,6 +77,12 @@ var questionPage = pages.Add(
 	append(baseTmpls,
 		"tmpl/question.tmpl", "tmpl/input.tmpl", "tmpl/comment.tmpl", "tmpl/newComment.tmpl", "tmpl/navbar.tmpl")...)
 
+var privateQuestionPage = pages.Add(
+	"/questions/{id:[0-9]+}/{privacyKey:[0-9]+}",
+	questionRenderer,
+	append(baseTmpls,
+		"tmpl/question.tmpl", "tmpl/input.tmpl", "tmpl/comment.tmpl", "tmpl/newComment.tmpl", "tmpl/navbar.tmpl")...)
+
 // loadQuestion loads and returns the question with the correeponding id from the db.
 func loadQuestion(c sessions.Context, idStr string) (*question, error) {
 	question := question{Answers: make([]string, 2, 2), InputIds: make([]int64, 2, 2)}
@@ -87,11 +94,11 @@ func loadQuestion(c sessions.Context, idStr string) (*question, error) {
 
 	c.Infof("querying DB for question with id = %s\n", idStr)
 	sql := fmt.Sprintf(`
-		SELECT text,creatorId,creatorName,answer1,answer2,inputId1,inputId2
+		SELECT text,creatorId,creatorName,privacyKey,answer1,answer2,inputId1,inputId2
 		FROM questions
 		WHERE id=%s`, idStr)
 	exists, err := database.QueryRowSql(c, sql, &question.Text,
-		&question.CreatorId, &question.CreatorName,
+		&question.CreatorId, &question.CreatorName, &question.PrivacyKey,
 		&question.Answers[0], &question.Answers[1],
 		&question.InputIds[0], &question.InputIds[1])
 	if err != nil {
@@ -198,6 +205,14 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 	data.Question = question
+
+	// Check privacy setting
+	if question.PrivacyKey.Valid {
+		privacyKey := mux.Vars(r)["privacyKey"]
+		if privacyKey != fmt.Sprintf("%d", question.PrivacyKey.Int64) {
+			return pages.UnauthorizedWith(err)
+		}
+	}
 
 	// Load all the input
 	var inputs []input

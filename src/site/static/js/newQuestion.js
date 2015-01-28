@@ -9,8 +9,8 @@ $(document).ready(function() {
 			url: '/newQuestion/',
 			data: JSON.stringify(data),
 		})
-		.done(function(r, textStatus) {
-			window.location.replace("/questions/" + r);
+		.done(function(url, textStatus) {
+			window.location.replace(url);
 		})
 		.fail(function(r) {
 			console.log("fail: " + JSON.stringify(r));

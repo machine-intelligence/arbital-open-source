@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
@@ -19,6 +21,7 @@ type newQuestionData struct {
 	Answer2    string
 	Input1Text string
 	Input2Text string
+	Private    string
 	PriorVote  float32 `json:",string"`
 }
 
@@ -69,12 +72,18 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	tx, err := db.Begin()
 
 	// Create new question.
+	var privacyKey int64
 	hashmap := make(map[string]interface{})
 	hashmap["creatorId"] = u.Id
 	hashmap["creatorName"] = u.FullName()
 	hashmap["text"] = data.Text
 	hashmap["answer1"] = data.Answer1
 	hashmap["answer2"] = data.Answer2
+	if data.Private == "on" {
+		rand.Seed(time.Now().UnixNano())
+		privacyKey = rand.Int63()
+		hashmap["privacyKey"] = privacyKey
+	}
 	hashmap["createdAt"] = database.Now()
 	query := database.GetInsertSql("questions", hashmap)
 	result, err = tx.Exec(query)
@@ -185,5 +194,9 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return id of the new question.
-	fmt.Fprintf(w, "%d", questionId)
+	privacyAddon := ""
+	if privacyKey > 0 {
+		privacyAddon = fmt.Sprintf("/%d", privacyKey)
+	}
+	fmt.Fprintf(w, "/questions/%d%s", questionId, privacyAddon)
 }
