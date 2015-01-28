@@ -2,6 +2,7 @@
 package user
 
 import (
+	"database/sql"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -52,17 +53,17 @@ func (user *User) Save(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// Get the currently logged in user from App Engine. The users database is
+// tryCreateUser gets the currently logged in user from App Engine. The users database is
 // updated if this user is newly created.
-func current(r *http.Request, c sessions.Context) (*User, error) {
+func tryCreateUser(r *http.Request, c sessions.Context) (*User, error) {
 	appEngineUser := user.Current(c)
 	if appEngineUser == nil {
 		return nil, nil
 	}
 
 	var u User
-	sql := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin FROM users WHERE email='%s'", appEngineUser.Email)
-	exists, err := database.QueryRowSql(c, sql, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin)
+	query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin FROM users WHERE email='%s'", appEngineUser.Email)
+	exists, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
@@ -75,15 +76,21 @@ func current(r *http.Request, c sessions.Context) (*User, error) {
 		dbUser["isAdmin"] = appEngineUser.Admin
 		dbUser["createdAt"] = database.Now()
 		dbUser["lastWebsiteVisit"] = database.Now()
-		sql := database.GetInsertSql("users", dbUser)
-		err = database.ExecuteSql(c, sql)
+
+		var result sql.Result
+		query := database.GetInsertSql("users", dbUser)
+		result, err = database.ExecuteSql(c, query)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't creat a new user: %v", err)
+			return nil, fmt.Errorf("Couldn't create a new user: %v", err)
+		}
+		u.Id, err = result.LastInsertId()
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't get last insert id for new user: %v", err)
 		}
 		u.Email = appEngineUser.Email
 		u.IsAdmin = appEngineUser.Admin
 	}
-	u.IsLoggedIn = true
+	u.IsLoggedIn = u.FirstName != ""
 	return &u, nil
 }
 
@@ -119,7 +126,7 @@ func LoadUser(w http.ResponseWriter, r *http.Request) (userPtr *User, err error)
 		userPtr = s.Values[userKey].(*User)
 	} else {
 		c.Debugf("no user in session, checking app engine")
-		userPtr, err = current(r, c)
+		userPtr, err = tryCreateUser(r, c)
 		if err != nil {
 			return
 		} else if userPtr != nil {

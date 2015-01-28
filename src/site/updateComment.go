@@ -61,7 +61,7 @@ func updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["text"] = task.Text
 	updateArgs = append(updateArgs, "text")
 	sql := database.GetInsertSql("comments", hashmap, updateArgs...)
-	if err = database.ExecuteSql(c, sql); err != nil {
+	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("update_comment_fail")
 		c.Errorf("Couldn't update comment: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

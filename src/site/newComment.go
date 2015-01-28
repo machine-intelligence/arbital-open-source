@@ -51,7 +51,7 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hashmap["text"] = task.Text
 	sql := database.GetInsertSql("comments", hashmap)
-	if err = database.ExecuteSql(c, sql); err != nil {
+	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("new_comment_fail")
 		c.Errorf("Couldn't create new comment: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

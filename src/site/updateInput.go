@@ -33,7 +33,7 @@ func updateInputHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["id"] = task.Id
 	hashmap["text"] = task.Text
 	sql := database.GetInsertSql("inputs", hashmap, "text")
-	if err = database.ExecuteSql(c, sql); err != nil {
+	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("update_input_fail")
 		c.Errorf("Couldn't update input: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

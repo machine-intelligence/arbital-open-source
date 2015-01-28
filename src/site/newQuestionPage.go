@@ -2,6 +2,7 @@
 package site
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -34,10 +35,14 @@ func newQuestionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		c.Errorf("Couldn't load user: %v", err)
 		return pages.InternalErrorWith(err)
 	}
+	if !data.User.IsLoggedIn {
+		return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
+	}
 
 	funcMap := template.FuncMap{
-		"UserId":  func() int64 { return data.User.Id },
-		"IsAdmin": func() bool { return data.User.IsAdmin },
+		"UserId":     func() int64 { return data.User.Id },
+		"IsAdmin":    func() bool { return data.User.IsAdmin },
+		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 	}
 	c.Inc("new_question_page_served_success")
 	return pages.StatusOK(data).SetFuncMap(funcMap)

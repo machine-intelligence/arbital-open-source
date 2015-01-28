@@ -1,0 +1,26 @@
+{{/* signup.tmpl is the main body of the signup page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	{{template "scripts"}}
+</head>
+
+<body>
+
+<div class="bSignup">
+	<h3>Sign Up</h3>
+	<p>Email: {{.User.Email}}</p>
+	<form method="GET" action="/signup/" class="signupForm">
+		<p>First Name: <input name="firstName" type="text" value="{{.User.FirstName}}" required="true"/></p>
+		<p>Last Name: <input name="lastName" type="text" value="{{.User.LastName}}" required="true"/></p>
+		<p>Invite Code: <input name="inviteCode" type="text" value="" required="true"/></p>
+		<input name="continueUri" type="hidden" value="{{.ContinueUri}}"/>
+		<input name="action" value="Sign Up" type="submit" id="signupLink" />
+	</form>
+</div>
+
+</body>
+</html>
+{{end}}

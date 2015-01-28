@@ -45,7 +45,7 @@ func init() {
 
 	// Public facing handlers for pages
 	r.HandleFunc(indexPage.URI, handler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
-	r.HandleFunc(loginPage.URI, handler(loginPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(signupPage.URI, handler(signupPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(questionPage.URI, stdHandler(questionPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(questionsPage.URI, stdHandler(questionsPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(newQuestionPage.URI, stdHandler(newQuestionPage.ServeHTTP)).Methods("GET", "HEAD")

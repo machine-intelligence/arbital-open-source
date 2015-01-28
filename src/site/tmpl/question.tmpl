@@ -40,12 +40,14 @@
 	{{range .Inputs}}
 		{{template "input" .}}
 	{{end}}
-	<a href="#" class="newInputLink">New Input</a>
-	<div class="editNewInput">
-		<textarea class="newInputTextarea"></textarea>
-		<a href="#" class="addNewInput">Add</a>
-		<a href="#" class="cancelNewInput">Cancel</a>
-	</div>
+	{{if IsLoggedIn}}
+		<a href="#" class="newInputLink">New Input</a>
+		<div class="editNewInput">
+			<textarea class="newInputTextarea"></textarea>
+			<a href="#" class="addNewInput">Add</a>
+			<a href="#" class="cancelNewInput">Cancel</a>
+		</div>
+	{{end}}
 </div>
 
 </body>

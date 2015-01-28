@@ -93,20 +93,21 @@ func GetInsertSql(tableName string, hashmap InsertMap, updateArgs ...string) str
 }
 
 // ExecuteSql *non-atomically* executes a series of the given SQL commands.
-func ExecuteSql(c sessions.Context, commands ...string) error {
+func ExecuteSql(c sessions.Context, commands ...string) (sql.Result, error) {
 	db, err := GetDB(c)
 	if err != nil {
-		return fmt.Errorf("failed to get DB: %v", err)
+		return nil, fmt.Errorf("failed to get DB: %v", err)
 	}
+	var result sql.Result
 	for _, command := range commands {
-		_, err = db.Exec(command)
+		result, err = db.Exec(command)
 		if err != nil {
 			c.Inc("sql_command_fail")
-			return fmt.Errorf("error while executing an sql command:\n%v\n%v", command, err)
+			return nil, fmt.Errorf("error while executing an sql command:\n%v\n%v", command, err)
 		}
 		c.Debugf("Executed SQL command: %v", command)
 	}
-	return nil
+	return result, nil
 }
 
 // QuerySql calls the given function for every row returned when executing the

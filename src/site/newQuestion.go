@@ -49,6 +49,10 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	if !u.IsLoggedIn {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	// Get database
 	var db *sql.DB

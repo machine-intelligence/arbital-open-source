@@ -49,7 +49,7 @@ func priorVoteHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["createdAt"] = database.Now()
 	hashmap["value"] = task.Value
 	sql := database.GetInsertSql("priorVotes", hashmap)
-	if err = database.ExecuteSql(c, sql); err != nil {
+	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("update_prior_vote_fail")
 		c.Errorf("Couldn't add a prior vote: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

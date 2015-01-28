@@ -45,7 +45,7 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["createdAt"] = database.Now()
 	hashmap["text"] = data.Text
 	sql := database.GetInsertSql("inputs", hashmap)
-	if err = database.ExecuteSql(c, sql); err != nil {
+	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("new_input_fail")
 		c.Errorf("Couldn't new input: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

@@ -265,8 +265,9 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 
 	funcMap := template.FuncMap{
-		"UserId":  func() int64 { return data.User.Id },
-		"IsAdmin": func() bool { return data.User.IsAdmin },
+		"UserId":     func() int64 { return data.User.Id },
+		"IsAdmin":    func() bool { return data.User.IsAdmin },
+		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 	}
 	c.Inc("question_page_served_success")
 	return pages.StatusOK(data).SetFuncMap(funcMap)

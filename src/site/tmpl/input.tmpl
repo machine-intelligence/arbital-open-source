@@ -2,9 +2,11 @@
 {{define "input"}}
 <div class="input" input-id="{{.Id}}">
 	<div class="inputLeft">
-		<a href="#" class="priorVote" {{if .Vote}}vote-id="{{.Vote.Id}}"{{end}}>Vote</a>
-		{{if .Vote}}
-			<p>My vote: {{.Vote.Value}}</p>
+		{{if IsLoggedIn}}
+			<a href="#" class="priorVote" {{if .Vote}}vote-id="{{.Vote.Id}}"{{end}}>Vote</a>
+			{{if .Vote}}
+				<p>My vote: {{.Vote.Value}}</p>
+			{{end}}
 		{{end}}
 	</div>
 	<div class="inputRight">

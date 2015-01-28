@@ -16,5 +16,6 @@ CREATE TABLE users (
   lastWebsiteVisit DATETIME NOT NULL,
 	/* True iff the user is an admin. */
 	isAdmin BOOLEAN NOT NULL,
-  PRIMARY KEY(id, email)
+	UNIQUE (email),
+  PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
