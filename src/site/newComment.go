@@ -41,6 +41,7 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Add new comment
 	hashmap := make(map[string]interface{})
 	hashmap["inputId"] = task.InputId
 	hashmap["createdAt"] = database.Now()
@@ -50,11 +51,30 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["replyToId"] = task.ReplyToId
 	}
 	hashmap["text"] = task.Text
-	sql := database.GetInsertSql("comments", hashmap)
-	if _, err = database.ExecuteSql(c, sql); err != nil {
+	query := database.GetInsertSql("comments", hashmap)
+	result, err2 := database.ExecuteSql(c, query)
+	if err2 != nil {
 		c.Inc("new_comment_fail")
-		c.Errorf("Couldn't create new comment: %v", err)
+		c.Errorf("Couldn't create new comment: %v", err2)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	// If it's top level comment, subscribe the user to it.
+	// If it's a reply to a comment, then subscribe the user to the parent.
+	var subscribeCommentId int64
+	if task.ReplyToId <= 0 {
+		subscribeCommentId, _ = result.LastInsertId()
+	} else {
+		subscribeCommentId = task.ReplyToId
+	}
+	hashmap = make(map[string]interface{})
+	hashmap["userId"] = u.Id
+	hashmap["createdAt"] = database.Now()
+	hashmap["commentId"] = subscribeCommentId
+	query = database.GetInsertSql("subscriptions", hashmap)
+	if _, err = database.ExecuteSql(c, query); err != nil {
+		c.Inc("new_subscription_fail")
+		c.Errorf("Couldn't create new subscription: %v", err)
 	}
 }

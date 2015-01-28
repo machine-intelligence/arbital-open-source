@@ -14,6 +14,8 @@
 
 <div class="bQuestion" question-id="{{.Question.Id}}">
 	<p class="questionText">{{.Question.Text}}</p>
+	<a href="#" class="subscribeToQuestion" {{if .Question.IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
+	<a href="#" class="unsubscribeToQuestion" {{if not .Question.IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
 	{{if IsAdmin}}
 		<p class="admin">
 			<input type="text" class="inputQuestion"></br>

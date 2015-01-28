@@ -21,7 +21,7 @@ type questionsTmplData struct {
 
 // questionsPage serves the questions page.
 var questionsPage = pages.Add(
-	"/questions/all",
+	"/questions/all/",
 	questionsRenderer,
 	append(baseTmpls,
 		"tmpl/questions.tmpl", "tmpl/navbar.tmpl")...)
@@ -36,6 +36,8 @@ func questionsRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	query := fmt.Sprintf(`
 		SELECT id,text
 		FROM questions
+		WHERE privacyKey IS NULL
+		ORDER BY id DESC
 		LIMIT 50`)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var q question

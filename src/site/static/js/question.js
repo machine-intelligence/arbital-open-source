@@ -222,4 +222,36 @@ $(document).ready(function() {
 		});
 		return false;
 	});
+
+	// Subscription stuff.
+	$(".subscribeToQuestion").on("click", function(event) {
+		$(event.target).hide();
+		$(".unsubscribeToQuestion").show();
+		var data = {
+			questionId: $(".bQuestion").attr("question-id"),
+		};
+		$.ajax({
+			type: 'POST',
+			url: '/newSubscription/',
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+		});
+		return false;
+	});
+	$(".unsubscribeToQuestion").on("click", function(event) {
+		$(event.target).hide();
+		$(".subscribeToQuestion").show();
+		var data = {
+			questionId: $(".bQuestion").attr("question-id"),
+		};
+		$.ajax({
+			type: 'POST',
+			url: '/deleteSubscription/',
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+		});
+		return false;
+	});
 });

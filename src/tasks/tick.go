@@ -96,7 +96,7 @@ func processQuestion(c sessions.Context, rows *sql.Rows) error {
 			hashmap["prior"] = 100.0 - newValue
 		}
 		sql := database.GetInsertSql("support", hashmap, "prior")
-		if err = database.ExecuteSql(c, sql); err != nil {
+		if _, err = database.ExecuteSql(c, sql); err != nil {
 			return err
 		}
 	}

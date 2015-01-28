@@ -45,14 +45,15 @@ type input struct {
 }
 
 type question struct {
-	Id          int64
-	Text        string
-	CreatorId   int64
-	CreatorName string
-	PrivacyKey  sql.NullInt64
-	Answers     []string
-	InputIds    []int64
-	PriorVote   *priorVote
+	Id           int64
+	Text         string
+	CreatorId    int64
+	CreatorName  string
+	PrivacyKey   sql.NullInt64
+	IsSubscribed bool
+	Answers      []string
+	InputIds     []int64
+	PriorVote    *priorVote
 }
 
 type priorVote struct {
@@ -83,8 +84,8 @@ var privateQuestionPage = pages.Add(
 	append(baseTmpls,
 		"tmpl/question.tmpl", "tmpl/input.tmpl", "tmpl/comment.tmpl", "tmpl/newComment.tmpl", "tmpl/navbar.tmpl")...)
 
-// loadQuestion loads and returns the question with the correeponding id from the db.
-func loadQuestion(c sessions.Context, idStr string) (*question, error) {
+// loadQuestion loads and returns the question with the corresponding id from the db.
+func loadQuestion(c sessions.Context, userId int64, idStr string) (*question, error) {
 	question := question{Answers: make([]string, 2, 2), InputIds: make([]int64, 2, 2)}
 	var err error
 	question.Id, err = strconv.ParseInt(idStr, 10, 63)
@@ -106,6 +107,18 @@ func loadQuestion(c sessions.Context, idStr string) (*question, error) {
 	} else if !exists {
 		return nil, fmt.Errorf("Unknown question id: %s", idStr)
 	}
+
+	// Get subscription status.
+	var useless int
+	sql = fmt.Sprintf(`
+		SELECT 1
+		FROM subscriptions
+		WHERE userId=%d AND questionId=%s`, userId, idStr)
+	question.IsSubscribed, err = database.QueryRowSql(c, sql, &useless)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't retrieve subscription status: %v", err)
+	}
+
 	return &question, nil
 }
 
@@ -196,9 +209,16 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
+	// Load user, if possible
+	data.User, err = user.LoadUser(w, r)
+	if err != nil {
+		c.Errorf("Couldn't load user: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
 	// Load the question
 	idStr := mux.Vars(r)["id"]
-	question, err := loadQuestion(c, idStr)
+	question, err := loadQuestion(c, data.User.Id, idStr)
 	if err != nil {
 		c.Inc("question_fetch_fail")
 		c.Errorf("error while fetching question id: %s\n%v", idStr, err)
@@ -263,13 +283,6 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		} else {
 			inputObj.Comments = append(inputObj.Comments, comments[key])
 		}
-	}
-
-	// Load user, if possible
-	data.User, err = user.LoadUser(w, r)
-	if err != nil {
-		c.Errorf("Couldn't load user: %v", err)
-		return pages.InternalErrorWith(err)
 	}
 
 	// Load prior vote

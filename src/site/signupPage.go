@@ -44,7 +44,7 @@ func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 
 	q := r.URL.Query()
 	if q.Get("inviteCode") != "" {
-		// Setting the name.
+		// This is a form submission.
 		if strings.ToLower(q.Get("inviteCode")) != "truth" {
 			return pages.InternalErrorWith(fmt.Errorf("Invalid invite code"))
 		}
