@@ -52,6 +52,7 @@ func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		hashmap["id"] = data.User.Id
 		hashmap["firstName"] = q.Get("firstName")
 		hashmap["lastName"] = q.Get("lastName")
+		hashmap["createdAt"] = database.Now()
 		sql := database.GetInsertSql("users", hashmap, "firstName", "lastName")
 		if _, err = database.ExecuteSql(c, sql); err != nil {
 			c.Errorf("Couldn't update user's name: %v", err)

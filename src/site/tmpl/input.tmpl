@@ -12,16 +12,23 @@
 	<div class="inputRight">
 		<div class="inputBody">
 			<p class="inputText">{{.Text}}</p>
+			{{if .Url}}
+				<p><a href="{{.Url}}" target="_blank" class="inputUrl">Link</a></p>
+			{{end}}
+			<a href="#" class="editInput">Edit</a>
 			{{if IsAdmin}}
 				<p class="admin">
 					<span>asked by {{.CreatorName}}</span></br>
-					<textarea class="inputInput"></textarea>
-					<a href="#" class="saveInput">Save</a>
-					<a href="#" class="cancelInput">Cancel</a>
-					<a href="#" class="editInput">Edit</a>
 				</p>
 			{{end}}
 		</div>
+		<form class="editInputForm">
+			<textarea name="text" class="editInputTextarea"></textarea>
+			<p>URL: <input type="url" name="url" class="editInputUrl"/></p>
+			<input type="submit" value="Save"/>
+			<input type="hidden" name="id" value="{{.Id}}"/>
+			<a href="#" class="cancelNewInput">Cancel</a>
+		</form>
 	
 		<span>Comments:</span></br>
 		<div class="comments">

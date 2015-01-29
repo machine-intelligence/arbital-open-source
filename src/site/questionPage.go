@@ -38,6 +38,7 @@ type input struct {
 	Id          int64
 	CreatedAt   string
 	Text        string
+	Url         string
 	CreatorId   int64
 	CreatorName string
 	Comments    []*comment
@@ -128,7 +129,7 @@ func loadInputs(c sessions.Context, db *sql.DB, idStr string) ([]input, error) {
 
 	c.Infof("querying DB for input with questionId = %s\n", idStr)
 	query := fmt.Sprintf(`
-		SELECT id,createdAt,text,creatorId,creatorName
+		SELECT id,createdAt,text,url,creatorId,creatorName
 		FROM inputs
 		WHERE questionId=%s`, idStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
@@ -137,6 +138,7 @@ func loadInputs(c sessions.Context, db *sql.DB, idStr string) ([]input, error) {
 			&i.Id,
 			&i.CreatedAt,
 			&i.Text,
+			&i.Url,
 			&i.CreatorId,
 			&i.CreatorName)
 		if err != nil {

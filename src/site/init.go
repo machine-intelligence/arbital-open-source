@@ -63,6 +63,9 @@ func init() {
 	r.HandleFunc("/priorVote/", priorVoteHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
 
+	// Admin stuff
+	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
+
 	// Various internal handlers
 	r.HandleFunc(oopsPage.URI, handler(oopsPage.ServeHTTP).monitor()).Methods("GET")
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")

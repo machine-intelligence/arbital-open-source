@@ -7,6 +7,9 @@
 				<ul>
 					<li><a href="{{.LogoutLink}}" id="logout">Logout</a></li>
 					<li><a href="/questions/new" id="newQuestion">New Question</a></li>
+					{{if .IsAdmin}}
+						<li><a href="/becomeUser/?id=0">Become User</a></li>
+					{{end}}
 				</ul>
 			</li>
 		{{else}}

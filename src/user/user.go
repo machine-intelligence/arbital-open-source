@@ -39,16 +39,28 @@ func (user *User) FullName() string {
 }
 
 // Save stores the user in the session.
-func (user *User) Save(w http.ResponseWriter, r *http.Request) error {
+func (u *User) Save(w http.ResponseWriter, r *http.Request) error {
 	s, err := sessions.GetSession(r)
 	if err != nil {
 		return fmt.Errorf("couldn't get session: %v", err)
 	}
 
-	s.Values[userKey] = user
+	s.Values[userKey] = u
 	err = s.Save(r, w)
 	if err != nil {
 		return fmt.Errorf("failed to save user to session: %v", err)
+	}
+	return nil
+}
+
+// BecomeUserWithId allows an admin to pretend they are a specific user.
+func (u *User) BecomeUserWithId(id string, c sessions.Context) error {
+	query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin FROM users WHERE id=%s", id)
+	exists, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin)
+	if err != nil {
+		return fmt.Errorf("Couldn't retrieve a user: %v", err)
+	} else if !exists {
+		return fmt.Errorf("Couldn't find a user with id: %s", id)
 	}
 	return nil
 }
@@ -88,7 +100,6 @@ func tryCreateUser(r *http.Request, c sessions.Context) (*User, error) {
 			return nil, fmt.Errorf("Couldn't get last insert id for new user: %v", err)
 		}
 		u.Email = appEngineUser.Email
-		u.IsAdmin = appEngineUser.Admin
 	}
 	u.IsLoggedIn = u.FirstName != ""
 	return &u, nil

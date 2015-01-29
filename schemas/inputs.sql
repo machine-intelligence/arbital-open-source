@@ -6,6 +6,8 @@ CREATE TABLE inputs (
   id BIGINT NOT NULL AUTO_INCREMENT,
 	/* Id of the question this input belongs to. FK into questions. */
   questionId BIGINT NOT NULL,
+	/* What kind of input this is. */
+	/*inputType VARCHAR(32) NOT NULL,*/
 	/* When this was created. */
   createdAt DATETIME NOT NULL,
 	/* User id of the creator. */
@@ -14,5 +16,9 @@ CREATE TABLE inputs (
 	creatorName VARCHAR(64) NOT NULL,
 	/* Description supplied by the user. */
   text VARCHAR(2048) NOT NULL,
+	/* Link to a study / paper. */
+	uri VARCHAR(2048),
+	/* The kind of study the link points to. */
+	/* studyType VARCHAR(64),*/
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

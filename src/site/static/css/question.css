@@ -27,7 +27,7 @@
   float: right;
   width: 90%;
 }
-.editNewInput {
+.newInputForm {
   display: none;
 }
 .comments {
@@ -49,13 +49,7 @@
 .cancelQuestion {
   display: none;
 }
-.inputInput {
-  display: none;
-}
-.saveInput {
-  display: none;
-}
-.cancelInput {
+.editInputForm {
   display: none;
 }
 .editComment {

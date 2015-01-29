@@ -44,11 +44,12 @@
 	{{end}}
 	{{if IsLoggedIn}}
 		<a href="#" class="newInputLink">New Input</a>
-		<div class="editNewInput">
-			<textarea class="newInputTextarea"></textarea>
-			<a href="#" class="addNewInput">Add</a>
+		<form class="newInputForm">
+			<textarea name="text" class="newInputTextarea"></textarea>
+			<p>URL: <input type="url" name="url"/></p>
+			<input type="submit" value="Submit">
 			<a href="#" class="cancelNewInput">Cancel</a>
-		</div>
+		</form>
 	{{end}}
 </div>
 

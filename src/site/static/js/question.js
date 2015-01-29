@@ -1,9 +1,6 @@
-function toggleEditInput($input) {
-	$input.find(".editInput").toggle();
-	$input.find(".inputText").toggle();
-	$input.find(".saveInput").toggle();
-	$input.find(".cancelInput").toggle();
-	$input.find(".inputInput").toggle();
+function toggleEditInput($inputRight) {
+	$inputRight.find(".inputBody").toggle();
+	$inputRight.find(".editInputForm").toggle();
 }
 
 function toggleEditQuestion() {
@@ -26,7 +23,7 @@ function toggleEditNewComment($newComment) {
 
 function toggleEditNewInput($bInput) {
 	$bInput.find(".newInputLink").toggle();
-	$bInput.find(".editNewInput").toggle();
+	$bInput.find(".newInputForm").toggle();
 }
 
 $(document).ready(function() {
@@ -62,27 +59,27 @@ $(document).ready(function() {
 
 	// Input editing stuff.
 	$(".editInput").on("click", function(event) {
-		var $input = $(event.target).closest(".input");
-		var $inputInput = $input.find(".inputInput");
-		var $inputText = $input.find(".inputText");
-		toggleEditInput($input);
-		$inputInput.val($inputText.text());
-		$inputInput.focus();
+		var $inputRight = $(event.target).closest(".inputRight");
+		var $inputTextarea = $inputRight.find(".editInputTextarea");
+		toggleEditInput($inputRight);
+		$inputRight.find(".editInputUrl").val($inputRight.find(".inputUrl").attr("href"));
+		$inputTextarea.val($inputRight.find(".inputText").text());
+		$inputTextarea.focus();
 		return false;
 	});
-	$(".saveInput").on("click", function(event) {
-		var $input = $(event.target).closest(".input");
-		var $inputInput = $input.find(".inputInput");
-		var $inputText = $input.find(".inputText");
+	$(".editInputForm").on("submit", function(event) {
+		var $form = $(event.target);
+		var $inputRight = $(event.target).closest(".inputRight");
 
-		toggleEditInput($input);
-		$inputText.text($inputInput.val());
-		$inputInput.val("");
+		var data = {};
+		$.each($form.serializeArray(), function(i, field) {
+			data[field.name] = field.value;
+		});
 
-		var data = {
-			id: $input.attr("input-id"),
-			text: $inputText.text(),
-		};
+		toggleEditInput($inputRight);
+		$inputRight.find(".inputUrl").attr("href", $inputRight.find(".editInputUrl").val());
+		$inputRight.find(".inputText").text($inputRight.find(".editInputTextarea").val());
+
 		$.ajax({
 			type: 'POST',
 			url: '/updateInput/',
@@ -93,8 +90,8 @@ $(document).ready(function() {
 		return false;
 	});
 	$(".cancelInput").on("click", function(event) {
-		var $input = $(event.target).closest(".input");
-		toggleEditInput($input);
+		var $inputRight = $(event.target).closest(".inputRight");
+		toggleEditInput($inputRight);
 		return false;
 	});
 
@@ -180,24 +177,23 @@ $(document).ready(function() {
 		toggleEditNewInput($bInput);
 		return false;
 	});
-	$(".addNewInput").on("click", function(event) {
-		var $bInput = $(event.target).closest(".bInput");
-		var $newInputTextarea = $bInput.find(".newInputTextarea");
+	$(".newInputForm").on("submit", function(event) {
+		var $form = $(event.target);
+		var $bInput = $form.closest(".bInput");
+		var data = {};
+		$.each($form.serializeArray(), function(i, field) {
+			data[field.name] = field.value;
+		});
+		data["questionId"] = $(".bQuestion").attr("question-id");
 
 		toggleEditNewInput($bInput);
-
-		var data = {
-			questionId: $(".bQuestion").attr("question-id"),
-			text: $newInputTextarea.val(),
-		};
-		console.log(data);
 		$.ajax({
 			type: 'POST',
 			url: '/newInput/',
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
-			$newInputTextarea.val("");
+			$form[0].reset();
 		});
 		return false;
 	});

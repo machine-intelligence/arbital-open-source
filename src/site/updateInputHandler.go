@@ -13,6 +13,7 @@ import (
 type updateInputTask struct {
 	Id   int64 `json:",string"`
 	Text string
+	Url  string
 }
 
 // updateInputHandler renders the input page.
@@ -32,7 +33,8 @@ func updateInputHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap := make(map[string]interface{})
 	hashmap["id"] = task.Id
 	hashmap["text"] = task.Text
-	sql := database.GetInsertSql("inputs", hashmap, "text")
+	hashmap["url"] = task.Url
+	sql := database.GetInsertSql("inputs", hashmap, "text", "url")
 	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("update_input_fail")
 		c.Errorf("Couldn't update input: %v", err)

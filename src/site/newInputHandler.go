@@ -15,6 +15,7 @@ import (
 type newInputData struct {
 	QuestionId int64 `json:",string"`
 	Text       string
+	Url        string
 }
 
 func newInputHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,6 +47,7 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["creatorName"] = u.FullName()
 	hashmap["createdAt"] = database.Now()
 	hashmap["text"] = data.Text
+	hashmap["url"] = data.Url
 	sql := database.GetInsertSql("inputs", hashmap)
 	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("new_input_fail")
