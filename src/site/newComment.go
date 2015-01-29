@@ -7,14 +7,16 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
 )
 
-// newCommentTask is the object that's put into the daemon queue.
-type newCommentTask struct {
-	Text      string
-	InputId   int64 `json:",string"`
-	ReplyToId int64 `json:",string"`
+// newCommentData is the object that's put into the daemon queue.
+type newCommentData struct {
+	Text       string
+	InputId    int64 `json:",string"`
+	ReplyToId  int64 `json:",string"`
+	QuestionId int64 `json:",string"`
 }
 
 // newCommentHandler renders the comment page.
@@ -22,9 +24,9 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
-	var task newCommentTask
-	err := decoder.Decode(&task)
-	if err != nil || task.Text == "" {
+	var data newCommentData
+	err := decoder.Decode(&data)
+	if err != nil || data.Text == "" || data.QuestionId <= 0 {
 		c.Inc("new_comment_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -43,14 +45,14 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Add new comment
 	hashmap := make(map[string]interface{})
-	hashmap["inputId"] = task.InputId
+	hashmap["inputId"] = data.InputId
 	hashmap["createdAt"] = database.Now()
 	hashmap["creatorId"] = u.Id
 	hashmap["creatorName"] = u.FullName()
-	if task.ReplyToId > 0 {
-		hashmap["replyToId"] = task.ReplyToId
+	if data.ReplyToId > 0 {
+		hashmap["replyToId"] = data.ReplyToId
 	}
-	hashmap["text"] = task.Text
+	hashmap["text"] = data.Text
 	query := database.GetInsertSql("comments", hashmap)
 	result, err2 := database.ExecuteSql(c, query)
 	if err2 != nil {
@@ -63,18 +65,39 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// If it's top level comment, subscribe the user to it.
 	// If it's a reply to a comment, then subscribe the user to the parent.
 	var subscribeCommentId int64
-	if task.ReplyToId <= 0 {
+	if data.ReplyToId <= 0 {
 		subscribeCommentId, _ = result.LastInsertId()
 	} else {
-		subscribeCommentId = task.ReplyToId
+		subscribeCommentId = data.ReplyToId
 	}
 	hashmap = make(map[string]interface{})
 	hashmap["userId"] = u.Id
 	hashmap["createdAt"] = database.Now()
 	hashmap["commentId"] = subscribeCommentId
-	query = database.GetInsertSql("subscriptions", hashmap)
+	// Note: if this subscription already exists, we update userId, which does nothing,
+	// but also prevents an error from being generated.
+	query = database.GetInsertSql("subscriptions", hashmap, "userId")
 	if _, err = database.ExecuteSql(c, query); err != nil {
 		c.Inc("new_subscription_fail")
 		c.Errorf("Couldn't create new subscription: %v", err)
+	}
+
+	// Generate updates for people who are subscribed...
+	var task tasks.NewUpdateTask
+	task.UserId = u.Id
+	task.QuestionId = data.QuestionId
+	if data.ReplyToId <= 0 {
+		// ... to this question.
+		task.UpdateType = "topLevelComment"
+	} else {
+		// ... to the parent comment.
+		task.CommentId = subscribeCommentId
+		task.UpdateType = "reply"
+	}
+	if err := task.IsValid(); err != nil {
+		c.Errorf("Invalid task created: %v", err)
+	}
+	if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 }

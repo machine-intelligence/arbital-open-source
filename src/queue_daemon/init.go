@@ -16,7 +16,7 @@ const (
 	// TODO: refactor everything to use this variable; right now it's hardcoded in a bunch of places
 	daemonQueueName = "daemon-queue"
 	// Seconds between polling the queue for new tasks
-	pollPeriod = 60
+	pollPeriod = 1
 )
 
 // processTask leases one task from the daemon-queue and processes it.
@@ -35,6 +35,8 @@ func processTask(c sessions.Context) error {
 	// TODO: refactor tag strings into the corresponding files as consts
 	if leasedTask.Tag == "tick" {
 		task = &tasks.TickTask{}
+	} else if leasedTask.Tag == "newUpdate" {
+		task = &tasks.NewUpdateTask{}
 	} else {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
 	}

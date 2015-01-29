@@ -49,6 +49,7 @@ func init() {
 	r.HandleFunc(questionPage.URI, stdHandler(questionPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(privateQuestionPage.URI, stdHandler(privateQuestionPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(questionsPage.URI, stdHandler(questionsPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(updatesPage.URI, stdHandler(updatesPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(newQuestionPage.URI, stdHandler(newQuestionPage.ServeHTTP)).Methods("GET", "HEAD")
 
 	// POST handlers (API)

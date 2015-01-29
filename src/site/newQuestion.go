@@ -184,6 +184,21 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Add subscription.
+	hashmap = make(map[string]interface{})
+	hashmap["userId"] = u.Id
+	hashmap["questionId"] = questionId
+	hashmap["createdAt"] = database.Now()
+	query = database.GetInsertSql("subscriptions", hashmap)
+	result, err = tx.Exec(query)
+	if err != nil {
+		tx.Rollback()
+		c.Inc("update_question_fail")
+		c.Errorf("Couldn't add a subscription: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Commit transaction.
 	err = tx.Commit()
 	if err != nil {

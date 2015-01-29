@@ -7,4 +7,5 @@ import (
 
 func init() {
 	gob.Register(&TickTask{})
+	gob.Register(&NewUpdateTask{})
 }

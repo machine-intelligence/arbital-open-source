@@ -8,7 +8,9 @@ CREATE TABLE updates (
   userId BIGINT NOT NULL,
 	/* Id of the question the update is for. FK into questions. */
   questionId BIGINT NOT NULL,
-	/* Type of the notification */
+	/* Id of the comment the update is for. FK into comments. */
+  commentId BIGINT NOT NULL,
+	/* Type of update */
 	type VARCHAR(32) NOT NULL,
 	/* When this update was created. */
   createdAt DATETIME NOT NULL,

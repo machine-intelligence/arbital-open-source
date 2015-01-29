@@ -159,6 +159,7 @@ $(document).ready(function() {
 		var data = {
 			inputId: $newComment.closest(".input").attr("input-id"),
 			text: $inputNewComment.val(),
+			questionId: $(".bQuestion").attr("question-id"),
 		};
 		if ($parentComment.length > 0) {
 			data["replyToId"] = $parentComment.attr("comment-id");
@@ -186,7 +187,7 @@ $(document).ready(function() {
 		toggleEditNewInput($bInput);
 
 		var data = {
-			questionId: $bInput.siblings(".bQuestion").attr("question-id"),
+			questionId: $(".bQuestion").attr("question-id"),
 			text: $newInputTextarea.val(),
 		};
 		console.log(data);

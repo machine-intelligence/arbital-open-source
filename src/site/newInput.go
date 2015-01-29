@@ -7,6 +7,7 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
 )
 
@@ -38,6 +39,7 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Create new input.
 	hashmap := make(map[string]interface{})
 	hashmap["questionId"] = data.QuestionId
 	hashmap["creatorId"] = u.Id
@@ -50,5 +52,17 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Couldn't new input: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	// Add updates to users who are subscribed to this question.
+	var task tasks.NewUpdateTask
+	task.UserId = u.Id
+	task.QuestionId = data.QuestionId
+	task.UpdateType = "newInput"
+	if err := task.IsValid(); err != nil {
+		c.Errorf("Invalid task created: %v", err)
+	}
+	if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 }

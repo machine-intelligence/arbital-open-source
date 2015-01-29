@@ -1,0 +1,30 @@
+{{/* updates.tmpl shows updates for the logged in user */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	{{template "scripts"}}
+</head>
+
+<body>
+
+{{template "navbar" .User}}
+
+<ul>
+	{{range .Updates}}
+		<li>
+			{{if eq .Type "reply"}}
+				<a href="/questions/{{.QuestionId}}">There are {{.Count}} new replies to a comment you are subscribed to.</a>
+			{{else if eq .Type "topLevelComment"}}
+				<a href="/questions/{{.QuestionId}}">There are {{.Count}} new top level comments to a question you are subscribed to.</a>
+			{{else if eq .Type "newInput"}}
+				<a href="/questions/{{.QuestionId}}">There are {{.Count}} new inputs to a question you are subscribed to.</a>
+			{{end}}
+		</li>
+	{{end}}
+</ul>
+
+</body>
+</html>
+{{end}}
