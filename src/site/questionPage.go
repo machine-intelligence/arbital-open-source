@@ -22,7 +22,7 @@ type comment struct {
 	InputId     int64
 	CreatedAt   string
 	Text        string
-	ReplyToId   sql.NullInt64
+	ReplyToId   int64
 	CreatorId   int64
 	CreatorName string
 	Replies     []*comment
@@ -279,8 +279,8 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 			c.Errorf("couldn't find input for a comment: %d\n%v", key, err)
 			return pages.InternalErrorWith(err)
 		}
-		if comment.ReplyToId.Valid {
-			parent := comments[comment.ReplyToId.Int64]
+		if comment.ReplyToId > 0 {
+			parent := comments[comment.ReplyToId]
 			parent.Replies = append(parent.Replies, comments[key])
 		} else {
 			inputObj.Comments = append(inputObj.Comments, comments[key])

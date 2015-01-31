@@ -2,12 +2,16 @@
 {{define "newComment"}}
 {{if IsLoggedIn}}
 	<div class="newComment">
-		<a href="#" class="newCommentLink">{{.}}</a>
-		<div class="editNewComment">
-			<textarea class="inputNewComment"></textarea>
-			<a href="#" class="saveNewComment">Save</a>
-			<a href="#" class="cancelNewComment">Cancel</a>
+		<div class="newCommentBody">
+			<a href="#" class="newCommentLink">{{.}}</a>
 		</div>
+		<form class="newCommentForm">
+			<textarea name="text" class="inputNewComment"></textarea>
+			<p class="errorText"></p>
+			<img src="/static/images/loading.gif" class="loadingIndicator"/>
+			<input type="submit" value="Save"/>
+			<a href="#" class="cancelLink cancelNewComment">Cancel</a>
+		</form>
 	</div>
 {{end}}
 {{end}}

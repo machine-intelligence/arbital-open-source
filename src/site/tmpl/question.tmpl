@@ -13,18 +13,24 @@
 {{template "navbar" .User}}
 
 <div class="bQuestion" question-id="{{.Question.Id}}">
-	<p class="questionText">{{.Question.Text}}</p>
-	<a href="#" class="subscribeToQuestion" {{if .Question.IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
-	<a href="#" class="unsubscribeToQuestion" {{if not .Question.IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
-	{{if IsAdmin}}
-		<p class="admin">
-			<input type="text" class="inputQuestion"></br>
-			<a href="#" class="saveQuestion">Save</a>
-			<a href="#" class="cancelQuestion">Cancel</a>
-			asked by {{.Question.CreatorName}}
+	<div class="questionBody">
+		<p class="questionText">{{.Question.Text}}</p>
+		<a href="#" class="subscribeToQuestion" {{if .Question.IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
+		<a href="#" class="unsubscribeToQuestion" {{if not .Question.IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
+		{{if IsAdmin}} <!--TODO: another condition -->
 			<a href="#" class="editQuestion">Edit</a>
-		</p>
-	{{end}}
+		{{end}}
+		{{if IsAdmin}}
+			<p class="admin">asked by {{.Question.CreatorName}}</p>
+		{{end}}
+	</div>
+	<form class="editQuestionForm">
+		<input type="text" name="text" class="inputQuestion"></br>
+		<p class="errorText"></p>
+		<img src="/static/images/loading.gif" class="loadingIndicator"/>
+		<input type="submit" value="Save"/>
+		<a href="#" class="cancelLink cancelQuestion">Cancel</a>
+	</form>
 </div>
 
 <div class="bPriors">
@@ -47,8 +53,10 @@
 		<form class="newInputForm">
 			<textarea name="text" class="newInputTextarea"></textarea>
 			<p>URL: <input type="url" name="url"/></p>
+			<p class="errorText"></p>
+			<img src="/static/images/loading.gif" class="loadingIndicator"/>
 			<input type="submit" value="Submit">
-			<a href="#" class="cancelNewInput">Cancel</a>
+			<a href="#" class="cancelLink cancelNewInput">Cancel</a>
 		</form>
 	{{end}}
 </div>

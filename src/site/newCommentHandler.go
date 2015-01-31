@@ -49,9 +49,7 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["createdAt"] = database.Now()
 	hashmap["creatorId"] = u.Id
 	hashmap["creatorName"] = u.FullName()
-	if data.ReplyToId > 0 {
-		hashmap["replyToId"] = data.ReplyToId
-	}
+	hashmap["replyToId"] = data.ReplyToId
 	hashmap["text"] = data.Text
 	query := database.GetInsertSql("comments", hashmap)
 	result, err2 := database.ExecuteSql(c, query)

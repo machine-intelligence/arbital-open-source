@@ -28,6 +28,7 @@ func becomeUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	q := r.URL.Query()
 	if q.Get("id") == "" {
+		fmt.Fprintf(w, "Please replace id=0 with actual id in the url.")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -41,5 +42,5 @@ func becomeUserHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, "You are now agend #00%s", q.Get("id"))
+	fmt.Fprintf(w, "You are now agent #00%s", q.Get("id"))
 }

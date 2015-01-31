@@ -17,7 +17,7 @@ CREATE TABLE inputs (
 	/* Description supplied by the user. */
   text VARCHAR(2048) NOT NULL,
 	/* Link to a study / paper. */
-	uri VARCHAR(2048),
+	url VARCHAR(2048) NOT NULL,
 	/* The kind of study the link points to. */
 	/* studyType VARCHAR(64),*/
   PRIMARY KEY(id)

@@ -12,9 +12,7 @@
 	<div class="inputRight">
 		<div class="inputBody">
 			<p class="inputText">{{.Text}}</p>
-			{{if .Url}}
-				<p><a href="{{.Url}}" target="_blank" class="inputUrl">Link</a></p>
-			{{end}}
+			<p><a href="{{.Url}}" target="_blank" class="inputUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
 			<a href="#" class="editInput">Edit</a>
 			{{if IsAdmin}}
 				<p class="admin">
@@ -27,7 +25,7 @@
 			<p>URL: <input type="url" name="url" class="editInputUrl"/></p>
 			<input type="submit" value="Save"/>
 			<input type="hidden" name="id" value="{{.Id}}"/>
-			<a href="#" class="cancelNewInput">Cancel</a>
+			<a href="#" class="cancelEditInput">Cancel</a>
 		</form>
 	
 		<span>Comments:</span></br>

@@ -36,25 +36,18 @@
 .replies {
   padding: 0 2em;
 }
-.admin {
-  border: 2px dotted red;
-}
 .inputQuestion {
-  display: none;
   min-width: 500px;
 }
-.saveQuestion {
-  display: none;
-}
-.cancelQuestion {
+.editQuestionForm {
   display: none;
 }
 .editInputForm {
   display: none;
 }
-.editComment {
+.editCommentForm {
   display: none;
 }
-.editNewComment {
+.newCommentForm {
   display: none;
 }

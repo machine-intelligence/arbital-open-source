@@ -41,7 +41,7 @@ func init() {
 	})
 
 	r := mux.NewRouter()
-	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	r.StrictSlash(true)
 
 	// Public facing handlers for pages
 	r.HandleFunc(indexPage.URI, handler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
@@ -67,6 +67,7 @@ func init() {
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
 
 	// Various internal handlers
+	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 	r.HandleFunc(oopsPage.URI, handler(oopsPage.ServeHTTP).monitor()).Methods("GET")
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
 	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")

@@ -7,7 +7,7 @@ CREATE TABLE comments (
 	/* Id of the input this fact belong to. FK into inputs. */
   inputId BIGINT NOT NULL,
 	/* Id of the comment this is a reply to. */
-	replyToId BIGINT,
+	replyToId BIGINT NOT NULL,
 	/* When this was created. */
   createdAt DATETIME NOT NULL,
 	/* User id of the creator. */

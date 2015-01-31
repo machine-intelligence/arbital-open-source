@@ -55,9 +55,7 @@ func updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if task.SupportId > 0 {
 		hashmap["supportId"] = task.SupportId
 	}
-	if task.ReplyToId > 0 {
-		hashmap["replyToId"] = task.ReplyToId
-	}
+	hashmap["replyToId"] = task.ReplyToId
 	hashmap["text"] = task.Text
 	updateArgs = append(updateArgs, "text")
 	sql := database.GetInsertSql("comments", hashmap, updateArgs...)

@@ -3,22 +3,23 @@
 <div class="comment" comment-id="{{.Id}}">
 	<div class="commentBody">
 		<span class="commentCreatorName">{{.CreatorName}}: </span>
+		<span class="commentText">{{.Text}}</span>
 		{{if eq .CreatorId UserId}}
-			<a href="#" class="commentText">{{.Text}}</a>
-			<div class="editComment">
-				<textarea class="inputComment"></textarea>
-				<a href="#" class="saveComment">Save</a>
-				<a href="#" class="cancelComment">Cancel</a>
-			</div>
-		{{else}}
-			<span class="commentText">{{.Text}}</span>
+			<a href="#" class="editCommentLink">Edit</a>
 		{{end}}
 	</div>
+	<form class="editCommentForm">
+		<textarea name="text" class="inputComment"></textarea>
+		<p class="errorText"></p>
+		<img src="/static/images/loading.gif" class="loadingIndicator"/>
+		<input type="submit" value="Save"/>
+		<a href="#" class="cancelLink cancelEditComment">Cancel</a>
+	</form>
 	<div class="replies">
 		{{range .Replies}}
 			{{template "comment" .}}
 		{{end}}
-		{{if not .ReplyToId.Valid}}
+		{{if le .ReplyToId 0}}
 			{{template "newComment" "Reply"}}
 		{{end}}
 	</div>

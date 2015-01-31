@@ -3,22 +3,19 @@ function toggleEditInput($inputRight) {
 	$inputRight.find(".editInputForm").toggle();
 }
 
-function toggleEditQuestion() {
-	$(".editQuestion").toggle();
-	$(".questionText").toggle();
-	$(".saveQuestion").toggle();
-	$(".cancelQuestion").toggle();
-	$(".inputQuestion").toggle();
+function toggleEditQuestion($bQuestion) {
+	$bQuestion.find(".editQuestionForm").toggle();
+	$bQuestion.find(".questionBody").toggle();
 }
 
 function toggleEditComment($commentBody) {
-	$commentBody.find(".editComment").toggle();
-	$commentBody.find(".commentText").toggle();
+	$commentBody.toggle();
+	$commentBody.siblings(".editCommentForm").toggle();
 }
 
 function toggleEditNewComment($newComment) {
-	$newComment.find(".newCommentLink").toggle();
-	$newComment.find(".editNewComment").toggle();
+	$newComment.find(".newCommentBody").toggle();
+	$newComment.find(".newCommentForm").toggle();
 }
 
 function toggleEditNewInput($bInput) {
@@ -29,31 +26,33 @@ function toggleEditNewInput($bInput) {
 $(document).ready(function() {
 	// Question editing stuff.
 	$(".editQuestion").on("click", function(event) {
-		toggleEditQuestion();
-		$(".inputQuestion").val($(".questionText").text());
-		$(".inputQuestion").focus();
+		var $bQuestion = $(event.target).closest(".bQuestion");
+		var $questionText = $bQuestion.find(".questionText");
+		var $inputQuestion = $bQuestion.find(".inputQuestion");
+		toggleEditQuestion($bQuestion);
+		if ($inputQuestion.val().length <= 0) {
+			$inputQuestion.val($questionText.text());
+		}
+		$inputQuestion.focus();
 		return false;
 	});
-	$(".saveQuestion").on("click", function(event) {
-		toggleEditQuestion();
-		$(".questionText").text($(".inputQuestion").val());
-		$(".inputQuestion").val("");
+	$(".editQuestionForm").on("submit", function(event) {
+		var $form = $(event.form);
+		var $bQuestion = $form.closest(".bQuestion");
+		var $questionText = $bQuestion.find(".questionText");
+		var $inputQuestion = $bQuestion.find(".inputQuestion");
 
-		var data = {
-			id: $(".bQuestion").attr("question-id"),
-			text: $(".questionText").text(),
-		};
-		$.ajax({
-			type: 'POST',
-			url: '/updateQuestion/',
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
+		var data = {id: $bQuestion.attr("question-id")};
+		submitForm($form, "/updateQuestion/", data, function(r) {
+			toggleEditQuestion($bQuestion);
+			$questionText.text($inputQuestion.val());
+			$inputQuestion.val("");
 		});
 		return false;
 	});
 	$(".cancelQuestion").on("click", function(event) {
-		toggleEditQuestion();
+		var $bQuestion = $(event.target).closest(".bQuestion");
+		toggleEditQuestion($bQuestion);
 		return false;
 	});
 
@@ -72,64 +71,51 @@ $(document).ready(function() {
 		var $inputRight = $(event.target).closest(".inputRight");
 
 		var data = {};
-		$.each($form.serializeArray(), function(i, field) {
-			data[field.name] = field.value;
-		});
-
-		toggleEditInput($inputRight);
-		$inputRight.find(".inputUrl").attr("href", $inputRight.find(".editInputUrl").val());
-		$inputRight.find(".inputText").text($inputRight.find(".editInputTextarea").val());
-
-		$.ajax({
-			type: 'POST',
-			url: '/updateInput/',
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
+		submitForm($form, "/updateInput/", data, function(r) {
+			var $inputUrl = $inputRight.find(".inputUrl");
+			var url = $inputRight.find(".editInputUrl").val();
+			toggleEditInput($inputRight);
+			$inputUrl.attr("href", url);
+			url.length <= 0 ? $inputUrl.hide() : $inputUrl.show();
+			$inputRight.find(".inputText").text($inputRight.find(".editInputTextarea").val());
 		});
 		return false;
 	});
-	$(".cancelInput").on("click", function(event) {
+	$(".cancelEditInput").on("click", function(event) {
 		var $inputRight = $(event.target).closest(".inputRight");
 		toggleEditInput($inputRight);
 		return false;
 	});
 
 	// Comment editing stuff.
-	$(".commentText").on("click", function(event) {
+	$(".editCommentLink").on("click", function(event) {
 		var $commentBody = $(event.target).closest(".commentBody");
-		var $inputComment = $commentBody.find(".inputComment");
+		var $form = $commentBody.siblings(".editCommentForm");
+		var $inputComment = $form.find(".inputComment");
 		var $commentText = $commentBody.find(".commentText");
 		toggleEditComment($commentBody);
-		$inputComment.val($commentText.text());
+		if ($inputComment.val().length <= 0) {
+			$inputComment.val($commentText.text());
+		}
 		$inputComment.focus();
 		return false;
 	});
-	$(".saveComment").on("click", function(event) {
-		var $commentBody = $(event.target).closest(".commentBody");
-		var $inputComment = $commentBody.find(".inputComment");
+	$(".editCommentForm").on("submit", function(event) {
+		var $form = $(event.target);
+		var $commentBody = $form.siblings(".commentBody");
+		var $inputComment = $form.find(".inputComment");
 		var $commentText = $commentBody.find(".commentText");
 
-		toggleEditComment($commentBody);
-		$commentText.text($inputComment.val());
-		$inputComment.val("");
-
-		var data = {
-			id: $commentBody.closest(".comment").attr("comment-id"),
-			text: $commentText.text(),
-		};
-		console.log(data);
-		$.ajax({
-			type: 'POST',
-			url: '/updateComment/',
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
+		var data = {id: $commentBody.closest(".comment").attr("comment-id")};
+		submitForm($form, "/updateComment/", data, function(r) {
+			toggleEditComment($commentBody);
+			$commentText.text($inputComment.val());
+			$inputComment.val("");
 		});
 		return false;
 	});
-	$(".cancelComment").on("click", function(event) {
-		var $commentBody = $(event.target).closest(".commentBody");
+	$(".cancelEditComment").on("click", function(event) {
+		var $commentBody = $(event.target).closest(".editCommentForm").siblings(".commentBody");
 		toggleEditComment($commentBody);
 		return false;
 	});
@@ -143,30 +129,24 @@ $(document).ready(function() {
 	};
 	$(".newCommentLink").on("click", toggleNewComment);
 	$(".cancelNewComment").on("click", toggleNewComment);
-	$(".saveNewComment").on("click", function(event) {
-		var $newComment = $(event.target).closest(".newComment");
+	$(".newCommentForm").on("submit", function(event) {
+		var $form = $(event.target);
+		var $newComment = $form.closest(".newComment");
 		var $inputNewComment = $newComment.find(".inputNewComment");
 		var $newCommentText = $newComment.find(".newCommentText");
 		var $parentComment = $newComment.closest(".comment");
 
-		toggleEditNewComment($newComment);
-		//$newCommentText.text($inputNewComment.val());
-		//$inputNewComment.val("");
-
 		var data = {
 			inputId: $newComment.closest(".input").attr("input-id"),
-			text: $inputNewComment.val(),
 			questionId: $(".bQuestion").attr("question-id"),
 		};
 		if ($parentComment.length > 0) {
 			data["replyToId"] = $parentComment.attr("comment-id");
 		}
-		$.ajax({
-			type: 'POST',
-			url: '/newComment/',
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
+		submitForm($form, "/newComment/", data, function(r) {
+			toggleEditNewComment($newComment);
+			$newCommentText.text($inputNewComment.val());
+			$inputNewComment.val("");
 		});
 		return false;
 	});
