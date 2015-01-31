@@ -23,6 +23,7 @@ type newQuestionData struct {
 	Input2Text string
 	Private    string
 	PriorVote  float32 `json:",string"`
+	TagId      int64   `json:",string"`
 }
 
 // newQuestionHandler handles requests to create a new question.
@@ -160,12 +161,29 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["inputId1"] = inputId1
 	hashmap["inputId2"] = inputId2
 	query = database.GetInsertSql("questions", hashmap, "inputId1", "inputId2")
-	result, err = tx.Exec(query)
+	_, err = tx.Exec(query)
 	if err != nil {
 		tx.Rollback()
 		c.Inc("new_question_fail")
 		c.Errorf("Couldn't update a new question: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	// Add question tag.
+	if data.TagId > 0 {
+		hashmap = make(map[string]interface{})
+		hashmap["questionId"] = questionId
+		hashmap["tagId"] = data.TagId
+		hashmap["createdBy"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		query = database.GetInsertSql("questionTags", hashmap)
+		_, err = tx.Exec(query)
+		if err != nil {
+			tx.Rollback()
+			c.Inc("new_question_fail")
+			c.Errorf("Couldn't add a new questionTag: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	}
 
 	// Add new vote.
@@ -175,7 +193,7 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["createdAt"] = database.Now()
 	hashmap["value"] = data.PriorVote
 	query = database.GetInsertSql("priorVotes", hashmap)
-	result, err = tx.Exec(query)
+	_, err = tx.Exec(query)
 	if err != nil {
 		tx.Rollback()
 		c.Inc("update_question_fail")
@@ -190,7 +208,7 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["questionId"] = questionId
 	hashmap["createdAt"] = database.Now()
 	query = database.GetInsertSql("subscriptions", hashmap)
-	result, err = tx.Exec(query)
+	_, err = tx.Exec(query)
 	if err != nil {
 		tx.Rollback()
 		c.Inc("update_question_fail")

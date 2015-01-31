@@ -15,6 +15,9 @@
 <div class="bQuestion" question-id="{{.Question.Id}}">
 	<div class="questionBody">
 		<p class="questionText">{{.Question.Text}}</p>
+		{{range .Question.Tags}}
+			<span class="tag">{{.Text}}</span>
+		{{end}}
 		<a href="#" class="subscribeToQuestion" {{if .Question.IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
 		<a href="#" class="unsubscribeToQuestion" {{if not .Question.IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
 		{{if IsAdmin}} <!--TODO: another condition -->

@@ -2,10 +2,12 @@
 package site
 
 import (
+	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -14,6 +16,7 @@ import (
 // newQuestionTmplData stores the data that we pass to the template file to render the page
 type newQuestionTmplData struct {
 	User *user.User
+	Tags []tag
 }
 
 // newQuestionPage serves the question page.
@@ -38,6 +41,21 @@ func newQuestionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	if !data.User.IsLoggedIn {
 		return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
 	}
+
+	// Load tags.
+	data.Tags = make([]tag, 0)
+	query := fmt.Sprintf(`
+		SELECT id,text
+		FROM tags`)
+	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var t tag
+		err := rows.Scan(&t.Id, &t.Text)
+		if err != nil {
+			return fmt.Errorf("failed to scan for tag: %v", err)
+		}
+		data.Tags = append(data.Tags, t)
+		return nil
+	})
 
 	funcMap := template.FuncMap{
 		"UserId":     func() int64 { return data.User.Id },

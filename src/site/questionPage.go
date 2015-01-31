@@ -45,6 +45,11 @@ type input struct {
 	Vote        *vote
 }
 
+type tag struct {
+	Id   int64
+	Text string
+}
+
 type question struct {
 	Id           int64
 	Text         string
@@ -52,6 +57,7 @@ type question struct {
 	CreatorName  string
 	PrivacyKey   sql.NullInt64
 	IsSubscribed bool
+	Tags         []*tag
 	Answers      []string
 	InputIds     []int64
 	PriorVote    *priorVote
@@ -95,11 +101,11 @@ func loadQuestion(c sessions.Context, userId int64, idStr string) (*question, er
 	}
 
 	c.Infof("querying DB for question with id = %s\n", idStr)
-	sql := fmt.Sprintf(`
+	query := fmt.Sprintf(`
 		SELECT text,creatorId,creatorName,privacyKey,answer1,answer2,inputId1,inputId2
 		FROM questions
 		WHERE id=%s`, idStr)
-	exists, err := database.QueryRowSql(c, sql, &question.Text,
+	exists, err := database.QueryRowSql(c, query, &question.Text,
 		&question.CreatorId, &question.CreatorName, &question.PrivacyKey,
 		&question.Answers[0], &question.Answers[1],
 		&question.InputIds[0], &question.InputIds[1])
@@ -111,13 +117,34 @@ func loadQuestion(c sessions.Context, userId int64, idStr string) (*question, er
 
 	// Get subscription status.
 	var useless int
-	sql = fmt.Sprintf(`
+	query = fmt.Sprintf(`
 		SELECT 1
 		FROM subscriptions
 		WHERE userId=%d AND questionId=%s`, userId, idStr)
-	question.IsSubscribed, err = database.QueryRowSql(c, sql, &useless)
+	question.IsSubscribed, err = database.QueryRowSql(c, query, &useless)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve subscription status: %v", err)
+	}
+
+	// Get tags.
+	question.Tags = make([]*tag, 0)
+	query = fmt.Sprintf(`
+		SELECT t.id,t.text
+		FROM questionTags AS qt
+		LEFT JOIN tags AS t
+		ON (qt.tagId=t.id)
+		WHERE qt.questionId=%s`, idStr)
+	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var t tag
+		err := rows.Scan(&t.Id, &t.Text)
+		if err != nil {
+			return fmt.Errorf("failed to scan for tag: %v", err)
+		}
+		question.Tags = append(question.Tags, &t)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't retrieve question tags: %v", err)
 	}
 
 	return &question, nil
