@@ -7,15 +7,12 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 )
 
-// updateCommentTask is the object that's put into the daemon queue.
-type updateCommentTask struct {
-	Id        int64 `json:",string"`
-	Text      string
-	SupportId int64 `json:",string"`
-	ReplyToId int64 `json:",string"`
+// updateCommentData is the object that's put into the daemon queue.
+type updateCommentData struct {
+	Id   int64 `json:",string"`
+	Text string
 }
 
 // updateCommentHandler renders the comment page.
@@ -23,9 +20,9 @@ func updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
-	var task updateCommentTask
+	var task updateCommentData
 	err := decoder.Decode(&task)
-	if err != nil || task.Text == "" {
+	if err != nil || task.Text == "" || task.Id <= 0 {
 		c.Inc("update_comment_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -33,32 +30,10 @@ func updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	hashmap := make(map[string]interface{})
-	updateArgs := make([]string, 0)
-	if task.Id > 0 {
-		// Updating
-		hashmap["id"] = task.Id
-	} else {
-		// Inserting
-		var u *user.User
-		u, err = user.LoadUser(w, r)
-		if err != nil {
-			c.Inc("update_comment_fail")
-			c.Errorf("Couldn't load user: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		hashmap["createdAt"] = database.Now()
-		hashmap["creatorId"] = u.Id
-		hashmap["creatorName"] = u.FullName()
-	}
-	if task.SupportId > 0 {
-		hashmap["supportId"] = task.SupportId
-	}
-	hashmap["replyToId"] = task.ReplyToId
+	hashmap["id"] = task.Id
 	hashmap["text"] = task.Text
-	updateArgs = append(updateArgs, "text")
-	sql := database.GetInsertSql("comments", hashmap, updateArgs...)
+	hashmap["updatedAt"] = database.Now()
+	sql := database.GetInsertSql("comments", hashmap, "text", "updatedAt")
 	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("update_comment_fail")
 		c.Errorf("Couldn't update comment: %v", err)

@@ -37,7 +37,7 @@ $(document).ready(function() {
 		return false;
 	});
 	$(".editQuestionForm").on("submit", function(event) {
-		var $form = $(event.form);
+		var $form = $(event.target);
 		var $bQuestion = $form.closest(".bQuestion");
 		var $questionText = $bQuestion.find(".questionText");
 		var $inputQuestion = $bQuestion.find(".inputQuestion");
@@ -144,9 +144,7 @@ $(document).ready(function() {
 			data["replyToId"] = $parentComment.attr("comment-id");
 		}
 		submitForm($form, "/newComment/", data, function(r) {
-			toggleEditNewComment($newComment);
-			$newCommentText.text($inputNewComment.val());
-			$inputNewComment.val("");
+			location.reload();
 		});
 		return false;
 	});
@@ -159,21 +157,9 @@ $(document).ready(function() {
 	});
 	$(".newInputForm").on("submit", function(event) {
 		var $form = $(event.target);
-		var $bInput = $form.closest(".bInput");
-		var data = {};
-		$.each($form.serializeArray(), function(i, field) {
-			data[field.name] = field.value;
-		});
-		data["questionId"] = $(".bQuestion").attr("question-id");
-
-		toggleEditNewInput($bInput);
-		$.ajax({
-			type: 'POST',
-			url: '/newInput/',
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
-			$form[0].reset();
+		var data = {questionId: $(".bQuestion").attr("question-id")};
+		submitForm($form, "/newInput/", data, function(r) {
+			location.reload();
 		});
 		return false;
 	});

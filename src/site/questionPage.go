@@ -21,6 +21,7 @@ type comment struct {
 	Id          int64
 	InputId     int64
 	CreatedAt   string
+	UpdatedAt   string
 	Text        string
 	ReplyToId   int64
 	CreatorId   int64
@@ -37,6 +38,7 @@ func (a byDate) Less(i, j int) bool { return a[i].CreatedAt < a[j].CreatedAt }
 type input struct {
 	Id          int64
 	CreatedAt   string
+	UpdatedAt   string
 	Text        string
 	Url         string
 	CreatorId   int64
@@ -52,6 +54,8 @@ type tag struct {
 
 type question struct {
 	Id           int64
+	CreatedAt    string
+	UpdatedAt    string
 	Text         string
 	CreatorId    int64
 	CreatorName  string
@@ -102,11 +106,12 @@ func loadQuestion(c sessions.Context, userId int64, idStr string) (*question, er
 
 	c.Infof("querying DB for question with id = %s\n", idStr)
 	query := fmt.Sprintf(`
-		SELECT text,creatorId,creatorName,privacyKey,answer1,answer2,inputId1,inputId2
+		SELECT text,creatorId,creatorName,createdAt,updatedAt,privacyKey,answer1,answer2,inputId1,inputId2
 		FROM questions
 		WHERE id=%s`, idStr)
 	exists, err := database.QueryRowSql(c, query, &question.Text,
-		&question.CreatorId, &question.CreatorName, &question.PrivacyKey,
+		&question.CreatorId, &question.CreatorName,
+		&question.CreatedAt, &question.UpdatedAt, &question.PrivacyKey,
 		&question.Answers[0], &question.Answers[1],
 		&question.InputIds[0], &question.InputIds[1])
 	if err != nil {
@@ -126,28 +131,25 @@ func loadQuestion(c sessions.Context, userId int64, idStr string) (*question, er
 		return nil, fmt.Errorf("Couldn't retrieve subscription status: %v", err)
 	}
 
-	// Get tags.
-	question.Tags = make([]*tag, 0)
-	query = fmt.Sprintf(`
-		SELECT t.id,t.text
-		FROM questionTags AS qt
-		LEFT JOIN tags AS t
-		ON (qt.tagId=t.id)
-		WHERE qt.questionId=%s`, idStr)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var t tag
-		err := rows.Scan(&t.Id, &t.Text)
-		if err != nil {
-			return fmt.Errorf("failed to scan for tag: %v", err)
-		}
-		question.Tags = append(question.Tags, &t)
-		return nil
-	})
+	// Load tags.
+	err = loadTags(c, &question)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve question tags: %v", err)
 	}
 
 	return &question, nil
+}
+
+// loadVisit returns the date (as string) when the user has seen this question last.
+// If the user has never seen this question we return an empty string.
+func loadVisit(c sessions.Context, userId int64, idStr string) (string, error) {
+	updatedAt := ""
+	query := fmt.Sprintf(`
+		SELECT updatedAt
+		FROM visits
+		WHERE questionId=%s AND userId=%d`, idStr, userId)
+	_, err := database.QueryRowSql(c, query, &updatedAt)
+	return updatedAt, err
 }
 
 // loadInputs loads and returns the inputs associated with the corresponding question id from the db.
@@ -156,7 +158,7 @@ func loadInputs(c sessions.Context, db *sql.DB, idStr string) ([]input, error) {
 
 	c.Infof("querying DB for input with questionId = %s\n", idStr)
 	query := fmt.Sprintf(`
-		SELECT id,createdAt,text,url,creatorId,creatorName
+		SELECT id,createdAt,updatedAt,text,url,creatorId,creatorName
 		FROM inputs
 		WHERE questionId=%s`, idStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
@@ -164,6 +166,7 @@ func loadInputs(c sessions.Context, db *sql.DB, idStr string) ([]input, error) {
 		err := rows.Scan(
 			&i.Id,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.Text,
 			&i.Url,
 			&i.CreatorId,
@@ -185,7 +188,7 @@ func loadComments(c sessions.Context, db *sql.DB, inputIds string) (map[int64]*c
 	c.Infof("querying DB for comments with inputIds = %v", inputIds)
 	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
 	query := fmt.Sprintf(`
-		SELECT id,inputId,createdAt,text,replyToId,creatorId,creatorName
+		SELECT id,inputId,createdAt,updatedAt,text,replyToId,creatorId,creatorName
 		FROM comments
 		WHERE inputId IN (%s)`, inputIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
@@ -194,6 +197,7 @@ func loadComments(c sessions.Context, db *sql.DB, inputIds string) (map[int64]*c
 			&ct.Id,
 			&ct.InputId,
 			&ct.CreatedAt,
+			&ct.UpdatedAt,
 			&ct.Text,
 			&ct.ReplyToId,
 			&ct.CreatorId,
@@ -263,6 +267,13 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		}
 	}
 
+	// Load last visit
+	lastVisit := ""
+	lastVisit, err = loadVisit(c, data.User.Id, idStr)
+	if err != nil {
+		c.Errorf("error while fetching a visit: %v", err)
+	}
+
 	// Load all the input
 	var inputs []input
 	inputs, err = loadInputs(c, db, idStr)
@@ -321,10 +332,34 @@ func questionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
+	// Now that it looks like we are going to return the page successfully, we'll
+	// mark all updates related to this question as seen.
+	query := fmt.Sprintf(`UPDATE updates SET seen=1 WHERE questionId=%s AND userId=%d`, idStr, data.User.Id)
+	if _, err := database.ExecuteSql(c, query); err != nil {
+		c.Errorf("Couldn't update updates: %v", err)
+	}
+
+	// Update last visit date.
+	hashmap := make(map[string]interface{})
+	hashmap["userId"] = data.User.Id
+	hashmap["questionId"] = data.Question.Id
+	hashmap["createdAt"] = database.Now()
+	hashmap["updatedAt"] = database.Now()
+	sql := database.GetInsertSql("visits", hashmap, "updatedAt")
+	if _, err = database.ExecuteSql(c, sql); err != nil {
+		c.Errorf("Couldn't update visits: %v", err)
+	}
+
 	funcMap := template.FuncMap{
 		"UserId":     func() int64 { return data.User.Id },
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
+		"IsNew": func(creatorId int64, createdAt string) bool {
+			return creatorId != data.User.Id && lastVisit != "" && createdAt > lastVisit
+		},
+		"IsUpdated": func(creatorId int64, updatedAt string) bool {
+			return creatorId != data.User.Id && lastVisit != "" && updatedAt > lastVisit
+		},
 	}
 	c.Inc("question_page_served_success")
 	return pages.StatusOK(data).SetFuncMap(funcMap)

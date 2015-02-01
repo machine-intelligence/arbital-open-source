@@ -14,7 +14,11 @@
 <div class="bQuestions">
 	<ul class="questionsList">
 		{{range .Questions}}
-			<li class="questionText"><a href="/questions/{{.Id}}">{{.Text}}</a></li>
+			<li class="questionText"><a href="/questions/{{.Id}}">{{.Text}}</a>
+				{{range .Tags}}
+					<span class="tag">{{.Text}}</span>
+				{{end}}
+			</li>
 		{{end}}
 	</ul>
 </div>

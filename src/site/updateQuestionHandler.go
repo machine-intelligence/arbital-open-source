@@ -32,7 +32,8 @@ func updateQuestionHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap := make(map[string]interface{})
 	hashmap["id"] = task.Id
 	hashmap["text"] = task.Text
-	sql := database.GetInsertSql("questions", hashmap, "text")
+	hashmap["updatedAt"] = database.Now()
+	sql := database.GetInsertSql("questions", hashmap, "text", "updatedAt")
 	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("update_question_fail")
 		c.Errorf("Couldn't update question: %v", err)

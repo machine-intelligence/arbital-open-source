@@ -1,7 +1,7 @@
 {{/* question.tmpl is the main body of the question page */}}
 {{define "base"}}
 <!DOCTYPE html>
-<html>
+<html lang="en" ng-app>
 <head>
 	{{template "style"}}
 	<link href="/static/css/question.css" rel="stylesheet">
@@ -12,29 +12,31 @@
 <body>
 {{template "navbar" .User}}
 
-<div class="bQuestion" question-id="{{.Question.Id}}">
-	<div class="questionBody">
-		<p class="questionText">{{.Question.Text}}</p>
-		{{range .Question.Tags}}
-			<span class="tag">{{.Text}}</span>
-		{{end}}
-		<a href="#" class="subscribeToQuestion" {{if .Question.IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
-		<a href="#" class="unsubscribeToQuestion" {{if not .Question.IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
-		{{if IsAdmin}} <!--TODO: another condition -->
-			<a href="#" class="editQuestion">Edit</a>
-		{{end}}
-		{{if IsAdmin}}
-			<p class="admin">asked by {{.Question.CreatorName}}</p>
-		{{end}}
+{{with .Question}}
+	<div class="bQuestion" question-id="{{.Id}}">
+		<div class="questionBody">
+			<p>{{if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="questionText">{{.Text}}</span></p>
+			{{range .Tags}}
+				<span class="tag">{{.Text}}</span>
+			{{end}}
+			<a href="#" class="subscribeToQuestion" {{if .IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
+			<a href="#" class="unsubscribeToQuestion" {{if not .IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
+			{{if IsAdmin}} <!--TODO: another condition -->
+				<a href="#" class="editQuestion">Edit</a>
+			{{end}}
+			{{if IsAdmin}}
+				<p class="admin">asked by {{.CreatorName}}</p>
+			{{end}}
+		</div>
+		<form class="editQuestionForm">
+			<input type="text" name="text" class="inputQuestion"></br>
+			<p class="errorText"></p>
+			<img src="/static/images/loading.gif" class="loadingIndicator"/>
+			<input type="submit" value="Save"/>
+			<a href="#" class="cancelLink cancelQuestion">Cancel</a>
+		</form>
 	</div>
-	<form class="editQuestionForm">
-		<input type="text" name="text" class="inputQuestion"></br>
-		<p class="errorText"></p>
-		<img src="/static/images/loading.gif" class="loadingIndicator"/>
-		<input type="submit" value="Save"/>
-		<a href="#" class="cancelLink cancelQuestion">Cancel</a>
-	</form>
-</div>
+{{end}}
 
 <div class="bPriors">
 	{{range .Priors}}

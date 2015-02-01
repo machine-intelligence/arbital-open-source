@@ -86,6 +86,7 @@ func newQuestionHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["privacyKey"] = privacyKey
 	}
 	hashmap["createdAt"] = database.Now()
+	hashmap["updatedAt"] = database.Now()
 	query := database.GetInsertSql("questions", hashmap)
 	result, err = tx.Exec(query)
 	if err != nil {

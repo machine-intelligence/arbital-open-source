@@ -10,6 +10,8 @@ CREATE TABLE comments (
 	replyToId BIGINT NOT NULL,
 	/* When this was created. */
   createdAt DATETIME NOT NULL,
+	/* When this was updated at. */
+  updatedAt DATETIME NOT NULL,
 	/* User id of the creator. */
   creatorId BIGINT NOT NULL,
 	/* Full name of the user who commented. */

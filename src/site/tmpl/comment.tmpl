@@ -2,6 +2,7 @@
 {{define "comment"}}
 <div class="comment" comment-id="{{.Id}}">
 	<div class="commentBody">
+		<span>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}</span>
 		<span class="commentCreatorName">{{.CreatorName}}: </span>
 		<span class="commentText">{{.Text}}</span>
 		{{if eq .CreatorId UserId}}

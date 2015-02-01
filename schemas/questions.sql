@@ -10,6 +10,8 @@ CREATE TABLE questions (
 	creatorName VARCHAR(64) NOT NULL,
 	/* When this question was created. */
   createdAt DATETIME NOT NULL,
+	/* When this question was last updated. */
+  updatedAt DATETIME NOT NULL,
 	/* Text of the question. */
   text VARCHAR(512) NOT NULL,
 	/* Ids for the prior inputs. */

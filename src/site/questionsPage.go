@@ -47,6 +47,13 @@ func questionsRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		if err != nil {
 			return fmt.Errorf("failed to scan a question: %v", err)
 		}
+
+		// Load tags.
+		err = loadTags(c, &q)
+		if err != nil {
+			return fmt.Errorf("Couldn't retrieve question tags: %v", err)
+		}
+
 		data.Questions = append(data.Questions, &q)
 		return nil
 	})

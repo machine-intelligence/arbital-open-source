@@ -34,7 +34,8 @@ func updateInputHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["id"] = task.Id
 	hashmap["text"] = task.Text
 	hashmap["url"] = task.Url
-	sql := database.GetInsertSql("inputs", hashmap, "text", "url")
+	hashmap["updatedAt"] = database.Now()
+	sql := database.GetInsertSql("inputs", hashmap, "text", "url", "updatedAt")
 	if _, err = database.ExecuteSql(c, sql); err != nil {
 		c.Inc("update_input_fail")
 		c.Errorf("Couldn't update input: %v", err)

@@ -10,6 +10,8 @@ CREATE TABLE inputs (
 	/*inputType VARCHAR(32) NOT NULL,*/
 	/* When this was created. */
   createdAt DATETIME NOT NULL,
+	/* When this was last updated. */
+  updatedAt DATETIME NOT NULL,
 	/* User id of the creator. */
   creatorId BIGINT NOT NULL,
 	/* Full name of the creator. */

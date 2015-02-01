@@ -11,7 +11,7 @@
 	</div>
 	<div class="inputRight">
 		<div class="inputBody">
-			<p class="inputText">{{.Text}}</p>
+			<p>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="inputText">{{.Text}}</span></p>
 			<p><a href="{{.Url}}" target="_blank" class="inputUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
 			<a href="#" class="editInput">Edit</a>
 			{{if IsAdmin}}
