@@ -9,15 +9,15 @@ import (
 	"zanaduu3/src/sessions"
 )
 
-//loadTags loads tags for the given question from the DB.
-func loadTags(c sessions.Context, q *question) error {
+//loadTags loads tags for the given claim from the DB.
+func loadTags(c sessions.Context, q *claim) error {
 	q.Tags = make([]*tag, 0)
 	query := fmt.Sprintf(`
 		SELECT t.id,t.text
-		FROM questionTags AS qt
+		FROM claimTagPairs AS qt
 		LEFT JOIN tags AS t
 		ON (qt.tagId=t.id)
-		WHERE qt.questionId=%d`, q.Id)
+		WHERE qt.claimId=%d`, q.Id)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var t tag
 		err := rows.Scan(&t.Id, &t.Text)

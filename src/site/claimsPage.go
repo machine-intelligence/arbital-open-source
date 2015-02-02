@@ -1,4 +1,4 @@
-// questionsPage.go serves the question page.
+// claimsPage.go serves the claim page.
 package site
 
 import (
@@ -13,52 +13,52 @@ import (
 	"zanaduu3/src/user"
 )
 
-// questionsTmplData stores the data that we pass to the questions.tmpl to render the page
-type questionsTmplData struct {
-	User      *user.User
-	Questions []*question
+// claimsTmplData stores the data that we pass to the claims.tmpl to render the page
+type claimsTmplData struct {
+	User   *user.User
+	Claims []*claim
 }
 
-// questionsPage serves the questions page.
-var questionsPage = pages.Add(
-	"/questions/all/",
-	questionsRenderer,
+// claimsPage serves the claims page.
+var claimsPage = pages.Add(
+	"/claims/all/",
+	claimsRenderer,
 	append(baseTmpls,
-		"tmpl/questions.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/claims.tmpl", "tmpl/navbar.tmpl")...)
 
-// questionsRenderer renders the question page.
-func questionsRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
-	var data questionsTmplData
+// claimsRenderer renders the claim page.
+func claimsRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
+	var data claimsTmplData
 	c := sessions.NewContext(r)
 
-	// Load the questions
-	data.Questions = make([]*question, 0, 50)
+	// Load the claims
+	data.Claims = make([]*claim, 0, 50)
 	query := fmt.Sprintf(`
 		SELECT id,text
-		FROM questions
+		FROM claims
 		WHERE privacyKey IS NULL
 		ORDER BY id DESC
 		LIMIT 50`)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var q question
+		var q claim
 		err := rows.Scan(
 			&q.Id,
 			&q.Text)
 		if err != nil {
-			return fmt.Errorf("failed to scan a question: %v", err)
+			return fmt.Errorf("failed to scan a claim: %v", err)
 		}
 
 		// Load tags.
 		err = loadTags(c, &q)
 		if err != nil {
-			return fmt.Errorf("Couldn't retrieve question tags: %v", err)
+			return fmt.Errorf("Couldn't retrieve claim tags: %v", err)
 		}
 
-		data.Questions = append(data.Questions, &q)
+		data.Claims = append(data.Claims, &q)
 		return nil
 	})
 	if err != nil {
-		c.Errorf("error while loading questions: %v", err)
+		c.Errorf("error while loading claims: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 
@@ -74,6 +74,6 @@ func questionsRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 	}
-	c.Inc("questions_page_served_success")
+	c.Inc("claims_page_served_success")
 	return pages.StatusOK(data).SetFuncMap(funcMap)
 }

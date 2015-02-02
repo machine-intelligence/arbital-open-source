@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS tags;
 
-/* This table contains all the tags we have in our system. */
+/* A tag is a keyword attached to a claim to allow for easier filtering / categorization. */
 CREATE TABLE tags (
 	/* Unique tag id. PK. */
   id BIGINT NOT NULL AUTO_INCREMENT,

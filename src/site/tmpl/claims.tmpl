@@ -1,20 +1,20 @@
-{{/* questions.tmpl is the main body of the questions page */}}
+{{/* claims.tmpl is the main body of the claims page */}}
 {{define "base"}}
 <!DOCTYPE html>
 <html>
 <head>
 	{{template "style"}}
-	<link href="/static/css/questions.css" rel="stylesheet">
+	<link href="/static/css/claims.css" rel="stylesheet">
 	{{template "scripts"}}
 </head>
 
 <body>
 {{template "navbar" .User}}
 
-<div class="bQuestions">
-	<ul class="questionsList">
-		{{range .Questions}}
-			<li class="questionText"><a href="/questions/{{.Id}}">{{.Text}}</a>
+<div class="bClaims">
+	<ul class="claimsList">
+		{{range .Claims}}
+			<li class="claimText"><a href="/claims/{{.Id}}">{{.Text}}</a>
 				{{range .Tags}}
 					<span class="tag">{{.Text}}</span>
 				{{end}}

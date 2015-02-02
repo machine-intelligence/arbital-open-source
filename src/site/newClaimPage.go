@@ -1,4 +1,4 @@
-// newQuestion.go serves the new question page.
+// newClaim.go serves the new claim page.
 package site
 
 import (
@@ -13,22 +13,22 @@ import (
 	"zanaduu3/src/user"
 )
 
-// newQuestionTmplData stores the data that we pass to the template file to render the page
-type newQuestionTmplData struct {
+// newClaimTmplData stores the data that we pass to the template file to render the page
+type newClaimTmplData struct {
 	User *user.User
 	Tags []tag
 }
 
-// newQuestionPage serves the question page.
-var newQuestionPage = pages.Add(
-	"/questions/new/",
-	newQuestionRenderer,
+// newClaimPage serves the claim page.
+var newClaimPage = pages.Add(
+	"/claims/new/",
+	newClaimRenderer,
 	append(baseTmpls,
-		"tmpl/newQuestion.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/newClaim.tmpl", "tmpl/navbar.tmpl")...)
 
-// newQuestionRenderer renders the new question page.
-func newQuestionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
-	var data newQuestionTmplData
+// newClaimRenderer renders the new claim page.
+func newClaimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
+	var data newClaimTmplData
 	c := sessions.NewContext(r)
 
 	// Load user, if possible
@@ -62,6 +62,6 @@ func newQuestionRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 	}
-	c.Inc("new_question_page_served_success")
+	c.Inc("new_claim_page_served_success")
 	return pages.StatusOK(data).SetFuncMap(funcMap)
 }

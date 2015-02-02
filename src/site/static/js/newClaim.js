@@ -1,12 +1,12 @@
 $(document).ready(function() {
-	$(".newQuestionForm").on("submit", function(event) {
+	$(".newClaimForm").on("submit", function(event) {
 		var data = {};
 		$.each($(event.target).serializeArray(), function(i, field) {
 			data[field.name] = field.value;
 		});
 		$.ajax({
 			type: 'POST',
-			url: '/newQuestion/',
+			url: '/newClaim/',
 			data: JSON.stringify(data),
 		})
 		.done(function(url, textStatus) {
@@ -14,7 +14,7 @@ $(document).ready(function() {
 		})
 		.fail(function(r) {
 			console.log("fail: " + JSON.stringify(r));
-			$("#newQuestionError").text("An error has occured.");
+			$("#newClaimError").text("An error has occured.");
 		});
 		return false;
 	});

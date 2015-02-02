@@ -7,5 +7,5 @@ cdroot
 
 FILE_PATH=src/site/static
 lessc ${FILE_PATH}/less/base.less > ${FILE_PATH}/css/base.css
-lessc ${FILE_PATH}/less/question.less > ${FILE_PATH}/css/question.css
-lessc ${FILE_PATH}/less/questions.less > ${FILE_PATH}/css/questions.css
+lessc ${FILE_PATH}/less/claim.less > ${FILE_PATH}/css/claim.css
+lessc ${FILE_PATH}/less/claims.less > ${FILE_PATH}/css/claims.css

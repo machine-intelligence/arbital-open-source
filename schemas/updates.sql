@@ -1,13 +1,21 @@
 DROP TABLE IF EXISTS updates;
 
-/* This table contains all the updates we have in our system. */
+/* An update is a notification for the user that something new has happened, e.g.
+there was a new comment. Updates are created only when a user is subscribed to
+something, e.g. a comment.
+ Since there could be multiple replies to a comment, and we don't want to add a
+new update for each reply, we stack the updates together instead. When the
+user visits the corresponding claim page, all the related updates are marked
+as seen, and a new stack begins.
+ Therefore, note that there could be multiple entries with the same (userId,
+claimId, commentId, type) tuple. But only one of them will have seen==false. */
 CREATE TABLE updates (
 	/* Unique update id. PK. */
   id BIGINT NOT NULL AUTO_INCREMENT,
 	/* User id of the owner of this update. FK into users. */
   userId BIGINT NOT NULL,
-	/* Id of the question the update is for. FK into questions. */
-  questionId BIGINT NOT NULL,
+	/* Id of the claim the update is for. FK into claims. */
+  claimId BIGINT NOT NULL,
 	/* Id of the comment the update is for. FK into comments. */
   commentId BIGINT NOT NULL,
 	/* Type of update */

@@ -1,11 +1,14 @@
 DROP TABLE IF EXISTS comments;
 
-/* This table contains all the comments we have in our system. */
+/* A comment is attached to a claim. It can be in context (only shown when
+looking at a specific input) or out of context (always shown). */
 CREATE TABLE comments (
 	/* Unique comment id. PK. */
   id BIGINT NOT NULL AUTO_INCREMENT,
-	/* Id of the input this fact belong to. FK into inputs. */
-  inputId BIGINT NOT NULL,
+	/* Id of the claim this fact belong to. FK into claims. */
+  claimId BIGINT NOT NULL,
+	/* Id of the input this is associated with. FK into inputs. */
+	inputId BIGINT NOT NULL,
 	/* Id of the comment this is a reply to. */
 	replyToId BIGINT NOT NULL,
 	/* When this was created. */
