@@ -8,6 +8,7 @@
 		<div class="claimBody">
 			<p>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Text}}</span></p>
 			<p><a href="{{.Url}}" target="_blank" class="claimUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
+			<p><a href="{{GetClaimUrl .}}">Inputs ({{.InputCount}})</a></p>
 			<a href="#" class="editClaim">Edit</a>
 			{{if IsAdmin}}
 				<p class="admin">

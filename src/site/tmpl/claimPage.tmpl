@@ -59,7 +59,10 @@
 	{{end}}
 	{{if IsLoggedIn}}
 		<div class="newClaim">
-			<a href="#" class="newClaimLink">New Claim</a>
+			<div class="newClaimBody">
+				<a href="#" class="newClaimLink">New Claim</a>
+				<a href="#" class="addExistingClaimLink">Add Existing Claim</a>
+			</div>
 			<form class="newClaimForm">
 				<textarea name="text" class="newClaimTextarea"></textarea>
 				<p>URL: <input type="url" name="url"/></p>
@@ -67,6 +70,13 @@
 				<img src="/static/images/loading.gif" class="loadingIndicator"/>
 				<input type="submit" value="Submit">
 				<a href="#" class="cancelLink cancelNewClaim">Cancel</a>
+			</form>
+			<form class="addExistingClaimForm">
+				<p>Claim URL: <input type="url" name="url"/></p>
+				<p class="errorText"></p>
+				<img src="/static/images/loading.gif" class="loadingIndicator"/>
+				<input type="submit" value="Submit">
+				<a href="#" class="cancelLink cancelAddExistingClaim">Cancel</a>
 			</form>
 		</div>
 	{{end}}

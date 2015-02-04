@@ -17,5 +17,6 @@ CREATE TABLE inputs (
   creatorId BIGINT NOT NULL,
 	/* Full name of the creator. */
 	creatorName VARCHAR(64) NOT NULL,
+	UNIQUE(parentId, childId),
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

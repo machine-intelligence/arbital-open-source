@@ -13,9 +13,14 @@ function toggleEditNewComment($newComment) {
 	$newComment.find(".newCommentForm").toggle();
 }
 
-function toggleEditNewClaim($bClaim) {
-	$bClaim.find(".newClaimLink").toggle();
-	$bClaim.find(".newClaimForm").toggle();
+function toggleEditNewClaim($newClaim) {
+	$newClaim.find(".newClaimBody").toggle();
+	$newClaim.find(".newClaimForm").toggle();
+}
+
+function toggleAddExistingClaim($newClaim) {
+	$newClaim.find(".newClaimBody").toggle();
+	$newClaim.find(".addExistingClaimForm").toggle();
 }
 
 $(document).ready(function() {
@@ -118,6 +123,7 @@ $(document).ready(function() {
 	$(".newClaimLink").on("click", function(event) {
 		var $newClaim = $(event.target).closest(".newClaim");
 		toggleEditNewClaim($newClaim);
+		$newClaim.find(".newClaimTextarea").focus();
 		return false;
 	});
 	$(".newClaimForm").on("submit", function(event) {
@@ -131,6 +137,27 @@ $(document).ready(function() {
 	$(".cancelNewClaim").on("click", function(event) {
 		var $newClaim = $(event.target).closest(".newClaim");
 		toggleEditNewClaim($newClaim);
+		return false;
+	});
+
+	// Add existing claim stuff.
+	$(".addExistingClaimLink").on("click", function(event) {
+		var $newClaim = $(event.target).closest(".newClaim");
+		toggleAddExistingClaim($newClaim);
+		$newClaim.find(".addExistingClaimForm").find("input:text[name='url']").focus();
+		return false;
+	});
+	$(".addExistingClaimForm").on("submit", function(event) {
+		var $form = $(event.target);
+		var data = {parentClaimId: $(".bClaim").attr("claim-id")};
+		submitForm($form, "/newInput/", data, function(r) {
+			location.reload();
+		});
+		return false;
+	});
+	$(".cancelAddExistingClaim").on("click", function(event) {
+		var $newClaim = $(event.target).closest(".newClaim");
+		toggleAddExistingClaim($newClaim);
 		return false;
 	});
 

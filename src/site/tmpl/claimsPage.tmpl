@@ -14,7 +14,7 @@
 <div class="bClaims">
 	<ul class="claimsList">
 		{{range .Claims}}
-			<li class="claimText"><a href="/claims/{{.Id}}">{{.Text}}</a>
+			<li class="claimText"><a href="{{GetClaimUrl .}}">{{.Text}}</a>
 				{{range .Tags}}
 					<span class="tag">{{.Text}}</span>
 				{{end}}

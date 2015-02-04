@@ -54,6 +54,7 @@ func init() {
 
 	// POST handlers (API)
 	r.HandleFunc("/newClaim/", newClaimHandler).Methods("POST")
+	r.HandleFunc("/newInput/", newInputHandler).Methods("POST")
 	r.HandleFunc("/newComment/", newCommentHandler).Methods("POST")
 	r.HandleFunc("/newSubscription/", newSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/newVote/", newVoteHandler).Methods("POST")

@@ -15,7 +15,7 @@ import (
 
 type update struct {
 	Id        int64
-	ClaimId   int64
+	Claim     claim
 	CommentId int64
 	Type      string
 	CreatedAt string
@@ -56,16 +56,19 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	// Load the updates
 	data.Updates = make([]*update, 0)
 	query := fmt.Sprintf(`
-		SELECT id,claimId,commentId,type,createdAt,updatedAt,count,seen
-		FROM updates
-		WHERE userId=%d
-		ORDER BY updatedAt DESC
+		SELECT u.id,c.id,c.privacyKey,u.commentId,u.type,u.createdAt,u.updatedAt,u.count,u.seen
+		FROM updates AS u
+		JOIN claims AS c
+		ON u.claimId=c.Id
+		WHERE u.userId=%d
+		ORDER BY u.updatedAt DESC
 		LIMIT 50`, data.User.Id)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var u update
 		err := rows.Scan(
 			&u.Id,
-			&u.ClaimId,
+			&u.Claim.Id,
+			&u.Claim.PrivacyKey,
 			&u.CommentId,
 			&u.Type,
 			&u.CreatedAt,
@@ -87,6 +90,13 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"UserId":     func() int64 { return data.User.Id },
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
+		"GetClaimUrl": func(c *claim) string {
+			privacyAddon := ""
+			if c.PrivacyKey.Valid {
+				privacyAddon = fmt.Sprintf("/%d", c.PrivacyKey.Int64)
+			}
+			return fmt.Sprintf("/claims/%d%s", c.Id, privacyAddon)
+		},
 	}
 	c.Inc("updates_page_served_success")
 	return pages.StatusOK(data).SetFuncMap(funcMap)

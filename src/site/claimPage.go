@@ -59,6 +59,7 @@ type claim struct {
 	CreatorId     int64
 	CreatorName   string
 	PrivacyKey    sql.NullInt64
+	InputCount    int
 	IsSubscribed  bool
 	UpvoteCount   int
 	DownvoteCount int
@@ -88,7 +89,9 @@ var privateClaimPage = pages.Add(
 	"/claims/{id:[0-9]+}/{privacyKey:[0-9]+}",
 	claimRenderer,
 	append(baseTmpls,
-		"tmpl/claimPage.tmpl", "tmpl/claim.tmpl", "tmpl/comment.tmpl", "tmpl/newComment.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/claimPage.tmpl", "tmpl/claim.tmpl",
+		"tmpl/comment.tmpl", "tmpl/newComment.tmpl",
+		"tmpl/vote.tmpl", "tmpl/navbar.tmpl")...)
 
 // loadParentClaim loads and returns the parent claim.
 func loadParentClaim(c sessions.Context, userId int64, claimId string) (*claim, error) {
@@ -171,6 +174,26 @@ func loadVisit(c sessions.Context, userId int64, claimId string) (string, error)
 		WHERE claimId=%s AND userId=%d`, claimId, userId)
 	_, err := database.QueryRowSql(c, query, &updatedAt)
 	return updatedAt, err
+}
+
+// loadInputCounts computes how many inputs each claim has.
+func loadInputCounts(c sessions.Context, claimIds string, claimMap map[int64]*claim) error {
+	query := fmt.Sprintf(`
+		SELECT parentId,sum(1)
+		FROM inputs
+		WHERE parentId IN (%s)
+		GROUP BY parentId`, claimIds)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var parentId int64
+		var count int
+		err := rows.Scan(&parentId, &count)
+		if err != nil {
+			return fmt.Errorf("failed to scan for an input: %v", err)
+		}
+		claimMap[parentId].InputCount = count
+		return nil
+	})
+	return err
 }
 
 // loadComments loads and returns all the comments for the given input ids from the db.
@@ -258,19 +281,19 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	// Load the parent claim
 	claimMap := make(map[int64]*claim)
 	claimId := mux.Vars(r)["id"]
-	claim, err := loadParentClaim(c, data.User.Id, claimId)
+	parentClaim, err := loadParentClaim(c, data.User.Id, claimId)
 	if err != nil {
 		c.Inc("claim_fetch_fail")
 		c.Errorf("error while fetching a claim: %v", err)
 		return pages.InternalErrorWith(err)
 	}
-	claimMap[claim.Id] = claim
-	data.Claim = claim
+	claimMap[parentClaim.Id] = parentClaim
+	data.Claim = parentClaim
 
 	// Check privacy setting
-	if claim.PrivacyKey.Valid {
+	if parentClaim.PrivacyKey.Valid {
 		privacyKey := mux.Vars(r)["privacyKey"]
-		if privacyKey != fmt.Sprintf("%d", claim.PrivacyKey.Int64) {
+		if privacyKey != fmt.Sprintf("%d", parentClaim.PrivacyKey.Int64) {
 			return pages.UnauthorizedWith(err)
 		}
 	}
@@ -301,6 +324,14 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 	buffer.WriteString(claimId)
 	claimIds := buffer.String()
+
+	// Load input counts
+	err = loadInputCounts(c, claimIds, claimMap)
+	if err != nil {
+		c.Inc("inputs_fetch_fail")
+		c.Errorf("error while fetching inputs: %v", err)
+		return pages.InternalErrorWith(err)
+	}
 
 	// Load all the comments
 	var comments map[int64]*comment
@@ -361,6 +392,13 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		},
 		"IsUpdated": func(creatorId int64, updatedAt string) bool {
 			return creatorId != data.User.Id && lastVisit != "" && updatedAt > lastVisit
+		},
+		"GetClaimUrl": func(c *claim) string {
+			privacyAddon := ""
+			if c.PrivacyKey.Valid {
+				privacyAddon = fmt.Sprintf("/%d", c.PrivacyKey.Int64)
+			}
+			return fmt.Sprintf("/claims/%d%s", c.Id, privacyAddon)
 		},
 	}
 	c.Inc("claim_page_served_success")

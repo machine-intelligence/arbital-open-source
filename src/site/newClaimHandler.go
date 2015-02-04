@@ -106,7 +106,6 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["tagId"] = data.TagId
 		hashmap["createdBy"] = u.Id
 		hashmap["createdAt"] = database.Now()
-		hashmap["updatedAt"] = database.Now()
 		query = database.GetInsertSql("claimTagPairs", hashmap)
 		_, err = tx.Exec(query)
 		if err != nil {
@@ -114,6 +113,7 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 			c.Inc("new_claim_fail")
 			c.Errorf("Couldn't add a new claimTagPair: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 	}
 
@@ -143,6 +143,7 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["updatedAt"] = database.Now()
 		sql := database.GetInsertSql("inputs", hashmap)
 		if _, err = tx.Exec(sql); err != nil {
+			tx.Rollback()
 			c.Inc("new_input_fail")
 			c.Errorf("Couldn't new input: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
