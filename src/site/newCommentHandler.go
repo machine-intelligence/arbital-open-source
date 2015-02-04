@@ -13,10 +13,10 @@ import (
 
 // newCommentData is the object that's put into the daemon queue.
 type newCommentData struct {
-	Text       string
-	InputId    int64 `json:",string"`
-	ReplyToId  int64 `json:",string"`
-	QuestionId int64 `json:",string"`
+	ClaimId int64 `json:",string"`
+	//ContextClaimId int64 `json:",string"`
+	ReplyToId int64 `json:",string"`
+	Text      string
 }
 
 // newCommentHandler renders the comment page.
@@ -26,7 +26,7 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var data newCommentData
 	err := decoder.Decode(&data)
-	if err != nil || data.Text == "" || data.QuestionId <= 0 {
+	if err != nil || data.Text == "" || data.ClaimId <= 0 {
 		c.Inc("new_comment_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -42,15 +42,21 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	if !u.IsLoggedIn {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	// Add new comment
 	hashmap := make(map[string]interface{})
-	hashmap["inputId"] = data.InputId
-	hashmap["createdAt"] = database.Now()
-	hashmap["creatorId"] = u.Id
-	hashmap["creatorName"] = u.FullName()
+	//hashmap["contextClaimId"] = data.ContextClaimId
+	hashmap["claimId"] = data.ClaimId
 	hashmap["replyToId"] = data.ReplyToId
 	hashmap["text"] = data.Text
+	hashmap["creatorId"] = u.Id
+	hashmap["creatorName"] = u.FullName()
+	hashmap["createdAt"] = database.Now()
+	hashmap["updatedAt"] = database.Now()
 	query := database.GetInsertSql("comments", hashmap)
 	result, err2 := database.ExecuteSql(c, query)
 	if err2 != nil {
@@ -83,9 +89,13 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Generate updates for people who are subscribed...
 	var task tasks.NewUpdateTask
 	task.UserId = u.Id
-	task.QuestionId = data.QuestionId
+	/*if data.ContextClaimId > 0 {
+		task.ClaimId = data.ContextClaimId
+	} else {*/
+	task.ClaimId = data.ClaimId
+	//}
 	if data.ReplyToId <= 0 {
-		// ... to this question.
+		// ... to this claim.
 		task.UpdateType = "topLevelComment"
 	} else {
 		// ... to the parent comment.

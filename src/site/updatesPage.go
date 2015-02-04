@@ -14,12 +14,14 @@ import (
 )
 
 type update struct {
-	Id         int64
-	QuestionId int64
-	CommentId  int64
-	Type       string
-	Count      int
-	Seen       bool
+	Id        int64
+	ClaimId   int64
+	CommentId int64
+	Type      string
+	CreatedAt string
+	UpdatedAt string
+	Count     int
+	Seen      bool
 }
 
 // updatesTmplData stores the data that we pass to the updates.tmpl to render the page
@@ -33,7 +35,7 @@ var updatesPage = pages.Add(
 	"/updates/",
 	updatesRenderer,
 	append(baseTmpls,
-		"tmpl/updates.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/updatesPage.tmpl", "tmpl/navbar.tmpl")...)
 
 // updatesRenderer renders the updates page.
 func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
@@ -47,14 +49,14 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		c.Errorf("Couldn't load user: %v", err)
 		return pages.InternalErrorWith(err)
 	}
-	if data.User.Id <= 0 {
+	if !data.User.IsLoggedIn {
 		return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
 	}
 
 	// Load the updates
 	data.Updates = make([]*update, 0)
 	query := fmt.Sprintf(`
-		SELECT id,questionId,commentId,type,count,seen
+		SELECT id,claimId,commentId,type,createdAt,updatedAt,count,seen
 		FROM updates
 		WHERE userId=%d
 		ORDER BY updatedAt DESC
@@ -63,9 +65,11 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		var u update
 		err := rows.Scan(
 			&u.Id,
-			&u.QuestionId,
+			&u.ClaimId,
 			&u.CommentId,
 			&u.Type,
+			&u.CreatedAt,
+			&u.UpdatedAt,
 			&u.Count,
 			&u.Seen)
 		if err != nil {

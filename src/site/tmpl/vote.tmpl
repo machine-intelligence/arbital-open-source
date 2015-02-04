@@ -1,0 +1,9 @@
+{{/* vote.tmpl is the template for the vote element */}}
+{{define "vote"}}
+{{if IsLoggedIn}}
+	<div class="vote" my-vote="{{.MyVote}}">
+		<p><span class="myUpvote" {{if ne .MyVote 1}}style="display:none"{{end}}>*</span><span class="upvoteCount">{{.UpvoteCount}}</span><a href="#" class="upvoteLink">Upvote</a></p>
+		<p><span class="myDownvote" {{if ne .MyVote -1}}style="display:none"{{end}}>*</span><span class="downvoteCount">{{.DownvoteCount}}</span><a href="#" class="downvoteLink">Downvote</a></p>
+	</div>
+{{end}}
+{{end}}

@@ -54,13 +54,12 @@ func init() {
 
 	// POST handlers (API)
 	r.HandleFunc("/newClaim/", newClaimHandler).Methods("POST")
-	r.HandleFunc("/newInput/", newInputHandler).Methods("POST")
 	r.HandleFunc("/newComment/", newCommentHandler).Methods("POST")
 	r.HandleFunc("/newSubscription/", newSubscriptionHandler).Methods("POST")
-	r.HandleFunc("/updateQuestion/", updateQuestionHandler).Methods("POST")
+	r.HandleFunc("/newVote/", newVoteHandler).Methods("POST")
+	r.HandleFunc("/updateClaim/", updateClaimHandler).Methods("POST")
 	r.HandleFunc("/updateInput/", updateInputHandler).Methods("POST")
 	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
-	r.HandleFunc("/priorVote/", priorVoteHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
 
 	// Admin stuff

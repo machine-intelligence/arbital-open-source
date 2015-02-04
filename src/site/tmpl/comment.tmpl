@@ -10,7 +10,7 @@
 		{{end}}
 	</div>
 	<form class="editCommentForm">
-		<textarea name="text" class="inputComment"></textarea>
+		<textarea name="text" class="editCommentTextarea"></textarea>
 		<p class="errorText"></p>
 		<img src="/static/images/loading.gif" class="loadingIndicator"/>
 		<input type="submit" value="Save"/>
@@ -21,7 +21,7 @@
 			{{template "comment" .}}
 		{{end}}
 		{{if le .ReplyToId 0}}
-			{{template "newComment" "Reply"}}
+			{{template "newComment" .Id}}
 		{{end}}
 	</div>
 </div>

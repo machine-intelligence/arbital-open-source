@@ -11,14 +11,17 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
 )
 
 // newClaimData contains parameters passed in to create a new claim
 type newClaimData struct {
-	Text    string
-	Private string
-	TagId   int64 `json:",string"`
+	ParentClaimId int64 `json:",string"`
+	Text          string
+	Url           string
+	Private       string
+	TagId         int64 `json:",string"`
 }
 
 // newClaimHandler handles requests to create a new claim.
@@ -65,16 +68,17 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 	// Create new claim.
 	var privacyKey int64
 	hashmap := make(map[string]interface{})
+	hashmap["text"] = data.Text
+	hashmap["url"] = data.Url
 	hashmap["creatorId"] = u.Id
 	hashmap["creatorName"] = u.FullName()
-	hashmap["text"] = data.Text
+	hashmap["createdAt"] = database.Now()
+	hashmap["updatedAt"] = database.Now()
 	if data.Private == "on" {
 		rand.Seed(time.Now().UnixNano())
 		privacyKey = rand.Int63()
 		hashmap["privacyKey"] = privacyKey
 	}
-	hashmap["createdAt"] = database.Now()
-	hashmap["updatedAt"] = database.Now()
 	query := database.GetInsertSql("claims", hashmap)
 	result, err = tx.Exec(query)
 	if err != nil {
@@ -102,6 +106,7 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["tagId"] = data.TagId
 		hashmap["createdBy"] = u.Id
 		hashmap["createdAt"] = database.Now()
+		hashmap["updatedAt"] = database.Now()
 		query = database.GetInsertSql("claimTagPairs", hashmap)
 		_, err = tx.Exec(query)
 		if err != nil {
@@ -121,10 +126,28 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = tx.Exec(query)
 	if err != nil {
 		tx.Rollback()
-		c.Inc("update_claim_fail")
+		c.Inc("new_claim_fail")
 		c.Errorf("Couldn't add a subscription: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	if data.ParentClaimId > 0 {
+		// Create new input.
+		hashmap = make(map[string]interface{})
+		hashmap["parentId"] = data.ParentClaimId
+		hashmap["childId"] = claimId
+		hashmap["creatorId"] = u.Id
+		hashmap["creatorName"] = u.FullName()
+		hashmap["createdAt"] = database.Now()
+		hashmap["updatedAt"] = database.Now()
+		sql := database.GetInsertSql("inputs", hashmap)
+		if _, err = tx.Exec(sql); err != nil {
+			c.Inc("new_input_fail")
+			c.Errorf("Couldn't new input: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
 	// Commit transaction.
@@ -134,6 +157,20 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Error commit a transaction: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	// Add updates to users who are subscribed to this claim.
+	if data.ParentClaimId > 0 {
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.ClaimId = data.ParentClaimId
+		task.UpdateType = "newInput"
+		if err := task.IsValid(); err != nil {
+			c.Errorf("Invalid task created: %v", err)
+		}
+		if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
 	}
 
 	// Return id of the new claim.

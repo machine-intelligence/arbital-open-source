@@ -1,33 +1,21 @@
-.bClaim {
-  background-color: LightPink;
-  text-align: center;
-}
-.bPriors {
-  width: 100%;
-  font-size: 0px;
-  border: 5px solid green;
-}
-.inputColumn {
-  display: inline-block;
-  vertical-align: top;
-  width: 50%;
-  font-size: 14px;
-  padding: 0 3em;
-}
-.input {
+.claim {
   background-color: LightBlue;
   padding: 2em 0;
   overflow: auto;
 }
-.inputLeft {
+.bClaim {
+  background-color: LightPink;
+  text-align: center;
+}
+.claimLeft {
   float: left;
   width: 10%;
 }
-.inputRight {
+.claimRight {
   float: right;
   width: 90%;
 }
-.newInputForm {
+.newClaimForm {
   display: none;
 }
 .comments {
@@ -36,13 +24,13 @@
 .replies {
   padding: 0 2em;
 }
-.inputClaim {
+.claimInput {
   min-width: 500px;
 }
 .editClaimForm {
   display: none;
 }
-.editInputForm {
+.editClaimForm {
   display: none;
 }
 .editCommentForm {

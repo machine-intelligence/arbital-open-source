@@ -38,8 +38,10 @@ var submitForm = function($target, url, data, success) {
 	}).success(function(r) {
 		$errorText.hide();
 		success(r);
+		console.log(data);
 	}).fail(function(r) {
 		$errorText.show();
 		$errorText.text(r.statusText);
+		console.log(data);
 	});
 }

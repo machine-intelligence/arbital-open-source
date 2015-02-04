@@ -1,43 +1,37 @@
-{{/* claim.tmpl is the main body of the claim page */}}
-{{define "base"}}
-<!DOCTYPE html>
-<html lang="en" ng-app>
-<head>
-	{{template "style"}}
-	<link href="/static/css/claim.css" rel="stylesheet">
-	{{template "scripts"}}
-	<script src="/static/js/claim.js"></script>
-</head>
-
-<body>
-{{template "navbar" .User}}
-
-{{with .Claim}}
-	<div class="bClaim" claim-id="{{.Id}}">
+{{/* claim.tmpl is the template for a given claim */}}
+{{define "claim"}}
+<div class="claim" claim-id="{{.Id}}">
+	<div class="claimLeft">
+		{{template "vote" .}}
+	</div>
+	<div class="claimRight">
 		<div class="claimBody">
-			<p>{{if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Text}}</span></p>
-			{{range .Tags}}
-				<span class="tag">{{.Text}}</span>
-			{{end}}
-			<a href="#" class="subscribeToClaim" {{if .IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
-			<a href="#" class="unsubscribeToClaim" {{if not .IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
-			{{if IsAdmin}} <!--TODO: another condition -->
-				<a href="#" class="editClaim">Edit</a>
-			{{end}}
+			<p>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Text}}</span></p>
+			<p><a href="{{.Url}}" target="_blank" class="claimUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
+			<a href="#" class="editClaim">Edit</a>
 			{{if IsAdmin}}
-				<p class="admin">asked by {{.CreatorName}}</p>
+				<p class="admin">
+					<span>added by {{.CreatorName}}</span></br>
+				</p>
 			{{end}}
 		</div>
 		<form class="editClaimForm">
-			<input type="text" name="text" class="inputClaim"></br>
+			<textarea name="text" class="editClaimTextarea"></textarea>
+			<p>URL: <input type="url" name="url" class="editClaimUrl"/></p>
+			<input type="hidden" name="id" value="{{.Id}}"/>
 			<p class="errorText"></p>
 			<img src="/static/images/loading.gif" class="loadingIndicator"/>
 			<input type="submit" value="Save"/>
-			<a href="#" class="cancelLink cancelClaim">Cancel</a>
+			<a href="#" class="cancelEditClaim">Cancel</a>
 		</form>
+	
+		<span>Comments:</span></br>
+		<div class="comments">
+			{{range .Comments}}
+				{{template "comment" .}}
+			{{end}}
+			{{template "newComment" 0}}
+		</div>
 	</div>
-{{end}}
-
-</body>
-</html>
+</div>
 {{end}}

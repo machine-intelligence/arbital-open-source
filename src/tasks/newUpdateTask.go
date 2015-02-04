@@ -12,7 +12,7 @@ import (
 // NewUpdateTask is the object that's put into the daemon queue.
 type NewUpdateTask struct {
 	UserId     int64 // user who performed an action, e.g. creating a comment
-	QuestionId int64
+	ClaimId    int64
 	CommentId  int64
 	UpdateType string
 }
@@ -21,8 +21,8 @@ type NewUpdateTask struct {
 func (task *NewUpdateTask) IsValid() error {
 	if task.UserId <= 0 {
 		return fmt.Errorf("User id has to be set")
-	} else if task.QuestionId <= 0 {
-		return fmt.Errorf("Question id has to be set")
+	} else if task.ClaimId <= 0 {
+		return fmt.Errorf("Claim id has to be set")
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
 	}
@@ -40,10 +40,10 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 	if task.CommentId > 0 {
 		whereClause = fmt.Sprintf("WHERE commentId=%d", task.CommentId)
 	} else {
-		whereClause = fmt.Sprintf("WHERE questionId=%d", task.QuestionId)
+		whereClause = fmt.Sprintf("WHERE claimId=%d", task.ClaimId)
 	}
 
-	// Iterate through all users who are subscribed to this question/comment.
+	// Iterate through all users who are subscribed to this claim/comment.
 	query := fmt.Sprintf(`
 		SELECT userId
 		FROM subscriptions %s`, whereClause)
@@ -63,10 +63,10 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		query = fmt.Sprintf(`
 			SELECT id
 			FROM updates
-			WHERE userId=%d AND questionId=%d AND commentId=%d AND type="%s" AND seen=0
+			WHERE userId=%d AND claimId=%d AND commentId=%d AND type="%s" AND seen=0
 			ORDER BY updatedAt DESC
 			LIMIT 1`,
-			userId, task.QuestionId, task.CommentId, task.UpdateType)
+			userId, task.ClaimId, task.CommentId, task.UpdateType)
 		exists, err = database.QueryRowSql(c, query, &updateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
@@ -82,7 +82,7 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 			// Insert new update.
 			hashmap := make(map[string]interface{})
 			hashmap["userId"] = userId
-			hashmap["questionId"] = task.QuestionId
+			hashmap["claimId"] = task.ClaimId
 			hashmap["commentId"] = task.CommentId
 			hashmap["type"] = task.UpdateType
 			hashmap["createdAt"] = database.Now()

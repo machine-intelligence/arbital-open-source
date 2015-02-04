@@ -1,12 +1,17 @@
-{{/* newComment.tmpl is the template for url and textarea used to create new a comment. */}}
+{{/* newComment.tmpl is the template for url and textarea used to create new a comment.
+It takes one parameter which is the id of the comment for which this is created, or 0 if
+it's for a new coment. */}}
 {{define "newComment"}}
 {{if IsLoggedIn}}
 	<div class="newComment">
 		<div class="newCommentBody">
-			<a href="#" class="newCommentLink">{{.}}</a>
+			<a href="#" class="newCommentLink">{{if le . 0}}New Comment{{else}}Reply{{end}}</a>
 		</div>
 		<form class="newCommentForm">
-			<textarea name="text" class="inputNewComment"></textarea>
+			<textarea name="text" class="newCommentTextarea"></textarea>
+			<!--{{if le . 0}}
+				In Context <span title="In context comment will only appear on this page. Otherwise, it will appear everywhere."><u>(?)</u></span>: <input type="checkbox" name="inContext" checked></br>
+			{{end}}-->
 			<p class="errorText"></p>
 			<img src="/static/images/loading.gif" class="loadingIndicator"/>
 			<input type="submit" value="Save"/>

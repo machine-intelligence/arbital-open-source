@@ -1,11 +1,6 @@
-function toggleEditInput($inputRight) {
-	$inputRight.find(".inputBody").toggle();
-	$inputRight.find(".editInputForm").toggle();
-}
-
-function toggleEditQuestion($bQuestion) {
-	$bQuestion.find(".editQuestionForm").toggle();
-	$bQuestion.find(".questionBody").toggle();
+function toggleEditClaim($claimRight) {
+	$claimRight.find(".claimBody").toggle();
+	$claimRight.find(".editClaimForm").toggle();
 }
 
 function toggleEditComment($commentBody) {
@@ -18,72 +13,42 @@ function toggleEditNewComment($newComment) {
 	$newComment.find(".newCommentForm").toggle();
 }
 
-function toggleEditNewInput($bInput) {
-	$bInput.find(".newInputLink").toggle();
-	$bInput.find(".newInputForm").toggle();
+function toggleEditNewClaim($bClaim) {
+	$bClaim.find(".newClaimLink").toggle();
+	$bClaim.find(".newClaimForm").toggle();
 }
 
 $(document).ready(function() {
-	// Question editing stuff.
-	$(".editQuestion").on("click", function(event) {
-		var $bQuestion = $(event.target).closest(".bQuestion");
-		var $questionText = $bQuestion.find(".questionText");
-		var $inputQuestion = $bQuestion.find(".inputQuestion");
-		toggleEditQuestion($bQuestion);
-		if ($inputQuestion.val().length <= 0) {
-			$inputQuestion.val($questionText.text());
+	// Claim editing stuff.
+	$(".editClaim").on("click", function(event) {
+		var $claimRight = $(event.target).closest(".claimRight");
+		var $claimTextarea = $claimRight.find(".editClaimTextarea");
+		toggleEditClaim($claimRight);
+		if ($claimTextarea.val() === "") {
+			$claimTextarea.val($claimRight.find(".claimText").text());
+			$claimRight.find(".editClaimUrl").val($claimRight.find(".claimUrl").attr("href"));
 		}
-		$inputQuestion.focus();
+		$claimTextarea.focus();
 		return false;
 	});
-	$(".editQuestionForm").on("submit", function(event) {
+	$(".editClaimForm").on("submit", function(event) {
 		var $form = $(event.target);
-		var $bQuestion = $form.closest(".bQuestion");
-		var $questionText = $bQuestion.find(".questionText");
-		var $inputQuestion = $bQuestion.find(".inputQuestion");
-
-		var data = {id: $bQuestion.attr("question-id")};
-		submitForm($form, "/updateQuestion/", data, function(r) {
-			toggleEditQuestion($bQuestion);
-			$questionText.text($inputQuestion.val());
-			$inputQuestion.val("");
-		});
-		return false;
-	});
-	$(".cancelQuestion").on("click", function(event) {
-		var $bQuestion = $(event.target).closest(".bQuestion");
-		toggleEditQuestion($bQuestion);
-		return false;
-	});
-
-	// Input editing stuff.
-	$(".editInput").on("click", function(event) {
-		var $inputRight = $(event.target).closest(".inputRight");
-		var $inputTextarea = $inputRight.find(".editInputTextarea");
-		toggleEditInput($inputRight);
-		$inputRight.find(".editInputUrl").val($inputRight.find(".inputUrl").attr("href"));
-		$inputTextarea.val($inputRight.find(".inputText").text());
-		$inputTextarea.focus();
-		return false;
-	});
-	$(".editInputForm").on("submit", function(event) {
-		var $form = $(event.target);
-		var $inputRight = $(event.target).closest(".inputRight");
+		var $claimRight = $(event.target).closest(".claimRight");
 
 		var data = {};
-		submitForm($form, "/updateInput/", data, function(r) {
-			var $inputUrl = $inputRight.find(".inputUrl");
-			var url = $inputRight.find(".editInputUrl").val();
-			toggleEditInput($inputRight);
-			$inputUrl.attr("href", url);
-			url.length <= 0 ? $inputUrl.hide() : $inputUrl.show();
-			$inputRight.find(".inputText").text($inputRight.find(".editInputTextarea").val());
+		submitForm($form, "/updateClaim/", data, function(r) {
+			var $claimUrl = $claimRight.find(".claimUrl");
+			var url = $claimRight.find(".editClaimUrl").val();
+			toggleEditClaim($claimRight);
+			$claimUrl.attr("href", url);
+			$claimUrl.toggle(url.length > 0);
+			$claimRight.find(".claimText").text($claimRight.find(".editClaimTextarea").val());
 		});
 		return false;
 	});
-	$(".cancelEditInput").on("click", function(event) {
-		var $inputRight = $(event.target).closest(".inputRight");
-		toggleEditInput($inputRight);
+	$(".cancelEditClaim").on("click", function(event) {
+		var $claimRight = $(event.target).closest(".claimRight");
+		toggleEditClaim($claimRight);
 		return false;
 	});
 
@@ -91,26 +56,26 @@ $(document).ready(function() {
 	$(".editCommentLink").on("click", function(event) {
 		var $commentBody = $(event.target).closest(".commentBody");
 		var $form = $commentBody.siblings(".editCommentForm");
-		var $inputComment = $form.find(".inputComment");
+		var $editCommentTextarea = $form.find(".editCommentTextarea");
 		var $commentText = $commentBody.find(".commentText");
 		toggleEditComment($commentBody);
-		if ($inputComment.val().length <= 0) {
-			$inputComment.val($commentText.text());
+		if ($editCommentTextarea.val().length <= 0) {
+			$editCommentTextarea.val($commentText.text());
 		}
-		$inputComment.focus();
+		$editCommentTextarea.focus();
 		return false;
 	});
 	$(".editCommentForm").on("submit", function(event) {
 		var $form = $(event.target);
 		var $commentBody = $form.siblings(".commentBody");
-		var $inputComment = $form.find(".inputComment");
+		var $editCommentTextarea = $form.find(".editCommentTextarea");
 		var $commentText = $commentBody.find(".commentText");
 
 		var data = {id: $commentBody.closest(".comment").attr("comment-id")};
 		submitForm($form, "/updateComment/", data, function(r) {
 			toggleEditComment($commentBody);
-			$commentText.text($inputComment.val());
-			$inputComment.val("");
+			$commentText.text($editCommentTextarea.val());
+			$editCommentTextarea.val("");
 		});
 		return false;
 	});
@@ -124,7 +89,7 @@ $(document).ready(function() {
 	var toggleNewComment = function(event) {
 		var $newComment = $(event.target).closest(".newComment");
 		toggleEditNewComment($newComment);
-		$newComment.find(".inputNewComment").focus();
+		$newComment.find(".newCommentTextarea").focus();
 		return false;
 	};
 	$(".newCommentLink").on("click", toggleNewComment);
@@ -132,14 +97,14 @@ $(document).ready(function() {
 	$(".newCommentForm").on("submit", function(event) {
 		var $form = $(event.target);
 		var $newComment = $form.closest(".newComment");
-		var $inputNewComment = $newComment.find(".inputNewComment");
-		var $newCommentText = $newComment.find(".newCommentText");
 		var $parentComment = $newComment.closest(".comment");
 
 		var data = {
-			inputId: $newComment.closest(".input").attr("input-id"),
-			questionId: $(".bQuestion").attr("question-id"),
+			claimId: $newComment.closest(".claim").attr("claim-id"),
 		};
+		/*if ($form.find("input:checkbox[name='inContext']").is(":checked")) {
+			data["contextClaimId"] = $(".bClaim").attr("claim-id");
+		}*/
 		if ($parentComment.length > 0) {
 			data["replyToId"] = $parentComment.attr("comment-id");
 		}
@@ -149,49 +114,87 @@ $(document).ready(function() {
 		return false;
 	});
 
-	// New input stuff.
-	$(".newInputLink").on("click", function(event) {
-		var $bInput = $(event.target).closest(".bInput");
-		toggleEditNewInput($bInput);
+	// New claim stuff.
+	$(".newClaimLink").on("click", function(event) {
+		var $newClaim = $(event.target).closest(".newClaim");
+		toggleEditNewClaim($newClaim);
 		return false;
 	});
-	$(".newInputForm").on("submit", function(event) {
+	$(".newClaimForm").on("submit", function(event) {
 		var $form = $(event.target);
-		var data = {questionId: $(".bQuestion").attr("question-id")};
-		submitForm($form, "/newInput/", data, function(r) {
+		var data = {parentClaimId: $(".bClaim").attr("claim-id")};
+		submitForm($form, "/newClaim/", data, function(r) {
 			location.reload();
 		});
 		return false;
 	});
-	$(".cancelNewInput").on("click", function(event) {
-		var $bInput = $(event.target).closest(".bInput");
-		toggleEditNewInput($bInput);
+	$(".cancelNewClaim").on("click", function(event) {
+		var $newClaim = $(event.target).closest(".newClaim");
+		toggleEditNewClaim($newClaim);
 		return false;
 	});
 
 	// Voting stuff.
-	$(".priorVote").on("click", function(event) {
+	// voteClick is 1 is user clicked upvote and -1 if they clicked downvote.
+	var processVote = function(voteClick, event) {
 		var $target = $(event.target);
+		var $vote = $target.closest(".vote");
+		var $upvoteCount = $vote.find(".upvoteCount");
+		var $downvoteCount = $vote.find(".downvoteCount");
+		var currentVoteValue = +$vote.attr("my-vote");
+		var newVoteValue = (voteClick === currentVoteValue) ? 0 : voteClick;
+		var upvotes = +$upvoteCount.text();
+		var downvotes = +$downvoteCount.text();
+
+		// Update vote counts.
+		// This logic has been created by looking at truth tables.
+		if (currentVoteValue === 1) {
+			upvotes -= 1;
+		} else if (voteClick === 1) {
+			upvotes += 1;
+		}
+		if (currentVoteValue === -1) {
+			downvotes -= 1;
+		} else if (voteClick === -1) {
+			downvotes += 1;
+		}
+		$upvoteCount.text("" + upvotes);
+		$downvoteCount.text("" + downvotes);
+
+		// Update my-vote
+		$vote.attr("my-vote", "" + newVoteValue);
+
+		// Display my vote
+		$vote.find(".myUpvote").toggle(newVoteValue === 1);
+		$vote.find(".myDownvote").toggle(newVoteValue === -1);
+		
+		// Notify the server
 		var data = {
-			questionId: $(".bQuestion").attr("question-id"),
-			value: "5.0",
+			claimId: $target.closest(".claim").attr("claim-id"),
+			value: newVoteValue,
 		};
 		$.ajax({
 			type: 'POST',
-			url: '/priorVote/',
+			url: '/newVote/',
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
 		});
 		return false;
+	}
+	$(".upvoteLink").on("click", function(event) {
+		return processVote(1, event);
+	});
+	$(".downvoteLink").on("click", function(event) {
+		return processVote(-1, event);
 	});
 
 	// Subscription stuff.
-	$(".subscribeToQuestion").on("click", function(event) {
+	$(".subscribeToClaim").on("click", function(event) {
 		$(event.target).hide();
-		$(".unsubscribeToQuestion").show();
+		$(".unsubscribeToClaim").show();
 		var data = {
-			questionId: $(".bQuestion").attr("question-id"),
+			claimId: $(".bClaim").attr("claim-id"),
 		};
 		$.ajax({
 			type: 'POST',
@@ -202,11 +205,11 @@ $(document).ready(function() {
 		});
 		return false;
 	});
-	$(".unsubscribeToQuestion").on("click", function(event) {
+	$(".unsubscribeToClaim").on("click", function(event) {
 		$(event.target).hide();
-		$(".subscribeToQuestion").show();
+		$(".subscribeToClaim").show();
 		var data = {
-			questionId: $(".bQuestion").attr("question-id"),
+			claimId: $(".bClaim").attr("claim-id"),
 		};
 		$.ajax({
 			type: 'POST',

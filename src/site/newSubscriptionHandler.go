@@ -1,4 +1,4 @@
-// newSubscription.go handles requestions for adding a new subscription.
+// newSubscription.go handles reclaims for adding a new subscription.
 package site
 
 import (
@@ -12,8 +12,8 @@ import (
 
 // newSubscriptionData is the object that's put into the daemon queue.
 type newSubscriptionData struct {
-	QuestionId int64 `json:",string"`
-	CommentId  int64 `json:",string"`
+	ClaimId   int64 `json:",string"`
+	CommentId int64 `json:",string"`
 }
 
 // newSubscriptionHandler handles requests for adding a new subscription.
@@ -43,8 +43,8 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
 	hashmap["createdAt"] = database.Now()
-	if data.QuestionId > 0 {
-		hashmap["questionId"] = data.QuestionId
+	if data.ClaimId > 0 {
+		hashmap["claimId"] = data.ClaimId
 	} else if data.CommentId > 0 {
 		hashmap["commentId"] = data.CommentId
 	} else {
