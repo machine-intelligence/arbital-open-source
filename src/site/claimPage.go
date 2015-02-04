@@ -64,6 +64,7 @@ type claim struct {
 	UpvoteCount   int
 	DownvoteCount int
 	MyVote        int
+	Contexts      []*claim
 	Comments      []*comment
 	Tags          []*tag
 }
@@ -96,14 +97,14 @@ var privateClaimPage = pages.Add(
 // loadParentClaim loads and returns the parent claim.
 func loadParentClaim(c sessions.Context, userId int64, claimId string) (*claim, error) {
 	c.Infof("querying DB for claim with id = %s\n", claimId)
-	claim := claim{}
+	parentClaim := &claim{}
 	query := fmt.Sprintf(`
 		SELECT id,text,url,creatorId,creatorName,createdAt,updatedAt,privacyKey
 		FROM claims
 		WHERE id=%s`, claimId)
-	exists, err := database.QueryRowSql(c, query, &claim.Id, &claim.Text, &claim.Url,
-		&claim.CreatorId, &claim.CreatorName,
-		&claim.CreatedAt, &claim.UpdatedAt, &claim.PrivacyKey)
+	exists, err := database.QueryRowSql(c, query, &parentClaim.Id, &parentClaim.Text, &parentClaim.Url,
+		&parentClaim.CreatorId, &parentClaim.CreatorName,
+		&parentClaim.CreatedAt, &parentClaim.UpdatedAt, &parentClaim.PrivacyKey)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a claim: %v", err)
 	} else if !exists {
@@ -116,18 +117,34 @@ func loadParentClaim(c sessions.Context, userId int64, claimId string) (*claim, 
 		SELECT 1
 		FROM subscriptions
 		WHERE userId=%d AND claimId=%s`, userId, claimId)
-	claim.IsSubscribed, err = database.QueryRowSql(c, query, &useless)
+	parentClaim.IsSubscribed, err = database.QueryRowSql(c, query, &useless)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve subscription status: %v", err)
 	}
 
 	// Load tags.
-	err = loadTags(c, &claim)
+	err = loadTags(c, parentClaim)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve claim tags: %v", err)
 	}
 
-	return &claim, nil
+	// Load contexts.
+	query = fmt.Sprintf(`
+		SELECT c.id,c.text,c.privacyKey
+		FROM inputs as i
+		JOIN claims as c
+		ON i.parentId=c.id
+		WHERE i.childId=%s`, claimId)
+	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var cl claim
+		err := rows.Scan(&cl.Id, &cl.Text, &cl.PrivacyKey)
+		if err != nil {
+			return fmt.Errorf("failed to scan for context claim: %v", err)
+		}
+		parentClaim.Contexts = append(parentClaim.Contexts, &cl)
+		return nil
+	})
+	return parentClaim, err
 }
 
 // loadChildClaims loads and returns all claims and inputs that have the given parent claim.

@@ -19,6 +19,11 @@
 		</div>
 		<div class="claimRight">
 			<div class="claimBody">
+				<div class="contexts">
+					{{range .Contexts}}
+						<p class="context"><a href="{{GetClaimUrl .}}">{{.Text}}</a></p>
+					{{end}}
+				</div>
 				<p>{{if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Text}}</span></p>
 				<p><a href="{{.Url}}" target="_blank" class="claimUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
 				{{range .Tags}}
