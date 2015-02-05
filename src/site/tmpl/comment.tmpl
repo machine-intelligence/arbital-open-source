@@ -2,6 +2,9 @@
 {{define "comment"}}
 <div class="comment" comment-id="{{.Id}}">
 	<div class="commentBody">
+		<a href="#" class="commentUpvoteLink" {{if ge .MyVote 1}}style="display:none"{{end}}>Upvote</a>
+		<a href="#" class="commentResetVoteLink" {{if lt .MyVote 1}}style="display:none"{{end}}>Undo Vote</a>
+		<span class="commentVoteCount">{{.UpvoteCount}}</span>
 		<span>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}</span>
 		<span class="commentCreatorName">{{.CreatorName}}: </span>
 		<span class="commentText">{{.Text}}</span>

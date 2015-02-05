@@ -9,7 +9,7 @@
 	<script src="/static/js/claim.js"></script>
 </head>
 
-<body>
+<body claim-url="{{GetClaimUrl .Claim}}" last-visit="{{.LastVisit}}">
 {{template "navbar" .User}}
 
 {{with .Claim}}
@@ -24,7 +24,8 @@
 						<p class="context"><a href="{{GetClaimUrl .}}">{{.Text}}</a></p>
 					{{end}}
 				</div>
-				<p>{{if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Text}}</span></p>
+				<p>{{if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Title}}</span></p>
+				<p class="claimText">{{.Text}}</p>
 				<p><a href="{{.Url}}" target="_blank" class="claimUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
 				{{range .Tags}}
 					<span class="tag">{{.Text}}</span>
@@ -71,6 +72,7 @@
 			<form class="newClaimForm">
 				<textarea name="text" class="newClaimTextarea"></textarea>
 				<p>URL: <input type="url" name="url"/></p>
+				{{if .Claim.PrivacyKey.Valid}}<p>Private <span title="This claim will only be accessible by people who have the link."><u>(?)</u></span>: <input type="checkbox" name="private" checked></p>{{end}}
 				<p class="errorText"></p>
 				<img src="/static/images/loading.gif" class="loadingIndicator"/>
 				<input type="submit" value="Submit">

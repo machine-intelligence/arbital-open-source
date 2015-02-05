@@ -23,6 +23,15 @@ function toggleAddExistingClaim($newClaim) {
 	$newClaim.find(".addExistingClaimForm").toggle();
 }
 
+// Reload the page with a lastVisit parameter so we can pretend that we are
+// looking at a page at that time. This way new/updated markers are displayed
+// correctly.
+function smartPageReload() {
+	var url = $("body").attr("claim-url");
+	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
+	window.location.replace(url + "?lastVisit=" + lastVisit);
+}
+
 $(document).ready(function() {
 	// Claim editing stuff.
 	$(".editClaim").on("click", function(event) {
@@ -114,7 +123,7 @@ $(document).ready(function() {
 			data["replyToId"] = $parentComment.attr("comment-id");
 		}
 		submitForm($form, "/newComment/", data, function(r) {
-			location.reload();
+			smartPageReload();
 		});
 		return false;
 	});
@@ -130,7 +139,7 @@ $(document).ready(function() {
 		var $form = $(event.target);
 		var data = {parentClaimId: $(".bClaim").attr("claim-id")};
 		submitForm($form, "/newClaim/", data, function(r) {
-			location.reload();
+			smartPageReload();
 		});
 		return false;
 	});
@@ -151,7 +160,7 @@ $(document).ready(function() {
 		var $form = $(event.target);
 		var data = {parentClaimId: $(".bClaim").attr("claim-id")};
 		submitForm($form, "/newInput/", data, function(r) {
-			location.reload();
+			smartPageReload();
 		});
 		return false;
 	});
@@ -161,7 +170,7 @@ $(document).ready(function() {
 		return false;
 	});
 
-	// Voting stuff.
+	// Claim voting stuff.
 	// voteClick is 1 is user clicked upvote and -1 if they clicked downvote.
 	var processVote = function(voteClick, event) {
 		var $target = $(event.target);
@@ -214,6 +223,40 @@ $(document).ready(function() {
 	});
 	$(".downvoteLink").on("click", function(event) {
 		return processVote(-1, event);
+	});
+
+	// Comment voting stuff.
+	// voteClick is 1 is user clicked upvote and 0 if they clicked reset vote.
+	var processCommentVote = function(newVoteValue, event) {
+		var $commentBody = $(event.target).closest(".commentBody");
+		var $upvoteCount = $commentBody.find(".commentVoteCount");
+		var upvotes = +$upvoteCount.text();
+
+		// Update UI.
+		upvotes += newVoteValue > 0 ? 1 : -1;
+		$upvoteCount.text("" + upvotes);
+		$commentBody.find(".commentUpvoteLink").toggle();
+		$commentBody.find(".commentResetVoteLink").toggle();
+		
+		// Notify the server
+		var data = {
+			commentId: $commentBody.closest(".comment").attr("comment-id"),
+			value: newVoteValue,
+		};
+		$.ajax({
+			type: 'POST',
+			url: '/updateCommentVote/',
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+		});
+		return false;
+	}
+	$(".commentUpvoteLink").on("click", function(event) {
+		return processCommentVote(1, event);
+	});
+	$(".commentResetVoteLink").on("click", function(event) {
+		return processCommentVote(0, event);
 	});
 
 	// Subscription stuff.

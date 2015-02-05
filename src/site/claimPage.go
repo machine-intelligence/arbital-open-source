@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"strconv"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -27,6 +26,8 @@ type comment struct {
 	UpdatedAt   string
 	CreatorId   int64
 	CreatorName string
+	UpvoteCount int
+	MyVote      int
 	Replies     []*comment
 }
 
@@ -52,12 +53,13 @@ type tag struct {
 
 type claim struct {
 	Id            int64
-	CreatedAt     string
-	UpdatedAt     string
+	Title         string
 	Text          string
 	Url           string
 	CreatorId     int64
 	CreatorName   string
+	CreatedAt     string
+	UpdatedAt     string
 	PrivacyKey    sql.NullInt64
 	InputCount    int
 	IsSubscribed  bool
@@ -71,10 +73,11 @@ type claim struct {
 
 // claimTmplData stores the data that we pass to the index.tmpl to render the page
 type claimTmplData struct {
-	User   *user.User
-	Claim  *claim
-	Claims []*claim
-	Inputs []*input
+	User      *user.User
+	Claim     *claim
+	Claims    []*claim
+	Inputs    []*input
+	LastVisit string
 }
 
 // claimPage serves the claim page.
@@ -99,10 +102,11 @@ func loadParentClaim(c sessions.Context, userId int64, claimId string) (*claim, 
 	c.Infof("querying DB for claim with id = %s\n", claimId)
 	parentClaim := &claim{}
 	query := fmt.Sprintf(`
-		SELECT id,text,url,creatorId,creatorName,createdAt,updatedAt,privacyKey
+		SELECT id,title,text,url,creatorId,creatorName,createdAt,updatedAt,privacyKey
 		FROM claims
 		WHERE id=%s`, claimId)
-	exists, err := database.QueryRowSql(c, query, &parentClaim.Id, &parentClaim.Text, &parentClaim.Url,
+	exists, err := database.QueryRowSql(c, query, &parentClaim.Id,
+		&parentClaim.Title, &parentClaim.Text, &parentClaim.Url,
 		&parentClaim.CreatorId, &parentClaim.CreatorName,
 		&parentClaim.CreatedAt, &parentClaim.UpdatedAt, &parentClaim.PrivacyKey)
 	if err != nil {
@@ -155,7 +159,7 @@ func loadChildClaims(c sessions.Context, claimId string) ([]*input, []*claim, er
 	c.Infof("querying DB for child claims for parent id=%s\n", claimId)
 	query := fmt.Sprintf(`
 		SELECT i.id,i.childId,i.createdAt,i.updatedAt,i.creatorId,i.creatorName,
-			c.id,c.text,c.url,c.creatorId,c.creatorName,c.createdAt,c.updatedAt,c.privacyKey
+			c.id,c.title,c.text,c.url,c.creatorId,c.creatorName,c.createdAt,c.updatedAt,c.privacyKey
 		FROM inputs as i
 		JOIN claims as c
 		ON i.childId=c.id
@@ -167,7 +171,7 @@ func loadChildClaims(c sessions.Context, claimId string) ([]*input, []*claim, er
 			&i.Id, &i.ChildId,
 			&i.CreatedAt, &i.UpdatedAt,
 			&i.CreatorId, &i.CreatorName,
-			&cl.Id, &cl.Text, &cl.Url,
+			&cl.Id, &cl.Title, &cl.Text, &cl.Url,
 			&cl.CreatorId, &cl.CreatorName,
 			&cl.CreatedAt, &cl.UpdatedAt,
 			&cl.PrivacyKey)
@@ -215,7 +219,7 @@ func loadInputCounts(c sessions.Context, claimIds string, claimMap map[int64]*cl
 
 // loadComments loads and returns all the comments for the given input ids from the db.
 func loadComments(c sessions.Context, claimIds string) (map[int64]*comment, []int64, error) {
-	comments := make(map[int64]*comment)
+	commentMap := make(map[int64]*comment)
 	sortedCommentIds := make([]int64, 0)
 
 	c.Infof("querying DB for comments with claimIds = %v", claimIds)
@@ -239,11 +243,11 @@ func loadComments(c sessions.Context, claimIds string) (map[int64]*comment, []in
 		if err != nil {
 			return fmt.Errorf("failed to scan for comments: %v", err)
 		}
-		comments[ct.Id] = &ct
+		commentMap[ct.Id] = &ct
 		sortedCommentIds = append(sortedCommentIds, ct.Id)
 		return nil
 	})
-	return comments, sortedCommentIds, err
+	return commentMap, sortedCommentIds, err
 }
 
 // loadVotes loads votes corresponding to the given claims and updates the claims.
@@ -270,6 +274,33 @@ func loadVotes(c sessions.Context, currentUserId int64, claimIds string, claimMa
 		}
 		if userId == currentUserId {
 			claim.MyVote = value
+		}
+		return nil
+	})
+	return err
+}
+
+// loadCommentVotes loads votes corresponding to the given comments and updates the comments.
+func loadCommentVotes(c sessions.Context, currentUserId int64, commentIds string, commentMap map[int64]*comment) error {
+	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
+	query := fmt.Sprintf(`
+		SELECT userId,commentId,value
+		FROM commentVotes
+		WHERE commentId IN (%s)`, commentIds)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var userId int64
+		var commentId int64
+		var value int
+		err := rows.Scan(&userId, &commentId, &value)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a comment vote: %v", err)
+		}
+		comment := commentMap[commentId]
+		if value > 0 {
+			comment.UpvoteCount++
+		}
+		if userId == currentUserId {
+			comment.MyVote = value
 		}
 		return nil
 	})
@@ -315,6 +346,16 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		}
 	}
 
+	// Get last visit
+	q := r.URL.Query()
+	data.LastVisit = q.Get("lastVisit")
+	if data.LastVisit == "" {
+		data.LastVisit, err = loadVisit(c, data.User.Id, claimId)
+		if err != nil {
+			c.Errorf("error while fetching a visit: %v", err)
+		}
+	}
+
 	// Load all the inputs and corresponding child claims
 	data.Inputs, data.Claims, err = loadChildClaims(c, claimId)
 	if err != nil {
@@ -322,21 +363,12 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		c.Errorf("error while fetching input for claim id: %s\n%v", claimId, err)
 		return pages.InternalErrorWith(err)
 	}
-	for _, c := range data.Claims {
-		claimMap[c.Id] = c
-	}
 
-	// Load last visit
-	lastVisit := ""
-	lastVisit, err = loadVisit(c, data.User.Id, claimId)
-	if err != nil {
-		c.Errorf("error while fetching a visit: %v", err)
-	}
-
-	// Get a string of all claim ids.
+	// Get a string of all claim ids and populate claimMap
 	var buffer bytes.Buffer
 	for _, c := range data.Claims {
-		buffer.WriteString(strconv.FormatInt(c.Id, 10))
+		claimMap[c.Id] = c
+		buffer.WriteString(fmt.Sprintf("%d", c.Id))
 		buffer.WriteString(",")
 	}
 	buffer.WriteString(claimId)
@@ -350,35 +382,52 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
+	// Load all the votes
+	err = loadVotes(c, data.User.Id, claimIds, claimMap)
+	if err != nil {
+		c.Inc("votes_fetch_fail")
+		c.Errorf("error while fetching votes: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
 	// Load all the comments
-	var comments map[int64]*comment
-	var sortedCommentKeys []int64 // need this for in-order iteration
-	comments, sortedCommentKeys, err = loadComments(c, claimIds)
+	var commentMap map[int64]*comment // commentId -> comment
+	var sortedCommentKeys []int64     // need this for in-order iteration
+	commentMap, sortedCommentKeys, err = loadComments(c, claimIds)
 	if err != nil {
 		c.Inc("comments_fetch_fail")
 		c.Errorf("error while fetching comments: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 	for _, key := range sortedCommentKeys {
-		comment := comments[key]
+		comment := commentMap[key]
 		claimObj, ok := claimMap[comment.ClaimId]
 		if !ok {
 			c.Errorf("couldn't find claim for a comment: %d\n%v", key, err)
 			return pages.InternalErrorWith(err)
 		}
 		if comment.ReplyToId > 0 {
-			parent := comments[comment.ReplyToId]
-			parent.Replies = append(parent.Replies, comments[key])
+			parent := commentMap[comment.ReplyToId]
+			parent.Replies = append(parent.Replies, commentMap[key])
 		} else {
-			claimObj.Comments = append(claimObj.Comments, comments[key])
+			claimObj.Comments = append(claimObj.Comments, commentMap[key])
 		}
 	}
 
-	// Load all the votes
-	err = loadVotes(c, data.User.Id, claimIds, claimMap)
+	// Get a string of all comment ids.
+	buffer.Reset()
+	for id, _ := range commentMap {
+		buffer.WriteString(fmt.Sprintf("%d", id))
+		buffer.WriteString(",")
+	}
+	commentIds := buffer.String()
+	commentIds = commentIds[0 : len(commentIds)-1]
+
+	// Load all the comment votes
+	err = loadCommentVotes(c, data.User.Id, commentIds, commentMap)
 	if err != nil {
-		c.Inc("votes_fetch_fail")
-		c.Errorf("error while fetching votes: %v", err)
+		c.Inc("comment_votes_fetch_fail")
+		c.Errorf("error while fetching comment votes: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 
@@ -405,10 +454,10 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		"IsNew": func(creatorId int64, createdAt string) bool {
-			return creatorId != data.User.Id && lastVisit != "" && createdAt > lastVisit
+			return creatorId != data.User.Id && data.LastVisit != "" && createdAt > data.LastVisit
 		},
 		"IsUpdated": func(creatorId int64, updatedAt string) bool {
-			return creatorId != data.User.Id && lastVisit != "" && updatedAt > lastVisit
+			return creatorId != data.User.Id && data.LastVisit != "" && updatedAt > data.LastVisit
 		},
 		"GetClaimUrl": func(c *claim) string {
 			privacyAddon := ""

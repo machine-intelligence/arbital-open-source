@@ -61,6 +61,7 @@ func init() {
 	r.HandleFunc("/updateClaim/", updateClaimHandler).Methods("POST")
 	r.HandleFunc("/updateInput/", updateInputHandler).Methods("POST")
 	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
+	r.HandleFunc("/updateCommentVote/", updateCommentVoteHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
 
 	// Admin stuff

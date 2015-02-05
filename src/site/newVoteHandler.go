@@ -39,12 +39,17 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Load user.
 	var u *user.User
 	u, err = user.LoadUser(w, r)
 	if err != nil {
 		c.Inc("new_vote_fail")
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if !u.IsLoggedIn {
+		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 

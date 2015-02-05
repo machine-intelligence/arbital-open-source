@@ -12,8 +12,10 @@ CREATE TABLE claims (
   createdAt DATETIME NOT NULL,
 	/* When this question was last updated. */
   updatedAt DATETIME NOT NULL,
+	/* Title of the claim. */
+  title VARCHAR(512) NOT NULL,
 	/* Text of the claim. */
-  text VARCHAR(512) NOT NULL,
+  text VARCHAR(4096) NOT NULL,
 	/* Link associated with this claim. */
 	url VARCHAR(2048) NOT NULL,
 	/* Privacy key. If not NULL, the claim is accessible only with the right link. */

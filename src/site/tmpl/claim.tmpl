@@ -6,7 +6,8 @@
 	</div>
 	<div class="claimRight">
 		<div class="claimBody">
-			<p>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Text}}</span></p>
+			<p>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimTitle">{{.Title}}</span></p>
+			<p class="claimText">{{.Text}}</p>
 			<p><a href="{{.Url}}" target="_blank" class="claimUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
 			<p><a href="{{GetClaimUrl .}}">Inputs ({{.InputCount}})</a></p>
 			<a href="#" class="editClaim">Edit</a>
@@ -17,7 +18,8 @@
 			{{end}}
 		</div>
 		<form class="editClaimForm">
-			<textarea name="text" class="editClaimTextarea"></textarea>
+			<textarea name="title" class="editClaimTitle"></textarea>
+			<textarea name="text" class="editClaimText"></textarea>
 			<p>URL: <input type="url" name="url" class="editClaimUrl"/></p>
 			<input type="hidden" name="id" value="{{.Id}}"/>
 			<p class="errorText"></p>
