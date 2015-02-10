@@ -38,6 +38,23 @@ $(document).ready(function() {
 		return false;
 	});
 
+	// Deleting an input.
+	$(".delete-input-link").on("click", function(event) {
+		var $target = $(event.target);
+		var data = {
+			parentClaimId: $("body").attr("parent-claim-id"),
+			childClaimId: $target.closest(".claim").attr("claim-id"),
+		};
+		$.ajax({
+			type: 'POST',
+			url: '/deleteInput/',
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+			smartPageReload();
+		});
+	});
+
 	// Comment editing stuff.
 	function toggleEditComment($comment) {
 		$comment.find(".comment-body").toggle();

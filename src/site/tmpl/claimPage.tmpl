@@ -9,7 +9,7 @@
 	<script src="/static/js/claim.js"></script>
 </head>
 
-<body claim-url="{{GetClaimUrl .Claim}}" last-visit="{{.Claim.LastVisit}}">
+<body claim-url="{{GetClaimUrl .Claim}}" parent-claim-id="{{.Claim.Id}}" last-visit="{{.Claim.LastVisit}}">
 {{template "navbar" .User}}
 
 <div class="body-div container-fluid">

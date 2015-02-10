@@ -22,7 +22,7 @@
 					<span class="new-text">{{if IsNewComment .}}(New){{else if IsUpdatedComment .}}(Updated){{end}}</span>
 					{{.CreatorName}}:&nbsp;
 				</div>
-				<div class="comment-text">{{.Text}}</div>
+				<div class="comment-text">{{Sanitize .Text}}</div>
 			</div>
 			<form class="edit-comment-form" hidden>
 				<div class="form-group">

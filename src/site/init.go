@@ -63,6 +63,7 @@ func init() {
 	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
 	r.HandleFunc("/updateCommentVote/", updateCommentVoteHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
+	r.HandleFunc("/deleteInput/", deleteInputHandler).Methods("POST")
 
 	// Admin stuff
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")

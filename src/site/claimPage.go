@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -175,18 +176,6 @@ func loadChildClaims(c sessions.Context, claimId string) ([]*input, []*claim, er
 		return nil
 	})
 	return inputs, claims, err
-}
-
-// loadVisit returns the date (as string) when the user has seen this claim last.
-// If the user has never seen this claim we return an empty string.
-func loadVisit(c sessions.Context, userId int64, claimId string) (string, error) {
-	updatedAt := ""
-	query := fmt.Sprintf(`
-		SELECT updatedAt
-		FROM visits
-		WHERE claimId=%s AND userId=%d`, claimId, userId)
-	_, err := database.QueryRowSql(c, query, &updatedAt)
-	return updatedAt, err
 }
 
 // loadInputCounts computes how many inputs each claim has.
@@ -431,7 +420,7 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 			c.Errorf("error while fetching a visit: %v", err)
 		}
 	} else {
-		for _, cl := range data.Claims {
+		for _, cl := range claimMap {
 			cl.LastVisit = forcedLastVisit
 		}
 	}
@@ -563,6 +552,11 @@ func claimRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 				privacyAddon = fmt.Sprintf("/%d", c.PrivacyKey.Int64)
 			}
 			return fmt.Sprintf("/claims/%d%s", c.Id, privacyAddon)
+		},
+		"Sanitize": func(s string) template.HTML {
+			s = template.HTMLEscapeString(s)
+			s = strings.Replace(s, "\n", "<br>", -1)
+			return template.HTML(s)
 		},
 	}
 	c.Inc("claim_page_served_success")

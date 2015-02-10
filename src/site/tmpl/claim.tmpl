@@ -38,11 +38,18 @@
 				{{if IsAdmin}}
 					<div class="admin">Last Visit: {{.LastVisit}}; Created At: {{.CreatedAt}}</div>
 				{{end}}
+				{{if not .IsParentClaim}}
+					{{if eq UserId .CreatorId}}
+						<a href="#" class="delete-input-link pull-right">&times;</a>
+					{{else if IsAdmin}}
+						<a href="#" class="delete-input-link admin pull-right">&times;</a>
+					{{end}}
+				{{end}}
 				<span class="new-text">{{if IsNewClaim .}}(New){{else if IsUpdatedClaim .}}(Updated){{end}}</span>
 				{{if .PrivacyKey.Valid}}<span class="private-text dotted-underline" title="Nobody can access this page unless they have the exact URL.">(Private)</span>{{end}}
-				<a href={{GetClaimUrl .}} class="claim-summary">{{.Summary}}</a></br>
+				<a href={{GetClaimUrl .}} class="claim-summary">{{Sanitize .Summary}}</a></br>
 				<div class="claim-outdent">
-					<span class="claim-text">{{.Text}}</span>
+					<span class="claim-text">{{Sanitize .Text}}</span>
 					<a href="{{.Url}}" target="_blank" class="claim-url" {{if not .Url}}hidden{{end}}>(Relevant Link)</a>
 
 				<!-- Tags -->

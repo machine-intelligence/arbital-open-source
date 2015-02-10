@@ -1,4 +1,4 @@
-// deleteSubscription.go handles requests for deleting a subscription.
+// deleteSubscriptionHandler.go handles requests for deleting a subscription.
 package site
 
 import (
