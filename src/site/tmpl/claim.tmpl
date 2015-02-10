@@ -28,8 +28,10 @@
 			{{end}}
 			{{if eq UserId .CreatorId}}
 				<a href="#" class="edit-claim-link glyphicon glyphicon-pencil"></a></br>
+				<a href="#" class="delete-input-link glyphicon glyphicon-remove"></a></br>
 			{{else if IsAdmin}}
 				<a href="#" class="edit-claim-link admin glyphicon glyphicon-pencil"></a></br>
+				<a href="#" class="delete-input-link admin glyphicon glyphicon-remove"></a></br>
 			{{end}}
 		</div>
 		<!-- Main claim column -->
@@ -37,13 +39,6 @@
 			<div class="claim-body">
 				{{if IsAdmin}}
 					<div class="admin">Last Visit: {{.LastVisit}}; Created At: {{.CreatedAt}}</div>
-				{{end}}
-				{{if not .IsParentClaim}}
-					{{if eq UserId .CreatorId}}
-						<a href="#" class="delete-input-link pull-right">&times;</a>
-					{{else if IsAdmin}}
-						<a href="#" class="delete-input-link admin pull-right">&times;</a>
-					{{end}}
 				{{end}}
 				<span class="new-text">{{if IsNewClaim .}}(New){{else if IsUpdatedClaim .}}(Updated){{end}}</span>
 				{{if .PrivacyKey.Valid}}<span class="private-text dotted-underline" title="Nobody can access this page unless they have the exact URL.">(Private)</span>{{end}}

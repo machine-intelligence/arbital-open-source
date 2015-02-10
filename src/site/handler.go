@@ -24,7 +24,7 @@ type handler http.HandlerFunc
 // is incorrect) that may cause further checks not to run (e.g. we
 // wouldn't even check if the user was logged in).
 func stdHandler(h handler) handler {
-	return h.domain().monitor()
+	return h.domain()
 }
 
 // domain redirects to proper HTML domain if user arrives elsewhere.

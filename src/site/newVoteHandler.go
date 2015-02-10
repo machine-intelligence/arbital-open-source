@@ -59,7 +59,8 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 	query := fmt.Sprintf(`
 		SELECT id
 		FROM votes
-		WHERE TIME_TO_SEC(TIMEDIFF('%s', createdAt)) < %d`, database.Now(), redoWindow)
+		WHERE userId=%d AND claimId=%d AND TIME_TO_SEC(TIMEDIFF('%s', createdAt)) < %d`,
+		u.Id, task.ClaimId, database.Now(), redoWindow)
 	found, err = database.QueryRowSql(c, query, &id)
 	if err != nil {
 		c.Inc("new_vote_fail")

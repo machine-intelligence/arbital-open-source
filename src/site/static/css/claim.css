@@ -133,6 +133,31 @@
   color: #8383ff;
   text-decoration: none;
 }
+.delete-input-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+}
+.delete-input-link.on {
+  color: #5050ff;
+}
+.delete-input-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.delete-input-link.on:focus {
+  color: #5050ff;
+}
+.delete-input-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.delete-input-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
 .claim-summary {
   font-weight: bold;
 }
@@ -154,31 +179,6 @@ textarea.new-claim-text {
 }
 .children-claim-line {
   border-color: #666666;
-}
-.delete-input-link {
-  color: #e0e0e0;
-  text-decoration: none;
-  position: relative;
-  left: 16px;
-}
-.delete-input-link.on {
-  color: #5050ff;
-}
-.delete-input-link:focus {
-  outline: none;
-  color: #e0e0e0;
-  text-decoration: none;
-}
-.delete-input-link.on:focus {
-  color: #5050ff;
-}
-.delete-input-link:hover {
-  color: #0000e9;
-  text-decoration: none;
-}
-.delete-input-link:active {
-  color: #8383ff;
-  text-decoration: none;
 }
 .comment-row {
   border: 1px solid transparent;
