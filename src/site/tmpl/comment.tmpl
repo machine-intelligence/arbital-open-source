@@ -1,31 +1,51 @@
 {{/* comment.tmpl is the template for a given comment */}}
 {{define "comment"}}
-<div class="comment" comment-id="{{.Id}}">
-	<div class="commentBody">
-		<a href="#" class="commentUpvoteLink" {{if ge .MyVote 1}}style="display:none"{{end}}>Upvote</a>
-		<a href="#" class="commentResetVoteLink" {{if lt .MyVote 1}}style="display:none"{{end}}>Undo Vote</a>
-		<span class="commentVoteCount">{{.UpvoteCount}}</span>
-		<span>{{if IsNew .CreatorId .CreatedAt}}(*){{else if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}</span>
-		<span class="commentCreatorName">{{.CreatorName}}: </span>
-		<span class="commentText">{{.Text}}</span>
-		{{if eq .CreatorId UserId}}
-			<a href="#" class="editCommentLink">Edit</a>
-		{{end}}
+<div class="comment-row row">
+	<div class="col-xs-2 col-xs-offset-1">
+		<span class="pull-right">
+			{{if eq .CreatorId UserId}}
+				<a href="#" class="edit-comment-link glyphicon glyphicon-pencil"></a>
+			{{end}}
+			{{if IsLoggedIn}}
+				{{if le .ReplyToId 0}}
+					<a href="#" class="subscribe-comment-link glyphicon glyphicon-eye-open {{if .IsSubscribed}}on{{end}}"></a>
+				{{end}}
+				<a href="#" class="upvote-comment-link glyphicon glyphicon-triangle-top {{if ge .MyVote 1}}on{{end}}"></a>
+			{{end}}
+			<span class="comment-vote-count">{{if gt .UpvoteCount 0}}{{.UpvoteCount}}{{end}}</span>
+		</span>
 	</div>
-	<form class="editCommentForm">
-		<textarea name="text" class="editCommentTextarea"></textarea>
-		<p class="errorText"></p>
-		<img src="/static/images/loading.gif" class="loadingIndicator"/>
-		<input type="submit" value="Save"/>
-		<a href="#" class="cancelLink cancelEditComment">Cancel</a>
-	</form>
-	<div class="replies">
-		{{range .Replies}}
-			{{template "comment" .}}
-		{{end}}
-		{{if le .ReplyToId 0}}
-			{{template "newComment" .Id}}
-		{{end}}
+	<div class="col-xs-9">
+		<div class="comment {{if gt .ReplyToId 0}}reply{{end}}" comment-id="{{.Id}}">
+			<div class="comment-body">
+				<div class="comment-creator-name">
+					<span class="new-text">{{if IsNewComment .}}(New){{else if IsUpdatedComment .}}(Updated){{end}}</span>
+					{{.CreatorName}}:&nbsp;
+				</div>
+				<div class="comment-text">{{.Text}}</div>
+			</div>
+			<form class="edit-comment-form" hidden>
+				<div class="form-group">
+					<textarea name="text" class="edit-comment-text form-control">{{.Text}}</textarea>
+				</div>
+				<p class="error-text"></p>
+				<img src="/static/images/loading.gif" class="loading-indicator"/>
+				<button type="submit" class="btn btn-primary">Save</button>
+				<a href="#" class="cancelLink cancel-edit-comment">Cancel</a>
+			</form>
+		</div>
 	</div>
 </div>
+<div class="replies">
+	{{range .Replies}}
+		{{template "comment" .}}
+	{{end}}
+</div>
+{{if le .ReplyToId 0}}
+	<div class="row">
+		<div class="col-xs-9 col-xs-offset-3">
+			{{template "newComment" .Id}}
+		</div>
+	</div>
+{{end}}
 {{end}}

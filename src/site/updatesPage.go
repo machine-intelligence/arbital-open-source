@@ -13,21 +13,16 @@ import (
 	"zanaduu3/src/user"
 )
 
-type update struct {
-	Id        int64
+type updatedClaim struct {
 	Claim     claim
-	CommentId int64
-	Type      string
-	CreatedAt string
 	UpdatedAt string
-	Count     int
-	Seen      bool
+	Counts    map[string]int // type -> count
 }
 
 // updatesTmplData stores the data that we pass to the updates.tmpl to render the page
 type updatesTmplData struct {
-	User    *user.User
-	Updates []*update
+	User          *user.User
+	UpdatedClaims []*updatedClaim
 }
 
 // updatesPage serves the updates page.
@@ -54,37 +49,46 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 
 	// Load the updates
-	data.Updates = make([]*update, 0)
+	data.UpdatedClaims = make([]*updatedClaim, 0)
+	claimMap := make(map[int64]*updatedClaim)
 	query := fmt.Sprintf(`
-		SELECT u.id,c.id,c.privacyKey,u.commentId,u.type,u.createdAt,u.updatedAt,u.count,u.seen
+		SELECT c.id,c.privacyKey,c.summary,u.updatedAt,u.type,u.count
 		FROM updates AS u
 		JOIN claims AS c
 		ON u.claimId=c.Id
-		WHERE u.userId=%d
+		WHERE u.userId=%d AND u.seen=0
 		ORDER BY u.updatedAt DESC
 		LIMIT 50`, data.User.Id)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var u update
+		var uc updatedClaim
+		var updateType string
+		var count int
 		err := rows.Scan(
-			&u.Id,
-			&u.Claim.Id,
-			&u.Claim.PrivacyKey,
-			&u.CommentId,
-			&u.Type,
-			&u.CreatedAt,
-			&u.UpdatedAt,
-			&u.Count,
-			&u.Seen)
+			&uc.Claim.Id,
+			&uc.Claim.PrivacyKey,
+			&uc.Claim.Summary,
+			&uc.UpdatedAt,
+			&updateType,
+			&count)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
-		data.Updates = append(data.Updates, &u)
+		curClaim, ok := claimMap[uc.Claim.Id]
+		if !ok {
+			uc.Counts = make(map[string]int)
+			curClaim = &uc
+			claimMap[curClaim.Claim.Id] = curClaim
+			data.UpdatedClaims = append(data.UpdatedClaims, curClaim)
+		}
+		curClaim.Counts[updateType] += count
 		return nil
 	})
 	if err != nil {
 		c.Errorf("error while loading updates: %v", err)
 		return pages.InternalErrorWith(err)
 	}
+
+	// TODO: sort Updates
 
 	funcMap := template.FuncMap{
 		"UserId":     func() int64 { return data.User.Id },

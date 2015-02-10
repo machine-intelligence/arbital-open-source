@@ -1,53 +1,51 @@
-.clearfix {
-  content: "";
-  display: table;
-  clear: both;
+.body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
 }
-.bHeader {
-  background-color: Yellow;
-  text-align: right;
-  padding: 0.5em 1em;
+.signup-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 400px;
+}
+.new-claim-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 700px;
+}
+.claims-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 600px;
+}
+.updates-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 700px;
+}
+.update-claim-summary-link {
+  color: #0000ee;
 }
 .admin {
-  border: 2px dotted red;
+  border-bottom: 2px dotted red;
 }
-.loadingIndicator {
-  display: none;
-}
-.errorText {
-  font-color: red;
-  display: none;
-}
-.bHeader ul {
-  position: relative;
-  float: right;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.bHeader ul a {
-  display: block;
-  color: #333;
+.dotted-underline {
+  border-bottom: 1px dotted;
   text-decoration: none;
-  font-size: 1em;
-  padding: 0.5em 1em;
 }
-.bHeader ul li {
-  position: relative;
-  margin: 0;
-  padding: 0;
-}
-.bHeader ul li:hover {
-  background: #f6f6f6;
-}
-.bHeader ul ul {
+.loading-indicator {
   display: none;
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: #fff;
-  padding: 0;
 }
-.bHeader ul li:hover > ul {
-  display: block;
+.error-text {
+  color: red;
+  display: none;
 }

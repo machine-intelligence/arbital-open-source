@@ -13,8 +13,8 @@ import (
 
 // deleteSubscriptionData is the object that's put into the daemon queue.
 type deleteSubscriptionData struct {
-	QuestionId int64 `json:",string"`
-	CommentId  int64 `json:",string"`
+	ClaimId   int64 `json:",string"`
+	CommentId int64 `json:",string"`
 }
 
 // deleteSubscriptionHandler handles requests for deleting a subscription.
@@ -24,7 +24,7 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var data deleteSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil {
+	if err != nil || (data.ClaimId == 0 && data.CommentId == 0) {
 		c.Inc("delete_subscription_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -44,15 +44,10 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	query := fmt.Sprintf(`
 		DELETE FROM subscriptions
 		WHERE userId=%d AND `, u.Id)
-	if data.QuestionId > 0 {
-		query += fmt.Sprintf("questionId=%d", data.QuestionId)
+	if data.ClaimId > 0 {
+		query += fmt.Sprintf("claimId=%d", data.ClaimId)
 	} else if data.CommentId > 0 {
 		query += fmt.Sprintf("commentId=%d", data.CommentId)
-	} else {
-		c.Inc("delete_subscription_fail")
-		c.Errorf("At least one id has to be given: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
 	}
 	if _, err = database.ExecuteSql(c, query); err != nil {
 		c.Inc("delete_subscription_fail")

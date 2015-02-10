@@ -15,7 +15,7 @@ import (
 // signupData stores the data that we pass to the signup.tmpl to render the page
 type signupData struct {
 	User        *user.User
-	ContinueUri string
+	ContinueUrl string
 }
 
 // signupPage serves the questions page.
@@ -42,10 +42,13 @@ func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.RedirectWith(data.User.LoginLink)
 	}
 
+	// Check if there are parameters. In this case, this is a form submit
+	// request. We can process it and, if successful, redirect the user
+	// to the page they came from / were trying to get to.
 	q := r.URL.Query()
 	if q.Get("inviteCode") != "" {
 		// This is a form submission.
-		if strings.ToLower(q.Get("inviteCode")) != "truth" {
+		if strings.ToLower(q.Get("inviteCode")) != "bayes" {
 			return pages.InternalErrorWith(fmt.Errorf("Invalid invite code"))
 		}
 		hashmap := make(map[string]interface{})
@@ -65,9 +68,9 @@ func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		if err != nil {
 			c.Errorf("Couldn't re-save the user after adding the name: %v", err)
 		}
-		return pages.RedirectWith(q.Get("continueUri"))
+		return pages.RedirectWith(q.Get("continueUrl"))
 	}
-	data.ContinueUri = q.Get("continueUri")
+	data.ContinueUrl = q.Get("continueUrl")
 	c.Inc("signup_page_served_success")
 	return pages.StatusOK(data)
 }

@@ -11,19 +11,29 @@
 
 {{template "navbar" .User}}
 
-<ul>
-	{{range .Updates}}
-		<li>
-			{{if eq .Type "reply"}}
-				<a href="{{GetClaimUrl .Claim}}">There are {{.Count}} new replies to a comment you are subscribed to.</a>
-			{{else if eq .Type "topLevelComment"}}
-				<a href="{{GetClaimUrl .Claim}}">There are {{.Count}} new top level comments to a claim you are subscribed to.</a>
-			{{else if eq .Type "newInput"}}
-				<a href="{{GetClaimUrl .Claim}}">There are {{.Count}} new inputs to a claim you are subscribed to.</a>
-			{{end}}
-		</li>
+<div class="updates-body-div">
+	{{range .UpdatedClaims}}
+		<div class="panel panel-default">
+			<div class="panel-heading">
+		    <a href="{{GetClaimUrl .Claim}}" class="update-claim-summary-link panel-title">{{.Claim.Summary}}</a>
+		  </div>
+			<div class="panel-body">
+				{{range $key, $count := .Counts}}
+					{{if eq $key "reply"}}
+						There are {{$count}} new replies to a comment you are subscribed to.
+					{{else if eq $key "topLevelComment"}}
+						There are {{$count}} new top level comments to a claim you are subscribed to.
+					{{else if eq $key "newInput"}}
+						There are {{$count}} new inputs to a claim you are subscribed to.
+					{{end}}
+					<br>
+				{{end}}
+			</div>
+		</div>
+	{{else}}
+		<p>No new updates</p>
 	{{end}}
-</ul>
+</div>
 
 </body>
 </html>

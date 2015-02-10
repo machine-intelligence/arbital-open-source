@@ -12,18 +12,42 @@
 
 {{template "navbar" .User}}
 
-<form class="newClaimForm">
-	Claim: <input type="text" name="text" required="true"></br>
-	Private <span title="This claim will only be accessible by people who have the link."><u>(?)</u></span>: <input type="checkbox" name="private"></br>
-	Tag: <select name="tagId">
-		<option value="0">-</option>
-		{{range .Tags}}
-			<option value="{{.Id}}">{{.Text}}</option>
-		{{end}}
-	</select></br>
-	<input type="submit" value="Submit">
+<div class="new-claim-body-div">
+	<h3>New Claim</h3>
+	<form class="new-claim-form">
+		<div class="form-group">
+			<label>Summary</label>
+			<textarea name="summary" class="form-control" rows="2" placeholder="Short claim summary" required="true"></textarea>
+		</div>
+		<div class="form-group">
+			<label>Description</label>
+			<textarea name="text" class="form-control" rows="4" placeholder="Claim description" required="true"></textarea>
+		</div>
+		<div class="form-group">
+			<label>Relevant URL</label>
+			<input type="url" name="url" class="form-control" placeholder="Optional relevant URL"/>
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" name="private">
+				Private
+				<span title="This claim will only be accessible by people who have the link." class="dotted-line">(?)</span>
+			</label>
+		</div>
+		<div class="form-group">
+			<label>Tag</label>
+			<select name="tagId" class="form-control">
+				<option value="0">-</option>
+				{{range .Tags}}
+					<option value="{{.Id}}">{{.Text}}</option>
+				{{end}}
+			</select>
+		</div>
+		<p class="error-text"></p>
+		<img src="/static/images/loading.gif" class="loading-indicator"/>
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</form>
 </div>
-<p id="newClaimError"></p>
 
 </body>
 </html>

@@ -42,7 +42,7 @@ func claimsRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	// Load the claims
 	data.Claims = make([]*claim, 0, 50)
 	query := fmt.Sprintf(`
-		SELECT id,title,privacyKey
+		SELECT id,summary,privacyKey
 		FROM claims
 		WHERE (privacyKey IS NULL OR creatorId=%d)
 		ORDER BY id DESC
@@ -51,7 +51,7 @@ func claimsRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		var q claim
 		err := rows.Scan(
 			&q.Id,
-			&q.Title,
+			&q.Summary,
 			&q.PrivacyKey)
 		if err != nil {
 			return fmt.Errorf("failed to scan a claim: %v", err)

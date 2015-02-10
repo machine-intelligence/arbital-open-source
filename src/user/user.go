@@ -23,15 +23,16 @@ var (
 // User holds information about a user of the app.
 // Note: this structure is also stored in a cookie.
 type User struct {
-	Id         int64
-	Email      string
-	FirstName  string
-	LastName   string
-	IsLoggedIn bool
-	IsAdmin    bool
-	CurrentUri string
-	LoginLink  string
-	LogoutLink string
+	Id          int64
+	Email       string
+	FirstName   string
+	LastName    string
+	IsLoggedIn  bool
+	IsAdmin     bool
+	CurrentUrl  string
+	LoginLink   string
+	LogoutLink  string
+	UpdateCount int
 }
 
 func (user *User) FullName() string {
@@ -115,7 +116,7 @@ func setLinksForUser(r *http.Request, c sessions.Context, u *User) (err error) {
 	if err != nil {
 		return fmt.Errorf("error getting logout url: %v", err)
 	}
-	u.CurrentUri = r.URL.String()
+	u.CurrentUrl = r.URL.String()
 	return nil
 }
 

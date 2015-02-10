@@ -1,56 +1,210 @@
+@import "base.less";
+
+// Variables
+@upvote-color: #0ccd29;
+@downvote-color: #ff0032;
+@gray-link-color: #b8b8b8;
+@glyph-color: #e0e0e0;
+
+// Generic light gray glyph icon
+.glyph-mixin(@c) {
+	color: @glyph-color;
+	text-decoration: none;
+	&.on {
+		color: @c;
+	}
+	&:focus {
+		outline: none;
+		color: @glyph-color;
+		text-decoration: none;
+	}
+	&.on:focus {
+		color: @c;
+	}
+	&:hover {
+		color: darken(@c, 20%);
+		text-decoration: none;
+	}
+	&:active {
+		color: lighten(@c, 10%);
+		text-decoration: none;
+	}
+}
+
+// Generic light gray links
+.gray-link {
+	color: @gray-link-color;
+}
+
+.new-text {
+	color: green;
+}
+
+
+// Claim stuff
+
 .claim {
-	background-color: LightBlue;
-	padding: 2em 0;
-	overflow: auto;
+	margin-bottom: 40px;
 }
 
-.bClaim {
-	background-color: LightPink;
-	text-align: center;
+// This class is for the column of claim utility icons
+.claim-icon-mixin() {
+	.glyph-mixin(#5050FF);
+	font-size: 21px;
+	margin: 5px 0;
 }
 
-.claimLeft {
-	float: left;
-	width: 10%;
+.claim-link {
+	.claim-icon-mixin();
 }
 
-.claimRight {
-	float: right;
-	width: 90%;
+.subscribe-to-claim-link {
+	.claim-icon-mixin();
 }
 
-.newClaimForm {
-	display: none;
+.edit-claim-link {
+	.claim-icon-mixin();
 }
 
-.addExistingClaimForm {
-	display: none;
+.claim-summary {
+	font-weight: bold;
 }
 
-.comments {
-	padding: 0 2em;
+.claim-text {
+}
+
+.claim-outdent {
+	margin: 0 0 8px 30px;
+}
+
+.claim-url {
+}
+
+.toggle-contexts-link {
+	.gray-link();
+	cursor: pointer; 
+}
+
+textarea.edit-claim-text {
+	height: 6em;
+}
+
+.tag {
+}
+
+.new-claim-nav {
+	margin-bottom: 14px;
+}
+
+textarea.new-claim-text {
+	height: 6em;
+}
+
+.children-claim-line {
+	border-color: #666666;
+}
+
+// Comment stuff
+
+.comment-row {
+	border: 1px solid transparent;
+}
+
+.comment-body {
+	display: table;
+}
+
+.comment-creator-name {
+	display: table-cell;
+	white-space: nowrap;
+	font-weight: bold;
+}
+
+.comment-text {
+	display: table-cell;
+}
+
+.reply {
+	margin-left: 5px;
+	padding-left: 15px;
+	border-left: 1px solid #aaaaff;
+}
+
+.comment-icon(@c) {
+	.glyph-mixin(@c);
+	visibility: hidden;
+
+	.comment-row:hover & {
+		visibility: visible;
+	}
+	&.on {
+		visibility: visible;
+	}
+}
+
+.edit-comment-link {
+	.comment-icon(#5050FF);
+}
+
+.subscribe-comment-link {
+	.comment-icon(#5050FF);
+}
+
+.upvote-comment-link {
+	.comment-icon(@upvote-color);
+}
+
+.new-comment-link {
+	.gray-link;
+}
+
+.comment-vote-count {
+	@c: darken(@gray-link-color, 20%);
+	color: @c;
+}
+
+textarea.new-comment-text {
+	height: 6em;
 }
 
 .replies {
-	padding: 0 2em;
 }
 
-.claimInput {
-	min-width: 500px;
+// Vote stuff
+
+.vote {
 }
 
-.editClaimForm {
-	display: none;
+.vote-count {
+	position: relative;
+	font-size: 2em;
+	top: -0.4em;
 }
 
-.editClaimForm {
-	display: none;
+.upvote-count {
+	.vote-count;
+	color: @upvote-color;
 }
 
-.editCommentForm {
-	display: none;
+.downvote-count {
+	.vote-count;
+	color: @downvote-color;
 }
 
-.newCommentForm {
-	display: none;
+.vote-link-mixin(@c) {
+	.glyph-mixin(@c);
+	font-size: 3em;
+}
+
+.disabled-vote-link {
+	font-size: 3em;
+	color: @glyph-color;
+}
+
+.upvote-link {
+	.vote-link-mixin(@upvote-color);
+}
+
+.downvote-link {
+	.vote-link-mixin(@downvote-color);
 }

@@ -4,21 +4,26 @@
 <html>
 <head>
 	{{template "style"}}
-	<link href="/static/css/claims.css" rel="stylesheet">
+	<link href="/static/css/claim.css" rel="stylesheet">
 	{{template "scripts"}}
 </head>
 
 <body>
 {{template "navbar" .User}}
 
-<div class="bClaims">
-	<ul class="claimsList">
+<div class="claims-body-div">
+	<h3>Recently Created Claims</h3>
+	<ul class="list-unstyled">
 		{{range .Claims}}
-			<li class="claimTitle"><a href="{{GetClaimUrl .}}">{{.Title}}</a>
+			<li>
+				<a href="{{GetClaimUrl .}}">{{.Summary}}</a>
+				<div>
 				{{range .Tags}}
-					<span class="tag">{{.Text}}</span>
+					<span class="tag label label-default">{{.Text}}</span>
 				{{end}}
+				</div>
 			</li>
+			<br>
 		{{end}}
 	</ul>
 </div>

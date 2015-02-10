@@ -23,7 +23,7 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var data newSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil {
+	if err != nil || (data.ClaimId == 0 && data.CommentId == 0) {
 		c.Inc("new_subscription_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -47,11 +47,6 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["claimId"] = data.ClaimId
 	} else if data.CommentId > 0 {
 		hashmap["commentId"] = data.CommentId
-	} else {
-		c.Inc("new_subscription_fail")
-		c.Errorf("At least one id has to be given: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
 	}
 	sql := database.GetInsertSql("subscriptions", hashmap)
 	if _, err = database.ExecuteSql(c, sql); err != nil {

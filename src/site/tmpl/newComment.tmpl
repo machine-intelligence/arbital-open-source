@@ -1,21 +1,24 @@
-{{/* newComment.tmpl is the template for url and textarea used to create new a comment.
-It takes one parameter which is the id of the comment for which this is created, or 0 if
-it's for a new coment. */}}
+{{/* newComment.tmpl is the template for creating a new comment.
+It takes one parameter which is the id of the parent comment, or 0 if
+it's a top level coment. */}}
 {{define "newComment"}}
 {{if IsLoggedIn}}
-	<div class="newComment">
-		<div class="newCommentBody">
-			<a href="#" class="newCommentLink">{{if le . 0}}New Comment{{else}}Reply{{end}}</a>
+	<div class="new-comment {{if gt . 0}}reply{{end}}">
+		<div class="new-comment-body">
+			<a href="#" class="new-comment-link">{{if le . 0}}New Comment{{else}}Reply{{end}}</a>
 		</div>
-		<form class="newCommentForm">
-			<textarea name="text" class="newCommentTextarea"></textarea>
+		<form class="new-comment-form" hidden>
+			<div class="form-group">
+				<textarea name="text" class="new-comment-text form-control" placeholder="Enter your comment"></textarea>
+			</div>
 			<!--{{if le . 0}}
 				In Context <span title="In context comment will only appear on this page. Otherwise, it will appear everywhere."><u>(?)</u></span>: <input type="checkbox" name="inContext" checked></br>
 			{{end}}-->
-			<p class="errorText"></p>
-			<img src="/static/images/loading.gif" class="loadingIndicator"/>
-			<input type="submit" value="Save"/>
-			<a href="#" class="cancelLink cancelNewComment">Cancel</a>
+			<input name="replyToId" type="hidden" value="{{.}}"/>
+			<p class="error-text"></p>
+			<img src="/static/images/loading.gif" class="loading-indicator"/>
+			<button type="submit" class="btn btn-primary">Save</button>
+			<a href="#" class="cancel-link cancel-new-comment">Cancel</a>
 		</form>
 	</div>
 {{end}}

@@ -15,9 +15,9 @@ $(document).ready(function() {
 
 var submitForm = function($target, url, data, success) {
 	var $submitButton = $target.find(":submit");
-	var $cancelLink = $target.find(".cancelLink");
-	var $loadingIndicator = $target.find(".loadingIndicator");
-	var $errorText = $target.find(".errorText");
+	var $cancelLink = $target.find(".cancel-link");
+	var $loadingIndicator = $target.find(".loading-indicator");
+	var $errorText = $target.find(".error-text");
 	$cancelLink.hide();
 	$submitButton.hide();
 	$loadingIndicator.show();

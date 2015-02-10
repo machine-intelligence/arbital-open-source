@@ -1,44 +1,344 @@
+.body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+}
+.signup-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 400px;
+}
+.new-claim-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 700px;
+}
+.claims-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 600px;
+}
+.updates-body-div {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+  width: 700px;
+}
+.update-claim-summary-link {
+  color: #0000ee;
+}
+.admin {
+  border-bottom: 2px dotted red;
+}
+.dotted-underline {
+  border-bottom: 1px dotted;
+  text-decoration: none;
+}
+.loading-indicator {
+  display: none;
+}
+.error-text {
+  color: red;
+  display: none;
+}
+.gray-link {
+  color: #b8b8b8;
+}
+.new-text {
+  color: green;
+}
 .claim {
-  background-color: LightBlue;
-  padding: 2em 0;
-  overflow: auto;
+  margin-bottom: 40px;
 }
-.bClaim {
-  background-color: LightPink;
-  text-align: center;
+.claim-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
 }
-.claimLeft {
-  float: left;
-  width: 10%;
+.claim-link.on {
+  color: #5050ff;
 }
-.claimRight {
-  float: right;
-  width: 90%;
+.claim-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
 }
-.newClaimForm {
-  display: none;
+.claim-link.on:focus {
+  color: #5050ff;
 }
-.addExistingClaimForm {
-  display: none;
+.claim-link:hover {
+  color: #0000e9;
+  text-decoration: none;
 }
-.comments {
-  padding: 0 2em;
+.claim-link:active {
+  color: #8383ff;
+  text-decoration: none;
 }
-.replies {
-  padding: 0 2em;
+.subscribe-to-claim-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
 }
-.claimInput {
-  min-width: 500px;
+.subscribe-to-claim-link.on {
+  color: #5050ff;
 }
-.editClaimForm {
-  display: none;
+.subscribe-to-claim-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
 }
-.editClaimForm {
-  display: none;
+.subscribe-to-claim-link.on:focus {
+  color: #5050ff;
 }
-.editCommentForm {
-  display: none;
+.subscribe-to-claim-link:hover {
+  color: #0000e9;
+  text-decoration: none;
 }
-.newCommentForm {
-  display: none;
+.subscribe-to-claim-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.edit-claim-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+}
+.edit-claim-link.on {
+  color: #5050ff;
+}
+.edit-claim-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.edit-claim-link.on:focus {
+  color: #5050ff;
+}
+.edit-claim-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.edit-claim-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.claim-summary {
+  font-weight: bold;
+}
+.claim-outdent {
+  margin: 0 0 8px 30px;
+}
+.toggle-contexts-link {
+  color: #b8b8b8;
+  cursor: pointer;
+}
+textarea.edit-claim-text {
+  height: 6em;
+}
+.new-claim-nav {
+  margin-bottom: 14px;
+}
+textarea.new-claim-text {
+  height: 6em;
+}
+.children-claim-line {
+  border-color: #666666;
+}
+.comment-row {
+  border: 1px solid transparent;
+}
+.comment-body {
+  display: table;
+}
+.comment-creator-name {
+  display: table-cell;
+  white-space: nowrap;
+  font-weight: bold;
+}
+.comment-text {
+  display: table-cell;
+}
+.reply {
+  margin-left: 5px;
+  padding-left: 15px;
+  border-left: 1px solid #aaaaff;
+}
+.edit-comment-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  visibility: hidden;
+}
+.edit-comment-link.on {
+  color: #5050ff;
+}
+.edit-comment-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.edit-comment-link.on:focus {
+  color: #5050ff;
+}
+.edit-comment-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.edit-comment-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.comment-row:hover .edit-comment-link {
+  visibility: visible;
+}
+.edit-comment-link.on {
+  visibility: visible;
+}
+.subscribe-comment-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  visibility: hidden;
+}
+.subscribe-comment-link.on {
+  color: #5050ff;
+}
+.subscribe-comment-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.subscribe-comment-link.on:focus {
+  color: #5050ff;
+}
+.subscribe-comment-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.subscribe-comment-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.comment-row:hover .subscribe-comment-link {
+  visibility: visible;
+}
+.subscribe-comment-link.on {
+  visibility: visible;
+}
+.upvote-comment-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  visibility: hidden;
+}
+.upvote-comment-link.on {
+  color: #0ccd29;
+}
+.upvote-comment-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.upvote-comment-link.on:focus {
+  color: #0ccd29;
+}
+.upvote-comment-link:hover {
+  color: #066d16;
+  text-decoration: none;
+}
+.upvote-comment-link:active {
+  color: #1af23b;
+  text-decoration: none;
+}
+.comment-row:hover .upvote-comment-link {
+  visibility: visible;
+}
+.upvote-comment-link.on {
+  visibility: visible;
+}
+.new-comment-link {
+  color: #b8b8b8;
+}
+.comment-vote-count {
+  color: #858585;
+}
+textarea.new-comment-text {
+  height: 6em;
+}
+.vote-count {
+  position: relative;
+  font-size: 2em;
+  top: -0.4em;
+}
+.upvote-count {
+  position: relative;
+  font-size: 2em;
+  top: -0.4em;
+  color: #0ccd29;
+}
+.downvote-count {
+  position: relative;
+  font-size: 2em;
+  top: -0.4em;
+  color: #ff0032;
+}
+.disabled-vote-link {
+  font-size: 3em;
+  color: #e0e0e0;
+}
+.upvote-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 3em;
+}
+.upvote-link.on {
+  color: #0ccd29;
+}
+.upvote-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.upvote-link.on:focus {
+  color: #0ccd29;
+}
+.upvote-link:hover {
+  color: #066d16;
+  text-decoration: none;
+}
+.upvote-link:active {
+  color: #1af23b;
+  text-decoration: none;
+}
+.downvote-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 3em;
+}
+.downvote-link.on {
+  color: #ff0032;
+}
+.downvote-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.downvote-link.on:focus {
+  color: #ff0032;
+}
+.downvote-link:hover {
+  color: #99001e;
+  text-decoration: none;
+}
+.downvote-link:active {
+  color: #ff335b;
+  text-decoration: none;
 }

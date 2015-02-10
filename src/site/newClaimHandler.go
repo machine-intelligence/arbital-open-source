@@ -18,6 +18,7 @@ import (
 // newClaimData contains parameters passed in to create a new claim
 type newClaimData struct {
 	ParentClaimId int64 `json:",string"`
+	Summary       string
 	Text          string
 	Url           string
 	Private       string
@@ -31,7 +32,7 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var data newClaimData
 	err := decoder.Decode(&data)
-	if err != nil || len(data.Text) <= 0 {
+	if err != nil || len(data.Summary) <= 0 || len(data.Text) <= 0 {
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -68,6 +69,7 @@ func newClaimHandler(w http.ResponseWriter, r *http.Request) {
 	// Create new claim.
 	var privacyKey int64
 	hashmap := make(map[string]interface{})
+	hashmap["summary"] = data.Summary
 	hashmap["text"] = data.Text
 	hashmap["url"] = data.Url
 	hashmap["creatorId"] = u.Id

@@ -61,6 +61,13 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 		privacyKey = results[2]
 	}
 
+	// Don't allow to link a claim to itself.
+	if claimId == fmt.Sprintf("%d", data.ParentClaimId) {
+		c.Errorf("Trying to link claim to itself")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	// Check to see if the linked claim is private
 	var actualPrivacyKey sql.NullInt64
 	found := false

@@ -1,7 +1,7 @@
 {{/* claim.tmpl is the main body of the claim page */}}
 {{define "base"}}
 <!DOCTYPE html>
-<html lang="en" ng-app>
+<html lang="en">
 <head>
 	{{template "style"}}
 	<link href="/static/css/claim.css" rel="stylesheet">
@@ -9,82 +9,63 @@
 	<script src="/static/js/claim.js"></script>
 </head>
 
-<body claim-url="{{GetClaimUrl .Claim}}" last-visit="{{.LastVisit}}">
+<body claim-url="{{GetClaimUrl .Claim}}" last-visit="{{.Claim.LastVisit}}">
 {{template "navbar" .User}}
 
-{{with .Claim}}
-	<div class="bClaim claim" claim-id="{{.Id}}">
-		<div class="claimLeft">
-			{{template "vote" .}}
-		</div>
-		<div class="claimRight">
-			<div class="claimBody">
-				<div class="contexts">
-					{{range .Contexts}}
-						<p class="context"><a href="{{GetClaimUrl .}}">{{.Text}}</a></p>
-					{{end}}
-				</div>
-				<p>{{if IsUpdated .CreatorId .UpdatedAt}}(U){{end}}<span class="claimText">{{.Title}}</span></p>
-				<p class="claimText">{{.Text}}</p>
-				<p><a href="{{.Url}}" target="_blank" class="claimUrl" {{if not .Url}}style="display:none"{{end}}>Link</a></p>
-				{{range .Tags}}
-					<span class="tag">{{.Text}}</span>
-				{{end}}
-				<a href="#" class="subscribeToClaim" {{if .IsSubscribed}}style="display:none"{{end}}>Subscribe</a>
-				<a href="#" class="unsubscribeToClaim" {{if not .IsSubscribed}}style="display:none"{{end}}>Unsubscribe</a>
-				{{if IsAdmin}} <!--TODO: another condition -->
-					<a href="#" class="editClaim">Edit</a>
-				{{end}}
-				{{if IsAdmin}}
-					<p class="admin">asked by {{.CreatorName}}</p>
-				{{end}}
-			</div>
-			<form class="editClaimForm">
-				<textarea name="text" class="editClaimTextarea"></textarea>
-				<p>URL: <input type="url" name="url" class="editClaimUrl"/></p>
-				<input type="hidden" name="id" value="{{.Id}}"/>
-				<p class="errorText"></p>
-				<img src="/static/images/loading.gif" class="loadingIndicator"/>
-				<input type="submit" value="Save"/>
-				<a href="#" class="cancelLink cancelClaim">Cancel</a>
-			</form>
-			<span>Comments:</span></br>
-			<div class="comments">
-				{{range .Comments}}
-					{{template "comment" .}}
-				{{end}}
-				{{template "newComment" 0}}
-			</div>
-		</div>
-	</div>
-{{end}}
+<div class="body-div container-fluid">
+	<!-- Parent claim -->
+	{{template "claim" .Claim}}
+	<hr class="children-claim-line"></hr>
 
-<div class="bClaims">
+	<!-- Children claims -->
 	{{range .Claims}}
 		{{template "claim" .}}
 	{{end}}
+
+	<!-- New claim tabs -->
 	{{if IsLoggedIn}}
-		<div class="newClaim">
-			<div class="newClaimBody">
-				<a href="#" class="newClaimLink">New Claim</a>
-				<a href="#" class="addExistingClaimLink">Add Existing Claim</a>
+			<ul class="new-claim-nav nav nav-tabs">
+				<li class="active"><a href="#new-claim" class="new-claim-link" data-toggle="tab">New Claim</a></li>
+			  <li><a href="#add-existing-claim" class="add-existing-claim-link">Add Existing Claim</a></li>
+			</ul>
+		<div class="tab-content">
+			<div class="tab-pane fade in active" id="new-claim">
+				<form class="new-claim-form">
+					<div class="form-group">
+						<textarea name="summary" class="new-claim-summary form-control" placeholder="Short claim summary"></textarea>
+					</div>
+					<div class="form-group">
+						<textarea name="text" class="new-claim-text form-control" placeholder="Claim description"></textarea>
+					</div>
+					<div class="form-group">
+						<input type="url" name="url" class="form-control" placeholder="Optional relevant URL"/>
+					</div>
+					{{if .Claim.PrivacyKey.Valid}}
+					<div class="checkbox">
+						<label>
+							<input type="checkbox" name="private" checked>
+							Private
+							<span class="dotted-underline" title="This claim will only be accessible by people who have the link.">(?)</span>
+						</label>
+					</div>
+					{{end}}
+					<input name="parentClaimId" type="hidden" value="{{.Claim.Id}}"/>
+					<p class="error-text"></p>
+					<img src="/static/images/loading.gif" class="loading-indicator"/>
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</form>
 			</div>
-			<form class="newClaimForm">
-				<textarea name="text" class="newClaimTextarea"></textarea>
-				<p>URL: <input type="url" name="url"/></p>
-				{{if .Claim.PrivacyKey.Valid}}<p>Private <span title="This claim will only be accessible by people who have the link."><u>(?)</u></span>: <input type="checkbox" name="private" checked></p>{{end}}
-				<p class="errorText"></p>
-				<img src="/static/images/loading.gif" class="loadingIndicator"/>
-				<input type="submit" value="Submit">
-				<a href="#" class="cancelLink cancelNewClaim">Cancel</a>
-			</form>
-			<form class="addExistingClaimForm">
-				<p>Claim URL: <input type="url" name="url"/></p>
-				<p class="errorText"></p>
-				<img src="/static/images/loading.gif" class="loadingIndicator"/>
-				<input type="submit" value="Submit">
-				<a href="#" class="cancelLink cancelAddExistingClaim">Cancel</a>
-			</form>
+			<div class="tab-pane fade" id="add-existing-claim">
+				<form class="add-existing-claim-form">
+					<div class="form-group">
+						<input type="url" name="url" class="add-existing-claim-url form-control" placeholder="Claim URL"/>
+					</div>
+					<input name="parentClaimId" type="hidden" value="{{.Claim.Id}}"/>
+					<p class="error-text"></p>
+					<img src="/static/images/loading.gif" class="loading-indicator"/>
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</form>
+			</div>
 		</div>
 	{{end}}
 </div>
