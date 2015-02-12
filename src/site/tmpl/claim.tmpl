@@ -87,7 +87,11 @@
 					<input name="summary" type="text" class="edit-claim-summary form-control" value="{{.Summary}}" placeholder="Summary">
 				</div>
 				<div class="form-group">
-					<textarea name="text" class="edit-claim-text form-control" placeholder="Claim description">{{.Text}}</textarea>
+					<div class="wmd-panel">
+						<div id="wmd-button-bar-{{.Id}}"></div>
+						<textarea name="text" class="edit-claim-text wmd-input form--control" id="wmd-input-{{.Id}}" placeholder="Claim description">{{.Text}}</textarea>
+						<div id="wmd-preview-{{.Id}}" class="wmd-panel wmd-preview"></div>
+					</div>
 				</div>
 				<div class="form-group">
 					<input name="url" type="url" class="edit-claim-url form-control" value="{{.Url}}" placeholder="Relevant URL"/>

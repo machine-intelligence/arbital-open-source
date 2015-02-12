@@ -7,7 +7,18 @@ function smartPageReload() {
 	window.location.replace(url + "?lastVisit=" + lastVisit);
 }
 
-$(document).ready(function() {
+// Replace Markdown text with corresponding HTML.
+$(function() {
+	var converter = Markdown.getSanitizingConverter();
+	$(".claim-text").each(function(index, element) {
+		//document.write(converter.makeHtml("**I am bold!**"));
+		$(element).html(converter.makeHtml($(element).text()));
+		var editor = new Markdown.Editor(converter, "-" + $(element).closest(".claim").attr("claim-id"));
+		editor.run();
+	});
+});
+
+$(function() {
 	// Claim editing stuff.
 	var toggleEditClaim = function($claim) {
 		$claim.find(".claim-body").toggle();
