@@ -1,33 +1,28 @@
 .body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
 }
 .signup-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
   width: 400px;
 }
-.new-claim-body-div {
+.new-page-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  width: 700px;
+  width: 90%;
 }
 .claims-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
   width: 600px;
 }
 .updates-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
   width: 700px;
@@ -35,8 +30,11 @@
 .update-claim-summary-link {
   color: #0000ee;
 }
+.template {
+  display: none;
+}
 .admin {
-  border-bottom: 2px dotted red;
+  border-bottom: 1px dotted red;
 }
 .dotted-underline {
   border-bottom: 1px dotted;
@@ -48,4 +46,32 @@
 .error-text {
   color: red;
   display: none;
+}
+.tag {
+  margin: 10px 15px 0 0;
+}
+.ui-autocomplete {
+  border: 1px solid gray;
+  background-color: white;
+}
+.ui-menu-item {
+  font-family: "Open Sans", sans-serif;
+}
+.ui-menu-item:focus {
+  background-color: #8888ff;
+}
+.ui-menu-item:hover {
+  background-color: #8888ff;
+}
+.ui-menu-item:active {
+  background-color: #5555ff;
+}
+.ui-slider {
+  margin-top: 1em;
+  background-color: #bbbbbb;
+}
+.ui-slider-handle {
+  border: 3px solid blue;
+  border-radius: 5px;
+  background-color: white;
 }

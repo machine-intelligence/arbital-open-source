@@ -7,24 +7,51 @@ $(document).ready(function() {
       });
     };
   }
+});
 
-	$("#logout").click(function() {
-		$.removeCookie("zanaduu", {path: "/"});
+// Prevent Enter key from submitting the form.
+$(document).ready(function() {
+	$(window).keydown(function(event){
+		if(event.keyCode == 13 && !$(event.target).is("textarea")) {
+			event.preventDefault();
+			return false;
+		}
 	});
 });
 
+// Setup event handlers.
+$(function() {
+	$("#logout").click(function() {
+		$.removeCookie("zanaduu", {path: "/"});
+	});
+
+	$(".undo-page-delete").on("click", function(event) {
+		var data = {
+			pageId: $("body").attr("page-id"),
+			undoDelete: true,
+		};
+		$.ajax({
+			type: 'POST',
+			url: '/deletePage/',
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+			smartPageReload();
+		});
+		return false;
+	});
+});
+
+// submitForm handles the common functionality in submitting a form like
+// showing/hiding UI elements and doing the AJAX call.
 var submitForm = function($target, url, data, success) {
-	var $submitButton = $target.find(":submit");
-	var $cancelLink = $target.find(".cancel-link");
-	var $loadingIndicator = $target.find(".loading-indicator");
 	var $errorText = $target.find(".error-text");
-	$cancelLink.hide();
-	$submitButton.hide();
-	$loadingIndicator.show();
+	$target.find("[toggle-on-submit]").toggle();
 
 	$.each($target.serializeArray(), function(i, field) {
 		data[field.name] = field.value;
 	});
+	console.log(data);
 
 	$.ajax({
 		type: 'POST',
@@ -32,16 +59,14 @@ var submitForm = function($target, url, data, success) {
 		data: JSON.stringify(data),
 	})
 	.always(function(r) {
-		$cancelLink.show();
-		$submitButton.show();
-		$loadingIndicator.hide();
+		$target.find("[toggle-on-submit]").toggle();
 	}).success(function(r) {
 		$errorText.hide();
 		success(r);
-		console.log(data);
+		console.log(r);
 	}).fail(function(r) {
 		$errorText.show();
 		$errorText.text(r.statusText);
-		console.log(data);
+		console.log(r);
 	});
 }

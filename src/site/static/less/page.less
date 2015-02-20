@@ -1,8 +1,8 @@
 @import "base.less";
 
 // Variables
-@upvote-color: #0ccd29;
-@downvote-color: #ff0032;
+@like-color: #0ccd29;
+@dislike-color: #ff0032;
 @gray-link-color: #b8b8b8;
 @glyph-color: #e0e0e0;
 
@@ -31,6 +31,10 @@
 	}
 }
 
+.page-body-div {
+	.body-div();
+}
+
 // Generic light gray links
 .gray-link {
 	color: @gray-link-color;
@@ -41,47 +45,68 @@
 }
 
 
+// Structure stuff
+
+.left-column {
+	width: 15%;
+	padding: 20px;
+}
+
+.mid-column {
+	width: 60%;
+}
+
+.right-column {
+	width: 25%;
+}
+
+
 // Claim stuff
 
-.claim {
+.page {
 	margin-bottom: 40px;
 }
 
-// This class is for the column of claim utility icons
-.claim-icon-mixin() {
+// This class is for the column of page utility icons
+.page-icon-mixin() {
 	.glyph-mixin(#5050FF);
 	font-size: 21px;
 	margin: 5px 0;
 }
 
-.claim-link {
-	.claim-icon-mixin();
+.page-link {
+	.page-icon-mixin();
 }
 
-.subscribe-to-claim-link {
-	.claim-icon-mixin();
+.subscribe-to-page-link {
+	.page-icon-mixin();
 }
 
-.edit-claim-link {
-	.claim-icon-mixin();
+.edit-page-link {
+	.page-icon-mixin();
 }
 
-.delete-input-link {
-	.claim-icon-mixin();
+.delete-page-link {
+	.page-icon-mixin();
 }
 
-.claim-summary {
+#delete-page-alert {
+	position: absolute;
+	z-index: 1;
+}
+
+.page-summary {
 	font-weight: bold;
 }
 
-.claim-text {
+.page-text {
 }
 
-.claim-outdent {
+.page-outdent {
 	margin: 0 0 8px 30px;
 }
 
-.claim-url {
+.page-url {
 }
 
 .toggle-contexts-link {
@@ -89,24 +114,31 @@
 	cursor: pointer; 
 }
 
-textarea.edit-claim-text {
+textarea.edit-page-text {
 	height: 6em;
 }
 
-.tag {
-}
-
-.new-claim-nav {
+.new-page-nav {
 	margin-bottom: 14px;
 }
 
-textarea.new-claim-text {
+textarea.new-page-text {
 	height: 6em;
 }
 
-.children-claim-line {
+.children-page-line {
 	border-color: #666666;
 }
+
+#highlighter-div {
+	position: relative;
+	top: -2em;
+	left: -50%;
+	border: 2px solid blue;
+	border-radius: 5px;
+	background-color: white;
+}
+
 
 // Comment stuff
 
@@ -154,15 +186,15 @@ textarea.new-claim-text {
 	.comment-icon(#5050FF);
 }
 
-.upvote-comment-link {
-	.comment-icon(@upvote-color);
+.like-comment-link {
+	.comment-icon(@like-color);
 }
 
 .new-comment-link {
 	.gray-link();
 }
 
-.comment-vote-count {
+.comment-like-count {
 	@c: darken(@gray-link-color, 20%);
 	color: @c;
 }
@@ -174,41 +206,57 @@ textarea.new-comment-text {
 .replies {
 }
 
-// Vote stuff
+// Like stuff
 
-.vote {
+.like {
 }
 
-.vote-count {
+.like-count {
 	position: relative;
 	font-size: 2em;
 	top: -0.4em;
 }
 
-.upvote-count {
-	.vote-count;
-	color: @upvote-color;
+.like-count {
+	.like-count;
+	color: @like-color;
 }
 
-.downvote-count {
-	.vote-count;
-	color: @downvote-color;
+.dislike-count {
+	.like-count;
+	color: @dislike-color;
 }
 
-.vote-link-mixin(@c) {
+.like-link-mixin(@c) {
 	.glyph-mixin(@c);
 	font-size: 3em;
 }
 
-.disabled-vote-link {
+.disabled-like-link {
 	font-size: 3em;
 	color: @glyph-color;
 }
 
-.upvote-link {
-	.vote-link-mixin(@upvote-color);
+.like-link {
+	.like-link-mixin(@like-color);
 }
 
-.downvote-link {
-	.vote-link-mixin(@downvote-color);
+.dislike-link {
+	.like-link-mixin(@dislike-color);
+}
+
+// Vote stuff
+
+.vote-slider.ui-slider {
+	background-color: red;
+	height: 8px;
+}
+
+.vote-slider .ui-slider-handle {
+	background-color: blue;
+	z-index: 1;
+}
+
+.delete-my-vote-link {
+	.gray-link();
 }

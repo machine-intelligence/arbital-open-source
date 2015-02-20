@@ -13,8 +13,7 @@ import (
 
 // newCommentData is the object that's put into the daemon queue.
 type newCommentData struct {
-	ClaimId int64 `json:",string"`
-	//ContextClaimId int64 `json:",string"`
+	PageId    int64 `json:",string"`
 	ReplyToId int64 `json:",string"`
 	Text      string
 }
@@ -26,7 +25,7 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var data newCommentData
 	err := decoder.Decode(&data)
-	if err != nil || data.Text == "" || data.ClaimId <= 0 {
+	if err != nil || data.Text == "" || data.PageId <= 0 {
 		c.Inc("new_comment_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -49,8 +48,7 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Add new comment
 	hashmap := make(map[string]interface{})
-	//hashmap["contextClaimId"] = data.ContextClaimId
-	hashmap["claimId"] = data.ClaimId
+	hashmap["pageId"] = data.PageId
 	hashmap["replyToId"] = data.ReplyToId
 	hashmap["text"] = data.Text
 	hashmap["creatorId"] = u.Id
@@ -76,8 +74,8 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hashmap = make(map[string]interface{})
 	hashmap["userId"] = u.Id
-	hashmap["createdAt"] = database.Now()
 	hashmap["commentId"] = subscribeCommentId
+	hashmap["createdAt"] = database.Now()
 	// Note: if this subscription already exists, we update userId, which does nothing,
 	// but also prevents an error from being generated.
 	query = database.GetInsertSql("subscriptions", hashmap, "userId")
@@ -89,13 +87,9 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Generate updates for people who are subscribed...
 	var task tasks.NewUpdateTask
 	task.UserId = u.Id
-	/*if data.ContextClaimId > 0 {
-		task.ClaimId = data.ContextClaimId
-	} else {*/
-	task.ClaimId = data.ClaimId
-	//}
+	task.PageId = data.PageId
 	if data.ReplyToId <= 0 {
-		// ... to this claim.
+		// ... to this page.
 		task.UpdateType = "topLevelComment"
 	} else {
 		// ... to the parent comment.

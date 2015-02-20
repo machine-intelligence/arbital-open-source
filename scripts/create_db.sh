@@ -4,12 +4,12 @@
 
 source init.sh || exit
 
-#HOST=localhost
-HOST=173.194.86.21
+HOST=localhost
+#HOST=173.194.86.21
 
 read -r -p "This script will DROP ALL DB DATA and rebuild the database at ${HOST}. Is this your intent? [y/N] " response
 if [[ ! $response =~ ^([yY][eE][sS]|[yY])$ ]]; then
-  exit
+	 exit
 fi
 
 DB_NAME=$(cfg mysql.database)
@@ -25,8 +25,8 @@ echo "Creating user ${DB_USER}.."
 # http://justcheckingonall.wordpress.com/2011/07/31/create-user-if-not-exists/
 mysql --host ${HOST} -u root -p"${ROOT_PW}" -e "GRANT ALL ON ${DB_NAME}.* TO '${DB_USER}'@'%' IDENTIFIED BY '${USER_PW}';"
 
-for s in claims.sql claimTagPairs.sql comments.sql commentVotes.sql inputs.sql votes.sql subscriptions.sql tags.sql updates.sql users.sql visits.sql; do
-#for s in commentVotes.sql; do
+#for s in pages.sql links.sql tags.sql pageTagPairs.sql users.sql; do
+for s in answers.sql votes.sql; do
 	echo "Importing schema ${s}.."
 	cat schemas/${s} | mysql --host ${HOST} -u ${DB_USER} -p${USER_PW} ${DB_NAME}
 done

@@ -3,6 +3,10 @@ It takes one parameter which is the id of the parent comment, or 0 if
 it's a top level coment. */}}
 {{define "newComment"}}
 {{if IsLoggedIn}}
+<div class="left-column pull-left">
+	&nbsp;
+</div>
+<div class="mid-column pull-left">
 	<div class="new-comment {{if gt . 0}}reply{{end}}">
 		<div class="new-comment-body">
 			<a href="#" class="new-comment-link">{{if le . 0}}New Comment{{else}}Reply{{end}}</a>
@@ -11,15 +15,13 @@ it's a top level coment. */}}
 			<div class="form-group">
 				<textarea name="text" class="new-comment-text form-control" placeholder="Enter your comment"></textarea>
 			</div>
-			<!--{{if le . 0}}
-				In Context <span title="In context comment will only appear on this page. Otherwise, it will appear everywhere."><u>(?)</u></span>: <input type="checkbox" name="inContext" checked></br>
-			{{end}}-->
 			<input name="replyToId" type="hidden" value="{{.}}"/>
 			<p class="error-text"></p>
 			<img src="/static/images/loading.gif" class="loading-indicator"/>
-			<button type="submit" class="btn btn-primary">Save</button>
+			<button type="submit" class="btn btn-primary">Submit</button>
 			<a href="#" class="cancel-link cancel-new-comment">Cancel</a>
 		</form>
 	</div>
+</div>
 {{end}}
 {{end}}

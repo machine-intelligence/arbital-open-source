@@ -12,7 +12,7 @@ import (
 // NewUpdateTask is the object that's put into the daemon queue.
 type NewUpdateTask struct {
 	UserId     int64 // user who performed an action, e.g. creating a comment
-	ClaimId    int64
+	PageId     int64
 	CommentId  int64
 	UpdateType string
 }
@@ -21,8 +21,8 @@ type NewUpdateTask struct {
 func (task *NewUpdateTask) IsValid() error {
 	if task.UserId <= 0 {
 		return fmt.Errorf("User id has to be set")
-	} else if task.ClaimId <= 0 {
-		return fmt.Errorf("Claim id has to be set")
+	} else if task.PageId <= 0 {
+		return fmt.Errorf("Page id has to be set")
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
 	}
@@ -40,10 +40,10 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 	if task.CommentId > 0 {
 		whereClause = fmt.Sprintf("WHERE commentId=%d", task.CommentId)
 	} else {
-		whereClause = fmt.Sprintf("WHERE claimId=%d", task.ClaimId)
+		whereClause = fmt.Sprintf("WHERE pageId=%d", task.PageId)
 	}
 
-	// Iterate through all users who are subscribed to this claim/comment.
+	// Iterate through all users who are subscribed to this page/comment.
 	query := fmt.Sprintf(`
 		SELECT userId
 		FROM subscriptions %s`, whereClause)
@@ -63,10 +63,10 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		query = fmt.Sprintf(`
 			SELECT id
 			FROM updates
-			WHERE userId=%d AND claimId=%d AND commentId=%d AND type="%s" AND seen=0
+			WHERE userId=%d AND pageId=%d AND commentId=%d AND type="%s" AND seen=0
 			ORDER BY updatedAt DESC
 			LIMIT 1`,
-			userId, task.ClaimId, task.CommentId, task.UpdateType)
+			userId, task.PageId, task.CommentId, task.UpdateType)
 		exists, err = database.QueryRowSql(c, query, &updateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
@@ -82,7 +82,7 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 			// Insert new update.
 			hashmap := make(map[string]interface{})
 			hashmap["userId"] = userId
-			hashmap["claimId"] = task.ClaimId
+			hashmap["pageId"] = task.PageId
 			hashmap["commentId"] = task.CommentId
 			hashmap["type"] = task.UpdateType
 			hashmap["createdAt"] = database.Now()

@@ -11,9 +11,9 @@ import (
 	"zanaduu3/src/user"
 )
 
-// deleteSubscriptionData is the object that's put into the daemon queue.
+// deleteSubscriptionData contains the data we receive in the request.
 type deleteSubscriptionData struct {
-	ClaimId   int64 `json:",string"`
+	PageId    int64 `json:",string"`
 	CommentId int64 `json:",string"`
 }
 
@@ -24,7 +24,7 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var data deleteSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil || (data.ClaimId == 0 && data.CommentId == 0) {
+	if err != nil || (data.PageId == 0 && data.CommentId == 0) {
 		c.Inc("delete_subscription_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -40,12 +40,16 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	if !u.IsLoggedIn {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	query := fmt.Sprintf(`
 		DELETE FROM subscriptions
 		WHERE userId=%d AND `, u.Id)
-	if data.ClaimId > 0 {
-		query += fmt.Sprintf("claimId=%d", data.ClaimId)
+	if data.PageId > 0 {
+		query += fmt.Sprintf("pageId=%d", data.PageId)
 	} else if data.CommentId > 0 {
 		query += fmt.Sprintf("commentId=%d", data.CommentId)
 	}

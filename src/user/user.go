@@ -23,12 +23,16 @@ var (
 // User holds information about a user of the app.
 // Note: this structure is also stored in a cookie.
 type User struct {
-	Id          int64
-	Email       string
-	FirstName   string
-	LastName    string
+	// DB variables
+	Id        int64
+	Email     string
+	FirstName string
+	LastName  string
+	IsAdmin   bool
+	Karma     int
+
+	// Computed variables
 	IsLoggedIn  bool
-	IsAdmin     bool
 	CurrentUrl  string
 	LoginLink   string
 	LogoutLink  string
@@ -66,6 +70,24 @@ func (u *User) BecomeUserWithId(id string, c sessions.Context) error {
 	return nil
 }
 
+// LoadUserFromDb loads the user information from the DB, bypassing cookies.
+// If the user doesn't exist or is not logged in, an empty user object is returned.
+func LoadUserFromDb(c sessions.Context) (*User, error) {
+	var u User
+	appEngineUser := user.Current(c)
+	if appEngineUser == nil {
+		return &u, nil
+	}
+
+	query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin,karma FROM users WHERE email='%s'", appEngineUser.Email)
+	_, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load user from db: %v", err)
+	}
+	u.IsLoggedIn = u.FirstName != ""
+	return &u, nil
+}
+
 // tryCreateUser gets the currently logged in user from App Engine. The users database is
 // updated if this user is newly created.
 func tryCreateUser(r *http.Request, c sessions.Context) (*User, error) {
@@ -75,8 +97,8 @@ func tryCreateUser(r *http.Request, c sessions.Context) (*User, error) {
 	}
 
 	var u User
-	query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin FROM users WHERE email='%s'", appEngineUser.Email)
-	exists, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin)
+	query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin,karma FROM users WHERE email='%s'", appEngineUser.Email)
+	exists, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {

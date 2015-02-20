@@ -1,33 +1,28 @@
 .body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
 }
 .signup-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
   width: 400px;
 }
-.new-claim-body-div {
+.new-page-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  width: 700px;
+  width: 90%;
 }
 .claims-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
   width: 600px;
 }
 .updates-body-div {
   width: 100%;
-  max-width: 1000px;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
   width: 700px;
@@ -35,8 +30,11 @@
 .update-claim-summary-link {
   color: #0000ee;
 }
+.template {
+  display: none;
+}
 .admin {
-  border-bottom: 2px dotted red;
+  border-bottom: 1px dotted red;
 }
 .dotted-underline {
   border-bottom: 1px dotted;
@@ -49,136 +47,191 @@
   color: red;
   display: none;
 }
+.tag {
+  margin: 10px 15px 0 0;
+}
+.ui-autocomplete {
+  border: 1px solid gray;
+  background-color: white;
+}
+.ui-menu-item {
+  font-family: "Open Sans", sans-serif;
+}
+.ui-menu-item:focus {
+  background-color: #8888ff;
+}
+.ui-menu-item:hover {
+  background-color: #8888ff;
+}
+.ui-menu-item:active {
+  background-color: #5555ff;
+}
+.ui-slider {
+  margin-top: 1em;
+  background-color: #bbbbbb;
+}
+.ui-slider-handle {
+  border: 3px solid blue;
+  border-radius: 5px;
+  background-color: white;
+}
+.page-body-div {
+  width: 100%;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+}
 .gray-link {
   color: #b8b8b8;
 }
 .new-text {
   color: green;
 }
-.claim {
+.left-column {
+  width: 15%;
+  padding: 20px;
+}
+.mid-column {
+  width: 60%;
+}
+.right-column {
+  width: 25%;
+}
+.page {
   margin-bottom: 40px;
 }
-.claim-link {
+.page-link {
   color: #e0e0e0;
   text-decoration: none;
   font-size: 21px;
   margin: 5px 0;
 }
-.claim-link.on {
+.page-link.on {
   color: #5050ff;
 }
-.claim-link:focus {
+.page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.claim-link.on:focus {
+.page-link.on:focus {
   color: #5050ff;
 }
-.claim-link:hover {
+.page-link:hover {
   color: #0000e9;
   text-decoration: none;
 }
-.claim-link:active {
+.page-link:active {
   color: #8383ff;
   text-decoration: none;
 }
-.subscribe-to-claim-link {
+.subscribe-to-page-link {
   color: #e0e0e0;
   text-decoration: none;
   font-size: 21px;
   margin: 5px 0;
 }
-.subscribe-to-claim-link.on {
+.subscribe-to-page-link.on {
   color: #5050ff;
 }
-.subscribe-to-claim-link:focus {
+.subscribe-to-page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.subscribe-to-claim-link.on:focus {
+.subscribe-to-page-link.on:focus {
   color: #5050ff;
 }
-.subscribe-to-claim-link:hover {
+.subscribe-to-page-link:hover {
   color: #0000e9;
   text-decoration: none;
 }
-.subscribe-to-claim-link:active {
+.subscribe-to-page-link:active {
   color: #8383ff;
   text-decoration: none;
 }
-.edit-claim-link {
+.edit-page-link {
   color: #e0e0e0;
   text-decoration: none;
   font-size: 21px;
   margin: 5px 0;
 }
-.edit-claim-link.on {
+.edit-page-link.on {
   color: #5050ff;
 }
-.edit-claim-link:focus {
+.edit-page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.edit-claim-link.on:focus {
+.edit-page-link.on:focus {
   color: #5050ff;
 }
-.edit-claim-link:hover {
+.edit-page-link:hover {
   color: #0000e9;
   text-decoration: none;
 }
-.edit-claim-link:active {
+.edit-page-link:active {
   color: #8383ff;
   text-decoration: none;
 }
-.delete-input-link {
+.delete-page-link {
   color: #e0e0e0;
   text-decoration: none;
   font-size: 21px;
   margin: 5px 0;
 }
-.delete-input-link.on {
+.delete-page-link.on {
   color: #5050ff;
 }
-.delete-input-link:focus {
+.delete-page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.delete-input-link.on:focus {
+.delete-page-link.on:focus {
   color: #5050ff;
 }
-.delete-input-link:hover {
+.delete-page-link:hover {
   color: #0000e9;
   text-decoration: none;
 }
-.delete-input-link:active {
+.delete-page-link:active {
   color: #8383ff;
   text-decoration: none;
 }
-.claim-summary {
+#delete-page-alert {
+  position: absolute;
+  z-index: 1;
+}
+.page-summary {
   font-weight: bold;
 }
-.claim-outdent {
+.page-outdent {
   margin: 0 0 8px 30px;
 }
 .toggle-contexts-link {
   color: #b8b8b8;
   cursor: pointer;
 }
-textarea.edit-claim-text {
+textarea.edit-page-text {
   height: 6em;
 }
-.new-claim-nav {
+.new-page-nav {
   margin-bottom: 14px;
 }
-textarea.new-claim-text {
+textarea.new-page-text {
   height: 6em;
 }
-.children-claim-line {
+.children-page-line {
   border-color: #666666;
+}
+#highlighter-div {
+  position: relative;
+  top: -2em;
+  left: -50%;
+  border: 2px solid blue;
+  border-radius: 5px;
+  background-color: white;
 }
 .comment-row {
   border: 1px solid transparent;
@@ -259,111 +312,123 @@ textarea.new-claim-text {
 .subscribe-comment-link.on {
   visibility: visible;
 }
-.upvote-comment-link {
+.like-comment-link {
   color: #e0e0e0;
   text-decoration: none;
   visibility: hidden;
 }
-.upvote-comment-link.on {
+.like-comment-link.on {
   color: #0ccd29;
 }
-.upvote-comment-link:focus {
+.like-comment-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.upvote-comment-link.on:focus {
+.like-comment-link.on:focus {
   color: #0ccd29;
 }
-.upvote-comment-link:hover {
+.like-comment-link:hover {
   color: #066d16;
   text-decoration: none;
 }
-.upvote-comment-link:active {
+.like-comment-link:active {
   color: #1af23b;
   text-decoration: none;
 }
-.comment-row:hover .upvote-comment-link {
+.comment-row:hover .like-comment-link {
   visibility: visible;
 }
-.upvote-comment-link.on {
+.like-comment-link.on {
   visibility: visible;
 }
 .new-comment-link {
   color: #b8b8b8;
 }
-.comment-vote-count {
+.comment-like-count {
   color: #858585;
 }
 textarea.new-comment-text {
   height: 6em;
 }
-.vote-count {
+.like-count {
   position: relative;
   font-size: 2em;
   top: -0.4em;
 }
-.upvote-count {
+.like-count {
   position: relative;
   font-size: 2em;
   top: -0.4em;
   color: #0ccd29;
 }
-.downvote-count {
+.dislike-count {
   position: relative;
   font-size: 2em;
   top: -0.4em;
+  color: #0ccd29;
   color: #ff0032;
 }
-.disabled-vote-link {
+.disabled-like-link {
   font-size: 3em;
   color: #e0e0e0;
 }
-.upvote-link {
+.like-link {
   color: #e0e0e0;
   text-decoration: none;
   font-size: 3em;
 }
-.upvote-link.on {
+.like-link.on {
   color: #0ccd29;
 }
-.upvote-link:focus {
+.like-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.upvote-link.on:focus {
+.like-link.on:focus {
   color: #0ccd29;
 }
-.upvote-link:hover {
+.like-link:hover {
   color: #066d16;
   text-decoration: none;
 }
-.upvote-link:active {
+.like-link:active {
   color: #1af23b;
   text-decoration: none;
 }
-.downvote-link {
+.dislike-link {
   color: #e0e0e0;
   text-decoration: none;
   font-size: 3em;
 }
-.downvote-link.on {
+.dislike-link.on {
   color: #ff0032;
 }
-.downvote-link:focus {
+.dislike-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.downvote-link.on:focus {
+.dislike-link.on:focus {
   color: #ff0032;
 }
-.downvote-link:hover {
+.dislike-link:hover {
   color: #99001e;
   text-decoration: none;
 }
-.downvote-link:active {
+.dislike-link:active {
   color: #ff335b;
   text-decoration: none;
+}
+.vote-slider.ui-slider {
+  background-color: red;
+  height: 8px;
+}
+.vote-slider .ui-slider-handle {
+  background-color: blue;
+  z-index: 1;
+}
+.delete-my-vote-link {
+  color: #b8b8b8;
 }

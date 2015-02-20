@@ -2,22 +2,62 @@
 // looking at a page at that time. This way new/updated markers are displayed
 // correctly.
 function smartPageReload() {
-	var url = $("body").attr("claim-url");
+	var url = $("body").attr("page-url");
 	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
 	window.location.replace(url + "?lastVisit=" + lastVisit);
 }
 
+// Send a new probability vote value to the server.
+function newVote(value) {
+	var data = {
+		pageId: $("body").attr("page-id"),
+		value: value,
+	};
+	$.ajax({
+		type: 'POST',
+		url: "/newVote/",
+		data: JSON.stringify(data),
+	})
+	.done(function(r) {
+	});
+}
+
 // Replace Markdown text with corresponding HTML.
 $(function() {
+	// TODO: get pageText and add all the comment tags
 	var converter = Markdown.getSanitizingConverter();
-	$(".claim-text").each(function(index, element) {
-		//document.write(converter.makeHtml("**I am bold!**"));
-		$(element).html(converter.makeHtml($(element).text()));
-		var editor = new Markdown.Editor(converter, "-" + $(element).closest(".claim").attr("claim-id"));
-		editor.run();
+	/*converter.hooks.chain("preSpanGamut", function (text) {
+		console.log("text: " + text);
+		return text.replace(/(.*?)"""(.*?)"""(.*)/g, "$1<u>$2</u>$3");
+	});*/
+	/*console.log("LEN: " + pageText.length);
+	converter.hooks.chain("preBlockGamut", function (text, rbg) {
+		return text.replace(/.\n\n./g, function (whole, inner) {
+			console.log("whole: " + whole);
+			console.log("inner: " + inner);
+			return whole[0] + "{{p " + inner + "}}\n\n" + whole[3];
+		});
+	});*/
+	var html = converter.makeHtml(pageText);
+	//html = html.replace(/\{\{p ([0-9]+)\}\}/g, "<a href='#' style='color:red'>$1</a>");
+	$(".page-text").html(html);
+});
+
+$(function() {
+	$(".page-text").highlighter({
+		"selector": "#highlighter",
+		"minWords": 1,
+		"complete": function (data) {console.log(data); }
+	});
+	$(".page-text").on("mouseup", function(event) {
+		console.log(event);
+		console.log(window.getSelection());
+		console.log(window.getSelection().getRangeAt(0));
 	});
 });
 
+
+// Setup handlers.
 $(function() {
 	// Claim editing stuff.
 	var toggleEditClaim = function($claim) {
@@ -34,36 +74,35 @@ $(function() {
 	});
 	$(".edit-claim-form").on("submit", function(event) {
 		var $form = $(event.target);
-		//var $claim = $form.closest(".claim");
-
 		var data = {};
 		submitForm($form, "/updateClaim/", data, function(r) {
 			smartPageReload();
-			/*var $claimUrl = $claim.find(".claimUrl");
-			var url = $claim.find(".editClaimUrl").val();
-			toggleEditClaim($claim);
-			$claimUrl.attr("href", url);
-			$claimUrl.toggle(url.length > 0);
-			$claim.find(".claimText").text($claim.find(".editClaimTextarea").val());*/
 		});
 		return false;
 	});
 
-	// Deleting an input.
-	$(".delete-input-link").on("click", function(event) {
+	// Deleting a page
+	$(".delete-page-link").on("click", function(event) {
+		$("#delete-page-alert").show();
+		return false;
+	});
+	$(".delete-page-cancel").on("click", function(event) {
+		$("#delete-page-alert").hide();
+	});
+	$(".delete-page-confirm").on("click", function(event) {
 		var $target = $(event.target);
 		var data = {
-			parentClaimId: $("body").attr("parent-claim-id"),
-			childClaimId: $target.closest(".claim").attr("claim-id"),
+			pageId: $("body").attr("page-id"),
 		};
 		$.ajax({
 			type: 'POST',
-			url: '/deleteInput/',
+			url: '/deletePage/',
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
 			smartPageReload();
 		});
+		return false;
 	});
 
 	// Comment editing stuff.
@@ -113,14 +152,9 @@ $(function() {
 	$(".cancel-new-comment").on("click", toggleNewComment);
 	$(".new-comment-form").on("submit", function(event) {
 		var $form = $(event.target);
-		var $newComment = $form.closest(".new-comment");
-
 		var data = {
-			claimId: $newComment.closest(".claim").attr("claim-id"),
+			pageId: $form.closest("body").attr("page-id"),
 		};
-		/*if ($form.find("input:checkbox[name='inContext']").is(":checked")) {
-			data["contextClaimId"] = $(".bClaim").attr("claim-id");
-		}*/
 		submitForm($form, "/newComment/", data, function(r) {
 			smartPageReload();
 		});
@@ -158,85 +192,95 @@ $(function() {
 	});
 
 	// Claim voting stuff.
-	// voteClick is 1 is user clicked upvote and -1 if they clicked downvote.
-	var processVote = function(voteClick, event) {
+	// likeClick is 1 is user clicked like and -1 if they clicked dislike.
+	var processLike = function(likeClick, event) {
 		var $target = $(event.target);
-		var $vote = $target.closest(".vote");
-		var $upvoteCount = $vote.find(".upvote-count");
-		var $downvoteCount = $vote.find(".downvote-count");
-		var currentVoteValue = +$vote.attr("my-vote");
-		var newVoteValue = (voteClick === currentVoteValue) ? 0 : voteClick;
-		var upvotes = +$upvoteCount.text();
-		var downvotes = +$downvoteCount.text();
+		var $like = $target.closest(".like");
+		var $likeCount = $like.find(".like-count");
+		var $dislikeCount = $like.find(".dislike-count");
+		var currentLikeValue = +$like.attr("my-like");
+		var newLikeValue = (likeClick === currentLikeValue) ? 0 : likeClick;
+		var likes = +$likeCount.text();
+		var dislikes = +$dislikeCount.text();
 
-		// Update vote counts.
+		// Update like counts.
 		// This logic has been created by looking at truth tables.
-		if (currentVoteValue === 1) {
-			upvotes -= 1;
-		} else if (voteClick === 1) {
-			upvotes += 1;
+		if (currentLikeValue === 1) {
+			likes -= 1;
+		} else if (likeClick === 1) {
+			likes += 1;
 		}
-		if (currentVoteValue === -1) {
-			downvotes -= 1;
-		} else if (voteClick === -1) {
-			downvotes += 1;
+		if (currentLikeValue === -1) {
+			dislikes -= 1;
+		} else if (likeClick === -1) {
+			dislikes += 1;
 		}
-		$upvoteCount.text("" + upvotes);
-		$downvoteCount.text("" + downvotes);
+		$likeCount.text("" + likes);
+		$dislikeCount.text("" + dislikes);
 
-		// Update my-vote
-		$vote.attr("my-vote", "" + newVoteValue);
+		// Update my-like
+		$like.attr("my-like", "" + newLikeValue);
 
-		// Display my vote
-		$vote.find(".upvote-link").toggleClass("on", newVoteValue === 1);
-		$vote.find(".downvote-link").toggleClass("on", newVoteValue === -1);
+		// Display my like
+		$like.find(".like-link").toggleClass("on", newLikeValue === 1);
+		$like.find(".dislike-link").toggleClass("on", newLikeValue === -1);
 		
 		// Notify the server
 		var data = {
-			claimId: $target.closest(".claim").attr("claim-id"),
-			value: newVoteValue,
+			pageId: $target.closest("body").attr("page-id"),
+			value: newLikeValue,
 		};
 		$.ajax({
 			type: 'POST',
-			url: '/newVote/',
+			url: '/newLike/',
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
 		});
 		return false;
 	}
-	$(".upvote-link").on("click", function(event) {
-		return processVote(1, event);
+	$(".like-link").on("click", function(event) {
+		return processLike(1, event);
 	});
-	$(".downvote-link").on("click", function(event) {
-		return processVote(-1, event);
+	$(".dislike-link").on("click", function(event) {
+		return processLike(-1, event);
+	});
+	$(".delete-my-vote-link").on("click", function(event) {
+		$(event.target).closest(".my-vote").hide();
+		var $voteSlider = $(".vote-slider");
+		var $originalHandle = $voteSlider.find(".original");
+		var $cloneHandle = $voteSlider.find(".clone");
+		newVote(0.0);
+		$(".my-vote-value").text("");
+		$originalHandle.css("background-color", "#777777").css("left", $cloneHandle.css("left"));
+		$cloneHandle.remove();
 	});
 
 	// Comment voting stuff.
-	// voteClick is 1 is user clicked upvote and 0 if they clicked reset vote.
-	$(".upvote-comment-link").on("click", function(event) {
+	// likeClick is 1 is user clicked like and 0 if they clicked reset like.
+	$(".like-comment-link").on("click", function(event) {
 		var $target = $(event.target);
 		var $commentRow = $target.closest(".comment-row");
-		var $upvoteCount = $commentRow.find(".comment-vote-count");
+		var $likeCount = $commentRow.find(".comment-like-count");
 
 		// Update UI.
 		$target.toggleClass("on");
-		var newVoteValue = $target.hasClass("on") ? 1 : 0;
-		var totalVotes = ((+$upvoteCount.text()) + (newVoteValue > 0 ? 1 : -1));
-		if (totalVotes > 0) {
-			$upvoteCount.text("" + totalVotes);
+		var newLikeValue = $target.hasClass("on") ? 1 : 0;
+		var totalLikes = ((+$likeCount.text()) + (newLikeValue > 0 ? 1 : -1));
+		if (totalLikes > 0) {
+			$likeCount.text("" + totalLikes);
 		} else {
-			$upvoteCount.text("");
+			$likeCount.text("");
 		}
 		
 		// Notify the server
 		var data = {
 			commentId: $commentRow.find(".comment").attr("comment-id"),
-			value: newVoteValue,
+			value: newLikeValue,
 		};
 		$.ajax({
 			type: 'POST',
-			url: '/updateCommentVote/',
+			url: '/updateCommentLike/',
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
@@ -245,11 +289,11 @@ $(function() {
 	});
 
 	// Subscription stuff.
-	$(".subscribe-to-claim-link").on("click", function(event) {
+	$(".subscribe-to-page-link").on("click", function(event) {
 		var $target = $(event.target);
 		$target.toggleClass("on");
 		var data = {
-			claimId: $target.closest(".claim").attr("claim-id"),
+			pageId: $target.closest("body").attr("page-id"),
 		};
 		$.ajax({
 			type: 'POST',
@@ -275,4 +319,47 @@ $(function() {
 		});
 		return false;
 	});
+});
+
+// Initial setup.
+$(function() {
+	var pageType = $("body").attr("page-type");
+
+	// Setup probability vote slider.
+	if (pageType === "question") {
+		var $myVote = $(".my-vote");
+		var $myVoteValue = $(".my-vote-value");
+		var $voteSlider = $(".vote-slider");
+		var createVoteTick = function() {
+			var $voteValue = $handle.clone();
+			$voteValue.appendTo($voteSlider);
+			$voteValue.css("background-color", "#777777").css("z-index", "0").addClass("clone");
+			$handle.css("background-color", "").addClass("original");
+		};
+		$voteSlider.slider({
+			min: 1,
+			max: 99,
+			step: 1,
+			value: +$myVoteValue.text(),
+			start: function(event, ui) {
+				if (+$myVoteValue.text() <= 0) {
+					$myVote.show();
+					$myVoteValue.text(ui.value);
+					createVoteTick();
+				}
+			},
+			stop: function(event, ui) {
+				newVote(+$myVoteValue.text());
+			},
+			slide: function(event, ui) {
+				$myVoteValue.text(ui.value);
+			},
+		});
+		var $handle = $voteSlider.find(".ui-slider-handle");
+		if (+$myVoteValue.text() <= 0) {
+			$handle.css("background-color", "#777777");
+		} else {
+			createVoteTick();
+		}
+	}
 });

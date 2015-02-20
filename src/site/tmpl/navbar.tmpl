@@ -7,25 +7,25 @@
 			<a class="navbar-brand" href="/">Zanaduu</a>
 		</div>
 		<ul class="nav navbar-nav">
-			<li><a href="/claims/all">Recent Claims</a></li>
+			<li><a href="/pages/all">Recent Pages</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			{{if .IsLoggedIn}}
-				<li><a href="/claims/new">Create Claim</a></li>
+				<li><a href="/pages/edit">+New Page</a></li>
 				<li><a href="/updates">Updates <span class="badge">{{.UpdateCount}}</span></a></li>
 				<li class="dropdown">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{{.Email}}<span class="caret"></span></a>
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">{{.Email}} <span class="badge">{{.Karma}}</span><span class="caret"></span></a>
 					<ul class="dropdown-menu" role="menu">
 						{{if .IsAdmin}}
 							<li><a class="admin" href="/becomeUser/?id=0">Become User</a></li>
 							<li class="divider"></li>
 						{{end}}
-						<li><a href="{{.LogoutLink}}" id="logout">Logout</a></li>
+						<li><a href="{{.LogoutLink}}" id="logout">Log Out</a></li>
 					</ul>
 				</li>
 			{{else}}
-				<li><a href="{{.LoginLink}}">Log In</a></li>
 				<li><a href="/signup/?continueUrl={{.CurrentUrl}}">Sign Up</a></li>
+				<li><a href="{{.LoginLink}}">Log In</a></li>
 			{{end}}
 		</ul>
 	</div>

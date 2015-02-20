@@ -14,20 +14,20 @@ import (
 	"zanaduu3/src/user"
 )
 
-// newInputData contains parameters passed in to create a new claim
+// newInputData contains parameters passed in to create a new page
 type newInputData struct {
-	ParentClaimId int64 `json:",string"`
-	Url           string
+	ParentPageId int64 `json:",string"`
+	Url          string
 }
 
-// newInputHandler handles requests to create a new claim.
+// newInputHandler handles requests to create a new page.
 func newInputHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
 	var data newInputData
 	err := decoder.Decode(&data)
-	if err != nil || len(data.Url) <= 0 || data.ParentClaimId <= 0 {
+	if err != nil || len(data.Url) <= 0 || data.ParentPageId <= 0 {
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -47,34 +47,34 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse out claimId and privacyKey from the given url
-	exp := regexp.MustCompile("^.*/claims/([[:digit:]]+)/?([[:digit:]]*).*?$")
+	// Parse out pageId and privacyKey from the given url
+	exp := regexp.MustCompile("^.*/pages/([[:digit:]]+)/?([[:digit:]]*).*?$")
 	results := exp.FindStringSubmatch(data.Url)
 	if len(results) <= 1 {
 		c.Errorf("Couldn't parse url")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	claimId := results[1]
+	pageId := results[1]
 	privacyKey := ""
 	if len(results) >= 3 {
 		privacyKey = results[2]
 	}
 
-	// Don't allow to link a claim to itself.
-	if claimId == fmt.Sprintf("%d", data.ParentClaimId) {
-		c.Errorf("Trying to link claim to itself")
+	// Don't allow to link a page to itself.
+	if pageId == fmt.Sprintf("%d", data.ParentPageId) {
+		c.Errorf("Trying to link page to itself")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// Check to see if the linked claim is private
+	// Check to see if the linked page is private
 	var actualPrivacyKey sql.NullInt64
 	found := false
 	query := fmt.Sprintf(`
 		SELECT privacyKey
-		FROM claims
-		WHERE id=%s`, claimId)
+		FROM pages
+		WHERE id=%s`, pageId)
 	found, err = database.QueryRowSql(c, query, &actualPrivacyKey)
 	if !found || err != nil {
 		c.Errorf("Couldn't load privacyKey: %v", err)
@@ -82,15 +82,15 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if actualPrivacyKey.Valid && fmt.Sprintf("%d", actualPrivacyKey.Int64) != privacyKey {
-		c.Errorf("The given claim is private, but the privacy key is incorrect")
+		c.Errorf("The given page is private, but the privacy key is incorrect")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// Create new input.
 	hashmap := make(map[string]interface{})
-	hashmap["parentId"] = data.ParentClaimId
-	hashmap["childId"] = claimId
+	hashmap["parentId"] = data.ParentPageId
+	hashmap["childId"] = pageId
 	hashmap["creatorId"] = u.Id
 	hashmap["creatorName"] = u.FullName()
 	hashmap["createdAt"] = database.Now()
@@ -103,10 +103,10 @@ func newInputHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Add updates to users who are subscribed to this claim.
+	// Add updates to users who are subscribed to this page.
 	var task tasks.NewUpdateTask
 	task.UserId = u.Id
-	task.ClaimId = data.ParentClaimId
+	task.PageId = data.ParentPageId
 	task.UpdateType = "newInput"
 	if err := task.IsValid(); err != nil {
 		c.Errorf("Invalid task created: %v", err)

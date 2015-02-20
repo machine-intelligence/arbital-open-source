@@ -13,16 +13,17 @@ import (
 	"zanaduu3/src/user"
 )
 
-type updatedClaim struct {
-	Claim     claim
+type updatedPage struct {
+	page
+
 	UpdatedAt string
 	Counts    map[string]int // type -> count
 }
 
 // updatesTmplData stores the data that we pass to the updates.tmpl to render the page
 type updatesTmplData struct {
-	User          *user.User
-	UpdatedClaims []*updatedClaim
+	User         *user.User
+	UpdatedPages []*updatedPage
 }
 
 // updatesPage serves the updates page.
@@ -49,38 +50,45 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 
 	// Load the updates
-	data.UpdatedClaims = make([]*updatedClaim, 0)
-	claimMap := make(map[int64]*updatedClaim)
+	data.UpdatedPages = make([]*updatedPage, 0)
+	pageMap := make(map[int64]*updatedPage)
 	query := fmt.Sprintf(`
-		SELECT c.id,c.privacyKey,c.summary,u.updatedAt,u.type,u.count
+		SELECT p.pageId,p.privacyKey,p.title,u.updatedAt,u.type,u.count
 		FROM updates AS u
-		JOIN claims AS c
-		ON u.claimId=c.Id
+		LEFT JOIN (
+			SELECT * FROM (
+				SELECT pageId,privacyKey,title
+				FROM pages
+				ORDER BY id DESC
+			) AS t
+			GROUP BY pageId
+		) AS p
+		ON u.pageId=p.pageId
 		WHERE u.userId=%d AND u.seen=0
 		ORDER BY u.updatedAt DESC
 		LIMIT 50`, data.User.Id)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var uc updatedClaim
+		var uc updatedPage
 		var updateType string
 		var count int
 		err := rows.Scan(
-			&uc.Claim.Id,
-			&uc.Claim.PrivacyKey,
-			&uc.Claim.Summary,
+			&uc.PageId,
+			&uc.PrivacyKey,
+			&uc.Title,
 			&uc.UpdatedAt,
 			&updateType,
 			&count)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
-		curClaim, ok := claimMap[uc.Claim.Id]
+		curPage, ok := pageMap[uc.PageId]
 		if !ok {
 			uc.Counts = make(map[string]int)
-			curClaim = &uc
-			claimMap[curClaim.Claim.Id] = curClaim
-			data.UpdatedClaims = append(data.UpdatedClaims, curClaim)
+			curPage = &uc
+			pageMap[curPage.PageId] = curPage
+			data.UpdatedPages = append(data.UpdatedPages, curPage)
 		}
-		curClaim.Counts[updateType] += count
+		curPage.Counts[updateType] += count
 		return nil
 	})
 	if err != nil {
@@ -94,12 +102,12 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"UserId":     func() int64 { return data.User.Id },
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
-		"GetClaimUrl": func(c *claim) string {
+		"GetPageUrl": func(p *updatedPage) string {
 			privacyAddon := ""
-			if c.PrivacyKey.Valid {
-				privacyAddon = fmt.Sprintf("/%d", c.PrivacyKey.Int64)
+			if p.PrivacyKey.Valid {
+				privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey.Int64)
 			}
-			return fmt.Sprintf("/claims/%d%s", c.Id, privacyAddon)
+			return fmt.Sprintf("/pages/%d%s", p.PageId, privacyAddon)
 		},
 	}
 	c.Inc("updates_page_served_success")

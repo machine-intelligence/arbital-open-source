@@ -1,4 +1,4 @@
-// deleteInputHandler.go handles requests for deleting an input.
+// deletePageHandler.go handles requests for deleting a page.
 package site
 
 import (
@@ -11,21 +11,21 @@ import (
 	"zanaduu3/src/user"
 )
 
-// deleteInputData is the object that's put into the daemon queue.
-type deleteInputData struct {
-	ParentClaimId int64 `json:",string"`
-	ChildClaimId  int64 `json:",string"`
+// deletePageData is the data received from the request.
+type deletePageData struct {
+	PageId     int64 `json:",string"`
+	UndoDelete bool
 }
 
-// deleteInputHandler handles requests for deleting an input.
-func deleteInputHandler(w http.ResponseWriter, r *http.Request) {
+// deletePageHandler handles requests for deleting a page.
+func deletePageHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
-	var data deleteInputData
+	var data deletePageData
 	err := decoder.Decode(&data)
-	if err != nil || data.ParentClaimId == 0 || data.ChildClaimId == 0 {
-		c.Inc("delete_input_fail")
+	if err != nil || data.PageId == 0 {
+		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -35,7 +35,7 @@ func deleteInputHandler(w http.ResponseWriter, r *http.Request) {
 	var u *user.User
 	u, err = user.LoadUser(w, r)
 	if err != nil {
-		c.Inc("delete_input_fail")
+		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -45,12 +45,17 @@ func deleteInputHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	deletedBy := u.Id
+	if data.UndoDelete {
+		deletedBy = 0
+	}
 	query := fmt.Sprintf(`
-		DELETE FROM inputs
-		WHERE parentId=%d AND childId=%d`, data.ParentClaimId, data.ChildClaimId)
+		UPDATE pages
+		SET deletedBy=%d
+		WHERE pageId=%d`, deletedBy, data.PageId)
 	if _, err = database.ExecuteSql(c, query); err != nil {
-		c.Inc("delete_input_fail")
-		c.Errorf("Couldn't delete an input: %v", err)
+		c.Inc("delete_page_fail")
+		c.Errorf("Couldn't delete a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

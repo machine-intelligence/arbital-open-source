@@ -1,4 +1,4 @@
-// newSubscription.go handles reclaims for adding a new subscription.
+// newSubscription.go handles repages for adding a new subscription.
 package site
 
 import (
@@ -10,9 +10,9 @@ import (
 	"zanaduu3/src/user"
 )
 
-// newSubscriptionData is the object that's put into the daemon queue.
+// newSubscriptionData contains the data we get in the request.
 type newSubscriptionData struct {
-	ClaimId   int64 `json:",string"`
+	PageId    int64 `json:",string"`
 	CommentId int64 `json:",string"`
 }
 
@@ -23,7 +23,7 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var data newSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil || (data.ClaimId == 0 && data.CommentId == 0) {
+	if err != nil || (data.PageId == 0 && data.CommentId == 0) {
 		c.Inc("new_subscription_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -39,12 +39,16 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	if !u.IsLoggedIn {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
 	hashmap["createdAt"] = database.Now()
-	if data.ClaimId > 0 {
-		hashmap["claimId"] = data.ClaimId
+	if data.PageId > 0 {
+		hashmap["pageId"] = data.PageId
 	} else if data.CommentId > 0 {
 		hashmap["commentId"] = data.CommentId
 	}

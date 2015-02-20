@@ -1,6 +1,5 @@
 .body-div {
 	width: 100%;
-	max-width: 1000px;
 	margin: 0 auto 160px auto;
 	font-family: "Open Sans", sans-serif;
 }
@@ -10,9 +9,9 @@
 	width: 400px;
 }
 
-.new-claim-body-div {
+.new-page-body-div {
 	.body-div();
-	width: 700px;
+	width: 90%;
 }
 
 .claims-body-div {
@@ -29,8 +28,13 @@
 	color: #0000ee;
 }
 
+// Used for elements that will be cloned.
+.template {
+	display: none;
+}
+
 .admin {
-	border-bottom: 2px dotted red;
+	border-bottom: 1px dotted red;
 }
 
 .dotted-underline {
@@ -45,4 +49,42 @@
 .error-text {
 	color: red;
 	display: none;
+}
+
+.tag {
+	margin: 10px 15px 0 0;
+}
+
+// Div for autocomplete jquery-ui dropdown.
+.ui-autocomplete {
+	border: 1px solid gray;
+	background-color: white;
+}
+
+// One of the menu items in the autocomplete jquery-ui dropdown.
+.ui-menu-item {
+	@c: #8888ff;
+	font-family: "Open Sans", sans-serif;
+
+	&:focus {
+		background-color: @c;
+	}
+	&:hover {
+		background-color: @c;
+	}
+	&:active {
+		background-color: darken(@c, 10%);
+	}
+}
+
+// Basic css for the jquery-ui slider.
+.ui-slider {
+	margin-top: 1em;
+	background-color: #bbbbbb;
+}
+
+.ui-slider-handle {
+	border: 3px solid blue;
+	border-radius: 5px;
+	background-color: white;
 }

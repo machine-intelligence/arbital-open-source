@@ -6,7 +6,7 @@ function cdroot()
 cdroot
 
 FILE_PATH=src/site/static
-lessc ${FILE_PATH}/less/base.less > ${FILE_PATH}/css/base.css
-lessc ${FILE_PATH}/less/claim.less > ${FILE_PATH}/css/claim.css
-lessc ${FILE_PATH}/less/claims.less > ${FILE_PATH}/css/claims.css
-lessc ${FILE_PATH}/less/pagedown.less > ${FILE_PATH}/css/pagedown.css
+lessc ${FILE_PATH}/less/base.less > ${FILE_PATH}/css/compiled/base.css
+lessc ${FILE_PATH}/less/page.less > ${FILE_PATH}/css/compiled/page.css
+lessc ${FILE_PATH}/less/recentPages.less > ${FILE_PATH}/css/compiled/recentPages.css
+lessc ${FILE_PATH}/less/pagedown.less > ${FILE_PATH}/css/compiled/pagedown.css

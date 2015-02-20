@@ -12,19 +12,19 @@
 {{template "navbar" .User}}
 
 <div class="updates-body-div">
-	{{range .UpdatedClaims}}
+	{{range .UpdatedPages}}
 		<div class="panel panel-default">
 			<div class="panel-heading">
-		    <a href="{{GetClaimUrl .Claim}}" class="update-claim-summary-link panel-title">{{.Claim.Summary}}</a>
+		    <a href="{{GetPageUrl .}}" class="update-page-summary-link panel-title">{{.Title}}</a>
 		  </div>
 			<div class="panel-body">
 				{{range $key, $count := .Counts}}
 					{{if eq $key "reply"}}
 						There are {{$count}} new replies to a comment you are subscribed to.
 					{{else if eq $key "topLevelComment"}}
-						There are {{$count}} new top level comments to a claim you are subscribed to.
-					{{else if eq $key "newInput"}}
-						There are {{$count}} new inputs to a claim you are subscribed to.
+						There are {{$count}} new top level comments to a page you are subscribed to.
+					{{else if eq $key "pageEdit"}}
+						The page has been edited.
 					{{end}}
 					<br>
 				{{end}}

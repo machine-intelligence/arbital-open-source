@@ -1,0 +1,144 @@
+{{/* editPage.tmpl is the page for creating a new page or editing an existing one. */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	<link href="/static/css/compiled/pagedown.css" rel="stylesheet">
+	{{template "scripts"}}
+	<script src="/static/js/editPage.js"></script>
+	<script>
+		// This array is used for autocompletion.
+		var availableTags = [{{range .Tags}}"{{.Text}}",{{end}}];
+		// This array is used to update the page when it loads to correctly display what tags it already uses.
+		var usedTags = [{{range .Page.Tags}}"{{.Text}}",{{end}}];
+		// Map of tag text -> tag id.
+		var tagMap = { {{range .Tags}}"{{.Text}}":"{{.Id}}",{{end}} };
+	</script>
+</head>
+
+<body privacy-key="{{if .Page.PrivacyKey.Valid}}{{.Page.PrivacyKey.Int64}}{{end}}" page-id="{{.Page.PageId}}">
+
+{{template "navbar" .User}}
+
+{{with .Page}}
+	{{if gt .DeletedBy 0}}
+		<div class="new-page-body-div">
+			<p class="text-center">This page has been deleted.
+				{{if IsAdmin}}
+					<span class="admin">By id: {{.DeletedBy}}. <a href="#" class="undo-page-delete">Undo.</a></span>
+				{{end}}
+			</p>
+		</div>
+	{{else}}
+		<div class="new-page-body-div">
+			<form class="new-page-form form-horizontal">
+
+				{{if le (GetEditLevel .) 0}}
+					<div class="form-group">
+						<div class="col-sm-6">
+							{{if eq (GetEditLevel .) 0}}
+								<div class="alert alert-warning">Bypassing karma lock using admin priviledges.</div>
+							{{else}}
+								<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{.KarmaLock}}</div>
+							{{end}}
+						</div>
+					</div>
+				{{end}}
+		
+				<div class="form-group">
+					<div class="col-sm-6">
+						<input name="title" type="text" class="form-control" value="{{.Title}}" placeholder="Post Title" required="true" autocomplete="off">
+					</div>
+				</div>
+		
+				<div class="form-group">
+					<div class="col-sm-6">
+						<div class="wmd-panel">
+							<div id="wmd-button-bar"></div>
+							<textarea name="text" class="edit-page-text wmd-input form-control" id="wmd-input" rows="30" placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451" style="resize: none;">{{.Text}}</textarea>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div id="wmd-preview" class="wmd-panel wmd-preview"></div>
+					</div>
+				</div>
+		
+				<div class="form-group">
+					<label class="title-label control-label col-sm-1">Page Type</label>
+					<div class="col-sm-2">
+						<select name="type" class="type-select form-control">
+							<option value="blog" {{if eq .Type "blog"}}selected="selected"{{end}}>Blog Page</option>
+							<option value="question" {{if eq .Type "question"}}selected="selected"{{end}}>Question Page</option>
+							<option value="info" {{if eq .Type "info"}}selected="selected"{{end}}>Info Page</option>
+						</select>
+					</div>
+					<div class="type-help col-sm-3">
+						<p class="type-help-blog help-block">Blog page is used for writing your thoughts on some topic. Only you will be able to edit the page.</p>
+						<p class="type-help-question help-block">Question page is used to debate a particular question. Others will be able to edit the page.</p>
+						<p class="type-help-info help-block">Info page is used to present factual information. Others will be able to edit the page.</p>
+					</div>
+				</div>
+
+				<!-- Answers for question type pages. -->
+				<div class="answers-form-group form-group">
+					<label class="control-label col-sm-1">Answers</label>
+					<div class="col-sm-2">
+						<input name="answer1" type="text" class="form-control" value="{{if .Answers}}{{(index .Answers 0).Text}}{{else}}No{{end}}" placeholder="First answer" autocomplete="off">
+					</div>
+					<div class="col-sm-2">
+						<input name="answer2" type="text" class="form-control" value="{{if .Answers}}{{(index .Answers 1).Text}}{{else}}Yes{{end}}" placeholder="Second answer" autocomplete="off">
+					</div>
+				</div>
+		
+				{{if gt GetMaxKarmaLock 0}}
+					<div class="karma-lock-form-group form-group">
+						<label class="title-label control-label col-sm-1">Karma Lock
+							<span title="Editing this page will require a minimum amount of karma." class="dotted-line">(?)</span>
+						</label>
+						<div class="col-sm-4">
+							<div class="karma-lock-slider" max="{{GetMaxKarmaLock}}"></div>
+						</div>
+						<div class="col-sm-1">
+							<label class="karma-lock-text control-label">{{.KarmaLock}}</label>
+						</div>
+					</div>
+				{{end}}
+		
+				<div class="form-group">
+					<label class="control-label col-sm-1">
+						Private
+						<span title="This page will only be accessible by people who have the link." class="dotted-line">(?)</span>
+					</label>
+					<div class="col-sm-4">
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" name="private" {{if .PrivacyKey.Valid}}checked{{end}}>
+							</label>
+						</div>
+					</div>
+				</div>
+		
+				<div class="form-group">
+					<label class="control-label col-sm-1">Tags</label>
+					<div class="col-sm-2">
+						<input type="text" class="tag-input form-control">
+					</div>
+					<div class="col-sm-3">
+						<a href="#" class="tag template label label-default"></a>
+					</div>
+				</div>
+		
+				<p class="error-text"></p>
+				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+				<button type="submit" class="btn btn-primary" toggle-on-submit>Submit</button>
+				<button type="button" class="save-draft-button btn btn-default" toggle-on-submit>Save As Draft</button>
+				<span class="loading-text" style="display:none"></span>
+			</form>
+		</div>
+	{{end}}
+{{end}}
+
+</body>
+</html>
+{{end}}

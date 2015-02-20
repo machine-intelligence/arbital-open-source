@@ -1,4 +1,4 @@
-// updateCommentVoteHandler.go adds or updates a comment vote.
+// updateCommentLikeHandler.go adds or updates a comment like.
 package site
 
 import (
@@ -10,18 +10,18 @@ import (
 	"zanaduu3/src/user"
 )
 
-// updateCommentVoteData is the object that's put into the daemon queue.
-type updateCommentVoteData struct {
+// updateCommentLikeData is the object that's put into the daemon queue.
+type updateCommentLikeData struct {
 	CommentId int64 `json:",string"`
 	Value     int
 }
 
-// updateCommentVoteHandler handles requests to create/update a prior vote.
-func updateCommentVoteHandler(w http.ResponseWriter, r *http.Request) {
+// updateCommentLikeHandler handles requests to create/update a prior like.
+func updateCommentLikeHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
-	var task updateCommentVoteData
+	var task updateCommentLikeData
 	err := decoder.Decode(&task)
 	if err != nil || task.CommentId <= 0 {
 		c.Errorf("Couldn't decode json: %v", err)
@@ -38,7 +38,7 @@ func updateCommentVoteHandler(w http.ResponseWriter, r *http.Request) {
 	var u *user.User
 	u, err = user.LoadUser(w, r)
 	if err != nil {
-		c.Inc("new_comment_vote_fail")
+		c.Inc("new_comment_like_fail")
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -48,17 +48,17 @@ func updateCommentVoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update comment vote
+	// Update comment like
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
 	hashmap["commentId"] = task.CommentId
 	hashmap["value"] = task.Value
 	hashmap["createdAt"] = database.Now()
 	hashmap["updatedAt"] = database.Now()
-	query := database.GetInsertSql("commentVotes", hashmap, "value", "updatedAt")
+	query := database.GetInsertSql("commentLikes", hashmap, "value", "updatedAt")
 	if _, err = database.ExecuteSql(c, query); err != nil {
-		c.Inc("new_comment_vote_fail")
-		c.Errorf("Couldn't add a comment vote: %v", err)
+		c.Inc("new_comment_like_fail")
+		c.Errorf("Couldn't add a comment like: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

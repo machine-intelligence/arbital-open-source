@@ -10,5 +10,6 @@ CREATE TABLE tags (
   createdAt DATETIME NOT NULL,
 	/* Tag text. */
 	text VARCHAR(32) NOT NULL,
+	UNIQUE(text),
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

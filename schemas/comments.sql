@@ -1,24 +1,20 @@
 DROP TABLE IF EXISTS comments;
 
-/* A comment is attached to a claim. It can be in context (only shown when
-looking at a specific claim) or out of context (always shown). */
+/* A comment is a short piece of text submitted by a user for some page. */
 CREATE TABLE comments (
 	/* Unique comment id. PK. */
 	id BIGINT NOT NULL AUTO_INCREMENT,
-	/* Id of the claim this comment belongs to. FK into claims. */
-	claimId BIGINT NOT NULL,
-	/* This is set iff the claim is in context. If it's set, the
-	 comment will only appear when the parent claim id is this value. */
-	contextClaimId BIGINT NOT NULL,
-	/* Id of the comment this is a reply to. */
+	/* Id of the page this comment belongs to. FK into pages. */
+	pageId BIGINT NOT NULL,
+	/* Id of the comment this is a reply to. 0 if it's top level. */
 	replyToId BIGINT NOT NULL,
 	/* When this was created. */
 	createdAt DATETIME NOT NULL,
-	/* When this was last updated at. */
+	/* When this was last updated. */
 	updatedAt DATETIME NOT NULL,
 	/* User id of the creator. */
 	creatorId BIGINT NOT NULL,
-	/* Full name of the user who commented. */
+	/* Full name of the creator. */
 	creatorName VARCHAR(64) NOT NULL,
 	/* Text supplied by the user. */
 	text VARCHAR(2048) NOT NULL,
