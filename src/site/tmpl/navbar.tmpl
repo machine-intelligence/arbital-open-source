@@ -7,14 +7,14 @@
 			<a class="navbar-brand" href="/">Zanaduu</a>
 		</div>
 		<ul class="nav navbar-nav">
-			<li><a href="/pages/all">Recent Pages</a></li>
+			<li><a href="/pages/filter">Recent Pages</a></li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			{{if .IsLoggedIn}}
 				<li><a href="/pages/edit">+New Page</a></li>
 				<li><a href="/updates">Updates <span class="badge">{{.UpdateCount}}</span></a></li>
 				<li class="dropdown">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">{{.Email}} <span class="badge">{{.Karma}}</span><span class="caret"></span></a>
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">{{.Email}} <span class="badge"><!--Insert karma--></span><span class="caret"></span></a>
 					<ul class="dropdown-menu" role="menu">
 						{{if .IsAdmin}}
 							<li><a class="admin" href="/becomeUser/?id=0">Become User</a></li>

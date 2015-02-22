@@ -15,6 +15,7 @@
 		// Map of tag text -> tag id.
 		var tagMap = { {{range .Tags}}"{{.Text}}":"{{.Id}}",{{end}} };
 	</script>
+	<title>Zanaduu Edit Page</title>
 </head>
 
 <body privacy-key="{{if .Page.PrivacyKey.Valid}}{{.Page.PrivacyKey.Int64}}{{end}}" page-id="{{.Page.PageId}}">
@@ -94,7 +95,7 @@
 				{{if gt GetMaxKarmaLock 0}}
 					<div class="karma-lock-form-group form-group">
 						<label class="title-label control-label col-sm-1">Karma Lock
-							<span title="Editing this page will require a minimum amount of karma." class="dotted-line">(?)</span>
+							<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 						</label>
 						<div class="col-sm-4">
 							<div class="karma-lock-slider" max="{{GetMaxKarmaLock}}"></div>
@@ -108,7 +109,7 @@
 				<div class="form-group">
 					<label class="control-label col-sm-1">
 						Private
-						<span title="This page will only be accessible by people who have the link." class="dotted-line">(?)</span>
+						<span title="This page will only be accessible by people who have the link." class="dashed-underline">(?)</span>
 					</label>
 					<div class="col-sm-4">
 						<div class="checkbox">

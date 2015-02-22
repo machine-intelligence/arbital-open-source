@@ -12,14 +12,12 @@ pageId, commentId, type) tuple. But only one of them will have seen==false. */
 CREATE TABLE updates (
 	/* Unique update id. PK. */
   id BIGINT NOT NULL AUTO_INCREMENT,
-	/* User id of the owner of this update. FK into users. */
+	/* The update is for this user. FK into users. */
   userId BIGINT NOT NULL,
-	/* Id of the page the update is for. FK into pages. */
-  pageId BIGINT NOT NULL,
-	/* Id of the comment the update is for. FK into comments. */
-  commentId BIGINT NOT NULL,
 	/* Type of update */
 	type VARCHAR(32) NOT NULL,
+	/* If appropriate, this is the page in the context of which this update happened. */
+	contextPageId BIGINT NOT NULL,
 	/* When this update was created. */
   createdAt DATETIME NOT NULL,
 	/* When this was last updated. */
@@ -28,5 +26,15 @@ CREATE TABLE updates (
 	count INT NOT NULL,
 	/* True iff the user has seen these updates. While false, we can continue to stack similar updates together. */
 	seen BOOLEAN NOT NULL,
+
+	/* Id of the page the update came from. FK into pages. */
+  fromPageId BIGINT NOT NULL,
+	/* Id of the comment the update came from. FK into comments. */
+  fromCommentId BIGINT NOT NULL,
+	/* Id of the user the update came from. FK into users. */
+	fromUserId BIGINT NOT NULL,
+	/* Id of the tag the update came from. FK into tags. */
+	fromTagId BIGINT NOT NULL,
+
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

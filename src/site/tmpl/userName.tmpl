@@ -1,0 +1,4 @@
+{{/* userName.tmpl is the template for showing a user's name. */}}
+{{define "userName"}}
+	<a href="{{GetUserUrl .Id}}" class="user-name-link">{{.FirstName}} {{.LastName}}</a>
+{{end}}

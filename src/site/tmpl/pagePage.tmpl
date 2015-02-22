@@ -7,21 +7,32 @@
 	<link href="/static/css/compiled/page.css" rel="stylesheet">
 	<link href="/static/css/compiled/pagedown.css" rel="stylesheet">
 	{{template "scripts"}}
-	<script src="/static/js/jQuery.highlighter.js"></script>
 	<script src="/static/js/page.js"></script>
 	<script>
 		var pageText = "{{.Page.Text}}";
 	</script>
+	<title>{{.Page.Title}} - Zanaduu</title>
 </head>
 
 <body page-id="{{.Page.PageId}}" page-type="{{.Page.Type}}" page-url="{{GetPageUrl .Page}}" last-visit="{{.Page.LastVisit}}">
 {{template "navbar" .User}}
 
-<span id="highlighter">
-	<div id="highlighter-div">
-		... my tooltip text ...
+<div id="link-popover-template" hidden>
+	<!-- Likes / dislikes and approval voting -->
+	<span class="like-count">JS inserts likes</span>
+	<span class="disabled-like-link glyphicon glyphicon-thumbs-up"></span>
+	&nbsp;
+	<span class="dislike-count">JS inserts dislikes</span>
+	<span class="disabled-dislike-link glyphicon glyphicon-thumbs-down"></span>
+	&nbsp; &nbsp;
+
+	<div class="vote" hidden>
+		<span class="answer answer1 pull-left">JS inserts answer1 text</span>
+		&nbsp;&nbsp;<span class="vote-text">JS inserts vote value and vote count</span>
+		<span class="answer answer2 pull-right">JS inserts answer2 text</span>
+		<span class="clearfix"></span>
 	</div>
-</span>
+</div>
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
@@ -95,22 +106,25 @@
 			<!-- Main page column -->
 			<div class="mid-column pull-left">
 				<span class="new-text">{{if IsUpdatedPage .}}(Updated){{end}}</span>
-				{{if .PrivacyKey.Valid}}<span class="private-text dotted-underline" title="Nobody can access this page unless they have the exact URL.">(Private)</span>{{end}}
-				<span class="page-title">{{.Title}}</span>
+				{{if .PrivacyKey.Valid}}<span class="private-text dashed-underline" title="Nobody can access this page unless they have the exact URL.">(Private)</span>{{end}}
+				<div class="page-title">{{.Title}}</div>
+				{{if eq .Type "blog"}}
+					<div class="author-text"> Author: {{template "userName" .Author}}</div>
+				{{end}}
 				<div class="page-text"></div>
 		
 				<!-- Tags -->
 				{{if .Tags}}
 					</br>
 					{{range .Tags}}
-						<span class="tag label label-default">{{.Text}}</span>
+						{{template "tag" .}}
 					{{end}}
 					</br>
 				{{end}}
 		
 				<!--Admin stuff -->
 				{{if IsAdmin}}
-					<span class="admin">Last Visit: {{.LastVisit}}; Last Edit At: {{.CreatedAt}} by {{.CreatorName}}</span></br>
+					<span class="admin">Last Visit: {{.LastVisit}}; Last Edit At: {{.CreatedAt}} by {{template "userName" .Author}}</span></br>
 				{{end}}
 		
 				<!-- Comments -->

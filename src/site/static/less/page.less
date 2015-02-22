@@ -13,13 +13,17 @@
 	&.on {
 		color: @c;
 	}
+	&.on:focus {
+		color: @c;
+	}
+}
+
+.glyph-mixin-link(@c) {
+	.glyph-mixin(@c);
 	&:focus {
 		outline: none;
 		color: @glyph-color;
 		text-decoration: none;
-	}
-	&.on:focus {
-		color: @c;
 	}
 	&:hover {
 		color: darken(@c, 20%);
@@ -61,7 +65,7 @@
 }
 
 
-// Claim stuff
+// Page stuff
 
 .page {
 	margin-bottom: 40px;
@@ -69,7 +73,7 @@
 
 // This class is for the column of page utility icons
 .page-icon-mixin() {
-	.glyph-mixin(#5050FF);
+	.glyph-mixin-link(#5050FF);
 	font-size: 21px;
 	margin: 5px 0;
 }
@@ -79,6 +83,14 @@
 }
 
 .subscribe-to-page-link {
+	.page-icon-mixin();
+}
+
+.subscribe-to-user-link {
+	.page-icon-mixin();
+}
+
+.subscribe-to-tag-link {
 	.page-icon-mixin();
 }
 
@@ -139,6 +151,10 @@ textarea.new-page-text {
 	background-color: white;
 }
 
+.intrasite-link {
+	.dashed-underline();
+}
+
 
 // Comment stuff
 
@@ -167,7 +183,7 @@ textarea.new-page-text {
 }
 
 .comment-icon(@c) {
-	.glyph-mixin(@c);
+	.glyph-mixin-link(@c);
 	visibility: hidden;
 
 	.comment-row:hover & {
@@ -228,13 +244,8 @@ textarea.new-comment-text {
 }
 
 .like-link-mixin(@c) {
-	.glyph-mixin(@c);
+	.glyph-mixin-link(@c);
 	font-size: 3em;
-}
-
-.disabled-like-link {
-	font-size: 3em;
-	color: @glyph-color;
 }
 
 .like-link {
@@ -243,6 +254,16 @@ textarea.new-comment-text {
 
 .dislike-link {
 	.like-link-mixin(@dislike-color);
+}
+
+.disabled-like-link {
+	.glyph-mixin(@like-color);
+	font-size: 3em;
+}
+
+.disabled-dislike-link {
+	.glyph-mixin(@dislike-color);
+	font-size: 3em;
 }
 
 // Vote stuff

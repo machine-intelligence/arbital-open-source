@@ -15,7 +15,7 @@
   font-family: "Open Sans", sans-serif;
   width: 90%;
 }
-.claims-body-div {
+.filter-body-div {
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
@@ -34,10 +34,10 @@
   display: none;
 }
 .admin {
-  border-bottom: 1px dotted red;
+  border-bottom: 1px dashed red;
 }
-.dotted-underline {
-  border-bottom: 1px dotted;
+.dashed-underline {
+  border-bottom: 1px dashed;
   text-decoration: none;
 }
 .loading-indicator {

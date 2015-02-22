@@ -25,8 +25,7 @@ type comment struct {
 	Text         string
 	CreatedAt    string
 	UpdatedAt    string
-	CreatorId    int64
-	CreatorName  string
+	Author       dbUser
 	LikeCount    int
 	MyLikeValue  int
 	IsSubscribed bool
@@ -50,12 +49,6 @@ type input struct {
 	CreatorName string
 }
 
-type tag struct {
-	// DB values.
-	Id   int64
-	Text string
-}
-
 type answer struct {
 	// DB values.
 	IndexId int
@@ -77,15 +70,16 @@ type richPage struct {
 	VoteCount    int
 	MyVoteValue  float32
 	Contexts     []*richPage
+	Links        []*richPage
 	Comments     []*comment
 }
 
 // pageTmplData stores the data that we pass to the index.tmpl to render the page
 type pageTmplData struct {
-	User   *user.User
-	Page   *richPage
-	Pages  []*richPage
-	Inputs []*input
+	User        *user.User
+	Page        *richPage
+	LinkedPages []*richPage
+	Inputs      []*input
 }
 
 // pagePage serves the page page.
@@ -93,7 +87,7 @@ var pagePage = pages.Add(
 	"/pages/{id:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
-		"tmpl/pagePage.tmpl",
+		"tmpl/pagePage.tmpl", "tmpl/tag.tmpl", "tmpl/userName.tmpl",
 		"tmpl/comment.tmpl", "tmpl/newComment.tmpl",
 		"tmpl/navbar.tmpl")...)
 
@@ -101,7 +95,7 @@ var privatePagePage = pages.Add(
 	"/pages/{id:[0-9]+}/{privacyKey:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
-		"tmpl/pagePage.tmpl",
+		"tmpl/pagePage.tmpl", "tmpl/tag.tmpl", "tmpl/userName.tmpl",
 		"tmpl/comment.tmpl", "tmpl/newComment.tmpl",
 		"tmpl/navbar.tmpl")...)
 
@@ -188,6 +182,25 @@ func loadMainPage(c sessions.Context, userId int64, pageId int64) (*richPage, er
 	return err
 }*/
 
+// loadLinks loads all the links the given page has, upading the given page object.
+/*func loadLinks(c sessions.Context, p *richPage) error {
+	query := fmt.Sprintf(`
+		SELECT
+		FROM links
+		WHERE parentId=%d`, p.PageId)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var parentId int64
+		var count int
+		err := rows.Scan(&parentId, &count)
+		if err != nil {
+			return fmt.Errorf("failed to scan for an input: %v", err)
+		}
+		pageMap[parentId].InputCount = count
+		return nil
+	})
+	return err
+}*/
+
 // loadComments loads and returns all the comments for the given input ids from the db.
 func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int64, error) {
 	commentMap := make(map[int64]*comment)
@@ -196,8 +209,13 @@ func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int
 	c.Infof("querying DB for comments with pageIds = %v", pageIds)
 	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
 	query := fmt.Sprintf(`
-		SELECT id,pageId,replyToId,text,createdAt,updatedAt,creatorId,creatorName
-		FROM comments
+		SELECT c.id,pageId,replyToId,text,createdAt,updatedAt,u.id,u.firstName,u.lastName
+		FROM comments AS c
+		LEFT JOIN (
+			SELECT id,firstName,lastName
+			FROM users
+		) AS u
+		ON c.creatorId=u.id
 		WHERE pageId IN (%s)`, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var ct comment
@@ -208,8 +226,9 @@ func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int
 			&ct.Text,
 			&ct.CreatedAt,
 			&ct.UpdatedAt,
-			&ct.CreatorId,
-			&ct.CreatorName)
+			&ct.Author.Id,
+			&ct.Author.FirstName,
+			&ct.Author.LastName)
 		if err != nil {
 			return fmt.Errorf("failed to scan for comments: %v", err)
 		}
@@ -222,6 +241,9 @@ func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int
 
 // loadLikes loads likes corresponding to the given pages and updates the pages.
 func loadLikes(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*richPage) error {
+	if len(pageIds) <= 0 {
+		return nil
+	}
 	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
 	query := fmt.Sprintf(`
 		SELECT userId,pageId,value
@@ -348,26 +370,27 @@ func loadSubscriptions(
 	pageMap map[int64]*richPage,
 	commentMap map[int64]*comment) error {
 
-	if len(commentIds) <= 0 {
-		return nil
+	commentClause := ""
+	if len(commentIds) > 0 {
+		commentClause = fmt.Sprintf("OR toCommentId IN (%s)", commentIds)
 	}
 
 	query := fmt.Sprintf(`
-		SELECT pageId,commentId
+		SELECT toPageId,toCommentId
 		FROM subscriptions
-		WHERE userId=%d AND (pageId IN (%s) OR commentId IN (%s))`,
-		currentUserId, pageIds, commentIds)
+		WHERE userId=%d AND (toPageId IN (%s) %s)`,
+		currentUserId, pageIds, commentClause)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var pageId int64
-		var commentId int64
-		err := rows.Scan(&pageId, &commentId)
+		var toPageId int64
+		var toCommentId int64
+		err := rows.Scan(&toPageId, &toCommentId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a comment like: %v", err)
 		}
-		if pageId > 0 {
-			pageMap[pageId].IsSubscribed = true
-		} else if commentId > 0 {
-			commentMap[commentId].IsSubscribed = true
+		if toPageId > 0 {
+			pageMap[toPageId].IsSubscribed = true
+		} else if toCommentId > 0 {
+			commentMap[toCommentId].IsSubscribed = true
 		}
 		return nil
 	})
@@ -533,7 +556,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		query := fmt.Sprintf(
 			`UPDATE updates
 			SET seen=1,updatedAt='%s'
-			WHERE pageId=%d AND userId=%d`,
+			WHERE contextPageId=%d AND userId=%d`,
 			database.Now(), pageId, data.User.Id)
 		if _, err := database.ExecuteSql(c, query); err != nil {
 			c.Errorf("Couldn't update updates: %v", err)
@@ -555,11 +578,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		}
 
 		// Load updates count.
-		query = fmt.Sprintf(`
-			SELECT COALESCE(SUM(count), 0)
-			FROM updates
-			WHERE userId=%d AND seen=0`, data.User.Id)
-		_, err = database.QueryRowSql(c, query, &data.User.UpdateCount)
+		data.User.UpdateCount, err = loadUpdateCount(c, data.User.Id)
 		if err != nil {
 			c.Errorf("Couldn't retrieve updates count: %v", err)
 		}
@@ -570,22 +589,19 @@ func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		"IsUpdatedPage": func(p *richPage) bool {
-			return p.CreatorId != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
+			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 		},
 		"IsNewComment": func(c *comment) bool {
 			lastVisit := pageMap[c.PageId].LastVisit
-			return c.CreatorId != data.User.Id && lastVisit != "" && c.CreatedAt >= lastVisit
+			return c.Author.Id != data.User.Id && lastVisit != "" && c.CreatedAt >= lastVisit
 		},
 		"IsUpdatedComment": func(c *comment) bool {
 			lastVisit := pageMap[c.PageId].LastVisit
-			return c.CreatorId != data.User.Id && lastVisit != "" && c.UpdatedAt >= lastVisit
+			return c.Author.Id != data.User.Id && lastVisit != "" && c.UpdatedAt >= lastVisit
 		},
 		// Check if we should even bother showing edit and delete page icons.
 		"ShowEditIcons": func(p *richPage) bool {
-			if data.User.IsAdmin {
-				return getEditLevel(&p.page, data.User) >= 0 || getDeleteLevel(&p.page, data.User) >= 0
-			}
-			return getEditLevel(&p.page, data.User) > 0 || getDeleteLevel(&p.page, data.User) > 0
+			return getEditLevel(&p.page, data.User) >= 0 || getDeleteLevel(&p.page, data.User) >= 0
 		},
 		"GetEditLevel": func(p *richPage) int {
 			return getEditLevel(&p.page, data.User)
@@ -594,23 +610,24 @@ func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 			return getDeleteLevel(&p.page, data.User)
 		},
 		"GetPageUrl": func(p *richPage) string {
-			privacyAddon := ""
-			if p.PrivacyKey.Valid {
-				privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey.Int64)
-			}
-			return fmt.Sprintf("/pages/%d%s", p.PageId, privacyAddon)
+			return getPageUrl(&p.page)
 		},
 		"GetPageEditUrl": func(p *richPage) string {
-			privacyAddon := ""
-			if p.PrivacyKey.Valid {
-				privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey.Int64)
-			}
-			return fmt.Sprintf("/pages/edit/%d%s", p.PageId, privacyAddon)
+			return getEditPageUrl(&p.page)
+		},
+		"GetUserUrl": func(userId int64) string {
+			return getUserUrl(userId)
+		},
+		"GetTagUrl": func(tagId int64) string {
+			return getTagUrl(tagId)
 		},
 		"Sanitize": func(s string) template.HTML {
 			s = template.HTMLEscapeString(s)
 			s = strings.Replace(s, "\n", "<br>", -1)
 			return template.HTML(s)
+		},
+		"PageToJson": func(p *richPage) string {
+			return "{'result': 10}"
 		},
 	}
 	c.Inc("page_page_served_success")

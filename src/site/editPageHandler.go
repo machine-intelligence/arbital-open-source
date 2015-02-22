@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
@@ -178,6 +179,9 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	} else if len(data.PrivacyKey) > 0 {
 		hashmap["privacyKey"] = data.PrivacyKey
 	}
+	if oldPage.PageId > 0 {
+		hashmap["edit"] = oldPage.Edit + 1
+	}
 	query := database.GetInsertSql("pages", hashmap)
 	_, err = tx.Exec(query)
 	if err != nil {
@@ -257,41 +261,58 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add subscription.
-	hashmap = make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["pageId"] = data.PageId
-	hashmap["createdAt"] = database.Now()
-	// If the subscription already exists, we just overwrite pageId, which does nothing, but prevents failure.
-	query = database.GetInsertSql("subscriptions", hashmap, "pageId")
-	_, err = tx.Exec(query)
-	if err != nil {
-		tx.Rollback()
-		c.Inc("page_handler_fail")
-		c.Errorf("Couldn't add a subscription: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	if oldPage.PageId <= 0 {
+		hashmap = make(map[string]interface{})
+		hashmap["userId"] = u.Id
+		hashmap["toPageId"] = data.PageId
+		hashmap["createdAt"] = database.Now()
+		query = database.GetInsertSql("subscriptions", hashmap)
+		_, err = tx.Exec(query)
+		if err != nil {
+			tx.Rollback()
+			c.Inc("page_handler_fail")
+			c.Errorf("Couldn't add a subscription: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
-	/*
-		if data.ParentPageId > 0 {
-			// Create new input.
-			hashmap = make(map[string]interface{})
-			hashmap["parentId"] = data.ParentPageId
-			hashmap["childId"] = data.PageId
-			hashmap["creatorId"] = u.Id
-			hashmap["creatorName"] = u.FullName()
-			hashmap["createdAt"] = database.Now()
-			hashmap["updatedAt"] = database.Now()
-			sql := database.GetInsertSql("inputs", hashmap)
-			if _, err = tx.Exec(sql); err != nil {
+	// Update the links table.
+	if oldPage.Text != data.Text {
+		// Delete old links.
+		if oldPage.PageId > 0 {
+			query = fmt.Sprintf("DELETE FROM links WHERE parentId=%d", data.PageId)
+			_, err = tx.Exec(query)
+			if err != nil {
 				tx.Rollback()
-				c.Inc("new_input_fail")
-				c.Errorf("Couldn't new input: %v", err)
+				c.Inc("page_handler_fail")
+				c.Errorf("Couldn't delete old links: %v", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 		}
-	*/
+		re := regexp.MustCompile("localhost:8012/pages/[0-9]+")
+		links := re.FindAllString(data.Text, -1)
+		insertValues := make([]string, 0, 0)
+		if len(links) > 0 {
+			for _, link := range links {
+				pageIdStr := link[strings.LastIndex(link, "/")+1:]
+				insertValue := fmt.Sprintf("(%d, %s, '%s')", data.PageId, pageIdStr, database.Now())
+				insertValues = append(insertValues, insertValue)
+			}
+			insertValuesStr := strings.Join(insertValues, ",")
+			sql := fmt.Sprintf(`
+				INSERT INTO links (parentId,childId,createdAt)
+				VALUES %s`, insertValuesStr)
+			if _, err = tx.Exec(sql); err != nil {
+				tx.Rollback()
+				c.Inc("page_handler_fail")
+				c.Errorf("Couldn't insert new visits: %v", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+	}
 
 	// Commit transaction.
 	err = tx.Commit()
@@ -302,16 +323,56 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate updates for people who are subscribed to this page.
-	var task tasks.NewUpdateTask
-	task.UserId = u.Id
-	task.PageId = data.PageId
-	task.UpdateType = "pageEdit"
-	if err := task.IsValid(); err != nil {
-		c.Errorf("Invalid task created: %v", err)
+	// Generate updates for users who are subscribed to this page.
+	if oldPage.PageId > 0 {
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.ContextPageId = data.PageId
+		task.ToPageId = data.PageId
+		task.UpdateType = pageEditUpdateType
+		if err := task.IsValid(); err != nil {
+			c.Errorf("Invalid task created: %v", err)
+		}
+		if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
 	}
-	if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
+
+	// Generate updates for users who are subscribed to the author.
+	if oldPage.PageId <= 0 && data.Type == blogPageType {
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.ContextPageId = data.PageId
+		task.ToUserId = u.Id
+		task.UpdateType = newPageByUserUpdateType
+		if err := task.IsValid(); err != nil {
+			c.Errorf("Invalid task created: %v", err)
+		}
+		if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
+	}
+
+	// Generate updates for users who are subscribed to the tags.
+	for _, tagId := range data.TagIds {
+		_, isOldTag := oldTagsMap[tagId]
+		if oldPage.PageId <= 0 || !isOldTag {
+			var task tasks.NewUpdateTask
+			task.UserId = u.Id
+			task.ContextPageId = data.PageId
+			task.ToTagId = tagId
+			if oldPage.PageId <= 0 {
+				task.UpdateType = newPageWithTagUpdateType
+			} else {
+				task.UpdateType = addedTagUpdateType
+			}
+			if err := task.IsValid(); err != nil {
+				c.Errorf("Invalid task created: %v", err)
+			}
+			if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
+			}
+		}
 	}
 
 	// Return id of the new page.

@@ -11,24 +11,35 @@ import (
 )
 
 const (
-	blogPageType         = "blog"
-	questionPageType     = "question"
-	infoPageType         = "info"
+	// Various page types we have in our system.
+	blogPageType     = "blog"
+	questionPageType = "question"
+	infoPageType     = "info"
+
+	// Various types of updates a user can get.
+	topLevelCommentUpdateType = "topLevelComment"
+	replyUpdateType           = "reply"
+	pageEditUpdateType        = "pageEdit"
+	newPageByUserUpdateType   = "newPageByUser"
+	newPageWithTagUpdateType  = "newPageWithTag"
+	addedTagUpdateType        = "addedTag"
+
+	// Highest karma lock a user can create is equal to their karma * this constant.
 	maxKarmaLockFraction = 0.8
 )
 
 type page struct {
 	// Data loaded from pages table
-	PageId      int64
-	Type        string
-	Title       string
-	Text        string
-	CreatorId   int64
-	CreatorName string
-	CreatedAt   string
-	KarmaLock   int
-	PrivacyKey  sql.NullInt64
-	DeletedBy   int64
+	PageId     int64 `json:",string"`
+	Edit       int
+	Type       string
+	Title      string
+	Text       string
+	Author     dbUser
+	CreatedAt  string
+	KarmaLock  int
+	PrivacyKey sql.NullInt64 `json:",string"`
+	DeletedBy  int64         `json:",string"`
 
 	// Additional data.
 	Tags    []*tag
@@ -56,15 +67,20 @@ func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
 func loadPage(c sessions.Context, pageId int64) (*page, error) {
 	var p page
 	query := fmt.Sprintf(`
-		SELECT pageId,type,title,text,creatorId,creatorName,createdAt,karmaLock,privacyKey,deletedBy
-		FROM pages
+		SELECT pageId,edit,type,title,text,createdAt,karmaLock,privacyKey,deletedBy,u.id,u.firstName,u.lastName
+		FROM pages AS p
+		LEFT JOIN (
+			SELECT id,firstName,lastName
+			FROM users
+		) AS u
+		ON p.creatorId=u.Id
 		WHERE pageId=%d
-		ORDER BY id DESC
+		ORDER BY p.id DESC
 		LIMIT 1`, pageId)
-	exists, err := database.QueryRowSql(c, query, &p.PageId,
+	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text,
-		&p.CreatorId, &p.CreatorName,
-		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy)
+		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy,
+		&p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
@@ -116,18 +132,34 @@ func (p *page) loadAnswers(c sessions.Context) error {
 	return err
 }
 
-const ()
-
 // getMaxKarmaLock returns the highest possible karma lock a user with the
 // given amount of karma can create.
 func getMaxKarmaLock(karma int) int {
 	return int(float32(karma) * maxKarmaLockFraction)
 }
 
+// getPageUrl returns the domain relative url for accessing the given page.
+func getPageUrl(p *page) string {
+	privacyAddon := ""
+	if p.PrivacyKey.Valid {
+		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey.Int64)
+	}
+	return fmt.Sprintf("/pages/%d%s", p.PageId, privacyAddon)
+}
+
+// getEditPageUrl returns the domain relative url for editing the given page.
+func getEditPageUrl(p *page) string {
+	privacyAddon := ""
+	if p.PrivacyKey.Valid {
+		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey.Int64)
+	}
+	return fmt.Sprintf("/pages/edit/%d%s", p.PageId, privacyAddon)
+}
+
 // Check if the user can edit this page. -1 = no, 0 = only as admin, 1 = yes
 func getEditLevel(p *page, u *user.User) int {
 	if p.Type == blogPageType {
-		if p.CreatorId == u.Id {
+		if p.Author.Id == u.Id {
 			return 1
 		} else {
 			return -1
@@ -144,7 +176,7 @@ func getEditLevel(p *page, u *user.User) int {
 // Check if the user can delete this page. -1 = no, 0 = only as admin, 1 = yes
 func getDeleteLevel(p *page, u *user.User) int {
 	if p.Type == blogPageType {
-		if p.CreatorId == u.Id {
+		if p.Author.Id == u.Id {
 			return 1
 		} else if u.IsAdmin {
 			return 0

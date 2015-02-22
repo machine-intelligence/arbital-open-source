@@ -7,6 +7,8 @@ CREATE TABLE pages (
 	id BIGINT NOT NULL AUTO_INCREMENT,
 	/* Non-unique. Id of the page the edit is for. */
 	pageId BIGINT NOT NULL,
+	/* The edit number of this page. Edits start at 0 and go up. */
+	edit INT NOT NULL,
 	/* Page's type. */
 	type VARCHAR(32) NOT NULL,
 	/* User id of the creator of this edit. */

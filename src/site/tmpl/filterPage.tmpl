@@ -1,0 +1,57 @@
+{{/* recentPagesPage.tmpl is the main body of the recent pages page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	<link href="/static/css/compiled/page.css" rel="stylesheet">
+	{{template "scripts"}}
+	<script src="/static/js/filter.js"></script>
+	<title>Zanaduu Filtered Pages</title>
+</head>
+
+<body>
+{{template "navbar" .User}}
+
+<div class="filter-body-div">
+	<h3>Recently Created Pages</h3>
+	{{if IsLoggedIn}}
+		{{if .Author}}
+			<p>Created by: {{template "userName" .Author}} <a href="#" class="subscribe-to-user-link glyphicon glyphicon-eye-open {{if .IsSubscribedToUser}}on{{end}}" user-id="{{.Author.Id}}"></a></p>
+		{{end}}
+		{{if .Tag}}
+			<p>Has tag: {{template "tag" .Tag}} <a href="#" class="subscribe-to-tag-link glyphicon glyphicon-eye-open {{if .IsSubscribedToTag}}on{{end}}" tag-id="{{.Tag.Id}}"></a></p>
+		{{end}}
+	{{end}}
+	<ul class="list-unstyled">
+		{{range .Pages}}
+			<li>
+				<!-- Likes / dislikes and approval voting -->
+				<span class="like-count">{{.LikeCount}}</span>
+				<span class="disabled-like-link glyphicon glyphicon-thumbs-up {{if le .MyLikeValue 1}}on{{end}}"></span>
+				&nbsp;
+				<span class="dislike-count">{{.DislikeCount}}</span>
+				<span class="disabled-dislike-link glyphicon glyphicon-thumbs-down {{if le .MyLikeValue -1}}on{{end}}"></span>
+				&nbsp; &nbsp;
+
+				<a href="{{GetPageUrl .}}">{{.Title}}</a>
+				{{if eq .Type "blog"}}
+					by {{.CreatorName}}
+				{{end}}
+				<div>
+				{{range .Tags}}
+					{{template "tag" .}}
+				{{end}}
+				</div>
+			</li>
+			<br>
+		{{end}}
+		{{if eq (len .Pages) .LimitCount}}
+			Results truncated at {{.LimitCount}}.
+		{{end}}
+	</ul>
+</div>
+
+</body>
+</html>
+{{end}}

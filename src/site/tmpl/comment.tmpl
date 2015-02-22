@@ -21,7 +21,7 @@
 				<div class="comment-body">
 					<div class="comment-creator-name">
 						<span class="new-text">{{if IsNewComment .}}(New){{else if IsUpdatedComment .}}(Updated){{end}}</span>
-						{{.CreatorName}}:&nbsp;
+						{{template "userName" .Author}}:&nbsp;
 					</div>
 					<div class="comment-text">{{Sanitize .Text}}</div>
 				</div>

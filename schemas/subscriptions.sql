@@ -9,13 +9,16 @@ CREATE TABLE subscriptions (
 
 	/* == At least one of these fields has to be set. == */
 	/* Id of the page the user is subscribed to. FK into pages. */
-  pageId BIGINT NOT NULL,
+  toPageId BIGINT NOT NULL,
 	/* Id of the comment the user is subscribed to. FK into comments. */
-  commentId BIGINT NOT NULL,
+  toCommentId BIGINT NOT NULL,
+	/* Id of the user the user is subscribed to. FK into users. */
+	toUserId BIGINT NOT NULL,
+	/* Id of the tag the user is subscribed to. FK into tags. */
+	toTagId BIGINT NOT NULL,
 	/* ================================================= */
 
 	/* When this subscription was created. */
   createdAt DATETIME NOT NULL,
-	UNIQUE(userId, pageId, commentId),
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

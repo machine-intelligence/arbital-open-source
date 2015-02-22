@@ -15,7 +15,7 @@
   font-family: "Open Sans", sans-serif;
   width: 90%;
 }
-.claims-body-div {
+.filter-body-div {
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
@@ -34,10 +34,10 @@
   display: none;
 }
 .admin {
-  border-bottom: 1px dotted red;
+  border-bottom: 1px dashed red;
 }
-.dotted-underline {
-  border-bottom: 1px dotted;
+.dashed-underline {
+  border-bottom: 1px dashed;
   text-decoration: none;
 }
 .loading-indicator {
@@ -108,13 +108,13 @@
 .page-link.on {
   color: #5050ff;
 }
+.page-link.on:focus {
+  color: #5050ff;
+}
 .page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.page-link.on:focus {
-  color: #5050ff;
 }
 .page-link:hover {
   color: #0000e9;
@@ -133,19 +133,69 @@
 .subscribe-to-page-link.on {
   color: #5050ff;
 }
+.subscribe-to-page-link.on:focus {
+  color: #5050ff;
+}
 .subscribe-to-page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.subscribe-to-page-link.on:focus {
-  color: #5050ff;
 }
 .subscribe-to-page-link:hover {
   color: #0000e9;
   text-decoration: none;
 }
 .subscribe-to-page-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.subscribe-to-user-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+}
+.subscribe-to-user-link.on {
+  color: #5050ff;
+}
+.subscribe-to-user-link.on:focus {
+  color: #5050ff;
+}
+.subscribe-to-user-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.subscribe-to-user-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.subscribe-to-user-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.subscribe-to-tag-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+}
+.subscribe-to-tag-link.on {
+  color: #5050ff;
+}
+.subscribe-to-tag-link.on:focus {
+  color: #5050ff;
+}
+.subscribe-to-tag-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.subscribe-to-tag-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.subscribe-to-tag-link:active {
   color: #8383ff;
   text-decoration: none;
 }
@@ -158,13 +208,13 @@
 .edit-page-link.on {
   color: #5050ff;
 }
+.edit-page-link.on:focus {
+  color: #5050ff;
+}
 .edit-page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.edit-page-link.on:focus {
-  color: #5050ff;
 }
 .edit-page-link:hover {
   color: #0000e9;
@@ -183,13 +233,13 @@
 .delete-page-link.on {
   color: #5050ff;
 }
+.delete-page-link.on:focus {
+  color: #5050ff;
+}
 .delete-page-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.delete-page-link.on:focus {
-  color: #5050ff;
 }
 .delete-page-link:hover {
   color: #0000e9;
@@ -233,6 +283,10 @@ textarea.new-page-text {
   border-radius: 5px;
   background-color: white;
 }
+.intrasite-link {
+  border-bottom: 1px dashed;
+  text-decoration: none;
+}
 .comment-row {
   border: 1px solid transparent;
 }
@@ -260,13 +314,13 @@ textarea.new-page-text {
 .edit-comment-link.on {
   color: #5050ff;
 }
+.edit-comment-link.on:focus {
+  color: #5050ff;
+}
 .edit-comment-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.edit-comment-link.on:focus {
-  color: #5050ff;
 }
 .edit-comment-link:hover {
   color: #0000e9;
@@ -290,13 +344,13 @@ textarea.new-page-text {
 .subscribe-comment-link.on {
   color: #5050ff;
 }
+.subscribe-comment-link.on:focus {
+  color: #5050ff;
+}
 .subscribe-comment-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.subscribe-comment-link.on:focus {
-  color: #5050ff;
 }
 .subscribe-comment-link:hover {
   color: #0000e9;
@@ -320,13 +374,13 @@ textarea.new-page-text {
 .like-comment-link.on {
   color: #0ccd29;
 }
+.like-comment-link.on:focus {
+  color: #0ccd29;
+}
 .like-comment-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.like-comment-link.on:focus {
-  color: #0ccd29;
 }
 .like-comment-link:hover {
   color: #066d16;
@@ -369,10 +423,6 @@ textarea.new-comment-text {
   color: #0ccd29;
   color: #ff0032;
 }
-.disabled-like-link {
-  font-size: 3em;
-  color: #e0e0e0;
-}
 .like-link {
   color: #e0e0e0;
   text-decoration: none;
@@ -381,13 +431,13 @@ textarea.new-comment-text {
 .like-link.on {
   color: #0ccd29;
 }
+.like-link.on:focus {
+  color: #0ccd29;
+}
 .like-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.like-link.on:focus {
-  color: #0ccd29;
 }
 .like-link:hover {
   color: #066d16;
@@ -405,13 +455,13 @@ textarea.new-comment-text {
 .dislike-link.on {
   color: #ff0032;
 }
+.dislike-link.on:focus {
+  color: #ff0032;
+}
 .dislike-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
-}
-.dislike-link.on:focus {
-  color: #ff0032;
 }
 .dislike-link:hover {
   color: #99001e;
@@ -420,6 +470,28 @@ textarea.new-comment-text {
 .dislike-link:active {
   color: #ff335b;
   text-decoration: none;
+}
+.disabled-like-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 3em;
+}
+.disabled-like-link.on {
+  color: #0ccd29;
+}
+.disabled-like-link.on:focus {
+  color: #0ccd29;
+}
+.disabled-dislike-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 3em;
+}
+.disabled-dislike-link.on {
+  color: #ff0032;
+}
+.disabled-dislike-link.on:focus {
+  color: #ff0032;
 }
 .vote-slider.ui-slider {
   background-color: red;

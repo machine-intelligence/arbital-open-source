@@ -72,6 +72,7 @@ func (u *User) BecomeUserWithId(id string, c sessions.Context) error {
 
 // LoadUserFromDb loads the user information from the DB, bypassing cookies.
 // If the user doesn't exist or is not logged in, an empty user object is returned.
+// NOTE: only use this method to load information about the currently logged in user.
 func LoadUserFromDb(c sessions.Context) (*User, error) {
 	var u User
 	appEngineUser := user.Current(c)

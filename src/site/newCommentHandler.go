@@ -74,7 +74,7 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hashmap = make(map[string]interface{})
 	hashmap["userId"] = u.Id
-	hashmap["commentId"] = subscribeCommentId
+	hashmap["toCommentId"] = subscribeCommentId
 	hashmap["createdAt"] = database.Now()
 	// Note: if this subscription already exists, we update userId, which does nothing,
 	// but also prevents an error from being generated.
@@ -87,14 +87,15 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Generate updates for people who are subscribed...
 	var task tasks.NewUpdateTask
 	task.UserId = u.Id
-	task.PageId = data.PageId
+	task.ContextPageId = data.PageId
 	if data.ReplyToId <= 0 {
 		// ... to this page.
-		task.UpdateType = "topLevelComment"
+		task.ToPageId = data.PageId
+		task.UpdateType = topLevelCommentUpdateType
 	} else {
 		// ... to the parent comment.
-		task.CommentId = subscribeCommentId
-		task.UpdateType = "reply"
+		task.ToCommentId = subscribeCommentId
+		task.UpdateType = replyUpdateType
 	}
 	if err := task.IsValid(); err != nil {
 		c.Errorf("Invalid task created: %v", err)

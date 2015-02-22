@@ -26,7 +26,7 @@ echo "Creating user ${DB_USER}.."
 mysql --host ${HOST} -u root -p"${ROOT_PW}" -e "GRANT ALL ON ${DB_NAME}.* TO '${DB_USER}'@'%' IDENTIFIED BY '${USER_PW}';"
 
 #for s in pages.sql links.sql tags.sql pageTagPairs.sql users.sql; do
-for s in answers.sql votes.sql; do
+for s in links.sql; do
 	echo "Importing schema ${s}.."
 	cat schemas/${s} | mysql --host ${HOST} -u ${DB_USER} -p${USER_PW} ${DB_NAME}
 done

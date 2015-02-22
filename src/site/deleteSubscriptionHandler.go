@@ -15,6 +15,8 @@ import (
 type deleteSubscriptionData struct {
 	PageId    int64 `json:",string"`
 	CommentId int64 `json:",string"`
+	UserId    int64 `json:",string"`
+	TagId     int64 `json:",string"`
 }
 
 // deleteSubscriptionHandler handles requests for deleting a subscription.
@@ -22,9 +24,9 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
-	var data deleteSubscriptionData
+	var emptyData, data deleteSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil || (data.PageId == 0 && data.CommentId == 0) {
+	if err != nil || data == emptyData {
 		c.Inc("delete_subscription_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -49,9 +51,13 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		DELETE FROM subscriptions
 		WHERE userId=%d AND `, u.Id)
 	if data.PageId > 0 {
-		query += fmt.Sprintf("pageId=%d", data.PageId)
+		query += fmt.Sprintf("toPageId=%d", data.PageId)
 	} else if data.CommentId > 0 {
-		query += fmt.Sprintf("commentId=%d", data.CommentId)
+		query += fmt.Sprintf("toCommentId=%d", data.CommentId)
+	} else if data.UserId > 0 {
+		query += fmt.Sprintf("toUserId=%d", data.UserId)
+	} else if data.TagId > 0 {
+		query += fmt.Sprintf("toTagId=%d", data.TagId)
 	}
 	if _, err = database.ExecuteSql(c, query); err != nil {
 		c.Inc("delete_subscription_fail")

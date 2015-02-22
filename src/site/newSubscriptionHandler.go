@@ -14,6 +14,8 @@ import (
 type newSubscriptionData struct {
 	PageId    int64 `json:",string"`
 	CommentId int64 `json:",string"`
+	UserId    int64 `json:",string"`
+	TagId     int64 `json:",string"`
 }
 
 // newSubscriptionHandler handles requests for adding a new subscription.
@@ -21,10 +23,9 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
-	var data newSubscriptionData
+	var emptyData, data newSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil || (data.PageId == 0 && data.CommentId == 0) {
-		c.Inc("new_subscription_fail")
+	if err != nil || data == emptyData {
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -44,13 +45,19 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: check if this subscription already exists
+
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
 	hashmap["createdAt"] = database.Now()
 	if data.PageId > 0 {
-		hashmap["pageId"] = data.PageId
+		hashmap["toPageId"] = data.PageId
 	} else if data.CommentId > 0 {
-		hashmap["commentId"] = data.CommentId
+		hashmap["toCommentId"] = data.CommentId
+	} else if data.UserId > 0 {
+		hashmap["toUserId"] = data.UserId
+	} else if data.TagId > 0 {
+		hashmap["toTagId"] = data.TagId
 	}
 	sql := database.GetInsertSql("subscriptions", hashmap)
 	if _, err = database.ExecuteSql(c, sql); err != nil {

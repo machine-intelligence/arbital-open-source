@@ -1,11 +1,5 @@
-// Reload the page with a lastVisit parameter so we can pretend that we are
-// looking at a page at that time. This way new/updated markers are displayed
-// correctly.
-function smartPageReload() {
-	var url = $("body").attr("page-url");
-	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
-	window.location.replace(url + "?lastVisit=" + lastVisit);
-}
+// This map contains page data we fetched from the server, e.g. when hovering over a intrasite link.
+var fetchedPagesMap = {}; // pageId -> page data
 
 // Send a new probability vote value to the server.
 function newVote(value) {
@@ -40,19 +34,13 @@ $(function() {
 	});*/
 	var html = converter.makeHtml(pageText);
 	//html = html.replace(/\{\{p ([0-9]+)\}\}/g, "<a href='#' style='color:red'>$1</a>");
-	$(".page-text").html(html);
-});
-
-$(function() {
-	$(".page-text").highlighter({
-		"selector": "#highlighter",
-		"minWords": 1,
-		"complete": function (data) {console.log(data); }
-	});
-	$(".page-text").on("mouseup", function(event) {
-		console.log(event);
-		console.log(window.getSelection());
-		console.log(window.getSelection().getRangeAt(0));
+	var $pageText = $(".page-text")
+	$pageText.html(html);
+	$pageText.find("a").each(function(index, element) {
+		var $element = $(element);
+		var parts = $element.attr("href").match(/^(?:http:\/\/)?(?:www\.)?localhost:8012\/pages\/([0-9]+)\/?([0-9]+)?/)
+		if (parts === null) return;
+		$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
 	});
 });
 
@@ -319,6 +307,76 @@ $(function() {
 		});
 		return false;
 	});
+
+	// Intrasite link hover.
+	var $linkPopoverTemplate = $("#link-popover-template");
+	var setPopoverContent = function($content, page) {
+		$content.html($linkPopoverTemplate.html());
+		$content.find(".like-count").text(page["LikeCount"]);
+		$content.find(".dislike-count").text(page["DislikeCount"]);
+		var myLikeValue = +page["MyLikeValue"];
+		if (myLikeValue > 0) {
+			$content.find(".disabled-like-link").addClass("on");
+		} else if (myLikeValue < 0) {
+			$content.find(".disabled-dislike-link").addClass("on");
+		}
+		if (page["Answers"] !== null) {
+			$content.find(".vote").show();
+			$content.find(".answer1").text(page["Answers"][0].Text);
+			$content.find(".answer2").text(page["Answers"][1].Text);
+			$content.find(".vote-text").text(page["VoteValue"] + "(" + page["VoteCount"] + ")");
+		}
+	}
+	$(".intrasite-link").popover({ 
+			html : true,
+			placement: "top",
+			trigger: "hover",
+			delay: { "show": 500, "hide": 100 },
+			title: function() {
+				var pageId = $(this).attr("page-id");
+				if (fetchedPagesMap[pageId]) {
+					return fetchedPagesMap[pageId]["Title"];
+				}
+				return "Loading...";
+			},
+			content: function() {
+				var $link = $(this);
+				var pageId = $link.attr("page-id");
+				// Check if we already have this page cached.
+				if (fetchedPagesMap[pageId]) {
+					var $content = $($linkPopoverTemplate.html());
+					console.log("setting from cache");
+					setPopoverContent($content, fetchedPagesMap[pageId]);
+					return $content.html();
+				}
+				// Check if we already issued a request to fetch this page.
+				if (!(pageId in fetchedPagesMap)) {
+					// Fetch page data from the server.
+					fetchedPagesMap[pageId] = null;
+					var data = {pageId: pageId, privacyKey: $link.attr("privacy-key")};
+					$.ajax({
+						type: "POST",
+						url: "/pageInfo/",
+						data: JSON.stringify(data),
+					})
+					.success(function(r) {
+						// TODO: handle deleted pages
+						var page = JSON.parse(r);
+						fetchedPagesMap[page["PageId"]] = page;
+						var $popover = $("#" + $link.attr("aria-describedby"));
+						var $content = $popover.find(".popover-content");
+						console.log("setting from POST");
+						$popover.find(".popover-title").text(page["Title"]);
+						setPopoverContent($content, page);
+						$link.popover("show");
+					});
+				}
+				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
+			}
+	});
+	$(".intrasite-link").on("shown.bs.popover", function () {
+			
+	})
 });
 
 // Initial setup.

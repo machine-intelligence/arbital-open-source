@@ -5,6 +5,7 @@
 <head>
 	{{template "style"}}
 	{{template "scripts"}}
+	<title>Zanaduu Updates</title>
 </head>
 
 <body>
@@ -18,13 +19,19 @@
 		    <a href="{{GetPageUrl .}}" class="update-page-summary-link panel-title">{{.Title}}</a>
 		  </div>
 			<div class="panel-body">
-				{{range $key, $count := .Counts}}
-					{{if eq $key "reply"}}
-						There are {{$count}} new replies to a comment you are subscribed to.
-					{{else if eq $key "topLevelComment"}}
-						There are {{$count}} new top level comments to a page you are subscribed to.
-					{{else if eq $key "pageEdit"}}
-						The page has been edited.
+				{{range $k, $v := .Updates}}
+					{{if eq $k "topLevelComment"}}
+						{{$v.Count}} new top level comments.
+					{{else if eq $k "reply"}}
+						{{$v.Count}} new replies.
+					{{else if eq $k "pageEdit"}}
+						This page has been edited.
+					{{else if eq $k "newPageByUser"}}
+						This new page was created by {{template "userName" $v.FromUser}}.
+					{{else if eq $k "newPageWithTag"}}
+						This new page was created with {{template "tag" $v.FromTag}}.
+					{{else if eq $k "addedTag"}}
+						{{template "tag" $v.FromTag}} has been added to this page.
 					{{end}}
 					<br>
 				{{end}}

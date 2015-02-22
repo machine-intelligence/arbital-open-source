@@ -11,20 +11,26 @@ import (
 
 // NewUpdateTask is the object that's put into the daemon queue.
 type NewUpdateTask struct {
-	UserId     int64 // user who performed an action, e.g. creating a comment
-	PageId     int64
-	CommentId  int64
-	UpdateType string
+	UserId        int64 // user who performed an action, e.g. creating a comment
+	ContextPageId int64 // if appropriate, this is the page relevant to the update
+	UpdateType    string
+
+	// One of the following has to be set. Users subscribed to this 'thing' will
+	// be notified.
+	ToPageId    int64
+	ToCommentId int64
+	ToUserId    int64
+	ToTagId     int64
 }
 
 // Check if this task is valid, and we can safely execute it.
 func (task *NewUpdateTask) IsValid() error {
 	if task.UserId <= 0 {
 		return fmt.Errorf("User id has to be set")
-	} else if task.PageId <= 0 {
-		return fmt.Errorf("Page id has to be set")
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
+	} else if task.ToPageId <= 0 && task.ToCommentId <= 0 && task.ToUserId <= 0 && task.ToTagId <= 0 {
+		return fmt.Errorf("At least on To___Id has to be specified")
 	}
 	return nil
 }
@@ -36,11 +42,18 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		return -1, err
 	}
 
+	// Figure out the subscriptions query constraint.
 	var whereClause string
-	if task.CommentId > 0 {
-		whereClause = fmt.Sprintf("WHERE commentId=%d", task.CommentId)
+	if task.ToPageId > 0 {
+		whereClause = fmt.Sprintf("WHERE toPageId=%d", task.ToPageId)
+	} else if task.ToCommentId > 0 {
+		whereClause = fmt.Sprintf("WHERE toCommentId=%d", task.ToCommentId)
+	} else if task.ToUserId > 0 {
+		whereClause = fmt.Sprintf("WHERE toUserId=%d", task.ToUserId)
+	} else if task.ToTagId > 0 {
+		whereClause = fmt.Sprintf("WHERE toTagId=%d", task.ToTagId)
 	} else {
-		whereClause = fmt.Sprintf("WHERE pageId=%d", task.PageId)
+		return -1, err
 	}
 
 	// Iterate through all users who are subscribed to this page/comment.
@@ -63,10 +76,11 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		query = fmt.Sprintf(`
 			SELECT id
 			FROM updates
-			WHERE userId=%d AND pageId=%d AND commentId=%d AND type="%s" AND seen=0
+			WHERE userId=%d AND type="%s" AND seen=0 AND contextPageId=%d AND
+				fromPageId=%d AND fromCommentId=%d AND fromUserId=%d AND fromTagId=%d
 			ORDER BY updatedAt DESC
 			LIMIT 1`,
-			userId, task.PageId, task.CommentId, task.UpdateType)
+			userId, task.UpdateType, task.ContextPageId, task.ToPageId, task.ToCommentId, task.ToUserId, task.ToTagId)
 		exists, err = database.QueryRowSql(c, query, &updateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
@@ -82,9 +96,12 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 			// Insert new update.
 			hashmap := make(map[string]interface{})
 			hashmap["userId"] = userId
-			hashmap["pageId"] = task.PageId
-			hashmap["commentId"] = task.CommentId
 			hashmap["type"] = task.UpdateType
+			hashmap["contextPageId"] = task.ContextPageId
+			hashmap["fromPageId"] = task.ToPageId
+			hashmap["fromCommentId"] = task.ToCommentId
+			hashmap["fromUserId"] = task.ToUserId
+			hashmap["fromTagId"] = task.ToTagId
 			hashmap["createdAt"] = database.Now()
 			hashmap["updatedAt"] = database.Now()
 			hashmap["count"] = 1

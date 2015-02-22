@@ -1,4 +1,5 @@
-$(document).ready(function() {
+// Add various helper functions.
+$(function() {
   if (!String.prototype.format) {
     String.prototype.format = function() {
       var args = arguments;
@@ -10,7 +11,7 @@ $(document).ready(function() {
 });
 
 // Prevent Enter key from submitting the form.
-$(document).ready(function() {
+$(function() {
 	$(window).keydown(function(event){
 		if(event.keyCode == 13 && !$(event.target).is("textarea")) {
 			event.preventDefault();
@@ -41,6 +42,15 @@ $(function() {
 		return false;
 	});
 });
+
+// Reload the page with a lastVisit parameter so we can pretend that we are
+// looking at a page at that time. This way new/updated markers are displayed
+// correctly.
+function smartPageReload() {
+	var url = $("body").attr("page-url");
+	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
+	window.location.replace(url + "?lastVisit=" + lastVisit);
+}
 
 // submitForm handles the common functionality in submitting a form like
 // showing/hiding UI elements and doing the AJAX call.

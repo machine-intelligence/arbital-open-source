@@ -98,7 +98,10 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		// Return the highest karma lock amount a user can create.
 		"GetMaxKarmaLock": func() int {
-			return getMaxKarmaLock(data.User.Karma)
+			if data.User.IsAdmin {
+				return getMaxKarmaLock(data.User.Karma)
+			}
+			return 0
 		},
 		"GetEditLevel": func(p *page) int {
 			return getEditLevel(p, data.User)
