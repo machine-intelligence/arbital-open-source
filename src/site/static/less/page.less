@@ -3,7 +3,6 @@
 // Variables
 @like-color: #0ccd29;
 @dislike-color: #ff0032;
-@gray-link-color: #b8b8b8;
 @glyph-color: #e0e0e0;
 
 // Generic light gray glyph icon
@@ -35,17 +34,16 @@
 	}
 }
 
+.gray-text {
+	color: @gray-color;
+}
+
 .page-body-div {
 	.body-div();
 }
 
-// Generic light gray links
-.gray-link {
-	color: @gray-link-color;
-}
-
-.new-text {
-	color: green;
+.new-updated-label {
+	color: #00e000;
 }
 
 
@@ -53,7 +51,7 @@
 
 .left-column {
 	width: 15%;
-	padding: 20px;
+	padding: 0px 20px;
 }
 
 .mid-column {
@@ -78,20 +76,18 @@
 	margin: 5px 0;
 }
 
-.page-link {
-	.page-icon-mixin();
-}
-
 .subscribe-to-page-link {
 	.page-icon-mixin();
 }
 
 .subscribe-to-user-link {
 	.page-icon-mixin();
+	font-size: 14px;
 }
 
 .subscribe-to-tag-link {
 	.page-icon-mixin();
+	font-size: 14px;
 }
 
 .edit-page-link {
@@ -107,11 +103,26 @@
 	z-index: 1;
 }
 
+.page-title {
+	font-size: 28px;
+}
+
+.author-text {
+	.gray-text();
+}
+
+.answer {
+	text-overflow: ellipsis;
+	font-weight: bold;
+}
+
 .page-summary {
 	font-weight: bold;
 }
 
 .page-text {
+	.pagedown();
+	margin-top: 7px;
 }
 
 .page-outdent {
@@ -142,24 +153,31 @@ textarea.new-page-text {
 	border-color: #666666;
 }
 
-#highlighter-div {
-	position: relative;
-	top: -2em;
-	left: -50%;
-	border: 2px solid blue;
-	border-radius: 5px;
-	background-color: white;
+.contexts {
+	margin: 7px 0;
+}
+
+.contexts-content {
+	padding-left: 20px;
 }
 
 .intrasite-link {
 	.dashed-underline();
 }
 
+.tags {
+	margin: 7px 0;
+}
+
+.tag {
+	margin: 10px 15px 0 0;
+	font-size: 12px;
+}
+
 
 // Comment stuff
 
 .comment-row {
-	border: 1px solid transparent;
 }
 
 .comment-body {
@@ -211,7 +229,7 @@ textarea.new-page-text {
 }
 
 .comment-like-count {
-	@c: darken(@gray-link-color, 20%);
+	@c: darken(@gray-color, 20%);
 	color: @c;
 }
 
@@ -224,60 +242,122 @@ textarea.new-comment-text {
 
 // Like stuff
 
-.like {
+.like-area-mixin(@size) {
+	font-size: @size;
+	
+	.like-count {
+		color: @like-color;
+		font-size: @size;
+	}
+	
+	.dislike-count {
+		color: @dislike-color;
+		font-size: @size;
+	}
+	
+	.like-link {
+		.glyph-mixin-link(@like-color);
+		position: relative;
+		top: @size / 4.0;
+		font-size: 1.5 * @size;
+	}
+	
+	.dislike-link {
+		.glyph-mixin-link(@dislike-color);
+		position: relative;
+		top: @size / 2.0;
+		font-size: 1.5 * @size;
+	}
+	
+	.disabled-like {
+		.glyph-mixin(@like-color);
+		position: relative;
+		top: @size / 4.0;
+		font-size: 1.5 * @size;
+	}
+	
+	.disabled-dislike {
+		.glyph-mixin(@dislike-color);
+		position: relative;
+		top: @size / 2.0;
+		font-size: 1.5 * @size;
+	}
 }
 
-.like-count {
+.page-like-div {
+	.like-area-mixin(28px);
 	position: relative;
-	font-size: 2em;
-	top: -0.4em;
+	top: -7px;
 }
 
-.like-count {
-	.like-count;
-	color: @like-color;
+.like-span {
+	.like-area-mixin(21px);
 }
 
-.dislike-count {
-	.like-count;
-	color: @dislike-color;
-}
-
-.like-link-mixin(@c) {
-	.glyph-mixin-link(@c);
-	font-size: 3em;
-}
-
-.like-link {
-	.like-link-mixin(@like-color);
-}
-
-.dislike-link {
-	.like-link-mixin(@dislike-color);
-}
-
-.disabled-like-link {
-	.glyph-mixin(@like-color);
-	font-size: 3em;
-}
-
-.disabled-dislike-link {
-	.glyph-mixin(@dislike-color);
-	font-size: 3em;
-}
 
 // Vote stuff
 
-.vote-slider.ui-slider {
-	background-color: red;
-	height: 8px;
+.vote {
+	margin-top: 7px;
 }
 
-.vote-slider .ui-slider-handle {
-	background-color: blue;
-	z-index: 1;
+.slider {
+	cursor: pointer;
+}
+
+#vote-slider {
+	width: 97%;
+	margin: 0px 1.5%;
+
+	.slider-track {
+		height: 6px;
+		margin-top: -3px;
+		background-image: none;
+		background-repeat: no-repeat;
+		box-shadow: none;
+		background-color: lightgray;
+	}
+	.slider-tick {
+		margin-top: -7px;
+		width: 6px;
+		margin-left: -3px;
+		background-image: none;
+		background-repeat: no-repeat;
+		box-shadow: none;
+		background-color: lightgray;
+		opacity: 1.0;
+	}
+	.slider-tick.vote-tick {
+		width: 20px;
+		margin-left: -10px;
+		border-radius: 50%;
+		background-color: gray;
+	}
+	.slider-handle {
+		margin-top: -7px;
+		width: 10px;
+		margin-left: -5px;
+		z-index: 1;
+	}
 }
 
 .delete-my-vote-link {
-	.gray-link();
+	.glyph-mixin-link(@gray-color);
+}
+
+
+// Filter page
+
+.filter-result {
+	margin: 10px 0px;
+}
+
+.inline-block-top {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.filter-title {
+	position: relative;
+	top: 7px;
 }

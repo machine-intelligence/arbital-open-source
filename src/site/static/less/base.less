@@ -1,3 +1,7 @@
+// Vars
+@gray-color: #b8b8b8;
+
+
 .body-div {
 	width: 100%;
 	margin: 0 auto 160px auto;
@@ -6,26 +10,37 @@
 
 .signup-body-div {
 	.body-div();
-	width: 400px;
+	max-width: 400px;
 }
 
 .new-page-body-div {
 	.body-div();
-	width: 90%;
+	max-width: 90%;
 }
 
 .filter-body-div {
 	.body-div();
-	width: 600px;
+	max-width: 800px;
 }
 
 .updates-body-div {
 	.body-div();
-	width: 700px;
+	max-width: 700px;
 }
 
-.update-claim-summary-link {
-	color: #0000ee;
+.page-footer {
+	color: @gray-color;
+	font-size: 10px;
+	padding: 10px;
+	p {
+		margin: 0;
+	}
+}
+
+
+// Likes and dislikes are not vertically aligned in like-span. This fixes it.
+.link-popover-dislike-correction {
+	margin: 0 14px;
 }
 
 // Used for elements that will be cloned.
@@ -42,6 +57,21 @@
 	text-decoration: none;
 }
 
+// Generic light gray links
+.gray-link {
+	color: @gray-color;
+
+	&:focus {
+		color: darken(@gray-color, 10%);
+	}
+	&:hover {
+		color: darken(@gray-color, 10%);
+	}
+	&:active {
+		color: darken(@gray-color, 10%);
+	}
+}
+
 .loading-indicator {
 	display: none;
 }
@@ -51,8 +81,28 @@
 	display: none;
 }
 
-.tag {
-	margin: 10px 15px 0 0;
+// This contains pagedown text.
+.pagedown {
+	h1 {
+		font-size: 26px;
+	}
+	h2 {
+		font-size: 20px;
+		font-weight: 600;
+	}
+	h3 {
+		font-size: 16px;
+		font-weight: 800;
+	}
+}
+
+.wmd-panel {
+	position: relative;
+	height: 90%;
+}
+
+.wmd-preview {
+	margin-top: 40px;
 }
 
 // Div for autocomplete jquery-ui dropdown.
@@ -75,16 +125,4 @@
 	&:active {
 		background-color: darken(@c, 10%);
 	}
-}
-
-// Basic css for the jquery-ui slider.
-.ui-slider {
-	margin-top: 1em;
-	background-color: #bbbbbb;
-}
-
-.ui-slider-handle {
-	border: 3px solid blue;
-	border-radius: 5px;
-	background-color: white;
 }

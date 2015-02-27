@@ -4,23 +4,25 @@
 	<div class="comment-row">
 		<div class="left-column pull-left">
 			<span class="pull-right">
-				{{if eq .CreatorId UserId}}
-					<a href="#" class="edit-comment-link glyphicon glyphicon-pencil"></a>
+				{{if eq .Author.Id UserId}}
+					<a href="#" class="edit-comment-link glyphicon glyphicon-pencil" title="Edit this comment"></a>
 				{{end}}
 				{{if IsLoggedIn}}
 					{{if le .ReplyToId 0}}
-						<a href="#" class="subscribe-comment-link glyphicon glyphicon-eye-open {{if .IsSubscribed}}on{{end}}"></a>
+						<a href="#" class="subscribe-comment-link glyphicon glyphicon-eye-open {{if .IsSubscribed}}on{{end}}" title="Subscribe to receive updates when this comment gets replies"></a>
 					{{end}}
-					<a href="#" class="like-comment-link glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}"></a>
+					{{if ne .Author.Id UserId}}
+						<a href="#" class="like-comment-link glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}" title="This is a high quality comment"></a>
+					{{end}}
 				{{end}}
-				<span class="comment-like-count">{{if gt .LikeCount 0}}{{.LikeCount}}{{end}}</span>
+				<span class="comment-like-count" title="Number of upvotes this comment has received">{{if gt .LikeCount 0}}{{.LikeCount}}{{end}}</span>
 			</span>
 		</div>
 		<div class="mid-column pull-left">
 			<div class="comment {{if gt .ReplyToId 0}}reply{{end}}" comment-id="{{.Id}}">
 				<div class="comment-body">
 					<div class="comment-creator-name">
-						<span class="new-text">{{if IsNewComment .}}(New){{else if IsUpdatedComment .}}(Updated){{end}}</span>
+						{{if IsNewComment .}}<span class="new-updated-label glyphicon glyphicon-star" title="You haven't seen this comment before"></span>{{else if IsUpdatedComment .}}<span class="new-updated-label glyphicon glyphicon-star-empty" title="This comment has been updated since the last time you've seen it"></span>{{end}}
 						{{template "userName" .Author}}:&nbsp;
 					</div>
 					<div class="comment-text">{{Sanitize .Text}}</div>
@@ -29,7 +31,7 @@
 					<div class="form-group">
 						<textarea name="text" class="edit-comment-text form-control">{{.Text}}</textarea>
 					</div>
-					<p class="error-text"></p>
+					<div class="alert alert-danger" hidden></div>
 					<img src="/static/images/loading.gif" class="loading-indicator"/>
 					<button type="submit" class="btn btn-primary">Save</button>
 					<a href="#" class="cancelLink cancel-edit-comment">Cancel</a>
@@ -48,4 +50,33 @@
 	</div>
 	<div class="clearfix"></div>
 </div>
+{{end}}
+
+{{/* Template for creating a new comment.
+It takes one parameter which is the id of the parent comment, or 0 if
+it's a top level coment. */}}
+{{define "newComment"}}
+{{if IsLoggedIn}}
+	<div class="left-column pull-left">
+		&nbsp;
+	</div>
+	<div class="mid-column pull-left">
+		<div class="new-comment {{if gt . 0}}reply{{end}}">
+			<div class="new-comment-body">
+				<a href="#" class="new-comment-link">{{if le . 0}}New Comment{{else}}Reply{{end}}</a>
+			</div>
+			<form class="new-comment-form" hidden>
+				<div class="form-group">
+					<textarea name="text" class="new-comment-text form-control" placeholder="Enter your comment"></textarea>
+				</div>
+				<input name="replyToId" type="hidden" value="{{.}}"/>
+				<div class="alert alert-danger" hidden></div>
+				<img src="/static/images/loading.gif" class="loading-indicator"/>
+				<button type="submit" class="btn btn-primary">Submit</button>
+				<a href="#" class="cancel-link cancel-new-comment">Cancel</a>
+			</form>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+{{end}}
 {{end}}

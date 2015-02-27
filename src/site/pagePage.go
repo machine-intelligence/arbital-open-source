@@ -41,12 +41,11 @@ func (a byDate) Less(i, j int) bool { return a[i].CreatedAt < a[j].CreatedAt }
 
 // TODO: use this for context (and potentially list of links)
 type input struct {
-	Id          int64
-	ChildId     int64
-	CreatedAt   string
-	UpdatedAt   string
-	CreatorId   int64
-	CreatorName string
+	Id        int64
+	ChildId   int64
+	CreatedAt string
+	UpdatedAt string
+	CreatorId int64
 }
 
 type answer struct {
@@ -66,9 +65,9 @@ type richPage struct {
 	LikeCount    int
 	DislikeCount int
 	MyLikeValue  int
-	VoteValue    float32
+	VoteValue    sql.NullFloat64
 	VoteCount    int
-	MyVoteValue  float32
+	MyVoteValue  sql.NullFloat64
 	Contexts     []*richPage
 	Links        []*richPage
 	Comments     []*comment
@@ -87,17 +86,17 @@ var pagePage = pages.Add(
 	"/pages/{id:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
-		"tmpl/pagePage.tmpl", "tmpl/tag.tmpl", "tmpl/userName.tmpl",
-		"tmpl/comment.tmpl", "tmpl/newComment.tmpl",
-		"tmpl/navbar.tmpl")...)
+		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
+		"tmpl/comment.tmpl",
+		"tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
 
 var privatePagePage = pages.Add(
 	"/pages/{id:[0-9]+}/{privacyKey:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
-		"tmpl/pagePage.tmpl", "tmpl/tag.tmpl", "tmpl/userName.tmpl",
-		"tmpl/comment.tmpl", "tmpl/newComment.tmpl",
-		"tmpl/navbar.tmpl")...)
+		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
+		"tmpl/comment.tmpl",
+		"tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
 
 // loadMainPage loads and returns the main page.
 func loadMainPage(c sessions.Context, userId int64, pageId int64) (*richPage, error) {
@@ -110,96 +109,24 @@ func loadMainPage(c sessions.Context, userId int64, pageId int64) (*richPage, er
 	mainPage := &richPage{page: *pagePtr}
 
 	// Load contexts.
-	/*query = fmt.Sprintf(`
-		SELECT c.id,c.summary,c.text,c.privacyKey
-		FROM inputs as i
-		JOIN pages as c
-		ON i.parentId=c.id
-		WHERE i.childId=%d`, pageId)
+	query := fmt.Sprintf(`
+		SELECT p.pageId,p.title,p.privacyKey
+		FROM links as l
+		JOIN pages as p
+		ON l.parentId=p.pageId
+		WHERE l.childId=%d AND (p.privacyKey=0 OR p.creatorId=%d) AND p.deletedBy=0 AND p.edit=0
+		GROUP BY p.pageId`, pageId, userId)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var cl page
-		err := rows.Scan(&cl.Id, &cl.Summary, &cl.Text, &cl.PrivacyKey)
+		var p richPage
+		err := rows.Scan(&p.PageId, &p.Title, &p.PrivacyKey)
 		if err != nil {
 			return fmt.Errorf("failed to scan for context page: %v", err)
 		}
-		mainPage.Contexts = append(mainPage.Contexts, &cl)
+		mainPage.Contexts = append(mainPage.Contexts, &p)
 		return nil
-	})*/
+	})
 	return mainPage, err
 }
-
-// loadChildPages loads and returns all pages and inputs that have the given parent page.
-/*func loadChildPages(c sessions.Context, pageId string) ([]*input, []*page, error) {
-	inputs := make([]*input, 0)
-	pages := make([]*page, 0)
-
-	c.Infof("querying DB for child pages for parent id=%s\n", pageId)
-	query := fmt.Sprintf(`
-		SELECT i.id,i.childId,i.createdAt,i.updatedAt,i.creatorId,i.creatorName,
-			c.id,c.summary,c.text,c.url,c.creatorId,c.creatorName,c.createdAt,c.updatedAt,c.privacyKey
-		FROM inputs as i
-		JOIN pages as c
-		ON i.childId=c.id
-		WHERE i.parentId=%s`, pageId)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var i input
-		var cl page
-		err := rows.Scan(
-			&i.Id, &i.ChildId,
-			&i.CreatedAt, &i.UpdatedAt,
-			&i.CreatorId, &i.CreatorName,
-			&cl.Id, &cl.Summary, &cl.Text, &cl.Url,
-			&cl.CreatorId, &cl.CreatorName,
-			&cl.CreatedAt, &cl.UpdatedAt,
-			&cl.PrivacyKey)
-		if err != nil {
-			return fmt.Errorf("failed to scan for input: %v", err)
-		}
-		inputs = append(inputs, &i)
-		pages = append(pages, &cl)
-		return nil
-	})
-	return inputs, pages, err
-}*/
-
-// loadInputCounts computes how many inputs each page has.
-/*func loadInputCounts(c sessions.Context, pageIds string, pageMap map[int64]*page) error {
-	query := fmt.Sprintf(`
-		SELECT parentId,sum(1)
-		FROM inputs
-		WHERE parentId IN (%s)
-		GROUP BY parentId`, pageIds)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var parentId int64
-		var count int
-		err := rows.Scan(&parentId, &count)
-		if err != nil {
-			return fmt.Errorf("failed to scan for an input: %v", err)
-		}
-		pageMap[parentId].InputCount = count
-		return nil
-	})
-	return err
-}*/
-
-// loadLinks loads all the links the given page has, upading the given page object.
-/*func loadLinks(c sessions.Context, p *richPage) error {
-	query := fmt.Sprintf(`
-		SELECT
-		FROM links
-		WHERE parentId=%d`, p.PageId)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var parentId int64
-		var count int
-		err := rows.Scan(&parentId, &count)
-		if err != nil {
-			return fmt.Errorf("failed to scan for an input: %v", err)
-		}
-		pageMap[parentId].InputCount = count
-		return nil
-	})
-	return err
-}*/
 
 // loadComments loads and returns all the comments for the given input ids from the db.
 func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int64, error) {
@@ -314,29 +241,33 @@ func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 		FROM (
 			SELECT *
 			FROM votes
-			WHERE pageId IN (%s) AND value>0
+			WHERE pageId IN (%s)
 			ORDER BY id DESC
 		) AS v
 		GROUP BY userId,pageId`, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var userId int64
 		var pageId int64
-		var value float32
+		var value float64
 		err := rows.Scan(&userId, &pageId, &value)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a vote: %v", err)
 		}
+		if value == 0 {
+			return nil
+		}
 		page := pageMap[pageId]
 		page.VoteCount++
-		page.VoteValue += value
+		page.VoteValue.Valid = true
+		page.VoteValue.Float64 += value
 		if userId == currentUserId {
-			page.MyVoteValue = value
+			page.MyVoteValue = sql.NullFloat64{Valid: true, Float64: value}
 		}
 		return nil
 	})
 	for _, p := range pageMap {
 		if p.VoteCount > 0 {
-			p.VoteValue /= float32(p.VoteCount)
+			p.VoteValue.Float64 /= float64(p.VoteCount)
 		}
 	}
 	return err
@@ -401,16 +332,10 @@ func loadSubscriptions(
 func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	var data pageTmplData
 	c := sessions.NewContext(r)
-
 	var err error
-	/*db, err := database.GetDB(c)
-	if err != nil {
-		c.Errorf("error while getting DB: %v", err)
-		return pages.InternalErrorWith(err)
-	}*/
 
 	// Load user, if possible
-	data.User, err = user.LoadUserFromDb(c)
+	data.User, err = user.LoadUserFromDb(r)
 	if err != nil {
 		c.Errorf("Couldn't load user: %v", err)
 		return pages.InternalErrorWith(err)
@@ -424,50 +349,24 @@ func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	if err != nil {
 		c.Inc("page_fetch_fail")
 		c.Errorf("invalid id passed: %v", err)
-		return pages.BadRequestWith(err)
+		return showError(w, r, err)
 	}
 	mainPage, err := loadMainPage(c, data.User.Id, pageId)
 	if err != nil {
 		c.Inc("page_fetch_fail")
 		c.Errorf("error while fetching a page: %v", err)
-		return pages.InternalErrorWith(err)
+		return showError(w, r, err)
 	}
 	pageMap[mainPage.PageId] = mainPage
 	data.Page = mainPage
 
 	// Check privacy setting
-	if mainPage.PrivacyKey.Valid {
+	if mainPage.PrivacyKey > 0 {
 		privacyKey := mux.Vars(r)["privacyKey"]
-		if privacyKey != fmt.Sprintf("%d", mainPage.PrivacyKey.Int64) {
-			return pages.UnauthorizedWith(err)
+		if privacyKey != fmt.Sprintf("%d", mainPage.PrivacyKey) {
+			return showError(w, r, fmt.Errorf("Unauthorized access. You don't have the correct privacy key."))
 		}
 	}
-
-	// Load all the inputs and corresponding child pages
-	/*data.Inputs, data.Pages, err = loadChildPages(c, pageId)
-	if err != nil {
-		c.Inc("inputs_fetch_fail")
-		c.Errorf("error while fetching input for page id: %s\n%v", pageId, err)
-		return pages.InternalErrorWith(err)
-	}
-
-	// Get a string of all page ids and populate pageMap
-	var buffer bytes.Buffer
-	for _, c := range data.Pages {
-		pageMap[c.Id] = c
-		buffer.WriteString(fmt.Sprintf("%d", c.Id))
-		buffer.WriteString(",")
-	}
-	buffer.WriteString(pageId)
-	pageIds := buffer.String()
-
-	// Load input counts
-	err = loadInputCounts(c, pageIds, pageMap)
-	if err != nil {
-		c.Inc("inputs_fetch_fail")
-		c.Errorf("error while fetching inputs: %v", err)
-		return pages.InternalErrorWith(err)
-	}*/
 
 	// Load all the likes
 	err = loadLikes(c, data.User.Id, pageIdStr, pageMap)

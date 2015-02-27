@@ -73,20 +73,20 @@ func (u *User) BecomeUserWithId(id string, c sessions.Context) error {
 // LoadUserFromDb loads the user information from the DB, bypassing cookies.
 // If the user doesn't exist or is not logged in, an empty user object is returned.
 // NOTE: only use this method to load information about the currently logged in user.
-func LoadUserFromDb(c sessions.Context) (*User, error) {
+func LoadUserFromDb(r *http.Request) (*User, error) {
+	c := sessions.NewContext(r)
 	var u User
 	appEngineUser := user.Current(c)
-	if appEngineUser == nil {
-		return &u, nil
+	if appEngineUser != nil {
+		query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin,karma FROM users WHERE email='%s'", appEngineUser.Email)
+		_, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load user from db: %v", err)
+		}
+		u.IsLoggedIn = u.FirstName != ""
 	}
-
-	query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin,karma FROM users WHERE email='%s'", appEngineUser.Email)
-	_, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load user from db: %v", err)
-	}
-	u.IsLoggedIn = u.FirstName != ""
-	return &u, nil
+	err := setLinksForUser(r, c, &u)
+	return &u, err
 }
 
 // tryCreateUser gets the currently logged in user from App Engine. The users database is

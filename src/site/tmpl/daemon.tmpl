@@ -1,6 +1,5 @@
-{{/* daemon.tmpl; shows tatus and logs from daemons */}}
+{{/* daemon.tmpl; shows status and logs from daemons */}}
 {{define "main"}}
-
 <h1>Crashes</h1>
 {{range $i, $c := .Crashes}}
 <h2>{{$c.Time}}</h2>

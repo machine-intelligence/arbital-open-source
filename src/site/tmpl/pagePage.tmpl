@@ -10,6 +10,13 @@
 	<script src="/static/js/page.js"></script>
 	<script>
 		var pageText = "{{.Page.Text}}";
+		var voteValue = "{{if .Page.VoteValue.Valid}}{{.Page.VoteValue.Float64}}{{end}}";
+		var voteCount = {{.Page.VoteCount}};
+		var myVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
+		{{if .Page.Answers}}
+			var answer1Text = "{{(index .Page.Answers 0).Text}}";
+			var answer2Text = "{{(index .Page.Answers 1).Text}}";
+		{{end}}
 	</script>
 	<title>{{.Page.Title}} - Zanaduu</title>
 </head>
@@ -17,135 +24,165 @@
 <body page-id="{{.Page.PageId}}" page-type="{{.Page.Type}}" page-url="{{GetPageUrl .Page}}" last-visit="{{.Page.LastVisit}}">
 {{template "navbar" .User}}
 
+<!-- This div shows up when the user hovers over an intra-site link. -->
 <div id="link-popover-template" hidden>
 	<!-- Likes / dislikes and approval voting -->
-	<span class="like-count">JS inserts likes</span>
-	<span class="disabled-like-link glyphicon glyphicon-thumbs-up"></span>
-	&nbsp;
-	<span class="dislike-count">JS inserts dislikes</span>
-	<span class="disabled-dislike-link glyphicon glyphicon-thumbs-down"></span>
-	&nbsp; &nbsp;
+	<div class="like-span">
+		<span class="like-count">JS inserts likes</span>
+		<span class="disabled-like glyphicon glyphicon-thumbs-up"></span>
+		&nbsp;
+		<span class="dislike-count">JS inserts dislikes</span>
+		<span class="disabled-dislike glyphicon glyphicon-thumbs-down"></span>
+	</div>
 
+	<!-- Answers and probability votes -->
 	<div class="vote" hidden>
 		<span class="answer answer1 pull-left">JS inserts answer1 text</span>
-		&nbsp;&nbsp;<span class="vote-text">JS inserts vote value and vote count</span>
 		<span class="answer answer2 pull-right">JS inserts answer2 text</span>
 		<span class="clearfix"></span>
+		<div class="vote-text text-center gray-text">JS inserts vote count and my vote</div>
 	</div>
 </div>
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
 		<div class="page-body-div">
-			<p class="text-center">This page has been deleted.
+			<div class="alert alert-danger">This page has been deleted.
 				{{if IsAdmin}}
 					<span class="admin">By id: {{.DeletedBy}}. <a href="#" class="undo-page-delete">Undo.</a></span>
 				{{end}}
-			</p>
+			</div>
 		</div>
 	{{else}}
 		<div class="page-body-div">
 			<!-- Left column -->
 			<div class="left-column pull-left">
 				<!-- Likes / dislikes and approval voting -->
-				<div class="like" my-like="{{.MyLikeValue}}">
-					<div class="like-div">
+				<div class="page-like-div pull-right" my-like="{{.MyLikeValue}}">
+					<div class="">
 						<span class="like-count">{{.LikeCount}}</span>
 						{{if IsLoggedIn}}
-							<a href="#" class="like-link glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}"></a>
+							<a href="#" class="like-link glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}" title="This is a high quality page"></a>
 						{{else}}
-							<span class="disabled-like-link glyphicon glyphicon-thumbs-up"></span>
+							<span class="disabled-like glyphicon glyphicon-thumbs-up"></span>
 						{{end}}
 					</div>
-					<div class="dislike-div">
+					<div class="">
 						<span class="dislike-count">{{.DislikeCount}}</span>
 						{{if IsLoggedIn}}
-							<a href="#" class="dislike-link glyphicon glyphicon-thumbs-down {{if le .MyLikeValue -1}}on{{end}}"></a>
+							<a href="#" class="dislike-link glyphicon glyphicon-thumbs-down {{if le .MyLikeValue -1}}on{{end}}" title="This is a low quality page"></a>
 						{{else}}
-							<span class="disabled-like-link glyphicon glyphicon-thumbs-down"></span>
+							<span class="disabled-dislike glyphicon glyphicon-thumbs-down"></span>
 						{{end}}
 					</div>
 				</div>
-
-				<!-- Probability voting -->
-				{{if .Answers}}
-					<div class="vote">
-						<span class="answer pull-left">{{(index .Answers 0).Text}}</span>
-						&nbsp;&nbsp;<span>{{.VoteValue}} ({{.VoteCount}})</span>
-						<span class="answer pull-right">{{(index .Answers 1).Text}}</span>
-						<span class="clearfix"></span>
-						<div class="vote-slider" vote-value="{{.VoteValue}}"></div>
-						<div class="my-vote" {{if le .MyVoteValue 0.0}}hidden{{end}}>
-							<span class="my-vote-value">{{.MyVoteValue}}</span>
-							<a href="#" class="delete-my-vote-link glyphicon glyphicon-remove"></a>
-						</div>
-					</div>
-				{{end}}
+				<div class="clearfix"></div>
 
 				<!-- Page icons like subscribe, edit, and delete. -->
-				<div class="page-glyphs">
+				<div class="page-glyphs pull-right">
 					{{if IsLoggedIn}}
-						<a href="#" class="subscribe-to-page-link glyphicon glyphicon-eye-open {{if .IsSubscribed}}on{{end}}"></a></br>
+							<a href="#" class="subscribe-to-page-link glyphicon glyphicon-eye-open {{if .IsSubscribed}}on{{end}}" title="Subscribe to receive updates when this page changes or gets new comments"></a><br>
 					{{end}}
 					{{if ShowEditIcons .}}
 						{{if ge (GetEditLevel .) 0}}
-							<a href="{{GetPageEditUrl .}}" class="edit-page-link glyphicon glyphicon-pencil {{if eq (GetEditLevel .) 0}}admin{{end}}"></a></br>
+								<a href="{{GetPageEditUrl .}}" class="edit-page-link glyphicon glyphicon-pencil {{if eq (GetEditLevel .) 0}}admin{{end}}" title="Edit this page"></a><br>
 						{{end}}
 						{{if ge (GetDeleteLevel .) 0}}
-							<a href="#" class="delete-page-link glyphicon glyphicon-remove {{if eq (GetDeleteLevel .) 0}}admin{{end}}"></a></br>
+								<a href="#" class="delete-page-link glyphicon glyphicon-remove {{if eq (GetDeleteLevel .) 0}}admin{{end}}" title="Delete this page"></a><br>
 						{{end}}
 					{{end}}
-					<div class="alert alert-danger fade in" id="delete-page-alert" hidden>
-						<p>Are you sure you want to delete this page?</p>
-						<button type="button" class="delete-page-confirm btn btn-danger">Delete</button>
-						<button type="button" class="delete-page-cancel btn btn-default">Cancel</button></br>
-					</div>
+				</div>
+				<div class="clearfix"></div>
+
+				<!-- Alert to check if the user really wants to delete a page. -->
+				<div class="alert alert-danger fade in" id="delete-page-alert" hidden>
+					<p>Are you sure you want to delete this page?</p>
+					<button type="button" class="delete-page-confirm btn btn-danger">Delete</button>
+					<button type="button" class="delete-page-cancel btn btn-default">Cancel</button></br>
 				</div>
 			</div>
 		
 			<!-- Main page column -->
 			<div class="mid-column pull-left">
-				<span class="new-text">{{if IsUpdatedPage .}}(Updated){{end}}</span>
-				{{if .PrivacyKey.Valid}}<span class="private-text dashed-underline" title="Nobody can access this page unless they have the exact URL.">(Private)</span>{{end}}
-				<div class="page-title">{{.Title}}</div>
+				<div class="page-title">{{template "title" .}}</div>
 				{{if eq .Type "blog"}}
-					<div class="author-text"> Author: {{template "userName" .Author}}</div>
+					<div class="author-text">by {{template "userName" .Author}}</div>
 				{{end}}
+
+				<!-- Answers and probability voting -->
+				{{if .Answers}}
+					<div class="vote">
+						<div class="answer pull-left">{{(index .Answers 0).Text}} <span id="answer1-vote-value"></span></div>
+						<div class="answer pull-right">{{(index .Answers 1).Text}} <span id="answer2-vote-value"></span></div>
+						<span class="clearfix"></span>
+						<input id="vote-slider-input" data-slider-id="vote-slider" type="text" {{if .VoteValue.Valid}}data-slider-value="{{.VoteValue.Float64}}"{{end}}/>
+						<div class="text-center gray-text">
+							{{.VoteCount}} vote{{if ne .VoteCount 1}}s{{end}} counted
+							<span class="my-vote">
+								<span class="my-vote-value"></span>
+								<a href="#" class="delete-my-vote-link glyphicon glyphicon-remove"></a>
+							</span>
+						</div>
+					</div>
+				{{end}}
+
+				<!-- Main page text. Populated by JS. -->
 				<div class="page-text"></div>
 		
 				<!-- Tags -->
 				{{if .Tags}}
-					</br>
+					<div class="tags gray-text">
+					Tagged as: 
 					{{range .Tags}}
 						{{template "tag" .}}
 					{{end}}
-					</br>
+					</div>
 				{{end}}
 		
 				<!--Admin stuff -->
 				{{if IsAdmin}}
 					<span class="admin">Last Visit: {{.LastVisit}}; Last Edit At: {{.CreatedAt}} by {{template "userName" .Author}}</span></br>
 				{{end}}
-		
-				<!-- Comments -->
-				<b>Comments:</b></br>
+
+				<!-- Contexts -->
+				<div class="contexts">
+					{{if .Contexts}}
+						<a data-toggle="collapse" href="#contexts" aria-expanded="false" aria-controls="contexts" title="Show what pages link to this page">Used In &raquo;</a>
+						<div class="contexts-content collapse" id="contexts">
+							<ul class="list-unstyled">
+								{{range .Contexts}}
+									<li><a href="{{GetPageUrl .}}" class="context-link intrasite-link" page-id="{{.PageId}}" privacy-key="{{.PrivacyKey}}">{{.Title}}</a></li>
+								{{end}}
+							</ul>
+						</div>
+					{{end}}
+				</div>
 			</div>
 			<div class="right-column pull-left">
-				<p>Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</p>
+				<!-- TODO: side comments -->
 			</div>
+			<div class="clearfix"></div>
+			
+			<!-- Comments -->
+			<div class="left-column pull-left">
+				&nbsp;
+			</div>
+			<div class="mid-column pull-left">
+				<b id="comments-label">Comments:</b></br>
+			</div>
+			<div class="clearfix"></div>
+			<div class="comments">
+				{{range .Comments}}
+					{{template "comment" .}}
+				{{end}}
+			</div>
+			
+			{{template "newComment" 0}}
 		</div>
-		<div class="clearfix"></div>
-		
-		<div class="comments">
-			{{range .Comments}}
-				{{template "comment" .}}
-			{{end}}
-		</div>
-		
-		{{template "newComment" 0}}
 	{{end}}
 {{end}}
 
+{{template "footer"}}
 </body>
 </html>
 {{end}}

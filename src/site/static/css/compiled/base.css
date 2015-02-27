@@ -7,28 +7,36 @@
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  width: 400px;
+  max-width: 400px;
 }
 .new-page-body-div {
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  width: 90%;
+  max-width: 90%;
 }
 .filter-body-div {
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  width: 600px;
+  max-width: 800px;
 }
 .updates-body-div {
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  width: 700px;
+  max-width: 700px;
 }
-.update-claim-summary-link {
-  color: #0000ee;
+.page-footer {
+  color: #b8b8b8;
+  font-size: 10px;
+  padding: 10px;
+}
+.page-footer p {
+  margin: 0;
+}
+.link-popover-dislike-correction {
+  margin: 0 14px;
 }
 .template {
   display: none;
@@ -40,6 +48,18 @@
   border-bottom: 1px dashed;
   text-decoration: none;
 }
+.gray-link {
+  color: #b8b8b8;
+}
+.gray-link:focus {
+  color: #9f9f9f;
+}
+.gray-link:hover {
+  color: #9f9f9f;
+}
+.gray-link:active {
+  color: #9f9f9f;
+}
 .loading-indicator {
   display: none;
 }
@@ -47,8 +67,23 @@
   color: red;
   display: none;
 }
-.tag {
-  margin: 10px 15px 0 0;
+.pagedown h1 {
+  font-size: 26px;
+}
+.pagedown h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+.pagedown h3 {
+  font-size: 16px;
+  font-weight: 800;
+}
+.wmd-panel {
+  position: relative;
+  height: 90%;
+}
+.wmd-preview {
+  margin-top: 40px;
 }
 .ui-autocomplete {
   border: 1px solid gray;
@@ -65,13 +100,4 @@
 }
 .ui-menu-item:active {
   background-color: #5555ff;
-}
-.ui-slider {
-  margin-top: 1em;
-  background-color: #bbbbbb;
-}
-.ui-slider-handle {
-  border: 3px solid blue;
-  border-radius: 5px;
-  background-color: white;
 }

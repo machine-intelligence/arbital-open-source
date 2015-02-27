@@ -54,7 +54,7 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 	pageMap[p.PageId] = p
 
 	// Check privacy setting
-	if p.PrivacyKey.Valid && fmt.Sprintf("%d", p.PrivacyKey.Int64) != data.PrivacyKey {
+	if p.PrivacyKey > 0 && fmt.Sprintf("%d", p.PrivacyKey) != data.PrivacyKey {
 		c.Warningf("Didn't specify correct privacy key: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return

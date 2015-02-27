@@ -33,7 +33,7 @@ var filterPage = pages.Add(
 	"/pages/filter/",
 	filterRenderer,
 	append(baseTmpls,
-		"tmpl/filterPage.tmpl", "tmpl/tag.tmpl", "tmpl/userName.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/filterPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
 
 // filterRenderer renders the page page.
 func filterRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
@@ -129,11 +129,11 @@ func filterRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	pageIds := make([]string, 0, 50)
 	data.Pages = make([]*richPage, 0, 50)
 	query := fmt.Sprintf(`
-		SELECT p.pageId,title,privacyKey
+		SELECT p.pageId,p.title,p.privacyKey
 		FROM pages AS p
 		%s
-		WHERE (privacyKey IS NULL OR creatorId=%d) AND edit=0 AND deletedBy=0 %s
-		ORDER BY createdAt DESC
+		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND edit=0 AND p.deletedBy=0 %s
+		ORDER BY p.createdAt DESC
 		LIMIT %d`, tagConstraint, data.User.Id, userConstraint, data.LimitCount)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p richPage
@@ -174,6 +174,9 @@ func filterRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		"UserId":     func() int64 { return data.User.Id },
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
+		"IsUpdatedPage": func(p *richPage) bool {
+			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
+		},
 		"GetPageUrl": func(p *richPage) string {
 			return getPageUrl(&p.page)
 		},

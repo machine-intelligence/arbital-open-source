@@ -21,11 +21,13 @@ import (
 // pageData contains parameters passed in to create a page.
 type pageData struct {
 	// Optional page id. If it's passed in, we are editing a page, otherwise it's a new page.
-	PageId     int64 `json:",string"`
-	Type       string
-	Title      string
-	Text       string
-	PrivacyKey string // either the actual key or "on", which means we need to create one
+	PageId int64 `json:",string"`
+	Type   string
+	Title  string
+	Text   string
+	// If <0, the user is turning the privacy key off. If zero, the user
+	// wants to create a new privacy key. If >0, keep the old key.
+	PrivacyKey int64 `json:",string"`
 	KarmaLock  int
 	TagIds     []int64
 	IsDraft    bool
@@ -42,6 +44,20 @@ type pageDataTag struct {
 // editPageHandler handles requests to create a new page.
 func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
+	header, str := editPageProcessor(c, r)
+	if header > 0 {
+		if header == http.StatusInternalServerError {
+			c.Inc(strings.Trim(r.URL.Path, "/") + "Fail")
+		}
+		c.Errorf("%s", str)
+		w.WriteHeader(header)
+	}
+	if len(str) > 0 {
+		fmt.Fprintf(w, "%s", str)
+	}
+}
+
+func editPageProcessor(c sessions.Context, r *http.Request) (int, string) {
 	rand.Seed(time.Now().UnixNano())
 
 	// Decode data
@@ -49,23 +65,17 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	var data pageData
 	err := decoder.Decode(&data)
 	if err != nil {
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return http.StatusBadRequest, fmt.Sprintf("Couldn't decode json: %v", err)
 	}
 
 	// Load user object
 	var u *user.User
-	u, err = user.LoadUserFromDb(c)
+	u, err = user.LoadUserFromDb(r)
 	if err != nil {
-		c.Inc("page_handler_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
 	}
 	if !u.IsLoggedIn {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return http.StatusForbidden, ""
 	}
 
 	// Load old page
@@ -75,9 +85,7 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 		var pagePtr *page
 		pagePtr, err = loadFullPage(c, data.PageId)
 		if err != nil {
-			c.Errorf("Couldn't load a page: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't load a page: %v", err)
 		}
 
 		oldPage = *pagePtr
@@ -91,30 +99,29 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	// Error checking.
 	data.Type = strings.ToLower(data.Type)
 	if len(data.Title) <= 0 || len(data.Text) <= 0 {
-		c.Errorf("Need title and text")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return http.StatusBadRequest, fmt.Sprintf("Need title and text")
 	}
 	if data.Type != questionPageType && data.Type != blogPageType && data.Type != infoPageType {
-		c.Errorf("Invalid page type.")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
 	}
 	if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
-		c.Errorf("Karma value out of bounds")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
 	}
 	if data.Type == questionPageType && (len(data.Answer1) <= 0 || len(data.Answer2) <= 0) {
-		c.Errorf("Both answers need to be given for a question type page.")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return http.StatusBadRequest, fmt.Sprintf("Both answers need to be given for a question type page.")
 	}
 	if oldPage.PageId > 0 {
-		if getEditLevel(&oldPage, u) < 0 {
-			c.Errorf("Not enough karma to edit this page.")
-			w.WriteHeader(http.StatusBadRequest)
-			return
+		if oldPage.IsDraft {
+			if u.Id != oldPage.Author.Id {
+				return http.StatusBadRequest, fmt.Sprintf("You can't edit this draft because you didn't create it.")
+			}
+		} else {
+			if data.IsDraft {
+				return http.StatusBadRequest, fmt.Sprintf("Can't save a draft once the page has been published.")
+			}
+			if getEditLevel(&oldPage, u) < 0 {
+				return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
+			}
 		}
 	}
 
@@ -130,66 +137,67 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 		query := fmt.Sprintf(`SELECT COUNT(*) FROM tags WHERE id IN (%s)`, tagIds)
 		_, err = database.QueryRowSql(c, query, &count)
 		if err != nil {
-			c.Errorf("Couldn't check tags.", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check tags.", err)
 		}
 		if count != len(data.TagIds) {
-			c.Errorf("Some of the tags might be invalid.")
-			w.WriteHeader(http.StatusBadRequest)
-			return
+			return http.StatusBadRequest, fmt.Sprintf("Some of the tags might be invalid.")
 		}
 	}
 
-	// Data correction.
+	// Data correction. Rewrite the data structure so that we can just use it
+	// in a straight-forward way to populate the database.
 	if data.IsDraft {
-		data.PrivacyKey = "on"
+		data.PrivacyKey = oldPage.PrivacyKey
 	}
 	if data.Type == blogPageType {
 		data.KarmaLock = 0
+	}
+	// We can't change page type after it has been published.
+	if oldPage.PageId > 0 && !oldPage.IsDraft {
+		data.Type = oldPage.Type
+	}
+	if data.PrivacyKey == 0 {
+		data.PrivacyKey = rand.Int63()
+	} else if data.PrivacyKey < 0 {
+		data.PrivacyKey = 0
 	}
 
 	// Get database
 	var db *sql.DB
 	db, err = database.GetDB(c)
 	if err != nil {
-		c.Inc("page_handler_fail")
-		c.Errorf("failed to get DB: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, fmt.Sprintf("failed to get DB: %v\n", err)
 	}
 
 	// Begin the transaction.
-	//var result sql.Result
 	tx, err := db.Begin()
+
+	// To simplify our life significantly when we are trying to find the most recent edit,
+	// we shift "edit" variable for all edits of this page up by one. Then the most recent
+	// edit will always have edit=0.
+	if oldPage.PageId > 0 {
+		query := fmt.Sprintf("UPDATE pages SET edit=edit+1 WHERE pageId=%d ORDER BY edit DESC", data.PageId)
+		if _, err = tx.Exec(query); err != nil {
+			tx.Rollback()
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't update edit for old edits: %v", err)
+		}
+	}
 
 	// Create a new edit.
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
 	hashmap["creatorId"] = u.Id
-	hashmap["creatorName"] = u.FullName()
 	hashmap["createdAt"] = database.Now()
-	hashmap["type"] = data.Type
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
 	hashmap["karmaLock"] = data.KarmaLock
-	if data.PrivacyKey == "on" {
-		hashmap["privacyKey"] = rand.Int63()
-		data.PrivacyKey = fmt.Sprintf("%d", hashmap["privacyKey"])
-	} else if len(data.PrivacyKey) > 0 {
-		hashmap["privacyKey"] = data.PrivacyKey
-	}
-	if oldPage.PageId > 0 {
-		hashmap["edit"] = oldPage.Edit + 1
-	}
+	hashmap["isDraft"] = data.IsDraft
+	hashmap["type"] = data.Type
+	hashmap["privacyKey"] = data.PrivacyKey
 	query := database.GetInsertSql("pages", hashmap)
-	_, err = tx.Exec(query)
-	if err != nil {
+	if _, err = tx.Exec(query); err != nil {
 		tx.Rollback()
-		c.Inc("page_handler_fail")
-		c.Errorf("Couldn't insert a new page: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new page: %v", err)
 	}
 
 	// Insert newly added tags and mark the ones still in use.
@@ -204,10 +212,7 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 			_, err = tx.Exec(query)
 			if err != nil {
 				tx.Rollback()
-				c.Inc("page_handler_fail")
-				c.Errorf("Couldn't insert a new pageTagPair: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new pageTagPair: %v", err)
 			}
 		} else {
 			oldTagsMap[tagId].StillInUse = true
@@ -224,10 +229,7 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 		_, err = tx.Exec(query)
 		if err != nil {
 			tx.Rollback()
-			c.Inc("page_handler_fail")
-			c.Errorf("Couldn't delete old pageTagPair: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pageTagPair: %v", err)
 		}
 	}
 
@@ -239,24 +241,21 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["text"] = data.Answer1
 		hashmap["createdAt"] = database.Now()
 		hashmap["updatedAt"] = database.Now()
-		if oldPage.PageId <= 0 || oldPage.Answers[0].Text != data.Answer1 {
+		if oldPage.PageId <= 0 || len(oldPage.Answers) == 0 || oldPage.Answers[0].Text != data.Answer1 {
 			query = database.GetInsertSql("answers", hashmap, "text", "updatedAt")
 			_, err = tx.Exec(query)
 		}
 		if err == nil {
 			hashmap["indexId"] = 1
 			hashmap["text"] = data.Answer2
-			if oldPage.PageId <= 0 || oldPage.Answers[1].Text != data.Answer2 {
+			if oldPage.PageId <= 0 || len(oldPage.Answers) == 0 || oldPage.Answers[1].Text != data.Answer2 {
 				query = database.GetInsertSql("answers", hashmap, "text", "updatedAt")
 				_, err = tx.Exec(query)
 			}
 		}
 		if err != nil {
 			tx.Rollback()
-			c.Inc("page_handler_fail")
-			c.Errorf("Couldn't add an answer: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't add an answer: %v", err)
 		}
 	}
 
@@ -270,10 +269,7 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 		_, err = tx.Exec(query)
 		if err != nil {
 			tx.Rollback()
-			c.Inc("page_handler_fail")
-			c.Errorf("Couldn't add a subscription: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't add a subscription: %v", err)
 		}
 	}
 
@@ -285,13 +281,10 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 			_, err = tx.Exec(query)
 			if err != nil {
 				tx.Rollback()
-				c.Inc("page_handler_fail")
-				c.Errorf("Couldn't delete old links: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old links: %v", err)
 			}
 		}
-		re := regexp.MustCompile("localhost:8012/pages/[0-9]+")
+		re := regexp.MustCompile(getConfigAddress() + "/pages/[0-9]+")
 		links := re.FindAllString(data.Text, -1)
 		insertValues := make([]string, 0, 0)
 		if len(links) > 0 {
@@ -306,10 +299,7 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 				VALUES %s`, insertValuesStr)
 			if _, err = tx.Exec(sql); err != nil {
 				tx.Rollback()
-				c.Inc("page_handler_fail")
-				c.Errorf("Couldn't insert new visits: %v", err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert new visits: %v", err)
 			}
 		}
 	}
@@ -318,9 +308,7 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()
-		c.Errorf("Error commit a transaction: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
 	}
 
 	// Generate updates for users who are subscribed to this page.
@@ -377,8 +365,12 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Return id of the new page.
 	privacyAddon := ""
-	if len(data.PrivacyKey) > 0 {
-		privacyAddon = fmt.Sprintf("/%s", data.PrivacyKey)
+	if data.PrivacyKey > 0 {
+		privacyAddon = fmt.Sprintf("/%d", data.PrivacyKey)
 	}
-	fmt.Fprintf(w, "/pages/%d%s", data.PageId, privacyAddon)
+	editPart := ""
+	if data.IsDraft {
+		editPart = "/edit"
+	}
+	return 0, fmt.Sprintf("/pages%s/%d%s", editPart, data.PageId, privacyAddon)
 }

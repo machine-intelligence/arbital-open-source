@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"zanaduu3/src/database"
@@ -48,6 +49,25 @@ func updateCommentLikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if this user is the owner of the comment. You can't like your own comments.
+	var creatorId int64
+	query := fmt.Sprintf(`
+		SELECT creatorId
+		FROM comments
+		WHERE id=%d`, task.CommentId)
+	_, err = database.QueryRowSql(c, query, &creatorId)
+	if err != nil {
+		c.Inc("new_like_fail")
+		c.Errorf("Couldn't get comment creator: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if creatorId == u.Id {
+		c.Errorf("Can't like your own comments")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	// Update comment like
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
@@ -55,7 +75,7 @@ func updateCommentLikeHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["value"] = task.Value
 	hashmap["createdAt"] = database.Now()
 	hashmap["updatedAt"] = database.Now()
-	query := database.GetInsertSql("commentLikes", hashmap, "value", "updatedAt")
+	query = database.GetInsertSql("commentLikes", hashmap, "value", "updatedAt")
 	if _, err = database.ExecuteSql(c, query); err != nil {
 		c.Inc("new_comment_like_fail")
 		c.Errorf("Couldn't add a comment like: %v", err)

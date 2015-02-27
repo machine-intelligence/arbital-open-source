@@ -3,6 +3,7 @@ package site
 
 import (
 	"net/http"
+	"strings"
 
 	"appengine"
 
@@ -17,6 +18,14 @@ var (
 	xc        = config.Load()
 	baseTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl"}
 )
+
+func getConfigAddress() string {
+	address := xc.Site.Dev.Address
+	if sessions.Live {
+		return xc.Site.Live.Address
+	}
+	return strings.TrimPrefix(address, "http://")
+}
 
 // notFoundHandler serves HTTP 404 when no matching handler is registered.
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +82,8 @@ func init() {
 
 	// Various internal handlers
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
-	r.HandleFunc(oopsPage.URI, handler(oopsPage.ServeHTTP).monitor()).Methods("GET")
+	r.HandleFunc(errorPage.URI, handler(errorPage.ServeHTTP)).Methods("GET")
+	r.HandleFunc(page404.URI, handler(page404.ServeHTTP)).Methods("GET")
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
 	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
 

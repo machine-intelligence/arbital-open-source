@@ -5,11 +5,7 @@
 .wmd-input {
   height: 300px;
   width: 100%;
-  background-color: Gainsboro;
   border: 1px solid DarkGray;
-}
-.wmd-preview {
-  background-color: #c0e0ff;
 }
 .wmd-button-row {
   position: relative;

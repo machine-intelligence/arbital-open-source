@@ -15,17 +15,17 @@
 		// Map of tag text -> tag id.
 		var tagMap = { {{range .Tags}}"{{.Text}}":"{{.Id}}",{{end}} };
 	</script>
-	<title>Zanaduu Edit Page</title>
+	<title>{{if gt .Page.PageId 0}}Edit - {{.Page.Title}}{{else}}New Page{{end}} - Zanaduu</title>
 </head>
 
-<body privacy-key="{{if .Page.PrivacyKey.Valid}}{{.Page.PrivacyKey.Int64}}{{end}}" page-id="{{.Page.PageId}}">
+<body privacy-key="{{.Page.PrivacyKey}}" page-id="{{.Page.PageId}}">
 
 {{template "navbar" .User}}
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
 		<div class="new-page-body-div">
-			<p class="text-center">This page has been deleted.
+			<p class="text-center alert alert-danger">This page has been deleted.
 				{{if IsAdmin}}
 					<span class="admin">By id: {{.DeletedBy}}. <a href="#" class="undo-page-delete">Undo.</a></span>
 				{{end}}
@@ -49,7 +49,12 @@
 		
 				<div class="form-group">
 					<div class="col-sm-6">
-						<input name="title" type="text" class="form-control" value="{{.Title}}" placeholder="Post Title" required="true" autocomplete="off">
+						{{if .IsDraft}}
+							{{if ne UserId .Author.Id}}
+								<div class="alert alert-danger" role="alert">You cannot edit this draft, because you did not create it.</div>
+							{{end}}
+						{{end}}
+						<input name="title" type="text" class="form-control input-lg" value="{{.Title}}" placeholder="Post Title" required="true" autocomplete="off">
 					</div>
 				</div>
 		
@@ -61,11 +66,11 @@
 						</div>
 					</div>
 					<div class="col-sm-6">
-						<div id="wmd-preview" class="wmd-panel wmd-preview"></div>
+						<div id="wmd-preview" class="wmd-preview pagedown"></div>
 					</div>
 				</div>
 		
-				<div class="form-group">
+				<div class="form-group" {{if and (gt .PageId 0) (not .IsDraft)}}hidden{{end}}>
 					<label class="title-label control-label col-sm-1">Page Type</label>
 					<div class="col-sm-2">
 						<select name="type" class="type-select form-control">
@@ -92,19 +97,17 @@
 					</div>
 				</div>
 		
-				{{if gt GetMaxKarmaLock 0}}
-					<div class="karma-lock-form-group form-group">
-						<label class="title-label control-label col-sm-1">Karma Lock
-							<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
-						</label>
-						<div class="col-sm-4">
-							<div class="karma-lock-slider" max="{{GetMaxKarmaLock}}"></div>
-						</div>
-						<div class="col-sm-1">
-							<label class="karma-lock-text control-label">{{.KarmaLock}}</label>
-						</div>
+				<div class="karma-lock-form-group form-group" {{if le GetMaxKarmaLock 0}}hidden{{end}}>
+					<label class="title-label control-label col-sm-1">Karma Lock
+						<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
+					</label>
+					<div class="col-sm-4">
+						<div class="karma-lock-slider" max="{{GetMaxKarmaLock}}"></div>
 					</div>
-				{{end}}
+					<div class="col-sm-1">
+						<label class="karma-lock-text control-label">{{.KarmaLock}}</label>
+					</div>
+				</div>
 		
 				<div class="form-group">
 					<label class="control-label col-sm-1">
@@ -114,7 +117,7 @@
 					<div class="col-sm-4">
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" name="private" {{if .PrivacyKey.Valid}}checked{{end}}>
+								<input type="checkbox" name="private" {{if gt .PrivacyKey 0}}checked{{end}}>
 							</label>
 						</div>
 					</div>
@@ -130,16 +133,19 @@
 					</div>
 				</div>
 		
-				<p class="error-text"></p>
+				<div class="alert alert-danger" hidden></div>
 				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 				<button type="submit" class="btn btn-primary" toggle-on-submit>Submit</button>
-				<button type="button" class="save-draft-button btn btn-default" toggle-on-submit>Save As Draft</button>
-				<span class="loading-text" style="display:none"></span>
+				{{if or (.IsDraft) (le .PageId 0)}}
+					<button type="button" class="save-draft-button btn btn-default" toggle-on-submit>Save As Draft</button>
+				{{end}}
+				<span class="loading-text" style="display:none"></span></br>
 			</form>
 		</div>
 	{{end}}
 {{end}}
 
+{{template "footer"}}
 </body>
 </html>
 {{end}}

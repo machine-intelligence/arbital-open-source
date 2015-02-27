@@ -1,3 +1,5 @@
+"use strict";
+
 // Add various helper functions.
 $(function() {
   if (!String.prototype.format) {
@@ -43,6 +45,17 @@ $(function() {
 	});
 });
 
+// Setup things correctly.
+window.addEventListener('load', function () {
+	var $footer = $(".page-footer");
+	if ($footer.length > 0) {
+		var spacerHeight = $(document).height() - $footer.outerHeight() - 1;
+		if (spacerHeight > 0) {
+			$footer.offset({top: spacerHeight, left: $footer.offset().left});
+		}
+	}
+});
+
 // Reload the page with a lastVisit parameter so we can pretend that we are
 // looking at a page at that time. This way new/updated markers are displayed
 // correctly.
@@ -55,7 +68,7 @@ function smartPageReload() {
 // submitForm handles the common functionality in submitting a form like
 // showing/hiding UI elements and doing the AJAX call.
 var submitForm = function($target, url, data, success) {
-	var $errorText = $target.find(".error-text");
+	var $errorText = $target.find(".alert");
 	$target.find("[toggle-on-submit]").toggle();
 
 	$.each($target.serializeArray(), function(i, field) {
@@ -76,7 +89,7 @@ var submitForm = function($target, url, data, success) {
 		console.log(r);
 	}).fail(function(r) {
 		$errorText.show();
-		$errorText.text(r.statusText);
+		$errorText.text(r.statusText + ": " + r.responseText);
 		console.log(r);
 	});
 }

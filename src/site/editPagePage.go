@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	editPageTmpls = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/navbar.tmpl")
+	editPageTmpls = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
 )
 
 // editPageTmplData stores the data that we pass to the template file to render the page
@@ -39,13 +39,39 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 
 	// Load user, if possible
 	var err error
-	data.User, err = user.LoadUserFromDb(c)
+	data.User, err = user.LoadUserFromDb(r)
 	if err != nil {
 		c.Errorf("Couldn't load user: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 	if !data.User.IsLoggedIn {
 		return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
+	}
+
+	// Check if we are creating a new page or editing an existing one.
+	pageIdStr := mux.Vars(r)["id"]
+	if len(pageIdStr) > 0 {
+		var pageId int64
+		pageId, err = strconv.ParseInt(pageIdStr, 10, 64)
+		if err != nil {
+			c.Inc("edit_page_failed")
+			c.Errorf("Invalid id passed: %s", pageIdStr)
+			return pages.InternalErrorWith(err)
+		}
+
+		// Load the actual page.
+		data.Page, err = loadFullPage(c, pageId)
+		if err != nil {
+			c.Inc("edit_page_failed")
+			c.Errorf("Couldn't load existing page: %v", err)
+			return pages.InternalErrorWith(err)
+		}
+		// Check if the privacy key we got is correct.
+		if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
+			return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privacy key given."))
+		}
+	} else {
+		data.Page = &page{}
 	}
 
 	// Load tags.
@@ -68,40 +94,13 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
-	// Check if we are creating a new page or editing an existing one.
-	pageIdStr := mux.Vars(r)["id"]
-	if len(pageIdStr) > 0 {
-		var pageId int64
-		pageId, err = strconv.ParseInt(pageIdStr, 10, 64)
-		if err != nil {
-			c.Inc("edit_page_failed")
-			c.Errorf("Invalid id passed: %s", pageIdStr)
-			return pages.InternalErrorWith(err)
-		}
-
-		data.Page, err = loadFullPage(c, pageId)
-		if err != nil {
-			c.Inc("edit_page_failed")
-			c.Errorf("Couldn't load existing page: %v", err)
-			return pages.InternalErrorWith(err)
-		}
-		if data.Page.PrivacyKey.Valid && fmt.Sprintf("%d", data.Page.PrivacyKey.Int64) != mux.Vars(r)["privacyKey"] {
-			return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privay key given."))
-		}
-	} else {
-		data.Page = &page{}
-	}
-
 	funcMap := template.FuncMap{
 		"UserId":     func() int64 { return data.User.Id },
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		// Return the highest karma lock amount a user can create.
 		"GetMaxKarmaLock": func() int {
-			if data.User.IsAdmin {
-				return getMaxKarmaLock(data.User.Karma)
-			}
-			return 0
+			return getMaxKarmaLock(data.User.Karma)
 		},
 		"GetEditLevel": func(p *page) int {
 			return getEditLevel(p, data.User)

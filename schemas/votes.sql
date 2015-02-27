@@ -9,8 +9,8 @@ CREATE TABLE votes (
 	userId BIGINT NOT NULL,
 	/* Id of the page this vote is for. FK into pages. */
 	pageId BIGINT NOT NULL,
-	/* Vote value (0,100). */
-	value FLOAT NOT NULL,
+	/* Vote value. */
+	value DOUBLE NOT NULL,
   /* Date this like was created. */
   createdAt DATETIME NOT NULL,
   PRIMARY KEY(id)

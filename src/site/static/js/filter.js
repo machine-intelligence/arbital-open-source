@@ -1,3 +1,5 @@
+"use strict";
+
 // Setup handlers.
 $(function() {
 	// Subscription stuff.

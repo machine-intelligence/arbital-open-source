@@ -38,8 +38,9 @@ type page struct {
 	Author     dbUser
 	CreatedAt  string
 	KarmaLock  int
-	PrivacyKey sql.NullInt64 `json:",string"`
-	DeletedBy  int64         `json:",string"`
+	PrivacyKey int64 `json:",string"`
+	DeletedBy  int64 `json:",string"`
+	IsDraft    bool
 
 	// Additional data.
 	Tags    []*tag
@@ -64,27 +65,29 @@ func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
 }
 
 // loadPage loads and returns a page with the given id from the database.
+// If the page is deleted, minimum amount of data will be returned.
 func loadPage(c sessions.Context, pageId int64) (*page, error) {
 	var p page
 	query := fmt.Sprintf(`
-		SELECT pageId,edit,type,title,text,createdAt,karmaLock,privacyKey,deletedBy,u.id,u.firstName,u.lastName
+		SELECT pageId,edit,type,title,text,createdAt,karmaLock,privacyKey,deletedBy,isDraft,u.id,u.firstName,u.lastName
 		FROM pages AS p
 		LEFT JOIN (
 			SELECT id,firstName,lastName
 			FROM users
 		) AS u
 		ON p.creatorId=u.Id
-		WHERE pageId=%d
-		ORDER BY p.id DESC
-		LIMIT 1`, pageId)
+		WHERE pageId=%d AND p.edit=0`, pageId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text,
-		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy,
+		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsDraft,
 		&p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
 		return nil, fmt.Errorf("Unknown page id: %d", pageId)
+	}
+	if p.DeletedBy > 0 {
+		return &page{PageId: p.PageId, DeletedBy: p.DeletedBy}, nil
 	}
 	return &p, nil
 }
@@ -141,19 +144,22 @@ func getMaxKarmaLock(karma int) int {
 // getPageUrl returns the domain relative url for accessing the given page.
 func getPageUrl(p *page) string {
 	privacyAddon := ""
-	if p.PrivacyKey.Valid {
-		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey.Int64)
+	if p.PrivacyKey > 0 {
+		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
 	}
 	return fmt.Sprintf("/pages/%d%s", p.PageId, privacyAddon)
 }
 
 // getEditPageUrl returns the domain relative url for editing the given page.
 func getEditPageUrl(p *page) string {
-	privacyAddon := ""
-	if p.PrivacyKey.Valid {
-		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey.Int64)
+	var privacyAddon, draftAddon string
+	if p.PrivacyKey > 0 {
+		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
 	}
-	return fmt.Sprintf("/pages/edit/%d%s", p.PageId, privacyAddon)
+	if p.Edit < 0 {
+		draftAddon = fmt.Sprintf("/%d", p.Author.Id)
+	}
+	return fmt.Sprintf("/pages/edit/%d%s%s", p.PageId, privacyAddon, draftAddon)
 }
 
 // Check if the user can edit this page. -1 = no, 0 = only as admin, 1 = yes

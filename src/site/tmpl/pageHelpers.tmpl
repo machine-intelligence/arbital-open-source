@@ -1,0 +1,24 @@
+{{/* Template for showing a user's name. */}}
+{{define "userName"}}
+	<a href="{{GetUserUrl .Id}}" class="user-name-link">{{.FirstName}} {{.LastName}}</a>
+{{end}}
+
+{{/* Template for showing a tag. */}}
+{{define "tag"}}
+	<a href="{{GetTagUrl .Id}}" class="tag-link"><span class="tag label label-default">{{.Text}}</span></a>
+{{end}}
+
+{{/* Template for showing a page title. */}}
+{{define "title"}}
+	<span class="title-span">
+		{{if gt .DeletedBy 0}}
+			<span class="alert alert-danger">[DELETED]</span>
+		{{else}}
+			{{if IsUpdatedPage .}}<span class="new-updated-label glyphicon glyphicon-star-empty" title="This page has been updated since the last time you've seen it"></span>{{end}}
+			{{if gt .PrivacyKey 0}}
+				<span class="gray-text glyphicon glyphicon-lock" title="Nobody can access this page unless they have the exact URL"></span>
+			{{end}}
+			{{.Title}}
+		{{end}}
+	</span>
+{{end}}

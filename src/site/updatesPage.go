@@ -25,6 +25,7 @@ type updatedPage struct {
 
 	UpdatedAt string
 	Updates   map[string]*update // update type -> update
+	LastVisit string             // not populated
 }
 
 // updatesTmplData stores the data that we pass to the updates.tmpl to render the page
@@ -38,7 +39,7 @@ var updatesPage = pages.Add(
 	"/updates/",
 	updatesRenderer,
 	append(baseTmpls,
-		"tmpl/updatesPage.tmpl", "tmpl/tag.tmpl", "tmpl/userName.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/updatesPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
 
 // updatesRenderer renders the updates page.
 func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
@@ -47,7 +48,7 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 
 	// Load user, if possible
 	var err error
-	data.User, err = user.LoadUserFromDb(c)
+	data.User, err = user.LoadUserFromDb(r)
 	if err != nil {
 		c.Errorf("Couldn't load user: %v", err)
 		return pages.InternalErrorWith(err)
@@ -65,13 +66,9 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		SELECT p.pageId,p.privacyKey,p.title,u.updatedAt,u.type,u.count,u.fromCommentId,u.fromUserId,u.fromTagId
 		FROM updates AS u
 		LEFT JOIN (
-			SELECT * FROM (
-				SELECT pageId,privacyKey,title
-				FROM pages
-				WHERE deletedBy=0
-				ORDER BY id DESC
-			) AS t
-			GROUP BY pageId
+			SELECT pageId,privacyKey,title
+			FROM pages
+			WHERE edit=0 AND deletedBy=0
 		) AS p
 		ON u.contextPageId=p.pageId
 		WHERE u.userId=%d AND u.seen=0
@@ -153,12 +150,13 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
-	// TODO: sort Updates?
-
 	funcMap := template.FuncMap{
 		"UserId":     func() int64 { return data.User.Id },
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
 		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
+		"IsUpdatedPage": func(p *updatedPage) bool {
+			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
+		},
 		"GetPageUrl": func(p *updatedPage) string {
 			return getPageUrl(&p.page)
 		},

@@ -1,0 +1,14 @@
+{{/* oops.tmpl: catch-all error page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	<title>Error - Zanaduu</title>
+</head>
+<body>
+
+<p class="alert alert-danger">{{.Error}}</p>
+</body>
+</html>
+{{end}}

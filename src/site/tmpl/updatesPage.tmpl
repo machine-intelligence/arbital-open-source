@@ -16,7 +16,7 @@
 	{{range .UpdatedPages}}
 		<div class="panel panel-default">
 			<div class="panel-heading">
-		    <a href="{{GetPageUrl .}}" class="update-page-summary-link panel-title">{{.Title}}</a>
+		    <a href="{{GetPageUrl .}}" class="update-page-summary-link panel-title">{{template "title" .}}</a>
 		  </div>
 			<div class="panel-body">
 				{{range $k, $v := .Updates}}
@@ -38,10 +38,11 @@
 			</div>
 		</div>
 	{{else}}
-		<p>No new updates</p>
+		<p class="alert alert-info">No new updates</p>
 	{{end}}
 </div>
 
+{{template "footer"}}
 </body>
 </html>
 {{end}}
