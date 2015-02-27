@@ -64,6 +64,12 @@ function smartPageReload() {
 	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
 	window.location.replace(url + "?lastVisit=" + lastVisit);
 }
+// We don't want to display lastVisit in the URL bar, so we'll erase it.
+$(function(){
+	if (window.location.href.indexOf("lastVisit") >= 0) {
+		history.replaceState(null, document.title, $("body").attr("page-url"));
+	}
+});
 
 // submitForm handles the common functionality in submitting a form like
 // showing/hiding UI elements and doing the AJAX call.
