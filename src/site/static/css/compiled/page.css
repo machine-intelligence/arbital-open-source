@@ -319,8 +319,9 @@
   margin: 7px 0;
 }
 .tag {
-  margin: 10px 15px 0 0;
+  margin: 10px 5px 0 0;
   font-size: 12px;
+  background-color: #aaa;
 }
 .comment-body {
   display: table;
