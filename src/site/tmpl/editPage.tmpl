@@ -111,7 +111,8 @@
 					</div>
 				</div>
 		
-				<div class="form-group">
+				<!-- Privacy options -->
+				<div class="form-group" {{if le .PrivacyKey 0}}hidden{{end}}>
 					<label class="control-label col-sm-1">
 						Private
 						<span title="This page will only be accessible by people who have the link." class="dashed-underline">(?)</span>
@@ -125,6 +126,7 @@
 					</div>
 				</div>
 		
+				<!-- Tags -->
 				<div class="form-group">
 					<label class="control-label col-sm-1">Tags</label>
 					<div class="col-sm-2">
@@ -135,6 +137,7 @@
 					</div>
 				</div>
 		
+				<!-- Misc form stuff for submission / saving. -->
 				<div class="alert alert-danger" hidden></div>
 				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 				<button type="submit" class="btn btn-primary" toggle-on-submit>Submit</button>

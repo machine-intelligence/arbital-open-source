@@ -123,6 +123,9 @@ func editPageProcessor(c sessions.Context, r *http.Request) (int, string) {
 				return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
 			}
 		}
+		if oldPage.PrivacyKey <= 0 && data.PrivacyKey >= 0 {
+			return http.StatusBadRequest, fmt.Sprintf("Can't change a public page to private.")
+		}
 	}
 
 	// Check that all the tag ids are valid.
