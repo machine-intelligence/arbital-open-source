@@ -4,7 +4,6 @@
 <html>
 <head>
 	{{template "style"}}
-	<link href="/static/css/compiled/pagedown.css" rel="stylesheet">
 	{{template "scripts"}}
 	<script src="/static/js/editPage.js"></script>
 	<script>
@@ -55,6 +54,9 @@
 							{{end}}
 						{{end}}
 						<input name="title" type="text" class="form-control input-lg" value="{{.Title}}" placeholder="Page Title" required="true" autocomplete="off">
+					</div>
+					<div class="col-sm-6 page-title">
+						<div class="page-title-text">{{.Title}}</div>
 					</div>
 				</div>
 		

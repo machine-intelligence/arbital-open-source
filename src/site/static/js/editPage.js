@@ -113,6 +113,12 @@ $(function() {
 		y = Math.max(0, y);
 		$wmdPanel.stop(true).animate({top: y}, "fast");
 	});
+
+	// Keep title label in sync with the title input.
+	var $titleLabel = $(".page-title-text");
+	$("input[name='title']").on("keyup", function(event) {
+		$titleLabel.text($(event.target).val());
+	});
 });
 
 // Trigger initial setup.

@@ -299,14 +299,8 @@
 .toggle-contexts-link:active {
   color: #9f9f9f;
 }
-textarea.edit-page-text {
-  height: 6em;
-}
 .new-page-nav {
   margin-bottom: 14px;
-}
-textarea.new-page-text {
-  height: 6em;
 }
 .children-page-line {
   border-color: #666666;
