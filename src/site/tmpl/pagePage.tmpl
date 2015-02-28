@@ -112,8 +112,8 @@
 				<!-- Answers and probability voting -->
 				{{if .Answers}}
 					<div class="vote">
-						<div class="answer pull-left">{{(index .Answers 0).Text}} <span id="answer1-vote-value"></span></div>
-						<div class="answer pull-right">{{(index .Answers 1).Text}} <span id="answer2-vote-value"></span></div>
+						<div class="answer pull-left"><span id="answer1-text">{{(index .Answers 0).Text}}</span> <span id="answer1-vote-value"></span></div>
+						<div class="answer pull-right"><span id="answer2-text">{{(index .Answers 1).Text}}</span> <span id="answer2-vote-value"></span></div>
 						<span class="clearfix"></span>
 						<input id="vote-slider-input" data-slider-id="vote-slider" type="text" {{if .VoteValue.Valid}}data-slider-value="{{.VoteValue.Float64}}"{{end}}/>
 						<div class="text-center gray-text">
