@@ -34,6 +34,7 @@
 		<div class="new-page-body-div">
 			<form class="new-page-form form-horizontal">
 
+				<!-- Alerts -->
 				{{if le (GetEditLevel .) 0}}
 					<div class="form-group">
 						<div class="col-sm-6">
@@ -46,6 +47,7 @@
 					</div>
 				{{end}}
 		
+				<!-- Title -->
 				<div class="form-group">
 					<div class="col-sm-6">
 						{{if .IsDraft}}
@@ -60,6 +62,7 @@
 					</div>
 				</div>
 		
+				<!-- Input and preview -->
 				<div class="form-group">
 					<div class="col-sm-6">
 						<div class="wmd-panel">
@@ -72,10 +75,12 @@
 					</div>
 				</div>
 		
+				<!-- Page type -->
 				<div class="form-group" {{if and (gt .PageId 0) (not .IsDraft)}}hidden{{end}}>
 					<label class="title-label control-label col-sm-1">Page Type</label>
 					<div class="col-sm-2">
 						<select name="type" class="type-select form-control">
+							<option value="" {{if eq .Type ""}}selected="selected"{{end}} disabled hidden>Select page type</option>
 							<option value="blog" {{if eq .Type "blog"}}selected="selected"{{end}}>Blog Page</option>
 							<option value="question" {{if eq .Type "question"}}selected="selected"{{end}}>Question Page</option>
 							<option value="info" {{if eq .Type "info"}}selected="selected"{{end}}>Info Page</option>
