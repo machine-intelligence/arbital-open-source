@@ -456,15 +456,15 @@ $(function() {
 		var $voteSlider = $("#" + $("#vote-slider-input").attr("data-slider-id"));
 		setupVoteSlider();
 
-		// If more than one person voted, show the mean.
-		if (voteCount > 1) {
+		// Update answer labels.
+		if (voteCount > 0) {
+			// Show the mean.
 			var x = (voteValue - 1) * 100 / (99 - 1);
 			var $voteTick = $voteSlider.find(".slider-tick").first().clone();
 			$voteTick.addClass("vote-tick").css("left", x + "%");
 			$voteSlider.find(".slider-track").append($voteTick);
-		}
-		// Update answer labels.
-		if (voteCount > 0) {
+
+			// Show the results next to answers.
 			var vote = Math.round(voteValue);
 			$("#answer1-vote-value").text("(" + (100 - vote) + "%)")
 			$("#answer2-vote-value").text("(" + vote + "%)")

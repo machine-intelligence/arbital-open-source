@@ -49,24 +49,35 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check to see if we have a recent vote by this user for this page.
-	var id int64
-	var found bool
+	// Get the last vote.
+	var oldVoteId int64
+	var oldVoteValue float32
+	var oldVoteExists bool
+	var oldVoteAge int64
 	query := fmt.Sprintf(`
-		SELECT id
+		SELECT id,value,TIME_TO_SEC(TIMEDIFF('%s',createdAt)) AS age
 		FROM votes
-		WHERE userId=%d AND pageId=%d AND TIME_TO_SEC(TIMEDIFF('%s', createdAt)) < %d`,
-		u.Id, task.PageId, database.Now(), redoWindow)
-	found, err = database.QueryRowSql(c, query, &id)
+		WHERE userId=%d AND pageId=%d
+		ORDER BY id DESC
+		LIMIT 1`,
+		database.Now(), u.Id, task.PageId)
+	oldVoteExists, err = database.QueryRowSql(c, query, &oldVoteId, &oldVoteValue, &oldVoteAge)
 	if err != nil {
 		c.Inc("new_vote_fail")
 		c.Errorf("Couldn't check for a recent vote: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if found {
+
+	// If previous vote is exactly the same, don't do anything.
+	if oldVoteExists && oldVoteValue == task.Value {
+		return
+	}
+
+	// Check to see if we have a recent vote by this user for this page.
+	if oldVoteExists && oldVoteAge <= redoWindow {
 		hashmap := make(map[string]interface{})
-		hashmap["id"] = id
+		hashmap["id"] = oldVoteId
 		hashmap["value"] = task.Value
 		hashmap["createdAt"] = database.Now()
 		query = database.GetInsertSql("votes", hashmap, "value", "createdAt")
@@ -78,6 +89,7 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Insert new vote.
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
 	hashmap["pageId"] = task.PageId

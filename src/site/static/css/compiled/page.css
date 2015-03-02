@@ -638,7 +638,7 @@ textarea.new-comment-text {
   margin: 0px 1.5%;
 }
 #vote-slider .slider-track {
-  height: 6px;
+  height: 4px;
   margin-top: -3px;
   background-image: none;
   background-repeat: no-repeat;
@@ -647,8 +647,8 @@ textarea.new-comment-text {
 }
 #vote-slider .slider-tick {
   margin-top: -7px;
-  width: 6px;
   margin-left: -3px;
+  width: 4px;
   background-image: none;
   background-repeat: no-repeat;
   box-shadow: none;
@@ -663,9 +663,10 @@ textarea.new-comment-text {
 }
 #vote-slider .slider-handle {
   margin-top: -7px;
-  width: 10px;
   margin-left: -5px;
+  width: 10px;
   z-index: 1;
+  border: 1px solid blue;
 }
 .delete-my-vote-link {
   color: #e0e0e0;
