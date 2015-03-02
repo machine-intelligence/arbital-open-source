@@ -27,7 +27,7 @@
 		{{range .Pages}}
 			<li class="filter-result like-span">
 				<!-- Likes / dislikes and approval voting -->
-				<div class="inline-block-top">
+				<div class="filter-like-div">
 					<span class="like-count">{{.LikeCount}}</span>
 					<span class="disabled-like glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}"></span>
 					&nbsp;
@@ -36,7 +36,7 @@
 					&nbsp; &nbsp;
 				</div>
 
-				<div class="inline-block-top filter-title">
+				<div class="filter-title">
 					<a href="{{GetPageUrl .}}">{{template "title" .}}</a>
 					{{if eq .Type "blog"}}
 						by {{.CreatorName}}

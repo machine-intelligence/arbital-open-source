@@ -694,11 +694,10 @@ textarea.new-comment-text {
 .filter-result {
   margin: 10px 0px;
 }
-.inline-block-top {
-  display: inline-block;
-  vertical-align: top;
-}
 .filter-title {
-  position: relative;
-  top: 7px;
+  display: table-cell;
+}
+.filter-like-div {
+  display: table-cell;
+  width: 120px;
 }
