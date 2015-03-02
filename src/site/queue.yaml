@@ -3,7 +3,7 @@ total_storage_limit: 500M
 queue:
 - name: daemon-queue
   mode: pull
-- name: report-monitoring
-  mode: push
-  bucket_size: 100
-  rate: 100/s
+#- name: report-monitoring
+#mode: push
+#bucket_size: 100
+#rate: 100/s

@@ -150,6 +150,12 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		return pages.InternalErrorWith(err)
 	}
 
+	// Load updates count.
+	data.User.UpdateCount, err = loadUpdateCount(c, data.User.Id)
+	if err != nil {
+		c.Errorf("Couldn't retrieve updates count: %v", err)
+	}
+
 	funcMap := template.FuncMap{
 		"UserId":     func() int64 { return data.User.Id },
 		"IsAdmin":    func() bool { return data.User.IsAdmin },
