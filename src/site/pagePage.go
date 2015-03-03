@@ -82,21 +82,21 @@ type pageTmplData struct {
 }
 
 // pagePage serves the page page.
-var pagePage = pages.Add(
+var pagePage = newPage(
 	"/pages/{id:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
 		"tmpl/comment.tmpl",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
+		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
-var privatePagePage = pages.Add(
+var privatePagePage = newPage(
 	"/pages/{id:[0-9]+}/{privacyKey:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
 		"tmpl/comment.tmpl",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
+		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 // loadMainPage loads and returns the main page.
 func loadMainPage(c sessions.Context, userId int64, pageId int64) (*richPage, error) {
@@ -329,17 +329,11 @@ func loadSubscriptions(
 }
 
 // pageRenderer renders the page page.
-func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
-	var data pageTmplData
-	c := sessions.NewContext(r)
+func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	var err error
-
-	// Load user, if possible
-	data.User, err = user.LoadUserFromDb(r)
-	if err != nil {
-		c.Errorf("Couldn't load user: %v", err)
-		return pages.InternalErrorWith(err)
-	}
+	var data pageTmplData
+	data.User = u
+	c := sessions.NewContext(r)
 
 	// Load the parent page
 	var pageId int64
@@ -484,9 +478,6 @@ func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 
 	funcMap := template.FuncMap{
-		"UserId":     func() int64 { return data.User.Id },
-		"IsAdmin":    func() bool { return data.User.IsAdmin },
-		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		"IsUpdatedPage": func(p *richPage) bool {
 			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 		},
@@ -525,10 +516,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 			s = strings.Replace(s, "\n", "<br>", -1)
 			return template.HTML(s)
 		},
-		"PageToJson": func(p *richPage) string {
-			return "{'result': 10}"
-		},
 	}
 	c.Inc("page_page_served_success")
-	return pages.StatusOK(data).SetFuncMap(funcMap)
+	return pages.StatusOK(data).AddFuncMap(funcMap)
 }

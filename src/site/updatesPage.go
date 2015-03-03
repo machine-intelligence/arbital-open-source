@@ -35,27 +35,19 @@ type updatesTmplData struct {
 }
 
 // updatesPage serves the updates page.
-var updatesPage = pages.Add(
+var updatesPage = newPageWithOptions(
 	"/updates/",
 	updatesRenderer,
 	append(baseTmpls,
-		"tmpl/updatesPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
+		"tmpl/updatesPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"),
+	newPageOptions{RequireLogin: true})
 
 // updatesRenderer renders the updates page.
-func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
-	var data updatesTmplData
-	c := sessions.NewContext(r)
-
-	// Load user, if possible
+func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	var err error
-	data.User, err = user.LoadUserFromDb(r)
-	if err != nil {
-		c.Errorf("Couldn't load user: %v", err)
-		return pages.InternalErrorWith(err)
-	}
-	if !data.User.IsLoggedIn {
-		return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
-	}
+	var data updatesTmplData
+	data.User = u
+	c := sessions.NewContext(r)
 
 	// Load the updates
 	data.UpdatedPages = make([]*updatedPage, 0)
@@ -157,9 +149,6 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 
 	funcMap := template.FuncMap{
-		"UserId":     func() int64 { return data.User.Id },
-		"IsAdmin":    func() bool { return data.User.IsAdmin },
-		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		"IsUpdatedPage": func(p *updatedPage) bool {
 			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 		},
@@ -174,5 +163,5 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		},
 	}
 	c.Inc("updates_page_served_success")
-	return pages.StatusOK(data).SetFuncMap(funcMap)
+	return pages.StatusOK(data).AddFuncMap(funcMap)
 }

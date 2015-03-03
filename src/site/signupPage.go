@@ -19,24 +19,19 @@ type signupData struct {
 }
 
 // signupPage serves the signup page.
-var signupPage = pages.Add(
+var signupPage = newPageWithOptions(
 	"/signup/",
 	signupRenderer,
 	append(baseTmpls,
-		"tmpl/signupPage.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/signupPage.tmpl", "tmpl/navbar.tmpl"),
+	newPageOptions{RequireLogin: true})
 
 // signupRenderer renders the signup page.
-func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
-	c := sessions.NewContext(r)
-
-	var data signupData
+func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	var err error
-	data.User, err = user.LoadUser(w, r)
-	if err != nil {
-		c.Inc("update_prior_vote_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		return pages.InternalErrorWith(fmt.Errorf("Couldn't load user."))
-	}
+	var data signupData
+	data.User = u
+	c := sessions.NewContext(r)
 
 	if data.User.Id <= 0 {
 		return pages.RedirectWith(data.User.LoginLink)
@@ -51,6 +46,9 @@ func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		inviteCode := strings.ToUpper(q.Get("inviteCode"))
 		if inviteCode != "BAYES" && inviteCode != "LESSWRONG" {
 			return pages.InternalErrorWith(fmt.Errorf("Invalid invite code"))
+		}
+		if len(q.Get("firstName")) <= 0 || len(q.Get("lastName")) <= 0 {
+			return pages.InternalErrorWith(fmt.Errorf("Must specify both first and last names"))
 		}
 		hashmap := make(map[string]interface{})
 		hashmap["id"] = data.User.Id

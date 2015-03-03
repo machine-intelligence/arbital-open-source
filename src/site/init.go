@@ -8,7 +8,7 @@ import (
 	"appengine"
 
 	"zanaduu3/src/config"
-	"zanaduu3/src/pages"
+	"zanaduu3/src/logger"
 	"zanaduu3/src/sessions"
 
 	"github.com/gorilla/mux"
@@ -45,7 +45,7 @@ func ahHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
-	pages.SetLogger(func(r *http.Request) pages.Logger {
+	logger.SetLogger(func(r *http.Request) logger.Logger {
 		return appengine.NewContext(r)
 	})
 
@@ -53,8 +53,8 @@ func init() {
 	r.StrictSlash(true)
 
 	// Public facing handlers for pages
-	r.HandleFunc(indexPage.URI, handler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
-	r.HandleFunc(signupPage.URI, handler(signupPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(indexPage.URI, stdHandler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(signupPage.URI, stdHandler(signupPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(pagePage.URI, stdHandler(pagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(privatePagePage.URI, stdHandler(privatePagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(filterPage.URI, stdHandler(filterPage.ServeHTTP)).Methods("GET", "HEAD")
@@ -64,7 +64,6 @@ func init() {
 	r.HandleFunc(editPrivatePagePage.URI, stdHandler(editPrivatePagePage.ServeHTTP)).Methods("GET", "HEAD")
 
 	// POST handlers (API)
-	//r.HandleFunc("/newInput/", newInputHandler).Methods("POST")
 	r.HandleFunc("/newComment/", newCommentHandler).Methods("POST")
 	r.HandleFunc("/newSubscription/", newSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/newLike/", newLikeHandler).Methods("POST")
@@ -82,8 +81,8 @@ func init() {
 
 	// Various internal handlers
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
-	r.HandleFunc(errorPage.URI, handler(errorPage.ServeHTTP)).Methods("GET")
-	r.HandleFunc(page404.URI, handler(page404.ServeHTTP)).Methods("GET")
+	r.HandleFunc(errorPage.URI, stdHandler(errorPage.ServeHTTP)).Methods("GET")
+	r.HandleFunc(page404.URI, stdHandler(page404.ServeHTTP)).Methods("GET")
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
 	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
 

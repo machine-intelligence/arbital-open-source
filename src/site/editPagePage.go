@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	editPageTmpls = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
+	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
+	editPageOptions = newPageOptions{RequireLogin: true}
 )
 
 // editPageTmplData stores the data that we pass to the template file to render the page
@@ -28,25 +29,16 @@ type editPageTmplData struct {
 }
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
-var newPagePage = pages.Add("/pages/edit/", editPageRenderer, editPageTmpls...)
-var editPagePage = pages.Add("/pages/edit/{id:[0-9]+}", editPageRenderer, editPageTmpls...)
-var editPrivatePagePage = pages.Add("/pages/edit/{id:[0-9]+}/{privacyKey:[0-9]+}", editPageRenderer, editPageTmpls...)
+var newPagePage = newPageWithOptions("/pages/edit/", editPageRenderer, editPageTmpls, editPageOptions)
+var editPagePage = newPageWithOptions("/pages/edit/{id:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
+var editPrivatePagePage = newPageWithOptions("/pages/edit/{id:[0-9]+}/{privacyKey:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
 
 // editPageRenderer renders the edit page page.
-func editPageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
-	var data editPageTmplData
-	c := sessions.NewContext(r)
-
-	// Load user, if possible
+func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	var err error
-	data.User, err = user.LoadUserFromDb(r)
-	if err != nil {
-		c.Errorf("Couldn't load user: %v", err)
-		return pages.InternalErrorWith(err)
-	}
-	if !data.User.IsLoggedIn {
-		return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
-	}
+	var data editPageTmplData
+	data.User = u
+	c := sessions.NewContext(r)
 
 	// Check if we are creating a new page or editing an existing one.
 	pageIdStr := mux.Vars(r)["id"]
@@ -95,9 +87,6 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 
 	funcMap := template.FuncMap{
-		"UserId":     func() int64 { return data.User.Id },
-		"IsAdmin":    func() bool { return data.User.IsAdmin },
-		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		// Return the highest karma lock amount a user can create.
 		"GetMaxKarmaLock": func() int {
 			return getMaxKarmaLock(data.User.Karma)
@@ -106,5 +95,5 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 			return getEditLevel(p, data.User)
 		},
 	}
-	return pages.StatusOK(data).SetFuncMap(funcMap)
+	return pages.StatusOK(data).AddFuncMap(funcMap)
 }

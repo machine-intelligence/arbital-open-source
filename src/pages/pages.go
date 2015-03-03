@@ -15,6 +15,9 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+
+	"zanaduu3/src/logger"
+	"zanaduu3/src/user"
 )
 
 var (
@@ -27,7 +30,7 @@ var (
 )
 
 // Renderer is a function to render a page result.
-type Renderer func(w http.ResponseWriter, r *http.Request) *Result
+type Renderer func(w http.ResponseWriter, r *http.Request, u *user.User) *Result
 
 // A Page to be rendered.
 type Page struct {
@@ -56,8 +59,15 @@ type Result struct {
 	funcMap      template.FuncMap // Functions map
 }
 
-func (r *Result) SetFuncMap(funcMap template.FuncMap) *Result {
-	r.funcMap = funcMap
+// AddFuncMap adds the functions from the given funcMap to the functions
+// already in the Result object.
+func (r *Result) AddFuncMap(funcMap template.FuncMap) *Result {
+	if r.funcMap == nil {
+		r.funcMap = make(template.FuncMap)
+	}
+	for k, v := range funcMap {
+		r.funcMap[k] = v
+	}
 	return r
 }
 
@@ -106,7 +116,7 @@ func RedirectWith(uri string) *Result {
 //
 // Provided error is logged, but not displayed to the user.
 func ShowError(w http.ResponseWriter, r *http.Request, err error) {
-	l := logger(r)
+	l := logger.GetLogger(r)
 	q := url.Values{
 		"error_msg": []string{BadRequestMsg},
 	}
@@ -136,11 +146,11 @@ func (v Values) AddTo(uri string) string {
 //
 // ServeHTTP panics if no logger has been registered with SetLogger.
 func (p Page) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	l := logger(r)
+	l := logger.GetLogger(r)
 	l.Infof("Page %+v will ServeHTTP for URL: %v", p, r.URL)
 
 	// Render the page, retrieving any data for the template.
-	pr := p.Render(w, r)
+	pr := p.Render(w, r, nil)
 	if pr.err != nil || pr.responseCode != http.StatusOK {
 		if pr.err != nil {
 			l.Errorf("Error while rendering %v: %v\n", r.URL, pr.err)

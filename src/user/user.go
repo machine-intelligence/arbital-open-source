@@ -70,28 +70,11 @@ func (u *User) BecomeUserWithId(id string, c sessions.Context) error {
 	return nil
 }
 
-// LoadUserFromDb loads the user information from the DB, bypassing cookies.
-// If the user doesn't exist or is not logged in, an empty user object is returned.
-// NOTE: only use this method to load information about the currently logged in user.
-func LoadUserFromDb(r *http.Request) (*User, error) {
+// loadUserFromDb tries to load the current user's info from the database. If
+// there is no data in the DB, but the user is logged in through AppEngine,
+// a new record is created.
+func loadUserFromDb(r *http.Request) (*User, error) {
 	c := sessions.NewContext(r)
-	var u User
-	appEngineUser := user.Current(c)
-	if appEngineUser != nil {
-		query := fmt.Sprintf("SELECT id,email,firstName,lastName,isAdmin,karma FROM users WHERE email='%s'", appEngineUser.Email)
-		_, err := database.QueryRowSql(c, query, &u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't load user from db: %v", err)
-		}
-		u.IsLoggedIn = u.FirstName != ""
-	}
-	err := setLinksForUser(r, c, &u)
-	return &u, err
-}
-
-// tryCreateUser gets the currently logged in user from App Engine. The users database is
-// updated if this user is newly created.
-func tryCreateUser(r *http.Request, c sessions.Context) (*User, error) {
 	appEngineUser := user.Current(c)
 	if appEngineUser == nil {
 		return nil, nil
@@ -126,7 +109,7 @@ func tryCreateUser(r *http.Request, c sessions.Context) (*User, error) {
 		u.Email = appEngineUser.Email
 	}
 	u.IsLoggedIn = u.FirstName != ""
-	return &u, nil
+	return &u, err
 }
 
 // Set Login/Logout links for the given user object.
@@ -161,7 +144,7 @@ func LoadUser(w http.ResponseWriter, r *http.Request) (userPtr *User, err error)
 		userPtr = s.Values[userKey].(*User)
 	} else {
 		c.Debugf("no user in session, checking app engine")
-		userPtr, err = tryCreateUser(r, c)
+		userPtr, err = loadUserFromDb(r)
 		if err != nil {
 			return
 		} else if userPtr != nil {

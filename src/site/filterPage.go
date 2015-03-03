@@ -29,25 +29,18 @@ type filterTmplData struct {
 }
 
 // filterPage serves the recent pages page.
-var filterPage = pages.Add(
+var filterPage = newPage(
 	"/pages/filter/",
 	filterRenderer,
 	append(baseTmpls,
-		"tmpl/filterPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")...)
+		"tmpl/filterPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 // filterRenderer renders the page page.
-func filterRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
-	var data filterTmplData
-	var throwaway int
-	c := sessions.NewContext(r)
-
-	// Load user, if possible
+func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	var err error
-	data.User, err = user.LoadUser(w, r)
-	if err != nil {
-		c.Errorf("Couldn't load user: %v", err)
-		return pages.InternalErrorWith(err)
-	}
+	var data filterTmplData
+	data.User = u
+	c := sessions.NewContext(r)
 
 	// Check what parameters are passed in, since that'll change what pages we search for.
 	q := r.URL.Query()
@@ -61,6 +54,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		}
 	}
 	// Check parameter limiting the user/creator of the pages
+	var throwaway int
 	userConstraint := ""
 	userParam := q.Get("user")
 	if userParam != "" {
@@ -171,9 +165,6 @@ func filterRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	}
 
 	funcMap := template.FuncMap{
-		"UserId":     func() int64 { return data.User.Id },
-		"IsAdmin":    func() bool { return data.User.IsAdmin },
-		"IsLoggedIn": func() bool { return data.User.IsLoggedIn },
 		"IsUpdatedPage": func(p *richPage) bool {
 			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 		},
@@ -188,5 +179,5 @@ func filterRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 		},
 	}
 	c.Inc("pages_page_served_success")
-	return pages.StatusOK(data).SetFuncMap(funcMap)
+	return pages.StatusOK(data).AddFuncMap(funcMap)
 }

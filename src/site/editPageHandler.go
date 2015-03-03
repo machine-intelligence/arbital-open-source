@@ -44,7 +44,7 @@ type pageDataTag struct {
 // editPageHandler handles requests to create a new page.
 func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
-	header, str := editPageProcessor(c, r)
+	header, str := editPageProcessor(w, r)
 	if header > 0 {
 		if header == http.StatusInternalServerError {
 			c.Inc(strings.Trim(r.URL.Path, "/") + "Fail")
@@ -57,7 +57,8 @@ func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func editPageProcessor(c sessions.Context, r *http.Request) (int, string) {
+func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
+	c := sessions.NewContext(r)
 	rand.Seed(time.Now().UnixNano())
 
 	// Decode data
@@ -70,7 +71,7 @@ func editPageProcessor(c sessions.Context, r *http.Request) (int, string) {
 
 	// Load user object
 	var u *user.User
-	u, err = user.LoadUserFromDb(r)
+	u, err = user.LoadUser(w, r)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
 	}

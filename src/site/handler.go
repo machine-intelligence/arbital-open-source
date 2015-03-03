@@ -3,16 +3,25 @@ package site
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"appengine/taskqueue"
 
-	//"zanaduu3/src/config"
+	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/user"
 )
 
 // Handler serves HTTP.
 type handler http.HandlerFunc
+
+// newPageOptions specify options when we create a new html page.
+// NOTE: make sure that default values are okay for all pages.
+type newPageOptions struct {
+	SkipLoadingUser bool
+	RequireLogin    bool
+}
 
 // newHandler returns a standard handler from given handler function.
 //
@@ -25,6 +34,50 @@ type handler http.HandlerFunc
 // wouldn't even check if the user was logged in).
 func stdHandler(h handler) handler {
 	return h.domain()
+}
+
+// newPageWithOptions returns a new page which will wrap the given renderer so
+// that it gets the user object.
+func newPageWithOptions(uri string, renderer pages.Renderer, tmpls []string, options newPageOptions) pages.Page {
+	return pages.Add(uri, loadUserHandler(renderer, options), tmpls...)
+}
+
+// newPage returns a new page using default options.
+func newPage(uri string, renderer pages.Renderer, tmpls []string) pages.Page {
+	return newPageWithOptions(uri, renderer, tmpls, newPageOptions{})
+}
+
+// loadUserHandler is a wrapper around a randerer, which allows us to load the
+// user object and add user related template functions.
+func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
+	return func(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
+		var err error
+		c := sessions.NewContext(r)
+		if u != nil {
+			c.Errorf("User is already set when calling loadUserHandler.")
+		}
+		if !options.SkipLoadingUser {
+			u, err = user.LoadUser(w, r)
+			if err != nil {
+				c.Errorf("Couldn't load user: %v", err)
+				return pages.InternalErrorWith(err)
+			}
+			if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
+				// User has created an account but hasn't gone through signup page
+				return pages.RedirectWith("/signup/")
+			}
+			if options.RequireLogin && u.Id <= 0 {
+				return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
+			}
+		}
+		result := h(w, r, u)
+		funcMap := template.FuncMap{
+			"UserId":     func() int64 { return u.Id },
+			"IsAdmin":    func() bool { return u.IsAdmin },
+			"IsLoggedIn": func() bool { return u.IsLoggedIn },
+		}
+		return result.AddFuncMap(funcMap)
+	}
 }
 
 // domain redirects to proper HTML domain if user arrives elsewhere.
