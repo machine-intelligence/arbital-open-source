@@ -18,12 +18,12 @@ type signupData struct {
 	ContinueUrl string
 }
 
-// signupPage serves the questions page.
+// signupPage serves the signup page.
 var signupPage = pages.Add(
 	"/signup/",
 	signupRenderer,
 	append(baseTmpls,
-		"tmpl/signup.tmpl", "tmpl/navbar.tmpl")...)
+		"tmpl/signupPage.tmpl", "tmpl/navbar.tmpl")...)
 
 // signupRenderer renders the signup page.
 func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
@@ -48,15 +48,17 @@ func signupRenderer(w http.ResponseWriter, r *http.Request) *pages.Result {
 	q := r.URL.Query()
 	if q.Get("inviteCode") != "" {
 		// This is a form submission.
-		if strings.ToLower(q.Get("inviteCode")) != "bayes" {
+		inviteCode := strings.ToUpper(q.Get("inviteCode"))
+		if inviteCode != "BAYES" && inviteCode != "LESSWRONG" {
 			return pages.InternalErrorWith(fmt.Errorf("Invalid invite code"))
 		}
 		hashmap := make(map[string]interface{})
 		hashmap["id"] = data.User.Id
 		hashmap["firstName"] = q.Get("firstName")
 		hashmap["lastName"] = q.Get("lastName")
+		hashmap["inviteCode"] = inviteCode
 		hashmap["createdAt"] = database.Now()
-		sql := database.GetInsertSql("users", hashmap, "firstName", "lastName")
+		sql := database.GetInsertSql("users", hashmap, "firstName", "lastName", "inviteCode")
 		if _, err = database.ExecuteSql(c, sql); err != nil {
 			c.Errorf("Couldn't update user's name: %v", err)
 			return pages.InternalErrorWith(fmt.Errorf("Couldn't update user's name"))

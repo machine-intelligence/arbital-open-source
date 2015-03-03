@@ -18,6 +18,8 @@ CREATE TABLE users (
 	isAdmin BOOLEAN NOT NULL,
 	/* Amount of karam this user has. */
 	karma INT NOT NULL,
+	/* Invite code the user used to join the website, if any. */
+	inviteCode VARCHAR(16) NOT NULL,
 	UNIQUE (email),
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
