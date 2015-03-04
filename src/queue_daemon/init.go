@@ -1,4 +1,4 @@
-// init.go runs the daemon to process the daemon-queue.
+// init.go runs the daemon to process the daemonQueue.
 package queue_daemon
 
 import (
@@ -14,12 +14,12 @@ import (
 const (
 	// TODO: read from queue.yaml config
 	// TODO: refactor everything to use this variable; right now it's hardcoded in a bunch of places
-	daemonQueueName = "daemon-queue"
+	daemonQueueName = "daemonQueue"
 	// Seconds between polling the queue for new tasks
 	pollPeriod = 1
 )
 
-// processTask leases one task from the daemon-queue and processes it.
+// processTask leases one task from the daemonQueue and processes it.
 func processTask(c sessions.Context) error {
 	leasedTasks, err := taskqueue.Lease(c, 1, daemonQueueName, 3600)
 	if err != nil {

@@ -1,7 +1,7 @@
 # Set the total storage limit for all queues to the free app limit.
 total_storage_limit: 500M
 queue:
-- name: daemon-queue
+- name: daemonQueue
   mode: pull
 #- name: report-monitoring
 #mode: push

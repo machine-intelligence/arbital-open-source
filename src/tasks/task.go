@@ -33,7 +33,7 @@ func EnqueueWithName(c sessions.Context, task interface{}, tag string, name stri
 		Payload: buffer.Bytes(),
 		Tag:     tag,
 		Name:    name}
-	newTask, err = taskqueue.Add(c, newTask, "daemon-queue")
+	newTask, err = taskqueue.Add(c, newTask, "daemonQueue")
 	if err != nil {
 		err = fmt.Errorf("Failed to insert task: %v", err)
 		return
