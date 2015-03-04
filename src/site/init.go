@@ -40,7 +40,6 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ahHandler(w http.ResponseWriter, r *http.Request) {
-	//c := sessions.NewContext(r)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -80,11 +79,10 @@ func init() {
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
 
 	// Various internal handlers
-	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
-	r.HandleFunc(errorPage.URI, stdHandler(errorPage.ServeHTTP)).Methods("GET")
-	r.HandleFunc(page404.URI, stdHandler(page404.ServeHTTP)).Methods("GET")
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
 	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
+	r.HandleFunc(errorPage.URI, stdHandler(errorPage.ServeHTTP)).Methods("GET")
+	r.NotFoundHandler = http.HandlerFunc(stdHandler(page404.ServeHTTP))
 
 	http.Handle("/", r)
 }

@@ -22,7 +22,7 @@ var errorPage = pages.Add(
 
 // everyThing serves the "error" page.
 var page404 = pages.Add(
-	"/{catchall:.*}",
+	"/{catchall:.*}", // this is not used
 	renderer404,
 	append(baseTmpls, "tmpl/errorPage.tmpl")...)
 
