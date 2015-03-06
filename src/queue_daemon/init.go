@@ -72,10 +72,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Insert the first Tick task
 	// TODO: catch errors, but ignore "already added" error
-	/*err := tasks.EnqueueWithName(c, tasks.TickTask{}, "tick", "tick")
+	err := tasks.EnqueueWithName(c, tasks.TickTask{}, "tick", "tick")
 	if err != nil {
 		c.Debugf("TickTask enqueue error: %v", err)
-	}*/
+	}
 
 	for true {
 		if err := processTask(c); err != nil {

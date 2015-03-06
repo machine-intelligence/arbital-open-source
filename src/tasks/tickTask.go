@@ -3,9 +3,9 @@ package tasks
 
 import (
 	"database/sql"
-	"fmt"
+	//"fmt"
 
-	"zanaduu3/src/database"
+	//"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 )
 
@@ -32,12 +32,12 @@ func (task *TickTask) Execute(c sessions.Context) (delay int, err error) {
 
 	c.Debugf("==== TICK START ====")
 	// Compute all priors.
-	err = database.QuerySql(c, `SELECT id FROM questions`, processQuestion)
+	//err = database.QuerySql(c, `SELECT id FROM questions`, processQuestion)
 	return
 }
 
 func processQuestion(c sessions.Context, rows *sql.Rows) error {
-	var questionId int64
+	/*var questionId int64
 	if err := rows.Scan(&questionId); err != nil {
 		return fmt.Errorf("failed to scan for questionId: %v", err)
 	}
@@ -99,7 +99,7 @@ func processQuestion(c sessions.Context, rows *sql.Rows) error {
 		if _, err = database.ExecuteSql(c, sql); err != nil {
 			return err
 		}
-	}
+	}*/
 
 	c.Debugf("==== TICK COMPLETED SUCCESSFULLY ====")
 	return nil
