@@ -5,7 +5,10 @@
 cp -v config.yaml src/site/
 cp -v config.yaml src/queue_daemon/
 
+# Update the queues
+appcfg.py update_queues src/site/
+
 # Deploy the app.
-goapp deploy \
-	src/queue_daemon/module.yaml \
-	src/site/app.yaml
+#goapp deploy \
+	#src/queue_daemon/module.yaml \
+	#src/site/app.yaml

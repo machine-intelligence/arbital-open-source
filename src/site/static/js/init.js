@@ -46,6 +46,13 @@ $(function() {
 });
 
 // Setup things correctly.
+$(function() {
+	$("#vote-slider-input.example-slider").bootstrapSlider({
+		handle: "square",
+	});
+});
+
+// Setup things correctly.
 window.addEventListener('load', function () {
 	var $footer = $(".page-footer");
 	if ($footer.length > 0) {
