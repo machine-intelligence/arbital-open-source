@@ -21,18 +21,17 @@ import (
 // pageData contains parameters passed in to create a page.
 type pageData struct {
 	// Optional page id. If it's passed in, we are editing a page, otherwise it's a new page.
-	PageId int64 `json:",string"`
-	Type   string
-	Title  string
-	Text   string
+	PageId  int64 `json:",string"`
+	Type    string
+	Title   string
+	Text    string
+	HasVote string
 	// If <0, the user is turning the privacy key off. If zero, the user
 	// wants to create a new privacy key. If >0, keep the old key.
 	PrivacyKey int64 `json:",string"`
 	KarmaLock  int
 	TagIds     []int64
 	IsDraft    bool
-	Answer1    string
-	Answer2    string
 }
 
 type pageDataTag struct {
@@ -191,6 +190,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["createdAt"] = database.Now()
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
+	hashmap["hasVote"] = data.HasVote == "on"
 	hashmap["karmaLock"] = data.KarmaLock
 	hashmap["isDraft"] = data.IsDraft
 	hashmap["type"] = data.Type

@@ -11,15 +11,11 @@
 		var voteValue = "{{if .Page.VoteValue.Valid}}{{.Page.VoteValue.Float64}}{{end}}";
 		var voteCount = {{.Page.VoteCount}};
 		var myVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
-		{{if .Page.Answers}}
-			var answer1Text = "{{(index .Page.Answers 0).Text}}";
-			var answer2Text = "{{(index .Page.Answers 1).Text}}";
-		{{end}}
 	</script>
 	<title>{{.Page.Title}} - Zanaduu</title>
 </head>
 
-<body page-id="{{.Page.PageId}}" page-type="{{.Page.Type}}" page-url="{{GetPageUrl .Page}}" last-visit="{{.Page.LastVisit}}">
+<body page-id="{{.Page.PageId}}" page-type="{{.Page.Type}}" page-url="{{GetPageUrl .Page}}" last-visit="{{.Page.LastVisit}}" has-vote="{{if .Page.HasVote}}true{{end}}">
 {{template "navbar" .User}}
 
 <!-- This div shows up when the user hovers over an intra-site link. -->
@@ -35,9 +31,6 @@
 
 	<!-- Answers and probability votes -->
 	<div class="vote" hidden>
-		<span class="answer answer1 pull-left">JS inserts answer1 text</span>
-		<span class="answer answer2 pull-right">JS inserts answer2 text</span>
-		<span class="clearfix"></span>
 		<div class="vote-text text-center gray-text">JS inserts vote count and my vote</div>
 	</div>
 </div>

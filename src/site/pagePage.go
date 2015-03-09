@@ -48,12 +48,6 @@ type input struct {
 	CreatorId int64
 }
 
-type answer struct {
-	// DB values.
-	IndexId int
-	Text    string
-}
-
 type richPage struct {
 	// DB values.
 	page

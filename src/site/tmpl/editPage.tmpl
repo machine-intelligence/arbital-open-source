@@ -91,6 +91,18 @@
 					</div>
 				</div>
 
+				<!-- Probability vote -->
+				<div class="form-group" {{if and (gt .PageId 0) (not .IsDraft)}}hidden{{end}}>
+					<label class="title-label control-label col-sm-1">Probability Vote</label>
+					<div class="col-sm-4">
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" name="hasVote">
+							</label>
+						</div>
+					</div>
+				</div>
+
 				<!-- Karma edit lock -->
 				<div class="karma-lock-form-group form-group" {{if le GetMaxKarmaLock 0}}hidden{{end}}>
 					<label class="title-label control-label col-sm-1">Karma Lock

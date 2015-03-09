@@ -418,10 +418,8 @@ $(function() {
 
 // Initial setup.
 $(function() {
-	var pageType = $("body").attr("page-type");
-
 	// Setup probability vote slider.
-	if (pageType === "question") {
+	if ($("body").attr("has-vote")) {
 		var mySlider = $("#vote-slider-input").bootstrapSlider({
 			step: 1,
 			precision: 0,

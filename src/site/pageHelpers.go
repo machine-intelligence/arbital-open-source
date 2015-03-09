@@ -43,11 +43,10 @@ type page struct {
 	IsDraft    bool
 
 	// Additional data.
-	Tags    []*tag
-	Answers []*answer
+	Tags []*tag
 }
 
-// loadFullPage loads and retuns a page. It also loads all the auxillary data like tags and answers.
+// loadFullPage loads and retuns a page. It also loads all the auxillary data like tags.
 func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
 	pagePtr, err := loadPage(c, pageId)
 	if err != nil {
