@@ -24,7 +24,7 @@ var signupPage = newPageWithOptions(
 	signupRenderer,
 	append(baseTmpls,
 		"tmpl/signupPage.tmpl", "tmpl/navbar.tmpl"),
-	newPageOptions{RequireLogin: true})
+	newPageOptions{})
 
 // signupRenderer renders the signup page.
 func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
