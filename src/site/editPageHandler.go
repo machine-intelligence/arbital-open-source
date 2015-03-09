@@ -271,7 +271,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			insertValuesStr := strings.Join(insertValues, ",")
 			sql := fmt.Sprintf(`
 				INSERT INTO links (parentId,childId,createdAt)
-				VALUES %s`, insertValuesStr)
+				VALUES %s
+				ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt)`, insertValuesStr)
 			if _, err = tx.Exec(sql); err != nil {
 				tx.Rollback()
 				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert new visits: %v", err)

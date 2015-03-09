@@ -7,10 +7,10 @@
 	{{template "scripts"}}
 	<script src="/static/js/page.js"></script>
 	<script>
-		var pageText = "{{.Page.Text}}";
-		var voteValue = "{{if .Page.VoteValue.Valid}}{{.Page.VoteValue.Float64}}{{end}}";
-		var voteCount = {{.Page.VoteCount}};
-		var myVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
+		var gPageText = "{{.Page.Text}}";
+		var gVoteCount = {{.Page.VoteCount}};
+		var gVoteValueStr = "{{if .Page.VoteValue.Valid}}{{.Page.VoteValue.Float64}}{{end}}";
+		var gMyVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
 	</script>
 	<title>{{.Page.Title}} - Zanaduu</title>
 </head>
@@ -32,6 +32,18 @@
 	<!-- Answers and probability votes -->
 	<div class="vote" hidden>
 		<div class="vote-text text-center gray-text">JS inserts vote count and my vote</div>
+	</div>
+</div>
+
+<!-- This div is used to create vote divs. -->
+<div id="vote-template" class="vote" hidden>
+	<input class="vote-slider-input" data-slider-id="vote-slider" type="text"/>
+	<div class="text-center gray-text">
+		<span class="vote-count">0 votes</span> counted
+		<span class="my-vote">
+			<span class="my-vote-value"></span>
+			<a href="#" class="delete-my-vote-link glyphicon glyphicon-remove"></a>
+		</span>
 	</div>
 </div>
 
@@ -102,16 +114,7 @@
 
 				<!-- Probability voting -->
 				{{if .HasVote}}
-					<div class="vote">
-						<input id="vote-slider-input" data-slider-id="vote-slider" type="text" {{if .VoteValue.Valid}}data-slider-value="{{.VoteValue.Float64}}"{{end}}/>
-						<div class="text-center gray-text">
-							{{.VoteCount}} vote{{if ne .VoteCount 1}}s{{end}} counted
-							<span class="my-vote">
-								<span class="my-vote-value"></span>
-								<a href="#" class="delete-my-vote-link glyphicon glyphicon-remove"></a>
-							</span>
-						</div>
-					</div>
+					<div id="main-page-vote"></div>
 				{{end}}
 
 				<!-- Main page text. Populated by JS. -->

@@ -19,19 +19,18 @@ function postNewVote(value) {
 }
 
 // Set the value of my vote.
-function setMyVoteValue(valueStr) {
-	myVoteValueStr = valueStr;
-	$(".my-vote").toggle(valueStr !== "");
-	$(".my-vote-value").text("| my vote is \"" + (+valueStr) + "%\"");
+function setMyVoteValue($voteDiv, valueStr) {
+	$voteDiv.attr("my-vote", valueStr);
+	$voteDiv.find(".my-vote").toggle(valueStr !== "");
+	$voteDiv.find(".my-vote-value").text("| my vote is \"" + (+valueStr) + "%\"");
 }
 
 // Setup vote slider behavior based on whether or not we voted.
-function setupVoteSlider() {
-	var mySlider = $("#vote-slider-input");
+function setMyVoteOnSlider($input, myVoteValueStr) {
+	var $voteSlider = $("#" + $input.attr("data-slider-id"));
 	if (myVoteValueStr !== "") {
-		mySlider.bootstrapSlider("setValue", +myVoteValueStr);
+		$input.bootstrapSlider("setValue", +myVoteValueStr);
 	} else {
-		var $voteSlider = $("#" + $("#vote-slider-input").attr("data-slider-id"));
 		var $handle = $voteSlider.find(".min-slider-handle");
 		$handle.hide();
 		$voteSlider.on("mouseenter.z mouseleave.z", function(event) {
@@ -42,12 +41,55 @@ function setupVoteSlider() {
 			var x = (event.pageX - $track.offset().left) / $track.width();
 			x = Math.max(0, Math.min(1, x));
 			x = x * (99 - 1) + 1;
-			mySlider.bootstrapSlider("setValue", x);
+			$input.bootstrapSlider("setValue", x);
 		});
 		$voteSlider.on("mouseup.z", function(event) {
 			$voteSlider.off(".z");
 		});
 	}
+}
+
+// Copy vote-template and add it to the parent. Set up a vote slider using the
+// vote-slider-input insdie the cloned div. Set the slider to the given value.
+function createVoteSlider($parent, pageId, voteCount, voteValueStr, myVoteValueStr) {
+	var $voteDiv = $("#vote-template").clone().show().attr("id", "vote" + pageId).prependTo($parent);
+	var $input = $voteDiv.find(".vote-slider-input");
+	$input.attr("data-slider-id", $input.attr("data-slider-id") + pageId);
+	var mySlider = $input.bootstrapSlider({
+		step: 1,
+		precision: 0,
+		value: +myVoteValueStr,
+		selection: "none",
+		handle: "square",
+		ticks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99],
+		formatter: function(s) { return s + "%"; },
+	});
+	var $voteSlider = $("#" + $input.attr("data-slider-id"));
+	setMyVoteOnSlider($input, myVoteValueStr);
+
+	// Show votes.
+	if (voteCount > 0) {
+		// Show the mean.
+		var x = (+voteValueStr - 1) * 100 / (99 - 1);
+		var $voteTick = $voteSlider.find(".slider-tick").first().clone();
+		$voteTick.addClass("vote-tick").css("left", x + "%");
+		$voteSlider.find(".slider-track").append($voteTick);
+	}
+	$voteDiv.find(".vote-count").text(voteCount + " vote" + (voteCount == 1 ? "" : "s"));
+
+	// Setup voting handlers.
+	mySlider.bootstrapSlider("on", "slideStop", function(event){
+		postNewVote(event.value);
+		setMyVoteValue($voteDiv, "" + event.value);
+	});
+
+	setMyVoteValue($voteDiv, myVoteValueStr);
+
+	$voteDiv.find(".delete-my-vote-link").on("click", function(event) {
+		postNewVote(0.0);
+		setMyVoteValue($voteDiv, "");
+		setMyVoteOnSlider($input, "");
+	});
 }
 
 // Replace Markdown text with corresponding HTML.
@@ -58,31 +100,147 @@ $(function() {
 		console.log("text: " + text);
 		return text.replace(/(.*?)"""(.*?)"""(.*)/g, "$1<u>$2</u>$3");
 	});*/
-	/*console.log("LEN: " + pageText.length);
+	var firstPass = true;
+	// Convert <embed> tags into a link.
 	converter.hooks.chain("preBlockGamut", function (text, rbg) {
-		return text.replace(/.\n\n./g, function (whole, inner) {
-			console.log("whole: " + whole);
-			console.log("inner: " + inner);
-			return whole[0] + "{{p " + inner + "}}\n\n" + whole[3];
+		return text.replace(/ {0,3}<embed> *(.+) *<\/embed> */g, function (whole, inner) {
+			var s = "";
+			if (firstPass) {
+				s = "[LOADING](" + inner + "?embed=true)";
+			} else {
+				s = "[EMBEDDED PAGE](" + inner + ")";
+			}
+			return rbg(s);
 		});
-	});*/
+	});
 	InitMathjax(converter, undefined, "");
-	var html = converter.makeHtml(pageText);
-	//html = html.replace(/\{\{p ([0-9]+)\}\}/g, "<a href='#' style='color:red'>$1</a>");
+	var html = converter.makeHtml(gPageText);
 	var $pageText = $(".page-text")
 	$pageText.html(html);
+	firstPass = false;
 
 	// Setup attributes for links that are within our domain.
 	var host = window.location.host;
-	var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + host + "\/pages\/([0-9]+)\/?([0-9]+)?");
-	$pageText.find("a").each(function(index, element) {
-		var $element = $(element);
-		var parts = $element.attr("href").match(re);
-		if (parts === null) return;
-		$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
-	});
+	var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+		host + // match the url host part
+		"\/pages\/([0-9]+)" + // capture pageId
+		"(?:\/([0-9]+))?" + // optionally capture privacyId
+		"(?:\\?embed\=(true))?"); // optionally capture embed param
+	function processLinks($div) {
+		$div.find("a").each(function(index, element) {
+			var $element = $(element);
+			var parts = $element.attr("href").match(re);
+			if (parts === null) return;
+			if (!$element.hasClass("intrasite-link")) {
+				$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
+				if (parts[3]) {
+					var $parent = $element.parent();
+					var data = {pageId: parts[1], privacyKey: parts[2], includeText: true};
+					$.ajax({
+						type: "POST",
+						url: "/pageInfo/",
+						data: JSON.stringify(data),
+					})
+					.success(function(r) {
+						var page = JSON.parse(r);
+						$element.replaceWith("<div class='embedded-page'>" +
+							"<h1><a href='http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : "") + "'>" +
+							page.Title + "</a></h1>" +
+							"<div class='vote-container'></div>" +
+							converter.makeHtml(page.Text) +
+							"</div>");
+						var $embeddedDiv = $parent.children(".embedded-page");
+						if (page.HasVote) {
+							createVoteSlider($embeddedDiv.find(".vote-container"), page.PageId, page.VoteCount,
+								page.VoteValue.Valid ? "" + page.VoteValue.Float64 : "",
+								page.MyVoteValue.Valid ? "" + page.MyVoteValue.Float64 : "");
+						}
+						processLinks($embeddedDiv);
+						setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));
+					});
+				}
+			}
+		});
+	}
+	processLinks($pageText);
 });
 
+// Add a popover to the given element. The element has to be an intrasite link jquery object.
+function setupIntrasiteLink($element) {
+	var $linkPopoverTemplate = $("#link-popover-template");
+	var setPopoverContent = function($content, page) {
+		if (page["DeletedBy"] !== "0") {
+			$content.html("");
+			return;
+		}
+		$content.html($linkPopoverTemplate.html());
+		$content.find(".like-count").text(page["LikeCount"]);
+		$content.find(".dislike-count").text(page["DislikeCount"]);
+		var myLikeValue = +page["MyLikeValue"];
+		if (myLikeValue > 0) {
+			$content.find(".disabled-like").addClass("on");
+		} else if (myLikeValue < 0) {
+			$content.find(".disabled-dislike").addClass("on");
+		}
+		if (page["Answers"] !== null) {
+			$content.find(".vote").show();
+			$content.find(".vote-text").text(page.VoteValue + "(" + page.VoteCount + ")");
+			var voteText = page.VoteCount + " vote" + (page.VoteCount === 1 ? "" : "s") + " counted";
+			if (page["MyVoteValue"].Valid) {
+				voteText += " | my vote is \"" + (+page.MyVoteValue.Float64) + "%\"";
+			}
+			$content.find(".vote-text").text(voteText);
+		}
+	}
+
+	$element.popover({ 
+		html : true,
+		placement: "top",
+		trigger: "hover",
+		delay: { "show": 500, "hide": 100 },
+		title: function() {
+			var pageId = $(this).attr("page-id");
+			if (fetchedPagesMap[pageId]) {
+				if (fetchedPagesMap[pageId]["DeletedBy"] !== "0") {
+					return "[DELETED]";
+				}
+				return fetchedPagesMap[pageId]["Title"];
+			}
+			return "Loading...";
+		},
+		content: function() {
+			var $link = $(this);
+			var pageId = $link.attr("page-id");
+			// Check if we already have this page cached.
+			if (fetchedPagesMap[pageId]) {
+				var $content = $($linkPopoverTemplate.html());
+				setPopoverContent($content, fetchedPagesMap[pageId]);
+				return $content.html();
+			}
+			// Check if we already issued a request to fetch this page.
+			if (!(pageId in fetchedPagesMap)) {
+				// Fetch page data from the server.
+				fetchedPagesMap[pageId] = null;
+				var data = {pageId: pageId, privacyKey: $link.attr("privacy-key")};
+				$.ajax({
+					type: "POST",
+					url: "/pageInfo/",
+					data: JSON.stringify(data),
+				})
+				.success(function(r) {
+					var page = JSON.parse(r);
+					fetchedPagesMap[page["PageId"]] = page;
+					var $popover = $("#" + $link.attr("aria-describedby"));
+					var $content = $popover.find(".popover-content");
+					$popover.find(".popover-title").text(page["Title"]);
+					setPopoverContent($content, page);
+					$link.popover("show");
+				});
+			}
+			return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
+		}
+	});
+}
 
 // Setup handlers.
 $(function() {
@@ -271,11 +429,6 @@ $(function() {
 	$(".dislike-link").on("click", function(event) {
 		return processLike(-1, event);
 	});
-	$(".delete-my-vote-link").on("click", function(event) {
-		postNewVote(0.0);
-		setMyVoteValue("");
-		setupVoteSlider();
-	});
 
 	// Comment voting stuff.
 	// likeClick is 1 is user clicked like and 0 if they clicked reset like.
@@ -342,111 +495,13 @@ $(function() {
 	});
 
 	// Intrasite link hover.
-	var $linkPopoverTemplate = $("#link-popover-template");
-	var setPopoverContent = function($content, page) {
-		if (page["DeletedBy"] !== "0") {
-			$content.html("");
-			return;
-		}
-		$content.html($linkPopoverTemplate.html());
-		$content.find(".like-count").text(page["LikeCount"]);
-		$content.find(".dislike-count").text(page["DislikeCount"]);
-		var myLikeValue = +page["MyLikeValue"];
-		if (myLikeValue > 0) {
-			$content.find(".disabled-like").addClass("on");
-		} else if (myLikeValue < 0) {
-			$content.find(".disabled-dislike").addClass("on");
-		}
-		if (page["Answers"] !== null) {
-			$content.find(".vote").show();
-			$content.find(".vote-text").text(page.VoteValue + "(" + page.VoteCount + ")");
-			var voteText = page.VoteCount + " vote" + (page.VoteCount === 1 ? "" : "s") + " counted";
-			if (page["MyVoteValue"].Valid) {
-				voteText += " | my vote is \"" + (+page.MyVoteValue.Float64) + "%\"";
-			}
-			$content.find(".vote-text").text(voteText);
-		}
-	}
-	$(".intrasite-link").popover({ 
-			html : true,
-			placement: "top",
-			trigger: "hover",
-			delay: { "show": 500, "hide": 100 },
-			title: function() {
-				var pageId = $(this).attr("page-id");
-				if (fetchedPagesMap[pageId]) {
-					if (fetchedPagesMap[pageId]["DeletedBy"] !== "0") {
-						return "[DELETED]";
-					}
-					return fetchedPagesMap[pageId]["Title"];
-				}
-				return "Loading...";
-			},
-			content: function() {
-				var $link = $(this);
-				var pageId = $link.attr("page-id");
-				// Check if we already have this page cached.
-				if (fetchedPagesMap[pageId]) {
-					var $content = $($linkPopoverTemplate.html());
-					setPopoverContent($content, fetchedPagesMap[pageId]);
-					return $content.html();
-				}
-				// Check if we already issued a request to fetch this page.
-				if (!(pageId in fetchedPagesMap)) {
-					// Fetch page data from the server.
-					fetchedPagesMap[pageId] = null;
-					var data = {pageId: pageId, privacyKey: $link.attr("privacy-key")};
-					$.ajax({
-						type: "POST",
-						url: "/pageInfo/",
-						data: JSON.stringify(data),
-					})
-					.success(function(r) {
-						var page = JSON.parse(r);
-						fetchedPagesMap[page["PageId"]] = page;
-						var $popover = $("#" + $link.attr("aria-describedby"));
-						var $content = $popover.find(".popover-content");
-						$popover.find(".popover-title").text(page["Title"]);
-						setPopoverContent($content, page);
-						$link.popover("show");
-					});
-				}
-				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
-			}
-	});
+	setupIntrasiteLink($(".intrasite-link"));
 });
 
 // Initial setup.
 $(function() {
 	// Setup probability vote slider.
-	if ($("body").attr("has-vote")) {
-		var mySlider = $("#vote-slider-input").bootstrapSlider({
-			step: 1,
-			precision: 0,
-			value: +myVoteValueStr,
-			selection: "none",
-			handle: "square",
-			ticks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99],
-			formatter: function(s) { return s + "%"; },
-		});
-		var $voteSlider = $("#" + $("#vote-slider-input").attr("data-slider-id"));
-		setupVoteSlider();
-
-		// Show votes.
-		if (voteCount > 0) {
-			// Show the mean.
-			var x = (voteValue - 1) * 100 / (99 - 1);
-			var $voteTick = $voteSlider.find(".slider-tick").first().clone();
-			$voteTick.addClass("vote-tick").css("left", x + "%");
-			$voteSlider.find(".slider-track").append($voteTick);
-		}
-
-		// Setup voting handlers.
-		mySlider.bootstrapSlider("on", "slideStop", function(event){
-			postNewVote(event.value);
-			setMyVoteValue("" + event.value);
-		});
-
-		setMyVoteValue(myVoteValueStr);
+	if ($("body").attr("has-vote") !== "") {
+		createVoteSlider($("#main-page-vote"), $("body").attr("page-id"), gVoteCount, gVoteValueStr, gMyVoteValueStr);
 	}
 });

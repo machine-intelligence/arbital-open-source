@@ -12,8 +12,9 @@ import (
 
 // pageInfoData contains parameters passed in to create a page.
 type pageInfoData struct {
-	PageId     int64 `json:",string"`
-	PrivacyKey string
+	PageId      int64 `json:",string"`
+	PrivacyKey  string
+	IncludeText bool
 }
 
 // pageInfoHandler handles requests to create a new page.
@@ -52,6 +53,11 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 	pageIdStr := fmt.Sprintf("%d", p.PageId)
 	pageMap := make(map[int64]*richPage)
 	pageMap[p.PageId] = p
+
+	// Remove unnecessary data.
+	if !data.IncludeText {
+		p.Text = ""
+	}
 
 	// Check privacy setting
 	if p.PrivacyKey > 0 && fmt.Sprintf("%d", p.PrivacyKey) != data.PrivacyKey {

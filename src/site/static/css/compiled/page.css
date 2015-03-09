@@ -3,6 +3,11 @@
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
 }
+.page-body-div {
+  width: 100%;
+  margin: 0 auto 160px auto;
+  font-family: "Open Sans", sans-serif;
+}
 .signup-body-div {
   width: 100%;
   margin: 0 auto 160px auto;
@@ -133,10 +138,8 @@
 .gray-text {
   color: #b8b8b8;
 }
-.page-body-div {
-  width: 100%;
-  margin: 0 auto 160px auto;
-  font-family: "Open Sans", sans-serif;
+.embedded-page {
+  margin-left: 20px;
 }
 .new-updated-label {
   color: #00e000;
@@ -662,11 +665,11 @@ textarea.new-comment-text {
 .slider {
   cursor: pointer;
 }
-#vote-slider {
-  width: 97%;
-  margin: 0px 1.5%;
+.slider.slider-horizontal {
+  width: 99%;
+  margin: 0px 0.5%;
 }
-#vote-slider .slider-track {
+.slider.slider-horizontal .slider-track {
   height: 4px;
   margin-top: -3px;
   background-image: none;
@@ -674,7 +677,7 @@ textarea.new-comment-text {
   box-shadow: none;
   background-color: lightgray;
 }
-#vote-slider .slider-tick {
+.slider.slider-horizontal .slider-tick {
   margin-top: -7px;
   margin-left: -3px;
   width: 4px;
@@ -684,13 +687,13 @@ textarea.new-comment-text {
   background-color: lightgray;
   opacity: 1.0;
 }
-#vote-slider .slider-tick.vote-tick {
+.slider.slider-horizontal .slider-tick.vote-tick {
   width: 20px;
   margin-left: -10px;
   border-radius: 50%;
   background-color: gray;
 }
-#vote-slider .slider-handle {
+.slider.slider-horizontal .slider-handle {
   margin-top: -7px;
   margin-left: -5px;
   width: 10px;
