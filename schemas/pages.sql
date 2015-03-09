@@ -18,6 +18,8 @@ CREATE TABLE pages (
 	title VARCHAR(512) NOT NULL,
 	/* Text of the page. */
 	text MEDIUMTEXT NOT NULL,
+	/* True iff the page has a probability vote. */
+	hasVote BOOLEAN NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
 	karmaLock INT NOT NULL,
 	/* If > 0, the page is accessible only with the right link. For drafts

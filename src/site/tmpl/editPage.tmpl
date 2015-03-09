@@ -82,28 +82,16 @@
 						<select name="type" class="type-select form-control">
 							<option value="" {{if eq .Type ""}}selected="selected"{{end}} disabled hidden>Select page type</option>
 							<option value="blog" {{if eq .Type "blog"}}selected="selected"{{end}}>Blog Page</option>
-							<option value="question" {{if eq .Type "question"}}selected="selected"{{end}}>Question Page</option>
-							<option value="info" {{if eq .Type "info"}}selected="selected"{{end}}>Info Page</option>
+							<option value="wiki" {{if eq .Type "wiki"}}selected="selected"{{end}}>Wiki Page</option>
 						</select>
 					</div>
 					<div class="type-help col-sm-3">
 						<p class="type-help-blog help-block">Blog page is used for writing your thoughts on some topic. Only you will be able to edit the page.</p>
-						<p class="type-help-question help-block">Question page is used to debate a particular question. Others will be able to edit the page.</p>
-						<p class="type-help-info help-block">Info page is used to present factual information. Others will be able to edit the page.</p>
+						<p class="type-help-wiki help-block">Wiki page is a shared community page. Anyone can edit it.</p>
 					</div>
 				</div>
 
-				<!-- Answers for question type pages. -->
-				<div class="answers-form-group form-group">
-					<label class="control-label col-sm-1">Answers</label>
-					<div class="col-sm-2">
-						<input name="answer1" type="text" class="form-control" value="{{if .Answers}}{{(index .Answers 0).Text}}{{else}}No{{end}}" placeholder="First answer" autocomplete="off">
-					</div>
-					<div class="col-sm-2">
-						<input name="answer2" type="text" class="form-control" value="{{if .Answers}}{{(index .Answers 1).Text}}{{else}}Yes{{end}}" placeholder="Second answer" autocomplete="off">
-					</div>
-				</div>
-		
+				<!-- Karma edit lock -->
 				<div class="karma-lock-form-group form-group" {{if le GetMaxKarmaLock 0}}hidden{{end}}>
 					<label class="title-label control-label col-sm-1">Karma Lock
 						<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>

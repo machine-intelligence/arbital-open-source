@@ -102,14 +102,11 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if len(data.Title) <= 0 || len(data.Text) <= 0 {
 		return http.StatusBadRequest, fmt.Sprintf("Need title and text")
 	}
-	if data.Type != questionPageType && data.Type != blogPageType && data.Type != infoPageType {
+	if data.Type != blogPageType && data.Type != wikiPageType {
 		return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
 	}
 	if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
 		return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
-	}
-	if data.Type == questionPageType && (len(data.Answer1) <= 0 || len(data.Answer2) <= 0) {
-		return http.StatusBadRequest, fmt.Sprintf("Both answers need to be given for a question type page.")
 	}
 	if oldPage.PageId > 0 {
 		if oldPage.IsDraft {
@@ -234,32 +231,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if err != nil {
 			tx.Rollback()
 			return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pageTagPair: %v", err)
-		}
-	}
-
-	// Add/edit answers.
-	if data.Type == questionPageType {
-		hashmap = make(map[string]interface{})
-		hashmap["pageId"] = data.PageId
-		hashmap["indexId"] = 0
-		hashmap["text"] = data.Answer1
-		hashmap["createdAt"] = database.Now()
-		hashmap["updatedAt"] = database.Now()
-		if oldPage.PageId <= 0 || len(oldPage.Answers) == 0 || oldPage.Answers[0].Text != data.Answer1 {
-			query = database.GetInsertSql("answers", hashmap, "text", "updatedAt")
-			_, err = tx.Exec(query)
-		}
-		if err == nil {
-			hashmap["indexId"] = 1
-			hashmap["text"] = data.Answer2
-			if oldPage.PageId <= 0 || len(oldPage.Answers) == 0 || oldPage.Answers[1].Text != data.Answer2 {
-				query = database.GetInsertSql("answers", hashmap, "text", "updatedAt")
-				_, err = tx.Exec(query)
-			}
-		}
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't add an answer: %v", err)
 		}
 	}
 

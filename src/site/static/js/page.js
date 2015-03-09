@@ -18,23 +18,11 @@ function postNewVote(value) {
 	});
 }
 
-// Format vote value into a pretty string.
-// answers - array of two string elements corresponding to the answer text.
-//   If undefined, the page's answers will be used.
-function voteFormatter(value, answers) {
-	if (value < 50) {
-		var answer1Text = answers === undefined ? $("#answer1-text").text() : answers[0];
-		return answer1Text + ": " + (100 - value) + "%";
-	}
-	var answer2Text = answers === undefined ? $("#answer2-text").text() : answers[1];
-	return answer2Text + ": " + value + "%";
-}
-
 // Set the value of my vote.
 function setMyVoteValue(valueStr) {
 	myVoteValueStr = valueStr;
 	$(".my-vote").toggle(valueStr !== "");
-	$(".my-vote-value").text("| my vote is \"" + voteFormatter(+valueStr) + "\"");
+	$(".my-vote-value").text("| my vote is \"" + (+valueStr) + "%\"");
 }
 
 // Setup vote slider behavior based on whether or not we voted.
@@ -371,20 +359,10 @@ $(function() {
 		}
 		if (page["Answers"] !== null) {
 			$content.find(".vote").show();
-			var answer1Text = page.Answers[0].Text;
-			var answer2Text = page.Answers[1].Text;
-			var answers = [answer1Text, answer2Text];
-			if (page.VoteValue.Valid) {
-				var x = Math.round(+page.VoteValue.Float64);
-				answer1Text += " (" + (100 - x) + "%)";
-				answer2Text += " (" + x + "%)";
-			}
-			$content.find(".answer1").text(answer1Text);
-			$content.find(".answer2").text(answer2Text);
 			$content.find(".vote-text").text(page.VoteValue + "(" + page.VoteCount + ")");
 			var voteText = page.VoteCount + " vote" + (page.VoteCount === 1 ? "" : "s") + " counted";
 			if (page["MyVoteValue"].Valid) {
-				voteText += " | my vote is \"" + voteFormatter(+page.MyVoteValue.Float64, answers) + "\"";
+				voteText += " | my vote is \"" + (+page.MyVoteValue.Float64) + "%\"";
 			}
 			$content.find(".vote-text").text(voteText);
 		}
@@ -451,23 +429,18 @@ $(function() {
 			selection: "none",
 			handle: "square",
 			ticks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99],
-			formatter: voteFormatter,
+			formatter: function(s) { return s + "%"; },
 		});
 		var $voteSlider = $("#" + $("#vote-slider-input").attr("data-slider-id"));
 		setupVoteSlider();
 
-		// Update answer labels.
+		// Show votes.
 		if (voteCount > 0) {
 			// Show the mean.
 			var x = (voteValue - 1) * 100 / (99 - 1);
 			var $voteTick = $voteSlider.find(".slider-tick").first().clone();
 			$voteTick.addClass("vote-tick").css("left", x + "%");
 			$voteSlider.find(".slider-track").append($voteTick);
-
-			// Show the results next to answers.
-			var vote = Math.round(voteValue);
-			$("#answer1-vote-value").text("(" + (100 - vote) + "%)")
-			$("#answer2-vote-value").text("(" + vote + "%)")
 		}
 
 		// Setup voting handlers.

@@ -60,14 +60,6 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Load answers
-	err = p.loadAnswers(c)
-	if err != nil {
-		c.Errorf("Couldn't load answers: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	// Load likes
 	err = loadLikes(c, u.Id, pageIdStr, pageMap)
 	if err != nil {

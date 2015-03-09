@@ -12,9 +12,8 @@ import (
 
 const (
 	// Various page types we have in our system.
-	blogPageType     = "blog"
-	questionPageType = "question"
-	infoPageType     = "info"
+	blogPageType = "blog"
+	wikiPageType = "wiki"
 
 	// Various types of updates a user can get.
 	topLevelCommentUpdateType = "topLevelComment"
@@ -35,6 +34,7 @@ type page struct {
 	Type       string
 	Title      string
 	Text       string
+	HasVote    bool
 	Author     dbUser
 	CreatedAt  string
 	KarmaLock  int
@@ -57,10 +57,6 @@ func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = pagePtr.loadAnswers(c)
-	if err != nil {
-		return nil, err
-	}
 	return pagePtr, nil
 }
 
@@ -69,7 +65,7 @@ func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
 func loadPage(c sessions.Context, pageId int64) (*page, error) {
 	var p page
 	query := fmt.Sprintf(`
-		SELECT pageId,edit,type,title,text,createdAt,karmaLock,privacyKey,deletedBy,isDraft,u.id,u.firstName,u.lastName
+		SELECT pageId,edit,type,title,text,hasVote,createdAt,karmaLock,privacyKey,deletedBy,isDraft,u.id,u.firstName,u.lastName
 		FROM pages AS p
 		LEFT JOIN (
 			SELECT id,firstName,lastName
@@ -78,7 +74,7 @@ func loadPage(c sessions.Context, pageId int64) (*page, error) {
 		ON p.creatorId=u.Id
 		WHERE pageId=%d AND p.edit=0`, pageId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
-		&p.Type, &p.Title, &p.Text,
+		&p.Type, &p.Title, &p.Text, &p.HasVote,
 		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsDraft,
 		&p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
@@ -107,29 +103,6 @@ func (p *page) loadTags(c sessions.Context) error {
 			return fmt.Errorf("failed to scan for pageTagPair: %v", err)
 		}
 		p.Tags = append(p.Tags, &t)
-		return nil
-	})
-	return err
-}
-
-// loadAnswers loads answers corresponding to this page.
-func (p *page) loadAnswers(c sessions.Context) error {
-	if p.Type != questionPageType {
-		return nil
-	}
-
-	query := fmt.Sprintf(`
-		SELECT indexId,text
-		FROM answers
-		WHERE pageId=%d
-		ORDER BY indexId`, p.PageId)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var a answer
-		err := rows.Scan(&a.IndexId, &a.Text)
-		if err != nil {
-			return fmt.Errorf("failed to scan for an answer: %v", err)
-		}
-		p.Answers = append(p.Answers, &a)
 		return nil
 	})
 	return err
