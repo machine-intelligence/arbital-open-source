@@ -176,15 +176,15 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// Begin the transaction.
 	tx, err := db.Begin()
 
-	// To simplify our life significantly when we are trying to find the most recent edit,
-	// we shift "edit" variable for all edits of this page up by one. Then the most recent
-	// edit will always have edit=0.
+	// Handle edit number and isCurrentEdit
+	editNum := 0
 	if oldPage.PageId > 0 {
-		query := fmt.Sprintf("UPDATE pages SET edit=edit+1 WHERE pageId=%d ORDER BY edit DESC", data.PageId)
+		query := fmt.Sprintf("UPDATE pages SET isCurrentEdit=false WHERE pageId=%d AND isCurrentEdit", data.PageId)
 		if _, err = tx.Exec(query); err != nil {
 			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't update edit for old edits: %v", err)
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't update isCurrentEdit for old edits: %v", err)
 		}
+		editNum = oldPage.Edit + 1
 	}
 
 	// Create a new edit.
@@ -194,6 +194,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["createdAt"] = database.Now()
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
+	hashmap["edit"] = editNum
+	hashmap["isCurrentEdit"] = true
 	hashmap["hasVote"] = data.HasVote == "on"
 	hashmap["karmaLock"] = data.KarmaLock
 	hashmap["isDraft"] = data.IsDraft

@@ -8,6 +8,8 @@ CREATE TABLE pages (
 	/* The edit number. The current version always has edit=0. Older versions have
 	 higher edit numbers. E.g. the previous version has edit=1. */
 	edit INT NOT NULL,
+	/* True iff this is the edit currently used to display the page. */
+	isCurrentEdit BOOLEAN NOT NULL,
 	/* Page's type. */
 	type VARCHAR(32) NOT NULL,
 	/* User id of the creator of this edit. */

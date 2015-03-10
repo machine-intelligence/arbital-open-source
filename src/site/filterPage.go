@@ -126,7 +126,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		SELECT p.pageId,p.title,p.privacyKey
 		FROM pages AS p
 		%s
-		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND edit=0 AND p.deletedBy=0 %s
+		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND isCurrentEdit AND p.deletedBy=0 %s
 		ORDER BY p.createdAt DESC
 		LIMIT %d`, tagConstraint, data.User.Id, userConstraint, data.LimitCount)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {

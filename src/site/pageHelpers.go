@@ -71,7 +71,7 @@ func loadPage(c sessions.Context, pageId int64) (*page, error) {
 			FROM users
 		) AS u
 		ON p.creatorId=u.Id
-		WHERE pageId=%d AND p.edit=0`, pageId)
+		WHERE pageId=%d AND p.isCurrentEdit`, pageId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.HasVote,
 		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsDraft,

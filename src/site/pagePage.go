@@ -108,7 +108,7 @@ func loadMainPage(c sessions.Context, userId int64, pageId int64) (*richPage, er
 		FROM links as l
 		JOIN pages as p
 		ON l.parentId=p.pageId
-		WHERE l.childId=%d AND (p.privacyKey=0 OR p.creatorId=%d) AND p.deletedBy=0 AND p.edit=0
+		WHERE l.childId=%d AND (p.privacyKey=0 OR p.creatorId=%d) AND p.deletedBy=0 AND p.isCurrentEdit
 		GROUP BY p.pageId`, pageId, userId)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p richPage

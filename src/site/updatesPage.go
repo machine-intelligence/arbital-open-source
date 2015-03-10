@@ -60,7 +60,7 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		LEFT JOIN (
 			SELECT pageId,privacyKey,title
 			FROM pages
-			WHERE edit=0 AND deletedBy=0
+			WHERE isCurrentEdit AND deletedBy=0
 		) AS p
 		ON u.contextPageId=p.pageId
 		WHERE u.userId=%d AND u.seen=0
