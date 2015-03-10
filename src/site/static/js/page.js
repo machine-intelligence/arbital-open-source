@@ -126,14 +126,14 @@ $(function() {
 		"\/pages\/([0-9]+)" + // capture pageId
 		"(?:\/([0-9]+))?" + // optionally capture privacyId
 		"(?:\\?embed\=(true))?"); // optionally capture embed param
-	function processLinks($div) {
+	function processLinks($div, fetchEmbeddedPages) {
 		$div.find("a").each(function(index, element) {
 			var $element = $(element);
 			var parts = $element.attr("href").match(re);
 			if (parts === null) return;
 			if (!$element.hasClass("intrasite-link")) {
 				$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
-				if (parts[3]) {
+				if (parts[3] && fetchEmbeddedPages) {
 					var $parent = $element.parent();
 					var data = {pageId: parts[1], privacyKey: parts[2], includeText: true};
 					$.ajax({
@@ -145,16 +145,16 @@ $(function() {
 						var page = JSON.parse(r);
 						var $embeddedDiv = $("#embedded-page-template").clone().show().attr("id", "embedded-page" + page.PageId);
 						var $pageBody = $embeddedDiv.find(".embedded-page-body");
-						$embeddedDiv.find(".page-title").text(page.Title).attr("href", "http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : ""));
-						$embeddedDiv.find(".page-text").html(converter.makeHtml(page.Text));
+						$embeddedDiv.find(".embedded-page-title").text(page.Title).attr("href", "http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : ""));
+						$embeddedDiv.find(".embedded-page-text").html(converter.makeHtml(page.Text));
 						$parent.append($embeddedDiv);
 						$element.remove();
 						if (page.HasVote) {
-							createVoteSlider($embeddedDiv.find(".vote-container"), page.PageId, page.VoteCount,
+							createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.PageId, page.VoteCount,
 								page.VoteValue.Valid ? "" + page.VoteValue.Float64 : "",
 								page.MyVoteValue.Valid ? "" + page.MyVoteValue.Float64 : "");
 						}
-						processLinks($embeddedDiv);
+						processLinks($embeddedDiv, false);
 						setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));
 
 						// Set up toggle button
@@ -169,7 +169,7 @@ $(function() {
 			}
 		});
 	}
-	processLinks($pageText);
+	processLinks($pageText, true);
 });
 
 // Add a popover to the given element. The element has to be an intrasite link jquery object.
