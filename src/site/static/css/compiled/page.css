@@ -138,9 +138,6 @@
 .gray-text {
   color: #b8b8b8;
 }
-.embedded-page {
-  margin: 40px 0px 40px 40px;
-}
 .new-updated-label {
   color: #00e000;
 }
@@ -354,6 +351,35 @@
   margin: 10px 5px 0 0;
   font-size: 12px;
   background-color: #aaa;
+}
+.embedded-page {
+  margin: 40px 0px;
+}
+.embedded-page-body {
+  margin-left: 40px;
+}
+.hide-embedded-page {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.hide-embedded-page.on {
+  color: #b8b8b8;
+}
+.hide-embedded-page.on:focus {
+  color: #b8b8b8;
+}
+.hide-embedded-page:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.hide-embedded-page:hover {
+  color: #858585;
+  text-decoration: none;
+}
+.hide-embedded-page:active {
+  color: #d2d2d2;
+  text-decoration: none;
 }
 .comment-body {
   display: table;

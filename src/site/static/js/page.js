@@ -4,9 +4,9 @@
 var fetchedPagesMap = {}; // pageId -> page data
 
 // Send a new probability vote value to the server.
-function postNewVote(value) {
+function postNewVote(pageId, value) {
 	var data = {
-		pageId: $("body").attr("page-id"),
+		pageId: pageId,
 		value: value,
 	};
 	$.ajax({
@@ -79,14 +79,14 @@ function createVoteSlider($parent, pageId, voteCount, voteValueStr, myVoteValueS
 
 	// Setup voting handlers.
 	mySlider.bootstrapSlider("on", "slideStop", function(event){
-		postNewVote(event.value);
+		postNewVote(pageId, event.value);
 		setMyVoteValue($voteDiv, "" + event.value);
 	});
 
 	setMyVoteValue($voteDiv, myVoteValueStr);
 
 	$voteDiv.find(".delete-my-vote-link").on("click", function(event) {
-		postNewVote(0.0);
+		postNewVote(pageId, 0.0);
 		setMyVoteValue($voteDiv, "");
 		setMyVoteOnSlider($input, "");
 	});
@@ -143,13 +143,12 @@ $(function() {
 					})
 					.success(function(r) {
 						var page = JSON.parse(r);
-						$element.replaceWith("<div class='embedded-page'>" +
-							"<h2><a href='http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : "") + "'>" +
-							page.Title + "</a></h2>" +
-							"<div class='vote-container'></div>" +
-							converter.makeHtml(page.Text) +
-							"</div>");
-						var $embeddedDiv = $parent.children(".embedded-page");
+						var $embeddedDiv = $("#embedded-page-template").clone().show().attr("id", "embedded-page" + page.PageId);
+						var $pageBody = $embeddedDiv.find(".embedded-page-body");
+						$embeddedDiv.find(".page-title").text(page.Title).attr("href", "http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : ""));
+						$embeddedDiv.find(".page-text").html(converter.makeHtml(page.Text));
+						$parent.append($embeddedDiv);
+						$element.remove();
 						if (page.HasVote) {
 							createVoteSlider($embeddedDiv.find(".vote-container"), page.PageId, page.VoteCount,
 								page.VoteValue.Valid ? "" + page.VoteValue.Float64 : "",
@@ -157,6 +156,14 @@ $(function() {
 						}
 						processLinks($embeddedDiv);
 						setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));
+
+						// Set up toggle button
+						$embeddedDiv.find(".hide-embedded-page").on("click", function(event) {
+							var $target = $(event.target);
+							$pageBody.slideToggle({});
+							$target.toggleClass("glyphicon-triangle-bottom").toggleClass("glyphicon-triangle-right");
+							return false;
+						});
 					});
 				}
 			}
