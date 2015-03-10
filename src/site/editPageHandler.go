@@ -152,9 +152,13 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if data.Type == blogPageType {
 		data.KarmaLock = 0
 	}
-	// We can't change page type after it has been published.
+	// We can't change page type or voting after it has been published.
 	if oldPage.PageId > 0 && !oldPage.IsDraft {
 		data.Type = oldPage.Type
+		data.HasVote = ""
+		if oldPage.HasVote {
+			data.HasVote = "on"
+		}
 	}
 	if data.PrivacyKey == 0 {
 		data.PrivacyKey = rand.Int63()
