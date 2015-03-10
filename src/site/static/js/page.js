@@ -144,8 +144,8 @@ $(function() {
 					.success(function(r) {
 						var page = JSON.parse(r);
 						$element.replaceWith("<div class='embedded-page'>" +
-							"<h1><a href='http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : "") + "'>" +
-							page.Title + "</a></h1>" +
+							"<h2><a href='http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : "") + "'>" +
+							page.Title + "</a></h2>" +
 							"<div class='vote-container'></div>" +
 							converter.makeHtml(page.Text) +
 							"</div>");

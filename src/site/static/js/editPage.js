@@ -16,6 +16,14 @@ $(function() {
 	var editor = new Markdown.Editor(converter, "", {handler: function(){
 		window.open("http://math.stackexchange.com/editing-help", "_blank");
 	}});
+	// Convert <embed> tags into a link.
+	converter.hooks.chain("preBlockGamut", function (text, rbg) {
+		return text.replace(/ {0,3}<embed> *(.+) *<\/embed> */g, function (whole, inner) {
+			var s = "";
+			s = "[EMBEDDED PAGE](" + inner + ")";
+			return rbg(s);
+		});
+	});
 	InitMathjax(converter, editor, "");
 	/*converter.hooks.chain("postNormalization", function (text, runSpanGamut) {
 		return text.replace(/(.+?)( {0,2}\n)(.[^]*?\n)?([\n]{1,})/g, "$1[[[[1]]]]$2$3$4");
