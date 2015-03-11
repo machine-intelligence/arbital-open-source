@@ -69,11 +69,11 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	// Load tags.
 	data.Tags = make([]tag, 0)
 	query := fmt.Sprintf(`
-		SELECT id,text
+		SELECT id,parentId,text,fullName
 		FROM tags`)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var t tag
-		err := rows.Scan(&t.Id, &t.Text)
+		err := rows.Scan(&t.Id, &t.ParentId, &t.Text, &t.FullName)
 		if err != nil {
 			return fmt.Errorf("failed to scan for tag: %v", err)
 		}

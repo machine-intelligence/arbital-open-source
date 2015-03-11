@@ -90,14 +90,14 @@ func loadPage(c sessions.Context, pageId int64) (*page, error) {
 // loadTags loads tags corresponding to this page.
 func (p *page) loadTags(c sessions.Context) error {
 	query := fmt.Sprintf(`
-		SELECT t.id,t.Text
+		SELECT t.id,t.parentId,t.text,t.fullName
 		FROM pageTagPairs AS p
 		LEFT JOIN tags AS t
 		ON p.tagId=t.Id
 		WHERE p.pageId=%d`, p.PageId)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var t tag
-		err := rows.Scan(&t.Id, &t.Text)
+		err := rows.Scan(&t.Id, &t.ParentId, &t.Text, &t.FullName)
 		if err != nil {
 			return fmt.Errorf("failed to scan for pageTagPair: %v", err)
 		}

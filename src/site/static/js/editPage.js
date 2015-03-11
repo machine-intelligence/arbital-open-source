@@ -1,7 +1,7 @@
 "use strict";
 
 function createNewTagElement(value) {
-	var $template = $(".tag.template");
+	var $template = $("#tag-template");
 	var $newTag = $template.clone(true);
 	$newTag.removeClass("template");
 	$newTag.text(value);
@@ -41,7 +41,7 @@ $(function() {
 	// Helper function for calling the pageHandler
 	var callPageHandler = function(isDraft, $body, callback) {
 		var tagIds = [];
-		$body.find(".tag:not(.template)").each(function(index, element) {
+		$body.find("#tag-container").children(".tag:not(.template)").each(function(index, element) {
 			tagIds.push(+$(element).attr("id"));
 		});
 		var privacyKey = $body.attr("privacy-key");
@@ -88,22 +88,20 @@ $(function() {
 	$(".type-select").on("change", function(event) {
 		$(".type-help").children().hide();
 		$(".type-help-" + this.value).show();
-		//$(".karma-lock-form-group").toggle(this.value !== "blog");
-		$(".answers-form-group").toggle(this.value === "question");
 	});
 
 	// Setup autocomplete for tags.
 	$(".tag-input").autocomplete({
 		source: availableTags,
 		select: function (event, ui) {
-			createNewTagElement(ui.item.value);
+			createNewTagElement(ui.item.label);
 			$(event.target).val("");
 			return false;
 		}
 	});
 
-	// Deleting tags.
-	$(".tag").on("click", function(event) {
+	// Deleting tags. (Only inside the tag container.)
+	$(".tag-container .tag").on("click", function(event) {
 		var $target = $(event.target);
 		availableTags.push($target.text());
 		$target.remove();
@@ -126,6 +124,76 @@ $(function() {
 	var $titleLabel = $(".page-title-text");
 	$("input[name='title']").on("keyup", function(event) {
 		$titleLabel.text($(event.target).val());
+	});
+
+	// Set up new tag modal.
+	var newTagModalSetup = false;
+	$("#new-tag-modal").on("shown.bs.modal", function (event) {
+		if (newTagModalSetup) return;
+		newTagModalSetup = true;
+
+		var $modal = $(event.target);
+		var $tagInput = $modal.find(".new-tag-input");
+		var $parentTagInput = $modal.find(".parent-tag-input");
+		var $parentLink = $parentTagInput.next(".tag");
+		$parentTagInput.focus();
+
+		// Set up autocomplete on the parent tag input.
+		$parentTagInput.autocomplete({
+			source: allTags,
+			focus: function (event, ui) {
+				$parentTagInput.val(ui.item.label);
+				return false;
+			},
+			select: function (event, ui) {
+				$parentTagInput.val(ui.item.value).toggle();
+				$parentLink.text(ui.item.label);
+				$tagInput.focus();
+				return false;
+			}
+		});
+
+		// Set up canceling parent tag by clicking on it.
+		$parentLink.on("click", function (event) {
+			$parentTagInput.val("").toggle();
+			$parentLink.text("");
+			return false;
+		});
+
+		// Process modal buttons to determine if we should close the modal after form submission.
+		var closeModalAfterSubmit = false;
+		$modal.find(".add-tag-button").on("click", function (event) {
+			closeModalAfterSubmit = false;
+		});
+		$modal.find(".add-tag-close-button").on("click", function (event) {
+			closeModalAfterSubmit = true;
+		});
+
+		// Process new tag form submit.
+		$modal.find(".new-tag-form").on("submit", function (event) {
+			var data = {
+				parentId: $parentTagInput.val() === "" ? "0" : $parentTagInput.val(),
+			};
+			submitForm($(event.target), "/newTag/", data, function(r){
+				var parts = r.split(",");
+				var fullName = parts[0];
+				var id = parts[1];
+				// Update all tag collections with this new tag.
+				availableTags.push(fullName);
+				allTags.push({label: fullName, value: id});
+				tagMap[fullName] = id;
+
+				$parentTagInput.val("").show();
+				$parentLink.text("");
+				$tagInput.val("");
+				if (closeModalAfterSubmit) {
+					$modal.modal("hide");
+				} else {
+					$modal.find(".alert-success").text("Added: " + fullName).show();
+				}
+			});
+			return false;
+		});
 	});
 });
 

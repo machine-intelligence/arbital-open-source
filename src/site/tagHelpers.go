@@ -12,8 +12,10 @@ import (
 
 type tag struct {
 	// DB values.
-	Id   int64 `json:",string"`
-	Text string
+	Id       int64  `json:",string"`
+	ParentId int64  `json:",string"`
+	Text     string // e.g. "Vitamin"
+	FullName string // e.g. "Health.Nutrition.Vitamin"
 }
 
 // loadTagNames loads tag names for each tag in the given map.

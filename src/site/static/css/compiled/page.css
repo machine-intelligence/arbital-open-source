@@ -111,6 +111,7 @@
 .ui-autocomplete {
   border: 1px solid gray;
   background-color: white;
+  z-index: 2000;
 }
 .ui-menu-item {
   font-family: "Open Sans", sans-serif;
@@ -123,6 +124,9 @@
 }
 .ui-menu-item:active {
   background-color: #5555ff;
+}
+.ui-menu-item.ui-state-focus {
+  background-color: #8888ff;
 }
 .gray-glyph {
   color: #e0e0e0;

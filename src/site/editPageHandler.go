@@ -140,7 +140,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check tags.", err)
 		}
 		if count != len(data.TagIds) {
-			return http.StatusBadRequest, fmt.Sprintf("Some of the tags might be invalid.")
+			return http.StatusBadRequest, fmt.Sprintf("Some of the tags might be invalid: %v", tagIds)
 		}
 	}
 

@@ -132,6 +132,7 @@
 .ui-autocomplete {
 	border: 1px solid gray;
 	background-color: white;
+	z-index: 2000; // make sure it's on top of bootstrap modals
 }
 
 // One of the menu items in the autocomplete jquery-ui dropdown.
@@ -147,5 +148,8 @@
 	}
 	&:active {
 		background-color: darken(@c, 10%);
+	}
+	&.ui-state-focus {
+		background-color: @c;
 	}
 }
