@@ -5,6 +5,7 @@ runtime: go
 api_version: go1
 manual_scaling:
   instances: 1
+instance_class: B1
 
 handlers:
 - url: /.*
