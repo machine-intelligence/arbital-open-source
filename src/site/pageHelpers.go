@@ -34,6 +34,7 @@ type page struct {
 	Type       string
 	Title      string
 	Text       string
+	Summary    string
 	HasVote    bool
 	Author     dbUser
 	CreatedAt  string
@@ -64,7 +65,7 @@ func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
 func loadPage(c sessions.Context, pageId int64) (*page, error) {
 	var p page
 	query := fmt.Sprintf(`
-		SELECT pageId,edit,type,title,text,hasVote,createdAt,karmaLock,privacyKey,deletedBy,isDraft,u.id,u.firstName,u.lastName
+		SELECT pageId,edit,type,title,text,summary,hasVote,createdAt,karmaLock,privacyKey,deletedBy,isDraft,u.id,u.firstName,u.lastName
 		FROM pages AS p
 		LEFT JOIN (
 			SELECT id,firstName,lastName
@@ -73,7 +74,7 @@ func loadPage(c sessions.Context, pageId int64) (*page, error) {
 		ON p.creatorId=u.Id
 		WHERE pageId=%d AND p.isCurrentEdit`, pageId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
-		&p.Type, &p.Title, &p.Text, &p.HasVote,
+		&p.Type, &p.Title, &p.Text, &p.Summary, &p.HasVote,
 		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsDraft,
 		&p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {

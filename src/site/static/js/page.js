@@ -92,108 +92,34 @@ function createVoteSlider($parent, pageId, voteCount, voteValueStr, myVoteValueS
 	});
 }
 
-// Replace Markdown text with corresponding HTML.
+// Set up markdown.
 $(function() {
-	// TODO: get pageText and add all the comment tags
-	var converter = Markdown.getSanitizingConverter();
-	/*converter.hooks.chain("preSpanGamut", function (text) {
-		console.log("text: " + text);
-		return text.replace(/(.*?)"""(.*?)"""(.*)/g, "$1<u>$2</u>$3");
-	});*/
-	var firstPass = true;
-	// Convert <embed> tags into a link.
-	converter.hooks.chain("preBlockGamut", function (text, rbg) {
-		return text.replace(/ {0,3}<embed> *(.+) *<\/embed> */g, function (whole, inner) {
-			var s = "";
-			if (firstPass) {
-				s = "[LOADING](" + inner + "?embed=true)";
-			} else {
-				s = "[EMBEDDED PAGE](" + inner + ")";
-			}
-			return rbg(s);
-		});
-	});
-	InitMathjax(converter, undefined, "");
-	var html = converter.makeHtml(gPageText);
-	var $pageText = $(".page-text")
-	$pageText.html(html);
-	firstPass = false;
-
-	// Setup attributes for links that are within our domain.
-	var host = window.location.host;
-	var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
-		host + // match the url host part
-		"\/pages\/([0-9]+)" + // capture pageId
-		"(?:\/([0-9]+))?" + // optionally capture privacyId
-		"(?:\\?embed\=(true))?"); // optionally capture embed param
-	function processLinks($div, fetchEmbeddedPages) {
-		$div.find("a").each(function(index, element) {
-			var $element = $(element);
-			var parts = $element.attr("href").match(re);
-			if (parts === null) return;
-			if (!$element.hasClass("intrasite-link")) {
-				$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
-				if (parts[3] && fetchEmbeddedPages) {
-					var $parent = $element.parent();
-					var data = {pageId: parts[1], privacyKey: parts[2], includeText: true};
-					$.ajax({
-						type: "POST",
-						url: "/pageInfo/",
-						data: JSON.stringify(data),
-					})
-					.success(function(r) {
-						var page = JSON.parse(r);
-						var $embeddedDiv = $("#embedded-page-template").clone().show().attr("id", "embedded-page" + page.PageId);
-						var $pageBody = $embeddedDiv.find(".embedded-page-body");
-						$embeddedDiv.find(".embedded-page-title").text(page.Title).attr("href", "http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : ""));
-						$embeddedDiv.find(".embedded-page-text").html(converter.makeHtml(page.Text));
-						$parent.append($embeddedDiv);
-						$element.remove();
-						if (page.HasVote) {
-							createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.PageId, page.VoteCount,
-								page.VoteValue.Valid ? "" + page.VoteValue.Float64 : "",
-								page.MyVoteValue.Valid ? "" + page.MyVoteValue.Float64 : "");
-						}
-						processLinks($embeddedDiv, false);
-						setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));
-
-						// Set up toggle button
-						$embeddedDiv.find(".hide-embedded-page").on("click", function(event) {
-							var $target = $(event.target);
-							$pageBody.slideToggle({});
-							$target.toggleClass("glyphicon-triangle-bottom").toggleClass("glyphicon-triangle-right");
-							return false;
-						});
-					});
-				}
-			}
-		});
-	}
-	processLinks($pageText, true);
+	setUpMarkdown(false);
 });
 
 // Add a popover to the given element. The element has to be an intrasite link jquery object.
 function setupIntrasiteLink($element) {
 	var $linkPopoverTemplate = $("#link-popover-template");
 	var setPopoverContent = function($content, page) {
-		if (page["DeletedBy"] !== "0") {
+		if (page.DeletedBy !== "0") {
 			$content.html("");
 			return;
 		}
 		$content.html($linkPopoverTemplate.html());
-		$content.find(".like-count").text(page["LikeCount"]);
-		$content.find(".dislike-count").text(page["DislikeCount"]);
-		var myLikeValue = +page["MyLikeValue"];
+		$content.find(".popover-summary").text(page.Summary);
+		$content.find(".like-count").text(page.LikeCount);
+		$content.find(".dislike-count").text(page.DislikeCount);
+		var myLikeValue = +page.MyLikeValue;
 		if (myLikeValue > 0) {
 			$content.find(".disabled-like").addClass("on");
 		} else if (myLikeValue < 0) {
 			$content.find(".disabled-dislike").addClass("on");
 		}
-		if (page["Answers"] !== null) {
+		if (page.Answers !== null) {
 			$content.find(".vote").show();
 			$content.find(".vote-text").text(page.VoteValue + "(" + page.VoteCount + ")");
 			var voteText = page.VoteCount + " vote" + (page.VoteCount === 1 ? "" : "s") + " counted";
-			if (page["MyVoteValue"].Valid) {
+			if (page.MyVoteValue.Valid) {
 				voteText += " | my vote is \"" + (+page.MyVoteValue.Float64) + "%\"";
 			}
 			$content.find(".vote-text").text(voteText);
@@ -208,10 +134,10 @@ function setupIntrasiteLink($element) {
 		title: function() {
 			var pageId = $(this).attr("page-id");
 			if (fetchedPagesMap[pageId]) {
-				if (fetchedPagesMap[pageId]["DeletedBy"] !== "0") {
+				if (fetchedPagesMap[pageId].DeletedBy !== "0") {
 					return "[DELETED]";
 				}
-				return fetchedPagesMap[pageId]["Title"];
+				return fetchedPagesMap[pageId].Title;
 			}
 			return "Loading...";
 		},
@@ -236,10 +162,10 @@ function setupIntrasiteLink($element) {
 				})
 				.success(function(r) {
 					var page = JSON.parse(r);
-					fetchedPagesMap[page["PageId"]] = page;
+					fetchedPagesMap[page.PageId] = page;
 					var $popover = $("#" + $link.attr("aria-describedby"));
 					var $content = $popover.find(".popover-content");
-					$popover.find(".popover-title").text(page["Title"]);
+					$popover.find(".popover-title").text(page.Title);
 					setPopoverContent($content, page);
 					$link.popover("show");
 				});

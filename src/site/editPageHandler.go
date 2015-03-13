@@ -165,6 +165,19 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	} else if data.PrivacyKey < 0 {
 		data.PrivacyKey = 0
 	}
+	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
+
+	// Try to extract the summary out of the text.
+	re := regexp.MustCompile("(?ms)^ {0,3}<summary> *\n(.+?)\n {0,3}</summary> *$")
+	submatches := re.FindStringSubmatch(data.Text)
+	summary := ""
+	if len(submatches) > 0 {
+		summary = strings.TrimSpace(submatches[1])
+	} else {
+		re := regexp.MustCompile("^(.*)")
+		submatches := re.FindStringSubmatch(data.Text)
+		summary = strings.TrimSpace(submatches[1])
+	}
 
 	// Get database
 	var db *sql.DB
@@ -194,6 +207,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["createdAt"] = database.Now()
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
+	hashmap["summary"] = summary
 	hashmap["edit"] = editNum
 	hashmap["isCurrentEdit"] = true
 	hashmap["hasVote"] = data.HasVote == "on"

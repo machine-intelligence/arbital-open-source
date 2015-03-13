@@ -10,33 +10,12 @@ function createNewTagElement(value) {
 	availableTags.splice(availableTags.indexOf(value), 1);
 }
 
-// Setup Markdown.
+// Set up Markdown.
 $(function() {
-	var converter = Markdown.getSanitizingConverter();
-	var editor = new Markdown.Editor(converter, "", {handler: function(){
-		window.open("http://math.stackexchange.com/editing-help", "_blank");
-	}});
-	// Convert <embed> tags into a link.
-	converter.hooks.chain("preBlockGamut", function (text, rbg) {
-		return text.replace(/ {0,3}<embed> *(.+) *<\/embed> */g, function (whole, inner) {
-			var s = "";
-			s = "[EMBEDDED PAGE](" + inner + ")";
-			return rbg(s);
-		});
-	});
-	InitMathjax(converter, editor, "");
-	/*converter.hooks.chain("postNormalization", function (text, runSpanGamut) {
-		return text.replace(/(.+?)( {0,2}\n)(.[^]*?\n)?([\n]{1,})/g, "$1[[[[1]]]]$2$3$4");
-		//return text;
-		//return text + "[[[[" + Math.floor(Math.random() * 1000000000) + "]]]]";
-		/*return text.replace(/^ {0,3}""" *\n((?:.*?\n)+?) {0,3}""" *$/gm, function (whole, inner) {
-			return "<blockquote>" + runBlockGamut(inner) + "</blockquote>\n";
-		});
-	});*/
-	editor.run();
+	setUpMarkdown(true);
 });
 
-// Setup triggers.
+// Set up triggers.
 $(function() {
 	// Helper function for calling the pageHandler
 	var callPageHandler = function(isDraft, $body, callback) {

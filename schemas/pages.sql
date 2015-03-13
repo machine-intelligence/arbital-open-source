@@ -20,6 +20,8 @@ CREATE TABLE pages (
 	title VARCHAR(512) NOT NULL,
 	/* Text of the page. */
 	text MEDIUMTEXT NOT NULL,
+	/* Summary of the page. */
+	summary TEXT NOT NULL,
 	/* True iff the page has a probability vote. */
 	hasVote BOOLEAN NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
