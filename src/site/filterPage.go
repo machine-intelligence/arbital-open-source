@@ -151,7 +151,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	pageIdsStr := strings.Join(pageIds, ",")
 
 	// Load tags.
-	err = loadTags(c, pageIdsStr, pageMap)
+	err = loadTags(c, pageMap)
 	if err != nil {
 		c.Errorf("Couldn't retrieve page tags: %v", err)
 		return pages.InternalErrorWith(err)

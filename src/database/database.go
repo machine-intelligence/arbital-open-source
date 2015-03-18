@@ -92,6 +92,12 @@ func GetInsertSql(tableName string, hashmap InsertMap, updateArgs ...string) str
 		tableName, variables, values, onDuplicateKeyOpt)
 }
 
+// GetReplaceSql acts just like GetInsertSql, but does REPLACE instead of INSERT.
+func GetReplaceSql(tableName string, hashmap InsertMap) string {
+	query := GetInsertSql(tableName, hashmap)
+	return strings.Replace(query, "INSERT", "REPLACE", 1)
+}
+
 // ExecuteSql *non-atomically* executes a series of the given SQL commands.
 func ExecuteSql(c sessions.Context, commands ...string) (sql.Result, error) {
 	db, err := GetDB(c)
@@ -146,4 +152,13 @@ func QueryRowSql(c sessions.Context, command string, args ...interface{}) (bool,
 		return false, fmt.Errorf("error while querying:\n%v\n%v", command, err)
 	}
 	return err != sql.ErrNoRows, nil
+}
+
+// NewTransaction returns a new transaction object for the database.
+func NewTransaction(c sessions.Context) (*sql.Tx, error) {
+	db, err := GetDB(c)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get DB: %v", err)
+	}
+	return db.Begin()
 }

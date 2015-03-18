@@ -3,7 +3,6 @@ package site
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -20,21 +19,20 @@ import (
 
 // pageData contains parameters passed in to create a page.
 type pageData struct {
-	// Optional page id. If it's passed in, we are editing a page, otherwise it's a new page.
-	PageId  int64 `json:",string"`
-	Type    string
-	Title   string
-	Text    string
-	HasVote string
-	// If <0, the user is turning the privacy key off. If zero, the user
-	// wants to create a new privacy key. If >0, keep the old key.
-	PrivacyKey int64 `json:",string"`
-	KarmaLock  int
-	TagIds     []int64
-	IsDraft    bool
+	PageId         int64 `json:",string"`
+	Type           string
+	Title          string
+	Text           string
+	HasVoteStr     string
+	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
+	KeepPrivacyKey bool
+	KarmaLock      int
+	TagIds         []int64
+	IsAutosave     bool
+	IsSnapshot     bool
 }
 
-type pageDataTag struct {
+type pageTagPair struct {
 	tag
 
 	StillInUse bool // true iff this tag is still in use (used in the code)
@@ -67,6 +65,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if err != nil {
 		return http.StatusBadRequest, fmt.Sprintf("Couldn't decode json: %v", err)
 	}
+	if data.PageId <= 0 {
+		return http.StatusBadRequest, fmt.Sprintf("No pageId specified")
+	}
 
 	// Load user object
 	var u *user.User
@@ -79,53 +80,54 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// Load old page
-	var oldPage page
-	oldTagsMap := make(map[int64]*pageDataTag)
-	if data.PageId > 0 {
-		var pagePtr *page
-		pagePtr, err = loadFullPage(c, data.PageId)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't load a page: %v", err)
-		}
+	var oldPage *page
+	oldPage, err = loadFullEdit(c, data.PageId, u.Id)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load the old page: %v", err)
+	} else if oldPage == nil {
+		oldPage = &page{}
+	}
 
-		oldPage = *pagePtr
-		for _, t := range oldPage.Tags {
-			oldTagsMap[t.Id] = &pageDataTag{tag: *t}
+	// Compute edit number for the new edit of this page
+	newEditNum := 0
+	if oldPage.PageId > 0 {
+		if oldPage.IsAutosave {
+			newEditNum = oldPage.Edit
+		} else {
+			newEditNum = oldPage.Edit + 1
 		}
-	} else {
-		data.PageId = rand.Int63()
 	}
 
 	// Error checking.
 	data.Type = strings.ToLower(data.Type)
-	if len(data.Title) <= 0 || len(data.Text) <= 0 {
-		return http.StatusBadRequest, fmt.Sprintf("Need title and text")
+	if !data.IsAutosave {
+		if len(data.Title) <= 0 || len(data.Text) <= 0 {
+			return http.StatusBadRequest, fmt.Sprintf("Need title and text")
+		}
+		if data.Type != blogPageType && data.Type != wikiPageType {
+			return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
+		}
+		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
+			return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
+		}
 	}
-	if data.Type != blogPageType && data.Type != wikiPageType {
-		return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
-	}
-	if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
-		return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
+	if data.IsAutosave && data.IsSnapshot {
+		return http.StatusBadRequest, fmt.Sprintf("Can't be autosave and snapshot")
 	}
 	if oldPage.PageId > 0 {
-		if oldPage.IsDraft {
-			if u.Id != oldPage.Author.Id {
-				return http.StatusBadRequest, fmt.Sprintf("You can't edit this draft because you didn't create it.")
-			}
-		} else {
-			if data.IsDraft {
-				return http.StatusBadRequest, fmt.Sprintf("Can't save a draft once the page has been published.")
-			}
-			if getEditLevel(&oldPage, u) < 0 {
-				return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
-			}
+		if oldPage.PrivacyKey > 0 && oldPage.PrivacyKey != data.PrivacyKey {
+			return http.StatusForbidden, fmt.Sprintf("Need to specify correct privacy key to edit that page")
 		}
-		if oldPage.PrivacyKey <= 0 && data.PrivacyKey >= 0 {
+		if getEditLevel(oldPage, u) < 0 {
+			return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
+		}
+		if oldPage.WasPublished && oldPage.PrivacyKey <= 0 && data.KeepPrivacyKey {
 			return http.StatusBadRequest, fmt.Sprintf("Can't change a public page to private.")
 		}
 	}
 
 	// Check that all the tag ids are valid.
+	// TODO: check that you can apply the given tags
 	if len(data.TagIds) > 0 {
 		var buffer bytes.Buffer
 		for _, id := range data.TagIds {
@@ -137,33 +139,32 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		query := fmt.Sprintf(`SELECT COUNT(*) FROM tags WHERE id IN (%s)`, tagIds)
 		_, err = database.QueryRowSql(c, query, &count)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check tags.", err)
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check tags: %v", err)
 		}
 		if count != len(data.TagIds) {
-			return http.StatusBadRequest, fmt.Sprintf("Some of the tags might be invalid: %v", tagIds)
+			return http.StatusBadRequest, fmt.Sprintf("Some of the tags are be invalid: %v", tagIds)
 		}
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
 	// in a straight-forward way to populate the database.
-	if data.IsDraft {
-		data.PrivacyKey = oldPage.PrivacyKey
-	}
 	if data.Type == blogPageType {
 		data.KarmaLock = 0
 	}
-	// We can't change page type or voting after it has been published.
-	if oldPage.PageId > 0 && !oldPage.IsDraft {
+	// We can't change page type or voting after it has been published. Also can't
+	// turn on privacy.
+	hasVote := data.HasVoteStr == "on"
+	if oldPage.WasPublished {
 		data.Type = oldPage.Type
-		data.HasVote = ""
-		if oldPage.HasVote {
-			data.HasVote = "on"
-		}
+		hasVote = oldPage.HasVote
 	}
-	if data.PrivacyKey == 0 {
-		data.PrivacyKey = rand.Int63()
-	} else if data.PrivacyKey < 0 {
-		data.PrivacyKey = 0
+	var privacyKey int64
+	if data.KeepPrivacyKey {
+		if oldPage.PrivacyKey > 0 {
+			privacyKey = oldPage.PrivacyKey
+		} else {
+			privacyKey = rand.Int63()
+		}
 	}
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 
@@ -174,30 +175,26 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if len(submatches) > 0 {
 		summary = strings.TrimSpace(submatches[1])
 	} else {
+		// If no summary tags, just extract the first line.
 		re := regexp.MustCompile("^(.*)")
 		submatches := re.FindStringSubmatch(data.Text)
 		summary = strings.TrimSpace(submatches[1])
 	}
 
-	// Get database
-	var db *sql.DB
-	db, err = database.GetDB(c)
+	// Begin the transaction.
+	tx, err := database.NewTransaction(c)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("failed to get DB: %v\n", err)
+		return http.StatusInternalServerError, fmt.Sprintf("failed to create a transaction: %v\n", err)
 	}
 
-	// Begin the transaction.
-	tx, err := db.Begin()
-
-	// Handle edit number and isCurrentEdit
-	editNum := 0
-	if oldPage.PageId > 0 {
+	// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
+	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
+	if oldPage.PageId > 0 && isCurrentEdit {
 		query := fmt.Sprintf("UPDATE pages SET isCurrentEdit=false WHERE pageId=%d AND isCurrentEdit", data.PageId)
 		if _, err = tx.Exec(query); err != nil {
 			tx.Rollback()
 			return http.StatusInternalServerError, fmt.Sprintf("Couldn't update isCurrentEdit for old edits: %v", err)
 		}
-		editNum = oldPage.Edit + 1
 	}
 
 	// Create a new edit.
@@ -208,27 +205,48 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
 	hashmap["summary"] = summary
-	hashmap["edit"] = editNum
-	hashmap["isCurrentEdit"] = true
-	hashmap["hasVote"] = data.HasVote == "on"
+	hashmap["edit"] = newEditNum
+	hashmap["isCurrentEdit"] = isCurrentEdit
+	hashmap["hasVote"] = hasVote
 	hashmap["karmaLock"] = data.KarmaLock
-	hashmap["isDraft"] = data.IsDraft
+	hashmap["isAutosave"] = data.IsAutosave
+	hashmap["isSnapshot"] = data.IsSnapshot
 	hashmap["type"] = data.Type
-	hashmap["privacyKey"] = data.PrivacyKey
-	query := database.GetInsertSql("pages", hashmap)
+	hashmap["privacyKey"] = privacyKey
+	query := ""
+	overwritingEdit := oldPage.PageId > 0 && oldPage.Edit == newEditNum
+	if overwritingEdit {
+		query = database.GetReplaceSql("pages", hashmap)
+	} else {
+		query = database.GetInsertSql("pages", hashmap)
+	}
 	if _, err = tx.Exec(query); err != nil {
 		tx.Rollback()
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new page: %v", err)
 	}
 
+	// Create a map of tags from the old version of the page.
+	oldTagsMap := make(map[int64]*pageTagPair)
+	for _, t := range oldPage.Tags {
+		oldTagsMap[t.Id] = &pageTagPair{tag: *t}
+	}
+
 	// Insert newly added tags and mark the ones still in use.
+	// TODO: make this more efficient by creating one sql command
 	for _, tagId := range data.TagIds {
-		if oldTagsMap[tagId] == nil {
+		oldPageTag := oldTagsMap[tagId]
+		if oldPageTag == nil || !overwritingEdit {
 			hashmap := make(map[string]interface{})
 			hashmap["tagId"] = tagId
 			hashmap["pageId"] = data.PageId
-			hashmap["createdBy"] = u.Id
-			hashmap["createdAt"] = database.Now()
+			hashmap["edit"] = newEditNum
+			if oldPageTag == nil {
+				hashmap["createdBy"] = u.Id
+				hashmap["createdAt"] = database.Now()
+			} else {
+				hashmap["createdBy"] = oldPageTag.PairCreatedBy
+				hashmap["createdAt"] = oldPageTag.PairCreatedAt
+			}
 			query := database.GetInsertSql("pageTagPairs", hashmap)
 			_, err = tx.Exec(query)
 			if err != nil {
@@ -240,22 +258,24 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 	}
 	// Delete all tags that are not still in use.
-	for _, pair := range oldTagsMap {
-		if pair.StillInUse {
-			continue
-		}
-		query := fmt.Sprintf(`
-			DELETE FROM pageTagPairs
-			WHERE tagId=%d AND pageId=%d`, pair.Id, data.PageId)
-		_, err = tx.Exec(query)
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pageTagPair: %v", err)
+	if overwritingEdit {
+		for _, pair := range oldTagsMap {
+			if pair.StillInUse {
+				continue
+			}
+			query := fmt.Sprintf(`
+				DELETE FROM pageTagPairs
+				WHERE tagId=%d AND pageId=%d`, pair.Id, data.PageId)
+			_, err = tx.Exec(query)
+			if err != nil {
+				tx.Rollback()
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pageTagPair: %v", err)
+			}
 		}
 	}
 
 	// Add subscription.
-	if oldPage.PageId <= 0 {
+	if isCurrentEdit && !oldPage.WasPublished {
 		hashmap = make(map[string]interface{})
 		hashmap["userId"] = u.Id
 		hashmap["toPageId"] = data.PageId
@@ -269,7 +289,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// Update the links table.
-	if oldPage.Text != data.Text {
+	if isCurrentEdit {
 		// Delete old links.
 		if oldPage.PageId > 0 {
 			query = fmt.Sprintf("DELETE FROM links WHERE parentId=%d", data.PageId)
@@ -307,49 +327,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
 	}
 
-	// Generate updates for users who are subscribed to this page.
-	if oldPage.PageId > 0 {
-		var task tasks.NewUpdateTask
-		task.UserId = u.Id
-		task.ContextPageId = data.PageId
-		task.ToPageId = data.PageId
-		task.UpdateType = pageEditUpdateType
-		if err := task.IsValid(); err != nil {
-			c.Errorf("Invalid task created: %v", err)
-		}
-		if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
-	}
-
-	// Generate updates for users who are subscribed to the author.
-	if oldPage.PageId <= 0 && data.Type == blogPageType {
-		var task tasks.NewUpdateTask
-		task.UserId = u.Id
-		task.ContextPageId = data.PageId
-		task.ToUserId = u.Id
-		task.UpdateType = newPageByUserUpdateType
-		if err := task.IsValid(); err != nil {
-			c.Errorf("Invalid task created: %v", err)
-		}
-		if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
-	}
-
-	// Generate updates for users who are subscribed to the tags.
-	for _, tagId := range data.TagIds {
-		_, isOldTag := oldTagsMap[tagId]
-		if oldPage.PageId <= 0 || !isOldTag {
+	if isCurrentEdit {
+		// Generate updates for users who are subscribed to this page.
+		if oldPage.WasPublished {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.ContextPageId = data.PageId
-			task.ToTagId = tagId
-			if oldPage.PageId <= 0 {
-				task.UpdateType = newPageWithTagUpdateType
-			} else {
-				task.UpdateType = addedTagUpdateType
-			}
+			task.ToPageId = data.PageId
+			task.UpdateType = pageEditUpdateType
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
 			}
@@ -357,16 +342,53 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
+
+		// Generate updates for users who are subscribed to the author.
+		if !oldPage.WasPublished && data.Type == blogPageType && privacyKey <= 0 {
+			var task tasks.NewUpdateTask
+			task.UserId = u.Id
+			task.ContextPageId = data.PageId
+			task.ToUserId = u.Id
+			task.UpdateType = newPageByUserUpdateType
+			if err := task.IsValid(); err != nil {
+				c.Errorf("Invalid task created: %v", err)
+			}
+			if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
+			}
+		}
+
+		// Generate updates for users who are subscribed to the tags.
+		for _, tagId := range data.TagIds {
+			_, isOldTag := oldTagsMap[tagId]
+			if oldPage.PageId <= 0 || !isOldTag {
+				var task tasks.NewUpdateTask
+				task.UserId = u.Id
+				task.ContextPageId = data.PageId
+				task.ToTagId = tagId
+				if oldPage.PageId <= 0 {
+					task.UpdateType = newPageWithTagUpdateType
+				} else {
+					task.UpdateType = addedTagUpdateType
+				}
+				if err := task.IsValid(); err != nil {
+					c.Errorf("Invalid task created: %v", err)
+				}
+				if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+					c.Errorf("Couldn't enqueue a task: %v", err)
+				}
+			}
+		}
 	}
 
-	// Return id of the new page.
-	privacyAddon := ""
-	if data.PrivacyKey > 0 {
-		privacyAddon = fmt.Sprintf("/%d", data.PrivacyKey)
+	// Return the full page url if the submission was for the current edit.
+	if isCurrentEdit {
+		privacyAddon := ""
+		if privacyKey > 0 {
+			privacyAddon = fmt.Sprintf("/%d", privacyKey)
+		}
+		return 0, fmt.Sprintf("/pages/%d%s", data.PageId, privacyAddon)
 	}
-	editPart := ""
-	if data.IsDraft {
-		editPart = "/edit"
-	}
-	return 0, fmt.Sprintf("/pages%s/%d%s", editPart, data.PageId, privacyAddon)
+	// Return just the privacy key
+	return 0, fmt.Sprintf("%d", privacyKey)
 }

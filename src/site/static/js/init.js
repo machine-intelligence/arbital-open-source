@@ -78,15 +78,26 @@ $(function(){
 	}
 });
 
-// submitForm handles the common functionality in submitting a form like
-// showing/hiding UI elements and doing the AJAX call.
-var submitForm = function($target, url, data, success) {
-	var $errorText = $target.find(".alert");
-	$target.find("[toggle-on-submit]").toggle();
-
-	$.each($target.serializeArray(), function(i, field) {
+// serializeFormData takes input values from the given form and returns them as
+// a map. Optionally, data can have pre-existing map values.
+var serializeFormData = function($form, data) {
+	if (data === undefined) data = {};
+	$.each($form.serializeArray(), function(i, field) {
 		data[field.name] = field.value;
 	});
+	data["__formSerialized"] = true;
+	return data;
+}
+
+// submitForm handles the common functionality in submitting a form like
+// showing/hiding UI elements and doing the AJAX call.
+var submitForm = function($form, url, data, success) {
+	var $errorText = $form.find(".alert");
+	$form.find("[toggle-on-submit]").toggle();
+
+	if (!("__formSerialized" in data)) {
+		seralizeFormData($form, data);
+	}
 	console.log(data);
 
 	$.ajax({
@@ -95,7 +106,7 @@ var submitForm = function($target, url, data, success) {
 		data: JSON.stringify(data),
 	})
 	.always(function(r) {
-		$target.find("[toggle-on-submit]").toggle();
+		$form.find("[toggle-on-submit]").toggle();
 	}).success(function(r) {
 		$errorText.hide();
 		success(r);

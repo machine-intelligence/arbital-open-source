@@ -5,11 +5,16 @@ DROP TABLE IF EXISTS pages;
 CREATE TABLE pages (
 	/* Id of the page the edit is for. */
 	pageId BIGINT NOT NULL,
-	/* The edit number. The current version always has edit=0. Older versions have
-	 higher edit numbers. E.g. the previous version has edit=1. */
+	/* The edit (version) number. Always >0 unless it's an autosave before the
+	 page has been manually saved by the user. */
 	edit INT NOT NULL,
 	/* True iff this is the edit currently used to display the page. */
 	isCurrentEdit BOOLEAN NOT NULL,
+	/* True iff this is a snapshot saved by the creatorId user. */
+	isSnapshot BOOLEAN NOT NULL,
+	/* True iff this is an autosave for the creatorId user. There is at most one
+	 autosave per user per page. */
+	isAutosave BOOLEAN NOT NULL,
 	/* Page's type. */
 	type VARCHAR(32) NOT NULL,
 	/* User id of the creator of this edit. */
@@ -26,13 +31,9 @@ CREATE TABLE pages (
 	hasVote BOOLEAN NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
 	karmaLock INT NOT NULL,
-	/* If > 0, the page is accessible only with the right link. For drafts
-	 this is always set. */
+	/* If > 0, the page is accessible only with the right link. */
 	privacyKey BIGINT NOT NULL,
 	/* If not 0, this edit has been deleted by this user id. */
 	deletedBy BIGINT NOT NULL,
-	/* Set to true iff this is a draft. Drafts can only be edited by their
-	 creator and they always have the privacy key set. */
-	isDraft BOOLEAN NOT NULL,
 	PRIMARY KEY(pageId, edit)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

@@ -1,5 +1,6 @@
 "use strict";
 
+// Create a new tag for the page.
 function createNewTagElement(value) {
 	var $template = $("#tag-template");
 	var $newTag = $template.clone(true);
@@ -15,49 +16,61 @@ $(function() {
 	setUpMarkdown(true);
 });
 
+// Helper function for calling the pageHandler.
+// callback is called when the server replies with success. If it's an autosave
+// and the same data has already been submitted, the callback is called with "".
+var prevEditPageData = {};
+var callPageHandler = function(isAutosave, isSnapshot, callback) {
+	var $body = $("body");
+	var tagIds = [];
+	$body.find("#tag-container").children(".tag:not(.template)").each(function(index, element) {
+		tagIds.push(+$(element).attr("id"));
+	});
+	var privacyKey = $body.attr("privacy-key");
+	var data = {
+		pageId: $("body").attr("page-id"),
+		tagIds: tagIds,
+		privacyKey: privacyKey,
+		keepPrivacyKey: $("input[name='private']").is(":checked"),
+		karmaLock: $(".karma-lock-slider").slider("value"),
+		isAutosave: isAutosave,
+		isSnapshot: isSnapshot,
+	};
+	var $form = $body.find(".new-page-form");
+	serializeFormData($form, data);
+	// TODO: when we start using Angular, use angular.equals instead
+	if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
+		submitForm($form, "/editPage/", data, callback);
+		prevEditPageData = data;
+	} else {
+		console.log("SAME DATA!!!!");
+		callback(undefined);
+	}
+}
+
 // Set up triggers.
 $(function() {
-	// Helper function for calling the pageHandler
-	var callPageHandler = function(isDraft, $body, callback) {
-		var tagIds = [];
-		$body.find("#tag-container").children(".tag:not(.template)").each(function(index, element) {
-			tagIds.push(+$(element).attr("id"));
-		});
-		var privacyKey = $body.attr("privacy-key");
-		var data = {
-			pageId: $body.attr("page-id"),
-			isDraft: isDraft,
-			tagIds: tagIds,
-			privacyKey: $("input[name='private']").is(":checked") ? privacyKey : "-1",
-			karmaLock: $(".karma-lock-slider").slider("value"),
-		};
-		submitForm($body.find(".new-page-form"), "/editPage/", data, callback);
-	}
-
 	// Process form submission.
 	$(".new-page-form").on("submit", function(event) {
 		var $target = $(event.target);
 		var $body = $target.closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		callPageHandler(false, $body, function(r) {
+		callPageHandler(false, false, function(r) {
 			window.location.replace(r);
 		});
 		return false;
 	});
 
-	// Process safe draft button.
-	$(".save-draft-button").on("click", function(event) {
+	// Process safe snapshot button.
+	$(".save-snapshot-button").on("click", function(event) {
 		var $body = $(event.target).closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		callPageHandler(true, $body, function(r) {
-			if ($body.attr("page-id") === "0") {
-				window.location.replace(r);
-			} else {
-				var id = (/^\/pages\/edit\/([0-9]+).*$/g).exec(r)[1];
+		callPageHandler(false, true, function(r) {
+			if (r !== undefined) {
+				$body.attr("privacy-key", r);
 				$loadingText.show().text("Saved!");
-				$body.attr("page-id", id);
 			}
 		});
 		return false;
@@ -80,7 +93,7 @@ $(function() {
 	});
 
 	// Deleting tags. (Only inside the tag container.)
-	$(".tag-container .tag").on("click", function(event) {
+	$("#tag-container .tag").on("click", function(event) {
 		var $target = $(event.target);
 		availableTags.push($target.text());
 		$target.remove();
@@ -182,7 +195,6 @@ $(function() {
 	$(".type-select").trigger("change");
 
 	// Process tags that are already being used.
-	var $tagInput = $(".tag-input");
 	var usedTagsLength = usedTags.length;
 	for(var i = 0; i < usedTagsLength; i++) {
 		createNewTagElement(usedTags[i]);
@@ -201,3 +213,21 @@ $(function() {
 		},
 	});
 });
+
+// Autosave.
+var canAutosave = false;
+$(function() {
+	canAutosave = true;
+})
+window.setInterval(function(){
+	if (!canAutosave) return;
+	$("#autosave-label").text("Saving...").show();
+	callPageHandler(true, false, function(r) {
+		if (r === undefined) {
+			$("#autosave-label").hide();
+		} else {
+			$("body").attr("privacy-key", r);
+			$("#autosave-label").text("Saved!").show();
+		}
+	});
+}, 5000);

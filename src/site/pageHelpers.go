@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"fmt"
 
 	"zanaduu3/src/database"
@@ -41,17 +40,24 @@ type page struct {
 	KarmaLock  int
 	PrivacyKey int64 `json:",string"`
 	DeletedBy  int64 `json:",string"`
-	IsDraft    bool
+	IsAutosave bool
+	IsSnapshot bool
 
 	// Additional data.
-	Tags []*tag
+	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
+	Tags         []*tag
 }
 
-// loadFullPage loads and retuns a page. It also loads all the auxillary data like tags.
-func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
-	pagePtr, err := loadPage(c, pageId)
+// loadFullEdit loads and retuns the last edit for the given page id and user id,
+// even if it's not live. It also loads all the auxillary data like tags.
+// If the page couldn't be found, (nil, nil) will be returned.
+func loadFullEdit(c sessions.Context, pageId, userId int64) (*page, error) {
+	pagePtr, err := loadEdit(c, pageId, userId)
 	if err != nil {
 		return nil, err
+	}
+	if pagePtr == nil {
+		return nil, nil
 	}
 	err = pagePtr.loadTags(c)
 	if err != nil {
@@ -60,27 +66,49 @@ func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
 	return pagePtr, nil
 }
 
+// loadFullPage loads and retuns a page. It also loads all the auxillary data like tags.
+// If the page couldn't be found, (nil, nil) will be returned.
+func loadFullPage(c sessions.Context, pageId int64) (*page, error) {
+	return loadFullEdit(c, pageId, -1)
+}
+
 // loadPage loads and returns a page with the given id from the database.
 // If the page is deleted, minimum amount of data will be returned.
-func loadPage(c sessions.Context, pageId int64) (*page, error) {
+// If userId is given, the last edit of the given pageId will be returned. It
+// might be an autosave or a snapshot, and thus not the current live page.
+// If the page couldn't be found, (nil, nil) will be returned.
+func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	var p page
+	whereClause := "p.isCurrentEdit"
+	if userId > 0 {
+		whereClause = fmt.Sprintf(`
+			p.edit=(
+				SELECT MAX(edit)
+				FROM pages
+				WHERE pageId=%d AND (creatorId=%d OR NOT (isSnapshot OR isAutosave))
+			)`, pageId, userId)
+	}
+	// TODO: we often don't need hasCurrentEdit
 	query := fmt.Sprintf(`
-		SELECT pageId,edit,type,title,text,summary,hasVote,createdAt,karmaLock,privacyKey,deletedBy,isDraft,u.id,u.firstName,u.lastName
+		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.hasVote,p.createdAt,p.karmaLock,
+			p.privacyKey,p.deletedBy,p.isAutosave,p.isSnapshot,
+			(SELECT MAX(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
+			u.id,u.firstName,u.lastName
 		FROM pages AS p
 		LEFT JOIN (
 			SELECT id,firstName,lastName
 			FROM users
 		) AS u
 		ON p.creatorId=u.Id
-		WHERE pageId=%d AND p.isCurrentEdit`, pageId)
+		WHERE p.pageId=%[1]d AND %[2]s`, pageId, whereClause)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
-		&p.Type, &p.Title, &p.Text, &p.Summary, &p.HasVote,
-		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsDraft,
-		&p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
+		&p.Type, &p.Title, &p.Text, &p.Summary, &p.HasVote, &p.CreatedAt,
+		&p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
+		&p.WasPublished, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
-		return nil, fmt.Errorf("Unknown page id: %d", pageId)
+		return nil, nil
 	}
 	if p.DeletedBy > 0 {
 		return &page{PageId: p.PageId, DeletedBy: p.DeletedBy}, nil
@@ -88,23 +116,19 @@ func loadPage(c sessions.Context, pageId int64) (*page, error) {
 	return &p, nil
 }
 
+// loadPage loads and returns a page with the given id from the database.
+// If the page is deleted, minimum amount of data will be returned.
+// If the page couldn't be found, (nil, nil) will be returned.
+func loadPage(c sessions.Context, pageId int64) (*page, error) {
+	return loadEdit(c, pageId, -1)
+}
+
 // loadTags loads tags corresponding to this page.
 func (p *page) loadTags(c sessions.Context) error {
-	query := fmt.Sprintf(`
-		SELECT t.id,t.parentId,t.text,t.fullName
-		FROM pageTagPairs AS p
-		LEFT JOIN tags AS t
-		ON p.tagId=t.Id
-		WHERE p.pageId=%d`, p.PageId)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var t tag
-		err := rows.Scan(&t.Id, &t.ParentId, &t.Text, &t.FullName)
-		if err != nil {
-			return fmt.Errorf("failed to scan for pageTagPair: %v", err)
-		}
-		p.Tags = append(p.Tags, &t)
-		return nil
-	})
+	pageMap := make(map[int64]*richPage)
+	pageMap[p.PageId] = &richPage{page: *p}
+	err := loadTags(c, pageMap)
+	p.Tags = pageMap[p.PageId].Tags
 	return err
 }
 
@@ -125,14 +149,11 @@ func getPageUrl(p *page) string {
 
 // getEditPageUrl returns the domain relative url for editing the given page.
 func getEditPageUrl(p *page) string {
-	var privacyAddon, draftAddon string
+	var privacyAddon string
 	if p.PrivacyKey > 0 {
 		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
 	}
-	if p.Edit < 0 {
-		draftAddon = fmt.Sprintf("/%d", p.Author.Id)
-	}
-	return fmt.Sprintf("/pages/edit/%d%s%s", p.PageId, privacyAddon, draftAddon)
+	return fmt.Sprintf("/pages/edit/%d%s", p.PageId, privacyAddon)
 }
 
 // Check if the user can edit this page. -1 = no, 0 = only as admin, 1 = yes

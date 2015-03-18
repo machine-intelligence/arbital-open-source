@@ -16,6 +16,10 @@ type tag struct {
 	ParentId int64  `json:",string"`
 	Text     string // e.g. "Vitamin"
 	FullName string // e.g. "Health.Nutrition.Vitamin"
+
+	// These values are taken from pageTagPairs table.
+	PairCreatedBy int64 `json:",string"`
+	PairCreatedAt string
 }
 
 // loadTagNames loads tag names for each tag in the given map.
@@ -45,20 +49,27 @@ func loadTagNames(c sessions.Context, tagMap map[int64]*tag) error {
 }
 
 // loadTags loads tags corresponding to the given pages.
-func loadTags(c sessions.Context, pageIds string, pageMap map[int64]*richPage) error {
-	if len(pageIds) <= 0 {
+func loadTags(c sessions.Context, pageMap map[int64]*richPage) error {
+	if len(pageMap) <= 0 {
 		return nil
 	}
+	whereClause := "FALSE"
+	for id, p := range pageMap {
+		whereClause += fmt.Sprintf(" OR (pageId=%d AND edit=%d)", id, p.Edit)
+	}
 	query := fmt.Sprintf(`
-		SELECT p.pageId,t.id,t.Text
-		FROM pageTagPairs AS p
+		SELECT p.pageId,p.createdBy,p.createdAt,t.id,t.parentId,t.text,t.fullName
+		FROM (
+			SELECT pageId,tagId,createdBy,createdAt
+			FROM pageTagPairs
+			WHERE %s
+		) AS p
 		LEFT JOIN tags AS t
-		ON p.tagId=t.Id
-		WHERE p.pageId IN (%s)`, pageIds)
+		ON p.tagId=t.Id`, whereClause)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var pageId int64
 		var t tag
-		err := rows.Scan(&pageId, &t.Id, &t.Text)
+		err := rows.Scan(&pageId, &t.PairCreatedBy, &t.PairCreatedAt, &t.Id, &t.ParentId, &t.Text, &t.FullName)
 		if err != nil {
 			return fmt.Errorf("failed to scan for pageTagPair: %v", err)
 		}

@@ -76,26 +76,27 @@
 			<form class="new-page-form form-horizontal">
 
 				<!-- Alerts -->
-				{{if le (GetEditLevel .) 0}}
-					<div class="form-group">
-						<div class="col-sm-6">
+				<div class="form-group">
+					<div class="col-sm-6">
+						{{if le (GetEditLevel .) 0}}
 							{{if eq (GetEditLevel .) 0}}
 								<div class="alert alert-warning">Bypassing karma lock using admin priviledges.</div>
 							{{else}}
 								<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{.KarmaLock}}</div>
 							{{end}}
-						</div>
+						{{end}}
+						<div class="alert alert-info" id="autosave-label" hidden></div>
 					</div>
-				{{end}}
+				</div>
 		
 				<!-- Title -->
 				<div class="form-group">
 					<div class="col-sm-6">
-						{{if .IsDraft}}
+						<!-- {{if false}}
 							{{if ne UserId .Author.Id}}
 								<div class="alert alert-danger" role="alert">You cannot edit this draft, because you did not create it.</div>
 							{{end}}
-						{{end}}
+						{{end}}-->
 						<input name="title" type="text" class="form-control input-lg" value="{{.Title}}" placeholder="Page Title" required="true" autocomplete="off">
 					</div>
 					<div class="col-sm-6 page-title">
@@ -117,7 +118,7 @@
 				</div>
 		
 				<!-- Page type -->
-				<div class="form-group" {{if and (gt .PageId 0) (not .IsDraft)}}hidden{{end}}>
+				<div class="form-group" {{if .WasPublished}}hidden{{end}}>
 					<label class="title-label control-label col-sm-1">Page Type</label>
 					<div class="col-sm-2">
 						<select name="type" class="type-select form-control">
@@ -133,12 +134,12 @@
 				</div>
 
 				<!-- Probability vote -->
-				<div class="form-group" {{if and (gt .PageId 0) (not .IsDraft)}}hidden{{end}}>
+				<div class="form-group" {{if .WasPublished}}hidden{{end}}>
 					<label class="title-label control-label col-sm-1">Probability Vote</label>
 					<div class="col-sm-4">
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" name="hasVote" {{if .HasVote}}checked{{end}}>
+								<input type="checkbox" name="hasVoteStr" {{if .HasVote}}checked{{end}}>
 							</label>
 						</div>
 					</div>
@@ -158,7 +159,7 @@
 				</div>
 		
 				<!-- Privacy options -->
-				<div class="form-group" {{if le .PrivacyKey 0}}hidden{{end}}>
+				<div class="form-group" {{if and (le .PrivacyKey 0) .WasPublished}}hidden{{end}}>
 					<label class="control-label col-sm-1">
 						Private
 						<span title="This page will only be accessible by people who have the link." class="dashed-underline">(?)</span>
@@ -192,9 +193,7 @@
 				<div class="alert alert-danger" hidden></div>
 				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 				<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
-				{{if or (.IsDraft) (le .PageId 0)}}
-					<button type="button" class="save-draft-button btn btn-default" toggle-on-submit>Save As Draft</button>
-				{{end}}
+				<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
 				<span class="loading-text" style="display:none"></span></br>
 			</form>
 		</div>

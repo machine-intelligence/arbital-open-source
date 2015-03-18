@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -40,37 +42,57 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	data.User = u
 	c := sessions.NewContext(r)
 
-	// Check if we are creating a new page or editing an existing one.
 	pageIdStr := mux.Vars(r)["id"]
-	if len(pageIdStr) > 0 {
-		var pageId int64
-		pageId, err = strconv.ParseInt(pageIdStr, 10, 64)
+	// If we are creating a new page, redirect to a new id
+	if len(pageIdStr) <= 0 {
+		// Check if we already created a new page for this user that the user never saved.
+		var p page
+		query := fmt.Sprintf(`
+			SELECT pageId,privacyKey
+			FROM pages
+			WHERE edit=0 AND isAutosave AND creatorId=%d`, data.User.Id)
+		exists, err := database.QueryRowSql(c, query, &p.PageId, &p.PrivacyKey)
 		if err != nil {
-			c.Inc("edit_page_failed")
-			c.Errorf("Invalid id passed: %s", pageIdStr)
-			return pages.InternalErrorWith(err)
+			return pages.InternalErrorWith(fmt.Errorf("Couldn't check tags: %v", err))
+		} else if !exists {
+			rand.Seed(time.Now().UnixNano())
+			p.PageId = rand.Int63()
 		}
+		return pages.RedirectWith(getEditPageUrl(&p))
+	}
 
-		// Load the actual page.
-		data.Page, err = loadFullPage(c, pageId)
-		if err != nil {
-			c.Inc("edit_page_failed")
-			c.Errorf("Couldn't load existing page: %v", err)
-			return pages.InternalErrorWith(err)
-		}
-		// Check if the privacy key we got is correct.
-		if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
-			return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privacy key given."))
-		}
-	} else {
-		data.Page = &page{}
+	// Get page id.
+	var pageId int64
+	pageId, err = strconv.ParseInt(pageIdStr, 10, 64)
+	if err != nil {
+		c.Inc("edit_page_failed")
+		c.Errorf("Invalid id passed: %s", pageIdStr)
+		return pages.InternalErrorWith(err)
+	}
+
+	// Load the actual page.
+	data.Page, err = loadFullEdit(c, pageId, data.User.Id)
+	if err != nil {
+		c.Inc("edit_page_failed")
+		c.Errorf("Couldn't load existing page: %v", err)
+		return pages.InternalErrorWith(err)
+	} else if data.Page == nil {
+		// Set IsAutosave to true, so we can check whether or not to show certain settings
+		data.Page = &page{PageId: pageId, IsAutosave: true}
+	}
+	// Check if the privacy key we got is correct.
+	if !data.Page.WasPublished && data.Page.Author.Id == data.User.Id {
+		// We can skip privacy key check
+	} else if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
+		return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privacy key given."))
 	}
 
 	// Load tags.
 	data.Tags = make([]tag, 0)
 	query := fmt.Sprintf(`
 		SELECT id,parentId,text,fullName
-		FROM tags`)
+		FROM tags
+		WHERE NOT isPrivate`)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var t tag
 		err := rows.Scan(&t.Id, &t.ParentId, &t.Text, &t.FullName)
