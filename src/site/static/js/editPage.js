@@ -221,13 +221,13 @@ $(function() {
 })
 window.setInterval(function(){
 	if (!canAutosave) return;
-	$("#autosave-label").text("Saving...").show();
+	//$("#autosave-label").text("Saving...").show();
 	callPageHandler(true, false, function(r) {
 		if (r === undefined) {
 			$("#autosave-label").hide();
 		} else {
 			$("body").attr("privacy-key", r);
-			$("#autosave-label").text("Saved!").show();
+			//$("#autosave-label").text("Saved!").show();
 		}
 	});
 }, 5000);
