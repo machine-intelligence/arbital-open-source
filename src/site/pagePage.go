@@ -99,6 +99,8 @@ func loadMainPage(c sessions.Context, userId int64, pageId int64) (*richPage, er
 	pagePtr, err := loadFullPage(c, pageId)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
+	} else if pagePtr == nil {
+		return nil, fmt.Errorf("Couldn't find a page with id: %d", pageId)
 	}
 	mainPage := &richPage{page: *pagePtr}
 

@@ -35,6 +35,7 @@ var callPageHandler = function(isAutosave, isSnapshot, callback) {
 		karmaLock: $(".karma-lock-slider").slider("value"),
 		isAutosave: isAutosave,
 		isSnapshot: isSnapshot,
+		__invisibleSubmit: isAutosave,
 	};
 	var $form = $body.find(".new-page-form");
 	serializeFormData($form, data);

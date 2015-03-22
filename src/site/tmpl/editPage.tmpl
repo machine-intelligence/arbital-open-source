@@ -188,13 +188,27 @@
 						<a href="#" class="tag template label label-default" id="tag-template"></a>
 					</div>
 				</div>
+
+				<!-- Alias -->
+				<div class="form-group">
+					<label class="control-label col-sm-1">Alias</label>
+					<div class="col-sm-3">
+						<div class="input-group">
+							<input type="text" name="alias" placeholder='Optional alias, e.g. "Vitamin_D3_Good"' class="form-control" value="{{.Alias}}">
+						</div>
+					</div>
+				</div>
 		
 				<!-- Misc form stuff for submission / saving. -->
-				<div class="alert alert-danger" hidden></div>
-				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-				<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
-				<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
-				<span class="loading-text" style="display:none"></span></br>
+				<div class="form-group">
+					<div class="col-sm-6">
+						<div class="alert alert-danger" hidden></div>
+						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+						<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
+						<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
+						<span class="loading-text" style="display:none"></span>
+					</div>
+				</div>
 			</form>
 		</div>
 	{{end}}

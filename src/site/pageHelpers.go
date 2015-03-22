@@ -34,6 +34,7 @@ type page struct {
 	Title      string
 	Text       string
 	Summary    string
+	Alias      string
 	HasVote    bool
 	Author     dbUser
 	CreatedAt  string
@@ -90,8 +91,8 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	}
 	// TODO: we often don't need hasCurrentEdit
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.hasVote,p.createdAt,p.karmaLock,
-			p.privacyKey,p.deletedBy,p.isAutosave,p.isSnapshot,
+		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.hasVote,
+			p.createdAt,p.karmaLock,p.privacyKey,p.deletedBy,p.isAutosave,p.isSnapshot,
 			(SELECT MAX(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			u.id,u.firstName,u.lastName
 		FROM pages AS p
@@ -102,7 +103,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 		ON p.creatorId=u.Id
 		WHERE p.pageId=%[1]d AND %[2]s`, pageId, whereClause)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
-		&p.Type, &p.Title, &p.Text, &p.Summary, &p.HasVote, &p.CreatedAt,
+		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.HasVote, &p.CreatedAt,
 		&p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
 		&p.WasPublished, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {

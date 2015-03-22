@@ -93,7 +93,10 @@ var serializeFormData = function($form, data) {
 // showing/hiding UI elements and doing the AJAX call.
 var submitForm = function($form, url, data, success) {
 	var $errorText = $form.find(".alert");
-	$form.find("[toggle-on-submit]").toggle();
+	var invisibleSubmit = data["__invisibleSubmit"];
+	if (!invisibleSubmit) {
+		$form.find("[toggle-on-submit]").toggle();
+	}
 
 	if (!("__formSerialized" in data)) {
 		seralizeFormData($form, data);
@@ -106,14 +109,20 @@ var submitForm = function($form, url, data, success) {
 		data: JSON.stringify(data),
 	})
 	.always(function(r) {
-		$form.find("[toggle-on-submit]").toggle();
+		if (!invisibleSubmit) {
+			$form.find("[toggle-on-submit]").toggle();
+		}
 	}).success(function(r) {
-		$errorText.hide();
+		if (!invisibleSubmit) {
+			$errorText.hide();
+		}
 		success(r);
 		console.log(r);
 	}).fail(function(r) {
-		$errorText.show();
-		$errorText.text(r.statusText + ": " + r.responseText);
+		if (!invisibleSubmit) {
+			$errorText.show();
+			$errorText.text(r.statusText + ": " + r.responseText);
+		}
 		console.log(r);
 	});
 }

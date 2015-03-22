@@ -111,11 +111,11 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		data.Tag.Id, _ = strconv.ParseInt(tagParam, 10, 64)
 		tagConstraint = fmt.Sprintf(`
 			INNER JOIN (
-				SELECT pageId
+				SELECT pageId,edit
 				FROM pageTagPairs
 				WHERE tagId=%s
 			) AS t
-			ON p.pageId=t.pageId`, tagParam)
+			ON (p.pageId=t.pageId AND p.edit=t.edit)`, tagParam)
 	}
 
 	// Load the pages
