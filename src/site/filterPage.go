@@ -30,7 +30,7 @@ type filterTmplData struct {
 
 // filterPage serves the recent pages page.
 var filterPage = newPage(
-	"/pages/filter/",
+	"/filter/",
 	filterRenderer,
 	append(baseTmpls,
 		"tmpl/filterPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))

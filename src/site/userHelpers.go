@@ -60,5 +60,5 @@ func loadUpdateCount(c sessions.Context, userId int64) (int, error) {
 
 // getUserUrl returns URL for looking at recently created pages by the given user.
 func getUserUrl(userId int64) string {
-	return fmt.Sprintf("/pages/filter?user=%d", userId)
+	return fmt.Sprintf("/filter?user=%d", userId)
 }

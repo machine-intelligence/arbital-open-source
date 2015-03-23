@@ -81,5 +81,5 @@ func loadTags(c sessions.Context, pageMap map[int64]*richPage) error {
 
 // getTagUrl returns URL for looking at recently created pages with the given tag.
 func getTagUrl(tagId int64) string {
-	return fmt.Sprintf("/pages/filter?tag=%d", tagId)
+	return fmt.Sprintf("/filter?tag=%d", tagId)
 }
