@@ -12,7 +12,7 @@ import (
 
 // pageInfoData contains parameters passed in to create a page.
 type pageInfoData struct {
-	PageId      int64 `json:",string"`
+	PageAlias   string
 	PrivacyKey  string
 	IncludeText bool
 }
@@ -43,7 +43,7 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Load the page.
 	var pagePtr *page
-	pagePtr, err = loadPage(c, data.PageId)
+	pagePtr, err = loadPageByAlias(c, data.PageAlias)
 	if err != nil {
 		c.Errorf("Couldn't load a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

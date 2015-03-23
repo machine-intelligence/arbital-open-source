@@ -95,7 +95,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if oldPage.IsAutosave {
 			newEditNum = oldPage.Edit
 		} else {
-			newEditNum = oldPage.Edit + 1
+			newEditNum = oldPage.MaxEditEver + 1
 		}
 	}
 

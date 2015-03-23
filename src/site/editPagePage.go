@@ -25,15 +25,16 @@ var (
 
 // editPageTmplData stores the data that we pass to the template file to render the page
 type editPageTmplData struct {
-	Page *page
-	User *user.User
-	Tags []tag
+	Page    *page
+	User    *user.User
+	Tags    []tag
+	Aliases []*alias
 }
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
-var newPagePage = newPageWithOptions("/pages/edit/", editPageRenderer, editPageTmpls, editPageOptions)
-var editPagePage = newPageWithOptions("/pages/edit/{id:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
-var editPrivatePagePage = newPageWithOptions("/pages/edit/{id:[0-9]+}/{privacyKey:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
+var newPagePage = newPageWithOptions("/edit/", editPageRenderer, editPageTmpls, editPageOptions)
+var editPagePage = newPageWithOptions("/edit/{id:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
+var editPrivatePagePage = newPageWithOptions("/edit/{id:[0-9]+}/{privacyKey:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
 
 // editPageRenderer renders the edit page page.
 func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {

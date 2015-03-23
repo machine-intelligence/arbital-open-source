@@ -3,6 +3,7 @@ package site
 
 import (
 	"fmt"
+	"strconv"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
@@ -46,6 +47,7 @@ type page struct {
 
 	// Additional data.
 	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
+	MaxEditEver  int  // highest edit number used for this page for all users
 	Tags         []*tag
 }
 
@@ -94,6 +96,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.hasVote,
 			p.createdAt,p.karmaLock,p.privacyKey,p.deletedBy,p.isAutosave,p.isSnapshot,
 			(SELECT MAX(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
+			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
 			u.id,u.firstName,u.lastName
 		FROM pages AS p
 		LEFT JOIN (
@@ -105,7 +108,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.HasVote, &p.CreatedAt,
 		&p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
-		&p.WasPublished, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
+		&p.WasPublished, &p.MaxEditEver, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
@@ -122,6 +125,26 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 // If the page couldn't be found, (nil, nil) will be returned.
 func loadPage(c sessions.Context, pageId int64) (*page, error) {
 	return loadEdit(c, pageId, -1)
+}
+
+// loadPage loads and returns a page with the given id from the database.
+// If the page is deleted, minimum amount of data will be returned.
+// If the page couldn't be found, (nil, nil) will be returned.
+func loadPageByAlias(c sessions.Context, pageAlias string) (*page, error) {
+	pageId, err := strconv.ParseInt(pageAlias, 10, 64)
+	if err != nil {
+		query := fmt.Sprintf(`
+			SELECT pageId
+			FROM aliases
+			WHERE fullName="%s"`, pageAlias)
+		exists, err := database.QueryRowSql(c, query, &pageId)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load an alias: %v", err)
+		} else if !exists {
+			return nil, nil
+		}
+	}
+	return loadPage(c, pageId)
 }
 
 // loadTags loads tags corresponding to this page.
@@ -154,7 +177,7 @@ func getEditPageUrl(p *page) string {
 	if p.PrivacyKey > 0 {
 		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
 	}
-	return fmt.Sprintf("/pages/edit/%d%s", p.PageId, privacyAddon)
+	return fmt.Sprintf("/edit/%d%s", p.PageId, privacyAddon)
 }
 
 // Check if the user can edit this page. -1 = no, 0 = only as admin, 1 = yes

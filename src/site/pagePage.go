@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -48,6 +49,12 @@ type input struct {
 	CreatorId int64
 }
 
+type alias struct {
+	FullName  string
+	PageId    int64
+	PageTitle string
+}
+
 type richPage struct {
 	// DB values.
 	page
@@ -73,11 +80,12 @@ type pageTmplData struct {
 	Page        *richPage
 	LinkedPages []*richPage
 	Inputs      []*input
+	AliasMap    map[string]*alias
 }
 
 // pagePage serves the page page.
 var pagePage = newPage(
-	"/pages/{id:[0-9]+}",
+	"/pages/{alias:[A-Za-z0-9_-]+}",
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
@@ -85,7 +93,7 @@ var pagePage = newPage(
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 var privatePagePage = newPage(
-	"/pages/{id:[0-9]+}/{privacyKey:[0-9]+}",
+	"/pages/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
@@ -324,6 +332,36 @@ func loadSubscriptions(
 	return err
 }
 
+// loadAliases loads subscription statuses corresponding to the given
+// pages and comments, and then updates the given maps.
+func loadAliases(c sessions.Context, submatches [][]string) (map[string]*alias, error) {
+	aliasMap := make(map[string]*alias)
+	var buffer bytes.Buffer
+	for _, submatch := range submatches {
+		buffer.WriteString(fmt.Sprintf(`"%s"`, submatch[1]))
+		buffer.WriteString(",")
+	}
+	aliasFullNames := strings.TrimRight(buffer.String(), ",")
+
+	query := fmt.Sprintf(`
+		SELECT a.fullName,a.pageId,p.title
+		FROM aliases as a
+		LEFT JOIN pages as p
+		ON a.pageId=p.pageId
+		WHERE a.fullName IN (%s)`,
+		aliasFullNames)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var a alias
+		err := rows.Scan(&a.FullName, &a.PageId, &a.PageTitle)
+		if err != nil {
+			return fmt.Errorf("failed to scan for an alias: %v", err)
+		}
+		aliasMap[a.FullName] = &a
+		return nil
+	})
+	return aliasMap, err
+}
+
 // pageRenderer renders the page page.
 func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	var err error
@@ -334,13 +372,23 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	// Load the parent page
 	var pageId int64
 	pageMap := make(map[int64]*richPage)
-	pageIdStr := mux.Vars(r)["id"]
-	pageId, err = strconv.ParseInt(pageIdStr, 10, 64)
+	pageAlias := mux.Vars(r)["alias"]
+	pageId, err = strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
-		c.Inc("page_fetch_fail")
-		c.Errorf("invalid id passed: %v", err)
-		return showError(w, r, err)
+		// Okay, it's not an id, but could be an alias.
+		query := fmt.Sprintf(`SELECT pageId FROM aliases WHERE fullName="%s"`, pageAlias)
+		exists, err := database.QueryRowSql(c, query, &pageId)
+		if err != nil {
+			c.Inc("page_fetch_fail")
+			c.Errorf("Couldn't query aliases: %v", err)
+			return showError(w, r, err)
+		} else if !exists {
+			c.Inc("page_fetch_fail")
+			c.Errorf("Page with alias '%s' doesn't exists", pageAlias)
+			return showError(w, r, err)
+		}
 	}
+	pageIdStr := fmt.Sprintf("%d", pageId)
 	mainPage, err := loadMainPage(c, data.User.Id, pageId)
 	if err != nil {
 		c.Inc("page_fetch_fail")
@@ -426,6 +474,16 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	if err != nil {
 		c.Inc("comment_likes_fetch_fail")
 		c.Errorf("error while fetching comment likes: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
+	// Load all aliases.
+	re := regexp.MustCompile(`\[\[([A-Za-z0-9_-]+?)\]\]`)
+	aliases := re.FindAllStringSubmatch(data.Page.Text, -1)
+	data.AliasMap, err = loadAliases(c, aliases)
+	if err != nil {
+		c.Inc("aliases_fetch_fail")
+		c.Errorf("error while fetching aliases: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 

@@ -17,6 +17,8 @@
 		var allTags = [{{range .Tags}}{label:"{{.FullName}}", value:"{{.Id}}"},{{end}}];
 		// Map of tag text -> tag id.
 		var tagMap = { {{range .Tags}}"{{.FullName}}":"{{.Id}}",{{end}} };
+		// Map of alias -> {pageId, title} object.
+		var pageAliases = { {{range .Aliases}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
 	</script>
 	<title>{{if gt .Page.PageId 0}}Edit - {{.Page.Title}}{{else}}New Page{{end}} - Zanaduu</title>
 </head>
@@ -82,7 +84,7 @@
 							{{if eq (GetEditLevel .) 0}}
 								<div class="alert alert-warning">Bypassing karma lock using admin priviledges.</div>
 							{{else}}
-								<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{.KarmaLock}}</div>
+								<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{.KarmaLock}}. OR this is a blog page and you are not the author.</div>
 							{{end}}
 						{{end}}
 						<div class="alert alert-info" id="autosave-label" hidden></div>
@@ -92,11 +94,6 @@
 				<!-- Title -->
 				<div class="form-group">
 					<div class="col-sm-6">
-						<!-- {{if false}}
-							{{if ne UserId .Author.Id}}
-								<div class="alert alert-danger" role="alert">You cannot edit this draft, because you did not create it.</div>
-							{{end}}
-						{{end}}-->
 						<input name="title" type="text" class="form-control input-lg" value="{{.Title}}" placeholder="Page Title" required="true" autocomplete="off">
 					</div>
 					<div class="col-sm-6 page-title">
@@ -192,7 +189,7 @@
 				<!-- Alias -->
 				<div class="form-group">
 					<label class="control-label col-sm-1">Alias</label>
-					<div class="col-sm-3">
+					<div class="col-sm-5">
 						<div class="input-group">
 							<input type="text" name="alias" placeholder='Optional alias, e.g. "Vitamin_D3_Good"' class="form-control" value="{{.Alias}}">
 						</div>

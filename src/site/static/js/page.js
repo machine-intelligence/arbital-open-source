@@ -154,7 +154,7 @@ function setupIntrasiteLink($element) {
 			if (!(pageId in fetchedPagesMap)) {
 				// Fetch page data from the server.
 				fetchedPagesMap[pageId] = null;
-				var data = {pageId: pageId, privacyKey: $link.attr("privacy-key")};
+				var data = {pageAlias: pageId, privacyKey: $link.attr("privacy-key")};
 				$.ajax({
 					type: "POST",
 					url: "/pageInfo/",
@@ -163,6 +163,10 @@ function setupIntrasiteLink($element) {
 				.success(function(r) {
 					var page = JSON.parse(r);
 					fetchedPagesMap[page.PageId] = page;
+					if (page.Alias && page.Alias !== page.PageId) {
+						// Store the alias as well.
+						fetchedPagesMap[page.Alias] = page;
+					}
 					var $popover = $("#" + $link.attr("aria-describedby"));
 					var $content = $popover.find(".popover-content");
 					$popover.find(".popover-title").text(page.Title);

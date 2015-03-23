@@ -1,6 +1,7 @@
 // Set up markdown editor and conversion.
 function setUpMarkdown(inEditMode) {
 	// TODO: get pageText and add all the comment tags
+	var host = window.location.host;
 	var converter = Markdown.getSanitizingConverter();
 	/*converter.hooks.chain("preSpanGamut", function (text) {
 		console.log("text: " + text);
@@ -29,6 +30,18 @@ function setUpMarkdown(inEditMode) {
 		});
 	});
 
+	// Convert [[Alias]] spans into links.
+	converter.hooks.chain("preSpanGamut", function (text) {
+		return text.replace(/\[\[([A-Za-z0-9_-]+?)\]\]/, function (whole, inner) {
+			var url = "http://" + host + "/pages/" + inner;
+			var pageTitle = inner;
+			if (inner in pageAliases) {
+				pageTitle = pageAliases[inner].title;
+			}
+			return "[" + pageTitle + "](" + url + ")";
+		});
+	});
+
 	InitMathjax(converter, undefined, "");
 
 	/*converter.hooks.chain("postNormalization", function (text, runSpanGamut) {
@@ -54,10 +67,9 @@ function setUpMarkdown(inEditMode) {
 	firstPass = false;
 
 	// Setup attributes for links that are within our domain.
-	var host = window.location.host;
 	var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 		host + // match the url host part
-		"\/pages\/([0-9]+)" + // capture pageId
+		"\/pages\/([A-Za-z0-9_-]+)" + // capture page alias
 		"(?:\/([0-9]+))?" + // optionally capture privacyId
 		"(?:\\?embed\=(true))?"); // optionally capture embed param
 	function processLinks($div, fetchEmbeddedPages) {
@@ -69,7 +81,7 @@ function setUpMarkdown(inEditMode) {
 				$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
 				if (parts[3] && fetchEmbeddedPages && !inEditMode) {
 					var $parent = $element.parent();
-					var data = {pageId: parts[1], privacyKey: parts[2], includeText: true};
+					var data = {pageAlias: parts[1], privacyKey: parts[2], includeText: true};
 					$.ajax({
 						type: "POST",
 						url: "/pageInfo/",
