@@ -336,6 +336,10 @@ func loadSubscriptions(
 // pages and comments, and then updates the given maps.
 func loadAliases(c sessions.Context, submatches [][]string) (map[string]*alias, error) {
 	aliasMap := make(map[string]*alias)
+	if len(submatches) <= 0 {
+		return aliasMap, nil
+	}
+
 	var buffer bytes.Buffer
 	for _, submatch := range submatches {
 		buffer.WriteString(fmt.Sprintf(`"%s"`, submatch[1]))
