@@ -141,14 +141,25 @@
 				<div class="page-text"></div>
 		
 				<!-- Tags -->
-				{{if .Parents}}
-					<div class="tags gray-text">
-					Stored under:&nbsp;&nbsp;
-					{{range .Parents}}
-						{{template "tag" .Parent}}
+				<div class="tags gray-text">
+					Stored under:
+					{{if .Parents}}
+						&nbsp;&nbsp;
+						{{range .Parents}}
+							{{template "tag" .Parent}}
+						{{end}}
+					{{else}}
+						None
 					{{end}}
-					</div>
-				{{end}}
+					<!--<a class="gray-link" id="add-personal-page-pair">Add Personal</a>
+					<form id="add-personal-page-pair-div" hidden>
+						<br>
+						<input name="alias" type="text">
+						<div class="alert alert-danger" hidden></div>
+						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+						<button type="submit" class="btn btn-primary" toggle-on-submit>Add</button>
+					</form>-->
+				</div>
 		
 				<!--Admin stuff -->
 				{{if IsAdmin}}

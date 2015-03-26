@@ -33,16 +33,6 @@ type pageData struct {
 	IsSnapshot     bool
 }
 
-type pagePair struct {
-	// From db.
-	Id     int64
-	Parent *page
-	Child  *page
-
-	// Populated by the code.
-	StillInUse bool // true iff this relationship is still in use
-}
-
 // editPageHandler handles requests to create a new page.
 func editPageHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
@@ -254,8 +244,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		query := fmt.Sprintf(`SELECT 1 FROM aliases WHERE pageId=%d AND fullName="%s"`, data.PageId, data.Alias)
 		exists, err := database.QueryRowSql(c, query, &ignore)
 		if err != nil {
+			tx.Rollback()
 			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check existing alias: %v", err)
 		} else if !exists {
+			tx.Rollback()
 			return http.StatusBadRequest, fmt.Sprintf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
 		}
 	}

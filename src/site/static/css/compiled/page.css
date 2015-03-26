@@ -69,6 +69,7 @@
 }
 .gray-link {
   color: #b8b8b8;
+  cursor: pointer;
 }
 .gray-link:focus {
   color: #9f9f9f;
@@ -493,6 +494,7 @@
 }
 .new-comment-link {
   color: #b8b8b8;
+  cursor: pointer;
 }
 .new-comment-link:focus {
   color: #9f9f9f;

@@ -431,6 +431,12 @@ $(function() {
 		return false;
 	});
 
+	// Add personal page pair stuff.
+	$("#add-personal-page-pair").on("click", function(event) {
+		console.log("blah");
+		$("#add-personal-page-pair-div").toggle();
+	});
+
 	// Intrasite link hover.
 	setupIntrasiteLink($(".intrasite-link"));
 });

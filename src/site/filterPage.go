@@ -113,7 +113,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	pageIdsStr := strings.Join(pageIds, ",")
 
 	// Load tags.
-	err = loadParents(c, pageMap)
+	err = loadParents(c, pageMap, data.User.Id)
 	if err != nil {
 		c.Errorf("Couldn't retrieve page parents: %v", err)
 		return pages.InternalErrorWith(err)

@@ -67,6 +67,18 @@ type page struct {
 	LinkedFrom   []*page
 }
 
+// pagePair describes a parent child relationship, which are stored in pagePairs db table.
+type pagePair struct {
+	// From db.
+	Id     int64
+	Parent *page
+	Child  *page
+	UserId int64
+
+	// Populated by the code.
+	StillInUse bool // true iff this relationship is still in use
+}
+
 // loadFullEdit loads and retuns the last edit for the given page id and user id,
 // even if it's not live. It also loads all the auxillary data like tags.
 // If the page couldn't be found, (nil, nil) will be returned.
@@ -78,7 +90,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	if pagePtr == nil {
 		return nil, nil
 	}
-	err = pagePtr.loadParents(c)
+	err = pagePtr.loadParents(c, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -164,24 +176,24 @@ func loadPageByAlias(c sessions.Context, pageAlias string) (*page, error) {
 }
 
 // loadParents loads parents corresponding to this page.
-func (p *page) loadParents(c sessions.Context) error {
+func (p *page) loadParents(c sessions.Context, userId int64) error {
 	pageMap := make(map[int64]*page)
 	pageMap[p.PageId] = p
-	err := loadParents(c, pageMap)
+	err := loadParents(c, pageMap, userId)
 	return err
 }
 
 // loadParents loads parents for the given pages.
-func loadParents(c sessions.Context, pageMap map[int64]*page) error {
+func loadParents(c sessions.Context, pageMap map[int64]*page, userId int64) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
 	whereClause := "FALSE"
 	for id, p := range pageMap {
-		whereClause += fmt.Sprintf(" OR (pp.childId=%d AND pp.childEdit=%d)", id, p.Edit)
+		whereClause += fmt.Sprintf(" OR (pp.childId=%d AND (pp.childEdit=%d OR pp.userId=%d))", id, p.Edit, userId)
 	}
 	query := fmt.Sprintf(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.childEdit,p.Title,p.Alias
+		SELECT pp.id,pp.parentId,pp.childId,pp.childEdit,pp.userId,p.Title,p.Alias
 		FROM pagePairs AS pp
 		LEFT JOIN pages AS p
 		ON (p.pageId=pp.parentId AND p.isCurrentEdit)
@@ -190,7 +202,7 @@ func loadParents(c sessions.Context, pageMap map[int64]*page) error {
 		var p pagePair
 		p.Parent = &page{}
 		p.Child = &page{}
-		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.Child.Edit, &p.Parent.Title, &p.Parent.Alias)
+		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.Child.Edit, &p.UserId, &p.Parent.Title, &p.Parent.Alias)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
