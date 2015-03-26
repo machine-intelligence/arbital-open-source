@@ -2,12 +2,12 @@
 package site
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,16 +27,20 @@ type pageData struct {
 	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
 	KeepPrivacyKey bool
 	KarmaLock      int
-	TagIds         []int64
+	ParentIds      string
 	Alias          string // if empty, leave the current one
 	IsAutosave     bool
 	IsSnapshot     bool
 }
 
-type pageTagPair struct {
-	tag
+type pagePair struct {
+	// From db.
+	Id     int64
+	Parent *page
+	Child  *page
 
-	StillInUse bool // true iff this tag is still in use (used in the code)
+	// Populated by the code.
+	StillInUse bool // true iff this relationship is still in use
 }
 
 // editPageHandler handles requests to create a new page.
@@ -68,6 +72,17 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 	if data.PageId <= 0 {
 		return http.StatusBadRequest, fmt.Sprintf("No pageId specified")
+	}
+	parentIds := make([]int64, 0, 0)
+	if data.ParentIds != "" {
+		parentStrIds := strings.Split(data.ParentIds, ",")
+		for _, parentStrId := range parentStrIds {
+			parentId, err := strconv.ParseInt(parentStrId, 10, 64)
+			if err != nil {
+				return http.StatusBadRequest, fmt.Sprintf("Invalid parent id: %s", parentStrId)
+			}
+			parentIds = append(parentIds, parentId)
+		}
 	}
 
 	// Load user object
@@ -101,6 +116,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Error checking.
 	data.Type = strings.ToLower(data.Type)
+	if data.IsAutosave && data.IsSnapshot {
+		return http.StatusBadRequest, fmt.Sprintf("Can't be autosave and snapshot")
+	}
 	if !data.IsAutosave {
 		if len(data.Title) <= 0 || len(data.Text) <= 0 {
 			return http.StatusBadRequest, fmt.Sprintf("Need title and text")
@@ -111,9 +129,11 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
 			return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
 		}
-	}
-	if data.IsAutosave && data.IsSnapshot {
-		return http.StatusBadRequest, fmt.Sprintf("Can't be autosave and snapshot")
+		for _, parentId := range parentIds {
+			if parentId == data.PageId {
+				return http.StatusBadRequest, fmt.Sprintf("Can't set a page as its own parent")
+			}
+		}
 	}
 	if oldPage.PageId > 0 {
 		if oldPage.PrivacyKey > 0 && oldPage.PrivacyKey != data.PrivacyKey {
@@ -127,23 +147,17 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 	}
 
-	// Check that all the tag ids are valid.
-	// TODO: check that you can apply the given tags
-	if len(data.TagIds) > 0 {
-		var buffer bytes.Buffer
-		for _, id := range data.TagIds {
-			buffer.WriteString(fmt.Sprintf("%d", id))
-			buffer.WriteString(",")
-		}
-		tagIds := strings.TrimRight(buffer.String(), ",")
+	// Check that all the parent ids are valid.
+	// TODO: check that you can apply the given parent ids
+	if len(parentIds) > 0 {
 		count := 0
-		query := fmt.Sprintf(`SELECT COUNT(*) FROM tags WHERE id IN (%s)`, tagIds)
+		query := fmt.Sprintf(`SELECT COUNT(*) FROM pages WHERE pageId IN (%s) AND isCurrentEdit`, data.ParentIds)
 		_, err = database.QueryRowSql(c, query, &count)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check tags: %v", err)
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check parents: %v", err)
 		}
-		if count != len(data.TagIds) {
-			return http.StatusBadRequest, fmt.Sprintf("Some of the tags are be invalid: %v", tagIds)
+		if count != len(parentIds) {
+			return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v", data.ParentIds)
 		}
 	}
 
@@ -275,51 +289,45 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new page: %v", err)
 	}
 
-	// Create a map of tags from the old version of the page.
-	oldTagsMap := make(map[int64]*pageTagPair)
-	for _, t := range oldPage.Tags {
-		oldTagsMap[t.Id] = &pageTagPair{tag: *t}
+	// Create a map of relationships from the old version of the page.
+	oldParentsMap := make(map[int64]*pagePair)
+	for _, r := range oldPage.Parents {
+		oldParentsMap[r.Parent.PageId] = r
 	}
 
-	// Insert newly added tags and mark the ones still in use.
+	// Insert newly added pages and mark the ones still in use.
 	// TODO: make this more efficient by creating one sql command
-	for _, tagId := range data.TagIds {
-		oldPageTag := oldTagsMap[tagId]
-		if oldPageTag == nil || !overwritingEdit {
+	for _, parentId := range parentIds {
+		oldPageParent := oldParentsMap[parentId]
+		if oldPageParent == nil || !overwritingEdit {
 			hashmap := make(map[string]interface{})
-			hashmap["tagId"] = tagId
-			hashmap["pageId"] = data.PageId
-			hashmap["edit"] = newEditNum
-			if oldPageTag == nil {
-				hashmap["createdBy"] = u.Id
-				hashmap["createdAt"] = database.Now()
-			} else {
-				hashmap["createdBy"] = oldPageTag.PairCreatedBy
-				hashmap["createdAt"] = oldPageTag.PairCreatedAt
-			}
-			query := database.GetInsertSql("pageTagPairs", hashmap)
+			hashmap["parentId"] = parentId
+			hashmap["childId"] = data.PageId
+			hashmap["childEdit"] = newEditNum
+			query := database.GetInsertSql("pagePairs", hashmap)
 			_, err = tx.Exec(query)
 			if err != nil {
 				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new pageTagPair: %v", err)
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new pagePair: %v", err)
 			}
 		} else {
-			oldTagsMap[tagId].StillInUse = true
+			oldParentsMap[parentId].StillInUse = true
 		}
 	}
-	// Delete all tags that are not still in use.
+	// Delete all parents that are not still in use.
+	// TODO: make this more efficient by creating one sql command
 	if overwritingEdit {
-		for _, pair := range oldTagsMap {
+		for _, pair := range oldParentsMap {
 			if pair.StillInUse {
 				continue
 			}
 			query := fmt.Sprintf(`
-				DELETE FROM pageTagPairs
-				WHERE tagId=%d AND pageId=%d`, pair.Id, data.PageId)
+				DELETE FROM pagePairs
+				WHERE id=%d`, pair.Id)
 			_, err = tx.Exec(query)
 			if err != nil {
 				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pageTagPair: %v", err)
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pagePair: %v", err)
 			}
 		}
 	}
@@ -408,19 +416,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		// Generate updates for users who are subscribed to the tags.
-		for _, tagId := range data.TagIds {
-			_, isOldTag := oldTagsMap[tagId]
-			if oldPage.PageId <= 0 || !isOldTag {
+		// Generate updates for users who are subscribed to the parent pages.
+		if !oldPage.WasPublished {
+			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.ContextPageId = data.PageId
-				task.ToTagId = tagId
-				if oldPage.PageId <= 0 {
-					task.UpdateType = newPageWithTagUpdateType
-				} else {
-					task.UpdateType = addedTagUpdateType
-				}
+				task.ToPageId = parentId
+				task.UpdateType = newChildPageUpdateType
 				if err := task.IsValid(); err != nil {
 					c.Errorf("Invalid task created: %v", err)
 				}

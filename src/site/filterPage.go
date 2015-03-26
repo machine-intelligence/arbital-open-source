@@ -18,14 +18,11 @@ import (
 // filterTmplData stores the data that we pass to the template to render the page
 type filterTmplData struct {
 	User       *user.User
-	Pages      []*richPage
+	Pages      []*page
 	LimitCount int
 
 	Author             *dbUser
 	IsSubscribedToUser bool
-
-	Tag               *tag
-	IsSubscribedToTag bool
 }
 
 // filterPage serves the recent pages page.
@@ -82,58 +79,23 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 
 		userConstraint = fmt.Sprintf("AND creatorId=%s AND type='%s'", userParam, blogPageType)
 	}
-	// Check parameter limiting what tag has to be present on a page
-	tagConstraint := ""
-	tagParam := q.Get("tag")
-	if tagParam != "" {
-		var tagName string
-		query := fmt.Sprintf(`
-			SELECT text
-			FROM tags
-			WHERE id=%s`, tagParam)
-		_, err = database.QueryRowSql(c, query, &tagName)
-		if err != nil {
-			c.Errorf("Couldn't retrieve user name: %v", err)
-			return pages.BadRequestWith(err)
-		}
-
-		query = fmt.Sprintf(`
-			SELECT 1
-			FROM subscriptions
-			WHERE userId=%d AND toTagId=%s`, data.User.Id, tagParam)
-		data.IsSubscribedToTag, err = database.QueryRowSql(c, query, &throwaway)
-		if err != nil {
-			c.Errorf("Couldn't retrieve subscription: %v", err)
-			return pages.BadRequestWith(err)
-		}
-
-		data.Tag = &tag{Text: tagName}
-		data.Tag.Id, _ = strconv.ParseInt(tagParam, 10, 64)
-		tagConstraint = fmt.Sprintf(`
-			INNER JOIN (
-				SELECT pageId,edit
-				FROM pageTagPairs
-				WHERE tagId=%s
-			) AS t
-			ON (p.pageId=t.pageId AND p.edit=t.edit)`, tagParam)
-	}
 
 	// Load the pages
-	pageMap := make(map[int64]*richPage)
+	pageMap := make(map[int64]*page)
 	pageIds := make([]string, 0, 50)
-	data.Pages = make([]*richPage, 0, 50)
+	data.Pages = make([]*page, 0, 50)
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.title,p.privacyKey
+		SELECT p.pageId,p.title,p.alias,p.privacyKey
 		FROM pages AS p
-		%s
 		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND isCurrentEdit AND p.deletedBy=0 %s
 		ORDER BY p.createdAt DESC
-		LIMIT %d`, tagConstraint, data.User.Id, userConstraint, data.LimitCount)
+		LIMIT %d`, data.User.Id, userConstraint, data.LimitCount)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var p richPage
+		var p page
 		err := rows.Scan(
 			&p.PageId,
 			&p.Title,
+			&p.Alias,
 			&p.PrivacyKey)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
@@ -151,9 +113,9 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	pageIdsStr := strings.Join(pageIds, ",")
 
 	// Load tags.
-	err = loadTags(c, pageMap)
+	err = loadParents(c, pageMap)
 	if err != nil {
-		c.Errorf("Couldn't retrieve page tags: %v", err)
+		c.Errorf("Couldn't retrieve page parents: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 
@@ -165,17 +127,14 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	}
 
 	funcMap := template.FuncMap{
-		"IsUpdatedPage": func(p *richPage) bool {
+		"IsUpdatedPage": func(p *page) bool {
 			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 		},
-		"GetPageUrl": func(p *richPage) string {
-			return getPageUrl(&p.page)
+		"GetPageUrl": func(p *page) string {
+			return getPageUrl(p)
 		},
 		"GetUserUrl": func(userId int64) string {
 			return getUserUrl(userId)
-		},
-		"GetTagUrl": func(tagId int64) string {
-			return getTagUrl(tagId)
 		},
 	}
 	c.Inc("pages_page_served_success")

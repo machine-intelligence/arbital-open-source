@@ -1,14 +1,17 @@
 "use strict";
 
 // Create a new tag for the page.
-function createNewTagElement(value) {
+function createNewParentElement(value) {
 	var $template = $("#tag-template");
 	var $newTag = $template.clone(true);
+	var pageId = pageAliases[value].pageId;
+	var title = pageAliases[value].title;
 	$newTag.removeClass("template");
-	$newTag.text(value);
-	$newTag.attr("id", tagMap[value]);
+	$newTag.text(title);
+	$newTag.attr("id", pageId).attr("alias", value);
 	$newTag.insertBefore($template);
-	availableTags.splice(availableTags.indexOf(value), 1);
+	$newTag.attr("title", value).tooltip();
+	availableParents.splice(availableParents.indexOf(value), 1);
 }
 
 // Set up Markdown.
@@ -22,14 +25,14 @@ $(function() {
 var prevEditPageData = {};
 var callPageHandler = function(isAutosave, isSnapshot, callback) {
 	var $body = $("body");
-	var tagIds = [];
+	var parentIds = [];
 	$body.find("#tag-container").children(".tag:not(.template)").each(function(index, element) {
-		tagIds.push(+$(element).attr("id"));
+		parentIds.push($(element).attr("id"));
 	});
 	var privacyKey = $body.attr("privacy-key");
 	var data = {
 		pageId: $("body").attr("page-id"),
-		tagIds: tagIds,
+		parentIds: parentIds.join(),
 		privacyKey: privacyKey,
 		keepPrivacyKey: $("input[name='private']").is(":checked"),
 		karmaLock: $(".karma-lock-slider").slider("value"),
@@ -44,7 +47,6 @@ var callPageHandler = function(isAutosave, isSnapshot, callback) {
 		submitForm($form, "/editPage/", data, callback);
 		prevEditPageData = data;
 	} else {
-		console.log("SAME DATA!!!!");
 		callback(undefined);
 	}
 }
@@ -85,19 +87,31 @@ $(function() {
 
 	// Setup autocomplete for tags.
 	$(".tag-input").autocomplete({
-		source: availableTags,
+		source: availableParents,
+		minLength: 2,
 		select: function (event, ui) {
-			createNewTagElement(ui.item.label);
+			createNewParentElement(ui.item.label);
 			$(event.target).val("");
 			return false;
 		}
+	/*}).on("keyup", function(event) {
+		console.log("en");
+		if (event.keyCode == 13) {
+			var $target = $(event.target);
+			createNewParentElement($target.val());
+			$target.val("");
+			return false;
+		}*/
 	});
 
 	// Deleting tags. (Only inside the tag container.)
 	$("#tag-container .tag").on("click", function(event) {
 		var $target = $(event.target);
-		availableTags.push($target.text());
-		$target.remove();
+		var alias = $target.attr("alias");
+		if (alias in pageAliases) {
+			availableParents.push(alias);
+		}
+		$target.tooltip("destroy").remove();
 		return false;
 	});
 
@@ -120,7 +134,7 @@ $(function() {
 	});
 
 	// Set up new tag modal.
-	var newTagModalSetup = false;
+	/*var newTagModalSetup = false;
 	$("#new-tag-modal").on("shown.bs.modal", function (event) {
 		if (newTagModalSetup) return;
 		newTagModalSetup = true;
@@ -134,11 +148,13 @@ $(function() {
 		// Set up autocomplete on the parent tag input.
 		$parentTagInput.autocomplete({
 			source: allTags,
+			minLength: 3,
 			focus: function (event, ui) {
 				$parentTagInput.val(ui.item.label);
 				return false;
 			},
 			select: function (event, ui) {
+				event.preventDefault();
 				$parentTagInput.val(ui.item.value).toggle();
 				$parentLink.text(ui.item.label);
 				$tagInput.focus();
@@ -148,7 +164,7 @@ $(function() {
 
 		// Set up canceling parent tag by clicking on it.
 		$parentLink.on("click", function (event) {
-			$parentTagInput.val("").toggle();
+			$parentTagInput.val("").toggle().focus();
 			$parentLink.text("");
 			return false;
 		});
@@ -187,7 +203,7 @@ $(function() {
 			});
 			return false;
 		});
-	});
+	});*/
 });
 
 // Trigger initial setup.
@@ -196,9 +212,9 @@ $(function() {
 	$(".type-select").trigger("change");
 
 	// Process tags that are already being used.
-	var usedTagsLength = usedTags.length;
-	for(var i = 0; i < usedTagsLength; i++) {
-		createNewTagElement(usedTags[i]);
+	var parentsLength = parents.length;
+	for(var i = 0; i < parentsLength; i++) {
+		createNewParentElement(parents[i]);
 	}
 
 	// Setup karma lock slider.

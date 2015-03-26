@@ -46,24 +46,48 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: check if this subscription already exists
-
-	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["createdAt"] = database.Now()
 	if data.PageId > 0 {
-		hashmap["toPageId"] = data.PageId
+		err = addSubscriptionToPage(c, u.Id, data.PageId)
 	} else if data.CommentId > 0 {
-		hashmap["toCommentId"] = data.CommentId
+		err = addSubscriptionToComment(c, u.Id, data.CommentId)
 	} else if data.UserId > 0 {
-		hashmap["toUserId"] = data.UserId
+		err = addSubscriptionToUser(c, u.Id, data.UserId)
 	} else if data.TagId > 0 {
-		hashmap["toTagId"] = data.TagId
+		err = addSubscriptionToTag(c, u.Id, data.TagId)
 	}
-	sql := database.GetInsertSql("subscriptions", hashmap)
-	if _, err = database.ExecuteSql(c, sql); err != nil {
+	if err != nil {
 		c.Inc("new_subscription_fail")
 		c.Errorf("Couldn't create new subscription: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func addSubscriptionToPage(c sessions.Context, userId int64, pageId int64) error {
+	hashmap := map[string]interface{}{"toPageId": pageId}
+	return addSubscription(c, hashmap, userId)
+}
+
+func addSubscriptionToComment(c sessions.Context, userId int64, commentId int64) error {
+	hashmap := map[string]interface{}{"toCommentId": commentId}
+	return addSubscription(c, hashmap, userId)
+}
+
+func addSubscriptionToUser(c sessions.Context, userId int64, toUserId int64) error {
+	hashmap := map[string]interface{}{"toUserId": toUserId}
+	return addSubscription(c, hashmap, userId)
+}
+
+func addSubscriptionToTag(c sessions.Context, userId int64, tagId int64) error {
+	// TODO: check that the tag is not personal (or ours)
+	hashmap := map[string]interface{}{"toTagId": tagId}
+	return addSubscription(c, hashmap, userId)
+}
+
+func addSubscription(c sessions.Context, hashmap map[string]interface{}, userId int64) error {
+	hashmap["userId"] = userId
+	hashmap["createdAt"] = database.Now()
+	query := database.GetInsertSql("subscriptions", hashmap, "userId")
+	_, err := database.ExecuteSql(c, query)
+	return err
 }

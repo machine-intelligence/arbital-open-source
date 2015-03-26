@@ -19,9 +19,6 @@
 		{{if .Author}}
 			<p>Created by: {{template "userName" .Author}} <a href="#" class="subscribe-to-user-link glyphicon glyphicon-eye-open {{if .IsSubscribedToUser}}on{{end}}" user-id="{{.Author.Id}}"></a></p>
 		{{end}}
-		{{if .Tag}}
-			<p>Have tag: {{template "tag" .Tag}} <a href="#" class="subscribe-to-tag-link glyphicon glyphicon-eye-open {{if .IsSubscribedToTag}}on{{end}}" tag-id="{{.Tag.Id}}"></a></p>
-		{{end}}
 	{{end}}
 	<ul class="list-unstyled">
 		{{range .Pages}}
@@ -42,8 +39,8 @@
 						by {{.CreatorName}}
 					{{end}}
 					<div>
-						{{range .Tags}}
-							{{template "tag" .}}
+						{{range .Parents}}
+							{{template "tag" .Parent}}
 						{{end}}
 					</div>
 				</div>

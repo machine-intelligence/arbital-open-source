@@ -99,7 +99,7 @@ var submitForm = function($form, url, data, success) {
 	}
 
 	if (!("__formSerialized" in data)) {
-		seralizeFormData($form, data);
+		serializeFormData($form, data);
 	}
 	console.log(data);
 

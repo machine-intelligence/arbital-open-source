@@ -125,7 +125,9 @@
 		
 			<!-- Main page column -->
 			<div class="mid-column pull-left">
-				<div class="page-title">{{template "title" .}}</div>
+				<div class="page-title">
+					{{template "title" .}}
+				</div>
 				{{if eq .Type "blog"}}
 					<div class="author-text">by {{template "userName" .Author}}</div>
 				{{end}}
@@ -139,11 +141,11 @@
 				<div class="page-text"></div>
 		
 				<!-- Tags -->
-				{{if .Tags}}
+				{{if .Parents}}
 					<div class="tags gray-text">
-					Tagged as:&nbsp;&nbsp;
-					{{range .Tags}}
-						{{template "tag" .}}
+					Stored under:&nbsp;&nbsp;
+					{{range .Parents}}
+						{{template "tag" .Parent}}
 					{{end}}
 					</div>
 				{{end}}

@@ -2,6 +2,7 @@
 package site
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 
@@ -20,8 +21,7 @@ const (
 	replyUpdateType           = "reply"
 	pageEditUpdateType        = "pageEdit"
 	newPageByUserUpdateType   = "newPageByUser"
-	newPageWithTagUpdateType  = "newPageWithTag"
-	addedTagUpdateType        = "addedTag"
+	newChildPageUpdateType    = "newChildPage"
 
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	maxKarmaLockFraction = 0.8
@@ -45,10 +45,26 @@ type page struct {
 	IsAutosave bool
 	IsSnapshot bool
 
-	// Additional data.
+	// Data loaded from other tables.
+	LastVisit string
+
+	// Computed values.
+	InputCount   int //used?
+	IsSubscribed bool
+	LikeCount    int
+	DislikeCount int
+	MyLikeValue  int
+	VoteValue    sql.NullFloat64
+	VoteCount    int
+	MyVoteValue  sql.NullFloat64
+	Contexts     []*page //used?
+	Links        []*page //used?
+	Comments     []*comment
 	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
 	MaxEditEver  int  // highest edit number used for this page for all users
-	Tags         []*tag
+	Parents      []*pagePair
+	Children     []*pagePair
+	LinkedFrom   []*page
 }
 
 // loadFullEdit loads and retuns the last edit for the given page id and user id,
@@ -62,7 +78,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	if pagePtr == nil {
 		return nil, nil
 	}
-	err = pagePtr.loadTags(c)
+	err = pagePtr.loadParents(c)
 	if err != nil {
 		return nil, err
 	}
@@ -147,12 +163,41 @@ func loadPageByAlias(c sessions.Context, pageAlias string) (*page, error) {
 	return loadPage(c, pageId)
 }
 
-// loadTags loads tags corresponding to this page.
-func (p *page) loadTags(c sessions.Context) error {
-	pageMap := make(map[int64]*richPage)
-	pageMap[p.PageId] = &richPage{page: *p}
-	err := loadTags(c, pageMap)
-	p.Tags = pageMap[p.PageId].Tags
+// loadParents loads parents corresponding to this page.
+func (p *page) loadParents(c sessions.Context) error {
+	pageMap := make(map[int64]*page)
+	pageMap[p.PageId] = p
+	err := loadParents(c, pageMap)
+	return err
+}
+
+// loadParents loads parents for the given pages.
+func loadParents(c sessions.Context, pageMap map[int64]*page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	whereClause := "FALSE"
+	for id, p := range pageMap {
+		whereClause += fmt.Sprintf(" OR (pp.childId=%d AND pp.childEdit=%d)", id, p.Edit)
+	}
+	query := fmt.Sprintf(`
+		SELECT pp.id,pp.parentId,pp.childId,pp.childEdit,p.Title,p.Alias
+		FROM pagePairs AS pp
+		LEFT JOIN pages AS p
+		ON (p.pageId=pp.parentId AND p.isCurrentEdit)
+		WHERE %s`, whereClause)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var p pagePair
+		p.Parent = &page{}
+		p.Child = &page{}
+		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.Child.Edit, &p.Parent.Title, &p.Parent.Alias)
+		if err != nil {
+			return fmt.Errorf("failed to scan for page pairs: %v", err)
+		}
+		p.Child = pageMap[p.Child.PageId]
+		pageMap[p.Child.PageId].Parents = append(pageMap[p.Child.PageId].Parents, &p)
+		return nil
+	})
 	return err
 }
 
@@ -168,7 +213,7 @@ func getPageUrl(p *page) string {
 	if p.PrivacyKey > 0 {
 		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
 	}
-	return fmt.Sprintf("/pages/%d%s", p.PageId, privacyAddon)
+	return fmt.Sprintf("/pages/%s%s", p.Alias, privacyAddon)
 }
 
 // getEditPageUrl returns the domain relative url for editing the given page.

@@ -20,7 +20,6 @@ type NewUpdateTask struct {
 	ToPageId    int64
 	ToCommentId int64
 	ToUserId    int64
-	ToTagId     int64
 }
 
 // Check if this task is valid, and we can safely execute it.
@@ -29,7 +28,7 @@ func (task *NewUpdateTask) IsValid() error {
 		return fmt.Errorf("User id has to be set")
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
-	} else if task.ToPageId <= 0 && task.ToCommentId <= 0 && task.ToUserId <= 0 && task.ToTagId <= 0 {
+	} else if task.ToPageId <= 0 && task.ToCommentId <= 0 && task.ToUserId <= 0 {
 		return fmt.Errorf("At least on To___Id has to be specified")
 	}
 	return nil
@@ -50,8 +49,6 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		whereClause = fmt.Sprintf("WHERE toCommentId=%d", task.ToCommentId)
 	} else if task.ToUserId > 0 {
 		whereClause = fmt.Sprintf("WHERE toUserId=%d", task.ToUserId)
-	} else if task.ToTagId > 0 {
-		whereClause = fmt.Sprintf("WHERE toTagId=%d", task.ToTagId)
 	} else {
 		return -1, err
 	}
@@ -77,10 +74,10 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 			SELECT id
 			FROM updates
 			WHERE userId=%d AND type="%s" AND seen=0 AND contextPageId=%d AND
-				fromPageId=%d AND fromCommentId=%d AND fromUserId=%d AND fromTagId=%d
+				fromPageId=%d AND fromCommentId=%d AND fromUserId=%d
 			ORDER BY updatedAt DESC
 			LIMIT 1`,
-			userId, task.UpdateType, task.ContextPageId, task.ToPageId, task.ToCommentId, task.ToUserId, task.ToTagId)
+			userId, task.UpdateType, task.ContextPageId, task.ToPageId, task.ToCommentId, task.ToUserId)
 		exists, err = database.QueryRowSql(c, query, &updateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
@@ -101,7 +98,6 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 			hashmap["fromPageId"] = task.ToPageId
 			hashmap["fromCommentId"] = task.ToCommentId
 			hashmap["fromUserId"] = task.ToUserId
-			hashmap["fromTagId"] = task.ToTagId
 			hashmap["createdAt"] = database.Now()
 			hashmap["updatedAt"] = database.Now()
 			hashmap["count"] = 1

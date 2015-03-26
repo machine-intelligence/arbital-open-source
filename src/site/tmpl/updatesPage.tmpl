@@ -16,7 +16,7 @@
 	{{range .UpdatedPages}}
 		<div class="panel panel-default">
 			<div class="panel-heading">
-		    <a href="{{GetPageUrl .}}" class="update-page-summary-link panel-title">{{template "title" .}}</a>
+		    <a href="{{GetPageUrl .Page}}" class="update-page-summary-link panel-title">{{template "title" .Page}}</a>
 		  </div>
 			<div class="panel-body">
 				{{range $k, $v := .Updates}}
@@ -28,10 +28,8 @@
 						This page has been edited.
 					{{else if eq $k "newPageByUser"}}
 						This new page was created by {{template "userName" $v.FromUser}}.
-					{{else if eq $k "newPageWithTag"}}
-						This new page was created with {{template "tag" $v.FromTag}}.
-					{{else if eq $k "addedTag"}}
-						{{template "tag" $v.FromTag}} has been added to this page.
+					{{else if eq $k "newChildPage"}}
+						This new page was created as a child of {{template "tag" $v.FromPage}}
 					{{end}}
 					<br>
 				{{end}}

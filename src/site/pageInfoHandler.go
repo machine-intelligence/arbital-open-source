@@ -42,16 +42,14 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the page.
-	var pagePtr *page
-	pagePtr, err = loadPageByAlias(c, data.PageAlias)
+	p, err := loadPageByAlias(c, data.PageAlias)
 	if err != nil {
 		c.Errorf("Couldn't load a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	p := &richPage{page: *pagePtr}
 	pageIdStr := fmt.Sprintf("%d", p.PageId)
-	pageMap := make(map[int64]*richPage)
+	pageMap := make(map[int64]*page)
 	pageMap[p.PageId] = p
 
 	// Remove unnecessary data.

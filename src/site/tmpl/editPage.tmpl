@@ -7,20 +7,17 @@
 	{{template "scripts"}}
 	<script src="/static/js/editPage.js"></script>
 	<script>
-		// This array is used for autocompletion.
-		// TODO: populate this from tagMap
-		var availableTags = [{{range .Tags}}"{{.FullName}}",{{end}}];
-		// This array is used to update the page when it loads to correctly display what tags it already uses.
-		var usedTags = [{{range .Page.Tags}}"{{.FullName}}",{{end}}];
-		// This array contains all tags.
-		// TODO: populate this from tagMap
-		var allTags = [{{range .Tags}}{label:"{{.FullName}}", value:"{{.Id}}"},{{end}}];
-		// Map of tag text -> tag id.
-		var tagMap = { {{range .Tags}}"{{.FullName}}":"{{.Id}}",{{end}} };
-		// Map of alias -> {pageId, title} object.
-		var pageAliases = { {{range .Aliases}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
+		// Map of all aliases: fullName -> {pageId, title}
+		var pageAliases = { {{range .Aliases}}"{{.FullName}}":{pageId:"{{.PageId}}", title:"{{.PageTitle}}"},{{end}} };
+		// This array stores the parents the page has.
+		var parents = [{{range .Page.Parents}}"{{.Parent.Alias}}",{{end}}];
+		// This array is used for "new parent" autocompletion.
+		var availableParents = [];
+		for (var fullName in pageAliases) {
+			availableParents.push(fullName);
+		}
 	</script>
-	<title>{{if gt .Page.PageId 0}}Edit - {{.Page.Title}}{{else}}New Page{{end}} - Zanaduu</title>
+	<title>{{if .Page.Title}}Edit - {{.Page.Title}}{{else}}New Page{{end}} - Zanaduu</title>
 </head>
 
 <body privacy-key="{{.Page.PrivacyKey}}" page-id="{{.Page.PageId}}">
@@ -28,7 +25,7 @@
 {{template "navbar" .User}}
 
 <!-- Modal for creating new tags. -->
-<div class="modal fade" id="new-tag-modal" tabindex="-1">
+<!--<div class="modal fade" id="new-tag-modal" tabindex="-1">
 	<div class="modal-dialog">
 		<form class="new-tag-form modal-content">
 			<div class="modal-header">
@@ -52,17 +49,18 @@
 					</div>
 				</div>
 			</div>
-			<div class="modal-footer">
+			<div class="modal-footer">-->
 				<!-- Misc form stuff for submission / saving. -->
-				<div class="alert alert-danger" hidden></div>
+				<!--<div class="alert alert-danger" hidden></div>
 				<div class="alert alert-success" hidden></div>
 				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 				<button type="submit" class="add-tag-button btn btn-default" toggle-on-submit>Add</button>
 				<button type="submit" class="add-tag-close-button btn btn-primary" toggle-on-submit>Add &amp; Close</button>
 			</div>
-		</form><!-- /.modal-content -->
-	</div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+		</form>
+	</div>
+</div>
+-->
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
@@ -170,19 +168,16 @@
 					</div>
 				</div>
 		
-				<!-- Tags -->
+				<!-- Parents -->
 				<div class="form-group">
-					<label class="control-label col-sm-1">Tags</label>
+					<label class="control-label col-sm-1">Parents</label>
 					<div class="col-sm-2">
 						<div class="input-group">
 							<input type="text" class="tag-input form-control">
-							<span class="input-group-btn">
-								<button class="new-tag-button btn btn-default" type="button" data-toggle="modal" data-target="#new-tag-modal">New</button>
-							</span>
 						</div>
 					</div>
 					<div class="col-sm-3" id="tag-container">
-						<a href="#" class="tag template label label-default" id="tag-template"></a>
+						<a href="#" class="tag template label label-default" id="tag-template" data-toggle="tooltip" title=""></a>
 					</div>
 				</div>
 

@@ -27,7 +27,7 @@ var (
 type editPageTmplData struct {
 	Page    *page
 	User    *user.User
-	Tags    []tag
+	Parents []*page
 	Aliases []*alias
 }
 
@@ -79,7 +79,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return pages.InternalErrorWith(err)
 	} else if data.Page == nil {
 		// Set IsAutosave to true, so we can check whether or not to show certain settings
-		data.Page = &page{PageId: pageId, IsAutosave: true}
+		data.Page = &page{PageId: pageId, Alias: fmt.Sprintf("%d", pageId), IsAutosave: true}
 	}
 	// Check if the privacy key we got is correct.
 	if !data.Page.WasPublished && data.Page.Author.Id == data.User.Id {
@@ -88,24 +88,24 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privacy key given."))
 	}
 
-	// Load tags.
-	data.Tags = make([]tag, 0)
+	// Load aliases.
+	data.Aliases = make([]*alias, 0)
 	query := fmt.Sprintf(`
-		SELECT id,parentId,text,fullName
-		FROM tags
-		WHERE NOT isPrivate`)
+		SELECT pageId,alias,title
+		FROM pages
+		WHERE isCurrentEdit`)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var t tag
-		err := rows.Scan(&t.Id, &t.ParentId, &t.Text, &t.FullName)
+		var a alias
+		err := rows.Scan(&a.PageId, &a.FullName, &a.PageTitle)
 		if err != nil {
-			return fmt.Errorf("failed to scan for tag: %v", err)
+			return fmt.Errorf("failed to scan for aliases: %v", err)
 		}
-		data.Tags = append(data.Tags, t)
+		data.Aliases = append(data.Aliases, &a)
 		return nil
 	})
 	if err != nil {
 		c.Inc("edit_page_failed")
-		c.Errorf("Couldn't load tags: %v", err)
+		c.Errorf("Couldn't load aliases: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 

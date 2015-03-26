@@ -1,7 +1,7 @@
 // tagHelpers.go contains the tag struct as well as helpful functions.
 package site
 
-import (
+/*import (
 	"database/sql"
 	"fmt"
 	"strings"
@@ -82,4 +82,4 @@ func loadTags(c sessions.Context, pageMap map[int64]*richPage) error {
 // getTagUrl returns URL for looking at recently created pages with the given tag.
 func getTagUrl(tagId int64) string {
 	return fmt.Sprintf("/filter?tag=%d", tagId)
-}
+}*/

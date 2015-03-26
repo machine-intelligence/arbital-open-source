@@ -398,7 +398,7 @@
 }
 .reply {
   margin-left: 5px;
-  padding-left: 15px;
+  padding-left: 20px;
   border-left: 1px solid #aaaaff;
 }
 .edit-comment-link {
@@ -690,7 +690,7 @@ textarea.new-comment-text {
   color: #ff0032;
 }
 .vote {
-  margin-top: 7px;
+  margin-top: 20px;
 }
 .slider {
   cursor: pointer;

@@ -2,10 +2,12 @@
 package site
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -17,15 +19,13 @@ type update struct {
 	Count         int
 	FromCommentId int64
 	FromUser      *dbUser
-	FromTag       *tag
+	FromPage      *page
 }
 
 type updatedPage struct {
-	page
-
+	Page      *page
 	UpdatedAt string
 	Updates   map[string]*update // update type -> update
-	LastVisit string             // not populated
 }
 
 // updatesTmplData stores the data that we pass to the updates.tmpl to render the page
@@ -51,51 +51,47 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 
 	// Load the updates
 	data.UpdatedPages = make([]*updatedPage, 0)
-	pageMap := make(map[int64]*updatedPage)
+	updatedPagesMap := make(map[int64]*updatedPage)
+	pageMap := make(map[int64]*page)
 	userMap := make(map[int64]*dbUser)
-	tagMap := make(map[int64]*tag)
+	var buffer bytes.Buffer
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.privacyKey,p.title,u.updatedAt,u.type,u.count,u.fromCommentId,u.fromUserId,u.fromTagId
-		FROM updates AS u
-		LEFT JOIN (
-			SELECT pageId,privacyKey,title
-			FROM pages
-			WHERE isCurrentEdit AND deletedBy=0
-		) AS p
-		ON u.contextPageId=p.pageId
-		WHERE u.userId=%d AND u.seen=0
-		ORDER BY u.updatedAt DESC
+		SELECT contextPageId,updatedAt,type,count,fromCommentId,fromUserId,fromPageId
+		FROM updates
+		WHERE userId=%d AND seen=0
+		ORDER BY updatedAt DESC
 		LIMIT 50`, data.User.Id)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var uc updatedPage
 		var u update
-		var updateType string
-		var fromUserId, fromTagId int64
+		var pageId, fromUserId, fromPageId int64
+		var updateType, updatedAt string
 		err := rows.Scan(
-			&uc.PageId,
-			&uc.PrivacyKey,
-			&uc.Title,
-			&uc.UpdatedAt,
+			&pageId,
+			&updatedAt,
 			&updateType,
 			&u.Count,
 			&u.FromCommentId,
 			&fromUserId,
-			&fromTagId)
+			&fromPageId)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
-		// Create/get the current page.
-		curPage, ok := pageMap[uc.PageId]
+		// Create/get the updated page.
+		curPage, ok := updatedPagesMap[pageId]
 		if !ok {
-			uc.Updates = make(map[string]*update)
-			curPage = &uc
-			pageMap[curPage.PageId] = curPage
+			curPage = &updatedPage{}
+			curPage.Page = &page{PageId: pageId}
+			curPage.Updates = make(map[string]*update)
+			curPage.UpdatedAt = updatedAt
+			updatedPagesMap[pageId] = curPage
 			data.UpdatedPages = append(data.UpdatedPages, curPage)
+			pageMap[pageId] = curPage.Page
+			buffer.WriteString(fmt.Sprintf("%d,", pageId))
 		}
 
 		// Create/get the current update.
-		curUpdate, ok2 := curPage.Updates[updateType]
-		if !ok2 {
+		curUpdate, ok := curPage.Updates[updateType]
+		if !ok {
 			curUpdate = &u
 			curPage.Updates[updateType] = curUpdate
 		} else {
@@ -103,23 +99,24 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		}
 
 		// If there is a user, proces it.
-		if fromUserId > 0 {
-			curUser, ok3 := userMap[fromUserId]
-			if !ok3 {
+		if fromUserId > 0 && curUpdate.FromUser == nil {
+			curUser, ok := userMap[fromUserId]
+			if !ok {
 				curUser = &dbUser{Id: fromUserId}
 				userMap[fromUserId] = curUser
 			}
 			curUpdate.FromUser = curUser
 		}
 
-		// If there is a tag, proces it.
-		if fromTagId > 0 {
-			curTag, ok3 := tagMap[fromTagId]
-			if !ok3 {
-				curTag = &tag{Id: fromTagId}
-				tagMap[fromTagId] = curTag
+		// If there is a fromPage, process it.
+		if fromPageId > 0 && curUpdate.FromPage == nil {
+			fromPage, ok := pageMap[fromPageId]
+			if !ok {
+				fromPage = &page{PageId: fromPageId}
+				pageMap[fromPageId] = fromPage
+				buffer.WriteString(fmt.Sprintf("%d,", fromPageId))
 			}
-			curUpdate.FromTag = curTag
+			curUpdate.FromPage = fromPage
 		}
 		return nil
 	})
@@ -128,17 +125,36 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		return pages.InternalErrorWith(err)
 	}
 
+	// Load pages.
+	pageIds := strings.TrimRight(buffer.String(), ",")
+	if pageIds != "" {
+		query = fmt.Sprintf(`
+			SELECT pageId,privacyKey,title,alias
+			FROM pages
+			WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s)`, pageIds)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var p page
+			err := rows.Scan(
+				&p.PageId,
+				&p.PrivacyKey,
+				&p.Title,
+				&p.Alias)
+			if err != nil {
+				return fmt.Errorf("failed to scan a page: %v", err)
+			}
+			*pageMap[p.PageId] = p
+			return nil
+		})
+		if err != nil {
+			c.Errorf("error while loading pages: %v", err)
+			return pages.InternalErrorWith(err)
+		}
+	}
+
 	// Load the names for all users.
 	err = loadUsersInfo(c, userMap)
 	if err != nil {
 		c.Errorf("error while loading user names: %v", err)
-		return pages.InternalErrorWith(err)
-	}
-
-	// Load the names for all tags.
-	err = loadTagNames(c, tagMap)
-	if err != nil {
-		c.Errorf("error while loading tag names: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 
@@ -149,17 +165,14 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	}
 
 	funcMap := template.FuncMap{
-		"IsUpdatedPage": func(p *updatedPage) bool {
+		"IsUpdatedPage": func(p *page) bool {
 			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 		},
-		"GetPageUrl": func(p *updatedPage) string {
-			return getPageUrl(&p.page)
+		"GetPageUrl": func(p *page) string {
+			return getPageUrl(p)
 		},
 		"GetUserUrl": func(userId int64) string {
 			return getUserUrl(userId)
-		},
-		"GetTagUrl": func(tagId int64) string {
-			return getTagUrl(tagId)
 		},
 	}
 	c.Inc("updates_page_served_success")
