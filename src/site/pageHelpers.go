@@ -193,7 +193,7 @@ func loadParents(c sessions.Context, pageMap map[int64]*page, userId int64) erro
 		whereClause += fmt.Sprintf(" OR (pp.childId=%d AND (pp.childEdit=%d OR pp.userId=%d))", id, p.Edit, userId)
 	}
 	query := fmt.Sprintf(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.childEdit,pp.userId,p.Title,p.Alias
+		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.Title,p.Alias
 		FROM pagePairs AS pp
 		LEFT JOIN pages AS p
 		ON (p.pageId=pp.parentId AND p.isCurrentEdit)
@@ -202,7 +202,7 @@ func loadParents(c sessions.Context, pageMap map[int64]*page, userId int64) erro
 		var p pagePair
 		p.Parent = &page{}
 		p.Child = &page{}
-		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.Child.Edit, &p.UserId, &p.Parent.Title, &p.Parent.Alias)
+		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.UserId, &p.Parent.Title, &p.Parent.Alias)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}

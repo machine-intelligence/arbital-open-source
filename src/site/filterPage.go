@@ -85,7 +85,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	pageIds := make([]string, 0, 50)
 	data.Pages = make([]*page, 0, 50)
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.title,p.alias,p.privacyKey
+		SELECT p.pageId,p.edit,p.title,p.alias,p.privacyKey
 		FROM pages AS p
 		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND isCurrentEdit AND p.deletedBy=0 %s
 		ORDER BY p.createdAt DESC
@@ -94,6 +94,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		var p page
 		err := rows.Scan(
 			&p.PageId,
+			&p.Edit,
 			&p.Title,
 			&p.Alias,
 			&p.PrivacyKey)

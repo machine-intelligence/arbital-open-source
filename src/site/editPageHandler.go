@@ -171,6 +171,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			privacyKey = rand.Int63()
 		}
 	}
+	if data.Alias == "" {
+		data.Alias = fmt.Sprintf("%d", data.PageId)
+	}
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 
 	// Try to extract the summary out of the text.
