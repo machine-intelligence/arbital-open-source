@@ -191,6 +191,18 @@
 					</div>
 				</div>
 		
+				<!-- Sort children option -->
+				<div class="form-group">
+					<label class="title-label control-label col-sm-1">Sort Children</label>
+					<div class="col-sm-2">
+						<select name="sortChildrenBy" class="sort-children-select form-control">
+							<option value="likes" {{if eq .SortChildrenBy "likes"}}selected="selected"{{end}}>By Likes</option>
+							<option value="chronological" {{if eq .SortChildrenBy "chronological"}}selected="selected"{{end}}>Chronologically</option>
+							<option value="alphabetical" {{if eq .SortChildrenBy "alphabetical"}}selected="selected"{{end}}>Alphabetically</option>
+						</select>
+					</div>
+				</div>
+
 				<!-- Misc form stuff for submission / saving. -->
 				<div class="form-group">
 					<div class="col-sm-6">

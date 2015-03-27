@@ -29,6 +29,7 @@ type pageData struct {
 	KarmaLock      int
 	ParentIds      string
 	Alias          string // if empty, leave the current one
+	SortChildrenBy string
 	IsAutosave     bool
 	IsSnapshot     bool
 }
@@ -115,6 +116,11 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		if data.Type != blogPageType && data.Type != wikiPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
+		}
+		if data.SortChildrenBy != likesChildSortingOption &&
+			data.SortChildrenBy != chronologicalChildSortingOption &&
+			data.SortChildrenBy != alphabeticalChildSortingOption {
+			return http.StatusBadRequest, fmt.Sprintf("Invalid sort children value.")
 		}
 		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
 			return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
@@ -264,6 +270,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["text"] = data.Text
 	hashmap["summary"] = summary
 	hashmap["alias"] = data.Alias
+	hashmap["sortChildrenBy"] = data.SortChildrenBy
 	hashmap["edit"] = newEditNum
 	hashmap["isCurrentEdit"] = isCurrentEdit
 	hashmap["hasVote"] = hasVote

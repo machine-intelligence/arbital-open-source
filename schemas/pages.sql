@@ -29,6 +29,8 @@ CREATE TABLE pages (
 	summary TEXT NOT NULL,
 	/* Alias name of the page. */
 	alias VARCHAR(64) NOT NULL,
+	/* How to sort the page's children. */
+	sortChildrenBy VARCHAR(32) NOT NULL,
 	/* True iff the page has a probability vote. */
 	hasVote BOOLEAN NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */

@@ -33,13 +33,6 @@ type comment struct {
 	Replies      []*comment
 }
 
-// Helpers for soring comments by createdAt date.
-type byDate []comment
-
-func (a byDate) Len() int           { return len(a) }
-func (a byDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byDate) Less(i, j int) bool { return a[i].CreatedAt < a[j].CreatedAt }
-
 // TODO: use this for context (and potentially list of links)
 type input struct {
 	Id        int64
@@ -85,11 +78,16 @@ var privatePagePage = newPage(
 func loadMainPage(c sessions.Context, userId int64, pageId int64) (*page, error) {
 	c.Infof("querying DB for page with id = %d\n", pageId)
 
-	mainPage, err := loadFullPage(c, pageId)
+	mainPage, err := loadFullPage(c, pageId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if mainPage == nil {
 		return nil, fmt.Errorf("Couldn't find a page with id: %d", pageId)
+	}
+
+	err = mainPage.loadChildren(c, userId)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load children: %v", err)
 	}
 
 	// Load contexts.
@@ -175,8 +173,16 @@ func loadLikes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 		}
 		page := pageMap[pageId]
 		if value > 0 {
+			if page.LikeCount >= page.DislikeCount {
+				page.LikeScore++
+			} else {
+				page.LikeScore += 2
+			}
 			page.LikeCount++
 		} else if value < 0 {
+			if page.DislikeCount >= page.LikeCount {
+				page.LikeScore--
+			}
 			page.DislikeCount++
 		}
 		if userId == currentUserId {
@@ -391,7 +397,17 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	}
 
 	// Load all the likes
-	err = loadLikes(c, data.User.Id, pageIdStr, pageMap)
+	var buffer bytes.Buffer
+	buffer.WriteString(pageIdStr)
+	likesPageMap := make(map[int64]*page)
+	likesPageMap[mainPage.PageId] = mainPage
+	if mainPage.SortChildrenBy == likesChildSortingOption {
+		for _, pair := range mainPage.Children {
+			likesPageMap[pair.Child.PageId] = pair.Child
+			buffer.WriteString(fmt.Sprintf(",%d", pair.Child.PageId))
+		}
+	}
+	err = loadLikes(c, data.User.Id, buffer.String(), likesPageMap)
 	if err != nil {
 		c.Inc("likes_fetch_fail")
 		c.Errorf("error while fetching likes: %v", err)
@@ -404,6 +420,11 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		c.Inc("votes_fetch_fail")
 		c.Errorf("error while fetching votes: %v", err)
 		return pages.InternalErrorWith(err)
+	}
+
+	// Sort children now that likes have been loaded.
+	for _, page := range pageMap {
+		page.sortChildren(c)
 	}
 
 	// Get last visits.
@@ -445,8 +466,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	}
 
 	// Get a string of all comment ids.
-	var buffer bytes.Buffer
-	//buffer.Reset()
+	buffer.Reset()
 	for id, _ := range commentMap {
 		buffer.WriteString(fmt.Sprintf("%d", id))
 		buffer.WriteString(",")

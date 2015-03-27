@@ -141,15 +141,15 @@
 				<div class="page-text"></div>
 		
 				<!-- Tags -->
-				<div class="tags gray-text">
-					Stored under:
+				<div class="tags">
+					<span class="">Parents:</span>
 					{{if .Parents}}
 						&nbsp;&nbsp;
 						{{range .Parents}}
 							{{template "tag" .Parent}}
 						{{end}}
 					{{else}}
-						None
+						<span class="">None</span>
 					{{end}}
 					<!--<a class="gray-link" id="add-personal-page-pair">Add Personal</a>
 					<form id="add-personal-page-pair-div" hidden>
@@ -159,6 +159,22 @@
 						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 						<button type="submit" class="btn btn-primary" toggle-on-submit>Add</button>
 					</form>-->
+				</div>
+
+				<!-- Children -->
+				<div class="tags">
+					<span class="">Children:</span>
+					{{if .Children}}
+						<ul class="children list-unstyled">
+						{{range .Children}}
+							<li>
+								<a href="{{GetPageUrl .Child}}" class="intrasite-link" page-id="{{.Child.PageId}}" privacy-key="{{.Child.PrivacyKey}}">{{.Child.Title}}</a>
+							</li>
+						{{end}}
+						</ul>
+					{{else}}
+						<span class="">None</span>
+					{{end}}
 				</div>
 		
 				<!--Admin stuff -->
