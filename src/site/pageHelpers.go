@@ -95,7 +95,7 @@ type pagesChronologically []*pagePair
 func (a pagesChronologically) Len() int      { return len(a) }
 func (a pagesChronologically) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a pagesChronologically) Less(i, j int) bool {
-	return a[i].Child.CreatedAt < a[j].Child.CreatedAt
+	return a[i].Child.CreatedAt > a[j].Child.CreatedAt
 }
 
 // Helpers for sorting page pairs alphabetically.
@@ -121,9 +121,11 @@ func padNumber(s string) string {
 // Helpers for sorting page pairs by votes.
 type pagesByLikes []*pagePair
 
-func (a pagesByLikes) Len() int           { return len(a) }
-func (a pagesByLikes) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a pagesByLikes) Less(i, j int) bool { return a[i].Child.LikeScore > a[j].Child.LikeScore }
+func (a pagesByLikes) Len() int      { return len(a) }
+func (a pagesByLikes) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a pagesByLikes) Less(i, j int) bool {
+	return a[i].Child.LikeScore > a[j].Child.LikeScore
+}
 
 // loadFullEdit loads and retuns the last edit for the given page id and user id,
 // even if it's not live. It also loads all the auxillary data like tags.
@@ -244,6 +246,9 @@ func (p *page) sortChildren(c sessions.Context) {
 	}
 	if p.SortChildrenBy == chronologicalChildSortingOption {
 		sort.Sort(pagesChronologically(p.Children))
+		c.Debugf("========== %+v", p.Children[0].Child.CreatedAt)
+		c.Debugf("========== %+v", p.Children[1].Child.CreatedAt)
+		c.Debugf("========== %+v", p.Children[2].Child.CreatedAt)
 	} else if p.SortChildrenBy == alphabeticalChildSortingOption {
 		sort.Sort(pagesAlphabetically(p.Children))
 	} else {
@@ -291,7 +296,7 @@ func loadChildren(c sessions.Context, pageMap map[int64]*page, userId int64) err
 		whereClause += fmt.Sprintf(" OR (pp.parentId=%d)", id)
 	}
 	query := fmt.Sprintf(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.title,p.alias
+		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.title,p.alias,p.createdAt
 		FROM pagePairs AS pp
 		JOIN pages AS p
 		ON (p.pageId=pp.childId AND p.edit=pp.childEdit AND p.isCurrentEdit)
@@ -300,7 +305,8 @@ func loadChildren(c sessions.Context, pageMap map[int64]*page, userId int64) err
 		var p pagePair
 		p.Parent = &page{}
 		p.Child = &page{}
-		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.UserId, &p.Child.Title, &p.Child.Alias)
+		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.UserId,
+			&p.Child.Title, &p.Child.Alias, &p.Child.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
