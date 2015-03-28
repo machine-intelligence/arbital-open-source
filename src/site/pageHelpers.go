@@ -171,7 +171,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.sortChildrenBy,p.hasVote,
 			p.createdAt,p.karmaLock,p.privacyKey,p.deletedBy,p.isAutosave,p.isSnapshot,
-			(SELECT MAX(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
+			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
 			u.id,u.firstName,u.lastName
 		FROM pages AS p
@@ -296,10 +296,17 @@ func loadChildren(c sessions.Context, pageMap map[int64]*page, userId int64) err
 		whereClause += fmt.Sprintf(" OR (pp.parentId=%d)", id)
 	}
 	query := fmt.Sprintf(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.title,p.alias,p.createdAt
+		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.title,p.alias,cp.createdAt
 		FROM pagePairs AS pp
 		JOIN pages AS p
 		ON (p.pageId=pp.childId AND p.edit=pp.childEdit AND p.isCurrentEdit)
+		JOIN (
+			SELECT pageId,min(createdAt) AS createdAt
+			FROM pages
+			WHERE NOT isSnapshot AND NOT isAutosave
+			GROUP BY pageId
+		) AS cp
+		ON (cp.pageId=pp.childId)
 		WHERE %s`, whereClause)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p pagePair
