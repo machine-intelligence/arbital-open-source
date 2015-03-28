@@ -246,9 +246,6 @@ func (p *page) sortChildren(c sessions.Context) {
 	}
 	if p.SortChildrenBy == chronologicalChildSortingOption {
 		sort.Sort(pagesChronologically(p.Children))
-		c.Debugf("========== %+v", p.Children[0].Child.CreatedAt)
-		c.Debugf("========== %+v", p.Children[1].Child.CreatedAt)
-		c.Debugf("========== %+v", p.Children[2].Child.CreatedAt)
 	} else if p.SortChildrenBy == alphabeticalChildSortingOption {
 		sort.Sort(pagesAlphabetically(p.Children))
 	} else {
@@ -263,7 +260,9 @@ func loadParents(c sessions.Context, pageMap map[int64]*page, userId int64) erro
 	}
 	whereClause := "FALSE"
 	for id, p := range pageMap {
-		whereClause += fmt.Sprintf(" OR (pp.childId=%d AND (pp.childEdit=%d OR pp.userId=%d))", id, p.Edit, userId)
+		whereClause += fmt.Sprintf(`
+			OR (pp.childId=%d AND (pp.childEdit=%d OR (%d!=0 AND pp.userId=%d)))`,
+			id, p.Edit, userId, userId)
 	}
 	query := fmt.Sprintf(`
 		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.title,p.alias
@@ -348,38 +347,56 @@ func getEditPageUrl(p *page) string {
 	return fmt.Sprintf("/edit/%d%s", p.PageId, privacyAddon)
 }
 
-// Check if the user can edit this page. -1 = no, 0 = only as admin, 1 = yes
-func getEditLevel(p *page, u *user.User) int {
+// Check if the user can edit this page. Possible return values:
+// "" = user has correct permissions to perform the action
+// "admin" = user can perform the action, but only because they are an admin
+// "blog" = can't perform action because this is a blog page the user doesn't own
+// "###" = user doesn't have at least ### karma
+func getEditLevel(p *page, u *user.User) string {
 	if p.Type == blogPageType {
 		if p.Author.Id == u.Id {
-			return 1
+			return ""
 		} else {
-			return -1
+			return "blog"
 		}
 	}
-	if u.Karma >= p.KarmaLock {
-		return 1
-	} else if u.IsAdmin {
-		return 0
+	karmaReq := p.KarmaLock
+	if karmaReq < editPageKarmaReq && p.WasPublished {
+		karmaReq = editPageKarmaReq
 	}
-	return -1
+	if u.Karma < karmaReq {
+		if u.IsAdmin {
+			return "admin"
+		}
+		return fmt.Sprintf("%d", karmaReq)
+	}
+	return ""
 }
 
-// Check if the user can delete this page. -1 = no, 0 = only as admin, 1 = yes
-func getDeleteLevel(p *page, u *user.User) int {
+// Check if the user can delete this page. Possible return values:
+// "" = user has correct permissions to perform the action
+// "admin" = user can perform the action, but only because they are an admin
+// "blog" = can't perform action because this is a blog page the user doesn't own
+// "###" = user doesn't have at least ### karma
+func getDeleteLevel(p *page, u *user.User) string {
 	if p.Type == blogPageType {
 		if p.Author.Id == u.Id {
-			return 1
+			return ""
 		} else if u.IsAdmin {
-			return 0
+			return "admin"
 		} else {
-			return -1
+			return "blog"
 		}
 	}
-	if u.Karma >= p.KarmaLock {
-		return 1
-	} else if u.IsAdmin {
-		return 0
+	karmaReq := p.KarmaLock
+	if karmaReq < deletePageKarmaReq {
+		karmaReq = deletePageKarmaReq
 	}
-	return -1
+	if u.Karma < karmaReq {
+		if u.IsAdmin {
+			return "admin"
+		}
+		return fmt.Sprintf("%d", karmaReq)
+	}
+	return ""
 }

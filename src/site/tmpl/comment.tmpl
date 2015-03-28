@@ -4,6 +4,7 @@
 	<div class="comment-row">
 		<div class="left-column pull-left">
 			<span class="pull-right">
+				&nbsp;
 				{{if eq .Author.Id UserId}}
 					<a href="#" class="edit-comment-link glyphicon glyphicon-pencil" title="Edit this comment"></a>
 				{{end}}
@@ -52,11 +53,11 @@
 </div>
 {{end}}
 
-{{/* Template for creating a new comment.
-It takes one parameter which is the id of the parent comment, or 0 if
-it's a top level coment. */}}
+<!-- Template for creating a new comment.
+	It takes one parameter which is the id of the parent comment, or 0 if
+	it's a top level coment. -->
 {{define "newComment"}}
-{{if IsLoggedIn}}
+{{if and IsLoggedIn CanComment}}
 	<div class="left-column pull-left">
 		&nbsp;
 	</div>
@@ -77,6 +78,6 @@ it's a top level coment. */}}
 			</form>
 		</div>
 	</div>
-	<div class="clearfix"></div>
+<div class="clearfix"></div>
 {{end}}
 {{end}}

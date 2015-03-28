@@ -547,14 +547,10 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 			lastVisit := pageMap[c.PageId].LastVisit
 			return c.Author.Id != data.User.Id && lastVisit != "" && c.UpdatedAt >= lastVisit
 		},
-		// Check if we should even bother showing edit and delete page icons.
-		"ShowEditIcons": func(p *page) bool {
-			return getEditLevel(p, data.User) >= 0 || getDeleteLevel(p, data.User) >= 0
-		},
-		"GetEditLevel": func(p *page) int {
+		"GetEditLevel": func(p *page) string {
 			return getEditLevel(p, data.User)
 		},
-		"GetDeleteLevel": func(p *page) int {
+		"GetDeleteLevel": func(p *page) string {
 			return getDeleteLevel(p, data.User)
 		},
 		"GetPageUrl": func(p *page) string {
@@ -562,9 +558,6 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		},
 		"GetPageEditUrl": func(p *page) string {
 			return getEditPageUrl(p)
-		},
-		"GetUserUrl": func(userId int64) string {
-			return getUserUrl(userId)
 		},
 		"Sanitize": func(s string) template.HTML {
 			s = template.HTMLEscapeString(s)

@@ -8,6 +8,7 @@ import (
 
 	"appengine/taskqueue"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -69,12 +70,37 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 			if options.RequireLogin && u.Id <= 0 {
 				return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
 			}
+			if u.Id > 0 {
+				query := fmt.Sprintf(`
+					UPDATE users
+					SET lastWebsiteVisit='%s'
+					WHERE id=%d`,
+					database.Now(), u.Id)
+				if _, err := database.ExecuteSql(c, query); err != nil {
+					c.Errorf("Couldn't update users: %v", err)
+					return pages.InternalErrorWith(err)
+				}
+			}
 		}
 		result := h(w, r, u)
 		funcMap := template.FuncMap{
 			"UserId":     func() int64 { return u.Id },
 			"IsAdmin":    func() bool { return u.IsAdmin },
 			"IsLoggedIn": func() bool { return u.IsLoggedIn },
+			"GetUserUrl": func(userId int64) string {
+				return getUserUrl(userId)
+			},
+			"CanComment":            func() bool { return u.Karma >= commentKarmaReq },
+			"CanLike":               func() bool { return u.Karma >= likeKarmaReq },
+			"CanCreatePrivatePage":  func() bool { return u.Karma >= privatePageKarmaReq },
+			"CanVote":               func() bool { return u.Karma >= voteKarmaReq },
+			"CanKarmaLock":          func() bool { return u.Karma >= karmaLockKarmaReq },
+			"CanCreateAlias":        func() bool { return u.Karma >= createAliasKarmaReq },
+			"CanChangeAlias":        func() bool { return u.Karma >= changeAliasKarmaReq },
+			"CanChangeSortChildren": func() bool { return u.Karma >= changeSortChildrenKarmaReq },
+			"CanAddParent":          func() bool { return u.Karma >= addParentKarmaReq },
+			"CanDeleteParent":       func() bool { return u.Karma >= deleteParentKarmaReq },
+			"CanDashlessAlias":      func() bool { return u.Karma >= dashlessAliasKarmaReq },
 		}
 		return result.AddFuncMap(funcMap)
 	}

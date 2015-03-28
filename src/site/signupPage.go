@@ -41,11 +41,17 @@ func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	// request. We can process it and, if successful, redirect the user
 	// to the page they came from / were trying to get to.
 	q := r.URL.Query()
-	if q.Get("inviteCode") != "" {
+	if q.Get("firstName") != "" || q.Get("lastName") != "" {
 		// This is a form submission.
 		inviteCode := strings.ToUpper(q.Get("inviteCode"))
-		if inviteCode != "BAYES" && inviteCode != "LESSWRONG" {
-			return pages.InternalErrorWith(fmt.Errorf("Invalid invite code"))
+		karma := 0
+		if inviteCode == "BAYES" || inviteCode == "LESSWRONG" {
+			karma = 10
+		} else if inviteCode == "MATRIX" {
+			karma = 200
+		}
+		if data.User.Karma > karma {
+			karma = data.User.Karma
 		}
 		if len(q.Get("firstName")) <= 0 || len(q.Get("lastName")) <= 0 {
 			return pages.InternalErrorWith(fmt.Errorf("Must specify both first and last names"))
@@ -55,20 +61,28 @@ func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		hashmap["firstName"] = q.Get("firstName")
 		hashmap["lastName"] = q.Get("lastName")
 		hashmap["inviteCode"] = inviteCode
+		hashmap["karma"] = karma
 		hashmap["createdAt"] = database.Now()
-		sql := database.GetInsertSql("users", hashmap, "firstName", "lastName", "inviteCode")
+		// NOTE: that we'll be *always* rewriting an existing row here, since a row
+		// is created with empty info as soon as the user authenticates our app.
+		sql := database.GetInsertSql("users", hashmap, "firstName", "lastName", "inviteCode", "karma")
 		if _, err = database.ExecuteSql(c, sql); err != nil {
-			c.Errorf("Couldn't update user's name: %v", err)
-			return pages.InternalErrorWith(fmt.Errorf("Couldn't update user's name"))
+			c.Errorf("Couldn't update user's record: %v", err)
+			return pages.InternalErrorWith(fmt.Errorf("Couldn't update user's record"))
 		}
 		data.User.FirstName = q.Get("firstName")
 		data.User.LastName = q.Get("lastName")
+		data.User.Karma = karma
 		data.User.IsLoggedIn = true
 		err = data.User.Save(w, r)
 		if err != nil {
 			c.Errorf("Couldn't re-save the user after adding the name: %v", err)
 		}
-		return pages.RedirectWith(q.Get("continueUrl"))
+		continueUrl := q.Get("continueUrl")
+		if continueUrl == "" {
+			continueUrl = "/"
+		}
+		return pages.RedirectWith(continueUrl)
 	}
 	data.ContinueUrl = q.Get("continueUrl")
 	c.Inc("signup_page_served_success")

@@ -45,7 +45,7 @@ func (user *User) FullName() string {
 
 // Save stores the user in the session.
 func (u *User) Save(w http.ResponseWriter, r *http.Request) error {
-	s, err := sessions.GetSession(r)
+	/*s, err := sessions.GetSession(r)
 	if err != nil {
 		return fmt.Errorf("couldn't get session: %v", err)
 	}
@@ -54,7 +54,7 @@ func (u *User) Save(w http.ResponseWriter, r *http.Request) error {
 	err = s.Save(r, w)
 	if err != nil {
 		return fmt.Errorf("failed to save user to session: %v", err)
-	}
+	}*/
 	return nil
 }
 
@@ -126,32 +126,20 @@ func setLinksForUser(r *http.Request, c sessions.Context, u *User) (err error) {
 	return nil
 }
 
-// LoadUser returns user object from session, if available. Otherwise, we check
+// LoadUser returns user object corresponding to logged in user. First, we check
 // if the user is logged in via App Engine. If they are, we make sure they are
-// in the database and update the cookie. If the user is not logged in, we
-// return a partially filled User object.
+// in the database. If the user is not logged in, we return a partially filled
+// User object.
 // A user object is returned iff there is no error.
 func LoadUser(w http.ResponseWriter, r *http.Request) (userPtr *User, err error) {
 	c := sessions.NewContext(r)
-	s, err2 := sessions.GetSession(r)
-	if err2 != nil {
-		err = fmt.Errorf("failed to get session: %v", err2)
+	userPtr, err = loadUserFromDb(r)
+	if err != nil {
 		return
-	}
-
-	if s.Values[userKey] != nil {
-		c.Debugf("loading user from session")
-		userPtr = s.Values[userKey].(*User)
+	} else if userPtr != nil {
+		userPtr.Save(w, r)
 	} else {
-		c.Debugf("no user in session, checking app engine")
-		userPtr, err = loadUserFromDb(r)
-		if err != nil {
-			return
-		} else if userPtr != nil {
-			userPtr.Save(w, r)
-		} else {
-			userPtr = &User{}
-		}
+		userPtr = &User{}
 	}
 	if err = setLinksForUser(r, c, userPtr); err != nil {
 		userPtr = nil

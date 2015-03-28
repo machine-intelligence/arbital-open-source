@@ -171,9 +171,6 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		"GetPageUrl": func(p *page) string {
 			return getPageUrl(p)
 		},
-		"GetUserUrl": func(userId int64) string {
-			return getUserUrl(userId)
-		},
 	}
 	c.Inc("updates_page_served_success")
 	return pages.StatusOK(data).AddFuncMap(funcMap)

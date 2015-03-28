@@ -78,12 +78,12 @@
 				<!-- Alerts -->
 				<div class="form-group">
 					<div class="col-sm-6">
-						{{if le (GetEditLevel .) 0}}
-							{{if eq (GetEditLevel .) 0}}
-								<div class="alert alert-warning">Bypassing karma lock using admin priviledges.</div>
-							{{else}}
-								<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{.KarmaLock}}. OR this is a blog page and you are not the author.</div>
-							{{end}}
+						{{if eq (GetEditLevel .) "admin"}}
+							<div class="alert alert-warning">Enforcing admin priviledges.</div>
+						{{else if eq (GetEditLevel .) "blog"}}
+							<div class="alert alert-danger" role="alert">Can't edit a blog page you didn't create.</div>
+						{{else if ne (GetEditLevel .) ""}}
+							<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{GetEditLevel .}}.</div>
 						{{end}}
 						<div class="alert alert-info" id="autosave-label" hidden></div>
 					</div>

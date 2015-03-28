@@ -135,7 +135,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if oldPage.PrivacyKey > 0 && oldPage.PrivacyKey != data.PrivacyKey {
 			return http.StatusForbidden, fmt.Sprintf("Need to specify correct privacy key to edit that page")
 		}
-		if getEditLevel(oldPage, u) < 0 {
+		editLevel := getEditLevel(oldPage, u)
+		if editLevel != "" && editLevel != "admin" {
 			return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
 		}
 		if oldPage.WasPublished && oldPage.PrivacyKey <= 0 && data.KeepPrivacyKey {

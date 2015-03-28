@@ -45,6 +45,10 @@ func newCommentHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
+	if u.Karma < commentKarmaReq {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	// Add new comment
 	hashmap := make(map[string]interface{})

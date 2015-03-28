@@ -10,6 +10,23 @@ import (
 	"zanaduu3/src/sessions"
 )
 
+const (
+	// Karma requirements to perform various actions
+	commentKarmaReq            = -5
+	likeKarmaReq               = 0
+	privatePageKarmaReq        = 5
+	voteKarmaReq               = 10
+	addParentKarmaReq          = 20
+	createAliasKarmaReq        = 50
+	editPageKarmaReq           = 50 // edit wiki page
+	deleteParentKarmaReq       = 100
+	karmaLockKarmaReq          = 100
+	changeSortChildrenKarmaReq = 100
+	changeAliasKarmaReq        = 200
+	deletePageKarmaReq         = 500
+	dashlessAliasKarmaReq      = 1000
+)
+
 // dbUser has information about a user from the users table.
 // We can't call this struct "user" since that collides with src/user.
 type dbUser struct {
@@ -40,7 +57,6 @@ func loadUsersInfo(c sessions.Context, userMap map[int64]*dbUser) error {
 		if err != nil {
 			return fmt.Errorf("failed to scan for user: %v", err)
 		}
-		c.Debugf("===== %v", u)
 		*userMap[u.Id] = u
 		return nil
 	})

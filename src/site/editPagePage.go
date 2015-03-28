@@ -114,7 +114,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		"GetMaxKarmaLock": func() int {
 			return getMaxKarmaLock(data.User.Karma)
 		},
-		"GetEditLevel": func(p *page) int {
+		"GetEditLevel": func(p *page) string {
 			return getEditLevel(p, data.User)
 		},
 	}

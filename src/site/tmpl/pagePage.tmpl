@@ -104,13 +104,11 @@
 					{{if IsLoggedIn}}
 							<a href="#" class="subscribe-to-page-link glyphicon glyphicon-eye-open {{if .IsSubscribed}}on{{end}}" title="Subscribe to receive updates when this page changes or gets new comments"></a><br>
 					{{end}}
-					{{if ShowEditIcons .}}
-						{{if ge (GetEditLevel .) 0}}
-								<a href="{{GetPageEditUrl .}}" class="edit-page-link glyphicon glyphicon-pencil {{if eq (GetEditLevel .) 0}}admin{{end}}" title="Edit this page"></a><br>
-						{{end}}
-						{{if ge (GetDeleteLevel .) 0}}
-								<a href="#" class="delete-page-link glyphicon glyphicon-remove {{if eq (GetDeleteLevel .) 0}}admin{{end}}" title="Delete this page"></a><br>
-						{{end}}
+					{{if or (eq (GetEditLevel .) "") (eq (GetEditLevel .) "admin")}}
+						<a href="{{GetPageEditUrl .}}" class='edit-page-link glyphicon glyphicon-pencil {{if eq (GetEditLevel .) "admin"}}admin{{end}}' title="Edit this page"></a><br>
+					{{end}}
+					{{if or (eq (GetDeleteLevel .) "") (eq (GetDeleteLevel .) "admin")}}
+						<a href="#" class='delete-page-link glyphicon glyphicon-remove {{if eq (GetDeleteLevel .) "admin"}}admin{{end}}' title="Delete this page"></a><br>
 					{{end}}
 				</div>
 				<div class="clearfix"></div>

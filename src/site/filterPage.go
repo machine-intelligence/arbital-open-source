@@ -77,7 +77,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 			return pages.BadRequestWith(err)
 		}
 
-		userConstraint = fmt.Sprintf("AND creatorId=%s AND type='%s'", userParam, blogPageType)
+		userConstraint = fmt.Sprintf("AND creatorId=%s", userParam)
 	}
 
 	// Load the pages
@@ -133,9 +133,6 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		},
 		"GetPageUrl": func(p *page) string {
 			return getPageUrl(p)
-		},
-		"GetUserUrl": func(userId int64) string {
-			return getUserUrl(userId)
 		},
 	}
 	c.Inc("pages_page_served_success")

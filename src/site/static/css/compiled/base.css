@@ -60,6 +60,9 @@
 .template {
   display: none;
 }
+.karma {
+  background-color: #0ccd29;
+}
 .admin {
   border-bottom: 1px dashed red;
 }
