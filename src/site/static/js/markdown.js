@@ -42,7 +42,6 @@ function setUpMarkdown(inEditMode) {
 		});
 	});
 
-	InitMathjax(converter, undefined, "");
 
 	/*converter.hooks.chain("postNormalization", function (text, runSpanGamut) {
 		return text.replace(/(.+?)( {0,2}\n)(.[^]*?\n)?([\n]{1,})/g, "$1[[[[1]]]]$2$3$4");
@@ -57,9 +56,11 @@ function setUpMarkdown(inEditMode) {
 		var editor = new Markdown.Editor(converter, "", {handler: function(){
 			window.open("http://math.stackexchange.com/editing-help", "_blank");
 		}});
+		InitMathjax(converter, editor, "");
 		editor.run();
 		return;
 	}
+	InitMathjax(converter, undefined, "");
 
 	var html = converter.makeHtml(gPageText);
 	var $pageText = $(".page-text")
