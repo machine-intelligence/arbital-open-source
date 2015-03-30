@@ -35,7 +35,7 @@ var callPageHandler = function(isAutosave, isSnapshot, callback) {
 		parentIds: parentIds.join(),
 		privacyKey: privacyKey,
 		keepPrivacyKey: $("input[name='private']").is(":checked"),
-		karmaLock: $(".karma-lock-slider").slider("value"),
+		karmaLock: +$(".karma-lock-slider").bootstrapSlider("getValue"),
 		isAutosave: isAutosave,
 		isSnapshot: isSnapshot,
 		__invisibleSubmit: isAutosave,
@@ -219,15 +219,15 @@ $(function() {
 
 	// Setup karma lock slider.
 	var $slider = $(".karma-lock-slider");
-	var $text = $(".karma-lock-text");
-	$slider.slider({
+	$slider.bootstrapSlider({
+		value: +$slider.attr("value"),
 		min: 0,
-		max: $slider.attr("max"),
-		step: Math.max(1, Math.round($slider.attr("max") / 100.0)),
-		value: +$text.text(),
-		slide: function(event, ui) {
-			$text.text(ui.value);
-		},
+		max: +$slider.attr("max"),
+		step: 1,
+		precision: 0,
+		selection: "none",
+		handle: "square",
+		tooltip: "always",
 	});
 });
 

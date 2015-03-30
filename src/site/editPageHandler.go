@@ -160,17 +160,15 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Data correction. Rewrite the data structure so that we can just use it
 	// in a straight-forward way to populate the database.
-	if data.Type == blogPageType {
-		data.KarmaLock = 0
-	}
-	// We can't change page type or voting after it has been published. Also can't
-	// turn on privacy.
+	// Can't change page type or voting after it has been published.
 	hasVote := data.HasVoteStr == "on"
 	if oldPage.WasPublished {
 		data.Type = oldPage.Type
 		hasVote = oldPage.HasVote
 	}
+	// Can't turn on privacy after the page has been published.
 	var privacyKey int64
+	data.KeepPrivacyKey = false // FOR NOW
 	if data.KeepPrivacyKey {
 		if oldPage.PrivacyKey > 0 {
 			privacyKey = oldPage.PrivacyKey

@@ -141,20 +141,17 @@
 				</div>
 
 				<!-- Karma edit lock -->
-				<div class="karma-lock-form-group form-group" {{if le GetMaxKarmaLock 0}}hidden{{end}}>
+				<div class="karma-lock-form-group form-group" {{if or (le GetMaxKarmaLock 0) (eq .Type "blog")}}hidden{{end}}>
 					<label class="title-label control-label col-sm-1">Karma Lock
 						<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 					</label>
-					<div class="col-sm-4">
-						<div class="karma-lock-slider" max="{{GetMaxKarmaLock}}"></div>
-					</div>
-					<div class="col-sm-1">
-						<label class="karma-lock-text control-label">{{.KarmaLock}}</label>
+					<div class="col-sm-2">
+						<div class="karma-lock-slider" value="{{.KarmaLock}}" max="{{GetMaxKarmaLock}}"></div>
 					</div>
 				</div>
 		
 				<!-- Privacy options -->
-				<div class="form-group" {{if and (le .PrivacyKey 0) .WasPublished}}hidden{{end}}>
+				<!-- <div class="form-group" {{if and (le .PrivacyKey 0) .WasPublished}}hidden{{end}}>
 					<label class="control-label col-sm-1">
 						Private
 						<span title="This page will only be accessible by people who have the link." class="dashed-underline">(?)</span>
@@ -166,12 +163,12 @@
 							</label>
 						</div>
 					</div>
-				</div>
+				</div>-->
 		
 				<!-- Parents -->
 				<div class="form-group">
 					<label class="control-label col-sm-1">Parents</label>
-					<div class="col-sm-2">
+					<div class="col-sm-3">
 						<div class="input-group">
 							<input type="text" class="tag-input form-control">
 						</div>
@@ -184,7 +181,7 @@
 				<!-- Alias -->
 				<div class="form-group">
 					<label class="control-label col-sm-1">Alias</label>
-					<div class="col-sm-5">
+					<div class="col-sm-3">
 						<div class="input-group">
 							<input type="text" name="alias" placeholder='Optional alias, e.g. "Vitamin_D3_Good"' class="form-control" value="{{.Alias}}">
 						</div>
