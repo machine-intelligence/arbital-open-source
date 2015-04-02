@@ -38,7 +38,7 @@ function setUpMarkdown(inEditMode) {
 	converter.hooks.chain("preSpanGamut", function (text) {
 		return text.replace(compexLinkRegexp,
 			function (whole, prefix, text, alias) {
-				var url = "http://" + host + "/pages/" + arguments[3];
+				var url = "http://" + host + "/pages/" + alias + "/?customText=true";
 				return prefix + "[" + text + "](" + url + ")";
 		});
 	});
@@ -86,7 +86,9 @@ function setUpMarkdown(inEditMode) {
 		host + // match the url host part
 		"\/pages\/([A-Za-z0-9_-]+)" + // capture page alias
 		"(?:\/([0-9]+))?" + // optionally capture privacyId
-		"(?:\\?embed\=(true))?"); // optionally capture embed param
+		"\/?" + // optional ending /
+		"(\\?embed=true)?" + // optionally capture embed param
+		"(\\?customText=true)?"); // optionally capture customText param
 	function processLinks($div, fetchEmbeddedPages) {
 		$div.find("a").each(function(index, element) {
 			var $element = $(element);
@@ -107,7 +109,9 @@ function setUpMarkdown(inEditMode) {
 			.success(function(r) {
 				var page = JSON.parse(r);
 				if (!doEmbed) {
-					$element.text(page.Title);
+					if (parts[4] === undefined) {
+						$element.text(page.Title);
+					}
 					return;
 				}
 				var $embeddedDiv = $("#embedded-page-template").clone().show()
