@@ -31,27 +31,31 @@ function setUpMarkdown(inEditMode) {
 	});
 
 	// Convert [[Text]]((Alias)) spans into links.
+	var noBacktick = "(^|\\\\`|[^`])";
+	var compexLinkRegexp = new RegExp(noBacktick + 
+		"\\[\\[([^[\\]()]+?)\\]\\]" + // match [[Text]]
+		"\\(\\(([A-Za-z0-9_-]+?)\\)\\)", "g"); // match ((Alias))
 	converter.hooks.chain("preSpanGamut", function (text) {
-		console.log(1);
-		return text.replace(/\[\[([^[\]()]+?)]\]\(\(([A-Za-z0-9_-]+?)\)\)/g, function (whole, text, alias) {
-			var url = "http://" + host + "/pages/" + alias;
-			return "[" + text + "](" + url + ")";
+		return text.replace(compexLinkRegexp,
+			function (whole, prefix, text, alias) {
+				var url = "http://" + host + "/pages/" + arguments[3];
+				return prefix + "[" + text + "](" + url + ")";
 		});
 	});
 
 	// Convert [[Alias]] spans into links.
+	var simpleLinkRegexp = new RegExp(noBacktick + 
+			"\\[\\[([A-Za-z0-9_-]+?)\\]\\]", "g");
 	converter.hooks.chain("preSpanGamut", function (text) {
-		console.log(1);
-		return text.replace(/\[\[([A-Za-z0-9_-]+?)\]\]/g, function (whole, alias) {
+		return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
 			var url = "http://" + host + "/pages/" + alias;
 			var pageTitle = alias;
 			if (alias in pageAliases) {
 				pageTitle = pageAliases[alias].title;
 			}
-			return "[" + pageTitle + "](" + url + ")";
+			return prefix + "[" + pageTitle + "](" + url + ")";
 		});
 	});
-
 
 	/*converter.hooks.chain("postNormalization", function (text, runSpanGamut) {
 		return text.replace(/(.+?)( {0,2}\n)(.[^]*?\n)?([\n]{1,})/g, "$1[[[[1]]]]$2$3$4");
