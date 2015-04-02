@@ -32,13 +32,21 @@ function setUpMarkdown(inEditMode) {
 
 	// Convert [[Alias]] spans into links.
 	converter.hooks.chain("preSpanGamut", function (text) {
-		return text.replace(/\[\[([A-Za-z0-9_-]+?)\]\]/, function (whole, inner) {
-			var url = "http://" + host + "/pages/" + inner;
-			var pageTitle = inner;
-			if (inner in pageAliases) {
-				pageTitle = pageAliases[inner].title;
+		return text.replace(/\[\[([A-Za-z0-9_-]+?)\]\]/g, function (whole, alias) {
+			var url = "http://" + host + "/pages/" + alias;
+			var pageTitle = alias;
+			if (alias in pageAliases) {
+				pageTitle = pageAliases[alias].title;
 			}
 			return "[" + pageTitle + "](" + url + ")";
+		});
+	});
+
+	// Convert [[Text]]((Alias)) spans into links.
+	converter.hooks.chain("preSpanGamut", function (text) {
+		return text.replace(/\[\[(.+?)]\]\(\(([A-Za-z0-9_-]+?)\)\)/g, function (whole, text, alias) {
+			var url = "http://" + host + "/pages/" + alias;
+			return "[" + text + "](" + url + ")";
 		});
 	});
 
