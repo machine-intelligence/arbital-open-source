@@ -92,43 +92,51 @@ function setUpMarkdown(inEditMode) {
 			var $element = $(element);
 			var parts = $element.attr("href").match(re);
 			if (parts === null) return;
-			if (!$element.hasClass("intrasite-link")) {
-				$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
-				if (parts[3] && fetchEmbeddedPages && !inEditMode) {
-					var $parent = $element.parent();
-					var data = {pageAlias: parts[1], privacyKey: parts[2], includeText: true};
-					$.ajax({
-						type: "POST",
-						url: "/pageInfo/",
-						data: JSON.stringify(data),
-					})
-					.success(function(r) {
-						var page = JSON.parse(r);
-						var $embeddedDiv = $("#embedded-page-template").clone().show().attr("id", "embedded-page" + page.PageId);
-						var $pageBody = $embeddedDiv.find(".embedded-page-body");
-						$embeddedDiv.find(".embedded-page-title").text(page.Title).attr("href", "http://" + host + "/pages/" + page.PageId + "/" + (page.PrivacyKey > 0 ? page.PrivacyKey : ""));
-						$embeddedDiv.find(".embedded-page-text").html(converter.makeHtml(page.Text));
-						$parent.append($embeddedDiv);
-						$element.remove();
-						if (page.HasVote) {
-							createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.PageId, page.VoteCount,
-								page.VoteValue.Valid ? "" + page.VoteValue.Float64 : "",
-								page.MyVoteValue.Valid ? "" + page.MyVoteValue.Float64 : "");
-						}
-						processLinks($embeddedDiv, false);
-						setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));
-
-						// Set up toggle button
-						$embeddedDiv.find(".hide-embedded-page").on("click", function(event) {
-							var $target = $(event.target);
-							$pageBody.slideToggle({});
-							$target.toggleClass("glyphicon-triangle-bottom").toggleClass("glyphicon-triangle-right");
-							return false;
-						});
-					});
-				}
+			if ($element.hasClass("intrasite-link")) {
+				return;
 			}
+			$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
+			var $parent = $element.parent();
+			var doEmbed = fetchEmbeddedPages && (parts[3] !== undefined);
+			var data = {pageAlias: parts[1], privacyKey: parts[2], includeText: doEmbed};
+			$.ajax({
+				type: "POST",
+				url: "/pageInfo/",
+				data: JSON.stringify(data),
+			})
+			.success(function(r) {
+				var page = JSON.parse(r);
+				if (!doEmbed) {
+					$element.text(page.Title);
+					return;
+				}
+				var $embeddedDiv = $("#embedded-page-template").clone().show()
+				var $pageBody = $embeddedDiv.find(".embedded-page-body");
+				var $title = $embeddedDiv.find(".embedded-page-title");
+				$embeddedDiv.attr("id", "embedded-page" + page.PageId);
+				$title.text(page.Title);
+				$title.attr("href", "http://" + host + "/pages/" + page.PageId + "/" +
+					(page.PrivacyKey > 0 ? page.PrivacyKey : ""));
+				$embeddedDiv.find(".embedded-page-text").html(converter.makeHtml(page.Text));
+				$parent.append($embeddedDiv);
+				$element.remove();
+				if (page.HasVote) {
+					createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.PageId, page.VoteCount,
+						page.VoteValue.Valid ? "" + page.VoteValue.Float64 : "",
+						page.MyVoteValue.Valid ? "" + page.MyVoteValue.Float64 : "");
+				}
+				processLinks($embeddedDiv, false);
+				setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));
+
+				// Set up toggle button
+				$embeddedDiv.find(".hide-embedded-page").on("click", function(event) {
+					var $target = $(event.target);
+					$pageBody.slideToggle({});
+					$target.toggleClass("glyphicon-triangle-bottom").toggleClass("glyphicon-triangle-right");
+					return false;
+				});
+			});
 		});
-	}
+	};
 	processLinks($pageText, true);
 };
