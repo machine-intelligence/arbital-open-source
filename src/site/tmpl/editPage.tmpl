@@ -105,6 +105,10 @@
 						<div class="wmd-panel">
 							<div id="wmd-button-bar"></div>
 							<textarea name="text" class="edit-page-text wmd-input form-control" id="wmd-input" rows="30" placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451" style="resize: none;">{{.Text}}</textarea>
+							<div class="wmd-panel-bottom-buttons">
+								<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
+								<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
+							</div>
 						</div>
 					</div>
 					<div class="col-sm-6">
@@ -205,8 +209,6 @@
 					<div class="col-sm-6">
 						<div class="alert alert-danger" hidden></div>
 						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-						<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
-						<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
 						<span class="loading-text" style="display:none"></span>
 					</div>
 				</div>

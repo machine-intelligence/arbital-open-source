@@ -47,6 +47,10 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Couldn't load a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	} else if p == nil {
+		c.Errorf("Couldn't find page by alias: %s", data.PageAlias)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	pageIdStr := fmt.Sprintf("%d", p.PageId)
 	pageMap := make(map[int64]*page)

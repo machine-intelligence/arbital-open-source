@@ -38,7 +38,7 @@ function setUpMarkdown(inEditMode) {
 	converter.hooks.chain("preSpanGamut", function (text) {
 		return text.replace(compexLinkRegexp,
 			function (whole, prefix, text, alias) {
-				var url = "http://" + host + "/pages/" + alias + "/?customText=true";
+				var url = "http://" + host + "/pages/" + alias;
 				return prefix + "[" + text + "](" + url + ")";
 		});
 	});
@@ -48,7 +48,7 @@ function setUpMarkdown(inEditMode) {
 			"\\[\\[([A-Za-z0-9_-]+?)\\]\\]", "g");
 	converter.hooks.chain("preSpanGamut", function (text) {
 		return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
-			var url = "http://" + host + "/pages/" + alias;
+			var url = "http://" + host + "/pages/" + alias + "/?customText=false";
 			var pageTitle = alias;
 			if (alias in pageAliases) {
 				pageTitle = pageAliases[alias].title;
@@ -84,11 +84,11 @@ function setUpMarkdown(inEditMode) {
 	// Setup attributes for links that are within our domain.
 	var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 		host + // match the url host part
-		"\/pages\/([A-Za-z0-9_-]+)" + // capture page alias
-		"(?:\/([0-9]+))?" + // optionally capture privacyId
+		"\/pages\/([A-Za-z0-9_-]+)" + // [1] capture page alias
+		"(?:\/([0-9]+))?" + // [2] optionally capture privacyId
 		"\/?" + // optional ending /
-		"(\\?embed=true)?" + // optionally capture embed param
-		"(\\?customText=true)?"); // optionally capture customText param
+		"(\\?embed=true)?" + // [3] optionally capture embed param
+		"(\\?customText=false)?"); // [4] optionally capture customText param
 	function processLinks($div, fetchEmbeddedPages) {
 		$div.find("a").each(function(index, element) {
 			var $element = $(element);
@@ -98,6 +98,9 @@ function setUpMarkdown(inEditMode) {
 				return;
 			}
 			$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
+			if (parts[4] !== undefined) {
+				$element.attr("href", $element.attr("href").replace("?customText=false", ""));
+			}
 			var $parent = $element.parent();
 			var doEmbed = fetchEmbeddedPages && (parts[3] !== undefined);
 			var data = {pageAlias: parts[1], privacyKey: parts[2], includeText: doEmbed};
@@ -109,7 +112,7 @@ function setUpMarkdown(inEditMode) {
 			.success(function(r) {
 				var page = JSON.parse(r);
 				if (!doEmbed) {
-					if (parts[4] === undefined) {
+					if (parts[4] !== undefined) {
 						$element.text(page.Title);
 					}
 					return;

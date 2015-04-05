@@ -112,6 +112,9 @@
 .wmd-preview {
   margin-top: 40px;
 }
+.wmd-panel-bottom-buttons {
+  margin-top: 5px;
+}
 .ui-autocomplete {
   border: 1px solid gray;
   background-color: white;
