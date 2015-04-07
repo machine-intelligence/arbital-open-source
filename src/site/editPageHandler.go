@@ -111,8 +111,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusBadRequest, fmt.Sprintf("Can't be autosave and snapshot")
 	}
 	if !data.IsAutosave {
-		if len(data.Title) <= 0 || len(data.Text) <= 0 {
-			return http.StatusBadRequest, fmt.Sprintf("Need title and text")
+		if len(data.Title) <= 0 {
+			return http.StatusBadRequest, fmt.Sprintf("Need title")
 		}
 		if data.Type != blogPageType && data.Type != wikiPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")

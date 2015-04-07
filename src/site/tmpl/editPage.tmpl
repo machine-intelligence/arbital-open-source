@@ -85,12 +85,13 @@
 						{{else if ne (GetEditLevel .) ""}}
 							<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{GetEditLevel .}}.</div>
 						{{end}}
-						{{if .IsAutosave}}
-							<div class="alert alert-warning">Restored autosave which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Delete my autosave and edit live version.</a></div>
-						{{else if .IsSnapshot}}
-							<div class="alert alert-warning">Restored snapshot which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Switch to editing the live version.</a></div>
+						{{if .WasPublished}}
+							{{if .IsAutosave}}
+								<div class="alert alert-warning">Restored autosave which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Delete my autosave and edit live version.</a></div>
+							{{else if .IsSnapshot}}
+								<div class="alert alert-warning">Restored snapshot which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Switch to editing the live version.</a></div>
+							{{end}}
 						{{end}}
-						<div class="alert alert-info" id="autosave-label" hidden></div>
 					</div>
 				</div>
 		
@@ -111,9 +112,15 @@
 							<div id="wmd-button-bar"></div>
 							<textarea name="text" class="edit-page-text wmd-input form-control" id="wmd-input" rows="30" placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451" style="resize: none;">{{.Text}}</textarea>
 							<div class="wmd-panel-bottom-buttons">
+								<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 								<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
 								<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
+								<span class="gray-text" id="autosave-label" hidden></span>
 								<a href="{{GetPageEditUrl .}}?ignoreMySaves=1" class="btn btn-danger pull-right">Abandon My Changes</a>
+								<div class="alert alert-danger" hidden></div>
+								<span class="loading-text" style="display:none"></span>
+								<div class="clearfix"></div>
+								<div class="alert alert-danger" id="submit-form-error" hidden></div>
 							</div>
 						</div>
 					</div>
@@ -213,9 +220,6 @@
 				<!-- Misc form stuff for submission / saving. -->
 				<div class="form-group">
 					<div class="col-sm-6">
-						<div class="alert alert-danger" hidden></div>
-						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-						<span class="loading-text" style="display:none"></span>
 					</div>
 				</div>
 			</form>
