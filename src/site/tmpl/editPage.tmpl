@@ -85,6 +85,11 @@
 						{{else if ne (GetEditLevel .) ""}}
 							<div class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {{GetEditLevel .}}.</div>
 						{{end}}
+						{{if .IsAutosave}}
+							<div class="alert alert-warning">Restored autosave which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Delete my autosave and edit live version.</a></div>
+						{{else if .IsSnapshot}}
+							<div class="alert alert-warning">Restored snapshot which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Switch to editing the live version.</a></div>
+						{{end}}
 						<div class="alert alert-info" id="autosave-label" hidden></div>
 					</div>
 				</div>
@@ -108,6 +113,7 @@
 							<div class="wmd-panel-bottom-buttons">
 								<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
 								<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
+								<a href="{{GetPageEditUrl .}}?ignoreMySaves=1" class="btn btn-danger pull-right">Abandon</a>
 							</div>
 						</div>
 					</div>

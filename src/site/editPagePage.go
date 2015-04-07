@@ -72,7 +72,12 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	}
 
 	// Load the actual page.
-	data.Page, err = loadFullEdit(c, pageId, data.User.Id)
+	userIdParam := data.User.Id
+	q := r.URL.Query()
+	if q.Get("ignoreMySaves") != "" {
+		userIdParam = -1
+	}
+	data.Page, err = loadFullEdit(c, pageId, userIdParam)
 	if err != nil {
 		c.Inc("edit_page_failed")
 		c.Errorf("Couldn't load existing page: %v", err)
@@ -87,6 +92,8 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	} else if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
 		return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privacy key given."))
 	}
+
+	// See how many edits have been commited since
 
 	// Load aliases.
 	data.Aliases = make([]*alias, 0)
@@ -110,7 +117,9 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	}
 
 	funcMap := template.FuncMap{
-		// Return the highest karma lock amount a user can create.
+		"GetPageEditUrl": func(p *page) string {
+			return getEditPageUrl(p)
+		},
 		"GetMaxKarmaLock": func() int {
 			return getMaxKarmaLock(data.User.Karma)
 		},

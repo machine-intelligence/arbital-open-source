@@ -264,7 +264,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
 	hashmap["creatorId"] = u.Id
-	hashmap["createdAt"] = database.Now()
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
 	hashmap["summary"] = summary
@@ -278,6 +277,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["isSnapshot"] = data.IsSnapshot
 	hashmap["type"] = data.Type
 	hashmap["privacyKey"] = privacyKey
+	hashmap["createdAt"] = database.Now()
 	query := ""
 	overwritingEdit := oldPage.PageId > 0 && oldPage.Edit == newEditNum
 	if overwritingEdit {
