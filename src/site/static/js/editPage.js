@@ -229,6 +229,12 @@ $(function() {
 		handle: "square",
 		tooltip: "always",
 	});
+
+	// Change all dates from UTC to local.
+	$(".date").each(function(index, element) {
+		var date = new Date(element.innerHTML + " UTC");
+		element.innerHTML = date.toLocaleString();
+	});
 });
 
 // Autosave.
