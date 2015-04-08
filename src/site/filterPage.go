@@ -85,9 +85,10 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	pageIds := make([]string, 0, 50)
 	data.Pages = make([]*page, 0, 50)
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.edit,p.title,p.alias,p.privacyKey
+		SELECT p.pageId,p.edit,p.title,p.alias,p.privacyKey,p.groupName
 		FROM pages AS p
-		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND isCurrentEdit AND p.deletedBy=0 AND p.groupName="" %s
+		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND isCurrentEdit AND p.deletedBy=0 AND
+			(p.groupName="" OR p.groupName IN (SELECT groupName FROM groupMembers WHERE userId=%[1]d)) %s
 		ORDER BY p.createdAt DESC
 		LIMIT %d`, data.User.Id, userConstraint, data.LimitCount)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
@@ -97,7 +98,8 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 			&p.Edit,
 			&p.Title,
 			&p.Alias,
-			&p.PrivacyKey)
+			&p.PrivacyKey,
+			&p.Group.Name)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
