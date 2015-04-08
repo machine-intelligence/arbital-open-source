@@ -87,7 +87,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.title,p.alias,p.privacyKey
 		FROM pages AS p
-		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND isCurrentEdit AND p.deletedBy=0 %s
+		WHERE (p.privacyKey=0 OR p.creatorId=%d) AND isCurrentEdit AND p.deletedBy=0 AND p.groupName="" %s
 		ORDER BY p.createdAt DESC
 		LIMIT %d`, data.User.Id, userConstraint, data.LimitCount)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
@@ -127,14 +127,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		return pages.InternalErrorWith(err)
 	}
 
-	funcMap := template.FuncMap{
-		"IsUpdatedPage": func(p *page) bool {
-			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
-		},
-		"GetPageUrl": func(p *page) string {
-			return getPageUrl(p)
-		},
-	}
+	funcMap := template.FuncMap{}
 	c.Inc("pages_page_served_success")
 	return pages.StatusOK(data).AddFuncMap(funcMap)
 }

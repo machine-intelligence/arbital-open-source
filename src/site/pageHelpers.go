@@ -50,6 +50,7 @@ type page struct {
 	CreatedAt      string
 	KarmaLock      int
 	PrivacyKey     int64 `json:",string"`
+	Group          group
 	DeletedBy      int64 `json:",string"`
 	IsAutosave     bool
 	IsSnapshot     bool
@@ -170,7 +171,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	// TODO: we often don't need hasCurrentEdit
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.sortChildrenBy,p.hasVote,
-			p.createdAt,p.karmaLock,p.privacyKey,p.deletedBy,p.isAutosave,p.isSnapshot,
+			p.createdAt,p.karmaLock,p.privacyKey,p.groupName,p.deletedBy,p.isAutosave,p.isSnapshot,
 			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
 			u.id,u.firstName,u.lastName
@@ -180,10 +181,13 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 			FROM users
 		) AS u
 		ON p.creatorId=u.Id
-		WHERE p.pageId=%[1]d AND %[2]s`, pageId, whereClause)
+		WHERE p.pageId=%[1]d AND %[2]s AND
+			(p.groupName="" OR p.groupName IN (SELECT groupName FROM groupMembers WHERE userId=%[3]d))`,
+		pageId, whereClause, userId)
+
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.HasVote,
-		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
+		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
 		&p.WasPublished, &p.MaxEditEver, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)

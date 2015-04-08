@@ -164,14 +164,7 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		c.Errorf("Couldn't retrieve updates count: %v", err)
 	}
 
-	funcMap := template.FuncMap{
-		"IsUpdatedPage": func(p *page) bool {
-			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
-		},
-		"GetPageUrl": func(p *page) string {
-			return getPageUrl(p)
-		},
-	}
+	funcMap := template.FuncMap{}
 	c.Inc("updates_page_served_success")
 	return pages.StatusOK(data).AddFuncMap(funcMap)
 }

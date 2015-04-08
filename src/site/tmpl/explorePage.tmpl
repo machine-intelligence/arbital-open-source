@@ -1,0 +1,51 @@
+{{/* explorePage.tmpl is the main body of the page that shows all pages */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	<link href="/static/css/compiled/page.css" rel="stylesheet">
+	{{template "scripts"}}
+	<title>Explore Zanaduu</title>
+</head>
+
+<body>
+{{template "navbar" .User}}
+
+<div class="filter-body-div">
+	<ul class="list-unstyled">
+		{{range .Pages}}
+			<li class="filter-result like-span">
+				<!-- Likes / dislikes and approval voting -->
+				<div class="filter-like-div">
+					<span class="like-count">{{.LikeCount}}</span>
+					<span class="disabled-like glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}"></span>
+					&nbsp;
+					<span class="dislike-count">{{.DislikeCount}}</span>
+					<span class="disabled-dislike glyphicon glyphicon-thumbs-down {{if le .MyLikeValue -1}}on{{end}}"></span>
+					&nbsp; &nbsp;
+				</div>
+
+				<div class="filter-title">
+					<a href="{{GetPageUrl .}}">{{template "title" .}}</a>
+					{{if eq .Type "blog"}}
+						by {{.CreatorName}}
+					{{end}}
+					<div>
+						{{range .Parents}}
+							{{template "tag" .Parent}}
+						{{end}}
+					</div>
+				</div>
+			</li>
+		{{end}}
+		{{if eq (len .Pages) .LimitCount}}
+			<span class="gray-text">Results truncated at {{.LimitCount}}.</span>
+		{{end}}
+	</ul>
+</div>
+
+{{template "footer"}}
+</body>
+</html>
+{{end}}

@@ -90,6 +90,12 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 			"GetUserUrl": func(userId int64) string {
 				return getUserUrl(userId)
 			},
+			"GetPageUrl": func(p *page) string {
+				return getPageUrl(p)
+			},
+			"IsUpdatedPage": func(p *page) bool {
+				return p.Author.Id != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
+			},
 			"CanComment":            func() bool { return u.Karma >= commentKarmaReq },
 			"CanLike":               func() bool { return u.Karma >= likeKarmaReq },
 			"CanCreatePrivatePage":  func() bool { return u.Karma >= privatePageKarmaReq },

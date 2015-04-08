@@ -37,6 +37,9 @@ CREATE TABLE pages (
 	karmaLock INT NOT NULL,
 	/* If > 0, the page is accessible only with the right link. */
 	privacyKey BIGINT NOT NULL,
+	/* Optional name of the group this page belongs to. Only group members will be
+	 able to see this page. FK into groups. */
+	groupName VARCHAR(64) NOT NULL,
 	/* If not 0, this edit has been deleted by this user id. */
 	deletedBy BIGINT NOT NULL,
 	PRIMARY KEY(pageId, edit)

@@ -536,9 +536,6 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	}
 
 	funcMap := template.FuncMap{
-		"IsUpdatedPage": func(p *page) bool {
-			return p.Author.Id != data.User.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
-		},
 		"IsNewComment": func(c *comment) bool {
 			lastVisit := pageMap[c.PageId].LastVisit
 			return c.Author.Id != data.User.Id && lastVisit != "" && c.CreatedAt >= lastVisit
@@ -552,9 +549,6 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		},
 		"GetDeleteLevel": func(p *page) string {
 			return getDeleteLevel(p, data.User)
-		},
-		"GetPageUrl": func(p *page) string {
-			return getPageUrl(p)
 		},
 		"GetPageEditUrl": func(p *page) string {
 			return getEditPageUrl(p)

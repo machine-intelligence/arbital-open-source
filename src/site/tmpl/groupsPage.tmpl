@@ -1,0 +1,66 @@
+{{/* groupsPage.tmpl contains templates to show the "My Groups" page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	{{template "style"}}
+	<link href="/static/css/compiled/page.css" rel="stylesheet">
+	{{template "scripts"}}
+	<script src="/static/js/groupsPage.js"></script>
+	<title>My Groups - Zanaduu</title>
+</head>
+
+<body>
+{{template "navbar" .User}}
+
+<div class="filter-body-div">
+	{{range .Groups}}
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">{{.Name}}</h3>
+			</div>
+
+			<!-- Members table -->
+			<table class="table">
+			  <tr>
+					<td><b>Name</b></td>
+					<td><b>Add Members</b></td>
+					<td><b>Group Admin</b></td>
+				</tr>
+				{{range .Members}}
+					<tr>
+						<td>{{.FirstName}} {{.LastName}}</td>
+						<td>
+							{{if .CanAddMembers}}
+								<span class="glyphicon glyphicon-ok"></span>
+							{{end}}
+						</td>
+						<td>
+							{{if .CanAdmin}}
+								<span class="glyphicon glyphicon-ok"></span>
+							{{end}}
+						</td>
+					</tr>
+				{{end}}
+		  </table>
+		</div>
+
+		<!-- New Member form -->
+		{{if .UserMember.CanAddMembers}}
+			<form id="new-member-form" class="form-inline" group-name="{{.Name}}">
+				<div class="form-group">
+					<label>Id</label>
+					<input name="userId" type="text" class="form-control" placeholder="New Member Id">
+				</div>
+				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+				<button type="submit" class="btn btn-primary" toggle-on-submit>Add Member</button>
+				<div class="submit-form-error alert alert-danger" hidden></div>
+			</form>
+		{{end}}
+	{{end}}
+</div>
+
+{{template "footer"}}
+</body>
+</html>
+{{end}}

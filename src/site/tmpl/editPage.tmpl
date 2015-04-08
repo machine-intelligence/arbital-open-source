@@ -87,9 +87,9 @@
 						{{end}}
 						{{if .WasPublished}}
 							{{if .IsAutosave}}
-								<div class="alert alert-warning">Restored autosave which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Delete my autosave and edit live version.</a></div>
+								<div class="alert alert-warning">Restored autosave which was last updated on <span class="date">{{.CreatedAt}}</span>. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Delete my autosave and edit live version.</a></div>
 							{{else if .IsSnapshot}}
-								<div class="alert alert-warning">Restored snapshot which was last updated on {{.CreatedAt}}. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Switch to editing the live version.</a></div>
+								<div class="alert alert-warning">Restored snapshot which was last updated on <span class="date">{{.CreatedAt}}</span>. <a href="{{GetPageEditUrl .}}?ignoreMySaves=1">Switch to editing the live version.</a></div>
 							{{end}}
 						{{end}}
 					</div>
@@ -120,7 +120,7 @@
 								<div class="alert alert-danger" hidden></div>
 								<span class="loading-text" style="display:none"></span>
 								<div class="clearfix"></div>
-								<div class="alert alert-danger" id="submit-form-error" hidden></div>
+								<div class="submit-form-error alert alert-danger" hidden></div>
 							</div>
 						</div>
 					</div>
@@ -137,6 +137,23 @@
 							<option value="" {{if eq .Type ""}}selected="selected"{{end}} disabled hidden>Select page type</option>
 							<option value="blog" {{if eq .Type "blog"}}selected="selected"{{end}}>Blog Page</option>
 							<option value="wiki" {{if eq .Type "wiki"}}selected="selected"{{end}}>Wiki Page</option>
+						</select>
+					</div>
+					<div class="type-help col-sm-3">
+						<p class="type-help-blog help-block">Blog page is used for writing your thoughts on some topic. Only you will be able to edit the page.</p>
+						<p class="type-help-wiki help-block">Wiki page is a shared community page. Anyone can edit it.</p>
+					</div>
+				</div>
+
+				<!-- Group id -->
+				<div class="form-group" {{if or (le (len GetGroups) 0) .WasPublished}}hidden{{end}}>
+					<label class="title-label control-label col-sm-1">Group <span class="dashed-underline" title="Only members of the selected group will be able to see this page.">(?)</span></label>
+					<div class="col-sm-2">
+						<select name="groupName" class="type-select form-control">
+							<option value="" {{if eq .Group.Name ""}}selected="selected"{{end}}>-</option>
+							{{range GetGroups}}
+								<option value="{{.Name}}" {{if eq .Name GetPageGroupName}}selected="selected"{{end}}>{{.Name}}</option>
+							{{end}}
 						</select>
 					</div>
 					<div class="type-help col-sm-3">

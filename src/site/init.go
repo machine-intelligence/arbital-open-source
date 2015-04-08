@@ -61,11 +61,13 @@ func init() {
 	r.HandleFunc(newPagePage.URI, stdHandler(newPagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(editPagePage.URI, stdHandler(editPagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(editPrivatePagePage.URI, stdHandler(editPrivatePagePage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(groupsPage.URI, stdHandler(groupsPage.ServeHTTP)).Methods("GET", "HEAD")
 
 	// POST handlers (API)
 	r.HandleFunc("/newComment/", newCommentHandler).Methods("POST")
 	r.HandleFunc("/newSubscription/", newSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/newLike/", newLikeHandler).Methods("POST")
+	r.HandleFunc("/newMember/", newMemberHandler).Methods("POST")
 	r.HandleFunc("/newTag/", newTagHandler).Methods("POST")
 	r.HandleFunc("/newVote/", newVoteHandler).Methods("POST")
 	r.HandleFunc("/editPage/", editPageHandler).Methods("POST")

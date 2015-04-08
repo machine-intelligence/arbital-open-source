@@ -32,7 +32,7 @@
 					<div class="form-group">
 						<textarea name="text" class="edit-comment-text form-control">{{.Text}}</textarea>
 					</div>
-					<div class="alert alert-danger" hidden></div>
+					<div class="submit-form-error alert alert-danger" hidden></div>
 					<img src="/static/images/loading.gif" class="loading-indicator"/>
 					<button type="submit" class="btn btn-primary">Save</button>
 					<a href="#" class="cancelLink cancel-edit-comment">Cancel</a>
@@ -71,7 +71,7 @@
 					<textarea name="text" class="new-comment-text form-control" placeholder="Enter your comment"></textarea>
 				</div>
 				<input name="replyToId" type="hidden" value="{{.}}"/>
-				<div class="alert alert-danger" hidden></div>
+				<div class="submit-form-error alert alert-danger" hidden></div>
 				<img src="/static/images/loading.gif" class="loading-indicator"/>
 				<button type="submit" class="btn btn-primary">Submit</button>
 				<a href="#" class="cancel-link cancel-new-comment">Cancel</a>

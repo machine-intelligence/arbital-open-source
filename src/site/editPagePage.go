@@ -29,6 +29,7 @@ type editPageTmplData struct {
 	User    *user.User
 	Parents []*page
 	Aliases []*alias
+	Groups  []*group
 }
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
@@ -93,14 +94,13 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privacy key given."))
 	}
 
-	// See how many edits have been commited since
-
 	// Load aliases.
 	data.Aliases = make([]*alias, 0)
 	query := fmt.Sprintf(`
 		SELECT pageId,alias,title
 		FROM pages
-		WHERE isCurrentEdit`)
+		WHERE isCurrentEdit AND (groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))`,
+		data.User.Id)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var a alias
 		err := rows.Scan(&a.PageId, &a.FullName, &a.PageTitle)
@@ -116,7 +116,34 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return pages.InternalErrorWith(err)
 	}
 
+	// Load my groups.
+	data.Groups = make([]*group, 0)
+	query = fmt.Sprintf(`
+		SELECT groupName
+		FROM groupMembers
+		WHERE userId=%d`, data.User.Id)
+	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var g group
+		err := rows.Scan(&g.Name)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a member: %v", err)
+		}
+		data.Groups = append(data.Groups, &g)
+		return nil
+	})
+	if err != nil {
+		c.Inc("edit_page_failed")
+		c.Errorf("Couldn't load aliases: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
 	funcMap := template.FuncMap{
+		"GetGroups": func() []*group {
+			return data.Groups
+		},
+		"GetPageGroupName": func() string {
+			return data.Page.Group.Name
+		},
 		"GetPageEditUrl": func(p *page) string {
 			return getEditPageUrl(p)
 		},
