@@ -305,6 +305,11 @@ textarea.new-comment-text {
 	.like-area-mixin(21px);
 }
 
+.like-small-span {
+	.like-area-mixin(14px);
+	display: table-cell;
+	padding: 0px 20px 0px 10px;
+}
 
 // Vote stuff
 
@@ -358,7 +363,7 @@ textarea.new-comment-text {
 }
 
 
-// Filter page
+// Filter and Explore page
 
 .filter-result {
 	margin: 10px 0px;
@@ -371,4 +376,29 @@ textarea.new-comment-text {
 .filter-like-div {
 	display: table-cell;
 	width: 120px;
+}
+
+.explore-panel {
+	margin: 5px 0px;
+
+	.explore-header-part {
+		display:table-cell
+	}
+
+	.collapse-span {
+		.explore-header-part();
+		min-width: 20px;
+	}
+	
+	.collapse-link {
+		.glyph-mixin-link(@gray-color);
+		.explore-header-part();
+		width: 20px;
+	}
+
+	.explore-panel-body {
+		margin-left: 6px;
+		padding-left: 24px;
+		border-left: 1px solid blue;
+	}
 }

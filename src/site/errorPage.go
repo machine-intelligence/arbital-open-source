@@ -37,7 +37,7 @@ func errorRender(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Re
 func renderer404(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	c := sessions.NewContext(r)
 	c.Inc("404_page_served_success")
-	return pages.StatusOK(errorData{"Page not found :("})
+	return pages.CustomCodeWith(errorData{"Page not found :("}, http.StatusNotFound)
 }
 
 // showError redirects to the error page, showing a standard message

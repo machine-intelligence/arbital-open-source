@@ -111,6 +111,14 @@ func RedirectWith(uri string) *Result {
 	}
 }
 
+// CustomCodeWith returns a Result indicating the given responseCode.
+func CustomCodeWith(data interface{}, responseCode int) *Result {
+	return &Result{
+		responseCode: responseCode,
+		data:         data,
+	}
+}
+
 // ShowError redirects to the index page with the "error" param set to
 // a static error message.
 //

@@ -69,7 +69,7 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load likes
-	err = loadLikes(c, u.Id, pageIdStr, pageMap)
+	err = loadLikes(c, u.Id, pageMap)
 	if err != nil {
 		c.Errorf("Couldn't load likes: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

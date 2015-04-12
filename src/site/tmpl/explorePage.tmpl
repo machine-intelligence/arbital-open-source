@@ -4,48 +4,126 @@
 <html>
 <head>
 	{{template "style"}}
-	<link href="/static/css/compiled/page.css" rel="stylesheet">
 	{{template "scripts"}}
 	<title>Explore Zanaduu</title>
+	<script>
+		var app = angular.module("zanaduu", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
+		app.config(function($interpolateProvider){
+			$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
+		});
+
+		app.factory("Children", ["$resource", function($resource){
+			return $resource("/json/children/", {}, {
+				get: {method:"GET"},
+			});
+		}]);
+
+		app.controller("ZanaduuCtrl", ["$scope", function ($scope) {
+			// All loaded pages.
+			$scope.pageMap = {};
+			// Pages loaded along with html & js.
+			$scope.initialPages = {
+				{{range $k,$v := .PageMap}}
+					"{{$k}}": {{GetPageJson $v}},
+				{{end}}
+				};
+			// Get the page corresponding to the given pageId.
+			$scope.getPage = function(pageId) {
+				return $scope.pageMap[pageId];
+			};
+			// Get the url corresponding to the given page.
+			$scope.getPageUrl = function(page) {
+				return "/pages/" + page.Alias;
+			};
+		}]);
+
+		app.controller("ExploreCtrl", ["$scope", function ($scope) {
+			// todo
+			$scope.processPages = function(newPagesMap) {
+				// Initialize and add new pages to pageMap.
+				for (var pageId in newPagesMap) {
+					if (pageId in $scope.pageMap) {
+						console.warn("Trying to add duplicate page to pageMap: " + pageId);
+						return;
+					}
+					// Setup the new page.
+					var page = newPagesMap[pageId];
+					page.Explore = {
+						"ShowChildren": false,
+						"HasChildren": false,
+						"ChildrenIds": [],
+					};
+					$scope.pageMap[pageId] = page;
+				}
+
+				// Process parents. Do it as a second pass, so we are sure every page is
+				// initialized and added to pageMap.
+				for (var pageId in newPagesMap) {
+					var page = $scope.pageMap[pageId];
+					if (page.Parents == null) {
+						$scope.rootPage.Explore.ChildrenIds.push(pageId);
+					} else {
+						var parentsLen = page.Parents.length;
+						for (var i = 0; i < parentsLen; i++){
+							var parentPage = $scope.pageMap[page.Parents[i].Parent.PageId];
+							parentPage.Explore.ChildrenIds.push(pageId);
+							parentPage.Explore.HasChildren = true;
+						}
+					}
+				}
+			};
+
+			// Imaginary root page we use to make sorting easier.
+			$scope.rootPage = {PageId:"-1", Explore:{ChildrenIds:[]}};
+			// Insert initial pages.
+			console.log($scope.initialPages);
+			$scope.processPages($scope.initialPages);
+
+			// Sorting function for children.
+			$scope.sortChildren = function (pageId) {
+				var page = $scope.pageMap[pageId];
+				return page.Title;
+			}
+		}]);
+
+		app.controller("ExplorePanelCtrl", ["$scope", "Children", function ($scope, Children) {
+			$scope.page = $scope.getPage($scope.pageId);
+			$scope.page.Explore.ShowChildren = $scope.page.Explore.HasChildren;
+			$scope.togglePanel = function() {
+				$scope.page.Explore.ShowChildren = !$scope.page.Explore.ShowChildren;
+				if (!$scope.page.Explore.HasChildren && !$scope.page.Explore.LoadingChildren) {
+					$scope.page.Explore.LoadingChildren = true;
+					Children.get({parentId: $scope.pageId}, function(result) {
+						$scope.page.Explore.LoadingChildren = false;
+						$scope.processPages(result.toJSON());
+					}, function(error) {
+						console.log("error");
+						console.log(error);
+					});
+				}
+			};
+		}]);
+
+		app.directive("explorePanel", ["RecursionHelper", function(RecursionHelper) {
+			return {
+				templateUrl: "/static/html/explorePanel.html",
+				controller: "ExplorePanelCtrl",
+				compile: function(element) {
+					return RecursionHelper.compile(element);
+				},
+			};
+		}]);
+	</script>
 </head>
 
-<body>
-{{template "navbar" .User}}
-
-<div class="filter-body-div">
-	<ul class="list-unstyled">
-		{{range .Pages}}
-			<li class="filter-result like-span">
-				<!-- Likes / dislikes and approval voting -->
-				<div class="filter-like-div">
-					<span class="like-count">{{.LikeCount}}</span>
-					<span class="disabled-like glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}"></span>
-					&nbsp;
-					<span class="dislike-count">{{.DislikeCount}}</span>
-					<span class="disabled-dislike glyphicon glyphicon-thumbs-down {{if le .MyLikeValue -1}}on{{end}}"></span>
-					&nbsp; &nbsp;
-				</div>
-
-				<div class="filter-title">
-					<a href="{{GetPageUrl .}}">{{template "title" .}}</a>
-					{{if eq .Type "blog"}}
-						by {{.CreatorName}}
-					{{end}}
-					<div>
-						{{range .Parents}}
-							{{template "tag" .Parent}}
-						{{end}}
-					</div>
-				</div>
-			</li>
-		{{end}}
-		{{if eq (len .Pages) .LimitCount}}
-			<span class="gray-text">Results truncated at {{.LimitCount}}.</span>
-		{{end}}
-	</ul>
-</div>
-
-{{template "footer"}}
+<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+	{{template "navbar" .User}}
+	
+	<div class="filter-body-div" ng-controller="ExploreCtrl">
+		<div explore-panel ng-repeat="pageId in rootPage.Explore.ChildrenIds | orderBy:sortChildren"></div>
+	</div>
+	
+	{{template "footer"}}
 </body>
 </html>
 {{end}}

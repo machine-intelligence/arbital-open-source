@@ -2,6 +2,7 @@
 package site
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -61,6 +62,7 @@ type page struct {
 	// Computed values.
 	InputCount   int //used?
 	IsSubscribed bool
+	HasChildren  bool // whether or not this page has children
 	LikeCount    int
 	DislikeCount int
 	MyLikeValue  int
@@ -90,7 +92,13 @@ type pagePair struct {
 	StillInUse bool // true iff this relationship is still in use
 }
 
-// Helpers for sorting page pairs chronologically.
+// loadPageOptions describes options for loading page(s) from the db
+type loadPageOptions struct {
+	loadText    bool
+	loadSummary bool
+}
+
+// Helpers for sorting pages chronologically.
 type pagesChronologically []*pagePair
 
 func (a pagesChronologically) Len() int      { return len(a) }
@@ -168,7 +176,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 				WHERE pageId=%d AND (creatorId=%d OR NOT (isSnapshot OR isAutosave))
 			)`, pageId, userId)
 	}
-	// TODO: we often don't need hasCurrentEdit
+	// TODO: we often don't need maxEditEver
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.sortChildrenBy,p.hasVote,
 			p.createdAt,p.karmaLock,p.privacyKey,p.groupName,p.deletedBy,p.isAutosave,p.isSnapshot,
@@ -325,6 +333,143 @@ func loadChildren(c sessions.Context, pageMap map[int64]*page, userId int64) err
 		return nil
 	})
 	return err
+}
+
+type loadChildrenIdsOptions struct {
+	// Load whether or not each child has children of its own.
+	LoadHasChildren bool
+}
+
+// loadChildrenIds loads the page ids for all the children of the pages in the given pageMap.
+func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadChildrenIdsOptions) error {
+	pageIdsStr := pageIdsStringFromMap(pageMap)
+	query := fmt.Sprintf(`
+		SELECT parent.pageId,child.pageId
+		FROM pagePairs AS pp
+		JOIN (
+			SELECT pageId
+			FROM pages
+			WHERE pageId IN (%s) AND isCurrentEdit
+		) AS parent
+		ON (parent.pageId=pp.parentId)
+		JOIN (
+			SELECT pageId,edit
+			FROM pages
+			WHERE isCurrentEdit
+		) AS child
+		ON (child.pageId=pp.childId AND child.edit=pp.childEdit)`, pageIdsStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var p pagePair
+		p.Parent = &page{}
+		p.Child = &page{}
+		err := rows.Scan(&p.Parent.PageId, &p.Child.PageId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for page pairs: %v", err)
+		}
+		newPage := &page{PageId: p.Child.PageId}
+		newPage.Parents = append(newPage.Parents, &p)
+		pageMap[newPage.PageId] = newPage
+		pageMap[p.Parent.PageId].HasChildren = true
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if options.LoadHasChildren {
+		pageIdsStr = pageIdsStringFromMap(pageMap)
+		query = fmt.Sprintf(`
+			SELECT parent.pageId,sum(1)
+			FROM pagePairs AS pp
+			JOIN (
+				SELECT pageId
+				FROM pages
+				WHERE pageId IN (%s) AND isCurrentEdit
+			) AS parent
+			ON (parent.pageId=pp.parentId)
+			JOIN (
+				SELECT pageId,edit
+				FROM pages
+				WHERE isCurrentEdit
+			) AS child
+			ON (child.pageId=pp.childId AND child.edit=pp.childEdit)
+			GROUP BY 1`, pageIdsStr)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var pageId int64
+			var children int
+			err := rows.Scan(&pageId, &children)
+			if err != nil {
+				return fmt.Errorf("failed to scan for grandchildren: %v", err)
+			}
+			pageMap[pageId].HasChildren = children > 0
+			return nil
+		})
+	}
+	return err
+}
+
+// loadPages loads the given pages.
+func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, options loadPageOptions) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := pageIdsStringFromMap(pageMap)
+	textSelect := "\"\""
+	if options.loadText {
+		textSelect = "text"
+	}
+	summarySelect := "\"\""
+	if options.loadSummary {
+		summarySelect = "text"
+	}
+	query := fmt.Sprintf(`
+		SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
+			deletedBy,hasVote,%s,alias,sortChildrenBy,groupName
+		FROM pages
+		WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s) AND
+			(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))`,
+		textSelect, summarySelect, pageIds, userId)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var p page
+		err := rows.Scan(
+			&p.PageId, &p.Edit, &p.Type, &p.Author.Id, &p.CreatedAt, &p.Title,
+			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
+			&p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name)
+		if err != nil {
+			return fmt.Errorf("failed to scan a page: %v", err)
+		}
+		if p.DeletedBy <= 0 {
+			// We are reduced to this mokery of copying every variable because the page
+			// in the pageMap might already have some variables populated.
+			op := pageMap[p.PageId]
+			op.Edit = p.Edit
+			op.Type = p.Type
+			op.Author.Id = p.Author.Id
+			op.CreatedAt = p.CreatedAt
+			op.Title = p.Title
+			op.Text = p.Text
+			op.KarmaLock = p.KarmaLock
+			op.PrivacyKey = p.PrivacyKey
+			op.DeletedBy = p.DeletedBy
+			op.HasVote = p.HasVote
+			op.Summary = p.Summary
+			op.Alias = p.Alias
+			op.SortChildrenBy = p.SortChildrenBy
+			op.Group.Name = p.Group.Name
+		}
+		return nil
+	})
+	return err
+}
+
+// pageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
+func pageIdsStringFromMap(pageMap map[int64]*page) string {
+	var buffer bytes.Buffer
+	for id, _ := range pageMap {
+		buffer.WriteString(fmt.Sprintf("%d,", id))
+	}
+	str := buffer.String()
+	str = str[0 : len(str)-1]
+	return str
 }
 
 // getMaxKarmaLock returns the highest possible karma lock a user with the

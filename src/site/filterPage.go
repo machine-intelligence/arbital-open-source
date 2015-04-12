@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -113,7 +112,6 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		c.Errorf("error while loading pages: %v", err)
 		return pages.InternalErrorWith(err)
 	}
-	pageIdsStr := strings.Join(pageIds, ",")
 
 	// Load tags.
 	err = loadParents(c, pageMap, data.User.Id)
@@ -123,7 +121,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	}
 
 	// Load likes.
-	err = loadLikes(c, data.User.Id, pageIdsStr, pageMap)
+	err = loadLikes(c, data.User.Id, pageMap)
 	if err != nil {
 		c.Errorf("Couldn't retrieve page likes: %v", err)
 		return pages.InternalErrorWith(err)

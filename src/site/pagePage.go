@@ -149,10 +149,11 @@ func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int
 }
 
 // loadLikes loads likes corresponding to the given pages and updates the pages.
-func loadLikes(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*page) error {
-	if len(pageIds) <= 0 {
+func loadLikes(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
+	if len(pageMap) <= 0 {
 		return nil
 	}
+	pageIdsStr := pageIdsStringFromMap(pageMap)
 	// Workaround for: https://github.com/go-sql-driver/mysql/issues/304
 	query := fmt.Sprintf(`
 		SELECT userId,pageId,value
@@ -162,7 +163,7 @@ func loadLikes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 			WHERE pageId IN (%s)
 			ORDER BY id DESC
 		) AS v
-		GROUP BY userId,pageId`, pageIds)
+		GROUP BY userId,pageId`, pageIdsStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var userId int64
 		var pageId int64
@@ -397,17 +398,14 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	}
 
 	// Load all the likes
-	var buffer bytes.Buffer
-	buffer.WriteString(pageIdStr)
 	likesPageMap := make(map[int64]*page)
 	likesPageMap[mainPage.PageId] = mainPage
 	if mainPage.SortChildrenBy == likesChildSortingOption {
 		for _, pair := range mainPage.Children {
 			likesPageMap[pair.Child.PageId] = pair.Child
-			buffer.WriteString(fmt.Sprintf(",%d", pair.Child.PageId))
 		}
 	}
-	err = loadLikes(c, data.User.Id, buffer.String(), likesPageMap)
+	err = loadLikes(c, data.User.Id, likesPageMap)
 	if err != nil {
 		c.Inc("likes_fetch_fail")
 		c.Errorf("error while fetching likes: %v", err)
@@ -466,7 +464,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	}
 
 	// Get a string of all comment ids.
-	buffer.Reset()
+	var buffer bytes.Buffer
 	for id, _ := range commentMap {
 		buffer.WriteString(fmt.Sprintf("%d", id))
 		buffer.WriteString(",")
