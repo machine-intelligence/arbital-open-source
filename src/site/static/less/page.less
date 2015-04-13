@@ -386,7 +386,7 @@ textarea.new-comment-text {
 	}
 
 	.explore-header-part {
-		display: inline-block;
+		display: table-cell;
 	}
 
 	.collapse-span {
@@ -400,18 +400,13 @@ textarea.new-comment-text {
 		width: 20px;
 	}
 
-	.bulletpoint {
-		.gray-glyph();
-		font-size: 14px;
-	}
-
 	.explore-header-link {
 		.explore-header-part();
-		margin-left: 15px;
+		padding-left: 15px;
 	}
 
 	.explore-like-span {
-		display: inline-block;
+		.explore-header-part();
 	}
 
 	.explore-panel-body {

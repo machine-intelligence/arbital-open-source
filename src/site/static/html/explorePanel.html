@@ -3,7 +3,7 @@
 	<div ng-class="{'big-explore-panel-header': panel.isTopLevel}">
 		<span class="collapse-span">
 			<i class="collapse-link glyphicon" ng-class="{'glyphicon-triangle-bottom': panel.showChildren, 'glyphicon-triangle-right': !panel.showChildren}" ng-click="togglePanel()" ng-show="page.HasChildren"></i>
-			<i class="bulletpoint glyphicon glyphicon-asterisk" ng-show="!page.HasChildren"></i>
+			<span class="gray-text" ng-show="!page.HasChildren">&nbsp;&bull;</span>
 		</span>
 
 		<!-- Likes / dislikes and approval voting -->

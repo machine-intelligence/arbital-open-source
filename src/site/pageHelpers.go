@@ -366,9 +366,12 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadCh
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		newPage := &page{PageId: p.Child.PageId}
+		newPage, ok := pageMap[p.Child.PageId]
+		if !ok {
+			newPage = &page{PageId: p.Child.PageId}
+			pageMap[newPage.PageId] = newPage
+		}
 		newPage.Parents = append(newPage.Parents, &p)
-		pageMap[newPage.PageId] = newPage
 		pageMap[p.Parent.PageId].HasChildren = true
 		return nil
 	})

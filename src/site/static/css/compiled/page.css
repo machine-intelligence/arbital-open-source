@@ -879,16 +879,16 @@ textarea.new-comment-text {
   font-size: 21px;
 }
 .explore-panel .explore-header-part {
-  display: inline-block;
+  display: table-cell;
 }
 .explore-panel .collapse-span {
-  display: inline-block;
+  display: table-cell;
   min-width: 30px;
 }
 .explore-panel .collapse-link {
   color: #e0e0e0;
   text-decoration: none;
-  display: inline-block;
+  display: table-cell;
   width: 20px;
 }
 .explore-panel .collapse-link.on {
@@ -910,24 +910,12 @@ textarea.new-comment-text {
   color: #d2d2d2;
   text-decoration: none;
 }
-.explore-panel .bulletpoint {
-  color: #e0e0e0;
-  text-decoration: none;
-  font-size: 2em;
-  font-size: 14px;
-}
-.explore-panel .bulletpoint.on {
-  color: #b8b8b8;
-}
-.explore-panel .bulletpoint.on:focus {
-  color: #b8b8b8;
-}
 .explore-panel .explore-header-link {
-  display: inline-block;
-  margin-left: 15px;
+  display: table-cell;
+  padding-left: 15px;
 }
 .explore-panel .explore-like-span {
-  display: inline-block;
+  display: table-cell;
 }
 .explore-panel .explore-panel-body {
   margin-left: 6px;
