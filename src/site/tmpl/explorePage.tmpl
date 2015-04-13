@@ -12,12 +12,16 @@
 			$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
 		});
 
+		// Children factory gets children pages for the given parent(s).
 		app.factory("Children", ["$resource", function($resource){
 			return $resource("/json/children/", {}, {
 				get: {method:"GET"},
 			});
 		}]);
 
+		// ZanaduuCtrl is used across all pages.
+		// It stores all the loaded pages.
+		// It provides multiple helper functions for working with pages.
 		app.controller("ZanaduuCtrl", ["$scope", function ($scope) {
 			// All loaded pages.
 			$scope.pageMap = {};
@@ -26,10 +30,6 @@
 				{{range $k,$v := .PageMap}}
 					"{{$k}}": {{GetPageJson $v}},
 				{{end}}
-				};
-			// Get the page corresponding to the given pageId.
-			$scope.getPage = function(pageId) {
-				return $scope.pageMap[pageId];
 			};
 			// Get the url corresponding to the given page.
 			$scope.getPageUrl = function(page) {
@@ -37,64 +37,99 @@
 			};
 		}]);
 
+		// ExploreCtrl is for the Explore page.
 		app.controller("ExploreCtrl", ["$scope", function ($scope) {
-			// todo
+			// Map of pageId -> array of panels.
+			$scope.pageIdToPanelsMap = {};
+			$scope.addPanel = function(panel) {
+				var panels = $scope.pageIdToPanelsMap[panel.pageId];
+				if (panels === undefined) {
+					panels = [];
+					$scope.pageIdToPanelsMap[panel.pageId] = panels;
+				}
+				panels.push(panel);
+			}
+			// processPages adds a new panel for every page in the given newPagesMap.
+			// It also updates the global pageMap.
 			$scope.processPages = function(newPagesMap) {
 				// Initialize and add new pages to pageMap.
+				var newPanels = {};
 				for (var pageId in newPagesMap) {
-					if (pageId in $scope.pageMap) {
-						console.warn("Trying to add duplicate page to pageMap: " + pageId);
-						return;
+					var panel = {
+						pageId: pageId,
+						showChildren: false,
+						hasChildren: false,
+						children: [],
+					};
+					$scope.addPanel(panel);
+					newPanels[panel.pageId] = panel;
+					var page = newPagesMap[pageId];
+					var oldPage = $scope.pageMap[pageId];
+					if (oldPage !== undefined) {
+						// Page already exists. Merge parents.
+						oldPage.Parents = oldPage.Parents.concat(page.Parents);
+						continue;
 					}
 					// Setup the new page.
-					var page = newPagesMap[pageId];
-					page.Explore = {
-						"ShowChildren": false,
-						"HasChildren": false,
-						"ChildrenIds": [],
-					};
 					$scope.pageMap[pageId] = page;
 				}
 
-				// Process parents. Do it as a second pass, so we are sure every page is
-				// initialized and added to pageMap.
+				// Process parents and create children panels. Do it as a second pass,
+				// so we are sure every page is initialized and added to pageMap.
 				for (var pageId in newPagesMap) {
+					var panel = newPanels[pageId];
 					var page = $scope.pageMap[pageId];
+					var newPage = newPagesMap[pageId];
 					if (page.Parents == null) {
-						$scope.rootPage.Explore.ChildrenIds.push(pageId);
+						panel.isTopLevel = true;
+						$scope.rootPanel.children.push(panel);
 					} else {
 						var parentsLen = page.Parents.length;
 						for (var i = 0; i < parentsLen; i++){
 							var parentPage = $scope.pageMap[page.Parents[i].Parent.PageId];
-							parentPage.Explore.ChildrenIds.push(pageId);
-							parentPage.Explore.HasChildren = true;
+							var parentPanels = $scope.pageIdToPanelsMap[parentPage.PageId];
+							var parentPanelsLen = parentPanels.length;
+							for (var ii = 0; ii < parentPanelsLen; ii++){
+								var parentPanel = parentPanels[ii];
+								var exists = parentPanel.children.some(function(item, index, array){
+									return item.pageId == pageId;
+								});
+								if (!exists) {
+									parentPanel.children.push(panel);
+									parentPanel.hasChildren = true;
+								}
+							}
 						}
 					}
 				}
 			};
 
-			// Imaginary root page we use to make sorting easier.
-			$scope.rootPage = {PageId:"-1", Explore:{ChildrenIds:[]}};
+			// Imaginary root panel we use to make the architecture simpler.
+			$scope.rootPanel = {pageId:"-1", children:[]};
 			// Insert initial pages.
 			console.log($scope.initialPages);
 			$scope.processPages($scope.initialPages);
 
-			// Sorting function for children.
-			$scope.sortChildren = function (pageId) {
-				var page = $scope.pageMap[pageId];
+			// Sorting function for panel's children.
+			$scope.sortChildren = function (panel) {
+				var page = $scope.pageMap[panel.pageId];
 				return page.Title;
 			}
 		}]);
 
+		// ExplorePanelCtrl is created for each panel.
 		app.controller("ExplorePanelCtrl", ["$scope", "Children", function ($scope, Children) {
-			$scope.page = $scope.getPage($scope.pageId);
-			$scope.page.Explore.ShowChildren = $scope.page.Explore.HasChildren;
+			$scope.page = $scope.pageMap[$scope.panel.pageId];
+			$scope.panel.showChildren = $scope.panel.hasChildren;
+
+			// togglePanel gets called when the user clicks to show/hide the panel.
 			$scope.togglePanel = function() {
-				$scope.page.Explore.ShowChildren = !$scope.page.Explore.ShowChildren;
-				if (!$scope.page.Explore.HasChildren && !$scope.page.Explore.LoadingChildren) {
-					$scope.page.Explore.LoadingChildren = true;
-					Children.get({parentId: $scope.pageId}, function(result) {
-						$scope.page.Explore.LoadingChildren = false;
+				$scope.panel.showChildren = !$scope.panel.showChildren;
+				if (!$scope.panel.hasChildren && !$scope.panel.loadingChildren) {
+					$scope.panel.loadingChildren = true;
+					// TODO: Check if we already got children for this page
+					Children.get({parentId: $scope.panel.pageId}, function(result) {
+						$scope.panel.loadingChildren = false;
 						$scope.processPages(result.toJSON());
 					}, function(error) {
 						console.log("error");
@@ -120,7 +155,7 @@
 	{{template "navbar" .User}}
 	
 	<div class="filter-body-div" ng-controller="ExploreCtrl">
-		<div explore-panel ng-repeat="pageId in rootPage.Explore.ChildrenIds | orderBy:sortChildren"></div>
+		<div explore-panel ng-repeat="panel in rootPanel.children | orderBy:sortChildren"></div>
 	</div>
 	
 	{{template "footer"}}

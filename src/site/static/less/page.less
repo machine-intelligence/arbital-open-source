@@ -255,6 +255,7 @@ textarea.new-comment-text {
 
 .like-area-mixin(@size) {
 	font-size: @size;
+	white-space: nowrap;
 	
 	.like-count {
 		color: @like-color;
@@ -308,7 +309,6 @@ textarea.new-comment-text {
 .like-small-span {
 	.like-area-mixin(14px);
 	display: table-cell;
-	padding: 0px 20px 0px 10px;
 }
 
 // Vote stuff
@@ -379,21 +379,39 @@ textarea.new-comment-text {
 }
 
 .explore-panel {
-	margin: 5px 0px;
+	padding: 10px 0px 0px 0px;
+
+	.big-explore-panel-header {
+		font-size: 21px;
+	}
 
 	.explore-header-part {
-		display:table-cell
+		display: inline-block;
 	}
 
 	.collapse-span {
 		.explore-header-part();
-		min-width: 20px;
+		min-width: 30px;
 	}
 	
 	.collapse-link {
 		.glyph-mixin-link(@gray-color);
 		.explore-header-part();
 		width: 20px;
+	}
+
+	.bulletpoint {
+		.gray-glyph();
+		font-size: 14px;
+	}
+
+	.explore-header-link {
+		.explore-header-part();
+		margin-left: 15px;
+	}
+
+	.explore-like-span {
+		display: inline-block;
 	}
 
 	.explore-panel-body {

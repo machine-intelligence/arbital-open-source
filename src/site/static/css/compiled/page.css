@@ -527,6 +527,7 @@ textarea.new-comment-text {
 }
 .page-like-div {
   font-size: 28px;
+  white-space: nowrap;
   position: relative;
   top: -7px;
 }
@@ -618,6 +619,7 @@ textarea.new-comment-text {
 }
 .like-span {
   font-size: 21px;
+  white-space: nowrap;
 }
 .like-span .like-count {
   color: #0ccd29;
@@ -707,8 +709,8 @@ textarea.new-comment-text {
 }
 .like-small-span {
   font-size: 14px;
+  white-space: nowrap;
   display: table-cell;
-  padding: 0px 20px 0px 10px;
 }
 .like-small-span .like-count {
   color: #0ccd29;
@@ -871,19 +873,22 @@ textarea.new-comment-text {
   width: 120px;
 }
 .explore-panel {
-  margin: 5px 0px;
+  padding: 10px 0px 0px 0px;
+}
+.explore-panel .big-explore-panel-header {
+  font-size: 21px;
 }
 .explore-panel .explore-header-part {
-  display: table-cell;
+  display: inline-block;
 }
 .explore-panel .collapse-span {
-  display: table-cell;
-  min-width: 20px;
+  display: inline-block;
+  min-width: 30px;
 }
 .explore-panel .collapse-link {
   color: #e0e0e0;
   text-decoration: none;
-  display: table-cell;
+  display: inline-block;
   width: 20px;
 }
 .explore-panel .collapse-link.on {
@@ -904,6 +909,25 @@ textarea.new-comment-text {
 .explore-panel .collapse-link:active {
   color: #d2d2d2;
   text-decoration: none;
+}
+.explore-panel .bulletpoint {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 2em;
+  font-size: 14px;
+}
+.explore-panel .bulletpoint.on {
+  color: #b8b8b8;
+}
+.explore-panel .bulletpoint.on:focus {
+  color: #b8b8b8;
+}
+.explore-panel .explore-header-link {
+  display: inline-block;
+  margin-left: 15px;
+}
+.explore-panel .explore-like-span {
+  display: inline-block;
 }
 .explore-panel .explore-panel-body {
   margin-left: 6px;
