@@ -3,88 +3,67 @@
 <!DOCTYPE html>
 <html>
 <head>
-{{template "style"}}
-{{template "scripts"}}
-<title>Zanaduu</title>
+	{{template "style"}}
+	{{template "scripts"}}
+	{{template "angular" .}}
+	<title>Zanaduu</title>
+	<script>
+		// IndexCtrl is for the Index page.
+		app.controller("IndexCtrl", ["$scope", function ($scope) {
+			$scope.pageMap = $scope.initialPages;
+			$scope.recentlyEditedByMeIds = [{{range .RecentlyEditedByMeIds}}{{.}},{{end}}];
+			$scope.recentlyCreatedIds = [{{range .RecentlyCreatedIds}}{{.}},{{end}}];
+			$scope.mostLikedIds = [{{range .MostLikedIds}}{{.}},{{end}}];
+			$scope.recentlyEditedIds = [{{range .RecentlyEditedIds}}{{.}},{{end}}];
+			$scope.mostControversialIds = [{{range .MostControversialIds}}{{.}},{{end}}];
+		}]);
+
+		// PageCtrl sets the page variable.
+		app.controller("PageCtrl", ["$scope", function ($scope) {
+			$scope.page = $scope.pageMap[$scope.pageId];
+		}]);
+	</script>
 </head>
-<body>
+<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
 
-{{template "navbar" .User}}
+	{{template "navbar" .User}}
+	
+	<div class="index-body-div container-fluid" ng-controller="IndexCtrl">
+		<div class="panel panel-default" ng-hide="recentlyEditedByMeIds.length <= 0">
+		  <div class="panel-heading">Recently Edited By Me</div>
+		  <div class="panel-body">
+		    <div likes-page-title ng-repeat="pageId in recentlyEditedByMeIds" ng-controller="PageCtrl"></div>
+		  </div>
+		</div>
 
-<div class="index-body-div container-fluid">
-	<div class="row">
-		<div class="col-xs-2">
-			<span class="fancy-text">Z</span>
+		<div class="panel panel-default">
+		  <div class="panel-heading">Recently Created</div>
+		  <div class="panel-body">
+		    <div likes-page-title ng-repeat="pageId in recentlyCreatedIds" ng-controller="PageCtrl"></div>
+		  </div>
 		</div>
-		<div class="col-xs-9">
-			<span>Welcome to Zanaduu. Zanaduu is a unique mixture of blogging and wiki software. Use it to work together with others to figure out the truth about the questions you find important.</span>
+
+		<div class="panel panel-default">
+		  <div class="panel-heading">Most Liked</div>
+		  <div class="panel-body">
+		    <div likes-page-title ng-repeat="pageId in mostLikedIds" ng-controller="PageCtrl"></div>
+		  </div>
 		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-2">
-			<span class="fancy-text">B</span>
+
+		<div class="panel panel-default">
+		  <div class="panel-heading">Recently Edited</div>
+		  <div class="panel-body">
+		    <div likes-page-title ng-repeat="pageId in recentlyEditedIds" ng-controller="PageCtrl"></div>
+		  </div>
 		</div>
-		<div class="col-xs-9">
-			<span>Blog pages are owned by the author, and only they can edit their pages. There the author can express their personal opinion, speculate, and rely heavily on intuition.</span>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-2">
-			<span class="fancy-text">W</span>
-		</div>
-		<div class="col-xs-9">
-			<span>Wiki pages are shared community pages. Any user can edit them. Every controversial claim has to be backed up by evidence.</span>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-2">
-			<span class="tag label label-default">Tag</span>
-		</div>
-		<div class="col-xs-9">
-			<span>Hierarchical tag structure provides an easy, but powerful way to organize and find content.</span>
+
+		<div class="panel panel-default">
+		  <div class="panel-heading">Most Controversial</div>
+		  <div class="panel-body">
+		    <div likes-page-title ng-repeat="pageId in mostControversialIds" ng-controller="PageCtrl"></div>
+		  </div>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-xs-2 like-span">
-			<span class="gray-glyph glyphicon glyphicon-thumbs-up"></span>
-		</div>
-		<div class="col-xs-9">
-			<span>Upvote high quality content, even if you disagree with the conclusions.</span>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-2 like-span">
-			<span class="gray-glyph glyphicon glyphicon-thumbs-down"></span>
-		</div>
-		<div class="col-xs-9">
-			<span>Downvote low quality content, even if you agree with the conclusions.</span>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-2 vote">
-			<input class="example-slider" id="vote-slider-input" data-slider-id="vote-slider" type="text"/>
-		</div>
-		<div class="col-xs-9">
-			<span>Assign probability to various claims. See where you disagree with others.</span>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-2">
-			<span class="gray-glyph glyphicon glyphicon-eye-open"></span>
-		</div>
-		<div class="col-xs-9">
-			<span>Subscribe to pages, authors, comments, and tags.</span>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-2">
-			<span class="gray-glyph glyphicon glyphicon-pencil"></span>
-		</div>
-		<div class="col-xs-9">
-			<span>And most importantly: edit and create new pages to make the website even better!</span>
-		</div>
-	</div>
-</div>
 
 </body>
 </html>

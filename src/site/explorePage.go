@@ -25,7 +25,7 @@ var explorePage = newPage(
 	"/explore/",
 	exploreRenderer,
 	append(baseTmpls,
-		"tmpl/explorePage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/explorePage.tmpl", "tmpl/angular.tmpl.js", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 // exploreRenderer renders the page page.
 func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {

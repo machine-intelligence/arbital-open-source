@@ -5,38 +5,9 @@
 <head>
 	{{template "style"}}
 	{{template "scripts"}}
+	{{template "angular" .}}
 	<title>Explore Zanaduu</title>
 	<script>
-		var app = angular.module("zanaduu", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
-		app.config(function($interpolateProvider){
-			$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
-		});
-
-		// Children factory gets children pages for the given parent(s).
-		app.factory("Children", ["$resource", function($resource){
-			return $resource("/json/children/", {}, {
-				get: {method:"GET"},
-			});
-		}]);
-
-		// ZanaduuCtrl is used across all pages.
-		// It stores all the loaded pages.
-		// It provides multiple helper functions for working with pages.
-		app.controller("ZanaduuCtrl", ["$scope", function ($scope) {
-			// All loaded pages.
-			$scope.pageMap = {};
-			// Pages loaded along with html & js.
-			$scope.initialPages = {
-				{{range $k,$v := .PageMap}}
-					"{{$k}}": {{GetPageJson $v}},
-				{{end}}
-			};
-			// Get the url corresponding to the given page.
-			$scope.getPageUrl = function(page) {
-				return "/pages/" + page.Alias;
-			};
-		}]);
-
 		// ExploreCtrl is for the Explore page.
 		app.controller("ExploreCtrl", ["$scope", function ($scope) {
 			// Map of pageId -> array of panels.
@@ -107,7 +78,6 @@
 			// Imaginary root panel we use to make the architecture simpler.
 			$scope.rootPanel = {pageId:"-1", children:[]};
 			// Insert initial pages.
-			console.log($scope.initialPages);
 			$scope.processPages($scope.initialPages);
 
 			// Sorting function for panel's children.
