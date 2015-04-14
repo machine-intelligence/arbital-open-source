@@ -55,7 +55,7 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if !u.IsLoggedIn {
 		return http.StatusForbidden, fmt.Sprintf("Not logged in")
 	}
-	if u.Karma <= 200 {
+	if u.Karma < 200 {
 		return http.StatusForbidden, fmt.Sprintf("You don't have enough karma")
 	}
 
