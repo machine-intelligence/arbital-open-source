@@ -18,7 +18,7 @@ const (
 	voteKarmaReq               = 10
 	addParentKarmaReq          = 20
 	createAliasKarmaReq        = 50
-	editPageKarmaReq           = 50 // edit wiki page
+	editPageKarmaReq           = 0 //50 // edit wiki page
 	deleteParentKarmaReq       = 100
 	karmaLockKarmaReq          = 100
 	changeSortChildrenKarmaReq = 100
