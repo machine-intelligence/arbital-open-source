@@ -1,0 +1,18 @@
+<!-- Display page's title with potential additional meta info.
+Required variables: page -->
+
+<span class="title-span">
+	<span class="alert alert-danger" ng-show="page.DeletedBy > 0">[DELETED]</span>
+	<span ng-hide="page.DeletedBy > 0">
+		<span class="new-updated-label glyphicon glyphicon-star-empty"
+			    title="This page has been updated since the last time you've seen it"
+					ng-show="page.isUpdatedPage()"></span>
+		<span class="gray-text glyphicon glyphicon-lock"
+			    title="Nobody can access this page unless they have the exact URL"
+					ng-show="page.PrivacyKey > 0"></span>
+		<span ng-show="page.Group.Name != ''">
+			[<span ng-bind="page.Group.Name"></span>]
+		</span>
+		<span class="page-title-text" ng-bind="page.Title"></span>
+	</span>
+</span>

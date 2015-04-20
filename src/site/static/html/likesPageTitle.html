@@ -1,4 +1,4 @@
-<!-- Display page's title.
+<!-- Display page's likes and title.
 Required variables: page -->
 
 <!-- Likes and dislikes -->
@@ -11,5 +11,5 @@ Required variables: page -->
 </span>
 
 <span class="inline-page-title">
-	<a ng-href="{[{getPageUrl(page)}]}" class="intrasite-link" ng-bind="page.Title"></a>
+	<a ng-href="{[{page.Url}]}" class="intrasite-link" ng-bind="page.Title"></a>
 </span>

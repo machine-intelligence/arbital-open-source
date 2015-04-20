@@ -1,0 +1,25 @@
+<!-- A recursive tree node to display corresponding page and node's children. -->
+<div class="page-panel">
+	<div ng-class="{'big-page-panel-header': isSupersized()}">
+		<span class="collapse-span">
+			<span ng-show="showCollapseArrow()" class="collapse-link glyphicon" ng-class="{'glyphicon-triangle-bottom': node.showChildren, 'glyphicon-triangle-right': !node.showChildren}" ng-click="toggleNode()"></span>
+			<span ng-show="!showCollapseArrow()" class="gray-text">&nbsp;&bull;</span>
+		</span>
+
+		<!-- Likes / dislikes and approval voting -->
+		<span class="page-like-span" ng-class="{'like-small-span': !isSupersized(), 'like-span': isSupersized()}">
+			<span class="like-count" ng-bind="page.LikeCount"></span>
+			<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-class="{'on': page.MyLikeValue >= 1}"></span>
+			&nbsp;
+			<span class="dislike-count" ng-bind="page.DislikeCount"></span>
+			<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
+		</span>
+
+		<a ng-href="{[{page.Url}]}" class="page-header-link" ng-bind="page.Title"></a>
+	</div>
+	<div class="page-panel-body" ng-show="node.showChildren">
+		<img src="/static/images/loading.gif" ng-show="isLoadingChildren()"/>
+		<znd-page-tree-node ng-repeat="node in node.children | orderBy:sortChildren" node="node"></znd-page-tree-node>
+	</div>
+	<br ng-show="isSupersized()">
+</div>
