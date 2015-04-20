@@ -66,6 +66,7 @@ func init() {
 
 	// JSON handlers (API)
 	r.HandleFunc("/json/children/", childrenJsonHandler).Methods("GET")
+	r.HandleFunc("/json/parents/", parentsJsonHandler).Methods("GET")
 
 	// POST handlers (API)
 	r.HandleFunc("/editPage/", editPageHandler).Methods("POST")
