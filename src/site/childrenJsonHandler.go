@@ -92,5 +92,7 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error marshalling pageMap into json:", err)
 	}
+	// Write some stuff for "JSON Vulnerability Protection"
+	w.Write([]byte(")]}',\n"))
 	w.Write(jsonData)
 }
