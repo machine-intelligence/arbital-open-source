@@ -2,6 +2,7 @@
 package site
 
 import (
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -89,6 +90,14 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 			"IsLoggedIn": func() bool { return u.IsLoggedIn },
 			"GetUserUrl": func(userId int64) string {
 				return getUserUrl(userId)
+			},
+			"GetUserJson": func() template.JS {
+				jsonData, _ := json.Marshal(u)
+				return template.JS(string(jsonData))
+			},
+			"GetPageJson": func(p *page) template.JS {
+				jsonData, _ := json.Marshal(p)
+				return template.JS(string(jsonData))
 			},
 			"GetPageUrl": func(p *page) string {
 				return getPageUrl(p)

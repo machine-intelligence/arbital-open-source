@@ -2,13 +2,10 @@
 package site
 
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
 
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -37,28 +34,6 @@ var indexPage = newPage(
 		"tmpl/index.tmpl",
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl"))
-
-// loadPageIds from the given query and return an array containing them, while
-// also updating the pageMap as necessary.
-func loadPageIds(c sessions.Context, query string, pageMap map[int64]*page) ([]string, error) {
-	ids := make([]string, 0, indexPanelLimit)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var pageId int64
-		err := rows.Scan(&pageId)
-		if err != nil {
-			return fmt.Errorf("failed to scan a pageId: %v", err)
-		}
-
-		p, ok := pageMap[pageId]
-		if !ok {
-			p = &page{PageId: pageId}
-			pageMap[pageId] = p
-		}
-		ids = append(ids, fmt.Sprintf("%d", p.PageId))
-		return nil
-	})
-	return ids, err
-}
 
 // indexRenderer renders the index page.
 func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
@@ -178,12 +153,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		return pages.InternalErrorWith(err)
 	}
 
-	funcMap := template.FuncMap{
-		"GetPageJson": func(p *page) template.JS {
-			jsonData, _ := json.Marshal(p)
-			return template.JS(string(jsonData))
-		},
-	}
+	funcMap := template.FuncMap{}
 
 	c.Inc("index_page_served_success")
 	return pages.StatusOK(data).AddFuncMap(funcMap)

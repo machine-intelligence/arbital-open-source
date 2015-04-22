@@ -15,7 +15,7 @@
 			<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
 		</span>
 
-		<a ng-href="{[{page.Url}]}" class="page-header-link" ng-bind="page.Title"></a>
+		<span class="page-header-link"><a ng-href="{[{page.Url}]}" class="intrasite-link" ng-bind="page.Title"></a></span>
 	</div>
 	<div class="page-panel-body" ng-show="node.showChildren">
 		<img src="/static/images/loading.gif" ng-show="isLoadingChildren()"/>

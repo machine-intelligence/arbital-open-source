@@ -95,6 +95,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	} else if oldPage == nil {
 		oldPage = &page{}
 	}
+	oldPage.processParents(c, nil)
 
 	// Compute edit number for the new edit of this page
 	newEditNum := 0
@@ -262,6 +263,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 	}
 
+	// Create encoded string for parents, as well as a string for updating pagePairs.
+	encodedParentIds := make([]string, len(parentIds))
+	pagePairValues := make([]string, len(parentIds))
+	for i, id := range parentIds {
+		encodedParentIds[i] = strconv.FormatInt(id, pageIdEncodeBase)
+		pagePairValues[i] = fmt.Sprintf("(%d, %d)", id, data.PageId)
+	}
+
 	// Create a new edit.
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
@@ -280,6 +289,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["type"] = data.Type
 	hashmap["privacyKey"] = privacyKey
 	hashmap["groupName"] = data.GroupName
+	hashmap["parents"] = strings.Join(encodedParentIds, ",")
 	hashmap["createdAt"] = database.Now()
 	query := ""
 	overwritingEdit := oldPage.PageId > 0 && oldPage.Edit == newEditNum
@@ -293,45 +303,28 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new page: %v", err)
 	}
 
-	// Create a map of relationships from the old version of the page.
-	oldParentsMap := make(map[int64]*pagePair)
-	for _, r := range oldPage.Parents {
-		oldParentsMap[r.Parent.PageId] = r
-	}
-
-	// Insert newly added pages and mark the ones still in use.
-	// TODO: make this more efficient by creating one sql command
-	for _, parentId := range parentIds {
-		oldPageParent := oldParentsMap[parentId]
-		if oldPageParent == nil || !overwritingEdit {
-			hashmap := make(map[string]interface{})
-			hashmap["parentId"] = parentId
-			hashmap["childId"] = data.PageId
-			hashmap["childEdit"] = newEditNum
-			query := database.GetInsertSql("pagePairs", hashmap)
-			_, err = tx.Exec(query)
-			if err != nil {
-				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new pagePair: %v", err)
-			}
-		} else {
-			oldParentsMap[parentId].StillInUse = true
+	// Update pagePairs table.
+	// TODO: check if parents are actually different from previously published version
+	if isCurrentEdit {
+		// Delete previous values.
+		query := fmt.Sprintf(`
+			DELETE FROM pagePairs
+			WHERE childId=%d`, data.PageId)
+		_, err = tx.Exec(query)
+		if err != nil {
+			tx.Rollback()
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pagePair: %v", err)
 		}
-	}
-	// Delete all parents that are not still in use.
-	// TODO: make this more efficient by creating one sql command
-	if overwritingEdit {
-		for _, pair := range oldParentsMap {
-			if pair.StillInUse {
-				continue
-			}
+
+		// Insert new values.
+		if len(pagePairValues) > 0 {
+			insertValuesStr := strings.Join(pagePairValues, ",")
 			query := fmt.Sprintf(`
-				DELETE FROM pagePairs
-				WHERE id=%d`, pair.Id)
-			_, err = tx.Exec(query)
-			if err != nil {
+				INSERT INTO pagePairs (parentId,childId)
+				VALUES %s`, insertValuesStr)
+			if _, err = tx.Exec(query); err != nil {
 				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pagePair: %v", err)
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert new pagePairs: %v", err)
 			}
 		}
 	}

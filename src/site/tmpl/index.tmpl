@@ -3,24 +3,18 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<title>Zanaduu</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
-	<title>Zanaduu</title>
 	<script>
 		// IndexCtrl is for the Index page.
 		app.controller("IndexCtrl", ["$scope", function ($scope) {
-			$scope.pageMap = $scope.initialPages;
 			$scope.recentlyEditedByMeIds = [{{range .RecentlyEditedByMeIds}}{{.}},{{end}}];
 			$scope.recentlyCreatedIds = [{{range .RecentlyCreatedIds}}{{.}},{{end}}];
 			$scope.mostLikedIds = [{{range .MostLikedIds}}{{.}},{{end}}];
 			$scope.recentlyEditedIds = [{{range .RecentlyEditedIds}}{{.}},{{end}}];
 			$scope.mostControversialIds = [{{range .MostControversialIds}}{{.}},{{end}}];
-		}]);
-
-		// PageCtrl sets the page variable.
-		app.controller("PageCtrl", ["$scope", function ($scope) {
-			$scope.page = $scope.pageMap[$scope.pageId];
 		}]);
 	</script>
 </head>
@@ -32,35 +26,35 @@
 		<div class="panel panel-default" ng-hide="recentlyEditedByMeIds.length <= 0">
 		  <div class="panel-heading">Recently Edited By Me</div>
 		  <div class="panel-body">
-		    <div likes-page-title ng-repeat="pageId in recentlyEditedByMeIds" ng-controller="PageCtrl"></div>
+		    <znd-likes-page-title page-id="pageId" ng-repeat="pageId in recentlyEditedByMeIds"></znd-likes-page-title>
 		  </div>
 		</div>
 
 		<div class="panel panel-default">
 		  <div class="panel-heading">Recently Created</div>
 		  <div class="panel-body">
-		    <div likes-page-title ng-repeat="pageId in recentlyCreatedIds" ng-controller="PageCtrl"></div>
+		    <znd-likes-page-title page-id="pageId" ng-repeat="pageId in recentlyCreatedIds"></znd-likes-page-title>
 		  </div>
 		</div>
 
 		<div class="panel panel-default">
 		  <div class="panel-heading">Most Liked</div>
 		  <div class="panel-body">
-		    <div likes-page-title ng-repeat="pageId in mostLikedIds" ng-controller="PageCtrl"></div>
+		    <znd-likes-page-title page-id="pageId" ng-repeat="pageId in mostLikedIds"></znd-likes-page-title>
 		  </div>
 		</div>
 
 		<div class="panel panel-default">
 		  <div class="panel-heading">Recently Edited</div>
 		  <div class="panel-body">
-		    <div likes-page-title ng-repeat="pageId in recentlyEditedIds" ng-controller="PageCtrl"></div>
+		    <znd-likes-page-title page-id="pageId" ng-repeat="pageId in recentlyEditedIds"></znd-likes-page-title>
 		  </div>
 		</div>
 
 		<div class="panel panel-default">
 		  <div class="panel-heading">Most Controversial</div>
 		  <div class="panel-body">
-		    <div likes-page-title ng-repeat="pageId in mostControversialIds" ng-controller="PageCtrl"></div>
+		    <znd-likes-page-title page-id="pageId" ng-repeat="pageId in mostControversialIds"></znd-likes-page-title>
 		  </div>
 		</div>
 	</div>

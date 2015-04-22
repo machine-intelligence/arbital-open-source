@@ -3,21 +3,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<title>{{.Page.Title}} - Zanaduu</title>
 	{{template "style"}}
 	{{template "scripts"}}
+	{{template "angular" .}}
 	<script src="/static/js/page.js"></script>
 	<script>
 		var gPageText = "{{.Page.Text}}";
 		var gVoteCount = {{.Page.VoteCount}};
 		var gVoteValueStr = "{{if .Page.VoteValue.Valid}}{{.Page.VoteValue.Float64}}{{end}}";
 		var gMyVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
-		// Map of alias -> {pageId, title} object.
-		var pageAliases = { {{range .AliasMap}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
 	</script>
-	<title>{{.Page.Title}} - Zanaduu</title>
+	<script>
+		// MainCtrl is for the Page page.
+		app.controller("MainCtrl", function ($scope, pageService) {
+			$scope.relatedIds = {{.RelatedIds}};
+			$scope.page = pageService.pageMap["{{.Page.PageId}}"];
+
+			// Set up children pages.
+			$scope.initialChildren = {};
+			var childrenLen = $scope.page.Children.length;
+			for (var n = 0; n < childrenLen; n++) {
+				var id = $scope.page.Children[n].ChildId;
+				$scope.initialChildren[id] = pageService.pageMap[id];
+			}
+
+			// Set up parents pages.
+			$scope.initialParents = {};
+			var parentsLen = $scope.page.Parents.length;
+			for (var n = 0; n < parentsLen; n++) {
+				var id = $scope.page.Parents[n].ParentId;
+				$scope.initialParents[id] = pageService.pageMap[id];
+			}
+		});
+	</script>
 </head>
 
-<body page-id="{{.Page.PageId}}" page-type="{{.Page.Type}}" page-url="{{GetPageUrl .Page}}" last-visit="{{.Page.LastVisit}}" has-vote="{{if .Page.HasVote}}true{{end}}">
+<body page-id="{{.Page.PageId}}" page-type="{{.Page.Type}}" page-url="{{GetPageUrl .Page}}" last-visit="{{.Page.LastVisit}}" has-vote="{{if .Page.HasVote}}true{{end}}" ng-app="zanaduu" ng-controller="ZanaduuCtrl">
 {{template "navbar" .User}}
 
 <!-- This div shows up when the user hovers over an intra-site link. -->
@@ -75,41 +97,77 @@
 			</div>
 		</div>
 	{{else}}
-		<div class="page-body-div">
+		<div class="page-body-div" ng-controller="MainCtrl">
+			<!-- Navigation column -->
+			<div class="navigation-column pull-left">
+				<!-- Siblings -->
+				<div class="panel panel-default">
+					<div class="panel-heading">Related</div>
+					<div class="panel-body">
+						<znd-likes-page-title page-id="pageId" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
+					</div>
+				</div>
+		
+				<!-- Parents -->
+				<div class="panel panel-default">
+					<div class="panel-heading">Parents</div>
+					<div class="panel-body">
+						<znd-page-tree init-map="initialParents" is-parent-tree="true"></znd-page-tree>
+					</div>
+				</div>
+		
+				<!-- Children -->
+				<div class="panel panel-default">
+					<div class="panel-heading">Children</div>
+					<div class="panel-body">
+						<znd-page-tree init-map="initialChildren"></znd-page-tree>
+					</div>
+				</div>
+			</div>
+
 			<!-- Left column -->
 			<div class="left-column pull-left">
 				<!-- Likes / dislikes and approval voting -->
-				<div class="page-like-div pull-right" my-like="{{.MyLikeValue}}">
-					<div class="">
-						<span class="like-count">{{.LikeCount}}</span>
-						{{if IsLoggedIn}}
-							<a href="#" class="like-link glyphicon glyphicon-thumbs-up {{if ge .MyLikeValue 1}}on{{end}}" title="This is a high quality page"></a>
-						{{else}}
-							<span class="disabled-like glyphicon glyphicon-thumbs-up"></span>
-						{{end}}
+				<div class="page-like-div pull-right" my-like="{[{page.MyLikeValue}]}">
+					<div class="pull-right">
+						<span class="like-count" ng-bind="page.LikeCount"></span>
+						<a href="#"
+						   class="like-link glyphicon glyphicon-thumbs-up"
+							 ng-class="{'on': page.MyLikeValue >= 1}"
+							 title="This is a high quality page"
+							 ng-show="userService.user.IsLoggedIn"></a>
+						<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-hide="userService.user.IsLoggedIn"></span>
 					</div>
-					<div class="">
-						<span class="dislike-count">{{.DislikeCount}}</span>
-						{{if IsLoggedIn}}
-							<a href="#" class="dislike-link glyphicon glyphicon-thumbs-down {{if le .MyLikeValue -1}}on{{end}}" title="This is a low quality page"></a>
-						{{else}}
-							<span class="disabled-dislike glyphicon glyphicon-thumbs-down"></span>
-						{{end}}
+					<div class="clearfix"></div>
+					<div class="pull-right">
+						<span class="dislike-count" ng-bind="page.DislikeCount"></span>
+						<a href="#"
+							 class="dislike-link glyphicon glyphicon-thumbs-down"
+							 ng-class="{'on': page.MyLikeValue <= -1}"
+							 title="This is a low quality page"
+							 ng-show="userService.user.IsLoggedIn"></a>
+						<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-hide="userService.user.IsLoggedIn"></span>
 					</div>
 				</div>
 				<div class="clearfix"></div>
 
 				<!-- Page icons like subscribe, edit, and delete. -->
 				<div class="page-glyphs pull-right">
-					{{if IsLoggedIn}}
-							<a href="#" class="subscribe-to-page-link glyphicon glyphicon-eye-open {{if .IsSubscribed}}on{{end}}" title="Subscribe to receive updates when this page changes or gets new comments"></a><br>
-					{{end}}
-					{{if or (eq (GetEditLevel .) "") (eq (GetEditLevel .) "admin")}}
-						<a href="{{GetPageEditUrl .}}" class='edit-page-link glyphicon glyphicon-pencil {{if eq (GetEditLevel .) "admin"}}admin{{end}}' title="Edit this page"></a><br>
-					{{end}}
-					{{if or (eq (GetDeleteLevel .) "") (eq (GetDeleteLevel .) "admin")}}
-						<a href="#" class='delete-page-link glyphicon glyphicon-remove {{if eq (GetDeleteLevel .) "admin"}}admin{{end}}' title="Delete this page"></a><br>
-					{{end}}
+					<a href="#"
+						 class="subscribe-to-page-link glyphicon glyphicon-eye-open"
+						 ng-class="{'on': page.IsSubscribed}"
+						 title="Subscribe to receive updates when this page changes or gets new comments"
+						 ng-show="userService.user.IsLoggedIn"></a>
+					<a ng-href="{[{page.EditUrl}]}"
+						 class="edit-page-link glyphicon glyphicon-pencil"
+						 ng-class="{'admin': page.getEditLevel() == 'admin'}"
+						 title="Edit this page"
+						 ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
+					<a href="#"
+						 class="delete-page-link glyphicon glyphicon-remove"
+						 ng-class="{'admin': page.getDeleteLevel() == 'admin'}"
+						 title="Delete this page"
+						 ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
 				</div>
 				<div class="clearfix"></div>
 
@@ -123,97 +181,30 @@
 		
 			<!-- Main page column -->
 			<div class="mid-column pull-left">
-				<div class="page-title">
-					{{template "title" .}}
-				</div>
-				{{if eq .Type "blog"}}
-					<div class="author-text">by {{template "userName" .Author}}</div>
-				{{end}}
+				<znd-page-title page-id="page.PageId" class="page-title"></znd-page-title>
+				<div class="author-text" ng-show="page.Type == 'blog'">by {{template "userName" .Author}}</div>
 
 				<!-- Probability voting -->
-				{{if .HasVote}}
-					<div id="main-page-vote"></div>
-				{{end}}
+				<div id="main-page-vote" ng-show="page.HasVote"></div>
 
 				<!-- Main page text. Populated by JS. -->
 				<div class="page-text"></div>
 		
-				<!-- Tags -->
-				<div class="tags">
-					<span class="">Parents:</span>
-					{{if .Parents}}
-						&nbsp;&nbsp;
-						{{range .Parents}}
-							{{template "tag" .Parent}}
-						{{end}}
-					{{else}}
-						<span class="">None</span>
-					{{end}}
-					<!--<a class="gray-link" id="add-personal-page-pair">Add Personal</a>
-					<form id="add-personal-page-pair-div" hidden>
-						<br>
-						<input name="alias" type="text">
-						<div class="submit-form-error alert alert-danger" hidden></div>
-						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-						<button type="submit" class="btn btn-primary" toggle-on-submit>Add</button>
-					</form>-->
-				</div>
-
-				<!-- Children -->
-				<div class="tags">
-					<span class="">Children:</span>
-					{{if .Children}}
-						<ul class="children list-unstyled">
-						{{range .Children}}
-							<li>
-								<a href="{{GetPageUrl .Child}}" class="intrasite-link" page-id="{{.Child.PageId}}" privacy-key="{{.Child.PrivacyKey}}">{{.Child.Title}}</a>
-							</li>
-						{{end}}
-						</ul>
-					{{else}}
-						<span class="">None</span>
-					{{end}}
-				</div>
-		
 				<!--Admin stuff -->
 				{{if IsAdmin}}
-					<span class="admin">Last Visit: {{.LastVisit}}; Last Edit At: {{.CreatedAt}} by {{template "userName" .Author}}</span></br>
+					<span class="admin">Last Visit: {[{page.LastVisit}]}; Last Edit At: {[{page.CreatedAt}]} by {{template "userName" .Author}}</span></br>
 				{{end}}
 
-				<!-- Contexts -->
-				<div class="contexts">
-					{{if .Contexts}}
-						<a data-toggle="collapse" href="#contexts" aria-expanded="false" aria-controls="contexts" title="Show what pages link to this page">Used In &raquo;</a>
-						<div class="contexts-content collapse" id="contexts">
-							<ul class="list-unstyled">
-								{{range .Contexts}}
-									<li><a href="{{GetPageUrl .}}" class="context-link intrasite-link" page-id="{{.PageId}}" privacy-key="{{.PrivacyKey}}">{{.Title}}</a></li>
-								{{end}}
-							</ul>
-						</div>
+				<!-- Comments -->
+				<b id="comments-label">Comments:</b></br>
+				<div class="comments">
+					{{range .Comments}}
+						{{template "comment" .}}
 					{{end}}
+					{{template "newComment" 0}}
 				</div>
 			</div>
-			<div class="right-column pull-left">
-				<!-- TODO: side comments -->
-			</div>
 			<div class="clearfix"></div>
-			
-			<!-- Comments -->
-			<div class="left-column pull-left">
-				&nbsp;
-			</div>
-			<div class="mid-column pull-left">
-				<b id="comments-label">Comments:</b></br>
-			</div>
-			<div class="clearfix"></div>
-			<div class="comments">
-				{{range .Comments}}
-					{{template "comment" .}}
-				{{end}}
-			</div>
-			
-			{{template "newComment" 0}}
 		</div>
 	{{end}}
 {{end}}

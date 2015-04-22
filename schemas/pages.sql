@@ -40,6 +40,8 @@ CREATE TABLE pages (
 	/* Optional name of the group this page belongs to. Only group members will be
 	 able to see this page. FK into groups. */
 	groupName VARCHAR(64) NOT NULL,
+	/* Comma separated string of parent ids in base 36. */
+	parents VARCHAR(1024) NOT NULL,
 	/* If not 0, this edit has been deleted by this user id. */
 	deletedBy BIGINT NOT NULL,
 	PRIMARY KEY(pageId, edit)

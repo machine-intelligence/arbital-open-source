@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -34,6 +32,9 @@ const (
 
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	maxKarmaLockFraction = 0.8
+
+	// When encoding a page id into a compressed string, we use this base.
+	pageIdEncodeBase = 36
 )
 
 type page struct {
@@ -52,6 +53,7 @@ type page struct {
 	KarmaLock      int
 	PrivacyKey     int64 `json:",string"`
 	Group          group
+	ParentsStr     string
 	DeletedBy      int64 `json:",string"`
 	IsAutosave     bool
 	IsSnapshot     bool
@@ -63,6 +65,7 @@ type page struct {
 	InputCount   int //used?
 	IsSubscribed bool
 	HasChildren  bool // whether or not this page has children
+	HasParents   bool // whether or not this page has parents
 	LikeCount    int
 	DislikeCount int
 	MyLikeValue  int
@@ -70,26 +73,20 @@ type page struct {
 	VoteValue    sql.NullFloat64
 	VoteCount    int
 	MyVoteValue  sql.NullFloat64
-	Contexts     []*page //used?
-	Links        []*page //used?
 	Comments     []*comment
 	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
 	MaxEditEver  int  // highest edit number used for this page for all users
 	Parents      []*pagePair
 	Children     []*pagePair
-	LinkedFrom   []*page
+	LinkedFrom   []string
 }
 
 // pagePair describes a parent child relationship, which are stored in pagePairs db table.
 type pagePair struct {
 	// From db.
-	Id     int64
-	Parent *page
-	Child  *page
-	UserId int64
-
-	// Populated by the code.
-	StillInUse bool // true iff this relationship is still in use
+	Id       int64 `json:",string"`
+	ParentId int64 `json:",string"`
+	ChildId  int64 `json:",string"`
 }
 
 // loadPageOptions describes options for loading page(s) from the db
@@ -98,20 +95,9 @@ type loadPageOptions struct {
 	loadSummary bool
 }
 
-// Helpers for sorting pages chronologically.
-type pagesChronologically []*pagePair
-
-func (a pagesChronologically) Len() int      { return len(a) }
-func (a pagesChronologically) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a pagesChronologically) Less(i, j int) bool {
+/*func (a pagesChronologically) Less(i, j int) bool {
 	return a[i].Child.CreatedAt > a[j].Child.CreatedAt
 }
-
-// Helpers for sorting page pairs alphabetically.
-type pagesAlphabetically []*pagePair
-
-func (a pagesAlphabetically) Len() int      { return len(a) }
-func (a pagesAlphabetically) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a pagesAlphabetically) Less(i, j int) bool {
 	// Usual string comparison doesn't work well with numbers, e.g. "10abc" comes
 	// before "2abc". We fix this by padding all numbers to 20 characters.
@@ -126,14 +112,35 @@ func padNumber(s string) string {
 	}
 	return strings.Repeat("0", 20-len(s)) + s
 }
-
-// Helpers for sorting page pairs by votes.
-type pagesByLikes []*pagePair
-
-func (a pagesByLikes) Len() int      { return len(a) }
-func (a pagesByLikes) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a pagesByLikes) Less(i, j int) bool {
 	return a[i].Child.LikeScore > a[j].Child.LikeScore
+}*/
+
+// processParents converts ParentsStr from this page to the Parents array, and
+// populates the given pageMap with the parents.
+func (p *page) processParents(c sessions.Context, pageMap map[int64]*page) error {
+	if len(p.ParentsStr) <= 0 {
+		return nil
+	}
+	parentIds := strings.Split(p.ParentsStr, ",")
+	for _, idStr := range parentIds {
+		id, err := strconv.ParseInt(idStr, pageIdEncodeBase, 64)
+		if err != nil {
+			return err
+		}
+		pair := pagePair{ParentId: id, ChildId: p.PageId}
+		if pageMap != nil {
+			newPage, ok := pageMap[pair.ParentId]
+			if !ok {
+				newPage = &page{PageId: pair.ParentId}
+				pageMap[newPage.PageId] = newPage
+			}
+			newPage.Children = append(newPage.Children, &pair)
+		}
+		p.Parents = append(p.Parents, &pair)
+		p.HasParents = true
+	}
+	return nil
 }
 
 // loadFullEdit loads and retuns the last edit for the given page id and user id,
@@ -147,17 +154,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	if pagePtr == nil {
 		return nil, nil
 	}
-	err = pagePtr.loadParents(c, userId)
-	if err != nil {
-		return nil, err
-	}
 	return pagePtr, nil
-}
-
-// loadFullPage loads and retuns a page. It also loads all the auxillary data like tags.
-// If the page couldn't be found, (nil, nil) will be returned.
-func loadFullPage(c sessions.Context, pageId int64, userId int64) (*page, error) {
-	return loadFullEdit(c, pageId, userId)
 }
 
 // loadPage loads and returns a page with the given id from the database.
@@ -179,7 +176,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 	// TODO: we often don't need maxEditEver
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.sortChildrenBy,p.hasVote,
-			p.createdAt,p.karmaLock,p.privacyKey,p.groupName,p.deletedBy,p.isAutosave,p.isSnapshot,
+			p.createdAt,p.karmaLock,p.privacyKey,p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,
 			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
 			u.id,u.firstName,u.lastName
@@ -194,8 +191,9 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 		pageId, whereClause, userId)
 
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
-		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.HasVote,
-		&p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
+		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy,
+		&p.HasVote, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
+		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
 		&p.WasPublished, &p.MaxEditEver, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
@@ -235,166 +233,77 @@ func loadPageByAlias(c sessions.Context, pageAlias string) (*page, error) {
 	return loadPage(c, pageId)
 }
 
-// loadParents loads parents corresponding to this page.
-func (p *page) loadParents(c sessions.Context, userId int64) error {
-	pageMap := make(map[int64]*page)
-	pageMap[p.PageId] = p
-	err := loadParents(c, pageMap, userId)
-	return err
-}
-
-// loadChildren loads children corresponding to this page.
-func (p *page) loadChildren(c sessions.Context, userId int64) error {
-	pageMap := make(map[int64]*page)
-	pageMap[p.PageId] = p
-	err := loadChildren(c, pageMap, userId)
-	return err
-}
-
-// sortChildren sorts page's children.
-func (p *page) sortChildren(c sessions.Context) {
-	if len(p.Children) <= 0 {
-		return
-	}
-	if p.SortChildrenBy == chronologicalChildSortingOption {
-		sort.Sort(pagesChronologically(p.Children))
-	} else if p.SortChildrenBy == alphabeticalChildSortingOption {
-		sort.Sort(pagesAlphabetically(p.Children))
-	} else {
-		sort.Sort(pagesByLikes(p.Children))
-	}
-}
-
-// loadParents loads parents for the given pages.
-func loadParents(c sessions.Context, pageMap map[int64]*page, userId int64) error {
-	if len(pageMap) <= 0 {
-		return nil
-	}
-	whereClause := "FALSE"
-	for id, p := range pageMap {
-		whereClause += fmt.Sprintf(`
-			OR (pp.childId=%d AND (pp.childEdit=%d OR (%d!=0 AND pp.userId=%d)))`,
-			id, p.Edit, userId, userId)
-	}
-	query := fmt.Sprintf(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.title,p.alias
-		FROM pagePairs AS pp
-		LEFT JOIN pages AS p
-		ON (p.pageId=pp.parentId AND p.isCurrentEdit)
-		WHERE %s`, whereClause)
+// loadPageIds from the given query and return an array containing them, while
+// also updating the pageMap as necessary.
+func loadPageIds(c sessions.Context, query string, pageMap map[int64]*page) ([]string, error) {
+	ids := make([]string, 0, indexPanelLimit)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var p pagePair
-		p.Parent = &page{}
-		p.Child = &page{}
-		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.UserId, &p.Parent.Title, &p.Parent.Alias)
+		var pageId int64
+		err := rows.Scan(&pageId)
 		if err != nil {
-			return fmt.Errorf("failed to scan for page pairs: %v", err)
+			return fmt.Errorf("failed to scan a pageId: %v", err)
 		}
-		p.Child = pageMap[p.Child.PageId]
-		pageMap[p.Child.PageId].Parents = append(pageMap[p.Child.PageId].Parents, &p)
+
+		p, ok := pageMap[pageId]
+		if !ok {
+			p = &page{PageId: pageId}
+			pageMap[pageId] = p
+		}
+		ids = append(ids, fmt.Sprintf("%d", p.PageId))
 		return nil
 	})
-	return err
-}
-
-// loadChildren loads children for the given pages.
-func loadChildren(c sessions.Context, pageMap map[int64]*page, userId int64) error {
-	if len(pageMap) <= 0 {
-		return nil
-	}
-	whereClause := "FALSE"
-	for id, _ := range pageMap {
-		whereClause += fmt.Sprintf(" OR (pp.parentId=%d)", id)
-	}
-	query := fmt.Sprintf(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.userId,p.title,p.alias,cp.createdAt
-		FROM pagePairs AS pp
-		JOIN pages AS p
-		ON (p.pageId=pp.childId AND p.edit=pp.childEdit AND p.isCurrentEdit)
-		JOIN (
-			SELECT pageId,min(createdAt) AS createdAt
-			FROM pages
-			WHERE NOT isSnapshot AND NOT isAutosave
-			GROUP BY pageId
-		) AS cp
-		ON (cp.pageId=pp.childId)
-		WHERE %s`, whereClause)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var p pagePair
-		p.Parent = &page{}
-		p.Child = &page{}
-		err := rows.Scan(&p.Id, &p.Parent.PageId, &p.Child.PageId, &p.UserId,
-			&p.Child.Title, &p.Child.Alias, &p.Child.CreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan for page pairs: %v", err)
-		}
-		p.Parent = pageMap[p.Parent.PageId]
-		pageMap[p.Parent.PageId].Children = append(pageMap[p.Parent.PageId].Children, &p)
-		return nil
-	})
-	return err
+	return ids, err
 }
 
 type loadChildrenIdsOptions struct {
+	// If set, the children will be loaded for these pages, but added to the
+	// map passed in as the argument.
+	ForPages map[int64]*page
 	// Load whether or not each child has children of its own.
 	LoadHasChildren bool
 }
 
 // loadChildrenIds loads the page ids for all the children of the pages in the given pageMap.
 func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadChildrenIdsOptions) error {
-	pageIdsStr := pageIdsStringFromMap(pageMap)
+	sourcePageMap := pageMap
+	if options.ForPages != nil {
+		sourcePageMap = options.ForPages
+	}
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIdsStr := pageIdsStringFromMap(sourcePageMap)
+	newPages := make(map[int64]*page)
 	query := fmt.Sprintf(`
-		SELECT parent.pageId,child.pageId
-		FROM pagePairs AS pp
-		JOIN (
-			SELECT pageId
-			FROM pages
-			WHERE pageId IN (%s) AND isCurrentEdit
-		) AS parent
-		ON (parent.pageId=pp.parentId)
-		JOIN (
-			SELECT pageId,edit
-			FROM pages
-			WHERE isCurrentEdit
-		) AS child
-		ON (child.pageId=pp.childId AND child.edit=pp.childEdit)`, pageIdsStr)
+		SELECT parentId,childId
+		FROM pagePairs
+		WHERE parentId IN (%s)`, pageIdsStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p pagePair
-		p.Parent = &page{}
-		p.Child = &page{}
-		err := rows.Scan(&p.Parent.PageId, &p.Child.PageId)
+		err := rows.Scan(&p.ParentId, &p.ChildId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		newPage, ok := pageMap[p.Child.PageId]
+		newPage, ok := pageMap[p.ChildId]
 		if !ok {
-			newPage = &page{PageId: p.Child.PageId}
+			newPage = &page{PageId: p.ChildId}
 			pageMap[newPage.PageId] = newPage
+			newPages[newPage.PageId] = newPage
 		}
 		newPage.Parents = append(newPage.Parents, &p)
-		pageMap[p.Parent.PageId].HasChildren = true
+		sourcePageMap[p.ParentId].Children = append(sourcePageMap[p.ParentId].Children, &p)
+		sourcePageMap[p.ParentId].HasChildren = true
 		return nil
 	})
 	if err != nil {
 		return err
 	}
-	if options.LoadHasChildren {
-		pageIdsStr = pageIdsStringFromMap(pageMap)
+	if options.LoadHasChildren && len(newPages) > 0 {
+		pageIdsStr = pageIdsStringFromMap(newPages)
 		query = fmt.Sprintf(`
-			SELECT parent.pageId,sum(1)
-			FROM pagePairs AS pp
-			JOIN (
-				SELECT pageId
-				FROM pages
-				WHERE pageId IN (%s) AND isCurrentEdit
-			) AS parent
-			ON (parent.pageId=pp.parentId)
-			JOIN (
-				SELECT pageId,edit
-				FROM pages
-				WHERE isCurrentEdit
-			) AS child
-			ON (child.pageId=pp.childId AND child.edit=pp.childEdit)
+			SELECT parentId,sum(1)
+			FROM pagePairs
+			WHERE parentId IN (%s)
 			GROUP BY 1`, pageIdsStr)
 		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 			var pageId int64
@@ -404,6 +313,70 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadCh
 				return fmt.Errorf("failed to scan for grandchildren: %v", err)
 			}
 			pageMap[pageId].HasChildren = children > 0
+			return nil
+		})
+	}
+	return err
+}
+
+type loadParentsIdsOptions struct {
+	// If set, the parents will be loaded for these pages, but added to the
+	// map passed in as the argument.
+	ForPages map[int64]*page
+	// Load whether or not each parent has parents of its own.
+	LoadHasParents bool
+}
+
+// loadParentsIds loads the page ids for all the parents of the pages in the given pageMap.
+func loadParentsIds(c sessions.Context, pageMap map[int64]*page, options loadParentsIdsOptions) error {
+	sourcePageMap := pageMap
+	if options.ForPages != nil {
+		sourcePageMap = options.ForPages
+	}
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIdsStr := pageIdsStringFromMap(sourcePageMap)
+	newPages := make(map[int64]*page)
+	query := fmt.Sprintf(`
+		SELECT parentId,childId
+		FROM pagePairs
+		WHERE childId IN (%s)`, pageIdsStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var p pagePair
+		err := rows.Scan(&p.ParentId, &p.ChildId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for page pairs: %v", err)
+		}
+		newPage, ok := pageMap[p.ParentId]
+		if !ok {
+			newPage = &page{PageId: p.ParentId}
+			pageMap[newPage.PageId] = newPage
+			newPages[newPage.PageId] = newPage
+		}
+		newPage.Children = append(newPage.Children, &p)
+		sourcePageMap[p.ChildId].Parents = append(sourcePageMap[p.ChildId].Parents, &p)
+		sourcePageMap[p.ChildId].HasParents = true
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if options.LoadHasParents && len(newPages) > 0 {
+		pageIdsStr = pageIdsStringFromMap(newPages)
+		query := fmt.Sprintf(`
+			SELECT childId,sum(1)
+			FROM pagePairs
+			WHERE childId IN (%s)
+			GROUP BY 1`, pageIdsStr)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var pageId int64
+			var parents int
+			err := rows.Scan(&pageId, &parents)
+			if err != nil {
+				return fmt.Errorf("failed to scan for grandparents: %v", err)
+			}
+			pageMap[pageId].HasParents = parents > 0
 			return nil
 		})
 	}
@@ -471,7 +444,9 @@ func pageIdsStringFromMap(pageMap map[int64]*page) string {
 		buffer.WriteString(fmt.Sprintf("%d,", id))
 	}
 	str := buffer.String()
-	str = str[0 : len(str)-1]
+	if len(str) >= 1 {
+		str = str[0 : len(str)-1]
+	}
 	return str
 }
 

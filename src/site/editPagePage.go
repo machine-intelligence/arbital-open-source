@@ -19,15 +19,15 @@ import (
 )
 
 var (
-	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
+	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
 	editPageOptions = newPageOptions{RequireLogin: true}
 )
 
 // editPageTmplData stores the data that we pass to the template file to render the page
 type editPageTmplData struct {
+	PageMap map[int64]*page
 	Page    *page
 	User    *user.User
-	Parents []*page
 	Aliases []*alias
 	Groups  []*group
 }
@@ -37,11 +37,8 @@ var newPagePage = newPageWithOptions("/edit/", editPageRenderer, editPageTmpls, 
 var editPagePage = newPageWithOptions("/edit/{id:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
 var editPrivatePagePage = newPageWithOptions("/edit/{id:[0-9]+}/{privacyKey:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
 
-// editPageRenderer renders the edit page page.
+// editPageRenderer renders the page page.
 func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	var err error
-	var data editPageTmplData
-	data.User = u
 	c := sessions.NewContext(r)
 
 	pageIdStr := mux.Vars(r)["id"]
@@ -52,7 +49,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		query := fmt.Sprintf(`
 			SELECT pageId,privacyKey
 			FROM pages
-			WHERE edit=0 AND isAutosave AND creatorId=%d`, data.User.Id)
+			WHERE edit=0 AND isAutosave AND creatorId=%d`, u.Id)
 		exists, err := database.QueryRowSql(c, query, &p.PageId, &p.PrivacyKey)
 		if err != nil {
 			return pages.InternalErrorWith(fmt.Errorf("Couldn't check tags: %v", err))
@@ -63,13 +60,46 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return pages.RedirectWith(getEditPageUrl(&p))
 	}
 
+	data, err := editPageInternalRenderer(w, r, u)
+	if err != nil {
+		c.Errorf("%s", err)
+		c.Inc("edit_page_served_fail")
+		return pages.InternalErrorWith(err)
+	}
+	funcMap := template.FuncMap{
+		"GetGroups": func() []*group {
+			return data.Groups
+		},
+		"GetPageGroupName": func() string {
+			return data.Page.Group.Name
+		},
+		"GetPageEditUrl": func(p *page) string {
+			return getEditPageUrl(p)
+		},
+		"GetMaxKarmaLock": func() int {
+			return getMaxKarmaLock(data.User.Karma)
+		},
+		"GetEditLevel": func(p *page) string {
+			return getEditLevel(p, data.User)
+		},
+	}
+	c.Inc("edit_page_served_success")
+	return pages.StatusOK(data).AddFuncMap(funcMap)
+}
+
+// editPageInternalRenderer renders the edit page page.
+func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*editPageTmplData, error) {
+	var err error
+	var data editPageTmplData
+	data.User = u
+	c := sessions.NewContext(r)
+
 	// Get page id.
+	pageIdStr := mux.Vars(r)["id"]
 	var pageId int64
 	pageId, err = strconv.ParseInt(pageIdStr, 10, 64)
 	if err != nil {
-		c.Inc("edit_page_failed")
-		c.Errorf("Invalid id passed: %s", pageIdStr)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("Invalid id passed: %s", pageIdStr)
 	}
 
 	// Load the actual page.
@@ -80,9 +110,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	}
 	data.Page, err = loadFullEdit(c, pageId, userIdParam)
 	if err != nil {
-		c.Inc("edit_page_failed")
-		c.Errorf("Couldn't load existing page: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("Couldn't load existing page: %v", err)
 	} else if data.Page == nil {
 		// Set IsAutosave to true, so we can check whether or not to show certain settings
 		data.Page = &page{PageId: pageId, Alias: fmt.Sprintf("%d", pageId), IsAutosave: true}
@@ -91,8 +119,24 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	if !data.Page.WasPublished && data.Page.Author.Id == data.User.Id {
 		// We can skip privacy key check
 	} else if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
-		return pages.UnauthorizedWith(fmt.Errorf("This page is private. Invalid privacy key given."))
+		return nil, fmt.Errorf("This page is private. Invalid privacy key given.")
 	}
+
+	// Load parents
+	data.PageMap = make(map[int64]*page)
+	pageMap := make(map[int64]*page)
+	pageMap[data.Page.PageId] = data.Page
+	err = data.Page.processParents(c, data.PageMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load parents: %v", err)
+	}
+
+	// Load pages.
+	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("error while loading pages: %v", err)
+	}
+	data.PageMap[data.Page.PageId] = data.Page
 
 	// Load aliases.
 	data.Aliases = make([]*alias, 0)
@@ -111,9 +155,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return nil
 	})
 	if err != nil {
-		c.Inc("edit_page_failed")
-		c.Errorf("Couldn't load aliases: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("Couldn't load aliases: %v", err)
 	}
 
 	// Load my groups.
@@ -132,27 +174,8 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return nil
 	})
 	if err != nil {
-		c.Inc("edit_page_failed")
-		c.Errorf("Couldn't load aliases: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("Couldn't load aliases: %v", err)
 	}
 
-	funcMap := template.FuncMap{
-		"GetGroups": func() []*group {
-			return data.Groups
-		},
-		"GetPageGroupName": func() string {
-			return data.Page.Group.Name
-		},
-		"GetPageEditUrl": func(p *page) string {
-			return getEditPageUrl(p)
-		},
-		"GetMaxKarmaLock": func() int {
-			return getMaxKarmaLock(data.User.Karma)
-		},
-		"GetEditLevel": func(p *page) string {
-			return getEditLevel(p, data.User)
-		},
-	}
-	return pages.StatusOK(data).AddFuncMap(funcMap)
+	return &data, nil
 }

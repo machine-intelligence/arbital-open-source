@@ -2,6 +2,7 @@
 {{define "comment"}}
 <div class="comment">
 	<div class="comment-row">
+		<!-- Icon column -->
 		<div class="left-column pull-left">
 			<span class="pull-right">
 				&nbsp;
@@ -19,6 +20,8 @@
 				<span class="comment-like-count" title="Number of upvotes this comment has received">{{if gt .LikeCount 0}}{{.LikeCount}}{{end}}</span>
 			</span>
 		</div>
+
+		<!-- Comment column -->
 		<div class="mid-column pull-left">
 			<div class="comment {{if gt .ReplyToId 0}}reply{{end}}" comment-id="{{.Id}}">
 				<div class="comment-body">
@@ -41,6 +44,8 @@
 		</div>
 		<div class="clearfix"></div>
 	</div>
+
+	<!-- Replies -->
 	<div class="replies">
 		{{range .Replies}}
 			{{template "comment" .}}

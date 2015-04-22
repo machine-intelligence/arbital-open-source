@@ -3,7 +3,6 @@ package site
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -38,15 +37,12 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	pageIds := make([]string, 0, 50)
 	data.PageMap = make(map[int64]*page)
 	query := fmt.Sprintf(`
-		SELECT p.pageId
-		FROM (
-			SELECT pageId,edit
-			FROM pages
-			WHERE isCurrentEdit
-		) AS p
-		LEFT JOIN pagePairs AS pp
-		ON (p.pageId=pp.childId AND p.edit=pp.childEdit)
-		WHERE pp.parentId IS NULL
+		SELECT parentPair.parentId
+		FROM pagePairs AS parentPair
+		LEFT JOIN pagePairs AS grandParentPair
+		ON (parentPair.parentId=grandParentPair.childId)
+		WHERE grandParentPair.parentId IS NULL
+		GROUP BY 1
 		LIMIT 50`)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var pageId int64
@@ -71,13 +67,6 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		return pages.InternalErrorWith(err)
 	}
 
-	// Remove root pages with no children.
-	for id, page := range data.PageMap {
-		if !page.HasChildren && len(page.Parents) <= 0 {
-			delete(data.PageMap, id)
-		}
-	}
-
 	// Load pages.
 	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{})
 	if err != nil {
@@ -92,12 +81,7 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		return pages.InternalErrorWith(err)
 	}
 
-	funcMap := template.FuncMap{
-		"GetPageJson": func(p *page) template.JS {
-			jsonData, _ := json.Marshal(p)
-			return template.JS(string(jsonData))
-		},
-	}
+	funcMap := template.FuncMap{}
 
 	c.Inc("pages_page_served_success")
 	return pages.StatusOK(data).AddFuncMap(funcMap)

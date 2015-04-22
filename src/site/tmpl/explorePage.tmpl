@@ -9,115 +9,18 @@
 	<title>Explore Zanaduu</title>
 	<script>
 		// ExploreCtrl is for the Explore page.
-		app.controller("ExploreCtrl", ["$scope", function ($scope) {
-			// Map of pageId -> array of panels.
-			$scope.pageIdToPanelsMap = {};
-			$scope.addPanel = function(panel) {
-				var panels = $scope.pageIdToPanelsMap[panel.pageId];
-				if (panels === undefined) {
-					panels = [];
-					$scope.pageIdToPanelsMap[panel.pageId] = panels;
+		app.controller("ExploreCtrl", function ($scope, pageService) {
+			$scope.rootPages = {};
+			$scope.childPages = {};
+			for (id in pageService.pageMap) {
+				var page = pageService.pageMap[id];
+				if (page.Parents.length <= 0) {
+					$scope.rootPages[id] = page;
+				} else {
+					$scope.childPages[id] = page;
 				}
-				panels.push(panel);
 			}
-			// processPages adds a new panel for every page in the given newPagesMap.
-			// It also updates the global pageMap.
-			$scope.processPages = function(newPagesMap) {
-				// Initialize and add new pages to pageMap.
-				var newPanels = {};
-				for (var pageId in newPagesMap) {
-					var panel = {
-						pageId: pageId,
-						showChildren: false,
-						hasChildren: false,
-						children: [],
-					};
-					$scope.addPanel(panel);
-					newPanels[panel.pageId] = panel;
-					var page = newPagesMap[pageId];
-					var oldPage = $scope.pageMap[pageId];
-					if (oldPage !== undefined) {
-						// Page already exists. Merge parents.
-						oldPage.Parents = oldPage.Parents.concat(page.Parents);
-						continue;
-					}
-					// Setup the new page.
-					$scope.pageMap[pageId] = page;
-				}
-
-				// Process parents and create children panels. Do it as a second pass,
-				// so we are sure every page is initialized and added to pageMap.
-				for (var pageId in newPagesMap) {
-					var panel = newPanels[pageId];
-					var page = $scope.pageMap[pageId];
-					var newPage = newPagesMap[pageId];
-					if (page.Parents == null) {
-						panel.isTopLevel = true;
-						$scope.rootPanel.children.push(panel);
-					} else {
-						var parentsLen = page.Parents.length;
-						for (var i = 0; i < parentsLen; i++){
-							var parentPage = $scope.pageMap[page.Parents[i].Parent.PageId];
-							var parentPanels = $scope.pageIdToPanelsMap[parentPage.PageId];
-							var parentPanelsLen = parentPanels.length;
-							for (var ii = 0; ii < parentPanelsLen; ii++){
-								var parentPanel = parentPanels[ii];
-								var exists = parentPanel.children.some(function(item, index, array){
-									return item.pageId == pageId;
-								});
-								if (!exists) {
-									parentPanel.children.push(panel);
-									parentPanel.hasChildren = true;
-								}
-							}
-						}
-					}
-				}
-			};
-
-			// Imaginary root panel we use to make the architecture simpler.
-			$scope.rootPanel = {pageId:"-1", children:[]};
-			// Insert initial pages.
-			$scope.processPages($scope.initialPages);
-
-			// Sorting function for panel's children.
-			$scope.sortChildren = function (panel) {
-				var page = $scope.pageMap[panel.pageId];
-				return page.Title;
-			}
-		}]);
-
-		// ExplorePanelCtrl is created for each panel.
-		app.controller("ExplorePanelCtrl", ["$scope", "Children", function ($scope, Children) {
-			$scope.page = $scope.pageMap[$scope.panel.pageId];
-			$scope.panel.showChildren = $scope.panel.hasChildren;
-
-			// togglePanel gets called when the user clicks to show/hide the panel.
-			$scope.togglePanel = function() {
-				$scope.panel.showChildren = !$scope.panel.showChildren;
-				if (!$scope.panel.hasChildren && !$scope.panel.loadingChildren) {
-					$scope.panel.loadingChildren = true;
-					// TODO: Check if we already got children for this page
-					Children.get({parentId: $scope.panel.pageId}, function(result) {
-						$scope.panel.loadingChildren = false;
-						$scope.processPages(result.toJSON());
-					}, function(error) {
-						console.log("error");
-						console.log(error);
-					});
-				}
-			};
-		}]);
-
-		app.directive("explorePanel", ["RecursionHelper", function(RecursionHelper) {
-			return {
-				templateUrl: "/static/html/explorePanel.html",
-				controller: "ExplorePanelCtrl",
-				compile: function(element) {
-					return RecursionHelper.compile(element);
-				},
-			};
-		}]);
+		});
 	</script>
 </head>
 
@@ -125,7 +28,7 @@
 	{{template "navbar" .User}}
 	
 	<div class="filter-body-div" ng-controller="ExploreCtrl">
-		<div explore-panel ng-repeat="panel in rootPanel.children | orderBy:sortChildren"></div>
+		<znd-page-tree init-map="rootPages" additional-map="childPages" supersize-roots="true"></znd-page-tree>
 	</div>
 	
 	{{template "footer"}}

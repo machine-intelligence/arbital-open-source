@@ -152,15 +152,20 @@
 .new-updated-label {
   color: #00e000;
 }
+.navigation-column {
+  width: 30%;
+  margin-left: 20px;
+}
 .left-column {
-  width: 15%;
+  width: 130px;
   padding: 0px 20px;
 }
 .mid-column {
-  width: 60%;
+  width: 55%;
 }
-.right-column {
-  width: 25%;
+.comments {
+  position: relative;
+  left: -130px;
 }
 .page {
   margin-bottom: 40px;
@@ -170,6 +175,7 @@
   text-decoration: none;
   font-size: 21px;
   margin: 5px 0;
+  display: block;
 }
 .subscribe-to-page-link.on {
   color: #5050ff;
@@ -247,6 +253,7 @@
   text-decoration: none;
   font-size: 21px;
   margin: 5px 0;
+  display: block;
 }
 .edit-page-link.on {
   color: #5050ff;
@@ -272,6 +279,7 @@
   text-decoration: none;
   font-size: 21px;
   margin: 5px 0;
+  display: block;
 }
 .delete-page-link.on {
   color: #5050ff;
@@ -296,6 +304,9 @@
   position: absolute;
   z-index: 1;
 }
+.title-span {
+  white-space: normal;
+}
 .page-title {
   font-size: 28px;
 }
@@ -316,6 +327,7 @@
 .page-text {
   margin-top: 7px;
   margin-bottom: 15px;
+  min-height: 120px;
 }
 .page-text h1 {
   font-size: 26px;
@@ -358,6 +370,15 @@
 }
 .intrasite-link {
   border-bottom: 1px dashed;
+  text-decoration: none;
+}
+.intrasite-link:focus {
+  text-decoration: none;
+}
+.intrasite-link:hover {
+  text-decoration: none;
+}
+.intrasite-link:active {
   text-decoration: none;
 }
 .tags {
@@ -876,52 +897,52 @@ textarea.new-comment-text {
   display: table-cell;
   width: 120px;
 }
-.explore-panel {
-  padding: 10px 0px 0px 0px;
+.page-panel {
+  margin: 10px 0px 0px 0px;
 }
-.explore-panel .big-explore-panel-header {
+.page-panel .big-page-panel-header {
   font-size: 21px;
 }
-.explore-panel .explore-header-part {
+.page-panel .page-header-part {
   display: table-cell;
 }
-.explore-panel .collapse-span {
+.page-panel .collapse-span {
   display: table-cell;
   min-width: 30px;
 }
-.explore-panel .collapse-link {
+.page-panel .collapse-link {
   color: #e0e0e0;
   text-decoration: none;
   display: table-cell;
   width: 20px;
 }
-.explore-panel .collapse-link.on {
+.page-panel .collapse-link.on {
   color: #b8b8b8;
 }
-.explore-panel .collapse-link.on:focus {
+.page-panel .collapse-link.on:focus {
   color: #b8b8b8;
 }
-.explore-panel .collapse-link:focus {
+.page-panel .collapse-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.explore-panel .collapse-link:hover {
+.page-panel .collapse-link:hover {
   color: #858585;
   text-decoration: none;
 }
-.explore-panel .collapse-link:active {
+.page-panel .collapse-link:active {
   color: #d2d2d2;
   text-decoration: none;
 }
-.explore-panel .explore-header-link {
+.page-panel .page-header-link {
   display: table-cell;
   padding-left: 15px;
 }
-.explore-panel .explore-like-span {
+.page-panel .page-like-span {
   display: table-cell;
 }
-.explore-panel .explore-panel-body {
+.page-panel .page-panel-body {
   margin-left: 6px;
   padding-left: 24px;
   border-left: 1px solid blue;
