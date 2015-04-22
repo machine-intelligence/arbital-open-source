@@ -2,14 +2,16 @@
 Required variables: page -->
 
 <!-- Likes and dislikes -->
-<span class="like-small-span">
-	<span class="like-count" ng-bind="page.LikeCount"></span>
-	<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-class="{'on': page.MyLikeValue >= 1}"></span>
-	&nbsp;
-	<span class="dislike-count" ng-bind="page.DislikeCount"></span>
-	<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
-</span>
-
-<span class="inline-page-title">
-	<a ng-href="{[{page.Url}]}" class="intrasite-link" ng-bind="page.Title"></a>
+<span ng-hide="page.Title==''">
+	<span class="like-small-span">
+		<span class="like-count" ng-bind="page.LikeCount"></span>
+		<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-class="{'on': page.MyLikeValue >= 1}"></span>
+		&nbsp;
+		<span class="dislike-count" ng-bind="page.DislikeCount"></span>
+		<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
+	</span>
+	
+	<span class="inline-page-title">
+		<a ng-href="{[{page.Url}]}" class="intrasite-link" ng-bind="page.Title"></a>
+	</span>
 </span>

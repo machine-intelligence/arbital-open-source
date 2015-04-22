@@ -13,6 +13,8 @@
 		var gVoteCount = {{.Page.VoteCount}};
 		var gVoteValueStr = "{{if .Page.VoteValue.Valid}}{{.Page.VoteValue.Float64}}{{end}}";
 		var gMyVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
+		// Map of alias -> {pageId, title} object.
+		var pageAliases = { {{range .AliasMap}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
 	</script>
 	<script>
 		// MainCtrl is for the Page page.

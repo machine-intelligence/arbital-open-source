@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	_ "regexp"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -45,8 +45,8 @@ type pageTmplData struct {
 	PageMap     map[int64]*page
 	Page        *page
 	LinkedPages []*page
-	//AliasMap    map[string]*alias
-	RelatedIds []string
+	AliasMap    map[string]*alias
+	RelatedIds  []string
 }
 
 // pagePage serves the page page.
@@ -365,7 +365,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		}
 	}
 	pageIdStr := fmt.Sprintf("%d", pageId)
-	data.Page, err = loadPage(c, pageId)
+	data.Page, err = loadPage(c, pageId, data.User.Id)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if data.Page == nil {
@@ -456,12 +456,12 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load all aliases.
-	/*re := regexp.MustCompile(`\[\[([A-Za-z0-9_-]+?)\]\]`)
+	re := regexp.MustCompile(`\[\[([A-Za-z0-9_-]+?)\]\]`)
 	aliases := re.FindAllStringSubmatch(data.Page.Text, -1)
 	data.AliasMap, err = loadAliases(c, aliases)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching aliases: %v", err)
-	}*/
+	}
 
 	if data.User.Id > 0 {
 		// Load subscription statuses.

@@ -147,7 +147,7 @@ func (p *page) processParents(c sessions.Context, pageMap map[int64]*page) error
 // even if it's not live. It also loads all the auxillary data like tags.
 // If the page couldn't be found, (nil, nil) will be returned.
 func loadFullEdit(c sessions.Context, pageId, userId int64) (*page, error) {
-	pagePtr, err := loadEdit(c, pageId, userId)
+	pagePtr, err := loadEdit(c, pageId, userId, loadEditOptions{loadNonliveEdit: true})
 	if err != nil {
 		return nil, err
 	}
@@ -162,10 +162,16 @@ func loadFullEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 // If userId is given, the last edit of the given pageId will be returned. It
 // might be an autosave or a snapshot, and thus not the current live page.
 // If the page couldn't be found, (nil, nil) will be returned.
-func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
+type loadEditOptions struct {
+	// If true, the last edit will be loaded for the given user, even if it's an
+	// autosave or a snapshot.
+	loadNonliveEdit bool
+}
+
+func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions) (*page, error) {
 	var p page
 	whereClause := "p.isCurrentEdit"
-	if userId > 0 {
+	if options.loadNonliveEdit {
 		whereClause = fmt.Sprintf(`
 			p.edit=(
 				SELECT MAX(edit)
@@ -189,7 +195,7 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 		WHERE p.pageId=%[1]d AND %[2]s AND
 			(p.groupName="" OR p.groupName IN (SELECT groupName FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
-
+	c.Debugf(query)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy,
 		&p.HasVote, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
@@ -209,14 +215,14 @@ func loadEdit(c sessions.Context, pageId, userId int64) (*page, error) {
 // loadPage loads and returns a page with the given id from the database.
 // If the page is deleted, minimum amount of data will be returned.
 // If the page couldn't be found, (nil, nil) will be returned.
-func loadPage(c sessions.Context, pageId int64) (*page, error) {
-	return loadEdit(c, pageId, -1)
+func loadPage(c sessions.Context, pageId int64, userId int64) (*page, error) {
+	return loadEdit(c, pageId, userId, loadEditOptions{})
 }
 
 // loadPage loads and returns a page with the given id from the database.
 // If the page is deleted, minimum amount of data will be returned.
 // If the page couldn't be found, (nil, nil) will be returned.
-func loadPageByAlias(c sessions.Context, pageAlias string) (*page, error) {
+func loadPageByAlias(c sessions.Context, pageAlias string, userId int64) (*page, error) {
 	pageId, err := strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
 		query := fmt.Sprintf(`
@@ -230,7 +236,7 @@ func loadPageByAlias(c sessions.Context, pageAlias string) (*page, error) {
 			return nil, nil
 		}
 	}
-	return loadPage(c, pageId)
+	return loadPage(c, pageId, userId)
 }
 
 // loadPageIds from the given query and return an array containing them, while
@@ -416,6 +422,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		if p.DeletedBy <= 0 {
 			// We are reduced to this mokery of copying every variable because the page
 			// in the pageMap might already have some variables populated.
+			// TODO: definitely fix this somehow
 			op := pageMap[p.PageId]
 			op.Edit = p.Edit
 			op.Type = p.Type

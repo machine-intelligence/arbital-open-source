@@ -28,6 +28,9 @@
         linkdescription: "enter link description here",
         linkdialog: "<p><b>Insert Hyperlink</b></p><p>http://example.com/ \"optional title\"</p>",
 
+				intralink: "Intrasite link <a> Ctrl+;",
+        intralinkdialog: "<p><b>Insert Intrasite Link</b></p><p>Start typing a page alias for autocomplete.</p>",
+
         quote: "Blockquote <blockquote> Ctrl+Q",
         quoteexample: "Blockquote",
 
@@ -1062,7 +1065,8 @@
     // callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
     //      It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
     //      was chosen).
-    ui.prompt = function (text, defaultInputText, callback) {
+		// isIntraLink: Set to true if the input is for page aliases.
+    ui.prompt = function (text, defaultInputText, callback, isIntraLink) {
 
         // These variables need to be declared at this level since they are used
         // in multiple functions.
@@ -1095,7 +1099,7 @@
             if (isCancel) {
                 text = null;
             }
-            else {
+            else if (!isIntraLink){
                 // Fixes common pasting errors.
                 text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
                 if (!/^(?:https?|ftp):\/\//.test(text))
@@ -1147,6 +1151,15 @@
             style.display = "block";
             style.width = "80%";
             style.marginLeft = style.marginRight = "auto";
+						if (isIntraLink) {
+							$(input).autocomplete({
+								source: availableParents,
+								minLength: 2,
+								select: function (event, ui) {
+									return true;
+								}
+							});
+						}
             form.appendChild(input);
 
             // The ok button
@@ -1234,6 +1247,10 @@
                 var keyCode = key.charCode || key.keyCode;
                 var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
+								if (keyCode == 186) { // ;
+									doClick(buttons.intralink);
+									return;
+								}
                 switch (keyCodeStr) {
                     case "b":
                         doClick(buttons.bold);
@@ -1470,29 +1487,32 @@
             buttons.link = makeButton("wmd-link-button", getString("link"), "-40px", bindCommand(function (chunk, postProcessing) {
                 return this.doLinkOrImage(chunk, postProcessing, false);
             }));
-            buttons.quote = makeButton("wmd-quote-button", getString("quote"), "-60px", bindCommand("doBlockquote"));
-            buttons.code = makeButton("wmd-code-button", getString("code"), "-80px", bindCommand("doCode"));
-            buttons.image = makeButton("wmd-image-button", getString("image"), "-100px", bindCommand(function (chunk, postProcessing) {
+            buttons.intralink = makeButton("wmd-intralink-button", getString("intralink"), "-60px", bindCommand(function (chunk, postProcessing) {
+                return this.doIntraLink(chunk, postProcessing);
+            }));
+            buttons.quote = makeButton("wmd-quote-button", getString("quote"), "-80px", bindCommand("doBlockquote"));
+            buttons.code = makeButton("wmd-code-button", getString("code"), "-100px", bindCommand("doCode"));
+            buttons.image = makeButton("wmd-image-button", getString("image"), "-120px", bindCommand(function (chunk, postProcessing) {
                 return this.doLinkOrImage(chunk, postProcessing, true);
             }));
             makeSpacer(2);
-            buttons.olist = makeButton("wmd-olist-button", getString("olist"), "-120px", bindCommand(function (chunk, postProcessing) {
+            buttons.olist = makeButton("wmd-olist-button", getString("olist"), "-140px", bindCommand(function (chunk, postProcessing) {
                 this.doList(chunk, postProcessing, true);
             }));
-            buttons.ulist = makeButton("wmd-ulist-button", getString("ulist"), "-140px", bindCommand(function (chunk, postProcessing) {
+            buttons.ulist = makeButton("wmd-ulist-button", getString("ulist"), "-160px", bindCommand(function (chunk, postProcessing) {
                 this.doList(chunk, postProcessing, false);
             }));
-            buttons.heading = makeButton("wmd-heading-button", getString("heading"), "-160px", bindCommand("doHeading"));
-            buttons.hr = makeButton("wmd-hr-button", getString("hr"), "-180px", bindCommand("doHorizontalRule"));
+            buttons.heading = makeButton("wmd-heading-button", getString("heading"), "-180px", bindCommand("doHeading"));
+            buttons.hr = makeButton("wmd-hr-button", getString("hr"), "-200px", bindCommand("doHorizontalRule"));
             makeSpacer(3);
-            buttons.undo = makeButton("wmd-undo-button", getString("undo"), "-200px", null);
+            buttons.undo = makeButton("wmd-undo-button", getString("undo"), "-220px", null);
             buttons.undo.execute = function (manager) { if (manager) manager.undo(); };
 
             var redoTitle = /win/.test(nav.platform.toLowerCase()) ?
                 getString("redo") :
                 getString("redomac"); // mac and other non-Windows platforms
 
-            buttons.redo = makeButton("wmd-redo-button", redoTitle, "-220px", null);
+            buttons.redo = makeButton("wmd-redo-button", redoTitle, "-240px", null);
             buttons.redo.execute = function (manager) { if (manager) manager.redo(); };
 
             if (helpOptions) {
@@ -1501,7 +1521,7 @@
                 helpButton.appendChild(helpButtonImage);
                 helpButton.className = "wmd-button wmd-help-button";
                 helpButton.id = "wmd-help-button" + postfix;
-                helpButton.XShift = "-240px";
+                helpButton.XShift = "-260px";
                 helpButton.isHelp = true;
                 helpButton.style.right = "0px";
                 helpButton.title = getString("help");
@@ -1737,6 +1757,7 @@
 
         chunk.trimWhitespace();
         chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
+				console.log(chunk);
         var background;
 
         if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
@@ -1817,6 +1838,75 @@
         }
     };
 
+    commandProto.doIntraLink = function (chunk, postProcessing) {
+
+        chunk.trimWhitespace();
+        chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
+        var background;
+
+        if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
+
+            chunk.startTag = chunk.startTag.replace(/\[\[/, "");
+            chunk.endTag = "";
+            this.addLinkDef(chunk, null);
+
+        }
+        else {
+            
+            // We're moving start and end tag back into the selection, since (as we're in the else block) we're not
+            // *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the
+            // link text. linkEnteredCallback takes care of escaping any brackets.
+            chunk.selection = chunk.startTag + chunk.selection + chunk.endTag;
+            chunk.startTag = chunk.endTag = "";
+
+            if (/\n\n/.test(chunk.selection)) {
+                return;
+            }
+            var that = this;
+            // The function to be executed when you enter a link and press OK or Cancel.
+            // Marks up the link and adds the ref.
+            var linkEnteredCallback = function (link) {
+
+                background.parentNode.removeChild(background);
+
+                if (link !== null) {
+                    // (                          $1
+                    //     [^\\]                  anything that's not a backslash
+                    //     (?:\\\\)*              an even number (this includes zero) of backslashes
+                    // )
+                    // (?=                        followed by
+                    //     [[\]]                  an opening or closing bracket
+                    // )
+                    //
+                    // In other words, a non-escaped bracket. These have to be escaped now to make sure they
+                    // don't count as the end of the link or similar.
+                    // Note that the actual bracket has to be a lookahead, because (in case of to subsequent brackets),
+                    // the bracket in one match may be the "not a backslash" character in the next match, so it
+                    // should not be consumed by the first match.
+                    // The "prepend a space and finally remove it" steps makes sure there is a "not a backslash" at the
+                    // start of the string, so this also works if the selection begins with a bracket. We cannot solve
+                    // this by anchoring with ^, because in the case that the selection starts with two brackets, this
+                    // would mean a zero-width match at the start. Since zero-width matches advance the string position,
+                    // the first bracket could then not act as the "not a backslash" for the second.
+                    chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
+                    
+                    chunk.startTag = "[[";
+                    chunk.endTag = "]]((" + link + "))";
+
+                    if (!chunk.selection) {
+										    chunk.endTag = "]]";
+                        chunk.selection = link;
+                    }
+                }
+                postProcessing();
+            };
+
+            background = ui.createBackground();
+
+            ui.prompt(this.getString("intralinkdialog"), "", linkEnteredCallback, true);
+            return true;
+        }
+    };
     // When making a list, hitting shift-enter will put your cursor on the next line
     // at the current indent level.
     commandProto.doAutoindent = function (chunk, postProcessing) {

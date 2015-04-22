@@ -42,7 +42,7 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the page.
-	p, err := loadPageByAlias(c, data.PageAlias)
+	p, err := loadPageByAlias(c, data.PageAlias, u.Id)
 	if err != nil {
 		c.Errorf("Couldn't load a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
