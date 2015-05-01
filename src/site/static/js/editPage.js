@@ -115,6 +115,9 @@ $(function() {
 		return false;
 	});
 
+	// Resive textarea height to fit the screen.
+	$("#wmd-input").height($(window).height() - 140);
+
 	// Scroll wmd-panel so it's always inside the viewport.
 	var $wmdPreview = $(".wmd-preview");
 	var $wmdPanel = $(".wmd-panel");
