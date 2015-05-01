@@ -15,9 +15,12 @@ $(function() {
 // Prevent Enter key from submitting the form.
 $(function() {
 	$(window).keydown(function(event){
-		if(event.keyCode == 13 && !$(event.target).is("textarea")) {
-			event.preventDefault();
-			return false;
+		if(event.keyCode == 13) {
+			var target = $(event.target);
+			if(!(target.is("textarea") || target.closest(".wmd-prompt-dialog").length > 0)) {
+				event.preventDefault();
+				return false;
+			}
 		}
 	});
 });

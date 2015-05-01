@@ -8,8 +8,10 @@ CREATE TABLE links (
 	parentId BIGINT NOT NULL,
 	/* Id of the child claim. FK into pages. */
 	childId BIGINT NOT NULL,
+	/* Alias/id of an unlinked child page. Set iff childId is not. */
+	unlinkedChildAlias VARCHAR(64) NOT NULL,
 	/* When this was created. */
 	createdAt DATETIME NOT NULL,
-	UNIQUE(parentId, childId),
+	UNIQUE(parentId, childId, unlinkedChildAlias),
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

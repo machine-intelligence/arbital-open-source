@@ -354,20 +354,58 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old links: %v", err)
 			}
 		}
-		re := regexp.MustCompile(getConfigAddress() + "/pages/[0-9]+")
-		links := re.FindAllString(data.Text, -1)
-		insertValues := make([]string, 0, 0)
-		if len(links) > 0 {
-			for _, link := range links {
-				pageIdStr := link[strings.LastIndex(link, "/")+1:]
-				insertValue := fmt.Sprintf("(%d, %s, '%s')", data.PageId, pageIdStr, database.Now())
-				insertValues = append(insertValues, insertValue)
+		// NOTE: these regexps are waaaay too simplistic and don't account for the
+		// entire complexity of Markdown, like 4 spaces, backticks, and escaped
+		// brackets / parens.
+		aliasesAndIds := make([]string, 0, 0)
+		extractLinks := func(exp *regexp.Regexp) {
+			submatches := exp.FindAllStringSubmatch(data.Text, -1)
+			for _, submatch := range submatches {
+				aliasesAndIds = append(aliasesAndIds, submatch[1])
 			}
-			insertValuesStr := strings.Join(insertValues, ",")
+		}
+		// Find directly encoded urls
+		extractLinks(regexp.MustCompile(regexp.QuoteMeta(getConfigAddress()) + "/pages/([0-9]+)"))
+		// Find ids and aliases using [[alias]] syntax.
+		extractLinks(regexp.MustCompile("\\[\\[([A-Za-z0-9_-]+?)\\]\\](?:[^(]|$)"))
+		// Find ids and aliases using [[text]]((alias)) syntax.
+		extractLinks(regexp.MustCompile("\\[\\[.+?\\]\\]\\(\\(([A-Za-z0-9_-]+?)\\)\\)"))
+		c.Debugf("====================%+v", aliasesAndIds)
+		if len(aliasesAndIds) > 0 {
+			aliases := make([]string, 0, len(aliasesAndIds))
+			linkTuples := make([]string, 0, 0)
+			for _, alias := range aliasesAndIds {
+				pageId, err := strconv.ParseInt(alias, 10, 64)
+				if err != nil {
+					aliases = append(aliases, alias)
+					continue
+				}
+				insertValue := fmt.Sprintf("(%d, %d, '%s')", data.PageId, pageId, database.Now())
+				linkTuples = append(linkTuples, insertValue)
+			}
+			aliasesStr := strings.Join(aliases, ",")
+			linkTuplesStr := strings.Join(linkTuples, ",")
+			// Get page ids for the aliases.
+			query := fmt.Sprintf(`
+				SELECT pageId,fullName
+				FROM aliases
+				WHERE fullName IN (%s)`, aliasesStr)
+			err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+				var pageId int64
+				var fullName string
+				err := rows.Scan(&pageId, &fullName)
+				if err != nil {
+					return fmt.Errorf("failed to scan for an alias: %v", err)
+				}
+				commentMap[ct.Id] = &ct
+				sortedCommentIds = append(sortedCommentIds, ct.Id)
+				return nil
+			})
+
 			query := fmt.Sprintf(`
 				INSERT INTO links (parentId,childId,createdAt)
 				VALUES %s
-				ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt)`, insertValuesStr)
+				ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt)`, linkTuplesStr)
 			if _, err = tx.Exec(query); err != nil {
 				tx.Rollback()
 				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert new visits: %v", err)

@@ -195,7 +195,6 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		WHERE p.pageId=%[1]d AND %[2]s AND
 			(p.groupName="" OR p.groupName IN (SELECT groupName FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
-	c.Debugf(query)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy,
 		&p.HasVote, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
