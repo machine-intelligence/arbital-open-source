@@ -1808,7 +1808,7 @@
                     chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
                     
                     chunk.startTag = isImage ? "![" : "[";
-                    chunk.endTag = "][" + properlyEncoded(link) + "]";
+                    chunk.endTag = "](" + properlyEncoded(link) + ")";
 
                     if (!chunk.selection) {
                         if (isImage) {
