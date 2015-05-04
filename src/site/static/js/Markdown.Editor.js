@@ -1756,7 +1756,7 @@
     commandProto.doLinkOrImage = function (chunk, postProcessing, isImage) {
 
         chunk.trimWhitespace();
-        chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
+        chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\(.*?\))?/);
 				console.log(chunk);
         var background;
 
