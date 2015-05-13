@@ -86,7 +86,6 @@ func init() {
 
 	// Admin stuff
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
-	r.HandleFunc("/updateLinks/", updateLinksHandler).Methods("GET")
 
 	// Various internal handlers
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
