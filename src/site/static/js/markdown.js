@@ -98,7 +98,7 @@ function setUpMarkdown(inEditMode) {
 				return;
 			}
 			$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
-			if (gPageLinks !== undefined && !gPageLinks[parts[1]]) {
+			if (gPageLinks !== undefined && gPageLinks[parts[1]] === false) {
 				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
 				$element.addClass("red-link");
 			}
