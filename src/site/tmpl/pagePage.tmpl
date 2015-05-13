@@ -15,6 +15,8 @@
 		var gMyVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
 		// Map of alias -> {pageId, title} object.
 		var pageAliases = { {{range .AliasMap}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
+		// Map of link alias/id -> true if the page is published.
+		var gPageLinks = { {{range $k,$v := .Page.Links}}"{{$k}}": {{$v}},{{end}} };
 	</script>
 	<script>
 		// MainCtrl is for the Page page.

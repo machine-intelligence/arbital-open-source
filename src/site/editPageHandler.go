@@ -366,49 +366,31 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		// Find directly encoded urls
 		extractLinks(regexp.MustCompile(regexp.QuoteMeta(getConfigAddress()) + "/pages/([0-9]+)"))
-		// Find ids and aliases using [[alias]] syntax.
+		// Find ids and aliases using [[id/alias]] syntax.
 		extractLinks(regexp.MustCompile("\\[\\[([A-Za-z0-9_-]+?)\\]\\](?:[^(]|$)"))
-		// Find ids and aliases using [[text]]((alias)) syntax.
+		// Find ids and aliases using [[text]]((id/alias)) syntax.
 		extractLinks(regexp.MustCompile("\\[\\[.+?\\]\\]\\(\\(([A-Za-z0-9_-]+?)\\)\\)"))
-		c.Debugf("====================%+v", aliasesAndIds)
 		if len(aliasesAndIds) > 0 {
-			aliases := make([]string, 0, len(aliasesAndIds))
+			// Populate linkTuples
+			linkMap := make(map[string]bool) // track which aliases we already added to the list
 			linkTuples := make([]string, 0, 0)
 			for _, alias := range aliasesAndIds {
-				pageId, err := strconv.ParseInt(alias, 10, 64)
-				if err != nil {
-					aliases = append(aliases, alias)
+				if linkMap[alias] {
 					continue
 				}
-				insertValue := fmt.Sprintf("(%d, %d, '%s')", data.PageId, pageId, database.Now())
+				insertValue := fmt.Sprintf("(%d, '%s')", data.PageId, alias)
 				linkTuples = append(linkTuples, insertValue)
+				linkMap[alias] = true
 			}
-			aliasesStr := strings.Join(aliases, ",")
-			linkTuplesStr := strings.Join(linkTuples, ",")
-			// Get page ids for the aliases.
-			query := fmt.Sprintf(`
-				SELECT pageId,fullName
-				FROM aliases
-				WHERE fullName IN (%s)`, aliasesStr)
-			err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-				var pageId int64
-				var fullName string
-				err := rows.Scan(&pageId, &fullName)
-				if err != nil {
-					return fmt.Errorf("failed to scan for an alias: %v", err)
-				}
-				commentMap[ct.Id] = &ct
-				sortedCommentIds = append(sortedCommentIds, ct.Id)
-				return nil
-			})
 
-			query := fmt.Sprintf(`
-				INSERT INTO links (parentId,childId,createdAt)
-				VALUES %s
-				ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt)`, linkTuplesStr)
+			// Insert all the tuples into the links table.
+			linkTuplesStr := strings.Join(linkTuples, ",")
+			query = fmt.Sprintf(`
+				INSERT INTO links (parentId,childAlias)
+				VALUES %s`, linkTuplesStr)
 			if _, err = tx.Exec(query); err != nil {
 				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert new visits: %v", err)
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert links: %v", err)
 			}
 		}
 	}

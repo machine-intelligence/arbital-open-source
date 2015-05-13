@@ -121,9 +121,24 @@
 	font-size: 28px;
 }
 
-.inline-page-title {
+.quick-edit-span {
 	padding-left: 15px;
 	display: table-cell;
+	& .edit-page-link {
+		font-size: 14px;
+	}
+}
+
+.inline-page-title {
+	padding-left: 5px;
+	display: table-cell;
+}
+
+.created-span {
+	font-size: 14px;
+	padding-left: 10px;
+	display: table-cell;
+	min-width: 110px;
 }
 
 .author-text {
@@ -170,19 +185,6 @@
 	padding-left: 20px;
 }
 
-.intrasite-link {
-	.dashed-underline();
-	&:focus {
-		text-decoration: none;
-	}
-	&:hover {
-		text-decoration: none;
-	}
-	&:active {
-		text-decoration: none;
-	}
-}
-
 .tags {
 	margin: 7px 0;
 }
@@ -211,6 +213,11 @@
 
 .hide-embedded-page {
 	.glyph-mixin-link(@gray-color);
+}
+
+.red-link-count {
+	.dashed-underline();
+	color: #c70a0a;
 }
 
 

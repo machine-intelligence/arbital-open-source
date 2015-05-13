@@ -70,6 +70,22 @@
   border-bottom: 1px dashed;
   text-decoration: none;
 }
+.intrasite-link {
+  border-bottom: 1px dashed;
+  text-decoration: none;
+}
+.intrasite-link:focus {
+  text-decoration: none;
+}
+.intrasite-link:hover {
+  text-decoration: none;
+}
+.intrasite-link:active {
+  text-decoration: none;
+}
+.intrasite-link.red-link {
+  color: #c70a0a;
+}
 .gray-link {
   color: #b8b8b8;
   cursor: pointer;

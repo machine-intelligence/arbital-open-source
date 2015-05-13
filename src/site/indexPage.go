@@ -47,17 +47,32 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	query := fmt.Sprintf(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId
+			SELECT pageId,createdAt
 			FROM pages
 			WHERE creatorId=%d
-			ORDER BY createdAt DESC
+			GROUP BY pageId
 		) AS p
-		GROUP BY p.pageId
+		ORDER BY p.createdAt DESC
 		LIMIT %d`, data.User.Id, indexPanelLimit)
 	data.RecentlyEditedByMeIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
 		c.Errorf("error while loading recently edited by me page ids: %v", err)
 		return pages.InternalErrorWith(err)
+	}
+
+	// Load number of red links for recently edited pages.
+	err = loadLinks(c, data.PageMap, true)
+	if err != nil {
+		c.Errorf("error while loading links: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+	for _, p := range data.PageMap {
+		p.RedLinkCount = 0
+		for _, isPublished := range p.Links {
+			if !isPublished {
+				p.RedLinkCount++
+			}
+		}
 	}
 
 	// Load recently created page ids.

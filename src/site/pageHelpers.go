@@ -78,7 +78,9 @@ type page struct {
 	MaxEditEver  int  // highest edit number used for this page for all users
 	Parents      []*pagePair
 	Children     []*pagePair
+	Links        map[string]bool // page alias/id for a link -> true iff the page is published
 	LinkedFrom   []string
+	RedLinkCount int
 }
 
 // pagePair describes a parent child relationship, which are stored in pagePairs db table.
@@ -258,6 +260,103 @@ func loadPageIds(c sessions.Context, query string, pageMap map[int64]*page) ([]s
 		return nil
 	})
 	return ids, err
+}
+
+// loadLinks loads the links for the given page. If checkUnlinked is true, we
+// also compute whether or not each link points to a valid page.
+func loadLinks(c sessions.Context, pageMap map[int64]*page, checkUnlinked bool) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIdsStr := pageIdsStringFromMap(pageMap)
+	links := make(map[string]bool)
+	for _, p := range pageMap {
+		p.Links = make(map[string]bool)
+	}
+	query := fmt.Sprintf(`
+		SELECT parentId,childAlias
+		FROM links
+		WHERE parentId IN (%s)`, pageIdsStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var parentId int64
+		var childAlias string
+		err := rows.Scan(&parentId, &childAlias)
+		if err != nil {
+			return fmt.Errorf("failed to scan for an alias: %v", err)
+		}
+		links[childAlias] = false
+		pageMap[parentId].Links[childAlias] = false
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Create lists for aliases and ids.
+	idsList := make([]string, 0, len(links))
+	aliasesList := make([]string, 0, len(links))
+	for alias, _ := range links {
+		_, err := strconv.ParseInt(alias, 10, 64)
+		if err != nil {
+			aliasesList = append(aliasesList, fmt.Sprintf(`"%s"`, alias))
+		} else {
+			idsList = append(idsList, alias)
+		}
+	}
+
+	// Mark which aliases correspond to published pages.
+	aliasesStr := strings.Join(aliasesList, ",")
+	if len(aliasesStr) > 0 {
+		query = fmt.Sprintf(`
+			SELECT a.fullName
+			FROM (
+				SELECT pageId,fullName
+				FROM aliases
+				WHERE fullName IN (%s)
+			) AS a
+			LEFT JOIN pages AS p
+			ON (a.pageId=p.pageId AND p.isCurrentEdit AND p.deletedBy=0)`, aliasesStr)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var fullName string
+			err := rows.Scan(&fullName)
+			if err != nil {
+				return fmt.Errorf("failed to scan for an alias: %v", err)
+			}
+			links[fullName] = true
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Mark which ids correspond to published pages.
+	idsStr := strings.Join(idsList, ",")
+	if len(idsStr) > 0 {
+		query = fmt.Sprintf(`
+			SELECT CAST(pageId AS CHAR)
+			FROM pages
+			WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s)`, idsStr)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var pageId string
+			err := rows.Scan(&pageId)
+			if err != nil {
+				return fmt.Errorf("failed to scan for a page id: %v", err)
+			}
+			links[pageId] = true
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, p := range pageMap {
+		for alias, _ := range p.Links {
+			p.Links[alias] = links[alias]
+		}
+	}
+	return nil
 }
 
 type loadChildrenIdsOptions struct {

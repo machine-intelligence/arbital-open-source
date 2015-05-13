@@ -307,12 +307,14 @@ func loadAliases(c sessions.Context, submatches [][]string) (map[string]*alias, 
 // pageRenderer renders the page page.
 func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	c := sessions.NewContext(r)
+
 	data, err := pageInternalRenderer(w, r, u)
 	if err != nil {
 		c.Errorf("%s", err)
 		c.Inc("page_page_served_fail")
 		return pages.InternalErrorWith(err)
 	}
+
 	funcMap := template.FuncMap{
 		"IsNewComment": func(c *comment) bool {
 			lastVisit := data.PageMap[c.PageId].LastVisit
@@ -385,14 +387,21 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't load parents: %v", err)
 	}
 
+	// Load links
+	err = loadLinks(c, mainPageMap, true)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load links: %v", err)
+	}
+
 	// Load where page is linked from.
+	// TODO: also account for old aliases
 	query := fmt.Sprintf(`
 		SELECT p.pageId
 		FROM links as l
 		JOIN pages as p
 		ON l.parentId=p.pageId
-		WHERE l.childId=%d AND p.isCurrentEdit
-		GROUP BY p.pageId`, pageId)
+		WHERE (l.childAlias=%d || l.childAlias="%s") AND p.isCurrentEdit
+		GROUP BY p.pageId`, pageId, data.Page.Alias)
 	data.Page.LinkedFrom, err = loadPageIds(c, query, mainPageMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load contexts: %v", err)

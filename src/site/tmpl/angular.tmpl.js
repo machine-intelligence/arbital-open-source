@@ -181,6 +181,14 @@ app.service("pageService", function(userService, $http){
 	}
 });
 
+// simpleDateTime filter converts our typical date&time string into local time.
+app.filter("simpleDateTime", function() {
+  return function(input) {
+		var date = new Date(input + " UTC");
+		return date.toLocaleString().format("dd-m-yy");
+  };
+});
+
 // ZanaduuCtrl is used across all pages.
 app.controller("ZanaduuCtrl", function ($scope, userService, pageService) {
 	$scope.userService = userService;
@@ -327,6 +335,9 @@ app.directive("zndLikesPageTitle", function(pageService) {
 		templateUrl: "/static/html/likesPageTitle.html",
 		scope: {
 			pageId: "=",
+			showRedLinkCount: "=",
+			showQuickEditLink: "=",
+			showCreatedAt: "=",
 		},
 		// TODO: don't do link
 		link: function(scope, element, attrs) {
