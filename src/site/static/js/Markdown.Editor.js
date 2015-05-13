@@ -29,7 +29,7 @@
         linkdialog: "<p><b>Insert Hyperlink</b></p><p>http://example.com/ \"optional title\"</p>",
 
 				intralink: "Intrasite link <a> Ctrl+;",
-        intralinkdialog: "<p><b>Insert Intrasite Link</b></p><p>Start typing a page alias for autocomplete.</p>",
+        intralinkdialog: "<p><b>Insert Intrasite Link</b></p><p>Start typing a page alias or page title for autocomplete.</p>",
 
         quote: "Blockquote <blockquote> Ctrl+Q",
         quoteexample: "Blockquote",
@@ -1153,7 +1153,7 @@
             style.marginLeft = style.marginRight = "auto";
 						if (isIntraLink) {
 							$(input).autocomplete({
-								source: availableParents,
+								source: allAliases,
 								minLength: 2,
 								select: function (event, ui) {
 									return true;
@@ -1890,6 +1890,12 @@
                     // the first bracket could then not act as the "not a backslash" for the second.
                     chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
                     
+										var openParenIndex = link.indexOf("(");
+										if (openParenIndex > 0) {
+											// Input is probably of the type: "title" (alias)
+											var closeParenIndex = link.lastIndexOf(")");
+											link = link.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
+										}
                     chunk.startTag = "[[";
                     chunk.endTag = "]]((" + link + "))";
 

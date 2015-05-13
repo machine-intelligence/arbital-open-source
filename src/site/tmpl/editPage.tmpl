@@ -11,15 +11,19 @@
 	<script>
 		// Map of all aliases: fullName -> {pageId, title}
 		var pageAliases = { {{range .Aliases}}"{{.FullName}}":{pageId:"{{.PageId}}", title:"{{.PageTitle}}"},{{end}} };
-		// This array stores all available aliases for link autocompletion.
-		var allAliases = [];
+		// This array is used for "new parent" autocompletion.
+		var availableParents = [];
 		for (var fullName in pageAliases) {
-			allAliases.push(fullName);
+			availableParents.push(fullName);
 		}
 		// This array stores the aliases of the parents the page has.
 		var parents = [];
-		// This array is used for "new parent" autocompletion.
-		var availableParents = allAliases.slice();
+		// This array stores all available aliases for link autocompletion.
+		var allAliases = [];
+		for (var fullName in pageAliases) {
+			var val = pageAliases[fullName];
+			allAliases.push('"' + val.title + '" (' + fullName + ')');
+		}
 	</script>
 	<script>
 		// MainCtrl is the main control for this page.
