@@ -17,7 +17,7 @@ $(function() {
 	$(window).keydown(function(event){
 		if(event.keyCode == 13) {
 			var target = $(event.target);
-			if(!(target.is("textarea") || target.closest(".wmd-prompt-dialog").length > 0)) {
+			if(!(target.is("textarea") || target.closest("#new-link-modal").length > 0)) {
 				event.preventDefault();
 				return false;
 			}

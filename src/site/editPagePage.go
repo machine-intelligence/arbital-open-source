@@ -20,7 +20,7 @@ import (
 
 var (
 	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
-	editPageOptions = newPageOptions{RequireLogin: true}
+	editPageOptions = newPageOptions{RequireLogin: true, LoadUserGroups: true}
 )
 
 // editPageTmplData stores the data that we pass to the template file to render the page
@@ -29,7 +29,6 @@ type editPageTmplData struct {
 	Page    *page
 	User    *user.User
 	Aliases []*alias
-	Groups  []*group
 }
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
@@ -90,17 +89,11 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	}
 
 	funcMap := template.FuncMap{
-		"GetGroups": func() []*group {
-			return data.Groups
-		},
 		"GetPageGroupName": func() string {
 			return data.Page.Group.Name
 		},
 		"GetPageEditUrl": func(p *page) string {
 			return getEditPageUrl(p)
-		},
-		"GetMaxKarmaLock": func() int {
-			return getMaxKarmaLock(data.User.Karma)
 		},
 		"GetEditLevel": func(p *page) string {
 			return getEditLevel(p, data.User)
@@ -175,25 +168,6 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 			return fmt.Errorf("failed to scan for aliases: %v", err)
 		}
 		data.Aliases = append(data.Aliases, &a)
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load aliases: %v", err)
-	}
-
-	// Load my groups.
-	data.Groups = make([]*group, 0)
-	query = fmt.Sprintf(`
-		SELECT groupName
-		FROM groupMembers
-		WHERE userId=%d`, data.User.Id)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var g group
-		err := rows.Scan(&g.Name)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a member: %v", err)
-		}
-		data.Groups = append(data.Groups, &g)
 		return nil
 	})
 	if err != nil {

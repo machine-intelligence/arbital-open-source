@@ -22,6 +22,11 @@ app.config(function($interpolateProvider){
 app.service("userService", function(){
 	// Logged in user.
 	this.user = {{GetUserJson}};
+
+	// Get maximum karma lock a user can set up.
+	this.user.getMaxKarmaLock = function() {
+		return Math.floor(this.Karma * {{GetMaxKarmaLockFraction}});
+	};
 });
 
 // pages stores all the loaded pages and provides multiple helper functions for
@@ -174,6 +179,44 @@ app.service("pageService", function(userService, $http){
 			});
 	};
 
+	// Load the page with the given pageIds. If it's empty, ask the server for
+	// a new page id.
+	this.loadPages = function(pageIds, success, error) {
+		var service = this;
+		var pageIdsLen = pageIds.length;
+		var pageIdsStr = "";
+		// Add pages to the global map as necessary. Set pages as loading.
+		for (var n = 0; n < pageIdsLen; n++) {
+			var pageId = pageIds[n];
+			var page = service.pageMap[pageId];
+			if (!page) {
+				page = {PageId: pageId};
+				service.pageMap[pageId] = page;
+			}
+			if (!page.isLoading) {
+				page.isLoading = true;
+				pageIdsStr += page.PageId + ",";
+			}
+		}
+		if (pageIdsLen > 0 && pageIdsStr.length == 0) {
+			return;  // we are loading all the pages already
+		}
+		console.log("/json/pages/?pageIds=" + pageIdsStr);
+		$http({method: "GET", url: "/json/pages/", params: {pageIds: pageIdsStr}}).
+			success(function(data, status){
+				for (var id in data) {
+					data[id] = service.addPageToMap(data[id]);
+					data[id].isLoading = false;
+				}
+				success(data, status);
+			}).error(function(data, status){
+				console.log("error loading page");
+				console.log(data);
+				console.log(status);
+				error(data, status);
+			});
+	};
+
 	// Setup all initial pages.
 	console.log(this.pageMap);
 	for (var id in this.pageMap) {
@@ -183,16 +226,17 @@ app.service("pageService", function(userService, $http){
 
 // simpleDateTime filter converts our typical date&time string into local time.
 app.filter("simpleDateTime", function() {
-  return function(input) {
+	return function(input) {
 		var date = new Date(input + " UTC");
 		return date.toLocaleString().format("dd-m-yy");
-  };
+	};
 });
 
 // ZanaduuCtrl is used across all pages.
 app.controller("ZanaduuCtrl", function ($scope, userService, pageService) {
 	$scope.userService = userService;
 });
+
 
 // PageTreeCtrl is controller for the PageTree.
 app.controller("PageTreeCtrl", function ($scope, pageService) {

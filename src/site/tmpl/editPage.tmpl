@@ -7,17 +7,9 @@
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
-	<script src="/static/js/editPage.js"></script>
 	<script>
 		// Map of all aliases: fullName -> {pageId, title}
 		var pageAliases = { {{range .Aliases}}"{{.FullName}}":{pageId:"{{.PageId}}", title:"{{.PageTitle}}"},{{end}} };
-		// This array is used for "new parent" autocompletion.
-		var availableParents = [];
-		for (var fullName in pageAliases) {
-			availableParents.push(fullName);
-		}
-		// This array stores the aliases of the parents the page has.
-		var parents = [];
 		// This array stores all available aliases for link autocompletion.
 		var allAliases = [];
 		for (var fullName in pageAliases) {
@@ -25,15 +17,61 @@
 			allAliases.push('"' + val.title + '" (' + fullName + ')');
 		}
 	</script>
+	<script src="/static/js/editPage.js"></script>
 	<script>
 		// MainCtrl is the main control for this page.
-		app.controller("MainCtrl", function ($scope, pageService) {
-			$scope.page = pageService.pageMap["{{.Page.PageId}}"];
-			// Populate parents array.
-			var parentsLen = $scope.page.Parents.length;
-			for(var n = 0; n < parentsLen; n++) {
-				parents.push(pageService.pageMap[$scope.page.Parents[n].ParentId].Alias);
-			}
+		app.controller("MainCtrl", function ($scope, pageService, userService, $compile, $timeout) {
+			$scope.pageId = "{{.Page.PageId}}";
+			$scope.page = pageService.pageMap[$scope.pageId];
+			$(document).on("new-page-modal-event", function(e, newPageCallback){
+				var $modal = $('#new-page-modal');
+				var $modalBody = $modal.find(".modal-body");
+				$modalBody.empty().append("<img src='/static/images/loading.gif'/>");
+				pageService.loadPages([],
+					function(data, status) {
+						var newPageId = Object.keys(data)[0];
+						var newPage = pageService.pageMap[newPageId];
+						newPage.Type = $scope.page.Type;
+						newPage.Parents = [{ParentId: $scope.page.PageId}];
+						newPage.Author = {Id: userService.user.Id};
+
+						// Dynamically create znd-edit-page directive.
+						var el = $compile("<znd-edit-page page-id='\"" + newPageId +
+								"\"' is-modal='true'></znd-edit-page>")($scope);
+						$modalBody.empty().append(el);
+						$modal.modal();
+
+						// Initialize editPage script.
+						var editPage;
+						$timeout(function(){
+							editPage = new EditPage(newPage, pageService, el, $scope.page);
+							editPage.start();
+						});
+
+						// Hande modal's close event, with the possibility of returning the
+						// new page's alias.
+						var newPageAlias = null;
+						$modal.on("shown.bs.modal", function (e) {
+							$modal.find("input[name='title']").focus();
+						});
+						$modal.on("hidden.bs.modal", function (e) {
+							newPageCallback(newPageAlias);
+							$modal.off("shown.bs.modal");
+							$modal.off("hidden.bs.modal");
+							$(document).off("new-page-modal-closed-event");
+							$modalBody.empty();
+							editPage.stop();
+							delete editPage;
+						});
+						// Allow the modal to "return" the alias for the newly created page.
+						$(document).on("new-page-modal-closed-event", function(e, alias){
+							$modal.modal("hide");
+							newPageAlias = alias;
+						});
+					}, function(data, status) {
+						console.log(":(");
+					});
+			});
 		});
 	</script>
 </head>
@@ -42,43 +80,38 @@
 
 {{template "navbar" .User}}
 
-<!-- Modal for creating new tags. -->
-<!--<div class="modal fade" id="new-tag-modal" tabindex="-1">
+<!-- Modal for new links used from Markdown.Editor. -->
+<div class="modal fade" id="new-link-modal" tabindex="-1" style="z-index:2000">
 	<div class="modal-dialog">
-		<form class="new-tag-form modal-content">
+		<form class="modal-content">
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title">Create New Tag</h4>
+				<h4 class="modal-title"></h4>
 			</div>
 			<div class="modal-body">
-				<div class="form-horizontal">
-					<div class="form-group">
-						<label class="col-sm-3 control-label">Parent Tag</label>
-						<div class="col-sm-8">
-							<input type="text" class="parent-tag-input form-control" autocomplete="off">
-							<a href="#" class="tag label label-default"></a>
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-sm-3 control-label">Tag Name</label>
-						<div class="col-sm-8">
-							<input name="text" type="text" class="new-tag-input form-control" autocomplete="off">
-						</div>
-					</div>
-				</div>
+				<input name="link" type="text" class="form-control new-link-input">
 			</div>
-			<div class="modal-footer">-->
-				<!-- Misc form stuff for submission / saving. -->
-				<!--<div class="alert alert-danger" hidden></div>
-				<div class="alert alert-success" hidden></div>
-				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-				<button type="submit" class="add-tag-button btn btn-default" toggle-on-submit>Add</button>
-				<button type="submit" class="add-tag-close-button btn btn-primary" toggle-on-submit>Add &amp; Close</button>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary">Insert</button>
 			</div>
-		</form>
+		</div>
 	</div>
 </div>
--->
+
+<!-- Modal for creating new pages. -->
+<div class="modal fade" id="new-page-modal" tabindex="-1" style="z-index:1000">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">New Page</h4>
+			</div>
+			<div class="modal-body">
+			</div>
+		</div>
+	</div>
+</div>
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
@@ -91,182 +124,7 @@
 		</div>
 	{{else}}
 		<div class="new-page-body-div" ng-controller="MainCtrl">
-			<form class="new-page-form form-horizontal">
-
-				<!-- Alerts -->
-				<div class="form-group">
-					<div class="col-sm-6">
-						<div ng-switch="page.getEditLevel()">
-							<div ng-switch-when="admin" class="alert alert-warning">Enforcing admin priviledges.</div>
-							<div ng-switch-when="blog" class="alert alert-danger" role="alert">Can't edit a blog page you didn't create.</div>
-							<div ng-switch-when="" hidden></div>
-							<div ng-switch-default class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {[{page.getEditLevel()}]}.</div>
-						</div>
-						<div ng-show="page.WasPublished">
-							<div ng-show="page.IsAutosave" class="alert alert-warning">
-								Restored autosave which was last updated on <span class="date" ng-bind="page.CreatedAt"></span>.
-								<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1">Delete my autosave and edit live version.</a>
-							</div>
-							<div ng-show="page.IsSnapshot" class="alert alert-warning">
-								Restored snapshot which was last updated on <span class="date" ng-bind="page.CreatedAt"></span>.
-								<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1">Switch to editing the live version.</a>
-							</div>
-						</div>
-					</div>
-				</div>
-		
-				<!-- Title -->
-				<div class="form-group">
-					<div class="col-sm-6">
-						<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="Page Title" required="true" autocomplete="off">
-					</div>
-					<div class="col-sm-6 page-title">
-						<div class="page-title-text" ng-bind="page.Title"></div>
-					</div>
-				</div>
-		
-				<!-- Input and preview -->
-				<div class="form-group">
-					<div class="col-sm-6">
-						<div class="wmd-panel">
-							<div id="wmd-button-bar"></div>
-							<textarea name="text"
-								        class="edit-page-text wmd-input form-control"
-												id="wmd-input"
-												rows="30"
-												placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
-								        style="resize: none;"
-								        ng-bind="page.Text"></textarea>
-							<div class="wmd-panel-bottom-buttons">
-								<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-								<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
-								<button type="submit" class="btn btn-primary" toggle-on-submit>Publish</button>
-								<span class="gray-text" id="autosave-label" hidden></span>
-								<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right">Abandon My Changes</a>
-								<div class="alert alert-danger" hidden></div>
-								<span class="loading-text" style="display:none"></span>
-								<div class="clearfix"></div>
-								<div class="submit-form-error alert alert-danger" hidden></div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-6">
-						<div id="wmd-preview" class="wmd-preview pagedown"></div>
-					</div>
-				</div>
-		
-				<!-- Page type -->
-				<div class="form-group" ng-hide="page.WasPublished">
-					<label class="title-label control-label col-sm-1">Page Type</label>
-					<div class="col-sm-2">
-						<select name="type" class="type-select form-control">
-							<option value="" {{if eq .Type ""}}selected="selected"{{end}} disabled hidden>Select page type</option>
-							<option value="blog" {{if eq .Type "blog"}}selected="selected"{{end}}>Blog Page</option>
-							<option value="wiki" {{if eq .Type "wiki"}}selected="selected"{{end}}>Wiki Page</option>
-						</select>
-					</div>
-					<div class="type-help col-sm-3">
-						<p class="type-help-blog help-block">Blog page is used for writing your thoughts on some topic. Only you will be able to edit the page.</p>
-						<p class="type-help-wiki help-block">Wiki page is a shared community page. Anyone can edit it.</p>
-					</div>
-				</div>
-
-				<!-- Group id -->
-				<div class="form-group" {{if or (le (len GetGroups) 0) .WasPublished}}hidden{{end}}>
-					<label class="title-label control-label col-sm-1">Group <span class="dashed-underline" title="Only members of the selected group will be able to see this page.">(?)</span></label>
-					<div class="col-sm-2">
-						<select name="groupName" class="type-select form-control">
-							<option value="" {{if eq .Group.Name ""}}selected="selected"{{end}}>-</option>
-							{{range GetGroups}}
-								<option value="{{.Name}}" {{if eq .Name GetPageGroupName}}selected="selected"{{end}}>{{.Name}}</option>
-							{{end}}
-						</select>
-					</div>
-				</div>
-
-				<!-- Probability vote -->
-				<div class="form-group" ng-hide="page.WasPublished">
-					<label class="title-label control-label col-sm-1">Probability Vote</label>
-					<div class="col-sm-4">
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" name="hasVoteStr" ng-checked="page.HasVote">
-							</label>
-						</div>
-					</div>
-				</div>
-
-				<!-- Karma edit lock -->
-				<div class="karma-lock-form-group form-group" {{if or (le GetMaxKarmaLock 0) (eq .Type "blog")}}hidden{{end}}>
-					<label class="title-label control-label col-sm-1">Karma Lock
-						<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
-					</label>
-					<div class="col-sm-2">
-						<div class="karma-lock-slider" ng-value="page.KarmaLock" max="{{GetMaxKarmaLock}}"></div>
-					</div>
-				</div>
-		
-				<!-- Privacy options -->
-				<!-- <div class="form-group" {{if and (le .PrivacyKey 0) .WasPublished}}hidden{{end}}>
-					<label class="control-label col-sm-1">
-						Private
-						<span title="This page will only be accessible by people who have the link." class="dashed-underline">(?)</span>
-					</label>
-					<div class="col-sm-4">
-						<div class="checkbox">
-							<label>
-								<input type="checkbox" name="private" {{if gt .PrivacyKey 0}}checked{{end}}>
-							</label>
-						</div>
-					</div>
-				</div>-->
-		
-				<!-- Parents -->
-				<div class="form-group">
-					<label class="control-label col-sm-1">Parents</label>
-					<div class="col-sm-3">
-						<div class="input-group">
-							<input type="text" class="tag-input form-control">
-						</div>
-					</div>
-					<div class="col-sm-3" id="tag-container">
-						<a href="#" class="tag template label label-default" id="tag-template" data-toggle="tooltip" title=""></a>
-					</div>
-				</div>
-
-				<!-- Alias -->
-				<div class="form-group">
-					<label class="control-label col-sm-1">Alias</label>
-					<div class="col-sm-3">
-						<div class="input-group">
-							<input type="text"
-								     name="alias"
-										 placeholder='Optional alias, e.g. "Vitamin_D3_Is_Good" or "WhiteNoiseEffects"'
-										 id="alias-input"
-										 class="form-control"
-										 ng-value="page.Alias">
-						</div>
-					</div>
-				</div>
-		
-				<!-- Sort children option -->
-				<div class="form-group">
-					<label class="title-label control-label col-sm-1">Sort Children</label>
-					<div class="col-sm-2">
-						<select name="sortChildrenBy" class="sort-children-select form-control">
-							<option value="likes" {{if eq .SortChildrenBy "likes"}}selected="selected"{{end}}>By Likes</option>
-							<option value="chronological" {{if eq .SortChildrenBy "chronological"}}selected="selected"{{end}}>Chronologically</option>
-							<option value="alphabetical" {{if eq .SortChildrenBy "alphabetical"}}selected="selected"{{end}}>Alphabetically</option>
-						</select>
-					</div>
-				</div>
-
-				<!-- Misc form stuff for submission / saving. -->
-				<div class="form-group">
-					<div class="col-sm-6">
-					</div>
-				</div>
-			</form>
+			<znd-edit-page page-id="page.PageId"></znd-edit-page>
 		</div>
 	{{end}}
 {{end}}

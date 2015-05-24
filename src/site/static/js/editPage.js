@@ -1,72 +1,104 @@
 "use strict";
 
-// Create a new tag for the page.
-function createNewParentElement(value) {
-	var $template = $("#tag-template");
-	var $newTag = $template.clone(true);
-	var pageId = pageAliases[value].pageId;
-	var title = pageAliases[value].title;
-	$newTag.removeClass("template");
-	$newTag.text(title);
-	$newTag.attr("id", pageId).attr("alias", value);
-	$newTag.insertBefore($template);
-	$newTag.attr("title", value).tooltip();
-	availableParents.splice(availableParents.indexOf(value), 1);
-}
+// Create new EditPage (for use with znd-edit-page directive).
+// page - page object corresponding to the page being edited.
+// $topParet - points to the top DOM element of the znd-edit-page directive.
+// primaryPage - set only for modal edit page; points to the primary page being edited.
+var EditPage = function(page, pageService, $topParent, primaryPage) {
+	var page = page;
+	var pageId = page.PageId; // id of the page we are editing
+	var primaryPage = primaryPage;
 
-// Set up Markdown.
-$(function() {
-	setUpMarkdown(true);
-});
-
-// Helper function for calling the pageHandler.
-// callback is called when the server replies with success. If it's an autosave
-// and the same data has already been submitted, the callback is called with "".
-var prevEditPageData = {};
-var callPageHandler = function(isAutosave, isSnapshot, callback) {
-	var $body = $("body");
-	var parentIds = [];
-	$body.find("#tag-container").children(".tag:not(.template)").each(function(index, element) {
-		parentIds.push($(element).attr("id"));
-	});
-	var privacyKey = $body.attr("privacy-key");
-	var data = {
-		pageId: $("body").attr("page-id"),
-		parentIds: parentIds.join(),
-		privacyKey: privacyKey,
-		keepPrivacyKey: $("input[name='private']").is(":checked"),
-		karmaLock: +$(".karma-lock-slider").bootstrapSlider("getValue"),
-		isAutosave: isAutosave,
-		isSnapshot: isSnapshot,
-		__invisibleSubmit: isAutosave,
-	};
-	var $form = $body.find(".new-page-form");
-	serializeFormData($form, data);
-	// TODO: when we start using Angular, use angular.equals instead
-	if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
-		submitForm($form, "/editPage/", data, callback);
-		prevEditPageData = data;
-	} else {
-		callback(undefined);
+	// This array is used for "new parent" autocompletion.
+	var availableParents = [];
+	for (var fullName in pageAliases) {
+		availableParents.push(fullName);
 	}
-}
 
-// Set up triggers.
-$(function() {
+	// Create a new tag for the page.
+	var createNewParentElement = function(parentAlias) {
+		var $template = $topParent.find(".tag.template");
+		var $newTag = $template.clone(true);
+		if (parentAlias in pageAliases) {
+			var parentPageId = pageAliases[parentAlias].pageId;
+			var title = pageAliases[parentAlias].title;
+		} else if (primaryPage !== undefined) {
+			// The parent is the primaryPage.
+			var parentPageId = primaryPage.PageId;
+			var title = primaryPage.Title;
+			if (title === "") {
+				title = "*Untitled*";
+			}
+		} else {
+			// The parent hasn't been published yet.
+			var parentPageId = parentAlias;
+			var title = "*Unpublished*";
+		}
+		$newTag.removeClass("template");
+		$newTag.text(title);
+		$newTag.attr("id", parentPageId).attr("alias", parentAlias);
+		$newTag.insertBefore($template);
+		$newTag.attr("title", parentAlias).tooltip();
+		availableParents.splice(availableParents.indexOf(parentAlias), 1);
+	}
+
+	// Helper function for calling the pageHandler.
+	// callback is called when the server replies with success. If it's an autosave
+	// and the same data has already been submitted, the callback is called with "".
+	var computeAutosaveData = function(isAutosave, isSnapshot) {
+		var parentIds = [];
+		$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
+			parentIds.push($(element).attr("id"));
+		});
+		var privacyKey = $topParent.attr("privacy-key");
+		var data = {
+			pageId: pageId,
+			parentIds: parentIds.join(),
+			privacyKey: privacyKey,
+			keepPrivacyKey: $topParent.find("input[name='private']").is(":checked"),
+			karmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
+			isAutosave: isAutosave,
+			isSnapshot: isSnapshot,
+			__invisibleSubmit: isAutosave,
+		};
+		var $form = $topParent.find(".new-page-form");
+		serializeFormData($form, data);
+		return data;
+	};
+	var prevEditPageData = {};
+	var callPageHandler = function(isAutosave, isSnapshot, callback) {
+		var data = computeAutosaveData(isAutosave, isSnapshot);
+		var $form = $topParent.find(".new-page-form");
+		// TODO: when we start using Angular, use angular.equals instead
+		if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
+			submitForm($form, "/editPage/", data, callback);
+			prevEditPageData = data;
+		} else {
+			callback(undefined);
+		}
+	}
+
+	// Set up Markdown.
+	zndMarkdown.init(true, pageId);
+
 	// Process form submission.
-	$(".new-page-form").on("submit", function(event) {
+	$topParent.find(".new-page-form").on("submit", function(event) {
 		var $target = $(event.target);
 		var $body = $target.closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
 		callPageHandler(false, false, function(r) {
-			window.location.replace(r);
+			if (primaryPage !== undefined) {
+				$(document).trigger("new-page-modal-closed-event", r.substring(r.lastIndexOf("/") + 1));
+			} else {
+				window.location.replace(r);
+			}
 		});
 		return false;
 	});
 
 	// Process safe snapshot button.
-	$(".save-snapshot-button").on("click", function(event) {
+	$topParent.find(".save-snapshot-button").on("click", function(event) {
 		var $body = $(event.target).closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
@@ -79,14 +111,13 @@ $(function() {
 		return false;
 	});
 
-	// Show correct options when the type of the page changes.
-	$(".type-select").on("change", function(event) {
-		$(".type-help").children().hide();
-		$(".type-help-" + this.value).show();
+	// Process close button.
+	$topParent.find(".close-modal").on("click", function(event) {
+		$(document).trigger("new-page-modal-closed-event", undefined);
 	});
 
 	// Setup autocomplete for tags.
-	$(".tag-input").autocomplete({
+	$topParent.find(".tag-input").autocomplete({
 		source: availableParents,
 		minLength: 2,
 		select: function (event, ui) {
@@ -94,131 +125,72 @@ $(function() {
 			$(event.target).val("");
 			return false;
 		}
-	/*}).on("keyup", function(event) {
-		console.log("en");
-		if (event.keyCode == 13) {
-			var $target = $(event.target);
-			createNewParentElement($target.val());
-			$target.val("");
-			return false;
-		}*/
 	});
 
-	// Deleting tags. (Only inside the tag container.)
-	$("#tag-container .tag").on("click", function(event) {
-		var $target = $(event.target);
+	// Deleting parents. (Only inside the parent container.)
+	var deleteParentTag = function($target) {
 		var alias = $target.attr("alias");
 		if (alias in pageAliases) {
 			availableParents.push(alias);
 		}
 		$target.tooltip("destroy").remove();
+	};
+	$topParent.find(".parent-container .tag").on("click", function(event) {
+		var $target = $(event.target);
+		deleteParentTag($target);
 		return false;
 	});
 
 	// Scroll wmd-panel so it's always inside the viewport.
-	var $wmdPreview = $(".wmd-preview");
-	var $wmdPanel = $(".wmd-panel");
-	var wmdPanelY = $wmdPanel.offset().top;
-	var wmdPanelHeight = $wmdPanel.outerHeight();
-	$(window).scroll(function(){
-		var y = $(window).scrollTop() - wmdPanelY;
-		y = Math.min($wmdPreview.outerHeight() - wmdPanelHeight, y);
-		y = Math.max(0, y);
-		$wmdPanel.stop(true).animate({top: y}, "fast");
-	});
+	if (primaryPage === undefined) {
+		var $wmdPreview = $topParent.find(".wmd-preview");
+		var $wmdPanel = $topParent.find(".wmd-panel");
+		var wmdPanelY = $wmdPanel.offset().top;
+		var wmdPanelHeight = $wmdPanel.outerHeight();
+		$(window).scroll(function(){
+			var y = $(window).scrollTop() - wmdPanelY;
+			y = Math.min($wmdPreview.outerHeight() - wmdPanelHeight, y);
+			y = Math.max(0, y);
+			$wmdPanel.stop(true).animate({top: y}, "fast");
+		});
+	}
 
 	// Keep title label in sync with the title input.
-	var $titleLabel = $(".page-title-text");
-	$("input[name='title']").on("keyup", function(event) {
+	var $titleLabel = $topParent.find(".page-title-text");
+	$topParent.find("input[name='title']").on("keyup", function(event) {
 		$titleLabel.text($(event.target).val());
 	});
 
-	// Set up new tag modal.
-	/*var newTagModalSetup = false;
-	$("#new-tag-modal").on("shown.bs.modal", function (event) {
-		if (newTagModalSetup) return;
-		newTagModalSetup = true;
-
-		var $modal = $(event.target);
-		var $tagInput = $modal.find(".new-tag-input");
-		var $parentTagInput = $modal.find(".parent-tag-input");
-		var $parentLink = $parentTagInput.next(".tag");
-		$parentTagInput.focus();
-
-		// Set up autocomplete on the parent tag input.
-		$parentTagInput.autocomplete({
-			source: allTags,
-			minLength: 3,
-			focus: function (event, ui) {
-				$parentTagInput.val(ui.item.label);
-				return false;
-			},
-			select: function (event, ui) {
-				event.preventDefault();
-				$parentTagInput.val(ui.item.value).toggle();
-				$parentLink.text(ui.item.label);
-				$tagInput.focus();
-				return false;
-			}
-		});
-
-		// Set up canceling parent tag by clicking on it.
-		$parentLink.on("click", function (event) {
-			$parentTagInput.val("").toggle().focus();
-			$parentLink.text("");
-			return false;
-		});
-
-		// Process modal buttons to determine if we should close the modal after form submission.
-		var closeModalAfterSubmit = false;
-		$modal.find(".add-tag-button").on("click", function (event) {
-			closeModalAfterSubmit = false;
-		});
-		$modal.find(".add-tag-close-button").on("click", function (event) {
-			closeModalAfterSubmit = true;
-		});
-
-		// Process new tag form submit.
-		$modal.find(".new-tag-form").on("submit", function (event) {
-			var data = {
-				parentId: $parentTagInput.val() === "" ? "0" : $parentTagInput.val(),
-			};
-			submitForm($(event.target), "/newTag/", data, function(r){
-				var parts = r.split(",");
-				var fullName = parts[0];
-				var id = parts[1];
-				// Update all tag collections with this new tag.
-				availableTags.push(fullName);
-				allTags.push({label: fullName, value: id});
-				tagMap[fullName] = id;
-
-				$parentTagInput.val("").show();
-				$parentLink.text("");
-				$tagInput.val("");
-				if (closeModalAfterSubmit) {
-					$modal.modal("hide");
-				} else {
-					$modal.find(".alert-success").text("Added: " + fullName).show();
-				}
+	// Set up parent options buttons.
+	if (primaryPage !== undefined) {
+		var deleteAllParentTags = function() {
+			$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
+				deleteParentTag($(element));
 			});
-			return false;
+		};
+		$topParent.find(".child-parent-option").on("click", function(event) {
+			console.log("child");
+			deleteAllParentTags();
+			page.Parents = primaryPage.Parents.slice();
+			addParentTags();
+			$(event.target).hide();
 		});
-	});*/
-});
-
-// Trigger initial setup.
-$(function() {
-	// Update help for the type menu.
-	$(".type-select").trigger("change");
-
-	// Process tags that are already being used.
-	var parentsLength = parents.length;
-	for(var i = 0; i < parentsLength; i++) {
-		createNewParentElement(parents[i]);
 	}
 
+	// === Trigger initial setup. ===
+
+	// Add parent tags.
+	var addParentTags = function() {
+		var parentsLen = page.Parents.length;
+		for(var n = 0; n < parentsLen; n++) {
+			var parentPage = pageService.pageMap[page.Parents[n].ParentId];
+			createNewParentElement(parentPage.Alias == "" ? parentPage.PageId : parentPage.Alias);
+		}
+	};
+	addParentTags();
+
 	// Setup karma lock slider.
-	var $slider = $(".karma-lock-slider");
+	var $slider = $topParent.find(".karma-lock-slider");
 	$slider.bootstrapSlider({
 		value: +$slider.attr("value"),
 		min: 0,
@@ -231,26 +203,72 @@ $(function() {
 	});
 
 	// Change all dates from UTC to local.
-	$(".date").each(function(index, element) {
+	$topParent.find(".date").each(function(index, element) {
 		var date = new Date(element.innerHTML + " UTC");
 		element.innerHTML = date.toLocaleString();
 	});
+
+	// Start initialized things that have to be killed when this editPage stops existing.
+	this.autosaveInterval = null;
+	this.start = function() {
+		// Hide new page button if this is a modal.
+		$topParent.find("#wmd-new-page-button" + pageId).toggle(primaryPage === undefined);
+		// Set up autosaving.
+		var $autosaveLabel = $topParent.find(".autosave-label");
+		this.autosaveInterval = window.setInterval(function(){
+			$autosaveLabel.text("Autosave: Saving...").show();
+			callPageHandler(true, false, function(r) {
+				if (r === undefined) {
+					$autosaveLabel.hide();
+				} else {
+					$("body").attr("privacy-key", r);
+					$autosaveLabel.text("Autosave: Saved!").show();
+				}
+			});
+		}, 5000);
+		// Compute prvEditPageData, so we don't fire off autosave when there were
+		// no changes made.
+		prevEditPageData = computeAutosaveData(true, false);
+	};
+
+	// Called before this editPage is destroyed.
+	this.stop = function() {
+		clearInterval(this.autosaveInterval);
+	};
+};
+
+// EditPageCtrl is the controller for the Edit Page panel.
+app.controller("EditPageCtrl", function ($scope, pageService) {
 });
 
-// Autosave.
-var canAutosave = false;
-$(function() {
-	canAutosave = true;
-})
-window.setInterval(function(){
-	if (!canAutosave) return;
-	$("#autosave-label").text("Autosave: Saving...").show();
-	callPageHandler(true, false, function(r) {
-		if (r === undefined) {
-			$("#autosave-label").hide();
-		} else {
-			$("body").attr("privacy-key", r);
-			$("#autosave-label").text("Autosave: Saved!").show();
-		}
-	});
-}, 5000);
+app.directive("zndEditPage", function(pageService, userService, $timeout) {
+	return {
+		templateUrl: "/static/html/editPage.html",
+		controller: "EditPageCtrl", // can be a function!
+		scope: {
+			pageId: "=",
+			isModal: "=",
+		},
+		link: function(scope, element, attrs) {
+			scope.userService = userService;
+			scope.page = pageService.pageMap[scope.pageId];
+			scope.pageTypes = {
+				wiki:"Wiki Page",
+				blog:"Blog Page",
+			};
+			scope.page.Type = scope.page.Type in scope.pageTypes ? scope.page.Type : "wiki";
+			scope.sortTypes = {
+				likes:"By Likes",
+				choronological:"Chronologically",
+				alphabetical:"Alphabetically",
+			};
+			scope.page.SortChildrenBy = scope.page.SortChildrenBy in scope.sortTypes ? scope.page.SortChildrenBy : "likes";
+			if (!scope.isModal) {
+				$timeout(function(){
+					scope.editPage = new EditPage(scope.page, pageService, element, undefined);
+					scope.editPage.start();
+				});
+			}
+		},
+	};
+});

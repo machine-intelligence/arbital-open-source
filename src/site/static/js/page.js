@@ -94,7 +94,7 @@ function createVoteSlider($parent, pageId, voteCount, voteValueStr, myVoteValueS
 
 // Set up markdown.
 $(function() {
-	setUpMarkdown(false);
+	zndMarkdown.init(false, $("body").attr("page-id"));
 });
 
 // Add a popover to the given element. The element has to be an intrasite link jquery object.

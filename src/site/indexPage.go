@@ -118,13 +118,13 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	query = fmt.Sprintf(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId
+			SELECT pageId,max(createdAt) AS createdAt
 			FROM pages
 			WHERE NOT isSnapshot AND NOT isAutosave 
-			ORDER BY createdAt DESC
+			GROUP BY pageId
+			HAVING(SUM(1) > 1)
 		) AS p
-		GROUP BY p.pageId
-		HAVING(SUM(1) > 1)
+		ORDER BY p.createdAt DESC
 		LIMIT %d`, indexPanelLimit)
 	data.RecentlyEditedIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {

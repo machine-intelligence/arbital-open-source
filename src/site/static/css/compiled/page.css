@@ -18,7 +18,6 @@
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  max-width: 90%;
 }
 .filter-body-div {
   width: 100%;
@@ -182,6 +181,18 @@
 .comments {
   position: relative;
   left: -130px;
+}
+.edit-page-body {
+  width: 100%;
+}
+.edit-page-body .half {
+  display: inline-block;
+  vertical-align: top;
+  width: 45%;
+  margin: 0 2%;
+}
+.edit-page-body .new-page-options {
+  margin-top: 40px;
 }
 .page {
   margin-bottom: 40px;

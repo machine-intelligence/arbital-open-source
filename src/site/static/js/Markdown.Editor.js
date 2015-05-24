@@ -26,10 +26,14 @@
 
         link: "Hyperlink <a> Ctrl+L",
         linkdescription: "enter link description here",
-        linkdialog: "<p><b>Insert Hyperlink</b></p><p>http://example.com/ \"optional title\"</p>",
+        linkdialogtitle: "Insert Hyperlink",
+        linkdialog: "http://example.com/ \"optional title\"",
 
 				intralink: "Intrasite link <a> Ctrl+;",
-        intralinkdialog: "<p><b>Insert Intrasite Link</b></p><p>Start typing a page alias or page title for autocomplete.</p>",
+        intralinkdialogtitle: "Insert Intrasite Link",
+        intralinkdialog: "Start typing a page alias or page title for autocomplete.",
+
+				newpage: "Quickly create a new page and insert the link Ctrl+E",
 
         quote: "Blockquote <blockquote> Ctrl+Q",
         quoteexample: "Blockquote",
@@ -39,7 +43,8 @@
 
         image: "Image <img> Ctrl+G",
         imagedescription: "enter image description here",
-        imagedialog: "<p><b>Insert Image</b></p><p>http://example.com/images/diagram.jpg \"optional title\"<br><br>Need <a href='http://www.google.com/search?q=free+image+hosting' target='_blank'>free image hosting?</a></p>",
+        imagedialogtitle: "Insert Image",
+        imagedialog: "http://example.com/images/diagram.jpg \"optional title\"",
 
         olist: "Numbered List <ol> Ctrl+O",
         ulist: "Bulleted List <ul> Ctrl+U",
@@ -56,23 +61,6 @@
 
         help: "Markdown Editing Help"
     };
-
-
-    // -------------------------------------------------------------------
-    //  YOUR CHANGES GO HERE
-    //
-    // I've tried to localize the things you are likely to change to
-    // this area.
-    // -------------------------------------------------------------------
-
-    // The default text that appears in the dialog input box when entering
-    // links.
-    var imageDefaultText = "http://";
-    var linkDefaultText = "http://";
-
-    // -------------------------------------------------------------------
-    //  END OF YOUR CHANGES
-    // -------------------------------------------------------------------
 
     // options, if given, can have the following properties:
     //   options.helpButton = { handler: yourEventHandler }
@@ -1018,56 +1006,59 @@
         init();
     };
 
-    // Creates the background behind the hyperlink text entry box.
-    // And download dialog
-    // Most of this has been moved to CSS but the div creation and
-    // browser-specific hacks remain here.
-    ui.createBackground = function () {
-
-        var background = doc.createElement("div"),
-            style = background.style;
-        
-        background.className = "wmd-prompt-background";
-        
-        style.position = "absolute";
-        style.top = "0";
-
-        style.zIndex = "1000";
-
-        if (uaSniffed.isIE) {
-            style.filter = "alpha(opacity=50)";
-        }
-        else {
-            style.opacity = "0.5";
-        }
-
-        var pageSize = position.getPageSize();
-        style.height = pageSize[1] + "px";
-
-        if (uaSniffed.isIE) {
-            style.left = doc.documentElement.scrollLeft;
-            style.width = doc.documentElement.clientWidth;
-        }
-        else {
-            style.left = "0";
-            style.width = "100%";
-        }
-
-        doc.body.appendChild(background);
-        return background;
-    };
-
     // This simulates a modal dialog box and asks for the URL when you
     // click the hyperlink or image buttons.
     //
-    // text: The html for the input box.
-    // defaultInputText: The default value that appears in the input box.
+    // title: title of the dialog
+    // helpText: Optional text to display to help the user
     // callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
     //      It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
     //      was chosen).
 		// isIntraLink: Set to true if the input is for page aliases.
-    ui.prompt = function (text, defaultInputText, callback, isIntraLink) {
+    ui.prompt = function (title, helpText, callback, isIntraLink) {
+				var $modal = $("#new-link-modal");
+				var $input = $modal.find(".new-link-input");
+				$modal.modal();
+				$modal.find(".modal-title").text(title);
 
+				// Set up input
+				$input.val("").attr("placeholder", helpText);
+				if (isIntraLink) {
+					$input.autocomplete({
+						source: allAliases,
+						minLength: 2,
+						select: function (event, ui) {
+							return true;
+						}
+					});
+				}
+
+				var isCancel = true;
+				$modal.on("hide.bs.modal", function (e) {
+					console.log("hidden");
+					$modal.off("hide.bs.modal");
+					$modal.off("shown.bs.modal");
+					$modal.find(".modal-content").off("submit");
+					var text = $input.val();
+          if (isCancel) {
+            text = null;
+          } else if (!isIntraLink){
+              // Fixes common pasting errors.
+              text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
+              if (!/^(?:https?|ftp):\/\//.test(text))
+                  text = 'http://' + text;
+          }
+					callback(text);
+				});
+				$modal.on("shown.bs.modal", function (e) {
+					$input.focus();
+				});
+				$modal.find(".modal-content").on("submit", function(e) {
+					console.log("submitted");
+					isCancel = false;
+					$modal.modal("hide");
+				});
+				return;
         // These variables need to be declared at this level since they are used
         // in multiple functions.
         var dialog;         // The dialog box.
@@ -1123,7 +1114,7 @@
             dialog.style.padding = "10px;";
             dialog.style.position = "fixed";
             dialog.style.width = "400px";
-            dialog.style.zIndex = "1001";
+            dialog.style.zIndex = "2001";
 
             // The dialog text.
             var question = doc.createElement("div");
@@ -1261,6 +1252,9 @@
                     case "l":
                         doClick(buttons.link);
                         break;
+										case "e":
+												doClick(buttons.newPage);
+												break;
                     case "q":
                         doClick(buttons.quote);
                         break;
@@ -1475,6 +1469,7 @@
             };
             var makeSpacer = function (num) {
                 var spacer = document.createElement("li");
+                spacer.style.left = xPosition + "px";
                 spacer.className = "wmd-spacer wmd-spacer" + num;
                 spacer.id = "wmd-spacer" + num + postfix;
                 buttonRow.appendChild(spacer);
@@ -1489,6 +1484,9 @@
             }));
             buttons.intralink = makeButton("wmd-intralink-button", getString("intralink"), "-60px", bindCommand(function (chunk, postProcessing) {
                 return this.doIntraLink(chunk, postProcessing);
+            }));
+            buttons.newPage = makeButton("wmd-new-page-button", getString("newpage"), "-60px", bindCommand(function (chunk, postProcessing) {
+                return this.doNewPage(chunk, postProcessing);
             }));
             buttons.quote = makeButton("wmd-quote-button", getString("quote"), "-80px", bindCommand("doBlockquote"));
             buttons.code = makeButton("wmd-code-button", getString("code"), "-100px", bindCommand("doCode"));
@@ -1757,18 +1755,13 @@
 
         chunk.trimWhitespace();
         chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
-				console.log(chunk);
-        var background;
+        //var background;
 
         if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
-
             chunk.startTag = chunk.startTag.replace(/!?\[/, "");
             chunk.endTag = "";
             this.addLinkDef(chunk, null);
-
-        }
-        else {
-            
+        } else {
             // We're moving start and end tag back into the selection, since (as we're in the else block) we're not
             // *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the
             // link text. linkEnteredCallback takes care of escaping any brackets.
@@ -1784,7 +1777,7 @@
             // Marks up the link and adds the ref.
             var linkEnteredCallback = function (link) {
 
-                background.parentNode.removeChild(background);
+                //background.parentNode.removeChild(background);
 
                 if (link !== null) {
                     // (                          $1
@@ -1805,13 +1798,9 @@
                     // this by anchoring with ^, because in the case that the selection starts with two brackets, this
                     // would mean a zero-width match at the start. Since zero-width matches advance the string position,
                     // the first bracket could then not act as the "not a backslash" for the second.
-                    chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
-                    
-                    var linkDef = " [999]: " + properlyEncoded(link);
-
-                    var num = that.addLinkDef(chunk, linkDef);
+										chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
                     chunk.startTag = isImage ? "![" : "[";
-                    chunk.endTag = "][" + num + "]";
+                    chunk.endTag = "](" + properlyEncoded(link) + ")";
 
                     if (!chunk.selection) {
                         if (isImage) {
@@ -1825,14 +1814,12 @@
                 postProcessing();
             };
 
-            background = ui.createBackground();
-
             if (isImage) {
                 if (!this.hooks.insertImageDialog(linkEnteredCallback))
-                    ui.prompt(this.getString("imagedialog"), imageDefaultText, linkEnteredCallback);
+                    ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
             }
             else {
-                ui.prompt(this.getString("linkdialog"), linkDefaultText, linkEnteredCallback);
+                ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
             }
             return true;
         }
@@ -1842,7 +1829,7 @@
 
         chunk.trimWhitespace();
         chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
-        var background;
+        //var background;
 
         if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
 
@@ -1867,7 +1854,7 @@
             // Marks up the link and adds the ref.
             var linkEnteredCallback = function (link) {
 
-                background.parentNode.removeChild(background);
+                //background.parentNode.removeChild(background);
 
                 if (link !== null) {
                     // (                          $1
@@ -1907,12 +1894,52 @@
                 postProcessing();
             };
 
-            background = ui.createBackground();
-
-            ui.prompt(this.getString("intralinkdialog"), "", linkEnteredCallback, true);
+            ui.prompt(this.getString("intralinkdialogtitle"), this.getString("intralinkdialog"), linkEnteredCallback, true);
             return true;
         }
     };
+
+    commandProto.doNewPage = function (chunk, postProcessing) {
+        chunk.trimWhitespace();
+        chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
+        //var background;
+        if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
+            chunk.startTag = chunk.startTag.replace(/\[\[/, "");
+            chunk.endTag = "";
+            this.addLinkDef(chunk, null);
+        } else {
+            // We're moving start and end tag back into the selection, since (as we're in the else block) we're not
+            // *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the
+            // link text. linkEnteredCallback takes care of escaping any brackets.
+            chunk.selection = chunk.startTag + chunk.selection + chunk.endTag;
+            chunk.startTag = chunk.endTag = "";
+
+            if (/\n\n/.test(chunk.selection)) {
+                return;
+            }
+            var that = this;
+            // The function to be executed when you create a new page and publish it.
+            // Adds a link to the newly created page.
+            var pageCreatedCallback = function (pageAlias) {
+                if (pageAlias !== null) {
+									  // Same regex as in other link functions.
+                    chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
+                    chunk.startTag = "[[";
+                    chunk.endTag = "]]((" + pageAlias + "))";
+
+                    if (!chunk.selection) {
+										    chunk.endTag = "]]";
+                        chunk.selection = pageAlias;
+                    }
+                }
+                postProcessing();
+            };
+
+						$(document).trigger("new-page-modal-event", pageCreatedCallback);
+            return true;
+        }
+    };
+
     // When making a list, hitting shift-enter will put your cursor on the next line
     // at the current indent level.
     commandProto.doAutoindent = function (chunk, postProcessing) {

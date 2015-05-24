@@ -148,8 +148,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Check that all the parent ids are valid.
 	// TODO: check that you can apply the given parent ids
-	if len(parentIds) > 0 {
-		count := 0
+	if !data.IsAutosave && len(parentIds) > 0 {
+		/*count := 0
 		query := fmt.Sprintf(`SELECT COUNT(*) FROM pages WHERE pageId IN (%s) AND isCurrentEdit`, data.ParentIds)
 		_, err = database.QueryRowSql(c, query, &count)
 		if err != nil {
@@ -157,7 +157,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		if count != len(parentIds) {
 			return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v", data.ParentIds)
-		}
+		}*/
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
@@ -214,52 +214,54 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// Update aliases table.
-	aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
-	if aliasRegexp.MatchString(data.Alias) {
-		// The user might be trying to create a new alias.
-		var maxSuffix int      // maximum suffix used with this alias
-		var existingSuffix int // if this page already used this suffix, this will be set to it
-		standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
-		query := fmt.Sprintf(`
-			SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=%d,suffix,-1)),-1)
-			FROM aliases
-			WHERE standardizedName="%s"`, data.PageId, standardizedName)
-		_, err := database.QueryRowSql(c, query, &maxSuffix, &existingSuffix)
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't read from aliases: %v", err)
-		}
-		if existingSuffix < 0 {
-			suffix := maxSuffix + 1
-			data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
-			if isCurrentEdit {
-				hashmap := make(map[string]interface{})
-				hashmap["fullName"] = data.Alias
-				hashmap["standardizedName"] = standardizedName
-				hashmap["suffix"] = suffix
-				hashmap["pageId"] = data.PageId
-				hashmap["creatorId"] = u.Id
-				hashmap["createdAt"] = database.Now()
-				query = database.GetInsertSql("aliases", hashmap)
-				if _, err = tx.Exec(query); err != nil {
-					tx.Rollback()
-					return http.StatusInternalServerError, fmt.Sprintf("Couldn't add an alias: %v", err)
-				}
+	if isCurrentEdit {
+		aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
+		if aliasRegexp.MatchString(data.Alias) {
+			// The user might be trying to create a new alias.
+			var maxSuffix int      // maximum suffix used with this alias
+			var existingSuffix int // if this page already used this suffix, this will be set to it
+			standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
+			query := fmt.Sprintf(`
+				SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=%d,suffix,-1)),-1)
+				FROM aliases
+				WHERE standardizedName="%s"`, data.PageId, standardizedName)
+			_, err := database.QueryRowSql(c, query, &maxSuffix, &existingSuffix)
+			if err != nil {
+				tx.Rollback()
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't read from aliases: %v", err)
 			}
-		} else if existingSuffix > 0 {
-			data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
-		}
-	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
-		// Check if we are simply reusing an existing alias.
-		var ignore int
-		query := fmt.Sprintf(`SELECT 1 FROM aliases WHERE pageId=%d AND fullName="%s"`, data.PageId, data.Alias)
-		exists, err := database.QueryRowSql(c, query, &ignore)
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check existing alias: %v", err)
-		} else if !exists {
-			tx.Rollback()
-			return http.StatusBadRequest, fmt.Sprintf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+			if existingSuffix < 0 {
+				suffix := maxSuffix + 1
+				data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
+				if isCurrentEdit {
+					hashmap := make(map[string]interface{})
+					hashmap["fullName"] = data.Alias
+					hashmap["standardizedName"] = standardizedName
+					hashmap["suffix"] = suffix
+					hashmap["pageId"] = data.PageId
+					hashmap["creatorId"] = u.Id
+					hashmap["createdAt"] = database.Now()
+					query = database.GetInsertSql("aliases", hashmap)
+					if _, err = tx.Exec(query); err != nil {
+						tx.Rollback()
+						return http.StatusInternalServerError, fmt.Sprintf("Couldn't add an alias: %v", err)
+					}
+				}
+			} else if existingSuffix > 0 {
+				data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
+			}
+		} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+			// Check if we are simply reusing an existing alias.
+			var ignore int
+			query := fmt.Sprintf(`SELECT 1 FROM aliases WHERE pageId=%d AND fullName="%s"`, data.PageId, data.Alias)
+			exists, err := database.QueryRowSql(c, query, &ignore)
+			if err != nil {
+				tx.Rollback()
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't check existing alias: %v", err)
+			} else if !exists {
+				tx.Rollback()
+				return http.StatusBadRequest, fmt.Sprintf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+			}
 		}
 	}
 
@@ -457,7 +459,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if privacyKey > 0 {
 			privacyAddon = fmt.Sprintf("/%d", privacyKey)
 		}
-		return 0, fmt.Sprintf("/pages/%d%s", data.PageId, privacyAddon)
+		return 0, fmt.Sprintf("/pages/%s%s", data.Alias, privacyAddon)
 	}
 	// Return just the privacy key
 	return 0, fmt.Sprintf("%d", privacyKey)

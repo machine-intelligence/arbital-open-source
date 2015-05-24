@@ -37,6 +37,7 @@ type User struct {
 	LoginLink   string
 	LogoutLink  string
 	UpdateCount int
+	GroupNames  []string
 }
 
 func (user *User) FullName() string {
