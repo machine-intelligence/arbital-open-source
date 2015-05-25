@@ -269,6 +269,12 @@ app.directive("zndEditPage", function(pageService, userService, $timeout) {
 					scope.editPage.start();
 				});
 			}
+			scope.groupOptions = {};
+			for (var i in userService.user.GroupNames) {
+				var group = userService.user.GroupNames[i];
+				scope.groupOptions[group] = group;
+			}
+			scope.groupOptionsLength = userService.user.GroupNames.length;
 		},
 	};
 });
