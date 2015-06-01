@@ -116,9 +116,7 @@ var submitForm = function($form, url, data, success) {
 			$form.find("[toggle-on-submit]").toggle();
 		}
 	}).success(function(r) {
-		if (!invisibleSubmit) {
-			$errorText.hide();
-		}
+		$errorText.hide();
 		success(r);
 		console.log(r);
 	}).fail(function(r) {

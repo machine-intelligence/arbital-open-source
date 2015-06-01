@@ -33,6 +33,10 @@ CREATE TABLE pages (
 	sortChildrenBy VARCHAR(32) NOT NULL,
 	/* True iff the page has a probability vote. */
 	hasVote BOOLEAN NOT NULL,
+	/* Type of the vote this page has. If empty string, it has never been set.
+	 But once voting is set, it can only be turned on/off, the type cannot be
+	 changed. */
+	voteType VARCHAR(32) NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
 	karmaLock INT NOT NULL,
 	/* If > 0, the page is accessible only with the right link. */

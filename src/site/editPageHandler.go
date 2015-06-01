@@ -24,6 +24,7 @@ type pageData struct {
 	Title          string
 	Text           string
 	HasVoteStr     string
+	VoteType       string
 	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
 	KeepPrivacyKey bool
 	GroupName      string
@@ -163,11 +164,18 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// Data correction. Rewrite the data structure so that we can just use it
 	// in a straight-forward way to populate the database.
 	// Can't change certain parameters after the page has been published.
-	hasVote := data.HasVoteStr == "on"
+	var hasVote bool
+	if oldPage.WasPublished && oldPage.VoteType != "" {
+		c.Debugf("=============== 1:%+v", oldPage.VoteType)
+		hasVote = data.HasVoteStr == "on"
+		data.VoteType = oldPage.VoteType
+	} else {
+		c.Debugf("=============== 2:%+v", oldPage.VoteType)
+		hasVote = data.VoteType != ""
+	}
 	if oldPage.WasPublished {
 		data.Type = oldPage.Type
 		data.GroupName = oldPage.Group.Name
-		hasVote = oldPage.HasVote
 	}
 	// Can't turn on privacy after the page has been published.
 	var privacyKey int64
@@ -285,6 +293,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["edit"] = newEditNum
 	hashmap["isCurrentEdit"] = isCurrentEdit
 	hashmap["hasVote"] = hasVote
+	hashmap["voteType"] = data.VoteType
 	hashmap["karmaLock"] = data.KarmaLock
 	hashmap["isAutosave"] = data.IsAutosave
 	hashmap["isSnapshot"] = data.IsSnapshot

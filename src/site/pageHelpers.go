@@ -48,6 +48,7 @@ type page struct {
 	Alias          string
 	SortChildrenBy string
 	HasVote        bool
+	VoteType       string
 	Author         dbUser
 	CreatedAt      string
 	KarmaLock      int
@@ -183,8 +184,9 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	}
 	// TODO: we often don't need maxEditEver
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.sortChildrenBy,p.hasVote,
-			p.createdAt,p.karmaLock,p.privacyKey,p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,
+		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,
+			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
+			p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,
 			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
 			u.id,u.firstName,u.lastName
@@ -199,7 +201,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		pageId, whereClause, userId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy,
-		&p.HasVote, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
+		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
 		&p.WasPublished, &p.MaxEditEver, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
@@ -503,7 +505,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 	}
 	query := fmt.Sprintf(`
 		SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
-			deletedBy,hasVote,%s,alias,sortChildrenBy,groupName
+			deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName
 		FROM pages
 		WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s) AND
 			(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))`,
@@ -513,7 +515,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.Type, &p.Author.Id, &p.CreatedAt, &p.Title,
 			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
-			&p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name)
+			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
@@ -532,6 +534,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			op.PrivacyKey = p.PrivacyKey
 			op.DeletedBy = p.DeletedBy
 			op.HasVote = p.HasVote
+			op.VoteType = p.VoteType
 			op.Summary = p.Summary
 			op.Alias = p.Alias
 			op.SortChildrenBy = p.SortChildrenBy

@@ -42,9 +42,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		availableParents.splice(availableParents.indexOf(parentAlias), 1);
 	}
 
-	// Helper function for calling the pageHandler.
-	// callback is called when the server replies with success. If it's an autosave
-	// and the same data has already been submitted, the callback is called with "".
+	// Helper function for savePage. Computes the data to submit via AJAX.
 	var computeAutosaveData = function(isAutosave, isSnapshot) {
 		var parentIds = [];
 		$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
@@ -63,18 +61,47 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		};
 		var $form = $topParent.find(".new-page-form");
 		serializeFormData($form, data);
+		if (page.WasPublished) {
+			// Gah! Since we only display one of the inputs for hasVoteStr and
+			// voteType, we have to manually make sure they are synced up, so
+			// we can unabmiguously parse it on the server.
+			if ($("input[name='hasVoteStr']").is(":visible")) {
+				if (!$("input[name='hasVoteStr']").is(":checked")) {
+					data["voteType"] = "";
+				}
+			} else {
+				$("input[name='hasVoteStr']").prop("checked", $("input[name='voteType']").val() != "");
+			}
+		}
+		//if (!("hasVoteStr" in data)$("input[name='hasVoteStr']").is(":visible");
 		return data;
 	};
+	var autosaving = false;
+	var publishing = false;
 	var prevEditPageData = {};
-	var callPageHandler = function(isAutosave, isSnapshot, callback) {
+	// Save the current page.
+	// callback is called when the server replies with success. If it's an autosave
+	// and the same data has already been submitted, the callback is called with "".
+	var savePage = function(isAutosave, isSnapshot, callback) {
+		// Prevent stacking up saves without them returning.
+		if (publishing) return;
+		publishing = !isAutosave && !isSnapshot;
+		if (isAutosave && autosaving) return;
+		autosaving = isAutosave;
+
+		// Submit the form.
 		var data = computeAutosaveData(isAutosave, isSnapshot);
 		var $form = $topParent.find(".new-page-form");
-		// TODO: when we start using Angular, use angular.equals instead
 		if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
-			submitForm($form, "/editPage/", data, callback);
+			// TODO: if the call takes too long, we should show a warning.
+			submitForm($form, "/editPage/", data, function(r) {
+				if (isAutosave) autosaving = false;
+				callback(r);
+			});
 			prevEditPageData = data;
 		} else {
 			callback(undefined);
+			autosaving = false;
 		}
 	}
 
@@ -87,7 +114,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		var $body = $target.closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		callPageHandler(false, false, function(r) {
+		savePage(false, false, function(r) {
 			if (primaryPage !== undefined) {
 				$(document).trigger("new-page-modal-closed-event", r.substring(r.lastIndexOf("/") + 1));
 			} else {
@@ -102,7 +129,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		var $body = $(event.target).closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		callPageHandler(false, true, function(r) {
+		savePage(false, true, function(r) {
 			if (r !== undefined) {
 				$body.attr("privacy-key", r);
 				$loadingText.show().text("Saved!");
@@ -143,16 +170,24 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 
 	// Scroll wmd-panel so it's always inside the viewport.
 	if (primaryPage === undefined) {
+		var $wmdPanelContainer = $topParent.find(".wmd-panel-container");
 		var $wmdPreview = $topParent.find(".wmd-preview");
 		var $wmdPanel = $topParent.find(".wmd-panel");
 		var wmdPanelY = $wmdPanel.offset().top;
 		var wmdPanelHeight = $wmdPanel.outerHeight();
+		var initialContainerHeight = $wmdPanelContainer.height();
 		$(window).scroll(function(){
 			var y = $(window).scrollTop() - wmdPanelY;
 			y = Math.min($wmdPreview.outerHeight() - wmdPanelHeight, y);
 			y = Math.max(0, y);
 			$wmdPanel.stop(true).animate({top: y}, "fast");
 		});
+		// Automatically adjust height of wmd-panel-container.
+		var adjustHeight = function(){
+			$wmdPanelContainer.height(Math.max(initialContainerHeight, $wmdPreview.height() + $wmdPreview.offset().top - $wmdPanelContainer.offset().top));
+		};
+		window.setInterval(adjustHeight, 1000);
+		adjustHeight();
 	}
 
 	// Keep title label in sync with the title input.
@@ -217,7 +252,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		var $autosaveLabel = $topParent.find(".autosave-label");
 		this.autosaveInterval = window.setInterval(function(){
 			$autosaveLabel.text("Autosave: Saving...").show();
-			callPageHandler(true, false, function(r) {
+			savePage(true, false, function(r) {
 				if (r === undefined) {
 					$autosaveLabel.hide();
 				} else {
@@ -252,17 +287,28 @@ app.directive("zndEditPage", function(pageService, userService, $timeout) {
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
+
 			scope.pageTypes = {
 				wiki:"Wiki Page",
 				blog:"Blog Page",
 			};
 			scope.page.Type = scope.page.Type in scope.pageTypes ? scope.page.Type : "wiki";
+
 			scope.sortTypes = {
 				likes:"By Likes",
 				choronological:"Chronologically",
 				alphabetical:"Alphabetically",
 			};
 			scope.page.SortChildrenBy = scope.page.SortChildrenBy in scope.sortTypes ? scope.page.SortChildrenBy : "likes";
+
+			scope.voteTypes = {
+				"":"",
+				probability:"Probability",
+				approval:"Approval",
+			};
+			scope.page.VoteType = scope.page.VoteType in scope.voteTypes ? scope.page.VoteType : "";
+			scope.showVoteCheckbox = scope.page.WasPublished && scope.page.VoteType != "";
+
 			if (!scope.isModal) {
 				$timeout(function(){
 					scope.editPage = new EditPage(scope.page, pageService, element, undefined);
