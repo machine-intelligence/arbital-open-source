@@ -32,12 +32,14 @@
 				$modalBody.empty().append("<img src='/static/images/loading.gif'/>");
 				
 				// Setup modal.
+				var reopenNew = false; // set to true if we should reopen the modal with a new empty page
 				var setupModal = function(pageId, isResumed) {
 					var newPage = pageService.pageMap[pageId];
 					if (!isResumed) {
 						newPage.Type = $scope.page.Type;
 						newPage.Parents = [{ParentId: $scope.page.PageId}];
 						newPage.Author = {Id: userService.user.Id};
+						newPage.Group = $scope.page.Group;
 					}
 
 					// Dynamically create znd-edit-page directive.
@@ -67,12 +69,18 @@
 						$modal.off("hidden.bs.modal");
 						$(document).off("new-page-modal-closed-event");
 						$modalBody.empty();
+						if (reopenNew) {
+							$(document).trigger("new-page-modal-event", newPageCallback);
+						}
 					});
 					// Allow the modal to "return" the alias for the newly created page.
-					$(document).on("new-page-modal-closed-event", function(e, alias){
+					$(document).on("new-page-modal-closed-event", function(e, alias, reopen){
 						$modal.modal("hide");
 						returnedNewPageAlias = alias;
-						newPageId = undefined;
+						if (reopen !== undefined && reopen) {
+							reopenNew = true;
+							newPageId = undefined;
+						}
 					});
 				};
 				

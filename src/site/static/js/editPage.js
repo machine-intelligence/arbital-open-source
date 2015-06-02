@@ -139,8 +139,8 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 	});
 
 	// Process close button.
-	$topParent.find(".close-modal").on("click", function(event) {
-		$(document).trigger("new-page-modal-closed-event", undefined);
+	$topParent.find(".new-page-button").on("click", function(event) {
+		$(document).trigger("new-page-modal-closed-event", [null, true]);
 	});
 
 	// Setup autocomplete for tags.
