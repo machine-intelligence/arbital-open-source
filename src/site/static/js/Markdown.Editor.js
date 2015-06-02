@@ -29,11 +29,11 @@
         linkdialogtitle: "Insert Hyperlink",
         linkdialog: "http://example.com/ \"optional title\"",
 
-				intralink: "Intrasite link <a> Ctrl+;",
+        intralink: "Intrasite link <a> Ctrl+;",
         intralinkdialogtitle: "Insert Intrasite Link",
         intralinkdialog: "Start typing a page alias or page title for autocomplete.",
 
-				newpage: "Quickly create a new page and insert the link Ctrl+E",
+        newpage: "Quickly create a new page and insert the link Ctrl+E",
 
         quote: "Blockquote <blockquote> Ctrl+Q",
         quoteexample: "Blockquote",
@@ -1014,208 +1014,49 @@
     // callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
     //      It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
     //      was chosen).
-		// isIntraLink: Set to true if the input is for page aliases.
+    // isIntraLink: Set to true if the input is for page aliases.
     ui.prompt = function (title, helpText, callback, isIntraLink) {
-				var $modal = $("#new-link-modal");
-				var $input = $modal.find(".new-link-input");
-				$modal.modal();
-				$modal.find(".modal-title").text(title);
+        var $modal = $("#new-link-modal");
+        var $input = $modal.find(".new-link-input");
+        $modal.modal();
+        $modal.find(".modal-title").text(title);
 
-				// Set up input
-				$input.val("").attr("placeholder", helpText);
-				if (isIntraLink) {
-					$input.autocomplete({
-						source: allAliases,
-						minLength: 2,
-						select: function (event, ui) {
-							return true;
-						}
-					});
-				}
+        // Set up input
+        $input.val("").attr("placeholder", helpText);
+        if (isIntraLink) {
+          $input.autocomplete({
+            source: allAliases,
+            minLength: 2,
+            select: function (event, ui) {
+              return true;
+            }
+          });
+        }
 
-				var isCancel = true;
-				$modal.on("hide.bs.modal", function (e) {
-					console.log("hidden");
-					$modal.off("hide.bs.modal");
-					$modal.off("shown.bs.modal");
-					$modal.find(".modal-content").off("submit");
-					var text = $input.val();
+        var isCancel = true;
+        $modal.on("hidden.bs.modal", function (e) {
+          $modal.off("hidden.bs.modal");
+          $modal.off("shown.bs.modal");
+          $modal.find(".modal-content").off("submit");
+          var text = $input.val();
           if (isCancel) {
-            text = null;
+              text = null;
           } else if (!isIntraLink){
               // Fixes common pasting errors.
               text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
-              if (!/^(?:https?|ftp):\/\//.test(text))
+              if (!/^(?:https?|ftp):\/\//.test(text)) {
                   text = 'http://' + text;
+              }
           }
-					callback(text);
-				});
-				$modal.on("shown.bs.modal", function (e) {
-					$input.focus();
-				});
-				$modal.find(".modal-content").on("submit", function(e) {
-					console.log("submitted");
-					isCancel = false;
-					$modal.modal("hide");
-				});
-				return;
-        // These variables need to be declared at this level since they are used
-        // in multiple functions.
-        var dialog;         // The dialog box.
-        var input;         // The text box where you enter the hyperlink.
-
-
-        if (defaultInputText === undefined) {
-            defaultInputText = "";
-        }
-
-        // Used as a keydown event handler. Esc dismisses the prompt.
-        // Key code 27 is ESC.
-        var checkEscape = function (key) {
-            var code = (key.charCode || key.keyCode);
-            if (code === 27) {
-                if (key.stopPropagation) key.stopPropagation();
-                close(true);
-                return false;
-            }
-        };
-
-        // Dismisses the hyperlink input box.
-        // isCancel is true if we don't care about the input text.
-        // isCancel is false if we are going to keep the text.
-        var close = function (isCancel) {
-            util.removeEvent(doc.body, "keyup", checkEscape);
-            var text = input.value;
-
-            if (isCancel) {
-                text = null;
-            }
-            else if (!isIntraLink){
-                // Fixes common pasting errors.
-                text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
-                if (!/^(?:https?|ftp):\/\//.test(text))
-                    text = 'http://' + text;
-            }
-
-            dialog.parentNode.removeChild(dialog);
-
-            callback(text);
-            return false;
-        };
-
-
-
-        // Create the text input box form/window.
-        var createDialog = function () {
-
-            // The main dialog box.
-            dialog = doc.createElement("div");
-            dialog.className = "wmd-prompt-dialog";
-            dialog.style.padding = "10px;";
-            dialog.style.position = "fixed";
-            dialog.style.width = "400px";
-            dialog.style.zIndex = "2001";
-
-            // The dialog text.
-            var question = doc.createElement("div");
-            question.innerHTML = text;
-            question.style.padding = "5px";
-            dialog.appendChild(question);
-
-            // The web form container for the text box and buttons.
-            var form = doc.createElement("form"),
-                style = form.style;
-            form.onsubmit = function () { return close(false); };
-            style.padding = "0";
-            style.margin = "0";
-            style.cssFloat = "left";
-            style.width = "100%";
-            style.textAlign = "center";
-            style.position = "relative";
-            dialog.appendChild(form);
-
-            // The input text box
-            input = doc.createElement("input");
-            input.type = "text";
-            input.value = defaultInputText;
-            style = input.style;
-            style.display = "block";
-            style.width = "80%";
-            style.marginLeft = style.marginRight = "auto";
-						if (isIntraLink) {
-							$(input).autocomplete({
-								source: allAliases,
-								minLength: 2,
-								select: function (event, ui) {
-									return true;
-								}
-							});
-						}
-            form.appendChild(input);
-
-            // The ok button
-            var okButton = doc.createElement("input");
-            okButton.type = "button";
-            okButton.onclick = function () { return close(false); };
-            okButton.value = "OK";
-            style = okButton.style;
-            style.margin = "10px";
-            style.display = "inline";
-            style.width = "7em";
-
-
-            // The cancel button
-            var cancelButton = doc.createElement("input");
-            cancelButton.type = "button";
-            cancelButton.onclick = function () { return close(true); };
-            cancelButton.value = "Cancel";
-            style = cancelButton.style;
-            style.margin = "10px";
-            style.display = "inline";
-            style.width = "7em";
-
-            form.appendChild(okButton);
-            form.appendChild(cancelButton);
-
-            util.addEvent(doc.body, "keyup", checkEscape);
-            dialog.style.top = "50%";
-            dialog.style.left = "50%";
-            dialog.style.display = "block";
-            if (uaSniffed.isIE_5or6) {
-                dialog.style.position = "absolute";
-                dialog.style.top = doc.documentElement.scrollTop + 200 + "px";
-                dialog.style.left = "50%";
-            }
-            doc.body.appendChild(dialog);
-
-            // This has to be done AFTER adding the dialog to the form if you
-            // want it to be centered.
-            dialog.style.marginTop = -(position.getHeight(dialog) / 2) + "px";
-            dialog.style.marginLeft = -(position.getWidth(dialog) / 2) + "px";
-
-        };
-
-        // Why is this in a zero-length timeout?
-        // Is it working around a browser bug?
-        setTimeout(function () {
-
-            createDialog();
-
-            var defTextLen = defaultInputText.length;
-            if (input.selectionStart !== undefined) {
-                input.selectionStart = 0;
-                input.selectionEnd = defTextLen;
-            }
-            else if (input.createTextRange) {
-                var range = input.createTextRange();
-                range.collapse(false);
-                range.moveStart("character", -defTextLen);
-                range.moveEnd("character", defTextLen);
-                range.select();
-            }
-
-            input.focus();
-        }, 0);
+          callback(text);
+        });
+        $modal.on("shown.bs.modal", function (e) {
+            $input.focus();
+        });
+        $modal.find(".modal-content").on("submit", function(e) {
+            isCancel = false;
+            $modal.modal("hide");
+        });
     };
 
     function UIManager(postfix, panels, undoManager, previewManager, commandManager, helpOptions, getString) {
@@ -1238,10 +1079,10 @@
                 var keyCode = key.charCode || key.keyCode;
                 var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
-								if (keyCode == 186) { // ;
-									doClick(buttons.intralink);
-									return;
-								}
+                if (keyCode == 186) { // ;
+                  doClick(buttons.intralink);
+                  return;
+                }
                 switch (keyCodeStr) {
                     case "b":
                         doClick(buttons.bold);
@@ -1252,9 +1093,9 @@
                     case "l":
                         doClick(buttons.link);
                         break;
-										case "e":
-												doClick(buttons.newPage);
-												break;
+                    case "e":
+                        doClick(buttons.newPage);
+                        break;
                     case "q":
                         doClick(buttons.quote);
                         break;
@@ -1755,7 +1596,6 @@
 
         chunk.trimWhitespace();
         chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
-        //var background;
 
         if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
             chunk.startTag = chunk.startTag.replace(/!?\[/, "");
@@ -1776,9 +1616,6 @@
             // The function to be executed when you enter a link and press OK or Cancel.
             // Marks up the link and adds the ref.
             var linkEnteredCallback = function (link) {
-
-                //background.parentNode.removeChild(background);
-
                 if (link !== null) {
                     // (                          $1
                     //     [^\\]                  anything that's not a backslash
@@ -1798,7 +1635,7 @@
                     // this by anchoring with ^, because in the case that the selection starts with two brackets, this
                     // would mean a zero-width match at the start. Since zero-width matches advance the string position,
                     // the first bracket could then not act as the "not a backslash" for the second.
-										chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
+                    chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
                     chunk.startTag = isImage ? "![" : "[";
                     chunk.endTag = "](" + properlyEncoded(link) + ")";
 
@@ -1815,10 +1652,10 @@
             };
 
             if (isImage) {
-                if (!this.hooks.insertImageDialog(linkEnteredCallback))
+                if (!this.hooks.insertImageDialog(linkEnteredCallback)) {
                     ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
-            }
-            else {
+								}
+            } else {
                 ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
             }
             return true;
@@ -1829,7 +1666,6 @@
 
         chunk.trimWhitespace();
         chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
-        //var background;
 
         if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
 
@@ -1854,8 +1690,6 @@
             // Marks up the link and adds the ref.
             var linkEnteredCallback = function (link) {
 
-                //background.parentNode.removeChild(background);
-
                 if (link !== null) {
                     // (                          $1
                     //     [^\\]                  anything that's not a backslash
@@ -1877,17 +1711,17 @@
                     // the first bracket could then not act as the "not a backslash" for the second.
                     chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
                     
-										var openParenIndex = link.indexOf("(");
-										if (openParenIndex > 0) {
-											// Input is probably of the type: "title" (alias)
-											var closeParenIndex = link.lastIndexOf(")");
-											link = link.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
-										}
+                    var openParenIndex = link.indexOf("(");
+                    if (openParenIndex > 0) {
+                      // Input is probably of the type: "title" (alias)
+                      var closeParenIndex = link.lastIndexOf(")");
+                      link = link.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
+                    }
                     chunk.startTag = "[[";
                     chunk.endTag = "]]((" + link + "))";
 
                     if (!chunk.selection) {
-										    chunk.endTag = "]]";
+                        chunk.endTag = "]]";
                         chunk.selection = link;
                     }
                 }
@@ -1902,7 +1736,7 @@
     commandProto.doNewPage = function (chunk, postProcessing) {
         chunk.trimWhitespace();
         chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
-        //var background;
+
         if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
             chunk.startTag = chunk.startTag.replace(/\[\[/, "");
             chunk.endTag = "";
@@ -1922,20 +1756,20 @@
             // Adds a link to the newly created page.
             var pageCreatedCallback = function (pageAlias) {
                 if (pageAlias !== null) {
-									  // Same regex as in other link functions.
+                    // Same regex as in other link functions.
                     chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
                     chunk.startTag = "[[";
                     chunk.endTag = "]]((" + pageAlias + "))";
 
                     if (!chunk.selection) {
-										    chunk.endTag = "]]";
+                        chunk.endTag = "]]";
                         chunk.selection = pageAlias;
                     }
                 }
                 postProcessing();
             };
 
-						$(document).trigger("new-page-modal-event", pageCreatedCallback);
+            $(document).trigger("new-page-modal-event", pageCreatedCallback);
             return true;
         }
     };
