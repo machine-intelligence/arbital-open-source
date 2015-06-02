@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS users;
-
 /* An entry for every user that has ever done anything in our system. */
 CREATE TABLE users (
 	/* PK. User's unique id. */

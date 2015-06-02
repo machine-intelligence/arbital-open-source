@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS pageInfos;
-
 /* This table contains various information about the pages. This info is not
  dependent on any specific edit number. */
 CREATE TABLE pageInfos (

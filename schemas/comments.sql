@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS comments;
-
 /* A comment is a short piece of text submitted by a user for some page. */
 CREATE TABLE comments (
 	/* Unique comment id. PK. */

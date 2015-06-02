@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS votes;
-
 /* An entry for every probability vote a user casts for a question. There could be
  multiple votes from one user for the same page. */
 CREATE TABLE votes (

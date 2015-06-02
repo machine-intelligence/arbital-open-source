@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS pages;
-
 /* This table contains all the edits for all the pages, including the original edit.
  Each row is one edit for a given page. */
 CREATE TABLE pages (

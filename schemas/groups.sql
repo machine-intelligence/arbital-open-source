@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS groups;
-
 /* A group is a collection of users. */
 CREATE TABLE groups (
 	/* Name of the group. */

@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS aliases;
-
 /* This table contains all the aliases for pages. An alias is a short string
  that points to a specific page. It's of the form "name-suffix", where
  'name' is a user specified string, and 'suffix' is a number of make full name

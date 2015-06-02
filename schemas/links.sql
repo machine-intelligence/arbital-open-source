@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS links;
-
 /* When a parent page has a link to a child page, we add a row in this table. */
 CREATE TABLE links (
 	/* Id of the parent page. FK into pages. */
