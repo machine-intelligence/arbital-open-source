@@ -411,6 +411,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
 	}
 
+	// === Once the transaction has succeeded, we can't really fail on anything
+	// else. So we print out errors, but don't return an error.
+
 	if isCurrentEdit {
 		// Generate updates for users who are subscribed to this page.
 		if oldPage.WasPublished {
@@ -442,8 +445,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		// Generate updates for users who are subscribed to the parent pages.
 		if !oldPage.WasPublished {
+			// Generate updates for users who are subscribed to the parent pages.
 			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
@@ -456,6 +459,17 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
+			}
+
+			// Upvote the page.
+			hashmap := make(map[string]interface{})
+			hashmap["userId"] = u.Id
+			hashmap["pageId"] = data.PageId
+			hashmap["value"] = 1
+			hashmap["createdAt"] = database.Now()
+			query = database.GetInsertSql("likes", hashmap)
+			if _, err = database.ExecuteSql(c, query); err != nil {
+				c.Errorf("Couldn't add a vote: %v", err)
 			}
 		}
 	}
