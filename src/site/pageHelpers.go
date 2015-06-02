@@ -96,6 +96,8 @@ type pagePair struct {
 type loadPageOptions struct {
 	loadText    bool
 	loadSummary bool
+	// If set to true, load snapshots and autosaves, not only current edits
+	allowUnpublished bool
 }
 
 /*func (a pagesChronologically) Less(i, j int) bool {
@@ -495,21 +497,29 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		return nil
 	}
 	pageIds := pageIdsStringFromMap(pageMap)
-	textSelect := "\"\""
+	textSelect := "\"\" as text"
 	if options.loadText {
 		textSelect = "text"
 	}
-	summarySelect := "\"\""
+	summarySelect := "\"\" as summary"
 	if options.loadSummary {
-		summarySelect = "text"
+		summarySelect = "summary"
+	}
+	publishedConstraint := "isCurrentEdit"
+	if options.allowUnpublished {
+		publishedConstraint = fmt.Sprintf("(isCurrentEdit || creatorId=%d)", userId)
 	}
 	query := fmt.Sprintf(`
-		SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
-			deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName
-		FROM pages
-		WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s) AND
-			(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))`,
-		textSelect, summarySelect, pageIds, userId)
+		SELECT * FROM (
+			SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
+				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName
+			FROM pages
+			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
+				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
+			ORDER BY edit DESC
+		) AS p
+		GROUP BY pageId`,
+		textSelect, summarySelect, publishedConstraint, pageIds, userId)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p page
 		err := rows.Scan(
