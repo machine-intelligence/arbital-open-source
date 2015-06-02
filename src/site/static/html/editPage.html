@@ -41,10 +41,10 @@
 				<div class="wmd-panel-bottom-buttons">
 					<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 					<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
-					<button type="submit" class="btn btn-primary" ng-bind="isModal?'Publish & Return':'Publish'" toggle-on-submit></button>
+					<button type="submit" class="btn btn-primary" ng-bind="isModal?'Publish & Link':'Publish'" toggle-on-submit></button>
 					<span class="gray-text autosave-label" hidden></span>
 					<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal">Abandon My Changes</a>
-					<button type="button" class="close-modal btn btn-danger pull-right" ng-show="isModal" toggle-on-submit>Close</button>
+					<button type="button" class="close-modal btn btn-default pull-right" ng-show="isModal" toggle-on-submit>Close</button>
 					<div class="alert alert-danger" hidden></div>
 					<span class="loading-text" style="display:none"></span>
 					<div class="clearfix"></div>

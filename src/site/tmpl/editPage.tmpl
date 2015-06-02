@@ -23,54 +23,82 @@
 		app.controller("MainCtrl", function ($scope, pageService, userService, $compile, $timeout) {
 			$scope.pageId = "{{.Page.PageId}}";
 			$scope.page = pageService.pageMap[$scope.pageId];
+
+			var newPageId = undefined;  // id of the page we are editing in the modal
+			// Process event to create the new-page-modal. This event is raised from Markdown.Editor.js
 			$(document).on("new-page-modal-event", function(e, newPageCallback){
 				var $modal = $('#new-page-modal');
 				var $modalBody = $modal.find(".modal-body");
 				$modalBody.empty().append("<img src='/static/images/loading.gif'/>");
-				pageService.loadPages([],
-					function(data, status) {
-						var newPageId = Object.keys(data)[0];
-						var newPage = pageService.pageMap[newPageId];
+				
+				// Setup modal.
+				var setupModal = function(pageId, isResumed) {
+					var newPage = pageService.pageMap[pageId];
+					if (!isResumed) {
 						newPage.Type = $scope.page.Type;
 						newPage.Parents = [{ParentId: $scope.page.PageId}];
 						newPage.Author = {Id: userService.user.Id};
+					}
 
-						// Dynamically create znd-edit-page directive.
-						var el = $compile("<znd-edit-page page-id='\"" + newPageId +
-								"\"' is-modal='true'></znd-edit-page>")($scope);
-						$modalBody.empty().append(el);
-						$modal.modal();
+					// Dynamically create znd-edit-page directive.
+					var el = $compile("<znd-edit-page page-id='\"" + pageId +
+							"\"' is-modal='true'></znd-edit-page>")($scope);
+					$modalBody.empty().append(el);
+					$modal.modal();
 
-						// Initialize editPage script.
-						var editPage;
-						$timeout(function(){
-							editPage = new EditPage(newPage, pageService, el, $scope.page);
-							editPage.start();
-						});
-
-						// Hande modal's close event, with the possibility of returning the
-						// new page's alias.
-						var newPageAlias = null;
-						$modal.on("shown.bs.modal", function (e) {
-							$modal.find("input[name='title']").focus();
-						});
-						$modal.on("hidden.bs.modal", function (e) {
-							newPageCallback(newPageAlias);
-							$modal.off("shown.bs.modal");
-							$modal.off("hidden.bs.modal");
-							$(document).off("new-page-modal-closed-event");
-							$modalBody.empty();
-							editPage.stop();
-							delete editPage;
-						});
-						// Allow the modal to "return" the alias for the newly created page.
-						$(document).on("new-page-modal-closed-event", function(e, alias){
-							$modal.modal("hide");
-							newPageAlias = alias;
-						});
-					}, function(data, status) {
-						console.log(":(");
+					// Initialize editPage script.
+					var editPage;
+					$timeout(function(){
+						editPage = new EditPage(newPage, pageService, el, $scope.page);
+						editPage.start();
 					});
+
+					// Hande modal's close event, with the possibility of returning the
+					// new page's alias.
+					var returnedNewPageAlias = null;
+					$modal.on("shown.bs.modal", function (e) {
+						$modal.find("input[name='title']").focus();
+					});
+					$modal.on("hidden.bs.modal", function (e) {
+						newPageCallback(returnedNewPageAlias);
+						editPage.stop();
+						delete editPage;
+						$modal.off("shown.bs.modal");
+						$modal.off("hidden.bs.modal");
+						$(document).off("new-page-modal-closed-event");
+						$modalBody.empty();
+					});
+					// Allow the modal to "return" the alias for the newly created page.
+					$(document).on("new-page-modal-closed-event", function(e, alias){
+						$modal.modal("hide");
+						returnedNewPageAlias = alias;
+						newPageId = undefined;
+					});
+				};
+				
+				var loadPages = function() {
+				var loadPagesIds = [];
+				if (newPageId !== undefined) {
+					// Resume editing some page.
+					loadPagesIds = [newPageId];
+					pageService.removePageFromMap(newPageId);
+				}
+				pageService.loadPages(loadPagesIds,
+					function(data, status) {
+						newPageId = Object.keys(data)[0];
+						if (newPageId !== $scope.pageId) {  // let's not try to edit the same page in two places
+							setupModal(newPageId, loadPagesIds.length > 0);
+						}
+					}, function(data, status) {
+						console.log("Couldn't load pages: " + loadPagesIds);
+						if (loadPagesIds.length > 0) {
+							// Let's try again, but without trying to resume editing.
+							newPageId = undefined;
+							loadPages();
+						}
+					});
+				};
+				loadPages();
 			});
 		});
 	</script>

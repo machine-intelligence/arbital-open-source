@@ -204,7 +204,6 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 			});
 		};
 		$topParent.find(".child-parent-option").on("click", function(event) {
-			console.log("child");
 			deleteAllParentTags();
 			page.Parents = primaryPage.Parents.slice();
 			addParentTags();
@@ -269,6 +268,8 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 	// Called before this editPage is destroyed.
 	this.stop = function() {
 		clearInterval(this.autosaveInterval);
+		// Snapshot just in case.
+		savePage(true, false, function(r) {});
 	};
 };
 

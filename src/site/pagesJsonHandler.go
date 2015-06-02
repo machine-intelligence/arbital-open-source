@@ -18,6 +18,9 @@ import (
 // pagesJsonData contains parameters passed in via the request.
 type pagesJsonData struct {
 	PageIds string // comma separated string of page ids
+	// If true, we expect only one pageId, but will load the last edit, just like
+	// for the edit page.
+	LoadFullEdit bool
 }
 
 // pagesJsonHandler handles the request.
@@ -50,16 +53,6 @@ func pagesJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Process pageIds
-	pageMap := make(map[int64]*page)
-	pageIds := strings.Split(data.PageIds, ",")
-	for _, id := range pageIds {
-		pageId, err := strconv.ParseInt(id, 10, 64)
-		if err != nil {
-			pageMap[pageId] = &page{PageId: pageId}
-		}
-	}
-
 	// Load user object
 	var u *user.User
 	u, err = user.LoadUser(w, r)
@@ -70,13 +63,42 @@ func pagesJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Load pages.
-	err = loadPages(c, pageMap, u.Id, loadPageOptions{})
-	if err != nil {
-		c.Inc("pages_handler_fail")
-		c.Errorf("error while loading pages: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	// Load data
+	pageMap := make(map[int64]*page)
+	if !data.LoadFullEdit {
+		// Process pageIds
+		pageIds := strings.Split(strings.Trim(data.PageIds, ","), ",")
+		for _, id := range pageIds {
+			pageId, err := strconv.ParseInt(id, 10, 64)
+			if err != nil {
+				c.Errorf("Couldn't parse page id: %v", pageId)
+			} else {
+				pageMap[pageId] = &page{PageId: pageId}
+			}
+		}
+
+		err = loadPages(c, pageMap, u.Id, loadPageOptions{loadText: true})
+		if err != nil {
+			c.Inc("pages_handler_fail")
+			c.Errorf("error while loading pages: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		pageId, err := strconv.ParseInt(strings.Trim(data.PageIds, ","), 10, 64)
+		if err != nil {
+			c.Errorf("Couldn't parse page id: %v", data.PageIds)
+		}
+
+		// Load full edit for one page.
+		p, err := loadFullEdit(c, pageId, u.Id)
+		if err != nil || p == nil {
+			c.Inc("pages_handler_fail")
+			c.Errorf("error while loading full edit: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		pageMap[pageId] = p
 	}
 
 	// Return the pages in JSON format.

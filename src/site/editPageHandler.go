@@ -166,11 +166,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// Can't change certain parameters after the page has been published.
 	var hasVote bool
 	if oldPage.WasPublished && oldPage.VoteType != "" {
-		c.Debugf("=============== 1:%+v", oldPage.VoteType)
 		hasVote = data.HasVoteStr == "on"
 		data.VoteType = oldPage.VoteType
 	} else {
-		c.Debugf("=============== 2:%+v", oldPage.VoteType)
 		hasVote = data.VoteType != ""
 	}
 	if oldPage.WasPublished {

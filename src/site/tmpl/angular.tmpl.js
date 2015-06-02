@@ -110,6 +110,8 @@ app.service("pageService", function(userService, $http){
 		var existingPage = this.pageMap[page.PageId];
 		if (existingPage !== undefined) {
 			if (page === existingPage) return;
+			console.log("existingPage");
+			console.log(existingPage);
 			// Merge.
 			existingPage.Children = existingPage.Children.concat(page.Children);
 			existingPage.Parents = existingPage.Parents.concat(page.Parents);
@@ -117,6 +119,10 @@ app.service("pageService", function(userService, $http){
 			this.pageMap[page.PageId] = setUpPage(page);
 		}
 		return this.pageMap[page.PageId];
+	};
+	this.removePageFromMap = function(pageId) {
+		delete this.pageMap[pageId];
+		console.log(this.pageMap);
 	};
 
 	// Load children for the given page. Success/error callbacks are called only
@@ -181,38 +187,35 @@ app.service("pageService", function(userService, $http){
 
 	// Load the page with the given pageIds. If it's empty, ask the server for
 	// a new page id.
+	var loadingPageIds = {};
 	this.loadPages = function(pageIds, success, error) {
 		var service = this;
 		var pageIdsLen = pageIds.length;
 		var pageIdsStr = "";
 		// Add pages to the global map as necessary. Set pages as loading.
+		// Compute pageIdsStr for page ids that are not being loaded already.
 		for (var n = 0; n < pageIdsLen; n++) {
 			var pageId = pageIds[n];
-			var page = service.pageMap[pageId];
-			if (!page) {
-				page = {PageId: pageId};
-				service.pageMap[pageId] = page;
-			}
-			if (!page.isLoading) {
-				page.isLoading = true;
-				pageIdsStr += page.PageId + ",";
+			if (!(pageId in loadingPageIds)) {
+				loadingPageIds[pageId] = true;
+				pageIdsStr += pageId + ",";
 			}
 		}
 		if (pageIdsLen > 0 && pageIdsStr.length == 0) {
 			return;  // we are loading all the pages already
 		}
 		console.log("/json/pages/?pageIds=" + pageIdsStr);
-		$http({method: "GET", url: "/json/pages/", params: {pageIds: pageIdsStr}}).
+		$http({method: "GET", url: "/json/pages/", params: {pageIds: pageIdsStr, loadFullEdit: true}}).
 			success(function(data, status){
 				for (var id in data) {
+					console.log("data");
+					console.log(data[id]);
 					data[id] = service.addPageToMap(data[id]);
-					data[id].isLoading = false;
+					delete loadingPageIds[id];
 				}
 				success(data, status);
 			}).error(function(data, status){
-				console.log("error loading page");
-				console.log(data);
-				console.log(status);
+				console.log("error loading page"); console.log(data); console.log(status);
 				error(data, status);
 			});
 	};
