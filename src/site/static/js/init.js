@@ -2,14 +2,14 @@
 
 // Add various helper functions.
 $(function() {
-  if (!String.prototype.format) {
-    String.prototype.format = function() {
-      var args = arguments;
-      return this.replace(/{(\d+)}/g, function(match, number) { 
-        return typeof args[number] != 'undefined' ? args[number] : match;
-      });
-    };
-  }
+	if (!String.prototype.format) {
+		String.prototype.format = function() {
+			var args = arguments;
+			return this.replace(/{(\d+)}/g, function(match, number) { 
+				return typeof args[number] != 'undefined' ? args[number] : match;
+			});
+		};
+	}
 });
 
 // Prevent Enter key from submitting the form.
@@ -17,11 +17,7 @@ $(function() {
 	$(window).keydown(function(event){
 		if(event.keyCode == 13) {
 			var target = $(event.target);
-<<<<<<< HEAD
-			if(!(target.is("textarea") || target.closest(".wmd-prompt-dialog").length > 0)) {
-=======
 			if(!(target.is("textarea") || target.closest("#new-link-modal").length > 0)) {
->>>>>>> branch
 				event.preventDefault();
 				return false;
 			}
