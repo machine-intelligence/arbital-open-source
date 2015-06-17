@@ -117,7 +117,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		$loadingText.hide();
 		savePage(false, false, function(r) {
 			if (primaryPage !== undefined) {
-				$(document).trigger("new-page-modal-closed-event", r.substring(r.lastIndexOf("/") + 1));
+				$(document).trigger("new-page-modal-closed-event", [r.substring(r.lastIndexOf("/") + 1), false]);
 			} else {
 				window.location.replace(r);
 			}

@@ -32,7 +32,8 @@
 				$modalBody.empty().append("<img src='/static/images/loading.gif'/>");
 				
 				// Setup modal.
-				var reopenNew = false; // set to true if we should reopen the modal with a new empty page
+				// Set to true if we should immediately reopen the modal with a new empty page
+				var reopenNew = false;
 				var setupModal = function(pageId, isResumed) {
 					var newPage = pageService.pageMap[pageId];
 					if (!isResumed) {
@@ -79,6 +80,9 @@
 						returnedNewPageAlias = alias;
 						if (reopen !== undefined && reopen) {
 							reopenNew = true;
+							newPageId = undefined;
+						}
+						if (alias) {
 							newPageId = undefined;
 						}
 					});
