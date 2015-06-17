@@ -32,9 +32,11 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 	var createVoteSlider = function($parent, pageId, votes, isPopoverVote) {
 		// Convert votes into a user id -> {value, createdAt} map
 		var voteMap = {};
-		for(var i = 0; i < page.Votes.length; i++) {
-			var vote = page.Votes[i];
-			voteMap[vote.UserId] = {value: vote.Value, createdAt: vote.CreatedAt};
+		if (page.Votes) {
+			for(var i = 0; i < page.Votes.length; i++) {
+				var vote = page.Votes[i];
+				voteMap[vote.UserId] = {value: vote.Value, createdAt: vote.CreatedAt};
+			}
 		}
 
 		// Copy vote-template and add it to the parent.
