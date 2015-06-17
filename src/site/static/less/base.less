@@ -19,7 +19,6 @@
 
 .new-page-body-div {
 	.body-div();
-	max-width: 90%;
 }
 
 .filter-body-div {
@@ -77,6 +76,22 @@
 .dashed-underline {
 	border-bottom: 1px dashed;
 	text-decoration: none;
+}
+
+.intrasite-link {
+	.dashed-underline();
+	&:focus {
+		text-decoration: none;
+	}
+	&:hover {
+		text-decoration: none;
+	}
+	&:active {
+		text-decoration: none;
+	}
+	&.red-link {
+		color: #c70a0a;
+	}
 }
 
 // Generic light gray links

@@ -2,6 +2,8 @@
 package site
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -65,6 +67,7 @@ func init() {
 	r.HandleFunc(updatesPage.URI, stdHandler(updatesPage.ServeHTTP)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
+	r.HandleFunc("/json/pages/", pagesJsonHandler).Methods("GET")
 	r.HandleFunc("/json/children/", childrenJsonHandler).Methods("GET")
 	r.HandleFunc("/json/parents/", parentsJsonHandler).Methods("GET")
 
@@ -94,4 +97,16 @@ func init() {
 	r.NotFoundHandler = http.HandlerFunc(stdHandler(page404.ServeHTTP))
 
 	http.Handle("/", r)
+}
+
+// writeJson converts the given map to JSON and writes it to the given writer.
+func writeJson(w http.ResponseWriter, m map[string]interface{}) error {
+	jsonData, err := json.Marshal(m)
+	if err != nil {
+		return fmt.Errorf("Error marshalling data into json:", err)
+	}
+	// Write some stuff for "JSON Vulnerability Protection"
+	w.Write([]byte(")]}',\n"))
+	w.Write(jsonData)
+	return nil
 }

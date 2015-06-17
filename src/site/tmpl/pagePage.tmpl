@@ -9,16 +9,14 @@
 	{{template "angular" .}}
 	<script src="/static/js/page.js"></script>
 	<script>
-		var gPageText = "{{.Page.Text}}";
-		var gVoteCount = {{.Page.VoteCount}};
-		var gVoteValueStr = "{{if .Page.VoteValue.Valid}}{{.Page.VoteValue.Float64}}{{end}}";
-		var gMyVoteValueStr = "{{if .Page.MyVoteValue.Valid}}{{.Page.MyVoteValue.Float64}}{{end}}";
 		// Map of alias -> {pageId, title} object.
 		var pageAliases = { {{range .AliasMap}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
+		// Map of link alias/id -> true if the page is published.
+		var gPageLinks = { {{range $k,$v := .Page.Links}}"{{$k}}": {{$v}},{{end}} };
 	</script>
 	<script>
 		// MainCtrl is for the Page page.
-		app.controller("MainCtrl", function ($scope, pageService) {
+		app.controller("MainCtrl", function($scope, pageService, userService) {
 			$scope.relatedIds = {{.RelatedIds}};
 			$scope.page = pageService.pageMap["{{.Page.PageId}}"];
 
@@ -37,6 +35,9 @@
 				var id = $scope.page.Parents[n].ParentId;
 				$scope.initialParents[id] = pageService.pageMap[id];
 			}
+
+			$scope.pageJsController = new PageJsController($scope.page, pageService, $("body"), userService);
+			$scope.pageJsController.start();
 		});
 	</script>
 </head>
@@ -58,13 +59,12 @@
 	</div>
 
 	<!-- Answers and probability votes -->
-	<div class="vote" hidden>
-		<div class="vote-text text-center gray-text">JS inserts vote count and my vote</div>
-	</div>
+	<div class="vote"></div>
 </div>
 
 <!-- This div is used to create vote divs. -->
 <div id="vote-template" class="vote" hidden>
+	<div class="bar-background"></div>
 	<input class="vote-slider-input" data-slider-id="vote-slider" type="text"/>
 	<div class="text-center gray-text">
 		<span class="vote-count">0 votes</span> counted

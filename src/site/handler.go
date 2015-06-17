@@ -2,6 +2,7 @@
 package site
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -23,6 +24,7 @@ type handler http.HandlerFunc
 type newPageOptions struct {
 	SkipLoadingUser bool
 	RequireLogin    bool
+	LoadUserGroups  bool
 }
 
 // newHandler returns a standard handler from given handler function.
@@ -81,6 +83,26 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 					c.Errorf("Couldn't update users: %v", err)
 					return pages.InternalErrorWith(err)
 				}
+				if options.LoadUserGroups {
+					// Load my groups.
+					u.GroupNames = make([]string, 0)
+					query = fmt.Sprintf(`
+						SELECT groupName
+						FROM groupMembers
+						WHERE userId=%d`, u.Id)
+					err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+						var groupName string
+						err := rows.Scan(&groupName)
+						if err != nil {
+							return fmt.Errorf("failed to scan for a member: %v", err)
+						}
+						u.GroupNames = append(u.GroupNames, groupName)
+						return nil
+					})
+					if err != nil {
+						return pages.InternalErrorWith(fmt.Errorf("Couldn't load user's group names: %v", err))
+					}
+				}
 			}
 		}
 		result := h(w, r, u)
@@ -90,6 +112,9 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 			"IsLoggedIn": func() bool { return u.IsLoggedIn },
 			"GetUserUrl": func(userId int64) string {
 				return getUserUrl(userId)
+			},
+			"GetMaxKarmaLockFraction": func() float32 {
+				return maxKarmaLockFraction
 			},
 			"GetUserJson": func() template.JS {
 				jsonData, _ := json.Marshal(u)

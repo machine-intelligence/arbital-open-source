@@ -16,6 +16,7 @@ import (
 // exploreTmplData stores the data that we pass to the template to render the page
 type exploreTmplData struct {
 	User    *user.User
+	UserMap map[int64]*dbUser
 	PageMap map[int64]*page
 }
 

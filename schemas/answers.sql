@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS answers;
-
 /* Each row is an answer to a page that's of type "question". */
 CREATE TABLE answers (
 	/* Page id. FK into pages. */

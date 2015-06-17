@@ -37,6 +37,12 @@ const (
 	pageIdEncodeBase = 36
 )
 
+type vote struct {
+	Value     int
+	UserId    int64 `json:",string"`
+	CreatedAt string
+}
+
 type page struct {
 	// Data loaded from pages table
 	PageId         int64 `json:",string"`
@@ -48,6 +54,7 @@ type page struct {
 	Alias          string
 	SortChildrenBy string
 	HasVote        bool
+	VoteType       string
 	Author         dbUser
 	CreatedAt      string
 	KarmaLock      int
@@ -69,16 +76,16 @@ type page struct {
 	LikeCount    int
 	DislikeCount int
 	MyLikeValue  int
-	LikeScore    int // computed from LikeCount and DislikeCount
-	VoteValue    sql.NullFloat64
-	VoteCount    int
-	MyVoteValue  sql.NullFloat64
+	LikeScore    int     // computed from LikeCount and DislikeCount
+	Votes        []*vote // all votes
 	Comments     []*comment
 	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
 	MaxEditEver  int  // highest edit number used for this page for all users
 	Parents      []*pagePair
 	Children     []*pagePair
+	Links        map[string]bool // page alias/id for a link -> true iff the page is published
 	LinkedFrom   []string
+	RedLinkCount int
 }
 
 // pagePair describes a parent child relationship, which are stored in pagePairs db table.
@@ -93,6 +100,8 @@ type pagePair struct {
 type loadPageOptions struct {
 	loadText    bool
 	loadSummary bool
+	// If set to true, load snapshots and autosaves, not only current edits
+	allowUnpublished bool
 }
 
 /*func (a pagesChronologically) Less(i, j int) bool {
@@ -181,8 +190,9 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	}
 	// TODO: we often don't need maxEditEver
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.sortChildrenBy,p.hasVote,
-			p.createdAt,p.karmaLock,p.privacyKey,p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,
+		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,
+			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
+			p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,
 			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
 			u.id,u.firstName,u.lastName
@@ -197,7 +207,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		pageId, whereClause, userId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy,
-		&p.HasVote, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
+		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
 		&p.WasPublished, &p.MaxEditEver, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
@@ -258,6 +268,103 @@ func loadPageIds(c sessions.Context, query string, pageMap map[int64]*page) ([]s
 		return nil
 	})
 	return ids, err
+}
+
+// loadLinks loads the links for the given page. If checkUnlinked is true, we
+// also compute whether or not each link points to a valid page.
+func loadLinks(c sessions.Context, pageMap map[int64]*page, checkUnlinked bool) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIdsStr := pageIdsStringFromMap(pageMap)
+	links := make(map[string]bool)
+	for _, p := range pageMap {
+		p.Links = make(map[string]bool)
+	}
+	query := fmt.Sprintf(`
+		SELECT parentId,childAlias
+		FROM links
+		WHERE parentId IN (%s)`, pageIdsStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var parentId int64
+		var childAlias string
+		err := rows.Scan(&parentId, &childAlias)
+		if err != nil {
+			return fmt.Errorf("failed to scan for an alias: %v", err)
+		}
+		links[childAlias] = false
+		pageMap[parentId].Links[childAlias] = false
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Create lists for aliases and ids.
+	idsList := make([]string, 0, len(links))
+	aliasesList := make([]string, 0, len(links))
+	for alias, _ := range links {
+		_, err := strconv.ParseInt(alias, 10, 64)
+		if err != nil {
+			aliasesList = append(aliasesList, fmt.Sprintf(`"%s"`, alias))
+		} else {
+			idsList = append(idsList, alias)
+		}
+	}
+
+	// Mark which aliases correspond to published pages.
+	aliasesStr := strings.Join(aliasesList, ",")
+	if len(aliasesStr) > 0 {
+		query = fmt.Sprintf(`
+			SELECT a.fullName
+			FROM (
+				SELECT pageId,fullName
+				FROM aliases
+				WHERE fullName IN (%s)
+			) AS a
+			LEFT JOIN pages AS p
+			ON (a.pageId=p.pageId AND p.isCurrentEdit AND p.deletedBy=0)`, aliasesStr)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var fullName string
+			err := rows.Scan(&fullName)
+			if err != nil {
+				return fmt.Errorf("failed to scan for an alias: %v", err)
+			}
+			links[fullName] = true
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Mark which ids correspond to published pages.
+	idsStr := strings.Join(idsList, ",")
+	if len(idsStr) > 0 {
+		query = fmt.Sprintf(`
+			SELECT CAST(pageId AS CHAR)
+			FROM pages
+			WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s)`, idsStr)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var pageId string
+			err := rows.Scan(&pageId)
+			if err != nil {
+				return fmt.Errorf("failed to scan for a page id: %v", err)
+			}
+			links[pageId] = true
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, p := range pageMap {
+		for alias, _ := range p.Links {
+			p.Links[alias] = links[alias]
+		}
+	}
+	return nil
 }
 
 type loadChildrenIdsOptions struct {
@@ -394,27 +501,35 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		return nil
 	}
 	pageIds := pageIdsStringFromMap(pageMap)
-	textSelect := "\"\""
+	textSelect := "\"\" as text"
 	if options.loadText {
 		textSelect = "text"
 	}
-	summarySelect := "\"\""
+	summarySelect := "\"\" as summary"
 	if options.loadSummary {
-		summarySelect = "text"
+		summarySelect = "summary"
+	}
+	publishedConstraint := "isCurrentEdit"
+	if options.allowUnpublished {
+		publishedConstraint = fmt.Sprintf("(isCurrentEdit || creatorId=%d)", userId)
 	}
 	query := fmt.Sprintf(`
-		SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
-			deletedBy,hasVote,%s,alias,sortChildrenBy,groupName
-		FROM pages
-		WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s) AND
-			(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))`,
-		textSelect, summarySelect, pageIds, userId)
+		SELECT * FROM (
+			SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
+				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName
+			FROM pages
+			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
+				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
+			ORDER BY edit DESC
+		) AS p
+		GROUP BY pageId`,
+		textSelect, summarySelect, publishedConstraint, pageIds, userId)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.Type, &p.Author.Id, &p.CreatedAt, &p.Title,
 			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
-			&p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name)
+			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
@@ -433,6 +548,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			op.PrivacyKey = p.PrivacyKey
 			op.DeletedBy = p.DeletedBy
 			op.HasVote = p.HasVote
+			op.VoteType = p.VoteType
 			op.Summary = p.Summary
 			op.Alias = p.Alias
 			op.SortChildrenBy = p.SortChildrenBy

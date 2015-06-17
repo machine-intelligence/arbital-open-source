@@ -3,12 +3,12 @@
 // Set up triggers.
 $(function() {
 	// Process new member form submission.
-	var $form = $("#new-member-form");
-	$form.on("submit", function(event) {
+	$(".new-member-form").on("submit", function(event) {
+		var $target = $(event.target);
 		var data = {
-			groupName: $form.attr("group-name"),
+			groupName: $target.attr("group-name"),
 		};
-		submitForm($form, "/newMember/", data, function(r) {
+		submitForm($target, "/newMember/", data, function(r) {
 			location.reload();
 		});
 		return false;

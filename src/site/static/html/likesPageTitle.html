@@ -2,7 +2,12 @@
 Required variables: page -->
 
 <!-- Likes and dislikes -->
-<span ng-hide="page.Title==''">
+<div ng-hide="page.Title==''">
+	<span class="red-link-count pull-right"
+		ng-show="showRedLinkCount && page.RedLinkCount>0"
+		ng-bind="page.RedLinkCount"
+		title="Number of links to non-existing pages"></span>
+
 	<span class="like-small-span">
 		<span class="like-count" ng-bind="page.LikeCount"></span>
 		<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-class="{'on': page.MyLikeValue >= 1}"></span>
@@ -10,8 +15,15 @@ Required variables: page -->
 		<span class="dislike-count" ng-bind="page.DislikeCount"></span>
 		<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
 	</span>
+
+	<span class="quick-edit-span">
+		<a ng-href="{[{page.EditUrl}]}" class="edit-page-link glyphicon glyphicon-pencil" ng-show="showQuickEditLink"></a>
+	</span>
 	
 	<span class="inline-page-title">
 		<a ng-href="{[{page.Url}]}" class="intrasite-link" ng-bind="page.Title"></a>
 	</span>
-</span>
+
+	<span class="created-span gray-text" ng-bind="page.CreatedAt | simpleDateTime" ng-show="showCreatedAt">
+	</span>
+</div>

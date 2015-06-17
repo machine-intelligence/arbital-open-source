@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS pagePairs;
-
 /* Each row describes a parent-child page relationship. */
 CREATE TABLE pagePairs (
 	id BIGINT NOT NULL AUTO_INCREMENT,

@@ -18,6 +18,7 @@ const (
 // indexTmplData stores the data that we pass to the index.tmpl to render the page
 type indexTmplData struct {
 	User                  *user.User
+	UserMap               map[int64]*dbUser
 	PageMap               map[int64]*page
 	RecentlyEditedByMeIds []string
 	RecentlyCreatedIds    []string
@@ -47,17 +48,32 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	query := fmt.Sprintf(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId
+			SELECT pageId,createdAt
 			FROM pages
 			WHERE creatorId=%d
-			ORDER BY createdAt DESC
+			GROUP BY pageId
 		) AS p
-		GROUP BY p.pageId
+		ORDER BY p.createdAt DESC
 		LIMIT %d`, data.User.Id, indexPanelLimit)
 	data.RecentlyEditedByMeIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
 		c.Errorf("error while loading recently edited by me page ids: %v", err)
 		return pages.InternalErrorWith(err)
+	}
+
+	// Load number of red links for recently edited pages.
+	err = loadLinks(c, data.PageMap, true)
+	if err != nil {
+		c.Errorf("error while loading links: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+	for _, p := range data.PageMap {
+		p.RedLinkCount = 0
+		for _, isPublished := range p.Links {
+			if !isPublished {
+				p.RedLinkCount++
+			}
+		}
 	}
 
 	// Load recently created page ids.
@@ -103,13 +119,13 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	query = fmt.Sprintf(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId
+			SELECT pageId,max(createdAt) AS createdAt
 			FROM pages
 			WHERE NOT isSnapshot AND NOT isAutosave 
-			ORDER BY createdAt DESC
+			GROUP BY pageId
+			HAVING(SUM(1) > 1)
 		) AS p
-		GROUP BY p.pageId
-		HAVING(SUM(1) > 1)
+		ORDER BY p.createdAt DESC
 		LIMIT %d`, indexPanelLimit)
 	data.RecentlyEditedIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
@@ -140,7 +156,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	}
 
 	// Load pages.
-	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{})
+	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{allowUnpublished: true})
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
 		return pages.InternalErrorWith(err)

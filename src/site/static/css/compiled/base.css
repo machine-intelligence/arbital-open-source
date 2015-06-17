@@ -18,7 +18,6 @@
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
-  max-width: 90%;
 }
 .filter-body-div {
   width: 100%;
@@ -69,6 +68,22 @@
 .dashed-underline {
   border-bottom: 1px dashed;
   text-decoration: none;
+}
+.intrasite-link {
+  border-bottom: 1px dashed;
+  text-decoration: none;
+}
+.intrasite-link:focus {
+  text-decoration: none;
+}
+.intrasite-link:hover {
+  text-decoration: none;
+}
+.intrasite-link:active {
+  text-decoration: none;
+}
+.intrasite-link.red-link {
+  color: #c70a0a;
 }
 .gray-link {
   color: #b8b8b8;

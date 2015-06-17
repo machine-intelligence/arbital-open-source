@@ -22,7 +22,7 @@
 		</div>
 
 		<!-- Comment column -->
-		<div class="mid-column pull-left">
+		<div class="comment-column">
 			<div class="comment {{if gt .ReplyToId 0}}reply{{end}}" comment-id="{{.Id}}">
 				<div class="comment-body">
 					<div class="comment-creator-name">
@@ -66,7 +66,7 @@
 	<div class="left-column pull-left">
 		&nbsp;
 	</div>
-	<div class="mid-column pull-left">
+	<div class="comment-column">
 		<div class="new-comment {{if gt . 0}}reply{{end}}">
 			<div class="new-comment-body">
 				<a href="#" class="new-comment-link">{{if le . 0}}New Comment{{else}}Reply{{end}}</a>

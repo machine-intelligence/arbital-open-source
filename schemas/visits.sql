@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS visits;
-
 /* Each row is a page-user pair with the date and time
 when the user has last seen the page. */
 CREATE TABLE visits (

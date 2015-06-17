@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS votes;
-
 /* An entry for every probability vote a user casts for a question. There could be
  multiple votes from one user for the same page. */
 CREATE TABLE votes (
@@ -10,7 +8,7 @@ CREATE TABLE votes (
 	/* Id of the page this vote is for. FK into pages. */
 	pageId BIGINT NOT NULL,
 	/* Vote value. */
-	value DOUBLE NOT NULL,
+	value TINYINT NOT NULL,
   /* Date this like was created. */
   createdAt DATETIME NOT NULL,
   PRIMARY KEY(id)

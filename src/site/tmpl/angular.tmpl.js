@@ -22,6 +22,24 @@ app.config(function($interpolateProvider){
 app.service("userService", function(){
 	// Logged in user.
 	this.user = {{GetUserJson}};
+	this.users = {
+		{{if .UserMap}}
+			{{range .UserMap}}
+				"{{.Id}}": {
+					firstName: "{{.FirstName}}",
+					lastName: "{{.LastName}}",
+				},
+			{{end}}
+		{{end}}
+	};
+
+	// Get maximum karma lock a user can set up.
+	this.user.getMaxKarmaLock = function() {
+		return Math.floor(this.Karma * {{GetMaxKarmaLockFraction}});
+	};
+	this.getUserUrl = function(userId) {
+		return "/filter?user=" + userId;
+	};
 });
 
 // pages stores all the loaded pages and provides multiple helper functions for
@@ -105,6 +123,8 @@ app.service("pageService", function(userService, $http){
 		var existingPage = this.pageMap[page.PageId];
 		if (existingPage !== undefined) {
 			if (page === existingPage) return;
+			console.log("existingPage");
+			console.log(existingPage);
 			// Merge.
 			existingPage.Children = existingPage.Children.concat(page.Children);
 			existingPage.Parents = existingPage.Parents.concat(page.Parents);
@@ -112,6 +132,10 @@ app.service("pageService", function(userService, $http){
 			this.pageMap[page.PageId] = setUpPage(page);
 		}
 		return this.pageMap[page.PageId];
+	};
+	this.removePageFromMap = function(pageId) {
+		delete this.pageMap[pageId];
+		console.log(this.pageMap);
 	};
 
 	// Load children for the given page. Success/error callbacks are called only
@@ -174,6 +198,41 @@ app.service("pageService", function(userService, $http){
 			});
 	};
 
+	// Load the page with the given pageIds. If it's empty, ask the server for
+	// a new page id.
+	var loadingPageIds = {};
+	this.loadPages = function(pageIds, success, error) {
+		var service = this;
+		var pageIdsLen = pageIds.length;
+		var pageIdsStr = "";
+		// Add pages to the global map as necessary. Set pages as loading.
+		// Compute pageIdsStr for page ids that are not being loaded already.
+		for (var n = 0; n < pageIdsLen; n++) {
+			var pageId = pageIds[n];
+			if (!(pageId in loadingPageIds)) {
+				loadingPageIds[pageId] = true;
+				pageIdsStr += pageId + ",";
+			}
+		}
+		if (pageIdsLen > 0 && pageIdsStr.length == 0) {
+			return;  // we are loading all the pages already
+		}
+		console.log("/json/pages/?pageIds=" + pageIdsStr);
+		$http({method: "GET", url: "/json/pages/", params: {pageIds: pageIdsStr, loadFullEdit: true}}).
+			success(function(data, status){
+				for (var id in data) {
+					console.log("data");
+					console.log(data[id]);
+					data[id] = service.addPageToMap(data[id]);
+					delete loadingPageIds[id];
+				}
+				success(data, status);
+			}).error(function(data, status){
+				console.log("error loading page"); console.log(data); console.log(status);
+				error(data, status);
+			});
+	};
+
 	// Setup all initial pages.
 	console.log(this.pageMap);
 	for (var id in this.pageMap) {
@@ -181,10 +240,19 @@ app.service("pageService", function(userService, $http){
 	}
 });
 
+// simpleDateTime filter converts our typical date&time string into local time.
+app.filter("simpleDateTime", function() {
+	return function(input) {
+		var date = new Date(input + " UTC");
+		return date.toLocaleString().format("dd-m-yy");
+	};
+});
+
 // ZanaduuCtrl is used across all pages.
 app.controller("ZanaduuCtrl", function ($scope, userService, pageService) {
 	$scope.userService = userService;
 });
+
 
 // PageTreeCtrl is controller for the PageTree.
 app.controller("PageTreeCtrl", function ($scope, pageService) {
@@ -327,6 +395,9 @@ app.directive("zndLikesPageTitle", function(pageService) {
 		templateUrl: "/static/html/likesPageTitle.html",
 		scope: {
 			pageId: "=",
+			showRedLinkCount: "=",
+			showQuickEditLink: "=",
+			showCreatedAt: "=",
 		},
 		// TODO: don't do link
 		link: function(scope, element, attrs) {

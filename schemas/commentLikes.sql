@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS commentLikes;
-
 /* An entry for every comment a user liked. */
 CREATE TABLE commentLikes (
 	/* Id of the user who liked. FK into users. */

@@ -17,7 +17,11 @@ $(function() {
 	$(window).keydown(function(event){
 		if(event.keyCode == 13) {
 			var target = $(event.target);
+<<<<<<< HEAD
 			if(!(target.is("textarea") || target.closest(".wmd-prompt-dialog").length > 0)) {
+=======
+			if(!(target.is("textarea") || target.closest("#new-link-modal").length > 0)) {
+>>>>>>> branch
 				event.preventDefault();
 				return false;
 			}
@@ -116,9 +120,7 @@ var submitForm = function($form, url, data, success) {
 			$form.find("[toggle-on-submit]").toggle();
 		}
 	}).success(function(r) {
-		if (!invisibleSubmit) {
-			$errorText.hide();
-		}
+		$errorText.hide();
 		success(r);
 		console.log(r);
 	}).fail(function(r) {

@@ -24,6 +24,7 @@ type pageData struct {
 	Title          string
 	Text           string
 	HasVoteStr     string
+	VoteType       string
 	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
 	KeepPrivacyKey bool
 	GroupName      string
@@ -148,8 +149,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Check that all the parent ids are valid.
 	// TODO: check that you can apply the given parent ids
-	if len(parentIds) > 0 {
-		count := 0
+	if !data.IsAutosave && len(parentIds) > 0 {
+		/*count := 0
 		query := fmt.Sprintf(`SELECT COUNT(*) FROM pages WHERE pageId IN (%s) AND isCurrentEdit`, data.ParentIds)
 		_, err = database.QueryRowSql(c, query, &count)
 		if err != nil {
@@ -157,17 +158,22 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		if count != len(parentIds) {
 			return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v", data.ParentIds)
-		}
+		}*/
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
 	// in a straight-forward way to populate the database.
 	// Can't change certain parameters after the page has been published.
-	hasVote := data.HasVoteStr == "on"
+	var hasVote bool
+	if oldPage.WasPublished && oldPage.VoteType != "" {
+		hasVote = data.HasVoteStr == "on"
+		data.VoteType = oldPage.VoteType
+	} else {
+		hasVote = data.VoteType != ""
+	}
 	if oldPage.WasPublished {
 		data.Type = oldPage.Type
 		data.GroupName = oldPage.Group.Name
-		hasVote = oldPage.HasVote
 	}
 	// Can't turn on privacy after the page has been published.
 	var privacyKey int64
@@ -214,52 +220,54 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// Update aliases table.
-	aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
-	if aliasRegexp.MatchString(data.Alias) {
-		// The user might be trying to create a new alias.
-		var maxSuffix int      // maximum suffix used with this alias
-		var existingSuffix int // if this page already used this suffix, this will be set to it
-		standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
-		query := fmt.Sprintf(`
-			SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=%d,suffix,-1)),-1)
-			FROM aliases
-			WHERE standardizedName="%s"`, data.PageId, standardizedName)
-		_, err := database.QueryRowSql(c, query, &maxSuffix, &existingSuffix)
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't read from aliases: %v", err)
-		}
-		if existingSuffix < 0 {
-			suffix := maxSuffix + 1
-			data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
-			if isCurrentEdit {
-				hashmap := make(map[string]interface{})
-				hashmap["fullName"] = data.Alias
-				hashmap["standardizedName"] = standardizedName
-				hashmap["suffix"] = suffix
-				hashmap["pageId"] = data.PageId
-				hashmap["creatorId"] = u.Id
-				hashmap["createdAt"] = database.Now()
-				query = database.GetInsertSql("aliases", hashmap)
-				if _, err = tx.Exec(query); err != nil {
-					tx.Rollback()
-					return http.StatusInternalServerError, fmt.Sprintf("Couldn't add an alias: %v", err)
-				}
+	if isCurrentEdit {
+		aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
+		if aliasRegexp.MatchString(data.Alias) {
+			// The user might be trying to create a new alias.
+			var maxSuffix int      // maximum suffix used with this alias
+			var existingSuffix int // if this page already used this suffix, this will be set to it
+			standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
+			query := fmt.Sprintf(`
+				SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=%d,suffix,-1)),-1)
+				FROM aliases
+				WHERE standardizedName="%s"`, data.PageId, standardizedName)
+			_, err := database.QueryRowSql(c, query, &maxSuffix, &existingSuffix)
+			if err != nil {
+				tx.Rollback()
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't read from aliases: %v", err)
 			}
-		} else if existingSuffix > 0 {
-			data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
-		}
-	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
-		// Check if we are simply reusing an existing alias.
-		var ignore int
-		query := fmt.Sprintf(`SELECT 1 FROM aliases WHERE pageId=%d AND fullName="%s"`, data.PageId, data.Alias)
-		exists, err := database.QueryRowSql(c, query, &ignore)
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check existing alias: %v", err)
-		} else if !exists {
-			tx.Rollback()
-			return http.StatusBadRequest, fmt.Sprintf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+			if existingSuffix < 0 {
+				suffix := maxSuffix + 1
+				data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
+				if isCurrentEdit {
+					hashmap := make(map[string]interface{})
+					hashmap["fullName"] = data.Alias
+					hashmap["standardizedName"] = standardizedName
+					hashmap["suffix"] = suffix
+					hashmap["pageId"] = data.PageId
+					hashmap["creatorId"] = u.Id
+					hashmap["createdAt"] = database.Now()
+					query = database.GetInsertSql("aliases", hashmap)
+					if _, err = tx.Exec(query); err != nil {
+						tx.Rollback()
+						return http.StatusInternalServerError, fmt.Sprintf("Couldn't add an alias: %v", err)
+					}
+				}
+			} else if existingSuffix > 0 {
+				data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
+			}
+		} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+			// Check if we are simply reusing an existing alias.
+			var ignore int
+			query := fmt.Sprintf(`SELECT 1 FROM aliases WHERE pageId=%d AND fullName="%s"`, data.PageId, data.Alias)
+			exists, err := database.QueryRowSql(c, query, &ignore)
+			if err != nil {
+				tx.Rollback()
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't check existing alias: %v", err)
+			} else if !exists {
+				tx.Rollback()
+				return http.StatusBadRequest, fmt.Sprintf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+			}
 		}
 	}
 
@@ -283,6 +291,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["edit"] = newEditNum
 	hashmap["isCurrentEdit"] = isCurrentEdit
 	hashmap["hasVote"] = hasVote
+	hashmap["voteType"] = data.VoteType
 	hashmap["karmaLock"] = data.KarmaLock
 	hashmap["isAutosave"] = data.IsAutosave
 	hashmap["isSnapshot"] = data.IsSnapshot
@@ -354,23 +363,43 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old links: %v", err)
 			}
 		}
-		re := regexp.MustCompile(getConfigAddress() + "/pages/[0-9]+")
-		links := re.FindAllString(data.Text, -1)
-		insertValues := make([]string, 0, 0)
-		if len(links) > 0 {
-			for _, link := range links {
-				pageIdStr := link[strings.LastIndex(link, "/")+1:]
-				insertValue := fmt.Sprintf("(%d, %s, '%s')", data.PageId, pageIdStr, database.Now())
-				insertValues = append(insertValues, insertValue)
+		// NOTE: these regexps are waaaay too simplistic and don't account for the
+		// entire complexity of Markdown, like 4 spaces, backticks, and escaped
+		// brackets / parens.
+		aliasesAndIds := make([]string, 0, 0)
+		extractLinks := func(exp *regexp.Regexp) {
+			submatches := exp.FindAllStringSubmatch(data.Text, -1)
+			for _, submatch := range submatches {
+				aliasesAndIds = append(aliasesAndIds, submatch[1])
 			}
-			insertValuesStr := strings.Join(insertValues, ",")
-			query := fmt.Sprintf(`
-				INSERT INTO links (parentId,childId,createdAt)
-				VALUES %s
-				ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt)`, insertValuesStr)
+		}
+		// Find directly encoded urls
+		extractLinks(regexp.MustCompile(regexp.QuoteMeta(getConfigAddress()) + "/pages/([0-9]+)"))
+		// Find ids and aliases using [[id/alias]] syntax.
+		extractLinks(regexp.MustCompile("\\[\\[([A-Za-z0-9_-]+?)\\]\\](?:[^(]|$)"))
+		// Find ids and aliases using [[text]]((id/alias)) syntax.
+		extractLinks(regexp.MustCompile("\\[\\[.+?\\]\\]\\(\\(([A-Za-z0-9_-]+?)\\)\\)"))
+		if len(aliasesAndIds) > 0 {
+			// Populate linkTuples
+			linkMap := make(map[string]bool) // track which aliases we already added to the list
+			linkTuples := make([]string, 0, 0)
+			for _, alias := range aliasesAndIds {
+				if linkMap[alias] {
+					continue
+				}
+				insertValue := fmt.Sprintf("(%d, '%s')", data.PageId, alias)
+				linkTuples = append(linkTuples, insertValue)
+				linkMap[alias] = true
+			}
+
+			// Insert all the tuples into the links table.
+			linkTuplesStr := strings.Join(linkTuples, ",")
+			query = fmt.Sprintf(`
+				INSERT INTO links (parentId,childAlias)
+				VALUES %s`, linkTuplesStr)
 			if _, err = tx.Exec(query); err != nil {
 				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert new visits: %v", err)
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert links: %v", err)
 			}
 		}
 	}
@@ -381,6 +410,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		tx.Rollback()
 		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
 	}
+
+	// === Once the transaction has succeeded, we can't really fail on anything
+	// else. So we print out errors, but don't return an error.
 
 	if isCurrentEdit {
 		// Generate updates for users who are subscribed to this page.
@@ -413,8 +445,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		// Generate updates for users who are subscribed to the parent pages.
 		if !oldPage.WasPublished {
+			// Generate updates for users who are subscribed to the parent pages.
 			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
@@ -428,6 +460,17 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
+
+			// Upvote the page.
+			hashmap := make(map[string]interface{})
+			hashmap["userId"] = u.Id
+			hashmap["pageId"] = data.PageId
+			hashmap["value"] = 1
+			hashmap["createdAt"] = database.Now()
+			query = database.GetInsertSql("likes", hashmap)
+			if _, err = database.ExecuteSql(c, query); err != nil {
+				c.Errorf("Couldn't add a vote: %v", err)
+			}
 		}
 	}
 
@@ -437,7 +480,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if privacyKey > 0 {
 			privacyAddon = fmt.Sprintf("/%d", privacyKey)
 		}
-		return 0, fmt.Sprintf("/pages/%d%s", data.PageId, privacyAddon)
+		return 0, fmt.Sprintf("/pages/%s%s", data.Alias, privacyAddon)
 	}
 	// Return just the privacy key
 	return 0, fmt.Sprintf("%d", privacyKey)

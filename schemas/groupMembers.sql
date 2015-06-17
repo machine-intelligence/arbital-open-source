@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS groupMembers;
-
 /* An entry for every member in a group. */
 CREATE TABLE groupMembers (
 	/* Id of the user member. FK into users. */

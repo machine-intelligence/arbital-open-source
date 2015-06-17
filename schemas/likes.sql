@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS likes;
-
 /* An entry for every like a user cast for a page. There could be
 multiple likes from one user for the same page. */
 CREATE TABLE likes (

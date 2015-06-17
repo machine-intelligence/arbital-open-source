@@ -34,7 +34,6 @@ type dbUser struct {
 	Id        int64 `json:",string"`
 	FirstName string
 	LastName  string
-	Karma     int
 }
 
 // loadUsersInfo loads user information (like name) for each user in the given map.

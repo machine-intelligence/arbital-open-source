@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS subscriptions;
-
 /* This table contains all the subscriptions for pages and comments. */
 CREATE TABLE subscriptions (
 	/* Unique subscription id. PK. */

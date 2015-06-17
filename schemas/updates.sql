@@ -1,5 +1,3 @@
-DROP TABLE IF EXISTS updates;
-
 /* An update is a notification for the user that something new has happened, e.g.
 there was a new comment. Updates are created only when a user is subscribed to
 something, e.g. a comment.
