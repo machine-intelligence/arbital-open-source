@@ -37,6 +37,12 @@ const (
 	pageIdEncodeBase = 36
 )
 
+type vote struct {
+	Value     int
+	UserId    int64 `json:",string"`
+	CreatedAt string
+}
+
 type page struct {
 	// Data loaded from pages table
 	PageId         int64 `json:",string"`
@@ -70,10 +76,8 @@ type page struct {
 	LikeCount    int
 	DislikeCount int
 	MyLikeValue  int
-	LikeScore    int // computed from LikeCount and DislikeCount
-	VoteValue    sql.NullFloat64
-	VoteCount    int
-	MyVoteValue  sql.NullFloat64
+	LikeScore    int     // computed from LikeCount and DislikeCount
+	Votes        []*vote // all votes
 	Comments     []*comment
 	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
 	MaxEditEver  int  // highest edit number used for this page for all users

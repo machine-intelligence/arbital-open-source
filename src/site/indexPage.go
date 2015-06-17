@@ -18,6 +18,7 @@ const (
 // indexTmplData stores the data that we pass to the index.tmpl to render the page
 type indexTmplData struct {
 	User                  *user.User
+	UserMap               map[int64]*dbUser
 	PageMap               map[int64]*page
 	RecentlyEditedByMeIds []string
 	RecentlyCreatedIds    []string

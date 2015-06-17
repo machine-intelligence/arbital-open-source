@@ -1,7 +1,6 @@
 var zndMarkdown = zndMarkdown || function() {
 	// Set up markdown editor and conversion.
-	function init(inEditMode, pageId) {
-		// TODO: get pageText and add all the comment tags
+	function init(inEditMode, pageId, pageText) {
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 		/*converter.hooks.chain("preSpanGamut", function (text) {
@@ -49,6 +48,8 @@ var zndMarkdown = zndMarkdown || function() {
 				"\\[\\[([A-Za-z0-9_-]+?)\\]\\]", "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
+				// TODO; do something other than ?customText=false, since that appears
+				// in the URL if the user clicks on the link.
 				var url = "http://" + host + "/pages/" + alias + "/?customText=false";
 				var pageTitle = alias;
 				if (alias in pageAliases) {
@@ -77,7 +78,7 @@ var zndMarkdown = zndMarkdown || function() {
 		}
 		InitMathjax(converter, undefined, "");
 	
-		var html = converter.makeHtml(gPageText);
+		var html = converter.makeHtml(pageText);
 		var $pageText = $(".page-text")
 		$pageText.html(html);
 		firstPass = false;
@@ -133,9 +134,7 @@ var zndMarkdown = zndMarkdown || function() {
 					$parent.append($embeddedDiv);
 					$element.remove();
 					if (page.HasVote) {
-						createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.PageId, page.VoteCount,
-							page.VoteValue.Valid ? "" + page.VoteValue.Float64 : "",
-							page.MyVoteValue.Valid ? "" + page.MyVoteValue.Float64 : "");
+						createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.PageId, page.Votes);
 					}
 					processLinks($embeddedDiv, false);
 					setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));

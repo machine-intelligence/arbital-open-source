@@ -24,7 +24,7 @@ var (
 // Note: this structure is also stored in a cookie.
 type User struct {
 	// DB variables
-	Id        int64
+	Id        int64 `json:",string"`
 	Email     string
 	FirstName string
 	LastName  string

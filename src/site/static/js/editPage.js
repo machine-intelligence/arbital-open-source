@@ -2,6 +2,7 @@
 
 // Create new EditPage (for use with znd-edit-page directive).
 // page - page object corresponding to the page being edited.
+// pageService - pageService object which contains all loaded pages.
 // $topParet - points to the top DOM element of the znd-edit-page directive.
 // primaryPage - set only for modal edit page; points to the primary page being edited.
 var EditPage = function(page, pageService, $topParent, primaryPage) {
@@ -106,7 +107,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 	}
 
 	// Set up Markdown.
-	zndMarkdown.init(true, pageId);
+	zndMarkdown.init(true, pageId, "");
 
 	// Process form submission.
 	$topParent.find(".new-page-form").on("submit", function(event) {
@@ -242,7 +243,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		element.innerHTML = date.toLocaleString();
 	});
 
-	// Start initialized things that have to be killed when this editPage stops existing.
+	// Start initializes things that have to be killed when this editPage stops existing.
 	this.autosaveInterval = null;
 	this.start = function() {
 		// Hide new page button if this is a modal.

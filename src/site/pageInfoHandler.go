@@ -77,7 +77,8 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load probability votes
-	err = loadVotes(c, u.Id, pageIdStr, pageMap)
+	usersMap := make(map[int64]*dbUser)
+	err = loadVotes(c, u.Id, pageIdStr, pageMap, usersMap)
 	if err != nil {
 		c.Errorf("Couldn't load probability votes: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

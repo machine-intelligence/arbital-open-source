@@ -22,10 +22,23 @@ app.config(function($interpolateProvider){
 app.service("userService", function(){
 	// Logged in user.
 	this.user = {{GetUserJson}};
+	this.users = {
+		{{if .UserMap}}
+			{{range .UserMap}}
+				"{{.Id}}": {
+					firstName: "{{.FirstName}}",
+					lastName: "{{.LastName}}",
+				},
+			{{end}}
+		{{end}}
+	};
 
 	// Get maximum karma lock a user can set up.
 	this.user.getMaxKarmaLock = function() {
 		return Math.floor(this.Karma * {{GetMaxKarmaLockFraction}});
+	};
+	this.getUserUrl = function(userId) {
+		return "/filter?user=" + userId;
 	};
 });
 

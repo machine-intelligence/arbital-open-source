@@ -42,6 +42,7 @@ type alias struct {
 // pageTmplData stores the data that we pass to the index.tmpl to render the page
 type pageTmplData struct {
 	User        *user.User
+	UserMap     map[int64]*dbUser
 	PageMap     map[int64]*page
 	Page        *page
 	LinkedPages []*page
@@ -177,9 +178,9 @@ func loadCommentLikes(c sessions.Context, currentUserId int64, commentIds string
 }
 
 // loadVotes loads probability votes corresponding to the given pages and updates the pages.
-func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*page) error {
+func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*page, usersMap map[int64]*dbUser) error {
 	query := fmt.Sprintf(`
-		SELECT userId,pageId,value
+		SELECT userId,pageId,value,createdAt
 		FROM (
 			SELECT *
 			FROM votes
@@ -188,30 +189,25 @@ func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 		) AS v
 		GROUP BY userId,pageId`, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var userId int64
+		var v vote
 		var pageId int64
-		var value float64
-		err := rows.Scan(&userId, &pageId, &value)
+		err := rows.Scan(&v.UserId, &pageId, &v.Value, &v.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a vote: %v", err)
 		}
-		if value == 0 {
+		if v.Value == 0 {
 			return nil
 		}
 		page := pageMap[pageId]
-		page.VoteCount++
-		page.VoteValue.Valid = true
-		page.VoteValue.Float64 += value
-		if userId == currentUserId {
-			page.MyVoteValue = sql.NullFloat64{Valid: true, Float64: value}
+		if page.Votes == nil {
+			page.Votes = make([]*vote, 0, 0)
+		}
+		page.Votes = append(page.Votes, &v)
+		if _, ok := usersMap[v.UserId]; !ok {
+			usersMap[v.UserId] = &dbUser{Id: v.UserId}
 		}
 		return nil
 	})
-	for _, p := range pageMap {
-		if p.VoteCount > 0 {
-			p.VoteValue.Float64 /= float64(p.VoteCount)
-		}
-	}
 	return err
 }
 
@@ -375,6 +371,9 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 	mainPageMap[data.Page.PageId] = data.Page
 
+	// Create user map
+	data.UserMap = make(map[int64]*dbUser)
+
 	// Load children
 	err = loadChildrenIds(c, data.PageMap, loadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
 	if err != nil {
@@ -519,9 +518,16 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load all the votes
-	err = loadVotes(c, data.User.Id, pageIdStr, mainPageMap)
+	err = loadVotes(c, data.User.Id, pageIdStr, mainPageMap, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching votes: %v", err)
+	}
+
+	// Load all the users.
+	data.UserMap[u.Id] = &dbUser{Id: u.Id}
+	err = loadUsersInfo(c, data.UserMap)
+	if err != nil {
+		return nil, fmt.Errorf("error while loading users: %v", err)
 	}
 
 	// From here on we can render the page successfully. Further queries are nice,

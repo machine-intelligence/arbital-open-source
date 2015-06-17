@@ -382,8 +382,7 @@ textarea.new-comment-text {
 }
 
 .slider.slider-horizontal {
-	width: 99%;
-	margin: 0px 0.5%;
+	width: 100%;
 
 	.slider-track {
 		height: 4px;
@@ -395,7 +394,7 @@ textarea.new-comment-text {
 	}
 	.slider-tick {
 		margin-top: -7px;
-		margin-left: -3px;
+		margin-left: -2px;
 		width: 4px;
 		background-image: none;
 		background-repeat: no-repeat;
@@ -403,18 +402,26 @@ textarea.new-comment-text {
 		background-color: lightgray;
 		opacity: 1.0;
 	}
-	.slider-tick.vote-tick {
-		width: 20px;
-		margin-left: -10px;
-		border-radius: 50%;
-		background-color: gray;
-	}
 	.slider-handle {
+		position: relative;
+		top: 3px;
 		margin-top: -7px;
-		margin-left: -5px;
-		width: 10px;
-		z-index: 1;
+		z-index: 3000;
 		border: 1px solid blue;
+		height: 9px;
+	}
+}
+
+.bar-background {
+	position: relative;
+	width: 100%;
+	z-index: 2;
+
+	.vote-bar {
+		position: absolute;
+		bottom: -3px;
+		background-image: url(../../images/vote-bar.png);
+		background-size: 100% 11px;
 	}
 }
 

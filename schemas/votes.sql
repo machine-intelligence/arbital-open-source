@@ -8,7 +8,7 @@ CREATE TABLE votes (
 	/* Id of the page this vote is for. FK into pages. */
 	pageId BIGINT NOT NULL,
 	/* Vote value. */
-	value DOUBLE NOT NULL,
+	value TINYINT NOT NULL,
   /* Date this like was created. */
   createdAt DATETIME NOT NULL,
   PRIMARY KEY(id)
