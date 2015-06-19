@@ -117,7 +117,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		$loadingText.hide();
 		savePage(false, false, function(r) {
 			if (primaryPage !== undefined) {
-				$(document).trigger("new-page-modal-closed-event", [r.substring(r.lastIndexOf("/") + 1), false]);
+				$(document).trigger("new-page-modal-closed-event", {alias: r.substring(r.lastIndexOf("/") + 1)});
 			} else {
 				window.location.replace(r);
 			}
@@ -139,9 +139,14 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		return false;
 	});
 
-	// Process close button.
+	// Process New Page button.
 	$topParent.find(".new-page-button").on("click", function(event) {
-		$(document).trigger("new-page-modal-closed-event", [null, true]);
+		$(document).trigger("new-page-modal-closed-event", {reopen: true});
+	});
+
+	// Process Abandon button.
+	$topParent.find(".abandon-page-button").on("click", function(event) {
+		$(document).trigger("new-page-modal-closed-event", {alias: pageId, abandon: true});
 	});
 
 	// Setup autocomplete for tags.
@@ -277,14 +282,133 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 	};
 };
 
-// EditPageCtrl is the controller for the Edit Page panel.
-app.controller("EditPageCtrl", function ($scope, pageService) {
+// Directive for the modal, where a user can create a new page, edit a page, 
+// ask a question, etc...
+app.directive("zndEditPageModal", function (pageService, userService) {
+	return {
+		templateUrl: "/static/html/editPageModal.html",
+		controller: function ($scope, pageService, $compile, $timeout) {
+			// Process event to create the new-page-modal.
+			$(document).on("new-page-modal-event", function(e, modalType, newPageCallback){
+				var isQuestion = modalType === "newQuestion";
+				var $modal = $('#new-page-modal');
+				var $modalBody = $modal.find(".modal-body");
+				if (isQuestion) {
+					$modal.find(".modal-title").text("Ask a Question");
+				} else {
+					$modal.find(".modal-title").text("New Page");
+				}
+				$modalBody.empty().append("<img src='/static/images/loading.gif'/>");
+				
+				// Setup modal.
+				// Set to true if we should immediately reopen the modal with a new empty page
+				var reopenNew = false;
+				var setupModal = function(pageId, isResumed) {
+					var newPage = pageService.pageMap[pageId];
+					if (!isResumed) {
+						if (isQuestion) {
+							newPage.Type = "question";
+						} else {
+							newPage.Type = $scope.parentPage.Type;
+						}
+						newPage.Parents = [{ParentId: $scope.parentPage.PageId}];
+						newPage.Author = {Id: userService.user.Id};
+						newPage.Group = $scope.parentPage.Group;
+					}
+
+					// Dynamically create znd-edit-page directive.
+					var el = $compile("<znd-edit-page page-id='\"" + pageId +
+							"\"' is-modal='true'></znd-edit-page>")($scope);
+					$modalBody.empty().append(el);
+					$modal.modal();
+
+					// Handle modal's shown event to initialize editPage script.
+					var editPage;
+					$modal.on("shown.bs.modal", function (e) {
+						editPage = new EditPage(newPage, pageService, el, $scope.parentPage);
+						editPage.start();
+						$modal.find("input[name='title']").focus();
+					});
+					// Hande modal's close event, with the possibility of returning the
+					// new page's alias.
+					var returnedNewPageAlias = null;
+					$modal.on("hidden.bs.modal", function (e) {
+						newPageCallback(returnedNewPageAlias);
+						editPage.stop();
+						editPage = undefined;
+						$modal.off("shown.bs.modal");
+						$modal.off("hidden.bs.modal");
+						$(document).off("new-page-modal-closed-event");
+						$modalBody.empty();
+						if (reopenNew) {
+							$(document).trigger("new-page-modal-event", [modalType, newPageCallback]);
+						}
+					});
+					// Allow the modal to "return" the alias for the newly created page.
+					// options.abandon - if set to true, the page specified with 'alias' will be deleted
+					// options.alias - set to alias/page id of the created page
+					// options.reopen - if true, the modal will close and immediately reopen
+					$(document).on("new-page-modal-closed-event", function(e, options){
+						$modal.modal("hide");
+						if (options.abandon) {
+							pageService.deletePage(options.alias, function(){
+								$scope.parentPage.QuestionDraftId = 0;
+							});
+						} else if (options.alias) {
+							returnedNewPageAlias = options.alias;
+						}
+						reopenNew = options.reopen;
+						$scope.newPageId = undefined;
+					});
+				};
+				
+				var loadPages = function() {
+					var loadPagesIds = [];
+					if ($scope.newPageId !== undefined) {
+						// Resume editing some page.
+						loadPagesIds = [$scope.newPageId];
+						pageService.removePageFromMap($scope.newPageId);
+					}
+					pageService.loadPages(loadPagesIds,
+						function(data, status) {
+							$scope.newPageId = Object.keys(data)[0];
+							if ($scope.newPageId !== $scope.parentPage.PageId) {  // let's not try to edit the same page in two places
+								setupModal($scope.newPageId, loadPagesIds.length > 0);
+							}
+						}, function(data, status) {
+							console.log("Couldn't load pages: " + loadPagesIds);
+							if (loadPagesIds.length > 0) {
+								// Let's try again, but without trying to resume editing.
+								$scope.newPageId = undefined;
+								loadPages();
+							}
+						}
+					);
+				};
+				loadPages();
+			});
+		},
+		scope: {
+			parentPageId: "=",
+			// Optionally set if we want to resume editing a page.
+			resumePageId: "=",
+		},
+		link: function(scope, element, attrs) {
+			scope.parentPage = pageService.pageMap[scope.parentPageId];
+			// NewPageId is the id of the page we are editing in the modal.
+			if (scope.resumePageId && scope.resumePageId != "0") {
+				scope.newPageId = scope.resumePageId;
+			} else {
+				scope.newPageId = undefined;
+			}
+		},
+	};
 });
 
+// Directive for the actual DOM elements which allows the user to edit a page.
 app.directive("zndEditPage", function(pageService, userService, $timeout) {
 	return {
 		templateUrl: "/static/html/editPage.html",
-		controller: "EditPageCtrl", // can be a function!
 		scope: {
 			pageId: "=",
 			isModal: "=",
@@ -294,22 +418,25 @@ app.directive("zndEditPage", function(pageService, userService, $timeout) {
 			scope.page = pageService.pageMap[scope.pageId];
 
 			scope.pageTypes = {
-				wiki:"Wiki Page",
-				blog:"Blog Page",
+				wiki: "Wiki Page",
+				blog: "Blog Page",
 			};
+			if (scope.page.Type === "question") {
+				scope.pageTypes["question"] = "Question";
+			}
 			scope.page.Type = scope.page.Type in scope.pageTypes ? scope.page.Type : "wiki";
 
 			scope.sortTypes = {
-				likes:"By Likes",
-				choronological:"Chronologically",
-				alphabetical:"Alphabetically",
+				likes: "By Likes",
+				choronological: "Chronologically",
+				alphabetical: "Alphabetically",
 			};
 			scope.page.SortChildrenBy = scope.page.SortChildrenBy in scope.sortTypes ? scope.page.SortChildrenBy : "likes";
 
 			scope.voteTypes = {
 				"":"",
-				probability:"Probability",
-				approval:"Approval",
+				probability: "Probability",
+				approval: "Approval",
 			};
 			scope.page.VoteType = scope.page.VoteType in scope.voteTypes ? scope.page.VoteType : "";
 			scope.showVoteCheckbox = scope.page.WasPublished && scope.page.VoteType != "";
@@ -320,12 +447,18 @@ app.directive("zndEditPage", function(pageService, userService, $timeout) {
 					scope.editPage.start();
 				});
 			}
+
+			var groupNames = userService.user.GroupNames;
 			scope.groupOptions = {};
-			for (var i in userService.user.GroupNames) {
-				var group = userService.user.GroupNames[i];
-				scope.groupOptions[group] = group;
+			if (groupNames) {
+				for (var i in groupNames) {
+					var group = groupNames[i];
+					scope.groupOptions[group] = group;
+				}
+				scope.groupOptionsLength = groupNames.length;
+			} else {
+				scope.groupOptionsLength = 0;
 			}
-			scope.groupOptionsLength = userService.user.GroupNames.length;
 		},
 	};
 });

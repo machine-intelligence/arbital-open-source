@@ -386,6 +386,18 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't load parents: %v", err)
 	}
 
+	// Load potential question draft.
+	query := fmt.Sprintf(`
+		SELECT pageId
+		FROM pages
+		WHERE type="question" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+		GROUP BY pageId
+		HAVING SUM(isCurrentEdit)<=0`, u.Id, strconv.FormatInt(pageId, pageIdEncodeBase))
+	_, err = database.QueryRowSql(c, query, &data.Page.QuestionDraftId)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load question draft: %v", err)
+	}
+
 	// Load links
 	err = loadLinks(c, mainPageMap, true)
 	if err != nil {
@@ -394,7 +406,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 
 	// Load where page is linked from.
 	// TODO: also account for old aliases
-	query := fmt.Sprintf(`
+	query = fmt.Sprintf(`
 		SELECT p.pageId
 		FROM links as l
 		JOIN pages as p

@@ -117,7 +117,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if len(data.Title) <= 0 {
 			return http.StatusBadRequest, fmt.Sprintf("Need title")
 		}
-		if data.Type != blogPageType && data.Type != wikiPageType {
+		if data.Type != blogPageType && data.Type != wikiPageType && data.Type != questionPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
 		}
 		if data.SortChildrenBy != likesChildSortingOption &&
@@ -149,6 +149,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Check that all the parent ids are valid.
 	// TODO: check that you can apply the given parent ids
+	// TOOD: potentially check that Q is parented to a page and A is parented to a Q only.
 	if !data.IsAutosave && len(parentIds) > 0 {
 		/*count := 0
 		query := fmt.Sprintf(`SELECT COUNT(*) FROM pages WHERE pageId IN (%s) AND isCurrentEdit`, data.ParentIds)
@@ -209,18 +210,18 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("failed to create a transaction: %v\n", err)
 	}
 
-	// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
 	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
-	if oldPage.PageId > 0 && isCurrentEdit {
-		query := fmt.Sprintf("UPDATE pages SET isCurrentEdit=false WHERE pageId=%d AND isCurrentEdit", data.PageId)
-		if _, err = tx.Exec(query); err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't update isCurrentEdit for old edits: %v", err)
-		}
-	}
-
-	// Update aliases table.
 	if isCurrentEdit {
+		// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
+		if oldPage.PageId > 0 {
+			query := fmt.Sprintf("UPDATE pages SET isCurrentEdit=false WHERE pageId=%d AND isCurrentEdit", data.PageId)
+			if _, err = tx.Exec(query); err != nil {
+				tx.Rollback()
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't update isCurrentEdit for old edits: %v", err)
+			}
+		}
+
+		// Update aliases table.
 		aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
 		if aliasRegexp.MatchString(data.Alias) {
 			// The user might be trying to create a new alias.
@@ -239,6 +240,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			if existingSuffix < 0 {
 				suffix := maxSuffix + 1
 				data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
+				if data.Type == questionPageType {
+					data.Alias = fmt.Sprintf("Q-%s", data.Alias)
+				}
 				if isCurrentEdit {
 					hashmap := make(map[string]interface{})
 					hashmap["fullName"] = data.Alias

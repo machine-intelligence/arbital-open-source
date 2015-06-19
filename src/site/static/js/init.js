@@ -104,7 +104,7 @@ var submitForm = function($form, url, data, success) {
 	if (!("__formSerialized" in data)) {
 		serializeFormData($form, data);
 	}
-	console.log(data);
+	console.log("Sending POST to " + url + ":"); console.log(data);
 
 	$.ajax({
 		type: 'POST',
@@ -118,7 +118,6 @@ var submitForm = function($form, url, data, success) {
 	}).success(function(r) {
 		$errorText.hide();
 		success(r);
-		console.log(r);
 	}).fail(function(r) {
 		// Want to show an error even on invisible submit.
 		$errorText.show();

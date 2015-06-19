@@ -8,6 +8,7 @@
 	{{template "scripts"}}
 	{{template "angular" .}}
 	<script src="/static/js/page.js"></script>
+	<script src="/static/js/editPage.js"></script>
 	<script>
 		// Map of alias -> {pageId, title} object.
 		var pageAliases = { {{range .AliasMap}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
@@ -18,15 +19,31 @@
 		// MainCtrl is for the Page page.
 		app.controller("MainCtrl", function($scope, pageService, userService) {
 			$scope.relatedIds = {{.RelatedIds}};
+			$scope.questionIds = [];
 			$scope.page = pageService.pageMap["{{.Page.PageId}}"];
 
-			// Set up children pages.
+			// Set up children pages and question ids.
 			$scope.initialChildren = {};
 			var childrenLen = $scope.page.Children.length;
 			for (var n = 0; n < childrenLen; n++) {
 				var id = $scope.page.Children[n].ChildId;
-				$scope.initialChildren[id] = pageService.pageMap[id];
+				var page = pageService.pageMap[id];
+				if (page.Type === "question") {
+					$scope.questionIds.push(id);
+				} else {
+					$scope.initialChildren[id] = page;
+				}
 			}
+
+			// Sort question ids by likes, but put the ones created by current user first.
+			$scope.questionIds.sort(function(id1, id2) {
+				var page1 = pageService.pageMap[id1];
+				var page2 = pageService.pageMap[id2];
+				var ownerDiff = (page2.Author.Id == userService.user.Id ? 1 : 0) -
+						(page1.Author.Id == userService.user.Id ? 1 : 0);
+				if (ownerDiff != 0) return ownerDiff;
+				return page2.LikeScore - page1.LikeScore;
+			});
 
 			// Set up parents pages.
 			$scope.initialParents = {};
@@ -36,6 +53,7 @@
 				$scope.initialParents[id] = pageService.pageMap[id];
 			}
 
+			// Setup Page JS Controller.
 			$scope.pageJsController = new PageJsController($scope.page, pageService, $("body"), userService);
 			$scope.pageJsController.start();
 		});
@@ -89,6 +107,9 @@
 	</div>
 </div>
 
+<!-- This modal is for asking a new question. -->
+<znd-edit-page-modal parent-page-id="'{{.Page.PageId}}'" resume-page-id="'{{.Page.QuestionDraftId}}'"></znd-edit-page-modal>
+
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
 		<div class="page-body-div">
@@ -123,6 +144,14 @@
 					<div class="panel-heading">Children</div>
 					<div class="panel-body">
 						<znd-page-tree init-map="initialChildren"></znd-page-tree>
+					</div>
+				</div>
+		
+				<!-- Questions -->
+				<div class="panel panel-default" ng-show="false">
+					<div class="panel-heading">Questions</div>
+					<div class="panel-body">
+						<znd-likes-page-title page-id="pageId" ng-repeat="pageId in questionIds"></znd-likes-page-title>
 					</div>
 				</div>
 			</div>
@@ -205,6 +234,14 @@
 					{{end}}
 					{{template "newComment" 0}}
 				</div>
+			</div>
+
+			<!-- Question button -->
+			<div class="question-div pull-left" ng-show="false">
+				<button type="button" class="question-button btn btn-info">
+				  <span class="glyphicon glyphicon-question-sign"></span>
+					<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="page.QuestionDraftId > 0"></span>
+				</button>
 			</div>
 			<div class="clearfix"></div>
 		</div>

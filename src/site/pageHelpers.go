@@ -15,8 +15,9 @@ import (
 
 const (
 	// Various page types we have in our system.
-	blogPageType = "blog"
-	wikiPageType = "wiki"
+	blogPageType     = "blog"
+	wikiPageType     = "wiki"
+	questionPageType = "question"
 
 	// Various types of updates a user can get.
 	topLevelCommentUpdateType = "topLevelComment"
@@ -86,6 +87,8 @@ type page struct {
 	Links        map[string]bool // page alias/id for a link -> true iff the page is published
 	LinkedFrom   []string
 	RedLinkCount int
+	// Set to pageId corresponding to the question the user started creating for this page
+	QuestionDraftId int64 `json:",string"`
 }
 
 // pagePair describes a parent child relationship, which are stored in pagePairs db table.
@@ -127,10 +130,13 @@ func (a pagesByLikes) Less(i, j int) bool {
 
 // processParents converts ParentsStr from this page to the Parents array, and
 // populates the given pageMap with the parents.
+// pageMap can be nil.
 func (p *page) processParents(c sessions.Context, pageMap map[int64]*page) error {
 	if len(p.ParentsStr) <= 0 {
 		return nil
 	}
+	p.Parents = nil
+	p.HasParents = false
 	parentIds := strings.Split(p.ParentsStr, ",")
 	for _, idStr := range parentIds {
 		id, err := strconv.ParseInt(idStr, pageIdEncodeBase, 64)
@@ -217,6 +223,10 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	}
 	if p.DeletedBy > 0 {
 		return &page{PageId: p.PageId, DeletedBy: p.DeletedBy}, nil
+	} else {
+		if err := p.processParents(c, nil); err != nil {
+			return nil, fmt.Errorf("Couldn't process parents: %v", err)
+		}
 	}
 	return &p, nil
 }
@@ -516,7 +526,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 	query := fmt.Sprintf(`
 		SELECT * FROM (
 			SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
-				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName
+				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName,parents
 			FROM pages
 			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
 				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
@@ -529,7 +539,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.Type, &p.Author.Id, &p.CreatedAt, &p.Title,
 			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
-			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name)
+			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name, &p.ParentsStr)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
@@ -553,6 +563,10 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			op.Alias = p.Alias
 			op.SortChildrenBy = p.SortChildrenBy
 			op.Group.Name = p.Group.Name
+			op.ParentsStr = p.ParentsStr
+			if err := op.processParents(c, nil); err != nil {
+				return fmt.Errorf("Couldn't process parents: %v", err)
+			}
 		}
 		return nil
 	})

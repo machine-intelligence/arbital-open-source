@@ -1769,7 +1769,7 @@
 				postProcessing();
 			};
 
-			$(document).trigger("new-page-modal-event", pageCreatedCallback);
+			$(document).trigger("new-page-modal-event", ["newPage", pageCreatedCallback]);
 			return true;
 		}
 	};

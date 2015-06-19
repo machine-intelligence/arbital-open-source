@@ -109,6 +109,9 @@
   color: red;
   display: none;
 }
+.input-group {
+  width: 100%;
+}
 .pagedown h1 {
   font-size: 26px;
 }
@@ -133,7 +136,7 @@
 .ui-autocomplete {
   border: 1px solid gray;
   background-color: white;
-  z-index: 2000;
+  z-index: 20000;
 }
 .ui-menu-item {
   font-family: "Open Sans", sans-serif;
@@ -462,6 +465,22 @@
   border-bottom: 1px dashed;
   text-decoration: none;
   color: #c70a0a;
+}
+.question-button {
+  width: 50px;
+  height: 50px;
+  font-size: 28px;
+  margin-left: 25px;
+}
+.question-button .glyphicon {
+  position: relative;
+  left: -3px;
+}
+.question-button .has-question-draft-icon {
+  position: relative;
+  top: 8px;
+  left: -15px;
+  font-size: 14px;
 }
 .comment-body {
   display: table;
@@ -879,9 +898,10 @@ textarea.new-comment-text {
   background-color: lightgray;
 }
 .slider.slider-horizontal .slider-tick {
-  margin-top: -7px;
+  margin-top: -6px;
   margin-left: -2px;
   width: 4px;
+  height: 18px;
   background-image: none;
   background-repeat: no-repeat;
   box-shadow: none;

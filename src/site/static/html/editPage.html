@@ -24,39 +24,40 @@
 		<div ng-class="{'half': !isModal}">
 			<!-- Title -->
 			<div class="page-title">
-				<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="Page Title" required="true" autocomplete="off">
+				<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="{[{page.Type === 'question' ? 'Complete sentence question' : 'Page Title'}]}" required="true" autocomplete="off">
 			</div>
 	
 			<!-- WMD edit panel -->
 			<div class="wmd-panel-container">
-			<div class="wmd-panel">
-				<div id="wmd-button-bar{[{page.PageId}]}"></div>
-				<textarea name="text"
-						class="edit-page-text wmd-input form-control"
-						id="wmd-input{[{page.PageId}]}"
-						rows="30"
-						placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
-					  style="resize: none;"
-					  ng-bind="page.Text"></textarea>
-				<div class="wmd-panel-bottom-buttons">
-					<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-					<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
-					<button type="submit" class="btn btn-primary" ng-bind="isModal?'Publish & Link':'Publish'" toggle-on-submit></button>
-					<span class="gray-text autosave-label" hidden></span>
-					<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal">Abandon My Changes</a>
-					<button type="button" class="new-page-button btn btn-primary pull-right" ng-show="isModal" toggle-on-submit>New Page</button>
-					<div class="alert alert-danger" hidden></div>
-					<span class="loading-text" style="display:none"></span>
-					<div class="clearfix"></div>
-					<div class="submit-form-error alert alert-danger" hidden></div>
+				<div class="wmd-panel">
+					<div id="wmd-button-bar{[{page.PageId}]}"></div>
+					<textarea name="text"
+							class="edit-page-text wmd-input form-control"
+							id="wmd-input{[{page.PageId}]}"
+							rows="30"
+							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
+						  style="resize: none;"
+						  ng-bind="page.Text"></textarea>
+					<div class="wmd-panel-bottom-buttons">
+						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+						<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
+						<button type="submit" class="btn btn-primary" ng-bind="page.Type == 'question' ? 'Submit' : (isModal ? 'Publish & Link':'Publish')" toggle-on-submit></button>
+						<span class="gray-text autosave-label" hidden></span>
+						<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal">Revert to Live Version</a>
+						<button type="button" class="new-page-button btn btn-primary pull-right" ng-show="isModal && page.Type != 'question'" toggle-on-submit>New Page</button>
+						<button type="button" class="abandon-page-button btn btn-danger pull-right" ng-show="page.Type == 'question'" toggle-on-submit>Abandon</button>
+						<div class="alert alert-danger" hidden></div>
+						<span class="loading-text" style="display:none"></span>
+						<div class="clearfix"></div>
+						<div class="submit-form-error alert alert-danger" hidden></div>
+					</div>
 				</div>
-			</div>
 			</div>
 	
 			<!-- Page options -->
 			<div class="new-page-options form-horizontal">
 				<!-- Page type -->
-				<div class="form-group" ng-hide="page.WasPublished">
+				<div class="form-group" ng-hide="page.WasPublished || page.Type=='question'">
 					<label class="title-label control-label col-sm-2">Page Type</label>
 					<div class="col-sm-4">
 						<select ng-model="page.Type" required="string"
@@ -83,7 +84,7 @@
 				</div>
 			
 				<!-- Show/hide vote -->
-				<div class="form-group" ng-show="showVoteCheckbox">
+				<div class="form-group" ng-show="showVoteCheckbox && page.Type!='question'">
 					<label class="title-label control-label col-sm-2">Show Vote</label>
 					<div class="col-sm-8">
 						<div class="checkbox">
@@ -95,7 +96,7 @@
 				</div>
 			
 				<!-- Vote type -->
-				<div class="form-group" ng-show="!showVoteCheckbox">
+				<div class="form-group" ng-show="!showVoteCheckbox && page.Type!='question'">
 					<label class="title-label control-label col-sm-2">Vote Type</label>
 					<div class="col-sm-4">
 						<select ng-model="page.VoteType"
@@ -136,7 +137,7 @@
 					<div class="col-sm-4">
 						<div class="input-group">
 							<input type="text" class="tag-input form-control" placeholder="Enter new parent">
-							<button type="button" class="btn btn-default btn-xs child-parent-option" ng-show="isModal">
+							<button type="button" class="btn btn-default btn-xs child-parent-option" ng-show="isModal && page.Type!='question'">
 								Make this page a sibling.
 							</button>
 						</div>
@@ -149,11 +150,11 @@
 				<!-- Alias -->
 				<div class="form-group">
 					<label class="control-label col-sm-2">Alias</label>
-					<div class="col-sm-6">
+					<div class="col-sm-4">
 						<div class="input-group">
 							<input type="text"
 									name="alias"
-									placeholder='Optional alias, e.g. "Vitamin_D3_Is_Good" or "WhiteNoiseEffects"'
+									placeholder='Optional alias, e.g. "HumanHealth"'
 									class="form-control"
 									ng-value="page.Alias">
 						</div>
@@ -161,7 +162,7 @@
 				</div>
 			
 				<!-- Sort children option -->
-				<div class="form-group">
+				<div class="form-group" ng-show="page.Type!='question'">
 					<label class="title-label control-label col-sm-2">Sort Children</label>
 					<div class="col-sm-4">
 						<select ng-model="page.SortChildrenBy"

@@ -20,98 +20,9 @@
 	<script src="/static/js/editPage.js"></script>
 	<script>
 		// MainCtrl is the main control for this page.
-		app.controller("MainCtrl", function ($scope, pageService, userService, $compile, $timeout) {
+		app.controller("MainCtrl", function ($scope, pageService, userService) {
 			$scope.pageId = "{{.Page.PageId}}";
 			$scope.page = pageService.pageMap[$scope.pageId];
-
-			var newPageId = undefined;  // id of the page we are editing in the modal
-			// Process event to create the new-page-modal. This event is raised from Markdown.Editor.js
-			$(document).on("new-page-modal-event", function(e, newPageCallback){
-				var $modal = $('#new-page-modal');
-				var $modalBody = $modal.find(".modal-body");
-				$modalBody.empty().append("<img src='/static/images/loading.gif'/>");
-				
-				// Setup modal.
-				// Set to true if we should immediately reopen the modal with a new empty page
-				var reopenNew = false;
-				var setupModal = function(pageId, isResumed) {
-					var newPage = pageService.pageMap[pageId];
-					if (!isResumed) {
-						newPage.Type = $scope.page.Type;
-						newPage.Parents = [{ParentId: $scope.page.PageId}];
-						newPage.Author = {Id: userService.user.Id};
-						newPage.Group = $scope.page.Group;
-					}
-
-					// Dynamically create znd-edit-page directive.
-					var el = $compile("<znd-edit-page page-id='\"" + pageId +
-							"\"' is-modal='true'></znd-edit-page>")($scope);
-					$modalBody.empty().append(el);
-					$modal.modal();
-
-					// Initialize editPage script.
-					var editPage;
-					$timeout(function(){
-						editPage = new EditPage(newPage, pageService, el, $scope.page);
-						editPage.start();
-					});
-
-					// Hande modal's close event, with the possibility of returning the
-					// new page's alias.
-					var returnedNewPageAlias = null;
-					$modal.on("shown.bs.modal", function (e) {
-						$modal.find("input[name='title']").focus();
-					});
-					$modal.on("hidden.bs.modal", function (e) {
-						newPageCallback(returnedNewPageAlias);
-						editPage.stop();
-						delete editPage;
-						$modal.off("shown.bs.modal");
-						$modal.off("hidden.bs.modal");
-						$(document).off("new-page-modal-closed-event");
-						$modalBody.empty();
-						if (reopenNew) {
-							$(document).trigger("new-page-modal-event", newPageCallback);
-						}
-					});
-					// Allow the modal to "return" the alias for the newly created page.
-					$(document).on("new-page-modal-closed-event", function(e, alias, reopen){
-						$modal.modal("hide");
-						returnedNewPageAlias = alias;
-						if (reopen !== undefined && reopen) {
-							reopenNew = true;
-							newPageId = undefined;
-						}
-						if (alias) {
-							newPageId = undefined;
-						}
-					});
-				};
-				
-				var loadPages = function() {
-				var loadPagesIds = [];
-				if (newPageId !== undefined) {
-					// Resume editing some page.
-					loadPagesIds = [newPageId];
-					pageService.removePageFromMap(newPageId);
-				}
-				pageService.loadPages(loadPagesIds,
-					function(data, status) {
-						newPageId = Object.keys(data)[0];
-						if (newPageId !== $scope.pageId) {  // let's not try to edit the same page in two places
-							setupModal(newPageId, loadPagesIds.length > 0);
-						}
-					}, function(data, status) {
-						console.log("Couldn't load pages: " + loadPagesIds);
-						if (loadPagesIds.length > 0) {
-							// Let's try again, but without trying to resume editing.
-							newPageId = undefined;
-							loadPages();
-						}
-					});
-				};
-				loadPages();
-			});
 		});
 	</script>
 </head>
@@ -139,19 +50,8 @@
 	</div>
 </div>
 
-<!-- Modal for creating new pages. -->
-<div class="modal fade" id="new-page-modal" tabindex="-1" style="z-index:1000">
-	<div class="modal-dialog modal-lg">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title">New Page</h4>
-			</div>
-			<div class="modal-body">
-			</div>
-		</div>
-	</div>
-</div>
+<!-- This modal is for creating new pages quickly. -->
+<znd-edit-page-modal parent-page-id="'{{.Page.PageId}}'"></znd-edit-page-modal>
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}

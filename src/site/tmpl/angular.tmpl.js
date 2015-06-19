@@ -123,8 +123,7 @@ app.service("pageService", function(userService, $http){
 		var existingPage = this.pageMap[page.PageId];
 		if (existingPage !== undefined) {
 			if (page === existingPage) return;
-			console.log("existingPage");
-			console.log(existingPage);
+			console.log("existingPage"); console.log(existingPage);
 			// Merge.
 			existingPage.Children = existingPage.Children.concat(page.Children);
 			existingPage.Parents = existingPage.Parents.concat(page.Parents);
@@ -135,7 +134,6 @@ app.service("pageService", function(userService, $http){
 	};
 	this.removePageFromMap = function(pageId) {
 		delete this.pageMap[pageId];
-		console.log(this.pageMap);
 	};
 
 	// Load children for the given page. Success/error callbacks are called only
@@ -149,7 +147,7 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		parent.isLoadingChildren = true;
-		console.log("/json/children/?parentId=" + parent.PageId);
+		console.log("Issuing GET request to /json/children/?parentId=" + parent.PageId);
 		$http({method: "GET", url: "/json/children/", params: {parentId: parent.PageId}}).
 			success(function(data, status){
 				parent.isLoadingChildren = false;
@@ -161,9 +159,7 @@ app.service("pageService", function(userService, $http){
 				success(data, status);
 			}).error(function(data, status){
 				parent.isLoadingChildren = false;
-				console.log("error loading children");
-				console.log(data);
-				console.log(status);
+				console.log("Error loading children:"); console.log(data); console.log(status);
 				error(data, status);
 			});
 	};
@@ -179,7 +175,7 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		child.isLoadingParents = true;
-		console.log("/json/parents/?childId=" + child.PageId);
+		console.log("Issuing GET request to /json/parents/?childId=" + child.PageId);
 		$http({method: "GET", url: "/json/parents/", params: {childId: child.PageId}}).
 			success(function(data, status){
 				child.isLoadingParents = false;
@@ -191,9 +187,7 @@ app.service("pageService", function(userService, $http){
 				success(data, status);
 			}).error(function(data, status){
 				child.isLoadingParents = false;
-				console.log("error loading parents");
-				console.log(data);
-				console.log(status);
+				console.log("Error loading parents:"); console.log(data); console.log(status);
 				error(data, status);
 			});
 	};
@@ -217,24 +211,39 @@ app.service("pageService", function(userService, $http){
 		if (pageIdsLen > 0 && pageIdsStr.length == 0) {
 			return;  // we are loading all the pages already
 		}
-		console.log("/json/pages/?pageIds=" + pageIdsStr);
+		console.log("Issuing a GET request to: /json/pages/?pageIds=" + pageIdsStr);
 		$http({method: "GET", url: "/json/pages/", params: {pageIds: pageIdsStr, loadFullEdit: true}}).
 			success(function(data, status){
 				for (var id in data) {
-					console.log("data");
-					console.log(data[id]);
+					console.log("JSON /pages/ data:"); console.log(data[id]);
 					data[id] = service.addPageToMap(data[id]);
 					delete loadingPageIds[id];
 				}
-				success(data, status);
+				if(success) success(data, status);
 			}).error(function(data, status){
-				console.log("error loading page"); console.log(data); console.log(status);
-				error(data, status);
+				console.log("Error loading page:"); console.log(data); console.log(status);
+				if(error) error(data, status);
+			});
+	};
+
+	// Delete the page with the given pageId.
+	this.deletePage = function(pageId, success, error) {
+		var data = {
+			pageId: pageId,
+		};
+		console.log(data);
+		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)}).
+			success(function(data, status){
+				console.log("Successfully deleted " + pageId);
+				if(success) success(data, status);
+			}).error(function(data, status){
+				console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
+				if(error) error(data, status);
 			});
 	};
 
 	// Setup all initial pages.
-	console.log(this.pageMap);
+	console.log("Initial pageMap: "); console.log(this.pageMap);
 	for (var id in this.pageMap) {
 		setUpPage(this.pageMap[id]);
 	}

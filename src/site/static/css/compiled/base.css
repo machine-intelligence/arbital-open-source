@@ -109,6 +109,9 @@
   color: red;
   display: none;
 }
+.input-group {
+  width: 100%;
+}
 .pagedown h1 {
   font-size: 26px;
 }
@@ -133,7 +136,7 @@
 .ui-autocomplete {
   border: 1px solid gray;
   background-color: white;
-  z-index: 2000;
+  z-index: 20000;
 }
 .ui-menu-item {
   font-family: "Open Sans", sans-serif;

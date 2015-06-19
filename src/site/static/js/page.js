@@ -390,7 +390,6 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 		$("#delete-page-alert").hide();
 	});
 	$(".delete-page-confirm").on("click", function(event) {
-		var $target = $(event.target);
 		var data = {
 			pageId: $("body").attr("page-id"),
 		};
@@ -607,6 +606,32 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 		.done(function(r) {
 		});
 		return false;
+	});
+
+	// Question button stuff.
+	var $qButton = $(".question-button");
+	// Make sure it's always in the top right corner.
+	var qButtonIsFixed = false;
+	var qButtonInitialY = $qButton.offset().top;
+	var qButtonOffsetY = 20;
+	$(window).scroll(function(){
+		var isFixed = $(window).scrollTop() > (qButtonInitialY - qButtonOffsetY);
+		if (isFixed !== qButtonIsFixed) {
+			if (!isFixed) {
+				$qButton.css("position", "initial");
+			} else {
+				$qButton.css("position", "fixed").css("top", qButtonOffsetY);
+			}
+		}
+		qButtonIsFixed = isFixed;
+	});
+
+	// Process question button click.
+	$qButton.on("click", function(event) {
+		$(document).trigger("new-page-modal-event", ["newQuestion", function(newQuestionId) {
+			if(newQuestionId !== null) {
+			}
+		}]);
 	});
 	
 	// Start initializes things that have to be killed when this editPage stops existing.
