@@ -104,9 +104,6 @@ var EditPage = function(page, pageService, autocompleteService, $topParent, prim
 		}
 	}
 
-	// Set up Markdown.
-	zndMarkdown.init(true, pageId, "", undefined, autocompleteService);
-
 	// Process form submission.
 	$topParent.find(".new-page-form").on("submit", function(event) {
 		var $target = $(event.target);
@@ -226,6 +223,8 @@ var EditPage = function(page, pageService, autocompleteService, $topParent, prim
 			}
 		});
 		addParentTags();
+		// Set up Markdown.
+		zndMarkdown.init(true, pageId, "", undefined, autocompleteService);
 	});
 
 	// Setup karma lock slider.

@@ -52,8 +52,14 @@ var zndMarkdown = zndMarkdown || function() {
 				// in the URL if the user clicks on the link.
 				var url = "http://" + host + "/pages/" + alias + "/?customText=false";
 				var pageTitle = alias;
-				if (alias in pageAliases) {
-					pageTitle = pageAliases[alias].title;
+				if (autocompleteService && autocompleteService.aliasSource.length > 0){
+					if (alias in autocompleteService.aliasMap) {
+						pageTitle = autocompleteService.aliasMap[alias].PageTitle;
+					}
+				} else {
+					if (alias in pageAliases) {
+						pageTitle = pageAliases[alias].title;
+					}
 				}
 				return prefix + "[" + pageTitle + "](" + url + ")";
 			});
