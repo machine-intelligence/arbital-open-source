@@ -117,7 +117,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if len(data.Title) <= 0 {
 			return http.StatusBadRequest, fmt.Sprintf("Need title")
 		}
-		if data.Type != blogPageType && data.Type != wikiPageType && data.Type != questionPageType {
+		if data.Type != blogPageType &&
+			data.Type != wikiPageType &&
+			data.Type != questionPageType &&
+			data.Type != answerPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
 		}
 		if data.SortChildrenBy != likesChildSortingOption &&
@@ -242,6 +245,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
 				if data.Type == questionPageType {
 					data.Alias = fmt.Sprintf("Q-%s", data.Alias)
+				} else if data.Type == questionPageType {
+					data.Alias = fmt.Sprintf("A-%s", data.Alias)
 				}
 				if isCurrentEdit {
 					hashmap := make(map[string]interface{})
@@ -276,6 +281,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// Create encoded string for parents, as well as a string for updating pagePairs.
+	// TODO: de-duplicate parent ids
 	encodedParentIds := make([]string, len(parentIds))
 	pagePairValues := make([]string, len(parentIds))
 	for i, id := range parentIds {

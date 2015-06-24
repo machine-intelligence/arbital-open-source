@@ -49,14 +49,8 @@ $(function() {
 });
 
 // Setup things correctly.
-$(function() {
-	$("#vote-slider-input.example-slider").bootstrapSlider({
-		handle: "square",
-	});
-});
-
-// Setup things correctly.
-window.addEventListener('load', function () {
+window.addEventListener("load", function () {
+	// Adjust the footer position.
 	var $footer = $(".page-footer");
 	if ($footer.length > 0) {
 		var spacerHeight = $(document).height() - $footer.outerHeight() - 1;
@@ -66,18 +60,31 @@ window.addEventListener('load', function () {
 	}
 });
 
+// Return the value of the sParam from the URL.
+function getUrlParameter(sParam) {
+	var sPageURL = window.location.search.substring(1);
+	var sURLVariables = sPageURL.split('&');
+	for (var i = 0; i < sURLVariables.length; i++) {
+		var sParameterName = sURLVariables[i].split('=');
+		if (sParameterName[0] == sParam) {
+			return decodeURIComponent(sParameterName[1]);
+		}
+	}
+} 
+
 // Reload the page with a lastVisit parameter so we can pretend that we are
 // looking at a page at that time. This way new/updated markers are displayed
 // correctly.
 function smartPageReload() {
-	var url = $("body").attr("page-url");
 	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
-	window.location.replace(url + "?lastVisit=" + lastVisit);
+	window.location.replace(window.location.pathname + "?lastVisit=" + lastVisit);
 }
 // We don't want to display lastVisit in the URL bar, so we'll erase it.
 $(function(){
-	if (window.location.href.indexOf("lastVisit") >= 0) {
-		history.replaceState(null, document.title, $("body").attr("page-url"));
+	var lastVisit = getUrlParameter("lastVisit");
+	if (lastVisit) {
+		$("body").attr("last-visit", lastVisit);
+		history.replaceState(null, document.title, window.location.origin + window.location.pathname);
 	}
 });
 

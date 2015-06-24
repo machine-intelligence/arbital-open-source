@@ -1,37 +1,38 @@
 /* angular.tmpl.js is a .tmpl file that is inserted as a <script> into the
 	<header> portion of html pages that use angular. It defines the zanaduu module
 	and ZanaduuCtrl, which are used on every page. */
-/* Stephanie:
- * 2) Avoid putting things on scope. Use 'this' instead.
- * 4) For PagePanelCtrl, set directive scope variables (needs to go with #1)
- * 5) $resource is for CRUD (also should have more obvious way to showing what params it takes)
- * 6) Rename "page" to something else
- * 7) Rename "panel" to something else
- * 8) ChildrenCtrl & ParentsCtrl refactor (via a directive)
- * 9) PageLoader service which encapsulates functions like loadChildren(parentId) and adds them to pageMap
- */
 {{define "angular"}}
 <script>
 
+// Set up angular module.
 var app = angular.module("zanaduu", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
-app.config(function($interpolateProvider){
+app.config(function($interpolateProvider, $locationProvider){
 	$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
+
+	$locationProvider.html5Mode({
+		enabled: true,
+		requireBase: false,
+		rewriteLinks: false
+	});
 });
 
 // User service.
 app.service("userService", function(){
 	// Logged in user.
 	this.user = {{GetUserJson}};
-	this.users = {
+	this.userMap = {
 		{{if .UserMap}}
 			{{range .UserMap}}
 				"{{.Id}}": {
+					id: "{{.Id}}",
 					firstName: "{{.FirstName}}",
 					lastName: "{{.LastName}}",
 				},
 			{{end}}
 		{{end}}
 	};
+	console.log("Initial userMap:");
+	console.log(this.userMap);
 
 	// Get maximum karma lock a user can set up.
 	this.user.getMaxKarmaLock = function() {
@@ -249,6 +250,61 @@ app.service("pageService", function(userService, $http){
 	}
 });
 
+// Autocomplete service provides data for autocompletion.
+app.service("autocompleteService", function($http){
+	// Map of all aliases: fullName -> {pageId, title}
+	this.aliasMap = {};
+	// This array stores all available aliases for link autocompletion.
+	this.aliasSource = [];
+
+	// Load the data for aliasSource.
+	var aliasCallbacks = [];
+	this.loadAliasSource = function(callback) {
+		// Check if already loaded.
+		if (this.aliasSource.length > 0) {
+			if (callback) callback();
+			return;
+		}
+		// Add this callback to our list.
+		if (callback) {
+			aliasCallbacks.push(callback);
+		}
+		// Load aliases.
+		var that = this;
+		console.log("Issuing a GET request to: /json/aliases/");
+		$http({method: "GET", url: "/json/aliases/", params: {}})
+		.success(function(data, status){
+			that.aliasMap = data;
+			// Convert data into the aliasSource.
+			for (var fullName in that.aliasMap) {
+				var val = that.aliasMap[fullName];
+				that.aliasSource.push('"' + val.PageTitle + '" (' + fullName + ')');
+			}
+			// Execute all callbacks.
+			for (var i = 0; i < aliasCallbacks.length; i++){
+				aliasCallbacks[i]();
+			}
+			aliasCallbacks = [];
+		})
+		.error(function(data, status){
+			console.log("Error loading alias autocomplete data:"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		});
+	}
+
+	// Converts "title (alias)" string into "alias". Used to process the string
+	// seleted by alias autocompletion.
+	this.convertInputToAlias = function(input) {
+		var openParenIndex = input.indexOf("(");
+		if (openParenIndex > 0) {
+		  // Input is probably of the type: "title" (alias)
+		  var closeParenIndex = input.lastIndexOf(")");
+		  input = input.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
+		}
+		return input;
+	};
+});
+
 // simpleDateTime filter converts our typical date&time string into local time.
 app.filter("simpleDateTime", function() {
 	return function(input) {
@@ -261,7 +317,6 @@ app.filter("simpleDateTime", function() {
 app.controller("ZanaduuCtrl", function ($scope, userService, pageService) {
 	$scope.userService = userService;
 });
-
 
 // PageTreeCtrl is controller for the PageTree.
 app.controller("PageTreeCtrl", function ($scope, pageService) {
@@ -384,6 +439,20 @@ app.controller("PageTreeNodeCtrl", function ($scope, pageService) {
 
 // =============================== DIRECTIVES =================================
 
+// userName directive displayes a user's name.
+app.directive("zndUserName", function(userService) {
+	return {
+		templateUrl: "/static/html/userName.html",
+		scope: {
+			userId: "=",
+		},
+		link: function(scope, element, attrs) {
+			scope.userService = userService;
+			scope.user = userService.userMap[scope.userId];
+		},
+	};
+});
+
 // pageTitle displays page's title with optional meta info.
 app.directive("zndPageTitle", function(pageService) {
 	return {
@@ -391,7 +460,6 @@ app.directive("zndPageTitle", function(pageService) {
 		scope: {
 			pageId: "=",
 		},
-		// TODO: don't do link
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];
 		},
@@ -408,7 +476,6 @@ app.directive("zndLikesPageTitle", function(pageService) {
 			showQuickEditLink: "=",
 			showCreatedAt: "=",
 		},
-		// TODO: don't do link
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];
 		},

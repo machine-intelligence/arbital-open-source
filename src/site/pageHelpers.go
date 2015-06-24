@@ -18,6 +18,7 @@ const (
 	blogPageType     = "blog"
 	wikiPageType     = "wiki"
 	questionPageType = "question"
+	answerPageType   = "answer"
 
 	// Various types of updates a user can get.
 	topLevelCommentUpdateType = "topLevelComment"
@@ -88,7 +89,7 @@ type page struct {
 	LinkedFrom   []string
 	RedLinkCount int
 	// Set to pageId corresponding to the question the user started creating for this page
-	QuestionDraftId int64 `json:",string"`
+	ChildDraftId int64 `json:",string"`
 }
 
 // pagePair describes a parent child relationship, which are stored in pagePairs db table.
@@ -511,11 +512,11 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		return nil
 	}
 	pageIds := pageIdsStringFromMap(pageMap)
-	textSelect := "\"\" as text"
+	textSelect := "\"\" AS text"
 	if options.loadText {
 		textSelect = "text"
 	}
-	summarySelect := "\"\" as summary"
+	summarySelect := "\"\" AS summary"
 	if options.loadSummary {
 		summarySelect = "summary"
 	}

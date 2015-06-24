@@ -1,0 +1,60 @@
+<!-- Template for a given comment -->
+<div class="comment">
+	<div class="comment-row">
+		<!-- Icon column -->
+		<div class="like-column pull-left">
+			<span class="pull-right">
+				&nbsp;
+				<a href="#" class="edit-comment-link glyphicon glyphicon-pencil" title="Edit this comment" ng-show="comment.Author.Id == userService.user.Id"></a>
+				<a href="#"
+					class="subscribe-comment-link glyphicon glyphicon-eye-open"
+					ng-class="{'on': comment.IsSubscribed}"
+					title="Subscribe to receive updates when this comment gets replies"
+					ng-show="userService.user.IsLoggedIn && replyIndex === undefined"></a>
+				<a href="#"
+					class="like-comment-link glyphicon glyphicon-thumbs-up"
+					ng-class="{'on': comment.MyLikeValue > 1}"
+					title="This is a high quality comment"
+					ng-show="userService.user.IsLoggedIn && comment.Author.Id != userService.user.Id"></a>
+				<span class="comment-like-count"
+					title="Number of upvotes this comment has received"
+					ng-bind="comment.LikeCount"
+					ng-show="comment.LikeCount > 0"></span>
+			</span>
+		</div>
+
+		<!-- Comment column -->
+		<div class="text-column">
+			<div class="comment-content" ng-class="{'reply': replyIndex !== undefined}" comment-id="{[{comment.Id}]}">
+				<div class="comment-body">
+					<div class="comment-creator-name">
+						<span class="new-updated-label glyphicon glyphicon-star"
+							title="You haven't seen this comment before"
+							ng-show="isNewComment"></span>
+						<span class="new-updated-label glyphicon glyphicon-star-empty"
+							title="This comment has been updated since the last time you've seen it"
+							ng-show="isUpdatedComment"></span>
+						<znd-user-name user-id="comment.Author.Id"></znd-user-name>:&nbsp;
+					</div>
+					<div class="comment-text" ng-bind="comment.Text"></div>
+				</div>
+				<form class="edit-comment-form" hidden>
+					<div class="form-group">
+						<textarea name="text" class="edit-comment-text form-control" ng-bind="comment.Text"></textarea>
+					</div>
+					<input name="replyToId" type="hidden" value="0"/>
+					<div class="submit-form-error alert alert-danger" hidden></div>
+					<img src="/static/images/loading.gif" class="loading-indicator"/>
+					<button type="submit" class="btn btn-primary">Save</button>
+					<a href="#" class="cancelLink cancel-edit-comment">Cancel</a>
+				</form>
+			</div>
+		</div>
+		<div class="clearfix"></div>
+	</div>
+
+	<!-- Replies -->
+	<div class="replies">
+	</div>
+	<div class="clearfix"></div>
+</div>

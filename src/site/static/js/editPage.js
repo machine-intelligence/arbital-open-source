@@ -3,26 +3,22 @@
 // Create new EditPage (for use with znd-edit-page directive).
 // page - page object corresponding to the page being edited.
 // pageService - pageService object which contains all loaded pages.
-// $topParet - points to the top DOM element of the znd-edit-page directive.
-// primaryPage - set only for modal edit page; points to the primary page being edited.
-var EditPage = function(page, pageService, $topParent, primaryPage) {
+// $topParent - points to the top DOM element of the znd-edit-page directive.
+// primaryPage - set for modal edit page and creating a new answer on a question page; points to the primary page being edited / to the question.
+var EditPage = function(page, pageService, autocompleteService, $topParent, primaryPage) {
 	var page = page;
 	var pageId = page.PageId; // id of the page we are editing
 	var primaryPage = primaryPage;
 
-	// This array is used for "new parent" autocompletion.
-	var availableParents = [];
-	for (var fullName in pageAliases) {
-		availableParents.push(fullName);
-	}
-
 	// Create a new tag for the page.
 	var createNewParentElement = function(parentAlias) {
+		parentAlias = autocompleteService.convertInputToAlias(parentAlias);
+		// TODO: double check there isn't this parent already
 		var $template = $topParent.find(".tag.template");
 		var $newTag = $template.clone(true);
-		if (parentAlias in pageAliases) {
-			var parentPageId = pageAliases[parentAlias].pageId;
-			var title = pageAliases[parentAlias].title;
+		if (parentAlias in autocompleteService.aliasMap) {
+			var parentPageId = autocompleteService.aliasMap[parentAlias].PageId;
+			var title = autocompleteService.aliasMap[parentAlias].PageTitle;
 		} else if (primaryPage !== undefined) {
 			// The parent is the primaryPage.
 			var parentPageId = primaryPage.PageId;
@@ -37,17 +33,19 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		}
 		$newTag.removeClass("template");
 		$newTag.text(title);
-		$newTag.attr("id", parentPageId).attr("alias", parentAlias);
-		$newTag.insertBefore($template);
+		$newTag.attr("tag-id", parentPageId);
 		$newTag.attr("title", parentAlias).tooltip();
-		availableParents.splice(availableParents.indexOf(parentAlias), 1);
+		$newTag.insertBefore($template);
 	}
+	var deleteParentElement = function($target) {
+		$target.tooltip("destroy").remove();
+	};
 
 	// Helper function for savePage. Computes the data to submit via AJAX.
 	var computeAutosaveData = function(isAutosave, isSnapshot) {
 		var parentIds = [];
 		$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
-			parentIds.push($(element).attr("id"));
+			parentIds.push($(element).attr("tag-id"));
 		});
 		var privacyKey = $topParent.attr("privacy-key");
 		var data = {
@@ -107,7 +105,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 	}
 
 	// Set up Markdown.
-	zndMarkdown.init(true, pageId, "");
+	zndMarkdown.init(true, pageId, "", undefined, autocompleteService);
 
 	// Process form submission.
 	$topParent.find(".new-page-form").on("submit", function(event) {
@@ -116,7 +114,10 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
 		savePage(false, false, function(r) {
-			if (primaryPage !== undefined) {
+			if (page.Type === "answer" && primaryPage) {
+				window.location.assign(primaryPage.Url + "#page-" + pageId);
+				window.location.reload();
+			} else if (primaryPage !== undefined) {
 				$(document).trigger("new-page-modal-closed-event", {alias: r.substring(r.lastIndexOf("/") + 1)});
 			} else {
 				window.location.replace(r);
@@ -149,28 +150,10 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		$(document).trigger("new-page-modal-closed-event", {alias: pageId, abandon: true});
 	});
 
-	// Setup autocomplete for tags.
-	$topParent.find(".tag-input").autocomplete({
-		source: availableParents,
-		minLength: 2,
-		select: function (event, ui) {
-			createNewParentElement(ui.item.label);
-			$(event.target).val("");
-			return false;
-		}
-	});
-
 	// Deleting parents. (Only inside the parent container.)
-	var deleteParentTag = function($target) {
-		var alias = $target.attr("alias");
-		if (alias in pageAliases) {
-			availableParents.push(alias);
-		}
-		$target.tooltip("destroy").remove();
-	};
 	$topParent.find(".parent-container .tag").on("click", function(event) {
 		var $target = $(event.target);
-		deleteParentTag($target);
+		deleteParentElement($target);
 		return false;
 	});
 
@@ -205,11 +188,20 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		$titleLabel.text($(event.target).val());
 	});
 
+	// Add parent tags.
+	var addParentTags = function() {
+		var parentsLen = page.Parents.length;
+		for(var n = 0; n < parentsLen; n++) {
+			var parentPage = pageService.pageMap[page.Parents[n].ParentId];
+			createNewParentElement(parentPage.Alias == "" ? parentPage.PageId : parentPage.Alias);
+		}
+	};
+
 	// Set up parent options buttons.
 	if (primaryPage !== undefined) {
 		var deleteAllParentTags = function() {
 			$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
-				deleteParentTag($(element));
+				deleteParentElement($(element));
 			});
 		};
 		$topParent.find(".child-parent-option").on("click", function(event) {
@@ -222,15 +214,19 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 
 	// === Trigger initial setup. ===
 
-	// Add parent tags.
-	var addParentTags = function() {
-		var parentsLen = page.Parents.length;
-		for(var n = 0; n < parentsLen; n++) {
-			var parentPage = pageService.pageMap[page.Parents[n].ParentId];
-			createNewParentElement(parentPage.Alias == "" ? parentPage.PageId : parentPage.Alias);
-		}
-	};
-	addParentTags();
+	// Setup autocomplete for tags.
+	autocompleteService.loadAliasSource(function() {
+		$topParent.find(".tag-input").autocomplete({
+			source: autocompleteService.aliasSource,
+			minLength: 2,
+			select: function (event, ui) {
+				createNewParentElement(ui.item.label);
+				$(event.target).val("");
+				return false;
+			}
+		});
+		addParentTags();
+	});
 
 	// Setup karma lock slider.
 	var $slider = $topParent.find(".karma-lock-slider");
@@ -253,6 +249,7 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.autosaveInterval = null;
+	this.backdropInterval = null;
 	this.start = function() {
 		// Hide new page button if this is a modal.
 		$topParent.find("#wmd-new-page-button" + pageId).toggle(primaryPage === undefined);
@@ -272,22 +269,39 @@ var EditPage = function(page, pageService, $topParent, primaryPage) {
 		// Compute prvEditPageData, so we don't fire off autosave when there were
 		// no changes made.
 		prevEditPageData = computeAutosaveData(true, false);
+		console.log(prevEditPageData);
+		// Set up an interval to make sure modal backdrop is the right size.
+		if (primaryPage) {
+			var $element = $topParent.closest(".modal-content");
+			if ($element.length > 0) {
+				var lastHeight = 0;
+				this.backdropInterval = window.setInterval(function(){
+					if ($element.css("height") != lastHeight) {
+						lastHeight = $element.css("height"); 
+						$("#new-page-modal").data("bs.modal").handleUpdate();
+					}
+				}, 1000);
+			}
+		}
 	};
 
 	// Called before this editPage is destroyed.
 	this.stop = function() {
 		clearInterval(this.autosaveInterval);
+		clearInterval(this.backdropInterval);
 		// Snapshot just in case.
 		savePage(true, false, function(r) {});
 	};
 };
+
+
 
 // Directive for the modal, where a user can create a new page, edit a page, 
 // ask a question, etc...
 app.directive("zndEditPageModal", function (pageService, userService) {
 	return {
 		templateUrl: "/static/html/editPageModal.html",
-		controller: function ($scope, pageService, $compile, $timeout) {
+		controller: function ($scope, $compile, $timeout, pageService, autocompleteService) {
 			// Process event to create the new-page-modal.
 			$(document).on("new-page-modal-event", function(e, modalType, newPageCallback){
 				var isQuestion = modalType === "newQuestion";
@@ -325,7 +339,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 					// Handle modal's shown event to initialize editPage script.
 					var editPage;
 					$modal.on("shown.bs.modal", function (e) {
-						editPage = new EditPage(newPage, pageService, el, $scope.parentPage);
+						editPage = new EditPage(newPage, pageService, autocompleteService, el, $scope.parentPage);
 						editPage.start();
 						$modal.find("input[name='title']").focus();
 					});
@@ -406,26 +420,30 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 });
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("zndEditPage", function(pageService, userService, $timeout) {
+app.directive("zndEditPage", function(pageService, userService, autocompleteService, $timeout) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
 			pageId: "=",
 			isModal: "=",
+			questionId: "=", // set if this edit page is for an answer to this question
 		},
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
+			scope.useVerticalView = scope.isModal;
 
-			scope.pageTypes = {
-				wiki: "Wiki Page",
-				blog: "Blog Page",
-			};
+			// Set up page types.
 			if (scope.page.Type === "question") {
-				scope.pageTypes["question"] = "Question";
+				scope.pageTypes = {question: "Question"};
+			} else if(scope.page.Type === "answer") {
+				scope.pageTypes = {answer: "Answer"};
+			} else {
+				scope.pageTypes = {wiki: "Wiki Page", blog: "Blog Page"};
+				scope.page.Type = scope.page.Type in scope.pageTypes ? scope.page.Type : "wiki";
 			}
-			scope.page.Type = scope.page.Type in scope.pageTypes ? scope.page.Type : "wiki";
 
+			// Set up sort types.
 			scope.sortTypes = {
 				likes: "By Likes",
 				choronological: "Chronologically",
@@ -433,6 +451,7 @@ app.directive("zndEditPage", function(pageService, userService, $timeout) {
 			};
 			scope.page.SortChildrenBy = scope.page.SortChildrenBy in scope.sortTypes ? scope.page.SortChildrenBy : "likes";
 
+			// Set up vote types.
 			scope.voteTypes = {
 				"":"",
 				probability: "Probability",
@@ -441,13 +460,25 @@ app.directive("zndEditPage", function(pageService, userService, $timeout) {
 			scope.page.VoteType = scope.page.VoteType in scope.voteTypes ? scope.page.VoteType : "";
 			scope.showVoteCheckbox = scope.page.WasPublished && scope.page.VoteType != "";
 
+			var primaryPage = undefined;
+			if (scope.questionId) {
+				primaryPage = pageService.pageMap[scope.questionId];
+			}
+			if (scope.page.Type === "answer" && primaryPage) {
+				// Set up answer page for when it appears on a question page.
+				scope.page.Parents = [{ParentId: primaryPage.PageId}];
+				scope.useVerticalView = true;
+			}
+
 			if (!scope.isModal) {
+				// Create Edit Page JS controller.
 				$timeout(function(){
-					scope.editPage = new EditPage(scope.page, pageService, element, undefined);
+					scope.editPage = new EditPage(scope.page, pageService, autocompleteService, element, primaryPage);
 					scope.editPage.start();
 				});
 			}
 
+			// Set up group names.
 			var groupNames = userService.user.GroupNames;
 			scope.groupOptions = {};
 			if (groupNames) {
@@ -458,6 +489,31 @@ app.directive("zndEditPage", function(pageService, userService, $timeout) {
 				scope.groupOptionsLength = groupNames.length;
 			} else {
 				scope.groupOptionsLength = 0;
+			}
+
+			// Get the text that should appear on the primary submit button.
+			scope.getSubmitButtonText = function() {
+				if (scope.page.Type == "answer") {
+					return "Submit Answer";
+				} else if (scope.page.Type === "question") {
+					if (scope.page.WasPublished) {
+						return "Edit Question";
+					} else {
+						return "Ask Question";
+					}
+				} else if (scope.isModal) {
+					return "Publish & Link";
+				}
+				return "Publish";
+			};
+			// Get the text for the placeholder in the title input.
+			scope.getTitlePlaceholder = function() {
+				if (scope.page.Type == "answer") {
+					return "Answer summary";
+				} else if (scope.page.Type === "question") {
+					return "Complete sentence question";
+				}
+				return "Page title";
 			}
 		},
 	};

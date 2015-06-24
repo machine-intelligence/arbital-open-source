@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"fmt"
 	"html/template"
 	"math/rand"
@@ -19,7 +18,7 @@ import (
 )
 
 var (
-	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
+	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
 	editPageOptions = newPageOptions{RequireLogin: true, LoadUserGroups: true}
 )
 
@@ -29,7 +28,6 @@ type editPageTmplData struct {
 	Page    *page
 	User    *user.User
 	UserMap map[int64]*dbUser
-	Aliases []*alias
 }
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
@@ -44,20 +42,8 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	pageAlias := mux.Vars(r)["alias"]
 	// If we are creating a new page, redirect to a new id
 	if len(pageAlias) <= 0 {
-		// Check if we already created a new page for this user that the user never saved.
-		var p page
-		query := fmt.Sprintf(`
-			SELECT pageId,privacyKey
-			FROM pages
-			WHERE edit=0 AND isAutosave AND creatorId=%d`, u.Id)
-		exists, err := database.QueryRowSql(c, query, &p.PageId, &p.PrivacyKey)
-		if err != nil {
-			return pages.InternalErrorWith(fmt.Errorf("Couldn't check tags: %v", err))
-		} else if !exists {
-			rand.Seed(time.Now().UnixNano())
-			p.PageId = rand.Int63()
-		}
-		return pages.RedirectWith(getEditPageUrl(&p))
+		rand.Seed(time.Now().UnixNano())
+		return pages.RedirectWith(getEditPageUrl(&page{PageId: rand.Int63()}))
 	}
 
 	// Check if the user is trying to create a new page with an alias.
@@ -154,26 +140,6 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 	data.PageMap[data.Page.PageId] = data.Page
-
-	// Load aliases.
-	data.Aliases = make([]*alias, 0)
-	query := fmt.Sprintf(`
-		SELECT pageId,alias,title
-		FROM pages
-		WHERE isCurrentEdit AND (groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))`,
-		data.User.Id)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var a alias
-		err := rows.Scan(&a.PageId, &a.FullName, &a.PageTitle)
-		if err != nil {
-			return fmt.Errorf("failed to scan for aliases: %v", err)
-		}
-		data.Aliases = append(data.Aliases, &a)
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load aliases: %v", err)
-	}
 
 	return &data, nil
 }

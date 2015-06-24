@@ -17,21 +17,25 @@
 	</script>
 	<script>
 		// MainCtrl is for the Page page.
-		app.controller("MainCtrl", function($scope, pageService, userService) {
+		app.controller("MainCtrl", function($scope, pageService, userService, $compile) {
 			$scope.relatedIds = {{.RelatedIds}};
 			$scope.questionIds = [];
+			$scope.answerIds = [];
 			$scope.page = pageService.pageMap["{{.Page.PageId}}"];
 
 			// Set up children pages and question ids.
 			$scope.initialChildren = {};
-			var childrenLen = $scope.page.Children.length;
-			for (var n = 0; n < childrenLen; n++) {
+			$scope.initialChildrenCount = 0;
+			for (var n = 0; n < $scope.page.Children.length; n++) {
 				var id = $scope.page.Children[n].ChildId;
 				var page = pageService.pageMap[id];
 				if (page.Type === "question") {
 					$scope.questionIds.push(id);
+				} else if (page.Type === "answer") {
+					$scope.answerIds.push(id);
 				} else {
 					$scope.initialChildren[id] = page;
+					$scope.initialChildrenCount++;
 				}
 			}
 
@@ -47,21 +51,54 @@
 
 			// Set up parents pages.
 			$scope.initialParents = {};
-			var parentsLen = $scope.page.Parents.length;
-			for (var n = 0; n < parentsLen; n++) {
+			$scope.initialParentsCount = $scope.page.Parents.length;
+			for (var n = 0; n < $scope.initialParentsCount; n++) {
 				var id = $scope.page.Parents[n].ParentId;
 				$scope.initialParents[id] = pageService.pageMap[id];
 			}
 
-			// Setup Page JS Controller.
-			$scope.pageJsController = new PageJsController($scope.page, pageService, $("body"), userService);
-			$scope.pageJsController.start();
+			// Question button stuff.
+			var $qButton = $(".question-button");
+			// Make sure it's always in the top right corner.
+			var qButtonIsFixed = false;
+			var qButtonInitialY = $qButton.offset().top;
+			var qButtonOffsetY = 20;
+			$(window).scroll(function(){
+				var isFixed = $(window).scrollTop() > (qButtonInitialY - qButtonOffsetY);
+				if (isFixed !== qButtonIsFixed) {
+					if (!isFixed) {
+						$qButton.css("position", "initial");
+					} else {
+						$qButton.css("position", "fixed").css("top", qButtonOffsetY);
+					}
+				}
+				qButtonIsFixed = isFixed;
+			});
+		
+			// Process question button click.
+			$qButton.on("click", function(event) {
+				$(document).trigger("new-page-modal-event", ["newQuestion", function(newQuestionId) {
+					if(newQuestionId !== null) {
+						window.location.reload();
+					}
+				}]);
+			});
+
+			// Add answers pages.
+			var $answersList = $(".answers-list");
+			for (var n = 0; n < $scope.answerIds.length; n++){
+				//var answerPage = pageService.pageMap[$scope.answerIds[n]];
+				var el = $compile("<znd-page page-id='\"" + $scope.answerIds[n] + "\"'></znd-page><hr></hr>")($scope);
+				$answersList.append(el);
+			}
 		});
 	</script>
 </head>
 
-<body page-id="{{.Page.PageId}}" page-type="{{.Page.Type}}" page-url="{{GetPageUrl .Page}}" last-visit="{{.Page.LastVisit}}" has-vote="{{if .Page.HasVote}}true{{end}}" ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body last-visit="{{.Page.LastVisit}}" ng-app="zanaduu" ng-controller="ZanaduuCtrl">
 {{template "navbar" .User}}
+
+{{template "newLinkModal"}}
 
 <!-- This div shows up when the user hovers over an intra-site link. -->
 <div id="link-popover-template" hidden>
@@ -80,7 +117,7 @@
 	<div class="vote"></div>
 </div>
 
-<!-- This div is used to create vote divs. -->
+<!-- This div template is used to create vote divs. -->
 <div id="vote-template" class="vote" hidden>
 	<div class="bar-background"></div>
 	<input class="vote-slider-input" data-slider-id="vote-slider" type="text"/>
@@ -108,145 +145,76 @@
 </div>
 
 <!-- This modal is for asking a new question. -->
-<znd-edit-page-modal parent-page-id="'{{.Page.PageId}}'" resume-page-id="'{{.Page.QuestionDraftId}}'"></znd-edit-page-modal>
+<znd-edit-page-modal parent-page-id="'{{.Page.PageId}}'" resume-page-id="'{{.Page.ChildDraftId}}'"></znd-edit-page-modal>
 
-{{with .Page}}
-	{{if gt .DeletedBy 0}}
-		<div class="page-body-div">
-			<div class="alert alert-danger">This page has been deleted.
-				{{if IsAdmin}}
-					<span class="admin">By id: {{.DeletedBy}}. <a href="#" class="undo-page-delete">Undo.</a></span>
-				{{end}}
+<!-- All the page stuff. -->
+<div class="primary-page-body-div" ng-controller="MainCtrl">
+	<!-- Navigation column -->
+	<div class="navigation-column pull-left">
+		<!-- Siblings -->
+		<div class="panel panel-default" ng-show="relatedIds.length > 0">
+			<div class="panel-heading">Related</div>
+			<div class="panel-body">
+				<znd-likes-page-title page-id="pageId" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
 			</div>
 		</div>
-	{{else}}
-		<div class="page-body-div" ng-controller="MainCtrl">
-			<!-- Navigation column -->
-			<div class="navigation-column pull-left">
-				<!-- Siblings -->
-				<div class="panel panel-default">
-					<div class="panel-heading">Related</div>
-					<div class="panel-body">
-						<znd-likes-page-title page-id="pageId" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
-					</div>
-				</div>
-		
-				<!-- Parents -->
-				<div class="panel panel-default">
-					<div class="panel-heading">Parents</div>
-					<div class="panel-body">
-						<znd-page-tree init-map="initialParents" is-parent-tree="true"></znd-page-tree>
-					</div>
-				</div>
-		
-				<!-- Children -->
-				<div class="panel panel-default">
-					<div class="panel-heading">Children</div>
-					<div class="panel-body">
-						<znd-page-tree init-map="initialChildren"></znd-page-tree>
-					</div>
-				</div>
-		
-				<!-- Questions -->
-				<div class="panel panel-default" ng-show="false">
-					<div class="panel-heading">Questions</div>
-					<div class="panel-body">
-						<znd-likes-page-title page-id="pageId" ng-repeat="pageId in questionIds"></znd-likes-page-title>
-					</div>
-				</div>
+
+		<!-- Parents -->
+		<div class="panel panel-default" ng-show="initialParentsCount > 0">
+			<div class="panel-heading">Parents</div>
+			<div class="panel-body">
+				<znd-page-tree init-map="initialParents" is-parent-tree="true"></znd-page-tree>
 			</div>
-
-			<!-- Left column -->
-			<div class="left-column pull-left">
-				<!-- Likes / dislikes and approval voting -->
-				<div class="page-like-div pull-right" my-like="{[{page.MyLikeValue}]}">
-					<div class="pull-right">
-						<span class="like-count" ng-bind="page.LikeCount"></span>
-						<a href="#"
-						   class="like-link glyphicon glyphicon-thumbs-up"
-							 ng-class="{'on': page.MyLikeValue >= 1}"
-							 title="This is a high quality page"
-							 ng-show="userService.user.IsLoggedIn"></a>
-						<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-hide="userService.user.IsLoggedIn"></span>
-					</div>
-					<div class="clearfix"></div>
-					<div class="pull-right">
-						<span class="dislike-count" ng-bind="page.DislikeCount"></span>
-						<a href="#"
-							 class="dislike-link glyphicon glyphicon-thumbs-down"
-							 ng-class="{'on': page.MyLikeValue <= -1}"
-							 title="This is a low quality page"
-							 ng-show="userService.user.IsLoggedIn"></a>
-						<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-hide="userService.user.IsLoggedIn"></span>
-					</div>
-				</div>
-				<div class="clearfix"></div>
-
-				<!-- Page icons like subscribe, edit, and delete. -->
-				<div class="page-glyphs pull-right">
-					<a href="#"
-						 class="subscribe-to-page-link glyphicon glyphicon-eye-open"
-						 ng-class="{'on': page.IsSubscribed}"
-						 title="Subscribe to receive updates when this page changes or gets new comments"
-						 ng-show="userService.user.IsLoggedIn"></a>
-					<a ng-href="{[{page.EditUrl}]}"
-						 class="edit-page-link glyphicon glyphicon-pencil"
-						 ng-class="{'admin': page.getEditLevel() == 'admin'}"
-						 title="Edit this page"
-						 ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
-					<a href="#"
-						 class="delete-page-link glyphicon glyphicon-remove"
-						 ng-class="{'admin': page.getDeleteLevel() == 'admin'}"
-						 title="Delete this page"
-						 ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
-				</div>
-				<div class="clearfix"></div>
-
-				<!-- Alert to check if the user really wants to delete a page. -->
-				<div class="alert alert-danger fade in" id="delete-page-alert" hidden>
-					<p>Are you sure you want to delete this page?</p>
-					<button type="button" class="delete-page-confirm btn btn-danger">Delete</button>
-					<button type="button" class="delete-page-cancel btn btn-default">Cancel</button></br>
-				</div>
-			</div>
-		
-			<!-- Main page column -->
-			<div class="mid-column pull-left">
-				<znd-page-title page-id="page.PageId" class="page-title"></znd-page-title>
-				<div class="author-text" ng-show="page.Type == 'blog'">by {{template "userName" .Author}}</div>
-
-				<!-- Probability voting -->
-				<div id="main-page-vote" ng-show="page.HasVote"></div>
-
-				<!-- Main page text. Populated by JS. -->
-				<div class="page-text"></div>
-		
-				<!--Admin stuff -->
-				{{if IsAdmin}}
-					<span class="admin">Last Visit: {[{page.LastVisit}]}; Last Edit At: {[{page.CreatedAt}]} by {{template "userName" .Author}}</span></br>
-				{{end}}
-
-				<!-- Comments -->
-				<b id="comments-label">Comments:</b></br>
-				<div class="comments">
-					{{range .Comments}}
-						{{template "comment" .}}
-					{{end}}
-					{{template "newComment" 0}}
-				</div>
-			</div>
-
-			<!-- Question button -->
-			<div class="question-div pull-left" ng-show="false">
-				<button type="button" class="question-button btn btn-info">
-				  <span class="glyphicon glyphicon-question-sign"></span>
-					<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="page.QuestionDraftId > 0"></span>
-				</button>
-			</div>
-			<div class="clearfix"></div>
 		</div>
-	{{end}}
-{{end}}
+
+		<!-- Children -->
+		<div class="panel panel-default" ng-show="initialChildrenCount > 0">
+			<div class="panel-heading">Children</div>
+			<div class="panel-body">
+				<znd-page-tree init-map="initialChildren"></znd-page-tree>
+			</div>
+		</div>
+
+		<!-- Questions -->
+		<div class="panel panel-default" ng-show="questionIds.length > 0">
+			<div class="panel-heading">Questions</div>
+			<div class="panel-body">
+				<znd-likes-page-title page-id="pageId" ng-repeat="pageId in questionIds"></znd-likes-page-title>
+			</div>
+		</div>
+		&nbsp;
+	</div>
+
+	<!-- Middle column containing the primary page, comments, etc... -->
+	<div class="mid-column pull-left">
+		<znd-page page-id="page.PageId"></znd-page>
+		
+		<!-- Answers for a question page -->
+		<div class="answers" ng-show="answerIds.length > 0">
+			<h1>Answers</h1>
+			<div class="answers-list">
+			</div>
+		</div>
+
+		<!-- New Answer for a question page -->
+		{{if eq .Page.Type "question"}}
+			<div class="new-answer">
+				<h1>Your Answer</h1>
+				<znd-edit-page page-id="page.ChildDraftId" question-id="page.PageId"></znd-edit-page>
+			</div>
+		{{end}}
+	</div>
+
+	<!-- Question button -->
+	<div class="question-div pull-left">
+		<button type="button" class="question-button btn btn-info" title="Ask a question" ng-show="page.Type != 'question'">
+		  <span class="glyphicon glyphicon-question-sign"></span>
+			<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="page.ChildDraftId > 0"></span>
+		</button>
+	</div>
+
+	<div class="clearfix"></div>
+</div>
 
 {{template "footer"}}
 </body>

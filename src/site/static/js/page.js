@@ -2,15 +2,14 @@
 
 // Create new PageJsController.
 // page - page object corresponding to the page being displayed.
-// pageService - pageService object which contains all loaded pages.
-// $topParet - points to the top DOM element of the page.
-// userId - id of the logged in user.
-var PageJsController = function(page, pageService, $topParent, userService) {
+var PageJsController = function(page, $topParent, pageService, userService) {
 	var page = page;
+	var $topParent = $topParent;
 	var pageId = page.PageId; // id of the page being displayed
 	var userId = userService.user.Id;
 
 	// This map contains page data we fetched from the server, e.g. when hovering over a intrasite link.
+	// TODO: use pageService instead
 	var fetchedPagesMap = {}; // pageId -> page data
 	
 	// Send a new probability vote value to the server.
@@ -211,7 +210,7 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 						var html = "";
 						for(var i = 0; i < bar.users.length; i++) {
 							var userId = bar.users[i];
-							var user = userService.users[userId];
+							var user = userService.userMap[userId];
 							var name = user.firstName + "&nbsp;" + user.lastName;
 							html += "<a href='" + userService.getUserUrl(userId) + "'>" + name + "</a> " +
 								"<span class='gray-text'>(" + voteMap[userId].createdAt + ")</span><br>";
@@ -309,7 +308,6 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 				var page = fetchedPagesMap[pageId];
 				if (page) {
 					if (page.DeletedBy !== "0") {
-						// Errrrrrrrrr.... are there callbacks here that are messing shit up?
 						$content.html("");
 						return "";
 					}
@@ -356,42 +354,28 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 			}
 		});
 	}
+
+	// Highlight the page div. Used for selecting answers when #anchor matches.
+	var highlightPageDiv = function() {
+		$(".hash-anchor").removeClass("hash-anchor");
+		$topParent.find(".page-body-div").addClass("hash-anchor");
+	};
+	if (window.location.hash === "#page-" + pageId) {
+		highlightPageDiv();
+	}
 	
 	// === Setup handlers.
-
-	// Claim editing stuff.
-	var toggleEditClaim = function($claim) {
-		$claim.find(".claim-body").toggle();
-		$claim.find(".edit-claim-form").toggle();
-		$claim.find(".edit-claim-link").toggleClass("on");
-	}
-	$(".edit-claim-link").on("click", function(event) {
-		var $target = $(event.target);
-		var $claim = $target.closest(".claim");
-		toggleEditClaim($claim);
-		$claim.find(".edit-claim-summary").focus();
-		return false;
-	});
-	$(".edit-claim-form").on("submit", function(event) {
-		var $form = $(event.target);
-		var data = {};
-		submitForm($form, "/updateClaim/", data, function(r) {
-			smartPageReload();
-		});
-		return false;
-	});
-	
 	// Deleting a page
-	$(".delete-page-link").on("click", function(event) {
+	$topParent.find(".delete-page-link").on("click", function(event) {
 		$("#delete-page-alert").show();
 		return false;
 	});
-	$(".delete-page-cancel").on("click", function(event) {
+	$topParent.find(".delete-page-cancel").on("click", function(event) {
 		$("#delete-page-alert").hide();
 	});
-	$(".delete-page-confirm").on("click", function(event) {
+	$topParent.find(".delete-page-confirm").on("click", function(event) {
 		var data = {
-			pageId: $("body").attr("page-id"),
+			pageId: pageId,
 		};
 		$.ajax({
 			type: "POST",
@@ -404,92 +388,7 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 		return false;
 	});
 	
-	// Comment editing stuff.
-	function toggleEditComment($comment) {
-		$comment.find(".comment-body").toggle();
-		$comment.find(".edit-comment-form").toggle();
-	}
-	$(".edit-comment-link").on("click", function(event) {
-		var $comment = $(event.target).closest(".comment-row").find(".comment");
-		var $editCommentTextarea = $comment.find(".edit-comment-text");
-		toggleEditComment($comment);
-		$editCommentTextarea.focus();
-		return false;
-	});
-	$(".edit-comment-form").on("submit", function(event) {
-		var $form = $(event.target);
-		var $comment = $form.closest(".comment");
-		var $editCommentTextarea = $form.find(".edit-comment-text");
-		var $commentText = $comment.find(".comment-text");
-	
-		var data = {id: $comment.attr("comment-id")};
-		submitForm($form, "/updateComment/", data, function(r) {
-			toggleEditComment($comment);
-			$commentText.text($editCommentTextarea.val());
-		});
-		return false;
-	});
-	$(".cancel-edit-comment").on("click", function(event) {
-		var $comment = $(event.target).closest(".comment");
-		toggleEditComment($comment);
-		return false;
-	});
-	
-	// New comment stuff.
-	function toggleEditNewComment($newComment) {
-		$newComment.find(".new-comment-body").toggle();
-		$newComment.find(".new-comment-form").toggle();
-	}
-	var toggleNewComment = function(event) {
-		var $newComment = $(event.target).closest(".new-comment");
-		toggleEditNewComment($newComment);
-		$newComment.find(".new-comment-text").focus();
-		return false;
-	};
-	$(".new-comment-link").on("click", toggleNewComment);
-	$(".cancel-new-comment").on("click", toggleNewComment);
-	$(".new-comment-form").on("submit", function(event) {
-		var $form = $(event.target);
-		var data = {
-			pageId: $form.closest("body").attr("page-id"),
-		};
-		submitForm($form, "/newComment/", data, function(r) {
-			smartPageReload();
-		});
-		return false;
-	});
-	
-	// New claim stuff.
-	$(".new-claim-link").on("click", function(event) {
-		$(this).tab("show");
-		$(".new-claim-summary").focus();
-		return false;
-	});
-	$(".new-claim-form").on("submit", function(event) {
-		var $form = $(event.target);
-		var data = {};
-		submitForm($form, "/newClaim/", data, function(r) {
-			smartPageReload();
-		});
-		return false;
-	});
-	
-	// Add existing claim stuff.
-	$(".add-existing-claim-link").on("click", function(event) {
-		$(this).tab("show");
-		$(".add-existing-claim-url").focus();
-		return false;
-	});
-	$(".add-existing-claim-form").on("submit", function(event) {
-		var $form = $(event.target);
-		var data = {};
-		submitForm($form, "/newInput/", data, function(r) {
-			smartPageReload();
-		});
-		return false;
-	});
-	
-	// Claim voting stuff.
+	// Page voting stuff.
 	// likeClick is 1 is user clicked like and -1 if they clicked dislike.
 	var processLike = function(likeClick, event) {
 		var $target = $(event.target);
@@ -525,7 +424,7 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 		
 		// Notify the server
 		var data = {
-			pageId: $target.closest("body").attr("page-id"),
+			pageId: pageId,
 			value: newLikeValue,
 		};
 		$.ajax({
@@ -537,66 +436,19 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 		});
 		return false;
 	}
-	$(".like-link").on("click", function(event) {
+	$topParent.find(".like-link").on("click", function(event) {
 		return processLike(1, event);
 	});
-	$(".dislike-link").on("click", function(event) {
+	$topParent.find(".dislike-link").on("click", function(event) {
 		return processLike(-1, event);
 	});
 	
-	// Comment voting stuff.
-	// likeClick is 1 is user clicked like and 0 if they clicked reset like.
-	$(".like-comment-link").on("click", function(event) {
-		var $target = $(event.target);
-		var $commentRow = $target.closest(".comment-row");
-		var $likeCount = $commentRow.find(".comment-like-count");
-	
-		// Update UI.
-		$target.toggleClass("on");
-		var newLikeValue = $target.hasClass("on") ? 1 : 0;
-		var totalLikes = ((+$likeCount.text()) + (newLikeValue > 0 ? 1 : -1));
-		if (totalLikes > 0) {
-			$likeCount.text("" + totalLikes);
-		} else {
-			$likeCount.text("");
-		}
-		
-		// Notify the server
-		var data = {
-			commentId: $commentRow.find(".comment").attr("comment-id"),
-			value: newLikeValue,
-		};
-		$.ajax({
-			type: "POST",
-			url: '/updateCommentLike/',
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
-		});
-		return false;
-	});
-	
 	// Subscription stuff.
-	$(".subscribe-to-page-link").on("click", function(event) {
+	$topParent.find(".subscribe-to-page-link").on("click", function(event) {
 		var $target = $(event.target);
 		$target.toggleClass("on");
 		var data = {
-			pageId: $target.closest("body").attr("page-id"),
-		};
-		$.ajax({
-			type: "POST",
-			url: $target.hasClass("on") ? "/newSubscription/" : "/deleteSubscription/",
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
-		});
-		return false;
-	});
-	$(".subscribe-comment-link").on("click", function(event) {
-		var $target = $(event.target);
-		$target.toggleClass("on");
-		var data = {
-			commentId: $target.closest(".comment-row").find(".comment").attr("comment-id"),
+			pageId: pageId,
 		};
 		$.ajax({
 			type: "POST",
@@ -608,43 +460,17 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 		return false;
 	});
 
-	// Question button stuff.
-	var $qButton = $(".question-button");
-	// Make sure it's always in the top right corner.
-	var qButtonIsFixed = false;
-	var qButtonInitialY = $qButton.offset().top;
-	var qButtonOffsetY = 20;
-	$(window).scroll(function(){
-		var isFixed = $(window).scrollTop() > (qButtonInitialY - qButtonOffsetY);
-		if (isFixed !== qButtonIsFixed) {
-			if (!isFixed) {
-				$qButton.css("position", "initial");
-			} else {
-				$qButton.css("position", "fixed").css("top", qButtonOffsetY);
-			}
-		}
-		qButtonIsFixed = isFixed;
-	});
-
-	// Process question button click.
-	$qButton.on("click", function(event) {
-		$(document).trigger("new-page-modal-event", ["newQuestion", function(newQuestionId) {
-			if(newQuestionId !== null) {
-			}
-		}]);
-	});
-	
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function(pageVotes) {
 		// Set up markdown.
-		zndMarkdown.init(false, pageId, page.Text);
+		zndMarkdown.init(false, pageId, page.Text, $topParent);
 
 		// Intrasite link hover.
-		setupIntrasiteLink($(".intrasite-link"));
+		setupIntrasiteLink($topParent.find(".intrasite-link"));
 
 		// Setup probability vote slider.
 		if (page.HasVote) {
-			createVoteSlider($("#main-page-vote"), pageId, page.Votes, false);
+			createVoteSlider($topParent.find(".page-vote"), pageId, page.Votes, false);
 		}
 	};
 
@@ -652,3 +478,196 @@ var PageJsController = function(page, pageService, $topParent, userService) {
 	this.stop = function() {
 	};
 };
+
+// Directive for showing a standard Zanaduu page.
+app.directive("zndPage", function (pageService, userService, $compile, $timeout) {
+	return {
+		templateUrl: "/static/html/page.html",
+		controller: function ($scope, pageService, userService) {
+			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
+		},
+		scope: {
+			pageId: "=",
+		},
+		link: function(scope, element, attrs) {
+			// Dynamically create comment elements.
+			if (scope.page.Comments != null) {
+				var $comments = element.find(".comments");
+				for (var n = 0; n < scope.page.Comments.length; n++) {
+					var $comment = $compile("<znd-comment page-id='\"" + scope.pageId +
+						"\"' comment-index='" + n + "'></znd-comment>")(scope);
+					$comments.prepend($comment);
+				}
+			}
+			
+			$timeout(function(){
+				// Setup Page JS Controller.
+				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
+				scope.pageJsController.start();
+			});
+		},
+	};
+});
+
+// Directive for showing a comment.
+app.directive("zndComment", function ($compile) {
+	return {
+		templateUrl: "/static/html/comment.html",
+		controller: function ($scope, pageService, userService) {
+			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.comment = $scope.page.Comments[$scope.commentIndex];
+			if ($scope.replyIndex !== undefined) {
+				$scope.comment = $scope.comment.Replies[$scope.replyIndex];
+			}
+
+			var lastVisit = $scope.page.LastVisit;
+			var showStars = $scope.comment.Author.Id != userService.user.Id && lastVisit != "";
+			$scope.isNewComment = showStars && $scope.comment.CreatedAt >= lastVisit;
+			$scope.isUpdatedComment = !$scope.isNewComment && showStars && $scope.comment.UpdatedAt >= lastVisit;
+			if($scope.isNewComment) {
+			console.log(lastVisit);
+			console.log($scope.comment.CreatedAt);
+			console.log($scope.comment.UpdatedAt);
+			}
+		},
+		scope: {
+			pageId: "=",
+			commentIndex: "=",
+			replyIndex: "=",
+		},
+		link: function(scope, element, attrs) {
+			if (scope.replyIndex === undefined) {
+				var $comments = element.find(".replies");
+				// Dynamically create reply comment elements.
+				if (scope.comment.Replies != null) {
+					for (var n = 0; n < scope.comment.Replies.length; n++) {
+						var $comment = $compile("<znd-comment page-id='\"" + scope.pageId +
+							"\"' comment-index='" + scope.commentIndex +
+							"' reply-index='" + n + "'></znd-comment>")(scope);
+						$comments.append($comment);
+					}
+				}
+				// Add New Comment element.
+				var $newComment = $compile("<znd-new-comment page-id='\"" + scope.pageId +
+						"\"' reply-to-id='\"" + scope.comment.Id + "\"'></znd-new-comment>")(scope);
+				$comments.append($newComment);
+			}
+
+			// Comment voting stuff.
+			// likeClick is 1 is user clicked like and 0 if they clicked reset like.
+			element.find(".like-comment-link").on("click", function(event) {
+				var $target = $(event.target);
+				var $commentRow = $target.closest(".comment-row");
+				var $likeCount = $commentRow.find(".comment-like-count");
+			
+				// Update UI.
+				$target.toggleClass("on");
+				var newLikeValue = $target.hasClass("on") ? 1 : 0;
+				var totalLikes = ((+$likeCount.text()) + (newLikeValue > 0 ? 1 : -1));
+				if (totalLikes > 0) {
+					$likeCount.text("" + totalLikes);
+				} else {
+					$likeCount.text("");
+				}
+				
+				// Notify the server
+				var data = {
+					commentId: $commentRow.find(".comment-content").attr("comment-id"),
+					value: newLikeValue,
+				};
+				$.ajax({
+					type: "POST",
+					url: '/updateCommentLike/',
+					data: JSON.stringify(data),
+				})
+				.done(function(r) {
+				});
+				return false;
+			});
+
+			// Process comment subscribe click.
+			element.find(".subscribe-comment-link").on("click", function(event) {
+				var $target = $(event.target);
+				$target.toggleClass("on");
+				var data = {
+					commentId: $target.closest(".comment-row").find(".comment-content").attr("comment-id"),
+				};
+				$.ajax({
+					type: "POST",
+					url: $target.hasClass("on") ? "/newSubscription/" : "/deleteSubscription/",
+					data: JSON.stringify(data),
+				})
+				.done(function(r) {
+				});
+				return false;
+			});
+	
+			// Comment editing stuff.
+			function toggleEditComment($comment) {
+				$comment.find(".comment-body").toggle();
+				$comment.find(".edit-comment-form").toggle();
+			}
+			element.find(".edit-comment-link").on("click", function(event) {
+				var $comment = $(event.target).closest(".comment-row").find(".comment-content");
+				var $editCommentTextarea = $comment.find(".edit-comment-text");
+				toggleEditComment($comment);
+				$editCommentTextarea.focus();
+				return false;
+			});
+			element.find(".edit-comment-form").on("submit", function(event) {
+				var $form = $(event.target);
+				var $comment = $form.closest(".comment-content");
+				var $editCommentTextarea = $form.find(".edit-comment-text");
+				var $commentText = $comment.find(".comment-text");
+				var data = {id: $comment.attr("comment-id")};
+				submitForm($form, "/updateComment/", data, function(r) {
+					toggleEditComment($comment);
+					$commentText.text($editCommentTextarea.val());
+				});
+				return false;
+			});
+			element.find(".cancel-edit-comment").on("click", function(event) {
+				var $comment = $(event.target).closest(".comment-content");
+				toggleEditComment($comment);
+				return false;
+			});
+		},
+	};
+});
+
+// Directive for creating a new comment.
+app.directive("zndNewComment", function (pageService, userService) {
+	return {
+		templateUrl: "/static/html/newComment.html",
+		controller: function ($scope, pageService, userService) {
+		},
+		scope: {
+			pageId: "=",
+			replyToId: "=",
+		},
+		link: function(scope, element, attrs) {
+			// New comment stuff.
+			var toggleNewComment = function(event) {
+				var $newComment = $(event.target).closest(".new-comment");
+				$newComment.find(".new-comment-body").toggle();
+				$newComment.find(".new-comment-form").toggle();
+				$newComment.find(".new-comment-text").focus();
+				return false;
+			};
+			element.find(".new-comment-link").on("click", toggleNewComment);
+			element.find(".cancel-new-comment").on("click", toggleNewComment);
+			element.find(".new-comment-form").on("submit", function(event) {
+				var $form = $(event.target);
+				var data = {
+					pageId: scope.pageId,
+				};
+				submitForm($form, "/newComment/", data, function(r) {
+					smartPageReload();
+				});
+				return false;
+			});
+		},
+	};
+});

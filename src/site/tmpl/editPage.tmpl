@@ -7,16 +7,6 @@
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
-	<script>
-		// Map of all aliases: fullName -> {pageId, title}
-		var pageAliases = { {{range .Aliases}}"{{.FullName}}":{pageId:"{{.PageId}}", title:"{{.PageTitle}}"},{{end}} };
-		// This array stores all available aliases for link autocompletion.
-		var allAliases = [];
-		for (var fullName in pageAliases) {
-			var val = pageAliases[fullName];
-			allAliases.push('"' + val.title + '" (' + fullName + ')');
-		}
-	</script>
 	<script src="/static/js/editPage.js"></script>
 	<script>
 		// MainCtrl is the main control for this page.
@@ -31,24 +21,7 @@
 
 {{template "navbar" .User}}
 
-<!-- Modal for new links used from Markdown.Editor. -->
-<div class="modal fade" id="new-link-modal" tabindex="-1" style="z-index:2000">
-	<div class="modal-dialog">
-		<form class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title"></h4>
-			</div>
-			<div class="modal-body">
-				<input name="link" type="text" class="form-control new-link-input">
-			</div>
-			<div class="modal-footer">
-			  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				<button type="submit" class="btn btn-primary">Insert</button>
-			</div>
-		</div>
-	</div>
-</div>
+{{template "newLinkModal"}}
 
 <!-- This modal is for creating new pages quickly. -->
 <znd-edit-page-modal parent-page-id="'{{.Page.PageId}}'"></znd-edit-page-modal>

@@ -1,6 +1,6 @@
 var zndMarkdown = zndMarkdown || function() {
 	// Set up markdown editor and conversion.
-	function init(inEditMode, pageId, pageText) {
+	function init(inEditMode, pageId, pageText, $topParent, autocompleteService) {
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 		/*converter.hooks.chain("preSpanGamut", function (text) {
@@ -69,17 +69,20 @@ var zndMarkdown = zndMarkdown || function() {
 		});*/
 	
 		if (inEditMode) {
-			var editor = new Markdown.Editor(converter, pageId, {handler: function(){
-				window.open("http://math.stackexchange.com/editing-help", "_blank");
-			}});
+			var editor = new Markdown.Editor(converter, pageId, {
+				autocompleteService: autocompleteService,
+				handler: function(){
+					window.open("http://math.stackexchange.com/editing-help", "_blank");
+				},
+			});
 			InitMathjax(converter, editor, pageId);
 			editor.run();
 			return;
 		}
-		InitMathjax(converter, undefined, "");
+		InitMathjax(converter, undefined, pageId);
 	
 		var html = converter.makeHtml(pageText);
-		var $pageText = $(".page-text")
+		var $pageText = $topParent.find(".page-text")
 		$pageText.html(html);
 		firstPass = false;
 	

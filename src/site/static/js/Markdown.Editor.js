@@ -9,13 +9,14 @@
 		re = window.RegExp,
 		nav = window.navigator,
 		SETTINGS = { lineLength: 72 },
+		autocompleteService = null,
 
 	// Used to work around some browser bugs where we can't use feature testing.
-		uaSniffed = {
-			isIE: /msie/.test(nav.userAgent.toLowerCase()),
-			isIE_5or6: /msie 6/.test(nav.userAgent.toLowerCase()) || /msie 5/.test(nav.userAgent.toLowerCase()),
-			isOpera: /opera/.test(nav.userAgent.toLowerCase())
-		};
+	uaSniffed = {
+		isIE: /msie/.test(nav.userAgent.toLowerCase()),
+		isIE_5or6: /msie 6/.test(nav.userAgent.toLowerCase()) || /msie 5/.test(nav.userAgent.toLowerCase()),
+		isOpera: /opera/.test(nav.userAgent.toLowerCase())
+	};
 
 	var defaultsStrings = {
 		bold: "Strong <strong> Ctrl+B",
@@ -66,7 +67,7 @@
 	//   options.helpButton = { handler: yourEventHandler }
 	//   options.strings = { italicexample: "slanted text" }
 	// `yourEventHandler` is the click handler for the help button.
-	// If `options.helpButton` isn't given, not help button is created.
+	// If `options.helpButton` isn't given, no help button is created.
 	// `options.strings` can have any or all of the same properties as
 	// `defaultStrings` above, so you can just override some string displayed
 	// to the user on a case-by-case basis, or translate all strings to
@@ -85,12 +86,13 @@
 		options = options || {};
 
 		if (typeof options.handler === "function") { //backwards compatible behavior
-			options = { helpButton: options };
+			options.helpButton = { handler: options.handler };
 		}
 		options.strings = options.strings || {};
 		if (options.helpButton) {
 			options.strings.help = options.strings.help || options.helpButton.title;
 		}
+		autocompleteService = options.autocompleteService;
 		var getString = function (identifier) { return options.strings[identifier] || defaultsStrings[identifier]; }
 
 		idPostfix = idPostfix || "";
@@ -1024,13 +1026,15 @@
 		// Set up input
 		$input.val("").attr("placeholder", helpText);
 		if (isIntraLink) {
-		  $input.autocomplete({
-			source: allAliases,
-			minLength: 2,
-			select: function (event, ui) {
-			  return true;
-			}
-		  });
+			autocompleteService.loadAliasSource(function() {
+			  $input.autocomplete({
+					source: autocompleteService.aliasSource,
+					minLength: 2,
+					select: function (event, ui) {
+						return true;
+					}
+			  });
+			});
 		}
 
 		var isCancel = true;
@@ -1710,13 +1714,7 @@
 					// would mean a zero-width match at the start. Since zero-width matches advance the string position,
 					// the first bracket could then not act as the "not a backslash" for the second.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
-					
-					var openParenIndex = link.indexOf("(");
-					if (openParenIndex > 0) {
-					  // Input is probably of the type: "title" (alias)
-					  var closeParenIndex = link.lastIndexOf(")");
-					  link = link.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
-					}
+					link = autocompleteService.convertInputToAlias(link);
 					chunk.startTag = "[[";
 					chunk.endTag = "]]((" + link + "))";
 

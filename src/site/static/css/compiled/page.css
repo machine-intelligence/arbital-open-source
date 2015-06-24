@@ -3,7 +3,7 @@
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
 }
-.page-body-div {
+.primary-page-body-div {
   width: 100%;
   margin: 0 auto 160px auto;
   font-family: "Open Sans", sans-serif;
@@ -174,19 +174,27 @@
   width: 30%;
   margin-left: 20px;
 }
-.left-column {
+.page-body-div {
+  width: 100%;
+  padding: 20px 0px;
+}
+.page-body-div.hash-anchor {
+  background-color: #f8f8f8;
+  border: blue 1px solid;
+}
+.page-body-div .like-column {
   width: 130px;
-  padding: 0px 20px;
+  padding: 0px 20px 0 0;
 }
-.mid-column {
-  width: 55%;
+.page-body-div .text-column {
+  margin-left: 130px;
 }
-.comments {
+.page-body-div .comments {
   position: relative;
   left: -130px;
 }
-.comment-column {
-  margin-left: 140px;
+.mid-column {
+  width: 55%;
 }
 .edit-page-body {
   width: 100%;
@@ -284,6 +292,32 @@
   color: #8383ff;
   text-decoration: none;
 }
+.page-anchor-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+  display: block;
+}
+.page-anchor-link.on {
+  color: #5050ff;
+}
+.page-anchor-link.on:focus {
+  color: #5050ff;
+}
+.page-anchor-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.page-anchor-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.page-anchor-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
 .edit-page-link {
   color: #e0e0e0;
   text-decoration: none;
@@ -376,7 +410,6 @@
 .page-text {
   margin-top: 7px;
   margin-bottom: 15px;
-  min-height: 120px;
 }
 .page-text h1 {
   font-size: 26px;
@@ -482,6 +515,9 @@
   left: -15px;
   font-size: 14px;
 }
+.comment-content {
+  padding: 3px 0px;
+}
 .comment-body {
   display: table;
 }
@@ -492,6 +528,7 @@
 }
 .comment-text {
   display: table-cell;
+  white-space: pre;
 }
 .reply {
   margin-left: 5px;

@@ -21,10 +21,10 @@
 	</div>
 
 	<div class="edit-page-body">
-		<div ng-class="{'half': !isModal}">
+		<div ng-class="{'half': !useVerticalView}">
 			<!-- Title -->
 			<div class="page-title">
-				<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="{[{page.Type === 'question' ? 'Complete sentence question' : 'Page Title'}]}" required="true" autocomplete="off">
+				<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="{[{getTitlePlaceholder()}]}" required="true" autocomplete="off">
 			</div>
 	
 			<!-- WMD edit panel -->
@@ -41,11 +41,11 @@
 					<div class="wmd-panel-bottom-buttons">
 						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 						<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
-						<button type="submit" class="btn btn-primary" ng-bind="page.Type == 'question' ? 'Submit' : (isModal ? 'Publish & Link':'Publish')" toggle-on-submit></button>
+						<button type="submit" class="btn btn-primary" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
 						<span class="gray-text autosave-label" hidden></span>
-						<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal">Revert to Live Version</a>
+						<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal && page.Type != 'answer'">Revert to Live Version</a>
 						<button type="button" class="new-page-button btn btn-primary pull-right" ng-show="isModal && page.Type != 'question'" toggle-on-submit>New Page</button>
-						<button type="button" class="abandon-page-button btn btn-danger pull-right" ng-show="page.Type == 'question'" toggle-on-submit>Abandon</button>
+						<button type="button" class="abandon-page-button btn btn-danger pull-right" ng-show="page.Type == 'question' && !page.WasPublished" toggle-on-submit>Abandon</button>
 						<div class="alert alert-danger" hidden></div>
 						<span class="loading-text" style="display:none"></span>
 						<div class="clearfix"></div>
@@ -57,7 +57,7 @@
 			<!-- Page options -->
 			<div class="new-page-options form-horizontal">
 				<!-- Page type -->
-				<div class="form-group" ng-hide="page.WasPublished || page.Type=='question'">
+				<div class="form-group" ng-hide="page.WasPublished || page.Type=='question' || page.Type=='answer'">
 					<label class="title-label control-label col-sm-2">Page Type</label>
 					<div class="col-sm-4">
 						<select ng-model="page.Type" required="string"
@@ -84,7 +84,7 @@
 				</div>
 			
 				<!-- Show/hide vote -->
-				<div class="form-group" ng-show="showVoteCheckbox && page.Type!='question'">
+				<div class="form-group" ng-show="showVoteCheckbox && page.Type != 'question' && page.Type != 'answer'">
 					<label class="title-label control-label col-sm-2">Show Vote</label>
 					<div class="col-sm-8">
 						<div class="checkbox">
@@ -96,7 +96,7 @@
 				</div>
 			
 				<!-- Vote type -->
-				<div class="form-group" ng-show="!showVoteCheckbox && page.Type!='question'">
+				<div class="form-group" ng-show="!showVoteCheckbox && page.Type != 'question' && page.Type != 'answer'">
 					<label class="title-label control-label col-sm-2">Vote Type</label>
 					<div class="col-sm-4">
 						<select ng-model="page.VoteType"
@@ -107,7 +107,7 @@
 				</div>
 			
 				<!-- Karma edit lock -->
-				<div class="karma-lock-form-group form-group" ng-show="userService.user.getMaxKarmaLock() > 0 && page.Type!='blog'">
+				<div class="karma-lock-form-group form-group" ng-show="userService.user.getMaxKarmaLock() > 0 && page.Type != 'blog'">
 					<label class="title-label control-label col-sm-2">Karma Lock
 						<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 					</label>
@@ -137,7 +137,7 @@
 					<div class="col-sm-4">
 						<div class="input-group">
 							<input type="text" class="tag-input form-control" placeholder="Enter new parent">
-							<button type="button" class="btn btn-default btn-xs child-parent-option" ng-show="isModal && page.Type!='question'">
+							<button type="button" class="btn btn-default btn-xs child-parent-option" ng-show="isModal && page.Type != 'question'">
 								Make this page a sibling.
 							</button>
 						</div>
@@ -148,7 +148,7 @@
 				</div>
 			
 				<!-- Alias -->
-				<div class="form-group">
+				<div class="form-group" ng-hide="page.Type == 'answer'">
 					<label class="control-label col-sm-2">Alias</label>
 					<div class="col-sm-4">
 						<div class="input-group">
@@ -162,7 +162,7 @@
 				</div>
 			
 				<!-- Sort children option -->
-				<div class="form-group" ng-show="page.Type!='question'">
+				<div class="form-group" ng-show="page.Type != 'question' && page.Type != 'answer'">
 					<label class="title-label control-label col-sm-2">Sort Children</label>
 					<div class="col-sm-4">
 						<select ng-model="page.SortChildrenBy"
@@ -175,13 +175,13 @@
 		</div>
 	
 		<!-- Right half with the preview -->
-		<div ng-class="{'half': !isModal}">
-			<div ng-class="{'panel':isModal, 'panel-default':isModal}">
-				<div class="page-title" ng-class="{'panel-heading':isModal}">
+		<div ng-class="{'half': !useVerticalView}">
+			<div ng-class="{'panel':useVerticalView, 'panel-default':useVerticalView}">
+				<div class="page-title" ng-class="{'panel-heading':useVerticalView}">
 					<span class="page-title-text" ng-bind="page.Title"></span>
-					<span class="gray-text" ng-show="isModal">(Preview)<span>
+					<span class="gray-text" ng-show="useVerticalView">(Preview)<span>
 				</div>
-				<div ng-class="{'panel-body':isModal}">
+				<div ng-class="{'panel-body':useVerticalView}">
 					<div id="wmd-preview{[{page.PageId}]}" class="wmd-preview pagedown"></div>
 				</div>
 			</div>

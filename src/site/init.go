@@ -70,6 +70,7 @@ func init() {
 	r.HandleFunc("/json/pages/", pagesJsonHandler).Methods("GET")
 	r.HandleFunc("/json/children/", childrenJsonHandler).Methods("GET")
 	r.HandleFunc("/json/parents/", parentsJsonHandler).Methods("GET")
+	r.HandleFunc("/json/aliases/", aliasesJsonHandler).Methods("GET")
 
 	// POST handlers (API)
 	r.HandleFunc("/editPage/", editPageHandler).Methods("POST")
@@ -93,6 +94,8 @@ func init() {
 	// Various internal handlers
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
 	r.HandleFunc("/_ah/start", ahHandler).Methods("GET")
+
+	// Error handlers
 	r.HandleFunc(errorPage.URI, stdHandler(errorPage.ServeHTTP)).Methods("GET")
 	r.NotFoundHandler = http.HandlerFunc(stdHandler(page404.ServeHTTP))
 

@@ -6,10 +6,12 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -20,9 +22,9 @@ import (
 )
 
 type comment struct {
-	Id           int64
-	PageId       int64
-	ReplyToId    int64
+	Id           int64 `json:",string"`
+	PageId       int64 `json:",string"`
+	ReplyToId    int64 `json:",string"`
 	Text         string
 	CreatedAt    string
 	UpdatedAt    string
@@ -35,7 +37,7 @@ type comment struct {
 
 type alias struct {
 	FullName  string
-	PageId    int64
+	PageId    int64 `json:",string"`
 	PageTitle string
 }
 
@@ -67,7 +69,7 @@ var privatePagePage = newPage(
 		"tmpl/angular.tmpl.js", "tmpl/comment.tmpl",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
-// loadComments loads and returns all the comments for the given input ids from the db.
+// loadComments loads and returns all the comments for the given page ids from the db.
 func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int64, error) {
 	commentMap := make(map[int64]*comment)
 	sortedCommentIds := make([]int64, 0)
@@ -235,9 +237,19 @@ func loadLastVisits(c sessions.Context, currentUserId int64, pageIds string, pag
 // pages and comments, and then updates the given maps.
 func loadSubscriptions(
 	c sessions.Context, currentUserId int64,
-	pageIds string, commentIds string,
 	pageMap map[int64]*page,
 	commentMap map[int64]*comment) error {
+
+	commentIds := ""
+	if commentMap != nil {
+		var buffer bytes.Buffer
+		for id, _ := range commentMap {
+			buffer.WriteString(fmt.Sprintf("%d", id))
+			buffer.WriteString(",")
+		}
+		commentIds = strings.TrimRight(buffer.String(), ",")
+	}
+	pageIds := pageIdsStringFromMap(pageMap)
 
 	commentClause := ""
 	if len(commentIds) > 0 {
@@ -312,14 +324,6 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	}
 
 	funcMap := template.FuncMap{
-		"IsNewComment": func(c *comment) bool {
-			lastVisit := data.PageMap[c.PageId].LastVisit
-			return c.Author.Id != data.User.Id && lastVisit != "" && c.CreatedAt >= lastVisit
-		},
-		"IsUpdatedComment": func(c *comment) bool {
-			lastVisit := data.PageMap[c.PageId].LastVisit
-			return c.Author.Id != data.User.Id && lastVisit != "" && c.UpdatedAt >= lastVisit
-		},
 		"GetEditLevel": func(p *page) string {
 			return getEditLevel(p, data.User)
 		},
@@ -328,11 +332,6 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		},
 		"GetPageEditUrl": func(p *page) string {
 			return getEditPageUrl(p)
-		},
-		"Sanitize": func(s string) template.HTML {
-			s = template.HTMLEscapeString(s)
-			s = strings.Replace(s, "\n", "<br>", -1)
-			return template.HTML(s)
 		},
 	}
 	c.Inc("page_page_served_success")
@@ -386,16 +385,41 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't load parents: %v", err)
 	}
 
-	// Load potential question draft.
-	query := fmt.Sprintf(`
-		SELECT pageId
-		FROM pages
-		WHERE type="question" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
-		GROUP BY pageId
-		HAVING SUM(isCurrentEdit)<=0`, u.Id, strconv.FormatInt(pageId, pageIdEncodeBase))
-	_, err = database.QueryRowSql(c, query, &data.Page.QuestionDraftId)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load question draft: %v", err)
+	if data.Page.Type != questionPageType {
+		// Load potential question draft.
+		query := fmt.Sprintf(`
+			SELECT pageId
+			FROM pages
+			WHERE type="question" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+			GROUP BY pageId
+			HAVING SUM(isCurrentEdit)<=0`, u.Id, strconv.FormatInt(pageId, pageIdEncodeBase))
+		_, err = database.QueryRowSql(c, query, &data.Page.ChildDraftId)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load question draft: %v", err)
+		}
+	} else {
+		// Load potential answer draft.
+		query := fmt.Sprintf(`
+			SELECT pageId
+			FROM pages
+			WHERE type="answer" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+			GROUP BY pageId
+			HAVING SUM(isCurrentEdit)<=0`, u.Id, strconv.FormatInt(pageId, pageIdEncodeBase))
+		_, err = database.QueryRowSql(c, query, &data.Page.ChildDraftId)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load answer draft id: %v", err)
+		}
+		if data.Page.ChildDraftId <= 0 {
+			rand.Seed(time.Now().UnixNano())
+			data.Page.ChildDraftId = rand.Int63()
+			data.PageMap[data.Page.ChildDraftId] = &page{PageId: data.Page.ChildDraftId, Type: answerPageType}
+		} else {
+			p, err := loadFullEdit(c, data.Page.ChildDraftId, u.Id)
+			if err != nil {
+				return nil, fmt.Errorf("Couldn't load answer draft: %v", err)
+			}
+			data.PageMap[p.PageId] = p
+		}
 	}
 
 	// Load links
@@ -406,7 +430,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 
 	// Load where page is linked from.
 	// TODO: also account for old aliases
-	query = fmt.Sprintf(`
+	query := fmt.Sprintf(`
 		SELECT p.pageId
 		FROM links as l
 		JOIN pages as p
@@ -440,55 +464,12 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		}
 	}
 
-	// Load all the comments
-	var commentMap map[int64]*comment // commentId -> comment
-	var sortedCommentKeys []int64     // need this for in-order iteration
-	commentMap, sortedCommentKeys, err = loadComments(c, pageIdStr)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching comments: %v", err)
-	}
-	for _, key := range sortedCommentKeys {
-		comment := commentMap[key]
-		pageObj, ok := mainPageMap[comment.PageId]
-		if !ok {
-			return nil, fmt.Errorf("couldn't find page for a comment: %d\n%v", key, err)
-		}
-		if comment.ReplyToId > 0 {
-			parent := commentMap[comment.ReplyToId]
-			parent.Replies = append(parent.Replies, comment)
-		} else {
-			pageObj.Comments = append(pageObj.Comments, commentMap[key])
-		}
-	}
-
-	// Get a string of all comment ids.
-	var buffer bytes.Buffer
-	for id, _ := range commentMap {
-		buffer.WriteString(fmt.Sprintf("%d", id))
-		buffer.WriteString(",")
-	}
-	commentIds := strings.TrimRight(buffer.String(), ",")
-
-	// Load all the comment likes
-	err = loadCommentLikes(c, data.User.Id, commentIds, commentMap)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching comment likes: %v", err)
-	}
-
 	// Load all aliases.
 	re := regexp.MustCompile(`\[\[([A-Za-z0-9_-]+?)\]\]`)
 	aliases := re.FindAllStringSubmatch(data.Page.Text, -1)
 	data.AliasMap, err = loadAliases(c, aliases)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching aliases: %v", err)
-	}
-
-	if data.User.Id > 0 {
-		// Load subscription statuses.
-		err = loadSubscriptions(c, data.User.Id, pageIdStr, commentIds, mainPageMap, commentMap)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching subscriptions: %v", err)
-		}
 	}
 
 	// Load page ids of related pages (pages that have at least all the same parents).
@@ -511,16 +492,78 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load pages.
-	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{})
+	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{loadText: true})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
+	}
+
+	// Erase Text from pages that don't need it.
+	for _, p := range data.PageMap {
+		if data.Page.Type != questionPageType || p.Type != answerPageType {
+			p.Text = ""
+		}
 	}
 
 	// Create joinedPageMap that has the main page and all the other related/sub pages.
 	joinedPageMap := make(map[int64]*page)
 	joinedPageMap[data.Page.PageId] = data.Page
+	// At the same time, get a string of all page ids that need comments loaded.
+	var buffer bytes.Buffer
+	buffer.WriteString(pageIdStr)
 	for id, p := range data.PageMap {
 		joinedPageMap[id] = p
+		if data.Page.Type == questionPageType && p.Type == answerPageType {
+			buffer.WriteString(",")
+			buffer.WriteString(fmt.Sprintf("%d", id))
+		}
+	}
+
+	// Load all the comments
+	var commentMap map[int64]*comment // commentId -> comment
+	var sortedCommentKeys []int64     // need this for in-order iteration
+	pageIdsStr := strings.TrimRight(buffer.String(), ",")
+	commentMap, sortedCommentKeys, err = loadComments(c, pageIdsStr)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching comments: %v", err)
+	}
+	for _, key := range sortedCommentKeys {
+		comment := commentMap[key]
+		pageObj, ok := joinedPageMap[comment.PageId]
+		if !ok {
+			return nil, fmt.Errorf("couldn't find page for a comment: %d\n%v", key, err)
+		}
+		if comment.ReplyToId > 0 {
+			parent := commentMap[comment.ReplyToId]
+			parent.Replies = append(parent.Replies, comment)
+		} else {
+			pageObj.Comments = append(pageObj.Comments, commentMap[key])
+		}
+		// Add the comment's author to the user map
+		if _, ok := data.UserMap[comment.Author.Id]; !ok {
+			data.UserMap[comment.Author.Id] = &dbUser{Id: comment.Author.Id}
+		}
+	}
+
+	// Get a string of all comment ids.
+	buffer.Reset()
+	for id, _ := range commentMap {
+		buffer.WriteString(fmt.Sprintf("%d", id))
+		buffer.WriteString(",")
+	}
+	commentIds := strings.TrimRight(buffer.String(), ",")
+
+	// Load all the comment likes
+	err = loadCommentLikes(c, data.User.Id, commentIds, commentMap)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching comment likes: %v", err)
+	}
+
+	// Load all the subscription statuses.
+	if data.User.Id > 0 {
+		err = loadSubscriptions(c, data.User.Id, joinedPageMap, commentMap)
+		if err != nil {
+			return nil, fmt.Errorf("error while fetching subscriptions: %v", err)
+		}
 	}
 
 	// Load all the likes

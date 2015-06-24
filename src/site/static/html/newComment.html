@@ -1,0 +1,21 @@
+<div class="new-comment-div">
+	<div class="like-column pull-left">&nbsp;</div>
+	<div class="text-column">
+		<div class="new-comment" ng-class="{'reply': replyToId}">
+			<div class="new-comment-body">
+				<a href="#" class="new-comment-link" ng-bind="replyToId ? 'Reply' : 'New Comment'"></a>
+			</div>
+			<form class="new-comment-form" hidden>
+				<div class="form-group">
+					<textarea name="text" class="new-comment-text form-control" placeholder="Enter your comment"></textarea>
+				</div>
+				<input name="replyToId" type="hidden" value="{[{replyToId}]}"/>
+				<div class="submit-form-error alert alert-danger" hidden></div>
+				<img src="/static/images/loading.gif" class="loading-indicator"/>
+				<button type="submit" class="btn btn-primary">Submit</button>
+				<a href="#" class="cancel-link cancel-new-comment">Cancel</a>
+			</form>
+		</div>
+	</div>
+	<div class="clearfix"></div>
+</div>
