@@ -163,7 +163,16 @@ func (p *page) processParents(c sessions.Context, pageMap map[int64]*page) error
 // even if it's not live. It also loads all the auxillary data like tags.
 // If the page couldn't be found, (nil, nil) will be returned.
 func loadFullEdit(c sessions.Context, pageId, userId int64) (*page, error) {
-	pagePtr, err := loadEdit(c, pageId, userId, loadEditOptions{loadNonliveEdit: true})
+	return loadFullEditWithOptions(c, pageId, userId, nil)
+}
+
+// loadFullEditWithOptions is just like loadFullEdit, but takes the option
+// parameters. Pass nil to use default options.
+func loadFullEditWithOptions(c sessions.Context, pageId, userId int64, options *loadEditOptions) (*page, error) {
+	if options == nil {
+		options = &loadEditOptions{loadNonliveEdit: true}
+	}
+	pagePtr, err := loadEdit(c, pageId, userId, *options)
 	if err != nil {
 		return nil, err
 	}

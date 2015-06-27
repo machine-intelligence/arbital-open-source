@@ -79,11 +79,15 @@ function smartPageReload() {
 	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
 	window.location.replace(window.location.pathname + "?lastVisit=" + lastVisit);
 }
-// We don't want to display lastVisit in the URL bar, so we'll erase it.
+// We don't want certain url parameters cluttering up the url, so we'll erase them.
 $(function(){
 	var lastVisit = getUrlParameter("lastVisit");
 	if (lastVisit) {
 		$("body").attr("last-visit", lastVisit);
+		history.replaceState(null, document.title, window.location.origin + window.location.pathname);
+	}
+	var ignoreMySaves = getUrlParameter("ignoreMySaves");
+	if (ignoreMySaves) {
 		history.replaceState(null, document.title, window.location.origin + window.location.pathname);
 	}
 });

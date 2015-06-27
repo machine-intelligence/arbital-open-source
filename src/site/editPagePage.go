@@ -106,12 +106,12 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	}
 
 	// Load the actual page.
-	userIdParam := data.User.Id
+	var options *loadEditOptions = nil
 	q := r.URL.Query()
 	if q.Get("ignoreMySaves") != "" {
-		userIdParam = -1
+		options = &loadEditOptions{loadNonliveEdit: false}
 	}
-	data.Page, err = loadFullEdit(c, pageId, userIdParam)
+	data.Page, err = loadFullEditWithOptions(c, pageId, data.User.Id, options)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load existing page: %v", err)
 	} else if data.Page == nil {
