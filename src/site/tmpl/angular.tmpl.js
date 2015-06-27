@@ -325,9 +325,9 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 	// Return a new node object corresponding to the given pageId.
 	// The pair will also be added to the pageIdToNodesMap.
 	var createNode = function(pageId) {
-		var node= {
+		var node = {
 			pageId: pageId,
-			showChildren: false, // TODO: topLevel?
+			showChildren: false,
 			children: [],
 		};
 		var nodes = pageIdToNodesMap[node.pageId];
@@ -372,7 +372,7 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 						parentId = parents[i].ChildId;
 					}
 					var parentPage = pageService.pageMap[parentId];
-					var parentNodes = pageIdToNodesMap[parentPage.PageId] || [];
+					var parentNodes = parentPage ? (pageIdToNodesMap[parentPage.PageId] || []) : [];
 					var parentNodesLen = parentNodes.length;
 					for (var ii = 0; ii < parentNodesLen; ii++){
 						var parentNode = parentNodes[ii];
@@ -402,7 +402,7 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 // PageTreeNodeCtrl is created for each node under the PageTreeCtrl.
 app.controller("PageTreeNodeCtrl", function ($scope, pageService) {
 	$scope.page = pageService.pageMap[$scope.node.pageId];
-	$scope.node.showChildren = $scope.node.children.length > 0;
+	$scope.node.showChildren = !!$scope.node.isTopLevel;
 
 	// toggleNode gets called when the user clicks to show/hide the node.
 	$scope.toggleNode = function() {
