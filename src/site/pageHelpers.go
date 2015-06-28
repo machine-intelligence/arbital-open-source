@@ -32,6 +32,10 @@ const (
 	alphabeticalChildSortingOption  = "alphabetical"
 	likesChildSortingOption         = "likes"
 
+	// Options for vote types
+	probabilityVoteType = "probability"
+	approvalVoteType    = "approval"
+
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	maxKarmaLockFraction = 0.8
 
@@ -66,6 +70,7 @@ type page struct {
 	DeletedBy      int64 `json:",string"`
 	IsAutosave     bool
 	IsSnapshot     bool
+	IsCurrentEdit  bool
 
 	// Data loaded from other tables.
 	LastVisit string
@@ -83,11 +88,15 @@ type page struct {
 	Comments     []*comment
 	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
 	MaxEditEver  int  // highest edit number used for this page for all users
-	Parents      []*pagePair
-	Children     []*pagePair
-	Links        map[string]bool // page alias/id for a link -> true iff the page is published
-	LinkedFrom   []string
-	RedLinkCount int
+	// We don't allow users to change the vote type once a page has been published
+	// with a voteType!="" even once. If it has, this is the vote type it shall
+	// always have.
+	LockedVoteType string
+	Parents        []*pagePair
+	Children       []*pagePair
+	Links          map[string]bool // page alias/id for a link -> true iff the page is published
+	LinkedFrom     []string
+	RedLinkCount   int
 	// Set to pageId corresponding to the question the user started creating for this page
 	ChildDraftId int64 `json:",string"`
 }
@@ -208,9 +217,10 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
-			p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,
+			p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
 			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
+			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType,
 			u.id,u.firstName,u.lastName
 		FROM pages AS p
 		LEFT JOIN (
@@ -224,8 +234,9 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
-		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot,
-		&p.WasPublished, &p.MaxEditEver, &p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
+		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
+		&p.WasPublished, &p.MaxEditEver, &p.LockedVoteType,
+		&p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
@@ -536,7 +547,8 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 	query := fmt.Sprintf(`
 		SELECT * FROM (
 			SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
-				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName,parents
+				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName,parents,
+				isAutosave,isSnapshot,isCurrentEdit
 			FROM pages
 			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
 				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
@@ -549,14 +561,15 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.Type, &p.Author.Id, &p.CreatedAt, &p.Title,
 			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
-			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name, &p.ParentsStr)
+			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name,
+			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
 		if p.DeletedBy <= 0 {
 			// We are reduced to this mokery of copying every variable because the page
 			// in the pageMap might already have some variables populated.
-			// TODO: definitely fix this somehow
+			// TODO: definitely fix this somehow. Probably by refactoring how we load pages
 			op := pageMap[p.PageId]
 			op.Edit = p.Edit
 			op.Type = p.Type
@@ -574,6 +587,9 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			op.SortChildrenBy = p.SortChildrenBy
 			op.Group.Name = p.Group.Name
 			op.ParentsStr = p.ParentsStr
+			op.IsAutosave = p.IsAutosave
+			op.IsSnapshot = p.IsSnapshot
+			op.IsCurrentEdit = p.IsCurrentEdit
 			if err := op.processParents(c, nil); err != nil {
 				return fmt.Errorf("Couldn't process parents: %v", err)
 			}

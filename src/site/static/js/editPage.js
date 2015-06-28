@@ -19,6 +19,10 @@ var EditPage = function(page, pageService, autocompleteService, $topParent, prim
 		if (parentAlias in autocompleteService.aliasMap) {
 			var parentPageId = autocompleteService.aliasMap[parentAlias].PageId;
 			var title = autocompleteService.aliasMap[parentAlias].PageTitle;
+		} else if (parentAlias in pageService.pageMap) {
+			var parentPageId = parentAlias;
+			var title = pageService.pageMap[parentAlias].Title;
+			parentAlias = pageService.pageMap[parentAlias].Alias;
 		} else if (primaryPage !== undefined) {
 			// The parent is the primaryPage.
 			var parentPageId = primaryPage.PageId;
@@ -60,19 +64,6 @@ var EditPage = function(page, pageService, autocompleteService, $topParent, prim
 		};
 		var $form = $topParent.find(".new-page-form");
 		serializeFormData($form, data);
-		if (page.WasPublished) {
-			// Gah! Since we only display one of the inputs for hasVoteStr and
-			// voteType, we have to manually make sure they are synced up, so
-			// we can unabmiguously parse it on the server.
-			if ($("input[name='hasVoteStr']").is(":visible")) {
-				if (!$("input[name='hasVoteStr']").is(":checked")) {
-					data["voteType"] = "";
-				}
-			} else {
-				$("input[name='hasVoteStr']").prop("checked", $("input[name='voteType']").val() != "");
-			}
-		}
-		//if (!("hasVoteStr" in data)$("input[name='hasVoteStr']").is(":visible");
 		return data;
 	};
 	var autosaving = false;
@@ -186,11 +177,18 @@ var EditPage = function(page, pageService, autocompleteService, $topParent, prim
 	});
 
 	// Add parent tags.
-	var addParentTags = function() {
+	// usePageIds - forces pageIds to be passed to createNewParentElement. Used
+	//   to create initial parent elments.
+	var addParentTags = function(usePageIds) {
 		var parentsLen = page.Parents.length;
 		for(var n = 0; n < parentsLen; n++) {
 			var parentPage = pageService.pageMap[page.Parents[n].ParentId];
-			createNewParentElement(parentPage.Alias == "" ? parentPage.PageId : parentPage.Alias);
+			if (usePageIds || parentPage.Alias === "") {
+				var parentKey = parentPage.PageId;
+			} else {
+				var parentKey = parentPage.Alias;
+			}
+			createNewParentElement(parentKey);
 		}
 	};
 
@@ -222,10 +220,10 @@ var EditPage = function(page, pageService, autocompleteService, $topParent, prim
 				return false;
 			}
 		});
-		addParentTags();
 		// Set up Markdown.
 		zndMarkdown.init(true, pageId, "", undefined, autocompleteService);
 	});
+	addParentTags(true);
 
 	// Setup karma lock slider.
 	var $slider = $topParent.find(".karma-lock-slider");
@@ -457,7 +455,6 @@ app.directive("zndEditPage", function(pageService, userService, autocompleteServ
 				approval: "Approval",
 			};
 			scope.page.VoteType = scope.page.VoteType in scope.voteTypes ? scope.page.VoteType : "";
-			scope.showVoteCheckbox = scope.page.WasPublished && scope.page.VoteType != "";
 
 			var primaryPage = undefined;
 			if (scope.questionId) {

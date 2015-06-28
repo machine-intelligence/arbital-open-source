@@ -128,6 +128,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			data.SortChildrenBy != alphabeticalChildSortingOption {
 			return http.StatusBadRequest, fmt.Sprintf("Invalid sort children value.")
 		}
+		if data.VoteType != "" && data.VoteType != probabilityVoteType && data.VoteType != approvalVoteType {
+			return http.StatusBadRequest, fmt.Sprintf("Invalid vote type value.")
+		}
 		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
 			return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
 		}
@@ -169,9 +172,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// in a straight-forward way to populate the database.
 	// Can't change certain parameters after the page has been published.
 	var hasVote bool
-	if oldPage.WasPublished && oldPage.VoteType != "" {
+	if oldPage.LockedVoteType != "" {
 		hasVote = data.HasVoteStr == "on"
-		data.VoteType = oldPage.VoteType
+		data.VoteType = oldPage.LockedVoteType
 	} else {
 		hasVote = data.VoteType != ""
 	}

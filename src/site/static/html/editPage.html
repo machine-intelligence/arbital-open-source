@@ -84,7 +84,7 @@
 				</div>
 			
 				<!-- Show/hide vote -->
-				<div class="form-group" ng-show="showVoteCheckbox && page.Type != 'question' && page.Type != 'answer'">
+				<div class="form-group" ng-show="page.LockedVoteType != '' && page.Type != 'question' && page.Type != 'answer'">
 					<label class="title-label control-label col-sm-2">Show Vote</label>
 					<div class="col-sm-8">
 						<div class="checkbox">
@@ -96,7 +96,7 @@
 				</div>
 			
 				<!-- Vote type -->
-				<div class="form-group" ng-show="!showVoteCheckbox && page.Type != 'question' && page.Type != 'answer'">
+				<div class="form-group" ng-show="page.LockedVoteType == '' && page.Type != 'question' && page.Type != 'answer'">
 					<label class="title-label control-label col-sm-2">Vote Type</label>
 					<div class="col-sm-4">
 						<select ng-model="page.VoteType"
