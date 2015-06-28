@@ -48,8 +48,12 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else if p == nil {
-		c.Errorf("Couldn't find page by alias: %s", data.PageAlias)
-		w.WriteHeader(http.StatusBadRequest)
+		var jsonData []byte
+		jsonData, err = json.Marshal(nil)
+		if err != nil {
+			fmt.Println("Error marshalling nil into json:", err)
+		}
+		fmt.Fprintf(w, "%s", jsonData)
 		return
 	}
 	pageIdStr := fmt.Sprintf("%d", p.PageId)

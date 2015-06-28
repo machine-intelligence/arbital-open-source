@@ -355,7 +355,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		}
 	}
 	pageIdStr := fmt.Sprintf("%d", pageId)
-	data.Page, err = loadPage(c, pageId, data.User.Id)
+	data.Page, err = loadEdit(c, pageId, data.User.Id, loadEditOptions{ignoreParents: true})
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if data.Page == nil {

@@ -82,7 +82,6 @@ func init() {
 	r.HandleFunc("/newTag/", newTagHandler).Methods("POST")
 	r.HandleFunc("/newVote/", newVoteHandler).Methods("POST")
 	r.HandleFunc("/pageInfo/", pageInfoHandler).Methods("POST")
-	r.HandleFunc("/updateInput/", updateInputHandler).Methods("POST")
 	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
 	r.HandleFunc("/updateCommentLike/", updateCommentLikeHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")

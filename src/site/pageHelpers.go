@@ -76,7 +76,6 @@ type page struct {
 	LastVisit string
 
 	// Computed values.
-	InputCount   int //used?
 	IsSubscribed bool
 	HasChildren  bool // whether or not this page has children
 	HasParents   bool // whether or not this page has parents
@@ -200,6 +199,8 @@ type loadEditOptions struct {
 	// If true, the last edit will be loaded for the given user, even if it's an
 	// autosave or a snapshot.
 	loadNonliveEdit bool
+	// Don't convert loaded parents string into an array of parents
+	ignoreParents bool
 }
 
 func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions) (*page, error) {
@@ -237,7 +238,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	}
 	if p.DeletedBy > 0 {
 		return &page{PageId: p.PageId, DeletedBy: p.DeletedBy}, nil
-	} else {
+	} else if !options.ignoreParents {
 		if err := p.processParents(c, nil); err != nil {
 			return nil, fmt.Errorf("Couldn't process parents: %v", err)
 		}

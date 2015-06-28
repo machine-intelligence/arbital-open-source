@@ -342,6 +342,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					})
 					.success(function(r) {
 						var page = JSON.parse(r);
+						if (!page) return;
 						fetchedPagesMap[page.PageId] = page;
 						if (page.Alias && page.Alias !== page.PageId) {
 							// Store the alias as well.

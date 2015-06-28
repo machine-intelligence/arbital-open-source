@@ -4,7 +4,8 @@ var InitMathjax = (function () {
   var ready   = false;  // true after initial typeset is complete
   var pending = false;  // true when MathJax has been requested
   var preview = null;   // the preview container
-  var inline = "$";     // the inline math delimiter
+  var inlineDelim = "$$";  // the inline math delimiter
+	var blockDelim = "$$$";  // the block math delimeter
 
   var blocks, start, end, last, braces; // used in searching for math
   var math;                             // stores math until markdone is done
@@ -85,7 +86,7 @@ var InitMathjax = (function () {
         //  Look for math start delimiters and when
         //    found, set up the end delimiter.
         //
-        if (block === inline || block === "$$") {
+        if (block === inlineDelim || block === blockDelim) {
           start = i; end = block; braces = 0;
         } else if (block.substr(1,5) === "begin") {
           start = i; end = "\\end"+block.substr(6); braces = 0;
@@ -145,8 +146,8 @@ var InitMathjax = (function () {
       "HTML-CSS": {EqnChunk: 10, EqnChunkFactor: 1}, // reduce chunk for more frequent updates
              SVG: {EqnChunk: 10, EqnChunkFactor: 1},
          tex2jax: {
-            inlineMath: [ ['$','$'] ],
-            displayMath: [ ['$$','$$'] ],
+            inlineMath: [ [inlineDelim, inlineDelim] ],
+            displayMath: [ [blockDelim, blockDelim] ],
             processEscapes: true
          },
          showProcessingMessages: false,

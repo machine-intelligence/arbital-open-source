@@ -44,7 +44,7 @@
 						<button type="submit" class="btn btn-primary" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
 						<span class="gray-text autosave-label" hidden></span>
 						<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal && page.Type != 'answer'">Revert to Live Version</a>
-						<button type="button" class="new-page-button btn btn-primary pull-right" ng-show="isModal && page.Type != 'question'" toggle-on-submit>New Page</button>
+						<button type="button" class="new-page-button btn btn-danger pull-right" ng-show="isModal && page.Type != 'question'" toggle-on-submit>Clean Slate</button>
 						<button type="button" class="abandon-page-button btn btn-danger pull-right" ng-show="page.Type == 'question' && !page.WasPublished" toggle-on-submit>Abandon</button>
 						<div class="alert alert-danger" hidden></div>
 						<span class="loading-text" style="display:none"></span>

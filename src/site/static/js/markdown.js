@@ -85,7 +85,7 @@ var zndMarkdown = zndMarkdown || function() {
 			editor.run();
 			return;
 		}
-		InitMathjax(converter, undefined, pageId);
+		InitMathjax(converter);
 	
 		var html = converter.makeHtml(pageText);
 		var $pageText = $topParent.find(".page-text")
@@ -126,6 +126,7 @@ var zndMarkdown = zndMarkdown || function() {
 				})
 				.success(function(r) {
 					var page = JSON.parse(r);
+					if (!page) return;
 					if (!doEmbed) {
 						if (parts[4] !== undefined) {
 							$element.text(page.Title);
