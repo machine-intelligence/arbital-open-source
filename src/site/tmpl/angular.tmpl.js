@@ -295,7 +295,7 @@ app.service("autocompleteService", function($http){
 	// Converts "title (alias)" string into "alias". Used to process the string
 	// seleted by alias autocompletion.
 	this.convertInputToAlias = function(input) {
-		var openParenIndex = input.indexOf("(");
+		var openParenIndex = input.lastIndexOf("(");
 		if (openParenIndex > 0) {
 		  // Input is probably of the type: "title" (alias)
 		  var closeParenIndex = input.lastIndexOf(")");
