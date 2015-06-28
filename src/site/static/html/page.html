@@ -68,7 +68,7 @@
 	<div class="text-column">
 		<a id="page-{[{page.PageId}]}"></a>
 		<znd-page-title page-id="page.PageId" class="page-title"></znd-page-title>
-		<div class="author-text" ng-show="page.Type == 'blog'">by <znd-user-name user-id="page.Author.Id"></znd-user-name></div>
+		<div class="author-text" ng-show="page.Type == 'blog'">by <znd-user-name user-id="page.CreatorId"></znd-user-name></div>
 
 		<!-- Voting container -->
 		<div class="page-vote" ng-show="page.HasVote"></div>
@@ -78,7 +78,7 @@
 
 		<!--Admin stuff -->
 		<span class="admin" ng-show="userService.user.IsAdmin">
-			Last Visit: {[{page.LastVisit}]}; Last Edit At: {[{page.CreatedAt}]} by <znd-user-name user-id="page.Author.Id"></znd-user-name>
+			Last Visit: {[{page.LastVisit}]}; Last Edit At: {[{page.CreatedAt}]} by <znd-user-name user-id="page.CreatorId"></znd-user-name>
 		</span>
 	</div>
 

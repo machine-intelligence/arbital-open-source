@@ -43,8 +43,8 @@
 			$scope.questionIds.sort(function(id1, id2) {
 				var page1 = pageService.pageMap[id1];
 				var page2 = pageService.pageMap[id2];
-				var ownerDiff = (page2.Author.Id == userService.user.Id ? 1 : 0) -
-						(page1.Author.Id == userService.user.Id ? 1 : 0);
+				var ownerDiff = (page2.CreatorId == userService.user.Id ? 1 : 0) -
+						(page1.CreatorId == userService.user.Id ? 1 : 0);
 				if (ownerDiff != 0) return ownerDiff;
 				return page2.LikeScore - page1.LikeScore;
 			});

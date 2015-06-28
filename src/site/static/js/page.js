@@ -523,7 +523,7 @@ app.directive("zndComment", function ($compile) {
 			}
 
 			var lastVisit = $scope.page.LastVisit;
-			var showStars = $scope.comment.Author.Id != userService.user.Id && lastVisit != "";
+			var showStars = $scope.comment.CreatorId != userService.user.Id && lastVisit != "";
 			$scope.isNewComment = showStars && $scope.comment.CreatedAt >= lastVisit;
 			$scope.isUpdatedComment = !$scope.isNewComment && showStars && $scope.comment.UpdatedAt >= lastVisit;
 			if($scope.isNewComment) {

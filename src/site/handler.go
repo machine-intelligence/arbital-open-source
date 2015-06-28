@@ -128,7 +128,7 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 				return getPageUrl(p)
 			},
 			"IsUpdatedPage": func(p *page) bool {
-				return p.Author.Id != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
+				return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 			},
 			"CanComment":            func() bool { return u.Karma >= commentKarmaReq },
 			"CanLike":               func() bool { return u.Karma >= likeKarmaReq },

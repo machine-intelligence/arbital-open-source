@@ -56,13 +56,13 @@ app.service("pageService", function(userService, $http){
 	var pageFuncs = {
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
-			return this.Author.Id != userService.user.Id && this.LastVisit != "" && this.CreatedAt >= this.LastVisit;
+			return this.CreatorId != userService.user.Id && this.LastVisit != "" && this.CreatedAt >= this.LastVisit;
 		},
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
 			if (this.Type == "blog") {
-				if (this.Author.Id == userService.user.Id) {
+				if (this.CreatorId == userService.user.Id) {
 					return "";
 				} else {
 					return "blog";
@@ -86,7 +86,7 @@ app.service("pageService", function(userService, $http){
 		// for why they can't.
 		getDeleteLevel: function() {
 			if (this.Type == "blog") {
-				if (this.Author.Id == userService.user.Id) {
+				if (this.CreatorId == userService.user.Id) {
 					return "";
 				} else if (userService.user.IsAdmin) {
 					return "admin";

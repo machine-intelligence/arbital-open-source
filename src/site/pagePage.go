@@ -28,7 +28,7 @@ type comment struct {
 	Text         string
 	CreatedAt    string
 	UpdatedAt    string
-	Author       dbUser
+	CreatorId    int64 `json:",string"`
 	LikeCount    int
 	MyLikeValue  int
 	IsSubscribed bool
@@ -75,13 +75,8 @@ func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int
 	sortedCommentIds := make([]int64, 0)
 
 	query := fmt.Sprintf(`
-		SELECT c.id,pageId,replyToId,text,createdAt,updatedAt,u.id,u.firstName,u.lastName
+		SELECT c.id,pageId,replyToId,text,createdAt,updatedAt,creatorId
 		FROM comments AS c
-		LEFT JOIN (
-			SELECT id,firstName,lastName
-			FROM users
-		) AS u
-		ON c.creatorId=u.id
 		WHERE pageId IN (%s)`, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var ct comment
@@ -92,9 +87,7 @@ func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int
 			&ct.Text,
 			&ct.CreatedAt,
 			&ct.UpdatedAt,
-			&ct.Author.Id,
-			&ct.Author.FirstName,
-			&ct.Author.LastName)
+			&ct.CreatorId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for comments: %v", err)
 		}
@@ -539,8 +532,8 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			pageObj.Comments = append(pageObj.Comments, commentMap[key])
 		}
 		// Add the comment's author to the user map
-		if _, ok := data.UserMap[comment.Author.Id]; !ok {
-			data.UserMap[comment.Author.Id] = &dbUser{Id: comment.Author.Id}
+		if _, ok := data.UserMap[comment.CreatorId]; !ok {
+			data.UserMap[comment.CreatorId] = &dbUser{Id: comment.CreatorId}
 		}
 	}
 

@@ -61,7 +61,7 @@ type page struct {
 	SortChildrenBy string
 	HasVote        bool
 	VoteType       string
-	Author         dbUser
+	CreatorId      int64 `json:",string"`
 	CreatedAt      string
 	KarmaLock      int
 	PrivacyKey     int64 `json:",string"`
@@ -215,28 +215,21 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	}
 	// TODO: we often don't need maxEditEver
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,
+		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
 			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
-			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType,
-			u.id,u.firstName,u.lastName
+			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pages AS p
-		LEFT JOIN (
-			SELECT id,firstName,lastName
-			FROM users
-		) AS u
-		ON p.creatorId=u.Id
 		WHERE p.pageId=%[1]d AND %[2]s AND
 			(p.groupName="" OR p.groupName IN (SELECT groupName FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
-		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.SortChildrenBy,
+		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
-		&p.WasPublished, &p.MaxEditEver, &p.LockedVoteType,
-		&p.Author.Id, &p.Author.FirstName, &p.Author.LastName)
+		&p.WasPublished, &p.MaxEditEver, &p.LockedVoteType)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
@@ -559,7 +552,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p page
 		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.Type, &p.Author.Id, &p.CreatedAt, &p.Title,
+			&p.PageId, &p.Edit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title,
 			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit)
@@ -573,7 +566,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			op := pageMap[p.PageId]
 			op.Edit = p.Edit
 			op.Type = p.Type
-			op.Author.Id = p.Author.Id
+			op.CreatorId = p.CreatorId
 			op.CreatedAt = p.CreatedAt
 			op.Title = p.Title
 			op.Text = p.Text
@@ -643,7 +636,7 @@ func getEditPageUrl(p *page) string {
 // "###" = user doesn't have at least ### karma
 func getEditLevel(p *page, u *user.User) string {
 	if p.Type == blogPageType {
-		if p.Author.Id == u.Id {
+		if p.CreatorId == u.Id {
 			return ""
 		} else {
 			return "blog"
@@ -669,7 +662,7 @@ func getEditLevel(p *page, u *user.User) string {
 // "###" = user doesn't have at least ### karma
 func getDeleteLevel(p *page, u *user.User) string {
 	if p.Type == blogPageType {
-		if p.Author.Id == u.Id {
+		if p.CreatorId == u.Id {
 			return ""
 		} else if u.IsAdmin {
 			return "admin"

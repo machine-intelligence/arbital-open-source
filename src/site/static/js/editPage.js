@@ -323,7 +323,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 							newPage.Type = $scope.parentPage.Type;
 						}
 						newPage.Parents = [{ParentId: $scope.parentPage.PageId}];
-						newPage.Author = {Id: userService.user.Id};
+						newPage.CreatorId = userService.user.Id;
 						newPage.Group = $scope.parentPage.Group;
 					}
 

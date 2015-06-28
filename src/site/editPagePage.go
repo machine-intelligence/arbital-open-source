@@ -119,7 +119,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		data.Page = &page{PageId: pageId, Alias: fmt.Sprintf("%d", pageId), IsAutosave: true}
 	}
 	// Check if the privacy key we got is correct.
-	if !data.Page.WasPublished && data.Page.Author.Id == data.User.Id {
+	if !data.Page.WasPublished && data.Page.CreatorId == data.User.Id {
 		// We can skip privacy key check
 	} else if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
 		return nil, fmt.Errorf("This page is private. Invalid privacy key given.")

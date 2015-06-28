@@ -5,7 +5,7 @@
 		<div class="like-column pull-left">
 			<span class="pull-right">
 				&nbsp;
-				<a href="#" class="edit-comment-link glyphicon glyphicon-pencil" title="Edit this comment" ng-show="comment.Author.Id == userService.user.Id"></a>
+				<a href="#" class="edit-comment-link glyphicon glyphicon-pencil" title="Edit this comment" ng-show="comment.CreatorId == userService.user.Id"></a>
 				<a href="#"
 					class="subscribe-comment-link glyphicon glyphicon-eye-open"
 					ng-class="{'on': comment.IsSubscribed}"
@@ -15,7 +15,7 @@
 					class="like-comment-link glyphicon glyphicon-thumbs-up"
 					ng-class="{'on': comment.MyLikeValue > 1}"
 					title="This is a high quality comment"
-					ng-show="userService.user.IsLoggedIn && comment.Author.Id != userService.user.Id"></a>
+					ng-show="userService.user.IsLoggedIn && comment.CreatorId != userService.user.Id"></a>
 				<span class="comment-like-count"
 					title="Number of upvotes this comment has received"
 					ng-bind="comment.LikeCount"
@@ -34,7 +34,7 @@
 						<span class="new-updated-label glyphicon glyphicon-star-empty"
 							title="This comment has been updated since the last time you've seen it"
 							ng-show="isUpdatedComment"></span>
-						<znd-user-name user-id="comment.Author.Id"></znd-user-name>:&nbsp;
+						<znd-user-name user-id="comment.CreatorId"></znd-user-name>:&nbsp;
 					</div>
 					<div class="comment-text" ng-bind="comment.Text"></div>
 				</div>
