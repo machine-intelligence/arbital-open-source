@@ -90,6 +90,9 @@ var zndMarkdown = zndMarkdown || function() {
 		var html = converter.makeHtml(pageText);
 		var $pageText = $topParent.find(".page-text")
 		$pageText.html(html);
+		window.setTimeout(function() {
+			MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
+		}, 100);
 		firstPass = false;
 	
 		// Setup attributes for links that are within our domain.

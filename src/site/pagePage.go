@@ -52,22 +52,26 @@ type pageTmplData struct {
 	RelatedIds  []string
 }
 
+var (
+	pageOptions = newPageOptions{LoadUserGroups: true}
+)
+
 // pagePage serves the page page.
-var pagePage = newPage(
+var pagePage = newPageWithOptions(
 	"/pages/{alias:[A-Za-z0-9_-]+}",
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
 		"tmpl/angular.tmpl.js", "tmpl/comment.tmpl",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
-var privatePagePage = newPage(
+var privatePagePage = newPageWithOptions(
 	"/pages/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
 		"tmpl/angular.tmpl.js", "tmpl/comment.tmpl",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
 // loadComments loads and returns all the comments for the given page ids from the db.
 func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int64, error) {
