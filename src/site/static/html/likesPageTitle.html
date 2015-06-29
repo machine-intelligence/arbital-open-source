@@ -1,5 +1,4 @@
-<!-- Display page's likes and title.
-Required variables: page -->
+<!-- Display page's likes and title. -->
 
 <!-- Likes and dislikes -->
 <div ng-hide="page.Title==''">
@@ -16,12 +15,15 @@ Required variables: page -->
 		<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
 	</span>
 
-	<span class="quick-edit-span">
-		<a ng-href="{[{page.EditUrl}]}" class="edit-page-link glyphicon glyphicon-pencil" ng-show="showQuickEditLink"></a>
+	<span class="quick-edit-span" ng-show="showQuickEditLink && page.IsCurrentEdit">
+		<a ng-href="{[{page.EditUrl}]}" class="edit-page-link glyphicon glyphicon-pencil"></a>
 	</span>
 	
 	<span class="inline-page-title">
-		<a ng-href="{[{page.Url}]}" class="intrasite-link" ng-bind="page.Title"></a>
+		<a ng-href="{[{(page.IsCurrentEdit || !showQuickEditLink) ? page.Url : page.EditUrl}]}" class="intrasite-link">
+			<span class="glyphicon glyphicon-pencil" ng-show="showQuickEditLink && !page.IsCurrentEdit"></span>
+			<span ng-bind="page.Title"></span>
+		</a>
 	</span>
 
 	<span class="created-span gray-text" ng-bind="page.CreatedAt | simpleDateTime" ng-show="showCreatedAt">

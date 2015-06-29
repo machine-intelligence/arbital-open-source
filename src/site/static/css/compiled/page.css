@@ -381,7 +381,6 @@
   font-size: 28px;
 }
 .quick-edit-span {
-  padding-left: 15px;
   display: table-cell;
 }
 .quick-edit-span .edit-page-link {
@@ -830,6 +829,7 @@ textarea.new-comment-text {
   font-size: 14px;
   white-space: nowrap;
   display: table-cell;
+  padding-right: 15px;
 }
 .like-small-span .like-count {
   color: #0ccd29;
