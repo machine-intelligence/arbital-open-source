@@ -198,7 +198,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 
 	// Try to extract the summary out of the text.
-	re := regexp.MustCompile("(?ms)^ {0,3}<summary> *\n(.+?)\n {0,3}</summary> *$")
+	re := regexp.MustCompile("(?ms)^ {0,3}Summary ?: *\n?(.+?)(\n$|\\z)")
 	submatches := re.FindStringSubmatch(data.Text)
 	summary := ""
 	if len(submatches) > 0 {

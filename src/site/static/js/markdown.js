@@ -9,12 +9,12 @@ var zndMarkdown = zndMarkdown || function() {
 		});*/
 	
 		// Convert <summary> tags into a summary paragraph.
-		converter.hooks.chain("preBlockGamut", function (text, rbg) {
+		/*converter.hooks.chain("preBlockGamut", function (text, rbg) {
 			return text.replace(/^ {0,3}<summary> *\n(.+?)\n {0,3}<\/summary> *$/m, function (whole, inner) {
 				var s = "\n\n**Summary:** " + inner + "\n\n";
 				return rbg(s);
 			});
-		});
+		});*/
 	
 		// Convert <embed> tags into a link.
 		var firstPass = !inEditMode;
