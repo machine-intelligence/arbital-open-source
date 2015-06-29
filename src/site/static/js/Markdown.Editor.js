@@ -1025,7 +1025,13 @@
 
 		// Set up input
 		$input.val("").attr("placeholder", helpText);
-		if (isIntraLink) {
+		if ($input.autocomplete("instance")) {
+			if (isIntraLink) {
+				$input.autocomplete("enable");
+			} else {
+				$input.autocomplete("disable");
+			}
+		} else if (isIntraLink) {
 			autocompleteService.loadAliasSource(function() {
 			  $input.autocomplete({
 					source: autocompleteService.aliasSource,
@@ -1658,7 +1664,7 @@
 			if (isImage) {
 				if (!this.hooks.insertImageDialog(linkEnteredCallback)) {
 					ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
-								}
+				}
 			} else {
 				ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
 			}
