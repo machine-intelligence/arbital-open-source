@@ -402,7 +402,7 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 // PageTreeNodeCtrl is created for each node under the PageTreeCtrl.
 app.controller("PageTreeNodeCtrl", function ($scope, pageService) {
 	$scope.page = pageService.pageMap[$scope.node.pageId];
-	$scope.node.showChildren = !!$scope.node.isTopLevel;
+	$scope.node.showChildren = !!$scope.node.isTopLevel && $scope.additionalMap;
 
 	// toggleNode gets called when the user clicks to show/hide the node.
 	$scope.toggleNode = function() {
