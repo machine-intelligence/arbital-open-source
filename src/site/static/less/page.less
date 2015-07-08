@@ -75,6 +75,7 @@
 	}
 
 	.comments {
+		margin-top: 15px;
 		position: relative;
 		left: -@left-column-width;
 	}
@@ -285,6 +286,12 @@
 
 // Comment stuff
 
+.comment {
+	position: relative;
+	top: -10px;
+	margin-bottom: -10px;
+}
+
 .comment-content {
 }
 
@@ -298,10 +305,6 @@
 
 .comment-text {
 	margin-left: 15px;
-	// TODO: Not a fan of this! But without it comments take up too much vertical space.
-	p {
-		margin: 0 0;
-	}
 }
 
 .reply {
@@ -341,6 +344,11 @@
 
 .like-comment-link {
 	.comment-icon(@like-color);
+}
+
+.new-comment-div {
+	position: relative;
+	top: -10px;
 }
 
 .new-comment-link {

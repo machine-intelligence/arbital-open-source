@@ -190,6 +190,7 @@
   margin-left: 130px;
 }
 .page-body-div .comments {
+  margin-top: 15px;
   position: relative;
   left: -130px;
 }
@@ -517,15 +518,17 @@
   left: -15px;
   font-size: 14px;
 }
+.comment {
+  position: relative;
+  top: -10px;
+  margin-bottom: -10px;
+}
 .comment-creator-name {
   white-space: nowrap;
   font-weight: bold;
 }
 .comment-text {
   margin-left: 15px;
-}
-.comment-text p {
-  margin: 0 0;
 }
 .reply {
   margin-left: 17px;
@@ -628,6 +631,10 @@
 }
 .like-comment-link.on {
   visibility: visible;
+}
+.new-comment-div {
+  position: relative;
+  top: -10px;
 }
 .new-comment-link {
   color: #b8b8b8;
