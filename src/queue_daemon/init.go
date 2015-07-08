@@ -79,12 +79,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		c.Debugf("TickTask enqueue error: %v", err)
 	}
 
-	// Insert the first Comment conversion task
-	err = tasks.EnqueueWithName(c, tasks.ConvertCommentTask{}, "convertComment", "convertComment")
-	if err != nil {
-		c.Debugf("ConvertComment enqueue error: %v", err)
-	}
-
 	for true {
 		if err := processTask(c); err != nil {
 			c.Errorf("%v", err)
