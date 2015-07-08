@@ -66,7 +66,7 @@ func loadUsersInfo(c sessions.Context, userMap map[int64]*dbUser) error {
 func loadUpdateCount(c sessions.Context, userId int64) (int, error) {
 	var updateCount int
 	query := fmt.Sprintf(`
-		SELECT COALESCE(SUM(count), 0)
+		SELECT COALESCE(COUNT(distinct contextPageId), 0)
 		FROM updates
 		WHERE userId=%d AND seen=0`, userId)
 	_, err := database.QueryRowSql(c, query, &updateCount)

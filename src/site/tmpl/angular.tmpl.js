@@ -54,18 +54,24 @@ app.service("pageService", function(userService, $http){
 	};
 
 	var pageFuncs = {
+		// Check if the user has never visited this page before.
+		isNewPage: function() {
+			return this.CreatorId != userService.user.Id &&
+				(this.LastVisit === "" || this.OriginalCreatedAt >= this.LastVisit);
+		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
-			return this.CreatorId != userService.user.Id && this.LastVisit != "" && this.CreatedAt >= this.LastVisit;
+			return this.CreatorId != userService.user.Id &&
+				this.LastVisit !== "" && this.CreatedAt >= this.LastVisit && this.LastVisit > this.OriginalCreatedAt;
 		},
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
-			if (this.Type == "blog") {
+			if (this.Type === "blog" || this.Type === "comment") {
 				if (this.CreatorId == userService.user.Id) {
 					return "";
 				} else {
-					return "blog";
+					return this.Type;
 				}
 			}
 			var karmaReq = this.KarmaLock;
@@ -85,13 +91,13 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
 		getDeleteLevel: function() {
-			if (this.Type == "blog") {
+			if (this.Type === "blog" || this.Type === "comment") {
 				if (this.CreatorId == userService.user.Id) {
 					return "";
 				} else if (userService.user.IsAdmin) {
 					return "admin";
 				} else {
-					return "blog";
+					return this.Type;
 				}
 			}
 			var karmaReq = this.KarmaLock;
@@ -124,7 +130,7 @@ app.service("pageService", function(userService, $http){
 		var existingPage = this.pageMap[page.PageId];
 		if (existingPage !== undefined) {
 			if (page === existingPage) return;
-			console.log("existingPage"); console.log(existingPage);
+			console.log("existingPage:"); console.log(existingPage);
 			// Merge.
 			existingPage.Children = existingPage.Children.concat(page.Children);
 			existingPage.Parents = existingPage.Parents.concat(page.Parents);
@@ -163,6 +169,49 @@ app.service("pageService", function(userService, $http){
 				console.log("Error loading children:"); console.log(data); console.log(status);
 				error(data, status);
 			});
+	};
+
+	// Return function for sorting children ids.
+	this.getChildSortFunc = function(page) {
+		var pageMap = this.pageMap;
+		if(page.SortChildrenBy === "alphabetical") {
+			return function(aId, bId) {
+				var aTitle = pageMap[aId].Title;
+				var bTitle = pageMap[bId].Title;
+				// If title starts with a number, we want to compare those numbers directly,
+				// otherwise "2" comes after "10".
+				var aNum = parseInt(aTitle);
+				if (aNum) {
+					var bNum = parseInt(bTitle);
+					if (bNum) {
+						return aNum - bNum;
+					}
+				}
+				return pageMap[aId].Title.localeCompare(pageMap[bId].Title);
+			};
+		} else if (page.SortChildrenBy === "chronological") {
+			var reverse = page.Type === "comment";
+			return function(aId, bId) {
+				var r = pageMap[bId].OriginalCreatedAt.localeCompare(pageMap[aId].OriginalCreatedAt);
+				return reverse ? -1*r : r;
+			};
+		} else {
+			if (page.SortChildrenBy !== "likes") console.log("Unknown sort type: " + page.SortChildrenBy);
+			return function(aId, bId) {
+				var diff = pageMap[bId].LikeCount - pageMap[aId].LikeCount;
+				if (diff === 0) {
+					return pageMap[aId].Title.localeCompare(pageMap[bId].Title);
+				}
+				return diff;
+			};
+		}
+	};
+	// Sort the given page's children.
+	this.sortChildren = function(page) {
+		var sortFunc = this.getChildSortFunc(page);
+		page.Children.sort(function(aChild, bChild) {
+			return sortFunc(aChild.ChildId, bChild.ChildId);
+		});
 	};
 
 	// Load parents for the given page. Success/error callbacks are called only
@@ -224,7 +273,8 @@ app.service("pageService", function(userService, $http){
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
-			});
+			}
+		);
 	};
 
 	// Delete the page with the given pageId.
@@ -232,7 +282,6 @@ app.service("pageService", function(userService, $http){
 		var data = {
 			pageId: pageId,
 		};
-		console.log(data);
 		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)}).
 			success(function(data, status){
 				console.log("Successfully deleted " + pageId);
@@ -240,7 +289,24 @@ app.service("pageService", function(userService, $http){
 			}).error(function(data, status){
 				console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
 				if(error) error(data, status);
-			});
+			}
+		);
+	};
+
+	// Abandon the page with the given id.
+	this.abandonPage = function(pageId, success, error) {
+		var data = {
+			pageId: pageId,
+		};
+		$http({method: "POST", url: "/abandonPage/", data: JSON.stringify(data)}).
+			success(function(data, status){
+				console.log("Successfully abandoned " + pageId);
+				if(success) success(data, status);
+			}).error(function(data, status){
+				console.log("Error abandoning " + pageId + ":"); console.log(data); console.log(status);
+				if(error) error(data, status);
+			}
+		);
 	};
 
 	// Setup all initial pages.
@@ -339,6 +405,18 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 		return node;
 	};
 
+	// Sort node's children based on how the corresponding page sorts its children.
+	$scope.sortNodeChildren = function(node) {
+		if (node === $scope.rootNode) {
+			var sortFunc = pageService.getChildSortFunc({SortChildrenBy: "alphabetical"});
+		} else {
+			var sortFunc = pageService.getChildSortFunc(pageService.pageMap[node.pageId]);
+		}
+		node.children.sort(function(aNode, bNode) {
+			return sortFunc(aNode.pageId, bNode.pageId);
+		});
+	};
+
 	// Return true iff the given node has a node child corresponding to the pageId.
 	var nodeHasPageChild = function(node, pageId) {
 		return node.children.some(function(child) {
@@ -392,11 +470,13 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 	$scope.processPages($scope.initMap, true);
 	$scope.processPages($scope.additionalMap);
 
-	// Sorting function for node's children.
-	$scope.sortChildren = function (node) {
-		var page = pageService.pageMap[node.pageId];
-		return page.Title;
-	};
+	if (!$scope.isParentTree) {
+		// Sort children.
+		$scope.sortNodeChildren($scope.rootNode);
+		for (var n = 0; n < $scope.rootNode.children.length; n++) {
+			$scope.sortNodeChildren($scope.rootNode.children[n]);
+		}
+	}
 });
 
 // PageTreeNodeCtrl is created for each node under the PageTreeCtrl.
@@ -444,7 +524,7 @@ app.directive("zndUserName", function(userService) {
 	return {
 		templateUrl: "/static/html/userName.html",
 		scope: {
-			userId: "=",
+			userId: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
@@ -458,7 +538,7 @@ app.directive("zndPageTitle", function(pageService) {
 	return {
 		templateUrl: "/static/html/pageTitle.html",
 		scope: {
-			pageId: "=",
+			pageId: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];
@@ -471,10 +551,10 @@ app.directive("zndLikesPageTitle", function(pageService) {
 	return {
 		templateUrl: "/static/html/likesPageTitle.html",
 		scope: {
-			pageId: "=",
-			showRedLinkCount: "=",
-			showQuickEditLink: "=",
-			showCreatedAt: "=",
+			pageId: "@",
+			showRedLinkCount: "@",
+			showQuickEditLink: "@",
+			showCreatedAt: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];

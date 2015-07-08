@@ -75,20 +75,20 @@ function getUrlParameter(sParam) {
 // Reload the page with a lastVisit parameter so we can pretend that we are
 // looking at a page at that time. This way new/updated markers are displayed
 // correctly.
-function smartPageReload() {
+function smartPageReload(hash) {
 	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
-	window.location.replace(window.location.pathname + "?lastVisit=" + lastVisit);
+	if (!lastVisit) {
+		lastVisit = "0";
+	}
+	window.location.href = window.location.pathname + "?lastVisit=" + lastVisit + (hash ? "#" + hash : "");
 }
 // We don't want certain url parameters cluttering up the url, so we'll erase them.
 $(function(){
 	var lastVisit = getUrlParameter("lastVisit");
 	if (lastVisit) {
 		$("body").attr("last-visit", lastVisit);
-		history.replaceState(null, document.title, window.location.origin + window.location.pathname);
-	}
-	var ignoreMySaves = getUrlParameter("ignoreMySaves");
-	if (ignoreMySaves) {
-		history.replaceState(null, document.title, window.location.origin + window.location.pathname);
+		history.replaceState(null, document.title,
+			window.location.origin + window.location.pathname + window.location.hash);
 	}
 });
 

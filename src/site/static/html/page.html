@@ -45,8 +45,8 @@
 				 ng-show="page.Type == 'answer'"></a>
 			<a ng-href="{[{page.EditUrl}]}"
 				 class="edit-page-link glyphicon glyphicon-pencil"
-				 ng-class="{'admin': page.getEditLevel() == 'admin'}"
-				 title="Edit this page"
+				 ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.HasDraft}"
+				 title="{[{page.HasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}]}"
 				 ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
 			<a href="#"
 				 class="delete-page-link glyphicon glyphicon-remove"
@@ -67,18 +67,18 @@
 	<!-- Main page column -->
 	<div class="text-column">
 		<a id="page-{[{page.PageId}]}"></a>
-		<znd-page-title page-id="page.PageId" class="page-title"></znd-page-title>
-		<div class="author-text" ng-show="page.Type == 'blog'">by <znd-user-name user-id="page.CreatorId"></znd-user-name></div>
+		<znd-page-title page-id="{[{page.PageId}]}" class="page-title"></znd-page-title>
+		<div class="author-text" ng-show="page.Type == 'blog'">by <znd-user-name user-id="{[{page.CreatorId}]}"></znd-user-name></div>
 
 		<!-- Voting container -->
 		<div class="page-vote" ng-show="page.HasVote"></div>
 
-		<!-- Main page text. Populated by JS. -->
-		<div class="page-text"></div>
+		<!-- Main page text. Populated by markdown. -->
+		<div class="page-text markdown-text"></div>
 
 		<!--Admin stuff -->
 		<span class="admin" ng-show="userService.user.IsAdmin">
-			Last Visit: {[{page.LastVisit}]}; Last Edit At: {[{page.CreatedAt}]} by <znd-user-name user-id="page.CreatorId"></znd-user-name>
+			Last Visit: {[{page.LastVisit}]}; Last Edit At: {[{page.CreatedAt}]} by <znd-user-name user-id="{[{page.CreatorId}]}"></znd-user-name>
 		</span>
 	</div>
 
@@ -93,7 +93,7 @@
 			<!-- Comments -->
 			<b id="comments-label">Comments:</b></br>
 			<div class="comments">
-				<znd-new-comment page-id="page.PageId" reply-to-id="0"></znd-new-comment>
+				<znd-new-comment primary-page-id="{[{page.PageId}]}"></znd-new-comment>
 			</div>
 		</div>
 	</div>

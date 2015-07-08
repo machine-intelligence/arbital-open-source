@@ -73,17 +73,14 @@ func init() {
 	r.HandleFunc("/json/aliases/", aliasesJsonHandler).Methods("GET")
 
 	// POST handlers (API)
+	r.HandleFunc("/abandonPage/", abandonPageHandler).Methods("POST")
 	r.HandleFunc("/editPage/", editPageHandler).Methods("POST")
-	r.HandleFunc("/newComment/", newCommentHandler).Methods("POST")
 	r.HandleFunc("/newSubscription/", newSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/newLike/", newLikeHandler).Methods("POST")
 	r.HandleFunc("/newMember/", newMemberHandler).Methods("POST")
 	r.HandleFunc("/newGroup/", newGroupHandler).Methods("POST")
-	r.HandleFunc("/newTag/", newTagHandler).Methods("POST")
 	r.HandleFunc("/newVote/", newVoteHandler).Methods("POST")
 	r.HandleFunc("/pageInfo/", pageInfoHandler).Methods("POST")
-	r.HandleFunc("/updateComment/", updateCommentHandler).Methods("POST")
-	r.HandleFunc("/updateCommentLike/", updateCommentLikeHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/deletePage/", deletePageHandler).Methods("POST")
 

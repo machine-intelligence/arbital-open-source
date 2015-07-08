@@ -21,7 +21,7 @@
 	</div>
 	<div class="page-panel-body" ng-show="node.showChildren">
 		<img src="/static/images/loading.gif" ng-show="isLoadingChildren()"/>
-		<znd-page-tree-node ng-repeat="node in node.children | orderBy:sortChildren" node="node"></znd-page-tree-node>
+		<znd-page-tree-node ng-repeat="node in node.children" node="node"></znd-page-tree-node>
 	</div>
 	<br ng-show="isSupersized()">
 </div>

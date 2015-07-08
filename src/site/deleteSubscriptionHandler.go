@@ -13,10 +13,8 @@ import (
 
 // deleteSubscriptionData contains the data we receive in the request.
 type deleteSubscriptionData struct {
-	PageId    int64 `json:",string"`
-	CommentId int64 `json:",string"`
-	UserId    int64 `json:",string"`
-	TagId     int64 `json:",string"`
+	PageId int64 `json:",string"`
+	UserId int64 `json:",string"`
 }
 
 // deleteSubscriptionHandler handles requests for deleting a subscription.
@@ -52,12 +50,8 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		WHERE userId=%d AND `, u.Id)
 	if data.PageId > 0 {
 		query += fmt.Sprintf("toPageId=%d", data.PageId)
-	} else if data.CommentId > 0 {
-		query += fmt.Sprintf("toCommentId=%d", data.CommentId)
 	} else if data.UserId > 0 {
 		query += fmt.Sprintf("toUserId=%d", data.UserId)
-	} else if data.TagId > 0 {
-		query += fmt.Sprintf("toTagId=%d", data.TagId)
 	}
 	if _, err = database.ExecuteSql(c, query); err != nil {
 		c.Inc("delete_subscription_fail")

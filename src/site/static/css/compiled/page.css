@@ -170,6 +170,10 @@
 .new-updated-label {
   color: #00e000;
 }
+.hash-anchor {
+  background-color: #f8f8f8;
+  border: blue 1px solid;
+}
 .navigation-column {
   width: 30%;
   margin-left: 20px;
@@ -177,10 +181,6 @@
 .page-body-div {
   width: 100%;
   padding: 20px 0px;
-}
-.page-body-div.hash-anchor {
-  background-color: #f8f8f8;
-  border: blue 1px solid;
 }
 .page-body-div .like-column {
   width: 130px;
@@ -344,6 +344,9 @@
   color: #8383ff;
   text-decoration: none;
 }
+.edit-page-link.has-draft {
+  color: #ff0000;
+}
 .delete-page-link {
   color: #e0e0e0;
   text-decoration: none;
@@ -406,20 +409,20 @@
 .page-summary {
   font-weight: bold;
 }
-.page-text {
-  margin-top: 7px;
-  margin-bottom: 15px;
-}
-.page-text h1 {
+.markdown-text h1 {
   font-size: 26px;
 }
-.page-text h2 {
+.markdown-text h2 {
   font-size: 20px;
   font-weight: 600;
 }
-.page-text h3 {
+.markdown-text h3 {
   font-size: 16px;
   font-weight: 800;
+}
+.page-text {
+  margin-top: 7px;
+  margin-bottom: 15px;
 }
 .page-outdent {
   margin: 0 0 8px 30px;
@@ -514,25 +517,23 @@
   left: -15px;
   font-size: 14px;
 }
-.comment-content {
-  padding: 3px 0px;
-}
-.comment-body {
-  display: table;
-}
 .comment-creator-name {
-  display: table-cell;
   white-space: nowrap;
   font-weight: bold;
 }
 .comment-text {
-  display: table-cell;
-  white-space: pre-line;
+  margin-left: 15px;
+}
+.comment-text p {
+  margin: 0 0;
 }
 .reply {
-  margin-left: 5px;
-  padding-left: 20px;
+  margin-left: 17px;
+  padding-left: 10px;
   border-left: 1px solid #aaaaff;
+}
+.reply.new-comment {
+  border-radius: 0 0 0 10px;
 }
 .edit-comment-link {
   color: #e0e0e0;
@@ -562,6 +563,10 @@
   visibility: visible;
 }
 .edit-comment-link.on {
+  visibility: visible;
+}
+.edit-comment-link.has-draft {
+  color: #ff0000;
   visibility: visible;
 }
 .subscribe-comment-link {

@@ -35,6 +35,8 @@ func processTask(c sessions.Context) error {
 	// TODO: refactor tag strings into the corresponding files as consts
 	if leasedTask.Tag == "tick" {
 		task = &tasks.TickTask{}
+	} else if leasedTask.Tag == "convertComment" {
+		task = &tasks.ConvertCommentTask{}
 	} else if leasedTask.Tag == "newUpdate" {
 		task = &tasks.NewUpdateTask{}
 	} else {
@@ -75,6 +77,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	err := tasks.EnqueueWithName(c, tasks.TickTask{}, "tick", "tick")
 	if err != nil {
 		c.Debugf("TickTask enqueue error: %v", err)
+	}
+
+	// Insert the first Comment conversion task
+	err = tasks.EnqueueWithName(c, tasks.ConvertCommentTask{}, "convertComment", "convertComment")
+	if err != nil {
+		c.Debugf("ConvertComment enqueue error: %v", err)
 	}
 
 	for true {

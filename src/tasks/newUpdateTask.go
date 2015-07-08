@@ -28,8 +28,6 @@ func (task *NewUpdateTask) IsValid() error {
 		return fmt.Errorf("User id has to be set")
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
-	} else if task.ToPageId <= 0 && task.ToCommentId <= 0 && task.ToUserId <= 0 {
-		return fmt.Errorf("At least on To___Id has to be specified")
 	}
 	return nil
 }
@@ -45,8 +43,6 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 	var whereClause string
 	if task.ToPageId > 0 {
 		whereClause = fmt.Sprintf("WHERE toPageId=%d", task.ToPageId)
-	} else if task.ToCommentId > 0 {
-		whereClause = fmt.Sprintf("WHERE toCommentId=%d", task.ToCommentId)
 	} else if task.ToUserId > 0 {
 		whereClause = fmt.Sprintf("WHERE toUserId=%d", task.ToUserId)
 	} else {
@@ -74,10 +70,9 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 			SELECT id
 			FROM updates
 			WHERE userId=%d AND type="%s" AND seen=0 AND contextPageId=%d AND
-				fromPageId=%d AND fromCommentId=%d AND fromUserId=%d
+				fromPageId=%d AND fromUserId=%d
 			ORDER BY updatedAt DESC
-			LIMIT 1`,
-			userId, task.UpdateType, task.ContextPageId, task.ToPageId, task.ToCommentId, task.ToUserId)
+			LIMIT 1`, userId, task.UpdateType, task.ContextPageId, task.ToPageId, task.ToUserId)
 		exists, err = database.QueryRowSql(c, query, &updateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
@@ -96,7 +91,6 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 			hashmap["type"] = task.UpdateType
 			hashmap["contextPageId"] = task.ContextPageId
 			hashmap["fromPageId"] = task.ToPageId
-			hashmap["fromCommentId"] = task.ToCommentId
 			hashmap["fromUserId"] = task.ToUserId
 			hashmap["createdAt"] = database.Now()
 			hashmap["updatedAt"] = database.Now()

@@ -115,7 +115,7 @@
 				return; // already initialized
 
 			panels = new PanelCollection(idPostfix);
-			var commandManager = new CommandManager(hooks, getString);
+			var commandManager = new CommandManager(hooks, getString, idPostfix);
 			var previewManager = new PreviewManager(markdownConverter, panels, function () { hooks.onPreviewRefresh(); });
 			var undoManager, uiManager;
 
@@ -1395,9 +1395,10 @@
 
 	}
 
-	function CommandManager(pluginHooks, getString) {
+	function CommandManager(pluginHooks, getString, pageId) {
 		this.hooks = pluginHooks;
 		this.getString = getString;
+		this.pageId = pageId;
 	}
 
 	var commandProto = CommandManager.prototype;
@@ -1758,22 +1759,26 @@
 			var that = this;
 			// The function to be executed when you create a new page and publish it.
 			// Adds a link to the newly created page.
-			var pageCreatedCallback = function (pageAlias) {
-				if (pageAlias !== null) {
+			var pageCreatedCallback = function (result) {
+				if (!result.abandon && !result.hidden && result.alias) {
 					// Same regex as in other link functions.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
 					chunk.startTag = "[[";
-					chunk.endTag = "]]((" + pageAlias + "))";
+					chunk.endTag = "]]((" + result.alias + "))";
 
 					if (!chunk.selection) {
 						chunk.endTag = "]]";
-						chunk.selection = pageAlias;
+						chunk.selection = result.alias;
 					}
 				}
 				postProcessing();
 			};
 
-			$(document).trigger("new-page-modal-event", ["newPage", pageCreatedCallback]);
+			$(document).trigger("new-page-modal-event", {
+				modalKey: this.pageId,
+				parentPageId: this.pageId,
+				callback: pageCreatedCallback,
+			});
 			return true;
 		}
 	};

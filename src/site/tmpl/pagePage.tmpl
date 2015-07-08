@@ -77,19 +77,67 @@
 		
 			// Process question button click.
 			$qButton.on("click", function(event) {
-				$(document).trigger("new-page-modal-event", ["newQuestion", function(newQuestionId) {
-					if(newQuestionId !== null) {
-						window.location.reload();
-					}
-				}]);
+				$(document).trigger("new-page-modal-event", {
+					modalKey: "newQuestion",
+					parentPageId: $scope.page.PageId,
+					callback: function(result) {
+						if (result.abandon) {
+							$scope.$apply(function() {
+								$scope.page.ChildDraftId = 0;
+							});
+						} else if (result.hidden) {
+							$scope.$apply(function() {
+								$scope.page.ChildDraftId = result.alias;
+							});
+						} else {
+							smartPageReload();
+						}
+					},
+				});
 			});
 
 			// Add answers pages.
 			var $answersList = $(".answers-list");
 			for (var n = 0; n < $scope.answerIds.length; n++){
-				//var answerPage = pageService.pageMap[$scope.answerIds[n]];
-				var el = $compile("<znd-page page-id='\"" + $scope.answerIds[n] + "\"'></znd-page><hr></hr>")($scope);
+				var el = $compile("<znd-page page-id='" + $scope.answerIds[n] + "'></znd-page><hr></hr>")($scope);
 				$answersList.append(el);
+			}
+
+			// Add edit page for the answer.
+			if ($scope.page.Type === "question") {
+				$scope.answerDoneFn = function(result) {
+					if (result.abandon) {
+						getNewAnswerId();
+					} else if (result.alias) {
+						window.location.assign($scope.page.Url + "#page-" + result.alias);
+						window.location.reload();
+					}
+				};
+
+				var createAnswerEditPage = function(newPageId) {
+					var page = pageService.pageMap[newPageId];
+					page.Type = "answer";
+					page.Parents = [{ParentId: $scope.page.PageId, ChildId: newPageId}];
+					var el = $compile("<znd-edit-page page-id='" + newPageId +
+						"' primary-page-id='" + $scope.page.PageId +
+						"' done-fn='answerDoneFn(result)'></znd-edit-page>")($scope);
+					$(".new-answer").append(el);
+				};
+				var getNewAnswerId = function() {
+					$(".new-answer").find("znd-edit-page").remove();
+					pageService.loadPages([],
+						function(data, status) {
+							createAnswerEditPage(Object.keys(data)[0]);
+						}, function(data, status) {
+							console.log("Couldn't load pages: " + loadPagesIds);
+						}
+					);
+				};
+				if ($scope.page.ChildDraftId > 0) {
+					createAnswerEditPage($scope.page.ChildDraftId);
+				} else {
+					getNewAnswerId();
+				}
 			}
 		});
 	</script>
@@ -145,7 +193,7 @@
 </div>
 
 <!-- This modal is for asking a new question. -->
-<znd-edit-page-modal parent-page-id="'{{.Page.PageId}}'" resume-page-id="'{{.Page.ChildDraftId}}'"></znd-edit-page-modal>
+<znd-edit-page-modal></znd-edit-page-modal>
 
 <!-- All the page stuff. -->
 <div class="primary-page-body-div" ng-controller="MainCtrl">
@@ -155,7 +203,7 @@
 		<div class="panel panel-default" ng-show="relatedIds.length > 0">
 			<div class="panel-heading">Related</div>
 			<div class="panel-body">
-				<znd-likes-page-title page-id="pageId" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
+				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
 			</div>
 		</div>
 
@@ -179,7 +227,7 @@
 		<div class="panel panel-default" ng-show="questionIds.length > 0">
 			<div class="panel-heading">Questions</div>
 			<div class="panel-body">
-				<znd-likes-page-title page-id="pageId" ng-repeat="pageId in questionIds"></znd-likes-page-title>
+				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in questionIds"></znd-likes-page-title>
 			</div>
 		</div>
 		&nbsp;
@@ -187,7 +235,7 @@
 
 	<!-- Middle column containing the primary page, comments, etc... -->
 	<div class="mid-column pull-left">
-		<znd-page page-id="page.PageId"></znd-page>
+		<znd-page page-id="{[{page.PageId}]}"></znd-page>
 		
 		<!-- Answers for a question page -->
 		<div class="answers" ng-show="answerIds.length > 0">
@@ -197,12 +245,10 @@
 		</div>
 
 		<!-- New Answer for a question page -->
-		{{if eq .Page.Type "question"}}
-			<div class="new-answer">
-				<h1>Your Answer</h1>
-				<znd-edit-page page-id="page.ChildDraftId" question-id="page.PageId"></znd-edit-page>
-			</div>
-		{{end}}
+		<div class="new-answer" ng-show="page.Type === 'question'">
+			<h1>Your Answer</h1>
+			<!-- zndEditPage is inserted here dynamically when primary page is a question -->
+		</div>
 	</div>
 
 	<!-- Question button -->

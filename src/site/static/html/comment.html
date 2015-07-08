@@ -5,15 +5,19 @@
 		<div class="like-column pull-left">
 			<span class="pull-right">
 				&nbsp;
-				<a href="#" class="edit-comment-link glyphicon glyphicon-pencil" title="Edit this comment" ng-show="comment.CreatorId == userService.user.Id"></a>
+				<a href="#"
+					class="edit-comment-link glyphicon glyphicon-pencil"
+					ng-class="{'has-draft': comment.HasDraft}"
+					title="{[{comment.HasDraft ? 'You have an unpublished draft for this comment' : 'Edit this comment'}]}"
+					ng-show="comment.CreatorId == userService.user.Id"></a>
 				<a href="#"
 					class="subscribe-comment-link glyphicon glyphicon-eye-open"
 					ng-class="{'on': comment.IsSubscribed}"
 					title="Subscribe to receive updates when this comment gets replies"
-					ng-show="userService.user.IsLoggedIn && replyIndex === undefined"></a>
+					ng-show="userService.user.IsLoggedIn && !parentCommentId"></a>
 				<a href="#"
 					class="like-comment-link glyphicon glyphicon-thumbs-up"
-					ng-class="{'on': comment.MyLikeValue > 1}"
+					ng-class="{'on': comment.MyLikeValue >= 1}"
 					title="This is a high quality comment"
 					ng-show="userService.user.IsLoggedIn && comment.CreatorId != userService.user.Id"></a>
 				<span class="comment-like-count"
@@ -25,29 +29,23 @@
 
 		<!-- Comment column -->
 		<div class="text-column">
-			<div class="comment-content" ng-class="{'reply': replyIndex !== undefined}" comment-id="{[{comment.Id}]}">
+			<a id="comment-{[{comment.PageId}]}"></a>
+			<div class="comment-content" ng-class="{'reply': parentCommentId}">
+				<img src="/static/images/loading.gif" class="loading-indicator"/>
 				<div class="comment-body">
 					<div class="comment-creator-name">
 						<span class="new-updated-label glyphicon glyphicon-star"
 							title="You haven't seen this comment before"
-							ng-show="isNewComment"></span>
+							ng-show="comment.isNewPage()"></span>
 						<span class="new-updated-label glyphicon glyphicon-star-empty"
 							title="This comment has been updated since the last time you've seen it"
-							ng-show="isUpdatedComment"></span>
-						<znd-user-name user-id="comment.CreatorId"></znd-user-name>:&nbsp;
+							ng-show="comment.isUpdatedPage()"></span>
+						<znd-user-name user-id="{[{comment.CreatorId}]}"></znd-user-name>:&nbsp;
 					</div>
-					<div class="comment-text" ng-bind="comment.Text"></div>
+					<!-- Comment's text. Populated by markdown. -->
+					<div class="comment-text markdown-text"></div>
 				</div>
-				<form class="edit-comment-form" hidden>
-					<div class="form-group">
-						<textarea name="text" class="edit-comment-text form-control" ng-bind="comment.Text"></textarea>
-					</div>
-					<input name="replyToId" type="hidden" value="0"/>
-					<div class="submit-form-error alert alert-danger" hidden></div>
-					<img src="/static/images/loading.gif" class="loading-indicator"/>
-					<button type="submit" class="btn btn-primary">Save</button>
-					<a href="#" class="cancelLink cancel-edit-comment">Cancel</a>
-				</form>
+				<!-- znd-edit-page is dynamically inserted here on demand -->
 			</div>
 		</div>
 		<div class="clearfix"></div>

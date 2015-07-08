@@ -29,7 +29,9 @@
 					{{else if eq $k "newPageByUser"}}
 						This new page was created by {{template "userName" $v.FromUser}}.
 					{{else if eq $k "newChildPage"}}
-						This new page was created as a child of {{template "tag" $v.FromPage}}
+						This new page was created as a child of {{template "tag" $v.FromPage}}.
+					{{else if eq $k "commentEdit"}}
+						This page has some edited comments.
 					{{end}}
 					<br>
 				{{end}}

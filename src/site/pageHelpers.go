@@ -17,6 +17,7 @@ const (
 	// Various page types we have in our system.
 	blogPageType     = "blog"
 	wikiPageType     = "wiki"
+	commentPageType  = "comment"
 	questionPageType = "question"
 	answerPageType   = "answer"
 
@@ -24,6 +25,7 @@ const (
 	topLevelCommentUpdateType = "topLevelComment"
 	replyUpdateType           = "reply"
 	pageEditUpdateType        = "pageEdit"
+	commentEditUpdateType     = "commentEdit"
 	newPageByUserUpdateType   = "newPageByUser"
 	newChildPageUpdateType    = "newChildPage"
 
@@ -51,26 +53,27 @@ type vote struct {
 
 type page struct {
 	// Data loaded from pages table
-	PageId         int64 `json:",string"`
-	Edit           int
-	Type           string
-	Title          string
-	Text           string
-	Summary        string
-	Alias          string
-	SortChildrenBy string
-	HasVote        bool
-	VoteType       string
-	CreatorId      int64 `json:",string"`
-	CreatedAt      string
-	KarmaLock      int
-	PrivacyKey     int64 `json:",string"`
-	Group          group
-	ParentsStr     string
-	DeletedBy      int64 `json:",string"`
-	IsAutosave     bool
-	IsSnapshot     bool
-	IsCurrentEdit  bool
+	PageId            int64 `json:",string"`
+	Edit              int
+	Type              string
+	Title             string
+	Text              string
+	Summary           string
+	Alias             string
+	SortChildrenBy    string
+	HasVote           bool
+	VoteType          string
+	CreatorId         int64 `json:",string"`
+	CreatedAt         string
+	OriginalCreatedAt string
+	KarmaLock         int
+	PrivacyKey        int64 `json:",string"`
+	Group             group
+	ParentsStr        string
+	DeletedBy         int64 `json:",string"`
+	IsAutosave        bool
+	IsSnapshot        bool
+	IsCurrentEdit     bool
 
 	// Data loaded from other tables.
 	LastVisit string
@@ -79,20 +82,21 @@ type page struct {
 	IsSubscribed bool
 	HasChildren  bool // whether or not this page has children
 	HasParents   bool // whether or not this page has parents
+	HasDraft     bool // true iff the user has a work-in-progress draft for this page
 	LikeCount    int
 	DislikeCount int
 	MyLikeValue  int
 	LikeScore    int     // computed from LikeCount and DislikeCount
 	Votes        []*vote // all votes
-	Comments     []*comment
-	WasPublished bool // true iff there is an edit that has isCurrentEdit set for this page
-	MaxEditEver  int  // highest edit number used for this page for all users
+	WasPublished bool    // true iff there is an edit that has isCurrentEdit set for this page
+	MaxEditEver  int     // highest edit number used for this page for all users
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
 	// always have.
 	LockedVoteType string
 	Parents        []*pagePair
 	Children       []*pagePair
+	CommentIds     []string
 	Links          map[string]bool // page alias/id for a link -> true iff the page is published
 	LinkedFrom     []string
 	RedLinkCount   int
@@ -115,27 +119,6 @@ type loadPageOptions struct {
 	// If set to true, load snapshots and autosaves, not only current edits
 	allowUnpublished bool
 }
-
-/*func (a pagesChronologically) Less(i, j int) bool {
-	return a[i].Child.CreatedAt > a[j].Child.CreatedAt
-}
-func (a pagesAlphabetically) Less(i, j int) bool {
-	// Usual string comparison doesn't work well with numbers, e.g. "10abc" comes
-	// before "2abc". We fix this by padding all numbers to 20 characters.
-	re := regexp.MustCompile("[0-9]+")
-	iTitle := re.ReplaceAllStringFunc(a[i].Child.Title, padNumber)
-	jTitle := re.ReplaceAllStringFunc(a[j].Child.Title, padNumber)
-	return iTitle < jTitle
-}
-func padNumber(s string) string {
-	if len(s) >= 20 {
-		return s
-	}
-	return strings.Repeat("0", 20-len(s)) + s
-}
-func (a pagesByLikes) Less(i, j int) bool {
-	return a[i].Child.LikeScore > a[j].Child.LikeScore
-}*/
 
 // processParents converts ParentsStr from this page to the Parents array, and
 // populates the given pageMap with the parents.
@@ -211,7 +194,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 			p.edit=(
 				SELECT MAX(edit)
 				FROM pages
-				WHERE pageId=%d AND (creatorId=%d OR NOT (isSnapshot OR isAutosave))
+				WHERE pageId=%d AND deletedBy<=0 AND (creatorId=%d OR NOT (isSnapshot OR isAutosave))
 			)`, pageId, userId)
 	}
 	// TODO: we often don't need maxEditEver
@@ -412,18 +395,27 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadCh
 	pageIdsStr := pageIdsStringFromMap(sourcePageMap)
 	newPages := make(map[int64]*page)
 	query := fmt.Sprintf(`
-		SELECT parentId,childId
-		FROM pagePairs
-		WHERE parentId IN (%s)`, pageIdsStr)
+		SELECT pp.parentId,pp.childId,p.type
+		FROM (
+			SELECT parentId,childId
+			FROM pagePairs
+			WHERE parentId IN (%s)
+		) AS pp JOIN (
+			SELECT pageId,type
+			FROM pages
+			WHERE isCurrentEdit AND type!="comment"
+		) AS p
+		ON (p.pageId=pp.childId)`, pageIdsStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p pagePair
-		err := rows.Scan(&p.ParentId, &p.ChildId)
+		var childType string
+		err := rows.Scan(&p.ParentId, &p.ChildId, &childType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
 		newPage, ok := pageMap[p.ChildId]
 		if !ok {
-			newPage = &page{PageId: p.ChildId}
+			newPage = &page{PageId: p.ChildId, Type: childType}
 			pageMap[newPage.PageId] = newPage
 			newPages[newPage.PageId] = newPage
 		}
@@ -437,10 +429,18 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadCh
 	}
 	if options.LoadHasChildren && len(newPages) > 0 {
 		pageIdsStr = pageIdsStringFromMap(newPages)
-		query = fmt.Sprintf(`
-			SELECT parentId,sum(1)
-			FROM pagePairs
-			WHERE parentId IN (%s)
+		query := fmt.Sprintf(`
+			SELECT pp.parentId,sum(1)
+			FROM (
+				SELECT parentId,childId
+				FROM pagePairs
+				WHERE parentId IN (%s)
+			) AS pp JOIN (
+				SELECT pageId
+				FROM pages
+				WHERE isCurrentEdit AND type!="comment"
+			) AS p
+			ON (p.pageId=pp.childId)
 			GROUP BY 1`, pageIdsStr)
 		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 			var pageId int64
@@ -453,6 +453,42 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadCh
 			return nil
 		})
 	}
+	return err
+}
+
+// loadCommentIds loads the page ids for all the comments of the pages in the given pageMap.
+func loadCommentIds(c sessions.Context, pageMap map[int64]*page, sourcePageMap map[int64]*page) error {
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIdsStr := pageIdsStringFromMap(sourcePageMap)
+	query := fmt.Sprintf(`
+		SELECT pp.parentId,pp.childId
+		FROM (
+			SELECT parentId,childId
+			FROM pagePairs
+			WHERE parentId IN (%s)
+		) AS pp JOIN (
+			SELECT pageId
+			FROM pages
+			WHERE isCurrentEdit AND type="comment"
+		) AS p
+		ON (p.pageId=pp.childId)`, pageIdsStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var p pagePair
+		err := rows.Scan(&p.ParentId, &p.ChildId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for comments: %v", err)
+		}
+		newPage, ok := pageMap[p.ChildId]
+		if !ok {
+			newPage = &page{PageId: p.ChildId, Type: commentPageType}
+			pageMap[newPage.PageId] = newPage
+		}
+		newPage.Parents = append(newPage.Parents, &p)
+		sourcePageMap[p.ParentId].CommentIds = append(sourcePageMap[p.ParentId].CommentIds, fmt.Sprintf("%d", p.ChildId))
+		return nil
+	})
 	return err
 }
 
@@ -593,6 +629,34 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 	return err
 }
 
+// loadDraftExistence computes for each page whether or not the user has a
+// work-in-progress draft for it.
+// This only makes sense to call for pages which were loaded for isCurrentEdit=true.
+func loadDraftExistence(c sessions.Context, pageMap map[int64]*page, userId int64) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := pageIdsStringFromMap(pageMap)
+	query := fmt.Sprintf(`
+		SELECT pageId
+		FROM pages
+		WHERE creatorId=%d AND deletedBy=0 AND pageId IN (%s) AND
+				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
+		GROUP BY pageId
+		HAVING MAX(edit)  > MAX(IF(isCurrentEdit,edit,0)) `,
+		userId, pageIds, userId)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var pageId int64
+		err := rows.Scan(&pageId)
+		if err != nil {
+			return fmt.Errorf("failed to scan a page id: %v", err)
+		}
+		pageMap[pageId].HasDraft = true
+		return nil
+	})
+	return err
+}
+
 // pageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
 func pageIdsStringFromMap(pageMap map[int64]*page) string {
 	var buffer bytes.Buffer
@@ -634,13 +698,14 @@ func getEditPageUrl(p *page) string {
 // "" = user has correct permissions to perform the action
 // "admin" = user can perform the action, but only because they are an admin
 // "blog" = can't perform action because this is a blog page the user doesn't own
+// "comment" = can't perform action because this is a comment page the user doesn't own
 // "###" = user doesn't have at least ### karma
 func getEditLevel(p *page, u *user.User) string {
-	if p.Type == blogPageType {
+	if p.Type == blogPageType || p.Type == commentPageType {
 		if p.CreatorId == u.Id {
 			return ""
 		} else {
-			return "blog"
+			return p.Type
 		}
 	}
 	karmaReq := p.KarmaLock
@@ -662,13 +727,13 @@ func getEditLevel(p *page, u *user.User) string {
 // "blog" = can't perform action because this is a blog page the user doesn't own
 // "###" = user doesn't have at least ### karma
 func getDeleteLevel(p *page, u *user.User) string {
-	if p.Type == blogPageType {
+	if p.Type == blogPageType || p.Type == commentPageType {
 		if p.CreatorId == u.Id {
 			return ""
 		} else if u.IsAdmin {
 			return "admin"
 		} else {
-			return "blog"
+			return p.Type
 		}
 	}
 	karmaReq := p.KarmaLock

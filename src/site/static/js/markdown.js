@@ -4,7 +4,6 @@ var zndMarkdown = zndMarkdown || function() {
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 		/*converter.hooks.chain("preSpanGamut", function (text) {
-			console.log("text: " + text);
 			return text.replace(/(.*?)"""(.*?)"""(.*)/g, "$1<u>$2</u>$3");
 		});*/
 	
@@ -88,7 +87,7 @@ var zndMarkdown = zndMarkdown || function() {
 		InitMathjax(converter);
 	
 		var html = converter.makeHtml(pageText);
-		var $pageText = $topParent.find(".page-text")
+		var $pageText = $topParent.find(".markdown-text")
 		$pageText.html(html);
 		window.setTimeout(function() {
 			MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);

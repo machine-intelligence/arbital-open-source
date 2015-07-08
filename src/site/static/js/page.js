@@ -489,15 +489,32 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 			$scope.page = pageService.pageMap[$scope.pageId];
 		},
 		scope: {
-			pageId: "=",
+			pageId: "@",
 		},
 		link: function(scope, element, attrs) {
 			// Dynamically create comment elements.
-			if (scope.page.Comments != null) {
+			if (scope.page.CommentIds != null) {
 				var $comments = element.find(".comments");
-				for (var n = 0; n < scope.page.Comments.length; n++) {
-					var $comment = $compile("<znd-comment page-id='\"" + scope.pageId +
-						"\"' comment-index='" + n + "'></znd-comment>")(scope);
+				scope.page.CommentIds.sort(pageService.getChildSortFunc({SortChildrenBy: "chronological", Type: "comment"}));
+				for (var n = 0; n < scope.page.CommentIds.length; n++) {
+					var comment = pageService.pageMap[scope.page.CommentIds[n]];
+					// Make sure this comment is not a reply (i.e. it has a parent comment)
+					// If it's a reply, add it as a child to the corresponding parent comment.
+					if (comment.Parents != null) {
+						var hasParentComment = false;
+						for (var i = 0; i < comment.Parents.length; i++) {
+							var parent = pageService.pageMap[comment.Parents[i].ParentId];
+							hasParentComment = parent.Type === "comment";
+							if (hasParentComment) {
+								if (parent.Children == null) parent.Children = [];
+								parent.Children.push({ParentId: parent.PageId, ChildId: comment.PageId});
+								break;
+							}
+						}
+						if (hasParentComment) continue;
+					}
+					var $comment = $compile("<znd-comment primary-page-id='" + scope.pageId +
+							"' page-id='" + comment.PageId + "'></znd-comment>")(scope);
 					$comments.prepend($comment);
 				}
 			}
@@ -512,48 +529,51 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 });
 
 // Directive for showing a comment.
-app.directive("zndComment", function ($compile) {
+app.directive("zndComment", function ($compile, $timeout, pageService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/comment.html",
 		controller: function ($scope, pageService, userService) {
 			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
-			$scope.comment = $scope.page.Comments[$scope.commentIndex];
-			if ($scope.replyIndex !== undefined) {
-				$scope.comment = $scope.comment.Replies[$scope.replyIndex];
-			}
-
-			var lastVisit = $scope.page.LastVisit;
-			var showStars = $scope.comment.CreatorId != userService.user.Id && lastVisit != "";
-			$scope.isNewComment = showStars && $scope.comment.CreatedAt >= lastVisit;
-			$scope.isUpdatedComment = !$scope.isNewComment && showStars && $scope.comment.UpdatedAt >= lastVisit;
-			if($scope.isNewComment) {
-			console.log(lastVisit);
-			console.log($scope.comment.CreatedAt);
-			console.log($scope.comment.UpdatedAt);
-			}
+			$scope.comment = pageService.pageMap[$scope.pageId];
 		},
 		scope: {
-			pageId: "=",
-			commentIndex: "=",
-			replyIndex: "=",
+			primaryPageId: "@",  // id of the primary page this comment belongs to
+			pageId: "@",  // id of this comment
+			parentCommentId: "@",  // id of the parent comment, if there is one
 		},
 		link: function(scope, element, attrs) {
-			if (scope.replyIndex === undefined) {
-				var $comments = element.find(".replies");
-				// Dynamically create reply comment elements.
-				if (scope.comment.Replies != null) {
-					for (var n = 0; n < scope.comment.Replies.length; n++) {
-						var $comment = $compile("<znd-comment page-id='\"" + scope.pageId +
-							"\"' comment-index='" + scope.commentIndex +
-							"' reply-index='" + n + "'></znd-comment>")(scope);
-						$comments.append($comment);
+			var $replies = element.find(".replies");
+			// Dynamically create reply elements.
+			if (scope.parentCommentId === undefined) {
+				if (scope.comment.Children != null) {
+					pageService.sortChildren(scope.comment);
+					for (var n = 0; n < scope.comment.Children.length; n++) {
+						var childId = scope.comment.Children[n].ChildId;
+						if (pageService.pageMap[childId].Type !== "comment") continue;
+						var $comment = $compile("<znd-comment primary-page-id='" + scope.primaryPageId +
+								"' page-id='" + childId +
+								"' parent-comment-id='" + scope.pageId + "'></znd-comment>")(scope);
+						$replies.append($comment);
 					}
 				}
 				// Add New Comment element.
-				var $newComment = $compile("<znd-new-comment page-id='\"" + scope.pageId +
-						"\"' reply-to-id='\"" + scope.comment.Id + "\"'></znd-new-comment>")(scope);
-				$comments.append($newComment);
+				var $newComment = $compile("<znd-new-comment primary-page-id='" + scope.primaryPageId +
+						"' parent-comment-id='" + scope.pageId + "'></znd-new-comment>")(scope);
+				$replies.append($newComment);
+			}
+
+			$timeout(function() {
+				// Process comment's text using Markdown.
+				zndMarkdown.init(false, scope.pageId, scope.comment.Text, element, undefined);
+			});
+
+			// Highlight the comment div. Used for selecting comments when #anchor matches.
+			var highlightCommentDiv = function() {
+				$(".hash-anchor").removeClass("hash-anchor");
+				element.find(".comment-content").addClass("hash-anchor");
+			};
+			if (window.location.hash === "#comment-" + scope.pageId) {
+				highlightCommentDiv();
 			}
 
 			// Comment voting stuff.
@@ -575,12 +595,12 @@ app.directive("zndComment", function ($compile) {
 				
 				// Notify the server
 				var data = {
-					commentId: $commentRow.find(".comment-content").attr("comment-id"),
+					pageId: scope.pageId,
 					value: newLikeValue,
 				};
 				$.ajax({
 					type: "POST",
-					url: '/updateCommentLike/',
+					url: '/newLike/',
 					data: JSON.stringify(data),
 				})
 				.done(function(r) {
@@ -593,7 +613,7 @@ app.directive("zndComment", function ($compile) {
 				var $target = $(event.target);
 				$target.toggleClass("on");
 				var data = {
-					commentId: $target.closest(".comment-row").find(".comment-content").attr("comment-id"),
+					pageId: scope.pageId,
 				};
 				$.ajax({
 					type: "POST",
@@ -606,32 +626,54 @@ app.directive("zndComment", function ($compile) {
 			});
 	
 			// Comment editing stuff.
-			function toggleEditComment($comment) {
-				$comment.find(".comment-body").toggle();
-				$comment.find(".edit-comment-form").toggle();
-			}
-			element.find(".edit-comment-link").on("click", function(event) {
-				var $comment = $(event.target).closest(".comment-row").find(".comment-content");
-				var $editCommentTextarea = $comment.find(".edit-comment-text");
-				toggleEditComment($comment);
-				$editCommentTextarea.focus();
-				return false;
-			});
-			element.find(".edit-comment-form").on("submit", function(event) {
-				var $form = $(event.target);
-				var $comment = $form.closest(".comment-content");
-				var $editCommentTextarea = $form.find(".edit-comment-text");
-				var $commentText = $comment.find(".comment-text");
-				var data = {id: $comment.attr("comment-id")};
-				submitForm($form, "/updateComment/", data, function(r) {
-					toggleEditComment($comment);
-					$commentText.text($editCommentTextarea.val());
+			var $comment = element.find(".comment-content");
+			// Create and show the edit page directive.
+			var createEditPage = function() {
+				var el = $compile("<znd-edit-page page-id='" + scope.pageId +
+						"' primary-page-id='" + scope.primaryPageId +
+						"' done-fn='doneFn(result)'></znd-edit-page>")(scope);
+				$comment.append(el);
+			};
+			var destroyEditPage = function() {
+				$comment.find("znd-edit-page").remove();
+			};
+			// Reload comment from the server, loading the last, potentially non-live edit.
+			var reloadComment = function() {
+				$comment.find(".loading-indicator").show();
+				pageService.removePageFromMap(scope.pageId);
+				pageService.loadPages([scope.pageId], function(data, status) {
+					$comment.find(".loading-indicator").hide();
+					createEditPage();
 				});
-				return false;
-			});
-			element.find(".cancel-edit-comment").on("click", function(event) {
-				var $comment = $(event.target).closest(".comment-content");
-				toggleEditComment($comment);
+			}
+			// Show/hide the comment vs the edit page.
+			function toggleEditComment(visible) {
+				$comment.find(".comment-body").toggle(!visible);
+				$comment.find("znd-edit-page").toggle(visible);
+			}
+			// Callback used when the user is done editing the comment.
+			scope.doneFn = function(result) {
+				if (result.abandon) {
+					toggleEditComment(false);
+					element.find(".edit-comment-link").removeClass("has-draft");
+					scope.comment.HasDraft = false;
+					destroyEditPage();
+				} else if (result.alias) {
+					smartPageReload("comment-" + result.alias);
+				}
+			};
+			element.find(".edit-comment-link").on("click", function(event) {
+				$(".hash-anchor").removeClass("hash-anchor");
+				// Dynamically create znd-edit-page directive if it doesn't exist already.
+				if ($comment.find("znd-edit-page").length <= 0) {
+					if (scope.comment.HasDraft) {
+						// Load the draft.
+						reloadComment();
+					} else {
+						createEditPage();
+					}
+				}
+				toggleEditComment(true);
 				return false;
 			});
 		},
@@ -639,34 +681,65 @@ app.directive("zndComment", function ($compile) {
 });
 
 // Directive for creating a new comment.
-app.directive("zndNewComment", function (pageService, userService) {
+app.directive("zndNewComment", function ($compile, pageService, userService) {
 	return {
 		templateUrl: "/static/html/newComment.html",
 		controller: function ($scope, pageService, userService) {
 		},
 		scope: {
-			pageId: "=",
-			replyToId: "=",
+			primaryPageId: "@",  // page which this comment is ultimately attached to (i.e. primary page)
+			parentCommentId: "@",  // optional id of the immediate parent comment
 		},
 		link: function(scope, element, attrs) {
-			// New comment stuff.
-			var toggleNewComment = function(event) {
-				var $newComment = $(event.target).closest(".new-comment");
-				$newComment.find(".new-comment-body").toggle();
-				$newComment.find(".new-comment-form").toggle();
-				$newComment.find(".new-comment-text").focus();
+			var $newComment = element.find(".new-comment");
+			// Create and show the edit page directive.
+			var createEditPage = function(newPageId) {
+				var el = $compile("<znd-edit-page page-id='" + newPageId +
+						"' primary-page-id='" + scope.primaryPageId +
+						"' done-fn='doneFn(result)'></znd-edit-page>")(scope);
+				$newComment.append(el);
+			};
+			var destroyEditPage = function() {
+				$newComment.find("znd-edit-page").remove();
+			};
+			// Toggle the visibility of the link vs. the edit page div.
+			var toggleNewComment = function(showBody, showLoading) {
+				$newComment.find(".new-comment-body").toggle(showBody);
+				$newComment.find(".loading-indicator").toggle(showLoading);
+				$newComment.find("znd-edit-page").toggle(!showBody && !showLoading);
 				return false;
 			};
-			element.find(".new-comment-link").on("click", toggleNewComment);
-			element.find(".cancel-new-comment").on("click", toggleNewComment);
-			element.find(".new-comment-form").on("submit", function(event) {
-				var $form = $(event.target);
-				var data = {
-					pageId: scope.pageId,
-				};
-				submitForm($form, "/newComment/", data, function(r) {
-					smartPageReload();
-				});
+			// Callback for processing when the user is done creating a new comment.
+			scope.doneFn = function(result) {
+				if (result.abandon) {
+					toggleNewComment(true, false);
+					destroyEditPage();
+				} else if (result.alias) {
+					smartPageReload("comment-" + result.alias);
+				}
+			};
+			element.find(".new-comment-link").on("click", function(event) {
+				$(".hash-anchor").removeClass("hash-anchor");
+				if ($newComment.find("znd-edit-page").length > 0) {
+					toggleNewComment(false, false);
+				} else {
+					toggleNewComment(false, true);
+					pageService.loadPages([],
+						function(data, status) {
+							toggleNewComment(false, false);
+							var newPageId = Object.keys(data)[0];
+							var page = pageService.pageMap[newPageId];
+							page.Type = "comment";
+							page.Parents = [{ParentId: scope.primaryPageId, ChildId: newPageId}];
+							if (scope.parentCommentId) {
+								page.Parents.push({ParentId: scope.parentCommentId, ChildId: newPageId});
+							}
+							createEditPage(newPageId);
+						}, function(data, status) {
+							console.log("Couldn't load pages: " + loadPagesIds);
+						}
+					);
+				}
 				return false;
 			});
 		},

@@ -13,6 +13,15 @@
 		app.controller("MainCtrl", function ($scope, pageService, userService) {
 			$scope.pageId = "{{.Page.PageId}}";
 			$scope.page = pageService.pageMap[$scope.pageId];
+
+			// Called when the user is done editing the page.
+			$scope.doneFn = function(result) {
+				if (result.abandon) {
+					window.location.replace($scope.page.EditUrl);
+				} else {
+					window.location.replace($scope.page.Url);
+				}
+			};
 		});
 	</script>
 </head>
@@ -24,7 +33,7 @@
 {{template "newLinkModal"}}
 
 <!-- This modal is for creating new pages quickly. -->
-<znd-edit-page-modal parent-page-id="'{{.Page.PageId}}'"></znd-edit-page-modal>
+<znd-edit-page-modal parent-page-id="{{.Page.PageId}}"></znd-edit-page-modal>
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
@@ -37,7 +46,7 @@
 		</div>
 	{{else}}
 		<div class="new-page-body-div" ng-controller="MainCtrl">
-			<znd-edit-page page-id="page.PageId"></znd-edit-page>
+			<znd-edit-page page-id="{[{page.PageId}]}" done-fn="doneFn(result)"></znd-edit-page>
 		</div>
 	{{end}}
 {{end}}

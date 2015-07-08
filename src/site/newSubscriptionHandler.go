@@ -12,10 +12,8 @@ import (
 
 // newSubscriptionData contains the data we get in the request.
 type newSubscriptionData struct {
-	PageId    int64 `json:",string"`
-	CommentId int64 `json:",string"`
-	UserId    int64 `json:",string"`
-	TagId     int64 `json:",string"`
+	PageId int64 `json:",string"`
+	UserId int64 `json:",string"`
 }
 
 // newSubscriptionHandler handles requests for adding a new subscription.
@@ -48,12 +46,8 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: check if this subscription already exists
 	if data.PageId > 0 {
 		err = addSubscriptionToPage(c, u.Id, data.PageId)
-	} else if data.CommentId > 0 {
-		err = addSubscriptionToComment(c, u.Id, data.CommentId)
 	} else if data.UserId > 0 {
 		err = addSubscriptionToUser(c, u.Id, data.UserId)
-	} else if data.TagId > 0 {
-		err = addSubscriptionToTag(c, u.Id, data.TagId)
 	}
 	if err != nil {
 		c.Inc("new_subscription_fail")
@@ -68,19 +62,8 @@ func addSubscriptionToPage(c sessions.Context, userId int64, pageId int64) error
 	return addSubscription(c, hashmap, userId)
 }
 
-func addSubscriptionToComment(c sessions.Context, userId int64, commentId int64) error {
-	hashmap := map[string]interface{}{"toCommentId": commentId}
-	return addSubscription(c, hashmap, userId)
-}
-
 func addSubscriptionToUser(c sessions.Context, userId int64, toUserId int64) error {
 	hashmap := map[string]interface{}{"toUserId": toUserId}
-	return addSubscription(c, hashmap, userId)
-}
-
-func addSubscriptionToTag(c sessions.Context, userId int64, tagId int64) error {
-	// TODO: check that the tag is not personal (or ours)
-	hashmap := map[string]interface{}{"toTagId": tagId}
 	return addSubscription(c, hashmap, userId)
 }
 

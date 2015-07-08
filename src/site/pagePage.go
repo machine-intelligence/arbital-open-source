@@ -6,12 +6,10 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -20,20 +18,6 @@ import (
 
 	"github.com/gorilla/mux"
 )
-
-type comment struct {
-	Id           int64 `json:",string"`
-	PageId       int64 `json:",string"`
-	ReplyToId    int64 `json:",string"`
-	Text         string
-	CreatedAt    string
-	UpdatedAt    string
-	CreatorId    int64 `json:",string"`
-	LikeCount    int
-	MyLikeValue  int
-	IsSubscribed bool
-	Replies      []*comment
-}
 
 type alias struct {
 	FullName  string
@@ -72,35 +56,6 @@ var privatePagePage = newPageWithOptions(
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
 		"tmpl/angular.tmpl.js", "tmpl/comment.tmpl",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
-
-// loadComments loads and returns all the comments for the given page ids from the db.
-func loadComments(c sessions.Context, pageIds string) (map[int64]*comment, []int64, error) {
-	commentMap := make(map[int64]*comment)
-	sortedCommentIds := make([]int64, 0)
-
-	query := fmt.Sprintf(`
-		SELECT c.id,pageId,replyToId,text,createdAt,updatedAt,creatorId
-		FROM comments AS c
-		WHERE pageId IN (%s)`, pageIds)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var ct comment
-		err := rows.Scan(
-			&ct.Id,
-			&ct.PageId,
-			&ct.ReplyToId,
-			&ct.Text,
-			&ct.CreatedAt,
-			&ct.UpdatedAt,
-			&ct.CreatorId)
-		if err != nil {
-			return fmt.Errorf("failed to scan for comments: %v", err)
-		}
-		commentMap[ct.Id] = &ct
-		sortedCommentIds = append(sortedCommentIds, ct.Id)
-		return nil
-	})
-	return commentMap, sortedCommentIds, err
-}
 
 // loadLikes loads likes corresponding to the given pages and updates the pages.
 func loadLikes(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
@@ -147,35 +102,6 @@ func loadLikes(c sessions.Context, currentUserId int64, pageMap map[int64]*page)
 	return err
 }
 
-// loadCommentLikes loads likes corresponding to the given comments and updates the comments.
-func loadCommentLikes(c sessions.Context, currentUserId int64, commentIds string, commentMap map[int64]*comment) error {
-	if len(commentIds) <= 0 {
-		return nil
-	}
-	query := fmt.Sprintf(`
-		SELECT userId,commentId,value
-		FROM commentLikes
-		WHERE commentId IN (%s)`, commentIds)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var userId int64
-		var commentId int64
-		var value int
-		err := rows.Scan(&userId, &commentId, &value)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a comment like: %v", err)
-		}
-		comment := commentMap[commentId]
-		if value > 0 {
-			comment.LikeCount++
-		}
-		if userId == currentUserId {
-			comment.MyLikeValue = value
-		}
-		return nil
-	})
-	return err
-}
-
 // loadVotes loads probability votes corresponding to the given pages and updates the pages.
 func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*page, usersMap map[int64]*dbUser) error {
 	query := fmt.Sprintf(`
@@ -211,12 +137,16 @@ func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 }
 
 // loadLastVisits loads lastVisit variable for each page.
-func loadLastVisits(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*page) error {
+func loadLastVisits(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIdsStr := pageIdsStringFromMap(pageMap)
 	query := fmt.Sprintf(`
 		SELECT pageId,updatedAt
 		FROM visits
 		WHERE userId=%d AND pageId IN (%s)`,
-		currentUserId, pageIds)
+		currentUserId, pageIdsStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var pageId int64
 		var updatedAt string
@@ -231,45 +161,22 @@ func loadLastVisits(c sessions.Context, currentUserId int64, pageIds string, pag
 }
 
 // loadSubscriptions loads subscription statuses corresponding to the given
-// pages and comments, and then updates the given maps.
-func loadSubscriptions(
-	c sessions.Context, currentUserId int64,
-	pageMap map[int64]*page,
-	commentMap map[int64]*comment) error {
-
-	commentIds := ""
-	if commentMap != nil {
-		var buffer bytes.Buffer
-		for id, _ := range commentMap {
-			buffer.WriteString(fmt.Sprintf("%d", id))
-			buffer.WriteString(",")
-		}
-		commentIds = strings.TrimRight(buffer.String(), ",")
-	}
+// pages, and then updates the given maps.
+func loadSubscriptions(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
 	pageIds := pageIdsStringFromMap(pageMap)
 
-	commentClause := ""
-	if len(commentIds) > 0 {
-		commentClause = fmt.Sprintf("OR toCommentId IN (%s)", commentIds)
-	}
-
 	query := fmt.Sprintf(`
-		SELECT toPageId,toCommentId
+		SELECT toPageId
 		FROM subscriptions
-		WHERE userId=%d AND (toPageId IN (%s) %s)`,
-		currentUserId, pageIds, commentClause)
+		WHERE userId=%d AND toPageId IN (%s)`,
+		currentUserId, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var toPageId int64
-		var toCommentId int64
-		err := rows.Scan(&toPageId, &toCommentId)
+		err := rows.Scan(&toPageId)
 		if err != nil {
-			return fmt.Errorf("failed to scan for a comment like: %v", err)
+			return fmt.Errorf("failed to scan for a subscription: %v", err)
 		}
-		if toPageId > 0 {
-			pageMap[toPageId].IsSubscribed = true
-		} else if toCommentId > 0 {
-			commentMap[toCommentId].IsSubscribed = true
-		}
+		pageMap[toPageId].IsSubscribed = true
 		return nil
 	})
 	return err
@@ -342,10 +249,8 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	data.User = u
 	c := sessions.NewContext(r)
 
-	// Load the main page
+	// Figure out main page's id
 	var pageId int64
-	mainPageMap := make(map[int64]*page)
-	data.PageMap = make(map[int64]*page)
 	pageAlias := mux.Vars(r)["alias"]
 	pageId, err = strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
@@ -358,22 +263,51 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			return nil, fmt.Errorf("Page with alias '%s' doesn't exists", pageAlias)
 		}
 	}
-	pageIdStr := fmt.Sprintf("%d", pageId)
+
+	// Load the main page
 	data.Page, err = loadEdit(c, pageId, data.User.Id, loadEditOptions{ignoreParents: true})
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if data.Page == nil {
 		return nil, fmt.Errorf("Couldn't find a page with id: %d", pageId)
 	}
-	mainPageMap[data.Page.PageId] = data.Page
 
-	// Create user map
+	// Create maps.
+	mainPageMap := make(map[int64]*page)
+	data.PageMap = make(map[int64]*page)
 	data.UserMap = make(map[int64]*dbUser)
+	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
 	err = loadChildrenIds(c, data.PageMap, loadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load children: %v", err)
+	}
+
+	// Create embedded pages map, which will have pages that are displayed more
+	// fully and need additional info loaded.
+	embeddedPageMap := make(map[int64]*page)
+	embeddedPageMap[data.Page.PageId] = data.Page
+	if data.Page.Type == questionPageType {
+		for id, p := range data.PageMap {
+			if p.Type == answerPageType {
+				embeddedPageMap[id] = p
+			}
+		}
+	}
+	// Load comment ids.
+	err = loadCommentIds(c, data.PageMap, embeddedPageMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load comments: %v", err)
+	}
+
+	// Here we collect all the potential pages, and later when we have loaded more
+	// info, we filter out the specific pages.
+	// We also use this map to determine which pages are updated as "visited".
+	for id, p := range data.PageMap {
+		if p.Type == commentPageType {
+			embeddedPageMap[id] = p
+		}
 	}
 
 	// Load parents
@@ -406,11 +340,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't load answer draft id: %v", err)
 		}
-		if data.Page.ChildDraftId <= 0 {
-			rand.Seed(time.Now().UnixNano())
-			data.Page.ChildDraftId = rand.Int63()
-			data.PageMap[data.Page.ChildDraftId] = &page{PageId: data.Page.ChildDraftId, Type: answerPageType}
-		} else {
+		if data.Page.ChildDraftId > 0 {
 			p, err := loadFullEdit(c, data.Page.ChildDraftId, u.Id)
 			if err != nil {
 				return nil, fmt.Errorf("Couldn't load answer draft: %v", err)
@@ -444,20 +374,6 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		privacyKey := mux.Vars(r)["privacyKey"]
 		if privacyKey != fmt.Sprintf("%d", data.Page.PrivacyKey) {
 			return nil, fmt.Errorf("Unauthorized access. You don't have the correct privacy key.")
-		}
-	}
-
-	// Get last visits.
-	q := r.URL.Query()
-	forcedLastVisit := q.Get("lastVisit")
-	if forcedLastVisit == "" {
-		err = loadLastVisits(c, data.User.Id, pageIdStr, mainPageMap)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching a visit: %v", err)
-		}
-	} else {
-		for _, p := range mainPageMap {
-			p.LastVisit = forcedLastVisit
 		}
 	}
 
@@ -496,87 +412,80 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 
 	// Erase Text from pages that don't need it.
 	for _, p := range data.PageMap {
-		if data.Page.Type != questionPageType || p.Type != answerPageType {
+		if (data.Page.Type != questionPageType || p.Type != answerPageType) && p.Type != commentPageType {
 			p.Text = ""
 		}
 	}
 
-	// Create joinedPageMap that has the main page and all the other related/sub pages.
-	joinedPageMap := make(map[int64]*page)
-	joinedPageMap[data.Page.PageId] = data.Page
-	// At the same time, get a string of all page ids that need comments loaded.
-	var buffer bytes.Buffer
-	buffer.WriteString(pageIdStr)
-	for id, p := range data.PageMap {
-		joinedPageMap[id] = p
-		if data.Page.Type == questionPageType && p.Type == answerPageType {
-			buffer.WriteString(",")
-			buffer.WriteString(fmt.Sprintf("%d", id))
-		}
-	}
-
-	// Load all the comments
-	var commentMap map[int64]*comment // commentId -> comment
-	var sortedCommentKeys []int64     // need this for in-order iteration
-	pageIdsStr := strings.TrimRight(buffer.String(), ",")
-	commentMap, sortedCommentKeys, err = loadComments(c, pageIdsStr)
+	// Load whether or not pages have drafts.
+	err = loadDraftExistence(c, embeddedPageMap, data.User.Id)
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching comments: %v", err)
-	}
-	for _, key := range sortedCommentKeys {
-		comment := commentMap[key]
-		pageObj, ok := joinedPageMap[comment.PageId]
-		if !ok {
-			return nil, fmt.Errorf("couldn't find page for a comment: %d\n%v", key, err)
-		}
-		if comment.ReplyToId > 0 {
-			parent := commentMap[comment.ReplyToId]
-			parent.Replies = append(parent.Replies, comment)
-		} else {
-			pageObj.Comments = append(pageObj.Comments, commentMap[key])
-		}
-		// Add the comment's author to the user map
-		if _, ok := data.UserMap[comment.CreatorId]; !ok {
-			data.UserMap[comment.CreatorId] = &dbUser{Id: comment.CreatorId}
-		}
+		return nil, fmt.Errorf("Couldn't load draft existence: %v", err)
 	}
 
-	// Get a string of all comment ids.
-	buffer.Reset()
-	for id, _ := range commentMap {
-		buffer.WriteString(fmt.Sprintf("%d", id))
-		buffer.WriteString(",")
-	}
-	commentIds := strings.TrimRight(buffer.String(), ",")
-
-	// Load all the comment likes
-	err = loadCommentLikes(c, data.User.Id, commentIds, commentMap)
+	// Load original creation date.
+	pageIdsStr := pageIdsStringFromMap(embeddedPageMap)
+	query = fmt.Sprintf(`
+		SELECT pageId,MIN(createdAt)
+		FROM pages
+		WHERE pageId IN (%s) AND NOT isAutosave AND NOT isSnapshot
+		GROUP BY 1`, pageIdsStr)
+	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var pageId int64
+		var originalCreatedAt string
+		err := rows.Scan(&pageId, &originalCreatedAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan for original createdAt: %v", err)
+		}
+		embeddedPageMap[pageId].OriginalCreatedAt = originalCreatedAt
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching comment likes: %v", err)
+		return nil, fmt.Errorf("Couldn't load original createdAt: %v", err)
 	}
+
+	// Get last visits.
+	q := r.URL.Query()
+	forcedLastVisit := q.Get("lastVisit")
+	if forcedLastVisit == "" {
+		err = loadLastVisits(c, data.User.Id, embeddedPageMap)
+		if err != nil {
+			return nil, fmt.Errorf("error while fetching a visit: %v", err)
+		}
+	} else {
+		for _, p := range embeddedPageMap {
+			p.LastVisit = forcedLastVisit
+		}
+	}
+
+	// From here on, we also load info for the main page as well.
+	data.PageMap[data.Page.PageId] = data.Page
 
 	// Load all the subscription statuses.
 	if data.User.Id > 0 {
-		err = loadSubscriptions(c, data.User.Id, joinedPageMap, commentMap)
+		err = loadSubscriptions(c, data.User.Id, data.PageMap)
 		if err != nil {
 			return nil, fmt.Errorf("error while fetching subscriptions: %v", err)
 		}
 	}
 
 	// Load all the likes
-	err = loadLikes(c, data.User.Id, joinedPageMap)
+	err = loadLikes(c, data.User.Id, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching likes: %v", err)
 	}
 
 	// Load all the votes
-	err = loadVotes(c, data.User.Id, pageIdStr, mainPageMap, data.UserMap)
+	err = loadVotes(c, data.User.Id, fmt.Sprintf("%d", pageId), mainPageMap, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching votes: %v", err)
 	}
 
 	// Load all the users.
 	data.UserMap[u.Id] = &dbUser{Id: u.Id}
+	for _, p := range data.PageMap {
+		data.UserMap[p.CreatorId] = &dbUser{Id: p.CreatorId}
+	}
 	err = loadUsersInfo(c, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading users: %v", err)
@@ -597,7 +506,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 
 		// Update last visit date.
 		values := ""
-		for _, pg := range mainPageMap {
+		for _, pg := range embeddedPageMap {
 			values += fmt.Sprintf("(%d, %d, '%s', '%s'),",
 				data.User.Id, pg.PageId, database.Now(), database.Now())
 		}
@@ -617,6 +526,5 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		}
 	}
 
-	data.PageMap = joinedPageMap
 	return &data, nil
 }

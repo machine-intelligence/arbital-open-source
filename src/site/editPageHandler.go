@@ -2,6 +2,7 @@
 package site
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -114,13 +115,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusBadRequest, fmt.Sprintf("Can't be autosave and snapshot")
 	}
 	if !data.IsAutosave {
-		if len(data.Title) <= 0 {
+		if len(data.Title) <= 0 && data.Type != commentPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Need title")
 		}
 		if data.Type != blogPageType &&
 			data.Type != wikiPageType &&
 			data.Type != questionPageType &&
-			data.Type != answerPageType {
+			data.Type != answerPageType &&
+			data.Type != commentPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
 		}
 		if data.SortChildrenBy != likesChildSortingOption &&
@@ -146,6 +148,11 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		editLevel := getEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
+			if editLevel == blogPageType {
+				return http.StatusBadRequest, fmt.Sprintf("Can't edit a blog page you didn't create.")
+			} else if editLevel == commentPageType {
+				return http.StatusBadRequest, fmt.Sprintf("Can't edit a comment page you didn't create.")
+			}
 			return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
 		}
 		if oldPage.WasPublished && oldPage.PrivacyKey <= 0 && data.KeepPrivacyKey {
@@ -153,19 +160,72 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 	}
 
-	// Check that all the parent ids are valid.
-	// TODO: check that you can apply the given parent ids
-	// TOOD: potentially check that Q is parented to a page and A is parented to a Q only.
-	if !data.IsAutosave && len(parentIds) > 0 {
-		/*count := 0
-		query := fmt.Sprintf(`SELECT COUNT(*) FROM pages WHERE pageId IN (%s) AND isCurrentEdit`, data.ParentIds)
-		_, err = database.QueryRowSql(c, query, &count)
-		if err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't check parents: %v", err)
+	// Check parents for errors
+	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
+	var commentParentId int64
+	var commentPrimaryPageId int64
+	if isCurrentEdit {
+		if len(parentIds) > 0 {
+			// Check that the user has group access to all the pages they are linking to.
+			count := 0
+			typeConstraint := "TRUE"
+			if data.Type == answerPageType {
+				typeConstraint = `type="question"`
+			}
+			query := fmt.Sprintf(`
+				SELECT COUNT(DISTINCT pageId)
+				FROM pages
+				WHERE pageId IN (%s) AND (isCurrentEdit OR creatorId=%d) AND %s AND
+					(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
+				`, data.ParentIds, u.Id, typeConstraint, u.Id)
+			_, err = database.QueryRowSql(c, query, &count)
+			if err != nil {
+				return http.StatusInternalServerError, fmt.Sprintf("Couldn't check parents: %v", err)
+			}
+			if count != len(parentIds) {
+				if data.Type == answerPageType {
+					return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v. Perhaps because one of them is not a question.", data.ParentIds)
+				}
+				return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v. Perhaps one of them doesn't exist or is owned by a group you are a not a part of?", data.ParentIds)
+			}
+
+			// Compute parent comment and primary page for the comment.
+			if data.Type == commentPageType {
+				query := fmt.Sprintf(`
+					SELECT pageId,type
+					FROM pages
+					WHERE pageId IN (%s) AND isCurrentEdit
+					`, data.ParentIds)
+				err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+					var pageId int64
+					var pageType string
+					err := rows.Scan(&pageId, &pageType)
+					if err != nil {
+						return fmt.Errorf("failed to scan: %v", err)
+					}
+					if pageType == commentPageType {
+						if commentParentId > 0 {
+							return fmt.Errorf("Can't have more than one comment parent")
+						}
+						commentParentId = pageId
+					} else {
+						if commentPrimaryPageId > 0 {
+							return fmt.Errorf("Can't have more than one non-comment parent for a comment")
+						}
+						commentPrimaryPageId = pageId
+					}
+					return nil
+				})
+				if err != nil {
+					return http.StatusBadRequest, fmt.Sprintf("Couldn't load comment's parents: %v", err)
+				}
+				if commentPrimaryPageId <= 0 {
+					return http.StatusBadRequest, fmt.Sprintf("Comment pages need at least one normal page parent")
+				}
+			}
+		} else if data.Type == commentPageType || data.Type == answerPageType {
+			return http.StatusBadRequest, fmt.Sprintf("%s pages need to have a parent", data.Type)
 		}
-		if count != len(parentIds) {
-			return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v", data.ParentIds)
-		}*/
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
@@ -181,6 +241,22 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if oldPage.WasPublished {
 		data.Type = oldPage.Type
 		data.GroupName = oldPage.Group.Name
+	} else if data.Type == commentPageType {
+		// Set the groupName to primary page's group name
+		query := fmt.Sprintf(`
+			SELECT max(groupName)
+			FROM pages
+			WHERE pageId IN (%s) AND type!="comment" AND isCurrentEdit`, data.ParentIds)
+		_, err := database.QueryRowSql(c, query, &data.GroupName)
+		if err != nil {
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't get primary page's group name: %v", err)
+		}
+	}
+	// Enforce SortChildrenBy
+	if data.Type == commentPageType {
+		data.SortChildrenBy = chronologicalChildSortingOption
+	} else if data.Type == questionPageType {
+		data.SortChildrenBy = likesChildSortingOption
 	}
 	// Can't turn on privacy after the page has been published.
 	var privacyKey int64
@@ -216,7 +292,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("failed to create a transaction: %v\n", err)
 	}
 
-	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
 	if isCurrentEdit {
 		// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
 		if oldPage.PageId > 0 {
@@ -356,8 +431,11 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		hashmap = make(map[string]interface{})
 		hashmap["userId"] = u.Id
 		hashmap["toPageId"] = data.PageId
+		if data.Type == commentPageType && commentParentId > 0 {
+			hashmap["toPageId"] = commentParentId // subscribe to the parent comment
+		}
 		hashmap["createdAt"] = database.Now()
-		query = database.GetInsertSql("subscriptions", hashmap)
+		query = database.GetInsertSql("subscriptions", hashmap, "userId")
 		_, err = tx.Exec(query)
 		if err != nil {
 			tx.Rollback()
@@ -432,9 +510,17 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if oldPage.WasPublished {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
-			task.ContextPageId = data.PageId
 			task.ToPageId = data.PageId
-			task.UpdateType = pageEditUpdateType
+			if data.Type == commentPageType {
+				if commentParentId > 0 {
+					task.ToPageId = commentParentId // notify users who are subscribed to the parent comment
+				}
+				task.ContextPageId = commentPrimaryPageId
+				task.UpdateType = commentEditUpdateType
+			} else {
+				task.ContextPageId = data.PageId
+				task.UpdateType = pageEditUpdateType
+			}
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
 			}
@@ -458,7 +544,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		if !oldPage.WasPublished {
+		if !oldPage.WasPublished && data.Type != commentPageType {
 			// Generate updates for users who are subscribed to the parent pages.
 			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
@@ -483,6 +569,27 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			query = database.GetInsertSql("likes", hashmap)
 			if _, err = database.ExecuteSql(c, query); err != nil {
 				c.Errorf("Couldn't add a vote: %v", err)
+			}
+		} else if !oldPage.WasPublished && data.Type == commentPageType {
+			// if new comment -> newComment update for the primary page (and subscribe user to the new comment)
+			// else if reply -> newComment update for the parent comment (and subscribe user to the parent comment)
+			var task tasks.NewUpdateTask
+			task.UserId = u.Id
+			task.ContextPageId = commentPrimaryPageId
+			if commentParentId > 0 {
+				// New reply task
+				task.UpdateType = replyUpdateType
+				task.ToPageId = commentParentId
+			} else {
+				// New top level comment task
+				task.UpdateType = topLevelCommentUpdateType
+				task.ToPageId = commentPrimaryPageId
+			}
+			if err := task.IsValid(); err != nil {
+				c.Errorf("Invalid task created: %v", err)
+			}
+			if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
 	}

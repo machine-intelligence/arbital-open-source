@@ -2,20 +2,21 @@
 
 	<!-- Alerts -->
 	<div class="alerts">
-		<div ng-switch="page.getEditLevel()">
+		<div ng-switch="page.getEditLevel()" ng-show="page.WasPublished">
 			<div ng-switch-when="admin" class="alert alert-warning">Enforcing admin priviledges.</div>
 			<div ng-switch-when="blog" class="alert alert-danger" role="alert">Can't edit a blog page you didn't create.</div>
+			<div ng-switch-when="comment" class="alert alert-danger" role="alert">Can't edit a comment you didn't create.</div>
 			<div ng-switch-when="" hidden></div>
 			<div ng-switch-default class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {[{page.getEditLevel()}]}.</div>
 		</div>
 		<div ng-show="page.WasPublished">
 			<div ng-show="page.IsAutosave" class="alert alert-warning">
 				Restored autosave which was last updated on <span class="date" ng-bind="page.CreatedAt"></span>.
-				<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1">Delete my autosave and edit live version.</a>
+				<a href="#" class="abandon-edit">Delete my autosave and edit live version.</a>
 			</div>
 			<div ng-show="page.IsSnapshot" class="alert alert-warning">
 				Restored snapshot which was last updated on <span class="date" ng-bind="page.CreatedAt"></span>.
-				<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1">Switch to editing the live version.</a>
+				<a href="#" class="abandon-edit">Switch to editing the live version.</a>
 			</div>
 		</div>
 	</div>
@@ -23,8 +24,8 @@
 	<div class="edit-page-body">
 		<div ng-class="{'half': !useVerticalView}">
 			<!-- Title -->
-			<div class="page-title">
-				<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="{[{getTitlePlaceholder()}]}" required="true" autocomplete="off">
+			<div class="page-title" ng-hide="isComment">
+				<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="{[{getTitlePlaceholder()}]}" ng-required="!isComment" autocomplete="off">
 			</div>
 	
 			<!-- WMD edit panel -->
@@ -34,7 +35,7 @@
 					<textarea name="text"
 							class="edit-page-text wmd-input form-control"
 							id="wmd-input{[{page.PageId}]}"
-							rows="30"
+							rows="{[{isComment ? 10 : 30}]}"
 							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 						  style="resize: none;"
 						  ng-bind="page.Text"></textarea>
@@ -43,9 +44,8 @@
 						<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
 						<button type="submit" class="btn btn-primary" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
 						<span class="gray-text autosave-label" hidden></span>
-						<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal && page.Type != 'answer'">Revert to Live Version</a>
-						<button type="button" class="new-page-button btn btn-danger pull-right" ng-show="isModal && page.Type != 'question'" toggle-on-submit>Clean Slate</button>
-						<button type="button" class="abandon-page-button btn btn-danger pull-right" ng-show="page.Type == 'question' && !page.WasPublished" toggle-on-submit>Abandon</button>
+						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="!page.WasPublished && (isModal || isComment || isAnswer)" toggle-on-submit>Abandon</button>
+						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="page.WasPublished && !isModal" toggle-on-submit>Revert to Live Version</button>
 						<div class="alert alert-danger" hidden></div>
 						<span class="loading-text" style="display:none"></span>
 						<div class="clearfix"></div>
@@ -57,7 +57,7 @@
 			<!-- Page options -->
 			<div class="new-page-options form-horizontal">
 				<!-- Page type -->
-				<div class="form-group" ng-hide="page.WasPublished || page.Type=='question' || page.Type=='answer'">
+				<div class="form-group" ng-show="!page.WasPublished && !isSecondary">
 					<label class="title-label control-label col-sm-2">Page Type</label>
 					<div class="col-sm-4">
 						<select ng-model="page.Type" required="string"
@@ -72,7 +72,7 @@
 				</div>
 			
 				<!-- Group id -->
-				<div class="form-group" ng-show="groupOptionsLength > 0 && !page.WasPublished">
+				<div class="form-group" ng-show="groupOptionsLength > 0 && !page.WasPublished && !isComment">
 					<label class="title-label control-label col-sm-2">Group <span class="dashed-underline" title="Only members of the selected group will be able to see this page.">(?)</span></label>
 					<div class="col-sm-4">
 						<select ng-model="page.Group.Name"
@@ -84,7 +84,7 @@
 				</div>
 			
 				<!-- Show/hide vote -->
-				<div class="form-group" ng-show="page.LockedVoteType != '' && page.Type != 'question' && page.Type != 'answer'">
+				<div class="form-group" ng-show="page.LockedVoteType != '' && !!isSecondary">
 					<label class="title-label control-label col-sm-2">Show Vote</label>
 					<div class="col-sm-8">
 						<div class="checkbox">
@@ -96,7 +96,7 @@
 				</div>
 			
 				<!-- Vote type -->
-				<div class="form-group" ng-show="page.LockedVoteType == '' && page.Type != 'question' && page.Type != 'answer'">
+				<div class="form-group" ng-show="page.LockedVoteType == '' && !isSecondary">
 					<label class="title-label control-label col-sm-2">Vote Type</label>
 					<div class="col-sm-4">
 						<select ng-model="page.VoteType"
@@ -107,7 +107,8 @@
 				</div>
 			
 				<!-- Karma edit lock -->
-				<div class="karma-lock-form-group form-group" ng-show="userService.user.getMaxKarmaLock() > 0 && page.Type != 'blog'">
+				<div class="karma-lock-form-group form-group"
+						ng-show="userService.user.getMaxKarmaLock() > 0 && page.Type != 'blog' && !isComment">
 					<label class="title-label control-label col-sm-2">Karma Lock
 						<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 					</label>
@@ -132,7 +133,7 @@
 				</div>-->
 			
 				<!-- Parents -->
-				<div class="form-group">
+				<div class="form-group" ng-show="!isComment">
 					<label class="control-label col-sm-2">Parents</label>
 					<div class="col-sm-4">
 						<div class="input-group">
@@ -148,7 +149,7 @@
 				</div>
 			
 				<!-- Alias -->
-				<div class="form-group" ng-hide="page.Type == 'answer'">
+				<div class="form-group" ng-show="!isAnswer && !isComment">
 					<label class="control-label col-sm-2">Alias</label>
 					<div class="col-sm-4">
 						<div class="input-group">
@@ -162,7 +163,7 @@
 				</div>
 			
 				<!-- Sort children option -->
-				<div class="form-group" ng-show="page.Type != 'question' && page.Type != 'answer'">
+				<div class="form-group" ng-show="!isSecondary">
 					<label class="title-label control-label col-sm-2">Sort Children</label>
 					<div class="col-sm-4">
 						<select ng-model="page.SortChildrenBy"
@@ -176,12 +177,12 @@
 	
 		<!-- Right half with the preview -->
 		<div ng-class="{'half': !useVerticalView}">
-			<div ng-class="{'panel':useVerticalView, 'panel-default':useVerticalView}">
-				<div class="page-title" ng-class="{'panel-heading':useVerticalView}">
+			<div ng-class="{'panel': useVerticalView, 'panel-default': useVerticalView}">
+				<div class="page-title" ng-class="{'panel-heading': useVerticalView}">
 					<span class="page-title-text" ng-bind="page.Title"></span>
 					<span class="gray-text" ng-show="useVerticalView">(Preview)<span>
 				</div>
-				<div ng-class="{'panel-body':useVerticalView}">
+				<div ng-class="{'panel-body': useVerticalView}">
 					<div id="wmd-preview{[{page.PageId}]}" class="wmd-preview pagedown"></div>
 				</div>
 			</div>

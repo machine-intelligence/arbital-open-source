@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"html/template"
 	"net/http"
 	"strings"
 
@@ -16,10 +15,9 @@ import (
 )
 
 type update struct {
-	Count         int
-	FromCommentId int64
-	FromUser      *dbUser
-	FromPage      *page
+	Count    int
+	FromUser *dbUser
+	FromPage *page
 }
 
 type updatedPage struct {
@@ -56,7 +54,7 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	userMap := make(map[int64]*dbUser)
 	var buffer bytes.Buffer
 	query := fmt.Sprintf(`
-		SELECT contextPageId,updatedAt,type,count,fromCommentId,fromUserId,fromPageId
+		SELECT contextPageId,updatedAt,type,count,fromUserId,fromPageId
 		FROM updates
 		WHERE userId=%d AND seen=0
 		ORDER BY updatedAt DESC
@@ -70,7 +68,6 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 			&updatedAt,
 			&updateType,
 			&u.Count,
-			&u.FromCommentId,
 			&fromUserId,
 			&fromPageId)
 		if err != nil {
@@ -80,12 +77,15 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		curPage, ok := updatedPagesMap[pageId]
 		if !ok {
 			curPage = &updatedPage{}
-			curPage.Page = &page{PageId: pageId}
+			curPage.Page, ok = pageMap[pageId]
+			if !ok {
+				curPage.Page = &page{PageId: pageId}
+				pageMap[pageId] = curPage.Page
+			}
 			curPage.Updates = make(map[string]*update)
 			curPage.UpdatedAt = updatedAt
 			updatedPagesMap[pageId] = curPage
 			data.UpdatedPages = append(data.UpdatedPages, curPage)
-			pageMap[pageId] = curPage.Page
 			buffer.WriteString(fmt.Sprintf("%d,", pageId))
 		}
 
@@ -142,7 +142,8 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 			if err != nil {
 				return fmt.Errorf("failed to scan a page: %v", err)
 			}
-			*pageMap[p.PageId] = p
+			pageMap[p.PageId].Title = p.Title
+			pageMap[p.PageId].Alias = p.Alias
 			return nil
 		})
 		if err != nil {
@@ -164,7 +165,6 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		c.Errorf("Couldn't retrieve updates count: %v", err)
 	}
 
-	funcMap := template.FuncMap{}
 	c.Inc("updates_page_served_success")
-	return pages.StatusOK(data).AddFuncMap(funcMap)
+	return pages.StatusOK(data)
 }
