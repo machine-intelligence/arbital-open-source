@@ -123,6 +123,11 @@
   font-size: 16px;
   font-weight: 800;
 }
+.pagedown blockquote {
+  font-size: 14px;
+  padding: 10px 10px;
+  margin: 0 0 5px;
+}
 .wmd-panel {
   position: relative;
   height: 90%;
@@ -420,6 +425,11 @@
 .markdown-text h3 {
   font-size: 16px;
   font-weight: 800;
+}
+.markdown-text blockquote {
+  font-size: 14px;
+  padding: 10px 10px;
+  margin: 0 0 5px;
 }
 .page-text {
   margin-top: 7px;
