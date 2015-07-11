@@ -28,6 +28,7 @@ func (task *ConvertCommentTask) Execute(c sessions.Context) (delay int, err erro
 	if err = task.IsValid(); err != nil {
 		return -1, err
 	}
+	return -1, nil
 
 	c.Debugf("==== COMMENT CONVERSION START ====")
 	defer c.Debugf("==== COMMENT CONVERSION COMPLETED SUCCESSFULLY ====")

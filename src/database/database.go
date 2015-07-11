@@ -62,13 +62,6 @@ func sanitizeSqlValue(value string) string {
 	return "\"" + value + "\""
 }
 
-// FormatQuery formats the given query such that we can easily copy&paste it
-// from the terminal output into sql console.
-func FormatQuery(query string) string {
-	query = strings.Replace(query, "\n", " ", -1)
-	return strings.Replace(query, "\t", "", -1)
-}
-
 // GetInsertSql returns an SQL command for inserting a row into the given table.
 // The hashmap describes what values to set for that row.
 // If there is a name collision, the variables in updateArgs will be updated.

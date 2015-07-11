@@ -643,7 +643,7 @@ func loadDraftExistence(c sessions.Context, pageMap map[int64]*page, userId int6
 		WHERE creatorId=%d AND deletedBy=0 AND pageId IN (%s) AND
 				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
 		GROUP BY pageId
-		HAVING MAX(edit)  > MAX(IF(isCurrentEdit,edit,0)) `,
+		HAVING MAX(edit) > MAX(IF(isCurrentEdit,edit,0))`,
 		userId, pageIds, userId)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var pageId int64

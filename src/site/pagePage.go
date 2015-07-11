@@ -295,15 +295,13 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			}
 		}
 	}
+
 	// Load comment ids.
 	err = loadCommentIds(c, data.PageMap, embeddedPageMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load comments: %v", err)
 	}
-
-	// Here we collect all the potential pages, and later when we have loaded more
-	// info, we filter out the specific pages.
-	// We also use this map to determine which pages are updated as "visited".
+	// Add comments to the embedded pages map.
 	for id, p := range data.PageMap {
 		if p.Type == commentPageType {
 			embeddedPageMap[id] = p
