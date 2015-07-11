@@ -638,16 +638,20 @@ func loadDraftExistence(c sessions.Context, pageMap map[int64]*page, userId int6
 	}
 	pageIds := pageIdsStringFromMap(pageMap)
 	query := fmt.Sprintf(`
-		SELECT pageId
+		SELECT pageId,MAX(
+				IF((isSnapshot OR isAutosave) AND creatorId=%d AND deletedBy=0 AND
+					(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d)),
+				edit, -1)
+			) as myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
 		FROM pages
-		WHERE creatorId=%d AND deletedBy=0 AND pageId IN (%s) AND
-				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
+		WHERE pageId IN (%s)
 		GROUP BY pageId
-		HAVING MAX(edit) > MAX(IF(isCurrentEdit,edit,0))`,
-		userId, pageIds, userId)
+		HAVING myMaxEdit > currentEdit`,
+		userId, userId, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var pageId int64
-		err := rows.Scan(&pageId)
+		var blank int
+		err := rows.Scan(&pageId, &blank, &blank)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page id: %v", err)
 		}
