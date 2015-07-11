@@ -3,7 +3,6 @@ package site
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"zanaduu3/src/pages"
@@ -169,8 +168,6 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		return pages.InternalErrorWith(err)
 	}
 
-	funcMap := template.FuncMap{}
-
 	c.Inc("index_page_served_success")
-	return pages.StatusOK(data).AddFuncMap(funcMap)
+	return pages.StatusOK(data)
 }
