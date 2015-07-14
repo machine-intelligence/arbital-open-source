@@ -555,6 +555,7 @@ app.directive("zndLikesPageTitle", function(pageService) {
 			showRedLinkCount: "@",
 			showQuickEditLink: "@",
 			showCreatedAt: "@",
+			isSupersized: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];

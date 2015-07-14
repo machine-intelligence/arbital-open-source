@@ -1,13 +1,14 @@
 <!-- Display page's likes and title. -->
 
-<!-- Likes and dislikes -->
 <div ng-hide="page.Title==''">
+	<!-- Red link count -->
 	<span class="red-link-count pull-right"
 		ng-show="showRedLinkCount && page.RedLinkCount>0"
 		ng-bind="page.RedLinkCount"
 		title="Number of links to non-existing pages"></span>
 
-	<span class="like-small-span">
+	<!-- Likes and dislikes -->
+	<span class="page-like-span" ng-class="{'like-small-span': !isSupersized, 'like-span': isSupersized}">
 		<span class="like-count" ng-bind="page.LikeCount"></span>
 		<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-class="{'on': page.MyLikeValue >= 1}"></span>
 		&nbsp;
@@ -15,8 +16,19 @@
 		<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
 	</span>
 
+	<!-- Link to quickly edit the page -->
 	<span class="quick-edit-span" ng-show="showQuickEditLink && page.IsCurrentEdit">
 		<a ng-href="{[{page.EditUrl}]}" class="edit-page-link glyphicon glyphicon-pencil"></a>
+	</span>
+
+	<!-- Show new/updated stars -->
+	<span class="node-meta-info">
+		<span class="new-updated-label glyphicon glyphicon-star"
+			    title="You've never seen this page before"
+					ng-show="page.isNewPage()"></span>
+		<span class="new-updated-label glyphicon glyphicon-star-empty"
+			    title="This page has been updated since the last time you saw it"
+					ng-show="page.isUpdatedPage()"></span>
 	</span>
 	
 	<span class="inline-page-title">

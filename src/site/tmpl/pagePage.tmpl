@@ -199,14 +199,6 @@
 <div class="primary-page-body-div" ng-controller="MainCtrl">
 	<!-- Navigation column -->
 	<div class="navigation-column pull-left">
-		<!-- Siblings -->
-		<div class="panel panel-default" ng-show="relatedIds.length > 0">
-			<div class="panel-heading">Related</div>
-			<div class="panel-body">
-				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
-			</div>
-		</div>
-
 		<!-- Parents -->
 		<div class="panel panel-default" ng-show="initialParentsCount > 0">
 			<div class="panel-heading">Parents</div>
@@ -228,6 +220,14 @@
 			<div class="panel-heading">Questions</div>
 			<div class="panel-body">
 				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in questionIds"></znd-likes-page-title>
+			</div>
+		</div>
+
+		<!-- Siblings -->
+		<div class="panel panel-default" ng-show="relatedIds.length > 0">
+			<div class="panel-heading">Related</div>
+			<div class="panel-body">
+				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
 			</div>
 		</div>
 		&nbsp;

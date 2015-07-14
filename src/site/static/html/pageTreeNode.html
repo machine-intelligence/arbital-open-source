@@ -6,18 +6,7 @@
 			<span ng-show="!showCollapseArrow()" class="gray-text">&nbsp;&bull;</span>
 		</span>
 
-		<!-- Likes / dislikes and approval voting -->
-		<span class="page-like-span" ng-class="{'like-small-span': !isSupersized(), 'like-span': isSupersized()}">
-			<span class="like-count" ng-bind="page.LikeCount"></span>
-			<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-class="{'on': page.MyLikeValue >= 1}"></span>
-			&nbsp;
-			<span class="dislike-count" ng-bind="page.DislikeCount"></span>
-			<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-class="{'on': page.MyLikeValue <= -1}"></span>
-		</span>
-
-		<span class="page-header-link">
-			<a ng-href="{[{page.Url}]}" class="intrasite-link" ng-bind="page.Title"></a>
-		</span>
+		<znd-likes-page-title page-id="{[{page.PageId}]}" is-supersized="{[{isSupersized()}]}" style="display:table-cell"></znd-likes-page-title>
 	</div>
 	<div class="page-panel-body" ng-show="node.showChildren">
 		<img src="/static/images/loading.gif" ng-show="isLoadingChildren()"/>

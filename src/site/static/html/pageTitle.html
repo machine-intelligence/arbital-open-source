@@ -1,9 +1,12 @@
-<!-- Display page's title with potential additional meta info.
-Required variables: page -->
+<!-- Display page's title with potential additional meta info. This is used to
+ display the title of an embedded page. -->
 
 <span class="title-span">
 	<span class="alert alert-danger" ng-show="page.DeletedBy > 0">[DELETED]</span>
 	<span ng-hide="page.DeletedBy > 0">
+		<span class="new-updated-label glyphicon glyphicon-star"
+			    title="This is your first time viewing this page"
+					ng-show="page.isNewPage()"></span>
 		<span class="new-updated-label glyphicon glyphicon-star-empty"
 			    title="This page has been updated since the last time you've seen it"
 					ng-show="page.isUpdatedPage()"></span>

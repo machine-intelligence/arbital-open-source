@@ -442,22 +442,24 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't load original createdAt: %v", err)
 	}
 
+	// From here on, we also load info for the main page as well.
+	data.PageMap[data.Page.PageId] = data.Page
+
 	// Get last visits.
 	q := r.URL.Query()
 	forcedLastVisit := q.Get("lastVisit")
-	if forcedLastVisit == "" {
-		err = loadLastVisits(c, data.User.Id, embeddedPageMap)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching a visit: %v", err)
-		}
-	} else {
-		for _, p := range embeddedPageMap {
-			p.LastVisit = forcedLastVisit
+	err = loadLastVisits(c, data.User.Id, data.PageMap)
+	if err != nil {
+		return nil, fmt.Errorf("error while fetching a visit: %v", err)
+	}
+	if forcedLastVisit != "" {
+		// Reset the last visit date for all the pages we actually visited
+		for _, p := range data.PageMap {
+			if p.LastVisit > forcedLastVisit {
+				p.LastVisit = forcedLastVisit
+			}
 		}
 	}
-
-	// From here on, we also load info for the main page as well.
-	data.PageMap[data.Page.PageId] = data.Page
 
 	// Load all the subscription statuses.
 	if data.User.Id > 0 {

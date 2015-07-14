@@ -178,6 +178,7 @@
 .hash-anchor {
   background-color: #f8f8f8;
   border: blue 1px solid;
+  margin-bottom: 10px;
 }
 .navigation-column {
   width: 30%;
@@ -760,6 +761,7 @@ textarea.new-comment-text {
 .like-span {
   font-size: 21px;
   white-space: nowrap;
+  padding-right: 15px;
 }
 .like-span .like-count {
   color: #0ccd29;
@@ -1068,4 +1070,7 @@ textarea.new-comment-text {
   margin-left: 6px;
   padding-left: 24px;
   border-left: 1px solid blue;
+}
+.node-meta-info {
+  display: table-cell;
 }
