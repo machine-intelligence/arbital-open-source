@@ -1053,11 +1053,14 @@
 			  text = null;
 		  } else if (!isIntraLink){
 			  // Fixes common pasting errors.
-			  text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
+			  text = text.replace(/^http:\/\/(https?|ftp):\/\//, "$1://");
 			  if (!/^(?:https?|ftp):\/\//.test(text)) {
 				  text = 'http://' + text;
 			  }
 		  }
+			// If there is still a visible modal, we have to add "modal-open" to it so
+			// that it scrolls instead of the background.
+			$(".modal:visible").length && $(document.body).addClass("modal-open");
 		  callback(text);
 		});
 		$modal.on("shown.bs.modal", function (e) {
