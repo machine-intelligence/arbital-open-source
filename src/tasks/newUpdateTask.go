@@ -38,7 +38,6 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 	if err = task.IsValid(); err != nil {
 		return -1, err
 	}
-	return -1, nil
 
 	// Figure out the subscriptions query constraint.
 	var whereClause string

@@ -27,6 +27,7 @@ type alias struct {
 
 // pageTmplData stores the data that we pass to the index.tmpl to render the page
 type pageTmplData struct {
+	commonPageData
 	User        *user.User
 	UserMap     map[int64]*dbUser
 	PageMap     map[int64]*page
@@ -226,6 +227,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		c.Inc("page_page_served_fail")
 		return pages.InternalErrorWith(err)
 	}
+	data.PrimaryPageId = data.Page.PageId
 
 	funcMap := template.FuncMap{
 		"GetEditLevel": func(p *page) string {
@@ -446,12 +448,12 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	data.PageMap[data.Page.PageId] = data.Page
 
 	// Get last visits.
-	q := r.URL.Query()
-	forcedLastVisit := q.Get("lastVisit")
 	err = loadLastVisits(c, data.User.Id, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching a visit: %v", err)
 	}
+	q := r.URL.Query()
+	forcedLastVisit := q.Get("lastVisit")
 	if forcedLastVisit != "" {
 		// Reset the last visit date for all the pages we actually visited
 		for _, p := range data.PageMap {

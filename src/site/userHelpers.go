@@ -8,6 +8,7 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/user"
 )
 
 const (
@@ -71,6 +72,26 @@ func loadUpdateCount(c sessions.Context, userId int64) (int, error) {
 		WHERE userId=%d AND seen=0`, userId)
 	_, err := database.QueryRowSql(c, query, &updateCount)
 	return updateCount, err
+}
+
+// loadUserGroups loads all the group names this user belongs to.
+func loadUserGroups(c sessions.Context, u *user.User) error {
+	// Load my groups.
+	u.GroupNames = make([]string, 0)
+	query := fmt.Sprintf(`
+		SELECT groupName
+		FROM groupMembers
+		WHERE userId=%d`, u.Id)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var groupName string
+		err := rows.Scan(&groupName)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a member: %v", err)
+		}
+		u.GroupNames = append(u.GroupNames, groupName)
+		return nil
+	})
+	return err
 }
 
 // getUserUrl returns URL for looking at recently created pages by the given user.

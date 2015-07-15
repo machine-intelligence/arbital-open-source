@@ -15,6 +15,7 @@ import (
 
 // exploreTmplData stores the data that we pass to the template to render the page
 type exploreTmplData struct {
+	commonPageData
 	User    *user.User
 	UserMap map[int64]*dbUser
 	PageMap map[int64]*page
@@ -72,6 +73,13 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{})
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
+	// Get last visits.
+	err = loadLastVisits(c, data.User.Id, data.PageMap)
+	if err != nil {
+		c.Errorf("error while fetching a visit: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 

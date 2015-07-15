@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -25,6 +24,11 @@ type newPageOptions struct {
 	SkipLoadingUser bool
 	RequireLogin    bool
 	LoadUserGroups  bool
+}
+
+// commonPageData contains data that is common between all pages.
+type commonPageData struct {
+	PrimaryPageId int64 `json:",string"`
 }
 
 // newHandler returns a standard handler from given handler function.
@@ -84,23 +88,9 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 					return pages.InternalErrorWith(err)
 				}
 				if options.LoadUserGroups {
-					// Load my groups.
-					u.GroupNames = make([]string, 0)
-					query = fmt.Sprintf(`
-						SELECT groupName
-						FROM groupMembers
-						WHERE userId=%d`, u.Id)
-					err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-						var groupName string
-						err := rows.Scan(&groupName)
-						if err != nil {
-							return fmt.Errorf("failed to scan for a member: %v", err)
-						}
-						u.GroupNames = append(u.GroupNames, groupName)
-						return nil
-					})
-					if err != nil {
-						return pages.InternalErrorWith(fmt.Errorf("Couldn't load user's group names: %v", err))
+					if err = loadUserGroups(c, u); err != nil {
+						c.Errorf("Couldn't load user groups: %v", err)
+						return pages.InternalErrorWith(err)
 					}
 				}
 			}

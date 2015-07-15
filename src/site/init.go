@@ -67,6 +67,7 @@ func init() {
 	r.HandleFunc(updatesPage.URI, stdHandler(updatesPage.ServeHTTP)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
+	r.HandleFunc("/json/search/", searchJsonHandler).Methods("GET")
 	r.HandleFunc("/json/pages/", pagesJsonHandler).Methods("GET")
 	r.HandleFunc("/json/children/", childrenJsonHandler).Methods("GET")
 	r.HandleFunc("/json/parents/", parentsJsonHandler).Methods("GET")
@@ -85,6 +86,7 @@ func init() {
 	r.HandleFunc("/deletePage/", deletePageHandler).Methods("POST")
 
 	// Admin stuff
+	r.HandleFunc("/updatePageIndex/", updatePageIndexHandler).Methods("GET")
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
 
 	// Various internal handlers
@@ -99,7 +101,7 @@ func init() {
 }
 
 // writeJson converts the given map to JSON and writes it to the given writer.
-func writeJson(w http.ResponseWriter, m map[string]interface{}) error {
+func writeJson(w http.ResponseWriter, m interface{}) error {
 	jsonData, err := json.Marshal(m)
 	if err != nil {
 		return fmt.Errorf("Error marshalling data into json:", err)

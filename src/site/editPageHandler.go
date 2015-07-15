@@ -12,14 +12,16 @@ import (
 	"strings"
 	"time"
 
+	"appengine/search"
+
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
 )
 
-// pageData contains parameters passed in to create a page.
-type pageData struct {
+// editPageData contains parameters passed in to create a page.
+type editPageData struct {
 	PageId         int64 `json:",string"`
 	Type           string
 	Title          string
@@ -59,7 +61,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Decode data
 	decoder := json.NewDecoder(r.Body)
-	var data pageData
+	var data editPageData
 	err := decoder.Decode(&data)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Sprintf("Couldn't decode json: %v", err)
@@ -506,6 +508,26 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// else. So we print out errors, but don't return an error.
 
 	if isCurrentEdit {
+
+		// Update pages' index.
+		p := &tasks.PageIndexDoc{}
+		p.PageId = search.Atom(fmt.Sprintf("%d", data.PageId))
+		p.Type = data.Type
+		p.Title = data.Title
+		p.Text = data.Text
+		p.Alias = search.Atom(data.Alias)
+		p.GroupName = search.Atom(data.GroupName)
+
+		index, err := search.Open("pages")
+		if err != nil {
+			c.Errorf("failed to open index: %v", err)
+		} else {
+			_, err = index.Put(c, string(p.PageId), p)
+			if err != nil {
+				c.Errorf("failed to put page into index: %v", err)
+			}
+		}
+
 		// Generate updates for users who are subscribed to this page.
 		if oldPage.WasPublished {
 			var task tasks.NewUpdateTask

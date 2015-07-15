@@ -45,6 +45,12 @@
 .index-body-div .row {
   margin: 60px 0px;
 }
+.nav-search {
+  position: absolute;
+  top: 8px;
+  left: 33%;
+  width: 33%;
+}
 .page-footer {
   color: #b8b8b8;
   font-size: 10px;
@@ -170,6 +176,12 @@
   color: #b8b8b8;
 }
 .gray-text {
+  color: #b8b8b8;
+}
+.meta-info-span {
+  display: table-cell;
+}
+.public-private-label {
   color: #b8b8b8;
 }
 .new-updated-label {
@@ -1070,7 +1082,4 @@ textarea.new-comment-text {
   margin-left: 6px;
   padding-left: 24px;
   border-left: 1px solid blue;
-}
-.node-meta-info {
-  display: table-cell;
 }

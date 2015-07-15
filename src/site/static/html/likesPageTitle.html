@@ -22,13 +22,19 @@
 	</span>
 
 	<!-- Show new/updated stars -->
-	<span class="node-meta-info">
+	<span class="meta-info-span">
 		<span class="new-updated-label glyphicon glyphicon-star"
 			    title="You've never seen this page before"
 					ng-show="page.isNewPage()"></span>
 		<span class="new-updated-label glyphicon glyphicon-star-empty"
 			    title="This page has been updated since the last time you saw it"
 					ng-show="page.isUpdatedPage()"></span>
+		<span class="public-private-label glyphicon glyphicon-lock"
+					title="This page belongs to {[{page.Group.Name}]} group"
+					ng-show="pageService.showLockedGroup(page.PageId)"></span>
+		<span class="public-private-label glyphicon glyphicon-globe"
+					title="This page is public"
+					ng-show="pageService.showPublic(page.PageId)"></span>
 	</span>
 	
 	<span class="inline-page-title">

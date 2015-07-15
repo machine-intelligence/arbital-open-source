@@ -24,6 +24,7 @@ var (
 
 // editPageTmplData stores the data that we pass to the template file to render the page
 type editPageTmplData struct {
+	commonPageData
 	PageMap map[int64]*page
 	Page    *page
 	User    *user.User
@@ -68,6 +69,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		c.Inc("edit_page_served_fail")
 		return pages.InternalErrorWith(err)
 	}
+	data.PrimaryPageId = data.Page.PageId
 	// If "alias" URL parameter is set, we want to populate the Alias field.
 	q := r.URL.Query()
 	aliasUrlParam := q.Get("alias")

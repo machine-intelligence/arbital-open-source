@@ -52,6 +52,7 @@ app.service("pageService", function(userService, $http){
 			"{{$k}}": {{GetPageJson $v}},
 		{{end}}
 	};
+	this.primaryPage = "{{.PrimaryPageId}}" === "0" ? undefined : this.pageMap["{{.PrimaryPageId}}"];
 
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
@@ -309,6 +310,21 @@ app.service("pageService", function(userService, $http){
 		);
 	};
 
+	// Return true iff we should show that this page is public.
+	this.showPublic = function(pageId) {
+		var page = this.pageMap[pageId];
+		if (page.Group.Name) return false;
+		if (!this.primaryPage) return false;
+		return this.primaryPage.Group.Name !== page.Group.Name;
+	};
+	// Return true iff we should show that this page belongs to a group.
+	this.showLockedGroup = function(pageId) {
+		var page = this.pageMap[pageId];
+		if (!page.Group.Name) return false;
+		if (!this.primaryPage) return true;
+		return this.primaryPage.Group.Name !== page.Group.Name;
+	};
+
 	// Setup all initial pages.
 	console.log("Initial pageMap: "); console.log(this.pageMap);
 	for (var id in this.pageMap) {
@@ -541,6 +557,7 @@ app.directive("zndPageTitle", function(pageService) {
 			pageId: "@",
 		},
 		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
 			scope.page = pageService.pageMap[scope.pageId];
 		},
 	};
@@ -558,6 +575,7 @@ app.directive("zndLikesPageTitle", function(pageService) {
 			isSupersized: "@",
 		},
 		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
 			scope.page = pageService.pageMap[scope.pageId];
 		},
 	};
