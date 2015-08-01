@@ -158,7 +158,7 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 						$scope.page.ChildDraftId = result.alias;
 					});
 				} else {
-					smartPageReload();
+					window.location.href = "/pages/" + result.alias;
 				}
 			},
 		});
