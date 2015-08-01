@@ -195,11 +195,8 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 			}
 		};
 
-		var createAnswerEditPage = function(newPageId) {
-			var page = pageService.pageMap[newPageId];
-			page.Type = "answer";
-			page.Parents = [{ParentId: $scope.page.PageId, ChildId: newPageId}];
-			var el = $compile("<znd-edit-page page-id='" + newPageId +
+		var createAnswerEditPage = function(page) {
+			var el = $compile("<znd-edit-page page-id='" + page.PageId +
 				"' primary-page-id='" + $scope.page.PageId +
 				"' done-fn='answerDoneFn(result)'></znd-edit-page>")($scope);
 			$(".new-answer").append(el);
@@ -208,14 +205,18 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 			$(".new-answer").find("znd-edit-page").remove();
 			pageService.loadPages([],
 				function(data, status) {
-					createAnswerEditPage(Object.keys(data)[0]);
+					var page = pageService.pageMap[Object.keys(data)[0]];
+					page.Group = $.extend({}, $scope.page.Group);
+					page.Type = "answer";
+					page.Parents = [{ParentId: $scope.page.PageId, ChildId: page.PageId}];
+					createAnswerEditPage(page);
 				}, function(data, status) {
 					console.log("Couldn't load pages: " + loadPagesIds);
 				}
 			);
 		};
 		if ($scope.page.ChildDraftId > 0) {
-			createAnswerEditPage($scope.page.ChildDraftId);
+			createAnswerEditPage(pageService.pageMap[$scope.page.ChildDraftId]);
 		} else {
 			getNewAnswerId();
 		}
