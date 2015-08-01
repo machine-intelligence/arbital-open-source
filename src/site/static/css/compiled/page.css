@@ -194,7 +194,7 @@
 }
 .navigation-column {
   width: 30%;
-  margin-left: 20px;
+  padding-left: 20px;
 }
 .page-body-div {
   width: 100%;
@@ -451,6 +451,52 @@
 .page-outdent {
   margin: 0 0 8px 30px;
 }
+.toggle-inline-comment-div {
+  position: absolute;
+}
+.toggle-inline-comment-div .inline-comment {
+  text-decoration: none;
+}
+.toggle-inline-comment-div .inline-comment-icon {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+  font-size: 30px;
+  float: left;
+}
+.toggle-inline-comment-div .inline-comment-icon.on {
+  color: #5050ff;
+}
+.toggle-inline-comment-div .inline-comment-icon.on:focus {
+  color: #5050ff;
+}
+.toggle-inline-comment-div .inline-comment-icon:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.toggle-inline-comment-div .inline-comment-icon:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.toggle-inline-comment-div .inline-comment-icon:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.toggle-inline-comment-div .inline-comment-count {
+  position: relative;
+  top: 9px;
+  left: -70%;
+  margin-right: -15px;
+  z-index: 1;
+  pointer-events: none;
+  float: left;
+  color: black;
+}
+.inline-comment-highlight {
+  background-color: #DDDDFF;
+}
 .toggle-contexts-link {
   color: #b8b8b8;
   cursor: pointer;
@@ -525,11 +571,23 @@
   text-decoration: none;
   color: #c70a0a;
 }
+.rhs-buttons-div {
+  z-index: 2;
+}
+.inline-comment-div {
+  display: absolute;
+  background-color: white;
+  z-index: 1;
+  padding-top: 10px;
+}
+.question-div {
+  width: 14%;
+}
 .question-button {
   width: 50px;
   height: 50px;
   font-size: 28px;
-  margin-left: 25px;
+  margin-left: 50px;
 }
 .question-button .glyphicon {
   position: relative;
@@ -540,6 +598,16 @@
   top: 8px;
   left: -15px;
   font-size: 14px;
+}
+.new-inline-comment-div .new-inline-comment-button {
+  width: 50px;
+  height: 50px;
+  font-size: 28px;
+  margin-left: 25px;
+}
+.new-inline-comment-div .new-inline-comment-button .glyphicon {
+  position: relative;
+  left: -3px;
 }
 .comment {
   position: relative;

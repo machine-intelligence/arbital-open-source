@@ -7,139 +7,16 @@
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
-	<script src="/static/js/page.js"></script>
+	<script src="/static/js/comments.js"></script>
+	<script src="/static/js/pageController.js"></script>
 	<script src="/static/js/editPage.js"></script>
+	<script src="/static/js/pagePage.js"></script>
 	<script>
 		// Map of alias -> {pageId, title} object.
 		var pageAliases = { {{range .AliasMap}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
 		// Map of link alias/id -> true if the page is published.
 		var gPageLinks = { {{range $k,$v := .Page.Links}}"{{$k}}": {{$v}},{{end}} };
-	</script>
-	<script>
-		// MainCtrl is for the Page page.
-		app.controller("MainCtrl", function($scope, pageService, userService, $compile) {
-			$scope.relatedIds = {{.RelatedIds}};
-			$scope.questionIds = [];
-			$scope.answerIds = [];
-			$scope.page = pageService.pageMap["{{.Page.PageId}}"];
-
-			// Set up children pages and question ids.
-			$scope.initialChildren = {};
-			$scope.initialChildrenCount = 0;
-			for (var n = 0; n < $scope.page.Children.length; n++) {
-				var id = $scope.page.Children[n].ChildId;
-				var page = pageService.pageMap[id];
-				if (page.Type === "question") {
-					$scope.questionIds.push(id);
-				} else if (page.Type === "answer") {
-					$scope.answerIds.push(id);
-				} else {
-					$scope.initialChildren[id] = page;
-					$scope.initialChildrenCount++;
-				}
-			}
-
-			// Sort question ids by likes, but put the ones created by current user first.
-			$scope.questionIds.sort(function(id1, id2) {
-				var page1 = pageService.pageMap[id1];
-				var page2 = pageService.pageMap[id2];
-				var ownerDiff = (page2.CreatorId == userService.user.Id ? 1 : 0) -
-						(page1.CreatorId == userService.user.Id ? 1 : 0);
-				if (ownerDiff != 0) return ownerDiff;
-				return page2.LikeScore - page1.LikeScore;
-			});
-
-			// Set up parents pages.
-			$scope.initialParents = {};
-			$scope.initialParentsCount = $scope.page.Parents.length;
-			for (var n = 0; n < $scope.initialParentsCount; n++) {
-				var id = $scope.page.Parents[n].ParentId;
-				$scope.initialParents[id] = pageService.pageMap[id];
-			}
-
-			// Question button stuff.
-			var $qButton = $(".question-button");
-			// Make sure it's always in the top right corner.
-			var qButtonIsFixed = false;
-			var qButtonInitialY = $qButton.offset().top;
-			var qButtonOffsetY = 20;
-			$(window).scroll(function(){
-				var isFixed = $(window).scrollTop() > (qButtonInitialY - qButtonOffsetY);
-				if (isFixed !== qButtonIsFixed) {
-					if (!isFixed) {
-						$qButton.css("position", "initial");
-					} else {
-						$qButton.css("position", "fixed").css("top", qButtonOffsetY);
-					}
-				}
-				qButtonIsFixed = isFixed;
-			});
-		
-			// Process question button click.
-			$qButton.on("click", function(event) {
-				$(document).trigger("new-page-modal-event", {
-					modalKey: "newQuestion",
-					parentPageId: $scope.page.PageId,
-					callback: function(result) {
-						if (result.abandon) {
-							$scope.$apply(function() {
-								$scope.page.ChildDraftId = 0;
-							});
-						} else if (result.hidden) {
-							$scope.$apply(function() {
-								$scope.page.ChildDraftId = result.alias;
-							});
-						} else {
-							smartPageReload();
-						}
-					},
-				});
-			});
-
-			// Add answers pages.
-			var $answersList = $(".answers-list");
-			for (var n = 0; n < $scope.answerIds.length; n++){
-				var el = $compile("<znd-page page-id='" + $scope.answerIds[n] + "'></znd-page><hr></hr>")($scope);
-				$answersList.append(el);
-			}
-
-			// Add edit page for the answer.
-			if ($scope.page.Type === "question") {
-				$scope.answerDoneFn = function(result) {
-					if (result.abandon) {
-						getNewAnswerId();
-					} else if (result.alias) {
-						window.location.assign($scope.page.Url + "#page-" + result.alias);
-						window.location.reload();
-					}
-				};
-
-				var createAnswerEditPage = function(newPageId) {
-					var page = pageService.pageMap[newPageId];
-					page.Type = "answer";
-					page.Parents = [{ParentId: $scope.page.PageId, ChildId: newPageId}];
-					var el = $compile("<znd-edit-page page-id='" + newPageId +
-						"' primary-page-id='" + $scope.page.PageId +
-						"' done-fn='answerDoneFn(result)'></znd-edit-page>")($scope);
-					$(".new-answer").append(el);
-				};
-				var getNewAnswerId = function() {
-					$(".new-answer").find("znd-edit-page").remove();
-					pageService.loadPages([],
-						function(data, status) {
-							createAnswerEditPage(Object.keys(data)[0]);
-						}, function(data, status) {
-							console.log("Couldn't load pages: " + loadPagesIds);
-						}
-					);
-				};
-				if ($scope.page.ChildDraftId > 0) {
-					createAnswerEditPage($scope.page.ChildDraftId);
-				} else {
-					getNewAnswerId();
-				}
-			}
-		});
+		var gRelatedIds = {{.RelatedIds}};
 	</script>
 </head>
 
@@ -190,6 +67,14 @@
 		<div class="embedded-vote-container"></div>
 		<div class="embedded-page-text">JS inserts page text here</div>
 	</div>
+</div>
+
+<!-- This div is used to create icons to toggle inline comments. -->
+<div class="toggle-inline-comment-div template">
+	<a href="#" class="inline-comment">
+		<span class="inline-comment-icon glyphicon glyphicon-comment"></span>
+		<span class="inline-comment-count"><span>
+	</a>
 </div>
 
 <!-- This modal is for asking a new question. -->
@@ -251,12 +136,26 @@
 		</div>
 	</div>
 
-	<!-- Question button -->
+	<!-- Right hand side (RHS) column -->
 	<div class="question-div pull-left">
-		<button type="button" class="question-button btn btn-info" title="Ask a question" ng-show="page.Type != 'question'">
-		  <span class="glyphicon glyphicon-question-sign"></span>
-			<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="page.ChildDraftId > 0"></span>
-		</button>
+		<div class="rhs-buttons-div">
+			<!-- Question button -->
+			<button type="button" class="question-button btn btn-info" title="Ask a question" ng-show="page.Type != 'question'">
+			  <span class="glyphicon glyphicon-question-sign"></span>
+				<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="page.ChildDraftId > 0"></span>
+			</button>
+			<!-- Inline comment button -->
+			<span class="new-inline-comment-div" hidden>
+				<button type="button" class="new-inline-comment-button btn btn-info" title="New inline comment">
+					<span class="glyphicon glyphicon-comment"></span>
+				</button>
+			</span>
+		</div>
+		<!-- Div to hold an expanded inline comment or edit -->
+		<div class="inline-comment-div">
+			<!-- zndComment is inserted here dynamically when expanding an inline comment -->
+			<!-- zndEditPage is inserted here dynamically when creating a new inline comment -->
+		</div>
 	</div>
 
 	<div class="clearfix"></div>

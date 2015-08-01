@@ -366,6 +366,73 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	}
 	
 	// === Setup handlers.
+	
+	// Inline comments
+	// Create the inline comment highlight spans for the given paragraph.
+	this.createInlineCommentHighlight = function(paragraphNode, start, end, nodeClass) {
+		// How many characters we passed.
+		var charCount = 0;
+		// Store ranges we want to highlight.
+		var ranges = [];
+		// Compute context and text.
+		recursivelyVisitChildren(paragraphNode, function(node, nodeText, needsEscaping) {
+			if (nodeText === null) return false;
+			var escapedText = needsEscaping ? escapeMarkdownChars(nodeText) : nodeText;
+			var nodeWholeTextLength = node.wholeText ? node.wholeText.length : 0;
+			var range = document.createRange();
+			var nextCharCount = charCount + escapedText.length;
+			if (charCount <= start && nextCharCount >= end) {
+				range.setStart(node, start - charCount);
+				range.setEnd(node, Math.min(nodeWholeTextLength, end - charCount));
+				ranges.push(range);
+			} else if (charCount <= start && nextCharCount > start) {
+				range.setStart(node, start - charCount);
+				range.setEnd(node, Math.min(nodeWholeTextLength, nodeText.length));
+				ranges.push(range);
+			} else if (start < charCount && nextCharCount >= end) {
+				range.setStart(node, 0);
+				range.setEnd(node, Math.min(nodeWholeTextLength, end - charCount));
+				ranges.push(range);
+			} else if (start < charCount && nextCharCount > start) {
+				if (nodeWholeTextLength > 0) {
+					range.setStart(node, 0);
+					range.setEnd(node, Math.min(nodeWholeTextLength, nodeText.length));
+				} else {
+					range.selectNode(node);
+				}
+				ranges.push(range);
+			} else if (start == charCount && charCount == nextCharCount) {
+				// Rare occurence, but this captures MathJax divs/spans that
+				// precede the script node where we actually get the text from.
+				range.selectNode(node);
+				ranges.push(range);
+			}
+			charCount = nextCharCount;
+			return charCount >= end;
+		});
+		// Highlight ranges after we did DOM traversal, so that there are no
+		// modifications during the traversal.
+		for (var i = 0; i < ranges.length; i++) {
+			highlightRange(ranges[i], nodeClass);
+		}
+		return ranges.length > 0 ? ranges[0].startContainer : null;
+	};
+
+	var $newInlineCommentDiv = $(".new-inline-comment-div");
+	var $markdownText = $topParent.find(".markdown-text");
+	$markdownText.on("mouseup", function(event) {
+		// Do setTimeout, because otherwise there is a bug when you double click to
+		// select a word/paragraph, then click again and the selection var is still
+		// the same (not cleared).
+		window.setTimeout(function(){
+			var show = !!processSelectedParagraphText();
+			$newInlineCommentDiv.toggle(show);
+			if (show) {
+				pageView.setNewInlineCommentPrimaryPageId(pageId);
+			}
+		}, 0);
+	});
+
 	// Deleting a page
 	$topParent.find(".delete-page-link").on("click", function(event) {
 		$("#delete-page-alert").show();
@@ -380,7 +447,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		};
 		$.ajax({
 			type: "POST",
-			url: '/deletePage/',
+			url: "/deletePage/",
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
@@ -492,12 +559,156 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 			pageId: "@",
 		},
 		link: function(scope, element, attrs) {
+
+			// Set up Page JS Controller.
+			$timeout(function(){
+				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
+				scope.pageJsController.start();
+
+				if (scope.page.CommentIds != null) {
+					// Process comments in two passes. First normal comments.
+					processComments(false);
+					$timeout(function() {
+						// Inline comments after a delay long enough for MathJax to have been processed.
+						processComments(true);
+					}, 3000);
+				}
+			});
+
+			// Track toggle-inline-comment offsets, so we can prevent overlap.
+			var inlineCommentOffsets = [];
+			var fixInlineCommentOffset = function(offset) {
+				for (var i = 0; i < inlineCommentOffsets.length; i++) {
+					var o = inlineCommentOffsets[i];
+					if (Math.abs(offset.top - o.top) < 25) {
+						if (Math.abs(offset.left - o.left) < 30) {
+							offset.left = o.left + 35;
+						}
+					}
+				}
+				inlineCommentOffsets.push(offset);
+			}
+
+			// Create a toggle-inline-comment-div.
+			var createNewInlineCommentToggle = function(pageId, paragraphNode, anchorOffset, anchorLength) {
+				var highlightClass = "inline-comment-" + pageId;
+				var $commentDiv = $(".toggle-inline-comment-div.template").clone();
+				$commentDiv.attr("id", "comment-" + pageId).removeClass("template");
+				var commentCount = pageService.pageMap[pageId].Children.length + 1;
+				$commentDiv.find(".inline-comment-count").text("" + commentCount);
+				$(".question-div").append($commentDiv);
+
+				// Process mouse events.
+				var $commentIcon = $commentDiv.find(".inline-comment-icon");
+				$commentIcon.on("mouseenter", function(event) {
+					$("." + highlightClass).addClass("inline-comment-highlight");
+				});
+				$commentIcon.on("mouseleave", function(event) {
+					if ($commentIcon.hasClass("on")) return true;
+					$("." + highlightClass).removeClass("inline-comment-highlight");
+				});
+				$commentIcon.on("click", function(event) {
+					pageView.toggleInlineComment($commentDiv, function() {
+						$("." + highlightClass).addClass("inline-comment-highlight");
+						var $comment = $compile("<znd-comment primary-page-id='" + scope.page.PageId +
+								"' page-id='" + pageId + "'></znd-comment>")(scope);
+						$(".inline-comment-div").append($comment);
+					});
+					return false;
+				});
+
+				var commentIconLeft = $(".question-div").offset().left + 10;
+				var anchorNode = scope.pageJsController.createInlineCommentHighlight(paragraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
+				if (anchorNode) {
+					if (anchorNode.nodeType != Node.ELEMENT_NODE) {
+						anchorNode = anchorNode.parentElement;
+					}
+					var offset = {left: commentIconLeft, top: $(anchorNode).offset().top};
+					fixInlineCommentOffset(offset);
+					$commentDiv.offset(offset);
+					if (window.location.hash === "#comment-" + pageId) {
+						$commentIcon.trigger("click");
+						$("html, body").animate({
+			        scrollTop: $(anchorNode).offset().top - 100
+				    }, 1000);
+					}
+				} else {
+					$commentDiv.hide();
+					console.log("ERROR: couldn't find anchor node for inline comment");
+				}
+			}
+
 			// Dynamically create comment elements.
-			if (scope.page.CommentIds != null) {
+			var processComments = function(allowInline) {
 				var $comments = element.find(".comments");
+				var $markdown = element.find(".markdown-text");
+				var dmp = new diff_match_patch();
+				dmp.Match_MaxBits = 10000;
+				dmp.Match_Distance = 10000;
+
+				// If we have inline comments, we'll need to compute the raw text for
+				// each paragraph.
+				var paragraphTexts = undefined;
+				var populateParagraphTexts = function() {
+					paragraphTexts = [];
+					var i = 0;
+					$markdown.children().each(function() {
+						paragraphTexts.push(getParagraphText($(this).get(0)).context);
+						i++;
+					});
+				};
+
+				// Go through comments in chronological order.
 				scope.page.CommentIds.sort(pageService.getChildSortFunc({SortChildrenBy: "chronological", Type: "comment"}));
 				for (var n = 0; n < scope.page.CommentIds.length; n++) {
 					var comment = pageService.pageMap[scope.page.CommentIds[n]];
+					// Check if the comment in anchored and we can still find the paragraph.
+					if (comment.AnchorContext && comment.AnchorText) {
+						if (!allowInline) continue;
+						// Find the best paragraph.
+						var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
+						if (!paragraphTexts) {
+							populateParagraphTexts();
+						}
+						for (var i = 0; i < paragraphTexts.length; i++) {
+							var text = paragraphTexts[i];
+							var diffs = dmp.diff_main(text, comment.AnchorContext);
+							var score = dmp.diff_levenshtein(diffs);
+							if (score < bestScore) {
+								bestParagraphNode = $markdown.children().get(i);
+								bestParagraphText = text;
+								bestScore = score;
+							}
+						}
+						if (bestScore > comment.AnchorContext.length / 2) {
+							// This is not a good paragraph match. Continue processing as a normal comment.
+							comment.Text = "> " + comment.AnchorText + "\n\n" + comment.Text;
+						} else {
+							// Find offset into the best paragraph.
+							var anchorLength;
+							var anchorOffset = dmp.match_main(bestParagraphText, comment.AnchorText, comment.AnchorOffset);
+							if (anchorOffset < 0) {
+								// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor.
+								anchorOffset = 0;
+								anchorLength = bestParagraphText.length;
+							} else {
+								// Figure out how long the highlighted anchor should be.
+								var remainingText = bestParagraphText.substring(anchorOffset);
+								var diffs = dmp.diff_main(remainingText, comment.AnchorText);
+								anchorLength = remainingText.length;
+								if (diffs.length > 0) {
+									// Note: we can potentially be more clever here and discount
+									// edits done after anchorText.length chars higher.
+									var lastDiff = diffs[diffs.length - 1];
+									if (lastDiff[0] < 0) {
+										anchorLength -= lastDiff[1].length;
+									}
+								}
+							}
+							createNewInlineCommentToggle(comment.PageId, bestParagraphNode, anchorOffset, anchorLength);
+							continue;
+						}
+					}
 					// Make sure this comment is not a reply (i.e. it has a parent comment)
 					// If it's a reply, add it as a child to the corresponding parent comment.
 					if (comment.Parents != null) {
@@ -517,231 +728,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 							"' page-id='" + comment.PageId + "'></znd-comment>")(scope);
 					$comments.prepend($comment);
 				}
-			}
-			
-			$timeout(function(){
-				// Setup Page JS Controller.
-				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
-				scope.pageJsController.start();
-			});
-		},
-	};
-});
-
-// Directive for showing a comment.
-app.directive("zndComment", function ($compile, $timeout, pageService, autocompleteService) {
-	return {
-		templateUrl: "/static/html/comment.html",
-		controller: function ($scope, pageService, userService) {
-			$scope.userService = userService;
-			$scope.comment = pageService.pageMap[$scope.pageId];
-		},
-		scope: {
-			primaryPageId: "@",  // id of the primary page this comment belongs to
-			pageId: "@",  // id of this comment
-			parentCommentId: "@",  // id of the parent comment, if there is one
-		},
-		link: function(scope, element, attrs) {
-			var $replies = element.find(".replies");
-			// Dynamically create reply elements.
-			if (scope.parentCommentId === undefined) {
-				if (scope.comment.Children != null) {
-					pageService.sortChildren(scope.comment);
-					for (var n = 0; n < scope.comment.Children.length; n++) {
-						var childId = scope.comment.Children[n].ChildId;
-						if (pageService.pageMap[childId].Type !== "comment") continue;
-						var $comment = $compile("<znd-comment primary-page-id='" + scope.primaryPageId +
-								"' page-id='" + childId +
-								"' parent-comment-id='" + scope.pageId + "'></znd-comment>")(scope);
-						$replies.append($comment);
-					}
-				}
-				// Add New Comment element.
-				var $newComment = $compile("<znd-new-comment primary-page-id='" + scope.primaryPageId +
-						"' parent-comment-id='" + scope.pageId + "'></znd-new-comment>")(scope);
-				$replies.append($newComment);
-			}
-
-			$timeout(function() {
-				// Process comment's text using Markdown.
-				zndMarkdown.init(false, scope.pageId, scope.comment.Text, element, undefined);
-			});
-
-			// Highlight the comment div. Used for selecting comments when #anchor matches.
-			var highlightCommentDiv = function() {
-				$(".hash-anchor").removeClass("hash-anchor");
-				element.find(".comment-content").addClass("hash-anchor");
 			};
-			if (window.location.hash === "#comment-" + scope.pageId) {
-				highlightCommentDiv();
-			}
-
-			// Comment voting stuff.
-			// likeClick is 1 is user clicked like and 0 if they clicked reset like.
-			element.find(".like-comment-link").on("click", function(event) {
-				var $target = $(event.target);
-				var $commentRow = $target.closest(".comment-row");
-				var $likeCount = $commentRow.find(".comment-like-count");
-			
-				// Update UI.
-				$target.toggleClass("on");
-				var newLikeValue = $target.hasClass("on") ? 1 : 0;
-				var totalLikes = ((+$likeCount.text()) + (newLikeValue > 0 ? 1 : -1));
-				if (totalLikes > 0) {
-					$likeCount.text("" + totalLikes);
-				} else {
-					$likeCount.text("");
-				}
-				
-				// Notify the server
-				var data = {
-					pageId: scope.pageId,
-					value: newLikeValue,
-				};
-				$.ajax({
-					type: "POST",
-					url: '/newLike/',
-					data: JSON.stringify(data),
-				})
-				.done(function(r) {
-				});
-				return false;
-			});
-
-			// Process comment subscribe click.
-			element.find(".subscribe-comment-link").on("click", function(event) {
-				var $target = $(event.target);
-				$target.toggleClass("on");
-				var data = {
-					pageId: scope.pageId,
-				};
-				$.ajax({
-					type: "POST",
-					url: $target.hasClass("on") ? "/newSubscription/" : "/deleteSubscription/",
-					data: JSON.stringify(data),
-				})
-				.done(function(r) {
-				});
-				return false;
-			});
-	
-			// Comment editing stuff.
-			var $comment = element.find(".comment-content");
-			// Create and show the edit page directive.
-			var createEditPage = function() {
-				var el = $compile("<znd-edit-page page-id='" + scope.pageId +
-						"' primary-page-id='" + scope.primaryPageId +
-						"' done-fn='doneFn(result)'></znd-edit-page>")(scope);
-				$comment.append(el);
-			};
-			var destroyEditPage = function() {
-				$comment.find("znd-edit-page").remove();
-			};
-			// Reload comment from the server, loading the last, potentially non-live edit.
-			var reloadComment = function() {
-				$comment.find(".loading-indicator").show();
-				pageService.removePageFromMap(scope.pageId);
-				pageService.loadPages([scope.pageId], function(data, status) {
-					$comment.find(".loading-indicator").hide();
-					createEditPage();
-				});
-			}
-			// Show/hide the comment vs the edit page.
-			function toggleEditComment(visible) {
-				$comment.find(".comment-body").toggle(!visible);
-				$comment.find("znd-edit-page").toggle(visible);
-			}
-			// Callback used when the user is done editing the comment.
-			scope.doneFn = function(result) {
-				if (result.abandon) {
-					toggleEditComment(false);
-					element.find(".edit-comment-link").removeClass("has-draft");
-					scope.comment.HasDraft = false;
-					destroyEditPage();
-				} else if (result.alias) {
-					smartPageReload("comment-" + result.alias);
-				}
-			};
-			element.find(".edit-comment-link").on("click", function(event) {
-				$(".hash-anchor").removeClass("hash-anchor");
-				// Dynamically create znd-edit-page directive if it doesn't exist already.
-				if ($comment.find("znd-edit-page").length <= 0) {
-					if (scope.comment.HasDraft) {
-						// Load the draft.
-						reloadComment();
-					} else {
-						createEditPage();
-					}
-				}
-				toggleEditComment(true);
-				return false;
-			});
-		},
-	};
-});
-
-// Directive for creating a new comment.
-app.directive("zndNewComment", function ($compile, pageService, userService) {
-	return {
-		templateUrl: "/static/html/newComment.html",
-		controller: function ($scope, pageService, userService) {
-		},
-		scope: {
-			primaryPageId: "@",  // page which this comment is ultimately attached to (i.e. primary page)
-			parentCommentId: "@",  // optional id of the immediate parent comment
-		},
-		link: function(scope, element, attrs) {
-			var $newComment = element.find(".new-comment");
-			// Create and show the edit page directive.
-			var createEditPage = function(newPageId) {
-				var el = $compile("<znd-edit-page page-id='" + newPageId +
-						"' primary-page-id='" + scope.primaryPageId +
-						"' done-fn='doneFn(result)'></znd-edit-page>")(scope);
-				$newComment.append(el);
-			};
-			var destroyEditPage = function() {
-				$newComment.find("znd-edit-page").remove();
-			};
-			// Toggle the visibility of the link vs. the edit page div.
-			var toggleNewComment = function(showBody, showLoading) {
-				$newComment.find(".new-comment-body").toggle(showBody);
-				$newComment.find(".loading-indicator").toggle(showLoading);
-				$newComment.find("znd-edit-page").toggle(!showBody && !showLoading);
-				return false;
-			};
-			// Callback for processing when the user is done creating a new comment.
-			scope.doneFn = function(result) {
-				if (result.abandon) {
-					toggleNewComment(true, false);
-					destroyEditPage();
-				} else if (result.alias) {
-					smartPageReload("comment-" + result.alias);
-				}
-			};
-			element.find(".new-comment-link").on("click", function(event) {
-				$(".hash-anchor").removeClass("hash-anchor");
-				if ($newComment.find("znd-edit-page").length > 0) {
-					toggleNewComment(false, false);
-				} else {
-					toggleNewComment(false, true);
-					pageService.loadPages([],
-						function(data, status) {
-							toggleNewComment(false, false);
-							var newPageId = Object.keys(data)[0];
-							var page = pageService.pageMap[newPageId];
-							page.Type = "comment";
-							page.Parents = [{ParentId: scope.primaryPageId, ChildId: newPageId}];
-							if (scope.parentCommentId) {
-								page.Parents.push({ParentId: scope.parentCommentId, ChildId: newPageId});
-							}
-							createEditPage(newPageId);
-						}, function(data, status) {
-							console.log("Couldn't load pages: " + loadPagesIds);
-						}
-					);
-				}
-				return false;
-			});
 		},
 	};
 });

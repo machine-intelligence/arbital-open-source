@@ -76,6 +76,11 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 			__invisibleSubmit: isAutosave,
 		};
 		serializeFormData($topParent.find(".new-page-form"), data);
+		if (page.AnchorContext) {
+			data.anchorContext = page.AnchorContext;
+			data.anchorText = page.AnchorText;
+			data.anchorOffset = page.AnchorOffset;
+		}
 		return data;
 	};
 	var autosaving = false;
@@ -330,7 +335,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 				var resumePageId = pageIdCache[options.modalKey];
 				var primaryPage = pageService.pageMap[options.parentPageId];
 				var isQuestion = options.modalKey === "newQuestion";
-				if (isQuestion && !resumePageId) {
+				if (isQuestion && !resumePageId && primaryPage.ChildDraftId !== "0") {
 					resumePageId = primaryPage.ChildDraftId;
 				}
 				var $modal = $("#new-page-modal");
@@ -443,7 +448,13 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 		scope: {
 			pageId: "@",
 			isModal: "@",
-			primaryPageId: "@", // set if this edit page is for an answer to this question
+			// Page this page will "belong" to (e.g. answer belongs to a question,
+			// comment belongs to the page it's on)
+			primaryPageId: "@",
+			// Context, test, and offset are set for editing inline comments
+			context: "@",
+			text: "@",
+			offset: "@",
 			// Called when the user is done with the edit.
 			doneFn: "&",
 		},
@@ -499,34 +510,6 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 				scope.useVerticalView = true;
 			}
 
-			if (!scope.isModal) {
-				// Create Edit Page JS controller.
-				$timeout(function(){
-					scope.editPage = new EditPage(scope.page, pageService, autocompleteService, {
-						primaryPage: primaryPage,
-						topParent: element,
-						doneFn: function(result) {
-							var continuation = function(data, status) {
-								if (scope.doneFn) {
-									scope.doneFn({result: result});
-								}
-							};
-							if (result.abandon) {
-								pageService.abandonPage(scope.pageId, continuation, continuation);
-							} else {
-								continuation();
-							}
-						}
-					});
-					scope.editPage.start();
-
-					// Listen to destroy event to clean up.
-					element.on("$destroy", function(event) {
-						scope.editPage.stop();
-					});
-				});
-			}
-
 			// Set up group names.
 			var groupNames = userService.user.GroupNames;
 			scope.groupOptions = {};
@@ -561,6 +544,34 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 					return "Complete sentence question";
 				}
 				return "Page title";
+			}
+
+			if (!scope.isModal) {
+				// Create Edit Page JS controller.
+				$timeout(function(){
+					scope.editPage = new EditPage(scope.page, pageService, autocompleteService, {
+						primaryPage: primaryPage,
+						topParent: element,
+						doneFn: function(result) {
+							var continuation = function(data, status) {
+								if (scope.doneFn) {
+									scope.doneFn({result: result});
+								}
+							};
+							if (result.abandon) {
+								pageService.abandonPage(scope.pageId, continuation, continuation);
+							} else {
+								continuation();
+							}
+						}
+					});
+					scope.editPage.start();
+
+					// Listen to destroy event to clean up.
+					element.on("$destroy", function(event) {
+						scope.editPage.stop();
+					});
+				});
 			}
 		},
 	};

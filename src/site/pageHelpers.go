@@ -74,6 +74,9 @@ type page struct {
 	IsAutosave        bool
 	IsSnapshot        bool
 	IsCurrentEdit     bool
+	AnchorContext     string
+	AnchorText        string
+	AnchorOffset      int
 
 	// Data loaded from other tables.
 	LastVisit string
@@ -578,7 +581,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		SELECT * FROM (
 			SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
 				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName,parents,
-				isAutosave,isSnapshot,isCurrentEdit
+				isAutosave,isSnapshot,isCurrentEdit,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
 				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
@@ -592,7 +595,8 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			&p.PageId, &p.Edit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title,
 			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name,
-			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit)
+			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
+			&p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
@@ -620,6 +624,9 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			op.IsAutosave = p.IsAutosave
 			op.IsSnapshot = p.IsSnapshot
 			op.IsCurrentEdit = p.IsCurrentEdit
+			op.AnchorContext = p.AnchorContext
+			op.AnchorText = p.AnchorText
+			op.AnchorOffset = p.AnchorOffset
 			if err := op.processParents(c, nil); err != nil {
 				return fmt.Errorf("Couldn't process parents: %v", err)
 			}

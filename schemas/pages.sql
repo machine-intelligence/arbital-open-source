@@ -13,12 +13,13 @@ CREATE TABLE pages (
 	/* True iff this is an autosave for the creatorId user. There is at most one
 	 autosave per user per page. */
 	isAutosave BOOLEAN NOT NULL,
-	/* Page's type. */
-	type VARCHAR(32) NOT NULL,
 	/* User id of the creator of this edit. */
 	creatorId BIGINT NOT NULL,
 	/* When this edit was created. */
 	createdAt DATETIME NOT NULL,
+
+	/* Page's type. */
+	type VARCHAR(32) NOT NULL,
 	/* Title of the page. */
 	title VARCHAR(512) NOT NULL,
 	/* Text of the page. */
@@ -27,6 +28,7 @@ CREATE TABLE pages (
 	summary TEXT NOT NULL,
 	/* Alias name of the page. */
 	alias VARCHAR(64) NOT NULL,
+
 	/* How to sort the page's children. */
 	sortChildrenBy VARCHAR(32) NOT NULL,
 	/* True iff the page has a probability vote. */
@@ -47,5 +49,14 @@ CREATE TABLE pages (
 	parents VARCHAR(1024) NOT NULL,
 	/* If not 0, this edit has been deleted by this user id. */
 	deletedBy BIGINT NOT NULL,
+
+	/* == Following variables are set for inline comments. == */
+	/* Text of the paragraph the anchor is in. */
+	anchorContent MEDIUMTEXT NOT NULL,
+	/* Text the comment is attached to. */
+	anchorText MEDIUMTEXT NOT NULL,
+	/* Offset of the text into the context. */
+	anchorOffset INT NOT NULL,
+
 	PRIMARY KEY(pageId, edit)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

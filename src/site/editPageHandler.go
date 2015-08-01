@@ -37,6 +37,9 @@ type editPageData struct {
 	SortChildrenBy string
 	IsAutosave     bool
 	IsSnapshot     bool
+	AnchorContext  string
+	AnchorText     string
+	AnchorOffset   int
 }
 
 // editPageHandler handles requests to create a new page.
@@ -137,6 +140,15 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
 			return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
+		}
+		if data.AnchorContext == "" && data.AnchorText != "" {
+			return http.StatusBadRequest, fmt.Sprintf("Anchor context isn't set")
+		}
+		if data.AnchorContext != "" && data.AnchorText == "" {
+			return http.StatusBadRequest, fmt.Sprintf("Anchor text isn't set")
+		}
+		if data.AnchorOffset < 0 || data.AnchorOffset > len(data.AnchorContext) {
+			return http.StatusBadRequest, fmt.Sprintf("Anchor offset out of bounds")
 		}
 		for _, parentId := range parentIds {
 			if parentId == data.PageId {
@@ -390,6 +402,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["groupName"] = data.GroupName
 	hashmap["parents"] = strings.Join(encodedParentIds, ",")
 	hashmap["createdAt"] = database.Now()
+	hashmap["anchorContext"] = data.AnchorContext
+	hashmap["anchorText"] = data.AnchorText
+	hashmap["anchorOffset"] = data.AnchorOffset
 	query := ""
 	overwritingEdit := oldPage.PageId > 0 && oldPage.Edit == newEditNum
 	if overwritingEdit {
