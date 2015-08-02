@@ -46,9 +46,9 @@ func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		inviteCode := strings.ToUpper(q.Get("inviteCode"))
 		karma := 0
 		if inviteCode == "BAYES" || inviteCode == "LESSWRONG" {
-			karma = 10
-		} else if inviteCode == "MATRIX" {
 			karma = 200
+		} else {
+			return showError(w, r, fmt.Errorf("Need invite code"))
 		}
 		if data.User.Karma > karma {
 			karma = data.User.Karma

@@ -28,6 +28,7 @@ $(function() {
 // Setup search via navbar.
 $(function() {
 	var $navSearch = $("#nav-search");
+	if ($navSearch.length <= 0) return;
   $navSearch.autocomplete({
 		source: "/json/search",
 		minLength: 4,
