@@ -466,7 +466,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			scope.isQuestion = scope.page.Type === "question";
 			scope.isAnswer = scope.page.Type === "answer";
 			scope.isComment = scope.page.Type === "comment";
-			scope.isSecondary = scope.isQuestion || scope.isAnswer || scope.isComment;
+			scope.isSecondary = scope.isQuestion || scope.isComment;
 			scope.useVerticalView = scope.isModal;
 
 			// Set up page types.
