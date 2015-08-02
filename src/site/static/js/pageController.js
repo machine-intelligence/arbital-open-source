@@ -708,6 +708,8 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 							createNewInlineCommentToggle(comment.PageId, bestParagraphNode, anchorOffset, anchorLength);
 							continue;
 						}
+					} else if (allowInline) {
+						continue;
 					}
 					// Make sure this comment is not a reply (i.e. it has a parent comment)
 					// If it's a reply, add it as a child to the corresponding parent comment.
