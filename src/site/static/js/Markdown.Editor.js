@@ -1725,11 +1725,11 @@
 					// the first bracket could then not act as the "not a backslash" for the second.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
 					link = autocompleteService.convertInputToAlias(link);
-					chunk.startTag = "[[";
-					chunk.endTag = "]]((" + link + "))";
+					chunk.startTag = "[";
+					chunk.endTag = "](" + link + ")";
 
 					if (!chunk.selection) {
-						chunk.endTag = "]]";
+						chunk.endTag = "]";
 						chunk.selection = link;
 					}
 				}
@@ -1766,11 +1766,11 @@
 				if (!result.abandon && !result.hidden && result.alias) {
 					// Same regex as in other link functions.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
-					chunk.startTag = "[[";
-					chunk.endTag = "]]((" + result.alias + "))";
+					chunk.startTag = "[";
+					chunk.endTag = "](" + result.alias + ")";
 
 					if (!chunk.selection) {
-						chunk.endTag = "]]";
+						chunk.endTag = "]";
 						chunk.selection = result.alias;
 					}
 				}
