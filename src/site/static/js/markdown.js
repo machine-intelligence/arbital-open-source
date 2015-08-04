@@ -35,10 +35,26 @@ var zndMarkdown = zndMarkdown || function() {
 			"\\[\\[([^[\\]()]+?)\\]\\]" + // match [[Text]]
 			"\\(\\(([A-Za-z0-9_-]+?)\\)\\)", "g"); // match ((Alias))
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(compexLinkRegexp,
-				function (whole, prefix, text, alias) {
+			return text.replace(compexLinkRegexp, function (whole, prefix, text, alias) {
+				var url = "http://" + host + "/pages/" + alias;
+				return prefix + "[" + text + "](" + url + ")";
+			});
+		});
+		
+		// Convert [Text](Alias) spans into links.
+		var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
+		var compexLinkRegexp2 = new RegExp(noBacktickOrBracket + 
+			"\\[([^[\\]()]+?)\\]" + // match [Text]
+			"\\(([A-Za-z0-9_-]+?)\\)", "g"); // match (Alias)
+		var aliasRegexp = new RegExp("[A-Za-z0-9_-]+", "");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(compexLinkRegexp2, function (whole, prefix, text, alias) {
+				if (alias.match(aliasRegexp)) {
 					var url = "http://" + host + "/pages/" + alias;
 					return prefix + "[" + text + "](" + url + ")";
+				} else {
+					return prefix + "[" + text + "](" + alias + ")";
+				}
 			});
 		});
 	
@@ -61,6 +77,33 @@ var zndMarkdown = zndMarkdown || function() {
 					}
 				}
 				return prefix + "[" + pageTitle + "](" + url + ")";
+			});
+		});
+
+		// Convert [Alias] spans into links.
+		var noParen = "($|[^(])";
+		var simpleLinkRegexp2 = new RegExp(noBacktickOrBracket + 
+				"\\[([A-Za-z0-9_-]+?)\\]" + noParen, "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(simpleLinkRegexp2, function (whole, prefix, alias) {
+				if (alias.match(aliasRegexp)) {
+					// TODO; do something other than ?customText=false, since that appears
+					// in the URL if the user clicks on the link.
+					var url = "http://" + host + "/pages/" + alias + "/?customText=false";
+					var pageTitle = alias;
+					if (autocompleteService && autocompleteService.aliasSource.length > 0){
+						if (alias in autocompleteService.aliasMap) {
+							pageTitle = autocompleteService.aliasMap[alias].PageTitle;
+						}
+					} else {
+						if (alias in pageAliases) {
+							pageTitle = pageAliases[alias].title;
+						}
+					}
+					return prefix + "[" + pageTitle + "](" + url + ")";
+				} else {
+					return prefix + "[" + text + "](" + alias + ")";
+				}
 			});
 		});
 	
