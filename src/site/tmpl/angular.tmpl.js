@@ -36,7 +36,7 @@ app.service("userService", function(){
 
 	// Get maximum karma lock a user can set up.
 	this.user.getMaxKarmaLock = function() {
-		return Math.floor(this.Karma * {{GetMaxKarmaLockFraction}});
+		return Math.floor(this.karma * {{GetMaxKarmaLockFraction}});
 	};
 	this.getUserUrl = function(userId) {
 		return "/filter?user=" + userId;
@@ -57,31 +57,31 @@ app.service("pageService", function(userService, $http){
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
-			return this.CreatorId != userService.user.Id &&
-				(this.LastVisit === "" || this.OriginalCreatedAt >= this.LastVisit);
+			return this.creatorId != userService.user.id &&
+				(this.lastVisit === "" || this.originalCreatedAt >= this.lastVisit);
 		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
-			return this.CreatorId != userService.user.Id &&
-				this.LastVisit !== "" && this.CreatedAt >= this.LastVisit && this.LastVisit > this.OriginalCreatedAt;
+			return this.creatorId != userService.user.id &&
+				this.lastVisit !== "" && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
 		},
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
-			if (this.Type === "blog" || this.Type === "comment") {
-				if (this.CreatorId == userService.user.Id) {
+			if (this.type === "blog" || this.type === "comment") {
+				if (this.creatorId == userService.user.id) {
 					return "";
 				} else {
-					return this.Type;
+					return this.type;
 				}
 			}
-			var karmaReq = this.KarmaLock;
+			var karmaReq = this.karmaLock;
 			var editPageKarmaReq = 10; // TODO: fix this
-			if (karmaReq < editPageKarmaReq && this.WasPublished) {
+			if (karmaReq < editPageKarmaReq && this.wasPublished) {
 				karmaReq = editPageKarmaReq
 			}
-			if (userService.user.Karma < karmaReq) {
-				if (userService.user.IsAdmin) {
+			if (userService.user.karma < karmaReq) {
+				if (userService.user.isAdmin) {
 					// Can edit but only because user is an admin.
 					return "admin";
 				}
@@ -92,22 +92,22 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
 		getDeleteLevel: function() {
-			if (this.Type === "blog" || this.Type === "comment") {
-				if (this.CreatorId == userService.user.Id) {
+			if (this.type === "blog" || this.type === "comment") {
+				if (this.creatorId == userService.user.id) {
 					return "";
-				} else if (userService.user.IsAdmin) {
+				} else if (userService.user.isAdmin) {
 					return "admin";
 				} else {
-					return this.Type;
+					return this.type;
 				}
 			}
-			var karmaReq = this.KarmaLock;
+			var karmaReq = this.karmaLock;
 			var deletePageKarmaReq = 200; // TODO: fix this
 			if (karmaReq < deletePageKarmaReq) {
 				karmaReq = deletePageKarmaReq;
 			}
-			if (userService.user.Karma < karmaReq) {
-				if (userService.user.IsAdmin) {
+			if (userService.user.karma < karmaReq) {
+				if (userService.user.isAdmin) {
 					return "admin";
 				}
 				return "" + karmaReq;
@@ -118,27 +118,27 @@ app.service("pageService", function(userService, $http){
 	
 	// Massage page's variables to be easier to deal with.
 	var setUpPage = function(page) {
-		if (page.Children == null) page.Children = [];
-		if (page.Parents == null) page.Parents = [];
-		page.Url = "/pages/" + page.Alias;
-		page.EditUrl = "/edit/" + page.PageId;
+		if (page.children == null) page.children = [];
+		if (page.parents == null) page.parents = [];
+		page.url = "/pages/" + page.alias;
+		page.editUrl = "/edit/" + page.pageId;
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
 		}
 		return page;
 	};
 	this.addPageToMap = function(page) {
-		var existingPage = this.pageMap[page.PageId];
+		var existingPage = this.pageMap[page.pageId];
 		if (existingPage !== undefined) {
 			if (page === existingPage) return;
 			console.log("existingPage:"); console.log(existingPage);
 			// Merge.
-			existingPage.Children = existingPage.Children.concat(page.Children);
-			existingPage.Parents = existingPage.Parents.concat(page.Parents);
+			existingPage.children = existingPage.children.concat(page.children);
+			existingPage.parents = existingPage.parents.concat(page.parents);
 		} else {
-			this.pageMap[page.PageId] = setUpPage(page);
+			this.pageMap[page.pageId] = setUpPage(page);
 		}
-		return this.pageMap[page.PageId];
+		return this.pageMap[page.pageId];
 	};
 	this.removePageFromMap = function(pageId) {
 		delete this.pageMap[pageId];
@@ -155,8 +155,8 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		parent.isLoadingChildren = true;
-		console.log("Issuing GET request to /json/children/?parentId=" + parent.PageId);
-		$http({method: "GET", url: "/json/children/", params: {parentId: parent.PageId}}).
+		console.log("Issuing GET request to /json/children/?parentId=" + parent.pageId);
+		$http({method: "GET", url: "/json/children/", params: {parentId: parent.pageId}}).
 			success(function(data, status){
 				parent.isLoadingChildren = false;
 				parent.hasLoadedChildren = true;
@@ -175,10 +175,10 @@ app.service("pageService", function(userService, $http){
 	// Return function for sorting children ids.
 	this.getChildSortFunc = function(page) {
 		var pageMap = this.pageMap;
-		if(page.SortChildrenBy === "alphabetical") {
+		if(page.sortChildrenBy === "alphabetical") {
 			return function(aId, bId) {
-				var aTitle = pageMap[aId].Title;
-				var bTitle = pageMap[bId].Title;
+				var aTitle = pageMap[aId].title;
+				var bTitle = pageMap[bId].title;
 				// If title starts with a number, we want to compare those numbers directly,
 				// otherwise "2" comes after "10".
 				var aNum = parseInt(aTitle);
@@ -188,20 +188,20 @@ app.service("pageService", function(userService, $http){
 						return aNum - bNum;
 					}
 				}
-				return pageMap[aId].Title.localeCompare(pageMap[bId].Title);
+				return pageMap[aId].title.localeCompare(pageMap[bId].title);
 			};
-		} else if (page.SortChildrenBy === "chronological") {
-			var reverse = page.Type === "comment";
+		} else if (page.sortChildrenBy === "chronological") {
+			var reverse = page.type === "comment";
 			return function(aId, bId) {
-				var r = pageMap[bId].OriginalCreatedAt.localeCompare(pageMap[aId].OriginalCreatedAt);
+				var r = pageMap[bId].originalCreatedAt.localeCompare(pageMap[aId].originalCreatedAt);
 				return reverse ? -1*r : r;
 			};
 		} else {
-			if (page.SortChildrenBy !== "likes") console.log("Unknown sort type: " + page.SortChildrenBy);
+			if (page.sortChildrenBy !== "likes") console.log("Unknown sort type: " + page.sortChildrenBy);
 			return function(aId, bId) {
-				var diff = pageMap[bId].LikeCount - pageMap[aId].LikeCount;
+				var diff = pageMap[bId].likeCount - pageMap[aId].likeCount;
 				if (diff === 0) {
-					return pageMap[aId].Title.localeCompare(pageMap[bId].Title);
+					return pageMap[aId].title.localeCompare(pageMap[bId].title);
 				}
 				return diff;
 			};
@@ -210,8 +210,8 @@ app.service("pageService", function(userService, $http){
 	// Sort the given page's children.
 	this.sortChildren = function(page) {
 		var sortFunc = this.getChildSortFunc(page);
-		page.Children.sort(function(aChild, bChild) {
-			return sortFunc(aChild.ChildId, bChild.ChildId);
+		page.children.sort(function(aChild, bChild) {
+			return sortFunc(aChild.childId, bChild.childId);
 		});
 	};
 
@@ -226,8 +226,8 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		child.isLoadingParents = true;
-		console.log("Issuing GET request to /json/parents/?childId=" + child.PageId);
-		$http({method: "GET", url: "/json/parents/", params: {childId: child.PageId}}).
+		console.log("Issuing GET request to /json/parents/?childId=" + child.pageId);
+		$http({method: "GET", url: "/json/parents/", params: {childId: child.pageId}}).
 			success(function(data, status){
 				child.isLoadingParents = false;
 				child.hasLoadedParents = true;
@@ -313,16 +313,16 @@ app.service("pageService", function(userService, $http){
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId) {
 		var page = this.pageMap[pageId];
-		if (page.Group.Name) return false;
+		if (page.group.name) return false;
 		if (!this.primaryPage) return false;
-		return this.primaryPage.Group.Name !== page.Group.Name;
+		return this.primaryPage.group.name !== page.group.name;
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showLockedGroup = function(pageId) {
 		var page = this.pageMap[pageId];
-		if (!page.Group.Name) return false;
+		if (!page.group.name) return false;
 		if (!this.primaryPage) return true;
-		return this.primaryPage.Group.Name !== page.Group.Name;
+		return this.primaryPage.group.name !== page.group.name;
 	};
 
 	// Setup all initial pages.
@@ -360,7 +360,7 @@ app.service("autocompleteService", function($http){
 			// Convert data into the aliasSource.
 			for (var fullName in that.aliasMap) {
 				var val = that.aliasMap[fullName];
-				that.aliasSource.push('"' + val.PageTitle + '" (' + fullName + ')');
+				that.aliasSource.push('"' + val.pageTitle + '" (' + fullName + ')');
 			}
 			// Execute all callbacks.
 			for (var i = 0; i < aliasCallbacks.length; i++){
@@ -424,7 +424,7 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 	// Sort node's children based on how the corresponding page sorts its children.
 	$scope.sortNodeChildren = function(node) {
 		if (node === $scope.rootNode) {
-			var sortFunc = pageService.getChildSortFunc({SortChildrenBy: "alphabetical"});
+			var sortFunc = pageService.getChildSortFunc({sortChildrenBy: "alphabetical"});
 		} else {
 			var sortFunc = pageService.getChildSortFunc(pageService.pageMap[node.pageId]);
 		}
@@ -446,9 +446,9 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 		// Process parents and create children nodes.
 		for (var pageId in newPagesMap) {
 			var page = pageService.pageMap[pageId];
-			var parents = page.Parents; // array of pagePairs used to populate children nodes
+			var parents = page.parents; // array of pagePairs used to populate children nodes
 			if ($scope.isParentTree !== undefined) {
-				parents = page.Children;
+				parents = page.children;
 			}
 			if (topLevel) {
 				if (!nodeHasPageChild($scope.rootNode, pageId)) {
@@ -461,12 +461,12 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 				// a new child node to each of them.
 				var parentsLen = parents.length;
 				for (var i = 0; i < parentsLen; i++){
-					var parentId = parents[i].ParentId;
+					var parentId = parents[i].parentId;
 					if ($scope.isParentTree !== undefined) {
-						parentId = parents[i].ChildId;
+						parentId = parents[i].childId;
 					}
 					var parentPage = pageService.pageMap[parentId];
-					var parentNodes = parentPage ? (pageIdToNodesMap[parentPage.PageId] || []) : [];
+					var parentNodes = parentPage ? (pageIdToNodesMap[parentPage.pageId] || []) : [];
 					var parentNodesLen = parentNodes.length;
 					for (var ii = 0; ii < parentNodesLen; ii++){
 						var parentNode = parentNodes[ii];
@@ -524,7 +524,7 @@ app.controller("PageTreeNodeCtrl", function ($scope, pageService) {
 
 	// Return true if we should show the collapse arrow button for this page.
 	$scope.showCollapseArrow = function() {
-		return (!$scope.isParentTree && $scope.page.HasChildren) || ($scope.isParentTree && $scope.page.HasParents);
+		return (!$scope.isParentTree && $scope.page.hasChildren) || ($scope.isParentTree && $scope.page.hasParents);
 	};
 
 	// Return true iff this node should be displayed larger.

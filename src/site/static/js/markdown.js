@@ -69,7 +69,7 @@ var zndMarkdown = zndMarkdown || function() {
 				var pageTitle = alias;
 				if (autocompleteService && autocompleteService.aliasSource.length > 0){
 					if (alias in autocompleteService.aliasMap) {
-						pageTitle = autocompleteService.aliasMap[alias].PageTitle;
+						pageTitle = autocompleteService.aliasMap[alias].pageTitle;
 					}
 				} else {
 					if (alias in pageAliases) {
@@ -81,7 +81,7 @@ var zndMarkdown = zndMarkdown || function() {
 		});
 
 		// Convert [Alias] spans into links.
-		var noParen = "($|[^(])";
+		var noParen = "(?=$|[^(])";
 		var simpleLinkRegexp2 = new RegExp(noBacktickOrBracket + 
 				"\\[([A-Za-z0-9_-]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
@@ -93,7 +93,7 @@ var zndMarkdown = zndMarkdown || function() {
 					var pageTitle = alias;
 					if (autocompleteService && autocompleteService.aliasSource.length > 0){
 						if (alias in autocompleteService.aliasMap) {
-							pageTitle = autocompleteService.aliasMap[alias].PageTitle;
+							pageTitle = autocompleteService.aliasMap[alias].pageTitle;
 						}
 					} else {
 						if (alias in pageAliases) {
@@ -174,22 +174,22 @@ var zndMarkdown = zndMarkdown || function() {
 					if (!page) return;
 					if (!doEmbed) {
 						if (parts[4] !== undefined) {
-							$element.text(page.Title);
+							$element.text(page.title);
 						}
 						return;
 					}
 					var $embeddedDiv = $("#embedded-page-template").clone().show()
 					var $pageBody = $embeddedDiv.find(".embedded-page-body");
 					var $title = $embeddedDiv.find(".embedded-page-title");
-					$embeddedDiv.attr("id", "embedded-page" + page.PageId);
-					$title.text(page.Title);
-					$title.attr("href", "http://" + host + "/pages/" + page.PageId + "/" +
-						(page.PrivacyKey > 0 ? page.PrivacyKey : ""));
-					$embeddedDiv.find(".embedded-page-text").html(converter.makeHtml(page.Text));
+					$embeddedDiv.attr("id", "embedded-page" + page.pageId);
+					$title.text(page.title);
+					$title.attr("href", "http://" + host + "/pages/" + page.pageId + "/" +
+						(page.privacyKey > 0 ? page.privacyKey : ""));
+					$embeddedDiv.find(".embedded-page-text").html(converter.makeHtml(page.text));
 					$parent.append($embeddedDiv);
 					$element.remove();
-					if (page.HasVote) {
-						createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.PageId, page.Votes);
+					if (page.hasVote) {
+						createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.pageId, page.votes);
 					}
 					processLinks($embeddedDiv, false);
 					setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));

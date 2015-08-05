@@ -17,9 +17,9 @@
 			// Called when the user is done editing the page.
 			$scope.doneFn = function(result) {
 				if (result.abandon) {
-					window.location.replace($scope.page.EditUrl);
+					window.location.replace($scope.page.editUrl);
 				} else {
-					window.location.replace($scope.page.Url);
+					window.location.replace($scope.page.url);
 				}
 			};
 		});
@@ -46,7 +46,7 @@
 		</div>
 	{{else}}
 		<div class="new-page-body-div" ng-controller="MainCtrl">
-			<znd-edit-page page-id="{[{page.PageId}]}" done-fn="doneFn(result)"></znd-edit-page>
+			<znd-edit-page page-id="{[{page.pageId}]}" done-fn="doneFn(result)"></znd-edit-page>
 		</div>
 	{{end}}
 {{end}}

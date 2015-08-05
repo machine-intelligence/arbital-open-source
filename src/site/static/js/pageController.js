@@ -5,8 +5,8 @@
 var PageJsController = function(page, $topParent, pageService, userService) {
 	var page = page;
 	var $topParent = $topParent;
-	var pageId = page.PageId; // id of the page being displayed
-	var userId = userService.user.Id;
+	var pageId = page.pageId; // id of the page being displayed
+	var userId = userService.user.id;
 
 	// This map contains page data we fetched from the server, e.g. when hovering over a intrasite link.
 	// TODO: use pageService instead
@@ -31,10 +31,10 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	var createVoteSlider = function($parent, pageId, votes, isPopoverVote) {
 		// Convert votes into a user id -> {value, createdAt} map
 		var voteMap = {};
-		if (page.Votes) {
-			for(var i = 0; i < page.Votes.length; i++) {
-				var vote = page.Votes[i];
-				voteMap[vote.UserId] = {value: vote.Value, createdAt: vote.CreatedAt};
+		if (page.votes) {
+			for(var i = 0; i < page.votes.length; i++) {
+				var vote = page.votes[i];
+				voteMap[vote.userId] = {value: vote.value, createdAt: vote.createdAt};
 			}
 		}
 
@@ -293,10 +293,10 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 			title: function() {
 				var pageId = $(this).attr("page-id");
 				if (fetchedPagesMap[pageId]) {
-					if (fetchedPagesMap[pageId].DeletedBy !== "0") {
+					if (fetchedPagesMap[pageId].deletedBy !== "0") {
 						return "[DELETED]";
 					}
-					return fetchedPagesMap[pageId].Title;
+					return fetchedPagesMap[pageId].title;
 				}
 				return "Loading...";
 			},
@@ -307,25 +307,25 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 				// Check if we already have this page cached.
 				var page = fetchedPagesMap[pageId];
 				if (page) {
-					if (page.DeletedBy !== "0") {
+					if (page.deletedBy !== "0") {
 						$content.html("");
 						return "";
 					}
 					var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
-					$content.find(".popover-summary").text(page.Summary);
-					$content.find(".like-count").text(page.LikeCount);
-					$content.find(".dislike-count").text(page.DislikeCount);
-					var myLikeValue = +page.MyLikeValue;
+					$content.find(".popover-summary").text(page.summary);
+					$content.find(".like-count").text(page.likeCount);
+					$content.find(".dislike-count").text(page.dislikeCount);
+					var myLikeValue = +page.myLikeValue;
 					if (myLikeValue > 0) {
 						$content.find(".disabled-like").addClass("on");
 					} else if (myLikeValue < 0) {
 						$content.find(".disabled-dislike").addClass("on");
 					}
-					if (page.HasVote) {
+					if (page.hasVote) {
 						setTimeout(function(){
 							var $popover = $("#" + $link.attr("aria-describedby"));
 							var $content = $popover.find(".popover-content");
-							createVoteSlider($content.find(".vote"), page.PageId, page.Votes, true);
+							createVoteSlider($content.find(".vote"), page.pageId, page.votes, true);
 						}, 100);
 					}
 					return $content.html();
@@ -343,10 +343,10 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					.success(function(r) {
 						var page = JSON.parse(r);
 						if (!page) return;
-						fetchedPagesMap[page.PageId] = page;
-						if (page.Alias && page.Alias !== page.PageId) {
+						fetchedPagesMap[page.pageId] = page;
+						if (page.alias && page.alias !== page.pageId) {
 							// Store the alias as well.
-							fetchedPagesMap[page.Alias] = page;
+							fetchedPagesMap[page.alias] = page;
 						}
 						$link.popover("show");
 					});
@@ -531,14 +531,14 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function(pageVotes) {
 		// Set up markdown.
-		zndMarkdown.init(false, pageId, page.Text, $topParent);
+		zndMarkdown.init(false, pageId, page.text, $topParent);
 
 		// Intrasite link hover.
 		setupIntrasiteLink($topParent.find(".intrasite-link"));
 
 		// Setup probability vote slider.
-		if (page.HasVote) {
-			createVoteSlider($topParent.find(".page-vote"), pageId, page.Votes, false);
+		if (page.hasVote) {
+			createVoteSlider($topParent.find(".page-vote"), pageId, page.votes, false);
 		}
 	};
 
@@ -565,7 +565,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
 				scope.pageJsController.start();
 
-				if (scope.page.CommentIds != null) {
+				if (scope.page.commentIds != null) {
 					// Process comments in two passes. First normal comments.
 					processComments(false);
 					$timeout(function() {
@@ -594,7 +594,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 				var highlightClass = "inline-comment-" + pageId;
 				var $commentDiv = $(".toggle-inline-comment-div.template").clone();
 				$commentDiv.attr("id", "comment-" + pageId).removeClass("template");
-				var commentCount = pageService.pageMap[pageId].Children.length + 1;
+				var commentCount = pageService.pageMap[pageId].children.length + 1;
 				$commentDiv.find(".inline-comment-count").text("" + commentCount);
 				$(".question-div").append($commentDiv);
 
@@ -610,7 +610,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 				$commentIcon.on("click", function(event) {
 					pageView.toggleInlineComment($commentDiv, function() {
 						$("." + highlightClass).addClass("inline-comment-highlight");
-						var $comment = $compile("<znd-comment primary-page-id='" + scope.page.PageId +
+						var $comment = $compile("<znd-comment primary-page-id='" + scope.page.pageId +
 								"' page-id='" + pageId + "'></znd-comment>")(scope);
 						$(".inline-comment-div").append($comment);
 					});
@@ -620,7 +620,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 				var commentIconLeft = $(".question-div").offset().left + 10;
 				var anchorNode = scope.pageJsController.createInlineCommentHighlight(paragraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
 				if (anchorNode) {
-					if (anchorNode.nodeType != Node.ELEMENT_NODE) {
+					if (anchorNode.nodeType != Node.eLEMENT_NODE) {
 						anchorNode = anchorNode.parentElement;
 					}
 					var offset = {left: commentIconLeft, top: $(anchorNode).offset().top};
@@ -643,8 +643,8 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 				var $comments = element.find(".comments");
 				var $markdown = element.find(".markdown-text");
 				var dmp = new diff_match_patch();
-				dmp.Match_MaxBits = 10000;
-				dmp.Match_Distance = 10000;
+				dmp.match_MaxBits = 10000;
+				dmp.match_Distance = 10000;
 
 				// If we have inline comments, we'll need to compute the raw text for
 				// each paragraph.
@@ -659,11 +659,11 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 				};
 
 				// Go through comments in chronological order.
-				scope.page.CommentIds.sort(pageService.getChildSortFunc({SortChildrenBy: "chronological", Type: "comment"}));
-				for (var n = 0; n < scope.page.CommentIds.length; n++) {
-					var comment = pageService.pageMap[scope.page.CommentIds[n]];
+				scope.page.commentIds.sort(pageService.getChildSortFunc({sortChildrenBy: "chronological", type: "comment"}));
+				for (var n = 0; n < scope.page.commentIds.length; n++) {
+					var comment = pageService.pageMap[scope.page.commentIds[n]];
 					// Check if the comment in anchored and we can still find the paragraph.
-					if (comment.AnchorContext && comment.AnchorText) {
+					if (comment.anchorContext && comment.anchorText) {
 						if (!allowInline) continue;
 						// Find the best paragraph.
 						var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
@@ -672,7 +672,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 						}
 						for (var i = 0; i < paragraphTexts.length; i++) {
 							var text = paragraphTexts[i];
-							var diffs = dmp.diff_main(text, comment.AnchorContext);
+							var diffs = dmp.diff_main(text, comment.anchorContext);
 							var score = dmp.diff_levenshtein(diffs);
 							if (score < bestScore) {
 								bestParagraphNode = $markdown.children().get(i);
@@ -680,13 +680,13 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 								bestScore = score;
 							}
 						}
-						if (bestScore > comment.AnchorContext.length / 2) {
+						if (bestScore > comment.anchorContext.length / 2) {
 							// This is not a good paragraph match. Continue processing as a normal comment.
-							comment.Text = "> " + comment.AnchorText + "\n\n" + comment.Text;
+							comment.text = "> " + comment.anchorText + "\n\n" + comment.text;
 						} else {
 							// Find offset into the best paragraph.
 							var anchorLength;
-							var anchorOffset = dmp.match_main(bestParagraphText, comment.AnchorText, comment.AnchorOffset);
+							var anchorOffset = dmp.match_main(bestParagraphText, comment.anchorText, comment.anchorOffset);
 							if (anchorOffset < 0) {
 								// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor.
 								anchorOffset = 0;
@@ -694,7 +694,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 							} else {
 								// Figure out how long the highlighted anchor should be.
 								var remainingText = bestParagraphText.substring(anchorOffset);
-								var diffs = dmp.diff_main(remainingText, comment.AnchorText);
+								var diffs = dmp.diff_main(remainingText, comment.anchorText);
 								anchorLength = remainingText.length;
 								if (diffs.length > 0) {
 									// Note: we can potentially be more clever here and discount
@@ -705,7 +705,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 									}
 								}
 							}
-							createNewInlineCommentToggle(comment.PageId, bestParagraphNode, anchorOffset, anchorLength);
+							createNewInlineCommentToggle(comment.pageId, bestParagraphNode, anchorOffset, anchorLength);
 							continue;
 						}
 					} else if (allowInline) {
@@ -713,21 +713,21 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 					}
 					// Make sure this comment is not a reply (i.e. it has a parent comment)
 					// If it's a reply, add it as a child to the corresponding parent comment.
-					if (comment.Parents != null) {
+					if (comment.parents != null) {
 						var hasParentComment = false;
-						for (var i = 0; i < comment.Parents.length; i++) {
-							var parent = pageService.pageMap[comment.Parents[i].ParentId];
-							hasParentComment = parent.Type === "comment";
+						for (var i = 0; i < comment.parents.length; i++) {
+							var parent = pageService.pageMap[comment.parents[i].parentId];
+							hasParentComment = parent.type === "comment";
 							if (hasParentComment) {
-								if (parent.Children == null) parent.Children = [];
-								parent.Children.push({ParentId: parent.PageId, ChildId: comment.PageId});
+								if (parent.children == null) parent.children = [];
+								parent.children.push({parentId: parent.pageId, childId: comment.pageId});
 								break;
 							}
 						}
 						if (hasParentComment) continue;
 					}
 					var $comment = $compile("<znd-comment primary-page-id='" + scope.pageId +
-							"' page-id='" + comment.PageId + "'></znd-comment>")(scope);
+							"' page-id='" + comment.pageId + "'></znd-comment>")(scope);
 					$comments.prepend($comment);
 				}
 			};

@@ -20,9 +20,9 @@ import (
 )
 
 type alias struct {
-	FullName  string
-	PageId    int64 `json:",string"`
-	PageTitle string
+	FullName  string `json:"fullName"`
+	PageId    int64  `json:"pageId,string"`
+	PageTitle string `json:"pageTitle"`
 }
 
 // pageTmplData stores the data that we pass to the index.tmpl to render the page

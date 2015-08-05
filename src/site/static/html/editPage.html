@@ -2,20 +2,20 @@
 
 	<!-- Alerts -->
 	<div class="alerts">
-		<div ng-switch="page.getEditLevel()" ng-show="page.WasPublished">
+		<div ng-switch="page.getEditLevel()" ng-show="page.wasPublished">
 			<div ng-switch-when="admin" class="alert alert-warning">Enforcing admin priviledges.</div>
 			<div ng-switch-when="blog" class="alert alert-danger" role="alert">Can't edit a blog page you didn't create.</div>
 			<div ng-switch-when="comment" class="alert alert-danger" role="alert">Can't edit a comment you didn't create.</div>
 			<div ng-switch-when="" hidden></div>
 			<div ng-switch-default class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {[{page.getEditLevel()}]}.</div>
 		</div>
-		<div ng-show="page.WasPublished">
-			<div ng-show="page.IsAutosave" class="alert alert-warning">
-				Restored autosave which was last updated on <span class="date" ng-bind="page.CreatedAt"></span>.
+		<div ng-show="page.wasPublished">
+			<div ng-show="page.isAutosave" class="alert alert-warning">
+				Restored autosave which was last updated on <span class="date" ng-bind="page.createdAt"></span>.
 				<a href="#" class="abandon-edit">Delete my autosave and edit live version.</a>
 			</div>
-			<div ng-show="page.IsSnapshot" class="alert alert-warning">
-				Restored snapshot which was last updated on <span class="date" ng-bind="page.CreatedAt"></span>.
+			<div ng-show="page.isSnapshot" class="alert alert-warning">
+				Restored snapshot which was last updated on <span class="date" ng-bind="page.createdAt"></span>.
 				<a href="#" class="abandon-edit">Switch to editing the live version.</a>
 			</div>
 		</div>
@@ -25,27 +25,27 @@
 		<div ng-class="{'half': !useVerticalView}">
 			<!-- Title -->
 			<div class="page-title" ng-hide="isComment">
-				<input name="title" type="text" class="form-control input-lg" ng-value="page.Title" placeholder="{[{getTitlePlaceholder()}]}" ng-required="!isComment" autocomplete="off">
+				<input name="title" type="text" class="form-control input-lg" ng-value="page.title" placeholder="{[{getTitlePlaceholder()}]}" ng-required="!isComment" autocomplete="off">
 			</div>
 	
 			<!-- WMD edit panel -->
 			<div class="wmd-panel-container">
 				<div class="wmd-panel">
-					<div id="wmd-button-bar{[{page.PageId}]}"></div>
+					<div id="wmd-button-bar{[{page.pageId}]}"></div>
 					<textarea name="text"
 							class="edit-page-text wmd-input form-control"
-							id="wmd-input{[{page.PageId}]}"
+							id="wmd-input{[{page.pageId}]}"
 							rows="{[{isComment ? 10 : 30}]}"
 							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 						  style="resize: none;"
-						  ng-bind="page.Text"></textarea>
+						  ng-bind="page.text"></textarea>
 					<div class="wmd-panel-bottom-buttons">
 						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 						<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
 						<button type="submit" class="btn btn-primary" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
 						<span class="gray-text autosave-label" hidden></span>
-						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="!page.WasPublished && (isModal || isComment || isAnswer)" toggle-on-submit>Abandon</button>
-						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="page.WasPublished && !isModal" toggle-on-submit>Revert to Live Version</button>
+						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="!page.wasPublished && (isModal || isComment || isAnswer)" toggle-on-submit>Abandon</button>
+						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="page.wasPublished && !isModal" toggle-on-submit>Revert to Live Version</button>
 						<div class="alert alert-danger" hidden></div>
 						<span class="loading-text" style="display:none"></span>
 						<div class="clearfix"></div>
@@ -57,25 +57,25 @@
 			<!-- Page options -->
 			<div class="new-page-options form-horizontal">
 				<!-- Page type -->
-				<div class="form-group" ng-show="!page.WasPublished && !isSecondary">
+				<div class="form-group" ng-show="!page.wasPublished && !isSecondary">
 					<label class="title-label control-label col-sm-2">Page Type</label>
 					<div class="col-sm-4">
-						<select ng-model="page.Type" required="string"
+						<select ng-model="page.type" required="string"
 								name="type" class="type-select form-control"
 								ng-options="type as label for (type,label) in pageTypes">
 						</select>
 					</div>
 					<div class="type-help col-sm-6">
-						<p class="type-help-blog help-block" ng-show="page.Type=='blog'">Blog page is used for writing your thoughts on some topic. Only you will be able to edit the page.</p>
-						<p class="type-help-wiki help-block" ng-show="page.Type=='wiki'">Wiki page is a shared community page. Anyone can edit it.</p>
+						<p class="type-help-blog help-block" ng-show="page.type=='blog'">Blog page is used for writing your thoughts on some topic. Only you will be able to edit the page.</p>
+						<p class="type-help-wiki help-block" ng-show="page.type=='wiki'">Wiki page is a shared community page. Anyone can edit it.</p>
 					</div>
 				</div>
 			
 				<!-- Group id -->
-				<div class="form-group" ng-show="groupOptionsLength > 0 && !page.WasPublished && !isComment">
+				<div class="form-group" ng-show="groupOptionsLength > 0 && !page.wasPublished && !isComment">
 					<label class="title-label control-label col-sm-2">Group <span class="dashed-underline" title="Only members of the selected group will be able to see this page.">(?)</span></label>
 					<div class="col-sm-4">
-						<select ng-model="page.Group.Name"
+						<select ng-model="page.group.name"
 								name="groupName" class="type-select form-control"
 								ng-options="type as label for (type,label) in groupOptions">
 							<option value="">-</option>
@@ -84,22 +84,22 @@
 				</div>
 			
 				<!-- Show/hide vote -->
-				<div class="form-group" ng-show="page.LockedVoteType != '' && !isQuestion && !isComment">
+				<div class="form-group" ng-show="page.lockedVoteType != '' && !isQuestion && !isComment">
 					<label class="title-label control-label col-sm-2">Show Vote</label>
 					<div class="col-sm-8">
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" name="hasVoteStr" ng-checked="page.HasVote">
+								<input type="checkbox" name="hasVoteStr" ng-checked="page.hasVote">
 							</label>
 						</div>
 					</div>
 				</div>
 			
 				<!-- Vote type -->
-				<div class="form-group" ng-show="page.LockedVoteType == '' && !isQuestion && !isComment">
+				<div class="form-group" ng-show="page.lockedVoteType == '' && !isQuestion && !isComment">
 					<label class="title-label control-label col-sm-2">Vote Type</label>
 					<div class="col-sm-4">
-						<select ng-model="page.VoteType"
+						<select ng-model="page.voteType"
 								name="voteType" class="type-select form-control"
 								ng-options="type as label for (type,label) in voteTypes">
 						</select>
@@ -108,17 +108,17 @@
 			
 				<!-- Karma edit lock -->
 				<div class="karma-lock-form-group form-group"
-						ng-show="userService.user.getMaxKarmaLock() > 0 && page.Type != 'blog' && !isComment">
+						ng-show="userService.user.getMaxKarmaLock() > 0 && page.type != 'blog' && !isComment">
 					<label class="title-label control-label col-sm-2">Karma Lock
 						<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 					</label>
 					<div class="col-sm-4">
-						<div class="karma-lock-slider" ng-value="page.KarmaLock" max="{[{userService.user.getMaxKarmaLock()}]}"></div>
+						<div class="karma-lock-slider" ng-value="page.karmaLock" max="{[{userService.user.getMaxKarmaLock()}]}"></div>
 					</div>
 				</div>
 			
 				<!-- Privacy options -->
-				<!-- <div class="form-group" {{if and (le .PrivacyKey 0) .WasPublished}}hidden{{end}}>
+				<!-- <div class="form-group" {{if and (le .privacyKey 0) .wasPublished}}hidden{{end}}>
 					<label class="control-label col-sm-2">
 						Private
 						<span title="This page will only be accessible by people who have the link." class="dashed-underline">(?)</span>
@@ -126,7 +126,7 @@
 					<div class="col-sm-8">
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" name="private" {{if gt .PrivacyKey 0}}checked{{end}}>
+								<input type="checkbox" name="private" {{if gt .privacyKey 0}}checked{{end}}>
 							</label>
 						</div>
 					</div>
@@ -157,7 +157,7 @@
 									name="alias"
 									placeholder='Optional alias, e.g. "HumanHealth"'
 									class="form-control"
-									ng-value="page.Alias">
+									ng-value="page.alias">
 						</div>
 					</div>
 				</div>
@@ -166,7 +166,7 @@
 				<div class="form-group" ng-show="!isSecondary">
 					<label class="title-label control-label col-sm-2">Sort Children</label>
 					<div class="col-sm-4">
-						<select ng-model="page.SortChildrenBy"
+						<select ng-model="page.sortChildrenBy"
 								name="sortChildrenBy" class="sort-children-select form-control"
 								ng-options="type as label for (type,label) in sortTypes">
 						</select>
@@ -179,11 +179,11 @@
 		<div ng-class="{'half': !useVerticalView}">
 			<div ng-class="{'panel': useVerticalView, 'panel-default': useVerticalView}">
 				<div class="page-title" ng-class="{'panel-heading': useVerticalView}">
-					<span class="page-title-text" ng-bind="page.Title"></span>
+					<span class="page-title-text" ng-bind="page.title"></span>
 					<span class="gray-text" ng-show="useVerticalView">(Preview)<span>
 				</div>
 				<div ng-class="{'panel-body': useVerticalView}">
-					<div id="wmd-preview{[{page.PageId}]}" class="wmd-preview pagedown"></div>
+					<div id="wmd-preview{[{page.pageId}]}" class="wmd-preview pagedown"></div>
 				</div>
 			</div>
 		</div>

@@ -16,17 +16,18 @@ import (
 type member struct {
 	dbUser
 
-	CanAddMembers bool
-	CanAdmin      bool
+	CanAddMembers bool `json:"canAddMembers"`
+	CanAdmin      bool `json:"canAdmin"`
 }
 
 type group struct {
 	// Populated from db.
-	Name string
+	Name string `json:"name"`
 
 	// Optionally populated.
-	Members    []*member
-	UserMember *member // member obj corresponding to the active user
+	Members []*member `json:"members"`
+	// Member obj corresponding to the active user
+	UserMember *member `json:"userMember"`
 }
 
 // groupsTmplData stores the data that we pass to the template to render the page

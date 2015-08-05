@@ -1,33 +1,33 @@
-<div class="page-body-div" ng-show="page.DeletedBy > 0">
+<div class="page-body-div" ng-show="page.deletedBy > 0">
 	<div class="alert alert-danger">This page has been deleted.
-		<span class="admin" ng-show="userService.user.IsAdmin">
-			By id: {[{page.DeletedBy}]}. <a href="#" class="undo-page-delete">Undo.</a>
+		<span class="admin" ng-show="userService.user.isAdmin">
+			By id: {[{page.deletedBy}]}. <a href="#" class="undo-page-delete">Undo.</a>
 		</span>
 	</div>
 </div>
-<div class="page-body-div" ng-hide="page.DeletedBy > 0">
+<div class="page-body-div" ng-hide="page.deletedBy > 0">
 	<!-- Left column -->
 	<div class="like-column pull-left">
 		<!-- Likes / dislikes and approval voting -->
-		<div class="page-like-div pull-right" my-like="{[{page.MyLikeValue}]}">
+		<div class="page-like-div pull-right" my-like="{[{page.myLikeValue}]}">
 			<div class="pull-right">
-				<span class="like-count" ng-bind="page.LikeCount"></span>
+				<span class="like-count" ng-bind="page.likeCount"></span>
 				<a href="#"
 				   class="like-link glyphicon glyphicon-thumbs-up"
-					 ng-class="{'on': page.MyLikeValue >= 1}"
+					 ng-class="{'on': page.myLikeValue >= 1}"
 					 title="This is a high quality page"
-					 ng-show="userService.user.IsLoggedIn"></a>
-				<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-hide="userService.user.IsLoggedIn"></span>
+					 ng-show="userService.user.isLoggedIn"></a>
+				<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-hide="userService.user.isLoggedIn"></span>
 			</div>
 			<div class="clearfix"></div>
 			<div class="pull-right">
-				<span class="dislike-count" ng-bind="page.DislikeCount"></span>
+				<span class="dislike-count" ng-bind="page.dislikeCount"></span>
 				<a href="#"
 					 class="dislike-link glyphicon glyphicon-thumbs-down"
-					 ng-class="{'on': page.MyLikeValue <= -1}"
+					 ng-class="{'on': page.myLikeValue <= -1}"
 					 title="This is a low quality page"
-					 ng-show="userService.user.IsLoggedIn"></a>
-				<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-hide="userService.user.IsLoggedIn"></span>
+					 ng-show="userService.user.isLoggedIn"></a>
+				<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-hide="userService.user.isLoggedIn"></span>
 			</div>
 		</div>
 		<div class="clearfix"></div>
@@ -36,17 +36,17 @@
 		<div class="page-glyphs pull-right">
 			<a href="#"
 				 class="subscribe-to-page-link glyphicon glyphicon-eye-open"
-				 ng-class="{'on': page.IsSubscribed}"
+				 ng-class="{'on': page.isSubscribed}"
 				 title="Subscribe to receive updates when this page changes or gets new comments"
-				 ng-show="userService.user.IsLoggedIn"></a>
-			<a ng-href="#page-{[{page.PageId}]}"
+				 ng-show="userService.user.isLoggedIn"></a>
+			<a ng-href="#page-{[{page.pageId}]}"
 				 class="page-anchor-link glyphicon glyphicon-link"
 				 title="Link to this answer"
-				 ng-show="page.Type == 'answer'"></a>
-			<a ng-href="{[{page.EditUrl}]}"
+				 ng-show="page.type == 'answer'"></a>
+			<a ng-href="{[{page.editUrl}]}"
 				 class="edit-page-link glyphicon glyphicon-pencil"
-				 ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.HasDraft}"
-				 title="{[{page.HasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}]}"
+				 ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.hasDraft}"
+				 title="{[{page.hasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}]}"
 				 ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
 			<a href="#"
 				 class="delete-page-link glyphicon glyphicon-remove"
@@ -66,19 +66,19 @@
 
 	<!-- Main page column -->
 	<div class="text-column">
-		<a id="page-{[{page.PageId}]}"></a>
-		<znd-page-title page-id="{[{page.PageId}]}" class="page-title"></znd-page-title>
-		<div class="author-text" ng-show="page.Type == 'blog'">by <znd-user-name user-id="{[{page.CreatorId}]}"></znd-user-name></div>
+		<a id="page-{[{page.pageId}]}"></a>
+		<znd-page-title page-id="{[{page.pageId}]}" class="page-title"></znd-page-title>
+		<div class="author-text" ng-show="page.type == 'blog'">by <znd-user-name user-id="{[{page.creatorId}]}"></znd-user-name></div>
 
 		<!-- Voting container -->
-		<div class="page-vote" ng-show="page.HasVote"></div>
+		<div class="page-vote" ng-show="page.hasVote"></div>
 
 		<!-- Main page text. Populated by markdown. -->
 		<div class="page-text markdown-text"></div>
 
 		<!--Admin stuff -->
-		<span class="admin" ng-show="userService.user.IsAdmin">
-			Last Visit: {[{page.LastVisit}]}; Last Edit At: {[{page.CreatedAt}]} by <znd-user-name user-id="{[{page.CreatorId}]}"></znd-user-name>
+		<span class="admin" ng-show="userService.user.isAdmin">
+			Last Visit: {[{page.lastVisit}]}; Last Edit At: {[{page.createdAt}]} by <znd-user-name user-id="{[{page.creatorId}]}"></znd-user-name>
 		</span>
 	</div>
 
@@ -93,7 +93,7 @@
 			<!-- Comments -->
 			<b id="comments-label">Comments:</b>
 			<div class="comments">
-				<znd-new-comment primary-page-id="{[{page.PageId}]}"></znd-new-comment>
+				<znd-new-comment primary-page-id="{[{page.pageId}]}"></znd-new-comment>
 			</div>
 		</div>
 	</div>

@@ -32,9 +32,9 @@ const (
 // We can't call this struct "user" since that collides with src/user.
 type dbUser struct {
 	// DB values.
-	Id        int64 `json:",string"`
-	FirstName string
-	LastName  string
+	Id        int64  `json:"id,string"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
 }
 
 // loadUsersInfo loads user information (like name) for each user in the given map.

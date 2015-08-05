@@ -14,7 +14,7 @@
 			$scope.childPages = {};
 			for (id in pageService.pageMap) {
 				var page = pageService.pageMap[id];
-				if (page.Parents.length <= 0) {
+				if (page.parents.length <= 0) {
 					$scope.rootPages[id] = page;
 				} else {
 					$scope.childPages[id] = page;

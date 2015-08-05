@@ -46,73 +46,80 @@ const (
 )
 
 type vote struct {
-	Value     int
-	UserId    int64 `json:",string"`
-	CreatedAt string
+	Value     int    `json:"value"`
+	UserId    int64  `json:"userId,string"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type page struct {
 	// Data loaded from pages table
-	PageId            int64 `json:",string"`
-	Edit              int
-	Type              string
-	Title             string
-	Text              string
-	Summary           string
-	Alias             string
-	SortChildrenBy    string
-	HasVote           bool
-	VoteType          string
-	CreatorId         int64 `json:",string"`
-	CreatedAt         string
-	OriginalCreatedAt string
-	KarmaLock         int
-	PrivacyKey        int64 `json:",string"`
-	Group             group
-	ParentsStr        string
-	DeletedBy         int64 `json:",string"`
-	IsAutosave        bool
-	IsSnapshot        bool
-	IsCurrentEdit     bool
-	AnchorContext     string
-	AnchorText        string
-	AnchorOffset      int
+	PageId            int64  `json:"pageId,string"`
+	Edit              int    `json:"edit"`
+	Type              string `json:"type"`
+	Title             string `json:"title"`
+	Text              string `json:"text"`
+	Summary           string `json:"summary"`
+	Alias             string `json:"alias"`
+	SortChildrenBy    string `json:"sortChildrenBy"`
+	HasVote           bool   `json:"hasVote"`
+	VoteType          string `json:"voteType"`
+	CreatorId         int64  `json:"creatorId,string"`
+	CreatedAt         string `json:"createdAt"`
+	OriginalCreatedAt string `json:"originalCreatedAt"`
+	KarmaLock         int    `json:"karmaLock"`
+	PrivacyKey        int64  `json:"privacyKey,string"`
+	Group             group  `json:"group"`
+	ParentsStr        string `json:"parentsStr"`
+	DeletedBy         int64  `json:"deletedBy,string"`
+	IsAutosave        bool   `json:"isAutosave"`
+	IsSnapshot        bool   `json:"isSnapshot"`
+	IsCurrentEdit     bool   `json:"isCurrentEdit"`
+	AnchorContext     string `json:"anchorContext"`
+	AnchorText        string `json:"anchorText"`
+	AnchorOffset      int    `json:"anchorOffset"`
 
 	// Data loaded from other tables.
-	LastVisit string
+	LastVisit string `json:"lastVisit"`
 
-	// Computed values.
-	IsSubscribed bool
-	HasChildren  bool // whether or not this page has children
-	HasParents   bool // whether or not this page has parents
-	HasDraft     bool // true iff the user has a work-in-progress draft for this page
-	LikeCount    int
-	DislikeCount int
-	MyLikeValue  int
-	LikeScore    int     // computed from LikeCount and DislikeCount
-	Votes        []*vote // all votes
-	WasPublished bool    // true iff there is an edit that has isCurrentEdit set for this page
-	MaxEditEver  int     // highest edit number used for this page for all users
+	// ===== Computed values. =====
+	IsSubscribed bool `json:"isSubscribed"`
+	// Whether or not this page has children
+	HasChildren bool `json:"hasChildren"`
+	// Whether or not this page has parents
+	HasParents bool `json:"hasParents"`
+	// True iff the user has a work-in-progress draft for this page
+	HasDraft     bool `json:"hasDraft"`
+	LikeCount    int  `json:"likeCount"`
+	DislikeCount int  `json:"dislikeCount"`
+	MyLikeValue  int  `json:"myLikeValue"`
+	// Computed from LikeCount and DislikeCount
+	LikeScore int     `json:"likeScore"`
+	Votes     []*vote `json:"votes"`
+	// True iff there is an edit that has isCurrentEdit set for this page
+	WasPublished bool `json:"wasPublished"`
+	// Highest edit number used for this page for all users
+	MaxEditEver int `json:"maxEditEver"`
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
 	// always have.
-	LockedVoteType string
-	Parents        []*pagePair
-	Children       []*pagePair
-	CommentIds     []string
-	Links          map[string]bool // page alias/id for a link -> true iff the page is published
-	LinkedFrom     []string
-	RedLinkCount   int
+	LockedVoteType string      `json:"lockedVoteType"`
+	Parents        []*pagePair `json:"parents"`
+	Children       []*pagePair `json:"children"`
+	CommentIds     []string    `json:"commentIds"`
+	// Page alias/id for a link -> true iff the page is published
+	Links        map[string]bool `json:"links"`
+	LinkedFrom   []string        `json:"linkedFrom"`
+	RedLinkCount int             `json:"redLinkCount"`
 	// Set to pageId corresponding to the question the user started creating for this page
-	ChildDraftId int64 `json:",string"`
+	ChildDraftId int64 `json:"childDraftId,string"`
 }
 
 // pagePair describes a parent child relationship, which are stored in pagePairs db table.
 type pagePair struct {
 	// From db.
-	Id       int64 `json:",string"`
-	ParentId int64 `json:",string"`
-	ChildId  int64 `json:",string"`
+	Id       int64 `json:"id,string"`
+	ParentId int64 `json:"parentId,string"`
+	ChildId  int64 `json:"childId,string"`
 }
 
 // loadPageOptions describes options for loading page(s) from the db

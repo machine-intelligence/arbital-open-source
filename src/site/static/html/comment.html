@@ -7,29 +7,29 @@
 				&nbsp;
 				<a href="#"
 					class="edit-comment-link glyphicon glyphicon-pencil"
-					ng-class="{'has-draft': comment.HasDraft}"
-					title="{[{comment.HasDraft ? 'You have an unpublished draft for this comment' : 'Edit this comment'}]}"
-					ng-show="comment.CreatorId == userService.user.Id"></a>
+					ng-class="{'has-draft': comment.hasDraft}"
+					title="{[{comment.hasDraft ? 'You have an unpublished draft for this comment' : 'Edit this comment'}]}"
+					ng-show="comment.creatorId == userService.user.id"></a>
 				<a href="#"
 					class="subscribe-comment-link glyphicon glyphicon-eye-open"
-					ng-class="{'on': comment.IsSubscribed}"
+					ng-class="{'on': comment.isSubscribed}"
 					title="Subscribe to receive updates when this comment gets replies"
-					ng-show="userService.user.IsLoggedIn && !parentCommentId"></a>
+					ng-show="userService.user.isLoggedIn && !parentCommentId"></a>
 				<a href="#"
 					class="like-comment-link glyphicon glyphicon-thumbs-up"
-					ng-class="{'on': comment.MyLikeValue >= 1}"
+					ng-class="{'on': comment.myLikeValue >= 1}"
 					title="This is a high quality comment"
-					ng-show="userService.user.IsLoggedIn && comment.CreatorId != userService.user.Id"></a>
+					ng-show="userService.user.isLoggedIn && comment.creatorId != userService.user.id"></a>
 				<span class="comment-like-count"
 					title="Number of upvotes this comment has received"
-					ng-bind="comment.LikeCount"
-					ng-show="comment.LikeCount > 0"></span>
+					ng-bind="comment.likeCount"
+					ng-show="comment.likeCount > 0"></span>
 			</span>
 		</div>
 
 		<!-- Comment column -->
 		<div class="text-column">
-			<a id="comment-{[{comment.PageId}]}"></a>
+			<a id="comment-{[{comment.pageId}]}"></a>
 			<div class="comment-content" ng-class="{'reply': parentCommentId}">
 				<img src="/static/images/loading.gif" class="loading-indicator"/>
 				<div class="comment-body">
@@ -40,7 +40,7 @@
 						<span class="new-updated-label glyphicon glyphicon-star-empty"
 							title="This comment has been updated since the last time you've seen it"
 							ng-show="comment.isUpdatedPage()"></span>
-						<znd-user-name user-id="{[{comment.CreatorId}]}"></znd-user-name>:&nbsp;
+						<znd-user-name user-id="{[{comment.creatorId}]}"></znd-user-name>:&nbsp;
 					</div>
 					<!-- Comment's text. Populated by markdown. -->
 					<div class="comment-text markdown-text"></div>

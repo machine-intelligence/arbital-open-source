@@ -1248,13 +1248,13 @@
 			var highlightYShift = "-40px";
 			var image = button.getElementsByTagName("span")[0];
 			if (isEnabled) {
-				image.style.backgroundPosition = button.XShift + " " + normalYShift;
+				image.style.backgroundPosition = button.xShift + " " + normalYShift;
 				button.onmouseover = function () {
-					image.style.backgroundPosition = this.XShift + " " + highlightYShift;
+					image.style.backgroundPosition = this.xShift + " " + highlightYShift;
 				};
 
 				button.onmouseout = function () {
-					image.style.backgroundPosition = this.XShift + " " + normalYShift;
+					image.style.backgroundPosition = this.xShift + " " + normalYShift;
 				};
 
 				// IE tries to select the background image "button" text (it's
@@ -1281,7 +1281,7 @@
 				}
 			}
 			else {
-				image.style.backgroundPosition = button.XShift + " " + disabledYShift;
+				image.style.backgroundPosition = button.xShift + " " + disabledYShift;
 				button.onmouseover = button.onmouseout = button.onclick = function () { };
 			}
 		}
@@ -1305,7 +1305,7 @@
 			buttonRow.className = 'wmd-button-row';
 			buttonRow = buttonBar.appendChild(buttonRow);
 			var xPosition = 0;
-			var makeButton = function (id, title, XShift, textOp) {
+			var makeButton = function (id, title, xShift, textOp) {
 				var button = document.createElement("li");
 				button.className = "wmd-button";
 				button.style.left = xPosition + "px";
@@ -1314,7 +1314,7 @@
 				button.id = id + postfix;
 				button.appendChild(buttonImage);
 				button.title = title;
-				button.XShift = XShift;
+				button.xShift = xShift;
 				if (textOp)
 					button.textOp = textOp;
 				setupButton(button, true);
@@ -1373,7 +1373,7 @@
 				helpButton.appendChild(helpButtonImage);
 				helpButton.className = "wmd-button wmd-help-button";
 				helpButton.id = "wmd-help-button" + postfix;
-				helpButton.XShift = "-260px";
+				helpButton.xShift = "-260px";
 				helpButton.isHelp = true;
 				helpButton.style.right = "0px";
 				helpButton.title = getString("help");

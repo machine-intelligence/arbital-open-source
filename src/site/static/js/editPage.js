@@ -16,7 +16,7 @@
 // }
 var EditPage = function(page, pageService, autocompleteService, options) {
 	var page = page;
-	var pageId = page.PageId; // id of the page we are editing
+	var pageId = page.pageId; // id of the page we are editing
 	var options = options || {};
 	var primaryPage = options.primaryPage;
 	var $topParent = options.topParent;
@@ -30,19 +30,19 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 		var $template = $topParent.find(".tag.template");
 		var $newTag = $template.clone(true);
 		if (parentAlias in autocompleteService.aliasMap) {
-			var parentPageId = autocompleteService.aliasMap[parentAlias].PageId;
-			var title = autocompleteService.aliasMap[parentAlias].PageTitle;
-		} else if (primaryPage !== undefined && parentAlias === primaryPage.Alias) {
+			var parentPageId = autocompleteService.aliasMap[parentAlias].pageId;
+			var title = autocompleteService.aliasMap[parentAlias].pageTitle;
+		} else if (primaryPage !== undefined && parentAlias === primaryPage.alias) {
 			// The parent is the primaryPage.
-			var parentPageId = primaryPage.PageId;
-			var title = primaryPage.Title;
+			var parentPageId = primaryPage.pageId;
+			var title = primaryPage.title;
 			if (title === "") {
 				title = "*Untitled*";
 			}
 		} else if (parentAlias in pageService.pageMap) {
 			var parentPageId = parentAlias;
-			var title = pageService.pageMap[parentAlias].Title;
-			parentAlias = pageService.pageMap[parentAlias].Alias;
+			var title = pageService.pageMap[parentAlias].title;
+			parentAlias = pageService.pageMap[parentAlias].alias;
 		} else {
 			// The parent hasn't been published yet.
 			var parentPageId = parentAlias;
@@ -76,10 +76,10 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 			__invisibleSubmit: isAutosave,
 		};
 		serializeFormData($topParent.find(".new-page-form"), data);
-		if (page.AnchorContext) {
-			data.anchorContext = page.AnchorContext;
-			data.anchorText = page.AnchorText;
-			data.anchorOffset = page.AnchorOffset;
+		if (page.anchorContext) {
+			data.anchorContext = page.anchorContext;
+			data.anchorText = page.anchorText;
+			data.anchorOffset = page.anchorOffset;
 		}
 		return data;
 	};
@@ -189,13 +189,16 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 	// usePageIds - forces pageIds to be passed to createNewParentElement. Used
 	//   to create initial parent elments.
 	var addParentTags = function(usePageIds) {
-		var parentsLen = page.Parents.length;
+		var parentsLen = page.parents.length;
+		console.log(page.parents);
 		for(var n = 0; n < parentsLen; n++) {
-			var parentPage = pageService.pageMap[page.Parents[n].ParentId];
-			if (usePageIds || parentPage.Alias === "") {
-				var parentKey = parentPage.PageId;
+			console.log(page.parents[n].parentId);
+			var parentPage = pageService.pageMap[page.parents[n].parentId];
+			console.log(parentPage);
+			if (usePageIds || parentPage.alias === "") {
+				var parentKey = parentPage.pageId;
 			} else {
-				var parentKey = parentPage.Alias;
+				var parentKey = parentPage.alias;
 			}
 			createNewParentElement(parentKey);
 		}
@@ -207,8 +210,7 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 			$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
 				deleteParentElement($(element));
 			});
-			page.Parents = primaryPage.Parents.slice();
-			console.log(primaryPage.Parents);
+			page.parents = primaryPage.parents.slice();
 			addParentTags();
 			$(event.target).hide();
 		});
@@ -259,7 +261,7 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 		$topParent.find("#wmd-new-page-button" + pageId).toggle(!isModal);
 
 		// Autofocus on some input.
-		if (page.Type !== "answer" || !primaryPage) {  
+		if (page.type !== "answer" || !primaryPage) {  
 			window.setTimeout(function() {
 				var $title = $topParent.find("input[name='title']");
 				if ($title.is(":visible")) {
@@ -335,8 +337,8 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 				var resumePageId = pageIdCache[options.modalKey];
 				var primaryPage = pageService.pageMap[options.parentPageId];
 				var isQuestion = options.modalKey === "newQuestion";
-				if (isQuestion && !resumePageId && primaryPage.ChildDraftId !== "0") {
-					resumePageId = primaryPage.ChildDraftId;
+				if (isQuestion && !resumePageId && primaryPage.childDraftId !== "0") {
+					resumePageId = primaryPage.childDraftId;
 				}
 				var $modal = $("#new-page-modal");
 				var $modalBody = $modal.find(".modal-body");
@@ -348,15 +350,15 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 					var newPage = pageService.pageMap[pageId];
 					if (!isResumed) {
 						if (isQuestion) {
-							newPage.Type = "question";
+							newPage.type = "question";
 						}
-						if (primaryPage.Type !== "comment" &&
-								primaryPage.Type !== "answer" &&
-								primaryPage.Type !== "question") {
-							newPage.Parents = [{ParentId: primaryPage.PageId}];
+						if (primaryPage.type !== "comment" &&
+								primaryPage.type !== "answer" &&
+								primaryPage.type !== "question") {
+							newPage.parents = [{parentId: primaryPage.pageId}];
 						}
-						newPage.CreatorId = userService.user.Id;
-						newPage.Group = primaryPage.Group;
+						newPage.creatorId = userService.user.id;
+						newPage.group = primaryPage.group;
 					}
 
 					// Dynamically create znd-edit-page directive.
@@ -412,7 +414,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 						function(data, status) {
 							resumePageId = Object.keys(data)[0];
 							// Let's not try to edit the same page in two places
-							if (resumePageId !== primaryPage.PageId) {
+							if (resumePageId !== primaryPage.pageId) {
 								setupModal(resumePageId, loadPagesIds.length > 0);
 							} else {
 								console.log("Error: trying to edit the same page in modal");
@@ -463,9 +465,9 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			scope.page = pageService.pageMap[scope.pageId];
 
 			// Set up some helper variables.
-			scope.isQuestion = scope.page.Type === "question";
-			scope.isAnswer = scope.page.Type === "answer";
-			scope.isComment = scope.page.Type === "comment";
+			scope.isQuestion = scope.page.type === "question";
+			scope.isAnswer = scope.page.type === "answer";
+			scope.isComment = scope.page.type === "comment";
 			scope.isSecondary = scope.isQuestion || scope.isComment;
 			scope.useVerticalView = scope.isModal;
 
@@ -478,7 +480,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 				scope.pageTypes = {comment: "Comment"};
 			} else {
 				scope.pageTypes = {wiki: "Wiki Page", blog: "Blog Page"};
-				scope.page.Type = scope.page.Type in scope.pageTypes ? scope.page.Type : "wiki";
+				scope.page.type = scope.page.type in scope.pageTypes ? scope.page.type : "wiki";
 			}
 
 			// Set up sort types.
@@ -487,7 +489,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 				chronological: "Chronologically",
 				alphabetical: "Alphabetically",
 			};
-			scope.page.SortChildrenBy = scope.page.SortChildrenBy in scope.sortTypes ? scope.page.SortChildrenBy : "likes";
+			scope.page.sortChildrenBy = scope.page.sortChildrenBy in scope.sortTypes ? scope.page.sortChildrenBy : "likes";
 
 			// Set up vote types.
 			scope.voteTypes = {
@@ -495,7 +497,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 				probability: "Probability",
 				approval: "Approval",
 			};
-			scope.page.VoteType = scope.page.VoteType in scope.voteTypes ? scope.page.VoteType : "";
+			scope.page.voteType = scope.page.voteType in scope.voteTypes ? scope.page.voteType : "";
 
 			var primaryPage = undefined;
 			if (scope.primaryPageId) {
@@ -504,14 +506,14 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			if (scope.isAnswer && primaryPage) {
 				// Set up answer page for when it appears on a question page.
 				// TODO: shouldn't be setting Parents here
-				scope.page.Parents = [{ParentId: primaryPage.PageId}];
+				scope.page.parents = [{parentId: primaryPage.pageId}];
 				scope.useVerticalView = true;
 			} else if (scope.isComment && primaryPage) {
 				scope.useVerticalView = true;
 			}
 
 			// Set up group names.
-			var groupNames = userService.user.GroupNames;
+			var groupNames = userService.user.groupNames;
 			scope.groupOptions = {};
 			if (groupNames) {
 				for (var i in groupNames) {

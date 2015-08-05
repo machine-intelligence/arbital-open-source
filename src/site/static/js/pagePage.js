@@ -109,12 +109,12 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 	// Set up children pages and question ids.
 	$scope.initialChildren = {};
 	$scope.initialChildrenCount = 0;
-	for (var n = 0; n < $scope.page.Children.length; n++) {
-		var id = $scope.page.Children[n].ChildId;
+	for (var n = 0; n < $scope.page.children.length; n++) {
+		var id = $scope.page.children[n].childId;
 		var page = pageService.pageMap[id];
-		if (page.Type === "question") {
+		if (page.type === "question") {
 			$scope.questionIds.push(id);
-		} else if (page.Type === "answer") {
+		} else if (page.type === "answer") {
 			$scope.answerIds.push(id);
 		} else {
 			$scope.initialChildren[id] = page;
@@ -126,17 +126,17 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 	$scope.questionIds.sort(function(id1, id2) {
 		var page1 = pageService.pageMap[id1];
 		var page2 = pageService.pageMap[id2];
-		var ownerDiff = (page2.CreatorId == userService.user.Id ? 1 : 0) -
-				(page1.CreatorId == userService.user.Id ? 1 : 0);
+		var ownerDiff = (page2.creatorId == userService.user.id ? 1 : 0) -
+				(page1.creatorId == userService.user.id ? 1 : 0);
 		if (ownerDiff != 0) return ownerDiff;
-		return page2.LikeScore - page1.LikeScore;
+		return page2.likeScore - page1.likeScore;
 	});
 
 	// Set up parents pages.
 	$scope.initialParents = {};
-	$scope.initialParentsCount = $scope.page.Parents.length;
+	$scope.initialParentsCount = $scope.page.parents.length;
 	for (var n = 0; n < $scope.initialParentsCount; n++) {
-		var id = $scope.page.Parents[n].ParentId;
+		var id = $scope.page.parents[n].parentId;
 		$scope.initialParents[id] = pageService.pageMap[id];
 	}
 
@@ -147,15 +147,15 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 	$(".question-button").on("click", function(event) {
 		$(document).trigger("new-page-modal-event", {
 			modalKey: "newQuestion",
-			parentPageId: $scope.page.PageId,
+			parentPageId: $scope.page.pageId,
 			callback: function(result) {
 				if (result.abandon) {
 					$scope.$apply(function() {
-						$scope.page.ChildDraftId = 0;
+						$scope.page.childDraftId = 0;
 					});
 				} else if (result.hidden) {
 					$scope.$apply(function() {
-						$scope.page.ChildDraftId = result.alias;
+						$scope.page.childDraftId = result.alias;
 					});
 				} else {
 					window.location.href = "/pages/" + result.alias;
@@ -185,19 +185,19 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 	}
 
 	// Add edit page for the answer.
-	if ($scope.page.Type === "question") {
+	if ($scope.page.type === "question") {
 		$scope.answerDoneFn = function(result) {
 			if (result.abandon) {
 				getNewAnswerId();
 			} else if (result.alias) {
-				window.location.assign($scope.page.Url + "#page-" + result.alias);
+				window.location.assign($scope.page.url + "#page-" + result.alias);
 				window.location.reload();
 			}
 		};
 
 		var createAnswerEditPage = function(page) {
-			var el = $compile("<znd-edit-page page-id='" + page.PageId +
-				"' primary-page-id='" + $scope.page.PageId +
+			var el = $compile("<znd-edit-page page-id='" + page.pageId +
+				"' primary-page-id='" + $scope.page.pageId +
 				"' done-fn='answerDoneFn(result)'></znd-edit-page>")($scope);
 			$(".new-answer").append(el);
 		};
@@ -206,17 +206,17 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 			pageService.loadPages([],
 				function(data, status) {
 					var page = pageService.pageMap[Object.keys(data)[0]];
-					page.Group = $.extend({}, $scope.page.Group);
-					page.Type = "answer";
-					page.Parents = [{ParentId: $scope.page.PageId, ChildId: page.PageId}];
+					page.group = $.extend({}, $scope.page.group);
+					page.type = "answer";
+					page.parents = [{parentId: $scope.page.pageId, childId: page.pageId}];
 					createAnswerEditPage(page);
 				}, function(data, status) {
 					console.log("Couldn't load pages: " + loadPagesIds);
 				}
 			);
 		};
-		if ($scope.page.ChildDraftId > 0) {
-			createAnswerEditPage(pageService.pageMap[$scope.page.ChildDraftId]);
+		if ($scope.page.childDraftId > 0) {
+			createAnswerEditPage(pageService.pageMap[$scope.page.childDraftId]);
 		} else {
 			getNewAnswerId();
 		}

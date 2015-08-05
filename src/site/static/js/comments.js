@@ -5,7 +5,7 @@
 // scope - scope which will be used to store doneFn and for compiling elements
 // options: {
 //   primaryPageId - page that will own this comment
-//   parentCommentI - optionally, id of the comment this is a reply to
+//   parentCommentId - optionally, id of the comment this is a reply to
 //   anchorContext,anchorText,anchorOffset - optionally, set for inline comments
 //   callback - callback to call if edit is abandoned
 // }
@@ -48,16 +48,16 @@ var createEditCommentDiv = function($parentDiv, $commentButton, scope, options) 
 				toggleVisibility(false, false);
 				var newPageId = Object.keys(data)[0];
 				var page = scope.pageService.pageMap[newPageId];
-				page.Type = "comment";
-				page.Parents = [{ParentId: options.primaryPageId, ChildId: newPageId}];
+				page.type = "comment";
+				page.parents = [{parentId: options.primaryPageId, childId: newPageId}];
 				if (options.parentCommentId) {
-					page.Parents.push({ParentId: options.parentCommentId, ChildId: newPageId});
+					page.parents.push({parentId: options.parentCommentId, childId: newPageId});
 				}
 				// Assuming it's a new page:
 				if (options.anchorContext) {
-					page.AnchorContext = options.anchorContext;
-					page.AnchorText = options.anchorText;
-					page.AnchorOffset = options.anchorOffset;
+					page.anchorContext = options.anchorContext;
+					page.anchorText = options.anchorText;
+					page.anchorOffset = options.anchorOffset;
 				}
 				createEditPage(newPageId);
 			}, function(data, status) {
@@ -84,11 +84,11 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 			var $replies = element.find(".replies");
 			// Dynamically create reply elements.
 			if (scope.parentCommentId === undefined) {
-				if (scope.comment.Children != null) {
+				if (scope.comment.children != null) {
 					pageService.sortChildren(scope.comment);
-					for (var n = 0; n < scope.comment.Children.length; n++) {
-						var childId = scope.comment.Children[n].ChildId;
-						if (pageService.pageMap[childId].Type !== "comment") continue;
+					for (var n = 0; n < scope.comment.children.length; n++) {
+						var childId = scope.comment.children[n].childId;
+						if (pageService.pageMap[childId].type !== "comment") continue;
 						var $comment = $compile("<znd-comment primary-page-id='" + scope.primaryPageId +
 								"' page-id='" + childId +
 								"' parent-comment-id='" + scope.pageId + "'></znd-comment>")(scope);
@@ -103,7 +103,7 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 
 			$timeout(function() {
 				// Process comment's text using Markdown.
-				zndMarkdown.init(false, scope.pageId, scope.comment.Text, element, undefined);
+				zndMarkdown.init(false, scope.pageId, scope.comment.text, element, undefined);
 			});
 
 			// Highlight the comment div. Used for selecting comments when #anchor matches.
@@ -195,7 +195,7 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 				if (result.abandon) {
 					toggleEditComment(false);
 					element.find(".edit-comment-link").removeClass("has-draft");
-					scope.comment.HasDraft = false;
+					scope.comment.hasDraft = false;
 					destroyEditPage();
 				} else if (result.alias) {
 					smartPageReload("comment-" + result.alias);
@@ -205,7 +205,7 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 				$(".hash-anchor").removeClass("hash-anchor");
 				// Dynamically create znd-edit-page directive if it doesn't exist already.
 				if ($comment.find("znd-edit-page").length <= 0) {
-					if (scope.comment.HasDraft) {
+					if (scope.comment.hasDraft) {
 						// Load the draft.
 						reloadComment();
 					} else {

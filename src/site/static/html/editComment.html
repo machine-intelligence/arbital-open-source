@@ -1,25 +1,25 @@
 <form class="edit-comment-form">
 	<div class="form-group">
-		<textarea name="text" class="edit-comment-text form-control" ng-bind="comment.Text"></textarea>
+		<textarea name="text" class="edit-comment-text form-control" ng-bind="comment.text"></textarea>
 	</div>
 
 	<!-- WMD edit panel -->
 	<div class="wmd-panel-container">
 		<div class="wmd-panel">
-			<div id="wmd-button-bar{[{page.PageId}]}"></div>
+			<div id="wmd-button-bar{[{page.pageId}]}"></div>
 			<textarea name="text"
 					class="edit-page-text wmd-input form-control"
-					id="wmd-input{[{page.PageId}]}"
+					id="wmd-input{[{page.pageId}]}"
 					rows="30"
 					placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 				  style="resize: none;"
-				  ng-bind="page.Text"></textarea>
+				  ng-bind="page.text"></textarea>
 			<div class="wmd-panel-bottom-buttons">
 				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 				<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
 				<button type="submit" class="btn btn-primary" toggle-on-submit>Submit</button>
 				<span class="gray-text autosave-label" hidden></span>
-				<a ng-href="{[{page.EditUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal && page.Type != 'answer'">Revert to Live Version</a>
+				<a ng-href="{[{page.editUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal && page.type != 'answer'">Revert to Live Version</a>
 				<div class="alert alert-danger" hidden></div>
 				<span class="loading-text" style="display:none"></span>
 				<div class="clearfix"></div>
@@ -30,12 +30,12 @@
 			
 	<!-- Karma edit lock -->
 	<div class="karma-lock-form-group form-group"
-			ng-show="userService.user.getMaxKarmaLock() > 0 && page.Type != 'blog'">
+			ng-show="userService.user.getMaxKarmaLock() > 0 && page.type != 'blog'">
 		<label class="title-label control-label col-sm-2">Karma Lock
 			<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 		</label>
 		<div class="col-sm-4">
-			<div class="karma-lock-slider" ng-value="page.KarmaLock" max="{[{userService.user.getMaxKarmaLock()}]}"></div>
+			<div class="karma-lock-slider" ng-value="page.karmaLock" max="{[{userService.user.getMaxKarmaLock()}]}"></div>
 		</div>
 	</div>
 
@@ -45,7 +45,7 @@
 		<div class="col-sm-4">
 			<div class="input-group">
 				<input type="text" class="tag-input form-control" placeholder="Enter new parent">
-				<button type="button" class="btn btn-default btn-xs child-parent-option" ng-show="isModal && page.Type != 'question'">
+				<button type="button" class="btn btn-default btn-xs child-parent-option" ng-show="isModal && page.type != 'question'">
 					Make this page a sibling.
 				</button>
 			</div>
@@ -58,7 +58,7 @@
 	<input name="replyToId" type="hidden" value="0"/>
 	<input name="title" type="hidden" value="">
 	<input name="type" type="hidden" value="comment">
-	<input name="groupName" type="hidden" value="page.GroupName"><!--?-->
+	<input name="groupName" type="hidden" value="page.groupName"><!--?-->
 
 	<div class="submit-form-error alert alert-danger" hidden></div>
 	<img src="/static/images/loading.gif" class="loading-indicator"/>
