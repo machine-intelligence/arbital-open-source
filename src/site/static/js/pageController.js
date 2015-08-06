@@ -282,77 +282,81 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		});
 	}
 	
-	// Add a popover to the given element. The element has to be an intrasite link jquery object.
-	var setupIntrasiteLink = function($element) {
+	// Add a popover to the given elements. The elements have to be an intrasite link jquery object.
+	var setupIntrasiteLink = function($elements) {
 		var $linkPopoverTemplate = $("#link-popover-template");
-		$element.popover({ 
-			html : true,
-			placement: "bottom",
-			trigger: "hover",
-			delay: { "show": 500, "hide": 100 },
-			title: function() {
-				var pageId = $(this).attr("page-id");
-				if (fetchedPagesMap[pageId]) {
-					if (fetchedPagesMap[pageId].deletedBy !== "0") {
-						return "[DELETED]";
+		$elements.each(function() {
+			var options = {
+				html : true,
+				placement: "auto",
+				trigger: "manual",
+				delay: { "show": 500, "hide": 100 },
+				title: function() {
+					var pageId = $(this).attr("page-id");
+					if (fetchedPagesMap[pageId]) {
+						if (fetchedPagesMap[pageId].deletedBy !== "0") {
+							return "[DELETED]";
+						}
+						return fetchedPagesMap[pageId].title;
 					}
-					return fetchedPagesMap[pageId].title;
-				}
-				return "Loading...";
-			},
-			content: function() {
-				var $link = $(this);
-				var pageId = $link.attr("page-id");
-				// TODO: replace this custom ajax fetching with our "standard" angularjs pageService.
-				// Check if we already have this page cached.
-				var page = fetchedPagesMap[pageId];
-				if (page) {
-					if (page.deletedBy !== "0") {
-						$content.html("");
-						return "";
-					}
-					var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
-					$content.find(".popover-summary").text(page.summary);
-					$content.find(".like-count").text(page.likeCount);
-					$content.find(".dislike-count").text(page.dislikeCount);
-					var myLikeValue = +page.myLikeValue;
-					if (myLikeValue > 0) {
-						$content.find(".disabled-like").addClass("on");
-					} else if (myLikeValue < 0) {
-						$content.find(".disabled-dislike").addClass("on");
-					}
-					if (page.hasVote) {
-						setTimeout(function(){
+					return "Loading...";
+				},
+				content: function() {
+					var $link = $(this);
+					var pageId = $link.attr("page-id");
+					// TODO: replace this custom ajax fetching with our "standard" angularjs pageService.
+					// Check if we already have this page cached.
+					var page = fetchedPagesMap[pageId];
+					if (page) {
+						if (page.deletedBy !== "0") {
+							$content.html("");
+							return "";
+						}
+						var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
+						//$content.find(".popover-summary").text(page.summary);
+						$content.find(".like-count").text(page.likeCount);
+						$content.find(".dislike-count").text(page.dislikeCount);
+						var myLikeValue = +page.myLikeValue;
+						if (myLikeValue > 0) {
+							$content.find(".disabled-like").addClass("on");
+						} else if (myLikeValue < 0) {
+							$content.find(".disabled-dislike").addClass("on");
+						}
+						setTimeout(function() {
 							var $popover = $("#" + $link.attr("aria-describedby"));
 							var $content = $popover.find(".popover-content");
-							createVoteSlider($content.find(".vote"), page.pageId, page.votes, true);
+							zndMarkdown.init(false, page.pageId, page.summary, $content);
+							if (page.hasVote) {
+								createVoteSlider($content.find(".vote"), page.pageId, page.votes, true);
+							}
 						}, 100);
+						return $content.html();
 					}
-					return $content.html();
+					// Check if we already issued a request to fetch this page.
+					if (page === undefined) {
+						// Fetch page data from the server.
+						fetchedPagesMap[pageId] = null;
+						var data = {pageAlias: pageId, privacyKey: $link.attr("privacy-key")};
+						$.ajax({
+							type: "POST",
+							url: "/pageInfo/",
+							data: JSON.stringify(data),
+						})
+						.success(function(r) {
+							var page = JSON.parse(r);
+							if (!page) return;
+							fetchedPagesMap[page.pageId] = page;
+							if (page.alias && page.alias !== page.pageId) {
+								// Store the alias as well.
+								fetchedPagesMap[page.alias] = page;
+							}
+							$link.popover("show");
+						});
+					}
+					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
 				}
-				// Check if we already issued a request to fetch this page.
-				if (page === undefined) {
-					// Fetch page data from the server.
-					fetchedPagesMap[pageId] = null;
-					var data = {pageAlias: pageId, privacyKey: $link.attr("privacy-key")};
-					$.ajax({
-						type: "POST",
-						url: "/pageInfo/",
-						data: JSON.stringify(data),
-					})
-					.success(function(r) {
-						var page = JSON.parse(r);
-						if (!page) return;
-						fetchedPagesMap[page.pageId] = page;
-						if (page.alias && page.alias !== page.pageId) {
-							// Store the alias as well.
-							fetchedPagesMap[page.alias] = page;
-						}
-						$link.popover("show");
-					});
-				}
-				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
-			}
+			};
+			createHoverablePopover($(this), options);
 		});
 	}
 

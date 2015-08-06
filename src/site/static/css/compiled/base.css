@@ -118,6 +118,10 @@
 .input-group {
   width: 100%;
 }
+.popover {
+  max-width: 512px;
+  width: 512px;
+}
 .pagedown h1 {
   font-size: 26px;
 }

@@ -20,6 +20,47 @@ var keepDivFixed = function($div, offsetY) {
 	//}, 500);
 };
 
+// Set up a popover attached to the given anchor. The popover will be displayed
+// while the user is hovering over the anchor or the popover. If the mouse
+// leaves, the popover will be hidden after hideDelay ms.
+var createHoverablePopover = function($anchor, popoverOptions, hideDelay) {
+	hideDelay = hideDelay || 500;
+	$anchor.popover(popoverOptions);
+
+	var firstTimeShow = true, isVisible = false, anchorHovering = false, popoverHovering = false;
+	// Hide the popover if the user is not hovering over anything.
+	var hidePopover = function() {
+		if (anchorHovering || popoverHovering) return;
+		$anchor.popover("hide");
+		isVisible = false;
+	};
+
+	$anchor.on("mouseenter", function(event) {
+		anchorHovering = true;
+		if (!isVisible) {
+			$anchor.popover("show");
+			isVisible = true;
+
+			if (firstTimeShow) {
+				firstTimeShow = false;
+				var $popover = $anchor.siblings(".popover");
+				$popover.on("mouseenter", function(event){
+					popoverHovering = true;
+				});
+				$popover.on("mouseleave", function(event){
+					popoverHovering = false;
+					setTimeout(hidePopover, hideDelay);
+				});
+			}
+		}
+	});
+	$anchor.on("mouseleave", function(event) {
+		anchorHovering = false;
+		setTimeout(hidePopover, hideDelay);
+	});
+	return $anchor;
+};
+
 // Just a wrapper to get node's class name, but convert undefined into "".
 var getNodeClassName = function(node) {
 	return node.className || "";

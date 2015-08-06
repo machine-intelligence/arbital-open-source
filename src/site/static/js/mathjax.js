@@ -150,7 +150,7 @@ var InitMathjax = (function () {
             displayMath: [ [blockDelim, blockDelim] ],
             processEscapes: true
          },
-         showProcessingMessages: false,
+         showProcessingMessages: true,
     });
   }
 

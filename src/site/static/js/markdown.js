@@ -29,18 +29,6 @@ var zndMarkdown = zndMarkdown || function() {
 			});
 		});
 	
-		// Convert [[Text]]((Alias)) spans into links.
-		var noBacktick = "(^|\\\\`|[^`])";
-		var compexLinkRegexp = new RegExp(noBacktick + 
-			"\\[\\[([^[\\]()]+?)\\]\\]" + // match [[Text]]
-			"\\(\\(([A-Za-z0-9_-]+?)\\)\\)", "g"); // match ((Alias))
-		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(compexLinkRegexp, function (whole, prefix, text, alias) {
-				var url = "http://" + host + "/pages/" + alias;
-				return prefix + "[" + text + "](" + url + ")";
-			});
-		});
-		
 		// Convert [Text](Alias) spans into links.
 		var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
 		var compexLinkRegexp2 = new RegExp(noBacktickOrBracket + 
@@ -55,28 +43,6 @@ var zndMarkdown = zndMarkdown || function() {
 				} else {
 					return prefix + "[" + text + "](" + alias + ")";
 				}
-			});
-		});
-	
-		// Convert [[Alias]] spans into links.
-		var simpleLinkRegexp = new RegExp(noBacktick + 
-				"\\[\\[([A-Za-z0-9_-]+?)\\]\\]", "g");
-		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
-				// TODO; do something other than ?customText=false, since that appears
-				// in the URL if the user clicks on the link.
-				var url = "http://" + host + "/pages/" + alias + "/?customText=false";
-				var pageTitle = alias;
-				if (autocompleteService && autocompleteService.aliasSource.length > 0){
-					if (alias in autocompleteService.aliasMap) {
-						pageTitle = autocompleteService.aliasMap[alias].pageTitle;
-					}
-				} else {
-					if (alias in pageAliases) {
-						pageTitle = pageAliases[alias].title;
-					}
-				}
-				return prefix + "[" + pageTitle + "](" + url + ")";
 			});
 		});
 
@@ -106,15 +72,6 @@ var zndMarkdown = zndMarkdown || function() {
 				}
 			});
 		});
-	
-		/*converter.hooks.chain("postNormalization", function (text, runSpanGamut) {
-			return text.replace(/(.+?)( {0,2}\n)(.[^]*?\n)?([\n]{1,})/g, "$1[[[[1]]]]$2$3$4");
-			//return text;
-			//return text + "[[[[" + Math.floor(Math.random() * 1000000000) + "]]]]";
-			/*return text.replace(/^ {0,3}""" *\n((?:.*?\n)+?) {0,3}""" *$/gm, function (whole, inner) {
-				return "<blockquote>" + runBlockGamut(inner) + "</blockquote>\n";
-			});
-		});*/
 	
 		if (inEditMode) {
 			var editor = new Markdown.Editor(converter, pageId, {
