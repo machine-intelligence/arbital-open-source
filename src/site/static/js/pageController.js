@@ -286,6 +286,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	var setupIntrasiteLink = function($elements) {
 		var $linkPopoverTemplate = $("#link-popover-template");
 		$elements.each(function() {
+			if ($(this).hasClass("red-link")) return;
 			var options = {
 				html : true,
 				placement: "auto",

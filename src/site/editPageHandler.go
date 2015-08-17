@@ -483,10 +483,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		// Find directly encoded urls
 		extractLinks(regexp.MustCompile(regexp.QuoteMeta(getConfigAddress()) + "/pages/([0-9]+)"))
-		// Find ids and aliases using [[id/alias]] syntax.
-		extractLinks(regexp.MustCompile("\\[\\[([A-Za-z0-9_-]+?)\\]\\](?:[^(]|$)"))
-		// Find ids and aliases using [[text]]((id/alias)) syntax.
-		extractLinks(regexp.MustCompile("\\[\\[.+?\\]\\]\\(\\(([A-Za-z0-9_-]+?)\\)\\)"))
+		// Find ids and aliases using [id/alias] syntax.
+		extractLinks(regexp.MustCompile("\\[([A-Za-z0-9_-]+?)\\](?:[^(]|$)"))
+		// Find ids and aliases using [text](id/alias) syntax.
+		extractLinks(regexp.MustCompile("\\[.+?\\]\\(([A-Za-z0-9_-]+?)\\)"))
 		if len(aliasesAndIds) > 0 {
 			// Populate linkTuples
 			linkMap := make(map[string]bool) // track which aliases we already added to the list
