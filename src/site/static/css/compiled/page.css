@@ -234,6 +234,9 @@
 .edit-page-body .karma-lock-form-group {
   padding-top: 30px;
 }
+.save-snapshot-button {
+  margin: 0px 5px;
+}
 .page {
   margin-bottom: 40px;
 }

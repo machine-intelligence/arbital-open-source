@@ -140,10 +140,17 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 		return false;
 	});
 
-	// Process Revert button or link click.
+	// Process Abandon button click.
 	$topParent.find(".abandon-edit").on("click", function(event) {
 		if (doneFn) {
 			doneFn({alias: pageId, abandon: true});
+		}
+	});
+
+	// Process Close button click.
+	$topParent.find(".go-to-page-view").on("click", function(event) {
+		if (doneFn) {
+			doneFn({});
 		}
 	});
 
@@ -383,7 +390,10 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 								if (result.abandon) {
 									pageService.deletePage(result.alias);
 								}
-								resumePageId = undefined;
+								if (result.abandon || result.alias) {
+									console.log(result);
+									resumePageId = undefined;
+								}
 							},
 						});
 						editPage.start();

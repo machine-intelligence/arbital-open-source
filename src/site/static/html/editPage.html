@@ -41,11 +41,11 @@
 						  ng-bind="page.text"></textarea>
 					<div class="wmd-panel-bottom-buttons">
 						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-						<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
-						<button type="submit" class="btn btn-primary" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
+						<button type="button" class="abandon-edit btn btn-danger" toggle-on-submit>Abandon</button>
+						<button type="button" class="go-to-page-view btn btn-default" ng-bind="isModal ? 'Hide Window' : 'Go To Page View'" toggle-on-submit></button>
 						<span class="gray-text autosave-label" hidden></span>
-						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="!page.wasPublished && (isModal || isComment || isAnswer)" toggle-on-submit>Abandon</button>
-						<button type="button" class="abandon-edit btn btn-danger pull-right" ng-show="page.wasPublished && !isModal" toggle-on-submit>Revert to Live Version</button>
+						<button type="submit" class="btn btn-primary pull-right" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
+						<button type="button" class="save-snapshot-button btn btn-default pull-right" toggle-on-submit>Save Snapshot</button>
 						<div class="alert alert-danger" hidden></div>
 						<span class="loading-text" style="display:none"></span>
 						<div class="clearfix"></div>

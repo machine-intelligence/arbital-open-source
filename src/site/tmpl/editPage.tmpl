@@ -16,11 +16,7 @@
 
 			// Called when the user is done editing the page.
 			$scope.doneFn = function(result) {
-				if (result.abandon) {
-					window.location.replace($scope.page.editUrl);
-				} else {
-					window.location.replace($scope.page.url);
-				}
+				window.location.replace($scope.page.url);
 			};
 		});
 	</script>

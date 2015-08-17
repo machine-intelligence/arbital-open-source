@@ -630,7 +630,6 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 					var offset = {left: commentIconLeft, top: $(anchorNode).offset().top};
 					fixInlineCommentOffset(offset);
 					$commentDiv.offset(offset);
-					console.log(comment);
 
 					// Check if we need to expand this inline comment because of the URL anchor.
 					var expandComment = window.location.hash === "#comment-" + pageId;
