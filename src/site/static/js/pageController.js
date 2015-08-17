@@ -313,7 +313,6 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 							return "";
 						}
 						var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
-						//$content.find(".popover-summary").text(page.summary);
 						$content.find(".like-count").text(page.likeCount);
 						$content.find(".dislike-count").text(page.dislikeCount);
 						var myLikeValue = +page.myLikeValue;
@@ -598,7 +597,8 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 				var highlightClass = "inline-comment-" + pageId;
 				var $commentDiv = $(".toggle-inline-comment-div.template").clone();
 				$commentDiv.attr("id", "comment-" + pageId).removeClass("template");
-				var commentCount = pageService.pageMap[pageId].children.length + 1;
+				var comment = pageService.pageMap[pageId];
+				var commentCount = comment.children.length + 1;
 				$commentDiv.find(".inline-comment-count").text("" + commentCount);
 				$(".question-div").append($commentDiv);
 
@@ -630,11 +630,24 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 					var offset = {left: commentIconLeft, top: $(anchorNode).offset().top};
 					fixInlineCommentOffset(offset);
 					$commentDiv.offset(offset);
-					if (window.location.hash === "#comment-" + pageId) {
-						$commentIcon.trigger("click");
-						$("html, body").animate({
-			        scrollTop: $(anchorNode).offset().top - 100
-				    }, 1000);
+					console.log(comment);
+
+					// Check if we need to expand this inline comment because of the URL anchor.
+					var expandComment = window.location.hash === "#comment-" + pageId;
+					if (!expandComment) {
+						// Check if one of the children is selected.
+						for (var n = 0; n < comment.children.length; n++) {
+							expandComment |= window.location.hash === "#comment-" + comment.children[n].childId;
+						}
+					}
+					if (expandComment) {
+						// Delay to allow other inline comment buttons to compute their position correctly.
+						window.setTimeout(function() {
+							$commentIcon.trigger("click");
+							$("html, body").animate({
+			      	  scrollTop: $(anchorNode).offset().top - 100
+				    	}, 1000);
+						}, 100);
 					}
 				} else {
 					$commentDiv.hide();
