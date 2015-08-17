@@ -4,11 +4,19 @@
 <html>
 <head>
 	{{template "style"}}
+	{{template "scripts"}}
+	{{template "angular" .}}
+	<script src="/static/js/comments.js"></script>
+	<script src="/static/js/pageController.js"></script>
+	<script src="/static/js/editPage.js"></script>
+	<script src="/static/js/pagePage.js"></script>
 	<title>Error - Zanaduu</title>
+	{{template "style"}}
 </head>
 <body>
+{{template "navbar" .User}}
 
-<p class="alert alert-danger">{{.Error}}</p>
+<p class="error-message alert alert-danger">{{.Error}}</p>
 </body>
 </html>
 {{end}}

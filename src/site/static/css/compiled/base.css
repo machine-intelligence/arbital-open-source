@@ -59,6 +59,10 @@
 .page-footer p {
   margin: 0;
 }
+.error-message {
+  max-width: 768px;
+  margin: 0 auto;
+}
 .link-popover-dislike-correction {
   margin: 0 14px;
 }

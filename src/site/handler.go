@@ -32,6 +32,10 @@ type commonPageData struct {
 	PrimaryPageId int64 `json:",string"`
 	// Map of page ids to the corresponding page objects
 	PageMap map[int64]*page
+	// Logged in user
+	User *user.User
+	// Map of user ids to corresponding user objects
+	UserMap map[int64]*dbUser
 }
 
 // newHandler returns a standard handler from given handler function.

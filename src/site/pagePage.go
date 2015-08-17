@@ -28,8 +28,6 @@ type alias struct {
 // pageTmplData stores the data that we pass to the index.tmpl to render the page
 type pageTmplData struct {
 	commonPageData
-	User        *user.User
-	UserMap     map[int64]*dbUser
 	Page        *page
 	LinkedPages []*page
 	AliasMap    map[string]*alias
@@ -224,7 +222,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	if err != nil {
 		c.Errorf("%s", err)
 		c.Inc("page_page_served_fail")
-		return pages.InternalErrorWith(err)
+		return showError(w, r, fmt.Errorf("%s", err))
 	}
 	data.PrimaryPageId = data.Page.PageId
 
