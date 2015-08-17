@@ -104,6 +104,14 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 			submitForm($form, "/editPage/", data, function(r) {
 				if (isAutosave) autosaving = false;
 				callback(r);
+			}, function() {
+				if (isAutosave) autosaving = false;
+				if (publishing) {
+					publishing = false;
+					// Pretend it was a failed autosave
+					data.__invisibleSubmit = true; 
+					data.isAutosave = true;
+				}
 			});
 			prevEditPageData = data;
 		} else {
@@ -197,7 +205,6 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 	//   to create initial parent elments.
 	var addParentTags = function(usePageIds) {
 		var parentsLen = page.parents.length;
-		console.log(page.parents);
 		for(var n = 0; n < parentsLen; n++) {
 			console.log(page.parents[n].parentId);
 			var parentPage = pageService.pageMap[page.parents[n].parentId];

@@ -28,7 +28,10 @@ type newPageOptions struct {
 
 // commonPageData contains data that is common between all pages.
 type commonPageData struct {
+	// Id of the page that's most prominantly displayed. Usually the id is also in the URL
 	PrimaryPageId int64 `json:",string"`
+	// Map of page ids to the corresponding page objects
+	PageMap map[int64]*page
 }
 
 // newHandler returns a standard handler from given handler function.
@@ -87,6 +90,12 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 					c.Errorf("Couldn't update users: %v", err)
 					return pages.InternalErrorWith(err)
 				}
+				// Load updates count.
+				u.UpdateCount, err = loadUpdateCount(c, u.Id)
+				if err != nil {
+					c.Errorf("Couldn't retrieve updates count: %v", err)
+				}
+				// Load the groups the user belongs to.
 				if options.LoadUserGroups {
 					if err = loadUserGroups(c, u); err != nil {
 						c.Errorf("Couldn't load user groups: %v", err)

@@ -25,7 +25,6 @@ var (
 // editPageTmplData stores the data that we pass to the template file to render the page
 type editPageTmplData struct {
 	commonPageData
-	PageMap map[int64]*page
 	Page    *page
 	User    *user.User
 	UserMap map[int64]*dbUser

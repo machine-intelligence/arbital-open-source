@@ -18,7 +18,6 @@ type exploreTmplData struct {
 	commonPageData
 	User    *user.User
 	UserMap map[int64]*dbUser
-	PageMap map[int64]*page
 }
 
 // explorePage serves the Explore page.

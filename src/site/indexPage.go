@@ -19,7 +19,6 @@ type indexTmplData struct {
 	commonPageData
 	User                  *user.User
 	UserMap               map[int64]*dbUser
-	PageMap               map[int64]*page
 	RecentlyEditedByMeIds []string
 	RecentlyCreatedIds    []string
 	MostLikedIds          []string
@@ -28,13 +27,14 @@ type indexTmplData struct {
 }
 
 // indexPage serves the index page.
-var indexPage = newPage(
+var indexPage = newPageWithOptions(
 	"/",
 	indexRenderer,
 	append(baseTmpls,
 		"tmpl/index.tmpl",
 		"tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl"))
+		"tmpl/navbar.tmpl"),
+	newPageOptions{})
 
 // indexRenderer renders the index page.
 func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
@@ -166,6 +166,13 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	err = loadLikes(c, data.User.Id, data.PageMap)
 	if err != nil {
 		c.Errorf("Couldn't retrieve page likes: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
+	// Get last visits.
+	err = loadLastVisits(c, data.User.Id, data.PageMap)
+	if err != nil {
+		c.Errorf("error while fetching a visit: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 

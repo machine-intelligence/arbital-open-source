@@ -159,12 +159,6 @@ func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		return pages.InternalErrorWith(err)
 	}
 
-	// Load updates count.
-	data.User.UpdateCount, err = loadUpdateCount(c, data.User.Id)
-	if err != nil {
-		c.Errorf("Couldn't retrieve updates count: %v", err)
-	}
-
 	c.Inc("updates_page_served_success")
 	return pages.StatusOK(data)
 }

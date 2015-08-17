@@ -30,7 +30,6 @@ type pageTmplData struct {
 	commonPageData
 	User        *user.User
 	UserMap     map[int64]*dbUser
-	PageMap     map[int64]*page
 	Page        *page
 	LinkedPages []*page
 	AliasMap    map[string]*alias
@@ -519,12 +518,6 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			ON DUPLICATE KEY UPDATE updatedAt = VALUES(updatedAt)`, values)
 		if _, err = database.ExecuteSql(c, sql); err != nil {
 			return nil, fmt.Errorf("Couldn't update visits: %v", err)
-		}
-
-		// Load updates count.
-		data.User.UpdateCount, err = loadUpdateCount(c, data.User.Id)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't retrieve updates count: %v", err)
 		}
 	}
 

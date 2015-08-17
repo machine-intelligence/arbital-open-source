@@ -66,6 +66,14 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get last visits.
+	err = loadLastVisits(c, u.Id, pageMap)
+	if err != nil {
+		c.Errorf("error while fetching last visits: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Load likes.
 	err = loadLikes(c, u.Id, pageMap)
 	if err != nil {
