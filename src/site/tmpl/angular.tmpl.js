@@ -591,7 +591,7 @@ app.directive("zndPageTreeNode", function(RecursionHelper) {
 								window.setTimeout(function() {
 									$(event.target).closest("znd-page-tree-node").find(".page-panel-body")
 										.find(".collapse-link.glyphicon-triangle-right:visible").trigger("click");
-								}, 200);
+								});
 							}
 						},
 						function(data, status) { }
