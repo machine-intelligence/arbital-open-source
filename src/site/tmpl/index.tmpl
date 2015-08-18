@@ -11,6 +11,7 @@
 		// IndexCtrl is for the Index page.
 		app.controller("IndexCtrl", ["$scope", function ($scope) {
 			$scope.recentlyEditedByMeIds = [{{range .RecentlyEditedByMeIds}}{{.}},{{end}}];
+			$scope.recentlyVisitedIds = [{{range .RecentlyVisitedIds}}{{.}},{{end}}];
 			$scope.recentlyCreatedIds = [{{range .RecentlyCreatedIds}}{{.}},{{end}}];
 			$scope.mostLikedIds = [{{range .MostLikedIds}}{{.}},{{end}}];
 			$scope.recentlyEditedIds = [{{range .RecentlyEditedIds}}{{.}},{{end}}];
@@ -27,6 +28,13 @@
 		  <div class="panel-heading">Recently Edited By Me</div>
 		  <div class="panel-body">
 		    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyEditedByMeIds"></znd-likes-page-title>
+		  </div>
+		</div>
+
+		<div class="panel panel-default">
+		  <div class="panel-heading">Recently Visited</div>
+		  <div class="panel-body">
+		    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></znd-likes-page-title>
 		  </div>
 		</div>
 

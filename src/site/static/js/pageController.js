@@ -314,6 +314,11 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 							return "";
 						}
 						var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
+						if (page.type === "blog") {
+							// TODO: to do this we need to be able to receive users and pages in the same packet
+							//$content.find(".popover-blog-owner").text("Author: " + userService.userMap[page.creatorId]);
+						}
+
 						$content.find(".like-count").text(page.likeCount);
 						$content.find(".dislike-count").text(page.dislikeCount);
 						var myLikeValue = +page.myLikeValue;
@@ -322,6 +327,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 						} else if (myLikeValue < 0) {
 							$content.find(".disabled-dislike").addClass("on");
 						}
+
 						setTimeout(function() {
 							var $popover = $("#" + $link.attr("aria-describedby"));
 							var $content = $popover.find(".popover-content");

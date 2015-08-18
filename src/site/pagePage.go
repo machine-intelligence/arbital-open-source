@@ -141,18 +141,19 @@ func loadLastVisits(c sessions.Context, currentUserId int64, pageMap map[int64]*
 	}
 	pageIdsStr := pageIdsStringFromMap(pageMap)
 	query := fmt.Sprintf(`
-		SELECT pageId,updatedAt
+		SELECT pageId,max(createdAt)
 		FROM visits
-		WHERE userId=%d AND pageId IN (%s)`,
+		WHERE userId=%d AND pageId IN (%s)
+		GROUP BY 1`,
 		currentUserId, pageIdsStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var pageId int64
-		var updatedAt string
-		err := rows.Scan(&pageId, &updatedAt)
+		var createdAt string
+		err := rows.Scan(&pageId, &createdAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a comment like: %v", err)
 		}
-		pageMap[pageId].LastVisit = updatedAt
+		pageMap[pageId].LastVisit = createdAt
 		return nil
 	})
 	return err
@@ -506,14 +507,13 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		// Update last visit date.
 		values := ""
 		for _, pg := range embeddedPageMap {
-			values += fmt.Sprintf("(%d, %d, '%s', '%s'),",
-				data.User.Id, pg.PageId, database.Now(), database.Now())
+			values += fmt.Sprintf("(%d, %d, '%s'),",
+				data.User.Id, pg.PageId, database.Now())
 		}
 		values = strings.TrimRight(values, ",")
 		sql := fmt.Sprintf(`
-			INSERT INTO visits (userId, pageId, createdAt, updatedAt)
-			VALUES %s
-			ON DUPLICATE KEY UPDATE updatedAt = VALUES(updatedAt)`, values)
+			INSERT INTO visits (userId, pageId, createdAt)
+			VALUES %s`, values)
 		if _, err = database.ExecuteSql(c, sql); err != nil {
 			return nil, fmt.Errorf("Couldn't update visits: %v", err)
 		}

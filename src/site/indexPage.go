@@ -18,6 +18,7 @@ const (
 type indexTmplData struct {
 	commonPageData
 	RecentlyEditedByMeIds []string
+	RecentlyVisitedIds    []string
 	RecentlyCreatedIds    []string
 	MostLikedIds          []string
 	RecentlyEditedIds     []string
@@ -72,6 +73,23 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 				p.RedLinkCount++
 			}
 		}
+	}
+
+	// Load recently visited page ids.
+	query = fmt.Sprintf(`
+		SELECT v.pageId
+		FROM (
+			SELECT pageId,max(createdAt) AS createdAt
+			FROM visits
+			WHERE userId=%d
+			GROUP BY 1
+		) AS v
+		ORDER BY v.createdAt DESC
+		LIMIT %d`, data.User.Id, indexPanelLimit)
+	data.RecentlyVisitedIds, err = loadPageIds(c, query, data.PageMap)
+	if err != nil {
+		c.Errorf("error while loading recently visited page ids: %v", err)
+		return pages.InternalErrorWith(err)
 	}
 
 	// Load recently created page ids.

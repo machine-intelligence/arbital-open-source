@@ -585,7 +585,6 @@ app.directive("zndPageTreeNode", function(RecursionHelper) {
 					loadFunc.call(pageService, $scope.page,
 						function(data, status) {
 							$scope.processPages(data);
-							console.log(recursiveExpand);
 							if (recursiveExpand) {
 								// Recursively expand children nodes
 								window.setTimeout(function() {
