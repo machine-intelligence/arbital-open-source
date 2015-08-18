@@ -489,9 +489,6 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 	$scope.processPages($scope.initMap, true);
 	$scope.processPages($scope.additionalMap);
 
-	// If true, continue expanding nodes recursively.
-	$scope.recursiveExpand = false;
-
 	if (!$scope.isParentTree) {
 		// Sort children.
 		$scope.sortNodeChildren($scope.rootNode);
@@ -575,8 +572,10 @@ app.directive("zndPageTreeNode", function(RecursionHelper) {
 			$scope.node.showChildren = !!$scope.node.isTopLevel && $scope.additionalMap;
 		
 			// Toggle the node's children visibility.
-			$scope.toggleNode = function(event, params) {
-				$scope.recursiveExpand = event.shiftKey;
+			$scope.toggleNode = function(event) {
+				// TODO: this recursive expansion is pretty fucked. Need to redo the whole
+				// thing probably, without RecursionHelper.
+				var recursiveExpand = event.shiftKey || event.shiftKey === undefined;
 				$scope.node.showChildren = !$scope.node.showChildren;
 				if ($scope.node.showChildren) {
 					var loadFunc = pageService.loadChildren;
@@ -586,12 +585,13 @@ app.directive("zndPageTreeNode", function(RecursionHelper) {
 					loadFunc.call(pageService, $scope.page,
 						function(data, status) {
 							$scope.processPages(data);
-							if ($scope.recursiveExpand) {
+							console.log(recursiveExpand);
+							if (recursiveExpand) {
 								// Recursively expand children nodes
 								window.setTimeout(function() {
 									$(event.target).closest("znd-page-tree-node").find(".page-panel-body")
-										.find(".collapse-link.glyphicon-triangle-right:visible").trigger("click", ["SOME THING"]);
-								});
+										.find(".collapse-link.glyphicon-triangle-right:visible").trigger("click");
+								}, 200);
 							}
 						},
 						function(data, status) { }
