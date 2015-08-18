@@ -197,7 +197,10 @@ app.service("pageService", function(userService, $http){
 				return reverse ? -1*r : r;
 			};
 		} else {
-			if (page.sortChildrenBy !== "likes") console.log("Unknown sort type: " + page.sortChildrenBy);
+			if (page.sortChildrenBy !== "likes") {
+				console.log("Unknown sort type: " + page.sortChildrenBy);
+				console.log(page);
+			}
 			return function(aId, bId) {
 				var diff = pageMap[bId].likeCount - pageMap[aId].likeCount;
 				if (diff === 0) {
@@ -486,6 +489,9 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 	$scope.processPages($scope.initMap, true);
 	$scope.processPages($scope.additionalMap);
 
+	// If true, continue expanding nodes recursively.
+	$scope.recursiveExpand = false;
+
 	if (!$scope.isParentTree) {
 		// Sort children.
 		$scope.sortNodeChildren($scope.rootNode);
@@ -495,43 +501,6 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 	}
 });
 
-// PageTreeNodeCtrl is created for each node under the PageTreeCtrl.
-app.controller("PageTreeNodeCtrl", function ($scope, pageService) {
-	$scope.page = pageService.pageMap[$scope.node.pageId];
-	$scope.node.showChildren = !!$scope.node.isTopLevel && $scope.additionalMap;
-
-	// toggleNode gets called when the user clicks to show/hide the node.
-	$scope.toggleNode = function() {
-		$scope.node.showChildren = !$scope.node.showChildren;
-		if ($scope.node.showChildren) {
-			var loadFunc = pageService.loadChildren;
-			if ($scope.isParentTree) {
-				loadFunc = pageService.loadParents;
-			}
-			loadFunc.call(pageService, $scope.page,
-				function(data, status) {
-					$scope.processPages(data);
-				},
-				function(data, status) { }
-			);
-		}
-	};
-
-	// Return true iff the corresponding page is loading children.
-	$scope.isLoadingChildren = function() {
-		return $scope.page.isLoadingChildren;
-	};
-
-	// Return true if we should show the collapse arrow button for this page.
-	$scope.showCollapseArrow = function() {
-		return (!$scope.isParentTree && $scope.page.hasChildren) || ($scope.isParentTree && $scope.page.hasParents);
-	};
-
-	// Return true iff this node should be displayed larger.
-	$scope.isSupersized = function() {
-		return $scope.node.isTopLevel && $scope.supersizeRoots;
-	};
-});
 
 // =============================== DIRECTIVES =================================
 
@@ -601,7 +570,51 @@ app.directive("zndPageTree", function() {
 app.directive("zndPageTreeNode", function(RecursionHelper) {
 	return {
 		templateUrl: "/static/html/pageTreeNode.html",
-		controller: "PageTreeNodeCtrl",
+		controller: function ($scope, pageService) {
+			$scope.page = pageService.pageMap[$scope.node.pageId];
+			$scope.node.showChildren = !!$scope.node.isTopLevel && $scope.additionalMap;
+		
+			// Toggle the node's children visibility.
+			$scope.toggleNode = function(event, params) {
+				console.log(event);
+				console.log(params);
+				$scope.recursiveExpand = event.shiftKey;
+				$scope.node.showChildren = !$scope.node.showChildren;
+				if ($scope.node.showChildren) {
+					var loadFunc = pageService.loadChildren;
+					if ($scope.isParentTree) {
+						loadFunc = pageService.loadParents;
+					}
+					loadFunc.call(pageService, $scope.page,
+						function(data, status) {
+							$scope.processPages(data);
+							if ($scope.recursiveExpand) {
+								// Recursively expand children nodes
+								window.setTimeout(function() {
+									$(event.target).closest("znd-page-tree-node").find(".page-panel-body")
+										.find(".collapse-link.glyphicon-triangle-right:visible").trigger("click", ["SOME THING"]);
+								});
+							}
+						},
+						function(data, status) { }
+					);
+				}
+			};
+			// Return true iff the corresponding page is loading children.
+			$scope.isLoadingChildren = function() {
+				return $scope.page.isLoadingChildren;
+			};
+		
+			// Return true if we should show the collapse arrow button for this page.
+			$scope.showCollapseArrow = function() {
+				return (!$scope.isParentTree && $scope.page.hasChildren) || ($scope.isParentTree && $scope.page.hasParents);
+			};
+		
+			// Return true iff this node should be displayed larger.
+			$scope.isSupersized = function() {
+				return $scope.node.isTopLevel && $scope.supersizeRoots;
+			};
+		},
 		compile: function(element) {
 			return RecursionHelper.compile(element);
 		},

@@ -2,7 +2,7 @@
 <div class="page-panel" ng-hide="page.title == ''">
 	<div ng-class="{'big-page-panel-header': isSupersized()}">
 		<span class="collapse-span">
-			<span ng-show="showCollapseArrow()" class="collapse-link glyphicon" ng-class="{'glyphicon-triangle-bottom': node.showChildren, 'glyphicon-triangle-right': !node.showChildren}" ng-click="toggleNode()"></span>
+			<span ng-show="showCollapseArrow()" class="collapse-link glyphicon" ng-class="{'glyphicon-triangle-bottom': node.showChildren, 'glyphicon-triangle-right': !node.showChildren}" ng-click="toggleNode($event)"></span>
 			<span ng-show="!showCollapseArrow()" class="gray-text">&nbsp;&bull;</span>
 		</span>
 
