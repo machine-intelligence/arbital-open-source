@@ -33,7 +33,6 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	c := sessions.NewContext(r)
 
 	// Load the pages
-	pageIds := make([]string, 0, 50)
 	data.PageMap = make(map[int64]*page)
 	query := fmt.Sprintf(`
 		SELECT parentPair.parentId
@@ -51,7 +50,6 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		}
 		p := &page{PageId: pageId}
 		data.PageMap[pageId] = p
-		pageIds = append(pageIds, fmt.Sprintf("%d", pageId))
 		return nil
 	})
 	if err != nil {
@@ -71,6 +69,13 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
 		return pages.InternalErrorWith(err)
+	}
+
+	// Filter unpublished pages.
+	for id, p := range data.PageMap {
+		if !p.IsCurrentEdit {
+			delete(data.PageMap, id)
+		}
 	}
 
 	// Get last visits.

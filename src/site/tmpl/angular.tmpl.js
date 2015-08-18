@@ -576,8 +576,6 @@ app.directive("zndPageTreeNode", function(RecursionHelper) {
 		
 			// Toggle the node's children visibility.
 			$scope.toggleNode = function(event, params) {
-				console.log(event);
-				console.log(params);
 				$scope.recursiveExpand = event.shiftKey;
 				$scope.node.showChildren = !$scope.node.showChildren;
 				if ($scope.node.showChildren) {
