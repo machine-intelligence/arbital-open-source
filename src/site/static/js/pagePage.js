@@ -145,6 +145,10 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 
 	// Process question button click.
 	$(".question-button").on("click", function(event) {
+		if (userService.user.id === "0") {
+			showSignupPopover($(event.currentTarget));
+			return true;
+		}
 		$(document).trigger("new-page-modal-event", {
 			modalKey: "newQuestion",
 			parentPageId: $scope.page.pageId,

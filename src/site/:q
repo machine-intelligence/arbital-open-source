@@ -24,7 +24,6 @@
 {{template "navbar" .User}}
 
 {{template "newLinkModal"}}
-{{template "popoverTemplates"}}
 
 <!-- This div template is used to create vote divs. -->
 <div id="vote-template" class="vote" hidden>

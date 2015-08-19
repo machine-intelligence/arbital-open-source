@@ -260,6 +260,10 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		// Track click to see when the user wants to vote / update their vote.
 		$parent.on("click", function(event) {
 			if (mouseInPopover) return true;
+			if (userId === "0") {
+				showSignupPopover($(event.currentTarget));
+				return true;
+			}
 			if (userId in voteMap && voteMap[userId].value in bars) {
 				// Update old bar.
 				var bar = bars[voteMap[userId].value];
@@ -469,6 +473,11 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	// Page voting stuff.
 	// likeClick is 1 is user clicked like and -1 if they clicked dislike.
 	var processLike = function(likeClick, event) {
+		if (userService.user.id === "0") {
+			showSignupPopover($(event.currentTarget));
+			return false;
+		}
+
 		var $target = $(event.target);
 		var $like = $target.closest(".page-like-div");
 		var $likeCount = $like.find(".like-count");

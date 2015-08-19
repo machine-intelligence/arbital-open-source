@@ -25,6 +25,7 @@ var keepDivFixed = function($div, offsetY) {
 // leaves, the popover will be hidden after hideDelay ms.
 var createHoverablePopover = function($anchor, popoverOptions, hideDelay) {
 	hideDelay = hideDelay || 500;
+	popoverOptions.trigger = "manual";
 	$anchor.popover(popoverOptions);
 
 	var firstTimeShow = true, isVisible = false, anchorHovering = false, popoverHovering = false;
@@ -36,6 +37,7 @@ var createHoverablePopover = function($anchor, popoverOptions, hideDelay) {
 	};
 
 	$anchor.on("mouseenter", function(event) {
+		console.log("enter");
 		anchorHovering = true;
 		if (!isVisible) {
 			$anchor.popover("show");
@@ -55,10 +57,30 @@ var createHoverablePopover = function($anchor, popoverOptions, hideDelay) {
 		}
 	});
 	$anchor.on("mouseleave", function(event) {
+		console.log("leave");
 		anchorHovering = false;
 		setTimeout(hidePopover, hideDelay);
 	});
 	return $anchor;
+};
+
+// Create popover that tells the user they need to sign up / log in. The popover
+// will be attached to the given $anchor element.
+var showSignupPopover = function($anchor) {
+	var options = {
+		html: true,
+		placement: "auto",
+		title: "Login required",
+		trigger: "hover",
+		content: function() {
+			var $content = $("<div>" + $("#signup-popover-template").html() + "</div>");
+			return $content.html();
+		}
+	};
+	$anchor.popover(options).popover("show");
+	$anchor.on("hidden.bs.popover", function () {
+		$anchor.popover("destroy");
+	});
 };
 
 // Just a wrapper to get node's class name, but convert undefined into "".

@@ -234,6 +234,10 @@ app.directive("zndNewComment", function ($compile, pageService, userService) {
 			scope.$compile = $compile;
 			var $newComment = element.find(".new-comment");
 			element.find(".new-comment-link").on("click", function(event) {
+				if (userService.user.id === "0") {
+					showSignupPopover($(event.currentTarget));
+					return false;
+				}
 				$(".hash-anchor").removeClass("hash-anchor");
 				createEditCommentDiv($newComment, $newComment.find(".new-comment-link"), scope, {
 					primaryPageId: scope.primaryPageId,

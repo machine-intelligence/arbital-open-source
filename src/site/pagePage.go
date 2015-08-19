@@ -44,7 +44,7 @@ var pagePage = newPageWithOptions(
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
-		"tmpl/angular.tmpl.js", "tmpl/comment.tmpl",
+		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
 var privatePagePage = newPageWithOptions(
@@ -52,7 +52,7 @@ var privatePagePage = newPageWithOptions(
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
-		"tmpl/angular.tmpl.js", "tmpl/comment.tmpl",
+		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
 // loadLikes loads likes corresponding to the given pages and updates the pages.

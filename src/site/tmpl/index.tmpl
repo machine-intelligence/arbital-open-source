@@ -31,7 +31,7 @@
 		  </div>
 		</div>
 
-		<div class="panel panel-default">
+		<div class="panel panel-default" ng-hide="recentlyVisitedIds.length <= 0">
 		  <div class="panel-heading">Recently Visited</div>
 		  <div class="panel-body">
 		    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></znd-likes-page-title>

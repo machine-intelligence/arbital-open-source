@@ -15,9 +15,7 @@
 				<a href="#"
 				   class="like-link glyphicon glyphicon-thumbs-up"
 					 ng-class="{'on': page.myLikeValue >= 1}"
-					 title="This is a high quality page"
-					 ng-show="userService.user.isLoggedIn"></a>
-				<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-hide="userService.user.isLoggedIn"></span>
+					 title="This is a high quality page"></a>
 			</div>
 			<div class="clearfix"></div>
 			<div class="pull-right">
@@ -25,9 +23,7 @@
 				<a href="#"
 					 class="dislike-link glyphicon glyphicon-thumbs-down"
 					 ng-class="{'on': page.myLikeValue <= -1}"
-					 title="This is a low quality page"
-					 ng-show="userService.user.isLoggedIn"></a>
-				<span class="disabled-dislike glyphicon glyphicon-thumbs-down" ng-hide="userService.user.isLoggedIn"></span>
+					 title="This is a low quality page"></a>
 			</div>
 		</div>
 		<div class="clearfix"></div>
