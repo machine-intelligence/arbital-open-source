@@ -37,7 +37,6 @@ var createHoverablePopover = function($anchor, popoverOptions, hideDelay) {
 	};
 
 	$anchor.on("mouseenter", function(event) {
-		console.log("enter");
 		anchorHovering = true;
 		if (!isVisible) {
 			$anchor.popover("show");
@@ -57,7 +56,6 @@ var createHoverablePopover = function($anchor, popoverOptions, hideDelay) {
 		}
 	});
 	$anchor.on("mouseleave", function(event) {
-		console.log("leave");
 		anchorHovering = false;
 		setTimeout(hidePopover, hideDelay);
 	});
@@ -121,7 +119,8 @@ var processSelectedParagraphText = function() {
 
 // Wrap the given range in a a higlight node. That node gets the optinal nodeClass.
 var highlightRange = function(range, nodeClass) {
-	if (range.startContainer.parentNode.nodeName === "SCRIPT") return;
+	var parentNodeName = range.startContainer.parentNode.nodeName;
+	if (parentNodeName === "SCRIPT") return;
 	var startNodeName = range.startContainer.nodeName;
 	var newNode = document.createElement((startNodeName == "DIV" || startNodeName == "P") ? "DIV" : "SPAN");
 	if (nodeClass) {
@@ -287,7 +286,6 @@ var getStartEndSelection = function() {
 	parentNode = r.endContainer.parentNode;
 	while (parentNode != null) {
 		if (isNodeMathJax(parentNode)) {
-			console.dir(parentNode.id);
 			var match = parentNode.id.match(/(MathJax-Element-[0-9]+)-Frame/);
 			if (match) {
 				r.setEnd(document.getElementById(match[1]), 0); // <script>
@@ -302,4 +300,7 @@ var getStartEndSelection = function() {
 // NOTE: this doesn't work perfectly.
 var escapeMarkdownChars = function(s) {
 	return s.replace(/([\\`*_{}[\]()#+\-.!$])/g, "\\$1");
+}
+var unescapeMarkdownChars = function(s) {
+	return s.replace(/\\([\\`*_{}[\]()#+\-.!$])/g, "$1");
 }

@@ -2,7 +2,6 @@
 package site
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -66,18 +65,10 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get last visits.
-	err = loadLastVisits(c, u.Id, pageMap)
-	if err != nil {
-		c.Errorf("error while fetching last visits: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	// Load likes.
-	err = loadLikes(c, u.Id, pageMap)
+	err = loadAuxPageData(c, u.Id, pageMap, nil)
 	if err != nil {
-		c.Errorf("Couldn't retrieve page likes: %v", err)
+		c.Errorf("Couldn't load aux data: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -95,12 +86,8 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 	for k, v := range pageMap {
 		strPageMap[fmt.Sprintf("%d", k)] = v
 	}
-	var jsonData []byte
-	jsonData, err = json.Marshal(strPageMap)
+	err = writeJson(w, strPageMap)
 	if err != nil {
-		fmt.Println("Error marshalling pageMap into json:", err)
+		fmt.Println("Error writing data to json:", err)
 	}
-	// Write some stuff for "JSON Vulnerability Protection"
-	w.Write([]byte(")]}',\n"))
-	w.Write(jsonData)
 }

@@ -52,7 +52,19 @@ app.service("pageService", function(userService, $http){
 			"{{$k}}": {{GetPageJson $v}},
 		{{end}}
 	};
+
+	// Primary page is the one that's displayed front and center.
 	this.primaryPage = "{{.PrimaryPageId}}" === "0" ? undefined : this.pageMap["{{.PrimaryPageId}}"];
+	// List of callbacks to notify when primary page changes.
+	this.primaryPageCallbacks = [];
+	// Set the primary page, triggering the callbacks.
+	this.setPrimaryPage = function(newPrimaryPage) {
+		var oldPrimaryPage = this.primaryPage;
+		this.primaryPage = newPrimaryPage;
+		for (var n = 0; n < this.primaryPageCallbacks.length; n++) {
+			this.primaryPageCallbacks[n](oldPrimaryPage);
+		}
+	};
 
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
@@ -127,9 +139,9 @@ app.service("pageService", function(userService, $http){
 		}
 		return page;
 	};
-	this.addPageToMap = function(page) {
+	this.addPageToMap = function(page, overwrite) {
 		var existingPage = this.pageMap[page.pageId];
-		if (existingPage !== undefined) {
+		if (existingPage !== undefined && !overwrite) {
 			if (page === existingPage) return;
 			console.log("existingPage:"); console.log(existingPage);
 			// Merge.
@@ -248,8 +260,17 @@ app.service("pageService", function(userService, $http){
 
 	// Load the page with the given pageIds. If it's empty, ask the server for
 	// a new page id.
+	// options {
+	//   includeText: include the full text of the page
+	//   includeAuxData: include likes, votes, subscription, etc...
+	//   loadComments: whether or not to load comments
+	//   allowDraft: allow the server to load an autosave / snapshot, if it's most recent
+	//   overwrite: overwrite the existing pages with loaded data
+	//   success: callback on success
+	//   error: callback on error
+	// }
 	var loadingPageIds = {};
-	this.loadPages = function(pageIds, success, error) {
+	this.loadPages = function(pageIds, options) {
 		var service = this;
 		var pageIdsLen = pageIds.length;
 		var pageIdsStr = "";
@@ -265,15 +286,27 @@ app.service("pageService", function(userService, $http){
 		if (pageIdsLen > 0 && pageIdsStr.length == 0) {
 			return;  // we are loading all the pages already
 		}
+
+		// Set up options.
+		var success = options.success; delete options.success;
+		var error = options.error; delete options.error;
+		var overwrite = options.overwrite; delete options.overwrite;
+		options.pageIds = pageIdsStr;
+
 		console.log("Issuing a GET request to: /json/pages/?pageIds=" + pageIdsStr);
-		$http({method: "GET", url: "/json/pages/", params: {pageIds: pageIdsStr, loadFullEdit: true}}).
+		$http({method: "GET", url: "/json/pages/", params: options}).
 			success(function(data, status){
-				for (var id in data) {
-					console.log("JSON /pages/ data:"); console.log(data[id]);
-					data[id] = service.addPageToMap(data[id]);
+				console.log("JSON /pages/ data:"); console.log(data);
+				var pagesData = data["pages"];
+				for (var id in pagesData) {
+					data[id] = service.addPageToMap(pagesData[id], overwrite);
 					delete loadingPageIds[id];
 				}
-				if(success) success(data, status);
+				var usersData = data["users"];
+				for (var id in usersData) {
+					userService.userMap[id] = usersData[id];
+				}
+				if(success) success(pagesData, status);
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
@@ -399,8 +432,15 @@ app.filter("simpleDateTime", function() {
 });
 
 // ZanaduuCtrl is used across all pages.
-app.controller("ZanaduuCtrl", function ($scope, userService, pageService) {
+app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageService) {
 	$scope.userService = userService;
+
+	// Process last visit url parameter
+	var lastVisit = $location.search().lastVisit;
+	if (lastVisit) {
+		$("body").attr("last-visit", lastVisit);
+		$location.search("lastVisit", null);
+	}
 });
 
 // PageTreeCtrl is controller for the PageTree.

@@ -183,14 +183,16 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 
 			// We do a funky search to see if there is a vote nearby, and if so, show popover.
 			var offset = 0, maxOffset = 5;
-			var offsetSign = -1;
+			var offsetSign = 1;
+			var foundBar = false;
 			while(offset <= maxOffset) {
+				if(offsetSign < 0) offset++;
+				offsetSign = -offsetSign;
 				var hoverVoteValue = voteValue + offsetSign * offset;
 				if (!(hoverVoteValue in bars)) {
-					if(offsetSign < 0) offset++;
-					offsetSign = -offsetSign;
 					continue;
 				}
+				foundBar = true;
 				var bar = bars[hoverVoteValue];
 				// Don't do anything if it's still the same bar as last time.
 				if (bar.bar === $usersPopover) {
@@ -230,7 +232,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 				});
 				break;
 			}
-			if (offset > maxOffset) {
+			if (!foundBar) {
 				// We didn't find a bar, so destroy any existing popover.
 				destroyUsersPopover();
 			}
@@ -270,6 +272,9 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 				bar.users.splice(bar.users.indexOf(userId), 1);
 				setBarCss(bar);
 				destroyUsersPopover();
+				if (bar.users.length <= 0) {
+					delete bars[voteMap[userId].value];
+				}
 			}
 
 			// Set new vote and update all the things.
@@ -319,7 +324,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 						}
 						var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
 						if (page.type === "blog") {
-							// TODO: to do this we need to be able to receive users and pages in the same packet
+							// TODO: we can enable this as soon as we switch to from /userInfo/ to JSON call.
 							//$content.find(".popover-blog-owner").text("Author: " + userService.userMap[page.creatorId]);
 						}
 
@@ -335,7 +340,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 						setTimeout(function() {
 							var $popover = $("#" + $link.attr("aria-describedby"));
 							var $content = $popover.find(".popover-content");
-							zndMarkdown.init(false, page.pageId, page.summary, $content);
+							zndMarkdown.init(false, page.pageId, page.summary, $content, pageService);
 							if (page.hasVote) {
 								createVoteSlider($content.find(".vote"), page.pageId, page.votes, true);
 							}
@@ -384,8 +389,10 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	// Inline comments
 	// Create the inline comment highlight spans for the given paragraph.
 	this.createInlineCommentHighlight = function(paragraphNode, start, end, nodeClass) {
-		// How many characters we passed.
+		// How many characters we passed in the anchor context (which has escaped characters).
 		var charCount = 0;
+		// How many characters we passed in the actual paragraph.
+		var pCharCount = 0;
 		// Store ranges we want to highlight.
 		var ranges = [];
 		// Compute context and text.
@@ -395,12 +402,16 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 			var nodeWholeTextLength = node.wholeText ? node.wholeText.length : 0;
 			var range = document.createRange();
 			var nextCharCount = charCount + escapedText.length;
+			var pNextCharCount = pCharCount + nodeWholeTextLength; //or nodeText.length???
 			if (charCount <= start && nextCharCount >= end) {
-				range.setStart(node, start - charCount);
-				range.setEnd(node, Math.min(nodeWholeTextLength, end - charCount));
+				var pStart = unescapeMarkdownChars(escapedText.substring(0, start - charCount)).length;
+				var pEnd = unescapeMarkdownChars(escapedText.substring(0, end - charCount)).length;
+				range.setStart(node, pStart);
+				range.setEnd(node, pEnd);
 				ranges.push(range);
 			} else if (charCount <= start && nextCharCount > start) {
-				range.setStart(node, start - charCount);
+				var pStart = unescapeMarkdownChars(escapedText.substring(0, start - charCount)).length;
+				range.setStart(node, pStart);
 				range.setEnd(node, Math.min(nodeWholeTextLength, nodeText.length));
 				ranges.push(range);
 			} else if (start < charCount && nextCharCount >= end) {
@@ -412,16 +423,17 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					range.setStart(node, 0);
 					range.setEnd(node, Math.min(nodeWholeTextLength, nodeText.length));
 				} else {
-					range.selectNode(node);
+					range.selectNodeContents(node);
 				}
 				ranges.push(range);
 			} else if (start == charCount && charCount == nextCharCount) {
 				// Rare occurence, but this captures MathJax divs/spans that
 				// precede the script node where we actually get the text from.
-				range.selectNode(node);
+				range.selectNodeContents(node);
 				ranges.push(range);
 			}
 			charCount = nextCharCount;
+			pCharCount = pNextCharCount;
 			return charCount >= end;
 		});
 		// Highlight ranges after we did DOM traversal, so that there are no
@@ -550,14 +562,31 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function(pageVotes) {
 		// Set up markdown.
-		zndMarkdown.init(false, pageId, page.text, $topParent);
+		zndMarkdown.init(false, pageId, page.text, $topParent, pageService);
 
 		// Intrasite link hover.
 		setupIntrasiteLink($topParent.find(".intrasite-link"));
 
 		// Setup probability vote slider.
+		// NOTE: this pretty messy, since there are some race conditions here we are
+		// trying to mitigate.
 		if (page.hasVote) {
-			createVoteSlider($topParent.find(".page-vote"), pageId, page.votes, false);
+			// Timeout to give use a chance to switch to correct lens tab.
+			var $lensTab = $("[data-target='#lens-" + pageId + "']");
+			var doCreateVoteSlider = function() {
+				// Timeout to wait until the tab pane is visible.
+				window.setTimeout(function() {
+					// If the pane is now not visible, then don't do anything.
+					if (!$topParent.closest(".tab-pane").is(":visible")) return;
+					$lensTab.off("click", doCreateVoteSlider);
+					createVoteSlider($topParent.find(".page-vote"), pageId, page.votes, false);
+				});
+			};
+			$lensTab.on("click", doCreateVoteSlider);
+			// Check to see if the tab pane is visible.
+			if ($topParent.closest(".tab-pane").is(":visible")) {
+				doCreateVoteSlider();
+			}
 		}
 	};
 
@@ -573,6 +602,24 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 		controller: function ($scope, pageService, userService) {
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.questionIds = [];
+			for (var n = 0; n < $scope.page.children.length; n++) {
+				var id = $scope.page.children[n].childId;
+				var page = pageService.pageMap[id];
+				if (page.type === "question") {
+					$scope.questionIds.push(id);
+				}
+			}
+
+			// Sort question ids by likes, but put the ones created by current user first.
+			$scope.questionIds.sort(function(id1, id2) {
+				var page1 = pageService.pageMap[id1];
+				var page2 = pageService.pageMap[id2];
+				var ownerDiff = (page2.creatorId == userService.user.id ? 1 : 0) -
+						(page1.creatorId == userService.user.id ? 1 : 0);
+				if (ownerDiff != 0) return ownerDiff;
+				return page2.likeScore - page1.likeScore;
+			});
 		},
 		scope: {
 			pageId: "@",
@@ -610,64 +657,82 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 
 			// Create a toggle-inline-comment-div.
 			var createNewInlineCommentToggle = function(pageId, paragraphNode, anchorOffset, anchorLength) {
-				var highlightClass = "inline-comment-" + pageId;
-				var $commentDiv = $(".toggle-inline-comment-div.template").clone();
-				$commentDiv.attr("id", "comment-" + pageId).removeClass("template");
-				var comment = pageService.pageMap[pageId];
-				var commentCount = comment.children.length + 1;
-				$commentDiv.find(".inline-comment-count").text("" + commentCount);
-				$(".question-div").append($commentDiv);
-
-				// Process mouse events.
-				var $commentIcon = $commentDiv.find(".inline-comment-icon");
-				$commentIcon.on("mouseenter", function(event) {
-					$("." + highlightClass).addClass("inline-comment-highlight");
-				});
-				$commentIcon.on("mouseleave", function(event) {
-					if ($commentIcon.hasClass("on")) return true;
-					$("." + highlightClass).removeClass("inline-comment-highlight");
-				});
-				$commentIcon.on("click", function(event) {
-					pageView.toggleInlineComment($commentDiv, function() {
+				var created = false;
+				var doCreate = function() {
+					created = true;
+					var highlightClass = "inline-comment-" + pageId;
+					var $commentDiv = $(".toggle-inline-comment-div.template").clone();
+					$commentDiv.attr("id", "comment-" + pageId).removeClass("template");
+					var comment = pageService.pageMap[pageId];
+					var commentCount = comment.children.length + 1;
+					$commentDiv.find(".inline-comment-count").text("" + commentCount);
+					$(".question-div").append($commentDiv);
+	
+					// Process mouse events.
+					var $commentIcon = $commentDiv.find(".inline-comment-icon");
+					$commentIcon.on("mouseenter", function(event) {
 						$("." + highlightClass).addClass("inline-comment-highlight");
-						var $comment = $compile("<znd-comment primary-page-id='" + scope.page.pageId +
-								"' page-id='" + pageId + "'></znd-comment>")(scope);
-						$(".inline-comment-div").append($comment);
 					});
-					return false;
-				});
-
-				var commentIconLeft = $(".question-div").offset().left + 10;
-				var anchorNode = scope.pageJsController.createInlineCommentHighlight(paragraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
-				if (anchorNode) {
-					if (anchorNode.nodeType != Node.eLEMENT_NODE) {
-						anchorNode = anchorNode.parentElement;
-					}
-					var offset = {left: commentIconLeft, top: $(anchorNode).offset().top};
-					fixInlineCommentOffset(offset);
-					$commentDiv.offset(offset);
-
-					// Check if we need to expand this inline comment because of the URL anchor.
-					var expandComment = window.location.hash === "#comment-" + pageId;
-					if (!expandComment) {
-						// Check if one of the children is selected.
-						for (var n = 0; n < comment.children.length; n++) {
-							expandComment |= window.location.hash === "#comment-" + comment.children[n].childId;
+					$commentIcon.on("mouseleave", function(event) {
+						if ($commentIcon.hasClass("on")) return true;
+						$("." + highlightClass).removeClass("inline-comment-highlight");
+					});
+					$commentIcon.on("click", function(event) {
+						pageView.toggleInlineComment($commentDiv, function() {
+							$("." + highlightClass).addClass("inline-comment-highlight");
+							var $comment = $compile("<znd-comment primary-page-id='" + scope.page.pageId +
+									"' page-id='" + pageId + "'></znd-comment>")(scope);
+							$(".inline-comment-div").append($comment);
+						});
+						return false;
+					});
+	
+					var commentIconLeft = $(".question-div").offset().left + 10;
+					var anchorNode = scope.pageJsController.createInlineCommentHighlight(paragraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
+					if (anchorNode) {
+						if (anchorNode.nodeType != Node.eLEMENT_NODE) {
+							anchorNode = anchorNode.parentElement;
 						}
+						var offset = {left: commentIconLeft, top: $(anchorNode).offset().top};
+						fixInlineCommentOffset(offset);
+						$commentDiv.offset(offset);
+	
+						// Check if we need to expand this inline comment because of the URL anchor.
+						var expandComment = window.location.hash === "#comment-" + pageId;
+						if (!expandComment) {
+							// Check if one of the children is selected.
+							for (var n = 0; n < comment.children.length; n++) {
+								expandComment |= window.location.hash === "#comment-" + comment.children[n].childId;
+							}
+						}
+						if (expandComment) {
+							// Delay to allow other inline comment buttons to compute their position correctly.
+							window.setTimeout(function() {
+								$commentIcon.trigger("click");
+								$("html, body").animate({
+				      	  scrollTop: $(anchorNode).offset().top - 100
+					    	}, 1000);
+							}, 100);
+						}
+					} else {
+						$commentDiv.hide();
+						console.log("ERROR: couldn't find anchor node for inline comment");
 					}
-					if (expandComment) {
-						// Delay to allow other inline comment buttons to compute their position correctly.
-						window.setTimeout(function() {
-							$commentIcon.trigger("click");
-							$("html, body").animate({
-			      	  scrollTop: $(anchorNode).offset().top - 100
-				    	}, 1000);
-						}, 100);
-					}
-				} else {
-					$commentDiv.hide();
-					console.log("ERROR: couldn't find anchor node for inline comment");
+				};
+				// Check that we don't have another lens selected, in which case we'll
+				// postpone creating the div.
+				if (pageService.primaryPage === scope.page) {
+					doCreate();
 				}
+				pageService.primaryPageCallbacks.push(function() {
+					if (created) {
+						$("#comment-" + pageId).toggle(pageService.primaryPage === scope.page);
+					} else if (pageService.primaryPage === scope.page) {
+						window.setTimeout(function() {  // wait until the page shows
+							doCreate();
+						});
+					}
+				});
 			}
 
 			// Dynamically create comment elements.

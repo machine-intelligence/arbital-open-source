@@ -237,8 +237,15 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 					return http.StatusBadRequest, fmt.Sprintf("Comment pages need at least one normal page parent")
 				}
 			}
-		} else if data.Type == commentPageType || data.Type == answerPageType {
+		}
+
+		if len(parentIds) <= 0 && data.Type == commentPageType || data.Type == answerPageType {
 			return http.StatusBadRequest, fmt.Sprintf("%s pages need to have a parent", data.Type)
+		}
+
+		// Lens pages need to have exactly one parent.
+		if data.Type == lensPageType && len(parentIds) != 1 {
+			return http.StatusBadRequest, fmt.Sprintf("Lens pages need to have exactly one parent")
 		}
 	}
 
@@ -417,7 +424,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new page: %v", err)
 	}
 
-	// Update pagePairs table.
+	// Update pagePairs tables.
 	// TODO: check if parents are actually different from previously published version
 	if isCurrentEdit {
 		// Delete previous values.
@@ -430,8 +437,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pagePair: %v", err)
 		}
 
-		// Insert new values.
 		if len(pagePairValues) > 0 {
+			// Insert new pagePairs values.
 			insertValuesStr := strings.Join(pagePairValues, ",")
 			query := fmt.Sprintf(`
 				INSERT INTO pagePairs (parentId,childId)

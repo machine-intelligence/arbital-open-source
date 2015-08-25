@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -30,7 +29,6 @@ type pageTmplData struct {
 	commonPageData
 	Page        *page
 	LinkedPages []*page
-	AliasMap    map[string]*alias
 	RelatedIds  []string
 }
 
@@ -225,6 +223,14 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		c.Inc("page_page_served_fail")
 		return showError(w, r, fmt.Errorf("%s", err))
 	}
+
+	// Redirect lens pages to the parent page.
+	if data.Page.Type == lensPageType {
+		parentId, _ := strconv.ParseInt(data.Page.ParentsStr, pageIdEncodeBase, 64)
+		pageUrl := getPageUrl(&page{Alias: fmt.Sprintf("%d", parentId)})
+		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
+	}
+
 	data.PrimaryPageId = data.Page.PageId
 
 	funcMap := template.FuncMap{
@@ -272,6 +278,19 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't find a page with id: %d", pageId)
 	}
 
+	// Redirect lens pages to the parent page.
+	if data.Page.Type == lensPageType {
+		return &data, nil
+	}
+
+	// Check privacy setting
+	if data.Page.PrivacyKey > 0 {
+		privacyKey := mux.Vars(r)["privacyKey"]
+		if privacyKey != fmt.Sprintf("%d", data.Page.PrivacyKey) {
+			return nil, fmt.Errorf("Unauthorized access. You don't have the correct privacy key.")
+		}
+	}
+
 	// Create maps.
 	mainPageMap := make(map[int64]*page)
 	data.PageMap = make(map[int64]*page)
@@ -314,48 +333,9 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't load parents: %v", err)
 	}
 
-	if data.Page.Type != questionPageType {
-		// Load potential question draft.
-		query := fmt.Sprintf(`
-			SELECT pageId
-			FROM pages
-			WHERE type="question" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
-			GROUP BY pageId
-			HAVING SUM(isCurrentEdit)<=0`, u.Id, strconv.FormatInt(pageId, pageIdEncodeBase))
-		_, err = database.QueryRowSql(c, query, &data.Page.ChildDraftId)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't load question draft: %v", err)
-		}
-	} else {
-		// Load potential answer draft.
-		query := fmt.Sprintf(`
-			SELECT pageId
-			FROM pages
-			WHERE type="answer" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
-			GROUP BY pageId
-			HAVING SUM(isCurrentEdit)<=0`, u.Id, strconv.FormatInt(pageId, pageIdEncodeBase))
-		_, err = database.QueryRowSql(c, query, &data.Page.ChildDraftId)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't load answer draft id: %v", err)
-		}
-		if data.Page.ChildDraftId > 0 {
-			p, err := loadFullEdit(c, data.Page.ChildDraftId, u.Id)
-			if err != nil {
-				return nil, fmt.Errorf("Couldn't load answer draft: %v", err)
-			}
-			data.PageMap[p.PageId] = p
-		}
-	}
-
-	// Load links
-	err = loadLinks(c, mainPageMap, true)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load links: %v", err)
-	}
-
 	// Load where page is linked from.
 	// TODO: also account for old aliases
-	query := fmt.Sprintf(`
+	/*query := fmt.Sprintf(`
 		SELECT p.pageId
 		FROM links as l
 		JOIN pages as p
@@ -365,23 +345,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	data.Page.LinkedFrom, err = loadPageIds(c, query, mainPageMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load contexts: %v", err)
-	}
-
-	// Check privacy setting
-	if data.Page.PrivacyKey > 0 {
-		privacyKey := mux.Vars(r)["privacyKey"]
-		if privacyKey != fmt.Sprintf("%d", data.Page.PrivacyKey) {
-			return nil, fmt.Errorf("Unauthorized access. You don't have the correct privacy key.")
-		}
-	}
-
-	// Load all aliases.
-	re := regexp.MustCompile(`\[\[([A-Za-z0-9_-]+?)\]\]`)
-	aliases := re.FindAllStringSubmatch(data.Page.Text, -1)
-	data.AliasMap, err = loadAliases(c, aliases)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching aliases: %v", err)
-	}
+	}*/
 
 	// Load page ids of related pages (pages that have at least all the same parents).
 	parentIds := make([]string, len(data.Page.Parents))
@@ -415,70 +379,33 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		}
 	}
 
-	// Load whether or not pages have drafts.
-	err = loadDraftExistence(c, embeddedPageMap, data.User.Id)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load draft existence: %v", err)
-	}
-
-	// Load original creation date.
-	pageIdsStr := pageIdsStringFromMap(embeddedPageMap)
-	query = fmt.Sprintf(`
-		SELECT pageId,MIN(createdAt)
-		FROM pages
-		WHERE pageId IN (%s) AND NOT isAutosave AND NOT isSnapshot
-		GROUP BY 1`, pageIdsStr)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var pageId int64
-		var originalCreatedAt string
-		err := rows.Scan(&pageId, &originalCreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan for original createdAt: %v", err)
-		}
-		embeddedPageMap[pageId].OriginalCreatedAt = originalCreatedAt
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load original createdAt: %v", err)
-	}
-
 	// From here on, we also load info for the main page as well.
 	data.PageMap[data.Page.PageId] = data.Page
 
-	// Get last visits.
-	err = loadLastVisits(c, data.User.Id, data.PageMap)
-	if err != nil {
-		return nil, fmt.Errorf("error while fetching a visit: %v", err)
-	}
+	// Load auxillary data.
 	q := r.URL.Query()
-	forcedLastVisit := q.Get("lastVisit")
-	if forcedLastVisit != "" {
-		// Reset the last visit date for all the pages we actually visited
-		for _, p := range data.PageMap {
-			if p.LastVisit > forcedLastVisit {
-				p.LastVisit = forcedLastVisit
-			}
-		}
-	}
-
-	// Load all the subscription statuses.
-	if data.User.Id > 0 {
-		err = loadSubscriptions(c, data.User.Id, data.PageMap)
-		if err != nil {
-			return nil, fmt.Errorf("error while fetching subscriptions: %v", err)
-		}
-	}
-
-	// Load all the likes
-	err = loadLikes(c, data.User.Id, data.PageMap)
+	options := loadAuxPageDataOptions{ForcedLastVisit: q.Get("lastVisit")}
+	err = loadAuxPageData(c, data.User.Id, data.PageMap, &options)
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching likes: %v", err)
+		return nil, fmt.Errorf("error while loading aux data: %v", err)
 	}
 
 	// Load all the votes
 	err = loadVotes(c, data.User.Id, fmt.Sprintf("%d", pageId), mainPageMap, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while fetching votes: %v", err)
+	}
+
+	// Load links
+	err = loadLinks(c, data.PageMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load links: %v", err)
+	}
+
+	// Load child draft
+	err = loadChildDraft(c, u.Id, data.Page, data.PageMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load child draft: %v", err)
 	}
 
 	// Load all the users.
@@ -493,30 +420,27 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 
 	// From here on we can render the page successfully. Further queries are nice,
 	// but not mandatory, so we are not going to return an error if they fail.
+
+	// Add a visit to embedded pages.
+	values := ""
+	for _, pg := range embeddedPageMap {
+		values += fmt.Sprintf("(%d, %d, '%s'),",
+			data.User.Id, pg.PageId, database.Now())
+	}
+	values = strings.TrimRight(values, ",")
+	query := fmt.Sprintf(`
+		INSERT INTO visits (userId, pageId, createdAt)
+		VALUES %s`, values)
+	database.ExecuteSql(c, query)
+
 	if data.User.Id > 0 {
 		// Mark the relevant updates as read.
-		query := fmt.Sprintf(
+		query = fmt.Sprintf(
 			`UPDATE updates
 			SET seen=1,updatedAt='%s'
 			WHERE contextPageId=%d AND userId=%d`,
 			database.Now(), pageId, data.User.Id)
-		if _, err := database.ExecuteSql(c, query); err != nil {
-			return nil, fmt.Errorf("Couldn't update updates: %v", err)
-		}
-
-		// Update last visit date.
-		values := ""
-		for _, pg := range embeddedPageMap {
-			values += fmt.Sprintf("(%d, %d, '%s'),",
-				data.User.Id, pg.PageId, database.Now())
-		}
-		values = strings.TrimRight(values, ",")
-		sql := fmt.Sprintf(`
-			INSERT INTO visits (userId, pageId, createdAt)
-			VALUES %s`, values)
-		if _, err = database.ExecuteSql(c, sql); err != nil {
-			return nil, fmt.Errorf("Couldn't update visits: %v", err)
-		}
+		database.ExecuteSql(c, query)
 	}
 
 	return &data, nil

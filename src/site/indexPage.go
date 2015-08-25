@@ -61,15 +61,15 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	}
 
 	// Load number of red links for recently edited pages.
-	err = loadLinks(c, data.PageMap, true)
+	err = loadLinks(c, data.PageMap)
 	if err != nil {
 		c.Errorf("error while loading links: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 	for _, p := range data.PageMap {
 		p.RedLinkCount = 0
-		for _, isPublished := range p.Links {
-			if !isPublished {
+		for _, title := range p.Links {
+			if title == "" {
 				p.RedLinkCount++
 			}
 		}
@@ -178,17 +178,10 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		return pages.InternalErrorWith(err)
 	}
 
-	// Load likes.
-	err = loadLikes(c, data.User.Id, data.PageMap)
+	// Load auxillary data.
+	err = loadAuxPageData(c, u.Id, data.PageMap, nil)
 	if err != nil {
-		c.Errorf("Couldn't retrieve page likes: %v", err)
-		return pages.InternalErrorWith(err)
-	}
-
-	// Get last visits.
-	err = loadLastVisits(c, data.User.Id, data.PageMap)
-	if err != nil {
-		c.Errorf("error while fetching a visit: %v", err)
+		c.Errorf("Couldn't load aux data: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 

@@ -206,9 +206,7 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 	var addParentTags = function(usePageIds) {
 		var parentsLen = page.parents.length;
 		for(var n = 0; n < parentsLen; n++) {
-			console.log(page.parents[n].parentId);
 			var parentPage = pageService.pageMap[page.parents[n].parentId];
-			console.log(parentPage);
 			if (usePageIds || parentPage.alias === "") {
 				var parentKey = parentPage.pageId;
 			} else {
@@ -244,7 +242,7 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 			}
 		});
 		// Set up Markdown.
-		zndMarkdown.init(true, pageId, "", undefined, autocompleteService);
+		zndMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
 	});
 	addParentTags(true);
 
@@ -338,7 +336,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 		scope: {
 		},
 		controller: function ($scope, $compile, $timeout, pageService, autocompleteService) {
-			// Store which page was last edited. modalKey -> pageId
+			// Store which page was last edited. modalKey+primaryPageId -> pageId
 			var pageIdCache = {};
 
 			// Process event to create the new-page-modal.
@@ -348,8 +346,8 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 			//	callback: function(result) to call when the user is done with the modal
 			// }
 			$(document).on("new-page-modal-event", function(e, options) {
-				var resumePageId = pageIdCache[options.modalKey];
 				var primaryPage = pageService.pageMap[options.parentPageId];
+				var resumePageId = pageIdCache[options.modalKey + primaryPage.pageId];
 				var isQuestion = options.modalKey === "newQuestion";
 				if (isQuestion && !resumePageId && primaryPage.childDraftId !== "0") {
 					resumePageId = primaryPage.childDraftId;
@@ -407,7 +405,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 					});
 					// Hande modal's close event and return the resulting alias.
 					$modal.on("hidden.bs.modal", function (e) {
-						pageIdCache[options.modalKey] = resumePageId
+						pageIdCache[options.modalKey + pageService.primaryPage.pageId] = resumePageId
 						if (options.callback) {
 							options.callback(returnedResult);
 						}
@@ -427,8 +425,10 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 						loadPagesIds = [resumePageId];
 						pageService.removePageFromMap(resumePageId);
 					}
-					pageService.loadPages(loadPagesIds,
-						function(data, status) {
+					pageService.loadPages(loadPagesIds, {
+						includeText: true,
+						allowDraft: true,
+						success: function(data, status) {
 							resumePageId = Object.keys(data)[0];
 							// Let's not try to edit the same page in two places
 							if (resumePageId !== primaryPage.pageId) {
@@ -436,7 +436,8 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 							} else {
 								console.log("Error: trying to edit the same page in modal");
 							}
-						}, function(data, status) {
+						},
+						error: function(data, status) {
 							console.log("Couldn't load pages: " + loadPagesIds);
 							if (loadPagesIds.length > 0) {
 								// Let's try again, but without trying to resume editing.
@@ -444,7 +445,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 								loadPages();
 							}
 						}
-					);
+					});
 				};
 				loadPages();
 			});

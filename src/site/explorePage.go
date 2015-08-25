@@ -4,7 +4,6 @@ package site
 import (
 	"database/sql"
 	"fmt"
-	"html/template"
 	"net/http"
 
 	"zanaduu3/src/database"
@@ -78,22 +77,13 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		}
 	}
 
-	// Get last visits.
-	err = loadLastVisits(c, data.User.Id, data.PageMap)
+	// Load auxillary data.
+	err = loadAuxPageData(c, data.User.Id, data.PageMap, nil)
 	if err != nil {
-		c.Errorf("error while fetching a visit: %v", err)
+		c.Errorf("Couldn't load aux data: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 
-	// Load likes.
-	err = loadLikes(c, data.User.Id, data.PageMap)
-	if err != nil {
-		c.Errorf("Couldn't retrieve page likes: %v", err)
-		return pages.InternalErrorWith(err)
-	}
-
-	funcMap := template.FuncMap{}
-
-	c.Inc("pages_page_served_success")
-	return pages.StatusOK(data).AddFuncMap(funcMap)
+	c.Inc("explore_page_served_success")
+	return pages.StatusOK(data)
 }

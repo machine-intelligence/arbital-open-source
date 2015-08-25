@@ -12,10 +12,7 @@
 	<script src="/static/js/editPage.js"></script>
 	<script src="/static/js/pagePage.js"></script>
 	<script>
-		// Map of alias -> {pageId, title} object.
-		var pageAliases = { {{range .AliasMap}}"{{.FullName}}":{pageId:{{.PageId}}, title:"{{.PageTitle}}"},{{end}} };
-		// Map of link alias/id -> true if the page is published.
-		var gPageLinks = { {{range $k,$v := .Page.Links}}"{{$k}}": {{$v}},{{end}} };
+		// List of ids related to the primary page.
 		var gRelatedIds = {{.RelatedIds}};
 	</script>
 </head>
@@ -84,16 +81,8 @@
 			</div>
 		</div>
 
-		<!-- Questions -->
-		<div class="panel panel-default" ng-show="questionIds.length > 0">
-			<div class="panel-heading">Questions</div>
-			<div class="panel-body">
-				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in questionIds"></znd-likes-page-title>
-			</div>
-		</div>
-
 		<!-- Siblings -->
-		<div class="panel panel-default" ng-show="relatedIds.length > 0">
+		<div class="panel panel-default" ng-show="false && relatedIds.length > 0">
 			<div class="panel-heading">Related</div>
 			<div class="panel-body">
 				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
@@ -104,7 +93,25 @@
 
 	<!-- Middle column containing the primary page, comments, etc... -->
 	<div class="mid-column pull-left">
-		<znd-page page-id="{[{page.pageId}]}"></znd-page>
+		<!-- Lens tabs -->
+	  <ul class="lens-tabs nav nav-tabs" role="tablist" ng-show="page.lensIds !== null">
+			<li><span class="gray-glyph glyphicon glyphicon-search"></span>&nbsp;</li>
+	    <li class="active">
+				<a href="#" data-target="#lens-{[{page.pageId}]}" class="lens-tab" data-toggle="tab">Default Lens</a>
+			</li>
+	    <li ng-repeat="lensId in page.lensIds">
+				<a href="#" data-target="#lens-{[{lensId}]}" class="lens-tab" data-toggle="tab">{[{pageService.pageMap[lensId].title}]}</a>
+			</li>
+	  </ul>
+
+		<div class="tab-content">
+			<div class="tab-pane active" id="lens-{[{page.pageId}]}">
+				<znd-page page-id="{[{page.pageId}]}"></znd-page>
+			</div>
+			<div class="tab-pane" id="lens-{[{lensId}]}" ng-repeat="lensId in page.lensIds">
+				<img src="/static/images/loading.gif" class="loading-indicator"/>
+			</div>
+		</div>
 		
 		<!-- Answers for a question page -->
 		<div class="answers" ng-show="answerIds.length > 0">
@@ -124,9 +131,9 @@
 	<div class="question-div pull-left">
 		<div class="rhs-buttons-div">
 			<!-- Question button -->
-			<button type="button" class="question-button btn btn-info" title="Ask a question" ng-show="page.type != 'question'">
+			<button type="button" class="question-button btn btn-info" title="Ask a question" ng-show="pageService.primaryPage.type != 'question'">
 			  <span class="glyphicon glyphicon-question-sign"></span>
-				<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="page.childDraftId > 0"></span>
+				<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="pageService.primaryPage.childDraftId > 0"></span>
 			</button>
 			<!-- Inline comment button -->
 			<span class="new-inline-comment-div" hidden>

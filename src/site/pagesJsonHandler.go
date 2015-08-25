@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 
@@ -18,54 +19,75 @@ import (
 // pagesJsonData contains parameters passed in via the request.
 type pagesJsonData struct {
 	PageIds string // comma separated string of page ids
-	// If true, we expect only one pageId, but will load the last edit, just like
-	// for the edit page.
-	LoadFullEdit bool
+	// Load entire page text
+	IncludeText bool
+	// Load auxillary data: likes, votes, subscription
+	IncludeAuxData bool
+	// If true, at most one page id can be passed. We'll load the most recent version
+	// of the page, even if it's a draft.
+	AllowDraft     bool
+	LoadComments   bool
+	LoadChildren   bool
+	LoadChildDraft bool
 }
 
 // pagesJsonHandler handles the request.
 func pagesJsonHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
-	returnData := make(map[string]interface{})
 
 	// Decode data
 	var data pagesJsonData
 	r.ParseForm()
 	err := schema.NewDecoder().Decode(&data, r.Form)
 	if err != nil {
+		c.Inc("pages_json_handler_fail")
 		c.Errorf("Couldn't decode request: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// If no page ids, return a new random page id.
-	if len(data.PageIds) <= 0 {
-		rand.Seed(time.Now().UnixNano())
-		pageId := rand.Int63()
-		returnData[fmt.Sprintf("%d", pageId)] = &page{PageId: pageId}
-
-		err = writeJson(w, returnData)
-		if err != nil {
-			c.Inc("pages_handler_fail")
-			c.Errorf("Couldn't write json: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-		return
-	}
-
-	// Load user object
-	var u *user.User
-	u, err = user.LoadUser(w, r)
+	returnData, err := pagesJsonHandlerInternal(w, r, &data)
 	if err != nil {
-		c.Inc("pages_handler_fail")
-		c.Errorf("Couldn't load user: %v", err)
+		c.Inc("pages_json_handler_fail")
+		c.Errorf("%s", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	// Write JSON response
+	err = writeJson(w, returnData)
+	if err != nil {
+		c.Inc("pages_handler_fail")
+		c.Errorf("Couldn't write json: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+// pagesJsonHandler handles the request.
+func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *pagesJsonData) (map[string]interface{}, error) {
+	c := sessions.NewContext(r)
+	returnData := make(map[string]interface{})
+
+	// If no page ids, return a new random page id.
+	if len(data.PageIds) <= 0 {
+		rand.Seed(time.Now().UnixNano())
+		pageId := rand.Int63()
+		returnPageData := make(map[string]*page)
+		returnPageData[fmt.Sprintf("%d", pageId)] = &page{PageId: pageId}
+		returnData["pages"] = returnPageData
+		return returnData, nil
+	}
+
+	// Load user object
+	u, err := user.LoadUser(w, r)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load user: %v", err)
+	}
+
 	// Load data
+	userMap := make(map[int64]*dbUser)
 	pageMap := make(map[int64]*page)
-	if !data.LoadFullEdit {
+	if !data.AllowDraft {
 		// Process pageIds
 		pageIds := strings.Split(strings.Trim(data.PageIds, ","), ",")
 		for _, id := range pageIds {
@@ -77,12 +99,25 @@ func pagesJsonHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Load comment ids.
+		if data.LoadComments {
+			err = loadCommentIds(c, pageMap, pageMap)
+			if err != nil {
+				return nil, fmt.Errorf("Couldn't load comments: %v", err)
+			}
+		}
+
+		// Load children
+		if data.LoadChildren {
+			err = loadChildrenIds(c, pageMap, loadChildrenIdsOptions{})
+			if err != nil {
+				return nil, fmt.Errorf("Couldn't load children: %v", err)
+			}
+		}
+
 		err = loadPages(c, pageMap, u.Id, loadPageOptions{loadText: true})
 		if err != nil {
-			c.Inc("pages_handler_fail")
-			c.Errorf("error while loading pages: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return nil, fmt.Errorf("error while loading pages: %v", err)
 		}
 	} else {
 		pageId, err := strconv.ParseInt(strings.Trim(data.PageIds, ","), 10, 64)
@@ -93,22 +128,90 @@ func pagesJsonHandler(w http.ResponseWriter, r *http.Request) {
 		// Load full edit for one page.
 		p, err := loadFullEdit(c, pageId, u.Id)
 		if err != nil || p == nil {
-			c.Inc("pages_handler_fail")
-			c.Errorf("error while loading full edit: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
+			return nil, fmt.Errorf("error while loading full edit: %v", err)
 		}
 		pageMap[pageId] = p
 	}
 
-	// Return the pages in JSON format.
-	for k, v := range pageMap {
-		returnData[fmt.Sprintf("%d", k)] = v
+	// Load the auxillary data.
+	if data.IncludeAuxData {
+		err = loadAuxPageData(c, u.Id, pageMap, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error while loading aux data: %v", err)
+		}
+
+		// Load probability votes
+		err = loadVotes(c, u.Id, pageIdsStringFromMap(pageMap), pageMap, userMap)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load probability votes: %v", err)
+		}
 	}
-	err = writeJson(w, returnData)
+
+	// Load links
+	err = loadLinks(c, pageMap)
 	if err != nil {
-		c.Inc("pages_handler_fail")
-		c.Errorf("Couldn't write json: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		return nil, fmt.Errorf("Couldn't load links: %v", err)
 	}
+
+	if data.LoadChildDraft {
+		// Load child draft
+		for pageId, p := range pageMap {
+			if p.Type == commentPageType {
+				continue
+			}
+			err = loadChildDraft(c, u.Id, p, pageMap)
+			if err != nil {
+				return nil, fmt.Errorf("Couldn't load child draft: %v", err)
+			}
+
+			// Right now we use LoadChildDraft as a proxy to mark a pages as "seen"
+			if u.Id > 0 {
+				// Mark the relevant updates as read.
+				query := fmt.Sprintf(
+					`UPDATE updates
+					SET seen=1,updatedAt='%s'
+					WHERE contextPageId=%d AND userId=%d`,
+					database.Now(), pageId, u.Id)
+				database.ExecuteSql(c, query)
+			}
+			break
+		}
+	}
+
+	// Load all the users
+	for _, p := range pageMap {
+		userMap[p.CreatorId] = &dbUser{Id: p.CreatorId}
+	}
+	err = loadUsersInfo(c, userMap)
+	if err != nil {
+		return nil, fmt.Errorf("error while loading users: %v", err)
+	}
+
+	// Return the data in JSON format.
+	visitedValues := ""
+	returnPageData := make(map[string]*page)
+	for k, v := range pageMap {
+		if !data.IncludeText {
+			v.Text = ""
+		} else {
+			visitedValues += fmt.Sprintf("(%d, %d, '%s'),",
+				u.Id, k, database.Now())
+		}
+		returnPageData[fmt.Sprintf("%d", k)] = v
+	}
+	returnUserData := make(map[string]*dbUser)
+	for k, v := range userMap {
+		returnUserData[fmt.Sprintf("%d", k)] = v
+	}
+	returnData["pages"] = returnPageData
+	returnData["users"] = returnUserData
+
+	// Add a visit to pages for which we loaded text.
+	visitedValues = strings.TrimRight(visitedValues, ",")
+	query := fmt.Sprintf(`
+		INSERT INTO visits (userId, pageId, createdAt)
+		VALUES %s`, visitedValues)
+	database.ExecuteSql(c, query)
+
+	return returnData, nil
 }

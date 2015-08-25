@@ -223,6 +223,9 @@
 .mid-column {
   width: 55%;
 }
+.lens-tabs {
+  margin-left: 130px;
+}
 .edit-page-body {
   width: 100%;
 }
@@ -233,7 +236,7 @@
   margin: 0 2%;
 }
 .edit-page-body .new-page-options {
-  margin-top: 40px;
+  margin-top: 80px;
 }
 .edit-page-body .karma-lock-form-group {
   padding-top: 30px;

@@ -50,7 +50,7 @@ CREATE TABLE pages (
 	/* If not 0, this edit has been deleted by this user id. */
 	deletedBy BIGINT NOT NULL,
 
-	/* == Following variables are set for inline comments. == */
+	/* == Following variables are set for inline comments and questions. == */
 	/* Text of the paragraph the anchor is in. */
 	anchorContent MEDIUMTEXT NOT NULL,
 	/* Text the comment is attached to. */

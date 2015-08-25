@@ -107,17 +107,24 @@ function smartPageReload(hash) {
 	if (!lastVisit) {
 		lastVisit = "0";
 	}
-	window.location.href = window.location.pathname + "?lastVisit=" + lastVisit + (hash ? "#" + hash : "");
+	var lens = getUrlParameter("lens");
+	if (lens) {
+		lens = "&lens=" + encodeURIComponent(lens);
+	} else {
+		lens = "";
+	}
+	window.location.href = window.location.pathname + "?lastVisit=" + lastVisit + lens + (hash ? "#" + hash : "");
 }
+
 // We don't want certain url parameters cluttering up the url, so we'll erase them.
-$(function(){
+/*$(function(){
 	var lastVisit = getUrlParameter("lastVisit");
 	if (lastVisit) {
 		$("body").attr("last-visit", lastVisit);
 		history.replaceState(null, document.title,
 			window.location.origin + window.location.pathname + window.location.hash);
 	}
-});
+});*/
 
 // serializeFormData takes input values from the given form and returns them as
 // a map. Optionally, data can have pre-existing map values.
@@ -145,7 +152,7 @@ var submitForm = function($form, url, data, success, error) {
 	console.log("Sending POST to " + url + ":"); console.log(data);
 
 	$.ajax({
-		type: 'POST',
+		type: "POST",
 		url: url,
 		data: JSON.stringify(data),
 	})

@@ -1,42 +1,18 @@
 var zndMarkdown = zndMarkdown || function() {
 	// Set up markdown editor and conversion.
-	function init(inEditMode, pageId, pageText, $topParent, autocompleteService) {
+	function init(inEditMode, pageId, pageText, $topParent, pageService, autocompleteService) {
+		var page = pageService.pageMap[pageId];
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
-		/*converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(/(.*?)"""(.*?)"""(.*)/g, "$1<u>$2</u>$3");
-		});*/
-	
-		// Convert <summary> tags into a summary paragraph.
-		/*converter.hooks.chain("preBlockGamut", function (text, rbg) {
-			return text.replace(/^ {0,3}<summary> *\n(.+?)\n {0,3}<\/summary> *$/m, function (whole, inner) {
-				var s = "\n\n**Summary:** " + inner + "\n\n";
-				return rbg(s);
-			});
-		});*/
-	
-		// Convert <embed> tags into a link.
-		var firstPass = !inEditMode;
-		converter.hooks.chain("preBlockGamut", function (text, rbg) {
-			return text.replace(/ {0,3}<embed> *(.+) *<\/embed> */g, function (whole, inner) {
-				var s = "";
-				if (firstPass) {
-					s = "[LOADING](" + inner + "?embed=true)";
-				} else {
-					s = "[EMBEDDED PAGE](" + inner + ")";
-				}
-				return rbg(s);
-			});
-		});
 	
 		// Convert [Text](Alias) spans into links.
 		var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
-		var compexLinkRegexp2 = new RegExp(noBacktickOrBracket + 
+		var compexLinkRegexp = new RegExp(noBacktickOrBracket + 
 			"\\[([^[\\]()]+?)\\]" + // match [Text]
 			"\\(([A-Za-z0-9_-]+?)\\)", "g"); // match (Alias)
 		var aliasRegexp = new RegExp("[A-Za-z0-9_-]+", "");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(compexLinkRegexp2, function (whole, prefix, text, alias) {
+			return text.replace(compexLinkRegexp, function (whole, prefix, text, alias) {
 				if (alias.match(aliasRegexp)) {
 					var url = "http://" + host + "/pages/" + alias;
 					return prefix + "[" + text + "](" + url + ")";
@@ -48,23 +24,15 @@ var zndMarkdown = zndMarkdown || function() {
 
 		// Convert [Alias] spans into links.
 		var noParen = "(?=$|[^(])";
-		var simpleLinkRegexp2 = new RegExp(noBacktickOrBracket + 
+		var simpleLinkRegexp = new RegExp(noBacktickOrBracket + 
 				"\\[([A-Za-z0-9_-]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(simpleLinkRegexp2, function (whole, prefix, alias) {
+			return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
 				if (alias.match(aliasRegexp)) {
-					// TODO; do something other than ?customText=false, since that appears
-					// in the URL if the user clicks on the link.
-					var url = "http://" + host + "/pages/" + alias + "/?customText=false";
+					var url = "http://" + host + "/pages/" + alias + "/";
 					var pageTitle = alias;
-					if (autocompleteService && autocompleteService.aliasSource.length > 0){
-						if (alias in autocompleteService.aliasMap) {
-							pageTitle = autocompleteService.aliasMap[alias].pageTitle;
-						}
-					} else {
-						if (alias in pageAliases) {
-							pageTitle = pageAliases[alias].title;
-						}
+					if (page.links && page.links[alias]) {
+						pageTitle = page.links[alias];
 					}
 					return prefix + "[" + pageTitle + "](" + url + ")";
 				} else {
@@ -74,6 +42,7 @@ var zndMarkdown = zndMarkdown || function() {
 		});
 	
 		if (inEditMode) {
+			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId, {
 				autocompleteService: autocompleteService,
 				handler: function(){
@@ -86,82 +55,35 @@ var zndMarkdown = zndMarkdown || function() {
 		}
 		InitMathjax(converter);
 	
+		// Convert page text to html.
 		var html = converter.makeHtml(pageText);
 		var $pageText = $topParent.find(".markdown-text")
 		$pageText.html(html);
 		window.setTimeout(function() {
 			MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 		}, 100);
-		firstPass = false;
 	
 		// Setup attributes for links that are within our domain.
 		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			host + // match the url host part
 			"\/pages\/([A-Za-z0-9_-]+)" + // [1] capture page alias
 			"(?:\/([0-9]+))?" + // [2] optionally capture privacyId
-			"\/?" + // optional ending /
-			"(\\?embed=true)?" + // [3] optionally capture embed param
-			"(\\?customText=false)?"); // [4] optionally capture customText param
-		function processLinks($div, fetchEmbeddedPages) {
-			$div.find("a").each(function(index, element) {
-				var $element = $(element);
-				var parts = $element.attr("href").match(re);
-				if (parts === null) return;
-				if ($element.hasClass("intrasite-link")) {
-					return;
-				}
-				$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
-				if (gPageLinks !== undefined && gPageLinks[parts[1]] === false) {
-					$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
-					$element.addClass("red-link");
-				}
-				if (parts[4] !== undefined) {
-					$element.attr("href", $element.attr("href").replace("?customText=false", ""));
-				}
-				var $parent = $element.parent();
-				var doEmbed = fetchEmbeddedPages && (parts[3] !== undefined);
-				var data = {pageAlias: parts[1], privacyKey: parts[2], includeText: doEmbed};
-				$.ajax({
-					type: "POST",
-					url: "/pageInfo/",
-					data: JSON.stringify(data),
-				})
-				.success(function(r) {
-					var page = JSON.parse(r);
-					if (!page) return;
-					if (!doEmbed) {
-						if (parts[4] !== undefined) {
-							$element.text(page.title);
-						}
-						return;
-					}
-					var $embeddedDiv = $("#embedded-page-template").clone().show()
-					var $pageBody = $embeddedDiv.find(".embedded-page-body");
-					var $title = $embeddedDiv.find(".embedded-page-title");
-					$embeddedDiv.attr("id", "embedded-page" + page.pageId);
-					$title.text(page.title);
-					$title.attr("href", "http://" + host + "/pages/" + page.pageId + "/" +
-						(page.privacyKey > 0 ? page.privacyKey : ""));
-					$embeddedDiv.find(".embedded-page-text").html(converter.makeHtml(page.text));
-					$parent.append($embeddedDiv);
-					$element.remove();
-					if (page.hasVote) {
-						createVoteSlider($embeddedDiv.find(".embedded-vote-container"), page.pageId, page.votes);
-					}
-					processLinks($embeddedDiv, false);
-					setupIntrasiteLink($embeddedDiv.find(".intrasite-link"));
-	
-					// Set up toggle button
-					$embeddedDiv.find(".hide-embedded-page").on("click", function(event) {
-						var $target = $(event.target);
-						$pageBody.slideToggle({});
-						$target.toggleClass("glyphicon-triangle-bottom").toggleClass("glyphicon-triangle-right");
-						return false;
-					});
-				});
-			});
-		};
-		processLinks($pageText, true);
+			"\/?"); // optional ending /
+		$pageText.find("a").each(function(index, element) {
+			var $element = $(element);
+			var parts = $element.attr("href").match(re);
+			if (parts === null) return;
+			if ($element.hasClass("intrasite-link")) {
+				return;
+			}
+			$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
+			if (page.links && page.links[parts[1]]) {
+				// Good link!
+			} else {
+				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+				$element.addClass("red-link");
+			}
+		});
 	};
 	return {init: init};
 }();

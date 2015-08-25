@@ -20,6 +20,7 @@ const (
 	commentPageType  = "comment"
 	questionPageType = "question"
 	answerPageType   = "answer"
+	lensPageType     = "lens"
 
 	// Various types of updates a user can get.
 	topLevelCommentUpdateType = "topLevelComment"
@@ -52,71 +53,83 @@ type vote struct {
 }
 
 type page struct {
-	// Data loaded from pages table
-	PageId            int64  `json:"pageId,string"`
-	Edit              int    `json:"edit"`
-	Type              string `json:"type"`
-	Title             string `json:"title"`
-	Text              string `json:"text"`
-	Summary           string `json:"summary"`
-	Alias             string `json:"alias"`
-	SortChildrenBy    string `json:"sortChildrenBy"`
-	HasVote           bool   `json:"hasVote"`
-	VoteType          string `json:"voteType"`
-	CreatorId         int64  `json:"creatorId,string"`
-	CreatedAt         string `json:"createdAt"`
-	OriginalCreatedAt string `json:"originalCreatedAt"`
-	KarmaLock         int    `json:"karmaLock"`
-	PrivacyKey        int64  `json:"privacyKey,string"`
-	Group             group  `json:"group"`
-	ParentsStr        string `json:"parentsStr"`
-	DeletedBy         int64  `json:"deletedBy,string"`
-	IsAutosave        bool   `json:"isAutosave"`
-	IsSnapshot        bool   `json:"isSnapshot"`
-	IsCurrentEdit     bool   `json:"isCurrentEdit"`
-	AnchorContext     string `json:"anchorContext"`
-	AnchorText        string `json:"anchorText"`
-	AnchorOffset      int    `json:"anchorOffset"`
+	// === Basic data. ===
+	// Any time we load a page, you can at least expect all this data.
+	PageId int64  `json:"pageId,string"`
+	Edit   int    `json:"edit"`
+	Type   string `json:"type"`
+	Title  string `json:"title"`
+	// Full text of the page. Not always sent to the FE.
+	Text           string `json:"text"`
+	Summary        string `json:"summary"`
+	Alias          string `json:"alias"`
+	SortChildrenBy string `json:"sortChildrenBy"`
+	HasVote        bool   `json:"hasVote"`
+	VoteType       string `json:"voteType"`
+	CreatorId      int64  `json:"creatorId,string"`
+	CreatedAt      string `json:"createdAt"`
+	KarmaLock      int    `json:"karmaLock"`
+	PrivacyKey     int64  `json:"privacyKey,string"`
+	Group          group  `json:"group"`
+	ParentsStr     string `json:"parentsStr"`
+	DeletedBy      int64  `json:"deletedBy,string"`
+	IsAutosave     bool   `json:"isAutosave"`
+	IsSnapshot     bool   `json:"isSnapshot"`
+	IsCurrentEdit  bool   `json:"isCurrentEdit"`
+	AnchorContext  string `json:"anchorContext"`
+	AnchorText     string `json:"anchorText"`
+	AnchorOffset   int    `json:"anchorOffset"`
 
-	// Data loaded from other tables.
-	LastVisit string `json:"lastVisit"`
-
-	// ===== Computed values. =====
+	// === Auxillary data. ===
+	// For some pages we load additional data.
 	IsSubscribed bool `json:"isSubscribed"`
-	// Whether or not this page has children
-	HasChildren bool `json:"hasChildren"`
-	// Whether or not this page has parents
-	HasParents bool `json:"hasParents"`
-	// True iff the user has a work-in-progress draft for this page
-	HasDraft     bool `json:"hasDraft"`
 	LikeCount    int  `json:"likeCount"`
 	DislikeCount int  `json:"dislikeCount"`
 	MyLikeValue  int  `json:"myLikeValue"`
 	// Computed from LikeCount and DislikeCount
-	LikeScore int     `json:"likeScore"`
-	Votes     []*vote `json:"votes"`
+	LikeScore int `json:"likeScore"`
+	// Date when this page was first published.
+	OriginalCreatedAt string `json:"originalCreatedAt"`
+	// Last time the user visited this page.
+	LastVisit string `json:"lastVisit"`
+	// True iff the user has a work-in-progress draft for this page
+	HasDraft bool `json:"hasDraft"`
+
+	// === Full data. ===
+	// For pages that are displayed fully, we load more additional data.
 	// True iff there is an edit that has isCurrentEdit set for this page
-	WasPublished bool `json:"wasPublished"`
-	// Highest edit number used for this page for all users
-	MaxEditEver int `json:"maxEditEver"`
+	WasPublished bool    `json:"wasPublished"`
+	Votes        []*vote `json:"votes"`
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
 	// always have.
-	LockedVoteType string      `json:"lockedVoteType"`
-	Parents        []*pagePair `json:"parents"`
-	Children       []*pagePair `json:"children"`
-	CommentIds     []string    `json:"commentIds"`
-	// Page alias/id for a link -> true iff the page is published
-	Links        map[string]bool `json:"links"`
-	LinkedFrom   []string        `json:"linkedFrom"`
-	RedLinkCount int             `json:"redLinkCount"`
-	// Set to pageId corresponding to the question the user started creating for this page
+	LockedVoteType string `json:"lockedVoteType"`
+	// Highest edit number used for this page for all users
+	MaxEditEver int `json:"maxEditEver"`
+	// Map of page aliases/ids -> page title, so we can expand [alias] links
+	Links map[string]string `json:"links"`
+	//LinkedFrom   []string        `json:"linkedFrom"`
+	RedLinkCount int `json:"redLinkCount"`
+	// Set to pageId corresponding to the question/answer the user started creating for this page
 	ChildDraftId int64 `json:"childDraftId,string"`
+
+	// === Other data ===
+	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
+
+	// Comments.
+	CommentIds []string `json:"commentIds"`
+
+	// Whether or not this page has children
+	HasChildren bool `json:"hasChildren"`
+	// Whether or not this page has parents
+	HasParents bool        `json:"hasParents"`
+	Parents    []*pagePair `json:"parents"`
+	Children   []*pagePair `json:"children"`
+	LensIds    []string    `json:"lensIds"`
 }
 
 // pagePair describes a parent child relationship, which are stored in pagePairs db table.
 type pagePair struct {
-	// From db.
 	Id       int64 `json:"id,string"`
 	ParentId int64 `json:"parentId,string"`
 	ChildId  int64 `json:"childId,string"`
@@ -288,17 +301,66 @@ func loadPageIds(c sessions.Context, query string, pageMap map[int64]*page) ([]s
 	return ids, err
 }
 
-// loadLinks loads the links for the given page. If checkUnlinked is true, we
-// also compute whether or not each link points to a valid page.
-func loadLinks(c sessions.Context, pageMap map[int64]*page, checkUnlinked bool) error {
+// loadChildDraft loads a potentially existing draft for the given page. If it's
+// loaded, it'll be added to the give map.
+func loadChildDraft(c sessions.Context, userId int64, p *page, pageMap map[int64]*page) error {
+	if p.Type != questionPageType {
+		// Load potential question draft.
+		query := fmt.Sprintf(`
+			SELECT pageId
+			FROM pages
+			WHERE type="question" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+			GROUP BY pageId
+			HAVING SUM(isCurrentEdit)<=0`, userId, strconv.FormatInt(p.PageId, pageIdEncodeBase))
+		_, err := database.QueryRowSql(c, query, &p.ChildDraftId)
+		if err != nil {
+			return fmt.Errorf("Couldn't load question draft: %v", err)
+		}
+	} else {
+		// Load potential answer draft.
+		query := fmt.Sprintf(`
+			SELECT pageId
+			FROM pages
+			WHERE type="answer" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+			GROUP BY pageId
+			HAVING SUM(isCurrentEdit)<=0`, userId, strconv.FormatInt(p.PageId, pageIdEncodeBase))
+		_, err := database.QueryRowSql(c, query, &p.ChildDraftId)
+		if err != nil {
+			return fmt.Errorf("Couldn't load answer draft id: %v", err)
+		}
+		if p.ChildDraftId > 0 {
+			p, err := loadFullEdit(c, p.ChildDraftId, userId)
+			if err != nil {
+				return fmt.Errorf("Couldn't load answer draft: %v", err)
+			}
+			pageMap[p.PageId] = p
+		}
+	}
+	return nil
+}
+
+// loadLinks loads the links for the given page.
+func loadLinks(c sessions.Context, fullPageMap map[int64]*page) error {
+	if len(fullPageMap) <= 0 {
+		return nil
+	}
+	// Filter out pages that don't have text.
+	pageMap := make(map[int64]*page)
+	for id, p := range fullPageMap {
+		if p.Text != "" {
+			pageMap[id] = p
+		}
+	}
 	if len(pageMap) <= 0 {
 		return nil
 	}
+	// List of all aliases we need to get titles for
+	aliasesList := make([]string, 0, 0)
+	// Map of each page alias to a list of pages which have it as a link.
+	linkMap := make(map[string]string)
+
+	// Load all links.
 	pageIdsStr := pageIdsStringFromMap(pageMap)
-	links := make(map[string]bool)
-	for _, p := range pageMap {
-		p.Links = make(map[string]bool)
-	}
 	query := fmt.Sprintf(`
 		SELECT parentId,childAlias
 		FROM links
@@ -310,66 +372,31 @@ func loadLinks(c sessions.Context, pageMap map[int64]*page, checkUnlinked bool) 
 		if err != nil {
 			return fmt.Errorf("failed to scan for an alias: %v", err)
 		}
-		links[childAlias] = false
-		pageMap[parentId].Links[childAlias] = false
+		aliasesList = append(aliasesList, fmt.Sprintf(`"%s"`, childAlias))
+		if pageMap[parentId].Links == nil {
+			pageMap[parentId].Links = make(map[string]string)
+		}
+		pageMap[parentId].Links[childAlias] = ""
 		return nil
 	})
 	if err != nil {
 		return err
 	}
 
-	// Create lists for aliases and ids.
-	idsList := make([]string, 0, len(links))
-	aliasesList := make([]string, 0, len(links))
-	for alias, _ := range links {
-		_, err := strconv.ParseInt(alias, 10, 64)
-		if err != nil {
-			aliasesList = append(aliasesList, fmt.Sprintf(`"%s"`, alias))
-		} else {
-			idsList = append(idsList, alias)
-		}
-	}
-
-	// Mark which aliases correspond to published pages.
+	// Get the page titles for all the links.
 	aliasesStr := strings.Join(aliasesList, ",")
 	if len(aliasesStr) > 0 {
 		query = fmt.Sprintf(`
-			SELECT a.fullName
-			FROM (
-				SELECT pageId,fullName
-				FROM aliases
-				WHERE fullName IN (%s)
-			) AS a
-			LEFT JOIN pages AS p
-			ON (a.pageId=p.pageId AND p.isCurrentEdit AND p.deletedBy=0)`, aliasesStr)
-		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-			var fullName string
-			err := rows.Scan(&fullName)
-			if err != nil {
-				return fmt.Errorf("failed to scan for an alias: %v", err)
-			}
-			links[fullName] = true
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	// Mark which ids correspond to published pages.
-	idsStr := strings.Join(idsList, ",")
-	if len(idsStr) > 0 {
-		query = fmt.Sprintf(`
-			SELECT CAST(pageId AS CHAR)
+			SELECT alias,title
 			FROM pages
-			WHERE isCurrentEdit AND deletedBy=0 AND pageId IN (%s)`, idsStr)
+			WHERE isCurrentEdit AND deletedBy=0 AND alias IN (%s)`, aliasesStr)
 		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-			var pageId string
-			err := rows.Scan(&pageId)
+			var alias, title string
+			err := rows.Scan(&alias, &title)
 			if err != nil {
-				return fmt.Errorf("failed to scan for a page id: %v", err)
+				return fmt.Errorf("failed to scan: %v", err)
 			}
-			links[pageId] = true
+			linkMap[alias] = title
 			return nil
 		})
 		if err != nil {
@@ -377,9 +404,10 @@ func loadLinks(c sessions.Context, pageMap map[int64]*page, checkUnlinked bool) 
 		}
 	}
 
+	// Set the links for all pages.
 	for _, p := range pageMap {
 		for alias, _ := range p.Links {
-			p.Links[alias] = links[alias]
+			p.Links[alias] = linkMap[alias]
 		}
 	}
 	return nil
@@ -430,8 +458,14 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*page, options loadCh
 			newPages[newPage.PageId] = newPage
 		}
 		newPage.Parents = append(newPage.Parents, &p)
-		sourcePageMap[p.ParentId].Children = append(sourcePageMap[p.ParentId].Children, &p)
-		sourcePageMap[p.ParentId].HasChildren = true
+
+		parent := sourcePageMap[p.ParentId]
+		if newPage.Type == lensPageType {
+			parent.LensIds = append(parent.LensIds, fmt.Sprintf("%d", newPage.PageId))
+		} else {
+			parent.Children = append(parent.Children, &p)
+			parent.HasChildren = true
+		}
 		return nil
 	})
 	if err != nil {
@@ -646,7 +680,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 // loadDraftExistence computes for each page whether or not the user has a
 // work-in-progress draft for it.
 // This only makes sense to call for pages which were loaded for isCurrentEdit=true.
-func loadDraftExistence(c sessions.Context, pageMap map[int64]*page, userId int64) error {
+func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -673,6 +707,93 @@ func loadDraftExistence(c sessions.Context, pageMap map[int64]*page, userId int6
 		return nil
 	})
 	return err
+}
+
+type loadFullPageDataOptions struct {
+}
+
+// loadFullPageData loads the full page data for the given page.
+func loadFullPageData(c sessions.Context, userId int64, pageMap map[int64]*page, options *loadAuxPageDataOptions) error {
+	if options == nil {
+		options = &loadAuxPageDataOptions{}
+	}
+	return nil
+}
+
+type loadAuxPageDataOptions struct {
+	// If set, pretend that we last visited all the pages on this date.
+	// Used when we refresh the page, but don't want to erase the new/updated stars just yet.
+	ForcedLastVisit string
+}
+
+// loadAuxPageData loads the auxillary page data for the given pages.
+func loadAuxPageData(c sessions.Context, userId int64, pageMap map[int64]*page, options *loadAuxPageDataOptions) error {
+	if options == nil {
+		options = &loadAuxPageDataOptions{}
+	}
+
+	// Load likes
+	err := loadLikes(c, userId, pageMap)
+	if err != nil {
+		return fmt.Errorf("Couldn't load likes: %v", err)
+	}
+
+	// Load all the subscription statuses.
+	if userId > 0 {
+		err = loadSubscriptions(c, userId, pageMap)
+		if err != nil {
+			return fmt.Errorf("Couldn't load subscriptions: %v", err)
+		}
+	}
+
+	// Load whether or not pages have drafts.
+	err = loadDraftExistence(c, userId, pageMap)
+	if err != nil {
+		return fmt.Errorf("Couldn't load draft existence: %v", err)
+	}
+
+	// Get last visits.
+	err = loadLastVisits(c, userId, pageMap)
+	if err != nil {
+		return fmt.Errorf("error while fetching last visits: %v", err)
+	}
+
+	// Load original creation date.
+	pageIdsStr := pageIdsStringFromMap(pageMap)
+	query := fmt.Sprintf(`
+		SELECT pageId,MIN(createdAt)
+		FROM pages
+		WHERE pageId IN (%s) AND NOT isAutosave AND NOT isSnapshot
+		GROUP BY 1`, pageIdsStr)
+	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var pageId int64
+		var originalCreatedAt string
+		err := rows.Scan(&pageId, &originalCreatedAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan for original createdAt: %v", err)
+		}
+		pageMap[pageId].OriginalCreatedAt = originalCreatedAt
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load original createdAt: %v", err)
+	}
+
+	// Load last visit time.
+	err = loadLastVisits(c, userId, pageMap)
+	if err != nil {
+		return fmt.Errorf("error while fetching a visit: %v", err)
+	}
+	if options.ForcedLastVisit != "" {
+		// Reset the last visit date for all the pages we actually visited
+		for _, p := range pageMap {
+			if p.LastVisit > options.ForcedLastVisit {
+				p.LastVisit = options.ForcedLastVisit
+			}
+		}
+	}
+
+	return nil
 }
 
 // pageIdsStringFromMap returns a comma separated string of all pageIds in the given map.

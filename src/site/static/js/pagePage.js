@@ -98,11 +98,10 @@ $(function() {
 });
 
 // MainCtrl is for the Page page.
-app.controller("MainCtrl", function($scope, $compile, pageService, userService) {
+app.controller("MainCtrl", function($scope, $compile, $location, pageService, userService) {
 	$scope.pageService = pageService;
 	$scope.$compile = $compile;
 	$scope.relatedIds = gRelatedIds;
-	$scope.questionIds = [];
 	$scope.answerIds = [];
 	$scope.page = pageService.primaryPage;
 
@@ -113,7 +112,7 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 		var id = $scope.page.children[n].childId;
 		var page = pageService.pageMap[id];
 		if (page.type === "question") {
-			$scope.questionIds.push(id);
+			// Do nothing, process them in pageController.
 		} else if (page.type === "answer") {
 			$scope.answerIds.push(id);
 		} else {
@@ -121,16 +120,6 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 			$scope.initialChildrenCount++;
 		}
 	}
-
-	// Sort question ids by likes, but put the ones created by current user first.
-	$scope.questionIds.sort(function(id1, id2) {
-		var page1 = pageService.pageMap[id1];
-		var page2 = pageService.pageMap[id2];
-		var ownerDiff = (page2.creatorId == userService.user.id ? 1 : 0) -
-				(page1.creatorId == userService.user.id ? 1 : 0);
-		if (ownerDiff != 0) return ownerDiff;
-		return page2.likeScore - page1.likeScore;
-	});
 
 	// Set up parents pages.
 	$scope.initialParents = {};
@@ -151,15 +140,15 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 		}
 		$(document).trigger("new-page-modal-event", {
 			modalKey: "newQuestion",
-			parentPageId: $scope.page.pageId,
+			parentPageId: pageService.primaryPage.pageId,
 			callback: function(result) {
 				if (result.abandon) {
 					$scope.$apply(function() {
-						$scope.page.childDraftId = 0;
+						pageService.primaryPage.childDraftId = 0;
 					});
 				} else if (result.hidden) {
 					$scope.$apply(function() {
-						$scope.page.childDraftId = result.alias;
+						pageService.primaryPage.childDraftId = result.alias;
 					});
 				} else {
 					window.location.href = "/pages/" + result.alias;
@@ -207,22 +196,67 @@ app.controller("MainCtrl", function($scope, $compile, pageService, userService) 
 		};
 		var getNewAnswerId = function() {
 			$(".new-answer").find("znd-edit-page").remove();
-			pageService.loadPages([],
-				function(data, status) {
+			pageService.loadPages([], {
+				success: function(data, status) {
 					var page = pageService.pageMap[Object.keys(data)[0]];
 					page.group = $.extend({}, $scope.page.group);
 					page.type = "answer";
 					page.parents = [{parentId: $scope.page.pageId, childId: page.pageId}];
 					createAnswerEditPage(page);
-				}, function(data, status) {
-					console.log("Couldn't load pages: " + loadPagesIds);
-				}
-			);
+				},
+			});
 		};
 		if ($scope.page.childDraftId > 0) {
 			createAnswerEditPage(pageService.pageMap[$scope.page.childDraftId]);
 		} else {
 			getNewAnswerId();
 		}
+	}
+
+	// Toggle between lenses.
+	var performSwitchToLens = function(lensPage) {
+		pageService.setPrimaryPage(lensPage);
+		// Sigh. This generates an error, but it seems benign.
+		var url = window.location.pathname + "?lens=" + lensPage.pageId + window.location.hash;
+		history.pushState(null, lensPage.title + " - Zanaduu", url);
+	};
+	var switchToLens = function(lensId, callback) {
+		var lensPage = pageService.pageMap[lensId];
+		if (!lensPage) return;
+		if (lensPage.text.length > 0) {
+			performSwitchToLens(lensPage);
+			if(callback) callback();
+		} else {
+			pageService.loadPages([lensId], {
+				includeText: true,
+				includeAuxData: true,
+				loadComments: true,
+				loadChildren: true,
+				loadChildDraft: true,
+				overwrite: true,
+				success: function(data, status) {
+					var page = pageService.pageMap[lensId];
+					var el = $compile("<znd-page page-id='" + page.pageId + "'></znd-page>")($scope);
+					$("#lens-" + page.pageId).empty().append(el);
+					performSwitchToLens(page);
+					if(callback) callback();
+				},
+			});
+		}
+	};
+	$(".lens-tabs").on("click", ".lens-tab", function(event) {
+		var $tab = $(event.currentTarget);
+		var lensId = $tab.attr("data-target");
+		lensId = lensId.substring(lensId.indexOf("-") + 1);
+		switchToLens(lensId);
+		$scope.$apply();
+		return true;
+	});
+	// Process url ?lens parameter.
+	var searchLensId = $location.search().lens;
+	if (searchLensId) {
+		switchToLens(searchLensId, function() {
+			$("[data-target='#lens-" + searchLensId + "']").tab("show");
+		});
 	}
 });
