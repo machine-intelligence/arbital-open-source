@@ -458,6 +458,9 @@
   padding: 10px 10px;
   margin: 0 0 5px;
 }
+.markdown-text .intrasite-link {
+  color: black;
+}
 .page-text {
   margin-top: 7px;
   margin-bottom: 15px;

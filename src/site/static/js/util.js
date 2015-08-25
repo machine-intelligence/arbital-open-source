@@ -1,6 +1,5 @@
 // Keep the given div in a fixed position when the window is scrolled.
 var keepDivFixed = function($div, offsetY) {
-	//window.setTimeout(function() {
 	// Make sure it's always in the top right corner.
 	var divIsFixed = false;
 	$div.css("left", $div.offset().left);
@@ -17,47 +16,72 @@ var keepDivFixed = function($div, offsetY) {
 		}
 		divIsFixed = isFixed;
 	});
-	//}, 500);
 };
 
 // Set up a popover attached to the given anchor. The popover will be displayed
-// while the user is hovering over the anchor or the popover. If the mouse
-// leaves, the popover will be hidden after hideDelay ms.
-var createHoverablePopover = function($anchor, popoverOptions, hideDelay) {
-	hideDelay = hideDelay || 500;
+// while the user is hovering over the anchor or the popover.
+// options {
+//   showDelay: how long (ms) to wait before showing popover
+//   hideDelay: how long (ms) to wait to hide popover after the mouse leaves link & popover
+//   uniqueName: if set, there will only be one popup visible with this name
+// }
+var popoverMap = {}; // uniqueName -> currently active popover's anchor
+var createHoverablePopover = function($anchor, popoverOptions, options) {
+	options = options || {};
+	options.showDelay = options.showDelay || 300;
+	options.hideDelay = options.hideDelay || 500;
+
+	// Create manually controlled popover.
 	popoverOptions.trigger = "manual";
 	$anchor.popover(popoverOptions);
 
 	var firstTimeShow = true, isVisible = false, anchorHovering = false, popoverHovering = false;
+	var timeout = undefined;
 	// Hide the popover if the user is not hovering over anything.
 	var hidePopover = function() {
-		if (anchorHovering || popoverHovering) return;
+		if (anchorHovering || popoverHovering || !isVisible) return;
 		$anchor.popover("hide");
-		isVisible = false;
+		if (options.uniqueName) {
+			delete popoverMap[options.uniqueName];
+		}
 	};
+	$anchor.on("hide.bs.popover", function () {
+		isVisible = false;
+		if (timeout) clearTimeout(timeout);
+	});
 
+	var showPopover = function() {
+		if (isVisible) return;
+		$anchor.popover("show");
+		if (options.uniqueName) {
+			if (popoverMap[options.uniqueName]) {
+				popoverMap[options.uniqueName].popover("hide");
+			}
+			popoverMap[options.uniqueName] = $anchor;
+		}
+		isVisible = true;
+
+		if (firstTimeShow) {
+			firstTimeShow = false;
+			var $popover = $anchor.siblings(".popover");
+			$popover.on("mouseenter", function(event){
+				popoverHovering = true;
+			});
+			$popover.on("mouseleave", function(event){
+				popoverHovering = false;
+				setTimeout(hidePopover, options.hideDelay);
+			});
+		}
+	};
 	$anchor.on("mouseenter", function(event) {
 		anchorHovering = true;
-		if (!isVisible) {
-			$anchor.popover("show");
-			isVisible = true;
-
-			if (firstTimeShow) {
-				firstTimeShow = false;
-				var $popover = $anchor.siblings(".popover");
-				$popover.on("mouseenter", function(event){
-					popoverHovering = true;
-				});
-				$popover.on("mouseleave", function(event){
-					popoverHovering = false;
-					setTimeout(hidePopover, hideDelay);
-				});
-			}
-		}
+		if (timeout) clearTimeout(timeout);
+		timeout = setTimeout(showPopover, options.showDelay);
 	});
 	$anchor.on("mouseleave", function(event) {
 		anchorHovering = false;
-		setTimeout(hidePopover, hideDelay);
+		if (timeout) clearTimeout(timeout);
+		timeout = setTimeout(hidePopover, options.hideDelay);
 	});
 	return $anchor;
 };

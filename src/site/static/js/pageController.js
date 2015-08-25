@@ -300,7 +300,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 				html : true,
 				placement: "auto",
 				trigger: "manual",
-				delay: { "show": 500, "hide": 100 },
+				delay: { "hide": 100 },
 				title: function() {
 					var pageId = $(this).attr("page-id");
 					if (fetchedPagesMap[pageId]) {
@@ -371,7 +371,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
 				}
 			};
-			createHoverablePopover($(this), options);
+			createHoverablePopover($(this), options, {uniqueName: "intrasite-link"});
 		});
 	}
 
