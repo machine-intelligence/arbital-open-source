@@ -125,6 +125,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		if data.Type != blogPageType &&
 			data.Type != wikiPageType &&
+			data.Type != lensPageType &&
 			data.Type != questionPageType &&
 			data.Type != answerPageType &&
 			data.Type != commentPageType {

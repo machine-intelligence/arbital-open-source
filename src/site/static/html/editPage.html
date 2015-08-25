@@ -42,7 +42,7 @@
 					<div class="wmd-panel-bottom-buttons">
 						<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 						<button type="button" class="abandon-edit btn btn-danger" toggle-on-submit>Abandon</button>
-						<button type="button" class="go-to-page-view btn btn-default" ng-bind="isModal ? 'Hide Window' : 'Go To Page View'" toggle-on-submit></button>
+						<button type="button" class="go-to-page-view btn btn-default" ng-bind="isModal ? 'Hide Popup' : 'Go To Page View'" toggle-on-submit></button>
 						<span class="gray-text autosave-label" hidden></span>
 						<button type="submit" class="btn btn-primary pull-right" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
 						<button type="button" class="save-snapshot-button btn btn-default pull-right" toggle-on-submit>Save Snapshot</button>
@@ -56,7 +56,6 @@
 	
 			<!-- Page options -->
 			<div class="new-page-options form-horizontal">
-				<!-- Page type TODO: add other types here and disable selectively -->
 				<div class="form-group" ng-show="!page.wasPublished && !isSecondary">
 					<label class="title-label control-label col-sm-2">Page Type</label>
 					<div class="col-sm-4">
@@ -68,6 +67,7 @@
 					<div class="type-help col-sm-6">
 						<p class="type-help-blog help-block" ng-show="page.type=='blog'">Blog page is used for writing your thoughts on some topic. Only you will be able to edit the page.</p>
 						<p class="type-help-wiki help-block" ng-show="page.type=='wiki'">Wiki page is a shared community page. Anyone can edit it.</p>
+						<p class="type-help-lens help-block" ng-show="page.type=='lens'">A lens pages is used to present the same material as another page but with different emphasis / assumptions.</p>
 					</div>
 				</div>
 
@@ -138,7 +138,9 @@
 					<div class="col-sm-4">
 						<div class="input-group">
 							<input type="text" class="tag-input form-control" placeholder="Enter new parent">
-							<button type="button" class="btn btn-default btn-xs child-parent-option" ng-show="isModal && !isQuestion">
+							<button type="button"
+								  class="btn btn-default btn-xs child-parent-option"
+								  ng-show="isModal && !isQuestion && !isLens">
 								Make this page a sibling.
 							</button>
 						</div>

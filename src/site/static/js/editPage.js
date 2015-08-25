@@ -486,6 +486,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			scope.isQuestion = scope.page.type === "question";
 			scope.isAnswer = scope.page.type === "answer";
 			scope.isComment = scope.page.type === "comment";
+			scope.isLens = scope.page.type === "lens";
 			scope.isSecondary = scope.isQuestion || scope.isComment;
 			scope.useVerticalView = scope.isModal;
 
@@ -497,7 +498,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			} else if(scope.isComment) {
 				scope.pageTypes = {comment: "Comment"};
 			} else {
-				scope.pageTypes = {wiki: "Wiki Page", blog: "Blog Page"};
+				scope.pageTypes = {wiki: "Wiki Page", blog: "Blog Page", lens: "Lens Page"};
 				scope.page.type = scope.page.type in scope.pageTypes ? scope.page.type : "wiki";
 			}
 
