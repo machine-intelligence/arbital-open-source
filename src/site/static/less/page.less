@@ -219,6 +219,9 @@
 	.pagedown();
 
 	.intrasite-link {
+		// Have to do 'nowrap' so that bootstrap popovers display correctly for links
+		// that span multiple lines.
+		white-space: nowrap;
 		color: #333;
 		&.red-link {
 			color: #c70a0a;

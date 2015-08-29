@@ -456,6 +456,7 @@
   margin: 0 0 5px;
 }
 .markdown-text .intrasite-link {
+  white-space: nowrap;
   color: #333;
 }
 .markdown-text .intrasite-link.red-link {
