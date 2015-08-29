@@ -16,8 +16,7 @@ import (
 
 // filterTmplData stores the data that we pass to the template to render the page
 type filterTmplData struct {
-	User       *user.User
-	Pages      []*page
+	commonPageData
 	LimitCount int
 
 	Author             *dbUser
@@ -25,11 +24,13 @@ type filterTmplData struct {
 }
 
 // filterPage serves the recent pages page.
-var filterPage = newPage(
+var filterPage = newPageWithOptions(
 	"/filter/",
 	filterRenderer,
 	append(baseTmpls,
-		"tmpl/filterPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/filterPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl",
+		"tmpl/footer.tmpl", "tmpl/angular.tmpl.js"),
+	newPageOptions{LoadUserGroups: true})
 
 // filterRenderer renders the page page.
 func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
@@ -80,9 +81,9 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	}
 
 	// Load the pages
-	pageMap := make(map[int64]*page)
 	pageIds := make([]string, 0, 50)
-	data.Pages = make([]*page, 0, 50)
+	data.GroupMap = make(map[int64]*group)
+	data.PageMap = make(map[int64]*page)
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.title,p.alias,p.privacyKey,p.groupId
 		FROM pages AS p
@@ -103,9 +104,8 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
 
-		pageMap[p.PageId] = &p
 		pageIds = append(pageIds, fmt.Sprintf("%d", p.PageId))
-		data.Pages = append(data.Pages, &p)
+		data.PageMap[p.PageId] = &p
 		return nil
 	})
 	if err != nil {
@@ -114,16 +114,23 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	}
 
 	// Load tags.
-	/*err = loadParents(c, pageMap, data.User.Id)
+	/*err = loadParents(c, data.PageMap, data.User.Id)
 	if err != nil {
 		c.Errorf("Couldn't retrieve page parents: %v", err)
 		return pages.InternalErrorWith(err)
 	}*/
 
-	// Load likes.
-	err = loadLikes(c, data.User.Id, pageMap)
+	// Load auxillary data.
+	err = loadAuxPageData(c, data.User.Id, data.PageMap, nil)
 	if err != nil {
-		c.Errorf("Couldn't retrieve page likes: %v", err)
+		c.Errorf("error while loading aux data: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+
+	// Load all the groups.
+	err = loadGroupNames(c, u, data.GroupMap)
+	if err != nil {
+		c.Errorf("Couldn't load group names: %v", err)
 		return pages.InternalErrorWith(err)
 	}
 

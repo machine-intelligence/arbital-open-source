@@ -113,6 +113,8 @@ func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*group)
 	groupIdsStr := buffer.String()
 	if len(groupIdsStr) >= 1 {
 		groupIdsStr = groupIdsStr[0 : len(groupIdsStr)-1]
+	} else {
+		return nil
 	}
 
 	// Load names
