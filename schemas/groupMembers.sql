@@ -2,7 +2,6 @@
 CREATE TABLE groupMembers (
 	/* Id of the group. FK into groups. */
 	groupId BIGINT NOT NULL,
-	groupName VARCHAR(64) NOT NULL,
 	/* Id of the user member. FK into users. */
 	userId BIGINT NOT NULL,
   /* Date this user was added. */

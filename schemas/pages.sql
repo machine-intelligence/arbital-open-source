@@ -42,7 +42,6 @@ CREATE TABLE pages (
 	/* If > 0, the page is accessible only with the right link. */
 	privacyKey BIGINT NOT NULL,
 	/* Optional id of the group this page belongs to. FK into groups. */
-	groupName VARCHAR(64) NOT NULL,
 	groupId BIGINT NOT NULL,
 	/* Comma separated string of parent ids in base 36. We store them so that we
 	 can easily revert parents when reverting to an edit. */
