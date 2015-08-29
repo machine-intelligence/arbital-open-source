@@ -25,33 +25,6 @@ $(function() {
 	});
 });
 
-// Setup search via navbar.
-$(function() {
-	var $navSearch = $("#nav-search");
-	if ($navSearch.length <= 0) return;
-  $navSearch.autocomplete({
-		source: "/json/search",
-		minLength: 4,
-		delay: 500,
-		focus: function (event, ui) {
-			return false;
-		},
-		select: function (event, ui) {
-			window.location.href = "/pages/" + ui.item.value;
-			return false;
-		},
-  });
-	$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
-		var group = item.label.groupName ? "[" + item.label.groupName + "] " : "";
-		var alias = !+item.label.alias ? " (" + item.label.alias + ")" : "";
-		var title = item.label.title ? item.label.title : "COMMENT";
-	  return $("<li>")
-	    .attr("data-value", item.value)
-	    .append(group + title + alias)
-	    .appendTo(ul);
-	};
-});
-
 // Setup event handlers.
 $(function() {
 	$("#logout").click(function() {

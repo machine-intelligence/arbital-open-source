@@ -48,7 +48,7 @@ func aliasesJsonHandler(w http.ResponseWriter, r *http.Request) {
 	query := fmt.Sprintf(`
 		SELECT pageId,alias,title
 		FROM pages
-		WHERE isCurrentEdit AND (groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))`,
+		WHERE isCurrentEdit AND (groupId=0 OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))`,
 		u.Id)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var a alias

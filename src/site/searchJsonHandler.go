@@ -55,13 +55,13 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 	}
 
 	groupMap := make(map[string]bool)
-	groupMap[""] = true
+	groupMap["0"] = true
 	if u.Id > 0 {
 		if err = loadUserGroups(c, u); err != nil {
 			return fmt.Errorf("Couldn't load user: %v", err)
 		}
-		for _, group := range u.GroupNames {
-			groupMap[group] = true
+		for _, groupId := range u.GroupIds {
+			groupMap[groupId] = true
 		}
 	}
 
@@ -70,7 +70,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 	if err != nil {
 		return fmt.Errorf("Failed to open pages index: %v", err)
 	}
-	options := &search.SearchOptions{Limit: 20, Fields: []string{"PageId", "Alias", "Title", "GroupName"}}
+	options := &search.SearchOptions{Limit: 20, Fields: []string{"PageId", "Alias", "Title", "GroupId"}}
 	for t := index.Search(c, data.Term, options); ; {
 		var pair resultPair
 		pair.Value, err = t.Next(&pair.Label)
@@ -82,7 +82,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 		}
 		// TODO: instead of filtering out results the user isn't supposed to see,
 		// we should modify the query to only return results from accessible groups.
-		if _, ok := groupMap[string(pair.Label.GroupName)]; !ok {
+		if _, ok := groupMap[string(pair.Label.GroupId)]; !ok {
 			continue
 		}
 		pair.Label.Text = ""

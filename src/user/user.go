@@ -37,7 +37,7 @@ type User struct {
 	LoginLink   string   `json:"loginLink"`
 	LogoutLink  string   `json:"logoutLink"`
 	UpdateCount int      `json:"updateCount"`
-	GroupNames  []string `json:"groupNames"`
+	GroupIds    []string `json:"groupIds"`
 }
 
 func (user *User) FullName() string {

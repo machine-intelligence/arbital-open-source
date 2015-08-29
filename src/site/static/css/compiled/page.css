@@ -92,9 +92,6 @@
 .intrasite-link:active {
   text-decoration: none;
 }
-.intrasite-link.red-link {
-  color: #c70a0a;
-}
 .gray-link {
   color: #b8b8b8;
   cursor: pointer;
@@ -460,6 +457,9 @@
 }
 .markdown-text .intrasite-link {
   color: #333;
+}
+.markdown-text .intrasite-link.red-link {
+  color: #c70a0a;
 }
 .page-text {
   margin-top: 7px;

@@ -36,6 +36,8 @@ type commonPageData struct {
 	User *user.User
 	// Map of user ids to corresponding user objects
 	UserMap map[int64]*dbUser
+	// Map of groups
+	GroupMap map[int64]*group
 }
 
 // newHandler returns a standard handler from given handler function.

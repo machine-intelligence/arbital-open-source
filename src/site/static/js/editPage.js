@@ -370,7 +370,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 							newPage.parents = [{parentId: primaryPage.pageId}];
 						}
 						newPage.creatorId = userService.user.id;
-						newPage.group = primaryPage.group;
+						newPage.groupId = primaryPage.groupId;
 					}
 
 					// Dynamically create znd-edit-page directive.
@@ -532,17 +532,16 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			}
 
 			// Set up group names.
-			var groupNames = userService.user.groupNames;
-			scope.groupOptions = {};
-			if (groupNames) {
-				for (var i in groupNames) {
-					var group = groupNames[i];
-					scope.groupOptions[group] = group;
+			var groupIds = userService.user.groupIds;
+			scope.groupOptions = {"0": "-"};
+			if (groupIds) {
+				for (var i in groupIds) {
+					var groupId = groupIds[i];
+					var groupName = userService.groupMap[groupId].name;
+					scope.groupOptions[groupId] = groupName;
 				}
-				scope.groupOptionsLength = groupNames.length;
-			} else {
-				scope.groupOptionsLength = 0;
 			}
+			scope.groupOptionsLength = groupIds.length + 1;
 
 			// Get the text that should appear on the primary submit button.
 			scope.getSubmitButtonText = function() {

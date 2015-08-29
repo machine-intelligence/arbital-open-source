@@ -30,7 +30,7 @@ type editPageData struct {
 	VoteType       string
 	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
 	KeepPrivacyKey bool
-	GroupName      string
+	GroupId        int64 `json:",string"`
 	KarmaLock      int
 	ParentIds      string
 	Alias          string // if empty, leave the current one
@@ -191,7 +191,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				SELECT COUNT(DISTINCT pageId)
 				FROM pages
 				WHERE pageId IN (%s) AND (isCurrentEdit OR creatorId=%d) AND %s AND
-					(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
+					(groupId="" OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
 				`, data.ParentIds, u.Id, typeConstraint, u.Id)
 			_, err = database.QueryRowSql(c, query, &count)
 			if err != nil {
@@ -262,14 +262,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 	if oldPage.WasPublished {
 		data.Type = oldPage.Type
-		data.GroupName = oldPage.Group.Name
+		data.GroupId = oldPage.GroupId
 	} else if data.Type == commentPageType {
-		// Set the groupName to primary page's group name
+		// Set the groupId to primary page's group name
 		query := fmt.Sprintf(`
-			SELECT max(groupName)
+			SELECT max(groupId)
 			FROM pages
 			WHERE pageId IN (%s) AND type!="comment" AND isCurrentEdit`, data.ParentIds)
-		_, err := database.QueryRowSql(c, query, &data.GroupName)
+		_, err := database.QueryRowSql(c, query, &data.GroupId)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Sprintf("Couldn't get primary page's group name: %v", err)
 		}
@@ -407,7 +407,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["isSnapshot"] = data.IsSnapshot
 	hashmap["type"] = data.Type
 	hashmap["privacyKey"] = privacyKey
-	hashmap["groupName"] = data.GroupName
+	hashmap["groupId"] = data.GroupId
 	hashmap["parents"] = strings.Join(encodedParentIds, ",")
 	hashmap["createdAt"] = database.Now()
 	hashmap["anchorContext"] = data.AnchorContext
@@ -539,7 +539,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		p.Title = data.Title
 		p.Text = data.Text
 		p.Alias = search.Atom(data.Alias)
-		p.GroupName = search.Atom(data.GroupName)
 
 		index, err := search.Open("pages")
 		if err != nil {

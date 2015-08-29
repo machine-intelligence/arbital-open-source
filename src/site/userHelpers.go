@@ -2,8 +2,10 @@
 package site
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"zanaduu3/src/database"
@@ -76,19 +78,56 @@ func loadUpdateCount(c sessions.Context, userId int64) (int, error) {
 
 // loadUserGroups loads all the group names this user belongs to.
 func loadUserGroups(c sessions.Context, u *user.User) error {
-	// Load my groups.
-	u.GroupNames = make([]string, 0)
+	u.GroupIds = make([]string, 0)
 	query := fmt.Sprintf(`
-		SELECT groupName
+		SELECT groupId
 		FROM groupMembers
 		WHERE userId=%d`, u.Id)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var groupName string
-		err := rows.Scan(&groupName)
+		var groupId int64
+		err := rows.Scan(&groupId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a member: %v", err)
 		}
-		u.GroupNames = append(u.GroupNames, groupName)
+		u.GroupIds = append(u.GroupIds, fmt.Sprintf("%d", groupId))
+		return nil
+	})
+	return err
+}
+
+// loadGroupNames loads the names and other info for the groups in the map
+func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*group) error {
+	// Make sure all user groups are in the map
+	for _, idStr := range u.GroupIds {
+		id, _ := strconv.ParseInt(idStr, 10, 64)
+		if _, ok := groupMap[id]; !ok {
+			groupMap[id] = &group{Id: id}
+		}
+	}
+
+	// Create the group string
+	var buffer bytes.Buffer
+	for id, _ := range groupMap {
+		buffer.WriteString(fmt.Sprintf("%d,", id))
+	}
+	groupIdsStr := buffer.String()
+	if len(groupIdsStr) >= 1 {
+		groupIdsStr = groupIdsStr[0 : len(groupIdsStr)-1]
+	}
+
+	// Load names
+	query := fmt.Sprintf(`
+		SELECT id,name
+		FROM groups
+		WHERE id IN (%s)`, groupIdsStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var id int64
+		var name string
+		err := rows.Scan(&id, &name)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a group: %v", err)
+		}
+		groupMap[id].Name = name
 		return nil
 	})
 	return err

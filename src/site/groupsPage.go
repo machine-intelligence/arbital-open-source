@@ -21,7 +21,7 @@ type member struct {
 }
 
 type group struct {
-	// Populated from db.
+	Id   int64  `json:"id,string"`
 	Name string `json:"name"`
 
 	// Optionally populated.
@@ -51,26 +51,27 @@ func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	c := sessions.NewContext(r)
 
 	// Load the groups and members
-	groupMap := make(map[string]*group)
+	groupMap := make(map[int64]*group)
 	data.Groups = make([]*group, 0, 50)
 	query := fmt.Sprintf(`
-		SELECT g.name,m.userId,u.firstName,u.lastName,m.canAddMembers,m.canAdmin
+		SELECT g.id,g.name,m.userId,u.firstName,u.lastName,m.canAddMembers,m.canAdmin
 		FROM groups AS g
 		LEFT JOIN (
-			SELECT userId,groupName,canAddMembers,canAdmin
+			SELECT userId,groupId,canAddMembers,canAdmin
 			FROM groupMembers
 		) AS m
-		ON (g.name=m.groupName)
+		ON (g.id=m.groupId)
 		LEFT JOIN (
 			SELECT id,firstName,lastName
 			FROM users
 		) AS u
 		ON (m.userId=u.id)
-		WHERE g.name IN (SELECT groupName FROM groupMembers WHERE userId=%d)`, data.User.Id)
+		WHERE g.id IN (SELECT groupId FROM groupMembers WHERE userId=%d)`, data.User.Id)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var g group
 		var m member
 		err := rows.Scan(
+			&g.Id,
 			&g.Name,
 			&m.Id,
 			&m.FirstName,
@@ -82,10 +83,10 @@ func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		}
 
 		// Add group
-		curGroup := groupMap[g.Name]
+		curGroup := groupMap[g.Id]
 		if curGroup == nil {
 			curGroup = &g
-			groupMap[g.Name] = curGroup
+			groupMap[g.Id] = curGroup
 			data.Groups = append(data.Groups, curGroup)
 		}
 		// Add member

@@ -70,7 +70,7 @@ type page struct {
 	CreatedAt      string `json:"createdAt"`
 	KarmaLock      int    `json:"karmaLock"`
 	PrivacyKey     int64  `json:"privacyKey,string"`
-	Group          group  `json:"group"`
+	GroupId        int64  `json:"groupId,string"`
 	ParentsStr     string `json:"parentsStr"`
 	DeletedBy      int64  `json:"deletedBy,string"`
 	IsAutosave     bool   `json:"isAutosave"`
@@ -224,17 +224,17 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
-			p.groupName,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
+			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
 			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
 			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pages AS p
 		WHERE p.pageId=%[1]d AND %[2]s AND
-			(p.groupName="" OR p.groupName IN (SELECT groupName FROM groupMembers WHERE userId=%[3]d))`,
+			(p.groupId=0 OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
-		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.Group.Name,
+		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
 		&p.WasPublished, &p.MaxEditEver, &p.LockedVoteType)
 	if err != nil {
@@ -621,11 +621,11 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 	query := fmt.Sprintf(`
 		SELECT * FROM (
 			SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
-				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupName,parents,
+				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupId,parents,
 				isAutosave,isSnapshot,isCurrentEdit,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
-				(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d))
+				(groupId=0 OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
 			ORDER BY edit DESC
 		) AS p
 		GROUP BY pageId`,
@@ -635,7 +635,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title,
 			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
-			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.Group.Name,
+			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
 			&p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -660,7 +660,7 @@ func loadPages(c sessions.Context, pageMap map[int64]*page, userId int64, option
 			op.Summary = p.Summary
 			op.Alias = p.Alias
 			op.SortChildrenBy = p.SortChildrenBy
-			op.Group.Name = p.Group.Name
+			op.GroupId = p.GroupId
 			op.ParentsStr = p.ParentsStr
 			op.IsAutosave = p.IsAutosave
 			op.IsSnapshot = p.IsSnapshot
@@ -688,7 +688,7 @@ func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*pag
 	query := fmt.Sprintf(`
 		SELECT pageId,MAX(
 				IF((isSnapshot OR isAutosave) AND creatorId=%d AND deletedBy=0 AND
-					(groupName="" OR groupName IN (SELECT groupName FROM groupMembers WHERE userId=%d)),
+					(groupId=0 OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d)),
 				edit, -1)
 			) as myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
 		FROM pages

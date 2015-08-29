@@ -75,9 +75,6 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	}
 
 	funcMap := template.FuncMap{
-		"GetPageGroupName": func() string {
-			return data.Page.Group.Name
-		},
 		"GetPageEditUrl": func(p *page) string {
 			return getEditPageUrl(p)
 		},
@@ -122,6 +119,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 
 	// Load parents
 	data.PageMap = make(map[int64]*page)
+	data.GroupMap = make(map[int64]*group)
 	pageMap := make(map[int64]*page)
 	pageMap[data.Page.PageId] = data.Page
 	err = data.Page.processParents(c, data.PageMap)
@@ -135,6 +133,12 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 	data.PageMap[data.Page.PageId] = data.Page
+
+	// Load all the groups.
+	err = loadGroupNames(c, u, data.GroupMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load group names: %v", err)
+	}
 
 	return &data, nil
 }

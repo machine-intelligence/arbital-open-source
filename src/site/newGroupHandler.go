@@ -4,8 +4,10 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
@@ -65,8 +67,12 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusInternalServerError, fmt.Sprintf("failed to create a transaction: %v\n", err)
 	}
 
+	rand.Seed(time.Now().UnixNano())
+	groupId := rand.Int63()
+
 	// Create the new group.
 	hashmap := make(map[string]interface{})
+	hashmap["id"] = groupId
 	hashmap["name"] = data.Name
 	hashmap["createdAt"] = database.Now()
 	query := database.GetInsertSql("groups", hashmap)
@@ -78,7 +84,7 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// Add the user to the group as an admin.
 	hashmap = make(map[string]interface{})
 	hashmap["userId"] = u.Id
-	hashmap["groupName"] = data.Name
+	hashmap["groupId"] = groupId
 	hashmap["canAddMembers"] = true
 	hashmap["canAdmin"] = true
 	hashmap["createdAt"] = database.Now()

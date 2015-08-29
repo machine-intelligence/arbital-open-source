@@ -295,6 +295,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	mainPageMap := make(map[int64]*page)
 	data.PageMap = make(map[int64]*page)
 	data.UserMap = make(map[int64]*dbUser)
+	data.GroupMap = make(map[int64]*group)
 	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
@@ -406,6 +407,12 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	err = loadChildDraft(c, u.Id, data.Page, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load child draft: %v", err)
+	}
+
+	// Load all the groups.
+	err = loadGroupNames(c, u, data.GroupMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}
 
 	// Load all the users.

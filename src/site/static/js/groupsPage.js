@@ -6,7 +6,7 @@ $(function() {
 	$(".new-member-form").on("submit", function(event) {
 		var $target = $(event.target);
 		var data = {
-			groupName: $target.attr("group-name"),
+			groupId: $target.attr("group-id"),
 		};
 		submitForm($target, "/newMember/", data, function(r) {
 			location.reload();

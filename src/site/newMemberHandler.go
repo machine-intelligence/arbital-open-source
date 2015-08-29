@@ -13,8 +13,8 @@ import (
 
 // newMemberData contains data given to us in the request.
 type newMemberData struct {
-	GroupName string
-	UserId    int64 `json:",string"`
+	GroupId int64 `json:",string"`
+	UserId  int64 `json:",string"`
 }
 
 // newMemberHandler handles requests to add a new member to a group.
@@ -29,8 +29,8 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if data.GroupName == "" || data.UserId <= 0 {
-		c.Errorf("GroupName and UserId have to be set")
+	if data.GroupId <= 0 || data.UserId <= 0 {
+		c.Errorf("GroupId and UserId have to be set")
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -56,8 +56,8 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 	query := fmt.Sprintf(`
 		SELECT 1
 		FROM groupMembers
-		WHERE userId=%d AND groupName="%s" AND canAddMembers`,
-		u.Id, data.GroupName)
+		WHERE userId=%d AND groupId=%d AND canAddMembers`,
+		u.Id, data.GroupId)
 	found, err = database.QueryRowSql(c, query, &blank)
 	if err != nil {
 		c.Inc("new_member_fail")
@@ -89,7 +89,7 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = data.UserId
-	hashmap["groupName"] = data.GroupName
+	hashmap["groupId"] = data.GroupId
 	hashmap["createdAt"] = database.Now()
 	query = database.GetInsertSql("groupMembers", hashmap)
 	if _, err = database.ExecuteSql(c, query); err != nil {

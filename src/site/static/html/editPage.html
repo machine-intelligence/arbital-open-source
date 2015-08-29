@@ -75,10 +75,9 @@
 				<div class="form-group" ng-show="groupOptionsLength > 0 && !page.wasPublished && !isComment">
 					<label class="title-label control-label col-sm-2">Group <span class="dashed-underline" title="Only members of the selected group will be able to see this page.">(?)</span></label>
 					<div class="col-sm-4">
-						<select ng-model="page.group.name"
-								name="groupName" class="type-select form-control"
+						<select ng-model="page.groupId"
+								name="groupId" class="type-select form-control"
 								ng-options="type as label for (type,label) in groupOptions">
-							<option value="">-</option>
 						</select>
 					</div>
 				</div>

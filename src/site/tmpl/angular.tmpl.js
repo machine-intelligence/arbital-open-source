@@ -31,8 +31,6 @@ app.service("userService", function(){
 			{{end}}
 		{{end}}
 	};
-	console.log("Initial userMap:");
-	console.log(this.userMap);
 
 	// Get maximum karma lock a user can set up.
 	this.user.getMaxKarmaLock = function() {
@@ -41,6 +39,19 @@ app.service("userService", function(){
 	this.getUserUrl = function(userId) {
 		return "/filter?user=" + userId;
 	};
+
+	// Loaded groups.
+	this.groupMap = {
+		{{if .GroupMap}}
+			{{range .GroupMap}}
+				"{{.Id}}": {
+					id: "{{.Id}}",
+					name: "{{.Name}}",
+				},
+			{{end}}
+		{{end}}
+	};
+	console.log(this.groupMap);
 });
 
 // pages stores all the loaded pages and provides multiple helper functions for
@@ -349,16 +360,14 @@ app.service("pageService", function(userService, $http){
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId) {
 		var page = this.pageMap[pageId];
-		if (page.group.name) return false;
 		if (!this.primaryPage) return false;
-		return this.primaryPage.group.name !== page.group.name;
+		return this.primaryPage.groupId !== page.groupId && page.groupId === "0";
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showLockedGroup = function(pageId) {
 		var page = this.pageMap[pageId];
-		if (!page.group.name) return false;
-		if (!this.primaryPage) return true;
-		return this.primaryPage.group.name !== page.group.name;
+		if (!this.primaryPage) return page.groupId !== "0";
+		return this.primaryPage.groupId !== page.groupId && page.groupId !== "0";
 	};
 
 	// Setup all initial pages.
@@ -441,6 +450,31 @@ app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageServ
 		$("body").attr("last-visit", lastVisit);
 		$location.search("lastVisit", null);
 	}
+
+	// Setup search via navbar.
+	var $navSearch = $("#nav-search");
+	if ($navSearch.length <= 0) return;
+  $navSearch.autocomplete({
+		source: "/json/search",
+		minLength: 4,
+		delay: 500,
+		focus: function (event, ui) {
+			return false;
+		},
+		select: function (event, ui) {
+			window.location.href = "/pages/" + ui.item.value;
+			return false;
+		},
+  });
+	$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
+		var group = item.label.groupId !== "0" ? "[" + userService.groupMap[item.label.groupId].name + "] " : "";
+		var alias = !+item.label.alias ? " (" + item.label.alias + ")" : "";
+		var title = item.label.title ? item.label.title : "COMMENT";
+	  return $("<li>")
+	    .attr("data-value", item.value)
+	    .append(group + title + alias)
+	    .appendTo(ul);
+	};
 });
 
 // PageTreeCtrl is controller for the PageTree.
@@ -556,7 +590,7 @@ app.directive("zndUserName", function(userService) {
 });
 
 // pageTitle displays page's title with optional meta info.
-app.directive("zndPageTitle", function(pageService) {
+app.directive("zndPageTitle", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/pageTitle.html",
 		scope: {
@@ -564,13 +598,14 @@ app.directive("zndPageTitle", function(pageService) {
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
+			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
 		},
 	};
 });
 
 // likesPageTitle displays likes span followed by page's title span.
-app.directive("zndLikesPageTitle", function(pageService) {
+app.directive("zndLikesPageTitle", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/likesPageTitle.html",
 		scope: {
@@ -582,6 +617,7 @@ app.directive("zndLikesPageTitle", function(pageService) {
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
+			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
 		},
 	};
