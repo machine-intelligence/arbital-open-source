@@ -33,10 +33,11 @@ const (
 // dbUser has information about a user from the users table.
 // We can't call this struct "user" since that collides with src/user.
 type dbUser struct {
-	// DB values.
 	Id        int64  `json:"id,string"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	// True if the current user is subscribed to this user
+	IsSubscribed bool `json:"isSubscribed"`
 }
 
 // loadUsersInfo loads user information (like name) for each user in the given map.
@@ -69,9 +70,9 @@ func loadUsersInfo(c sessions.Context, userMap map[int64]*dbUser) error {
 func loadUpdateCount(c sessions.Context, userId int64) (int, error) {
 	var updateCount int
 	query := fmt.Sprintf(`
-		SELECT COALESCE(COUNT(distinct contextPageId), 0)
+		SELECT COALESCE(SUM(newCount), 0)
 		FROM updates
-		WHERE userId=%d AND seen=0`, userId)
+		WHERE userId=%d`, userId)
 	_, err := database.QueryRowSql(c, query, &updateCount)
 	return updateCount, err
 }

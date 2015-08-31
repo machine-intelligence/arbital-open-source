@@ -709,15 +709,77 @@ func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*pag
 	return err
 }
 
-type loadFullPageDataOptions struct {
+// loadLastVisits loads lastVisit variable for each page.
+func loadLastVisits(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIdsStr := pageIdsStringFromMap(pageMap)
+	query := fmt.Sprintf(`
+		SELECT pageId,max(createdAt)
+		FROM visits
+		WHERE userId=%d AND pageId IN (%s)
+		GROUP BY 1`,
+		currentUserId, pageIdsStr)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var pageId int64
+		var createdAt string
+		err := rows.Scan(&pageId, &createdAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a comment like: %v", err)
+		}
+		pageMap[pageId].LastVisit = createdAt
+		return nil
+	})
+	return err
 }
 
-// loadFullPageData loads the full page data for the given page.
-func loadFullPageData(c sessions.Context, userId int64, pageMap map[int64]*page, options *loadAuxPageDataOptions) error {
-	if options == nil {
-		options = &loadAuxPageDataOptions{}
+// loadSubscriptions loads subscription statuses corresponding to the given
+// pages, and then updates the given maps.
+func loadSubscriptions(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
+	if len(pageMap) <= 0 {
+		return nil
 	}
-	return nil
+	pageIds := pageIdsStringFromMap(pageMap)
+	query := fmt.Sprintf(`
+		SELECT toPageId
+		FROM subscriptions
+		WHERE userId=%d AND toPageId IN (%s)`,
+		currentUserId, pageIds)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var toPageId int64
+		err := rows.Scan(&toPageId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a subscription: %v", err)
+		}
+		pageMap[toPageId].IsSubscribed = true
+		return nil
+	})
+	return err
+}
+
+// loadUserSubscriptions loads subscription statuses corresponding to the given
+// users, and then updates the given map.
+func loadUserSubscriptions(c sessions.Context, currentUserId int64, userMap map[int64]*dbUser) error {
+	if len(userMap) <= 0 {
+		return nil
+	}
+	userIds := pageIdsStringFromUserMap(userMap)
+	query := fmt.Sprintf(`
+		SELECT toUserId
+		FROM subscriptions
+		WHERE userId=%d AND toUserId IN (%s)`,
+		currentUserId, userIds)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var toUserId int64
+		err := rows.Scan(&toUserId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a subscription: %v", err)
+		}
+		userMap[toUserId].IsSubscribed = true
+		return nil
+	})
+	return err
 }
 
 type loadAuxPageDataOptions struct {
@@ -752,31 +814,27 @@ func loadAuxPageData(c sessions.Context, userId int64, pageMap map[int64]*page, 
 		return fmt.Errorf("Couldn't load draft existence: %v", err)
 	}
 
-	// Get last visits.
-	err = loadLastVisits(c, userId, pageMap)
-	if err != nil {
-		return fmt.Errorf("error while fetching last visits: %v", err)
-	}
-
 	// Load original creation date.
-	pageIdsStr := pageIdsStringFromMap(pageMap)
-	query := fmt.Sprintf(`
-		SELECT pageId,MIN(createdAt)
-		FROM pages
-		WHERE pageId IN (%s) AND NOT isAutosave AND NOT isSnapshot
-		GROUP BY 1`, pageIdsStr)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var pageId int64
-		var originalCreatedAt string
-		err := rows.Scan(&pageId, &originalCreatedAt)
+	if len(pageMap) > 0 {
+		pageIdsStr := pageIdsStringFromMap(pageMap)
+		query := fmt.Sprintf(`
+			SELECT pageId,MIN(createdAt)
+			FROM pages
+			WHERE pageId IN (%s) AND NOT isAutosave AND NOT isSnapshot
+			GROUP BY 1`, pageIdsStr)
+		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var pageId int64
+			var originalCreatedAt string
+			err := rows.Scan(&pageId, &originalCreatedAt)
+			if err != nil {
+				return fmt.Errorf("failed to scan for original createdAt: %v", err)
+			}
+			pageMap[pageId].OriginalCreatedAt = originalCreatedAt
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("failed to scan for original createdAt: %v", err)
+			return fmt.Errorf("Couldn't load original createdAt: %v", err)
 		}
-		pageMap[pageId].OriginalCreatedAt = originalCreatedAt
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("Couldn't load original createdAt: %v", err)
 	}
 
 	// Load last visit time.
@@ -800,6 +858,19 @@ func loadAuxPageData(c sessions.Context, userId int64, pageMap map[int64]*page, 
 func pageIdsStringFromMap(pageMap map[int64]*page) string {
 	var buffer bytes.Buffer
 	for id, _ := range pageMap {
+		buffer.WriteString(fmt.Sprintf("%d,", id))
+	}
+	str := buffer.String()
+	if len(str) >= 1 {
+		str = str[0 : len(str)-1]
+	}
+	return str
+}
+
+// pageIdsStringFromUserMap returns a comma separated string of all userIds in the given map.
+func pageIdsStringFromUserMap(userMap map[int64]*dbUser) string {
+	var buffer bytes.Buffer
+	for id, _ := range userMap {
 		buffer.WriteString(fmt.Sprintf("%d,", id))
 	}
 	str := buffer.String()

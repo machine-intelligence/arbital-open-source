@@ -132,53 +132,6 @@ func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 	return err
 }
 
-// loadLastVisits loads lastVisit variable for each page.
-func loadLastVisits(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
-	if len(pageMap) <= 0 {
-		return nil
-	}
-	pageIdsStr := pageIdsStringFromMap(pageMap)
-	query := fmt.Sprintf(`
-		SELECT pageId,max(createdAt)
-		FROM visits
-		WHERE userId=%d AND pageId IN (%s)
-		GROUP BY 1`,
-		currentUserId, pageIdsStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var pageId int64
-		var createdAt string
-		err := rows.Scan(&pageId, &createdAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a comment like: %v", err)
-		}
-		pageMap[pageId].LastVisit = createdAt
-		return nil
-	})
-	return err
-}
-
-// loadSubscriptions loads subscription statuses corresponding to the given
-// pages, and then updates the given maps.
-func loadSubscriptions(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
-	pageIds := pageIdsStringFromMap(pageMap)
-
-	query := fmt.Sprintf(`
-		SELECT toPageId
-		FROM subscriptions
-		WHERE userId=%d AND toPageId IN (%s)`,
-		currentUserId, pageIds)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var toPageId int64
-		err := rows.Scan(&toPageId)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a subscription: %v", err)
-		}
-		pageMap[toPageId].IsSubscribed = true
-		return nil
-	})
-	return err
-}
-
 // loadAliases loads subscription statuses corresponding to the given
 // pages and comments, and then updates the given maps.
 func loadAliases(c sessions.Context, submatches [][]string) (map[string]*alias, error) {
@@ -224,11 +177,23 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		return showError(w, r, fmt.Errorf("%s", err))
 	}
 
-	// Redirect lens pages to the parent page.
 	if data.Page.Type == lensPageType {
+		// Redirect lens pages to the parent page.
 		parentId, _ := strconv.ParseInt(data.Page.ParentsStr, pageIdEncodeBase, 64)
 		pageUrl := getPageUrl(&page{Alias: fmt.Sprintf("%d", parentId)})
 		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
+	} else if data.Page.Type == commentPageType {
+		// Redirect comment pages to the primary page.
+		// Note: we are actually redirecting blindly to a parent, which for replies
+		// could be the parent comment. For now that's okay, since we just do anther
+		// redirect then.
+		for _, p := range data.Page.Parents {
+			parent := data.PageMap[p.ParentId]
+			if parent.Type != commentPageType {
+				pageUrl := getPageUrl(&page{Alias: fmt.Sprintf("%d", parent.PageId)})
+				return pages.RedirectWith(fmt.Sprintf("%s#comment-%d", pageUrl, data.Page.PageId))
+			}
+		}
 	}
 
 	data.PrimaryPageId = data.Page.PageId
@@ -439,16 +404,6 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		INSERT INTO visits (userId, pageId, createdAt)
 		VALUES %s`, values)
 	database.ExecuteSql(c, query)
-
-	if data.User.Id > 0 {
-		// Mark the relevant updates as read.
-		query = fmt.Sprintf(
-			`UPDATE updates
-			SET seen=1,updatedAt='%s'
-			WHERE contextPageId=%d AND userId=%d`,
-			database.Now(), pageId, data.User.Id)
-		database.ExecuteSql(c, query)
-	}
 
 	return &data, nil
 }

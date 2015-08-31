@@ -1169,3 +1169,57 @@ textarea.new-comment-text {
   padding-left: 24px;
   border-left: 1px solid blue;
 }
+.update-row {
+  margin: 7px 0px;
+  padding: 0px 3px;
+}
+.panel-default .unvisited-update {
+  padding: 3px 3px;
+  background-color: #f7f8ff;
+}
+.group-subscribe-to-page-link {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.group-subscribe-to-page-link.on {
+  color: #5050ff;
+}
+.group-subscribe-to-page-link.on:focus {
+  color: #5050ff;
+}
+.group-subscribe-to-page-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.group-subscribe-to-page-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.group-subscribe-to-page-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.group-subscribe-to-user-link {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.group-subscribe-to-user-link.on {
+  color: #5050ff;
+}
+.group-subscribe-to-user-link.on:focus {
+  color: #5050ff;
+}
+.group-subscribe-to-user-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.group-subscribe-to-user-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.group-subscribe-to-user-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}

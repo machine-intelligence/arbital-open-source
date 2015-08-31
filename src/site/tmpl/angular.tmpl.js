@@ -27,10 +27,12 @@ app.service("userService", function(){
 					id: "{{.Id}}",
 					firstName: "{{.FirstName}}",
 					lastName: "{{.LastName}}",
+					isSubscribed: {{.IsSubscribed}},
 				},
 			{{end}}
 		{{end}}
 	};
+	console.log("Initial user map:"); console.log(this.userMap);
 
 	// Get maximum karma lock a user can set up.
 	this.user.getMaxKarmaLock = function() {
@@ -51,7 +53,33 @@ app.service("userService", function(){
 			{{end}}
 		{{end}}
 	};
-	console.log(this.groupMap);
+
+	// (Un)subscribe a user to a thing.
+	var subscribeTo = function(doSubscribe, data, done) {
+		$.ajax({
+			type: "POST",
+			url: doSubscribe ? "/newSubscription/" : "/deleteSubscription/",
+			data: JSON.stringify(data),
+		})
+		.done(done);
+	};
+	// (Un)subscribe a user to another user.
+	this.subscribeToUser = function($target) {
+		var $target = $(event.target);
+		$target.toggleClass("on");
+		var data = {
+			userId: $target.attr("user-id"),
+		};
+		subscribeTo($target.hasClass("on"), data, function(r) {});
+	}
+	this.subscribeToPage = function($target) {
+		var $target = $(event.target);
+		$target.toggleClass("on");
+		var data = {
+			pageId: $target.attr("page-id"),
+		};
+		subscribeTo($target.hasClass("on"), data, function(r) {});
+	};
 });
 
 // pages stores all the loaded pages and provides multiple helper functions for
@@ -80,11 +108,13 @@ app.service("pageService", function(userService, $http){
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
+			if (userService.user.id === "0") return false;
 			return this.creatorId != userService.user.id &&
 				(this.lastVisit === "" || this.originalCreatedAt >= this.lastVisit);
 		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
+			if (userService.user.id === "0") return false;
 			return this.creatorId != userService.user.id &&
 				this.lastVisit !== "" && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
 		},
@@ -442,6 +472,7 @@ app.filter("simpleDateTime", function() {
 
 // ZanaduuCtrl is used across all pages.
 app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageService) {
+	$scope.pageService = pageService;
 	$scope.userService = userService;
 
 	// Process last visit url parameter

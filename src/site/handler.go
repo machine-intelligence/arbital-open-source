@@ -73,6 +73,8 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 		if u != nil {
 			c.Errorf("User is already set when calling loadUserHandler.")
 		}
+
+		// Load user info if required.
 		if !options.SkipLoadingUser {
 			u, err = user.LoadUser(w, r)
 			if err != nil {
@@ -96,11 +98,6 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 					c.Errorf("Couldn't update users: %v", err)
 					return pages.InternalErrorWith(err)
 				}
-				// Load updates count.
-				u.UpdateCount, err = loadUpdateCount(c, u.Id)
-				if err != nil {
-					c.Errorf("Couldn't retrieve updates count: %v", err)
-				}
 				// Load the groups the user belongs to.
 				if options.LoadUserGroups {
 					if err = loadUserGroups(c, u); err != nil {
@@ -110,7 +107,20 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 				}
 			}
 		}
+
+		// Main page processing
 		result := h(w, r, u)
+
+		// Load more user stuff if required.
+		if !options.SkipLoadingUser && u.Id > 0 {
+			// Load updates count. (Loading it afterwards since it could be affected by the page)
+			u.UpdateCount, err = loadUpdateCount(c, u.Id)
+			if err != nil {
+				c.Errorf("Couldn't retrieve updates count: %v", err)
+			}
+		}
+
+		// Set up Go TMPL functions.
 		funcMap := template.FuncMap{
 			"UserId":     func() int64 { return u.Id },
 			"IsAdmin":    func() bool { return u.IsAdmin },

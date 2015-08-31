@@ -19,53 +19,53 @@
 		}]);
 	</script>
 </head>
+
 <body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+{{template "navbar" .User}}
 
-	{{template "navbar" .User}}
-	
-	<div class="index-body-div container-fluid" ng-controller="IndexCtrl">
-		<div class="panel panel-default" ng-hide="recentlyEditedByMeIds.length <= 0">
-		  <div class="panel-heading">Recently Edited By Me</div>
-		  <div class="panel-body">
-		    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyEditedByMeIds"></znd-likes-page-title>
-		  </div>
-		</div>
-
-		<div class="panel panel-default" ng-hide="recentlyVisitedIds.length <= 0">
-		  <div class="panel-heading">Recently Visited</div>
-		  <div class="panel-body">
-		    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></znd-likes-page-title>
-		  </div>
-		</div>
-
-		<div class="panel panel-default">
-		  <div class="panel-heading">Recently Created</div>
-		  <div class="panel-body">
-		    <znd-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyCreatedIds"></znd-likes-page-title>
-		  </div>
-		</div>
-
-		<div class="panel panel-default">
-		  <div class="panel-heading">Most Liked</div>
-		  <div class="panel-body">
-		    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostLikedIds"></znd-likes-page-title>
-		  </div>
-		</div>
-
-		<div class="panel panel-default">
-		  <div class="panel-heading">Recently Edited</div>
-		  <div class="panel-body">
-		    <znd-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyEditedIds"></znd-likes-page-title>
-		  </div>
-		</div>
-
-		<div class="panel panel-default">
-		  <div class="panel-heading">Most Controversial</div>
-		  <div class="panel-body">
-		    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostControversialIds"></znd-likes-page-title>
-		  </div>
-		</div>
+<div class="index-body-div container-fluid" ng-controller="IndexCtrl">
+	<div class="panel panel-default" ng-hide="recentlyEditedByMeIds.length <= 0">
+	  <div class="panel-heading">Recently Edited By Me</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyEditedByMeIds"></znd-likes-page-title>
+	  </div>
 	</div>
+
+	<div class="panel panel-default" ng-hide="recentlyVisitedIds.length <= 0">
+	  <div class="panel-heading">Recently Visited</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></znd-likes-page-title>
+	  </div>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-heading">Recently Created</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyCreatedIds"></znd-likes-page-title>
+	  </div>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-heading">Most Liked</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostLikedIds"></znd-likes-page-title>
+	  </div>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-heading">Recently Edited</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyEditedIds"></znd-likes-page-title>
+	  </div>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-heading">Most Controversial</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostControversialIds"></znd-likes-page-title>
+	  </div>
+	</div>
+</div>
 
 </body>
 </html>

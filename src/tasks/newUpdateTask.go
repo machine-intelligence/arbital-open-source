@@ -11,15 +11,24 @@ import (
 
 // NewUpdateTask is the object that's put into the daemon queue.
 type NewUpdateTask struct {
-	UserId        int64 // user who performed an action, e.g. creating a comment
-	ContextPageId int64 // if appropriate, this is the page relevant to the update
-	UpdateType    string
+	// User who performed an action, e.g. creating a comment
+	UserId     int64
+	UpdateType string
 
-	// One of the following has to be set. Users subscribed to this 'thing' will
-	// be notified.
-	ToPageId    int64
-	ToCommentId int64
-	ToUserId    int64
+	// Grouping key. One of these has to set. We'll group all updates by this key
+	// to show in one panel.
+	GroupByPageId int64
+	GroupByUserId int64
+
+	// Subscription check. One of these has to be set. We'll notify the users who
+	// are subscribed to "this thing", e.g. this page id.
+	SubscribedToPageId int64
+	SubscribedToUserId int64
+
+	// Go to destination. One of these has to be set. This is where we'll direct
+	// the user if they want to see more info about this update, e.g. to see the
+	// comment someone made.
+	GoToPageId int64
 }
 
 // Check if this task is valid, and we can safely execute it.
@@ -29,6 +38,33 @@ func (task *NewUpdateTask) IsValid() error {
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
 	}
+
+	groupByCount := 0
+	if task.GroupByPageId > 0 {
+		groupByCount++
+	}
+	if task.GroupByUserId > 0 {
+		groupByCount++
+	}
+	if groupByCount != 1 {
+		return fmt.Errorf("Exactly one GroupBy... has to be set")
+	}
+
+	toCount := 0
+	if task.SubscribedToPageId > 0 {
+		toCount++
+	}
+	if task.SubscribedToUserId > 0 {
+		toCount++
+	}
+	if toCount != 1 {
+		return fmt.Errorf("Exactly one of 'SubscribedTo...' variables has to be set")
+	}
+
+	if task.GoToPageId <= 0 {
+		return fmt.Errorf("GoToPageId has to be set")
+	}
+
 	return nil
 }
 
@@ -36,15 +72,16 @@ func (task *NewUpdateTask) IsValid() error {
 // For comments on return value see tasks.QueueTask
 func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 	if err = task.IsValid(); err != nil {
+		c.Errorf("Invalid new update task: %s", err)
 		return -1, err
 	}
 
 	// Figure out the subscriptions query constraint.
 	var whereClause string
-	if task.ToPageId > 0 {
-		whereClause = fmt.Sprintf("WHERE toPageId=%d", task.ToPageId)
-	} else if task.ToUserId > 0 {
-		whereClause = fmt.Sprintf("WHERE toUserId=%d", task.ToUserId)
+	if task.SubscribedToPageId > 0 {
+		whereClause = fmt.Sprintf("WHERE toPageId=%d", task.SubscribedToPageId)
+	} else if task.SubscribedToUserId > 0 {
+		whereClause = fmt.Sprintf("WHERE toUserId=%d", task.SubscribedToUserId)
 	} else {
 		return -1, err
 	}
@@ -64,42 +101,49 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		}
 
 		// Check if we already have a similar update.
-		var updateId int64
+		var previousUpdateId int64
 		var exists bool
+		newCountValue := 1
 		query = fmt.Sprintf(`
 			SELECT id
 			FROM updates
-			WHERE userId=%d AND type="%s" AND seen=0 AND contextPageId=%d AND
-				fromPageId=%d AND fromUserId=%d
-			ORDER BY updatedAt DESC
-			LIMIT 1`, userId, task.UpdateType, task.ContextPageId, task.ToPageId, task.ToUserId)
-		exists, err = database.QueryRowSql(c, query, &updateId)
+			WHERE type="%s" AND newCount>0 AND
+				groupByPageId=%d AND groupByUserId=%d AND
+				subscribedToPageId=%d AND subscribedToUserId=%d AND
+				goToPageId=%d
+			ORDER BY createdAt DESC
+			LIMIT 1`,
+			task.UpdateType,
+			task.GroupByPageId, task.GroupByUserId,
+			task.SubscribedToPageId, task.SubscribedToUserId,
+			task.GoToPageId)
+		exists, err = database.QueryRowSql(c, query, &previousUpdateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
 		}
 		if exists {
-			// Increase count on an existing update.
-			query = fmt.Sprintf(`UPDATE updates SET count=count+1,updatedAt=NOW() WHERE id=%d`, updateId)
-			if _, err = database.ExecuteSql(c, query); err != nil {
-				c.Inc("update_update_fail")
-				c.Errorf("Couldn't create update count on an update: %v", err)
-			}
-		} else {
-			// Insert new update.
-			hashmap := make(map[string]interface{})
-			hashmap["userId"] = userId
-			hashmap["type"] = task.UpdateType
-			hashmap["contextPageId"] = task.ContextPageId
-			hashmap["fromPageId"] = task.ToPageId
-			hashmap["fromUserId"] = task.ToUserId
-			hashmap["createdAt"] = database.Now()
-			hashmap["updatedAt"] = database.Now()
-			hashmap["count"] = 1
-			query = database.GetInsertSql("updates", hashmap)
-			if _, err = database.ExecuteSql(c, query); err != nil {
-				c.Inc("new_update_fail")
-				c.Errorf("Couldn't create new update: %v", err)
-			}
+			// This is a similar update, so don't count it
+			newCountValue = 0
+		}
+
+		// Insert new update / update newCount on existing one
+		hashmap := make(map[string]interface{})
+		if previousUpdateId > 0 {
+			hashmap["id"] = previousUpdateId
+		}
+		hashmap["userId"] = userId
+		hashmap["type"] = task.UpdateType
+		hashmap["groupByPageId"] = task.GroupByPageId
+		hashmap["groupByUserId"] = task.GroupByUserId
+		hashmap["subscribedToPageId"] = task.SubscribedToPageId
+		hashmap["subscribedToUserId"] = task.SubscribedToUserId
+		hashmap["goToPageId"] = task.GoToPageId
+		hashmap["createdAt"] = database.Now()
+		hashmap["newCount"] = newCountValue
+		query = database.GetInsertSql("updates", hashmap, "newCount")
+		if _, err = database.ExecuteSql(c, query); err != nil {
+			c.Inc("new_update_fail")
+			c.Errorf("Couldn't create new update: %v", err)
 		}
 		return nil
 	})

@@ -155,24 +155,13 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 	if data.LoadChildDraft {
 		// Load child draft
-		for pageId, p := range pageMap {
+		for _, p := range pageMap {
 			if p.Type == commentPageType {
 				continue
 			}
 			err = loadChildDraft(c, u.Id, p, pageMap)
 			if err != nil {
 				return nil, fmt.Errorf("Couldn't load child draft: %v", err)
-			}
-
-			// Right now we use LoadChildDraft as a proxy to mark a pages as "seen"
-			if u.Id > 0 {
-				// Mark the relevant updates as read.
-				query := fmt.Sprintf(
-					`UPDATE updates
-					SET seen=1,updatedAt='%s'
-					WHERE contextPageId=%d AND userId=%d`,
-					database.Now(), pageId, u.Id)
-				database.ExecuteSql(c, query)
 			}
 			break
 		}

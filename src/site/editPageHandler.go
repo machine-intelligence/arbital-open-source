@@ -528,7 +528,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// === Once the transaction has succeeded, we can't really fail on anything
-	// else. So we print out errors, but don't return an error.
+	// else. So we print out errors, but don't return an error. ===
 
 	if isCurrentEdit {
 
@@ -552,18 +552,25 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 		// Generate updates for users who are subscribed to this page.
 		if oldPage.WasPublished {
+			// This is an edit.
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
-			task.ToPageId = data.PageId
+			task.UpdateType = pageEditUpdateType
+			task.GroupByPageId = data.PageId
+			task.SubscribedToPageId = data.PageId
+			task.GoToPageId = data.PageId
 			if data.Type == commentPageType {
-				if commentParentId > 0 {
-					task.ToPageId = commentParentId // notify users who are subscribed to the parent comment
-				}
-				task.ContextPageId = commentPrimaryPageId
+				// It's actually a comment, so redo some stuff.
 				task.UpdateType = commentEditUpdateType
-			} else {
-				task.ContextPageId = data.PageId
-				task.UpdateType = pageEditUpdateType
+				if commentParentId <= 0 {
+					// It's a top level comment.
+					task.GroupByPageId = commentPrimaryPageId
+					task.SubscribedToPageId = commentPrimaryPageId
+				} else {
+					// It's actually a reply.
+					task.GroupByPageId = commentParentId
+					task.SubscribedToPageId = commentParentId
+				}
 			}
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
@@ -577,9 +584,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if !oldPage.WasPublished && data.Type == blogPageType && privacyKey <= 0 {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
-			task.ContextPageId = data.PageId
-			task.ToUserId = u.Id
 			task.UpdateType = newPageByUserUpdateType
+			task.GroupByUserId = u.Id
+			task.SubscribedToUserId = u.Id
+			task.GoToPageId = data.PageId
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
 			}
@@ -593,9 +601,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
-				task.ContextPageId = data.PageId
-				task.ToPageId = parentId
 				task.UpdateType = newChildPageUpdateType
+				task.GroupByPageId = parentId
+				task.SubscribedToPageId = parentId
+				task.GoToPageId = data.PageId
 				if err := task.IsValid(); err != nil {
 					c.Errorf("Invalid task created: %v", err)
 				}
@@ -615,19 +624,19 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				c.Errorf("Couldn't add a vote: %v", err)
 			}
 		} else if !oldPage.WasPublished && data.Type == commentPageType {
-			// if new comment -> newComment update for the primary page (and subscribe user to the new comment)
-			// else if reply -> newComment update for the parent comment (and subscribe user to the parent comment)
+			// This is a new comment
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
-			task.ContextPageId = commentPrimaryPageId
+			task.GroupByPageId = commentPrimaryPageId
+			task.GoToPageId = data.PageId
 			if commentParentId > 0 {
-				// New reply task
+				// This is a new reply
 				task.UpdateType = replyUpdateType
-				task.ToPageId = commentParentId
+				task.SubscribedToPageId = commentParentId
 			} else {
-				// New top level comment task
+				// This is a new top level comment
 				task.UpdateType = topLevelCommentUpdateType
-				task.ToPageId = commentPrimaryPageId
+				task.SubscribedToPageId = commentPrimaryPageId
 			}
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
