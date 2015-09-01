@@ -498,7 +498,7 @@ app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageServ
 		},
   });
 	$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
-		var group = item.label.groupId !== "0" ? "[" + userService.groupMap[item.label.groupId].name + "] " : "";
+		var group = item.label.groupId !== "0" && item.label.groupId ? "[" + userService.groupMap[item.label.groupId].name + "] " : "";
 		var alias = !+item.label.alias ? " (" + item.label.alias + ")" : "";
 		var title = item.label.title ? item.label.title : "COMMENT";
 	  return $("<li>")

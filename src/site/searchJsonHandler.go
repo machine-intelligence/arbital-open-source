@@ -56,6 +56,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 
 	groupMap := make(map[string]bool)
 	groupMap["0"] = true
+	groupMap[""] = true
 	if u.Id > 0 {
 		if err = loadUserGroups(c, u); err != nil {
 			return fmt.Errorf("Couldn't load user: %v", err)
