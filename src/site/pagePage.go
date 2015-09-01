@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
@@ -27,8 +28,8 @@ type alias struct {
 // pageTmplData stores the data that we pass to the index.tmpl to render the page
 type pageTmplData struct {
 	commonPageData
-	Page        *page
-	LinkedPages []*page
+	Page        *core.Page
+	LinkedPages []*core.Page
 	RelatedIds  []string
 }
 
@@ -54,11 +55,11 @@ var privatePagePage = newPageWithOptions(
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
 // loadLikes loads likes corresponding to the given pages and updates the pages.
-func loadLikes(c sessions.Context, currentUserId int64, pageMap map[int64]*page) error {
+func loadLikes(c sessions.Context, currentUserId int64, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
-	pageIdsStr := pageIdsStringFromMap(pageMap)
+	pageIdsStr := core.PageIdsStringFromMap(pageMap)
 	query := fmt.Sprintf(`
 		SELECT userId,pageId,value
 		FROM (
@@ -99,7 +100,7 @@ func loadLikes(c sessions.Context, currentUserId int64, pageMap map[int64]*page)
 }
 
 // loadVotes loads probability votes corresponding to the given pages and updates the pages.
-func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*page, usersMap map[int64]*dbUser) error {
+func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap map[int64]*core.Page, usersMap map[int64]*core.User) error {
 	query := fmt.Sprintf(`
 		SELECT userId,pageId,value,createdAt
 		FROM (
@@ -110,7 +111,7 @@ func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 		) AS v
 		GROUP BY userId,pageId`, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var v vote
+		var v core.Vote
 		var pageId int64
 		err := rows.Scan(&v.UserId, &pageId, &v.Value, &v.CreatedAt)
 		if err != nil {
@@ -121,11 +122,11 @@ func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 		}
 		page := pageMap[pageId]
 		if page.Votes == nil {
-			page.Votes = make([]*vote, 0, 0)
+			page.Votes = make([]*core.Vote, 0, 0)
 		}
 		page.Votes = append(page.Votes, &v)
 		if _, ok := usersMap[v.UserId]; !ok {
-			usersMap[v.UserId] = &dbUser{Id: v.UserId}
+			usersMap[v.UserId] = &core.User{Id: v.UserId}
 		}
 		return nil
 	})
@@ -177,20 +178,20 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 		return showError(w, r, fmt.Errorf("%s", err))
 	}
 
-	if data.Page.Type == lensPageType {
+	if data.Page.Type == core.LensPageType {
 		// Redirect lens pages to the parent page.
-		parentId, _ := strconv.ParseInt(data.Page.ParentsStr, pageIdEncodeBase, 64)
-		pageUrl := getPageUrl(&page{Alias: fmt.Sprintf("%d", parentId)})
+		parentId, _ := strconv.ParseInt(data.Page.ParentsStr, core.PageIdEncodeBase, 64)
+		pageUrl := getPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parentId)})
 		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
-	} else if data.Page.Type == commentPageType {
+	} else if data.Page.Type == core.CommentPageType {
 		// Redirect comment pages to the primary page.
 		// Note: we are actually redirecting blindly to a parent, which for replies
 		// could be the parent comment. For now that's okay, since we just do anther
 		// redirect then.
 		for _, p := range data.Page.Parents {
 			parent := data.PageMap[p.ParentId]
-			if parent.Type != commentPageType {
-				pageUrl := getPageUrl(&page{Alias: fmt.Sprintf("%d", parent.PageId)})
+			if parent.Type != core.CommentPageType {
+				pageUrl := getPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parent.PageId)})
 				return pages.RedirectWith(fmt.Sprintf("%s#comment-%d", pageUrl, data.Page.PageId))
 			}
 		}
@@ -199,13 +200,13 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	data.PrimaryPageId = data.Page.PageId
 
 	funcMap := template.FuncMap{
-		"GetEditLevel": func(p *page) string {
+		"GetEditLevel": func(p *core.Page) string {
 			return getEditLevel(p, data.User)
 		},
-		"GetDeleteLevel": func(p *page) string {
+		"GetDeleteLevel": func(p *core.Page) string {
 			return getDeleteLevel(p, data.User)
 		},
-		"GetPageEditUrl": func(p *page) string {
+		"GetPageEditUrl": func(p *core.Page) string {
 			return getEditPageUrl(p)
 		},
 	}
@@ -244,7 +245,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Redirect lens pages to the parent page.
-	if data.Page.Type == lensPageType {
+	if data.Page.Type == core.LensPageType {
 		return &data, nil
 	}
 
@@ -257,9 +258,9 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Create maps.
-	mainPageMap := make(map[int64]*page)
-	data.PageMap = make(map[int64]*page)
-	data.UserMap = make(map[int64]*dbUser)
+	mainPageMap := make(map[int64]*core.Page)
+	data.PageMap = make(map[int64]*core.Page)
+	data.UserMap = make(map[int64]*core.User)
 	data.GroupMap = make(map[int64]*group)
 	mainPageMap[data.Page.PageId] = data.Page
 
@@ -271,11 +272,11 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 
 	// Create embedded pages map, which will have pages that are displayed more
 	// fully and need additional info loaded.
-	embeddedPageMap := make(map[int64]*page)
+	embeddedPageMap := make(map[int64]*core.Page)
 	embeddedPageMap[data.Page.PageId] = data.Page
-	if data.Page.Type == questionPageType {
+	if data.Page.Type == core.QuestionPageType {
 		for id, p := range data.PageMap {
-			if p.Type == answerPageType {
+			if p.Type == core.AnswerPageType {
 				embeddedPageMap[id] = p
 			}
 		}
@@ -288,7 +289,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 	// Add comments to the embedded pages map.
 	for id, p := range data.PageMap {
-		if p.Type == commentPageType {
+		if p.Type == core.CommentPageType {
 			embeddedPageMap[id] = p
 		}
 	}
@@ -333,14 +334,14 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load pages.
-	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{loadText: true})
+	err = core.LoadPages(c, data.PageMap, u.Id, core.LoadPageOptions{LoadText: true})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Erase Text from pages that don't need it.
 	for _, p := range data.PageMap {
-		if (data.Page.Type != questionPageType || p.Type != answerPageType) && p.Type != commentPageType {
+		if (data.Page.Type != core.QuestionPageType || p.Type != core.AnswerPageType) && p.Type != core.CommentPageType {
 			p.Text = ""
 		}
 	}
@@ -381,11 +382,11 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load all the users.
-	data.UserMap[u.Id] = &dbUser{Id: u.Id}
+	data.UserMap[u.Id] = &core.User{Id: u.Id}
 	for _, p := range data.PageMap {
-		data.UserMap[p.CreatorId] = &dbUser{Id: p.CreatorId}
+		data.UserMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = loadUsersInfo(c, data.UserMap)
+	err = core.LoadUsers(c, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading users: %v", err)
 	}

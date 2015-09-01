@@ -16,4 +16,4 @@ cp -v config.yaml src/queue_daemon/
 dev_appserver.py \
 	src/site/app.yaml \
 	src/queue_daemon/module.yaml \
-	--admin_port 8011 --port 8012 --host 0.0.0.0
+	--admin_port 8011 --port 8012 --host 0.0.0.0 --enable_sendmail=yes

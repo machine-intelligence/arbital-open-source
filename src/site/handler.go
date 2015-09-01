@@ -9,6 +9,7 @@ import (
 
 	"appengine/taskqueue"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
@@ -31,11 +32,11 @@ type commonPageData struct {
 	// Id of the page that's most prominantly displayed. Usually the id is also in the URL
 	PrimaryPageId int64 `json:",string"`
 	// Map of page ids to the corresponding page objects
-	PageMap map[int64]*page
+	PageMap map[int64]*core.Page
 	// Logged in user
 	User *user.User
 	// Map of user ids to corresponding user objects
-	UserMap map[int64]*dbUser
+	UserMap map[int64]*core.User
 	// Map of groups
 	GroupMap map[int64]*group
 }
@@ -126,36 +127,36 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 			"IsAdmin":    func() bool { return u.IsAdmin },
 			"IsLoggedIn": func() bool { return u.IsLoggedIn },
 			"GetUserUrl": func(userId int64) string {
-				return getUserUrl(userId)
+				return core.GetUserUrl(userId)
 			},
 			"GetMaxKarmaLockFraction": func() float32 {
-				return maxKarmaLockFraction
+				return core.MaxKarmaLockFraction
 			},
 			"GetUserJson": func() template.JS {
 				jsonData, _ := json.Marshal(u)
 				return template.JS(string(jsonData))
 			},
-			"GetPageJson": func(p *page) template.JS {
+			"GetPageJson": func(p *core.Page) template.JS {
 				jsonData, _ := json.Marshal(p)
 				return template.JS(string(jsonData))
 			},
-			"GetPageUrl": func(p *page) string {
+			"GetPageUrl": func(p *core.Page) string {
 				return getPageUrl(p)
 			},
-			"IsUpdatedPage": func(p *page) bool {
+			"IsUpdatedPage": func(p *core.Page) bool {
 				return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
 			},
-			"CanComment":            func() bool { return u.Karma >= commentKarmaReq },
-			"CanLike":               func() bool { return u.Karma >= likeKarmaReq },
-			"CanCreatePrivatePage":  func() bool { return u.Karma >= privatePageKarmaReq },
-			"CanVote":               func() bool { return u.Karma >= voteKarmaReq },
-			"CanKarmaLock":          func() bool { return u.Karma >= karmaLockKarmaReq },
-			"CanCreateAlias":        func() bool { return u.Karma >= createAliasKarmaReq },
-			"CanChangeAlias":        func() bool { return u.Karma >= changeAliasKarmaReq },
-			"CanChangeSortChildren": func() bool { return u.Karma >= changeSortChildrenKarmaReq },
-			"CanAddParent":          func() bool { return u.Karma >= addParentKarmaReq },
-			"CanDeleteParent":       func() bool { return u.Karma >= deleteParentKarmaReq },
-			"CanDashlessAlias":      func() bool { return u.Karma >= dashlessAliasKarmaReq },
+			"CanComment":            func() bool { return u.Karma >= core.CommentKarmaReq },
+			"CanLike":               func() bool { return u.Karma >= core.LikeKarmaReq },
+			"CanCreatePrivatePage":  func() bool { return u.Karma >= core.PrivatePageKarmaReq },
+			"CanVote":               func() bool { return u.Karma >= core.VoteKarmaReq },
+			"CanKarmaLock":          func() bool { return u.Karma >= core.KarmaLockKarmaReq },
+			"CanCreateAlias":        func() bool { return u.Karma >= core.CreateAliasKarmaReq },
+			"CanChangeAlias":        func() bool { return u.Karma >= core.ChangeAliasKarmaReq },
+			"CanChangeSortChildren": func() bool { return u.Karma >= core.ChangeSortChildrenKarmaReq },
+			"CanAddParent":          func() bool { return u.Karma >= core.AddParentKarmaReq },
+			"CanDeleteParent":       func() bool { return u.Karma >= core.DeleteParentKarmaReq },
+			"CanDashlessAlias":      func() bool { return u.Karma >= core.DashlessAliasKarmaReq },
 		}
 		return result.AddFuncMap(funcMap)
 	}

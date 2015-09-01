@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
@@ -14,7 +15,7 @@ import (
 )
 
 type member struct {
-	dbUser
+	core.User
 
 	CanAddMembers bool `json:"canAddMembers"`
 	CanAdmin      bool `json:"canAdmin"`

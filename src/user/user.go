@@ -96,6 +96,7 @@ func loadUserFromDb(r *http.Request) (*User, error) {
 		dbUser["isAdmin"] = appEngineUser.Admin
 		dbUser["createdAt"] = database.Now()
 		dbUser["lastWebsiteVisit"] = database.Now()
+		dbUser["updateEmailSentAt"] = database.Now()
 
 		var result sql.Result
 		query := database.GetInsertSql("users", dbUser)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
@@ -57,7 +58,7 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	pageIdStr := fmt.Sprintf("%d", p.PageId)
-	pageMap := make(map[int64]*page)
+	pageMap := make(map[int64]*core.Page)
 	pageMap[p.PageId] = p
 
 	// Remove unnecessary data.
@@ -81,7 +82,7 @@ func pageInfoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load probability votes
-	usersMap := make(map[int64]*dbUser)
+	usersMap := make(map[int64]*core.User)
 	err = loadVotes(c, u.Id, pageIdStr, pageMap, usersMap)
 	if err != nil {
 		c.Errorf("Couldn't load probability votes: %v", err)

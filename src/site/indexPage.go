@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -41,7 +42,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	var data indexTmplData
 	data.User = u
 	c := sessions.NewContext(r)
-	data.PageMap = make(map[int64]*page)
+	data.PageMap = make(map[int64]*core.Page)
 
 	// Load recently edited by me page ids.
 	query := fmt.Sprintf(`
@@ -172,7 +173,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 	}
 
 	// Load pages.
-	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{allowUnpublished: true})
+	err = core.LoadPages(c, data.PageMap, u.Id, core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
 		return pages.InternalErrorWith(err)

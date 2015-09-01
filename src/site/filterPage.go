@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
@@ -19,7 +20,7 @@ type filterTmplData struct {
 	commonPageData
 	LimitCount int
 
-	Author             *dbUser
+	Author             *core.User
 	IsSubscribedToUser bool
 }
 
@@ -55,7 +56,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	userConstraint := ""
 	userParam := q.Get("user")
 	if userParam != "" {
-		data.Author = &dbUser{}
+		data.Author = &core.User{}
 		query := fmt.Sprintf(`
 			SELECT id,firstName,lastName
 			FROM users
@@ -83,7 +84,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	// Load the pages
 	pageIds := make([]string, 0, 50)
 	data.GroupMap = make(map[int64]*group)
-	data.PageMap = make(map[int64]*page)
+	data.PageMap = make(map[int64]*core.Page)
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.title,p.alias,p.privacyKey,p.groupId
 		FROM pages AS p
@@ -92,7 +93,7 @@ func filterRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		ORDER BY p.createdAt DESC
 		LIMIT %d`, data.User.Id, userConstraint, data.LimitCount)
 	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var p page
+		var p core.Page
 		err := rows.Scan(
 			&p.PageId,
 			&p.Edit,

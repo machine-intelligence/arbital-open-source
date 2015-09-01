@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -72,8 +73,8 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	if len(data.PageIds) <= 0 {
 		rand.Seed(time.Now().UnixNano())
 		pageId := rand.Int63()
-		returnPageData := make(map[string]*page)
-		returnPageData[fmt.Sprintf("%d", pageId)] = &page{PageId: pageId}
+		returnPageData := make(map[string]*core.Page)
+		returnPageData[fmt.Sprintf("%d", pageId)] = &core.Page{PageId: pageId}
 		returnData["pages"] = returnPageData
 		return returnData, nil
 	}
@@ -85,8 +86,8 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	}
 
 	// Load data
-	userMap := make(map[int64]*dbUser)
-	pageMap := make(map[int64]*page)
+	userMap := make(map[int64]*core.User)
+	pageMap := make(map[int64]*core.Page)
 	if !data.AllowDraft {
 		// Process pageIds
 		pageIds := strings.Split(strings.Trim(data.PageIds, ","), ",")
@@ -95,7 +96,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 			if err != nil {
 				c.Errorf("Couldn't parse page id: %v", pageId)
 			} else {
-				pageMap[pageId] = &page{PageId: pageId}
+				pageMap[pageId] = &core.Page{PageId: pageId}
 			}
 		}
 
@@ -115,7 +116,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 			}
 		}
 
-		err = loadPages(c, pageMap, u.Id, loadPageOptions{loadText: true})
+		err = core.LoadPages(c, pageMap, u.Id, core.LoadPageOptions{LoadText: true})
 		if err != nil {
 			return nil, fmt.Errorf("error while loading pages: %v", err)
 		}
@@ -141,7 +142,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 		}
 
 		// Load probability votes
-		err = loadVotes(c, u.Id, pageIdsStringFromMap(pageMap), pageMap, userMap)
+		err = loadVotes(c, u.Id, core.PageIdsStringFromMap(pageMap), pageMap, userMap)
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't load probability votes: %v", err)
 		}
@@ -156,7 +157,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	if data.LoadChildDraft {
 		// Load child draft
 		for _, p := range pageMap {
-			if p.Type == commentPageType {
+			if p.Type == core.CommentPageType {
 				continue
 			}
 			err = loadChildDraft(c, u.Id, p, pageMap)
@@ -169,16 +170,16 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 	// Load all the users
 	for _, p := range pageMap {
-		userMap[p.CreatorId] = &dbUser{Id: p.CreatorId}
+		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = loadUsersInfo(c, userMap)
+	err = core.LoadUsers(c, userMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading users: %v", err)
 	}
 
 	// Return the data in JSON format.
 	visitedValues := ""
-	returnPageData := make(map[string]*page)
+	returnPageData := make(map[string]*core.Page)
 	for k, v := range pageMap {
 		if !data.IncludeText {
 			v.Text = ""
@@ -188,7 +189,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 		}
 		returnPageData[fmt.Sprintf("%d", k)] = v
 	}
-	returnUserData := make(map[string]*dbUser)
+	returnUserData := make(map[string]*core.User)
 	for k, v := range userMap {
 		returnUserData[fmt.Sprintf("%d", k)] = v
 	}

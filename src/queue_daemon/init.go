@@ -39,6 +39,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.PopulateIndexTask{}
 	} else if leasedTask.Tag == "newUpdate" {
 		task = &tasks.NewUpdateTask{}
+	} else if leasedTask.Tag == "emailUpdates" {
+		task = &tasks.EmailUpdatesTask{}
 	} else {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
 	}
@@ -77,6 +79,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	err := tasks.EnqueueWithName(c, tasks.TickTask{}, "tick", "tick")
 	if err != nil {
 		c.Debugf("TickTask enqueue error: %v", err)
+	}
+	err = tasks.EnqueueWithName(c, tasks.EmailUpdatesTask{}, "emailUpdates", "emailUpdates")
+	if err != nil {
+		c.Debugf("EmailUpdatesTask enqueue error: %v", err)
 	}
 
 	for true {

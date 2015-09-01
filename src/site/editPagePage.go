@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
@@ -25,7 +26,7 @@ var (
 // editPageTmplData stores the data that we pass to the template file to render the page
 type editPageTmplData struct {
 	commonPageData
-	Page *page
+	Page *core.Page
 }
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
@@ -41,7 +42,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	// If we are creating a new page, redirect to a new id
 	if len(pageAlias) <= 0 {
 		rand.Seed(time.Now().UnixNano())
-		return pages.RedirectWith(getEditPageUrl(&page{PageId: rand.Int63()}))
+		return pages.RedirectWith(getEditPageUrl(&core.Page{PageId: rand.Int63()}))
 	}
 
 	// Check if the user is trying to create a new page with an alias.
@@ -55,7 +56,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		} else if !exists {
 			// User is trying to create a new page with an alias.
 			rand.Seed(time.Now().UnixNano())
-			return pages.RedirectWith(getEditPageUrl(&page{PageId: rand.Int63()}) + "?alias=" + pageAlias)
+			return pages.RedirectWith(getEditPageUrl(&core.Page{PageId: rand.Int63()}) + "?alias=" + pageAlias)
 		}
 		mux.Vars(r)["alias"] = pageAlias
 	}
@@ -75,10 +76,10 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 	}
 
 	funcMap := template.FuncMap{
-		"GetPageEditUrl": func(p *page) string {
+		"GetPageEditUrl": func(p *core.Page) string {
 			return getEditPageUrl(p)
 		},
-		"GetEditLevel": func(p *page) string {
+		"GetEditLevel": func(p *core.Page) string {
 			return getEditLevel(p, data.User)
 		},
 	}
@@ -108,7 +109,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		return nil, fmt.Errorf("Couldn't load existing page: %v", err)
 	} else if data.Page == nil {
 		// Set IsAutosave to true, so we can check whether or not to show certain settings
-		data.Page = &page{PageId: pageId, Alias: fmt.Sprintf("%d", pageId), IsAutosave: true}
+		data.Page = &core.Page{PageId: pageId, Alias: fmt.Sprintf("%d", pageId), IsAutosave: true}
 	}
 	// Check if the privacy key we got is correct.
 	if !data.Page.WasPublished && data.Page.CreatorId == data.User.Id {
@@ -118,17 +119,17 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	}
 
 	// Load parents
-	data.PageMap = make(map[int64]*page)
+	data.PageMap = make(map[int64]*core.Page)
 	data.GroupMap = make(map[int64]*group)
-	pageMap := make(map[int64]*page)
+	pageMap := make(map[int64]*core.Page)
 	pageMap[data.Page.PageId] = data.Page
-	err = data.Page.processParents(c, data.PageMap)
+	err = data.Page.ProcessParents(c, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load parents: %v", err)
 	}
 
 	// Load pages.
-	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{})
+	err = core.LoadPages(c, data.PageMap, u.Id, core.LoadPageOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}

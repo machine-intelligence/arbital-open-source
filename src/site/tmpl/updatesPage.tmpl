@@ -33,7 +33,7 @@
 {{template "navbar" .User}}
 
 <div class="updates-body-div" ng-controller="UpdatesCtrl">
-	{{range .UpdatedGroups}}
+	{{range .UpdateGroups}}
 		<div class="panel {{if .Key.IsNew}}panel-info{{else}}panel-default{{end}}">
 			<div class="panel-heading">
 				{{if ne .Key.GroupByPageId 0}}

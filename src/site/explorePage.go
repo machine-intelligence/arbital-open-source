@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
@@ -32,7 +33,7 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	c := sessions.NewContext(r)
 
 	// Load the pages
-	data.PageMap = make(map[int64]*page)
+	data.PageMap = make(map[int64]*core.Page)
 	query := fmt.Sprintf(`
 		SELECT parentPair.parentId
 		FROM pagePairs AS parentPair
@@ -47,7 +48,7 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		if err != nil {
 			return fmt.Errorf("failed to scan a page id: %v", err)
 		}
-		p := &page{PageId: pageId}
+		p := &core.Page{PageId: pageId}
 		data.PageMap[pageId] = p
 		return nil
 	})
@@ -64,7 +65,7 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 	}
 
 	// Load pages.
-	err = loadPages(c, data.PageMap, u.Id, loadPageOptions{})
+	err = core.LoadPages(c, data.PageMap, u.Id, core.LoadPageOptions{})
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
 		return pages.InternalErrorWith(err)

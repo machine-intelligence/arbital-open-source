@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 
@@ -46,8 +47,8 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the children.
-	pageMap := make(map[int64]*page)
-	pageMap[data.ParentId] = &page{PageId: data.ParentId}
+	pageMap := make(map[int64]*core.Page)
+	pageMap[data.ParentId] = &core.Page{PageId: data.ParentId}
 	err = loadChildrenIds(c, pageMap, loadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		c.Errorf("Couldn't load children: %v", err)
@@ -58,7 +59,7 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 	delete(pageMap, data.ParentId)
 
 	// Load pages.
-	err = loadPages(c, pageMap, u.Id, loadPageOptions{})
+	err = core.LoadPages(c, pageMap, u.Id, core.LoadPageOptions{})
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -82,7 +83,7 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}*/
 
 	// Return the page in JSON format.
-	strPageMap := make(map[string]*page)
+	strPageMap := make(map[string]*core.Page)
 	for k, v := range pageMap {
 		strPageMap[fmt.Sprintf("%d", k)] = v
 	}
