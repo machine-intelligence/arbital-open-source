@@ -18,7 +18,8 @@ import (
 
 const (
 	// Need at least this many new updates to send an email
-	EmailUpdateThreshold = 0
+	emailUpdateThreshold = 3
+	emailUpdatesPeriod   = 60 * 60 * 24
 )
 
 // EmailUpdatesTask is the object that's put into the daemon queue.
@@ -83,14 +84,14 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	// Load updates and populate the maps
 	pageMap := make(map[int64]*core.Page)
 	userMap := make(map[int64]*core.User)
-	updateRows, err := core.LoadUpdateRows(c, userId, pageMap, userMap)
+	updateRows, err := core.LoadUpdateRows(c, userId, pageMap, userMap, true)
 	if err != nil {
 		return fmt.Errorf("failed to load updates: %v", err)
 	}
 
 	// Check to make sure there are enough updates
 	data.UpdateCount = len(updateRows)
-	if data.UpdateCount < EmailUpdateThreshold {
+	if data.UpdateCount < emailUpdateThreshold {
 		return nil
 	}
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, nil)
@@ -129,18 +130,17 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 
 	funcMap := template.FuncMap{
 		//"UserFirstName": func() int64 { return u.Id },
-		"GetUserHtml": func(userId int64) string {
-			return fmt.Sprintf(`<a href="%s">%s</a>`,
-				fmt.Sprintf("http://zanaduu3.appspot.com/filter?user=%d", userId),
-				userMap[userId].FullName())
+		"GetUserUrl": func(userId int64) string {
+			return fmt.Sprintf(`http://zanaduu3.appspot.com/filter?user=%d`, userId)
 		},
-		"GetPageHtml": func(pageId int64) string {
-			return fmt.Sprintf(`<a href="%s">%s</a>`,
-				fmt.Sprintf("http://zanaduu3.appspot.com/pages/%d", pageId),
-				pageMap[pageId].Title)
+		"GetUserName": func(userId int64) string {
+			return userMap[userId].FullName()
 		},
 		"GetPageUrl": func(pageId int64) string {
 			return fmt.Sprintf("http://zanaduu3.appspot.com/pages/%d", pageId)
+		},
+		"GetPageTitle": func(pageId int64) string {
+			return pageMap[pageId].Title
 		},
 	}
 
@@ -156,9 +156,9 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	}
 
 	// Create mail message
-	subject := fmt.Sprintf("%d new updates on Zanaduu", 0)
+	subject := fmt.Sprintf("%d new updates on Zanaduu", data.UpdateCount)
 	msg := &mail.Message{
-		Sender:   "Zanaduu <alexei.andreev@zanaduu3.appspot.com>",
+		Sender:   "Zanaduu <updates@zanaduu3.appspotmail.com>",
 		To:       []string{userEmail},
 		Subject:  subject,
 		HTMLBody: buffer.String(),

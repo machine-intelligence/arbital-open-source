@@ -52,16 +52,20 @@ type UpdateGroup struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(c sessions.Context, userId int64, pageMap map[int64]*Page, userMap map[int64]*User) ([]*UpdateRow, error) {
+func LoadUpdateRows(c sessions.Context, userId int64, pageMap map[int64]*Page, userMap map[int64]*User, onlyNew bool) ([]*UpdateRow, error) {
+	onlyNewStr := ""
+	if onlyNew {
+		onlyNewStr = "AND newCount>0"
+	}
 	updateRows := make([]*UpdateRow, 0, 0)
 	query := fmt.Sprintf(`
 		SELECT userId,createdAt,type,newCount,
 			groupByPageId,groupByUserId,
 			subscribedToUserId,subscribedToPageId,goToPageId
 		FROM updates
-		WHERE userId=%d
+		WHERE userId=%d %s
 		ORDER BY createdAt DESC
-		LIMIT 100`, userId)
+		LIMIT 100`, userId, onlyNewStr)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var row UpdateRow
 		err := rows.Scan(

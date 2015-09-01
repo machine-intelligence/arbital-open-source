@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	tickPeriod         = 3600
-	emailUpdatesPeriod = 60 * 60 * 24
+	tickPeriod = 3600
 )
 
 // TickTask is the object that's put into the daemon queue.

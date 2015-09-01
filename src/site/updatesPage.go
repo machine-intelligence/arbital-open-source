@@ -50,7 +50,7 @@ func updatesInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	// Load the updates and populate page & user maps
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	updateRows, err := core.LoadUpdateRows(c, data.User.Id, data.PageMap, data.UserMap)
+	updateRows, err := core.LoadUpdateRows(c, data.User.Id, data.PageMap, data.UserMap, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
 	}
