@@ -472,6 +472,13 @@ app.filter("simpleDateTime", function() {
 	};
 });
 
+// relativeDateTime converts date&time into a relative string, e.g. "5 days ago"
+app.filter("relativeDateTime", function() {
+	return function(input) {
+		return moment.utc(input).fromNow();
+	};
+});
+
 // ZanaduuCtrl is used across all pages.
 app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageService) {
 	$scope.pageService = pageService;

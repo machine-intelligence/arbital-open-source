@@ -83,6 +83,8 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 	} else if !exists {
 		return nil, nil
 	}
+
+	p.TextLength = len(p.Text)
 	if p.DeletedBy > 0 {
 		return &core.Page{PageId: p.PageId, DeletedBy: p.DeletedBy}, nil
 	} else if !options.ignoreParents {
@@ -181,17 +183,7 @@ func loadChildDraft(c sessions.Context, userId int64, p *core.Page, pageMap map[
 }
 
 // loadLinks loads the links for the given page.
-func loadLinks(c sessions.Context, fullPageMap map[int64]*core.Page) error {
-	if len(fullPageMap) <= 0 {
-		return nil
-	}
-	// Filter out pages that don't have text.
-	pageMap := make(map[int64]*core.Page)
-	for id, p := range fullPageMap {
-		if p.Text != "" {
-			pageMap[id] = p
-		}
-	}
+func loadLinks(c sessions.Context, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}

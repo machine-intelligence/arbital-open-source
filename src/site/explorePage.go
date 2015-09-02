@@ -85,6 +85,21 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 		return pages.InternalErrorWith(err)
 	}
 
+	// Load number of red links.
+	err = loadLinks(c, data.PageMap)
+	if err != nil {
+		c.Errorf("error while loading links: %v", err)
+		return pages.InternalErrorWith(err)
+	}
+	for _, p := range data.PageMap {
+		p.RedLinkCount = 0
+		for _, title := range p.Links {
+			if title == "" {
+				p.RedLinkCount++
+			}
+		}
+	}
+
 	c.Inc("explore_page_served_success")
 	return pages.StatusOK(data)
 }

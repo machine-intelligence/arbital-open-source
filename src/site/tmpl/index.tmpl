@@ -27,7 +27,15 @@
 	<div class="panel panel-default" ng-hide="recentlyEditedByMeIds.length <= 0">
 	  <div class="panel-heading">Recently Edited By Me</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyEditedByMeIds"></znd-likes-page-title>
+
+			<div ng-repeat="pageId in recentlyEditedByMeIds">
+				<!-- Red link count -->
+				<span class="red-link-count pull-right"
+					ng-show="pageService.pageMap[pageId].redLinkCount>0"
+					ng-bind="pageService.pageMap[pageId].redLinkCount"
+					title="Number of links to non-existing pages"></span>
+				<znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ></znd-likes-page-title>
+			</div>
 	  </div>
 	</div>
 

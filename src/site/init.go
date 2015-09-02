@@ -50,8 +50,9 @@ func init() {
 		return appengine.NewContext(r)
 	})
 
-	r := mux.NewRouter()
-	r.StrictSlash(true)
+	router := mux.NewRouter()
+	router.StrictSlash(true)
+	r := router.Host("{domain1:[A-Za-z0-9_-]*}{subdomaindot:\\.?}{domain2:.*}").Subrouter()
 
 	// Public facing handlers for pages
 	r.HandleFunc(editPagePage.URI, stdHandler(editPagePage.ServeHTTP)).Methods("GET", "HEAD")
@@ -96,7 +97,7 @@ func init() {
 	r.HandleFunc(errorPage.URI, stdHandler(errorPage.ServeHTTP)).Methods("GET")
 	r.NotFoundHandler = http.HandlerFunc(stdHandler(page404.ServeHTTP))
 
-	http.Handle("/", r)
+	http.Handle("/", router)
 }
 
 // writeJson converts the given map to JSON and writes it to the given writer.

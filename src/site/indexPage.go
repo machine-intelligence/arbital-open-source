@@ -9,6 +9,8 @@ import (
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
+
+	"github.com/gorilla/mux"
 )
 
 const (
@@ -37,13 +39,44 @@ var indexPage = newPageWithOptions(
 		"tmpl/navbar.tmpl"),
 	newPageOptions{})
 
+// domainIndexPage serves the index page for a domain.
+var domainIndexPage = newPageWithOptions(
+	"/{alias:[A-Za-z0-9_-]+}",
+	indexRenderer,
+	append(baseTmpls,
+		"tmpl/index.tmpl",
+		"tmpl/pageHelpers.tmpl",
+		"tmpl/angular.tmpl.js",
+		"tmpl/navbar.tmpl"),
+	newPageOptions{})
+
 // indexRenderer renders the index page.
 func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
+	c := sessions.NewContext(r)
+	data, err := indexInternalRenderer(w, r, u)
+	if err != nil {
+		c.Inc("index_page_served_fail")
+		c.Errorf("%s", err)
+		return showError(w, r, fmt.Errorf("%s", err))
+	}
+	c.Inc("index_page_served_success")
+	return pages.StatusOK(data)
+}
+
+// indexInternalRenderer renders the index page.
+func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*indexTmplData, error) {
 	var err error
 	var data indexTmplData
 	data.User = u
 	c := sessions.NewContext(r)
 	data.PageMap = make(map[int64]*core.Page)
+
+	// Check if the user is looking at a specific domain
+	domainAlias := mux.Vars(r)["domain1"]
+	//domainConstraint := ""
+	if mux.Vars(r)["subdomaindot"] != "" {
+		c.Debugf("========================%s", domainAlias)
+	}
 
 	// Load recently edited by me page ids.
 	query := fmt.Sprintf(`
@@ -58,15 +91,13 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		LIMIT %d`, data.User.Id, indexPanelLimit)
 	data.RecentlyEditedByMeIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
-		c.Errorf("error while loading recently edited by me page ids: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading recently edited by me page ids: %v", err)
 	}
 
 	// Load number of red links for recently edited pages.
 	err = loadLinks(c, data.PageMap)
 	if err != nil {
-		c.Errorf("error while loading links: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading links: %v", err)
 	}
 	for _, p := range data.PageMap {
 		p.RedLinkCount = 0
@@ -90,8 +121,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		LIMIT %d`, data.User.Id, indexPanelLimit)
 	data.RecentlyVisitedIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
-		c.Errorf("error while loading recently visited page ids: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading recently visited page ids: %v", err)
 	}
 
 	// Load recently created page ids.
@@ -108,8 +138,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		LIMIT %d`, indexPanelLimit)
 	data.RecentlyCreatedIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
-		c.Errorf("error while loading recently created page ids: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading recently created page ids: %v", err)
 	}
 
 	// Load most liked page ids.
@@ -129,8 +158,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		LIMIT %d`, indexPanelLimit)
 	data.MostLikedIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
-		c.Errorf("error while loading most liked page ids: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading most liked page ids: %v", err)
 	}
 
 	// Load recently edited page ids.
@@ -147,8 +175,7 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		LIMIT %d`, indexPanelLimit)
 	data.RecentlyEditedIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
-		c.Errorf("error while loading recently edited page ids: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading recently edited page ids: %v", err)
 	}
 
 	// Load most controversial page ids.
@@ -169,24 +196,20 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 		LIMIT %d`, indexPanelLimit)
 	data.MostControversialIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
-		c.Errorf("error while loading most controversial page ids: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading most controversial page ids: %v", err)
 	}
 
 	// Load pages.
 	err = core.LoadPages(c, data.PageMap, u.Id, core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
-		c.Errorf("error while loading pages: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Load auxillary data.
 	err = loadAuxPageData(c, u.Id, data.PageMap, nil)
 	if err != nil {
-		c.Errorf("Couldn't load aux data: %v", err)
-		return pages.InternalErrorWith(err)
+		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
 	}
 
-	c.Inc("index_page_served_success")
-	return pages.StatusOK(data)
+	return &data, nil
 }

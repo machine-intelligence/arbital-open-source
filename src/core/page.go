@@ -60,6 +60,7 @@ type Page struct {
 	Title  string `json:"title"`
 	// Full text of the page. Not always sent to the FE.
 	Text           string `json:"text"`
+	TextLength     int    `json:"textLength"`
 	Summary        string `json:"summary"`
 	Alias          string `json:"alias"`
 	SortChildrenBy string `json:"sortChildrenBy"`
@@ -205,7 +206,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 	}
 	query := fmt.Sprintf(`
 		SELECT * FROM (
-			SELECT pageId,edit,type,creatorId,createdAt,title,%s,karmaLock,privacyKey,
+			SELECT pageId,edit,type,creatorId,createdAt,title,%s,length(text),karmaLock,privacyKey,
 				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupId,parents,
 				isAutosave,isSnapshot,isCurrentEdit,anchorContext,anchorText,anchorOffset
 			FROM pages
@@ -219,7 +220,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title,
-			&p.Text, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
+			&p.Text, &p.TextLength, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
 			&p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
@@ -237,6 +238,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 			op.CreatedAt = p.CreatedAt
 			op.Title = p.Title
 			op.Text = p.Text
+			op.TextLength = p.TextLength
 			op.KarmaLock = p.KarmaLock
 			op.PrivacyKey = p.PrivacyKey
 			op.DeletedBy = p.DeletedBy

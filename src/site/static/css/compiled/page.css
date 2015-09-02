@@ -1125,6 +1125,9 @@ textarea.new-comment-text {
 .page-panel .big-page-panel-header {
   font-size: 21px;
 }
+.page-panel .big-page-panel-header .extra-info {
+  margin-top: 15px;
+}
 .page-panel .page-header-part {
   display: table-cell;
 }
@@ -1168,6 +1171,11 @@ textarea.new-comment-text {
   margin-left: 6px;
   padding-left: 24px;
   border-left: 1px solid blue;
+}
+.page-panel .extra-info {
+  color: #b8b8b8;
+  font-size: 14px;
+  margin-top: 4px;
 }
 .update-row {
   margin: 7px 0px;

@@ -28,8 +28,8 @@ var keepDivFixed = function($div, offsetY) {
 var popoverMap = {}; // uniqueName -> currently active popover's anchor
 var createHoverablePopover = function($anchor, popoverOptions, options) {
 	options = options || {};
-	options.showDelay = options.showDelay || 300;
-	options.hideDelay = options.hideDelay || 500;
+	options.showDelay = options.showDelay || 500;
+	options.hideDelay = options.hideDelay || 200;
 
 	// Create manually controlled popover.
 	popoverOptions.trigger = "manual";
