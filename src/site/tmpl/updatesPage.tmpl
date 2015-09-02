@@ -52,9 +52,9 @@
 				{{range .Updates}}
 					<div class="update-row {{if not .IsVisited}}unvisited-update{{end}}">
 					{{if eq .Type "topLevelComment"}}
-						<znd-user-name user-id="{{.UserId}}"></znd-user-name> wrote a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url}]}" class="intrasite-link">new comment</a>.
+						<znd-user-name user-id="{{.UserId}}"></znd-user-name> wrote a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url}]}" page-id="{{.GoToPageId}}" class="intrasite-link">new comment</a>.
 					{{else if eq .Type "reply"}}
-						<znd-user-name user-id="{{.UserId}}"></znd-user-name> wrote a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url}]}" class="intrasite-link">new comment reply</a>.
+						<znd-user-name user-id="{{.UserId}}"></znd-user-name> wrote a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url}]}" page-id="{{.GoToPageId}}" class="intrasite-link">new comment reply</a>.
 					{{else if eq .Type "pageEdit"}}
 						This page has been edited<span ng-show="{{.Repeated}}==1"> by <znd-user-name user-id="{{.UserId}}"></znd-user-name></span><span ng-show="{{.Repeated}}>1"> {{.Repeated}} times</span>.
 					{{else if eq .Type "newPageByUser"}}
@@ -62,7 +62,7 @@
 					{{else if eq .Type "newChildPage"}}
 						New child page: <znd-likes-page-title page-id="{{.GoToPageId}}"></znd-likes-page-title>
 					{{else if eq .Type "commentEdit"}}
-						<znd-user-name user-id="{{.UserId}}"></znd-user-name> edited a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url}]}" class="intrasite-link">comment</a>.
+						<znd-user-name user-id="{{.UserId}}"></znd-user-name> edited a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url}]}" page-id="{{.GoToPageId}}" class="intrasite-link">comment</a>.
 					{{end}}
 					</div>
 				{{end}}

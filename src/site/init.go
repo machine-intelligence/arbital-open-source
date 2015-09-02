@@ -81,7 +81,6 @@ func init() {
 	r.HandleFunc("/newMember/", newMemberHandler).Methods("POST")
 	r.HandleFunc("/newGroup/", newGroupHandler).Methods("POST")
 	r.HandleFunc("/newVote/", newVoteHandler).Methods("POST")
-	r.HandleFunc("/pageInfo/", pageInfoHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/deletePage/", deletePageHandler).Methods("POST")
 

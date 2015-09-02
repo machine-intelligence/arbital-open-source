@@ -231,6 +231,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 				includeText: true,
 				includeAuxData: true,
 				loadComments: true,
+				loadVotes: true, 
 				loadChildren: true,
 				loadChildDraft: true,
 				overwrite: true,

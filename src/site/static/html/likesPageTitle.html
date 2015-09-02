@@ -38,7 +38,9 @@
 	</span>
 	
 	<span class="inline-page-title">
-		<a ng-href="{[{(page.isCurrentEdit || !showQuickEditLink) ? page.url : page.editUrl}]}" class="intrasite-link">
+		<a ng-href="{[{(page.isCurrentEdit || !showQuickEditLink) ? page.url : page.editUrl}]}"
+				page-id={[{page.pageId}]}
+				class="intrasite-link">
 			<span class="glyphicon glyphicon-pencil" ng-show="showQuickEditLink && !page.isCurrentEdit"></span>
 			<span ng-bind="page.title === '' ? 'Comment' : page.title"></span>
 		</a>

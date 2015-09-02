@@ -396,7 +396,6 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 									pageService.deletePage(result.alias);
 								}
 								if (result.abandon || result.alias) {
-									console.log(result);
 									resumePageId = undefined;
 								}
 							},

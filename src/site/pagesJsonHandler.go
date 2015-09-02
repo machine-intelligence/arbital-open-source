@@ -2,6 +2,7 @@
 package site
 
 import (
+	"database/sql"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -19,7 +20,7 @@ import (
 
 // pagesJsonData contains parameters passed in via the request.
 type pagesJsonData struct {
-	PageIds string // comma separated string of page ids
+	PageAliases []string
 	// Load entire page text
 	IncludeText bool
 	// Load auxillary data: likes, votes, subscription
@@ -28,6 +29,7 @@ type pagesJsonData struct {
 	// of the page, even if it's a draft.
 	AllowDraft     bool
 	LoadComments   bool
+	LoadVotes      bool
 	LoadChildren   bool
 	LoadChildDraft bool
 }
@@ -70,13 +72,48 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	returnData := make(map[string]interface{})
 
 	// If no page ids, return a new random page id.
-	if len(data.PageIds) <= 0 {
+	if len(data.PageAliases) <= 0 {
 		rand.Seed(time.Now().UnixNano())
 		pageId := rand.Int63()
 		returnPageData := make(map[string]*core.Page)
 		returnPageData[fmt.Sprintf("%d", pageId)] = &core.Page{PageId: pageId}
 		returnData["pages"] = returnPageData
 		return returnData, nil
+	}
+
+	// Convert all aliases to ids
+	pageIds := make([]int64, 0)
+	strAliases := make([]string, 0)
+	for _, alias := range data.PageAliases {
+		pageId, err := strconv.ParseInt(alias, 10, 64)
+		if err == nil {
+			pageIds = append(pageIds, pageId)
+		} else {
+			strAliases = append(strAliases, fmt.Sprintf(`"%s"`, alias))
+		}
+	}
+
+	// Convert actual aliases into page ids
+	if len(strAliases) > 0 {
+		query := fmt.Sprintf(`
+			SELECT pageId
+			FROM aliases
+			WHERE fullName IN (%s)`, strings.Join(strAliases, ","))
+		err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			var pageId int64
+			err := rows.Scan(&pageId)
+			if err != nil {
+				return fmt.Errorf("failed to scan for original createdAt: %v", err)
+			}
+			pageIds = append(pageIds, pageId)
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("couldn't convert aliases to page ids: %v", err)
+		}
+	}
+	if len(pageIds) <= 0 {
+		return nil, fmt.Errorf("All of the passed in aliases weren't found.")
 	}
 
 	// Load user object
@@ -90,14 +127,8 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	pageMap := make(map[int64]*core.Page)
 	if !data.AllowDraft {
 		// Process pageIds
-		pageIds := strings.Split(strings.Trim(data.PageIds, ","), ",")
-		for _, id := range pageIds {
-			pageId, err := strconv.ParseInt(id, 10, 64)
-			if err != nil {
-				c.Errorf("Couldn't parse page id: %v", pageId)
-			} else {
-				pageMap[pageId] = &core.Page{PageId: pageId}
-			}
+		for _, pageId := range pageIds {
+			pageMap[pageId] = &core.Page{PageId: pageId}
 		}
 
 		// Load comment ids.
@@ -116,15 +147,12 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 			}
 		}
 
-		err = core.LoadPages(c, pageMap, u.Id, core.LoadPageOptions{LoadText: true})
+		err = core.LoadPages(c, pageMap, u.Id, core.LoadPageOptions{LoadText: true, LoadSummary: true})
 		if err != nil {
 			return nil, fmt.Errorf("error while loading pages: %v", err)
 		}
 	} else {
-		pageId, err := strconv.ParseInt(strings.Trim(data.PageIds, ","), 10, 64)
-		if err != nil {
-			c.Errorf("Couldn't parse page id: %v", data.PageIds)
-		}
+		pageId := pageIds[0]
 
 		// Load full edit for one page.
 		p, err := loadFullEdit(c, pageId, u.Id)
@@ -140,8 +168,10 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 		if err != nil {
 			return nil, fmt.Errorf("error while loading aux data: %v", err)
 		}
+	}
 
-		// Load probability votes
+	// Load probability votes
+	if data.LoadVotes {
 		err = loadVotes(c, u.Id, core.PageIdsStringFromMap(pageMap), pageMap, userMap)
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't load probability votes: %v", err)

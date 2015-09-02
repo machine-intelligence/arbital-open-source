@@ -299,32 +299,34 @@ app.service("pageService", function(userService, $http){
 			});
 	};
 
-	// Load the page with the given pageIds. If it's empty, ask the server for
+	// Load the page with the given pageAliases. If it's empty, ask the server for
 	// a new page id.
 	// options {
 	//   includeText: include the full text of the page
 	//   includeAuxData: include likes, votes, subscription, etc...
 	//   loadComments: whether or not to load comments
+	//   loadVotes: whether or not to load votes
 	//   allowDraft: allow the server to load an autosave / snapshot, if it's most recent
 	//   overwrite: overwrite the existing pages with loaded data
 	//   success: callback on success
 	//   error: callback on error
 	// }
-	var loadingPageIds = {};
-	this.loadPages = function(pageIds, options) {
+	// Track which pages we are already loading. Map pageAlias -> true.
+	var loadingPageAliases = {};
+	var count = 0;
+	this.loadPages = function(pageAliases, options) {
 		var service = this;
-		var pageIdsLen = pageIds.length;
-		var pageIdsStr = "";
+		options.pageAliases = [];
 		// Add pages to the global map as necessary. Set pages as loading.
-		// Compute pageIdsStr for page ids that are not being loaded already.
-		for (var n = 0; n < pageIdsLen; n++) {
-			var pageId = pageIds[n];
-			if (!(pageId in loadingPageIds)) {
-				loadingPageIds[pageId] = true;
-				pageIdsStr += pageId + ",";
+		// Compute pageAliasesStr for page ids that are not being loaded already.
+		for (var n = 0; n < pageAliases.length; n++) {
+			var pageAlias = pageAliases[n];
+			if (!(pageAlias in loadingPageAliases)) {
+				loadingPageAliases[pageAlias] = true;
+				options.pageAliases.push(pageAlias);
 			}
 		}
-		if (pageIdsLen > 0 && pageIdsStr.length == 0) {
+		if (pageAliases.length > 0 && options.pageAliases.length == 0) {
 			return;  // we are loading all the pages already
 		}
 
@@ -332,16 +334,16 @@ app.service("pageService", function(userService, $http){
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
 		var overwrite = options.overwrite; delete options.overwrite;
-		options.pageIds = pageIdsStr;
 
-		console.log("Issuing a GET request to: /json/pages/?pageIds=" + pageIdsStr);
+		console.log("Issuing a GET request to: /json/pages/?pageAliases=" + pageAliases);
 		$http({method: "GET", url: "/json/pages/", params: options}).
 			success(function(data, status){
 				console.log("JSON /pages/ data:"); console.log(data);
 				var pagesData = data["pages"];
 				for (var id in pagesData) {
 					data[id] = service.addPageToMap(pagesData[id], overwrite);
-					delete loadingPageIds[id];
+					delete loadingPageAliases[id];
+					delete loadingPageAliases[data[id].alias];
 				}
 				var usersData = data["users"];
 				for (var id in usersData) {
@@ -506,6 +508,105 @@ app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageServ
 	    .append(group + title + alias)
 	    .appendTo(ul);
 	};
+
+	// Check when user hovers over intrasite links, and show a popover.
+	$("body").on("mouseenter", ".intrasite-link", function(event) {
+		var $linkPopoverTemplate = $("#link-popover-template");
+		var $target = $(event.currentTarget);
+		if ($target.hasClass("red-link")) return;
+		// Don't allow recursive hover in popovers.
+		if ($target.closest(".popover-content").length > 0) return;
+
+		// Create options for the popover.
+		var options = {
+			html : true,
+			placement: "auto",
+			trigger: "manual",
+			delay: { "hide": 100 },
+			title: function() {
+				var pageId = $target.attr("page-id");
+				var page = pageService.pageMap[pageId];
+				if (page) {
+					if (page.deletedBy !== "0") {
+						return "[DELETED]";
+					}
+					return page.title;
+				}
+				return "Loading...";
+			},
+			content: function() {
+				var $link = $target;
+				var pageAlias = $link.attr("page-id");
+				var setPopoverContent = function(page) {
+					if (page.deletedBy !== "0") {
+						$content.html("");
+						return "";
+					}
+					var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
+					if (page.type === "blog") {
+						var user = userService.userMap[page.creatorId];
+						var userName = user.firstName + " " + user.lastName;
+						$content.find(".popover-blog-owner").text("Author: " + userName);
+					}
+
+					$content.find(".like-count").text(page.likeCount);
+					$content.find(".dislike-count").text(page.dislikeCount);
+					var myLikeValue = +page.myLikeValue;
+					if (myLikeValue > 0) {
+						$content.find(".disabled-like").addClass("on");
+					} else if (myLikeValue < 0) {
+						$content.find(".disabled-dislike").addClass("on");
+					}
+
+					setTimeout(function() {
+						var $popover = $("#" + $link.attr("aria-describedby"));
+						var $content = $popover.find(".popover-content");
+						zndMarkdown.init(false, page.pageId, page.summary, $content, pageService);
+						if (page.hasVote) {
+							createVoteSlider($content.find(".vote"), userService, page, true);
+						}
+					}, 300);
+					return $content.html();
+				};
+
+				// Check if we already have this page cached.
+				var page = pageService.pageMap[pageAlias];
+				if (page && page.summary) {
+					return setPopoverContent(page);
+				}
+
+				// Fetch page data from the server.
+				pageService.loadPages([pageAlias], {
+					overwrite: true,
+					loadVotes: true,
+					success: function(data, status) {
+						// Should only be one page.
+						for (var pageId in data) {
+							var page = data[pageId];
+							if (!page.summary) {
+								page.summary = " "; // to avoid trying to load it again
+							}
+							// Replace page-id attribute in case it was an alias.
+							$link.attr("page-id", pageId);
+							var contentHtml = setPopoverContent(page);
+							var $popover = $("#" + $link.attr("aria-describedby"));
+							$popover.find(".popover-content").html(contentHtml);
+							$popover.find(".popover-title").text(page.title);
+							break;
+						}
+					},
+				});
+				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
+			}
+		};
+		// Check if this is the first time we hovered.
+		var firstTime = $target.attr("first-time");
+		if (!firstTime) {
+			createHoverablePopover($target, options, {uniqueName: "intrasite-link"});
+			$target.attr("first-time", false).trigger("mouseenter");
+		}
+		return false;
+	});
 });
 
 // PageTreeCtrl is controller for the PageTree.
