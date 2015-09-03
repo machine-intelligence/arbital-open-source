@@ -5,11 +5,14 @@
 	<span class="alert alert-danger" ng-show="page.deletedBy > 0">[DELETED]</span>
 	<span ng-hide="page.deletedBy > 0">
 		<span class="new-updated-label glyphicon glyphicon-star"
-			    title="This is your first time viewing this page"
+					title="This is your first time viewing this page"
 					ng-show="page.isNewPage()"></span>
-		<span class="new-updated-label glyphicon glyphicon-star-empty"
-			    title="This page has been updated since the last time you've seen it"
-					ng-show="page.isUpdatedPage()"></span>
+		<button class="show-page-diff btn btn-default"
+				data-toggle="button"
+				ng-show="page.isUpdatedPage()"
+				title="Click to see what changed since the last time you saw this page">
+			<span class="new-updated-label glyphicon glyphicon-star-empty"></span>
+		</button>
 		<span class="gray-text glyphicon glyphicon-lock"
 			    title="Nobody can access this page unless they have the exact URL"
 					ng-show="page.privacyKey > 0"></span>

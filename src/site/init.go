@@ -70,6 +70,7 @@ func init() {
 	// JSON handlers (API)
 	r.HandleFunc("/json/search/", searchJsonHandler).Methods("GET")
 	r.HandleFunc("/json/pages/", pagesJsonHandler).Methods("GET")
+	r.HandleFunc("/json/edit/", editJsonHandler).Methods("GET")
 	r.HandleFunc("/json/children/", childrenJsonHandler).Methods("GET")
 	r.HandleFunc("/json/parents/", parentsJsonHandler).Methods("GET")
 	r.HandleFunc("/json/aliases/", aliasesJsonHandler).Methods("GET")

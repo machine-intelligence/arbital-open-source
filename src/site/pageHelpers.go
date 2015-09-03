@@ -14,6 +14,18 @@ import (
 	"zanaduu3/src/user"
 )
 
+type loadEditOptions struct {
+	// If true, the last edit will be loaded for the given user, even if it's an
+	// autosave or a snapshot.
+	loadNonliveEdit bool
+	// Don't convert loaded parents string into an array of parents
+	ignoreParents bool
+	// If set, we'll only load from edits less than this
+	loadEditWithLimit int
+	// If set, we'll only load from edits with createdAt timestamp before this
+	createdAtLimit string
+}
+
 // loadFullEdit loads and retuns the last edit for the given page id and user id,
 // even if it's not live. It also loads all the auxillary data like tags.
 // If the page couldn't be found, (nil, nil) will be returned.
@@ -37,19 +49,11 @@ func loadFullEditWithOptions(c sessions.Context, pageId, userId int64, options *
 	return pagePtr, nil
 }
 
-// loadPage loads and returns a page with the given id from the database.
+// loadEdit loads and returns a page with the given id from the database.
 // If the page is deleted, minimum amount of data will be returned.
 // If userId is given, the last edit of the given pageId will be returned. It
 // might be an autosave or a snapshot, and thus not the current live page.
 // If the page couldn't be found, (nil, nil) will be returned.
-type loadEditOptions struct {
-	// If true, the last edit will be loaded for the given user, even if it's an
-	// autosave or a snapshot.
-	loadNonliveEdit bool
-	// Don't convert loaded parents string into an array of parents
-	ignoreParents bool
-}
-
 func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions) (*core.Page, error) {
 	var p core.Page
 	whereClause := "p.isCurrentEdit"
@@ -60,6 +64,20 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 				FROM pages
 				WHERE pageId=%d AND deletedBy<=0 AND (creatorId=%d OR NOT (isSnapshot OR isAutosave))
 			)`, pageId, userId)
+	} else if options.loadEditWithLimit > 0 {
+		whereClause = fmt.Sprintf(`
+			p.edit=(
+				SELECT max(edit)
+				FROM pages
+				WHERE pageId=%d AND edit<%d AND NOT isSnapshot AND NOT isAutosave
+			)`, pageId, options.loadEditWithLimit)
+	} else if options.createdAtLimit != "" {
+		whereClause = fmt.Sprintf(`
+			p.edit=(
+				SELECT max(edit)
+				FROM pages
+				WHERE pageId=%d AND createdAt<'%s' AND NOT isSnapshot AND NOT isAutosave
+			)`, pageId, options.createdAtLimit)
 	}
 	// TODO: we often don't need maxEditEver
 	query := fmt.Sprintf(`

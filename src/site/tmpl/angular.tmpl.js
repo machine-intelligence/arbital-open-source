@@ -356,6 +356,43 @@ app.service("pageService", function(userService, $http){
 			}
 		);
 	};
+	
+	// Load edit.
+	// options {
+	//   pageId: pageId to load
+	//	 editLimit: only load edits lower than this number
+	//	 createdAtLimit: only load edits that were created before this date
+	//   overwrite: overwrite the existing pages with loaded data
+	//   success: callback on success
+	//   error: callback on error
+	// }
+	this.loadEdit = function(options) {
+		var service = this;
+
+		// Set up options.
+		var success = options.success; delete options.success;
+		var error = options.error; delete options.error;
+		var overwrite = options.overwrite; delete options.overwrite;
+
+		console.log("Issuing a GET request to: /json/edit/?pageId=" + options.pageId);
+		$http({method: "GET", url: "/json/edit/", params: options}).
+			success(function(data, status){
+				console.log("JSON /edit/ data:"); console.log(data);
+				var pagesData = data["pages"];
+				for (var id in pagesData) {
+					data[id] = pagesData[id];
+				}
+				var usersData = data["users"];
+				for (var id in usersData) {
+					userService.userMap[id] = usersData[id];
+				}
+				if(success) success(pagesData, status);
+			}).error(function(data, status){
+				console.log("Error loading page:"); console.log(data); console.log(status);
+				if(error) error(data, status);
+			}
+		);
+	};
 
 	// Delete the page with the given pageId.
 	this.deletePage = function(pageId, success, error) {

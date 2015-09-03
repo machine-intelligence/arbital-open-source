@@ -192,6 +192,30 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		return false;
 	});
 
+	$topParent.on("click", ".show-page-diff", function(event) {
+		var $pageText = $topParent.find(".page-text");
+		var $editDiff = $pageText.siblings(".edit-diff");
+		if ($editDiff.is(":visible")) {
+			$pageText.show();
+			$editDiff.hide();
+		} else if ($editDiff.length > 0) {
+			$pageText.hide();
+			$editDiff.show();
+		} else {
+			pageService.loadEdit({
+				pageId: pageId,
+				createdAtLimit: $("body").attr("last-visit"),
+				success: function(data, status) {
+					var dmp = new diff_match_patch();
+					var diffs = dmp.diff_main(data[pageId].text, page.text);
+					dmp.diff_cleanupSemantic(diffs);
+					var html = dmp.diff_prettyHtml(diffs);
+					$pageText.hide().after($("<div class='edit-diff'>" + html + "</div>"));
+				},
+			});
+		}
+	});
+
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function(pageVotes) {
 		// Set up markdown.

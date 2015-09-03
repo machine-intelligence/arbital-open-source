@@ -189,6 +189,9 @@
 .public-private-label {
   color: #b8b8b8;
 }
+.show-page-diff:focus {
+  outline: 0;
+}
 .new-updated-label {
   color: #00e000;
 }
@@ -468,6 +471,9 @@
 }
 .page-outdent {
   margin: 0 0 8px 30px;
+}
+.edit-diff {
+  margin: 15px 0px;
 }
 .toggle-inline-comment-div {
   position: absolute;
@@ -1040,7 +1046,7 @@ textarea.new-comment-text {
   color: #ff0032;
 }
 .vote {
-  margin-top: 20px;
+  margin-top: 40px;
 }
 .slider {
   cursor: pointer;
