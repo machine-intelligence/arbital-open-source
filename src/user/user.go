@@ -89,17 +89,17 @@ func loadUserFromDb(r *http.Request) (*User, error) {
 	} else if !exists {
 		// Add new user
 		c.Debugf("User not found. Creating a new one: %s", appEngineUser.Email)
-		dbUser := make(database.InsertMap)
-		dbUser["email"] = appEngineUser.Email
-		dbUser["firstName"] = ""
-		dbUser["lastName"] = ""
-		dbUser["isAdmin"] = appEngineUser.Admin
-		dbUser["createdAt"] = database.Now()
-		dbUser["lastWebsiteVisit"] = database.Now()
-		dbUser["updateEmailSentAt"] = database.Now()
+		insertMap := make(database.InsertMap)
+		insertMap["email"] = appEngineUser.Email
+		insertMap["firstName"] = ""
+		insertMap["lastName"] = ""
+		insertMap["isAdmin"] = appEngineUser.Admin
+		insertMap["createdAt"] = database.Now()
+		insertMap["lastWebsiteVisit"] = database.Now()
+		insertMap["updateEmailSentAt"] = database.Now()
 
 		var result sql.Result
-		query := database.GetInsertSql("users", dbUser)
+		query := database.GetInsertSql("users", insertMap)
 		result, err = database.ExecuteSql(c, query)
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't create a new user: %v", err)
