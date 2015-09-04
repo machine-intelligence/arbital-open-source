@@ -79,23 +79,27 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 				WHERE pageId=%d AND createdAt<'%s' AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.createdAtLimit)
 	}
-	// TODO: we often don't need maxEditEver
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
-			(SELECT max(isCurrentEdit) FROM pages WHERE pageId=%[1]d) AS wasPublished,
-			(SELECT max(edit) FROM pages WHERE pageId=%[1]d) AS maxEditEver,
+			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil,
 			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pages AS p
-		WHERE p.pageId=%[1]d AND %[2]s AND
+		JOIN (
+			SELECT *
+			FROM pageInfos
+			WHERE pageId=%[1]d
+		) AS i
+		ON (p.pageId=i.pageId)
+		WHERE %[2]s AND
 			(p.groupId=0 OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
-		&p.WasPublished, &p.MaxEditEver, &p.LockedVoteType)
+		&p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {

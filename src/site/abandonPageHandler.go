@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -46,7 +47,24 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get currentEdit number.
+	// Load the page
+	var page *core.Page
+	page, err = loadFullEdit(c, data.PageId, u.Id)
+	if err != nil {
+		c.Inc("delete_page_fail")
+		c.Errorf("Couldn't load page: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Check that we have the lock
+	if page.LockedUntil > database.Now() && page.LockedBy != u.Id {
+		c.Inc("delete_page_fail")
+		c.Errorf("Don't have the lock")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// Get currentEdit number
 	var currentEdit int64
 	query := fmt.Sprintf(`SELECT ifnull(max(edit), -1) FROM pages WHERE isCurrentEdit AND pageId=%d`, data.PageId)
 	if _, err = database.QueryRowSql(c, query, &currentEdit); err != nil {
@@ -56,6 +74,7 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Delete the edit
 	query = fmt.Sprintf(`
 		UPDATE pages
 		SET deletedBy=%d
@@ -64,6 +83,18 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err = database.ExecuteSql(c, query); err != nil {
 		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't abandon a page: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Update pageInfos
+	hashmap := make(map[string]interface{})
+	hashmap["pageId"] = data.PageId
+	hashmap["lockedUntil"] = database.Now()
+	query = database.GetReplaceSql("pageInfos", hashmap)
+	if _, err = database.ExecuteSql(c, query); err != nil {
+		c.Inc("abandon_page_fail")
+		c.Errorf("Couldn't change lock: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

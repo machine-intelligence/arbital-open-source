@@ -120,6 +120,11 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if data.IsAutosave && data.IsSnapshot {
 		return http.StatusBadRequest, fmt.Sprintf("Can't be autosave and snapshot")
 	}
+	// Check that we have the lock.
+	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
+		return http.StatusBadRequest, fmt.Sprintf("Can't change locked page")
+	}
+	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
 		if len(data.Title) <= 0 && data.Type != core.CommentPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Need title")
@@ -424,6 +429,26 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if _, err = tx.Exec(query); err != nil {
 		tx.Rollback()
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new page: %v", err)
+	}
+
+	// Update pageInfos
+	hashmap = make(map[string]interface{})
+	hashmap["pageId"] = data.PageId
+	hashmap["createdAt"] = database.Now()
+	hashmap["maxEdit"] = oldPage.Edit
+	if oldPage.Edit < newEditNum {
+		hashmap["maxEdit"] = newEditNum
+	}
+	if isCurrentEdit {
+		hashmap["currentEdit"] = newEditNum
+		hashmap["lockedUntil"] = database.Now()
+		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit", "currentEdit", "lockedUntil")
+	} else {
+		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit")
+	}
+	if _, err = tx.Exec(query); err != nil {
+		tx.Rollback()
+		return http.StatusInternalServerError, fmt.Sprintf("Couldn't update pageInfos: %v", err)
 	}
 
 	// Update pagePairs tables.

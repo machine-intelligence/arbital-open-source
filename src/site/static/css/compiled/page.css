@@ -241,6 +241,10 @@
 .edit-page-body .karma-lock-form-group {
   padding-top: 30px;
 }
+.edit-page-body .edit-page-alerts {
+  margin: 0px 2%;
+  max-width: 45%;
+}
 .save-snapshot-button {
   margin: 0px 5px;
 }

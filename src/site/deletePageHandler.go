@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -45,6 +46,24 @@ func deletePageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Load the page
+	var page *core.Page
+	page, err = loadFullEdit(c, data.PageId, u.Id)
+	if err != nil {
+		c.Inc("delete_page_fail")
+		c.Errorf("Couldn't load page: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Check that we have the lock.
+	if page.LockedUntil > database.Now() && page.LockedBy != u.Id {
+		c.Inc("delete_page_fail")
+		c.Errorf("Don't have the lock")
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	// Perform delete.
 	deletedBy := u.Id
 	if data.UndoDelete {
 		deletedBy = 0

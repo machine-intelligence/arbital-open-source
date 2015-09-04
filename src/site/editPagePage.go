@@ -141,5 +141,32 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}
 
+	// Grab the lock to this page.
+	now := database.Now()
+	if data.Page.LockedBy <= 0 || data.Page.LockedUntil < now {
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = data.Page.PageId
+		hashmap["lockedBy"] = data.User.Id
+		hashmap["lockedUntil"] = time.Now().UTC().Add(core.PageLockDuration * time.Second).Format(database.TimeLayout)
+		query := database.GetInsertSql("pageInfos", hashmap, "lockedBy", "lockedUntil")
+		if _, err = database.ExecuteSql(c, query); err != nil {
+			return nil, fmt.Errorf("Couldn't add a lock: %v", err)
+		}
+		data.Page.LockedBy = hashmap["lockedBy"].(int64)
+		data.Page.LockedUntil = hashmap["lockedUntil"].(string)
+	}
+
+	// Load all the users.
+	data.UserMap = make(map[int64]*core.User)
+	data.UserMap[u.Id] = &core.User{Id: u.Id}
+	data.UserMap[data.Page.LockedBy] = &core.User{Id: data.Page.LockedBy}
+	for _, p := range data.PageMap {
+		data.UserMap[p.CreatorId] = &core.User{Id: p.CreatorId}
+	}
+	err = core.LoadUsers(c, data.UserMap)
+	if err != nil {
+		return nil, fmt.Errorf("error while loading users: %v", err)
+	}
+
 	return &data, nil
 }

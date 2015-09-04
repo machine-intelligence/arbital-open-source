@@ -43,6 +43,9 @@ const (
 
 	// When encoding a page id into a compressed string, we use this base.
 	PageIdEncodeBase = 36
+
+	// How long the page lock lasts
+	PageLockDuration = 30 * 60 // in seconds
 )
 
 type Vote struct {
@@ -112,6 +115,10 @@ type Page struct {
 	RedLinkCount int `json:"redLinkCount"`
 	// Set to pageId corresponding to the question/answer the user started creating for this page
 	ChildDraftId int64 `json:"childDraftId,string"`
+	// Page is locked by this user
+	LockedBy int64 `json:"lockedBy,string"`
+	// User has the page lock until this time
+	LockedUntil string `json:"lockedUntil"`
 
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".

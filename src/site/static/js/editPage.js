@@ -488,6 +488,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			scope.isLens = scope.page.type === "lens";
 			scope.isSecondary = scope.isQuestion || scope.isComment;
 			scope.useVerticalView = scope.isModal;
+			scope.lockedByAnother = scope.page.lockedBy != '0' && scope.page.lockedBy !== userService.user.id;
 
 			// Set up page types.
 			if (scope.isQuestion) {
