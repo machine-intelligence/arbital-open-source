@@ -177,6 +177,11 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	
 	// Subscription stuff.
 	$topParent.find(".subscribe-to-page-link").on("click", function(event) {
+		if (userService.user.id === "0") {
+			showSignupPopover($(event.currentTarget));
+			return false;
+		}
+
 		var $target = $(event.target);
 		$target.toggleClass("on");
 		var data = {

@@ -44,6 +44,20 @@ func (user *User) FullName() string {
 	return user.FirstName + " " + user.LastName
 }
 
+// IsMemberOfGroup returns true iff the user is member of the given group.
+// NOTE: we are assuming GroupIds have been loaded.
+func (user *User) IsMemberOfGroup(groupId int64) bool {
+	isMember := false
+	oldGroupIdStr := fmt.Sprintf("%d", groupId)
+	for _, groupIdStr := range user.GroupIds {
+		if groupIdStr == oldGroupIdStr {
+			isMember = true
+			break
+		}
+	}
+	return isMember
+}
+
 // Save stores the user in the session.
 func (u *User) Save(w http.ResponseWriter, r *http.Request) error {
 	/*s, err := sessions.GetSession(r)

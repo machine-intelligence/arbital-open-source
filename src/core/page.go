@@ -14,7 +14,6 @@ import (
 
 const (
 	// Various page types we have in our system.
-	BlogPageType     = "blog"
 	WikiPageType     = "wiki"
 	CommentPageType  = "comment"
 	QuestionPageType = "question"
@@ -109,6 +108,8 @@ type Page struct {
 	LockedVoteType string `json:"lockedVoteType"`
 	// Highest edit number used for this page for all users
 	MaxEditEver int `json:"maxEditEver"`
+	// Highest edit number of an autosave this user created
+	MyLastAutosaveEdit sql.NullInt64 `json:"myLastAutosaveEdit"`
 	// Map of page aliases/ids -> page title, so we can expand [alias] links
 	Links map[string]string `json:"links"`
 	//LinkedFrom   []string        `json:"linkedFrom"`
@@ -218,7 +219,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 				isAutosave,isSnapshot,isCurrentEdit,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
-				(groupId=0 OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
+				(groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
 			ORDER BY edit DESC
 		) AS p
 		GROUP BY pageId`,

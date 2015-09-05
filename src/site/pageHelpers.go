@@ -83,7 +83,8 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
-			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil,
+			i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil,
+			(SELECT max(edit) FROM pages WHERE pageId=%[1]d AND creatorId=%[3]d AND isAutosave) AS myLastAutosaveEdit,
 			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pages AS p
 		JOIN (
@@ -93,13 +94,13 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		) AS i
 		ON (p.pageId=i.pageId)
 		WHERE %[2]s AND
-			(p.groupId=0 OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=%[3]d))`,
+			(p.groupId=0 OR p.groupId IN (SELECT id FROM groups WHERE isVisible) OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
-		&p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
+		&p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.MyLastAutosaveEdit, &p.LockedVoteType)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
@@ -465,15 +466,13 @@ func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*cor
 	pageIds := core.PageIdsStringFromMap(pageMap)
 	query := fmt.Sprintf(`
 		SELECT pageId,MAX(
-				IF((isSnapshot OR isAutosave) AND creatorId=%d AND deletedBy=0 AND
-					(groupId=0 OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d)),
-				edit, -1)
+				IF((isSnapshot OR isAutosave) AND creatorId=%d AND deletedBy=0, edit, -1)
 			) as myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
 		FROM pages
 		WHERE pageId IN (%s)
 		GROUP BY pageId
 		HAVING myMaxEdit > currentEdit`,
-		userId, userId, pageIds)
+		userId, pageIds)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var pageId int64
 		var blank int
@@ -672,11 +671,10 @@ func getEditPageUrl(p *core.Page) string {
 // Check if the user can edit this page. Possible return values:
 // "" = user has correct permissions to perform the action
 // "admin" = user can perform the action, but only because they are an admin
-// "blog" = can't perform action because this is a blog page the user doesn't own
 // "comment" = can't perform action because this is a comment page the user doesn't own
 // "###" = user doesn't have at least ### karma
 func getEditLevel(p *core.Page, u *user.User) string {
-	if p.Type == core.BlogPageType || p.Type == core.CommentPageType {
+	if p.Type == core.CommentPageType {
 		if p.CreatorId == u.Id {
 			return ""
 		} else {
@@ -699,10 +697,9 @@ func getEditLevel(p *core.Page, u *user.User) string {
 // Check if the user can delete this page. Possible return values:
 // "" = user has correct permissions to perform the action
 // "admin" = user can perform the action, but only because they are an admin
-// "blog" = can't perform action because this is a blog page the user doesn't own
 // "###" = user doesn't have at least ### karma
 func getDeleteLevel(p *core.Page, u *user.User) string {
-	if p.Type == core.BlogPageType || p.Type == core.CommentPageType {
+	if p.Type == core.CommentPageType {
 		if p.CreatorId == u.Id {
 			return ""
 		} else if u.IsAdmin {

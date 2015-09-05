@@ -488,7 +488,8 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			scope.isLens = scope.page.type === "lens";
 			scope.isSecondary = scope.isQuestion || scope.isComment;
 			scope.useVerticalView = scope.isModal;
-			scope.lockedByAnother = scope.page.lockedBy != '0' && scope.page.lockedBy !== userService.user.id;
+			scope.lockExists = scope.page.lockedBy != '0' && moment.utc(scope.page.lockedUntil).isAfter(moment.utc());
+			scope.lockedByAnother = scope.lockExists && scope.page.lockedBy !== userService.user.id;
 
 			// Set up page types.
 			if (scope.isQuestion) {
@@ -498,7 +499,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			} else if(scope.isComment) {
 				scope.pageTypes = {comment: "Comment"};
 			} else {
-				scope.pageTypes = {wiki: "Wiki Page", blog: "Blog Page", lens: "Lens Page"};
+				scope.pageTypes = {wiki: "Wiki Page", lens: "Lens Page"};
 				scope.page.type = scope.page.type in scope.pageTypes ? scope.page.type : "wiki";
 			}
 
@@ -534,14 +535,22 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			// Set up group names.
 			var groupIds = userService.user.groupIds;
 			scope.groupOptions = {"0": "-"};
+			scope.canChangeGroup = !scope.isComment;
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
 					var groupName = userService.groupMap[groupId].name;
 					scope.groupOptions[groupId] = groupName;
 				}
+			} else {
+				scope.canChangeGroup = false;
 			}
-			scope.groupOptionsLength = groupIds.length + 1;
+			// Also check if we are part of the necessary group.
+			scope.groupPermissionsPassed = true;
+			if (!(scope.page.groupId in scope.groupOptions)) {
+				scope.groupPermissionsPassed = false;
+				scope.groupOptions[scope.page.groupId] = userService.groupMap[scope.page.groupId].name;
+			}
 
 			// Get the text that should appear on the primary submit button.
 			scope.getSubmitButtonText = function() {

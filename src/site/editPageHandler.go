@@ -95,9 +95,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusForbidden, ""
 	}
 
-	// Load old page
+	// Load user groups
+	if err = loadUserGroups(c, u); err != nil {
+		return http.StatusForbidden, fmt.Sprintf("Couldn't load user groups: %v", err)
+	}
+
+	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err = loadFullEdit(c, data.PageId, u.Id)
+	oldPage, err = loadFullEditWithOptions(c, data.PageId, u.Id, &loadEditOptions{})
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load the old page: %v", err)
 	} else if oldPage == nil {
@@ -105,14 +110,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 	oldPage.ProcessParents(c, nil)
 
-	// Compute edit number for the new edit of this page
-	newEditNum := 0
-	if oldPage.PageId > 0 {
-		if oldPage.IsAutosave {
-			newEditNum = oldPage.Edit
-		} else {
-			newEditNum = oldPage.MaxEditEver + 1
-		}
+	// Edit number for this new edit will be one higher than the max edit we've had so far...
+	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
+	overwritingEdit := !oldPage.WasPublished && isCurrentEdit
+	newEditNum := oldPage.MaxEditEver + 1
+	if oldPage.MyLastAutosaveEdit.Valid {
+		// ... unless we can just replace a existing autosave.
+		overwritingEdit = true
+		newEditNum = int(oldPage.MyLastAutosaveEdit.Int64)
 	}
 
 	// Error checking.
@@ -124,13 +129,18 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
 		return http.StatusBadRequest, fmt.Sprintf("Can't change locked page")
 	}
+	// Check the group settings
+	if oldPage.GroupId > 0 {
+		if !u.IsMemberOfGroup(oldPage.GroupId) {
+			return http.StatusBadRequest, fmt.Sprintf("Don't have group permissions to edit this page")
+		}
+	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
 		if len(data.Title) <= 0 && data.Type != core.CommentPageType {
 			return http.StatusBadRequest, fmt.Sprintf("Need title")
 		}
-		if data.Type != core.BlogPageType &&
-			data.Type != core.WikiPageType &&
+		if data.Type != core.WikiPageType &&
 			data.Type != core.LensPageType &&
 			data.Type != core.QuestionPageType &&
 			data.Type != core.AnswerPageType &&
@@ -163,26 +173,23 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 	}
-	if oldPage.PageId > 0 {
+	if oldPage.WasPublished {
 		if oldPage.PrivacyKey > 0 && oldPage.PrivacyKey != data.PrivacyKey {
 			return http.StatusForbidden, fmt.Sprintf("Need to specify correct privacy key to edit that page")
 		}
 		editLevel := getEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
-			if editLevel == core.BlogPageType {
-				return http.StatusBadRequest, fmt.Sprintf("Can't edit a blog page you didn't create.")
-			} else if editLevel == core.CommentPageType {
+			if editLevel == core.CommentPageType {
 				return http.StatusBadRequest, fmt.Sprintf("Can't edit a comment page you didn't create.")
 			}
 			return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
 		}
-		if oldPage.WasPublished && oldPage.PrivacyKey <= 0 && data.KeepPrivacyKey {
+		if oldPage.PrivacyKey <= 0 && data.KeepPrivacyKey {
 			return http.StatusBadRequest, fmt.Sprintf("Can't change a public page to private.")
 		}
 	}
 
 	// Check parents for errors
-	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
 	var commentParentId int64
 	var commentPrimaryPageId int64
 	if isCurrentEdit {
@@ -254,6 +261,14 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if data.Type == core.LensPageType && len(parentIds) != 1 {
 			return http.StatusBadRequest, fmt.Sprintf("Lens pages need to have exactly one parent")
 		}
+
+		// We can only change the group from to a more relaxed group:
+		// personal group -> any group -> no group
+		if oldPage.WasPublished && data.GroupId != oldPage.GroupId {
+			if oldPage.GroupId != u.Id && data.GroupId != 0 {
+				return http.StatusBadRequest, fmt.Sprintf("Can't change group to a more restrictive one")
+			}
+		}
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
@@ -268,7 +283,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 	if oldPage.WasPublished {
 		data.Type = oldPage.Type
-		data.GroupId = oldPage.GroupId
 	} else if data.Type == core.CommentPageType {
 		// Set the groupId to primary page's group name
 		query := fmt.Sprintf(`
@@ -322,7 +336,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	if isCurrentEdit {
 		// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
-		if oldPage.PageId > 0 {
+		if oldPage.WasPublished {
 			query := fmt.Sprintf("UPDATE pages SET isCurrentEdit=false WHERE pageId=%d AND isCurrentEdit", data.PageId)
 			if _, err = tx.Exec(query); err != nil {
 				tx.Rollback()
@@ -420,7 +434,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["anchorText"] = data.AnchorText
 	hashmap["anchorOffset"] = data.AnchorOffset
 	query := ""
-	overwritingEdit := oldPage.PageId > 0 && oldPage.Edit == newEditNum
 	if overwritingEdit {
 		query = database.GetReplaceSql("pages", hashmap)
 	} else {
@@ -435,8 +448,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap = make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
 	hashmap["createdAt"] = database.Now()
-	hashmap["maxEdit"] = oldPage.Edit
-	if oldPage.Edit < newEditNum {
+	hashmap["maxEdit"] = oldPage.MaxEditEver
+	if oldPage.MaxEditEver < newEditNum {
 		hashmap["maxEdit"] = newEditNum
 	}
 	if isCurrentEdit {
@@ -497,7 +510,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// Update the links table.
 	if isCurrentEdit {
 		// Delete old links.
-		if oldPage.PageId > 0 {
+		if oldPage.WasPublished {
 			query = fmt.Sprintf("DELETE FROM links WHERE parentId=%d", data.PageId)
 			_, err = tx.Exec(query)
 			if err != nil {
@@ -607,7 +620,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 
 		// Generate updates for users who are subscribed to the author.
-		if !oldPage.WasPublished && data.Type == core.BlogPageType && privacyKey <= 0 {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType && privacyKey <= 0 {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType

@@ -36,6 +36,7 @@ type User struct {
 	IsSubscribed bool `json:"isSubscribed"`
 }
 
+// FullName returns user's first and last name.
 func (u *User) FullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 }

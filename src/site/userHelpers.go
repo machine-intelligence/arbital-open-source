@@ -53,22 +53,21 @@ func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*group)
 	}
 
 	// Create the group string
-	var buffer bytes.Buffer
-	for id, _ := range groupMap {
-		buffer.WriteString(fmt.Sprintf("%d,", id))
-	}
-	groupIdsStr := buffer.String()
-	if len(groupIdsStr) >= 1 {
-		groupIdsStr = groupIdsStr[0 : len(groupIdsStr)-1]
-	} else {
-		return nil
+	groupCondition := "FALSE"
+	if len(groupMap) > 0 {
+		var buffer bytes.Buffer
+		for id, _ := range groupMap {
+			buffer.WriteString(fmt.Sprintf("%d,", id))
+		}
+		bufferStr := buffer.String()
+		groupCondition = fmt.Sprintf("id IN (%s)", bufferStr[0:len(bufferStr)-1])
 	}
 
 	// Load names
 	query := fmt.Sprintf(`
 		SELECT id,name
 		FROM groups
-		WHERE id IN (%s)`, groupIdsStr)
+		WHERE %s OR isVisible`, groupCondition)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var id int64
 		var name string
@@ -76,7 +75,11 @@ func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*group)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a group: %v", err)
 		}
-		groupMap[id].Name = name
+		if _, ok := groupMap[id]; !ok {
+			groupMap[id] = &group{Id: id, Name: name}
+		} else {
+			groupMap[id].Name = name
+		}
 		return nil
 	})
 	return err

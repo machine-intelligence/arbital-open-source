@@ -141,19 +141,23 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}
 
-	// Grab the lock to this page.
-	now := database.Now()
-	if data.Page.LockedBy <= 0 || data.Page.LockedUntil < now {
-		hashmap := make(map[string]interface{})
-		hashmap["pageId"] = data.Page.PageId
-		hashmap["lockedBy"] = data.User.Id
-		hashmap["lockedUntil"] = time.Now().UTC().Add(core.PageLockDuration * time.Second).Format(database.TimeLayout)
-		query := database.GetInsertSql("pageInfos", hashmap, "lockedBy", "lockedUntil")
-		if _, err = database.ExecuteSql(c, query); err != nil {
-			return nil, fmt.Errorf("Couldn't add a lock: %v", err)
+	// Grab the lock to this page, but only if we have the right group permissions
+	if data.Page.GroupId > 0 && u.IsMemberOfGroup(data.Page.GroupId) {
+		now := database.Now()
+		if data.Page.LockedBy <= 0 || data.Page.LockedUntil < now {
+			hashmap := make(map[string]interface{})
+			hashmap["pageId"] = data.Page.PageId
+			hashmap["createdAt"] = database.Now()
+			hashmap["currentEdit"] = -1
+			hashmap["lockedBy"] = data.User.Id
+			hashmap["lockedUntil"] = time.Now().UTC().Add(core.PageLockDuration * time.Second).Format(database.TimeLayout)
+			query := database.GetInsertSql("pageInfos", hashmap, "lockedBy", "lockedUntil")
+			if _, err = database.ExecuteSql(c, query); err != nil {
+				return nil, fmt.Errorf("Couldn't add a lock: %v", err)
+			}
+			data.Page.LockedBy = hashmap["lockedBy"].(int64)
+			data.Page.LockedUntil = hashmap["lockedUntil"].(string)
 		}
-		data.Page.LockedBy = hashmap["lockedBy"].(int64)
-		data.Page.LockedUntil = hashmap["lockedUntil"].(string)
 	}
 
 	// Load all the users.
