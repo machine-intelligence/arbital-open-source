@@ -3,18 +3,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-	{{template "style"}}
-	<link href="/static/css/compiled/page.css" rel="stylesheet">
-	{{template "scripts"}}
-	<script src="/static/js/groupsPage.js"></script>
 	<title>My Groups - Zanaduu</title>
+	{{template "style"}}
+	{{template "scripts"}}
+	{{template "angular" .}}
+	<script src="/static/js/groupsPage.js"></script>
+	<script>
+		// MainCtrl is for main controller for page.
+		app.controller("MainCtrl", function ($scope, pageService) {
+			$scope.rootPages = {};
+			$scope.childPages = {};
+			for (id in pageService.pageMap) {
+				var page = pageService.pageMap[id];
+				if (page.parents.length <= 0) {
+					$scope.rootPages[id] = page;
+				} else {
+					$scope.childPages[id] = page;
+				}
+			}
+		});
+	</script>
 </head>
 
-<body>
+<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
 {{template "navbar" .User}}
 
-<div class="filter-body-div">
-	{{range .Groups}}
+<div class="filter-body-div" ng-controller="MainCtrl">
+	{{range $k, $v := .GroupMap}}
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<h3 class="panel-title">{{.Name}}</h3>
@@ -29,7 +44,7 @@
 				</tr>
 				{{range .Members}}
 					<tr>
-						<td>{{.FirstName}} {{.LastName}}</td>
+						<td><znd-user-name user-id="{{.UserId}}"></znd-user-name></td>
 						<td>
 							{{if .CanAddMembers}}
 								<span class="glyphicon glyphicon-ok"></span>

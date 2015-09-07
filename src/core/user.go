@@ -43,7 +43,7 @@ func (u *User) FullName() string {
 
 // GetUserUrl returns URL for looking at recently created pages by the given user.
 func GetUserUrl(userId int64) string {
-	return fmt.Sprintf("/filter?user=%d", userId)
+	return fmt.Sprintf("/user/%d", userId)
 }
 
 // LoadUsers loads user information (like name) for each user in the given map.

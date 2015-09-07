@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -43,12 +44,12 @@ func loadUserGroups(c sessions.Context, u *user.User) error {
 }
 
 // loadGroupNames loads the names and other info for the groups in the map
-func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*group) error {
+func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*core.Group) error {
 	// Make sure all user groups are in the map
 	for _, idStr := range u.GroupIds {
 		id, _ := strconv.ParseInt(idStr, 10, 64)
 		if _, ok := groupMap[id]; !ok {
-			groupMap[id] = &group{Id: id}
+			groupMap[id] = &core.Group{Id: id}
 		}
 	}
 
@@ -76,9 +77,33 @@ func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*group)
 			return fmt.Errorf("failed to scan for a group: %v", err)
 		}
 		if _, ok := groupMap[id]; !ok {
-			groupMap[id] = &group{Id: id, Name: name}
+			groupMap[id] = &core.Group{Id: id, Name: name}
 		} else {
 			groupMap[id].Name = name
+		}
+		return nil
+	})
+	return err
+}
+
+// loadDomains loads the domains for the given page and adds them to the map
+func loadDomains(c sessions.Context, u *user.User, page *core.Page, pageMap map[int64]*core.Page, groupMap map[int64]*core.Group) error {
+	query := fmt.Sprintf(`
+		SELECT g.id,g.name,g.alias,g.createdAt,g.rootPageId
+		FROM groups AS g
+		JOIN pageDomainPairs as pd
+		ON (g.id=pd.domainId)
+		WHERE isDomain AND pd.pageId=%d`, page.PageId)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var g core.Group
+		err := rows.Scan(&g.Id, &g.Name, &g.Alias, &g.CreatedAt, &g.RootPageId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a domain: %v", err)
+		}
+		groupMap[g.Id] = &g
+		page.DomainIds = append(page.DomainIds, fmt.Sprintf("%d", g.Id))
+		if _, ok := pageMap[g.RootPageId]; !ok {
+			pageMap[g.RootPageId] = &core.Page{PageId: g.RootPageId}
 		}
 		return nil
 	})

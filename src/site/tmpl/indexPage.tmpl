@@ -1,0 +1,50 @@
+{{/* index.tmpl is the template for the index page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Zanaduu</title>
+	{{template "style"}}
+	{{template "scripts"}}
+	{{template "angular" .}}
+	<script>
+		// IndexCtrl is for the Index page.
+		app.controller("IndexCtrl", function ($scope, pageService) {
+			$scope.pageService = pageService;
+		});
+	</script>
+</head>
+
+<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+{{template "navbar" .User}}
+
+<div class="index-body-div container-fluid" ng-controller="IndexCtrl">
+	{{range .FeaturedDomains}}
+		<div class="panel panel-default">
+		  <div class="panel-heading">
+				<h1 class="panel-title index-page-domain-link">
+					<a href="/domains/{{.DomainAlias}}">{{.DomainName}}</a>
+				</h1>
+			</div>
+		  <div class="panel-body">
+				<div class="thumbnail">
+					<img src="{{.ImageUrl}}">
+				</div>
+		  </div>
+		
+		  <!-- List group -->
+		  <ul class="list-group">
+				{{range .ChildIds}}
+					<li class="list-group-item">
+						<znd-likes-page-title page-id="{{.}}"></znd-likes-page-title>
+					</li>
+				{{end}}
+		  </ul>
+		</div>
+	{{end}}
+</div>
+
+{{template "footer"}}
+</body>
+</html>
+{{end}}

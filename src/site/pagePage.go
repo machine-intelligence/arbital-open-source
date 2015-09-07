@@ -2,7 +2,6 @@
 package site
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"html/template"
@@ -133,40 +132,6 @@ func loadVotes(c sessions.Context, currentUserId int64, pageIds string, pageMap 
 	return err
 }
 
-// loadAliases loads subscription statuses corresponding to the given
-// pages and comments, and then updates the given maps.
-func loadAliases(c sessions.Context, submatches [][]string) (map[string]*alias, error) {
-	aliasMap := make(map[string]*alias)
-	if len(submatches) <= 0 {
-		return aliasMap, nil
-	}
-
-	var buffer bytes.Buffer
-	for _, submatch := range submatches {
-		buffer.WriteString(fmt.Sprintf(`"%s"`, submatch[1]))
-		buffer.WriteString(",")
-	}
-	aliasFullNames := strings.TrimRight(buffer.String(), ",")
-
-	query := fmt.Sprintf(`
-		SELECT a.fullName,a.pageId,p.title
-		FROM aliases as a
-		LEFT JOIN pages as p
-		ON a.pageId=p.pageId
-		WHERE a.fullName IN (%s)`,
-		aliasFullNames)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var a alias
-		err := rows.Scan(&a.FullName, &a.PageId, &a.PageTitle)
-		if err != nil {
-			return fmt.Errorf("failed to scan for an alias: %v", err)
-		}
-		aliasMap[a.FullName] = &a
-		return nil
-	})
-	return aliasMap, err
-}
-
 // pageRenderer renders the page page.
 func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
 	c := sessions.NewContext(r)
@@ -261,7 +226,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	mainPageMap := make(map[int64]*core.Page)
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	data.GroupMap = make(map[int64]*group)
+	data.GroupMap = make(map[int64]*core.Group)
 	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
@@ -333,8 +298,14 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		}
 	}
 
+	// Load the domains for the primary page
+	err = loadDomains(c, u, data.Page, data.PageMap, data.GroupMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load domains: %v", err)
+	}
+
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, core.LoadPageOptions{LoadText: true})
+	err = core.LoadPages(c, data.PageMap, u.Id, &core.LoadPageOptions{LoadText: true})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}

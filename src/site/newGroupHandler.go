@@ -11,12 +11,17 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
 )
 
 // newGroupData contains data given to us in the request.
 type newGroupData struct {
 	Name string
+
+	IsDomain   bool
+	Alias      string
+	RootPageId int64 `json:",string"`
 }
 
 // newGroupHandler handles requests to add a new group to a group.
@@ -60,6 +65,9 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if u.Karma < 200 {
 		return http.StatusForbidden, fmt.Sprintf("You don't have enough karma")
 	}
+	if data.IsDomain && !u.IsAdmin {
+		return http.StatusForbidden, fmt.Sprintf("Have to be an admin to create domains")
+	}
 
 	// Begin the transaction.
 	tx, err := database.NewTransaction(c)
@@ -75,23 +83,30 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["id"] = groupId
 	hashmap["name"] = data.Name
 	hashmap["createdAt"] = database.Now()
+	if data.IsDomain {
+		hashmap["isDomain"] = true
+		hashmap["alias"] = data.Alias
+		hashmap["rootPageId"] = data.RootPageId
+	}
 	query := database.GetInsertSql("groups", hashmap)
 	if _, err = tx.Exec(query); err != nil {
 		tx.Rollback()
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't create a group: %v", err)
 	}
 
-	// Add the user to the group as an admin.
-	hashmap = make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["groupId"] = groupId
-	hashmap["canAddMembers"] = true
-	hashmap["canAdmin"] = true
-	hashmap["createdAt"] = database.Now()
-	query = database.GetInsertSql("groupMembers", hashmap)
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't add a user to a group: %v", err)
+	if !data.IsDomain {
+		// Add the user to the group as an admin.
+		hashmap = make(map[string]interface{})
+		hashmap["userId"] = u.Id
+		hashmap["groupId"] = groupId
+		hashmap["canAddMembers"] = true
+		hashmap["canAdmin"] = true
+		hashmap["createdAt"] = database.Now()
+		query = database.GetInsertSql("groupMembers", hashmap)
+		if _, err = tx.Exec(query); err != nil {
+			tx.Rollback()
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't add a user to a group: %v", err)
+		}
 	}
 
 	// Commit transaction.
@@ -99,6 +114,18 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if err != nil {
 		tx.Rollback()
 		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
+	}
+
+	if data.IsDomain {
+		// Create a task to propagate the domain change to all children
+		var task tasks.PropagateDomainTask
+		task.PageId = data.RootPageId
+		if err := task.IsValid(); err != nil {
+			c.Errorf("Invalid task created: %v", err)
+		}
+		if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
 	}
 
 	return 0, ""

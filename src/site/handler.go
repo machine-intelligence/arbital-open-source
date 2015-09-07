@@ -22,6 +22,7 @@ type handler http.HandlerFunc
 // newPageOptions specify options when we create a new html page.
 // NOTE: make sure that default values are okay for all pages.
 type newPageOptions struct {
+	AdminOnly       bool
 	SkipLoadingUser bool
 	RequireLogin    bool
 	LoadUserGroups  bool
@@ -38,7 +39,9 @@ type commonPageData struct {
 	// Map of user ids to corresponding user objects
 	UserMap map[int64]*core.User
 	// Map of groups
-	GroupMap map[int64]*group
+	GroupMap map[int64]*core.Group
+	// Primary domain
+	Domain *core.Group
 }
 
 // newHandler returns a standard handler from given handler function.
@@ -88,6 +91,10 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 			}
 			if options.RequireLogin && u.Id <= 0 {
 				return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
+			}
+			if options.AdminOnly && !u.IsAdmin {
+				c.Debugf("======================== %+v", u)
+				return pages.UnauthorizedWith(fmt.Errorf("Have to be an admin"))
 			}
 			if u.Id > 0 {
 				query := fmt.Sprintf(`

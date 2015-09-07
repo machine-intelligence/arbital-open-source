@@ -1,0 +1,74 @@
+{{/* domainsPage.tmpl contains templates to show the Domains page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Domains - Zanaduu</title>
+	{{template "style"}}
+	{{template "scripts"}}
+	{{template "angular" .}}
+	<script src="/static/js/domainsPage.js"></script>
+</head>
+
+<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+{{template "navbar" .User}}
+
+<div class="filter-body-div">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">All Domains</h3>
+		</div>
+
+		<!-- Domains table -->
+		<table class="table">
+		  <tr>
+				<td><b>Id</b></td>
+				<td><b>Name</b></td>
+				<td><b>Alias</b></td>
+				<td><b>Root Page</b></td>
+				<td><b>Created At</b></td>
+			</tr>
+			{{range $k, $v := .GroupMap}}
+				<tr>
+					<td>{{$k}}</td>
+					<td>{{$v.Name}}</td>
+					<td>{{$v.Alias}}</td>
+					<td><znd-likes-page-title page-id="{{$v.RootPageId}}"></znd-likes-page-title></td>
+					<td>{[{"{{$v.CreatedAt}}" | simpleDateTime}]}</td>
+				</tr>
+			{{end}}
+	  </table>
+	</div>
+
+	<!-- Create new domain -->
+	<br><br>
+	<div class="panel panel-success">
+		<div class="panel-heading">
+			<h3 class="panel-title">New Domain</h3>
+		</div>
+		<div class="panel-body">
+			<form id="new-domain-form">
+				<div class="form-group">
+					<label>Name</label>
+					<input name="name" type="text" class="form-control" placeholder="Group name">
+				</div>
+				<div class="form-group">
+					<label>Alias</label>
+					<input name="alias" type="text" class="form-control" placeholder="Group alias">
+				</div>
+				<div class="form-group">
+					<label>Root page id</label>
+					<input name="rootPageId" type="text" class="form-control" placeholder="Root page id">
+				</div>
+				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+				<button type="submit" class="btn btn-primary" toggle-on-submit>Create Domain</button>
+				<div class="submit-form-error alert alert-danger" hidden></div>
+			</form>
+		</div>
+	</div>
+</div>
+
+{{template "footer"}}
+</body>
+</html>
+{{end}}

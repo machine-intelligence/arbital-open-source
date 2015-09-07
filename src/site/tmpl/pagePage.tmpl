@@ -52,6 +52,16 @@
 	<!-- Navigation column -->
 	<div class="navigation-column pull-left">
 		<!-- Parents -->
+		<div class="panel panel-default" ng-show="page.domainIds.length > 0">
+			<div class="panel-heading">Domains</div>
+			<div class="panel-body">
+				<znd-likes-page-title
+					page-id="{[{userService.groupMap[domainId].rootPageId}]}"
+					ng-repeat="domainId in page.domainIds"></znd-likes-page-title>
+			</div>
+		</div>
+
+		<!-- Parents -->
 		<div class="panel panel-default" ng-show="initialParentsCount > 0">
 			<div class="panel-heading">Parents</div>
 			<div class="panel-body">

@@ -41,6 +41,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.NewUpdateTask{}
 	} else if leasedTask.Tag == "emailUpdates" {
 		task = &tasks.EmailUpdatesTask{}
+	} else if leasedTask.Tag == "propagateDomain" {
+		task = &tasks.PropagateDomainTask{}
 	} else {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
 	}

@@ -1,6 +1,12 @@
 <!-- Display page's likes and title. -->
 
-<div ng-hide="page.title==''">
+<div ng-hide="page.title=='' && page.type!='comment'">
+	<span class="extra-info pull-right" ng-show="showRedLinkCount && page.redLinkCount>0">
+		<span class="red-link-count" title="Number of links to non-existing pages">
+			TODOs: <span ng-bind="page.redLinkCount"></span>
+		</span>
+	</span>
+
 	<!-- Likes and dislikes -->
 	<span class="page-like-span" ng-class="{'like-small-span': !isSupersized, 'like-span': isSupersized}">
 		<span class="like-count" ng-bind="page.likeCount"></span>
@@ -36,7 +42,7 @@
 				page-id={[{page.pageId}]}
 				class="intrasite-link">
 			<span class="glyphicon glyphicon-pencil" ng-show="showQuickEditLink && !page.isCurrentEdit"></span>
-			<span ng-bind="page.title === '' ? 'Comment' : page.title"></span>
+			<span ng-bind="page.type == 'comment' ? 'Comment' : page.title"></span>
 		</a>
 	</span>
 

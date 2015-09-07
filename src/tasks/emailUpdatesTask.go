@@ -97,7 +97,7 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, nil)
 
 	// Load pages.
-	err = core.LoadPages(c, pageMap, userId, core.LoadPageOptions{})
+	err = core.LoadPages(c, pageMap, userId, nil)
 	if err != nil {
 		return fmt.Errorf("error while loading pages: %v", err)
 	}

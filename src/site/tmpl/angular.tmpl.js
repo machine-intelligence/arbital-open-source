@@ -39,7 +39,7 @@ app.service("userService", function(){
 		return Math.floor(this.karma * {{GetMaxKarmaLockFraction}});
 	};
 	this.getUserUrl = function(userId) {
-		return "/filter?user=" + userId;
+		return "/user/" + userId;
 	};
 
 	// Loaded groups.
@@ -49,6 +49,10 @@ app.service("userService", function(){
 				"{{.Id}}": {
 					id: "{{.Id}}",
 					name: "{{.Name}}",
+					alias: "{{.Alias}}",
+					isVisible: "{{.IsVisible}}",
+					rootPageId: "{{.RootPageId}}",
+					createdAt: "{{.CreatedAt}}",
 				},
 			{{end}}
 		{{end}}
@@ -504,8 +508,7 @@ app.service("autocompleteService", function($http){
 // simpleDateTime filter converts our typical date&time string into local time.
 app.filter("simpleDateTime", function() {
 	return function(input) {
-		var date = new Date(input + " UTC");
-		return date.toLocaleString().format("dd-m-yy");
+		return moment.utc(input).format("LT, l");
 	};
 });
 

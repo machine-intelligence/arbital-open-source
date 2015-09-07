@@ -1,0 +1,67 @@
+{{/* recentPagesPage.tmpl is the main body of the recent pages page */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>User - Zanaduu</title>
+	{{template "style"}}
+	{{template "scripts"}}
+	{{template "angular" .}}
+	<script src="/static/js/editPage.js"></script>
+	<script src="/static/js/pagePage.js"></script>
+	<script>
+		// MainCtrl is for the page.
+		app.controller("MainCtrl", function($scope, pageService, userService) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.recentlyEditedIds = [{{range .RecentlyEditedIds}}{{.}},{{end}}];
+			$scope.recentlyVisitedIds = [{{range .RecentlyVisitedIds}}{{.}},{{end}}];
+			$scope.recentlyEditedCommentIds = [{{range .RecentlyEditedCommentIds}}{{.}},{{end}}];
+		
+			$(".subscribe-to-user-link").on("click", function(event) {
+				userService.subscribeToUser($(event.target));
+				return false;
+			});
+		});
+	</script>
+</head>
+
+<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+{{template "navbar" .User}}
+
+<div class="filter-body-div" ng-controller="MainCtrl">
+	<!-- User header -->
+	<h3>
+		<znd-user-name user-id="{{.AuthorId}}"></znd-user-name>
+		<a href="#"
+			class="subscribe-to-user-link glyphicon glyphicon-eye-open {{if .IsSubscribedToUser}}on{{end}}"
+			user-id="{{.AuthorId}}"></a>
+	</h3>
+
+	<!-- Panels -->
+	<div class="panel panel-default">
+	  <div class="panel-heading">Recently Edited Pages</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyEditedIds"></znd-likes-page-title>
+	  </div>
+	</div>
+
+	<div class="panel panel-default" ng-hide="userService.user.id !== '{{.AuthorId}}'">
+	  <div class="panel-heading">Recently Visited</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></znd-likes-page-title>
+	  </div>
+	</div>
+
+	<div class="panel panel-default">
+	  <div class="panel-heading">Recently Edited Comments</div>
+	  <div class="panel-body">
+	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyEditedCommentIds" show-created-at="true"></znd-likes-page-title>
+	  </div>
+	</div>
+</div>
+
+{{template "footer"}}
+</body>
+</html>
+{{end}}

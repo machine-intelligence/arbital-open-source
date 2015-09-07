@@ -50,15 +50,16 @@ func init() {
 		return appengine.NewContext(r)
 	})
 
-	router := mux.NewRouter()
-	router.StrictSlash(true)
-	r := router.Host("{domain1:[A-Za-z0-9_-]*}{subdomaindot:\\.?}{domain2:.*}").Subrouter()
+	r := mux.NewRouter()
+	r.StrictSlash(true)
 
 	// Public facing handlers for pages
+	r.HandleFunc(domainIndexPage.URI, stdHandler(domainIndexPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(domainsPage.URI, stdHandler(domainsPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(editPagePage.URI, stdHandler(editPagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(editPrivatePagePage.URI, stdHandler(editPrivatePagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(explorePage.URI, stdHandler(explorePage.ServeHTTP)).Methods("GET", "HEAD")
-	r.HandleFunc(filterPage.URI, stdHandler(filterPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(exploreAllPage.URI, stdHandler(explorePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(groupsPage.URI, stdHandler(groupsPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(indexPage.URI, stdHandler(indexPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(newPagePage.URI, stdHandler(newPagePage.ServeHTTP)).Methods("GET", "HEAD")
@@ -66,6 +67,7 @@ func init() {
 	r.HandleFunc(pagePage.URI, stdHandler(pagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(privatePagePage.URI, stdHandler(privatePagePage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(updatesPage.URI, stdHandler(updatesPage.ServeHTTP)).Methods("GET", "HEAD")
+	r.HandleFunc(userPage.URI, stdHandler(userPage.ServeHTTP)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
 	r.HandleFunc("/json/search/", searchJsonHandler).Methods("GET")
@@ -98,7 +100,7 @@ func init() {
 	r.HandleFunc(errorPage.URI, stdHandler(errorPage.ServeHTTP)).Methods("GET")
 	r.NotFoundHandler = http.HandlerFunc(stdHandler(page404.ServeHTTP))
 
-	http.Handle("/", router)
+	http.Handle("/", r)
 }
 
 // writeJson converts the given map to JSON and writes it to the given writer.

@@ -56,7 +56,7 @@ func updatesInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, data.User.Id, core.LoadPageOptions{})
+	err = core.LoadPages(c, data.PageMap, data.User.Id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
@@ -72,7 +72,7 @@ func updatesInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, data.PageMap)
 
 	// Load all the groups.
-	data.GroupMap = make(map[int64]*group)
+	data.GroupMap = make(map[int64]*core.Group)
 	err = loadGroupNames(c, u, data.GroupMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)

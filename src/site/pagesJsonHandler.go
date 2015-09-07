@@ -147,7 +147,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 			}
 		}
 
-		err = core.LoadPages(c, pageMap, u.Id, core.LoadPageOptions{LoadText: true, LoadSummary: true})
+		err = core.LoadPages(c, pageMap, u.Id, &core.LoadPageOptions{LoadText: true, LoadSummary: true})
 		if err != nil {
 			return nil, fmt.Errorf("error while loading pages: %v", err)
 		}

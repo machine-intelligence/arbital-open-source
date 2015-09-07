@@ -120,7 +120,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 
 	// Load parents
 	data.PageMap = make(map[int64]*core.Page)
-	data.GroupMap = make(map[int64]*group)
+	data.GroupMap = make(map[int64]*core.Group)
 	pageMap := make(map[int64]*core.Page)
 	pageMap[data.Page.PageId] = data.Page
 	err = data.Page.ProcessParents(c, data.PageMap)
@@ -129,7 +129,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, core.LoadPageOptions{})
+	err = core.LoadPages(c, data.PageMap, u.Id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}

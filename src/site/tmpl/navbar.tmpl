@@ -5,9 +5,11 @@
 		<div class="navbar-header">
 			<a class="navbar-brand" href="/">Zanaduu</a>
 		</div>
-		<ul class="nav navbar-nav">
-			<li><a href="/explore">Explore</a></li>
-		</ul>
+		{{if ne .DomainAlias ""}}
+			<div class="navbar-text">
+				<a ng-href="/explore/{{.DomainAlias}}" class="navbar-link">Explore</a>
+			</div>
+		{{end}}
 		<ul class="nav navbar-nav navbar-right">
 			{{if .IsLoggedIn}}
 				<li><a href="/edit">+New Page</a></li>
@@ -17,9 +19,10 @@
 					<ul class="dropdown-menu" role="menu">
 						{{if .IsAdmin}}
 							<li><a class="admin" href="/becomeUser/?id=0">Become User</a></li>
+							<li><a class="admin" href="/domains">All Domains</a></li>
 							<li class="divider"></li>
 						{{end}}
-						<li><a href="{{GetUserUrl UserId}}">My Pages</a></li>
+						<li><a href="{{GetUserUrl UserId}}">My Profile</a></li>
 						<li><a href="/groups">My Groups</a></li>
 						<li><a href="{{.LogoutLink}}" id="logout">Log Out</a></li>
 					</ul>

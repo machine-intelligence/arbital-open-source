@@ -127,6 +127,9 @@ type Page struct {
 	// Comments.
 	CommentIds []string `json:"commentIds"`
 
+	// Domains.
+	DomainIds []string `json:"domainIds"`
+
 	// Whether or not this page has children
 	HasChildren bool `json:"hasChildren"`
 	// Whether or not this page has parents
@@ -195,7 +198,10 @@ type LoadPageOptions struct {
 }
 
 // LoadPages loads the given pages.
-func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, options LoadPageOptions) error {
+func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, options *LoadPageOptions) error {
+	if options == nil {
+		options = &LoadPageOptions{}
+	}
 	if len(pageMap) <= 0 {
 		return nil
 	}

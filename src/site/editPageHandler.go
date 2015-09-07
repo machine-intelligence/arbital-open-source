@@ -684,6 +684,16 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
+
+		// Create a task to propagate the domain change to all children
+		var task tasks.PropagateDomainTask
+		task.PageId = data.PageId
+		if err := task.IsValid(); err != nil {
+			c.Errorf("Invalid task created: %v", err)
+		}
+		if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
 	}
 
 	// Return the full page url if the submission was for the current edit.

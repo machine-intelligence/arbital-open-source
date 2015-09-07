@@ -36,7 +36,7 @@ type Renderer func(w http.ResponseWriter, r *http.Request, u *user.User) *Result
 type Page struct {
 	URI       string   // URI path
 	Render    Renderer // func to render the page
-	templates []string // backing templates
+	Templates []string // backing templates
 }
 
 // Add creates a new page.
@@ -46,17 +46,18 @@ func Add(uri string, render Renderer, tmpls ...string) Page {
 	return Page{
 		URI:       uri,
 		Render:    render,
-		templates: tmpls,
+		Templates: tmpls,
 	}
 }
 
 // Result is the result of rendering a page.
 type Result struct {
-	data         interface{}      // Data to render the page.
-	responseCode int              // HTTP response code.
-	err          error            // Error, or nil.
-	next         string           // Next uri, if applicable.
-	funcMap      template.FuncMap // Functions map
+	data                interface{}      // Data to render the page.
+	responseCode        int              // HTTP response code.
+	err                 error            // Error, or nil.
+	next                string           // Next uri, if applicable.
+	funcMap             template.FuncMap // Functions map
+	additionalTemplates []string         // Optional additional templates used to compile the page
 }
 
 // AddFuncMap adds the functions from the given funcMap to the functions
@@ -68,6 +69,12 @@ func (r *Result) AddFuncMap(funcMap template.FuncMap) *Result {
 	for k, v := range funcMap {
 		r.funcMap[k] = v
 	}
+	return r
+}
+
+// AddAdditionalTemplates adds more .tmpl files to be used in compiling the page.
+func (r *Result) AddAdditionalTemplates(tmpls []string) *Result {
+	r.additionalTemplates = append(r.additionalTemplates, tmpls...)
 	return r
 }
 
@@ -175,7 +182,8 @@ func (p Page) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	template := template.Must(template.New(p.URI).Funcs(pr.funcMap).ParseFiles(p.templates...))
+	allTemplates := append(p.Templates, pr.additionalTemplates...)
+	template := template.Must(template.New(p.URI).Funcs(pr.funcMap).ParseFiles(allTemplates...))
 	err := template.ExecuteTemplate(w, BaseTemplate, pr.data)
 	if err != nil {
 		// TODO: If this happens, partial template data is still written

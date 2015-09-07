@@ -59,7 +59,7 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 	delete(pageMap, data.ParentId)
 
 	// Load pages.
-	err = core.LoadPages(c, pageMap, u.Id, core.LoadPageOptions{})
+	err = core.LoadPages(c, pageMap, u.Id, nil)
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
