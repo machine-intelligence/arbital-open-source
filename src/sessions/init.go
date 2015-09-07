@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"zanaduu3/src/config"
 
@@ -20,10 +21,11 @@ var (
 
 // GetDomain returns the domain we are working under.
 func GetDomain() string {
+	address := config.XC.Site.Dev.Address
 	if Live {
 		return config.XC.Site.Live.Address
 	}
-	return config.XC.Site.Dev.Address
+	return strings.TrimPrefix(address, "http://")
 }
 
 // GetSession returns the user's session.

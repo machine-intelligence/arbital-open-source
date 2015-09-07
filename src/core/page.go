@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -276,4 +277,67 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 		return nil
 	})
 	return err
+}
+
+func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, configAddress string) error {
+	// Delete old links.
+	query := fmt.Sprintf("DELETE FROM links WHERE parentId=%d", pageId)
+	_, err := tx.Exec(query)
+	if err != nil {
+		return fmt.Errorf("Couldn't delete old links: %v", err)
+	}
+
+	// NOTE: these regexps are waaaay too simplistic and don't account for the
+	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
+	// brackets / parens.
+	aliasesAndIds := make([]string, 0, 0)
+	extractLinks := func(exp *regexp.Regexp) {
+		submatches := exp.FindAllStringSubmatch(text, -1)
+		for _, submatch := range submatches {
+			aliasesAndIds = append(aliasesAndIds, submatch[1])
+		}
+	}
+	// Find directly encoded urls
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/([0-9]+)"))
+	// Find ids and aliases using [id/alias] syntax.
+	extractLinks(regexp.MustCompile("\\[([A-Za-z0-9_-]+?)\\](?:[^(]|$)"))
+	// Find ids and aliases using [text](id/alias) syntax.
+	extractLinks(regexp.MustCompile("\\[.+?\\]\\(([A-Za-z0-9_-]+?)\\)"))
+	if len(aliasesAndIds) > 0 {
+		// Populate linkTuples
+		linkMap := make(map[string]bool) // track which aliases we already added to the list
+		linkTuples := make([]string, 0, 0)
+		for _, alias := range aliasesAndIds {
+			if linkMap[alias] {
+				continue
+			}
+			insertValue := fmt.Sprintf("(%d, '%s')", pageId, alias)
+			linkTuples = append(linkTuples, insertValue)
+			linkMap[alias] = true
+		}
+
+		// Insert all the tuples into the links table.
+		linkTuplesStr := strings.Join(linkTuples, ",")
+		query = fmt.Sprintf(`
+			INSERT INTO links (parentId,childAlias)
+			VALUES %s`, linkTuplesStr)
+		if _, err = tx.Exec(query); err != nil {
+			return fmt.Errorf("Couldn't insert links: %v", err)
+		}
+	}
+	return nil
+}
+
+// ExtractSummary extracts the summary text from a page text.
+func ExtractSummary(text string) string {
+	// Try to extract the summary out of the text.
+	re := regexp.MustCompile("(?ms)^ {0,3}Summary ?: *\n?(.+?)(\n$|\\z)")
+	submatches := re.FindStringSubmatch(text)
+	if len(submatches) > 0 {
+		return strings.TrimSpace(submatches[1])
+	}
+	// If no summary tags, just extract the first line.
+	re = regexp.MustCompile("^(.*)")
+	submatches = re.FindStringSubmatch(text)
+	return strings.TrimSpace(submatches[1])
 }

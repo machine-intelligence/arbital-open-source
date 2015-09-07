@@ -7,6 +7,7 @@ import (
 
 	"appengine/urlfetch"
 
+	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
 )
 
@@ -14,14 +15,14 @@ var monitoringAPI = getMonitoringAPI()
 
 // getMonitoringAPI returns the URL to use when reporting monitoring data.
 func getMonitoringAPI() string {
-	host := fmt.Sprintf("http://%s:%s", xc.Vm.Monitoring.Address, "8086")
-	monDb := xc.Monitoring.Influx.Database.Dev
+	host := fmt.Sprintf("http://%s:%s", config.XC.Vm.Monitoring.Address, "8086")
+	monDb := config.XC.Monitoring.Influx.Database.Dev
 	if sessions.Live {
-		monDb = xc.Monitoring.Influx.Database.Live
+		monDb = config.XC.Monitoring.Influx.Database.Live
 	}
 	return fmt.Sprintf(
 		"%s/db/%s/series?u=%s&p=%s", host, monDb,
-		xc.Monitoring.Influx.Monitoring.User, xc.Monitoring.Influx.Monitoring.Password)
+		config.XC.Monitoring.Influx.Monitoring.User, config.XC.Monitoring.Influx.Monitoring.Password)
 }
 
 // reportMonitoring handles the task queue for reporting of monitoring data.

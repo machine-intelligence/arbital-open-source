@@ -315,19 +315,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 
-	// Try to extract the summary out of the text.
-	re := regexp.MustCompile("(?ms)^ {0,3}Summary ?: *\n?(.+?)(\n$|\\z)")
-	submatches := re.FindStringSubmatch(data.Text)
-	summary := ""
-	if len(submatches) > 0 {
-		summary = strings.TrimSpace(submatches[1])
-	} else {
-		// If no summary tags, just extract the first line.
-		re := regexp.MustCompile("^(.*)")
-		submatches := re.FindStringSubmatch(data.Text)
-		summary = strings.TrimSpace(submatches[1])
-	}
-
 	// Begin the transaction.
 	tx, err := database.NewTransaction(c)
 	if err != nil {
@@ -415,7 +402,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["creatorId"] = u.Id
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
-	hashmap["summary"] = summary
+	hashmap["summary"] = core.ExtractSummary(data.Text)
 	hashmap["alias"] = data.Alias
 	hashmap["sortChildrenBy"] = data.SortChildrenBy
 	hashmap["edit"] = newEditNum
@@ -509,53 +496,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Update the links table.
 	if isCurrentEdit {
-		// Delete old links.
-		if oldPage.WasPublished {
-			query = fmt.Sprintf("DELETE FROM links WHERE parentId=%d", data.PageId)
-			_, err = tx.Exec(query)
-			if err != nil {
-				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old links: %v", err)
-			}
-		}
-		// NOTE: these regexps are waaaay too simplistic and don't account for the
-		// entire complexity of Markdown, like 4 spaces, backticks, and escaped
-		// brackets / parens.
-		aliasesAndIds := make([]string, 0, 0)
-		extractLinks := func(exp *regexp.Regexp) {
-			submatches := exp.FindAllStringSubmatch(data.Text, -1)
-			for _, submatch := range submatches {
-				aliasesAndIds = append(aliasesAndIds, submatch[1])
-			}
-		}
-		// Find directly encoded urls
-		extractLinks(regexp.MustCompile(regexp.QuoteMeta(getConfigAddress()) + "/pages/([0-9]+)"))
-		// Find ids and aliases using [id/alias] syntax.
-		extractLinks(regexp.MustCompile("\\[([A-Za-z0-9_-]+?)\\](?:[^(]|$)"))
-		// Find ids and aliases using [text](id/alias) syntax.
-		extractLinks(regexp.MustCompile("\\[.+?\\]\\(([A-Za-z0-9_-]+?)\\)"))
-		if len(aliasesAndIds) > 0 {
-			// Populate linkTuples
-			linkMap := make(map[string]bool) // track which aliases we already added to the list
-			linkTuples := make([]string, 0, 0)
-			for _, alias := range aliasesAndIds {
-				if linkMap[alias] {
-					continue
-				}
-				insertValue := fmt.Sprintf("(%d, '%s')", data.PageId, alias)
-				linkTuples = append(linkTuples, insertValue)
-				linkMap[alias] = true
-			}
-
-			// Insert all the tuples into the links table.
-			linkTuplesStr := strings.Join(linkTuples, ",")
-			query = fmt.Sprintf(`
-				INSERT INTO links (parentId,childAlias)
-				VALUES %s`, linkTuplesStr)
-			if _, err = tx.Exec(query); err != nil {
-				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert links: %v", err)
-			}
+		err = core.UpdatePageLinks(c, tx, data.PageId, data.Text, sessions.GetDomain())
+		if err != nil {
+			tx.Rollback()
+			return http.StatusInternalServerError, fmt.Sprintf("Couldn't update links: %v", err)
 		}
 	}
 

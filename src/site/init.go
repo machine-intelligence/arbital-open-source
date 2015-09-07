@@ -5,11 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"appengine"
 
-	"zanaduu3/src/config"
 	"zanaduu3/src/logger"
 	"zanaduu3/src/sessions"
 
@@ -17,17 +15,8 @@ import (
 )
 
 var (
-	xc        = config.Load()
 	baseTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl"}
 )
-
-func getConfigAddress() string {
-	address := xc.Site.Dev.Address
-	if sessions.Live {
-		return xc.Site.Live.Address
-	}
-	return strings.TrimPrefix(address, "http://")
-}
 
 // notFoundHandler serves HTTP 404 when no matching handler is registered.
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
@@ -90,6 +79,7 @@ func init() {
 
 	// Admin stuff
 	r.HandleFunc("/updatePageIndex/", updatePageIndexHandler).Methods("GET")
+	r.HandleFunc("/updateMetadata/", updateMetadataHandler).Methods("GET")
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
 
 	// Various internal handlers
