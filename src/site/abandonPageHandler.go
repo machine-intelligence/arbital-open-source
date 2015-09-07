@@ -78,8 +78,8 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 	query = fmt.Sprintf(`
 		UPDATE pages
 		SET deletedBy=%d
-		WHERE pageId=%d AND edit > %d AND creatorId=%d AND (isSnapshot || isAutosave)`,
-		u.Id, data.PageId, currentEdit, u.Id)
+		WHERE pageId=%d AND creatorId=%d AND isAutosave`,
+		u.Id, data.PageId, u.Id)
 	if _, err = database.ExecuteSql(c, query); err != nil {
 		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't abandon a page: %v", err)

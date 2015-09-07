@@ -174,10 +174,15 @@ func loadChildDraft(c sessions.Context, userId int64, p *core.Page, pageMap map[
 		// Load potential question draft.
 		query := fmt.Sprintf(`
 			SELECT pageId
-			FROM pages
-			WHERE type="question" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
-			GROUP BY pageId
-			HAVING SUM(isCurrentEdit)<=0`, userId, strconv.FormatInt(p.PageId, core.PageIdEncodeBase))
+			FROM (
+				SELECT pageId,creatorId
+				FROM pages
+				WHERE type="question" AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+				GROUP BY pageId
+				HAVING SUM(isCurrentEdit)<=0
+			) AS p
+			WHERE creatorId=%d
+			LIMIT 1`, strconv.FormatInt(p.PageId, core.PageIdEncodeBase), userId)
 		_, err := database.QueryRowSql(c, query, &p.ChildDraftId)
 		if err != nil {
 			return fmt.Errorf("Couldn't load question draft: %v", err)
@@ -186,10 +191,15 @@ func loadChildDraft(c sessions.Context, userId int64, p *core.Page, pageMap map[
 		// Load potential answer draft.
 		query := fmt.Sprintf(`
 			SELECT pageId
-			FROM pages
-			WHERE type="answer" AND creatorId=%d AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
-			GROUP BY pageId
-			HAVING SUM(isCurrentEdit)<=0`, userId, strconv.FormatInt(p.PageId, core.PageIdEncodeBase))
+			FROM (
+				SELECT pageId,creatorId
+				FROM pages
+				WHERE type="answer" AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+				GROUP BY pageId
+				HAVING SUM(isCurrentEdit)<=0
+			) AS p
+			WHERE creatorId=%d
+			LIMIT 1`, strconv.FormatInt(p.PageId, core.PageIdEncodeBase), userId)
 		_, err := database.QueryRowSql(c, query, &p.ChildDraftId)
 		if err != nil {
 			return fmt.Errorf("Couldn't load answer draft id: %v", err)

@@ -142,7 +142,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	}
 
 	// Grab the lock to this page, but only if we have the right group permissions
-	if data.Page.GroupId > 0 && u.IsMemberOfGroup(data.Page.GroupId) {
+	if data.Page.GroupId <= 0 || u.IsMemberOfGroup(data.Page.GroupId) {
 		now := database.Now()
 		if data.Page.LockedBy <= 0 || data.Page.LockedUntil < now {
 			hashmap := make(map[string]interface{})
