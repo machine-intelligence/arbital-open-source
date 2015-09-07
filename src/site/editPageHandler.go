@@ -651,18 +651,9 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
+		}
 
-			// Upvote the page.
-			hashmap := make(map[string]interface{})
-			hashmap["userId"] = u.Id
-			hashmap["pageId"] = data.PageId
-			hashmap["value"] = 1
-			hashmap["createdAt"] = database.Now()
-			query = database.GetInsertSql("likes", hashmap)
-			if _, err = database.ExecuteSql(c, query); err != nil {
-				c.Errorf("Couldn't add a vote: %v", err)
-			}
-		} else if !oldPage.WasPublished && data.Type == core.CommentPageType {
+		if !oldPage.WasPublished && data.Type == core.CommentPageType {
 			// This is a new comment
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id

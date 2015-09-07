@@ -28,6 +28,7 @@ type userTmplData struct {
 	// True iff the current user is subsribed to the author
 	IsSubscribedToUser       bool
 	RecentlyEditedIds        []string
+	MostTodosIds             []string
 	RecentlyEditedCommentIds []string
 	RecentlyVisitedIds       []string
 }
@@ -93,7 +94,30 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		LIMIT %d`, data.AuthorId, indexPanelLimit)
 	data.RecentlyEditedIds, err = loadPageIds(c, query, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading recently edited by me page ids: %v", err)
+		return nil, fmt.Errorf("error while loading recently edited page ids: %v", err)
+	}
+
+	if data.User.Id == data.AuthorId {
+		// Load page ids with the most todos.
+		query = fmt.Sprintf(`
+			SELECT l.parentId
+			FROM (
+				SELECT l.parentId AS parentId,l.childAlias AS childAlias
+				FROM links AS l
+				JOIN pages AS p
+				ON (l.parentId=p.pageId)
+				WHERE p.creatorId=%d AND p.type!="comment" AND p.isCurrentEdit
+			) AS l
+			LEFT JOIN pages AS p
+			ON (l.childAlias=p.alias)
+			GROUP BY 1
+			ORDER BY SUM(IF(p.pageId IS NULL, 1, 0)) DESC
+			LIMIT %d`, data.AuthorId, indexPanelLimit)
+		c.Debugf(query)
+		data.MostTodosIds, err = loadPageIds(c, query, data.PageMap)
+		if err != nil {
+			return nil, fmt.Errorf("error while loading most todos page ids: %v", err)
+		}
 	}
 
 	// Load number of red links for recently edited pages.
