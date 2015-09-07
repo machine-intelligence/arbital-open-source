@@ -255,7 +255,7 @@ func loadLinks(c sessions.Context, pageMap map[int64]*core.Page) error {
 		query = fmt.Sprintf(`
 			SELECT alias,title
 			FROM pages
-			WHERE isCurrentEdit AND deletedBy=0 AND alias IN (%s)`, aliasesStr)
+			WHERE isCurrentEdit AND deletedBy=0 AND (alias IN (%s) OR pageId in (%s))`, aliasesStr, aliasesStr)
 		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 			var alias, title string
 			err := rows.Scan(&alias, &title)
