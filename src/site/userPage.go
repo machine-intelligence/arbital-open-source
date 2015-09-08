@@ -113,7 +113,6 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			GROUP BY 1
 			ORDER BY SUM(IF(p.pageId IS NULL, 1, 0)) DESC
 			LIMIT %d`, data.AuthorId, indexPanelLimit)
-		c.Debugf(query)
 		data.MostTodosIds, err = loadPageIds(c, query, data.PageMap)
 		if err != nil {
 			return nil, fmt.Errorf("error while loading most todos page ids: %v", err)

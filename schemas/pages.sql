@@ -48,6 +48,8 @@ CREATE TABLE pages (
 	parents VARCHAR(1024) NOT NULL,
 	/* If not 0, this edit has been deleted by this user id. */
 	deletedBy BIGINT NOT NULL,
+	/* Number of TODOs in this page. */
+	todoCount INT NOT NULL,
 
 	/* == Following variables are set for inline comments and questions. == */
 	/* Text of the paragraph the anchor is in. */

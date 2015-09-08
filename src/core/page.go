@@ -79,6 +79,7 @@ type Page struct {
 	IsAutosave     bool   `json:"isAutosave"`
 	IsSnapshot     bool   `json:"isSnapshot"`
 	IsCurrentEdit  bool   `json:"isCurrentEdit"`
+	TodoCount      int    `json:"todoCount"`
 	AnchorContext  string `json:"anchorContext"`
 	AnchorText     string `json:"anchorText"`
 	AnchorOffset   int    `json:"anchorOffset"`
@@ -223,7 +224,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 		SELECT * FROM (
 			SELECT pageId,edit,type,creatorId,createdAt,title,%s,length(text),karmaLock,privacyKey,
 				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupId,parents,
-				isAutosave,isSnapshot,isCurrentEdit,anchorContext,anchorText,anchorOffset
+				isAutosave,isSnapshot,isCurrentEdit,todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
 				(groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
@@ -238,7 +239,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 			&p.Text, &p.TextLength, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
-			&p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
+			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
@@ -267,6 +268,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 			op.IsAutosave = p.IsAutosave
 			op.IsSnapshot = p.IsSnapshot
 			op.IsCurrentEdit = p.IsCurrentEdit
+			op.TodoCount = p.TodoCount
 			op.AnchorContext = p.AnchorContext
 			op.AnchorText = p.AnchorText
 			op.AnchorOffset = p.AnchorOffset
@@ -330,14 +332,20 @@ func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, 
 
 // ExtractSummary extracts the summary text from a page text.
 func ExtractSummary(text string) string {
-	// Try to extract the summary out of the text.
 	re := regexp.MustCompile("(?ms)^ {0,3}Summary ?: *\n?(.+?)(\n$|\\z)")
 	submatches := re.FindStringSubmatch(text)
 	if len(submatches) > 0 {
 		return strings.TrimSpace(submatches[1])
 	}
-	// If no summary tags, just extract the first line.
+	// If no summary paragraph, just extract the first line.
 	re = regexp.MustCompile("^(.*)")
 	submatches = re.FindStringSubmatch(text)
 	return strings.TrimSpace(submatches[1])
+}
+
+// ExtractTodoCount extracts the number of todos from a page text.
+func ExtractTodoCount(text string) int {
+	re := regexp.MustCompile("\\[todo: ?[^\\]]*\\]")
+	submatches := re.FindAllString(text, -1)
+	return len(submatches)
 }

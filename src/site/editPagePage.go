@@ -40,7 +40,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 
 	pageAlias := mux.Vars(r)["alias"]
 	// If we are creating a new page, redirect to a new id
-	if len(pageAlias) <= 0 {
+	if len(pageAlias) <= 0 || pageAlias == "0" {
 		rand.Seed(time.Now().UnixNano())
 		return pages.RedirectWith(getEditPageUrl(&core.Page{PageId: rand.Int63()}))
 	}

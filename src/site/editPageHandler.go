@@ -417,6 +417,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
 	hashmap["summary"] = core.ExtractSummary(data.Text)
+	hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 	hashmap["alias"] = data.Alias
 	hashmap["sortChildrenBy"] = data.SortChildrenBy
 	hashmap["edit"] = newEditNum
@@ -527,7 +528,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// else. So we print out errors, but don't return an error. ===
 
 	if isCurrentEdit {
-
 		// Update pages' index.
 		p := &tasks.PageIndexDoc{}
 		p.PageId = search.Atom(fmt.Sprintf("%d", data.PageId))

@@ -4,26 +4,48 @@ var zndMarkdown = zndMarkdown || function() {
 		var page = pageService.pageMap[pageId];
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
-	
-		// Convert [Text](Alias) spans into links.
-		var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
-		var compexLinkRegexp = new RegExp(noBacktickOrBracket + 
-			"\\[([^[\\]()]+?)\\]" + // match [Text]
-			"\\(([A-Za-z0-9_-]+?)\\)", "g"); // match (Alias)
+
 		var aliasRegexp = new RegExp("[A-Za-z0-9_-]+", "");
+		var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
+		var noParen = "(?=$|[^(])";
+
+		// Process [todo:text] spans.
+		var todoLinkRegexp = new RegExp(noBacktickOrBracket + 
+				"\\[todo: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(compexLinkRegexp, function (whole, prefix, text, alias) {
-				if (alias.match(aliasRegexp)) {
-					var url = "http://" + host + "/pages/" + alias;
-					return prefix + "[" + text + "](" + url + ")";
-				} else {
-					return prefix + "[" + text + "](" + alias + ")";
-				}
+			return text.replace(todoLinkRegexp, function (whole, prefix, alias) {
+				return prefix;
 			});
 		});
 
-		// Convert [Alias] spans into links.
-		var noParen = "(?=$|[^(])";
+		// Process [comment:text] spans.
+		var commentLinkRegexp = new RegExp(noBacktickOrBracket + 
+				"\\[comment: ?([^\\]]+?)\\]" + noParen, "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(commentLinkRegexp, function (whole, prefix, alias) {
+				return prefix;
+			});
+		});
+
+		// Convert [ text] spans into links.
+		var spaceTextRegexp = new RegExp(noBacktickOrBracket + 
+				"\\[ ([^\\]]+?)\\]" + noParen, "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
+				return prefix + "[" + text + "](" + "0" + ")";
+			});
+		});
+
+		// Convert [alias/url text] spans into links.
+		var forwardLinkRegexp = new RegExp(noBacktickOrBracket + 
+				"\\[([^ \\]]+?) ([^\\]]+?)\\]" + noParen, "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
+				return prefix + "[" + text + "](" + alias + ")";
+			});
+		});
+
+		// Convert [alias] spans into links.
 		var simpleLinkRegexp = new RegExp(noBacktickOrBracket + 
 				"\\[([A-Za-z0-9_-]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
@@ -35,6 +57,21 @@ var zndMarkdown = zndMarkdown || function() {
 						pageTitle = page.links[alias];
 					}
 					return prefix + "[" + pageTitle + "](" + url + ")";
+				} else {
+					return prefix + "[" + text + "](" + alias + ")";
+				}
+			});
+		});
+	
+		// Convert [Text](Alias) spans into links.
+		var compexLinkRegexp = new RegExp(noBacktickOrBracket + 
+			"\\[([^[\\]()]+?)\\]" + // match [Text]
+			"\\(([A-Za-z0-9_-]+?)\\)", "g"); // match (Alias)
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(compexLinkRegexp, function (whole, prefix, text, alias) {
+				if (alias.match(aliasRegexp)) {
+					var url = "http://" + host + "/pages/" + alias;
+					return prefix + "[" + text + "](" + url + ")";
 				} else {
 					return prefix + "[" + text + "](" + alias + ")";
 				}

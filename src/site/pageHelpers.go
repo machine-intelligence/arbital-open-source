@@ -83,7 +83,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
-			i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil
+			p.todoCount,i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil
 		FROM pages AS p
 		JOIN (
 			SELECT *
@@ -98,7 +98,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
-		&p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
+		&p.TodoCount, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {

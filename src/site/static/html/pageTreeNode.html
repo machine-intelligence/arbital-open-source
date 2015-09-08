@@ -3,10 +3,13 @@
 	<div ng-class="{'big-page-panel-header': isSupersized()}">
 		<span class="extra-info pull-right">
 			<span ng-show="page.redLinkCount>0">
-				<span class="red-link-count" title="Number of links to non-existing pages">
-					TODOs: <span ng-bind="page.redLinkCount"></span></span>
+				<span class="red-link-count" title="Number of [todo: ...] blocks in text + number of broken links">
+					TODOs: <span ng-bind="page.todoCount"></span>
+					+ <span ng-bind="page.redLinkCount"></span>
+				</span>
 				|
 			</span>
+
 			<span title="Length of the page in characters.">{[{page.textLength}]} chars | </span>
 			<span title="When this page was last edited.">edited {[{page.createdAt | relativeDateTime}]}</span>
 		</span>

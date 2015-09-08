@@ -63,7 +63,8 @@ func updateMetadata(c sessions.Context, rows *sql.Rows) error {
 	hashmap["pageId"] = pageId
 	hashmap["edit"] = edit
 	hashmap["summary"] = core.ExtractSummary(text)
-	query := database.GetInsertSql("pages", hashmap, "summary")
+	hashmap["todoCount"] = core.ExtractTodoCount(text)
+	query := database.GetInsertSql("pages", hashmap, "summary", "todoCount")
 	if _, err := tx.Exec(query); err != nil {
 		tx.Rollback()
 		return fmt.Errorf("Couldn't update pages table: %v", err)
