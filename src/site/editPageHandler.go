@@ -110,6 +110,20 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 	oldPage.ProcessParents(c, nil)
 
+	// Load additional info
+	query := fmt.Sprintf(`
+		SELECT currentEdit>=0,maxEdit,lockedBy,lockedUntil,
+			(SELECT max(edit) FROM pages WHERE pageId=%[1]d AND creatorId=%[2]d AND isAutosave) AS myLastAutosaveEdit,
+			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
+		FROM pageInfos
+		WHERE pageId=%[1]d
+			`, data.PageId, u.Id)
+	_, err = database.QueryRowSql(c, query, &oldPage.WasPublished, &oldPage.MaxEditEver,
+		&oldPage.LockedBy, &oldPage.LockedUntil, &oldPage.MyLastAutosaveEdit, &oldPage.LockedVoteType)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load additional page info: %v", err)
+	}
+
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
 	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
 	overwritingEdit := !oldPage.WasPublished && isCurrentEdit
@@ -420,7 +434,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["anchorContext"] = data.AnchorContext
 	hashmap["anchorText"] = data.AnchorText
 	hashmap["anchorOffset"] = data.AnchorOffset
-	query := ""
 	if overwritingEdit {
 		query = database.GetReplaceSql("pages", hashmap)
 	} else {

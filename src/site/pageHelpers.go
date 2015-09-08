@@ -83,9 +83,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
-			i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil,
-			(SELECT max(edit) FROM pages WHERE pageId=%[1]d AND creatorId=%[3]d AND isAutosave) AS myLastAutosaveEdit,
-			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
+			i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil
 		FROM pages AS p
 		JOIN (
 			SELECT *
@@ -100,7 +98,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
-		&p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.MyLastAutosaveEdit, &p.LockedVoteType)
+		&p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
@@ -253,16 +251,19 @@ func loadLinks(c sessions.Context, pageMap map[int64]*core.Page) error {
 	aliasesStr := strings.Join(aliasesList, ",")
 	if len(aliasesStr) > 0 {
 		query = fmt.Sprintf(`
-			SELECT alias,title
+			SELECT pageId,alias,title
 			FROM pages
 			WHERE isCurrentEdit AND deletedBy=0 AND (alias IN (%s) OR pageId in (%s))`, aliasesStr, aliasesStr)
 		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-			var alias, title string
-			err := rows.Scan(&alias, &title)
+			var pageId, alias, title string
+			err := rows.Scan(&pageId, &alias, &title)
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
 			linkMap[alias] = title
+			if pageId != alias {
+				linkMap[pageId] = title
+			}
 			return nil
 		})
 		if err != nil {
