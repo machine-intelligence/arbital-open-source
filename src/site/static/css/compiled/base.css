@@ -126,6 +126,7 @@
 .popover {
   max-width: 512px;
   width: 512px;
+  z-index: 3010;
 }
 .pagedown h1 {
   font-size: 26px;

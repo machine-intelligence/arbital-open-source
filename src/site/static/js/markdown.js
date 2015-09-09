@@ -10,20 +10,29 @@ var zndMarkdown = zndMarkdown || function() {
 		var noParen = "(?=$|[^(])";
 
 		// Process [todo:text] spans.
-		var todoLinkRegexp = new RegExp(noBacktickOrBracket + 
+		var todoSpanRegexp = new RegExp(noBacktickOrBracket + 
 				"\\[todo: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(todoLinkRegexp, function (whole, prefix, alias) {
+			return text.replace(todoSpanRegexp, function (whole, prefix, alias) {
 				return prefix;
 			});
 		});
 
 		// Process [comment:text] spans.
-		var commentLinkRegexp = new RegExp(noBacktickOrBracket + 
+		var commentSpanRegexp = new RegExp(noBacktickOrBracket + 
 				"\\[comment: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(commentLinkRegexp, function (whole, prefix, alias) {
+			return text.replace(commentSpanRegexp, function (whole, prefix, alias) {
 				return prefix;
+			});
+		});
+
+		// Process [vote:alias] spans.
+		var voteEmbedRegexp = new RegExp(noBacktickOrBracket + 
+				"\\[vote: ?([A-Za-z0-9-_]+?)\\]" + noParen, "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(voteEmbedRegexp, function (whole, prefix, alias) {
+				return prefix + "[Embedded " + alias + " vote. ](http://" + host + "/pages/" + alias + "/?embedVote=1)";
 			});
 		});
 
@@ -105,7 +114,8 @@ var zndMarkdown = zndMarkdown || function() {
 			host + // match the url host part
 			"\/pages\/([A-Za-z0-9_-]+)" + // [1] capture page alias
 			"(?:\/([0-9]+))?" + // [2] optionally capture privacyId
-			"\/?"); // optional ending /
+			"\/?" + // optional ending /
+			"(.*)"); // optional other stuff
 		$pageText.find("a").each(function(index, element) {
 			var $element = $(element);
 			var parts = $element.attr("href").match(re);
@@ -114,9 +124,13 @@ var zndMarkdown = zndMarkdown || function() {
 				return;
 			}
 			$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
-			if (page.links && page.links[parts[1]]) {
-				// Good link!
+			// Check if we are embedding a vote
+			if (parts[3].indexOf("embedVote") > 0) {
+				$element.attr("embed-vote-id", parts[1]);
+			} else if (page.links && page.links[parts[1]]) {
+				// Normal healthy link!
 			} else {
+				// Mark as red link
 				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
 				$element.addClass("red-link");
 			}

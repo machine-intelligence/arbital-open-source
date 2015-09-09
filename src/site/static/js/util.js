@@ -345,6 +345,9 @@ var postNewVote = function(pageId, value) {
 }
 	
 // Set up a new vote slider. Set the slider's value based on the user's vote.
+// $parent - container for holding the vote slider
+// page - to pull the votes from
+// isPopoverVote - true if this slider is inside a popover
 var createVoteSlider = function($parent, userService, page, isPopoverVote) {
 	var userId = userService.user.id;
 	// Convert votes into a user id -> {value, createdAt} map

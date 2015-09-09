@@ -126,6 +126,7 @@
 .popover {
   max-width: 512px;
   width: 512px;
+  z-index: 3010;
 }
 .pagedown h1 {
   font-size: 26px;
@@ -1052,6 +1053,10 @@ textarea.new-comment-text {
 }
 .like-small-span .disabled-dislike.on:focus {
   color: #ff0032;
+}
+.embedded-vote {
+  width: 80%;
+  margin: 20px auto 10px auto;
 }
 .vote {
   margin-top: 40px;

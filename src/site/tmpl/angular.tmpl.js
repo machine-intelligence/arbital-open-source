@@ -307,7 +307,7 @@ app.service("pageService", function(userService, $http){
 	// a new page id.
 	// options {
 	//   includeText: include the full text of the page
-	//   includeAuxData: include likes, votes, subscription, etc...
+	//   includeAuxData: include likes, subscription, etc...
 	//   loadComments: whether or not to load comments
 	//   loadVotes: whether or not to load votes
 	//   allowDraft: allow the server to load an autosave / snapshot, if it's most recent

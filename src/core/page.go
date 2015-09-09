@@ -305,6 +305,8 @@ func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, 
 	extractLinks(regexp.MustCompile("\\[([A-Za-z0-9_-]+?)\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](id/alias) syntax.
 	extractLinks(regexp.MustCompile("\\[.+?\\]\\(([A-Za-z0-9_-]+?)\\)"))
+	// Find ids and aliases using [vote: id/alias] syntax.
+	extractLinks(regexp.MustCompile("\\[vote: ?([A-Za-z0-9_-]+?)\\]"))
 	if len(aliasesAndIds) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list

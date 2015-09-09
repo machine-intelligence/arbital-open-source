@@ -115,7 +115,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		return false;
 	});
 	
-	// Page voting stuff.
+	// Page (dis)liking stuff.
 	// likeClick is 1 is user clicked like and -1 if they clicked dislike.
 	var processLike = function(likeClick, event) {
 		if (userService.user.id === "0") {
@@ -197,16 +197,20 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		return false;
 	});
 
+	// Process click on showing the page diff button.
 	$topParent.on("click", ".show-page-diff", function(event) {
 		var $pageText = $topParent.find(".page-text");
 		var $editDiff = $pageText.siblings(".edit-diff");
 		if ($editDiff.is(":visible")) {
+			// Show the page.
 			$pageText.show();
 			$editDiff.hide();
 		} else if ($editDiff.length > 0) {
+			// We already loaded the edit from the server, just show it.
 			$pageText.hide();
 			$editDiff.show();
 		} else {
+			// Load the edit from the server.
 			pageService.loadEdit({
 				pageId: pageId,
 				createdAtLimit: $("body").attr("last-visit"),
@@ -222,7 +226,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	});
 
 	// Start initializes things that have to be killed when this editPage stops existing.
-	this.start = function(pageVotes) {
+	this.start = function($compile, scope) {
 		// Set up markdown.
 		zndMarkdown.init(false, pageId, page.text, $topParent, pageService);
 
@@ -247,6 +251,29 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 				doCreateVoteSlider();
 			}
 		}
+
+		// Process all embedded votes.
+		window.setTimeout(function() {
+			$topParent.find("[embed-vote-id]").each(function(index) {
+				var $link = $(this);
+				var pageAlias = $link.attr("embed-vote-id");
+				pageService.loadPages([pageAlias], {
+					includeAuxData: true,
+					loadVotes: true,
+					overwrite: true,
+					success: function(data, status) {
+						var pageId = Object.keys(data)[0];
+						var divId = "embed-vote-" + pageId;
+						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><znd-likes-page-title page-id='" + pageId + "'></znd-likes-page-title></div>")(scope);
+						$link.replaceWith($embedDiv);
+						createVoteSlider($("#" + divId), userService, pageService.pageMap[pageId], false);
+					},
+					error: function(data, status) {
+						console.log("Couldn't load embedded votes: " + pageAlias);
+					}
+				});
+			});
+		});
 	};
 
 	// Called before this controller is destroyed.
@@ -288,7 +315,7 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 			// Set up Page JS Controller.
 			$timeout(function(){
 				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
-				scope.pageJsController.start();
+				scope.pageJsController.start($compile, scope);
 
 				if (scope.page.commentIds != null) {
 					// Process comments in two passes. First normal comments.
