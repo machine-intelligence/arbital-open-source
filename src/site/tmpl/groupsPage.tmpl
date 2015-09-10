@@ -76,23 +76,25 @@
 	{{end}}
 
 	<!-- Create new group -->
-	<br><br>
-	<div class="panel panel-success" {{if lt .User.Karma 200}}hidden{{end}}>
-		<div class="panel-heading">
-			<h3 class="panel-title">New Group</h3>
+	{{if .User.IsAdmin}}
+		<br><br>
+		<div class="panel panel-success" {{if lt .User.Karma 200}}hidden{{end}}>
+			<div class="panel-heading">
+				<h3 class="panel-title">New Group</h3>
+			</div>
+			<div class="panel-body">
+				<form id="new-group-form" class="form-inline">
+					<div class="form-group">
+						<label>Name</label>
+						<input name="name" type="text" class="form-control" placeholder="Group name">
+					</div>
+					<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+					<button type="submit" class="btn btn-primary" toggle-on-submit>Create Group</button>
+					<div class="submit-form-error alert alert-danger" hidden></div>
+				</form>
+			</div>
 		</div>
-		<div class="panel-body">
-			<form id="new-group-form" class="form-inline">
-				<div class="form-group">
-					<label>Name</label>
-					<input name="name" type="text" class="form-control" placeholder="Group name">
-				</div>
-				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-				<button type="submit" class="btn btn-primary" toggle-on-submit>Create Group</button>
-				<div class="submit-form-error alert alert-danger" hidden></div>
-			</form>
-		</div>
-	</div>
+	{{end}}
 </div>
 
 {{template "footer"}}

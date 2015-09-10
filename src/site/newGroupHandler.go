@@ -65,8 +65,8 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if u.Karma < 200 {
 		return http.StatusForbidden, fmt.Sprintf("You don't have enough karma")
 	}
-	if data.IsDomain && !u.IsAdmin {
-		return http.StatusForbidden, fmt.Sprintf("Have to be an admin to create domains")
+	if !u.IsAdmin {
+		return http.StatusForbidden, fmt.Sprintf("Have to be an admin to create domains or groups")
 	}
 
 	// Begin the transaction.
