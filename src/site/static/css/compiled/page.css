@@ -263,6 +263,9 @@
   margin: 0px 2%;
   max-width: 45%;
 }
+.edit-page-body .diff-half {
+  display: none;
+}
 .edit-history-body {
   position: relative;
   overflow: auto;
