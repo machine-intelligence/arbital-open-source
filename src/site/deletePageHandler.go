@@ -48,7 +48,7 @@ func deletePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Load the page
 	var page *core.Page
-	page, err = loadFullEdit(c, data.PageId, u.Id)
+	page, err = loadFullEdit(c, data.PageId, u.Id, nil)
 	if err != nil {
 		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't load page: %v", err)

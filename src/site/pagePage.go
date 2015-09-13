@@ -202,7 +202,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load the main page
-	data.Page, err = loadEdit(c, pageId, data.User.Id, loadEditOptions{ignoreParents: true})
+	data.Page, err = loadFullEdit(c, pageId, data.User.Id, &loadEditOptions{ignoreParents: true})
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if data.Page == nil {

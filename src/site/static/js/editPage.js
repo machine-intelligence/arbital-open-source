@@ -14,7 +14,7 @@
 // 	abandon - if set to true, the page specified with 'alias' will be deleted
 // 	alias - set to alias/page id of the created page
 // }
-var EditPage = function(page, pageService, autocompleteService, options) {
+var EditPage = function(page, pageService, userService, autocompleteService, options) {
 	var page = page;
 	var pageId = page.pageId; // id of the page we are editing
 	var options = options || {};
@@ -93,6 +93,7 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 		// Prevent stacking up saves without them returning.
 		if (publishing) return;
 		publishing = !isAutosave && !isSnapshot;
+		// TODO: if publishing, check history lineage and double check if we are jumping across branches
 		if (isAutosave && autosaving) return;
 		autosaving = isAutosave;
 
@@ -103,6 +104,15 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 			// TODO: if the call takes too long, we should show a warning.
 			submitForm($form, "/editPage/", data, function(r) {
 				if (isAutosave) autosaving = false;
+				if (isSnapshot) {
+					// Update prevEdit
+					$form.find(".prev-edit").val(r);
+					// Prevent an autosave from triggering right after a successful snapshot
+					prevEditPageData.isSnapshot = false;
+					prevEditPageData.isAutosave = true;
+					prevEditPageData.prevEdit = r;
+					data.__invisibleSubmit = true; 
+				}
 				callback(r);
 			}, function() {
 				if (isAutosave) autosaving = false;
@@ -260,15 +270,127 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 	});
 
 	// Change all dates from UTC to local.
+	// TODO: actually we should be using moment.js and AngularJS filters
 	$topParent.find(".date").each(function(index, element) {
 		var date = new Date(element.innerHTML + " UTC");
 		element.innerHTML = date.toLocaleString();
 	});
 
+	// Map of edit number -> [array of: {edit: child edit num, path: length of path to the furthest node}]
+	var editChildMap = {};
+	// Set up edit history
+	var $editHistory = $topParent.find(".edit-history");
+	$editHistory.find(".panel-heading").find("a").on("click", function(event) {
+		var squareSize = 40;
+		// Set up divs and such
+		var $panelBody = $editHistory.find(".panel-body");
+		if ($panelBody.children().length > 0) return true;
+
+		// Populate editChildMap and find root nodes.
+		var rootNums = [];
+		for (var editNum in page.editHistoryMap) {
+			var edit = page.editHistoryMap[editNum];
+			if (edit.prevEdit !== 0) {
+				if (edit.prevEdit in editChildMap) {
+					editChildMap[edit.prevEdit].push({edit: edit.edit});
+				} else {
+					editChildMap[edit.prevEdit] = [{edit: edit.edit}];
+				}
+			} else {
+				rootNums.push(editNum);
+			}
+		}
+
+		// Function used for sorting array of children by "path" value from longest to shortest.
+		var childSortFunc = function(childA, childB) {
+			return childB.path - childA.path;
+		};
+		// Recursively go through the editChildMap and compute path values. Also sort children.
+		var computePathValue = function(editNum) {
+			var maxPath = 0;
+			var children = editChildMap[editNum];
+			if (!children) return 1;
+			for (var n = 0; n < children.length; n++) {
+				var child = children[n];
+				child.path = computePathValue(child.edit) + 1;
+				if (child.path > maxPath) maxPath = child.path;
+			}
+			children.sort(childSortFunc);
+			return maxPath;
+		};
+		for (var n = 0; n < rootNums.length; n++){
+			computePathValue(rootNums[n]);
+		}
+
+		// Next free line.
+		var nextLine = 1;
+		// Create all the nodes.
+		var createNode = function(editNum, xStep, line, horLine, verLine) {
+			var edit = page.editHistoryMap[editNum];
+			var $block = $("<div></div>").addClass("edit-block");
+			if (horLine) $block.addClass("hor-line");
+			if (verLine) $block.addClass("ver-line");
+			$block.css("left", xStep * squareSize).css("top", line * squareSize);
+
+			var $node = $("<div></div>").addClass("edit-node").attr("edit", edit.edit);
+			if (edit.isSnapshot) $node.addClass("snapshot-node");
+			if (edit.isAutosave) $node.addClass("autosave-node");
+			if (edit.isCurrentEdit) $node.addClass("current-edit-node");
+			if (edit.edit === page.edit) $node.addClass("being-edited-node");
+			$block.append($node);
+
+			$panelBody.append($block);
+
+			// Process children.
+			var children = editChildMap[editNum];
+			if (!children || children.length <= 0) return;
+			// First child will be on the same line.
+			createNode(children[0].edit, xStep + 1, line, true, false);
+			for (var n = 1; n < children.length; n++) {
+				// Other children will be on new line.
+				if (nextLine - line >= 2) {
+					// We are making a large vertical jump and need to create a vertical line.
+					var $block = $("<div></div>").addClass("edit-block ver-line");
+					$block.css("left", (xStep + 1) * squareSize)
+						.css("top", (line + 1) * squareSize)
+						.css("height", (nextLine - line - 1) * squareSize);
+					$panelBody.append($block);
+				}
+				createNode(children[n].edit, xStep + 1, nextLine, true, true);
+				nextLine++;
+			}
+		}
+		for (var n = 0; n < rootNums.length; n++){
+			computePathValue(rootNums[n]);
+			createNode(rootNums[n], 0, nextLine - 1, false, false);
+			nextLine++;
+		}
+		$panelBody.height(nextLine * squareSize);
+		
+		return true;
+	});
+
+	// Process click event to revert the page to a certain edit
+	$editHistory.on("click", ".revert-to-edit", function(event) {
+		var $target = $(event.target);
+		var data = {
+			pageId: pageId,
+			editNum: +$target.attr("edit-num"),
+		};
+		$.ajax({
+			type: "POST",
+			url: "/revertPage/",
+			data: JSON.stringify(data),
+		})
+		.done(function(r) {
+			window.location.href = page.url;
+		});
+	});
+
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.autosaveInterval = null;
 	this.backdropInterval = null;
-	this.start = function() {
+	this.start = function($compile, scope) {
 		// Hide new page button if this is a modal.
 		$topParent.find("#wmd-new-page-button" + pageId).toggle(!isModal);
 
@@ -315,6 +437,45 @@ var EditPage = function(page, pageService, autocompleteService, options) {
 				}, 1000);
 			}
 		}
+
+		// Check when user hovers over intrasite links, and show a popover.
+		$editHistory.on("mouseenter", ".edit-node", function(event) {
+			var $linkPopoverTemplate = $("#link-popover-template");
+			var $target = $(event.currentTarget);
+			// Check if this is the first time we hovered.
+			var firstTime = $target.attr("first-time");
+			if (firstTime) return false;
+			$target.attr("first-time", false);
+
+			var edit = page.editHistoryMap[$target.attr("edit")];
+			// Don't allow recursive hover in popovers.
+			if ($target.closest(".popover-content").length > 0) return;
+	
+			var $editNodePopoverTemplate = $("#edit-node-popover-template");
+	
+			// Create options for the popover.
+			var options = {
+				html : true,
+				placement: "auto",
+				trigger: "manual",
+				delay: { "show": 0, "hide": 100 },
+				title: "(#" + edit.edit + ") " + edit.title,
+				content: function() {
+					// Have to wait for the popover to appear, so we can then replace its contents.
+					window.setTimeout(function() {
+						var $popover = $("#" + $target.attr("aria-describedby"));
+						var $el = $compile("<znd-edit-node-popover page-id='" + pageId +
+								"' edit-num='" + edit.edit +
+								"' is-opened='" + (edit.edit === page.edit) + "'>BLAH</znd-edit-node-popover>")(scope);
+						$popover.find(".popover-content").empty().append($el);
+					});
+					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
+				},
+			};
+			createHoverablePopover($target, options, {uniqueName: "edit-node", showDelay: 0});
+			$target.trigger("mouseenter");
+			return false;
+		});
 	};
 
 	// Called before this editPage is destroyed.
@@ -385,7 +546,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 					var returnedResult = {hidden: true, alias: pageId}; 
 					var editPage;
 					$modal.on("shown.bs.modal", function (e) {
-						editPage = new EditPage(newPage, pageService, autocompleteService, {
+						editPage = new EditPage(newPage, pageService, userService, autocompleteService, {
 							topParent: el,
 							primaryPage: primaryPage,
 							isModal: true,
@@ -400,7 +561,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 								}
 							},
 						});
-						editPage.start();
+						editPage.start($compile, $scope);
 					});
 					// Hande modal's close event and return the resulting alias.
 					$modal.on("hidden.bs.modal", function (e) {
@@ -461,7 +622,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 });
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("zndEditPage", function($timeout, pageService, userService, autocompleteService) {
+app.directive("zndEditPage", function($timeout, $compile, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
@@ -490,6 +651,16 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			scope.useVerticalView = scope.isModal;
 			scope.lockExists = scope.page.lockedBy != '0' && moment.utc(scope.page.lockedUntil).isAfter(moment.utc());
 			scope.lockedByAnother = scope.lockExists && scope.page.lockedBy !== userService.user.id;
+			
+			// Compute if we have to show warning to the user that the edit they are
+			// looking at doesn't descend from currently published edit.
+			scope.showDifferentBranchWarning = true;
+			var tempEdit = scope.page.edit;
+			do {
+				var editPage = scope.page.editHistoryMap[tempEdit];
+				scope.showDifferentBranchWarning &= !editPage.isCurrentEdit;
+				tempEdit = editPage.prevEdit;
+			} while (tempEdit > 0);
 
 			// Set up page types.
 			if (scope.isQuestion) {
@@ -578,7 +749,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 			if (!scope.isModal) {
 				// Create Edit Page JS controller.
 				$timeout(function(){
-					scope.editPage = new EditPage(scope.page, pageService, autocompleteService, {
+					scope.editPage = new EditPage(scope.page, pageService, userService, autocompleteService, {
 						primaryPage: primaryPage,
 						topParent: element,
 						doneFn: function(result) {
@@ -594,7 +765,7 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 							}
 						}
 					});
-					scope.editPage.start();
+					scope.editPage.start($compile, scope);
 
 					// Listen to destroy event to clean up.
 					element.on("$destroy", function(event) {
@@ -602,6 +773,26 @@ app.directive("zndEditPage", function($timeout, pageService, userService, autoco
 					});
 				});
 			}
+		},
+	};
+});
+
+// Directive for the body of an edit node popover.
+app.directive("zndEditNodePopover", function (pageService, userService) {
+	return {
+		templateUrl: "/static/html/editNodePopover.html",
+		scope: {
+			pageId: "@",
+			editNum: "@",
+			// True if this edit is the one that's currently opened
+			isOpened: "@",
+		},
+		controller: function ($scope) {
+			$scope.editNum = +$scope.editNum;
+			$scope.isOpened = $scope.isOpened === 'true';
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.edit = pageService.pageMap[$scope.pageId].editHistoryMap[$scope.editNum];
 		},
 	};
 });

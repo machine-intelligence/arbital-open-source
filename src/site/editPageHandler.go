@@ -24,6 +24,7 @@ import (
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
 	PageId         int64 `json:",string"`
+	PrevEdit       int   `json:",string"`
 	Type           string
 	Title          string
 	Text           string
@@ -102,7 +103,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err = loadFullEditWithOptions(c, data.PageId, u.Id, &loadEditOptions{})
+	oldPage, err = loadFullEdit(c, data.PageId, u.Id, &loadEditOptions{})
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load the old page: %v", err)
 	} else if oldPage == nil {
@@ -149,6 +150,11 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			return http.StatusBadRequest, fmt.Sprintf("Don't have group permissions to edit this page")
 		}
 	}
+	// Check PrevEdit number.
+	if data.PrevEdit < 0 {
+		return http.StatusBadRequest, fmt.Sprintf("PrevEdit number is not valid")
+	}
+	// TODO: check that this user has access to that edit
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
 		if len(data.Title) <= 0 && data.Type != core.CommentPageType {
@@ -413,6 +419,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// Create a new edit.
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
+	hashmap["edit"] = newEditNum
+	hashmap["prevEdit"] = data.PrevEdit
 	hashmap["creatorId"] = u.Id
 	hashmap["title"] = data.Title
 	hashmap["text"] = data.Text
@@ -420,7 +428,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 	hashmap["alias"] = data.Alias
 	hashmap["sortChildrenBy"] = data.SortChildrenBy
-	hashmap["edit"] = newEditNum
 	hashmap["isCurrentEdit"] = isCurrentEdit
 	hashmap["hasVote"] = hasVote
 	hashmap["voteType"] = data.VoteType
@@ -653,5 +660,5 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return 0, fmt.Sprintf("/pages/%s%s", data.Alias, privacyAddon)
 	}
 	// Return just the privacy key
-	return 0, fmt.Sprintf("%d", privacyKey)
+	return 0, fmt.Sprintf("%d", newEditNum)
 }

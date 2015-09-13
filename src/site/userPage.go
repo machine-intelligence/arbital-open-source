@@ -169,7 +169,7 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, nil)
+	err = core.LoadPages(c, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}

@@ -121,7 +121,7 @@ func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User)
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
+	err = core.LoadPages(c, data.PageMap, u.Id, &core.LoadPageOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}

@@ -76,6 +76,7 @@ func init() {
 	r.HandleFunc("/newVote/", newVoteHandler).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/deletePage/", deletePageHandler).Methods("POST")
+	r.HandleFunc("/revertPage/", revertPageHandler).Methods("POST")
 
 	// Admin stuff
 	r.HandleFunc("/updatePageIndex/", updatePageIndexHandler).Methods("GET")

@@ -57,10 +57,11 @@ type Vote struct {
 type Page struct {
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
-	PageId int64  `json:"pageId,string"`
-	Edit   int    `json:"edit"`
-	Type   string `json:"type"`
-	Title  string `json:"title"`
+	PageId   int64  `json:"pageId,string"`
+	Edit     int    `json:"edit"`
+	PrevEdit int    `json:"prevEdit"`
+	Type     string `json:"type"`
+	Title    string `json:"title"`
 	// Full text of the page. Not always sent to the FE.
 	Text           string `json:"text"`
 	TextLength     int    `json:"textLength"`
@@ -131,6 +132,9 @@ type Page struct {
 
 	// Domains.
 	DomainIds []string `json:"domainIds"`
+
+	// Edit history map. Edit number -> page edit
+	EditHistoryMap map[string]*Page `json:"editHistoryMap"`
 
 	// Whether or not this page has children
 	HasChildren bool `json:"hasChildren"`
@@ -222,7 +226,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 	}
 	query := fmt.Sprintf(`
 		SELECT * FROM (
-			SELECT pageId,edit,type,creatorId,createdAt,title,%s,length(text),karmaLock,privacyKey,
+			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,%s,length(text),karmaLock,privacyKey,
 				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupId,parents,
 				isAutosave,isSnapshot,isCurrentEdit,todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
@@ -235,7 +239,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 		var p Page
 		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title,
+			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title,
 			&p.Text, &p.TextLength, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
@@ -249,6 +253,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 			// TODO: definitely fix this somehow. Probably by refactoring how we load pages
 			op := pageMap[p.PageId]
 			op.Edit = p.Edit
+			op.PrevEdit = p.PrevEdit
 			op.Type = p.Type
 			op.CreatorId = p.CreatorId
 			op.CreatedAt = p.CreatedAt
@@ -281,6 +286,68 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 	return err
 }
 
+// LoadEditHistory loads the edit history for the given page.
+func LoadEditHistory(c sessions.Context, page *Page, userId int64) error {
+	editHistoryMap := make(map[int]*Page)
+	query := fmt.Sprintf(`
+		SELECT pageId,edit,prevEdit,creatorId,createdAt,deletedBy,isAutosave,isSnapshot,isCurrentEdit,title,length(text)
+		FROM pages
+		WHERE pageId=%d AND (creatorId=%d OR NOT isAutosave)
+		ORDER BY edit`, page.PageId, userId)
+	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		var p Page
+		err := rows.Scan(
+			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.DeletedBy,
+			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.Title, &p.TextLength)
+		if err != nil {
+			return fmt.Errorf("failed to scan a edit history page: %v", err)
+		}
+		editHistoryMap[p.Edit] = &p
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// We have loaded some snapshots that might not be our own, but they could be
+	// relevant to presenting the history data accurately. So we have to clean
+	// out those edits, while preserving the ancestry.
+	// First, just copy over edits we want to keep.
+	page.EditHistoryMap = make(map[string]*Page)
+	for editNum, edit := range editHistoryMap {
+		if edit.CreatorId == userId || (!edit.IsSnapshot && !edit.IsAutosave) {
+			if edit.DeletedBy <= 0 {
+				// Only add non-deleted, public edits or our snapshots to the map
+				page.EditHistoryMap[fmt.Sprintf("%d", editNum)] = edit
+			}
+		}
+	}
+	// Second, fix the ancestry.
+	for _, edit := range page.EditHistoryMap {
+		prevEditNum := fmt.Sprintf("%d", edit.PrevEdit)
+		if prevEditNum == "0" {
+			continue
+		}
+		_, ok := page.EditHistoryMap[prevEditNum]
+		for !ok {
+			prevEdit64, _ := strconv.ParseInt(prevEditNum, 10, 64)
+			prevEditNum = fmt.Sprintf("%d", editHistoryMap[int(prevEdit64)].PrevEdit)
+			if prevEditNum == "0" {
+				break
+			}
+			_, ok = page.EditHistoryMap[prevEditNum]
+		}
+		if !ok {
+			prevEditNum = "0"
+		}
+		prevEdit64, _ := strconv.ParseInt(prevEditNum, 10, 64)
+		edit.PrevEdit = int(prevEdit64)
+	}
+
+	return nil
+}
+
+// UPdatePageLinks updates the links table for the given page by parsing the text.
 func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, configAddress string) error {
 	// Delete old links.
 	query := fmt.Sprintf("DELETE FROM links WHERE parentId=%d", pageId)

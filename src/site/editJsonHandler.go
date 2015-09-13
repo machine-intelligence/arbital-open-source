@@ -68,7 +68,7 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 
 	// Load full edit for one page.
 	options := loadEditOptions{loadEditWithLimit: data.EditLimit, createdAtLimit: data.CreatedAtLimit}
-	p, err := loadFullEditWithOptions(c, data.PageId, u.Id, &options)
+	p, err := loadFullEdit(c, data.PageId, u.Id, &options)
 	if err != nil || p == nil {
 		return nil, fmt.Errorf("error while loading full edit: %v", err)
 	}

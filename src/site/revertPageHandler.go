@@ -1,4 +1,4 @@
-// abandonPageHandler.go handles requests for abandoning a page. This means marking
+// revertPageHandler.go handles requests for reverting a page. This means marking
 // as deleted all autosaves and snapshots which were created by the current user
 // after the currently live edit.
 package site
@@ -14,20 +14,22 @@ import (
 	"zanaduu3/src/user"
 )
 
-// abandonPageData is the data received from the request.
-type abandonPageData struct {
+// revertPageData is the data received from the request.
+type revertPageData struct {
+	// Page to revert
 	PageId int64 `json:",string"`
+	// Edit to revert to
+	EditNum int
 }
 
-// abandonPageHandler handles requests for deleting a page.
-func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
+// revertPageHandler handles requests for deleting a page.
+func revertPageHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
 	decoder := json.NewDecoder(r.Body)
-	var data abandonPageData
+	var data revertPageData
 	err := decoder.Decode(&data)
 	if err != nil || data.PageId == 0 {
-		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't decode json: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -37,7 +39,6 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 	var u *user.User
 	u, err = user.LoadUser(w, r)
 	if err != nil {
-		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -49,9 +50,8 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Load the page
 	var page *core.Page
-	page, err = loadFullEdit(c, data.PageId, u.Id, nil)
+	page, err = loadFullEdit(c, data.PageId, u.Id, &loadEditOptions{loadSpecificEdit: data.EditNum})
 	if err != nil {
-		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't load page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -60,33 +60,24 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	// TODO: check that this user can perform this kind of revertion
+
 	// Check that we have the lock
 	if page.LockedUntil > database.Now() && page.LockedBy != u.Id {
-		c.Inc("delete_page_fail")
 		c.Errorf("Don't have the lock")
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	// Get currentEdit number
-	var currentEdit int64
-	query := fmt.Sprintf(`SELECT ifnull(max(edit), -1) FROM pages WHERE isCurrentEdit AND pageId=%d`, data.PageId)
-	if _, err = database.QueryRowSql(c, query, &currentEdit); err != nil {
-		c.Inc("abandon_page_fail")
-		c.Errorf("Couldn't abandon a page: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
 	// Delete the edit
-	query = fmt.Sprintf(`
+	query := fmt.Sprintf(`
 		UPDATE pages
-		SET deletedBy=%d
-		WHERE pageId=%d AND creatorId=%d AND isAutosave`,
-		u.Id, data.PageId, u.Id)
+		SET isCurrentEdit=(edit=%d)
+		WHERE pageId=%d`,
+		data.EditNum, data.PageId)
 	if _, err = database.ExecuteSql(c, query); err != nil {
-		c.Inc("abandon_page_fail")
-		c.Errorf("Couldn't abandon a page: %v", err)
+		c.Errorf("Couldn't update pages: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -94,10 +85,9 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 	// Update pageInfos
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
-	hashmap["lockedUntil"] = database.Now()
-	query = database.GetInsertSql("pageInfos", hashmap, "lockedUntil")
+	hashmap["currentEdit"] = data.EditNum
+	query = database.GetInsertSql("pageInfos", hashmap, "currentEdit")
 	if _, err = database.ExecuteSql(c, query); err != nil {
-		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't change lock: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

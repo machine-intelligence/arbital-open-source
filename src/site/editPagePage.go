@@ -102,9 +102,18 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		return nil, fmt.Errorf("Invalid id passed: %s", pageIdStr)
 	}
 
+	// Potentially get edit the person wants to load.
+	var options loadEditOptions
+	q := r.URL.Query()
+	loadEdit, err := strconv.ParseInt(q.Get("edit"), 10, 64)
+	if err == nil {
+		options.loadSpecificEdit = int(loadEdit)
+	} else if q.Get("edit") != "live" {
+		options.loadNonliveEdit = true
+	}
+
 	// Load the actual page.
-	var options *loadEditOptions = nil
-	data.Page, err = loadFullEditWithOptions(c, pageId, data.User.Id, options)
+	data.Page, err = loadFullEdit(c, pageId, data.User.Id, &options)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load existing page: %v", err)
 	} else if data.Page == nil {
@@ -116,6 +125,12 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 		// We can skip privacy key check
 	} else if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
 		return nil, fmt.Errorf("This page is private. Invalid privacy key given.")
+	}
+
+	// Load edit history.
+	err = core.LoadEditHistory(c, data.Page, data.User.Id)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load editHistory: %v", err)
 	}
 
 	// Load parents

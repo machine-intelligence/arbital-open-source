@@ -20,44 +20,29 @@ type loadEditOptions struct {
 	loadNonliveEdit bool
 	// Don't convert loaded parents string into an array of parents
 	ignoreParents bool
+
+	// If set, we'll load this edit of the page
+	loadSpecificEdit int
 	// If set, we'll only load from edits less than this
 	loadEditWithLimit int
 	// If set, we'll only load from edits with createdAt timestamp before this
 	createdAtLimit string
 }
 
-// loadFullEdit loads and retuns the last edit for the given page id and user id,
-// even if it's not live. It also loads all the auxillary data like tags.
-// If the page couldn't be found, (nil, nil) will be returned.
-func loadFullEdit(c sessions.Context, pageId, userId int64) (*core.Page, error) {
-	return loadFullEditWithOptions(c, pageId, userId, nil)
-}
-
-// loadFullEditWithOptions is just like loadFullEdit, but takes the option
-// parameters. Pass nil to use default options.
-func loadFullEditWithOptions(c sessions.Context, pageId, userId int64, options *loadEditOptions) (*core.Page, error) {
-	if options == nil {
-		options = &loadEditOptions{loadNonliveEdit: true}
-	}
-	pagePtr, err := loadEdit(c, pageId, userId, *options)
-	if err != nil {
-		return nil, err
-	}
-	if pagePtr == nil {
-		return nil, nil
-	}
-	return pagePtr, nil
-}
-
-// loadEdit loads and returns a page with the given id from the database.
+// loadFullEdit loads and returns a page with the given id from the database.
 // If the page is deleted, minimum amount of data will be returned.
 // If userId is given, the last edit of the given pageId will be returned. It
 // might be an autosave or a snapshot, and thus not the current live page.
 // If the page couldn't be found, (nil, nil) will be returned.
-func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions) (*core.Page, error) {
+func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOptions) (*core.Page, error) {
+	if options == nil {
+		options = &loadEditOptions{}
+	}
 	var p core.Page
 	whereClause := "p.isCurrentEdit"
-	if options.loadNonliveEdit {
+	if options.loadSpecificEdit > 0 {
+		whereClause = fmt.Sprintf(`p.edit=%d`, options.loadSpecificEdit)
+	} else if options.loadNonliveEdit {
 		whereClause = fmt.Sprintf(`
 			p.edit=(
 				SELECT MAX(edit)
@@ -79,8 +64,9 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 				WHERE pageId=%d AND createdAt<'%s' AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.createdAtLimit)
 	}
+	c.Debugf(whereClause)
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.edit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
+		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
 			p.todoCount,i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil
@@ -94,7 +80,7 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		WHERE %[2]s AND
 			(p.groupId=0 OR p.groupId IN (SELECT id FROM groups WHERE isVisible) OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
-	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit,
+	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit, &p.PrevEdit,
 		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
@@ -114,33 +100,6 @@ func loadEdit(c sessions.Context, pageId, userId int64, options loadEditOptions)
 		}
 	}
 	return &p, nil
-}
-
-// loadPage loads and returns a page with the given id from the database.
-// If the page is deleted, minimum amount of data will be returned.
-// If the page couldn't be found, (nil, nil) will be returned.
-func loadPage(c sessions.Context, pageId int64, userId int64) (*core.Page, error) {
-	return loadEdit(c, pageId, userId, loadEditOptions{})
-}
-
-// loadPage loads and returns a page with the given id from the database.
-// If the page is deleted, minimum amount of data will be returned.
-// If the page couldn't be found, (nil, nil) will be returned.
-func loadPageByAlias(c sessions.Context, pageAlias string, userId int64) (*core.Page, error) {
-	pageId, err := strconv.ParseInt(pageAlias, 10, 64)
-	if err != nil {
-		query := fmt.Sprintf(`
-			SELECT pageId
-			FROM aliases
-			WHERE fullName="%s"`, pageAlias)
-		exists, err := database.QueryRowSql(c, query, &pageId)
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't load an alias: %v", err)
-		} else if !exists {
-			return nil, nil
-		}
-	}
-	return loadPage(c, pageId, userId)
 }
 
 // loadPageIds from the given query and return an array containing them, while
@@ -203,7 +162,7 @@ func loadChildDraft(c sessions.Context, userId int64, p *core.Page, pageMap map[
 			return fmt.Errorf("Couldn't load answer draft id: %v", err)
 		}
 		if p.ChildDraftId > 0 {
-			p, err := loadFullEdit(c, p.ChildDraftId, userId)
+			p, err := loadFullEdit(c, p.ChildDraftId, userId, nil)
 			if err != nil {
 				return fmt.Errorf("Couldn't load answer draft: %v", err)
 			}
@@ -467,8 +426,8 @@ func loadParentsIds(c sessions.Context, pageMap map[int64]*core.Page, options lo
 	return err
 }
 
-// loadDraftExistence computes for each page whether or not the user has a
-// work-in-progress draft for it.
+// loadDraftExistence computes for each page whether or not the user has an
+// autosave draft for it.
 // This only makes sense to call for pages which were loaded for isCurrentEdit=true.
 func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
@@ -477,7 +436,7 @@ func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*cor
 	pageIds := core.PageIdsStringFromMap(pageMap)
 	query := fmt.Sprintf(`
 		SELECT pageId,MAX(
-				IF((isSnapshot OR isAutosave) AND creatorId=%d AND deletedBy=0, edit, -1)
+				IF(isAutosave AND creatorId=%d AND deletedBy=0, edit, -1)
 			) as myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
 		FROM pages
 		WHERE pageId IN (%s)

@@ -3,9 +3,10 @@
 CREATE TABLE pages (
 	/* Id of the page the edit is for. */
 	pageId BIGINT NOT NULL,
-	/* The edit (version) number. Always >0 unless it's an autosave before the
-	 page has been manually saved by the user. */
+	/* The edit (version) number. Always >=0. */
 	edit INT NOT NULL,
+	/* The edit that came before this. Set to 0 if there was none. */
+	prevEdit INT NOT NULL,
 	/* True iff this is the edit currently used to display the page. */
 	isCurrentEdit BOOLEAN NOT NULL,
 	/* True iff this is a snapshot saved by the creatorId user. */

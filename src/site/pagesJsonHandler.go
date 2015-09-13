@@ -155,7 +155,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 		pageId := pageIds[0]
 
 		// Load full edit for one page.
-		p, err := loadFullEdit(c, pageId, u.Id)
+		p, err := loadFullEdit(c, pageId, u.Id, nil)
 		if err != nil || p == nil {
 			return nil, fmt.Errorf("error while loading full edit: %v", err)
 		}
