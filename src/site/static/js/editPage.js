@@ -103,7 +103,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
 			// TODO: if the call takes too long, we should show a warning.
 			submitForm($form, "/editPage/", data, function(r) {
-				if (isAutosave) autosaving = false;
+				if (isAutosave) {
+					autosaving = false;
+					// Refresh the lock
+					page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
+				}
 				if (isSnapshot) {
 					// Update prevEdit
 					$form.find(".prev-edit").val(r);

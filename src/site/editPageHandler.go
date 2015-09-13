@@ -464,6 +464,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		hashmap["currentEdit"] = newEditNum
 		hashmap["lockedUntil"] = database.Now()
 		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit", "currentEdit", "lockedUntil")
+	} else if data.IsAutosave {
+		hashmap["lockedBy"] = u.Id
+		hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
+		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit", "lockedBy", "lockedUntil")
 	} else {
 		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit")
 	}

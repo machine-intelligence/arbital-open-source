@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
@@ -397,6 +398,12 @@ func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, 
 		}
 	}
 	return nil
+}
+
+// GetPageLockedUntilTime returns time until the user can have the lock if the locked
+// the page right now.
+func GetPageLockedUntilTime() string {
+	return time.Now().UTC().Add(PageLockDuration * time.Second).Format(database.TimeLayout)
 }
 
 // ExtractSummary extracts the summary text from a page text.

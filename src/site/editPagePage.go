@@ -165,7 +165,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 			hashmap["createdAt"] = database.Now()
 			hashmap["currentEdit"] = -1
 			hashmap["lockedBy"] = data.User.Id
-			hashmap["lockedUntil"] = time.Now().UTC().Add(core.PageLockDuration * time.Second).Format(database.TimeLayout)
+			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
 			query := database.GetInsertSql("pageInfos", hashmap, "lockedBy", "lockedUntil")
 			if _, err = database.ExecuteSql(c, query); err != nil {
 				return nil, fmt.Errorf("Couldn't add a lock: %v", err)

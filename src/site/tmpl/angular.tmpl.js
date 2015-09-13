@@ -497,9 +497,9 @@ app.service("autocompleteService", function($http){
 	this.convertInputToAlias = function(input) {
 		var openParenIndex = input.lastIndexOf("(");
 		if (openParenIndex > 0) {
-		  // Input is probably of the type: "title" (alias)
-		  var closeParenIndex = input.lastIndexOf(")");
-		  input = input.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
+			// Input is probably of the type: "title" (alias)
+			var closeParenIndex = input.lastIndexOf(")");
+			input = input.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
 		}
 		return input;
 	};
@@ -520,9 +520,15 @@ app.filter("relativeDateTime", function() {
 });
 
 // ZanaduuCtrl is used across all pages.
-app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageService) {
+app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, userService, pageService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
+
+	// Refresh all the dates.
+	var refreshDates = function() {
+		$timeout(refreshDates, 30000);
+	};
+	refreshDates();
 
 	// Process last visit url parameter
 	var lastVisit = $location.search().lastVisit;
@@ -534,7 +540,7 @@ app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageServ
 	// Setup search via navbar.
 	var $navSearch = $("#nav-search");
 	if ($navSearch.length <= 0) return;
-  $navSearch.autocomplete({
+	$navSearch.autocomplete({
 		source: "/json/search",
 		minLength: 4,
 		delay: 500,
@@ -545,15 +551,15 @@ app.controller("ZanaduuCtrl", function ($scope, $location, userService, pageServ
 			window.location.href = "/pages/" + ui.item.value;
 			return false;
 		},
-  });
+	});
 	$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
 		var group = item.label.groupId !== "0" && item.label.groupId ? "[" + userService.groupMap[item.label.groupId].name + "] " : "";
 		var alias = !+item.label.alias ? " (" + item.label.alias + ")" : "";
 		var title = item.label.title ? item.label.title : "COMMENT";
-	  return $("<li>")
-	    .attr("data-value", item.value)
-	    .append(group + title + alias)
-	    .appendTo(ul);
+		return $("<li>")
+			.attr("data-value", item.value)
+			.append(group + title + alias)
+			.appendTo(ul);
 	};
 
 	// Check when user hovers over intrasite links, and show a popover.

@@ -64,7 +64,6 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 				WHERE pageId=%d AND createdAt<'%s' AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.createdAtLimit)
 	}
-	c.Debugf(whereClause)
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
