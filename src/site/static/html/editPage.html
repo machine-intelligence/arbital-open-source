@@ -222,7 +222,7 @@
 	</div>
 
 	<!-- Right half with the preview -->
-	<div ng-class="{'half': !useVerticalView}">
+	<div class="preview-half" ng-class="{'half': !useVerticalView}">
 		<div ng-class="{'panel': useVerticalView, 'panel-default': useVerticalView}">
 			<div class="page-title" ng-class="{'panel-heading': useVerticalView}">
 				<span class="page-title-text" ng-bind="page.title"></span>
@@ -230,7 +230,24 @@
 			</div>
 			<div ng-class="{'panel-body': useVerticalView}">
 				<div id="wmd-preview{[{page.pageId}]}" class="wmd-preview pagedown"></div>
+				<div class="wmd-preview pagedown"></div>
 			</div>
+		</div>
+	</div>
+
+	<!-- Right half with the diff -->
+	<div class="diff-half half" hidden>
+		<div class="page-title">
+			<a href="#"
+				title="Recompute the diff"
+				class="refresh-diff btn btn-default glyphicon glyphicon-refresh pull-right"></a>
+			<a href="#"
+				title="Go back to the preview"
+				class="hide-diff btn btn-default glyphicon glyphicon-list-alt pull-right"></a>
+			<span class="edit-num-text gray-text"></span>
+			<span class="page-title-text"></span>
+		</div>
+		<div class="edit-diff">
 		</div>
 	</div>
 </form>

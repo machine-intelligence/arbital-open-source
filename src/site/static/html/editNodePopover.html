@@ -33,6 +33,12 @@
 			title="Load this edit in the editor"
 			ng-hide="{[{isOpened}]}"
 			toggle-on-submit>Load Edit</a>
+		<button type="button"
+			class="diff-edit btn btn-default"
+			title="Diff with this edit"
+			edit-num="{[{edit.edit}]}"
+			ng-hide="{[{isOpened}]}"
+			toggle-on-submit>Diff</button>
 		<div class="submit-form-error alert alert-danger" hidden></div>
 	</div>
 </div>

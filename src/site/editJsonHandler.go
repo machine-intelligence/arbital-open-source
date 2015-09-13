@@ -15,6 +15,7 @@ import (
 // editJsonData contains parameters passed in via the request.
 type editJsonData struct {
 	PageId         int64 `json:",string"`
+	SpecificEdit   int
 	EditLimit      int
 	CreatedAtLimit string
 }
@@ -67,7 +68,11 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 	pageMap := make(map[int64]*core.Page)
 
 	// Load full edit for one page.
-	options := loadEditOptions{loadEditWithLimit: data.EditLimit, createdAtLimit: data.CreatedAtLimit}
+	options := loadEditOptions{
+		loadSpecificEdit:  data.SpecificEdit,
+		loadEditWithLimit: data.EditLimit,
+		createdAtLimit:    data.CreatedAtLimit,
+	}
 	p, err := loadFullEdit(c, data.PageId, u.Id, &options)
 	if err != nil || p == nil {
 		return nil, fmt.Errorf("error while loading full edit: %v", err)
