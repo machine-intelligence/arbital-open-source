@@ -18,7 +18,7 @@
 	</span>
 
 	<!-- Link to quickly edit the page -->
-	<span class="quick-edit-span" ng-show="showQuickEditLink && page.isCurrentEdit">
+	<span class="quick-edit-span" ng-show="showQuickEditLink">
 		<a ng-href="{[{page.editUrl}]}" class="edit-page-link glyphicon glyphicon-pencil"></a>
 	</span>
 
@@ -39,10 +39,9 @@
 	</span>
 	
 	<span class="inline-page-title">
-		<a ng-href="{[{(page.isCurrentEdit || !showQuickEditLink) ? page.url : page.editUrl}]}"
+		<a ng-href="{[{page.url}]}"
 				page-id={[{page.pageId}]}
 				class="intrasite-link">
-			<span class="glyphicon glyphicon-pencil" ng-show="showQuickEditLink && !page.isCurrentEdit"></span>
 			<span ng-bind="page.type == 'comment' ? 'Comment' : page.title"></span>
 		</a>
 	</span>

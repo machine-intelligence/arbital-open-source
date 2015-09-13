@@ -27,7 +27,9 @@ type userTmplData struct {
 	AuthorId int64
 	// True iff the current user is subsribed to the author
 	IsSubscribedToUser       bool
+	RecentlyCreatedIds       []string
 	RecentlyEditedIds        []string
+	PagesWithDraftIds        []string
 	MostTodosIds             []string
 	RecentlyEditedCommentIds []string
 	RecentlyVisitedIds       []string
@@ -81,15 +83,33 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't retrieve subscription: %v", err)
 	}
 
+	// Load recently created by me page ids.
+	query = fmt.Sprintf(`
+		SELECT p.pageId
+		FROM (
+			SELECT pageId,edit
+			FROM pages
+			WHERE creatorId=%d AND type!="comment"
+		) AS p
+		JOIN pageInfos AS pi
+		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
+		ORDER BY pi.createdAt DESC
+		LIMIT %d`, data.AuthorId, indexPanelLimit)
+	data.RecentlyCreatedIds, err = loadPageIds(c, query, data.PageMap)
+	if err != nil {
+		return nil, fmt.Errorf("error while loading recently created page ids: %v", err)
+	}
+
 	// Load recently edited by me page ids.
 	query = fmt.Sprintf(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId,createdAt
+			SELECT pageId,max(edit) AS maxEdit,min(edit) AS minEdit,max(createdAt) AS createdAt
 			FROM pages
-			WHERE creatorId=%d AND type!="comment"
-			GROUP BY pageId
+			WHERE creatorId=%d AND type!="comment" AND NOT isAutosave
+			GROUP BY 1
 		) AS p
+		WHERE maxEdit>minEdit
 		ORDER BY p.createdAt DESC
 		LIMIT %d`, data.AuthorId, indexPanelLimit)
 	data.RecentlyEditedIds, err = loadPageIds(c, query, data.PageMap)
@@ -98,6 +118,22 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	if data.User.Id == data.AuthorId {
+		// Load recently edited by me page ids.
+		query = fmt.Sprintf(`
+			SELECT p.pageId
+			FROM (
+				SELECT pageId,createdAt
+				FROM pages
+				WHERE creatorId=%d AND type!="comment" AND isAutosave
+				GROUP BY pageId
+			) AS p
+			ORDER BY createdAt DESC
+			LIMIT %d`, data.AuthorId, indexPanelLimit)
+		data.PagesWithDraftIds, err = loadPageIds(c, query, data.PageMap)
+		if err != nil {
+			return nil, fmt.Errorf("error while loading pages with drafts ids: %v", err)
+		}
+
 		// Load page ids with the most todos.
 		query = fmt.Sprintf(`
 			SELECT l.parentId

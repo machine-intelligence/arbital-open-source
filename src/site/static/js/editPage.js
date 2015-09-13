@@ -658,13 +658,15 @@ app.directive("zndEditPage", function($timeout, $compile, pageService, userServi
 			
 			// Compute if we have to show warning to the user that the edit they are
 			// looking at doesn't descend from currently published edit.
-			scope.showDifferentBranchWarning = true;
-			var tempEdit = scope.page.edit;
-			do {
-				var editPage = scope.page.editHistoryMap[tempEdit];
-				scope.showDifferentBranchWarning &= !editPage.isCurrentEdit;
-				tempEdit = editPage.prevEdit;
-			} while (tempEdit > 0);
+			scope.showDifferentBranchWarning = scope.page.wasPublished;
+			if (scope.showDifferentBranchWarning && scope.page.editHistoryMap) {
+				var tempEdit = scope.page.edit;
+				do {
+					var editPage = scope.page.editHistoryMap[tempEdit];
+					scope.showDifferentBranchWarning &= !editPage.isCurrentEdit;
+					tempEdit = editPage.prevEdit;
+				} while (tempEdit > 0);
+			}
 
 			// Set up page types.
 			if (scope.isQuestion) {
