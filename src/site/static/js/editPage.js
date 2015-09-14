@@ -29,6 +29,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		// TODO: double check there isn't this parent already
 		var $template = $topParent.find(".tag.template");
 		var $newTag = $template.clone(true);
+
+		// Now we have to get the page id and title, which could get very
+		// complicated because we might only have the page's alias at this
+		// point, plus we could be in a new page modal.
 		if (parentAlias in autocompleteService.aliasMap) {
 			var parentPageId = autocompleteService.aliasMap[parentAlias].pageId;
 			var title = autocompleteService.aliasMap[parentAlias].pageTitle;
@@ -502,10 +506,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			// Create options for the popover.
 			var options = {
 				html : true,
-				placement: "auto",
+				placement: "bottom",
 				trigger: "manual",
 				delay: { "show": 0, "hide": 100 },
 				title: "(#" + edit.edit + ") " + edit.title,
+				container: "body",
 				content: function() {
 					// Have to wait for the popover to appear, so we can then replace its contents.
 					window.setTimeout(function() {

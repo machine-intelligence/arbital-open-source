@@ -56,7 +56,7 @@
 	  </div>
 	</div>
 
-	<div class="panel panel-default" ng-hide="pagesWithDraft.length <= 0">
+	<div class="panel panel-default" ng-hide="pagesWithDraftIds.length <= 0">
 	  <div class="panel-heading">Pages With Drafts</div>
 	  <div class="panel-body">
 	    <znd-likes-page-title page-id="{[{pageId}]}" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in pagesWithDraftIds"></znd-likes-page-title>
@@ -77,7 +77,7 @@
 	  </div>
 	</div>
 
-	<div class="panel panel-default">
+	<div class="panel panel-default" ng-hide="recentlyEditedCommentIds.length <= 0">
 	  <div class="panel-heading">Recently Edited Comments</div>
 	  <div class="panel-body">
 	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyEditedCommentIds" show-created-at="true"></znd-likes-page-title>
