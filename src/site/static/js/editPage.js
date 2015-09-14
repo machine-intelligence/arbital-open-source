@@ -379,7 +379,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	});
 
 	// Process click event to revert the page to a certain edit
-	$editHistory.on("click", ".revert-to-edit", function(event) {
+	$("body").on("click", ".edit-node-revert-to-edit", function(event) {
 		var $target = $(event.target);
 		var data = {
 			pageId: pageId,
@@ -408,11 +408,15 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Show/hide the diff edit.
 	var showDiff = function(show) {
 		var $diffHalf = $topParent.find(".diff-half");
-		$diffHalf.toggle(show);
+		if (show) {
+			$diffHalf.css("display", "inline-block");
+		} else {
+			$diffHalf.hide();
+		}
 		$topParent.find(".preview-half").toggle(!show);
 	}
 	// Process click event for diffing edits.
-	$editHistory.on("click", ".diff-edit", function(event) {
+	$("body").on("click", ".edit-node-diff-edit", function(event) {
 		// Load the edit from the server.
 		pageService.loadEdit({
 			pageId: pageId,

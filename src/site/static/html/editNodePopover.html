@@ -23,7 +23,7 @@
 	<div>
 		<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 		<button type="button"
-			class="revert-to-edit btn btn-danger"
+			class="edit-node-revert-to-edit btn btn-danger"
 			title="Revert to this edit"
 			edit-num="{[{edit.edit}]}"
 			ng-hide="edit.isSnapshot || edit.isAutosave || edit.isCurrentEdit"
@@ -34,7 +34,7 @@
 			ng-hide="{[{isOpened}]}"
 			toggle-on-submit>Load Edit</a>
 		<button type="button"
-			class="diff-edit btn btn-default"
+			class="edit-node-diff-edit btn btn-default"
 			title="Diff with this edit"
 			edit-num="{[{edit.edit}]}"
 			ng-hide="{[{isOpened}]}"

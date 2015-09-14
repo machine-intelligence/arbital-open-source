@@ -63,7 +63,7 @@ var createHoverablePopover = function($anchor, popoverOptions, options) {
 
 		if (firstTimeShow) {
 			firstTimeShow = false;
-			var $popover = $anchor.siblings(".popover");
+			var $popover = $("#" + $anchor.attr("aria-describedby"));
 			$popover.on("mouseenter", function(event){
 				popoverHovering = true;
 			});
