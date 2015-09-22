@@ -1,9 +1,7 @@
 .#*
 *~
 .gcloud/*
-index.yaml
-config.yaml
-overrides.yaml
+*/*/config.yaml
 *.pyc
 *.log*
 .DS_Store
