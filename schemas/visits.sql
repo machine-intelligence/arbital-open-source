@@ -6,5 +6,5 @@ CREATE TABLE visits (
 	/* Page id. FK into pages. */
   pageId BIGINT NOT NULL,
 	/* When this visit occured. */
-  createdAt DATETIME NOT NULL,
+  createdAt DATETIME NOT NULL
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

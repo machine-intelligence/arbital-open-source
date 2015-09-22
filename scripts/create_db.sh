@@ -17,7 +17,7 @@ ROOT_PW=$(cfg mysql.root.password)
 USER_PW=$(cfg mysql.password)
 
 echo "Creating DB ${DB_NAME}@${HOST}.."
-mysql --host ${HOST} -u root -p"${ROOT_PW}" -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci; USE ${DB_NAME};"
+mysql --host ${HOST} -u root -p"${ROOT_PW}" -e "DROP DATABASE IF EXISTS ${DB_NAME}; CREATE DATABASE IF NOT EXISTS ${DB_NAME} DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci; USE ${DB_NAME};"
 
 echo "Creating user ${DB_USER}.."
 # Note that "GRANT" also creates the user, if necessary (no point in using "CREATE USER"):

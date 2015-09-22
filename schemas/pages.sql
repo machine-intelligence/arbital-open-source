@@ -54,7 +54,7 @@ CREATE TABLE pages (
 
 	/* == Following variables are set for inline comments and questions. == */
 	/* Text of the paragraph the anchor is in. */
-	anchorContent MEDIUMTEXT NOT NULL,
+	anchorContext MEDIUMTEXT NOT NULL,
 	/* Text the comment is attached to. */
 	anchorText MEDIUMTEXT NOT NULL,
 	/* Offset of the text into the context. */

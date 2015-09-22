@@ -11,10 +11,10 @@ function cfg() {
 		return 1
 	fi
 
-	if ! /usr/bin/env shyaml 2> /dev/null; then
-			echo "No shyaml installed. Try 'sudo pip install shyaml'." >&2
-			return 3
-	fi
+#	if ! /usr/bin/env shyaml -h 2> /dev/null; then
+#			echo "No shyaml installed. Try 'sudo pip install shyaml'." >&2
+#			return 3
+#	fi
 	VAL=$(cat config.yaml | /usr/bin/env shyaml get-value $1)
 	if [ -z "$VAL" ]; then
 		echo "No value $1 in config.yaml. Buggy script? Or config.yaml has changed in the repo and you need to decrypt_config.sh again?" >&2
