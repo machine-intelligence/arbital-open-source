@@ -113,7 +113,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 	// Load additional info
 	query := fmt.Sprintf(`
-		SELECT currentEdit>=0,maxEdit,lockedBy,lockedUntil,
+		SELECT currentEdit>0,maxEdit,lockedBy,lockedUntil,
 			(SELECT max(edit) FROM pages WHERE pageId=%[1]d AND creatorId=%[2]d AND isAutosave) AS myLastAutosaveEdit,
 			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pageInfos
