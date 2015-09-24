@@ -23,6 +23,8 @@ CREATE TABLE pages (
 	type VARCHAR(32) NOT NULL,
 	/* Title of the page. */
 	title VARCHAR(512) NOT NULL,
+	/* Clickbait of the page. */
+	clickbait VARCHAR(512) NOT NULL,
 	/* Text of the page. */
 	text MEDIUMTEXT NOT NULL,
 	/* Summary of the page. */

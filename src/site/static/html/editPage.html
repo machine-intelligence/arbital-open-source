@@ -70,6 +70,17 @@
 				ng-readonly="lockedByAnother">
 		</div>
 
+		<!-- Clickbait -->
+		<div class="page-clickbait" ng-hide="isComment">
+			<input name="clickbait"
+				type="text"
+				class="form-control input-lg"
+				ng-value="page.clickbait"
+				placeholder="Clickbait"
+				autocomplete="off"
+				ng-readonly="lockedByAnother">
+		</div>
+
 		<!-- WMD edit panel -->
 		<div class="wmd-panel-container">
 			<div class="wmd-panel">

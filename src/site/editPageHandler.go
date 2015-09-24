@@ -27,6 +27,7 @@ type editPageData struct {
 	PrevEdit       int   `json:",string"`
 	Type           string
 	Title          string
+	Clickbait      string
 	Text           string
 	HasVoteStr     string
 	VoteType       string
@@ -423,6 +424,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["prevEdit"] = data.PrevEdit
 	hashmap["creatorId"] = u.Id
 	hashmap["title"] = data.Title
+	hashmap["clickbait"] = data.Clickbait
 	hashmap["text"] = data.Text
 	hashmap["summary"] = core.ExtractSummary(data.Text)
 	hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
