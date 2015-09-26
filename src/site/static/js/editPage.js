@@ -33,9 +33,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		// Now we have to get the page id and title, which could get very
 		// complicated because we might only have the page's alias at this
 		// point, plus we could be in a new page modal.
-		if (parentAlias in autocompleteService.aliasMap) {
-			var parentPageId = autocompleteService.aliasMap[parentAlias].pageId;
-			var title = autocompleteService.aliasMap[parentAlias].pageTitle;
+		if (parentAlias in autocompleteService.aliasMap()) {
+			var parentPageId = autocompleteService.aliasMap()[parentAlias].pageId;
+			var title = autocompleteService.aliasMap()[parentAlias].title;
 		} else if (primaryPage !== undefined && parentAlias === primaryPage.alias) {
 			// The parent is the primaryPage.
 			var parentPageId = primaryPage.pageId;
@@ -249,20 +249,21 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// === Trigger initial setup. ===
 
 	// Setup autocomplete for tags.
-	autocompleteService.loadAliasSource(function() {
-		$topParent.find(".tag-input").autocomplete({
-			source: autocompleteService.aliasSource,
-			minLength: 2,
-			select: function (event, ui) {
-				createNewParentElement(ui.item.label);
-				$(event.target).val("");
-				return false;
-			}
-		});
-		// Set up Markdown.
-		zndMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
+	$topParent.find(".tag-input").autocomplete({
+		source: autocompleteService.parentsSource,
+		minLength: 2,
+		select: function (event, ui) {
+			createNewParentElement(ui.item.label);
+			$(event.target).val("");
+			return false;
+		}
 	});
+
+	// Add existing parent tags
 	addParentTags(true);
+
+	// Set up Markdown.
+	zndMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
 
 	// Setup karma lock slider.
 	var $slider = $topParent.find(".karma-lock-slider");

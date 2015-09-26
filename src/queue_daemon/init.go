@@ -37,6 +37,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.TickTask{}
 	} else if leasedTask.Tag == "populateIndex" {
 		task = &tasks.PopulateIndexTask{}
+	} else if leasedTask.Tag == "populateElastic" {
+		task = &tasks.PopulateElasticTask{}
 	} else if leasedTask.Tag == "newUpdate" {
 		task = &tasks.NewUpdateTask{}
 	} else if leasedTask.Tag == "emailUpdates" {

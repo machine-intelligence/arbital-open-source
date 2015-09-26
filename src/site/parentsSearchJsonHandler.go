@@ -1,4 +1,5 @@
-// searchJsonHandler.go contains the handler for searching all the pages.
+// parentsSearchJsonHandler.go contains the handler for matching a partial query against
+// pages' ids, aliases, and titles.
 package site
 
 import (
@@ -13,12 +14,8 @@ import (
 	"zanaduu3/src/user"
 )
 
-type searchJsonData struct {
-	Term string `json:"term"`
-}
-
-// searchJsonHandler handles the request.
-func searchJsonHandler(w http.ResponseWriter, r *http.Request) {
+// parentsSearchJsonHandler handles the request.
+func parentsSearchJsonHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	c := sessions.NewContext(r)
 
@@ -27,7 +24,7 @@ func searchJsonHandler(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	data.Term = q.Get("term")
 	if data.Term != "" {
-		err = searchJsonInternalHandler(w, r, &data)
+		err = parentsSearchJsonInternalHandler(w, r, &data)
 	} else {
 		err = fmt.Errorf("No search term specified")
 	}
@@ -38,7 +35,7 @@ func searchJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *searchJsonData) error {
+func parentsSearchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *searchJsonData) error {
 	c := sessions.NewContext(r)
 
 	// Load user object
@@ -79,9 +76,6 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 								"match_phrase_prefix": { "title": "%[1]s" }
 							},
 							{
-								"match_phrase_prefix": { "text": "%[1]s" }
-							},
-							{
 								"match_phrase_prefix": { "alias": "%[1]s" }
 							}
 						]
@@ -89,6 +83,11 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 				},
 				"filter": {
 					"bool": {
+						"must_not": [
+							{
+								"terms": { "type": ["comment", "answer"] }
+							}
+						],
 						"must": [
 							{
 								"terms": { "groupId": [%[2]s] }
@@ -98,7 +97,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 				}
 			}
 		},
-		"_source": ["pageId"]
+		"_source": ["pageId", "alias", "title"]
 	}`, data.Term, strings.Join(groupIds, ","))
 
 	// Perform search.

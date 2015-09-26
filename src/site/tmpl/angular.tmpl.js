@@ -452,45 +452,32 @@ app.service("pageService", function(userService, $http){
 
 // Autocomplete service provides data for autocompletion.
 app.service("autocompleteService", function($http){
-	// Map of all aliases: fullName -> {pageId, title}
-	this.aliasMap = {};
-	// This array stores all available aliases for link autocompletion.
-	this.aliasSource = [];
+	// NOTE: We have to keep aliasMap in scope for parentsSource
+	// Map of recently loaded parents: alias -> {pageId, title}
+	var aliasMap = {}
+	this.aliasMap = function() {
+		return aliasMap;
+	};
 
-	// Load the data for aliasSource.
-	var aliasCallbacks = [];
-	this.loadAliasSource = function(callback) {
-		// Check if already loaded.
-		if (this.aliasSource.length > 0) {
-			if (callback) callback();
-			return;
-		}
-		// Add this callback to our list.
-		if (callback) {
-			aliasCallbacks.push(callback);
-		}
-		// Load aliases.
-		var that = this;
-		console.log("Issuing a GET request to: /json/aliases/");
-		$http({method: "GET", url: "/json/aliases/", params: {}})
+	// Load data for autocompleting parents search.
+	this.parentsSource = function(request, callback) {
+		$http({method: "GET", url: "/json/parentsSearch/", params: {term: request.term}})
 		.success(function(data, status){
-			that.aliasMap = data;
-			// Convert data into the aliasSource.
-			for (var fullName in that.aliasMap) {
-				var val = that.aliasMap[fullName];
-				that.aliasSource.push('"' + val.pageTitle + '" (' + fullName + ')');
+			// Populate aliasMap and construct resultList
+			aliasMap = {};
+			var resultList = [];
+			var hits = data.hits.hits;
+			for (var n = 0; n < hits.length; n++) {
+				var source = hits[n]._source;
+				resultList.push('"' + source.title + '" (' + source.alias + ')');
+				aliasMap[source.alias] = {pageId: source.pageId, title: source.title};
 			}
-			// Execute all callbacks.
-			for (var i = 0; i < aliasCallbacks.length; i++){
-				aliasCallbacks[i]();
-			}
-			aliasCallbacks = [];
+			callback(resultList);
 		})
 		.error(function(data, status){
-			console.log("Error loading alias autocomplete data:"); console.log(data); console.log(status);
-			if(error) error(data, status);
+			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
 		});
-	}
+	};
 
 	// Converts "title (alias)" string into "alias". Used to process the string
 	// seleted by alias autocompletion.

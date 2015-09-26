@@ -70,16 +70,15 @@ func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*core.G
 		FROM groups
 		WHERE %s OR isVisible`, groupCondition)
 	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
-		var id int64
-		var name string
-		err := rows.Scan(&id, &name)
+		var g core.Group
+		err := rows.Scan(&g.Id, &g.Name)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a group: %v", err)
 		}
-		if _, ok := groupMap[id]; !ok {
-			groupMap[id] = &core.Group{Id: id, Name: name}
+		if _, ok := groupMap[g.Id]; !ok {
+			groupMap[g.Id] = &g
 		} else {
-			groupMap[id].Name = name
+			groupMap[g.Id].Name = g.Name
 		}
 		return nil
 	})

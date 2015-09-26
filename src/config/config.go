@@ -111,9 +111,11 @@ type Config struct {
 		Cookie string
 		Live   struct {
 			Address string
+			Elastic string
 		}
 		Dev struct {
 			Address, Auth string
+			Elastic       string
 		}
 		Session struct {
 			Auth, Crypt string

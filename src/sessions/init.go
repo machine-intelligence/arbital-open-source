@@ -28,6 +28,13 @@ func GetDomain() string {
 	return strings.TrimPrefix(address, "http://")
 }
 
+func GetElasticDomain() string {
+	if Live {
+		return config.XC.Site.Live.Elastic
+	}
+	return config.XC.Site.Dev.Elastic
+}
+
 // GetSession returns the user's session.
 func GetSession(r *http.Request) (*sessions.Session, error) {
 	c := NewContext(r)

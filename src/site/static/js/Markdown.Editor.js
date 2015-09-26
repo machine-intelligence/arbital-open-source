@@ -1032,15 +1032,13 @@
 				$input.autocomplete("disable");
 			}
 		} else if (isIntraLink) {
-			autocompleteService.loadAliasSource(function() {
-			  $input.autocomplete({
-					source: autocompleteService.aliasSource,
-					minLength: 2,
-					select: function (event, ui) {
-						return true;
-					}
-			  });
-			});
+		  $input.autocomplete({
+				source: autocompleteService.parentsSource,
+				minLength: 2,
+				select: function (event, ui) {
+					return true;
+				}
+		  });
 		}
 
 		var isCancel = true;

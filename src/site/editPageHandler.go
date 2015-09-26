@@ -12,10 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"appengine/search"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
+	"zanaduu3/src/elastic"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
@@ -539,22 +538,19 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// else. So we print out errors, but don't return an error. ===
 
 	if isCurrentEdit {
-		// Update pages' index.
-		p := &tasks.PageIndexDoc{}
-		p.PageId = search.Atom(fmt.Sprintf("%d", data.PageId))
-		p.Type = data.Type
-		p.Title = data.Title
-		p.Text = data.Text
-		p.Alias = search.Atom(data.Alias)
-
-		index, err := search.Open("pages")
+		// Update elastic search index.
+		doc := &elastic.Document{
+			PageId:    data.PageId,
+			Type:      data.Type,
+			Title:     data.Title,
+			Text:      data.Text,
+			Alias:     data.Alias,
+			GroupId:   data.GroupId,
+			CreatorId: u.Id,
+		}
+		err = elastic.AddPageToIndex(c, doc)
 		if err != nil {
-			c.Errorf("failed to open index: %v", err)
-		} else {
-			_, err = index.Put(c, string(p.PageId), p)
-			if err != nil {
-				c.Errorf("failed to put page into index: %v", err)
-			}
+			c.Errorf("failed to update index: %v", err)
 		}
 
 		// Generate updates for users who are subscribed to this page.

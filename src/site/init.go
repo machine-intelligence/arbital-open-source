@@ -61,10 +61,10 @@ func init() {
 	// JSON handlers (API)
 	r.HandleFunc("/json/search/", searchJsonHandler).Methods("GET")
 	r.HandleFunc("/json/pages/", pagesJsonHandler).Methods("GET")
+	r.HandleFunc("/json/parentsSearch/", parentsSearchJsonHandler).Methods("GET")
 	r.HandleFunc("/json/edit/", editJsonHandler).Methods("GET")
 	r.HandleFunc("/json/children/", childrenJsonHandler).Methods("GET")
 	r.HandleFunc("/json/parents/", parentsJsonHandler).Methods("GET")
-	r.HandleFunc("/json/aliases/", aliasesJsonHandler).Methods("GET")
 
 	// POST handlers (API)
 	r.HandleFunc("/abandonPage/", abandonPageHandler).Methods("POST")
@@ -80,6 +80,7 @@ func init() {
 
 	// Admin stuff
 	r.HandleFunc("/updatePageIndex/", updatePageIndexHandler).Methods("GET")
+	r.HandleFunc("/updateElasticIndex/", updateElasticIndexHandler).Methods("GET")
 	r.HandleFunc("/updateMetadata/", updateMetadataHandler).Methods("GET")
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
 
