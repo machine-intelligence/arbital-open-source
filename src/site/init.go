@@ -79,7 +79,6 @@ func init() {
 	r.HandleFunc("/revertPage/", revertPageHandler).Methods("POST")
 
 	// Admin stuff
-	r.HandleFunc("/updatePageIndex/", updatePageIndexHandler).Methods("GET")
 	r.HandleFunc("/updateElasticIndex/", updateElasticIndexHandler).Methods("GET")
 	r.HandleFunc("/updateMetadata/", updateMetadataHandler).Methods("GET")
 	r.HandleFunc("/becomeUser/", becomeUserHandler).Methods("GET")
