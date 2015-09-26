@@ -29,6 +29,7 @@ type editPageData struct {
 	Title          string
 	Clickbait      string
 	Text           string
+	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
 	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
@@ -431,6 +432,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["alias"] = data.Alias
 	hashmap["sortChildrenBy"] = data.SortChildrenBy
 	hashmap["isCurrentEdit"] = isCurrentEdit
+	hashmap["isMinorEdit"] = data.IsMinorEditStr == "on"
 	hashmap["hasVote"] = hasVote
 	hashmap["voteType"] = data.VoteType
 	hashmap["karmaLock"] = data.KarmaLock
@@ -605,7 +607,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		if !oldPage.WasPublished && data.Type != core.CommentPageType {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType  {
 			// Generate updates for users who are subscribed to the parent pages.
 			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
