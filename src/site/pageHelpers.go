@@ -65,7 +65,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 			)`, pageId, options.createdAtLimit)
 	}
 	query := fmt.Sprintf(`
-		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.text,p.summary,p.alias,p.creatorId,
+		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
 			p.todoCount,i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil
@@ -80,7 +80,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 			(p.groupId=0 OR p.groupId IN (SELECT id FROM groups WHERE isVisible) OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=%[3]d))`,
 		pageId, whereClause, userId)
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit, &p.PrevEdit,
-		&p.Type, &p.Title, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
+		&p.Type, &p.Title, &p.Clickbait, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
 		&p.TodoCount, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)

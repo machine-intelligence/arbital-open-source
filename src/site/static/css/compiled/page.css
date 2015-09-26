@@ -483,6 +483,9 @@
 .page-title {
   font-size: 28px;
 }
+.page-clickbait {
+  margin-top: 10px;
+}
 .quick-edit-span {
   display: table-cell;
 }
@@ -1204,6 +1207,10 @@ textarea.new-comment-text {
 }
 .page-panel .big-page-panel-header .extra-info {
   margin-top: 15px;
+}
+.page-panel .clickbait {
+  color: #b8b8b8;
+  margin-left: 30px;
 }
 .page-panel .page-header-part {
   display: table-cell;
