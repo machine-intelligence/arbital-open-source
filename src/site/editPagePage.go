@@ -20,7 +20,7 @@ import (
 
 var (
 	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
-	editPageOptions = newPageOptions{RequireLogin: true, LoadUserGroups: true}
+	editPageOptions = newPageOptions{RequireLogin: true}
 )
 
 // editPageTmplData stores the data that we pass to the template file to render the page

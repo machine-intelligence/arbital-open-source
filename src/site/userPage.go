@@ -42,7 +42,7 @@ var userPage = newPageWithOptions(
 	append(baseTmpls,
 		"tmpl/userPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl",
 		"tmpl/footer.tmpl", "tmpl/angular.tmpl.js"),
-	newPageOptions{LoadUserGroups: true})
+	newPageOptions{})
 
 // userRenderer renders the user page.
 func userRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {

@@ -79,6 +79,9 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 								"match_phrase_prefix": { "title": "%[1]s" }
 							},
 							{
+								"match_phrase_prefix": { "clickbait": "%[1]s" }
+							},
+							{
 								"match_phrase_prefix": { "text": "%[1]s" }
 							},
 							{
@@ -98,7 +101,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 				}
 			}
 		},
-		"_source": ["pageId"]
+		"_source": ["pageId", "alias", "title", "clickbait", "groupId"]
 	}`, data.Term, strings.Join(groupIds, ","))
 
 	// Perform search.

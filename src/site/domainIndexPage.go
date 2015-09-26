@@ -171,5 +171,12 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
 	}
 
+	// Load all the groups.
+	data.GroupMap = make(map[int64]*core.Group)
+	err = loadGroupNames(c, u, data.GroupMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load group names: %v", err)
+	}
+
 	return &data, nil
 }

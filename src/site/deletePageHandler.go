@@ -8,6 +8,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
+	"zanaduu3/src/elastic"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
@@ -77,5 +78,11 @@ func deletePageHandler(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Couldn't delete a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	// Delete it from the elastic index
+	err = elastic.DeletePageFromIndex(c, data.PageId)
+	if err != nil {
+		c.Errorf("failed to update index: %v", err)
 	}
 }

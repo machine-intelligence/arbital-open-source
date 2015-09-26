@@ -26,7 +26,7 @@ var updatesPage = newPageWithOptions(
 		"tmpl/updatesPage.tmpl", "tmpl/pageHelpers.tmpl",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl",
 		"tmpl/angular.tmpl.js"),
-	newPageOptions{RequireLogin: true, LoadUserGroups: true})
+	newPageOptions{RequireLogin: true})
 
 // updatesRenderer renders the updates page.
 func updatesRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {

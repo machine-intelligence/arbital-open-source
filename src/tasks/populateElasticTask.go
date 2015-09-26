@@ -46,7 +46,7 @@ func (task *PopulateElasticTask) Execute(c sessions.Context) (delay int, err err
 
 	// Compute all priors.
 	err = database.QuerySql(c, `
-		SELECT pageId,type,title,text,alias,groupId,creatorId
+		SELECT pageId,type,title,clickbait,text,alias,groupId,creatorId
 		FROM pages
 		WHERE isCurrentEdit`, populateElasticProcessPage)
 	if err != nil {
@@ -58,8 +58,8 @@ func (task *PopulateElasticTask) Execute(c sessions.Context) (delay int, err err
 
 func populateElasticProcessPage(c sessions.Context, rows *sql.Rows) error {
 	doc := &elastic.Document{}
-	if err := rows.Scan(&doc.PageId, &doc.Type, &doc.Title, &doc.Text, &doc.Alias,
-		&doc.GroupId, &doc.CreatorId); err != nil {
+	if err := rows.Scan(&doc.PageId, &doc.Type, &doc.Title, &doc.Clickbait,
+		&doc.Text, &doc.Alias, &doc.GroupId, &doc.CreatorId); err != nil {
 		return fmt.Errorf("failed to scan for page: %v", err)
 	}
 

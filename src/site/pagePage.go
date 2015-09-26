@@ -33,7 +33,7 @@ type pageTmplData struct {
 }
 
 var (
-	pageOptions = newPageOptions{LoadUserGroups: true}
+	pageOptions = newPageOptions{}
 )
 
 // pagePage serves the page page.

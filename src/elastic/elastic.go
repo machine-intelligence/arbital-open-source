@@ -22,6 +22,7 @@ type Document struct {
 	Alias     string `json:"alias"`
 	Type      string `json:"type"`
 	Title     string `json:"title"`
+	Clickbait string `json:"clickbait"`
 	Text      string `json:"text"`
 	GroupId   int64  `json:"groupId,string"`
 	CreatorId int64  `json:"creatorId,string"`
@@ -76,6 +77,34 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 	return nil
 }
 
+// DeletePageFromIndex dletes a page from the pages index.
+func DeletePageFromIndex(c sessions.Context, pageId int64) error {
+	request, err := http.NewRequest("DELETE", fmt.Sprintf("%s/page/%d", ElasticDomain, pageId), nil)
+	if err != nil {
+		return fmt.Errorf("Couldn't create request: %v", err)
+	}
+	request.Header.Set("Content-Type", "application/json")
+
+	// Execute request
+	client := urlfetch.Client(c)
+	resp, err := client.Do(request)
+	if err != nil {
+		return fmt.Errorf("Couldn't execute request: %v", err)
+	}
+
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		// Process an error
+		decoder := json.NewDecoder(resp.Body)
+		var result map[string]interface{}
+		err = decoder.Decode(&result)
+		if err != nil {
+			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
+		}
+		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
+	}
+	return nil
+}
+
 type IndexSchema struct {
 	Mappings map[string]*Mapping `json:"mappings"`
 }
@@ -101,6 +130,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["pageId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["type"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["title"] = &Property{Type: "string", Analyzer: "english"}
+	mapping.Properties["clickbait"] = &Property{Type: "string", Analyzer: "english"}
 	mapping.Properties["text"] = &Property{Type: "string", Analyzer: "english"}
 	mapping.Properties["alias"] = &Property{Type: "string"}
 	mapping.Properties["groupId"] = &Property{Type: "string", Index: "not_analyzed"}

@@ -25,7 +25,6 @@ type newPageOptions struct {
 	AdminOnly       bool
 	SkipLoadingUser bool
 	RequireLogin    bool
-	LoadUserGroups  bool
 }
 
 // commonPageData contains data that is common between all pages.
@@ -93,7 +92,6 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 				return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
 			}
 			if options.AdminOnly && !u.IsAdmin {
-				c.Debugf("======================== %+v", u)
 				return pages.UnauthorizedWith(fmt.Errorf("Have to be an admin"))
 			}
 			if u.Id > 0 {
@@ -107,11 +105,9 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 					return pages.InternalErrorWith(err)
 				}
 				// Load the groups the user belongs to.
-				if options.LoadUserGroups {
-					if err = loadUserGroups(c, u); err != nil {
-						c.Errorf("Couldn't load user groups: %v", err)
-						return pages.InternalErrorWith(err)
-					}
+				if err = loadUserGroups(c, u); err != nil {
+					c.Errorf("Couldn't load user groups: %v", err)
+					return pages.InternalErrorWith(err)
 				}
 			}
 		}

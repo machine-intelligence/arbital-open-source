@@ -507,7 +507,7 @@ app.filter("relativeDateTime", function() {
 });
 
 // ZanaduuCtrl is used across all pages.
-app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, userService, pageService) {
+app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, $http, userService, pageService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -524,30 +524,58 @@ app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, userService
 		$location.search("lastVisit", null);
 	}
 
+	// Function for getting search results from the server.
+	var searchSource = function(request, callback) {
+		$http({method: "GET", url: "/json/search/", params: {term: request.term}})
+		.success(function(data, status){
+			aliasMap = {};
+			var resultMap = {};
+			var hits = data.hits.hits;
+			for (var n = 0; n < hits.length; n++) {
+				var source = hits[n]._source;
+				resultMap[source.pageId] = {
+					value: source.pageId,
+					alias: source.alias,
+					title: source.title,
+					clickbait: source.clickbait,
+					groupId: source.groupId,
+				};
+			}
+			callback(resultMap);
+		})
+		.error(function(data, status){
+			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
+		});
+	};
+
 	// Setup search via navbar.
 	var $navSearch = $("#nav-search");
-	if ($navSearch.length <= 0) return;
-	$navSearch.autocomplete({
-		source: "/json/search",
-		minLength: 4,
-		delay: 500,
-		focus: function (event, ui) {
-			return false;
-		},
-		select: function (event, ui) {
-			window.location.href = "/pages/" + ui.item.value;
-			return false;
-		},
-	});
-	$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
-		var group = item.label.groupId !== "0" && item.label.groupId ? "[" + userService.groupMap[item.label.groupId].name + "] " : "";
-		var alias = !+item.label.alias ? " (" + item.label.alias + ")" : "";
-		var title = item.label.title ? item.label.title : "COMMENT";
-		return $("<li>")
-			.attr("data-value", item.value)
-			.append(group + title + alias)
-			.appendTo(ul);
-	};
+	if ($navSearch.length > 0) {
+		$navSearch.autocomplete({
+			source: searchSource,
+			minLength: 3,
+			delay: 400,
+			focus: function (event, ui) {
+				return false;
+			},
+			select: function (event, ui) {
+				window.location.href = "/pages/" + ui.item.value;
+				return false;
+			},
+		});
+		$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
+			var group = item.groupId !== "0" && item.groupId ? "[" + userService.groupMap[item.groupId].name + "] " : "";
+			var alias = !+item.alias ? " (" + item.alias + ")" : "";
+			var title = item.title ? item.title : "COMMENT";
+			var $item = $("<li>")
+				.attr("data-value", item.value)
+				.append(group + title + alias);
+			if (item.clickbait.length > 0) {
+				$item.append($("<div class='gray-text'>" + item.clickbait + "</div>"));
+			}
+			return $item.appendTo(ul);
+		};
+	}
 
 	// Check when user hovers over intrasite links, and show a popover.
 	$("body").on("mouseenter", ".intrasite-link", function(event) {

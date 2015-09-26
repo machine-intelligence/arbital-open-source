@@ -545,6 +545,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			PageId:    data.PageId,
 			Type:      data.Type,
 			Title:     data.Title,
+			Clickbait: data.Clickbait,
 			Text:      data.Text,
 			Alias:     data.Alias,
 			GroupId:   data.GroupId,
