@@ -13,7 +13,7 @@
 				You have locked the page. The lock will expire {[{page.lockedUntil | relativeDateTime}]}.
 			</div>
 			<div ng-show="lockedByAnother" class="alert alert-danger">
-				<znd-user-name user-id="{[{page.lockedBy}]}"></znd-user-name>
+				<arb-user-name user-id="{[{page.lockedBy}]}"></arb-user-name>
 				has the page locked. The lock will end {[{page.lockedUntil | relativeDateTime}]}.
 			</div>
 		</div>

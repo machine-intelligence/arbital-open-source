@@ -1,11 +1,11 @@
 /* angular.tmpl.js is a .tmpl file that is inserted as a <script> into the
-	<header> portion of html pages that use angular. It defines the zanaduu module
-	and ZanaduuCtrl, which are used on every page. */
+	<header> portion of html pages that use angular. It defines the arbital module
+	and ArbitalCtrl, which are used on every page. */
 {{define "angular"}}
 <script>
 
 // Set up angular module.
-var app = angular.module("zanaduu", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
+var app = angular.module("arbital", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
 app.config(function($interpolateProvider, $locationProvider){
 	$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
 
@@ -506,8 +506,8 @@ app.filter("relativeDateTime", function() {
 	};
 });
 
-// ZanaduuCtrl is used across all pages.
-app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, $http, userService, pageService) {
+// ArbitalCtrl is used across all pages.
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, userService, pageService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -629,7 +629,7 @@ app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, $http, user
 					setTimeout(function() {
 						var $popover = $("#" + $link.attr("aria-describedby"));
 						var $content = $popover.find(".popover-content");
-						zndMarkdown.init(false, page.pageId, page.summary, $content, pageService);
+						arbMarkdown.init(false, page.pageId, page.summary, $content, pageService);
 						if (page.hasVote) {
 							createVoteSlider($content.find(".vote"), userService, page, true);
 						}
@@ -776,7 +776,7 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 // =============================== DIRECTIVES =================================
 
 // userName directive displayes a user's name.
-app.directive("zndUserName", function(userService) {
+app.directive("arbUserName", function(userService) {
 	return {
 		templateUrl: "/static/html/userName.html",
 		scope: {
@@ -790,7 +790,7 @@ app.directive("zndUserName", function(userService) {
 });
 
 // pageTitle displays page's title with optional meta info.
-app.directive("zndPageTitle", function(pageService, userService) {
+app.directive("arbPageTitle", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/pageTitle.html",
 		scope: {
@@ -805,7 +805,7 @@ app.directive("zndPageTitle", function(pageService, userService) {
 });
 
 // likesPageTitle displays likes span followed by page's title span.
-app.directive("zndLikesPageTitle", function(pageService, userService) {
+app.directive("arbLikesPageTitle", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/likesPageTitle.html",
 		scope: {
@@ -824,7 +824,7 @@ app.directive("zndLikesPageTitle", function(pageService, userService) {
 });
 
 // pageTree displays pageTreeNodes in a recursive tree structure.
-app.directive("zndPageTree", function() {
+app.directive("arbPageTree", function() {
 	return {
 		templateUrl: "/static/html/pageTree.html",
 		controller: "PageTreeCtrl",
@@ -840,7 +840,7 @@ app.directive("zndPageTree", function() {
 
 // pageTreeNode displays the corresponding page and it's node children
 // recursively, allowing the user to recursively explore the page tree.
-app.directive("zndPageTreeNode", function(RecursionHelper) {
+app.directive("arbPageTreeNode", function(RecursionHelper) {
 	return {
 		templateUrl: "/static/html/pageTreeNode.html",
 		controller: function ($scope, pageService) {
@@ -864,7 +864,7 @@ app.directive("zndPageTreeNode", function(RecursionHelper) {
 							if (recursiveExpand) {
 								// Recursively expand children nodes
 								window.setTimeout(function() {
-									$(event.target).closest("znd-page-tree-node").find(".page-panel-body")
+									$(event.target).closest("arb-page-tree-node").find(".page-panel-body")
 										.find(".collapse-link.glyphicon-triangle-right:visible").trigger("click");
 								});
 							}

@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>{{.Page.Title}} - Zanaduu</title>
+	<title>{{.Page.Title}} - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
@@ -17,7 +17,7 @@
 	</script>
 </head>
 
-<body last-visit="{{.Page.LastVisit}}" ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body last-visit="{{.Page.LastVisit}}" ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 
 {{template "newLinkModal"}}
@@ -45,7 +45,7 @@
 </div>
 
 <!-- This modal is for asking a new question. -->
-<znd-edit-page-modal></znd-edit-page-modal>
+<arb-edit-page-modal></arb-edit-page-modal>
 
 <!-- All the page stuff. -->
 <div class="primary-page-body-div" ng-controller="MainCtrl">
@@ -55,9 +55,9 @@
 		<div class="panel panel-default" ng-show="page.domainIds.length > 0">
 			<div class="panel-heading">Domains</div>
 			<div class="panel-body">
-				<znd-likes-page-title
+				<arb-likes-page-title
 					page-id="{[{userService.groupMap[domainId].rootPageId}]}"
-					ng-repeat="domainId in page.domainIds"></znd-likes-page-title>
+					ng-repeat="domainId in page.domainIds"></arb-likes-page-title>
 			</div>
 		</div>
 
@@ -65,7 +65,7 @@
 		<div class="panel panel-default" ng-show="initialParentsCount > 0">
 			<div class="panel-heading">Parents</div>
 			<div class="panel-body">
-				<znd-page-tree init-map="initialParents" is-parent-tree="true"></znd-page-tree>
+				<arb-page-tree init-map="initialParents" is-parent-tree="true"></arb-page-tree>
 			</div>
 		</div>
 
@@ -73,7 +73,7 @@
 		<div class="panel panel-default" ng-show="initialChildrenCount > 0">
 			<div class="panel-heading">Children</div>
 			<div class="panel-body">
-				<znd-page-tree init-map="initialChildren"></znd-page-tree>
+				<arb-page-tree init-map="initialChildren"></arb-page-tree>
 			</div>
 		</div>
 
@@ -81,7 +81,7 @@
 		<div class="panel panel-default" ng-show="false && relatedIds.length > 0">
 			<div class="panel-heading">Related</div>
 			<div class="panel-body">
-				<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in relatedIds"></znd-likes-page-title>
+				<arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in relatedIds"></arb-likes-page-title>
 			</div>
 		</div>
 		&nbsp;
@@ -102,7 +102,7 @@
 
 		<div class="tab-content">
 			<div class="tab-pane active" id="lens-{[{page.pageId}]}">
-				<znd-page page-id="{[{page.pageId}]}"></znd-page>
+				<arb-page page-id="{[{page.pageId}]}"></arb-page>
 			</div>
 			<div class="tab-pane" id="lens-{[{lensId}]}" ng-repeat="lensId in page.lensIds">
 				<img src="/static/images/loading.gif" class="loading-indicator"/>
@@ -119,7 +119,7 @@
 		<!-- New Answer for a question page -->
 		<div class="new-answer" ng-show="page.type === 'question'">
 			<h1>Your Answer</h1>
-			<!-- zndEditPage is inserted here dynamically when primary page is a question -->
+			<!-- arbEditPage is inserted here dynamically when primary page is a question -->
 		</div>
 	</div>
 
@@ -140,8 +140,8 @@
 		</div>
 		<!-- Div to hold an expanded inline comment or edit -->
 		<div class="inline-comment-div">
-			<!-- zndComment is inserted here dynamically when expanding an inline comment -->
-			<!-- zndEditPage is inserted here dynamically when creating a new inline comment -->
+			<!-- arbComment is inserted here dynamically when expanding an inline comment -->
+			<!-- arbEditPage is inserted here dynamically when creating a new inline comment -->
 		</div>
 	</div>
 

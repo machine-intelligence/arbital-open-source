@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{if .Page.Title}}Edit - {{.Page.Title}}{{else}}New Page{{end}} - Zanaduu</title>
+	<title>{{if .Page.Title}}Edit - {{.Page.Title}}{{else}}New Page{{end}} - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
@@ -22,12 +22,12 @@
 	</script>
 </head>
 
-<body privacy-key="{{.Page.PrivacyKey}}" ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body privacy-key="{{.Page.PrivacyKey}}" ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 {{template "newLinkModal"}}
 
 <!-- This modal is for creating new pages quickly. -->
-<znd-edit-page-modal parent-page-id="{{.Page.PageId}}"></znd-edit-page-modal>
+<arb-edit-page-modal parent-page-id="{{.Page.PageId}}"></arb-edit-page-modal>
 
 {{with .Page}}
 	{{if gt .DeletedBy 0}}
@@ -40,7 +40,7 @@
 		</div>
 	{{else}}
 		<div class="new-page-body-div" ng-controller="MainCtrl">
-			<znd-edit-page page-id="{[{page.pageId}]}" done-fn="doneFn(result)"></znd-edit-page>
+			<arb-edit-page page-id="{[{page.pageId}]}" done-fn="doneFn(result)"></arb-edit-page>
 		</div>
 	{{end}}
 {{end}}

@@ -12,8 +12,8 @@ $(function() {
 
 		// Delete any expanded inline comments or inline comment editors.
 		this.clearRhs = function() {
-			$questionDiv.find("znd-edit-page").remove();
-			$questionDiv.find("znd-comment").remove();
+			$questionDiv.find("arb-edit-page").remove();
+			$questionDiv.find("arb-comment").remove();
 			$(".inline-comment-icon").removeClass("on");
 		};
 	
@@ -175,7 +175,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 	// Add answers pages.
 	var $answersList = $(".answers-list");
 	for (var n = 0; n < $scope.answerIds.length; n++){
-		var el = $compile("<znd-page page-id='" + $scope.answerIds[n] + "'></znd-page><hr></hr>")($scope);
+		var el = $compile("<arb-page page-id='" + $scope.answerIds[n] + "'></arb-page><hr></hr>")($scope);
 		$answersList.append(el);
 	}
 
@@ -191,13 +191,13 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 		};
 
 		var createAnswerEditPage = function(page) {
-			var el = $compile("<znd-edit-page page-id='" + page.pageId +
+			var el = $compile("<arb-edit-page page-id='" + page.pageId +
 				"' primary-page-id='" + $scope.page.pageId +
-				"' done-fn='answerDoneFn(result)'></znd-edit-page>")($scope);
+				"' done-fn='answerDoneFn(result)'></arb-edit-page>")($scope);
 			$(".new-answer").append(el);
 		};
 		var getNewAnswerId = function() {
-			$(".new-answer").find("znd-edit-page").remove();
+			$(".new-answer").find("arb-edit-page").remove();
 			pageService.loadPages([], {
 				success: function(data, status) {
 					var page = pageService.pageMap[Object.keys(data)[0]];
@@ -220,7 +220,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 		pageService.setPrimaryPage(lensPage);
 		// Sigh. This generates an error, but it seems benign.
 		var url = window.location.pathname + "?lens=" + lensPage.pageId + window.location.hash;
-		history.pushState(null, lensPage.title + " - Zanaduu", url);
+		history.pushState(null, lensPage.title + " - Arbital", url);
 	};
 	var switchToLens = function(lensId, callback) {
 		var lensPage = pageService.pageMap[lensId];
@@ -239,7 +239,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 				overwrite: true,
 				success: function(data, status) {
 					var page = pageService.pageMap[lensId];
-					var el = $compile("<znd-page page-id='" + page.pageId + "'></znd-page>")($scope);
+					var el = $compile("<arb-page page-id='" + page.pageId + "'></arb-page>")($scope);
 					$("#lens-" + page.pageId).empty().append(el);
 					performSwitchToLens(page);
 					if(callback) callback();

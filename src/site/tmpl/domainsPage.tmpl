@@ -3,14 +3,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Domains - Zanaduu</title>
+	<title>Domains - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
 	<script src="/static/js/domainsPage.js"></script>
 </head>
 
-<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 
 <div class="filter-body-div">
@@ -33,7 +33,7 @@
 					<td>{{$k}}</td>
 					<td>{{$v.Name}}</td>
 					<td>{{$v.Alias}}</td>
-					<td><znd-likes-page-title page-id="{{$v.RootPageId}}"></znd-likes-page-title></td>
+					<td><arb-likes-page-title page-id="{{$v.RootPageId}}"></arb-likes-page-title></td>
 					<td>{[{"{{$v.CreatedAt}}" | simpleDateTime}]}</td>
 				</tr>
 			{{end}}

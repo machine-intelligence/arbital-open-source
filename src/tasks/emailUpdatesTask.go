@@ -156,9 +156,9 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	}
 
 	// Create mail message
-	subject := fmt.Sprintf("%d new updates on Zanaduu", data.UpdateCount)
+	subject := fmt.Sprintf("%d new updates on Arbital", data.UpdateCount)
 	msg := &mail.Message{
-		Sender:   "Zanaduu <updates@zanaduu3.appspotmail.com>",
+		Sender:   "Arbital <updates@zanaduu3.appspotmail.com>",
 		To:       []string{userEmail},
 		Subject:  subject,
 		HTMLBody: buffer.String(),

@@ -6,7 +6,7 @@
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
-	<title>Explore Zanaduu</title>
+	<title>Explore Arbital</title>
 	<script>
 		// ExploreCtrl is for the Explore page.
 		app.controller("ExploreCtrl", function ($scope, pageService) {
@@ -24,11 +24,11 @@
 	</script>
 </head>
 
-<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 	{{template "navbar" .User}}
 	
 	<div class="filter-body-div" ng-controller="ExploreCtrl">
-		<znd-page-tree init-map="rootPages" additional-map="childPages" supersize-roots="true"></znd-page-tree>
+		<arb-page-tree init-map="rootPages" additional-map="childPages" supersize-roots="true"></arb-page-tree>
 	</div>
 	
 	{{template "footer"}}

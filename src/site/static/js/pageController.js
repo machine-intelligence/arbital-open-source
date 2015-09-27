@@ -228,7 +228,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function($compile, scope) {
 		// Set up markdown.
-		zndMarkdown.init(false, pageId, page.text, $topParent, pageService);
+		arbMarkdown.init(false, pageId, page.text, $topParent, pageService);
 
 		// Setup probability vote slider.
 		// NOTE: this pretty messy, since there are some race conditions here we are
@@ -264,7 +264,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					success: function(data, status) {
 						var pageId = Object.keys(data)[0];
 						var divId = "embed-vote-" + pageId;
-						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><znd-likes-page-title page-id='" + pageId + "'></znd-likes-page-title></div>")(scope);
+						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><arb-likes-page-title page-id='" + pageId + "'></arb-likes-page-title></div>")(scope);
 						$link.replaceWith($embedDiv);
 						createVoteSlider($("#" + divId), userService, pageService.pageMap[pageId], false);
 					},
@@ -281,8 +281,8 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 	};
 };
 
-// Directive for showing a standard Zanaduu page.
-app.directive("zndPage", function (pageService, userService, $compile, $timeout) {
+// Directive for showing a standard Arbital page.
+app.directive("arbPage", function (pageService, userService, $compile, $timeout) {
 	return {
 		templateUrl: "/static/html/page.html",
 		controller: function ($scope, pageService, userService) {
@@ -366,8 +366,8 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 					$commentIcon.on("click", function(event) {
 						pageView.toggleInlineComment($commentDiv, function() {
 							$("." + highlightClass).addClass("inline-comment-highlight");
-							var $comment = $compile("<znd-comment primary-page-id='" + scope.page.pageId +
-									"' page-id='" + pageId + "'></znd-comment>")(scope);
+							var $comment = $compile("<arb-comment primary-page-id='" + scope.page.pageId +
+									"' page-id='" + pageId + "'></arb-comment>")(scope);
 							$(".inline-comment-div").append($comment);
 						});
 						return false;
@@ -509,8 +509,8 @@ app.directive("zndPage", function (pageService, userService, $compile, $timeout)
 						}
 						if (hasParentComment) continue;
 					}
-					var $comment = $compile("<znd-comment primary-page-id='" + scope.pageId +
-							"' page-id='" + comment.pageId + "'></znd-comment>")(scope);
+					var $comment = $compile("<arb-comment primary-page-id='" + scope.pageId +
+							"' page-id='" + comment.pageId + "'></arb-comment>")(scope);
 					$comments.prepend($comment);
 				}
 			};

@@ -1,10 +1,10 @@
 "use strict";
 
-// Create new EditPage (for use with znd-edit-page directive).
+// Create new EditPage (for use with arb-edit-page directive).
 // page - page object corresponding to the page being edited.
 // pageService - pageService object which contains all loaded pages.
 // options {
-//   topParent - points to the znd-edit-page DOM element.
+//   topParent - points to the arb-edit-page DOM element.
 //   primaryPage - for an answer page, points to the question page; for a comment, point to the root page
 //   isModal - set if the page is being edited inside a modal
 //   doneFn - function to call when the user is done with editing.
@@ -263,7 +263,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	addParentTags(true);
 
 	// Set up Markdown.
-	zndMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
+	arbMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
 
 	// Setup karma lock slider.
 	var $slider = $topParent.find(".karma-lock-slider");
@@ -520,9 +520,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					// Have to wait for the popover to appear, so we can then replace its contents.
 					window.setTimeout(function() {
 						var $popover = $("#" + $target.attr("aria-describedby"));
-						var $el = $compile("<znd-edit-node-popover page-id='" + pageId +
+						var $el = $compile("<arb-edit-node-popover page-id='" + pageId +
 								"' edit-num='" + edit.edit +
-								"' is-opened='" + (edit.edit === page.edit) + "'>BLAH</znd-edit-node-popover>")(scope);
+								"' is-opened='" + (edit.edit === page.edit) + "'>BLAH</arb-edit-node-popover>")(scope);
 						$popover.find(".popover-content").empty().append($el);
 					});
 					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
@@ -547,7 +547,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 // Directive for the modal, where a user can create a new page, edit a page, 
 // ask a question, etc...
-app.directive("zndEditPageModal", function (pageService, userService) {
+app.directive("arbEditPageModal", function (pageService, userService) {
 	return {
 		templateUrl: "/static/html/editPageModal.html",
 		scope: {
@@ -590,10 +590,10 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 						newPage.groupId = primaryPage.groupId;
 					}
 
-					// Dynamically create znd-edit-page directive.
-					var el = $compile("<znd-edit-page page-id='" + pageId +
+					// Dynamically create arb-edit-page directive.
+					var el = $compile("<arb-edit-page page-id='" + pageId +
 							"' is-modal='true'" +
-							"done-fn='doneFn(result)'></znd-edit-page>")($scope);
+							"done-fn='doneFn(result)'></arb-edit-page>")($scope);
 					$modalBody.empty().append(el);
 					$modal.modal();
 
@@ -678,7 +678,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 });
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("zndEditPage", function($timeout, $compile, pageService, userService, autocompleteService) {
+app.directive("arbEditPage", function($timeout, $compile, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
@@ -836,7 +836,7 @@ app.directive("zndEditPage", function($timeout, $compile, pageService, userServi
 });
 
 // Directive for the body of an edit node popover.
-app.directive("zndEditNodePopover", function (pageService, userService) {
+app.directive("arbEditNodePopover", function (pageService, userService) {
 	return {
 		templateUrl: "/static/html/editNodePopover.html",
 		scope: {

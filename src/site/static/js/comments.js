@@ -17,15 +17,15 @@ var createEditCommentDiv = function($parentDiv, $commentButton, scope, options) 
 		scope[doneFnName] = function(result) {
 			if (result.abandon) {
 				toggleVisibility(true, false);
-				$parentDiv.find("znd-edit-page").remove();
+				$parentDiv.find("arb-edit-page").remove();
 				if (options.callback) options.callback();
 			} else if (result.alias) {
 				smartPageReload("comment-" + result.alias);
 			}
 		};
-		var el = scope.$compile("<znd-edit-page page-id='" + newPageId +
+		var el = scope.$compile("<arb-edit-page page-id='" + newPageId +
 				"' primary-page-id='" + options.primaryPageId +
-				"' done-fn='" + doneFnName + "(result)'></znd-edit-page>")(scope);
+				"' done-fn='" + doneFnName + "(result)'></arb-edit-page>")(scope);
 		$parentDiv.append(el);
 	};
 
@@ -35,11 +35,11 @@ var createEditCommentDiv = function($parentDiv, $commentButton, scope, options) 
 	var toggleVisibility = function(showButton, showLoading) {
 		$commentButton.toggle(showButton);
 		$parentDiv.find(".loading-indicator").toggle(showLoading);
-		$parentDiv.find("znd-edit-page").toggle(!showButton && !showLoading);
+		$parentDiv.find("arb-edit-page").toggle(!showButton && !showLoading);
 		return false;
 	};
 
-	if ($parentDiv.find("znd-edit-page").length > 0) {
+	if ($parentDiv.find("arb-edit-page").length > 0) {
 		toggleVisibility(false, false);
 	} else {
 		toggleVisibility(false, true);
@@ -69,7 +69,7 @@ var createEditCommentDiv = function($parentDiv, $commentButton, scope, options) 
 };
 
 // Directive for showing a comment.
-app.directive("zndComment", function ($compile, $timeout, pageService, autocompleteService) {
+app.directive("arbComment", function ($compile, $timeout, pageService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/comment.html",
 		controller: function ($scope, pageService, userService) {
@@ -90,21 +90,21 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 					for (var n = 0; n < scope.comment.children.length; n++) {
 						var childId = scope.comment.children[n].childId;
 						if (pageService.pageMap[childId].type !== "comment") continue;
-						var $comment = $compile("<znd-comment primary-page-id='" + scope.primaryPageId +
+						var $comment = $compile("<arb-comment primary-page-id='" + scope.primaryPageId +
 								"' page-id='" + childId +
-								"' parent-comment-id='" + scope.pageId + "'></znd-comment>")(scope);
+								"' parent-comment-id='" + scope.pageId + "'></arb-comment>")(scope);
 						$replies.append($comment);
 					}
 				}
 				// Add New Comment element.
-				var $newComment = $compile("<znd-new-comment primary-page-id='" + scope.primaryPageId +
-						"' parent-comment-id='" + scope.pageId + "'></znd-new-comment>")(scope);
+				var $newComment = $compile("<arb-new-comment primary-page-id='" + scope.primaryPageId +
+						"' parent-comment-id='" + scope.pageId + "'></arb-new-comment>")(scope);
 				$replies.append($newComment);
 			}
 
 			$timeout(function() {
 				// Process comment's text using Markdown.
-				zndMarkdown.init(false, scope.pageId, scope.comment.text, element, pageService);
+				arbMarkdown.init(false, scope.pageId, scope.comment.text, element, pageService);
 			});
 
 			// Highlight the comment div. Used for selecting comments when #anchor matches.
@@ -169,13 +169,13 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 			var $comment = element.find(".comment-content");
 			// Create and show the edit page directive.
 			var createEditPage = function() {
-				var el = $compile("<znd-edit-page page-id='" + scope.pageId +
+				var el = $compile("<arb-edit-page page-id='" + scope.pageId +
 						"' primary-page-id='" + scope.primaryPageId +
-						"' done-fn='doneFn(result)'></znd-edit-page>")(scope);
+						"' done-fn='doneFn(result)'></arb-edit-page>")(scope);
 				$comment.append(el);
 			};
 			var destroyEditPage = function() {
-				$comment.find("znd-edit-page").remove();
+				$comment.find("arb-edit-page").remove();
 			};
 			// Reload comment from the server, loading the last, potentially non-live edit.
 			var reloadComment = function() {
@@ -193,7 +193,7 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 			// Show/hide the comment vs the edit page.
 			function toggleEditComment(visible) {
 				$comment.find(".comment-body").toggle(!visible);
-				$comment.find("znd-edit-page").toggle(visible);
+				$comment.find("arb-edit-page").toggle(visible);
 			}
 			// Callback used when the user is done editing the comment.
 			scope.doneFn = function(result) {
@@ -208,8 +208,8 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 			};
 			element.find(".edit-comment-link").on("click", function(event) {
 				$(".hash-anchor").removeClass("hash-anchor");
-				// Dynamically create znd-edit-page directive if it doesn't exist already.
-				if ($comment.find("znd-edit-page").length <= 0) {
+				// Dynamically create arb-edit-page directive if it doesn't exist already.
+				if ($comment.find("arb-edit-page").length <= 0) {
 					if (scope.comment.hasDraft) {
 						// Load the draft.
 						reloadComment();
@@ -225,7 +225,7 @@ app.directive("zndComment", function ($compile, $timeout, pageService, autocompl
 });
 
 // Directive for creating a new comment.
-app.directive("zndNewComment", function ($compile, pageService, userService) {
+app.directive("arbNewComment", function ($compile, pageService, userService) {
 	return {
 		templateUrl: "/static/html/newComment.html",
 		controller: function ($scope, pageService, userService) {

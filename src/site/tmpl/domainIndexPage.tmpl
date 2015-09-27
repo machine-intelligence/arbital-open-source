@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{.Domain.Name}} - Zanaduu</title>
+	<title>{{.Domain.Name}} - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
@@ -18,35 +18,35 @@
 	</script>
 </head>
 
-<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 
 <div class="index-body-div container-fluid" ng-controller="IndexCtrl">
 	<div class="panel panel-default">
 	  <div class="panel-heading">Most Liked</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostLikedIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostLikedIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default">
 	  <div class="panel-heading">Most Controversial</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostControversialIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in mostControversialIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default">
 	  <div class="panel-heading">Recently Created</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyCreatedIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyCreatedIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default">
 	  <div class="panel-heading">Recently Edited</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyEditedIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" show-created-at="true" ng-repeat="pageId in recentlyEditedIds"></arb-likes-page-title>
 	  </div>
 	</div>
 </div>

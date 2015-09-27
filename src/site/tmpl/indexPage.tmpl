@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Zanaduu</title>
+	<title>Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
@@ -15,7 +15,7 @@
 	</script>
 </head>
 
-<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 
 <div class="index-body-div container-fluid" ng-controller="IndexCtrl">
@@ -36,7 +36,7 @@
 		  <ul class="list-group">
 				{{range .ChildIds}}
 					<li class="list-group-item">
-						<znd-likes-page-title page-id="{{.}}"></znd-likes-page-title>
+						<arb-likes-page-title page-id="{{.}}"></arb-likes-page-title>
 					</li>
 				{{end}}
 		  </ul>

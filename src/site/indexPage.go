@@ -80,9 +80,9 @@ func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User)
 				DomainName:  "Arbital",
 				ImageUrl:    "/static/images/arbitalIndexLogo.png",
 				ChildIds: []int64{
-					3560540392275264633, // What is Zanaduu
+					3560540392275264633, // What is Arbital
 					8992241719442104138, // Page hierarchy
-					7894360080081727761, // Zanaduu wiki page
+					7894360080081727761, // Arbital wiki page
 					5933317145970853046, // Editing
 					4675907493088898985, // Liking
 					8676677094741262267, // Voting

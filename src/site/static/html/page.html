@@ -63,8 +63,8 @@
 	<!-- Main page column -->
 	<div class="text-column">
 		<a id="page-{[{page.pageId}]}"></a>
-		<znd-page-title page-id="{[{page.pageId}]}" class="page-title"></znd-page-title>
-		<div class="author-text" ng-show="page.type == 'blog'">by <znd-user-name user-id="{[{page.creatorId}]}"></znd-user-name></div>
+		<arb-page-title page-id="{[{page.pageId}]}" class="page-title"></arb-page-title>
+		<div class="author-text" ng-show="page.type == 'blog'">by <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name></div>
 
 		<!-- Voting container -->
 		<div class="page-vote" ng-show="page.hasVote"></div>
@@ -74,7 +74,7 @@
 
 		<!--Admin stuff -->
 		<span class="admin" ng-show="userService.user.isAdmin">
-			Last Visit: {[{page.lastVisit}]}; Last Edit At: {[{page.createdAt}]} by <znd-user-name user-id="{[{page.creatorId}]}"></znd-user-name>
+			Last Visit: {[{page.lastVisit}]}; Last Edit At: {[{page.createdAt}]} by <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name>
 		</span>
 	</div>
 
@@ -90,7 +90,7 @@
 			<div ng-show="questionIds.length > 0">
 				<b id="comments-label">Questions:</b>
 				<div>
-					<znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in questionIds"></znd-likes-page-title>
+					<arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in questionIds"></arb-likes-page-title>
 				</div>
 				<br>
 			</div>
@@ -98,7 +98,7 @@
 			<!-- Comments -->
 			<b id="comments-label">Comments:</b>
 			<div class="comments">
-				<znd-new-comment primary-page-id="{[{page.pageId}]}"></znd-new-comment>
+				<arb-new-comment primary-page-id="{[{page.pageId}]}"></arb-new-comment>
 			</div>
 		</div>
 	</div>
