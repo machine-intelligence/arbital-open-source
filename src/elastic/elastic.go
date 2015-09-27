@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"net/http"
 
-	_ "appengine/urlfetch"
+	"appengine/urlfetch"
 
 	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
@@ -67,12 +67,14 @@ type Hit struct {
 }
 
 // sendRequest sends the given request object to the elastic search server.
-func sendRequest(request *http.Request) (*http.Response, error) {
+func sendRequest(c sessions.Context, request *http.Request) (*http.Response, error) {
 	certPool := x509.NewCertPool()
 	certPool.AppendCertsFromPEM([]byte(rootPEM))
 	tlsConfig := &tls.Config{RootCAs: certPool}
 	tlsConfig.BuildNameToCertificate()
-	transport := &http.Transport{TLSClientConfig: tlsConfig}
+	transport := &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: true}
+
+	//tr := &urlfetch.Transport{Context: c, Deadline: TimeoutDuration, AllowInvalidServerCertificate: allowInvalidServerCertificate}
 
 	resp, err := transport.RoundTrip(request)
 	if err != nil {
@@ -108,7 +110,7 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	_, err = sendRequest(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
@@ -128,7 +130,7 @@ func DeletePageFromIndex(c sessions.Context, pageId int64) error {
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	_, err = sendRequest(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
@@ -186,7 +188,7 @@ func CreatePageIndex(c sessions.Context) error {
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	_, err = sendRequest(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
@@ -206,7 +208,7 @@ func DeletePageIndex(c sessions.Context) error {
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	_, err = sendRequest(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
@@ -226,7 +228,7 @@ func SearchPageIndex(c sessions.Context, jsonStr string) (map[string]interface{}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	resp, err := sendRequest(request)
+	resp, err := sendRequest(c, request)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't execute request: %v", err)
 	}
