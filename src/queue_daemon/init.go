@@ -35,8 +35,6 @@ func processTask(c sessions.Context) error {
 	// TODO: refactor tag strings into the corresponding files as consts
 	if leasedTask.Tag == "tick" {
 		task = &tasks.TickTask{}
-	} else if leasedTask.Tag == "populateIndex" {
-		task = &tasks.PopulateIndexTask{}
 	} else if leasedTask.Tag == "populateElastic" {
 		task = &tasks.PopulateElasticTask{}
 	} else if leasedTask.Tag == "newUpdate" {

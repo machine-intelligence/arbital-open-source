@@ -30,9 +30,9 @@ func GetDomain() string {
 
 func GetElasticDomain() string {
 	if Live {
-		return config.XC.Site.Live.Elastic
+		return config.XC.Elastic.Live.Address
 	}
-	return config.XC.Site.Dev.Elastic
+	return config.XC.Elastic.Dev.Address
 }
 
 // GetSession returns the user's session.

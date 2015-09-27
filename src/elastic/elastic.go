@@ -3,13 +3,35 @@ package elastic
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"net/http"
 
-	"appengine/urlfetch"
+	_ "appengine/urlfetch"
 
+	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
+)
+
+const (
+	rootPEM = `-----BEGIN CERTIFICATE-----
+MIICjTCCAfYCCQCdtV757poJ4TANBgkqhkiG9w0BAQUFADCBijELMAkGA1UEBhMC
+VVMxEzARBgNVBAgMCkNhbGlmb3JuaWExETAPBgNVBAcMCEJlcmtlbGV5MREwDwYD
+VQQKDAhPbW5pbWVudDEXMBUGA1UEAwwOQWxleGVpIEFuZHJlZXYxJzAlBgkqhkiG
+9w0BCQEWGGFsZXhlaS5hbmRyZWV2QGdtYWlsLmNvbTAeFw0xNTA5MjYyMzIzMDda
+Fw0yNTA5MjMyMzIzMDdaMIGKMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZv
+cm5pYTERMA8GA1UEBwwIQmVya2VsZXkxETAPBgNVBAoMCE9tbmltZW50MRcwFQYD
+VQQDDA5BbGV4ZWkgQW5kcmVldjEnMCUGCSqGSIb3DQEJARYYYWxleGVpLmFuZHJl
+ZXZAZ21haWwuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCz+XzDdko6
+Q0tmHTBZ2oVzpZwY3nl11wFNnDZnkmzEa9zAPPN9k/ez5vEc+ZhtvZzne+AHq9YO
+PQQTa7ee9Mtj3OvwQIhJHR2qFhqPgdtZlJU5BWf9kuyiQnaTCPomjYz3S8D4M52g
+Vt3kNVR5EbbAR1hgw8mIYCC+Fsop57IL1QIDAQABMA0GCSqGSIb3DQEBBQUAA4GB
+AGFNjsZBejXq/1wVeBTc00mXCAOhI0XpFRzwFJf4ILgrl+ylK0s9GorJGqled1Gh
+ArkOL1SI0oJr/CQugA/6X99hzLoAk7cDnx9kAaRAEmXGsz4w0o2sBySyWXcMzvQZ
+EpJfDRwd0JPE7D4Vck5SYMl0zN/GZHlzgUbRmXB26lyd
+-----END CERTIFICATE-----`
 )
 
 var (
@@ -44,6 +66,31 @@ type Hit struct {
 	Source Document `json:"_source"`
 }
 
+// sendRequest sends the given request object to the elastic search server.
+func sendRequest(request *http.Request) (*http.Response, error) {
+	certPool := x509.NewCertPool()
+	certPool.AppendCertsFromPEM([]byte(rootPEM))
+	tlsConfig := &tls.Config{RootCAs: certPool}
+	tlsConfig.BuildNameToCertificate()
+	transport := &http.Transport{TLSClientConfig: tlsConfig}
+
+	resp, err := transport.RoundTrip(request)
+	if err != nil {
+		return nil, fmt.Errorf("Round trip failed: %v", err)
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		// Process an error
+		decoder := json.NewDecoder(resp.Body)
+		var result map[string]interface{}
+		err = decoder.Decode(&result)
+		if err != nil {
+			return nil, fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
+		}
+		return nil, fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
+	}
+	return resp, nil
+}
+
 // AddPageToIndex adds a page document to the pages index.
 func AddPageToIndex(c sessions.Context, doc *Document) error {
 	// Construct request body
@@ -55,25 +102,17 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
@@ -83,25 +122,17 @@ func DeletePageFromIndex(c sessions.Context, pageId int64) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
@@ -149,25 +180,17 @@ func CreatePageIndex(c sessions.Context) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
@@ -177,25 +200,17 @@ func DeletePageIndex(c sessions.Context) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
@@ -205,11 +220,13 @@ func SearchPageIndex(c sessions.Context, jsonStr string) (map[string]interface{}
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	resp, err := sendRequest(request)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't execute request: %v", err)
 	}
