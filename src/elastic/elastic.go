@@ -3,8 +3,6 @@ package elastic
 
 import (
 	"bytes"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,25 +11,6 @@ import (
 
 	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
-)
-
-const (
-	rootPEM = `-----BEGIN CERTIFICATE-----
-MIICjTCCAfYCCQCdtV757poJ4TANBgkqhkiG9w0BAQUFADCBijELMAkGA1UEBhMC
-VVMxEzARBgNVBAgMCkNhbGlmb3JuaWExETAPBgNVBAcMCEJlcmtlbGV5MREwDwYD
-VQQKDAhPbW5pbWVudDEXMBUGA1UEAwwOQWxleGVpIEFuZHJlZXYxJzAlBgkqhkiG
-9w0BCQEWGGFsZXhlaS5hbmRyZWV2QGdtYWlsLmNvbTAeFw0xNTA5MjYyMzIzMDda
-Fw0yNTA5MjMyMzIzMDdaMIGKMQswCQYDVQQGEwJVUzETMBEGA1UECAwKQ2FsaWZv
-cm5pYTERMA8GA1UEBwwIQmVya2VsZXkxETAPBgNVBAoMCE9tbmltZW50MRcwFQYD
-VQQDDA5BbGV4ZWkgQW5kcmVldjEnMCUGCSqGSIb3DQEJARYYYWxleGVpLmFuZHJl
-ZXZAZ21haWwuY29tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCz+XzDdko6
-Q0tmHTBZ2oVzpZwY3nl11wFNnDZnkmzEa9zAPPN9k/ez5vEc+ZhtvZzne+AHq9YO
-PQQTa7ee9Mtj3OvwQIhJHR2qFhqPgdtZlJU5BWf9kuyiQnaTCPomjYz3S8D4M52g
-Vt3kNVR5EbbAR1hgw8mIYCC+Fsop57IL1QIDAQABMA0GCSqGSIb3DQEBBQUAA4GB
-AGFNjsZBejXq/1wVeBTc00mXCAOhI0XpFRzwFJf4ILgrl+ylK0s9GorJGqled1Gh
-ArkOL1SI0oJr/CQugA/6X99hzLoAk7cDnx9kAaRAEmXGsz4w0o2sBySyWXcMzvQZ
-EpJfDRwd0JPE7D4Vck5SYMl0zN/GZHlzgUbRmXB26lyd
------END CERTIFICATE-----`
 )
 
 var (
@@ -68,14 +47,7 @@ type Hit struct {
 
 // sendRequest sends the given request object to the elastic search server.
 func sendRequest(c sessions.Context, request *http.Request) (*http.Response, error) {
-	certPool := x509.NewCertPool()
-	certPool.AppendCertsFromPEM([]byte(rootPEM))
-	tlsConfig := &tls.Config{RootCAs: certPool}
-	tlsConfig.BuildNameToCertificate()
 	transport := &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: true}
-
-	//tr := &urlfetch.Transport{Context: c, Deadline: TimeoutDuration, AllowInvalidServerCertificate: allowInvalidServerCertificate}
-
 	resp, err := transport.RoundTrip(request)
 	if err != nil {
 		return nil, fmt.Errorf("Round trip failed: %v", err)
