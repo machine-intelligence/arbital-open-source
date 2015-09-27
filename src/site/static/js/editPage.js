@@ -62,6 +62,32 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$target.tooltip("destroy").remove();
 	};
 
+	// Get similar pages
+	var prevSimilarPageData = {};
+	var $similarPages = $topParent.find(".similar-pages").find(".panel-body");
+	var computeSimilarPages = function($compile, scope) {
+		var fullPageData = computeAutosaveData(false, false);
+		if (fullPageData.type !== "question") return;
+		var data = {
+			title: fullPageData.title,
+			text: fullPageData.text,
+			clickbait: fullPageData.clickbait,
+		};
+		if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return;
+		prevSimilarPageData = data;
+		autocompleteService.findSimilarPages(data, function(data, status){
+			$similarPages.empty();
+			var hits = data.hits.hits;
+			for (var n = 0; n < hits.length; n++) {
+				var source = hits[n]._source;
+				var $el = $("<div><a href='/pages/" + source.pageId + "' page-id='" + source.pageId +
+					"' class='intrasite-link'>" + source.title + "</a><div class='gray-text'>" +
+					source.clickbait + "</div></div>");
+				$similarPages.append($el);
+			}
+		});
+	};
+
 	// Helper function for savePage. Computes the data to submit via AJAX.
 	var computeAutosaveData = function(isAutosave, isSnapshot) {
 		var parentIds = [];
@@ -444,6 +470,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.autosaveInterval = null;
+	this.similarPagesInterval = null;
 	this.backdropInterval = null;
 	this.start = function($compile, scope) {
 		// Hide new page button if this is a modal.
@@ -474,6 +501,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				}
 			});
 		}, 5000);
+
+		// Set up finding similar pages
+		this.similarPagesInterval = window.setInterval(function(){
+			computeSimilarPages($compile, scope);
+		}, 11000);
 
 		// Compute prevEditPageData, so we don't fire off autosave when there were
 		// no changes made.
@@ -537,6 +569,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Called before this editPage is destroyed.
 	this.stop = function() {
 		clearInterval(this.autosaveInterval);
+		clearInterval(this.similarPagesInterval);
 		clearInterval(this.backdropInterval);
 		// Autosave just in case.
 		savePage(true, false, function(r) {});

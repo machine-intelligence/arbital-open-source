@@ -490,6 +490,17 @@ app.service("autocompleteService", function($http){
 		}
 		return input;
 	};
+
+	// Find other pages similar to the page with the given data.
+	this.findSimilarPages = function(pageData, callback) {
+		$http({method: "POST", url: "/json/similarPageSearch/", data: JSON.stringify(pageData)})
+		.success(function(data, status){
+			callback(data, status);
+		})
+		.error(function(data, status){
+			console.log("Error doing similar page search:"); console.log(data); console.log(status);
+		});
+	};
 });
 
 // simpleDateTime filter converts our typical date&time string into local time.
