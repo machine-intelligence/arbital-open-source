@@ -58,12 +58,12 @@ type Vote struct {
 type Page struct {
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
-	PageId   int64  `json:"pageId,string"`
-	Edit     int    `json:"edit"`
-	PrevEdit int    `json:"prevEdit"`
-	Type     string `json:"type"`
-	Title    string `json:"title"`
-	Clickbait	string	`json:"clickbait"`
+	PageId    int64  `json:"pageId,string"`
+	Edit      int    `json:"edit"`
+	PrevEdit  int    `json:"prevEdit"`
+	Type      string `json:"type"`
+	Title     string `json:"title"`
+	Clickbait string `json:"clickbait"`
 	// Full text of the page. Not always sent to the FE.
 	Text           string `json:"text"`
 	TextLength     int    `json:"textLength"`
@@ -371,8 +371,8 @@ func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, 
 	}
 	// Find directly encoded urls
 	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/([0-9]+)"))
-	// Find ids and aliases using [id/alias] syntax.
-	extractLinks(regexp.MustCompile("\\[([A-Za-z0-9_-]+?)\\](?:[^(]|$)"))
+	// Find ids and aliases using [id/alias optional text] syntax.
+	extractLinks(regexp.MustCompile("\\[([A-Za-z0-9_-]+)[^\\]]*?\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](id/alias) syntax.
 	extractLinks(regexp.MustCompile("\\[.+?\\]\\(([A-Za-z0-9_-]+?)\\)"))
 	// Find ids and aliases using [vote: id/alias] syntax.
