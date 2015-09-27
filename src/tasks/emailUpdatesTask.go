@@ -115,7 +115,7 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	// Load the template file
 	var templateBytes []byte
 	if sessions.Live {
-		resp, err := urlfetch.Client(c).Get("http://zanaduu3.appspot.com/static/updatesEmailInlined.html")
+		resp, err := urlfetch.Client(c).Get(fmt.Sprintf("%s/static/updatesEmailInlined.html", sessions.GetDomain()))
 		if err != nil {
 			return fmt.Errorf("Couldn't load the email template form URL: %v", err)
 		}
@@ -131,13 +131,13 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	funcMap := template.FuncMap{
 		//"UserFirstName": func() int64 { return u.Id },
 		"GetUserUrl": func(userId int64) string {
-			return fmt.Sprintf(`http://zanaduu3.appspot.com/filter?user=%d`, userId)
+			return fmt.Sprintf(`%s/filter?user=%d`, sessions.GetDomain(), userId)
 		},
 		"GetUserName": func(userId int64) string {
 			return userMap[userId].FullName()
 		},
 		"GetPageUrl": func(pageId int64) string {
-			return fmt.Sprintf("http://zanaduu3.appspot.com/pages/%d", pageId)
+			return fmt.Sprintf("%s/pages/%d", sessions.GetDomain(), pageId)
 		},
 		"GetPageTitle": func(pageId int64) string {
 			return pageMap[pageId].Title
