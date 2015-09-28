@@ -23,45 +23,43 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	var isModal = options.isModal;
 	var doneFn = options.doneFn;
 
-	// Create a new tag for the page.
-	var createNewParentElement = function(parentAlias) {
-		parentAlias = autocompleteService.convertInputToAlias(parentAlias);
-
-		// Now we have to get the page id and title, which could get very
-		// complicated because we might only have the page's alias at this
-		// point, plus we could be in a new page modal.
-		if (primaryPage !== undefined && parentAlias === primaryPage.alias) {
-			// The parent is the primaryPage.
-			var parentPageId = primaryPage.pageId;
-			var title = primaryPage.title;
-			var groupId = primaryPage.groupId;
-			if (title === "") {
-				title = "*Untitled parent*";
+	// Update all parent tags. In particular, update whether or not the group is
+	// the same as for primary page.
+	var updateParentElements = function() {
+		$topParent.find(".tag[tag-id]").each(function() {
+			var parentPage = pageService.pageMap[$(this).attr("tag-id")];
+			if (parentPage.groupId === page.groupId || parentPage.groupId === "0") {
+				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
+			} else {
+				var tooltip = "This parent belongs to " + userService.groupMap[parentPage.groupId].name + " group, but the page you are editing does not.";
+				$(this).addClass("label-danger").removeClass("label-default").attr("title", tooltip).tooltip();
 			}
-		} else if (parentAlias in pageService.pageMap) {
-			var parentPage = pageService.pageMap[parentAlias];
-			var parentPageId = parentAlias;
-			var title = parentPage.title;
-			var groupId = parentPage.groupId;
-			parentAlias = parentPage.alias;
-		} else {
-			// The parent hasn't been published yet.
-			var parentPageId = parentAlias;
-			var title = "*Not Yet Published*";
-			var groupId = 0;
+		});
+	}
+	// Update all the parent tags when the group changes.
+	$topParent.find(".group-select").change(function(event) {
+		updateParentElements();
+	});
+
+	// Create a new tag for the page.
+	var createNewParentElement = function(parentId) {
+		var parentPage = pageService.pageMap[parentId];
+		if (!parentPage) {
+			console.log("ERROR: parent is not in the pageMap: " + parentId);
+			return;
 		}
 
 		// Prevent duplicates.
-		if ($(".tag[tag-id=" + parentPageId + "]").length > 0) return;
+		if ($topParent.find(".tag[tag-id=" + parentId + "]").length > 0) return;
 
 		// Create the tag.
 		var $template = $topParent.find(".tag.template");
 		var $newTag = $template.clone(true);
 		$newTag.removeClass("template");
-		$newTag.text(title);
-		$newTag.attr("tag-id", parentPageId);
-		$newTag.attr("title", parentAlias).tooltip();
+		$newTag.text(parentPage.title === "" ? "*Untitled*" : parentPage.title);
+		$newTag.attr("tag-id", parentId);
 		$newTag.insertBefore($template);
+		updateParentElements();
 	}
 	var deleteParentElement = function($target) {
 		$target.tooltip("destroy").remove();
@@ -250,18 +248,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	});
 
 	// Add parent tags.
-	// usePageIds - forces pageIds to be passed to createNewParentElement. Used
-	//   to create initial parent elements.
-	var addParentTags = function(usePageIds) {
+	var addParentTags = function() {
 		var parentsLen = page.parents.length;
 		for(var n = 0; n < parentsLen; n++) {
-			var parentPage = pageService.pageMap[page.parents[n].parentId];
-			if (usePageIds || parentPage.alias === "") {
-				var parentKey = parentPage.pageId;
-			} else {
-				var parentKey = parentPage.alias;
-			}
-			createNewParentElement(parentKey);
+			createNewParentElement(page.parents[n].parentId);
 		}
 	};
 
@@ -287,7 +277,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	});
 
 	// Add existing parent tags
-	addParentTags(true);
+	addParentTags();
 
 	// Set up Markdown.
 	arbMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);

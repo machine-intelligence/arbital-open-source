@@ -189,14 +189,14 @@ app.service("pageService", function(userService, $http){
 	this.addPageToMap = function(page, overwrite) {
 		var existingPage = this.pageMap[page.pageId];
 		if (existingPage !== undefined && !overwrite) {
-			if (page === existingPage) return page;
+			if (page === existingPage) return false;
 			// Merge.
 			existingPage.children = existingPage.children.concat(page.children);
 			existingPage.parents = existingPage.parents.concat(page.parents);
 		} else {
 			this.pageMap[page.pageId] = setUpPage(page);
 		}
-		return this.pageMap[page.pageId];
+		return true;
 	};
 	// Remove page with the given pageId from the global pageMap.
 	this.removePageFromMap = function(pageId) {

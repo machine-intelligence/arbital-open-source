@@ -73,7 +73,7 @@
 			<input name="title"
 				type="text"
 				class="form-control input-lg"
-				ng-value="page.title"
+				ng-model="page.title"
 				placeholder="{[{getTitlePlaceholder()}]}"
 				ng-required="!isComment"
 				autocomplete="off"
@@ -85,7 +85,7 @@
 			<input name="clickbait"
 				type="text"
 				class="form-control input-lg"
-				ng-value="page.clickbait"
+				ng-model="page.clickbait"
 				placeholder="Clickbait"
 				autocomplete="off"
 				ng-readonly="lockedByAnother">
@@ -142,7 +142,7 @@
 				<label class="title-label control-label col-sm-2">Group <span class="dashed-underline" title="Only members of the selected group will be able to see this page.">(?)</span></label>
 				<div class="col-sm-4">
 					<select ng-model="page.groupId"
-							name="groupId" class="type-select form-control"
+							name="groupId" class="group-select type-select form-control"
 							ng-options="type as label for (type,label) in groupOptions">
 					</select>
 				</div>
@@ -178,7 +178,7 @@
 					<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 				</label>
 				<div class="col-sm-4">
-					<div class="karma-lock-slider" ng-value="page.karmaLock" max="{[{userService.user.getMaxKarmaLock()}]}"></div>
+					<div class="karma-lock-slider" ng-model="page.karmaLock" max="{[{userService.user.getMaxKarmaLock()}]}"></div>
 				</div>
 			</div>
 		
@@ -224,7 +224,7 @@
 								name="alias"
 								placeholder='Optional alias, e.g. "HumanHealth"'
 								class="form-control"
-								ng-value="page.alias">
+								ng-model="page.alias">
 					</div>
 				</div>
 			</div>
