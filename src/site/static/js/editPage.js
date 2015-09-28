@@ -26,32 +26,37 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Create a new tag for the page.
 	var createNewParentElement = function(parentAlias) {
 		parentAlias = autocompleteService.convertInputToAlias(parentAlias);
-		// TODO: double check there isn't this parent already
-		var $template = $topParent.find(".tag.template");
-		var $newTag = $template.clone(true);
 
 		// Now we have to get the page id and title, which could get very
 		// complicated because we might only have the page's alias at this
 		// point, plus we could be in a new page modal.
-		if (parentAlias in autocompleteService.aliasMap()) {
-			var parentPageId = autocompleteService.aliasMap()[parentAlias].pageId;
-			var title = autocompleteService.aliasMap()[parentAlias].title;
-		} else if (primaryPage !== undefined && parentAlias === primaryPage.alias) {
+		if (primaryPage !== undefined && parentAlias === primaryPage.alias) {
 			// The parent is the primaryPage.
 			var parentPageId = primaryPage.pageId;
 			var title = primaryPage.title;
+			var groupId = primaryPage.groupId;
 			if (title === "") {
-				title = "*Untitled*";
+				title = "*Untitled parent*";
 			}
 		} else if (parentAlias in pageService.pageMap) {
+			var parentPage = pageService.pageMap[parentAlias];
 			var parentPageId = parentAlias;
-			var title = pageService.pageMap[parentAlias].title;
-			parentAlias = pageService.pageMap[parentAlias].alias;
+			var title = parentPage.title;
+			var groupId = parentPage.groupId;
+			parentAlias = parentPage.alias;
 		} else {
 			// The parent hasn't been published yet.
 			var parentPageId = parentAlias;
 			var title = "*Not Yet Published*";
+			var groupId = 0;
 		}
+
+		// Prevent duplicates.
+		if ($(".tag[tag-id=" + parentPageId + "]").length > 0) return;
+
+		// Create the tag.
+		var $template = $topParent.find(".tag.template");
+		var $newTag = $template.clone(true);
 		$newTag.removeClass("template");
 		$newTag.text(title);
 		$newTag.attr("tag-id", parentPageId);
@@ -246,7 +251,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Add parent tags.
 	// usePageIds - forces pageIds to be passed to createNewParentElement. Used
-	//   to create initial parent elments.
+	//   to create initial parent elements.
 	var addParentTags = function(usePageIds) {
 		var parentsLen = page.parents.length;
 		for(var n = 0; n < parentsLen; n++) {
@@ -274,15 +279,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// === Trigger initial setup. ===
 
-	// Setup autocomplete for tags.
-	$topParent.find(".tag-input").autocomplete({
-		source: autocompleteService.parentsSource,
-		minLength: 2,
-		select: function (event, ui) {
-			createNewParentElement(ui.item.label);
-			$(event.target).val("");
-			return false;
-		}
+	// Setup autocomplete for parents field.
+	autocompleteService.setupParentsAutocomplete($topParent.find(".tag-input"), function(event, ui) {
+		createNewParentElement(ui.item.label);
+		$(event.target).val("");
+		return false;
 	});
 
 	// Add existing parent tags
@@ -454,7 +455,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				showDiff(true);
 				var $diffHalf = $topParent.find(".diff-half");
 				$diffHalf.find(".edit-num-text").text("(#" + diffPage.edit + ")");
-				console.log(diffPage.title);
 				$diffHalf.find(".page-title-text").text(diffPage.title);
 			},
 		});
@@ -475,6 +475,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	this.start = function($compile, scope) {
 		// Hide new page button if this is a modal.
 		$topParent.find("#wmd-new-page-button" + pageId).toggle(!isModal);
+
+		// Set the rendering for parents autocomplete
+		autocompleteService.setAutocompleteRendering($topParent.find(".tag-input"), scope);
 
 		// Autofocus on some input.
 		if (page.type !== "answer" || !primaryPage) {  

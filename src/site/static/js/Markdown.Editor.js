@@ -1031,14 +1031,6 @@
 			} else {
 				$input.autocomplete("disable");
 			}
-		} else if (isIntraLink) {
-		  $input.autocomplete({
-				source: autocompleteService.parentsSource,
-				minLength: 2,
-				select: function (event, ui) {
-					return true;
-				}
-		  });
 		}
 
 		var isCancel = true;
@@ -1067,6 +1059,7 @@
 		$modal.find(".modal-content").on("submit", function(e) {
 			isCancel = false;
 			$modal.modal("hide");
+			return false;
 		});
 	};
 
@@ -1722,7 +1715,6 @@
 					// would mean a zero-width match at the start. Since zero-width matches advance the string position,
 					// the first bracket could then not act as the "not a backslash" for the second.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
-					link = autocompleteService.convertInputToAlias(link);
 					chunk.startTag = "[";
 					chunk.endTag = "](" + link + ")";
 

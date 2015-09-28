@@ -50,10 +50,6 @@
 	color: @gray-color;
 }
 
-.meta-info-span {
-	display: table-cell;
-}
-
 .public-private-label {
 	.gray-text();
 }
@@ -265,7 +261,6 @@
 
 .inline-page-title {
 	padding-left: 5px;
-	display: table-cell;
 }
 
 .created-span {
@@ -672,6 +667,7 @@ textarea.new-comment-text {
 
 .page-panel {
 	margin: 10px 0px 0px 0px;
+	font-size: 14px;
 
 	.big-page-panel-header {
 		font-size: 21px;
@@ -681,34 +677,17 @@ textarea.new-comment-text {
 		}
 	}
 
-	.clickbait {
-		color: @gray-color;
-		margin-left: 30px;
-	}
-
-	.page-header-part {
-		display: table-cell;
-	}
-
 	.collapse-span {
-		.page-header-part();
+		display: table-cell;
 		min-width: 30px;
 	}
 	
 	.collapse-link {
 		.glyph-mixin-link(@gray-color);
-		.page-header-part();
+		display: table-cell;
 		width: 20px;
 	}
 
-	.page-header-link {
-		.page-header-part();
-		padding-left: 15px;
-	}
-
-	.page-like-span {
-		.page-header-part();
-	}
 
 	.page-panel-body {
 		margin-left: 6px;
@@ -720,6 +699,19 @@ textarea.new-comment-text {
 		.gray-text();
 		font-size: 14px;
 		margin-top: 4px;
+	}
+}
+
+.likes-page-title {
+	font-size: 14px;
+
+	.page-header-link {
+		display: table-cell;
+		padding-left: 15px;
+	}
+
+	.clickbait {
+		color: @gray-color;
 	}
 }
 

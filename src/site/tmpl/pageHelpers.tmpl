@@ -26,28 +26,6 @@
 	</span>
 {{end}}
 
-{{/* Modal for new links used from Markdown.Editor. */}}
-{{define "newLinkModal"}}
-<div class="modal fade" id="new-link-modal" tabindex="-1" style="z-index:20000">
-	<div class="modal-dialog">
-		<form class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">&times;</button>
-				<h4 class="modal-title"></h4>
-			</div>
-			<div class="modal-body">
-				<input name="link" type="text" class="form-control new-link-input">
-			</div>
-			<div class="modal-footer">
-			  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-				<button type="submit" class="btn btn-primary">Insert</button>
-			</div>
-		</div>
-	</div>
-</div>
-{{end}}
-
-
 {{/* Collection of popover templates. */}}
 {{define "popoverTemplates"}}
 

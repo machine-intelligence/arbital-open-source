@@ -110,11 +110,40 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 		return fmt.Errorf("Error with elastic search: %v", err)
 	}
 
+	// Create page map.
+	pageMap := make(map[int64]*core.Page)
+	for _, hit := range results.Hits.Hits {
+		pageMap[hit.Id] = &core.Page{PageId: hit.Id}
+	}
+
+	// Load pages.
+	err = core.LoadPages(c, pageMap, u.Id, &core.LoadPageOptions{})
+	if err != nil {
+		return fmt.Errorf("error while loading pages: %v", err)
+	}
+
+	// Load auxillary data.
+	err = loadAuxPageData(c, u.Id, pageMap, nil)
+	if err != nil {
+		return fmt.Errorf("error while loading aux data: %v", err)
+	}
+
+	// Return the data in JSON format.
+	returnPageData := make(map[string]*core.Page)
+	for k, v := range pageMap {
+		returnPageData[fmt.Sprintf("%d", k)] = v
+	}
+
+	returnData := make(map[string]interface{})
+	returnData["searchHits"] = results.Hits
+	returnData["pages"] = returnPageData
+
 	// Return the pages in JSON format.
-	jsonData, err := json.Marshal(results)
+	jsonData, err := json.Marshal(returnData)
 	if err != nil {
 		return fmt.Errorf("Couldn't write json: %v", err)
 	}
 	w.Write(jsonData)
+
 	return nil
 }

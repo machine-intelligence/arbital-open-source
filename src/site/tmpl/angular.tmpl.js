@@ -184,11 +184,12 @@ app.service("pageService", function(userService, $http){
 		}
 		return page;
 	};
+	// Add the given page to the global pageMap.
+	// overwrite - if true, the given value will overwrite the page data we might already have.
 	this.addPageToMap = function(page, overwrite) {
 		var existingPage = this.pageMap[page.pageId];
 		if (existingPage !== undefined && !overwrite) {
-			if (page === existingPage) return;
-			console.log("existingPage:"); console.log(existingPage);
+			if (page === existingPage) return page;
 			// Merge.
 			existingPage.children = existingPage.children.concat(page.children);
 			existingPage.parents = existingPage.parents.concat(page.parents);
@@ -197,6 +198,7 @@ app.service("pageService", function(userService, $http){
 		}
 		return this.pageMap[page.pageId];
 	};
+	// Remove page with the given pageId from the global pageMap.
 	this.removePageFromMap = function(pageId) {
 		delete this.pageMap[pageId];
 	};
@@ -451,45 +453,67 @@ app.service("pageService", function(userService, $http){
 });
 
 // Autocomplete service provides data for autocompletion.
-app.service("autocompleteService", function($http){
-	// NOTE: We have to keep aliasMap in scope for parentsSource
-	// Map of recently loaded parents: alias -> {pageId, title}
-	var aliasMap = {}
-	this.aliasMap = function() {
-		return aliasMap;
+app.service("autocompleteService", function($http, $compile, pageService){
+	var that = this;
+	// Set how to render search results for the given autocomplete input.
+	this.setAutocompleteRendering = function($input, scope) {
+		$input.data("ui-autocomplete")._renderItem = function(ul, item) {
+			var $el = $compile("<li class='search-result ui-menu-item' arb-likes-page-title page-id='" + item.value +
+				"' show-clickbait='true' is-search-result='true'></li>")(scope);
+			$el.attr("data-value", item.value);
+			return $el.appendTo(ul);
+		};
+	};
+
+	// Take data we get from BE search, and extract the data to forward it to
+	// an autocompelete input. Also update the pageMap.
+	this.processAutocompleteResults = function(data) {
+		// Add new pages to the pageMap.
+		for (var pageId in data.pages) {
+			pageService.addPageToMap(data.pages[pageId], false);
+		}
+		// Create list of results we can give to autocomplete.
+		var resultList = [];
+		for (var n = 0; n < data.searchHits.hits.length; n++) {
+			var source = data.searchHits.hits[n]._source;
+			resultList.push({
+				value: source.pageId,
+				label: source.pageId,
+				alias: source.alias,
+				title: source.title,
+				clickbait: source.clickbait,
+				groupId: source.groupId,
+			});
+		}
+		return resultList;
 	};
 
 	// Load data for autocompleting parents search.
-	this.parentsSource = function(request, callback) {
+	var parentsSource = function(request, callback) {
 		$http({method: "GET", url: "/json/parentsSearch/", params: {term: request.term}})
 		.success(function(data, status){
-			// Populate aliasMap and construct resultList
-			aliasMap = {};
-			var resultList = [];
-			var hits = data.hits.hits;
-			for (var n = 0; n < hits.length; n++) {
-				var source = hits[n]._source;
-				resultList.push('"' + source.title + '" (' + source.alias + ')');
-				aliasMap[source.alias] = {pageId: source.pageId, title: source.title};
-			}
-			callback(resultList);
+			callback(that.processAutocompleteResults(data));
 		})
 		.error(function(data, status){
 			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
+			callback([]);
 		});
 	};
 
-	// Converts "title (alias)" string into "alias". Used to process the string
-	// seleted by alias autocompletion.
-	this.convertInputToAlias = function(input) {
-		var openParenIndex = input.lastIndexOf("(");
-		if (openParenIndex > 0) {
-			// Input is probably of the type: "title" (alias)
-			var closeParenIndex = input.lastIndexOf(")");
-			input = input.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
-		}
-		return input;
-	};
+	// Set up autocompletion based on parents search for the given input field.
+	this.setupParentsAutocomplete = function($input, selectCallback) {
+	  $input.autocomplete({
+			source: parentsSource,
+			minLength: 3,
+			delay: 300,
+			focus: function (event, ui) {
+				return false;
+			},
+			select: function (event, ui) {
+				return selectCallback(event, ui);
+			}
+	  });
+	}
 
 	// Find other pages similar to the page with the given data.
 	this.findSimilarPages = function(pageData, callback) {
@@ -518,7 +542,7 @@ app.filter("relativeDateTime", function() {
 });
 
 // ArbitalCtrl is used across all pages.
-app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, userService, pageService) {
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, userService, pageService, autocompleteService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -539,19 +563,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 	var searchSource = function(request, callback) {
 		$http({method: "GET", url: "/json/search/", params: {term: request.term}})
 		.success(function(data, status){
-			aliasMap = {};
-			var resultMap = {};
-			var hits = data.hits.hits;
-			for (var n = 0; n < hits.length; n++) {
-				var source = hits[n]._source;
-				resultMap[source.pageId] = {
-					value: source.pageId,
-					alias: source.alias,
-					title: source.title,
-					clickbait: source.clickbait,
-					groupId: source.groupId,
-				};
-			}
+			var resultMap = autocompleteService.processAutocompleteResults(data);
 			callback(resultMap);
 		})
 		.error(function(data, status){
@@ -574,18 +586,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 				return false;
 			},
 		});
-		$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
-			var group = item.groupId !== "0" && item.groupId ? "[" + userService.groupMap[item.groupId].name + "] " : "";
-			var alias = !+item.alias ? " (" + item.alias + ")" : "";
-			var title = item.title ? item.title : "COMMENT";
-			var $item = $("<li>")
-				.attr("data-value", item.value)
-				.append(group + title + alias);
-			if (item.clickbait.length > 0) {
-				$item.append($("<div class='gray-text'>" + item.clickbait + "</div>"));
-			}
-			return $item.appendTo(ul);
-		};
+		autocompleteService.setAutocompleteRendering($navSearch, $scope);
 	}
 
 	// Check when user hovers over intrasite links, and show a popover.
@@ -800,6 +801,25 @@ app.directive("arbUserName", function(userService) {
 	};
 });
 
+// newLinkModal directive is used for storing a modal that creates new links.
+app.directive("arbNewLinkModal", function(autocompleteService) {
+	return {
+		templateUrl: "/static/html/newLinkModal.html",
+		scope: {
+		},
+		link: function(scope, element, attrs) {
+			var $input = element.find(".new-link-input");
+			// Set up autocomplete
+			autocompleteService.setupParentsAutocomplete($input, function(event, ui) {
+				element.find(".modal-content").submit();
+				return true;
+			});
+			// Set up search for new link modal
+			autocompleteService.setAutocompleteRendering($input, scope);
+		},
+	};
+});
+
 // pageTitle displays page's title with optional meta info.
 app.directive("arbPageTitle", function(pageService, userService) {
 	return {
@@ -821,9 +841,11 @@ app.directive("arbLikesPageTitle", function(pageService, userService) {
 		templateUrl: "/static/html/likesPageTitle.html",
 		scope: {
 			pageId: "@",
+			showClickbait: "@",
 			showRedLinkCount: "@",
 			showQuickEditLink: "@",
 			showCreatedAt: "@",
+			isSearchResult: "@",
 			isSupersized: "@",
 		},
 		link: function(scope, element, attrs) {

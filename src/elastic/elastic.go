@@ -30,19 +30,20 @@ type Document struct {
 }
 
 // All the elasticsearch result structs
-type Result struct {
-	Hits []Hits `json:"hits"`
+type SearchResult struct {
+	Hits *Hits `json:"hits"`
 }
 
 type Hits struct {
 	Total    int     `json:"total"`
-	MaxScore float64 `json:"max_core"`
-	Hits     []Hit   `json:"hits"`
+	MaxScore float32 `json:"max_score"`
+	Hits     []*Hit  `json:"hits"`
 }
 
 type Hit struct {
-	Score  float64  `json:"_score"`
-	Source Document `json:"_source"`
+	Id     int64     `json:"_id,string"`
+	Score  float32   `json:"_score"`
+	Source *Document `json:"_source"`
 }
 
 // sendRequest sends the given request object to the elastic search server.
@@ -189,7 +190,7 @@ func DeletePageIndex(c sessions.Context) error {
 }
 
 // SearchPageIndex searches the pages index.
-func SearchPageIndex(c sessions.Context, jsonStr string) (map[string]interface{}, error) {
+func SearchPageIndex(c sessions.Context, jsonStr string) (*SearchResult, error) {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/page/_search", ElasticDomain), bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create request: %v", err)
@@ -207,10 +208,10 @@ func SearchPageIndex(c sessions.Context, jsonStr string) (map[string]interface{}
 
 	// Process results
 	decoder := json.NewDecoder(resp.Body)
-	var results map[string]interface{}
-	err = decoder.Decode(&results)
+	var searchResult SearchResult
+	err = decoder.Decode(&searchResult)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't decode json: %v", err)
 	}
-	return results, nil
+	return &searchResult, nil
 }

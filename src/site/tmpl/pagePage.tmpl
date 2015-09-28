@@ -20,7 +20,8 @@
 <body last-visit="{{.Page.LastVisit}}" ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 
-{{template "newLinkModal"}}
+<!-- This modal is for inserting new links. -->
+<arb-new-link-modal></arb-new-link-modal>
 
 <!-- This div is used to create embedded page divs. -->
 <div id="embedded-page-template" class="embedded-page" hidden>

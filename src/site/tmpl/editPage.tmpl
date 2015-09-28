@@ -24,7 +24,9 @@
 
 <body privacy-key="{{.Page.PrivacyKey}}" ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
-{{template "newLinkModal"}}
+
+<!-- This modal is for inserting new links. -->
+<arb-new-link-modal></arb-new-link-modal>
 
 <!-- This modal is for creating new pages quickly. -->
 <arb-edit-page-modal parent-page-id="{{.Page.PageId}}"></arb-edit-page-modal>
