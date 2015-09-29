@@ -67,7 +67,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 	query := fmt.Sprintf(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
-			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
+			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil
 		FROM pages AS p
 		JOIN (
@@ -82,7 +82,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit, &p.PrevEdit,
 		&p.Type, &p.Title, &p.Clickbait, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
-		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
+		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)

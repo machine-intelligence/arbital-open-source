@@ -82,6 +82,7 @@ type Page struct {
 	IsAutosave     bool   `json:"isAutosave"`
 	IsSnapshot     bool   `json:"isSnapshot"`
 	IsCurrentEdit  bool   `json:"isCurrentEdit"`
+	IsMinorEdit    bool   `json:"isMinorEdit"`
 	TodoCount      int    `json:"todoCount"`
 	AnchorContext  string `json:"anchorContext"`
 	AnchorText     string `json:"anchorText"`
@@ -230,7 +231,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 		SELECT * FROM (
 			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,%s,length(text),karmaLock,privacyKey,
 				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupId,parents,
-				isAutosave,isSnapshot,isCurrentEdit,todoCount,anchorContext,anchorText,anchorOffset
+				isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
 				(groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
@@ -244,7 +245,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
-			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
+			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
@@ -276,6 +277,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 			op.IsAutosave = p.IsAutosave
 			op.IsSnapshot = p.IsSnapshot
 			op.IsCurrentEdit = p.IsCurrentEdit
+			op.IsMinorEdit = p.IsMinorEdit
 			op.TodoCount = p.TodoCount
 			op.AnchorContext = p.AnchorContext
 			op.AnchorText = p.AnchorText
@@ -293,7 +295,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 func LoadEditHistory(c sessions.Context, page *Page, userId int64) error {
 	editHistoryMap := make(map[int]*Page)
 	query := fmt.Sprintf(`
-		SELECT pageId,edit,prevEdit,creatorId,createdAt,deletedBy,isAutosave,isSnapshot,isCurrentEdit,title,clickbait,length(text)
+		SELECT pageId,edit,prevEdit,creatorId,createdAt,deletedBy,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,title,clickbait,length(text)
 		FROM pages
 		WHERE pageId=%d AND (creatorId=%d OR NOT isAutosave)
 		ORDER BY edit`, page.PageId, userId)
@@ -301,7 +303,7 @@ func LoadEditHistory(c sessions.Context, page *Page, userId int64) error {
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.DeletedBy,
-			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.Title, &p.Clickbait, &p.TextLength)
+			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit, &p.Title, &p.Clickbait, &p.TextLength)
 		if err != nil {
 			return fmt.Errorf("failed to scan a edit history page: %v", err)
 		}
