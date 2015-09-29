@@ -418,6 +418,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		pagePairValues[i] = fmt.Sprintf("(%d, %d)", id, data.PageId)
 	}
 
+	var IsMinorEditBool = data.IsMinorEditStr == "on"
+
 	// Create a new edit.
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
@@ -432,7 +434,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	hashmap["alias"] = data.Alias
 	hashmap["sortChildrenBy"] = data.SortChildrenBy
 	hashmap["isCurrentEdit"] = isCurrentEdit
-	hashmap["isMinorEdit"] = data.IsMinorEditStr == "on"
+	hashmap["isMinorEdit"] = IsMinorEditBool
 	hashmap["hasVote"] = hasVote
 	hashmap["voteType"] = data.VoteType
 	hashmap["karmaLock"] = data.KarmaLock
@@ -562,7 +564,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 
 		// Generate updates for users who are subscribed to this page.
-		if oldPage.WasPublished {
+		if oldPage.WasPublished && !IsMinorEditBool {
 			// This is an edit.
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
@@ -592,7 +594,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 
 		// Generate updates for users who are subscribed to the author.
-		if !oldPage.WasPublished && data.Type != core.CommentPageType && privacyKey <= 0 {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType && privacyKey <= 0 && !IsMinorEditBool {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
@@ -607,7 +609,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		if !oldPage.WasPublished && data.Type != core.CommentPageType  {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType && !IsMinorEditBool {
 			// Generate updates for users who are subscribed to the parent pages.
 			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
@@ -625,7 +627,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		if !oldPage.WasPublished && data.Type == core.CommentPageType {
+		if !oldPage.WasPublished && data.Type == core.CommentPageType && !IsMinorEditBool {
 			// This is a new comment
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
