@@ -1,6 +1,6 @@
 <!-- Display page's likes and title. -->
 
-<div ng-hide="page.title=='' && page.type!='comment'">
+<div class="likes-page-title" ng-hide="page.title=='' && page.type!='comment'">
 	<span class="extra-info pull-right" ng-show="showRedLinkCount && page.redLinkCount>0">
 		<span class="red-link-count" title="Number of [todo: ...] blocks in text + number of broken links">
 			TODOs: <span ng-bind="page.todoCount"></span>
@@ -9,7 +9,9 @@
 	</span>
 
 	<!-- Likes and dislikes -->
-	<span class="page-like-span" ng-class="{'like-small-span': !isSupersized, 'like-span': isSupersized}">
+	<span class="page-like-span"
+			ng-class="{'like-small-span': !isSupersized, 'like-span': isSupersized}"
+			ng-style="{display: isSearchResult ? 'inline' : 'table-cell'}">
 		<span class="like-count" ng-bind="page.likeCount"></span>
 		<span class="disabled-like glyphicon glyphicon-thumbs-up" ng-class="{'on': page.myLikeValue >= 1}"></span>
 		&nbsp;
@@ -23,7 +25,7 @@
 	</span>
 
 	<!-- Show new/updated stars -->
-	<span class="meta-info-span">
+	<span class="meta-info-span" ng-style="{display: isSearchResult ? 'inline' : 'table-cell'}">
 		<span class="new-updated-label glyphicon glyphicon-star"
 			    title="You've never seen this page before"
 					ng-show="page.isNewPage()"></span>
@@ -38,14 +40,23 @@
 					ng-show="pageService.showPublic(page.pageId)"></span>
 	</span>
 	
-	<span class="inline-page-title">
+	<!-- Page title -->
+	<span class="inline-page-title" ng-style="{display: isSearchResult ? 'inline' : 'table-cell'}">
 		<a ng-href="{[{page.url}]}"
 				page-id={[{page.pageId}]}
-				class="intrasite-link">
+				class="intrasite-link"
+				ng-hide="isSearchResult">
 			<span ng-bind="page.type == 'comment' ? 'Comment' : page.title"></span>
 		</a>
+		<span ng-bind="page.type == 'comment' ? 'Comment' : page.title" ng-show"isSearchResult"></span>
 	</span>
 
 	<span class="created-span gray-text" ng-bind="page.createdAt | relativeDateTime" ng-show="showCreatedAt">
 	</span>
+
+	<!-- Clickbait -->
+	<div ng-show="showClickbait && page.clickbait.length!=0">
+	  <span class="clickbait" ng-bind="page.clickbait">
+	  </span>
+	</div>
 </div>

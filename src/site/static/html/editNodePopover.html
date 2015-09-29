@@ -16,7 +16,7 @@
 		Created by
 		<span ng-show="userService.user.id === edit.creatorId">you</span>
 		<span ng-show="userService.user.id !== edit.creatorId">
-			<znd-user-name user-id="{[{edit.creatorId}]}"></znd-user-name>
+			<arb-user-name user-id="{[{edit.creatorId}]}"></arb-user-name>
 		</span>
 		{[{edit.createdAt | relativeDateTime}]}
 	</div>

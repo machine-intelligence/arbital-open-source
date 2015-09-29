@@ -18,15 +18,11 @@
 			<span ng-show="!showCollapseArrow()" class="gray-text">&nbsp;&bull;</span>
 		</span>
 
-		<znd-likes-page-title page-id="{[{page.pageId}]}" is-supersized="{[{isSupersized()}]}" style="display:table-cell"></znd-likes-page-title>
-	</div>
-	<div ng-class="{'big-page-panel-header': isSupersized()}" ng-hide="page.clickbait.length==0">
-	  <span class="clickbait" ng-bind="page.clickbait">
-	  </span>
+		<arb-likes-page-title page-id="{[{page.pageId}]}" is-supersized="{[{isSupersized()}]}" show-clickbait="true" style="display:table-cell"></arb-likes-page-title>
 	</div>
 	<div class="page-panel-body" ng-show="node.showChildren">
 		<img src="/static/images/loading.gif" ng-show="isLoadingChildren()"/>
-		<znd-page-tree-node ng-repeat="node in node.children" node="node"></znd-page-tree-node>
+		<arb-page-tree-node ng-repeat="node in node.children" node="node"></arb-page-tree-node>
 	</div>
 	<br ng-show="isSupersized()">
 </div>

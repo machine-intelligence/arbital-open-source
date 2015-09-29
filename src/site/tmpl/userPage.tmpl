@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>User - Zanaduu</title>
+	<title>User - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
@@ -29,13 +29,13 @@
 	</script>
 </head>
 
-<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 
 <div class="filter-body-div" ng-controller="MainCtrl">
 	<!-- User header -->
 	<h3>
-		<znd-user-name user-id="{{.AuthorId}}"></znd-user-name>
+		<arb-user-name user-id="{{.AuthorId}}"></arb-user-name>
 		<a href="#"
 			class="subscribe-to-user-link glyphicon glyphicon-eye-open {{if .IsSubscribedToUser}}on{{end}}"
 			user-id="{{.AuthorId}}"></a>
@@ -45,42 +45,42 @@
 	<div class="panel panel-default">
 	  <div class="panel-heading">Recently Created Pages</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyCreatedIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyCreatedIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default">
 	  <div class="panel-heading">Recently Edited Pages</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyEditedIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in recentlyEditedIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default" ng-hide="pagesWithDraftIds.length <= 0">
 	  <div class="panel-heading">Pages With Drafts</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in pagesWithDraftIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in pagesWithDraftIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default" ng-hide="mostTodosIds.length <= 0">
 	  <div class="panel-heading">Pages With Most TODOs</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in mostTodosIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in mostTodosIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default" ng-hide="userService.user.id !== '{{.AuthorId}}'">
 	  <div class="panel-heading">Recently Visited</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></arb-likes-page-title>
 	  </div>
 	</div>
 
 	<div class="panel panel-default" ng-hide="recentlyEditedCommentIds.length <= 0">
 	  <div class="panel-heading">Recently Edited Comments</div>
 	  <div class="panel-body">
-	    <znd-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyEditedCommentIds" show-created-at="true"></znd-likes-page-title>
+	    <arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyEditedCommentIds" show-created-at="true"></arb-likes-page-title>
 	  </div>
 	</div>
 </div>

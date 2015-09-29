@@ -68,7 +68,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
-			p.todoCount,i.currentEdit>=0,i.maxEdit,i.lockedBy,i.lockedUntil
+			p.todoCount,i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
 		FROM pages AS p
 		JOIN (
 			SELECT *

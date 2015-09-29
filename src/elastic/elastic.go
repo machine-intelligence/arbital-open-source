@@ -9,6 +9,7 @@ import (
 
 	"appengine/urlfetch"
 
+	"zanaduu3/src/config"
 	"zanaduu3/src/sessions"
 )
 
@@ -29,19 +30,40 @@ type Document struct {
 }
 
 // All the elasticsearch result structs
-type Result struct {
-	Hits []Hits `json:"hits"`
+type SearchResult struct {
+	Hits *Hits `json:"hits"`
 }
 
 type Hits struct {
 	Total    int     `json:"total"`
-	MaxScore float64 `json:"max_core"`
-	Hits     []Hit   `json:"hits"`
+	MaxScore float32 `json:"max_score"`
+	Hits     []*Hit  `json:"hits"`
 }
 
 type Hit struct {
-	Score  float64  `json:"_score"`
-	Source Document `json:"_source"`
+	Id     int64     `json:"_id,string"`
+	Score  float32   `json:"_score"`
+	Source *Document `json:"_source"`
+}
+
+// sendRequest sends the given request object to the elastic search server.
+func sendRequest(c sessions.Context, request *http.Request) (*http.Response, error) {
+	transport := &urlfetch.Transport{Context: c, AllowInvalidServerCertificate: true}
+	resp, err := transport.RoundTrip(request)
+	if err != nil {
+		return nil, fmt.Errorf("Round trip failed: %v", err)
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		// Process an error
+		decoder := json.NewDecoder(resp.Body)
+		var result map[string]interface{}
+		err = decoder.Decode(&result)
+		if err != nil {
+			return nil, fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
+		}
+		return nil, fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
+	}
+	return resp, nil
 }
 
 // AddPageToIndex adds a page document to the pages index.
@@ -55,25 +77,17 @@ func AddPageToIndex(c sessions.Context, doc *Document) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
@@ -83,25 +97,17 @@ func DeletePageFromIndex(c sessions.Context, pageId int64) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
@@ -149,25 +155,17 @@ func CreatePageIndex(c sessions.Context) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
@@ -177,49 +175,43 @@ func DeletePageIndex(c sessions.Context) error {
 	if err != nil {
 		return fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	_, err = sendRequest(c, request)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		// Process an error
-		decoder := json.NewDecoder(resp.Body)
-		var result map[string]interface{}
-		err = decoder.Decode(&result)
-		if err != nil {
-			return fmt.Errorf("Elastic returned '%s', but couldn't decode json: %v", resp.Status, err)
-		}
-		return fmt.Errorf("Elastic returned '%s': %+v", resp.Status, result)
-	}
 	return nil
 }
 
 // SearchPageIndex searches the pages index.
-func SearchPageIndex(c sessions.Context, jsonStr string) (map[string]interface{}, error) {
+func SearchPageIndex(c sessions.Context, jsonStr string) (*SearchResult, error) {
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/page/_search", ElasticDomain), bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't create request: %v", err)
 	}
+	if sessions.Live {
+		request.SetBasicAuth(config.XC.Elastic.Live.User, config.XC.Elastic.Live.Password)
+	}
 	request.Header.Set("Content-Type", "application/json")
 
 	// Execute request
-	client := urlfetch.Client(c)
-	resp, err := client.Do(request)
+	resp, err := sendRequest(c, request)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't execute request: %v", err)
 	}
 
 	// Process results
 	decoder := json.NewDecoder(resp.Body)
-	var results map[string]interface{}
-	err = decoder.Decode(&results)
+	var searchResult SearchResult
+	err = decoder.Decode(&searchResult)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't decode json: %v", err)
 	}
-	return results, nil
+	return &searchResult, nil
 }

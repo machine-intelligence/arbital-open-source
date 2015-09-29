@@ -1,4 +1,4 @@
-var zndMarkdown = zndMarkdown || function() {
+var arbMarkdown = arbMarkdown || function() {
 	// Set up markdown editor and conversion.
 	function init(inEditMode, pageId, pageText, $topParent, pageService, autocompleteService) {
 		var page = pageService.pageMap[pageId];

@@ -188,23 +188,24 @@
 	border: 1px solid gray;
 	background-color: white;
 	z-index: 20000; // make sure it's on top of bootstrap modals
-}
 
-// One of the menu items in the autocomplete jquery-ui dropdown.
-.ui-menu-item {
-	@c: #8888ff;
-	font-family: "Open Sans", sans-serif;
-
-	&:focus {
-		background-color: @c;
-	}
-	&:hover {
-		background-color: @c;
-	}
-	&:active {
-		background-color: darken(@c, 10%);
-	}
-	&.ui-state-focus {
-		background-color: @c;
+	// One of the menu items in the autocomplete jquery-ui dropdown.
+	.ui-menu-item {
+		@c: #bbbbff;
+		font-size: 14px;
+		font-family: "Open Sans", sans-serif;
+	
+		&:focus {
+			background-color: @c;
+		}
+		&:hover {
+			background-color: @c;
+		}
+		&:active {
+			background-color: darken(@c, 10%);
+		}
+		&.ui-state-focus {
+			background-color: @c;
+		}
 	}
 }

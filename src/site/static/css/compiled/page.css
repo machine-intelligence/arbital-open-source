@@ -159,20 +159,21 @@
   background-color: white;
   z-index: 20000;
 }
-.ui-menu-item {
+.ui-autocomplete .ui-menu-item {
+  font-size: 14px;
   font-family: "Open Sans", sans-serif;
 }
-.ui-menu-item:focus {
+.ui-autocomplete .ui-menu-item:focus {
+  background-color: #bbbbff;
+}
+.ui-autocomplete .ui-menu-item:hover {
+  background-color: #bbbbff;
+}
+.ui-autocomplete .ui-menu-item:active {
   background-color: #8888ff;
 }
-.ui-menu-item:hover {
-  background-color: #8888ff;
-}
-.ui-menu-item:active {
-  background-color: #5555ff;
-}
-.ui-menu-item.ui-state-focus {
-  background-color: #8888ff;
+.ui-autocomplete .ui-menu-item.ui-state-focus {
+  background-color: #bbbbff;
 }
 .gray-glyph {
   color: #e0e0e0;
@@ -200,9 +201,6 @@
 }
 .gray-text {
   color: #b8b8b8;
-}
-.meta-info-span {
-  display: table-cell;
 }
 .public-private-label {
   color: #b8b8b8;
@@ -494,7 +492,6 @@
 }
 .inline-page-title {
   padding-left: 5px;
-  display: table-cell;
 }
 .created-span {
   font-size: 14px;
@@ -623,7 +620,6 @@
   display: inline-block;
   margin: 10px 5px 0 0;
   font-size: 13px;
-  background-color: #aaa;
   max-width: 300px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -1201,19 +1197,13 @@ textarea.new-comment-text {
 }
 .page-panel {
   margin: 10px 0px 0px 0px;
+  font-size: 14px;
 }
 .page-panel .big-page-panel-header {
   font-size: 21px;
 }
 .page-panel .big-page-panel-header .extra-info {
   margin-top: 15px;
-}
-.page-panel .clickbait {
-  color: #b8b8b8;
-  margin-left: 30px;
-}
-.page-panel .page-header-part {
-  display: table-cell;
 }
 .page-panel .collapse-span {
   display: table-cell;
@@ -1244,13 +1234,6 @@ textarea.new-comment-text {
   color: #d2d2d2;
   text-decoration: none;
 }
-.page-panel .page-header-link {
-  display: table-cell;
-  padding-left: 15px;
-}
-.page-panel .page-like-span {
-  display: table-cell;
-}
 .page-panel .page-panel-body {
   margin-left: 6px;
   padding-left: 24px;
@@ -1260,6 +1243,16 @@ textarea.new-comment-text {
   color: #b8b8b8;
   font-size: 14px;
   margin-top: 4px;
+}
+.likes-page-title {
+  font-size: 14px;
+}
+.likes-page-title .page-header-link {
+  display: table-cell;
+  padding-left: 15px;
+}
+.likes-page-title .clickbait {
+  color: #b8b8b8;
 }
 .update-row {
   margin: 7px 0px;

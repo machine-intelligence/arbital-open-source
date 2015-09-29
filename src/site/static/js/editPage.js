@@ -1,10 +1,10 @@
 "use strict";
 
-// Create new EditPage (for use with znd-edit-page directive).
+// Create new EditPage (for use with arb-edit-page directive).
 // page - page object corresponding to the page being edited.
 // pageService - pageService object which contains all loaded pages.
 // options {
-//   topParent - points to the znd-edit-page DOM element.
+//   topParent - points to the arb-edit-page DOM element.
 //   primaryPage - for an answer page, points to the question page; for a comment, point to the root page
 //   isModal - set if the page is being edited inside a modal
 //   doneFn - function to call when the user is done with editing.
@@ -23,43 +23,72 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	var isModal = options.isModal;
 	var doneFn = options.doneFn;
 
+	// Update all parent tags. In particular, update whether or not the group is
+	// the same as for primary page.
+	var updateParentElements = function() {
+		$topParent.find(".tag[tag-id]").each(function() {
+			var parentPage = pageService.pageMap[$(this).attr("tag-id")];
+			if (parentPage.groupId === page.groupId || parentPage.groupId === "0") {
+				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
+			} else {
+				var tooltip = "This parent belongs to " + userService.groupMap[parentPage.groupId].name + " group, but the page you are editing does not.";
+				$(this).addClass("label-danger").removeClass("label-default").attr("title", tooltip).tooltip();
+			}
+		});
+	}
+	// Update all the parent tags when the group changes.
+	$topParent.find(".group-select").change(function(event) {
+		updateParentElements();
+	});
+
 	// Create a new tag for the page.
-	var createNewParentElement = function(parentAlias) {
-		parentAlias = autocompleteService.convertInputToAlias(parentAlias);
-		// TODO: double check there isn't this parent already
+	var createNewParentElement = function(parentId) {
+		var parentPage = pageService.pageMap[parentId];
+		if (!parentPage) {
+			console.log("ERROR: parent is not in the pageMap: " + parentId);
+			return;
+		}
+
+		// Prevent duplicates.
+		if ($topParent.find(".tag[tag-id=" + parentId + "]").length > 0) return;
+
+		// Create the tag.
 		var $template = $topParent.find(".tag.template");
 		var $newTag = $template.clone(true);
-
-		// Now we have to get the page id and title, which could get very
-		// complicated because we might only have the page's alias at this
-		// point, plus we could be in a new page modal.
-		if (parentAlias in autocompleteService.aliasMap()) {
-			var parentPageId = autocompleteService.aliasMap()[parentAlias].pageId;
-			var title = autocompleteService.aliasMap()[parentAlias].title;
-		} else if (primaryPage !== undefined && parentAlias === primaryPage.alias) {
-			// The parent is the primaryPage.
-			var parentPageId = primaryPage.pageId;
-			var title = primaryPage.title;
-			if (title === "") {
-				title = "*Untitled*";
-			}
-		} else if (parentAlias in pageService.pageMap) {
-			var parentPageId = parentAlias;
-			var title = pageService.pageMap[parentAlias].title;
-			parentAlias = pageService.pageMap[parentAlias].alias;
-		} else {
-			// The parent hasn't been published yet.
-			var parentPageId = parentAlias;
-			var title = "*Not Yet Published*";
-		}
 		$newTag.removeClass("template");
-		$newTag.text(title);
-		$newTag.attr("tag-id", parentPageId);
-		$newTag.attr("title", parentAlias).tooltip();
+		$newTag.text(parentPage.title === "" ? "*Untitled*" : parentPage.title);
+		$newTag.attr("tag-id", parentId);
 		$newTag.insertBefore($template);
+		updateParentElements();
 	}
 	var deleteParentElement = function($target) {
 		$target.tooltip("destroy").remove();
+	};
+
+	// Get similar pages
+	var prevSimilarPageData = {};
+	var $similarPages = $topParent.find(".similar-pages").find(".panel-body");
+	var computeSimilarPages = function($compile, scope) {
+		var fullPageData = computeAutosaveData(false, false);
+		if (fullPageData.type !== "question") return;
+		var data = {
+			title: fullPageData.title,
+			text: fullPageData.text,
+			clickbait: fullPageData.clickbait,
+		};
+		if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return;
+		prevSimilarPageData = data;
+		autocompleteService.findSimilarPages(data, function(data, status){
+			$similarPages.empty();
+			var hits = data.hits.hits;
+			for (var n = 0; n < hits.length; n++) {
+				var source = hits[n]._source;
+				var $el = $("<div><a href='/pages/" + source.pageId + "' page-id='" + source.pageId +
+					"' class='intrasite-link'>" + source.title + "</a><div class='gray-text'>" +
+					source.clickbait + "</div></div>");
+				$similarPages.append($el);
+			}
+		});
 	};
 
 	// Helper function for savePage. Computes the data to submit via AJAX.
@@ -219,18 +248,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	});
 
 	// Add parent tags.
-	// usePageIds - forces pageIds to be passed to createNewParentElement. Used
-	//   to create initial parent elments.
-	var addParentTags = function(usePageIds) {
+	var addParentTags = function() {
 		var parentsLen = page.parents.length;
 		for(var n = 0; n < parentsLen; n++) {
-			var parentPage = pageService.pageMap[page.parents[n].parentId];
-			if (usePageIds || parentPage.alias === "") {
-				var parentKey = parentPage.pageId;
-			} else {
-				var parentKey = parentPage.alias;
-			}
-			createNewParentElement(parentKey);
+			createNewParentElement(page.parents[n].parentId);
 		}
 	};
 
@@ -248,22 +269,18 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// === Trigger initial setup. ===
 
-	// Setup autocomplete for tags.
-	$topParent.find(".tag-input").autocomplete({
-		source: autocompleteService.parentsSource,
-		minLength: 2,
-		select: function (event, ui) {
-			createNewParentElement(ui.item.label);
-			$(event.target).val("");
-			return false;
-		}
+	// Setup autocomplete for parents field.
+	autocompleteService.setupParentsAutocomplete($topParent.find(".tag-input"), function(event, ui) {
+		createNewParentElement(ui.item.label);
+		$(event.target).val("");
+		return false;
 	});
 
 	// Add existing parent tags
-	addParentTags(true);
+	addParentTags();
 
 	// Set up Markdown.
-	zndMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
+	arbMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
 
 	// Setup karma lock slider.
 	var $slider = $topParent.find(".karma-lock-slider");
@@ -428,7 +445,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				showDiff(true);
 				var $diffHalf = $topParent.find(".diff-half");
 				$diffHalf.find(".edit-num-text").text("(#" + diffPage.edit + ")");
-				console.log(diffPage.title);
 				$diffHalf.find(".page-title-text").text(diffPage.title);
 			},
 		});
@@ -444,10 +460,14 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.autosaveInterval = null;
+	this.similarPagesInterval = null;
 	this.backdropInterval = null;
 	this.start = function($compile, scope) {
 		// Hide new page button if this is a modal.
 		$topParent.find("#wmd-new-page-button" + pageId).toggle(!isModal);
+
+		// Set the rendering for parents autocomplete
+		autocompleteService.setAutocompleteRendering($topParent.find(".tag-input"), scope);
 
 		// Autofocus on some input.
 		if (page.type !== "answer" || !primaryPage) {  
@@ -474,6 +494,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				}
 			});
 		}, 5000);
+
+		// Set up finding similar pages
+		this.similarPagesInterval = window.setInterval(function(){
+			computeSimilarPages($compile, scope);
+		}, 11000);
 
 		// Compute prevEditPageData, so we don't fire off autosave when there were
 		// no changes made.
@@ -520,9 +545,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					// Have to wait for the popover to appear, so we can then replace its contents.
 					window.setTimeout(function() {
 						var $popover = $("#" + $target.attr("aria-describedby"));
-						var $el = $compile("<znd-edit-node-popover page-id='" + pageId +
+						var $el = $compile("<arb-edit-node-popover page-id='" + pageId +
 								"' edit-num='" + edit.edit +
-								"' is-opened='" + (edit.edit === page.edit) + "'>BLAH</znd-edit-node-popover>")(scope);
+								"' is-opened='" + (edit.edit === page.edit) + "'>BLAH</arb-edit-node-popover>")(scope);
 						$popover.find(".popover-content").empty().append($el);
 					});
 					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
@@ -537,6 +562,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Called before this editPage is destroyed.
 	this.stop = function() {
 		clearInterval(this.autosaveInterval);
+		clearInterval(this.similarPagesInterval);
 		clearInterval(this.backdropInterval);
 		// Autosave just in case.
 		savePage(true, false, function(r) {});
@@ -547,7 +573,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 // Directive for the modal, where a user can create a new page, edit a page, 
 // ask a question, etc...
-app.directive("zndEditPageModal", function (pageService, userService) {
+app.directive("arbEditPageModal", function (pageService, userService) {
 	return {
 		templateUrl: "/static/html/editPageModal.html",
 		scope: {
@@ -590,10 +616,10 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 						newPage.groupId = primaryPage.groupId;
 					}
 
-					// Dynamically create znd-edit-page directive.
-					var el = $compile("<znd-edit-page page-id='" + pageId +
+					// Dynamically create arb-edit-page directive.
+					var el = $compile("<arb-edit-page page-id='" + pageId +
 							"' is-modal='true'" +
-							"done-fn='doneFn(result)'></znd-edit-page>")($scope);
+							"done-fn='doneFn(result)'></arb-edit-page>")($scope);
 					$modalBody.empty().append(el);
 					$modal.modal();
 
@@ -678,7 +704,7 @@ app.directive("zndEditPageModal", function (pageService, userService) {
 });
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("zndEditPage", function($timeout, $compile, pageService, userService, autocompleteService) {
+app.directive("arbEditPage", function($timeout, $compile, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
@@ -836,7 +862,7 @@ app.directive("zndEditPage", function($timeout, $compile, pageService, userServi
 });
 
 // Directive for the body of an edit node popover.
-app.directive("zndEditNodePopover", function (pageService, userService) {
+app.directive("arbEditNodePopover", function (pageService, userService) {
 	return {
 		templateUrl: "/static/html/editNodePopover.html",
 		scope: {

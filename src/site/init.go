@@ -42,7 +42,7 @@ func init() {
 	r := mux.NewRouter()
 	r.StrictSlash(true)
 
-	// Public facing handlers for pages
+	// Pages
 	r.HandleFunc(domainIndexPage.URI, stdHandler(domainIndexPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(domainsPage.URI, stdHandler(domainsPage.ServeHTTP)).Methods("GET", "HEAD")
 	r.HandleFunc(editPagePage.URI, stdHandler(editPagePage.ServeHTTP)).Methods("GET", "HEAD")
@@ -77,6 +77,7 @@ func init() {
 	r.HandleFunc("/deleteSubscription/", deleteSubscriptionHandler).Methods("POST")
 	r.HandleFunc("/deletePage/", deletePageHandler).Methods("POST")
 	r.HandleFunc("/revertPage/", revertPageHandler).Methods("POST")
+	r.HandleFunc("/json/similarPageSearch/", similarPageSearchJsonHandler).Methods("POST")
 
 	// Admin stuff
 	r.HandleFunc("/updateElasticIndex/", updateElasticIndexHandler).Methods("GET")

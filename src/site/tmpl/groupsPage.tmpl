@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>My Groups - Zanaduu</title>
+	<title>My Groups - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
@@ -25,7 +25,7 @@
 	</script>
 </head>
 
-<body ng-app="zanaduu" ng-controller="ZanaduuCtrl">
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 {{template "navbar" .User}}
 
 <div class="filter-body-div" ng-controller="MainCtrl">
@@ -44,7 +44,7 @@
 				</tr>
 				{{range .Members}}
 					<tr>
-						<td><znd-user-name user-id="{{.UserId}}"></znd-user-name></td>
+						<td><arb-user-name user-id="{{.UserId}}"></arb-user-name></td>
 						<td>
 							{{if .CanAddMembers}}
 								<span class="glyphicon glyphicon-ok"></span>

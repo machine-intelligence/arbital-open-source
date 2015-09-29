@@ -1,11 +1,11 @@
 /* angular.tmpl.js is a .tmpl file that is inserted as a <script> into the
-	<header> portion of html pages that use angular. It defines the zanaduu module
-	and ZanaduuCtrl, which are used on every page. */
+	<header> portion of html pages that use angular. It defines the arbital module
+	and ArbitalCtrl, which are used on every page. */
 {{define "angular"}}
 <script>
 
 // Set up angular module.
-var app = angular.module("zanaduu", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
+var app = angular.module("arbital", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
 app.config(function($interpolateProvider, $locationProvider){
 	$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
 
@@ -184,19 +184,21 @@ app.service("pageService", function(userService, $http){
 		}
 		return page;
 	};
+	// Add the given page to the global pageMap.
+	// overwrite - if true, the given value will overwrite the page data we might already have.
 	this.addPageToMap = function(page, overwrite) {
 		var existingPage = this.pageMap[page.pageId];
 		if (existingPage !== undefined && !overwrite) {
-			if (page === existingPage) return;
-			console.log("existingPage:"); console.log(existingPage);
+			if (page === existingPage) return false;
 			// Merge.
 			existingPage.children = existingPage.children.concat(page.children);
 			existingPage.parents = existingPage.parents.concat(page.parents);
 		} else {
 			this.pageMap[page.pageId] = setUpPage(page);
 		}
-		return this.pageMap[page.pageId];
+		return true;
 	};
+	// Remove page with the given pageId from the global pageMap.
 	this.removePageFromMap = function(pageId) {
 		delete this.pageMap[pageId];
 	};
@@ -451,44 +453,77 @@ app.service("pageService", function(userService, $http){
 });
 
 // Autocomplete service provides data for autocompletion.
-app.service("autocompleteService", function($http){
-	// NOTE: We have to keep aliasMap in scope for parentsSource
-	// Map of recently loaded parents: alias -> {pageId, title}
-	var aliasMap = {}
-	this.aliasMap = function() {
-		return aliasMap;
+app.service("autocompleteService", function($http, $compile, pageService){
+	var that = this;
+	// Set how to render search results for the given autocomplete input.
+	this.setAutocompleteRendering = function($input, scope) {
+		$input.data("ui-autocomplete")._renderItem = function(ul, item) {
+			var $el = $compile("<li class='search-result ui-menu-item' arb-likes-page-title page-id='" + item.value +
+				"' show-clickbait='true' is-search-result='true'></li>")(scope);
+			$el.attr("data-value", item.value);
+			return $el.appendTo(ul);
+		};
+	};
+
+	// Take data we get from BE search, and extract the data to forward it to
+	// an autocompelete input. Also update the pageMap.
+	this.processAutocompleteResults = function(data) {
+		// Add new pages to the pageMap.
+		for (var pageId in data.pages) {
+			pageService.addPageToMap(data.pages[pageId], false);
+		}
+		// Create list of results we can give to autocomplete.
+		var resultList = [];
+		for (var n = 0; n < data.searchHits.hits.length; n++) {
+			var source = data.searchHits.hits[n]._source;
+			resultList.push({
+				value: source.pageId,
+				label: source.pageId,
+				alias: source.alias,
+				title: source.title,
+				clickbait: source.clickbait,
+				groupId: source.groupId,
+			});
+		}
+		return resultList;
 	};
 
 	// Load data for autocompleting parents search.
-	this.parentsSource = function(request, callback) {
+	var parentsSource = function(request, callback) {
 		$http({method: "GET", url: "/json/parentsSearch/", params: {term: request.term}})
 		.success(function(data, status){
-			// Populate aliasMap and construct resultList
-			aliasMap = {};
-			var resultList = [];
-			var hits = data.hits.hits;
-			for (var n = 0; n < hits.length; n++) {
-				var source = hits[n]._source;
-				resultList.push('"' + source.title + '" (' + source.alias + ')');
-				aliasMap[source.alias] = {pageId: source.pageId, title: source.title};
-			}
-			callback(resultList);
+			callback(that.processAutocompleteResults(data));
 		})
 		.error(function(data, status){
 			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
+			callback([]);
 		});
 	};
 
-	// Converts "title (alias)" string into "alias". Used to process the string
-	// seleted by alias autocompletion.
-	this.convertInputToAlias = function(input) {
-		var openParenIndex = input.lastIndexOf("(");
-		if (openParenIndex > 0) {
-			// Input is probably of the type: "title" (alias)
-			var closeParenIndex = input.lastIndexOf(")");
-			input = input.substr(openParenIndex + 1, closeParenIndex - openParenIndex - 1);
-		}
-		return input;
+	// Set up autocompletion based on parents search for the given input field.
+	this.setupParentsAutocomplete = function($input, selectCallback) {
+	  $input.autocomplete({
+			source: parentsSource,
+			minLength: 3,
+			delay: 300,
+			focus: function (event, ui) {
+				return false;
+			},
+			select: function (event, ui) {
+				return selectCallback(event, ui);
+			}
+	  });
+	}
+
+	// Find other pages similar to the page with the given data.
+	this.findSimilarPages = function(pageData, callback) {
+		$http({method: "POST", url: "/json/similarPageSearch/", data: JSON.stringify(pageData)})
+		.success(function(data, status){
+			callback(data, status);
+		})
+		.error(function(data, status){
+			console.log("Error doing similar page search:"); console.log(data); console.log(status);
+		});
 	};
 });
 
@@ -506,8 +541,8 @@ app.filter("relativeDateTime", function() {
 	};
 });
 
-// ZanaduuCtrl is used across all pages.
-app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, $http, userService, pageService) {
+// ArbitalCtrl is used across all pages.
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, userService, pageService, autocompleteService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -528,19 +563,7 @@ app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, $http, user
 	var searchSource = function(request, callback) {
 		$http({method: "GET", url: "/json/search/", params: {term: request.term}})
 		.success(function(data, status){
-			aliasMap = {};
-			var resultMap = {};
-			var hits = data.hits.hits;
-			for (var n = 0; n < hits.length; n++) {
-				var source = hits[n]._source;
-				resultMap[source.pageId] = {
-					value: source.pageId,
-					alias: source.alias,
-					title: source.title,
-					clickbait: source.clickbait,
-					groupId: source.groupId,
-				};
-			}
+			var resultMap = autocompleteService.processAutocompleteResults(data);
 			callback(resultMap);
 		})
 		.error(function(data, status){
@@ -563,18 +586,7 @@ app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, $http, user
 				return false;
 			},
 		});
-		$navSearch.data("ui-autocomplete")._renderItem = function(ul, item) {
-			var group = item.groupId !== "0" && item.groupId ? "[" + userService.groupMap[item.groupId].name + "] " : "";
-			var alias = !+item.alias ? " (" + item.alias + ")" : "";
-			var title = item.title ? item.title : "COMMENT";
-			var $item = $("<li>")
-				.attr("data-value", item.value)
-				.append(group + title + alias);
-			if (item.clickbait.length > 0) {
-				$item.append($("<div class='gray-text'>" + item.clickbait + "</div>"));
-			}
-			return $item.appendTo(ul);
-		};
+		autocompleteService.setAutocompleteRendering($navSearch, $scope);
 	}
 
 	// Check when user hovers over intrasite links, and show a popover.
@@ -629,7 +641,7 @@ app.controller("ZanaduuCtrl", function ($scope, $location, $timeout, $http, user
 					setTimeout(function() {
 						var $popover = $("#" + $link.attr("aria-describedby"));
 						var $content = $popover.find(".popover-content");
-						zndMarkdown.init(false, page.pageId, page.summary, $content, pageService);
+						arbMarkdown.init(false, page.pageId, page.summary, $content, pageService);
 						if (page.hasVote) {
 							createVoteSlider($content.find(".vote"), userService, page, true);
 						}
@@ -776,7 +788,7 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 // =============================== DIRECTIVES =================================
 
 // userName directive displayes a user's name.
-app.directive("zndUserName", function(userService) {
+app.directive("arbUserName", function(userService) {
 	return {
 		templateUrl: "/static/html/userName.html",
 		scope: {
@@ -789,8 +801,27 @@ app.directive("zndUserName", function(userService) {
 	};
 });
 
+// newLinkModal directive is used for storing a modal that creates new links.
+app.directive("arbNewLinkModal", function(autocompleteService) {
+	return {
+		templateUrl: "/static/html/newLinkModal.html",
+		scope: {
+		},
+		link: function(scope, element, attrs) {
+			var $input = element.find(".new-link-input");
+			// Set up autocomplete
+			autocompleteService.setupParentsAutocomplete($input, function(event, ui) {
+				element.find(".modal-content").submit();
+				return true;
+			});
+			// Set up search for new link modal
+			autocompleteService.setAutocompleteRendering($input, scope);
+		},
+	};
+});
+
 // pageTitle displays page's title with optional meta info.
-app.directive("zndPageTitle", function(pageService, userService) {
+app.directive("arbPageTitle", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/pageTitle.html",
 		scope: {
@@ -805,14 +836,16 @@ app.directive("zndPageTitle", function(pageService, userService) {
 });
 
 // likesPageTitle displays likes span followed by page's title span.
-app.directive("zndLikesPageTitle", function(pageService, userService) {
+app.directive("arbLikesPageTitle", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/likesPageTitle.html",
 		scope: {
 			pageId: "@",
+			showClickbait: "@",
 			showRedLinkCount: "@",
 			showQuickEditLink: "@",
 			showCreatedAt: "@",
+			isSearchResult: "@",
 			isSupersized: "@",
 		},
 		link: function(scope, element, attrs) {
@@ -824,7 +857,7 @@ app.directive("zndLikesPageTitle", function(pageService, userService) {
 });
 
 // pageTree displays pageTreeNodes in a recursive tree structure.
-app.directive("zndPageTree", function() {
+app.directive("arbPageTree", function() {
 	return {
 		templateUrl: "/static/html/pageTree.html",
 		controller: "PageTreeCtrl",
@@ -840,7 +873,7 @@ app.directive("zndPageTree", function() {
 
 // pageTreeNode displays the corresponding page and it's node children
 // recursively, allowing the user to recursively explore the page tree.
-app.directive("zndPageTreeNode", function(RecursionHelper) {
+app.directive("arbPageTreeNode", function(RecursionHelper) {
 	return {
 		templateUrl: "/static/html/pageTreeNode.html",
 		controller: function ($scope, pageService) {
@@ -864,7 +897,7 @@ app.directive("zndPageTreeNode", function(RecursionHelper) {
 							if (recursiveExpand) {
 								// Recursively expand children nodes
 								window.setTimeout(function() {
-									$(event.target).closest("znd-page-tree-node").find(".page-panel-body")
+									$(event.target).closest("arb-page-tree-node").find(".page-panel-body")
 										.find(".collapse-link.glyphicon-triangle-right:visible").trigger("click");
 								});
 							}
