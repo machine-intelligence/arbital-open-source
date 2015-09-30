@@ -9,6 +9,8 @@ CREATE TABLE pages (
 	prevEdit INT NOT NULL,
 	/* True iff this is the edit currently used to display the page. */
 	isCurrentEdit BOOLEAN NOT NULL,
+	/* True iff this is a minor edit. */
+	isMinorEdit BOOLEAN NOT NULL,
 	/* True iff this is a snapshot saved by the creatorId user. */
 	isSnapshot BOOLEAN NOT NULL,
 	/* True iff this is an autosave for the creatorId user. There is at most one

@@ -4,6 +4,7 @@ package site
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -64,7 +65,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
-			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
+			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
 		FROM pages AS p
 		JOIN (
@@ -79,7 +80,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit,
 		&p.Type, &p.Title, &p.Clickbait, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
-		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
+		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
@@ -296,10 +297,11 @@ func loadLinks(db *database.DB, pageMap map[int64]*core.Page) error {
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId, alias, title string
 			err := rows.Scan(&pageId, &alias, &title)
+			lowercaseAlias := strings.ToLower(alias)
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
-			linkMap[alias] = title
+			linkMap[lowercaseAlias] = title
 			if pageId != alias {
 				linkMap[pageId] = title
 			}

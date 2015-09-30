@@ -34,14 +34,24 @@ func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) 
 	c.Debugf("==== UPDATE METADATA START ====")
 	defer c.Debugf("==== UPDATE METADATA COMPLETED ====")
 
-	// Compute all priors.
+	// Regenerate pages and links tables
 	rows := db.NewStatement(`
 		SELECT pageId,edit,text
 		FROM pages
 		WHERE isCurrentEdit`).Query()
-	err = rows.Process(updateMetadata)
-	if err != nil {
-		c.Debugf("ERROR: %v", err)
+	if err = rows.Process(updateMetadata); err != nil {
+		c.Debugf("ERROR, failed to update pages and pageLinks: %v", err)
+		return -1, err
+	}
+
+	// Regenerate pageInfos table
+	rows = db.NewStatement(`
+		SELECT pageId, MAX(if(isCurrentEdit, edit, 0)), MAX(edit), MIN(createdAt)
+		FROM pages
+		WHERE 1
+		GROUP BY pageId`).Query()
+	if err = rows.Process(updatePageInfos); err != nil {
+		c.Debugf("ERROR, failed to update pageInfos: %v", err)
 		return -1, err
 	}
 	return 0, err
@@ -71,6 +81,34 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 		err := core.UpdatePageLinks(tx, pageId, text, sessions.GetDomain())
 		if err != nil {
 			return fmt.Errorf("Couldn't update links: %v", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updatePageInfos(db *database.DB, rows *database.Rows) error {
+	var pageId, currentEdit, maxEdit int64
+	var createdAt string
+	if err := rows.Scan(&pageId, &currentEdit, &maxEdit, &createdAt); err != nil {
+		return fmt.Errorf("failed to scan a page: %v", err)
+	}
+
+	// Begin the transaction.
+	err := db.Transaction(func(tx *database.Tx) error {
+		// Update pageInfos summary
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = pageId
+		hashmap["currentEdit"] = currentEdit
+		hashmap["maxEdit"] = maxEdit
+		hashmap["createdAt"] = createdAt
+		statement := tx.NewInsertTxStatement("pageInfos", hashmap, "currentEdit", "maxEdit", "createdAt")
+		if _, err := statement.Exec(); err != nil {
+			return fmt.Errorf("Couldn't update pageInfos table: %v", err)
 		}
 		return nil
 	})

@@ -27,6 +27,7 @@ type editPageData struct {
 	Title          string
 	Clickbait      string
 	Text           string
+	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
 	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
@@ -343,6 +344,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 
+	isMinorEditBool := data.IsMinorEditStr == "on"
+
 	// Begin the transaction.
 	err = db.Transaction(func(tx *database.Tx) error {
 		if isCurrentEdit {
@@ -432,6 +435,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		hashmap["alias"] = data.Alias
 		hashmap["sortChildrenBy"] = data.SortChildrenBy
 		hashmap["isCurrentEdit"] = isCurrentEdit
+		hashmap["isMinorEdit"] = isMinorEditBool
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
 		hashmap["karmaLock"] = data.KarmaLock
@@ -550,7 +554,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 
 		// Generate updates for users who are subscribed to this page.
-		if oldPage.WasPublished {
+		if oldPage.WasPublished && !isMinorEditBool {
 			// This is an edit.
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
@@ -580,7 +584,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 
 		// Generate updates for users who are subscribed to the author.
-		if !oldPage.WasPublished && data.Type != core.CommentPageType && privacyKey <= 0 {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType && privacyKey <= 0 && !isMinorEditBool {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
@@ -595,7 +599,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		if !oldPage.WasPublished && data.Type != core.CommentPageType {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType && !isMinorEditBool {
 			// Generate updates for users who are subscribed to the parent pages.
 			for _, parentId := range parentIds {
 				var task tasks.NewUpdateTask
@@ -613,7 +617,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		if !oldPage.WasPublished && data.Type == core.CommentPageType {
+		if !oldPage.WasPublished && data.Type == core.CommentPageType && !isMinorEditBool {
 			// This is a new comment
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id

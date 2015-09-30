@@ -82,6 +82,7 @@ type Page struct {
 	IsAutosave     bool   `json:"isAutosave"`
 	IsSnapshot     bool   `json:"isSnapshot"`
 	IsCurrentEdit  bool   `json:"isCurrentEdit"`
+	IsMinorEdit    bool   `json:"isMinorEdit"`
 	TodoCount      int    `json:"todoCount"`
 	AnchorContext  string `json:"anchorContext"`
 	AnchorText     string `json:"anchorText"`
@@ -239,8 +240,8 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		SELECT * FROM (
 			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
 				length(text),karmaLock,privacyKey,deletedBy,hasVote,voteType,` + summarySelect + `,
-				alias,sortChildrenBy,groupId,parents,isAutosave,isSnapshot,isCurrentEdit,todoCount,
-				anchorContext,anchorText,anchorOffset
+				alias,sortChildrenBy,groupId,parents,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
+				todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE`).AddPart(publishedConstraint).Add(`AND deletedBy=0 AND pageId IN`).AddArgsGroup(pageIds).Add(`
 			AND (groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
@@ -254,7 +255,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
-			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
+			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
@@ -286,6 +287,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 			op.IsAutosave = p.IsAutosave
 			op.IsSnapshot = p.IsSnapshot
 			op.IsCurrentEdit = p.IsCurrentEdit
+			op.IsMinorEdit = p.IsMinorEdit
 			op.TodoCount = p.TodoCount
 			op.AnchorContext = p.AnchorContext
 			op.AnchorText = p.AnchorText
@@ -303,15 +305,16 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 func LoadEditHistory(db *database.DB, page *Page, userId int64) error {
 	editHistoryMap := make(map[int]*Page)
 	rows := db.NewStatement(`
-		SELECT pageId,edit,prevEdit,creatorId,createdAt,deletedBy,isAutosave,isSnapshot,isCurrentEdit,title,clickbait,length(text)
+		SELECT pageId,edit,prevEdit,creatorId,createdAt,deletedBy,isAutosave,
+			isSnapshot,isCurrentEdit,isMinorEdit,title,clickbait,length(text)
 		FROM pages
 		WHERE pageId=? AND (creatorId=? OR NOT isAutosave)
 		ORDER BY edit`).Query(page.PageId, userId)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p Page
-		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.DeletedBy,
-			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.Title, &p.Clickbait, &p.TextLength)
+		err := rows.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt,
+			&p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+			&p.Title, &p.Clickbait, &p.TextLength)
 		if err != nil {
 			return fmt.Errorf("failed to scan a edit history page: %v", err)
 		}
@@ -392,11 +395,12 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 		linkMap := make(map[string]bool) // track which aliases we already added to the list
 		valuesList := make([]interface{}, 0)
 		for _, alias := range aliasesAndIds {
-			if linkMap[alias] {
+			lowercaseAlias := strings.ToLower(alias)
+			if linkMap[lowercaseAlias] {
 				continue
 			}
-			valuesList = append(valuesList, pageId, alias)
-			linkMap[alias] = true
+			valuesList = append(valuesList, pageId, lowercaseAlias)
+			linkMap[lowercaseAlias] = true
 		}
 
 		// Insert all the tuples into the links table.
