@@ -807,6 +807,11 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 				scope.groupOptions[scope.page.groupId] = userService.groupMap[scope.page.groupId].name;
 			}
 
+			// if starting a new edit, clear the minor edit checkbox
+			if (scope.page.isCurrentEdit) {
+			    scope.page.isMinorEdit = false;
+			}
+
 			// Get the text that should appear on the primary submit button.
 			scope.getSubmitButtonText = function() {
 				if (scope.isAnswer) {
