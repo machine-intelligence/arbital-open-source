@@ -62,8 +62,8 @@ var arbMarkdown = arbMarkdown || function() {
 				if (alias.match(aliasRegexp)) {
 					var url = "http://" + host + "/pages/" + alias + "/";
 					var pageTitle = alias;
-					if (page.links && page.links[alias]) {
-						pageTitle = page.links[alias];
+					if (page.links && page.getLinkTitle(alias)) {
+						pageTitle = page.getLinkTitle(alias);
 					}
 					return prefix + "[" + pageTitle + "](" + url + ")";
 				} else {
@@ -127,7 +127,7 @@ var arbMarkdown = arbMarkdown || function() {
 			// Check if we are embedding a vote
 			if (parts[3].indexOf("embedVote") > 0) {
 				$element.attr("embed-vote-id", parts[1]);
-			} else if (page.links && page.links[parts[1]]) {
+			} else if (page.links && page.getLinkTitle(parts[1])) {
 				// Normal healthy link!
 			} else {
 				// Mark as red link

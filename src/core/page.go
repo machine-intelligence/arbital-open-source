@@ -384,12 +384,13 @@ func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, 
 		linkMap := make(map[string]bool) // track which aliases we already added to the list
 		linkTuples := make([]string, 0, 0)
 		for _, alias := range aliasesAndIds {
-			if linkMap[alias] {
+			lowercaseAlias := strings.ToLower(alias)
+			if linkMap[lowercaseAlias] {
 				continue
 			}
-			insertValue := fmt.Sprintf("(%d, '%s')", pageId, alias)
+			insertValue := fmt.Sprintf("(%d, '%s')", pageId, lowercaseAlias)
 			linkTuples = append(linkTuples, insertValue)
-			linkMap[alias] = true
+			linkMap[lowercaseAlias] = true
 		}
 
 		// Insert all the tuples into the links table.

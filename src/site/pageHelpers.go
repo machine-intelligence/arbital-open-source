@@ -215,10 +215,11 @@ func loadLinks(c sessions.Context, pageMap map[int64]*core.Page) error {
 		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
 			var pageId, alias, title string
 			err := rows.Scan(&pageId, &alias, &title)
+			lowercaseAlias := strings.ToLower(alias)
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
-			linkMap[alias] = title
+			linkMap[lowercaseAlias] = title
 			if pageId != alias {
 				linkMap[pageId] = title
 			}

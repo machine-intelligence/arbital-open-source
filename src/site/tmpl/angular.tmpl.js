@@ -171,6 +171,10 @@ app.service("pageService", function(userService, $http){
 			}
 			return "";
 		},
+		// gets the link's title, using a lowercase alias
+		getLinkTitle: function(alias) {
+		    return this.links[alias.toLowerCase()];
+		},
 	};
 	
 	// Massage page's variables to be easier to deal with.
