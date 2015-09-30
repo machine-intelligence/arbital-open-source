@@ -160,7 +160,7 @@ func loadChildDraft(db *database.DB, userId int64, p *core.Page, pageMap map[int
 			return fmt.Errorf("Couldn't load answer draft id: %v", err)
 		}
 		if p.ChildDraftId > 0 {
-			p, err := loadFullEdit(db, p.ChildDraftId, userId, nil)
+			p, err := loadFullEdit(db, p.ChildDraftId, userId, &loadEditOptions{loadNonliveEdit: true})
 			if err != nil {
 				return fmt.Errorf("Couldn't load answer draft: %v", err)
 			}
