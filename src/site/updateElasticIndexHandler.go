@@ -4,6 +4,7 @@ package site
 import (
 	"net/http"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
@@ -13,8 +14,15 @@ import (
 func updateElasticIndexHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Get user object
-	u, err := user.LoadUser(w, r)
+	u, err := user.LoadUser(w, r, db)
 	if err != nil {
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

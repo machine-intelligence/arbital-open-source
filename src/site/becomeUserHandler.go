@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
@@ -13,10 +14,18 @@ import (
 func becomeUserHandler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
-	// Get user object
-	u, err := user.LoadUser(w, r)
+	db, err := database.GetDB(c)
 	if err != nil {
-		c.Inc("new_comment_fail")
+		c.Inc("become_user_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Get user object
+	u, err := user.LoadUser(w, r, db)
+	if err != nil {
+		c.Inc("become_user_fail")
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

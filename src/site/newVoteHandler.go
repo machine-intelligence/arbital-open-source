@@ -3,7 +3,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/database"
@@ -35,9 +34,16 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("new_vote_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	// Load user.
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Inc("new_vote_fail")
 		c.Errorf("Couldn't load user: %v", err)
@@ -54,14 +60,13 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 	var oldVoteValue float32
 	var oldVoteExists bool
 	var oldVoteAge int64
-	query := fmt.Sprintf(`
-		SELECT id,value,TIME_TO_SEC(TIMEDIFF('%s',createdAt)) AS age
+	row := db.NewStatement(`
+		SELECT id,value,TIME_TO_SEC(TIMEDIFF(?,createdAt)) AS age
 		FROM votes
-		WHERE userId=%d AND pageId=%d
+		WHERE userId=? AND pageId=?
 		ORDER BY id DESC
-		LIMIT 1`,
-		database.Now(), u.Id, task.PageId)
-	oldVoteExists, err = database.QueryRowSql(c, query, &oldVoteId, &oldVoteValue, &oldVoteAge)
+		LIMIT 1`).QueryRow(database.Now(), u.Id, task.PageId)
+	oldVoteExists, err = row.Scan(&oldVoteId, &oldVoteValue, &oldVoteAge)
 	if err != nil {
 		c.Inc("new_vote_fail")
 		c.Errorf("Couldn't check for a recent vote: %v", err)
@@ -80,8 +85,8 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["id"] = oldVoteId
 		hashmap["value"] = task.Value
 		hashmap["createdAt"] = database.Now()
-		query = database.GetInsertSql("votes", hashmap, "value", "createdAt")
-		if _, err = database.ExecuteSql(c, query); err != nil {
+		statement := db.NewInsertStatement("votes", hashmap, "value", "createdAt")
+		if _, err = statement.Exec(); err != nil {
 			c.Inc("new_vote_fail")
 			c.Errorf("Couldn't update a vote: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -95,8 +100,8 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["pageId"] = task.PageId
 	hashmap["value"] = task.Value
 	hashmap["createdAt"] = database.Now()
-	query = database.GetInsertSql("votes", hashmap)
-	if _, err = database.ExecuteSql(c, query); err != nil {
+	statement := db.NewInsertStatement("votes", hashmap)
+	if _, err = statement.Exec(); err != nil {
 		c.Inc("new_vote_fail")
 		c.Errorf("Couldn't add a vote: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -47,21 +48,26 @@ func similarPageSearchJsonHandler(w http.ResponseWriter, r *http.Request) {
 func similarPageSearchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *similarPageSearchJsonData) error {
 	c := sessions.NewContext(r)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return err
+	}
+
 	// Load user object
-	u, err := user.LoadUser(w, r)
+	u, err := user.LoadUser(w, r, db)
 	if err != nil {
 		return fmt.Errorf("Couldn't load user: %v", err)
 	}
 
 	// Load user groups
-	err = loadUserGroups(c, u)
+	err = loadUserGroups(db, u)
 	if err != nil {
 		return fmt.Errorf("Couldn't load user groups: %v", err)
 	}
 
 	// Compute list of group ids we can access
 	groupMap := make(map[int64]*core.Group)
-	err = loadGroupNames(c, u, groupMap)
+	err = loadGroupNames(db, u, groupMap)
 	if err != nil {
 		return fmt.Errorf("Couldn't load groupMap: %v", err)
 	}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -52,11 +53,14 @@ func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.
 
 // indexInternalRenderer renders the index page.
 func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*indexTmplData, error) {
-	var err error
 	var data indexTmplData
 	data.User = u
 	c := sessions.NewContext(r)
-	data.PageMap = make(map[int64]*core.Page)
+
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, err
+	}
 
 	// Manually load some pages we like
 	if sessions.Live {
@@ -114,6 +118,7 @@ func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User)
 			},
 		)
 	}
+	data.PageMap = make(map[int64]*core.Page)
 	for _, domain := range data.FeaturedDomains {
 		for _, pageId := range domain.ChildIds {
 			data.PageMap[pageId] = &core.Page{PageId: pageId}
@@ -121,20 +126,20 @@ func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User)
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, &core.LoadPageOptions{})
+	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(c, u.Id, data.PageMap, nil)
+	err = loadAuxPageData(db, u.Id, data.PageMap, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
 	}
 
 	// Load all the groups.
 	data.GroupMap = make(map[int64]*core.Group)
-	err = loadGroupNames(c, u, data.GroupMap)
+	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}

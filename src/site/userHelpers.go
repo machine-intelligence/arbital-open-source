@@ -2,36 +2,33 @@
 package site
 
 import (
-	"bytes"
-	"database/sql"
 	"fmt"
 	"strconv"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
 
 // loadUpdateCount returns the number of unseen updates the given user has.
-func loadUpdateCount(c sessions.Context, userId int64) (int, error) {
+func loadUpdateCount(db *database.DB, userId int64) (int, error) {
 	var updateCount int
-	query := fmt.Sprintf(`
+	row := db.NewStatement(`
 		SELECT COALESCE(SUM(newCount), 0)
 		FROM updates
-		WHERE userId=%d`, userId)
-	_, err := database.QueryRowSql(c, query, &updateCount)
+		WHERE userId=?`).QueryRow(userId)
+	_, err := row.Scan(&updateCount)
 	return updateCount, err
 }
 
 // loadUserGroups loads all the group names this user belongs to.
-func loadUserGroups(c sessions.Context, u *user.User) error {
+func loadUserGroups(db *database.DB, u *user.User) error {
 	u.GroupIds = make([]string, 0)
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT groupId
 		FROM groupMembers
-		WHERE userId=%d`, u.Id)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE userId=?`).Query(u.Id)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId int64
 		err := rows.Scan(&groupId)
 		if err != nil {
@@ -44,7 +41,7 @@ func loadUserGroups(c sessions.Context, u *user.User) error {
 }
 
 // loadGroupNames loads the names and other info for the groups in the map
-func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*core.Group) error {
+func loadGroupNames(db *database.DB, u *user.User, groupMap map[int64]*core.Group) error {
 	// Make sure all user groups are in the map
 	for _, idStr := range u.GroupIds {
 		id, _ := strconv.ParseInt(idStr, 10, 64)
@@ -55,21 +52,20 @@ func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*core.G
 
 	// Create the group string
 	groupCondition := "FALSE"
+	groupIds := make([]interface{}, 0, len(groupMap))
 	if len(groupMap) > 0 {
-		var buffer bytes.Buffer
 		for id, _ := range groupMap {
-			buffer.WriteString(fmt.Sprintf("%d,", id))
+			groupIds = append(groupIds, id)
 		}
-		bufferStr := buffer.String()
-		groupCondition = fmt.Sprintf("id IN (%s)", bufferStr[0:len(bufferStr)-1])
+		groupCondition = "id IN " + database.InArgsPlaceholder(len(groupIds))
 	}
 
 	// Load names
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT id,name
 		FROM groups
-		WHERE %s OR isVisible`, groupCondition)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE ` + groupCondition + ` OR isVisible`).Query(groupIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var g core.Group
 		err := rows.Scan(&g.Id, &g.Name)
 		if err != nil {
@@ -86,14 +82,14 @@ func loadGroupNames(c sessions.Context, u *user.User, groupMap map[int64]*core.G
 }
 
 // loadDomains loads the domains for the given page and adds them to the map
-func loadDomains(c sessions.Context, u *user.User, page *core.Page, pageMap map[int64]*core.Page, groupMap map[int64]*core.Group) error {
-	query := fmt.Sprintf(`
+func loadDomains(db *database.DB, u *user.User, page *core.Page, pageMap map[int64]*core.Page, groupMap map[int64]*core.Group) error {
+	rows := db.NewStatement(`
 		SELECT g.id,g.name,g.alias,g.createdAt,g.rootPageId
 		FROM groups AS g
-		JOIN pageDomainPairs as pd
+		JOIN pageDomainPairs AS pd
 		ON (g.id=pd.domainId)
-		WHERE isDomain AND pd.pageId=%d`, page.PageId)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE isDomain AND pd.pageId=?`).Query(page.PageId)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var g core.Group
 		err := rows.Scan(&g.Id, &g.Name, &g.Alias, &g.CreatedAt, &g.RootPageId)
 		if err != nil {

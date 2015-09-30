@@ -3,7 +3,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/database"
@@ -39,9 +38,17 @@ func newLikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("new_like_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Load user.
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Inc("new_like_fail")
 		c.Errorf("Couldn't load user: %v", err)
@@ -56,12 +63,12 @@ func newLikeHandler(w http.ResponseWriter, r *http.Request) {
 	// Check to see if we have a recent like by this user for this page.
 	var id int64
 	var found bool
-	query := fmt.Sprintf(`
+	row := db.NewStatement(`
 		SELECT id
 		FROM likes
-		WHERE userId=%d AND pageId=%d AND TIME_TO_SEC(TIMEDIFF('%s', createdAt)) < %d`,
-		u.Id, task.PageId, database.Now(), redoWindow)
-	found, err = database.QueryRowSql(c, query, &id)
+		WHERE userId=? AND pageId=? AND TIME_TO_SEC(TIMEDIFF(?, createdAt)) < ?
+		`).QueryRow(u.Id, task.PageId, database.Now(), redoWindow)
+	found, err = row.Scan(&id)
 	if err != nil {
 		c.Inc("new_like_fail")
 		c.Errorf("Couldn't check for a recent like: %v", err)
@@ -73,8 +80,8 @@ func newLikeHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["id"] = id
 		hashmap["value"] = task.Value
 		hashmap["createdAt"] = database.Now()
-		query = database.GetInsertSql("likes", hashmap, "value", "createdAt")
-		if _, err = database.ExecuteSql(c, query); err != nil {
+		statement := db.NewInsertStatement("likes", hashmap, "value", "createdAt")
+		if _, err = statement.Exec(); err != nil {
 			c.Inc("new_like_fail")
 			c.Errorf("Couldn't update a like: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -87,8 +94,8 @@ func newLikeHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["pageId"] = task.PageId
 	hashmap["value"] = task.Value
 	hashmap["createdAt"] = database.Now()
-	query = database.GetInsertSql("likes", hashmap)
-	if _, err = database.ExecuteSql(c, query); err != nil {
+	statement := db.NewInsertStatement("likes", hashmap)
+	if _, err = statement.Exec(); err != nil {
 		c.Inc("new_like_fail")
 		c.Errorf("Couldn't add a like: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

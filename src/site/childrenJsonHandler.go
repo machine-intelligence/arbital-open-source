@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 
@@ -36,50 +37,56 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = childrenJsonInternalHandler(w, r, &data)
+	if err != nil {
+		c.Errorf("%v", err)
+		c.Inc("children_json_handler_fail")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+// childrenJsonInternalHandler handles requests to create a new page.
+func childrenJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *childrenJsonData) error {
+	c := sessions.NewContext(r)
+
+	db, err := database.GetDB(c)
+	if err != nil {
+		return err
+	}
+
 	// Load user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
-		c.Inc("page_handler_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("Couldn't load user: %v", err)
 	}
 
 	// Load the children.
 	pageMap := make(map[int64]*core.Page)
 	pageMap[data.ParentId] = &core.Page{PageId: data.ParentId}
-	err = loadChildrenIds(c, pageMap, loadChildrenIdsOptions{LoadHasChildren: true})
+	err = loadChildrenIds(db, pageMap, loadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
-		c.Errorf("Couldn't load children: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("Couldn't load children: %v", err)
 	}
 	// Remove parent, since we only want to return children.
 	delete(pageMap, data.ParentId)
 
 	// Load pages.
-	err = core.LoadPages(c, pageMap, u.Id, nil)
+	err = core.LoadPages(db, pageMap, u.Id, nil)
 	if err != nil {
-		c.Errorf("error while loading pages: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Load likes.
-	err = loadAuxPageData(c, u.Id, pageMap, nil)
+	err = loadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
-		c.Errorf("Couldn't load aux data: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("Couldn't load aux data: %v", err)
 	}
 
 	// Load probability votes
 	/*err = loadVotes(c, u.Id, pageIdStr, pageMap)
 	if err != nil {
-		c.Errorf("Couldn't load probability votes: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return fmt.Errorf("Couldn't load probability votes: %v", err)
 	}*/
 
 	// Return the page in JSON format.
@@ -91,4 +98,5 @@ func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error writing data to json:", err)
 	}
+	return nil
 }

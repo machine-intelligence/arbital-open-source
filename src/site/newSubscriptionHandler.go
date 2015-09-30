@@ -29,9 +29,16 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("new_subscription_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
 	// Get user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Inc("new_subscription_fail")
 		c.Errorf("Couldn't load user: %v", err)
@@ -45,9 +52,9 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 
 	// TODO: check if this subscription already exists
 	if data.PageId > 0 {
-		err = addSubscriptionToPage(c, u.Id, data.PageId)
+		err = addSubscriptionToPage(db, u.Id, data.PageId)
 	} else if data.UserId > 0 {
-		err = addSubscriptionToUser(c, u.Id, data.UserId)
+		err = addSubscriptionToUser(db, u.Id, data.UserId)
 	}
 	if err != nil {
 		c.Inc("new_subscription_fail")
@@ -57,20 +64,20 @@ func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addSubscriptionToPage(c sessions.Context, userId int64, pageId int64) error {
+func addSubscriptionToPage(db *database.DB, userId int64, pageId int64) error {
 	hashmap := map[string]interface{}{"toPageId": pageId}
-	return addSubscription(c, hashmap, userId)
+	return addSubscription(db, hashmap, userId)
 }
 
-func addSubscriptionToUser(c sessions.Context, userId int64, toUserId int64) error {
+func addSubscriptionToUser(db *database.DB, userId int64, toUserId int64) error {
 	hashmap := map[string]interface{}{"toUserId": toUserId}
-	return addSubscription(c, hashmap, userId)
+	return addSubscription(db, hashmap, userId)
 }
 
-func addSubscription(c sessions.Context, hashmap map[string]interface{}, userId int64) error {
+func addSubscription(db *database.DB, hashmap map[string]interface{}, userId int64) error {
 	hashmap["userId"] = userId
 	hashmap["createdAt"] = database.Now()
-	query := database.GetInsertSql("subscriptions", hashmap, "userId")
-	_, err := database.ExecuteSql(c, query)
+	statement := db.NewInsertStatement("subscriptions", hashmap, "userId")
+	_, err := statement.Exec()
 	return err
 }

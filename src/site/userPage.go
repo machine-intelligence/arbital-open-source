@@ -67,6 +67,11 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	data.UserMap = make(map[int64]*core.User)
 	data.GroupMap = make(map[int64]*core.Group)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, err
+	}
+
 	// Check parameter limiting the user/creator of the pages
 	data.AuthorId, err = strconv.ParseInt(mux.Vars(r)["authorId"], 10, 64)
 	if err != nil {
@@ -74,89 +79,89 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	var throwaway int
-	query := fmt.Sprintf(`
+	row := db.NewStatement(`
 		SELECT 1
 		FROM subscriptions
-		WHERE userId=%d AND toUserId=%d`, data.User.Id, data.AuthorId)
-	data.IsSubscribedToUser, err = database.QueryRowSql(c, query, &throwaway)
+		WHERE userId=? AND toUserId=?`).QueryRow(data.User.Id, data.AuthorId)
+	data.IsSubscribedToUser, err = row.Scan(&throwaway)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve subscription: %v", err)
 	}
 
 	// Load recently created by me page ids.
-	query = fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT p.pageId
 		FROM (
 			SELECT pageId,edit
 			FROM pages
-			WHERE creatorId=%d AND type!="comment"
+			WHERE creatorId=? AND type!="comment"
 		) AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 		ORDER BY pi.createdAt DESC
-		LIMIT %d`, data.AuthorId, indexPanelLimit)
-	data.RecentlyCreatedIds, err = loadPageIds(c, query, data.PageMap)
+		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+	data.RecentlyCreatedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading recently created page ids: %v", err)
 	}
 
 	// Load recently edited by me page ids.
-	query = fmt.Sprintf(`
+	rows = db.NewStatement(`
 		SELECT p.pageId
 		FROM (
 			SELECT pageId,max(edit) AS maxEdit,min(edit) AS minEdit,max(createdAt) AS createdAt
 			FROM pages
-			WHERE creatorId=%d AND type!="comment" AND NOT isAutosave
+			WHERE creatorId=? AND type!="comment" AND NOT isAutosave
 			GROUP BY 1
 		) AS p
 		WHERE maxEdit>minEdit
 		ORDER BY p.createdAt DESC
-		LIMIT %d`, data.AuthorId, indexPanelLimit)
-	data.RecentlyEditedIds, err = loadPageIds(c, query, data.PageMap)
+		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+	data.RecentlyEditedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading recently edited page ids: %v", err)
 	}
 
 	if data.User.Id == data.AuthorId {
 		// Load recently edited by me page ids.
-		query = fmt.Sprintf(`
+		rows = db.NewStatement(`
 			SELECT p.pageId
 			FROM (
 				SELECT pageId,createdAt
 				FROM pages
-				WHERE creatorId=%d AND type!="comment" AND isAutosave
+				WHERE creatorId=? AND type!="comment" AND isAutosave
 				GROUP BY pageId
 			) AS p
 			ORDER BY createdAt DESC
-			LIMIT %d`, data.AuthorId, indexPanelLimit)
-		data.PagesWithDraftIds, err = loadPageIds(c, query, data.PageMap)
+			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+		data.PagesWithDraftIds, err = loadPageIds(rows, data.PageMap)
 		if err != nil {
 			return nil, fmt.Errorf("error while loading pages with drafts ids: %v", err)
 		}
 
 		// Load page ids with the most todos.
-		query = fmt.Sprintf(`
+		rows = db.NewStatement(`
 			SELECT l.parentId
 			FROM (
 				SELECT l.parentId AS parentId,l.childAlias AS childAlias
 				FROM links AS l
 				JOIN pages AS p
 				ON (l.parentId=p.pageId)
-				WHERE p.creatorId=%d AND p.type!="comment" AND p.isCurrentEdit
+				WHERE p.creatorId=? AND p.type!="comment" AND p.isCurrentEdit
 			) AS l
 			LEFT JOIN pages AS p
 			ON (l.childAlias=p.alias)
 			GROUP BY 1
 			ORDER BY SUM(IF(p.pageId IS NULL, 1, 0)) DESC
-			LIMIT %d`, data.AuthorId, indexPanelLimit)
-		data.MostTodosIds, err = loadPageIds(c, query, data.PageMap)
+			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+		data.MostTodosIds, err = loadPageIds(rows, data.PageMap)
 		if err != nil {
 			return nil, fmt.Errorf("error while loading most todos page ids: %v", err)
 		}
 	}
 
 	// Load number of red links for recently edited pages.
-	err = loadLinks(c, data.PageMap)
+	err = loadLinks(db, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading links: %v", err)
 	}
@@ -170,17 +175,17 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 
 	// Load recently edited by me comment ids
-	query = fmt.Sprintf(`
+	rows = db.NewStatement(`
 		SELECT p.pageId
 		FROM (
 			SELECT pageId,createdAt
 			FROM pages
-			WHERE creatorId=%d AND type="comment"
+			WHERE creatorId=? AND type="comment"
 			GROUP BY pageId
 		) AS p
 		ORDER BY p.createdAt DESC
-		LIMIT %d`, data.AuthorId, indexPanelLimit)
-	data.RecentlyEditedCommentIds, err = loadPageIds(c, query, data.PageMap)
+		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+	data.RecentlyEditedCommentIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading recently edited by me page ids: %v", err)
 	}
@@ -188,36 +193,36 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	// Load the following info for yourself only.
 	if data.User.Id == data.AuthorId {
 		// Load recently visited page ids.
-		query = fmt.Sprintf(`
+		rows = db.NewStatement(`
 			SELECT v.pageId
 			FROM (
 				SELECT pageId,max(createdAt) AS createdAt
 				FROM visits
-				WHERE userId=%d
+				WHERE userId=?
 				GROUP BY 1
 			) AS v
 			ORDER BY v.createdAt DESC
-			LIMIT %d`, data.AuthorId, indexPanelLimit)
-		data.RecentlyVisitedIds, err = loadPageIds(c, query, data.PageMap)
+			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+		data.RecentlyVisitedIds, err = loadPageIds(rows, data.PageMap)
 		if err != nil {
 			return nil, fmt.Errorf("error while loading recently visited page ids: %v", err)
 		}
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
+	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(c, data.User.Id, data.PageMap, nil)
+	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading aux data: %v", err)
 	}
 
 	// Load all the groups.
-	err = loadGroupNames(c, u, data.GroupMap)
+	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}
@@ -228,7 +233,7 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	for _, p := range data.PageMap {
 		data.UserMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = core.LoadUsers(c, data.UserMap)
+	err = core.LoadUsers(db, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading users: %v", err)
 	}

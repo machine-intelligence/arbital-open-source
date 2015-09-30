@@ -3,7 +3,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -33,9 +32,17 @@ func deletePageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("delete_page_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Get user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't load user: %v", err)
@@ -49,7 +56,7 @@ func deletePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Load the page
 	var page *core.Page
-	page, err = loadFullEdit(c, data.PageId, u.Id, nil)
+	page, err = loadFullEdit(db, data.PageId, u.Id, nil)
 	if err != nil {
 		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't load page: %v", err)
@@ -69,11 +76,11 @@ func deletePageHandler(w http.ResponseWriter, r *http.Request) {
 	if data.UndoDelete {
 		deletedBy = 0
 	}
-	query := fmt.Sprintf(`
+	statement := db.NewStatement(`
 		UPDATE pages
-		SET deletedBy=%d
-		WHERE pageId=%d`, deletedBy, data.PageId)
-	if _, err = database.ExecuteSql(c, query); err != nil {
+		SET deletedBy=?
+		WHERE pageId=?`)
+	if _, err = statement.Exec(deletedBy, data.PageId); err != nil {
 		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't delete a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

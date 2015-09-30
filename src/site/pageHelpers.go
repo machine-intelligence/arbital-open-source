@@ -2,15 +2,11 @@
 package site
 
 import (
-	"bytes"
-	"database/sql"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
 
@@ -34,37 +30,38 @@ type loadEditOptions struct {
 // If userId is given, the last edit of the given pageId will be returned. It
 // might be an autosave or a snapshot, and thus not the current live page.
 // If the page couldn't be found, (nil, nil) will be returned.
-func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOptions) (*core.Page, error) {
+func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOptions) (*core.Page, error) {
 	if options == nil {
 		options = &loadEditOptions{}
 	}
 	var p core.Page
-	whereClause := "p.isCurrentEdit"
+
+	whereClause := database.NewQuery("p.isCurrentEdit")
 	if options.loadSpecificEdit > 0 {
-		whereClause = fmt.Sprintf(`p.edit=%d`, options.loadSpecificEdit)
+		whereClause = database.NewQuery("p.edit=?", options.loadSpecificEdit)
 	} else if options.loadNonliveEdit {
-		whereClause = fmt.Sprintf(`
+		whereClause = database.NewQuery(`
 			p.edit=(
 				SELECT MAX(edit)
 				FROM pages
-				WHERE pageId=%d AND deletedBy<=0 AND (creatorId=%d OR NOT (isSnapshot OR isAutosave))
+				WHERE pageId=? AND deletedBy<=0 AND (creatorId=? OR NOT (isSnapshot OR isAutosave))
 			)`, pageId, userId)
 	} else if options.loadEditWithLimit > 0 {
-		whereClause = fmt.Sprintf(`
+		whereClause = database.NewQuery(`
 			p.edit=(
 				SELECT max(edit)
 				FROM pages
-				WHERE pageId=%d AND edit<%d AND NOT isSnapshot AND NOT isAutosave
+				WHERE pageId=? AND edit<? AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.loadEditWithLimit)
 	} else if options.createdAtLimit != "" {
-		whereClause = fmt.Sprintf(`
+		whereClause = database.NewQuery(`
 			p.edit=(
 				SELECT max(edit)
 				FROM pages
-				WHERE pageId=%d AND createdAt<'%s' AND NOT isSnapshot AND NOT isAutosave
+				WHERE pageId=? AND createdAt<? AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.createdAtLimit)
 	}
-	query := fmt.Sprintf(`
+	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.summary,p.alias,p.creatorId,
 			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
 			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,
@@ -73,13 +70,13 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 		JOIN (
 			SELECT *
 			FROM pageInfos
-			WHERE pageId=%[1]d
+			WHERE pageId=?`, pageId).Add(`
 		) AS i
 		ON (p.pageId=i.pageId)
-		WHERE %[2]s AND
-			(p.groupId=0 OR p.groupId IN (SELECT id FROM groups WHERE isVisible) OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=%[3]d))`,
-		pageId, whereClause, userId)
-	exists, err := database.QueryRowSql(c, query, &p.PageId, &p.Edit, &p.PrevEdit,
+		WHERE`).AddPart(whereClause).Add(`AND
+			(p.groupId=0 OR p.groupId IN (SELECT id FROM groups WHERE isVisible) OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
+	row := statement.QueryRow()
+	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit,
 		&p.Type, &p.Title, &p.Clickbait, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit,
@@ -94,7 +91,7 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 	if p.DeletedBy > 0 {
 		return &core.Page{PageId: p.PageId, DeletedBy: p.DeletedBy}, nil
 	} else if !options.ignoreParents {
-		if err := p.ProcessParents(c, nil); err != nil {
+		if err := p.ProcessParents(db.C, nil); err != nil {
 			return nil, fmt.Errorf("Couldn't process parents: %v", err)
 		}
 	}
@@ -103,9 +100,9 @@ func loadFullEdit(c sessions.Context, pageId, userId int64, options *loadEditOpt
 
 // loadPageIds from the given query and return an array containing them, while
 // also updating the pageMap as necessary.
-func loadPageIds(c sessions.Context, query string, pageMap map[int64]*core.Page) ([]string, error) {
+func loadPageIds(rows *database.Rows, pageMap map[int64]*core.Page) ([]string, error) {
 	ids := make([]string, 0, indexPanelLimit)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId int64
 		err := rows.Scan(&pageId)
 		if err != nil {
@@ -125,43 +122,44 @@ func loadPageIds(c sessions.Context, query string, pageMap map[int64]*core.Page)
 
 // loadChildDraft loads a potentially existing draft for the given page. If it's
 // loaded, it'll be added to the give map.
-func loadChildDraft(c sessions.Context, userId int64, p *core.Page, pageMap map[int64]*core.Page) error {
+func loadChildDraft(db *database.DB, userId int64, p *core.Page, pageMap map[int64]*core.Page) error {
+	parentRegexp := fmt.Sprintf("(^|,)%s($|,)", strconv.FormatInt(p.PageId, core.PageIdEncodeBase))
 	if p.Type != core.QuestionPageType {
 		// Load potential question draft.
-		query := fmt.Sprintf(`
+		row := db.NewStatement(`
 			SELECT pageId
 			FROM (
 				SELECT pageId,creatorId
 				FROM pages
-				WHERE type="question" AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+				WHERE type="question" AND deletedBy<=0 AND parents REGEXP ?
 				GROUP BY pageId
 				HAVING SUM(isCurrentEdit)<=0
 			) AS p
-			WHERE creatorId=%d
-			LIMIT 1`, strconv.FormatInt(p.PageId, core.PageIdEncodeBase), userId)
-		_, err := database.QueryRowSql(c, query, &p.ChildDraftId)
+			WHERE creatorId=?
+			LIMIT 1`).QueryRow(parentRegexp, userId)
+		_, err := row.Scan(&p.ChildDraftId)
 		if err != nil {
 			return fmt.Errorf("Couldn't load question draft: %v", err)
 		}
 	} else {
 		// Load potential answer draft.
-		query := fmt.Sprintf(`
+		row := db.NewStatement(`
 			SELECT pageId
 			FROM (
 				SELECT pageId,creatorId
 				FROM pages
-				WHERE type="answer" AND deletedBy<=0 AND parents REGEXP "(^|,)%s($|,)"
+				WHERE type="answer" AND deletedBy<=0 AND parents REGEXP ?
 				GROUP BY pageId
 				HAVING SUM(isCurrentEdit)<=0
 			) AS p
-			WHERE creatorId=%d
-			LIMIT 1`, strconv.FormatInt(p.PageId, core.PageIdEncodeBase), userId)
-		_, err := database.QueryRowSql(c, query, &p.ChildDraftId)
+			WHERE creatorId=?
+			LIMIT 1`).QueryRow(parentRegexp, userId)
+		_, err := row.Scan(&p.ChildDraftId)
 		if err != nil {
 			return fmt.Errorf("Couldn't load answer draft id: %v", err)
 		}
 		if p.ChildDraftId > 0 {
-			p, err := loadFullEdit(c, p.ChildDraftId, userId, nil)
+			p, err := loadFullEdit(db, p.ChildDraftId, userId, nil)
 			if err != nil {
 				return fmt.Errorf("Couldn't load answer draft: %v", err)
 			}
@@ -171,30 +169,110 @@ func loadChildDraft(c sessions.Context, userId int64, p *core.Page, pageMap map[
 	return nil
 }
 
+// loadLikes loads likes corresponding to the given pages and updates the pages.
+func loadLikes(db *database.DB, currentUserId int64, pageMap map[int64]*core.Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := core.PageIdsListFromMap(pageMap)
+	rows := db.NewStatement(`
+		SELECT userId,pageId,value
+		FROM (
+			SELECT *
+			FROM likes
+			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+			ORDER BY id DESC
+		) AS v
+		GROUP BY userId,pageId`).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var userId int64
+		var pageId int64
+		var value int
+		err := rows.Scan(&userId, &pageId, &value)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a like: %v", err)
+		}
+		page := pageMap[pageId]
+		if value > 0 {
+			if page.LikeCount >= page.DislikeCount {
+				page.LikeScore++
+			} else {
+				page.LikeScore += 2
+			}
+			page.LikeCount++
+		} else if value < 0 {
+			if page.DislikeCount >= page.LikeCount {
+				page.LikeScore--
+			}
+			page.DislikeCount++
+		}
+		if userId == currentUserId {
+			page.MyLikeValue = value
+		}
+		return nil
+	})
+	return err
+}
+
+// loadVotes loads probability votes corresponding to the given pages and updates the pages.
+func loadVotes(db *database.DB, currentUserId int64, pageMap map[int64]*core.Page, usersMap map[int64]*core.User) error {
+	pageIds := core.PageIdsListFromMap(pageMap)
+	rows := db.NewStatement(`
+		SELECT userId,pageId,value,createdAt
+		FROM (
+			SELECT *
+			FROM votes
+			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+			ORDER BY id DESC
+		) AS v
+		GROUP BY userId,pageId`).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var v core.Vote
+		var pageId int64
+		err := rows.Scan(&v.UserId, &pageId, &v.Value, &v.CreatedAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a vote: %v", err)
+		}
+		if v.Value == 0 {
+			return nil
+		}
+		page := pageMap[pageId]
+		if page.Votes == nil {
+			page.Votes = make([]*core.Vote, 0, 0)
+		}
+		page.Votes = append(page.Votes, &v)
+		if _, ok := usersMap[v.UserId]; !ok {
+			usersMap[v.UserId] = &core.User{Id: v.UserId}
+		}
+		return nil
+	})
+	return err
+}
+
 // loadLinks loads the links for the given page.
-func loadLinks(c sessions.Context, pageMap map[int64]*core.Page) error {
+func loadLinks(db *database.DB, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
 	// List of all aliases we need to get titles for
-	aliasesList := make([]string, 0, 0)
+	aliasesList := make([]interface{}, 0)
 	// Map of each page alias to a list of pages which have it as a link.
 	linkMap := make(map[string]string)
 
 	// Load all links.
-	pageIdsStr := core.PageIdsStringFromMap(pageMap)
-	query := fmt.Sprintf(`
+	pageIds := core.PageIdsListFromMap(pageMap)
+	rows := db.NewStatement(`
 		SELECT parentId,childAlias
 		FROM links
-		WHERE parentId IN (%s)`, pageIdsStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId int64
 		var childAlias string
 		err := rows.Scan(&parentId, &childAlias)
 		if err != nil {
 			return fmt.Errorf("failed to scan for an alias: %v", err)
 		}
-		aliasesList = append(aliasesList, fmt.Sprintf(`"%s"`, childAlias))
+		aliasesList = append(aliasesList, childAlias)
 		if pageMap[parentId].Links == nil {
 			pageMap[parentId].Links = make(map[string]string)
 		}
@@ -206,13 +284,16 @@ func loadLinks(c sessions.Context, pageMap map[int64]*core.Page) error {
 	}
 
 	// Get the page titles for all the links.
-	aliasesStr := strings.Join(aliasesList, ",")
-	if len(aliasesStr) > 0 {
-		query = fmt.Sprintf(`
+	if len(aliasesList) > 0 {
+		// Double up aliases list because we'll use it twice in the query.
+		placeholder := database.InArgsPlaceholder(len(aliasesList))
+		aliasesList = append(aliasesList, aliasesList...)
+		rows = db.NewStatement(`
 			SELECT pageId,alias,title
 			FROM pages
-			WHERE isCurrentEdit AND deletedBy=0 AND (alias IN (%s) OR pageId in (%s))`, aliasesStr, aliasesStr)
-		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			WHERE isCurrentEdit AND deletedBy=0 AND
+				(alias IN ` + placeholder + ` OR pageId IN ` + placeholder + ` )`).Query(aliasesList...)
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId, alias, title string
 			err := rows.Scan(&pageId, &alias, &title)
 			if err != nil {
@@ -247,7 +328,7 @@ type loadChildrenIdsOptions struct {
 }
 
 // loadChildrenIds loads the page ids for all the children of the pages in the given pageMap.
-func loadChildrenIds(c sessions.Context, pageMap map[int64]*core.Page, options loadChildrenIdsOptions) error {
+func loadChildrenIds(db *database.DB, pageMap map[int64]*core.Page, options loadChildrenIdsOptions) error {
 	sourcePageMap := pageMap
 	if options.ForPages != nil {
 		sourcePageMap = options.ForPages
@@ -255,21 +336,21 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*core.Page, options l
 	if len(sourcePageMap) <= 0 {
 		return nil
 	}
-	pageIdsStr := core.PageIdsStringFromMap(sourcePageMap)
+	pageIds := core.PageIdsListFromMap(sourcePageMap)
 	newPages := make(map[int64]*core.Page)
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT pp.parentId,pp.childId,p.type
 		FROM (
 			SELECT parentId,childId
 			FROM pagePairs
-			WHERE parentId IN (%s)
+			WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
 		) AS pp JOIN (
 			SELECT pageId,type
 			FROM pages
 			WHERE isCurrentEdit AND type!="comment"
 		) AS p
-		ON (p.pageId=pp.childId)`, pageIdsStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		ON (p.pageId=pp.childId)`).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p core.PagePair
 		var childType string
 		err := rows.Scan(&p.ParentId, &p.ChildId, &childType)
@@ -297,21 +378,21 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*core.Page, options l
 		return err
 	}
 	if options.LoadHasChildren && len(newPages) > 0 {
-		pageIdsStr = core.PageIdsStringFromMap(newPages)
-		query := fmt.Sprintf(`
+		pageIds = core.PageIdsListFromMap(newPages)
+		rows := db.NewStatement(`
 			SELECT pp.parentId,sum(1)
 			FROM (
 				SELECT parentId,childId
 				FROM pagePairs
-				WHERE parentId IN (%s)
+				WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
 			) AS pp JOIN (
 				SELECT pageId
 				FROM pages
 				WHERE isCurrentEdit AND type!="comment"
 			) AS p
 			ON (p.pageId=pp.childId)
-			GROUP BY 1`, pageIdsStr)
-		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			GROUP BY 1`).Query(pageIds...)
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var children int
 			err := rows.Scan(&pageId, &children)
@@ -326,24 +407,24 @@ func loadChildrenIds(c sessions.Context, pageMap map[int64]*core.Page, options l
 }
 
 // loadCommentIds loads the page ids for all the comments of the pages in the given pageMap.
-func loadCommentIds(c sessions.Context, pageMap map[int64]*core.Page, sourcePageMap map[int64]*core.Page) error {
+func loadCommentIds(db *database.DB, pageMap map[int64]*core.Page, sourcePageMap map[int64]*core.Page) error {
 	if len(sourcePageMap) <= 0 {
 		return nil
 	}
-	pageIdsStr := core.PageIdsStringFromMap(sourcePageMap)
-	query := fmt.Sprintf(`
+	pageIds := core.PageIdsListFromMap(sourcePageMap)
+	rows := db.NewStatement(`
 		SELECT pp.parentId,pp.childId
 		FROM (
 			SELECT parentId,childId
 			FROM pagePairs
-			WHERE parentId IN (%s)
+			WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
 		) AS pp JOIN (
 			SELECT pageId
 			FROM pages
 			WHERE isCurrentEdit AND type="comment"
 		) AS p
-		ON (p.pageId=pp.childId)`, pageIdsStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		ON (p.pageId=pp.childId)`).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p core.PagePair
 		err := rows.Scan(&p.ParentId, &p.ChildId)
 		if err != nil {
@@ -370,7 +451,7 @@ type loadParentsIdsOptions struct {
 }
 
 // loadParentsIds loads the page ids for all the parents of the pages in the given pageMap.
-func loadParentsIds(c sessions.Context, pageMap map[int64]*core.Page, options loadParentsIdsOptions) error {
+func loadParentsIds(db *database.DB, pageMap map[int64]*core.Page, options loadParentsIdsOptions) error {
 	sourcePageMap := pageMap
 	if options.ForPages != nil {
 		sourcePageMap = options.ForPages
@@ -378,13 +459,14 @@ func loadParentsIds(c sessions.Context, pageMap map[int64]*core.Page, options lo
 	if len(sourcePageMap) <= 0 {
 		return nil
 	}
-	pageIdsStr := core.PageIdsStringFromMap(sourcePageMap)
+
+	pageIds := core.PageIdsListFromMap(sourcePageMap)
 	newPages := make(map[int64]*core.Page)
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT parentId,childId
 		FROM pagePairs
-		WHERE childId IN (%s)`, pageIdsStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE childId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p core.PagePair
 		err := rows.Scan(&p.ParentId, &p.ChildId)
 		if err != nil {
@@ -402,16 +484,16 @@ func loadParentsIds(c sessions.Context, pageMap map[int64]*core.Page, options lo
 		return nil
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to load parents: %v", err)
 	}
 	if options.LoadHasParents && len(newPages) > 0 {
-		pageIdsStr = core.PageIdsStringFromMap(newPages)
-		query := fmt.Sprintf(`
+		pageIds = core.PageIdsListFromMap(newPages)
+		rows := db.NewStatement(`
 			SELECT childId,sum(1)
 			FROM pagePairs
-			WHERE childId IN (%s)
-			GROUP BY 1`, pageIdsStr)
-		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			WHERE childId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+			GROUP BY 1`).Query(pageIds...)
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var parents int
 			err := rows.Scan(&pageId, &parents)
@@ -421,28 +503,30 @@ func loadParentsIds(c sessions.Context, pageMap map[int64]*core.Page, options lo
 			pageMap[pageId].HasParents = parents > 0
 			return nil
 		})
+		if err != nil {
+			return fmt.Errorf("Failed to load grandparents: %v", err)
+		}
 	}
-	return err
+	return nil
 }
 
 // loadDraftExistence computes for each page whether or not the user has an
 // autosave draft for it.
 // This only makes sense to call for pages which were loaded for isCurrentEdit=true.
-func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*core.Page) error {
+func loadDraftExistence(db *database.DB, userId int64, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
-	pageIds := core.PageIdsStringFromMap(pageMap)
-	query := fmt.Sprintf(`
+	pageIds := core.PageIdsListFromMap(pageMap)
+	rows := database.NewQuery(`
 		SELECT pageId,MAX(
-				IF(isAutosave AND creatorId=%d AND deletedBy=0, edit, -1)
+				IF(isAutosave AND creatorId=? AND deletedBy=0, edit, -1)
 			) as myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
-		FROM pages
-		WHERE pageId IN (%s)
+		FROM pages`, userId).Add(`
+		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
 		GROUP BY pageId
-		HAVING myMaxEdit > currentEdit`,
-		userId, pageIds)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		HAVING myMaxEdit > currentEdit`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId int64
 		var blank int
 		err := rows.Scan(&pageId, &blank, &blank)
@@ -456,18 +540,17 @@ func loadDraftExistence(c sessions.Context, userId int64, pageMap map[int64]*cor
 }
 
 // loadLastVisits loads lastVisit variable for each page.
-func loadLastVisits(c sessions.Context, currentUserId int64, pageMap map[int64]*core.Page) error {
+func loadLastVisits(db *database.DB, currentUserId int64, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
-	pageIdsStr := core.PageIdsStringFromMap(pageMap)
-	query := fmt.Sprintf(`
+	pageIds := core.PageIdsListFromMap(pageMap)
+	rows := database.NewQuery(`
 		SELECT pageId,max(createdAt)
 		FROM visits
-		WHERE userId=%d AND pageId IN (%s)
-		GROUP BY 1`,
-		currentUserId, pageIdsStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE userId=?`, currentUserId).Add(`AND pageId IN`).AddArgsGroup(pageIds).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId int64
 		var createdAt string
 		err := rows.Scan(&pageId, &createdAt)
@@ -482,17 +565,16 @@ func loadLastVisits(c sessions.Context, currentUserId int64, pageMap map[int64]*
 
 // loadSubscriptions loads subscription statuses corresponding to the given
 // pages, and then updates the given maps.
-func loadSubscriptions(c sessions.Context, currentUserId int64, pageMap map[int64]*core.Page) error {
+func loadSubscriptions(db *database.DB, currentUserId int64, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
-	pageIds := core.PageIdsStringFromMap(pageMap)
-	query := fmt.Sprintf(`
+	pageIds := core.PageIdsListFromMap(pageMap)
+	rows := database.NewQuery(`
 		SELECT toPageId
 		FROM subscriptions
-		WHERE userId=%d AND toPageId IN (%s)`,
-		currentUserId, pageIds)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE userId=?`, currentUserId).Add(`AND toPageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var toPageId int64
 		err := rows.Scan(&toPageId)
 		if err != nil {
@@ -506,17 +588,16 @@ func loadSubscriptions(c sessions.Context, currentUserId int64, pageMap map[int6
 
 // loadUserSubscriptions loads subscription statuses corresponding to the given
 // users, and then updates the given map.
-func loadUserSubscriptions(c sessions.Context, currentUserId int64, userMap map[int64]*core.User) error {
+func loadUserSubscriptions(db *database.DB, currentUserId int64, userMap map[int64]*core.User) error {
 	if len(userMap) <= 0 {
 		return nil
 	}
-	userIds := pageIdsStringFromUserMap(userMap)
-	query := fmt.Sprintf(`
+	userIds := core.IdsListFromUserMap(userMap)
+	rows := database.NewQuery(`
 		SELECT toUserId
 		FROM subscriptions
-		WHERE userId=%d AND toUserId IN (%s)`,
-		currentUserId, userIds)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE userId=?`, currentUserId).Add(`AND toUserId IN`).AddArgsGroup(userIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var toUserId int64
 		err := rows.Scan(&toUserId)
 		if err != nil {
@@ -535,40 +616,41 @@ type loadAuxPageDataOptions struct {
 }
 
 // loadAuxPageData loads the auxillary page data for the given pages.
-func loadAuxPageData(c sessions.Context, userId int64, pageMap map[int64]*core.Page, options *loadAuxPageDataOptions) error {
+func loadAuxPageData(db *database.DB, userId int64, pageMap map[int64]*core.Page, options *loadAuxPageDataOptions) error {
 	if options == nil {
 		options = &loadAuxPageDataOptions{}
 	}
 
 	// Load likes
-	err := loadLikes(c, userId, pageMap)
+	err := loadLikes(db, userId, pageMap)
 	if err != nil {
 		return fmt.Errorf("Couldn't load likes: %v", err)
 	}
 
 	// Load all the subscription statuses.
 	if userId > 0 {
-		err = loadSubscriptions(c, userId, pageMap)
+		err = loadSubscriptions(db, userId, pageMap)
 		if err != nil {
 			return fmt.Errorf("Couldn't load subscriptions: %v", err)
 		}
 	}
 
 	// Load whether or not pages have drafts.
-	err = loadDraftExistence(c, userId, pageMap)
+	err = loadDraftExistence(db, userId, pageMap)
 	if err != nil {
 		return fmt.Errorf("Couldn't load draft existence: %v", err)
 	}
 
 	// Load original creation date.
 	if len(pageMap) > 0 {
-		pageIdsStr := core.PageIdsStringFromMap(pageMap)
-		query := fmt.Sprintf(`
+		pageIds := core.PageIdsListFromMap(pageMap)
+		rows := db.NewStatement(`
 			SELECT pageId,MIN(createdAt)
 			FROM pages
-			WHERE pageId IN (%s) AND NOT isAutosave AND NOT isSnapshot
-			GROUP BY 1`, pageIdsStr)
-		err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+				AND NOT isAutosave AND NOT isSnapshot
+			GROUP BY 1`).Query(pageIds...)
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var originalCreatedAt string
 			err := rows.Scan(&pageId, &originalCreatedAt)
@@ -584,7 +666,7 @@ func loadAuxPageData(c sessions.Context, userId int64, pageMap map[int64]*core.P
 	}
 
 	// Load last visit time.
-	err = loadLastVisits(c, userId, pageMap)
+	err = loadLastVisits(db, userId, pageMap)
 	if err != nil {
 		return fmt.Errorf("error while fetching a visit: %v", err)
 	}
@@ -598,19 +680,6 @@ func loadAuxPageData(c sessions.Context, userId int64, pageMap map[int64]*core.P
 	}
 
 	return nil
-}
-
-// pageIdsStringFromUserMap returns a comma separated string of all userIds in the given map.
-func pageIdsStringFromUserMap(userMap map[int64]*core.User) string {
-	var buffer bytes.Buffer
-	for id, _ := range userMap {
-		buffer.WriteString(fmt.Sprintf("%d,", id))
-	}
-	str := buffer.String()
-	if len(str) >= 1 {
-		str = str[0 : len(str)-1]
-	}
-	return str
 }
 
 // getMaxKarmaLock returns the highest possible karma lock a user with the

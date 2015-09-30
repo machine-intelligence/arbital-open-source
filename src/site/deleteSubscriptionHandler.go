@@ -31,9 +31,17 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("delete_subscription_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Get user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Inc("delete_subscription_fail")
 		c.Errorf("Couldn't load user: %v", err)
@@ -45,18 +53,24 @@ func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query := fmt.Sprintf(`
-		DELETE FROM subscriptions
-		WHERE userId=%d AND `, u.Id)
-	if data.PageId > 0 {
-		query += fmt.Sprintf("toPageId=%d", data.PageId)
-	} else if data.UserId > 0 {
-		query += fmt.Sprintf("toUserId=%d", data.UserId)
-	}
-	if _, err = database.ExecuteSql(c, query); err != nil {
-		c.Inc("delete_subscription_fail")
-		c.Errorf("Couldn't delete a subscription: %v", err)
+	err = deleteSubscriptionInternalHandler(u, db, &data)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		return
+		c.Inc("delete_subscription_fail")
 	}
+}
+
+func deleteSubscriptionInternalHandler(u *user.User, db *database.DB, data *deleteSubscriptionData) error {
+	query := database.NewQuery(`
+		DELETE FROM subscriptions
+		WHERE userId=? AND `, u.Id)
+	if data.PageId > 0 {
+		query.Add("toPageId=?", data.PageId)
+	} else if data.UserId > 0 {
+		query.Add("toUserId=?", data.UserId)
+	}
+	if _, err := query.ToStatement(db).Exec(); err != nil {
+		return fmt.Errorf("Couldn't delete a subscription: %v", err)
+	}
+	return nil
 }

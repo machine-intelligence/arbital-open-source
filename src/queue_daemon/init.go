@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
@@ -55,8 +56,16 @@ func processTask(c sessions.Context) error {
 		return fmt.Errorf("Couldn't decode a task: %v", err)
 	}
 	c.Debugf("Decoded a task: %v", task)
+
+	// Open DB connection
+	db, err := database.GetDB(c)
+	if err != nil {
+		return fmt.Errorf("ERROR: %v", err)
+	}
+
+	// Execute the task
 	var retValue int
-	retValue, err = task.Execute(c)
+	retValue, err = task.Execute(db)
 	if err != nil {
 		return fmt.Errorf("Couldn't execute a task: %v", err)
 	}

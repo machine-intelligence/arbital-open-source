@@ -2,12 +2,9 @@
 package core
 
 import (
-	"database/sql"
 	"fmt"
-	"strings"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
 )
 
 const (
@@ -46,21 +43,29 @@ func GetUserUrl(userId int64) string {
 	return fmt.Sprintf("/user/%d", userId)
 }
 
+// IdsListFromUserMap returns a list of all user ids in the map.
+func IdsListFromUserMap(userMap map[int64]*User) []interface{} {
+	list := make([]interface{}, 0, len(userMap))
+	for id, _ := range userMap {
+		list = append(list, id)
+	}
+	return list
+}
+
 // LoadUsers loads user information (like name) for each user in the given map.
-func LoadUsers(c sessions.Context, userMap map[int64]*User) error {
+func LoadUsers(db *database.DB, userMap map[int64]*User) error {
 	if len(userMap) <= 0 {
 		return nil
 	}
-	userIds := make([]string, 0, len(userMap))
+	userIds := make([]interface{}, 0, len(userMap))
 	for id, _ := range userMap {
-		userIds = append(userIds, fmt.Sprintf("%d", id))
+		userIds = append(userIds, id)
 	}
-	userIdsStr := strings.Join(userIds, ",")
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT id,firstName,lastName
 		FROM users
-		WHERE id IN (%s)`, userIdsStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE id IN ` + database.InArgsPlaceholder(len(userMap))).Query(userIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var u User
 		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName)
 		if err != nil {

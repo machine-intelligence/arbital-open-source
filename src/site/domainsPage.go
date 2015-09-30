@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -48,14 +47,19 @@ func domainsInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	data.User = u
 	c := sessions.NewContext(r)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, fmt.Errorf("%v", err)
+	}
+
 	// Load the domains
 	data.PageMap = make(map[int64]*core.Page)
 	data.GroupMap = make(map[int64]*core.Group)
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT id,alias,name,rootPageId,createdAt
 		FROM groups
-		WHERE isDomain`)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE isDomain`).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var g core.Group
 		err := rows.Scan(
 			&g.Id,
@@ -75,7 +79,7 @@ func domainsInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, nil)
+	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}

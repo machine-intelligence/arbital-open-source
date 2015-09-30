@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 	"fmt"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 )
 
@@ -17,7 +18,7 @@ type QueueTask interface {
 	// > 0:  the task will be put back into the queue with the given number of seconds
 	// == 0: the task will be deleted from the queue
 	// < 0:  the task will remain leased for the default period of time
-	Execute(c sessions.Context) (int, error)
+	Execute(db *database.DB) (int, error)
 }
 
 // Add the task to the queue.

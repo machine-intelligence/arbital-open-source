@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -28,15 +27,20 @@ var groupsPage = newPage(
 
 // groupsRenderer renders the page page.
 func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	var err error
 	var data groupsTmplData
 	data.User = u
 	c := sessions.NewContext(r)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Errorf("%v", err)
+		return pages.InternalErrorWith(fmt.Errorf("Couldn't open DB"))
+	}
+
 	// Load the groups and members
 	data.UserMap = make(map[int64]*core.User)
 	data.GroupMap = make(map[int64]*core.Group)
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT g.id,g.name,m.userId,m.canAddMembers,m.canAdmin
 		FROM groups AS g
 		LEFT JOIN (
@@ -44,8 +48,8 @@ func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 			FROM groupMembers
 		) AS m
 		ON (g.id=m.groupId)
-		WHERE g.id IN (SELECT groupId FROM groupMembers WHERE userId=%d)`, data.User.Id)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE g.id IN (SELECT groupId FROM groupMembers WHERE userId=?)`).Query(data.User.Id)
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var g core.Group
 		var m core.Member
 		err := rows.Scan(
@@ -79,7 +83,7 @@ func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 	}
 
 	// Load all the users.
-	err = core.LoadUsers(c, data.UserMap)
+	err = core.LoadUsers(db, data.UserMap)
 	if err != nil {
 		c.Errorf("error while loading users: %v", err)
 		return pages.InternalErrorWith(err)

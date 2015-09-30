@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -74,7 +73,8 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	if data.PageId <= 0 {
 		return http.StatusBadRequest, fmt.Sprintf("No pageId specified")
 	}
-	parentIds := make([]int64, 0, 0)
+	parentIds := make([]int64, 0)
+	parentIdArgs := make([]interface{}, 0)
 	if data.ParentIds != "" {
 		parentStrIds := strings.Split(data.ParentIds, ",")
 		for _, parentStrId := range parentStrIds {
@@ -83,12 +83,18 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				return http.StatusBadRequest, fmt.Sprintf("Invalid parent id: %s", parentStrId)
 			}
 			parentIds = append(parentIds, parentId)
+			parentIdArgs = append(parentIdArgs, parentId)
 		}
+	}
+
+	db, err := database.GetDB(c)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Sprintf("%v", err)
 	}
 
 	// Load user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
 	}
@@ -97,13 +103,13 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// Load user groups
-	if err = loadUserGroups(c, u); err != nil {
+	if err = loadUserGroups(db, u); err != nil {
 		return http.StatusForbidden, fmt.Sprintf("Couldn't load user groups: %v", err)
 	}
 
 	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err = loadFullEdit(c, data.PageId, u.Id, &loadEditOptions{})
+	oldPage, err = loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{})
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load the old page: %v", err)
 	} else if oldPage == nil {
@@ -112,14 +118,13 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	oldPage.ProcessParents(c, nil)
 
 	// Load additional info
-	query := fmt.Sprintf(`
+	row := db.NewStatement(`
 		SELECT currentEdit>0,maxEdit,lockedBy,lockedUntil,
-			(SELECT max(edit) FROM pages WHERE pageId=%[1]d AND creatorId=%[2]d AND isAutosave) AS myLastAutosaveEdit,
-			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=%[1]d AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
+			(SELECT max(edit) FROM pages WHERE pageId=? AND creatorId=? AND isAutosave) AS myLastAutosaveEdit,
+			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=? AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pageInfos
-		WHERE pageId=%[1]d
-			`, data.PageId, u.Id)
-	_, err = database.QueryRowSql(c, query, &oldPage.WasPublished, &oldPage.MaxEditEver,
+		WHERE pageId=?`).QueryRow(data.PageId, u.Id, data.PageId, data.PageId)
+	_, err = row.Scan(&oldPage.WasPublished, &oldPage.MaxEditEver,
 		&oldPage.LockedBy, &oldPage.LockedUntil, &oldPage.MyLastAutosaveEdit, &oldPage.LockedVoteType)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load additional page info: %v", err)
@@ -220,13 +225,15 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			if data.Type == core.AnswerPageType {
 				typeConstraint = `type="question"`
 			}
-			query := fmt.Sprintf(`
+			row := database.NewQuery(`
 				SELECT COUNT(DISTINCT pageId)
 				FROM pages
-				WHERE pageId IN (%s) AND (isCurrentEdit OR creatorId=%d) AND %s AND
-					(groupId="" OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
-				`, data.ParentIds, u.Id, typeConstraint, u.Id)
-			_, err = database.QueryRowSql(c, query, &count)
+				WHERE pageId IN`).AddArgsGroup(parentIdArgs).Add(`
+					AND (isCurrentEdit OR creatorId=?)`, u.Id).Add(`AND
+					`+typeConstraint+` AND
+					(groupId="" OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=?))
+				`, u.Id).ToStatement(db).QueryRow()
+			_, err = row.Scan(&count)
 			if err != nil {
 				return http.StatusInternalServerError, fmt.Sprintf("Couldn't check parents: %v", err)
 			}
@@ -239,12 +246,12 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 
 			// Compute parent comment and primary page for the comment.
 			if data.Type == core.CommentPageType {
-				query := fmt.Sprintf(`
+				rows := db.NewStatement(`
 					SELECT pageId,type
 					FROM pages
-					WHERE pageId IN (%s) AND isCurrentEdit
-					`, data.ParentIds)
-				err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+					WHERE pageId IN ` + database.InArgsPlaceholder(len(parentIdArgs)) + ` AND isCurrentEdit
+					`).Query(parentIdArgs...)
+				err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 					var pageId int64
 					var pageType string
 					err := rows.Scan(&pageId, &pageType)
@@ -305,11 +312,12 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		data.Type = oldPage.Type
 	} else if data.Type == core.CommentPageType {
 		// Set the groupId to primary page's group name
-		query := fmt.Sprintf(`
+		row := db.NewStatement(`
 			SELECT max(groupId)
 			FROM pages
-			WHERE pageId IN (%s) AND type!="comment" AND isCurrentEdit`, data.ParentIds)
-		_, err := database.QueryRowSql(c, query, &data.GroupId)
+			WHERE pageId IN ` + database.InArgsPlaceholder(len(parentIdArgs)) + `
+				AND type!="comment" AND isCurrentEdit`).QueryRow(parentIdArgs...)
+		_, err := row.Scan(&data.GroupId)
 		if err != nil {
 			return http.StatusInternalServerError, fmt.Sprintf("Couldn't get primary page's group name: %v", err)
 		}
@@ -336,203 +344,188 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 
 	// Begin the transaction.
-	tx, err := database.NewTransaction(c)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("failed to create a transaction: %v\n", err)
-	}
-
-	if isCurrentEdit {
-		// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
-		if oldPage.WasPublished {
-			query := fmt.Sprintf("UPDATE pages SET isCurrentEdit=false WHERE pageId=%d AND isCurrentEdit", data.PageId)
-			if _, err = tx.Exec(query); err != nil {
-				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't update isCurrentEdit for old edits: %v", err)
-			}
-		}
-
-		// Update aliases table.
-		aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
-		if aliasRegexp.MatchString(data.Alias) {
-			// The user might be trying to create a new alias.
-			var maxSuffix int      // maximum suffix used with this alias
-			var existingSuffix int // if this page already used this suffix, this will be set to it
-			standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
-			query := fmt.Sprintf(`
-				SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=%d,suffix,-1)),-1)
-				FROM aliases
-				WHERE standardizedName="%s"`, data.PageId, standardizedName)
-			_, err := database.QueryRowSql(c, query, &maxSuffix, &existingSuffix)
-			if err != nil {
-				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't read from aliases: %v", err)
-			}
-			if existingSuffix < 0 {
-				suffix := maxSuffix + 1
-				data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
-				if data.Type == core.QuestionPageType {
-					data.Alias = fmt.Sprintf("Q-%s", data.Alias)
-				} else if data.Type == core.QuestionPageType {
-					data.Alias = fmt.Sprintf("A-%s", data.Alias)
+	err = db.Transaction(func(tx *database.Tx) error {
+		if isCurrentEdit {
+			// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
+			if oldPage.WasPublished {
+				statement := tx.NewTxStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit")
+				if _, err = statement.Exec(data.PageId); err != nil {
+					return fmt.Errorf("Couldn't update isCurrentEdit for old edits: %v", err)
 				}
-				if isCurrentEdit {
-					hashmap := make(map[string]interface{})
-					hashmap["fullName"] = data.Alias
-					hashmap["standardizedName"] = standardizedName
-					hashmap["suffix"] = suffix
-					hashmap["pageId"] = data.PageId
-					hashmap["creatorId"] = u.Id
-					hashmap["createdAt"] = database.Now()
-					query = database.GetInsertSql("aliases", hashmap)
-					if _, err = tx.Exec(query); err != nil {
-						tx.Rollback()
-						return http.StatusInternalServerError, fmt.Sprintf("Couldn't add an alias: %v", err)
+			}
+
+			// Update aliases table.
+			aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
+			if aliasRegexp.MatchString(data.Alias) {
+				// The user might be trying to create a new alias.
+				var maxSuffix int      // maximum suffix used with this alias
+				var existingSuffix int // if this page already used this suffix, this will be set to it
+				standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
+				row := tx.NewTxStatement(`
+					SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=?,suffix,-1)),-1)
+					FROM aliases
+					WHERE standardizedName=?`).QueryRow(data.PageId, standardizedName)
+				_, err := row.Scan(&maxSuffix, &existingSuffix)
+				if err != nil {
+					return fmt.Errorf("Couldn't read from aliases: %v", err)
+				}
+				if existingSuffix < 0 {
+					suffix := maxSuffix + 1
+					data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
+					if data.Type == core.QuestionPageType {
+						data.Alias = fmt.Sprintf("Q-%s", data.Alias)
+					} else if data.Type == core.QuestionPageType {
+						data.Alias = fmt.Sprintf("A-%s", data.Alias)
 					}
+					if isCurrentEdit {
+						hashmap := make(map[string]interface{})
+						hashmap["fullName"] = data.Alias
+						hashmap["standardizedName"] = standardizedName
+						hashmap["suffix"] = suffix
+						hashmap["pageId"] = data.PageId
+						hashmap["creatorId"] = u.Id
+						hashmap["createdAt"] = database.Now()
+						statement := tx.NewInsertTxStatement("aliases", hashmap)
+						if _, err = statement.Exec(); err != nil {
+							return fmt.Errorf("Couldn't add an alias: %v", err)
+						}
+					}
+				} else if existingSuffix > 0 {
+					data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
 				}
-			} else if existingSuffix > 0 {
-				data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
-			}
-		} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
-			// Check if we are simply reusing an existing alias.
-			var ignore int
-			query := fmt.Sprintf(`SELECT 1 FROM aliases WHERE pageId=%d AND fullName="%s"`, data.PageId, data.Alias)
-			exists, err := database.QueryRowSql(c, query, &ignore)
-			if err != nil {
-				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't check existing alias: %v", err)
-			} else if !exists {
-				tx.Rollback()
-				return http.StatusBadRequest, fmt.Sprintf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+			} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+				// Check if we are simply reusing an existing alias.
+				var ignore int
+				row := tx.NewTxStatement(`
+					SELECT 1 FROM aliases
+					WHERE pageId=? AND fullName=?`).QueryRow(data.PageId, data.Alias)
+				exists, err := row.Scan(&ignore)
+				if err != nil {
+					return fmt.Errorf("Couldn't check existing alias: %v", err)
+				} else if !exists {
+					return fmt.Errorf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+				}
 			}
 		}
-	}
 
-	// Create encoded string for parents, as well as a string for updating pagePairs.
-	// TODO: de-duplicate parent ids
-	encodedParentIds := make([]string, len(parentIds))
-	pagePairValues := make([]string, len(parentIds))
-	for i, id := range parentIds {
-		encodedParentIds[i] = strconv.FormatInt(id, core.PageIdEncodeBase)
-		pagePairValues[i] = fmt.Sprintf("(%d, %d)", id, data.PageId)
-	}
-
-	// Create a new edit.
-	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = data.PageId
-	hashmap["edit"] = newEditNum
-	hashmap["prevEdit"] = data.PrevEdit
-	hashmap["creatorId"] = u.Id
-	hashmap["title"] = data.Title
-	hashmap["clickbait"] = data.Clickbait
-	hashmap["text"] = data.Text
-	hashmap["summary"] = core.ExtractSummary(data.Text)
-	hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
-	hashmap["alias"] = data.Alias
-	hashmap["sortChildrenBy"] = data.SortChildrenBy
-	hashmap["isCurrentEdit"] = isCurrentEdit
-	hashmap["hasVote"] = hasVote
-	hashmap["voteType"] = data.VoteType
-	hashmap["karmaLock"] = data.KarmaLock
-	hashmap["isAutosave"] = data.IsAutosave
-	hashmap["isSnapshot"] = data.IsSnapshot
-	hashmap["type"] = data.Type
-	hashmap["privacyKey"] = privacyKey
-	hashmap["groupId"] = data.GroupId
-	hashmap["parents"] = strings.Join(encodedParentIds, ",")
-	hashmap["createdAt"] = database.Now()
-	hashmap["anchorContext"] = data.AnchorContext
-	hashmap["anchorText"] = data.AnchorText
-	hashmap["anchorOffset"] = data.AnchorOffset
-	if overwritingEdit {
-		query = database.GetReplaceSql("pages", hashmap)
-	} else {
-		query = database.GetInsertSql("pages", hashmap)
-	}
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert a new page: %v", err)
-	}
-
-	// Update pageInfos
-	hashmap = make(map[string]interface{})
-	hashmap["pageId"] = data.PageId
-	hashmap["createdAt"] = database.Now()
-	hashmap["maxEdit"] = oldPage.MaxEditEver
-	if oldPage.MaxEditEver < newEditNum {
-		hashmap["maxEdit"] = newEditNum
-	}
-	if isCurrentEdit {
-		hashmap["currentEdit"] = newEditNum
-		hashmap["lockedUntil"] = database.Now()
-		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit", "currentEdit", "lockedUntil")
-	} else if data.IsAutosave {
-		hashmap["lockedBy"] = u.Id
-		hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
-		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit", "lockedBy", "lockedUntil")
-	} else {
-		query = database.GetInsertSql("pageInfos", hashmap, "maxEdit")
-	}
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't update pageInfos: %v", err)
-	}
-
-	// Update pagePairs tables.
-	// TODO: check if parents are actually different from previously published version
-	if isCurrentEdit {
-		// Delete previous values.
-		query := fmt.Sprintf(`
-			DELETE FROM pagePairs
-			WHERE childId=%d`, data.PageId)
-		_, err = tx.Exec(query)
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't delete old pagePair: %v", err)
+		// Process parents. We'll store them encoded with the edit as a string for
+		// keeping historical track, and we also need to update the pagePairs table.
+		// TODO: de-duplicate parent ids?
+		encodedParentIds := make([]string, 0, len(parentIds))
+		pagePairValues := make([]interface{}, 0, len(parentIds)*2)
+		for _, id := range parentIds {
+			encodedParentIds = append(encodedParentIds, strconv.FormatInt(id, core.PageIdEncodeBase))
+			pagePairValues = append(pagePairValues, id, data.PageId)
 		}
 
-		if len(pagePairValues) > 0 {
-			// Insert new pagePairs values.
-			insertValuesStr := strings.Join(pagePairValues, ",")
-			query := fmt.Sprintf(`
-				INSERT INTO pagePairs (parentId,childId)
-				VALUES %s`, insertValuesStr)
-			if _, err = tx.Exec(query); err != nil {
-				tx.Rollback()
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't insert new pagePairs: %v", err)
-			}
-		}
-	}
-
-	// Add subscription.
-	if isCurrentEdit && !oldPage.WasPublished {
-		hashmap = make(map[string]interface{})
-		hashmap["userId"] = u.Id
-		hashmap["toPageId"] = data.PageId
-		if data.Type == core.CommentPageType && commentParentId > 0 {
-			hashmap["toPageId"] = commentParentId // subscribe to the parent comment
-		}
+		// Create a new edit.
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = data.PageId
+		hashmap["edit"] = newEditNum
+		hashmap["prevEdit"] = data.PrevEdit
+		hashmap["creatorId"] = u.Id
+		hashmap["title"] = data.Title
+		hashmap["clickbait"] = data.Clickbait
+		hashmap["text"] = data.Text
+		hashmap["summary"] = core.ExtractSummary(data.Text)
+		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
+		hashmap["alias"] = data.Alias
+		hashmap["sortChildrenBy"] = data.SortChildrenBy
+		hashmap["isCurrentEdit"] = isCurrentEdit
+		hashmap["hasVote"] = hasVote
+		hashmap["voteType"] = data.VoteType
+		hashmap["karmaLock"] = data.KarmaLock
+		hashmap["isAutosave"] = data.IsAutosave
+		hashmap["isSnapshot"] = data.IsSnapshot
+		hashmap["type"] = data.Type
+		hashmap["privacyKey"] = privacyKey
+		hashmap["groupId"] = data.GroupId
+		hashmap["parents"] = strings.Join(encodedParentIds, ",")
 		hashmap["createdAt"] = database.Now()
-		query = database.GetInsertSql("subscriptions", hashmap, "userId")
-		_, err = tx.Exec(query)
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't add a subscription: %v", err)
+		hashmap["anchorContext"] = data.AnchorContext
+		hashmap["anchorText"] = data.AnchorText
+		hashmap["anchorOffset"] = data.AnchorOffset
+		var statement *database.Stmt
+		if overwritingEdit {
+			statement = tx.NewReplaceTxStatement("pages", hashmap)
+		} else {
+			statement = tx.NewInsertTxStatement("pages", hashmap)
 		}
-	}
-
-	// Update the links table.
-	if isCurrentEdit {
-		err = core.UpdatePageLinks(c, tx, data.PageId, data.Text, sessions.GetDomain())
-		if err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't update links: %v", err)
+		if _, err = statement.Exec(); err != nil {
+			return fmt.Errorf("Couldn't insert a new page: %v", err)
 		}
-	}
 
-	// Commit transaction.
-	err = tx.Commit()
+		// Update pageInfos
+		hashmap = make(map[string]interface{})
+		hashmap["pageId"] = data.PageId
+		hashmap["createdAt"] = database.Now()
+		hashmap["maxEdit"] = oldPage.MaxEditEver
+		if oldPage.MaxEditEver < newEditNum {
+			hashmap["maxEdit"] = newEditNum
+		}
+		if isCurrentEdit {
+			hashmap["currentEdit"] = newEditNum
+			hashmap["lockedUntil"] = database.Now()
+			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit", "currentEdit", "lockedUntil")
+		} else if data.IsAutosave {
+			hashmap["lockedBy"] = u.Id
+			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
+			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit", "lockedBy", "lockedUntil")
+		} else {
+			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit")
+		}
+		if _, err = statement.Exec(); err != nil {
+			return fmt.Errorf("Couldn't update pageInfos: %v", err)
+		}
+
+		// Update pagePairs tables.
+		// TODO: check if parents are actually different from previously published version
+		if isCurrentEdit {
+			// Delete previous values.
+			statement := tx.NewTxStatement(`
+				DELETE FROM pagePairs
+				WHERE childId=?`)
+			_, err = statement.Exec(data.PageId)
+			if err != nil {
+				return fmt.Errorf("Couldn't delete old pagePair: %v", err)
+			}
+
+			if len(pagePairValues) > 0 {
+				// Insert new pagePairs values.
+				statement := tx.NewTxStatement(`
+					INSERT INTO pagePairs (parentId,childId)
+					VALUES ` + database.ArgsPlaceholder(len(pagePairValues), 2))
+				if _, err = statement.Exec(pagePairValues...); err != nil {
+					return fmt.Errorf("Couldn't insert new pagePairs: %v", err)
+				}
+			}
+		}
+
+		// Add subscription.
+		if isCurrentEdit && !oldPage.WasPublished {
+			hashmap = make(map[string]interface{})
+			hashmap["userId"] = u.Id
+			hashmap["toPageId"] = data.PageId
+			if data.Type == core.CommentPageType && commentParentId > 0 {
+				hashmap["toPageId"] = commentParentId // subscribe to the parent comment
+			}
+			hashmap["createdAt"] = database.Now()
+			statement = tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
+			if _, err = statement.Exec(); err != nil {
+				return fmt.Errorf("Couldn't add a subscription: %v", err)
+			}
+		}
+
+		// Update the links table.
+		if isCurrentEdit {
+			err = core.UpdatePageLinks(tx, data.PageId, data.Text, sessions.GetDomain())
+			if err != nil {
+				return fmt.Errorf("Couldn't update links: %v", err)
+			}
+		}
+		return nil
+	})
 	if err != nil {
-		tx.Rollback()
 		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
 	}
 

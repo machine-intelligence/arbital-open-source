@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
@@ -41,21 +42,26 @@ func searchJsonHandler(w http.ResponseWriter, r *http.Request) {
 func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *searchJsonData) error {
 	c := sessions.NewContext(r)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return err
+	}
+
 	// Load user object
-	u, err := user.LoadUser(w, r)
+	u, err := user.LoadUser(w, r, db)
 	if err != nil {
 		return fmt.Errorf("Couldn't load user: %v", err)
 	}
 
-	// Load user grups
-	err = loadUserGroups(c, u)
+	// Load user groups
+	err = loadUserGroups(db, u)
 	if err != nil {
 		return fmt.Errorf("Couldn't load user groups: %v", err)
 	}
 
 	// Compute list of group ids we can access
 	groupMap := make(map[int64]*core.Group)
-	err = loadGroupNames(c, u, groupMap)
+	err = loadGroupNames(db, u, groupMap)
 	if err != nil {
 		return fmt.Errorf("Couldn't load groupMap: %v", err)
 	}
@@ -105,7 +111,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 	}`, data.Term, strings.Join(groupIds, ","))
 
 	// Perform search.
-	results, err := elastic.SearchPageIndex(c, jsonStr)
+	results, err := elastic.SearchPageIndex(db.C, jsonStr)
 	if err != nil {
 		return fmt.Errorf("Error with elastic search: %v", err)
 	}
@@ -117,13 +123,13 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, pageMap, u.Id, &core.LoadPageOptions{})
+	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{})
 	if err != nil {
 		return fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(c, u.Id, pageMap, nil)
+	err = loadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
 		return fmt.Errorf("error while loading aux data: %v", err)
 	}

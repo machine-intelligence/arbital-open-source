@@ -53,9 +53,14 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		return http.StatusBadRequest, fmt.Sprintf("Name has to be set")
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
+	}
+
 	// Load user.
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
 	}
@@ -70,49 +75,41 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	}
 
 	// Begin the transaction.
-	tx, err := database.NewTransaction(c)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("failed to create a transaction: %v\n", err)
-	}
+	err = db.Transaction(func(tx *database.Tx) error {
+		rand.Seed(time.Now().UnixNano())
+		groupId := rand.Int63()
 
-	rand.Seed(time.Now().UnixNano())
-	groupId := rand.Int63()
-
-	// Create the new group.
-	hashmap := make(map[string]interface{})
-	hashmap["id"] = groupId
-	hashmap["name"] = data.Name
-	hashmap["createdAt"] = database.Now()
-	if data.IsDomain {
-		hashmap["isDomain"] = true
-		hashmap["alias"] = data.Alias
-		hashmap["rootPageId"] = data.RootPageId
-	}
-	query := database.GetInsertSql("groups", hashmap)
-	if _, err = tx.Exec(query); err != nil {
-		tx.Rollback()
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't create a group: %v", err)
-	}
-
-	if !data.IsDomain {
-		// Add the user to the group as an admin.
-		hashmap = make(map[string]interface{})
-		hashmap["userId"] = u.Id
-		hashmap["groupId"] = groupId
-		hashmap["canAddMembers"] = true
-		hashmap["canAdmin"] = true
+		// Create the new group.
+		hashmap := make(map[string]interface{})
+		hashmap["id"] = groupId
+		hashmap["name"] = data.Name
 		hashmap["createdAt"] = database.Now()
-		query = database.GetInsertSql("groupMembers", hashmap)
-		if _, err = tx.Exec(query); err != nil {
-			tx.Rollback()
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't add a user to a group: %v", err)
+		if data.IsDomain {
+			hashmap["isDomain"] = true
+			hashmap["alias"] = data.Alias
+			hashmap["rootPageId"] = data.RootPageId
 		}
-	}
+		statement := tx.NewInsertTxStatement("groups", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return fmt.Errorf("Couldn't create a group: %v", err)
+		}
 
-	// Commit transaction.
-	err = tx.Commit()
+		if !data.IsDomain {
+			// Add the user to the group as an admin.
+			hashmap = make(map[string]interface{})
+			hashmap["userId"] = u.Id
+			hashmap["groupId"] = groupId
+			hashmap["canAddMembers"] = true
+			hashmap["canAdmin"] = true
+			hashmap["createdAt"] = database.Now()
+			statement = tx.NewInsertTxStatement("groupMembers", hashmap)
+			if _, err = statement.Exec(); err != nil {
+				return fmt.Errorf("Couldn't add a user to a group: %v", err)
+			}
+		}
+		return nil
+	})
 	if err != nil {
-		tx.Rollback()
 		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
 	}
 

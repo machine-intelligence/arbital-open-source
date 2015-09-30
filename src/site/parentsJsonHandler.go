@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 
@@ -36,11 +37,19 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("parents_json_handler_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Load user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
-		c.Inc("page_handler_fail")
+		c.Inc("parents_json_handler_fail")
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -49,7 +58,7 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// Load the parents.
 	pageMap := make(map[int64]*core.Page)
 	pageMap[data.ChildId] = &core.Page{PageId: data.ChildId}
-	err = loadParentsIds(c, pageMap, loadParentsIdsOptions{LoadHasParents: true})
+	err = loadParentsIds(db, pageMap, loadParentsIdsOptions{LoadHasParents: true})
 	if err != nil {
 		c.Errorf("Couldn't load parent ids: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -59,7 +68,7 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	delete(pageMap, data.ChildId)
 
 	// Load pages.
-	err = core.LoadPages(c, pageMap, u.Id, nil)
+	err = core.LoadPages(db, pageMap, u.Id, nil)
 	if err != nil {
 		c.Errorf("error while loading pages: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -67,7 +76,7 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(c, u.Id, pageMap, nil)
+	err = loadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
 		c.Errorf("Couldn't retrieve page likes: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -75,7 +84,7 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load probability votes
-	/*err = loadVotes(c, u.Id, pageIdStr, pageMap)
+	/*err = loadVotes(db, u.Id, pageIdStr, pageMap)
 	if err != nil {
 		c.Errorf("Couldn't load probability votes: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

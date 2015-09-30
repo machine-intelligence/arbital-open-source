@@ -3,7 +3,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/database"
@@ -35,9 +34,17 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("new_member_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Load user.
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Inc("new_member_fail")
 		c.Errorf("Couldn't load user: %v", err)
@@ -53,12 +60,12 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 	// Check to see if this user can add members.
 	var blank int64
 	var found bool
-	query := fmt.Sprintf(`
+	row := db.NewStatement(`
 		SELECT 1
 		FROM groupMembers
-		WHERE userId=%d AND groupId=%d AND canAddMembers`,
-		u.Id, data.GroupId)
-	found, err = database.QueryRowSql(c, query, &blank)
+		WHERE userId=%d AND groupId=%d AND canAddMembers
+		`).QueryRow(u.Id, data.GroupId)
+	found, err = row.Scan(&blank)
 	if err != nil {
 		c.Inc("new_member_fail")
 		c.Errorf("Couldn't check for a group member: %v", err)
@@ -71,11 +78,11 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check to see if the proposed member exists.
-	query = fmt.Sprintf(`
+	row = db.NewStatement(`
 		SELECT 1
 		FROM users
-		WHERE id=%d`, data.UserId)
-	found, err = database.QueryRowSql(c, query, &blank)
+		WHERE id=%d`).QueryRow(data.UserId)
+	found, err = row.Scan(&blank)
 	if err != nil {
 		c.Inc("new_member_fail")
 		c.Errorf("Couldn't check for a user: %v", err)
@@ -91,8 +98,8 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["userId"] = data.UserId
 	hashmap["groupId"] = data.GroupId
 	hashmap["createdAt"] = database.Now()
-	query = database.GetInsertSql("groupMembers", hashmap)
-	if _, err = database.ExecuteSql(c, query); err != nil {
+	statement := db.NewInsertStatement("groupMembers", hashmap)
+	if _, err = statement.Exec(); err != nil {
 		c.Inc("new_member_fail")
 		c.Errorf("Couldn't add a member: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

@@ -5,7 +5,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -35,9 +34,16 @@ func revertPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Get user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Errorf("Couldn't load user: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -50,7 +56,7 @@ func revertPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Load the page
 	var page *core.Page
-	page, err = loadFullEdit(c, data.PageId, u.Id, &loadEditOptions{loadSpecificEdit: data.EditNum})
+	page, err = loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{loadSpecificEdit: data.EditNum})
 	if err != nil {
 		c.Errorf("Couldn't load page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -71,12 +77,11 @@ func revertPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the edit
-	query := fmt.Sprintf(`
+	statement := db.NewStatement(`
 		UPDATE pages
-		SET isCurrentEdit=(edit=%d)
-		WHERE pageId=%d`,
-		data.EditNum, data.PageId)
-	if _, err = database.ExecuteSql(c, query); err != nil {
+		SET isCurrentEdit=(edit=?)
+		WHERE pageId=?`)
+	if _, err = statement.Exec(data.EditNum, data.PageId); err != nil {
 		c.Errorf("Couldn't update pages: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -86,8 +91,8 @@ func revertPageHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
 	hashmap["currentEdit"] = data.EditNum
-	query = database.GetInsertSql("pageInfos", hashmap, "currentEdit")
-	if _, err = database.ExecuteSql(c, query); err != nil {
+	statement = db.NewInsertStatement("pageInfos", hashmap, "currentEdit")
+	if _, err = statement.Exec(); err != nil {
 		c.Errorf("Couldn't change lock: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return

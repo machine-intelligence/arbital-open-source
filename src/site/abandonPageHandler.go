@@ -5,7 +5,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
@@ -33,9 +32,17 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		c.Inc("abandon_page_fail")
+		c.Errorf("%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Get user object
 	var u *user.User
-	u, err = user.LoadUser(w, r)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't load user: %v", err)
@@ -49,7 +56,7 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Load the page
 	var page *core.Page
-	page, err = loadFullEdit(c, data.PageId, u.Id, nil)
+	page, err = loadFullEdit(db, data.PageId, u.Id, nil)
 	if err != nil {
 		c.Inc("delete_page_fail")
 		c.Errorf("Couldn't load page: %v", err)
@@ -70,8 +77,12 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get currentEdit number
 	var currentEdit int64
-	query := fmt.Sprintf(`SELECT ifnull(max(edit), -1) FROM pages WHERE isCurrentEdit AND pageId=%d`, data.PageId)
-	if _, err = database.QueryRowSql(c, query, &currentEdit); err != nil {
+	row := db.NewStatement(`
+		SELECT ifnull(max(edit), -1)
+		FROM pages
+		WHERE isCurrentEdit AND pageId=?
+		`).QueryRow(data.PageId)
+	if _, err = row.Scan(&currentEdit); err != nil {
 		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't abandon a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -79,12 +90,11 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the edit
-	query = fmt.Sprintf(`
+	statement := db.NewStatement(`
 		UPDATE pages
-		SET deletedBy=%d
-		WHERE pageId=%d AND creatorId=%d AND isAutosave`,
-		u.Id, data.PageId, u.Id)
-	if _, err = database.ExecuteSql(c, query); err != nil {
+		SET deletedBy=?
+		WHERE pageId=? AND creatorId=? AND isAutosave`)
+	if _, err = statement.Exec(u.Id, data.PageId, u.Id); err != nil {
 		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't abandon a page: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -95,8 +105,8 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = data.PageId
 	hashmap["lockedUntil"] = database.Now()
-	query = database.GetInsertSql("pageInfos", hashmap, "lockedUntil")
-	if _, err = database.ExecuteSql(c, query); err != nil {
+	statement = db.NewInsertStatement("pageInfos", hashmap, "lockedUntil")
+	if _, err = statement.Exec(); err != nil {
 		c.Inc("abandon_page_fail")
 		c.Errorf("Couldn't change lock: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

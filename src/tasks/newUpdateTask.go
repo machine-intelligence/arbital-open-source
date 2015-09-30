@@ -2,11 +2,9 @@
 package tasks
 
 import (
-	"database/sql"
 	"fmt"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
 )
 
 // NewUpdateTask is the object that's put into the daemon queue.
@@ -70,7 +68,9 @@ func (task *NewUpdateTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
+func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
+	c := db.C
+
 	if err = task.IsValid(); err != nil {
 		c.Errorf("Invalid new update task: %s", err)
 		return -1, err
@@ -78,19 +78,22 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 
 	// Figure out the subscriptions query constraint.
 	var whereClause string
+	var whereArg interface{}
 	if task.SubscribedToPageId > 0 {
-		whereClause = fmt.Sprintf("WHERE toPageId=%d", task.SubscribedToPageId)
+		whereClause = "WHERE toPageId=?"
+		whereArg = task.SubscribedToPageId
 	} else if task.SubscribedToUserId > 0 {
-		whereClause = fmt.Sprintf("WHERE toUserId=%d", task.SubscribedToUserId)
+		whereClause = "WHERE toUserId=?"
+		whereArg = task.SubscribedToUserId
 	} else {
 		return -1, err
 	}
 
 	// Iterate through all users who are subscribed to this page/comment.
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT userId
-		FROM subscriptions %s`, whereClause)
-	err = database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		FROM subscriptions ` + whereClause).Query(whereArg)
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId int64
 		err := rows.Scan(&userId)
 		if err != nil {
@@ -104,20 +107,19 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		var previousUpdateId int64
 		var exists bool
 		newCountValue := 1
-		query = fmt.Sprintf(`
+		row := db.NewStatement(`
 			SELECT id
 			FROM updates
-			WHERE type="%s" AND newCount>0 AND
-				groupByPageId=%d AND groupByUserId=%d AND
-				subscribedToPageId=%d AND subscribedToUserId=%d AND
-				goToPageId=%d
+			WHERE type=? AND newCount>0 AND
+				groupByPageId=? AND groupByUserId=? AND
+				subscribedToPageId=? AND subscribedToUserId=? AND
+				goToPageId=?
 			ORDER BY createdAt DESC
-			LIMIT 1`,
-			task.UpdateType,
+			LIMIT 1`).QueryRow(task.UpdateType,
 			task.GroupByPageId, task.GroupByUserId,
 			task.SubscribedToPageId, task.SubscribedToUserId,
 			task.GoToPageId)
-		exists, err = database.QueryRowSql(c, query, &previousUpdateId)
+		exists, err = row.Scan(&previousUpdateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
 		}
@@ -140,8 +142,8 @@ func (task *NewUpdateTask) Execute(c sessions.Context) (delay int, err error) {
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["createdAt"] = database.Now()
 		hashmap["newCount"] = newCountValue
-		query = database.GetInsertSql("updates", hashmap, "newCount")
-		if _, err = database.ExecuteSql(c, query); err != nil {
+		statement := db.NewInsertStatement("updates", hashmap, "newCount")
+		if _, err = statement.Exec(); err != nil {
 			c.Inc("new_update_fail")
 			c.Errorf("Couldn't create new update: %v", err)
 		}

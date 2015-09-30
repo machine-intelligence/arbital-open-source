@@ -3,7 +3,6 @@ package tasks
 
 import (
 	"bytes"
-	"database/sql"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -33,8 +32,10 @@ func (task *EmailUpdatesTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *EmailUpdatesTask) Execute(c sessions.Context) (delay int, err error) {
+func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 	delay = emailUpdatesPeriod
+	c := db.C
+
 	if err = task.IsValid(); err != nil {
 		return
 	}
@@ -43,17 +44,20 @@ func (task *EmailUpdatesTask) Execute(c sessions.Context) (delay int, err error)
 	defer c.Debugf("==== EMAIL UPDATES COMPLETED SUCCESSFULLY ====")
 
 	// Find all users who need emailing.
-	err = database.QuerySql(c, `
+	rows := db.NewStatement(`
 		SELECT id,email
 		FROM users
-		WHERE DATEDIFF(NOW(),updateEmailSentAt)>=1`, emailUpdatesProcessUser)
+		WHERE DATEDIFF(NOW(),updateEmailSentAt)>=1`).Query()
+	err = rows.Process(emailUpdatesProcessUser)
 	if err != nil {
-		c.Debugf("ERROR: %v", err)
+		c.Errorf("ERROR: %v", err)
 	}
 	return
 }
 
-func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
+func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
+	c := db.C
+
 	var userId int64
 	var userEmail string
 	err := rows.Scan(&userId, &userEmail)
@@ -63,11 +67,11 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 
 	// Update database first, even though we might fail to send the email. This
 	// way we definitely won't accidentally email a person twice.
-	query := fmt.Sprintf(`
+	statement := db.NewStatement(`
 		UPDATE users
 		SET updateEmailSentAt=NOW()
-		WHERE id=%d`, userId)
-	_, err = database.ExecuteSql(c, query)
+		WHERE id=?`)
+	_, err = statement.Exec(userId)
 	if err != nil {
 		return fmt.Errorf("failed to update updateEmailSentAt: %v", err)
 	}
@@ -84,7 +88,7 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	// Load updates and populate the maps
 	pageMap := make(map[int64]*core.Page)
 	userMap := make(map[int64]*core.User)
-	updateRows, err := core.LoadUpdateRows(c, userId, pageMap, userMap, true)
+	updateRows, err := core.LoadUpdateRows(db, userId, pageMap, userMap, true)
 	if err != nil {
 		return fmt.Errorf("failed to load updates: %v", err)
 	}
@@ -97,7 +101,7 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, nil)
 
 	// Load pages.
-	err = core.LoadPages(c, pageMap, userId, nil)
+	err = core.LoadPages(db, pageMap, userId, nil)
 	if err != nil {
 		return fmt.Errorf("error while loading pages: %v", err)
 	}
@@ -107,7 +111,7 @@ func emailUpdatesProcessUser(c sessions.Context, rows *sql.Rows) error {
 	for _, p := range pageMap {
 		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = core.LoadUsers(c, userMap)
+	err = core.LoadUsers(db, userMap)
 	if err != nil {
 		return fmt.Errorf("error while loading users: %v", err)
 	}

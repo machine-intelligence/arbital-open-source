@@ -2,12 +2,10 @@
 package site
 
 import (
-	"database/sql"
 	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"zanaduu3/src/core"
@@ -71,6 +69,11 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	c := sessions.NewContext(r)
 	returnData := make(map[string]interface{})
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, err
+	}
+
 	// If no page ids, return a new random page id.
 	if len(data.PageAliases) <= 0 {
 		rand.Seed(time.Now().UnixNano())
@@ -83,23 +86,23 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 	// Convert all aliases to ids
 	pageIds := make([]int64, 0)
-	strAliases := make([]string, 0)
+	strAliases := make([]interface{}, 0)
 	for _, alias := range data.PageAliases {
 		pageId, err := strconv.ParseInt(alias, 10, 64)
 		if err == nil {
 			pageIds = append(pageIds, pageId)
 		} else {
-			strAliases = append(strAliases, fmt.Sprintf(`"%s"`, alias))
+			strAliases = append(strAliases, alias)
 		}
 	}
 
 	// Convert actual aliases into page ids
 	if len(strAliases) > 0 {
-		query := fmt.Sprintf(`
+		rows := db.NewStatement(`
 			SELECT pageId
 			FROM aliases
-			WHERE fullName IN (%s)`, strings.Join(strAliases, ","))
-		err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			WHERE fullName IN ` + database.InArgsPlaceholder(len(strAliases))).Query(strAliases...)
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			err := rows.Scan(&pageId)
 			if err != nil {
@@ -117,7 +120,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	}
 
 	// Load user object
-	u, err := user.LoadUser(w, r)
+	u, err := user.LoadUser(w, r, db)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load user: %v", err)
 	}
@@ -133,7 +136,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 		// Load comment ids.
 		if data.LoadComments {
-			err = loadCommentIds(c, pageMap, pageMap)
+			err = loadCommentIds(db, pageMap, pageMap)
 			if err != nil {
 				return nil, fmt.Errorf("Couldn't load comments: %v", err)
 			}
@@ -141,13 +144,13 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 		// Load children
 		if data.LoadChildren {
-			err = loadChildrenIds(c, pageMap, loadChildrenIdsOptions{})
+			err = loadChildrenIds(db, pageMap, loadChildrenIdsOptions{})
 			if err != nil {
 				return nil, fmt.Errorf("Couldn't load children: %v", err)
 			}
 		}
 
-		err = core.LoadPages(c, pageMap, u.Id, &core.LoadPageOptions{LoadText: true, LoadSummary: true})
+		err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{LoadText: true, LoadSummary: true})
 		if err != nil {
 			return nil, fmt.Errorf("error while loading pages: %v", err)
 		}
@@ -155,7 +158,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 		pageId := pageIds[0]
 
 		// Load full edit for one page.
-		p, err := loadFullEdit(c, pageId, u.Id, &loadEditOptions{loadNonliveEdit: data.AllowDraft})
+		p, err := loadFullEdit(db, pageId, u.Id, &loadEditOptions{loadNonliveEdit: data.AllowDraft})
 		if err != nil || p == nil {
 			return nil, fmt.Errorf("error while loading full edit: %v", err)
 		}
@@ -164,7 +167,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 	// Load the auxillary data.
 	if data.IncludeAuxData {
-		err = loadAuxPageData(c, u.Id, pageMap, nil)
+		err = loadAuxPageData(db, u.Id, pageMap, nil)
 		if err != nil {
 			return nil, fmt.Errorf("error while loading aux data: %v", err)
 		}
@@ -172,14 +175,14 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 	// Load probability votes
 	if data.LoadVotes {
-		err = loadVotes(c, u.Id, core.PageIdsStringFromMap(pageMap), pageMap, userMap)
+		err = loadVotes(db, u.Id, pageMap, userMap)
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't load probability votes: %v", err)
 		}
 	}
 
 	// Load links
-	err = loadLinks(c, pageMap)
+	err = loadLinks(db, pageMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load links: %v", err)
 	}
@@ -190,7 +193,7 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 			if p.Type == core.CommentPageType {
 				continue
 			}
-			err = loadChildDraft(c, u.Id, p, pageMap)
+			err = loadChildDraft(db, u.Id, p, pageMap)
 			if err != nil {
 				return nil, fmt.Errorf("Couldn't load child draft: %v", err)
 			}
@@ -202,20 +205,19 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	for _, p := range pageMap {
 		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = core.LoadUsers(c, userMap)
+	err = core.LoadUsers(db, userMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading users: %v", err)
 	}
 
 	// Return the data in JSON format.
-	visitedValues := ""
+	visitedValues := make([]interface{}, 0)
 	returnPageData := make(map[string]*core.Page)
 	for k, v := range pageMap {
 		if !data.IncludeText {
 			v.Text = ""
 		} else {
-			visitedValues += fmt.Sprintf("(%d, %d, '%s'),",
-				u.Id, k, database.Now())
+			visitedValues = append(visitedValues, u.Id, k, database.Now())
 		}
 		returnPageData[fmt.Sprintf("%d", k)] = v
 	}
@@ -227,11 +229,14 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 	returnData["users"] = returnUserData
 
 	// Add a visit to pages for which we loaded text.
-	visitedValues = strings.TrimRight(visitedValues, ",")
-	query := fmt.Sprintf(`
-		INSERT INTO visits (userId, pageId, createdAt)
-		VALUES %s`, visitedValues)
-	database.ExecuteSql(c, query)
+	if len(visitedValues) > 0 {
+		statement := db.NewStatement(`
+			INSERT INTO visits (userId, pageId, createdAt)
+			VALUES ` + database.ArgsPlaceholder(len(visitedValues), 3))
+		if _, err = statement.Exec(visitedValues...); err != nil {
+			c.Errorf("Couldn't update visits: %v", err)
+		}
+	}
 
 	return returnData, nil
 }

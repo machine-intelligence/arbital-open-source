@@ -47,22 +47,28 @@ func updatesInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	data.User = u
 	c := sessions.NewContext(r)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, err
+	}
+
 	// Load the updates and populate page & user maps
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	updateRows, err := core.LoadUpdateRows(c, data.User.Id, data.PageMap, data.UserMap, false)
+	updateRows, err := core.LoadUpdateRows(db, data.User.Id, data.PageMap, data.UserMap, false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, data.User.Id, nil)
+	err = core.LoadPages(db, data.PageMap, data.User.Id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
+	c.Debugf("=================== %+v", data.PageMap[4806221069651151873])
 
 	// Load auxillary data.
-	err = loadAuxPageData(c, data.User.Id, data.PageMap, nil)
+	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading aux data: %v", err)
 	}
@@ -73,7 +79,7 @@ func updatesInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 
 	// Load all the groups.
 	data.GroupMap = make(map[int64]*core.Group)
-	err = loadGroupNames(c, u, data.GroupMap)
+	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}
@@ -83,24 +89,25 @@ func updatesInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	for _, p := range data.PageMap {
 		data.UserMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = core.LoadUsers(c, data.UserMap)
+	err = core.LoadUsers(db, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading user names: %v", err)
 	}
 
 	// Load subscriptions to users
-	err = loadUserSubscriptions(c, u.Id, data.UserMap)
+	err = loadUserSubscriptions(db, u.Id, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading subscriptions to users: %v", err)
 	}
 
 	// Zero out all counts.
-	query := fmt.Sprintf(`
+	statement := db.NewStatement(`
 		UPDATE updates
 		SET newCount=0
-		WHERE userId=%d`, data.User.Id)
-	database.ExecuteSql(c, query)
-
+		WHERE userId=?`)
+	if _, err = statement.Exec(data.User.Id); err != nil {
+		c.Debugf("Couldn't mark updates seen: %v", err)
+	}
 	c.Inc("updates_page_served_success")
 	return &data, nil
 }

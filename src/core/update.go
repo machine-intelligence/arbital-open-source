@@ -2,11 +2,9 @@
 package core
 
 import (
-	"database/sql"
 	"fmt"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
 )
 
 // UpdateRow is a row from updates table
@@ -52,21 +50,21 @@ type UpdateGroup struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(c sessions.Context, userId int64, pageMap map[int64]*Page, userMap map[int64]*User, onlyNew bool) ([]*UpdateRow, error) {
+func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, userMap map[int64]*User, onlyNew bool) ([]*UpdateRow, error) {
 	onlyNewStr := ""
 	if onlyNew {
 		onlyNewStr = "AND newCount>0"
 	}
 	updateRows := make([]*UpdateRow, 0, 0)
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT userId,createdAt,type,newCount,
 			groupByPageId,groupByUserId,
 			subscribedToUserId,subscribedToPageId,goToPageId
 		FROM updates
-		WHERE userId=%d %s
+		WHERE userId=? ` + onlyNewStr + `
 		ORDER BY createdAt DESC
-		LIMIT 100`, userId, onlyNewStr)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		LIMIT 100`).Query(userId)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		err := rows.Scan(
 			&row.UserId,

@@ -61,14 +61,19 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 	c := sessions.NewContext(r)
 	data.PageMap = make(map[int64]*core.Page)
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, err
+	}
+
 	// Load the domain.
 	data.Domain = &core.Group{Alias: mux.Vars(r)["domain"]}
 	data.User.DomainAlias = data.Domain.Alias
-	query := fmt.Sprintf(`
+	row := db.NewStatement(`
 		SELECT id,name,rootPageId
 		FROM groups
-		WHERE alias='%s'`, data.Domain.Alias)
-	foundDomain, err := database.QueryRowSql(c, query, &data.Domain.Id, &data.Domain.Name, &data.Domain.RootPageId)
+		WHERE alias=?`).QueryRow(data.Domain.Alias)
+	foundDomain, err := row.Scan(&data.Domain.Id, &data.Domain.Name, &data.Domain.RootPageId)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve subscription: %v", err)
 	} else if !foundDomain {
@@ -76,24 +81,23 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 	}
 
 	// Load recently created page ids.
-	query = fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT p.pageId
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
 		JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
-		WHERE p.isCurrentEdit AND pd.domainId=%d
+		WHERE p.isCurrentEdit AND pd.domainId=?
 		ORDER BY pi.createdAt DESC
-		LIMIT %d`, data.Domain.Id, indexPanelLimit)
-	c.Debugf("%s", query)
-	data.RecentlyCreatedIds, err = loadPageIds(c, query, data.PageMap)
+		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
+	data.RecentlyCreatedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading recently created page ids: %v", err)
 	}
 
 	// Load most liked page ids.
-	query = fmt.Sprintf(`
+	rows = db.NewStatement(`
 		SELECT l2.pageId
 		FROM (
 			SELECT *
@@ -106,17 +110,17 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		) AS l2
 		JOIN pageDomainPairs AS pd
 		ON (l2.pageId=pd.pageId)
-		WHERE pd.domainId=%d
+		WHERE pd.domainId=?
 		GROUP BY l2.pageId
 		ORDER BY SUM(value) DESC
-		LIMIT %d`, data.Domain.Id, indexPanelLimit)
-	data.MostLikedIds, err = loadPageIds(c, query, data.PageMap)
+		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
+	data.MostLikedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading most liked page ids: %v", err)
 	}
 
 	// Load recently edited page ids.
-	query = fmt.Sprintf(`
+	rows = db.NewStatement(`
 		SELECT p.pageId
 		FROM (
 			SELECT pageId,max(createdAt) AS createdAt
@@ -127,17 +131,17 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		) AS p
 		JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
-		WHERE pd.domainId=%d
+		WHERE pd.domainId=?
 		ORDER BY p.createdAt DESC
-		LIMIT %d`, data.Domain.Id, indexPanelLimit)
-	data.RecentlyEditedIds, err = loadPageIds(c, query, data.PageMap)
+		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
+	data.RecentlyEditedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading recently edited page ids: %v", err)
 	}
 
 	// Load most controversial page ids.
 	// TODO: make sure the page still has voting turned on
-	query = fmt.Sprintf(`
+	rows = db.NewStatement(`
 		SELECT pd.pageId
 		FROM (
 			SELECT *
@@ -150,30 +154,30 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		) AS v2
 		JOIN pageDomainPairs AS pd
 		ON (v2.pageId=pd.pageId)
-		WHERE pd.domainId=%d
+		WHERE pd.domainId=?
 		GROUP BY pd.pageId
 		ORDER BY VAR_POP(v2.value) DESC
-		LIMIT %d`, data.Domain.Id, indexPanelLimit)
-	data.MostControversialIds, err = loadPageIds(c, query, data.PageMap)
+		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
+	data.MostControversialIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading most controversial page ids: %v", err)
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
+	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(c, u.Id, data.PageMap, nil)
+	err = loadAuxPageData(db, u.Id, data.PageMap, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
 	}
 
 	// Load all the groups.
 	data.GroupMap = make(map[int64]*core.Group)
-	err = loadGroupNames(c, u, data.GroupMap)
+	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}

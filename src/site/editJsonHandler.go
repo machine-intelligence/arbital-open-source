@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 
@@ -57,8 +58,13 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 	c := sessions.NewContext(r)
 	returnData := make(map[string]interface{})
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, err
+	}
+
 	// Load user object
-	u, err := user.LoadUser(w, r)
+	u, err := user.LoadUser(w, r, db)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load user: %v", err)
 	}
@@ -73,7 +79,7 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 		loadEditWithLimit: data.EditLimit,
 		createdAtLimit:    data.CreatedAtLimit,
 	}
-	p, err := loadFullEdit(c, data.PageId, u.Id, &options)
+	p, err := loadFullEdit(db, data.PageId, u.Id, &options)
 	if err != nil || p == nil {
 		return nil, fmt.Errorf("error while loading full edit: %v", err)
 	}
@@ -83,7 +89,7 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 	for _, p := range pageMap {
 		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = core.LoadUsers(c, userMap)
+	err = core.LoadUsers(db, userMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading users: %v", err)
 	}

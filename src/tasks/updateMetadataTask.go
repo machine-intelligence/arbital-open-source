@@ -2,7 +2,6 @@
 package tasks
 
 import (
-	"database/sql"
 	"fmt"
 
 	"zanaduu3/src/core"
@@ -25,7 +24,9 @@ func (task *UpdateMetadataTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *UpdateMetadataTask) Execute(c sessions.Context) (delay int, err error) {
+func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) {
+	c := db.C
+
 	if err = task.IsValid(); err != nil {
 		return -1, err
 	}
@@ -34,10 +35,11 @@ func (task *UpdateMetadataTask) Execute(c sessions.Context) (delay int, err erro
 	defer c.Debugf("==== UPDATE METADATA COMPLETED ====")
 
 	// Compute all priors.
-	err = database.QuerySql(c, `
+	rows := db.NewStatement(`
 		SELECT pageId,edit,text
 		FROM pages
-		WHERE isCurrentEdit`, updateMetadata)
+		WHERE isCurrentEdit`).Query()
+	err = rows.Process(updateMetadata)
 	if err != nil {
 		c.Debugf("ERROR: %v", err)
 		return -1, err
@@ -45,7 +47,7 @@ func (task *UpdateMetadataTask) Execute(c sessions.Context) (delay int, err erro
 	return 0, err
 }
 
-func updateMetadata(c sessions.Context, rows *sql.Rows) error {
+func updateMetadata(db *database.DB, rows *database.Rows) error {
 	var pageId, edit int64
 	var text string
 	if err := rows.Scan(&pageId, &edit, &text); err != nil {
@@ -53,34 +55,26 @@ func updateMetadata(c sessions.Context, rows *sql.Rows) error {
 	}
 
 	// Begin the transaction.
-	tx, err := database.NewTransaction(c)
-	if err != nil {
-		return err
-	}
+	err := db.Transaction(func(tx *database.Tx) error {
+		// Update page summary
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = pageId
+		hashmap["edit"] = edit
+		hashmap["summary"] = core.ExtractSummary(text)
+		hashmap["todoCount"] = core.ExtractTodoCount(text)
+		statement := tx.NewInsertTxStatement("pages", hashmap, "summary", "todoCount")
+		if _, err := statement.Exec(); err != nil {
+			return fmt.Errorf("Couldn't update pages table: %v", err)
+		}
 
-	// Update page summary
-	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = pageId
-	hashmap["edit"] = edit
-	hashmap["summary"] = core.ExtractSummary(text)
-	hashmap["todoCount"] = core.ExtractTodoCount(text)
-	query := database.GetInsertSql("pages", hashmap, "summary", "todoCount")
-	if _, err := tx.Exec(query); err != nil {
-		tx.Rollback()
-		return fmt.Errorf("Couldn't update pages table: %v", err)
-	}
-
-	// Update page links table
-	err = core.UpdatePageLinks(c, tx, pageId, text, sessions.GetDomain())
+		// Update page links table
+		err := core.UpdatePageLinks(tx, pageId, text, sessions.GetDomain())
+		if err != nil {
+			return fmt.Errorf("Couldn't update links: %v", err)
+		}
+		return nil
+	})
 	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("Couldn't update links: %v", err)
-	}
-
-	// Commit transaction.
-	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
 		return err
 	}
 

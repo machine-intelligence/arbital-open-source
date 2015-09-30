@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -50,21 +49,25 @@ func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *page
 
 // exploreInternalRenderer renders the page page.
 func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*exploreTmplData, error) {
-	var err error
 	var data exploreTmplData
 	data.User = u
 	c := sessions.NewContext(r)
+
+	db, err := database.GetDB(c)
+	if err != nil {
+		return nil, err
+	}
 
 	// Load the domain.
 	domainAlias := mux.Vars(r)["domain"]
 	if domainAlias != "" {
 		data.Domain = &core.Group{Alias: domainAlias}
 		data.User.DomainAlias = data.Domain.Alias
-		query := fmt.Sprintf(`
+		row := db.NewStatement(`
 			SELECT id,name,rootPageId
 			FROM groups
-			WHERE alias='%s'`, data.Domain.Alias)
-		foundDomain, err := database.QueryRowSql(c, query, &data.Domain.Id, &data.Domain.Name, &data.Domain.RootPageId)
+			WHERE alias=?`).QueryRow(data.Domain.Alias)
+		foundDomain, err := row.Scan(&data.Domain.Id, &data.Domain.Name, &data.Domain.RootPageId)
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't retrieve subscription: %v", err)
 		} else if !foundDomain {
@@ -75,15 +78,15 @@ func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	// Load the root page(s)
 	data.PageMap = make(map[int64]*core.Page)
 	if domainAlias == "" {
-		query := fmt.Sprintf(`
+		rows := db.NewStatement(`
 			SELECT parentPair.parentId
 			FROM pagePairs AS parentPair
 			LEFT JOIN pagePairs AS grandParentPair
 			ON (parentPair.parentId=grandParentPair.childId)
 			WHERE grandParentPair.parentId IS NULL
 			GROUP BY 1
-			LIMIT 50`)
-		err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+			LIMIT 50`).Query()
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			err := rows.Scan(&pageId)
 			if err != nil {
@@ -101,13 +104,13 @@ func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	}
 
 	// Load the children
-	err = loadChildrenIds(c, data.PageMap, loadChildrenIdsOptions{LoadHasChildren: true})
+	err = loadChildrenIds(db, data.PageMap, loadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading children: %v", err)
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, nil)
+	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
@@ -120,13 +123,13 @@ func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(c, data.User.Id, data.PageMap, nil)
+	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
 	}
 
 	// Load number of red links.
-	err = loadLinks(c, data.PageMap)
+	err = loadLinks(db, data.PageMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading links: %v", err)
 	}

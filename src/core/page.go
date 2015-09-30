@@ -197,6 +197,15 @@ func PageIdsStringFromMap(pageMap map[int64]*Page) string {
 	return str
 }
 
+// PageIdsListFromMap returns a comma separated string of all pageIds in the given map.
+func PageIdsListFromMap(pageMap map[int64]*Page) []interface{} {
+	list := make([]interface{}, 0, len(pageMap))
+	for id, _ := range pageMap {
+		list = append(list, id)
+	}
+	return list
+}
+
 // LoadPageOptions describes options for loading page(s) from the db
 type LoadPageOptions struct {
 	LoadText    bool
@@ -206,14 +215,14 @@ type LoadPageOptions struct {
 }
 
 // LoadPages loads the given pages.
-func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, options *LoadPageOptions) error {
+func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *LoadPageOptions) error {
 	if options == nil {
 		options = &LoadPageOptions{}
 	}
 	if len(pageMap) <= 0 {
 		return nil
 	}
-	pageIds := PageIdsStringFromMap(pageMap)
+	pageIds := PageIdsListFromMap(pageMap)
 	textSelect := "\"\" AS text"
 	if options.LoadText {
 		textSelect = "text"
@@ -222,23 +231,24 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 	if options.LoadSummary {
 		summarySelect = "summary"
 	}
-	publishedConstraint := "isCurrentEdit"
+	publishedConstraint := database.NewQuery("isCurrentEdit")
 	if options.AllowUnpublished {
-		publishedConstraint = fmt.Sprintf("(isCurrentEdit || creatorId=%d)", userId)
+		publishedConstraint = database.NewQuery("(isCurrentEdit || creatorId=?)", userId)
 	}
-	query := fmt.Sprintf(`
+	statement := database.NewQuery(`
 		SELECT * FROM (
-			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,%s,length(text),karmaLock,privacyKey,
-				deletedBy,hasVote,voteType,%s,alias,sortChildrenBy,groupId,parents,
-				isAutosave,isSnapshot,isCurrentEdit,todoCount,anchorContext,anchorText,anchorOffset
+			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
+				length(text),karmaLock,privacyKey,deletedBy,hasVote,voteType,` + summarySelect + `,
+				alias,sortChildrenBy,groupId,parents,isAutosave,isSnapshot,isCurrentEdit,todoCount,
+				anchorContext,anchorText,anchorOffset
 			FROM pages
-			WHERE %s AND deletedBy=0 AND pageId IN (%s) AND
-				(groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=%d))
+			WHERE`).AddPart(publishedConstraint).Add(`AND deletedBy=0 AND pageId IN`).AddArgsGroup(pageIds).Add(`
+			AND (groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
 			ORDER BY edit DESC
 		) AS p
-		GROUP BY pageId`,
-		textSelect, summarySelect, publishedConstraint, pageIds, userId)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		GROUP BY pageId`).ToStatement(db)
+	rows := statement.Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
@@ -280,7 +290,7 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 			op.AnchorContext = p.AnchorContext
 			op.AnchorText = p.AnchorText
 			op.AnchorOffset = p.AnchorOffset
-			if err := op.ProcessParents(c, nil); err != nil {
+			if err := op.ProcessParents(db.C, nil); err != nil {
 				return fmt.Errorf("Couldn't process parents: %v", err)
 			}
 		}
@@ -290,14 +300,14 @@ func LoadPages(c sessions.Context, pageMap map[int64]*Page, userId int64, option
 }
 
 // LoadEditHistory loads the edit history for the given page.
-func LoadEditHistory(c sessions.Context, page *Page, userId int64) error {
+func LoadEditHistory(db *database.DB, page *Page, userId int64) error {
 	editHistoryMap := make(map[int]*Page)
-	query := fmt.Sprintf(`
+	rows := db.NewStatement(`
 		SELECT pageId,edit,prevEdit,creatorId,createdAt,deletedBy,isAutosave,isSnapshot,isCurrentEdit,title,clickbait,length(text)
 		FROM pages
-		WHERE pageId=%d AND (creatorId=%d OR NOT isAutosave)
-		ORDER BY edit`, page.PageId, userId)
-	err := database.QuerySql(c, query, func(c sessions.Context, rows *sql.Rows) error {
+		WHERE pageId=? AND (creatorId=? OR NOT isAutosave)
+		ORDER BY edit`).Query(page.PageId, userId)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.DeletedBy,
@@ -350,11 +360,11 @@ func LoadEditHistory(c sessions.Context, page *Page, userId int64) error {
 	return nil
 }
 
-// UPdatePageLinks updates the links table for the given page by parsing the text.
-func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, configAddress string) error {
+// UpdatePageLinks updates the links table for the given page by parsing the text.
+func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress string) error {
 	// Delete old links.
-	query := fmt.Sprintf("DELETE FROM links WHERE parentId=%d", pageId)
-	_, err := tx.Exec(query)
+	statement := tx.NewTxStatement("DELETE FROM links WHERE parentId=?")
+	_, err := statement.Exec(pageId)
 	if err != nil {
 		return fmt.Errorf("Couldn't delete old links: %v", err)
 	}
@@ -362,7 +372,7 @@ func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, 
 	// NOTE: these regexps are waaaay too simplistic and don't account for the
 	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
 	// brackets / parens.
-	aliasesAndIds := make([]string, 0, 0)
+	aliasesAndIds := make([]string, 0)
 	extractLinks := func(exp *regexp.Regexp) {
 		submatches := exp.FindAllStringSubmatch(text, -1)
 		for _, submatch := range submatches {
@@ -380,22 +390,20 @@ func UpdatePageLinks(c sessions.Context, tx *sql.Tx, pageId int64, text string, 
 	if len(aliasesAndIds) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list
-		linkTuples := make([]string, 0, 0)
+		valuesList := make([]interface{}, 0)
 		for _, alias := range aliasesAndIds {
 			if linkMap[alias] {
 				continue
 			}
-			insertValue := fmt.Sprintf("(%d, '%s')", pageId, alias)
-			linkTuples = append(linkTuples, insertValue)
+			valuesList = append(valuesList, pageId, alias)
 			linkMap[alias] = true
 		}
 
 		// Insert all the tuples into the links table.
-		linkTuplesStr := strings.Join(linkTuples, ",")
-		query = fmt.Sprintf(`
+		statement := tx.NewTxStatement(`
 			INSERT INTO links (parentId,childAlias)
-			VALUES %s`, linkTuplesStr)
-		if _, err = tx.Exec(query); err != nil {
+			VALUES ` + database.ArgsPlaceholder(len(valuesList), 2))
+		if _, err = statement.Exec(valuesList...); err != nil {
 			return fmt.Errorf("Couldn't insert links: %v", err)
 		}
 	}

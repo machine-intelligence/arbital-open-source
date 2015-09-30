@@ -77,9 +77,14 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 			c.Errorf("User is already set when calling loadUserHandler.")
 		}
 
+		db, err := database.GetDB(c)
+		if err != nil {
+			return pages.InternalErrorWith(fmt.Errorf("Couldn't open DB"))
+		}
+
 		// Load user info if required.
 		if !options.SkipLoadingUser {
-			u, err = user.LoadUser(w, r)
+			u, err = user.LoadUser(w, r, db)
 			if err != nil {
 				c.Errorf("Couldn't load user: %v", err)
 				return pages.InternalErrorWith(err)
@@ -95,17 +100,16 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 				return pages.UnauthorizedWith(fmt.Errorf("Have to be an admin"))
 			}
 			if u.Id > 0 {
-				query := fmt.Sprintf(`
+				statement := db.NewStatement(`
 					UPDATE users
-					SET lastWebsiteVisit='%s'
-					WHERE id=%d`,
-					database.Now(), u.Id)
-				if _, err := database.ExecuteSql(c, query); err != nil {
+					SET lastWebsiteVisit=?
+					WHERE id=?`)
+				if _, err := statement.Exec(database.Now(), u.Id); err != nil {
 					c.Errorf("Couldn't update users: %v", err)
 					return pages.InternalErrorWith(err)
 				}
 				// Load the groups the user belongs to.
-				if err = loadUserGroups(c, u); err != nil {
+				if err = loadUserGroups(db, u); err != nil {
 					c.Errorf("Couldn't load user groups: %v", err)
 					return pages.InternalErrorWith(err)
 				}
@@ -118,7 +122,7 @@ func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
 		// Load more user stuff if required.
 		if !options.SkipLoadingUser && u.Id > 0 {
 			// Load updates count. (Loading it afterwards since it could be affected by the page)
-			u.UpdateCount, err = loadUpdateCount(c, u.Id)
+			u.UpdateCount, err = loadUpdateCount(db, u.Id)
 			if err != nil {
 				c.Errorf("Couldn't retrieve updates count: %v", err)
 			}

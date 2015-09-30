@@ -45,12 +45,17 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		return pages.RedirectWith(getEditPageUrl(&core.Page{PageId: rand.Int63()}))
 	}
 
+	db, err := database.GetDB(c)
+	if err != nil {
+		return pages.InternalErrorWith(fmt.Errorf("Couldn't open DB"))
+	}
+
 	// Check if the user is trying to create a new page with an alias.
-	_, err := strconv.ParseInt(pageAlias, 10, 64)
+	_, err = strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
 		// Okay, it's not an id, but could be an alias.
-		query := fmt.Sprintf(`SELECT pageId FROM aliases WHERE fullName="%s"`, pageAlias)
-		exists, err := database.QueryRowSql(c, query, &pageAlias)
+		row := db.NewStatement(`SELECT pageId FROM aliases WHERE fullName=?`).QueryRow(pageAlias)
+		exists, err := row.Scan(&pageAlias)
 		if err != nil {
 			return pages.InternalErrorWith(fmt.Errorf("Couldn't query aliases: %v", err))
 		} else if !exists {
@@ -61,7 +66,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 		mux.Vars(r)["alias"] = pageAlias
 	}
 
-	data, err := editPageInternalRenderer(w, r, u)
+	data, err := editPageInternalRenderer(w, r, u, db)
 	if err != nil {
 		c.Errorf("%s", err)
 		c.Inc("edit_page_served_fail")
@@ -88,7 +93,7 @@ func editPageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pag
 }
 
 // editPageInternalRenderer renders the edit page page.
-func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*editPageTmplData, error) {
+func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User, db *database.DB) (*editPageTmplData, error) {
 	var err error
 	var data editPageTmplData
 	data.User = u
@@ -113,7 +118,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	}
 
 	// Load the actual page.
-	data.Page, err = loadFullEdit(c, pageId, data.User.Id, &options)
+	data.Page, err = loadFullEdit(db, pageId, data.User.Id, &options)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load existing page: %v", err)
 	} else if data.Page == nil {
@@ -128,7 +133,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	}
 
 	// Load edit history.
-	err = core.LoadEditHistory(c, data.Page, data.User.Id)
+	err = core.LoadEditHistory(db, data.Page, data.User.Id)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load editHistory: %v", err)
 	}
@@ -144,14 +149,14 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	}
 
 	// Load pages.
-	err = core.LoadPages(c, data.PageMap, u.Id, nil)
+	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 	data.PageMap[data.Page.PageId] = data.Page
 
 	// Load all the groups.
-	err = loadGroupNames(c, u, data.GroupMap)
+	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load group names: %v", err)
 	}
@@ -166,8 +171,8 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 			hashmap["currentEdit"] = -1
 			hashmap["lockedBy"] = data.User.Id
 			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
-			query := database.GetInsertSql("pageInfos", hashmap, "lockedBy", "lockedUntil")
-			if _, err = database.ExecuteSql(c, query); err != nil {
+			statement := db.NewInsertStatement("pageInfos", hashmap, "lockedBy", "lockedUntil")
+			if _, err = statement.Exec(); err != nil {
 				return nil, fmt.Errorf("Couldn't add a lock: %v", err)
 			}
 			data.Page.LockedBy = hashmap["lockedBy"].(int64)
@@ -182,7 +187,7 @@ func editPageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Us
 	for _, p := range data.PageMap {
 		data.UserMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
-	err = core.LoadUsers(c, data.UserMap)
+	err = core.LoadUsers(db, data.UserMap)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading users: %v", err)
 	}

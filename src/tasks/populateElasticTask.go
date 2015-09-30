@@ -2,12 +2,10 @@
 package tasks
 
 import (
-	"database/sql"
 	"fmt"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
-	"zanaduu3/src/sessions"
 )
 
 // PopulateElasticTask is the object that's put into the daemon queue.
@@ -21,7 +19,9 @@ func (task *PopulateElasticTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *PopulateElasticTask) Execute(c sessions.Context) (delay int, err error) {
+func (task *PopulateElasticTask) Execute(db *database.DB) (delay int, err error) {
+	c := db.C
+
 	delay = tickPeriod
 	if err = task.IsValid(); err != nil {
 		return -1, err
@@ -45,10 +45,11 @@ func (task *PopulateElasticTask) Execute(c sessions.Context) (delay int, err err
 	}
 
 	// Compute all priors.
-	err = database.QuerySql(c, `
+	rows := db.NewStatement(`
 		SELECT pageId,type,title,clickbait,text,alias,groupId,creatorId
 		FROM pages
-		WHERE isCurrentEdit`, populateElasticProcessPage)
+		WHERE isCurrentEdit`).Query()
+	err = rows.Process(populateElasticProcessPage)
 	if err != nil {
 		c.Debugf("ERROR: %v", err)
 		// Error or not, we don't want to rerun this.
@@ -56,12 +57,12 @@ func (task *PopulateElasticTask) Execute(c sessions.Context) (delay int, err err
 	return 0, err
 }
 
-func populateElasticProcessPage(c sessions.Context, rows *sql.Rows) error {
+func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 	doc := &elastic.Document{}
 	if err := rows.Scan(&doc.PageId, &doc.Type, &doc.Title, &doc.Clickbait,
 		&doc.Text, &doc.Alias, &doc.GroupId, &doc.CreatorId); err != nil {
 		return fmt.Errorf("failed to scan for page: %v", err)
 	}
 
-	return elastic.AddPageToIndex(c, doc)
+	return elastic.AddPageToIndex(db.C, doc)
 }

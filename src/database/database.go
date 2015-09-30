@@ -19,12 +19,44 @@ var (
 	PacificLocation, _ = time.LoadLocation("America/Los_Angeles")
 )
 
-// ProcessRow is the type of function that will be called once for each row
+// ProcessRowCallback is the type of function that will be called once for each row
 // loaded from an sql query.
-type ProcessRow func(c sessions.Context, rows *sql.Rows) error
+type ProcessRowCallback func(db *DB, rows *Rows) error
+
+type TransactionCallback func(tx *Tx) error
 
 // InsertMap is the map passed in to various database helper functions.
 type InsertMap map[string]interface{}
+
+// DB is our structure for the database. For convenience it wraps around the
+// sessions context.
+type DB struct {
+	db *sql.DB
+	C  sessions.Context
+}
+
+type Stmt struct {
+	stmt *sql.Stmt
+	// If we statement was constructed from a map, this list will have the values
+	args     []interface{}
+	QueryStr string
+	DB       *DB
+}
+
+type Tx struct {
+	tx *sql.Tx
+	DB *DB
+}
+
+type Row struct {
+	row *sql.Row
+	DB  *DB
+}
+
+type Rows struct {
+	rows *sql.Rows
+	DB   *DB
+}
 
 func ToSqlNullString(s string) sql.NullString {
 	return sql.NullString{String: s, Valid: true}
@@ -35,130 +67,222 @@ func Now() string {
 	return time.Now().UTC().Format(TimeLayout)
 }
 
+// ArgsPlaceholder returns the placeholder string for an sql.
+// Examplers: "(?)", "(?,?,?)", "(?,?),(?,?)"
+// Total number of question marks will be argsLen. They will be grouped in
+// parenthesis groups countPerGroup at a time.
+func ArgsPlaceholder(argsLen int, countPerGroup int) string {
+	if argsLen%countPerGroup != 0 {
+		return "ERROR: ArgsPlaceholder's parameters were incorrect."
+	}
+	placeholder := "(?" + strings.Repeat(",?", countPerGroup-1) + ")"
+	return placeholder + strings.Repeat(","+placeholder, argsLen/countPerGroup-1)
+}
+
+// InArgsPlaceholder returns the placeholder string for an sql.
+// Examples: "(?)", "(?,?,?)"
+// Total number of question marks will be argsLen.
+func InArgsPlaceholder(argsLen int) string {
+	return "(?" + strings.Repeat(",?", argsLen-1) + ")"
+}
+
 // GetDB returns a DB object, creating it first if necessary.
-//
 // GetDB calls db.Ping() on each call to ensure a valid connection.
-func GetDB(c sessions.Context) (*sql.DB, error) {
+func GetDB(c sessions.Context) (*DB, error) {
 	var (
-		db  *sql.DB
+		db  DB
 		err error
 	)
 	if sessions.Live {
-		db, err = dbcore.GetLiveCloud(c)
+		db.db, err = dbcore.GetLiveCloud(c)
 	} else {
-		db, err = dbcore.GetLocal(c)
+		db.db, err = dbcore.GetLocal(c)
 	}
 	if err != nil {
 		c.Inc("db_acquire_fail")
+		return nil, fmt.Errorf("Couldn't open DB: %v", err)
 	}
-	return db, err
+	db.C = c
+	return &db, nil
 }
 
-// sanitizeSqlValue makes sure that a string doesn't have any characters that
-// would mess up the sql query.
-func sanitizeSqlValue(value string) string {
-	value = strings.Replace(value, "\\", "\\\\", -1)
-	value = strings.Replace(value, "\"", "\\\"", -1)
-	return "\"" + value + "\""
+// NewStatement returns a new SQL statement built from the given SQL string.
+// The statement will be executed *non-atomically*.
+func (db *DB) NewStatement(query string) *Stmt {
+	statement, err := db.db.Prepare(query)
+	if err != nil {
+		db.C.Errorf("Error creating statement from query:\n%s\n%v", query, err)
+		return nil
+	}
+	return &Stmt{stmt: statement, QueryStr: query, DB: db}
 }
 
-// GetInsertSql returns an SQL command for inserting a row into the given table.
-// The hashmap describes what values to set for that row.
-// If there is a name collision, the variables in updateArgs will be updated.
-func GetInsertSql(tableName string, hashmap InsertMap, updateArgs ...string) string {
+// NewTxStatement returns a new SQL statement built from the given SQL string,
+// The statement will be executed *atomically* as part of the given transaction.
+func (tx *Tx) NewTxStatement(query string) *Stmt {
+	statement, err := tx.tx.Prepare(query)
+	if err != nil {
+		tx.DB.C.Errorf("Error creating TX statement from query:\n%s\n%v", query, err)
+	}
+	return &Stmt{stmt: statement, QueryStr: query, DB: tx.DB}
+}
+
+// newInsertStmtInternal creates an INSERT-like query based on the given
+// parameters.
+func newInsertStmtInternal(command string, tableName string, hashmap InsertMap, updateArgs ...string) *QueryPart {
+	// Extract hash keys and values
 	hashKeys := make([]string, 0, len(hashmap))
-	hashValues := make([]string, 0, len(hashmap))
+	hashValues := make([]interface{}, 0, len(hashmap))
 	for k, v := range hashmap {
 		hashKeys = append(hashKeys, k)
-		vStr := fmt.Sprintf("%v", v)
-		switch v.(type) {
-		case string:
-			vStr = sanitizeSqlValue(vStr)
-		}
-		hashValues = append(hashValues, vStr)
+		hashValues = append(hashValues, v)
 	}
+
 	variables := strings.Join(hashKeys, ",")
-	values := strings.Join(hashValues, ",")
-	onDuplicateKeyOpt := ""
+
+	// Check if we should update some values in case of key collision.
+	onDuplicateKeyPart := NewQuery("")
 	if len(updateArgs) > 0 {
+		onDuplicateKeyPart.Add("ON DUPLICATE KEY UPDATE")
 		updateVars := make([]string, 0, len(updateArgs))
 		for _, v := range updateArgs {
-			updateVars = append(updateVars, fmt.Sprintf("%s=VALUES(%[1]s)", v))
+			updateVars = append(updateVars, v+"=VALUES("+v+")")
 		}
-		updateVarsStr := strings.Join(updateVars, ",")
-		onDuplicateKeyOpt = "ON DUPLICATE KEY UPDATE " + updateVarsStr
+		onDuplicateKeyPart.Add(strings.Join(updateVars, ","))
 	}
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s) %s",
-		tableName, variables, values, onDuplicateKeyOpt)
+
+	query := NewQuery(command + " INTO " + tableName + "(" + variables + ") VALUES").AddArgsGroup(
+		hashValues).AddPart(onDuplicateKeyPart)
+
+	//query := fmt.Sprintf("%s INTO %s (%s) VALUES (%s) %s", command, tableName, variables,
+	return query
 }
 
-// GetReplaceSql acts just like GetInsertSql, but does REPLACE instead of INSERT.
-func GetReplaceSql(tableName string, hashmap InsertMap) string {
-	query := GetInsertSql(tableName, hashmap)
-	return strings.Replace(query, "INSERT", "REPLACE", 1)
+// NewInsertStatement returns an SQL statement for inserting a row into the given table.
+// The hashmap describes what values to set for that row.
+// If there is a name collision, the variables in updateArgs will be updated.
+func (db *DB) NewInsertStatement(tableName string, hashmap InsertMap, updateArgs ...string) *Stmt {
+	query := newInsertStmtInternal("INSERT", tableName, hashmap, updateArgs...)
+	return query.ToStatement(db)
 }
 
-// ExecuteSql *non-atomically* executes a series of the given SQL commands.
-func ExecuteSql(c sessions.Context, commands ...string) (sql.Result, error) {
-	db, err := GetDB(c)
+// NewReplaceStatement acts just like NewInsertStatement, but does REPLACE instead of INSERT.
+func (db *DB) NewReplaceStatement(tableName string, hashmap InsertMap) *Stmt {
+	query := newInsertStmtInternal("REPLACE", tableName, hashmap)
+	return query.ToStatement(db)
+}
+
+func (tx *Tx) NewInsertTxStatement(tableName string, hashmap InsertMap, updateArgs ...string) *Stmt {
+	query := newInsertStmtInternal("INSERT", tableName, hashmap, updateArgs...)
+	return query.ToTxStatement(tx)
+}
+
+func (tx *Tx) NewReplaceTxStatement(tableName string, hashmap InsertMap) *Stmt {
+	query := newInsertStmtInternal("REPLACE", tableName, hashmap)
+	return query.ToTxStatement(tx)
+}
+
+// Execute executes the given SQL statement.
+func (statement *Stmt) Exec(args ...interface{}) (sql.Result, error) {
+	if len(statement.args) > 0 {
+		if len(args) > 0 {
+			return nil, fmt.Errorf("Calling Exec with args, when statement already has args")
+		}
+		args = statement.args
+	}
+	result, err := statement.stmt.Exec(args...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get DB: %v", err)
+		statement.DB.C.Inc("sql_command_fail")
+		return nil, fmt.Errorf("error while executing an sql statement:\n%v\n%v", statement, err)
 	}
-	var result sql.Result
-	for _, command := range commands {
-		result, err = db.Exec(command)
-		if err != nil {
-			c.Inc("sql_command_fail")
-			return nil, fmt.Errorf("error while executing an sql command:\n%v\n%v", command, err)
-		}
-		c.Debugf("Executed SQL command: %v", command)
-	}
+	statement.DB.C.Debugf("Executed SQL statement: %v", statement)
 	return result, nil
 }
 
-// QuerySql calls the given function for every row returned when executing the
-// given sql command.
-func QuerySql(c sessions.Context, command string, f ProcessRow) error {
-	db, err := GetDB(c)
-	if err != nil {
-		return fmt.Errorf("failed to get DB: %v", err)
+// Query executes the given SQL statement and returns the
+// result rows.
+func (statement *Stmt) Query(args ...interface{}) *Rows {
+	if len(statement.args) > 0 {
+		if len(args) > 0 {
+			statement.DB.C.Errorf("Calling Query with args, when statement already has args")
+			return nil
+		}
+		args = statement.args
 	}
-	rows, err := db.Query(command)
+	rows, err := statement.stmt.Query(args...)
 	if err != nil {
-		c.Inc("sql_command_fail")
-		return fmt.Errorf("error while querying:\n%v\n%v", command, err)
+		statement.DB.C.Inc("sql_command_fail")
+		statement.DB.C.Errorf("error while querying:\n%v\n%v", statement, err)
+		return nil
 	}
-	defer rows.Close()
-	for rows.Next() {
-		if err = f(c, rows); err != nil {
+	return &Rows{rows: rows, DB: statement.DB}
+}
+
+// QueryRow executes the given SQL statement and returns the
+// result row.
+func (statement *Stmt) QueryRow(args ...interface{}) *Row {
+	if len(statement.args) > 0 {
+		if len(args) > 0 {
+			statement.DB.C.Errorf("Calling QueryRow with args, when statement already has args")
+			return nil
+		}
+		args = statement.args
+	}
+	return &Row{row: statement.stmt.QueryRow(args...), DB: statement.DB}
+}
+
+// String return's statement query
+func (statement *Stmt) String() string {
+	return statement.QueryStr
+}
+
+// ProcessRows calls the given function for every row returned when executing the
+// given sql statement.
+func (rows *Rows) Process(f ProcessRowCallback) error {
+	defer rows.rows.Close()
+	for rows.rows.Next() {
+		if err := f(rows.DB, rows); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// QueryRowSql executes the given SQL command that's expected to return only
+// Scan processes the row and outputs the results into the given variables.
+func (rows *Rows) Scan(dest ...interface{}) error {
+	return rows.rows.Scan(dest...)
+}
+
+// QueryRowSql executes the given SQL statement that's expected to return only
 // one row. The results are put into the given args.
 // Function returns whether or not a row was read and any errors that occured,
 // not including sql.ErrNoRows.
-func QueryRowSql(c sessions.Context, command string, args ...interface{}) (bool, error) {
-	db, err := GetDB(c)
-	if err != nil {
-		return false, fmt.Errorf("failed to get DB: %v", err)
-	}
-	err = db.QueryRow(command).Scan(args...)
+func (row *Row) Scan(outArgs ...interface{}) (bool, error) {
+	err := row.row.Scan(outArgs...)
 	if err != nil && err != sql.ErrNoRows {
-		c.Inc("sql_command_fail")
-		return false, fmt.Errorf("error while querying:\n%v\n%v", command, err)
+		row.DB.C.Inc("sql_command_fail")
+		return false, fmt.Errorf("error while querying row: %v", err)
 	}
 	return err != sql.ErrNoRows, nil
 }
 
 // NewTransaction returns a new transaction object for the database.
-func NewTransaction(c sessions.Context) (*sql.Tx, error) {
-	db, err := GetDB(c)
+func (db *DB) Transaction(f TransactionCallback) error {
+	tx, err := db.db.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get DB: %v", err)
+		return fmt.Errorf("Couldn't create transaction: %v", err)
 	}
-	return db.Begin()
+
+	err = f(&Tx{tx: tx, DB: db})
+	if err != nil {
+		return err
+	}
+
+	// Commit transaction.
+	err = tx.Commit()
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("Couldn't commit transaction: %v", err)
+	}
+	return nil
 }
