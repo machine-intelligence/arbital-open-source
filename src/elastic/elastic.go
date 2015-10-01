@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"appengine/urlfetch"
 
@@ -44,6 +45,13 @@ type Hit struct {
 	Id     int64     `json:"_id,string"`
 	Score  float32   `json:"_score"`
 	Source *Document `json:"_source"`
+}
+
+func EscapeMatchTerm(text string) string {
+	escapeRx := regexp.MustCompile(`(["\\])`)
+	return escapeRx.ReplaceAllStringFunc(text, func(term string) string {
+		return `\` + term
+	})
 }
 
 // sendRequest sends the given request object to the elastic search server.

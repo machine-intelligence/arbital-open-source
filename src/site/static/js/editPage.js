@@ -78,14 +78,13 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		};
 		if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return;
 		prevSimilarPageData = data;
-		autocompleteService.findSimilarPages(data, function(data, status){
+		autocompleteService.findSimilarPages(data, function(data){
 			$similarPages.empty();
-			var hits = data.hits.hits;
-			for (var n = 0; n < hits.length; n++) {
-				var source = hits[n]._source;
-				var $el = $("<div><a href='/pages/" + source.pageId + "' page-id='" + source.pageId +
-					"' class='intrasite-link'>" + source.title + "</a><div class='gray-text'>" +
-					source.clickbait + "</div></div>");
+			for (var n = 0; n < data.length; n++) {
+				var pageId = data[n].value;
+				if (pageId == page.pageId) continue;
+				var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
+					"' show-clickbait='true'></div>")(scope);
 				$similarPages.append($el);
 			}
 		});

@@ -523,7 +523,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	this.findSimilarPages = function(pageData, callback) {
 		$http({method: "POST", url: "/json/similarPageSearch/", data: JSON.stringify(pageData)})
 		.success(function(data, status){
-			callback(data, status);
+			callback(that.processAutocompleteResults(data));
 		})
 		.error(function(data, status){
 			console.log("Error doing similar page search:"); console.log(data); console.log(status);

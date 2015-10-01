@@ -71,6 +71,8 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 		groupIds = append(groupIds, fmt.Sprintf("%d", id))
 	}
 
+	escapedTerm := elastic.EscapeMatchTerm(data.Term)
+
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
 		"query": {
@@ -88,7 +90,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 								"match_phrase_prefix": { "clickbait": "%[1]s" }
 							},
 							{
-								"match_phrase_prefix": { "text": "%[1]s" }
+								"match": { "text": "%[1]s" }
 							},
 							{
 								"match_phrase_prefix": { "alias": "%[1]s" }
@@ -108,7 +110,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 			}
 		},
 		"_source": ["pageId", "alias", "title", "clickbait", "groupId"]
-	}`, data.Term, strings.Join(groupIds, ","))
+	}`, escapedTerm, strings.Join(groupIds, ","))
 
 	// Perform search.
 	results, err := elastic.SearchPageIndex(db.C, jsonStr)
