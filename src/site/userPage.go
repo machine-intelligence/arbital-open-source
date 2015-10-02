@@ -40,7 +40,7 @@ var userPage = newPageWithOptions(
 	"/user/{authorId:[0-9]+}",
 	userRenderer,
 	append(baseTmpls,
-		"tmpl/userPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl",
+		"tmpl/userPage.tmpl", "tmpl/navbar.tmpl",
 		"tmpl/footer.tmpl", "tmpl/angular.tmpl.js"),
 	newPageOptions{})
 

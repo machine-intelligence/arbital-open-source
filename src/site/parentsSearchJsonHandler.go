@@ -68,6 +68,8 @@ func parentsSearchJsonInternalHandler(w http.ResponseWriter, r *http.Request, da
 		groupIds = append(groupIds, fmt.Sprintf("%d", id))
 	}
 
+	escapedTerm := elastic.EscapeMatchTerm(data.Term)
+
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
 		"query": {
@@ -104,7 +106,7 @@ func parentsSearchJsonInternalHandler(w http.ResponseWriter, r *http.Request, da
 			}
 		},
 		"_source": []
-	}`, data.Term, strings.Join(groupIds, ","))
+	}`, escapedTerm, strings.Join(groupIds, ","))
 
 	// Perform search.
 	results, err := elastic.SearchPageIndex(c, jsonStr)

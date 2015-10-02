@@ -140,7 +140,7 @@ app.directive("arbComment", function ($compile, $timeout, pageService, autocompl
 				};
 				$.ajax({
 					type: "POST",
-					url: '/newLike/',
+					url: "/newLike/",
 					data: JSON.stringify(data),
 				})
 				.done(function(r) {

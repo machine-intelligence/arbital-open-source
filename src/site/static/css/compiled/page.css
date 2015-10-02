@@ -306,6 +306,11 @@
 .edit-history .edit-block.ver-line {
   border-left: 5px solid lightgray;
 }
+.similar-pages {
+  width: 45%;
+  margin: 0px 2% 20px 2%;
+  max-width: 45%;
+}
 .save-snapshot-button {
   margin: 0px 5px;
 }

@@ -39,7 +39,7 @@ var pagePage = newPageWithOptions(
 	"/pages/{alias:[A-Za-z0-9_-]+}",
 	pageRenderer,
 	append(baseTmpls,
-		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
+		"tmpl/pagePage.tmpl",
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
@@ -47,7 +47,7 @@ var privatePagePage = newPageWithOptions(
 	"/pages/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}",
 	pageRenderer,
 	append(baseTmpls,
-		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
+		"tmpl/pagePage.tmpl",
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 

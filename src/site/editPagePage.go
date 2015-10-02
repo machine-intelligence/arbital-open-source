@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
+	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
 	editPageOptions = newPageOptions{RequireLogin: true}
 )
 

@@ -22,7 +22,7 @@ var domainsPage = newPageWithOptions(
 	"/domains/",
 	domainsRenderer,
 	append(baseTmpls,
-		"tmpl/domainsPage.tmpl", "tmpl/pageHelpers.tmpl",
+		"tmpl/domainsPage.tmpl",
 		"tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"),
 	newPageOptions{AdminOnly: true})
 

@@ -31,7 +31,6 @@ var indexPage = newPageWithOptions(
 	indexRenderer,
 	append(baseTmpls,
 		"tmpl/indexPage.tmpl",
-		"tmpl/pageHelpers.tmpl",
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl",
 		"tmpl/footer.tmpl"),

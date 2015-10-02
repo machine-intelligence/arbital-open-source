@@ -22,7 +22,7 @@ var groupsPage = newPage(
 	"/groups/",
 	groupsRenderer,
 	append(baseTmpls,
-		"tmpl/groupsPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/angular.tmpl.js",
+		"tmpl/groupsPage.tmpl", "tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 // groupsRenderer renders the page page.

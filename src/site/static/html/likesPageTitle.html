@@ -48,7 +48,7 @@
 				ng-hide="isSearchResult">
 			<span ng-bind="page.type == 'comment' ? 'Comment' : page.title"></span>
 		</a>
-		<span ng-bind="page.type == 'comment' ? 'Comment' : page.title" ng-show"isSearchResult"></span>
+		<span ng-bind="page.type == 'comment' ? 'Comment' : page.title" ng-show="isSearchResult"></span>
 	</span>
 
 	<span class="created-span gray-text" ng-bind="page.createdAt | relativeDateTime" ng-show="showCreatedAt">

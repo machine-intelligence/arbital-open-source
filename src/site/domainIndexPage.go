@@ -33,7 +33,6 @@ var domainIndexPage = newPageWithOptions(
 	domainIndexRenderer,
 	append(baseTmpls,
 		"tmpl/domainIndexPage.tmpl",
-		"tmpl/pageHelpers.tmpl",
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl",
 		"tmpl/footer.tmpl"),

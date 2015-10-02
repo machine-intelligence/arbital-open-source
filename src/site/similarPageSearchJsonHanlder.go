@@ -77,6 +77,10 @@ func similarPageSearchJsonInternalHandler(w http.ResponseWriter, r *http.Request
 		groupIds = append(groupIds, fmt.Sprintf("%d", id))
 	}
 
+	escapedTitle := elastic.EscapeMatchTerm(data.Title)
+	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
+	escapedText := elastic.EscapeMatchTerm(data.Text)
+
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
 		"query": {
@@ -110,7 +114,7 @@ func similarPageSearchJsonInternalHandler(w http.ResponseWriter, r *http.Request
 			}
 		},
 		"_source": ["pageId", "alias", "title", "clickbait", "groupId"]
-	}`, data.Title, data.Clickbait, data.Text, strings.Join(groupIds, ","))
+	}`, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIds, ","))
 
 	// Perform search.
 	results, err := elastic.SearchPageIndex(c, jsonStr)
@@ -118,8 +122,36 @@ func similarPageSearchJsonInternalHandler(w http.ResponseWriter, r *http.Request
 		return fmt.Errorf("Error with elastic search: %v", err)
 	}
 
+	// Create page map.
+	pageMap := make(map[int64]*core.Page)
+	for _, hit := range results.Hits.Hits {
+		pageMap[hit.Id] = &core.Page{PageId: hit.Id}
+	}
+
+	// Load pages.
+	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{})
+	if err != nil {
+		return fmt.Errorf("error while loading pages: %v", err)
+	}
+
+	// Load auxillary data.
+	err = loadAuxPageData(db, u.Id, pageMap, nil)
+	if err != nil {
+		return fmt.Errorf("error while loading aux data: %v", err)
+	}
+
+	// Return the data in JSON format.
+	returnPageData := make(map[string]*core.Page)
+	for k, v := range pageMap {
+		returnPageData[fmt.Sprintf("%d", k)] = v
+	}
+
+	returnData := make(map[string]interface{})
+	returnData["searchHits"] = results.Hits
+	returnData["pages"] = returnPageData
+
 	// Return the pages in JSON format.
-	jsonData, err := json.Marshal(results)
+	jsonData, err := json.Marshal(returnData)
 	if err != nil {
 		return fmt.Errorf("Couldn't write json: %v", err)
 	}
