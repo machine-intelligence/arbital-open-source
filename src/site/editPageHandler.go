@@ -281,7 +281,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 		}
 
-		if len(parentIds) <= 0 && data.Type == core.CommentPageType || data.Type == core.AnswerPageType {
+		if len(parentIds) <= 0 && (data.Type == core.CommentPageType || data.Type == core.AnswerPageType) {
 			return http.StatusBadRequest, fmt.Sprintf("%s pages need to have a parent", data.Type)
 		}
 
