@@ -82,7 +82,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			$similarPages.empty();
 			for (var n = 0; n < data.length; n++) {
 				var pageId = data[n].value;
-				if (pageId == page.pageId) continue;
+				//if (pageId == page.pageId) continue;
 				var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
 					"' show-clickbait='true'></div>")(scope);
 				$similarPages.append($el);
@@ -497,7 +497,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		// Set up finding similar pages
 		this.similarPagesInterval = window.setInterval(function(){
 			computeSimilarPages($compile, scope);
-		}, 11000);
+		}, 1100);
 
 		// Compute prevEditPageData, so we don't fire off autosave when there were
 		// no changes made.

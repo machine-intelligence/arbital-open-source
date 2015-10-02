@@ -546,7 +546,7 @@ app.filter("relativeDateTime", function() {
 });
 
 // ArbitalCtrl is used across all pages.
-app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, userService, pageService, autocompleteService) {
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $compile, userService, pageService, autocompleteService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -601,6 +601,10 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 		// Don't allow recursive hover in popovers.
 		if ($target.closest(".popover-content").length > 0) return;
 
+		// Popover's title.
+		var getTitleHtml = function(pageId) {
+			return "<arb-likes-page-title is-search-result='true' page-id='" + pageId + "'></arb-likes-page-title>";
+		};
 		// Create options for the popover.
 		var options = {
 			html : true,
@@ -611,10 +615,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 				var pageId = $target.attr("page-id");
 				var page = pageService.pageMap[pageId];
 				if (page) {
-					if (page.deletedBy !== "0") {
-						return "[DELETED]";
-					}
-					return page.title;
+					return getTitleHtml(pageId);
 				}
 				return "Loading...";
 			},
@@ -622,35 +623,23 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 				var $link = $target;
 				var pageAlias = $link.attr("page-id");
 				var setPopoverContent = function(page) {
+					var contentHtml = "<arb-intrasite-popover page-id='" + page.pageId + "'></arb-intrasite-popover>";
 					if (page.deletedBy !== "0") {
-						$content.html("");
-						return "";
-					}
-					var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
-					if (page.type === "blog") {
-						var user = userService.userMap[page.creatorId];
-						var userName = user.firstName + " " + user.lastName;
-						$content.find(".popover-blog-owner").text("Author: " + userName);
+						return "[DELETED]";
 					}
 
-					$content.find(".like-count").text(page.likeCount);
-					$content.find(".dislike-count").text(page.dislikeCount);
-					var myLikeValue = +page.myLikeValue;
-					if (myLikeValue > 0) {
-						$content.find(".disabled-like").addClass("on");
-					} else if (myLikeValue < 0) {
-						$content.find(".disabled-dislike").addClass("on");
-					}
-
-					setTimeout(function() {
+					$timeout(function() {
 						var $popover = $("#" + $link.attr("aria-describedby"));
-						var $content = $popover.find(".popover-content");
-						arbMarkdown.init(false, page.pageId, page.summary, $content, pageService);
-						if (page.hasVote) {
-							createVoteSlider($content.find(".vote"), userService, page, true);
-						}
-					}, 300);
-					return $content.html();
+						$popover.find(".popover-title").html(getTitleHtml(page.pageId));
+						$compile($popover)($scope);
+						$timeout(function() {
+							arbMarkdown.init(false, page.pageId, page.summary, $popover.find(".intrasite-popover-body"), pageService);
+							if (page.hasVote) {
+								createVoteSlider($popover.find(".page-vote"), userService, page, true);
+							}
+						});
+					});
+					return contentHtml;
 				};
 
 				// Check if we already have this page cached.
@@ -675,12 +664,11 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 							var contentHtml = setPopoverContent(page);
 							var $popover = $("#" + $link.attr("aria-describedby"));
 							$popover.find(".popover-content").html(contentHtml);
-							$popover.find(".popover-title").text(page.title);
 							break;
 						}
 					},
 				});
-				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
+				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>';
 			}
 		};
 		// Check if this is the first time we hovered.
@@ -820,6 +808,21 @@ app.directive("arbNewLinkModal", function(autocompleteService) {
 			});
 			// Set up search for new link modal
 			autocompleteService.setAutocompleteRendering($input, scope);
+		},
+	};
+});
+
+// intrasitePopover containts the popover body html.
+app.directive("arbIntrasitePopover", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/intrasitePopover.html",
+		scope: {
+			pageId: "@",
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.page = pageService.pageMap[scope.pageId];
 		},
 	};
 });
