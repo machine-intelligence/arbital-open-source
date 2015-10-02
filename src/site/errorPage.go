@@ -20,8 +20,7 @@ var errorPage = newPage(
 	"/error/",
 	errorRender,
 	append(baseTmpls,
-		"tmpl/errorPage.tmpl", "tmpl/pageHelpers.tmpl",
-		"tmpl/angular.tmpl.js",
+		"tmpl/errorPage.tmpl", "tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 // everyThing serves the "error" page.

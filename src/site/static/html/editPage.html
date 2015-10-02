@@ -30,11 +30,11 @@
 		<!-- Friendly warnings / info alerts -->
 		<div ng-show="page.wasPublished">
 			<div ng-show="page.isAutosave" class="alert alert-warning">
-				Restored autosave which was last updated on <span class="date" ng-bind="page.createdAt"></span>.
+				Restored autosave which was last updated {[{page.createdAt | relativeDateTime}]}.
 				<a href="#" class="abandon-edit">Delete my autosave and edit live version.</a>
 			</div>
 			<div ng-show="page.isSnapshot" class="alert alert-warning">
-				Restored snapshot which was last updated on <span class="date" ng-bind="page.createdAt"></span>.
+				Restored snapshot which was last updated {[{page.createdAt | relativeDateTime}]}.
 				<a ng-href="{[{page.editUrl}]}?edit=live">Switch to editing the live version.</a>
 			</div>
 		</div>

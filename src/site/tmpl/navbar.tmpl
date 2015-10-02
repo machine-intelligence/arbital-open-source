@@ -36,6 +36,32 @@
 </nav>
 <input type="text" id="nav-search" class="nav-search form-control" placeholder="Search">
 
-{{template "popoverTemplates"}}
+<!-- ======= Collection of commonly popover templates ======= -->
+
+<!-- This div shows up when the user tries to take an action that requires them to be logged in. -->
+<div id="signup-popover-template" hidden>
+	<div class="popover-summary">
+		You have to be logged in.
+	</div>
+</div>
+
+<!-- This div shows up when the user hovers over an intra-site link. -->
+<div id="link-popover-template" hidden>
+	<div class="popover-blog-owner"></div>
+	<span class="popover-summary markdown-text"></span>
+
+	<!-- Likes / dislikes and approval voting -->
+	<div class="like-span">
+		<span class="like-count">JS inserts likes</span>
+		<span class="disabled-like glyphicon glyphicon-thumbs-up"></span>
+		&nbsp;
+		<span class="dislike-count">JS inserts dislikes</span>
+		<span class="disabled-dislike glyphicon glyphicon-thumbs-down"></span>
+	</div>
+
+	<!-- Answers and probability votes -->
+	<div class="vote"></div>
+</div>
+
 
 {{end}}

@@ -261,7 +261,7 @@ app.service("pageService", function(userService, $http){
 			};
 		} else {
 			if (page.sortChildrenBy !== "likes") {
-				console.log("Unknown sort type: " + page.sortChildrenBy);
+				console.error("Unknown sort type: " + page.sortChildrenBy);
 				console.log(page);
 			}
 			return function(aId, bId) {
@@ -634,9 +634,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 						$compile($popover)($scope);
 						$timeout(function() {
 							arbMarkdown.init(false, page.pageId, page.summary, $popover.find(".intrasite-popover-body"), pageService);
-							if (page.hasVote) {
-								createVoteSlider($popover.find(".page-vote"), userService, page, true);
-							}
 						});
 					});
 					return contentHtml;
@@ -651,6 +648,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				// Fetch page data from the server.
 				pageService.loadPages([pageAlias], {
 					overwrite: true,
+					includeAuxData: true,
 					loadVotes: true,
 					success: function(data, status) {
 						// Should only be one page.
@@ -668,7 +666,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 						}
 					},
 				});
-				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>';
+				return "<img src='/static/images/loading.gif' class='loading-indicator' style='display:block'/>";
 			}
 		};
 		// Check if this is the first time we hovered.
@@ -933,7 +931,5 @@ app.directive("arbPageTreeNode", function(RecursionHelper) {
 		},
 	};
 });
-
-
 </script>
 {{end}}

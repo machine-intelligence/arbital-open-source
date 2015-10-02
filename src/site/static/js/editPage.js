@@ -294,13 +294,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		tooltip: "always",
 	});
 
-	// Change all dates from UTC to local.
-	// TODO: actually we should be using moment.js and AngularJS filters
-	$topParent.find(".date").each(function(index, element) {
-		var date = new Date(element.innerHTML + " UTC");
-		element.innerHTML = date.toLocaleString();
-	});
-
 	// Map of edit number -> [array of: {edit: child edit num, path: length of path to the furthest node}]
 	var editChildMap = {};
 	// Set up edit history
@@ -503,7 +496,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		// no changes made.
 		prevEditPageData = computeAutosaveData(true, false);
 
-		// Set up an interval to make sure modal backdrop is the right size.
+		// Workaround: Set up an interval to make sure modal backdrop is the right size.
 		if (isModal) {
 			var $element = $topParent.closest(".modal-content");
 			if ($element.length > 0) {
@@ -517,7 +510,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			}
 		}
 
-		// Check when user hovers over intrasite links, and show a popover.
+		// Check when user hovers over a history edit node, and show a popover.
 		$editHistory.on("mouseenter", ".edit-node", function(event) {
 			var $linkPopoverTemplate = $("#link-popover-template");
 			var $target = $(event.currentTarget);
@@ -546,7 +539,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 						var $popover = $("#" + $target.attr("aria-describedby"));
 						var $el = $compile("<arb-edit-node-popover page-id='" + pageId +
 								"' edit-num='" + edit.edit +
-								"' is-opened='" + (edit.edit === page.edit) + "'>BLAH</arb-edit-node-popover>")(scope);
+								"' is-opened='" + (edit.edit === page.edit) + "'></arb-edit-node-popover>")(scope);
 						$popover.find(".popover-content").empty().append($el);
 					});
 					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'

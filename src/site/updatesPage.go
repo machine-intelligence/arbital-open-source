@@ -23,7 +23,7 @@ var updatesPage = newPageWithOptions(
 	"/updates/",
 	updatesRenderer,
 	append(baseTmpls,
-		"tmpl/updatesPage.tmpl", "tmpl/pageHelpers.tmpl",
+		"tmpl/updatesPage.tmpl",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl",
 		"tmpl/angular.tmpl.js"),
 	newPageOptions{RequireLogin: true})

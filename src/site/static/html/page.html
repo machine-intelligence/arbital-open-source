@@ -67,7 +67,7 @@
 		<div class="author-text" ng-show="page.type == 'blog'">by <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name></div>
 
 		<!-- Voting container -->
-		<div class="page-vote" ng-show="page.hasVote"></div>
+		<arb-vote-bar page-id="{[{page.pageId}]}" ng-show="page.hasVote"></arb-vote-bar>
 
 		<!-- Main page text. Populated by markdown. -->
 		<div class="page-text markdown-text"></div>

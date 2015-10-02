@@ -4,5 +4,7 @@
 	</div>
 	<div class="markdown-text"></div>
 	<!-- Voting container -->
-	<div class="page-vote" ng-show="page.hasVote"></div>
+	<div class="page-vote" ng-show="page.hasVote">
+		<arb-vote-bar page-id="{[{page.pageId}]}" is-popover-vote="true"></arb-vote-bar>
+	</div>
 </div>
