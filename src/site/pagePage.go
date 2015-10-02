@@ -176,6 +176,13 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't load comments: %v", err)
 	}
+
+	// Load question ids.
+	err = loadQuestionIds(db, data.PageMap, embeddedPageMap)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load questions: %v", err)
+	}
+
 	// Add comments to the embedded pages map.
 	for id, p := range data.PageMap {
 		if p.Type == core.CommentPageType {

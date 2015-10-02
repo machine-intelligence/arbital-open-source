@@ -133,6 +133,9 @@ type Page struct {
 	// Comments.
 	CommentIds []string `json:"commentIds"`
 
+	// Questions.
+	QuestionIds []string `json:"questionIds"`
+
 	// Domains.
 	DomainIds []string `json:"domainIds"`
 

@@ -444,6 +444,42 @@ func loadCommentIds(db *database.DB, pageMap map[int64]*core.Page, sourcePageMap
 	return err
 }
 
+// loadQuestionIds loads the page ids for all the questions of the pages in the given pageMap.
+func loadQuestionIds(db *database.DB, pageMap map[int64]*core.Page, sourcePageMap map[int64]*core.Page) error {
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIds := core.PageIdsListFromMap(sourcePageMap)
+	rows := db.NewStatement(`
+		SELECT pp.parentId,pp.childId
+		FROM (
+			SELECT parentId,childId
+			FROM pagePairs
+			WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+		) AS pp JOIN (
+			SELECT pageId
+			FROM pages
+			WHERE isCurrentEdit AND type="question"
+		) AS p
+		ON (p.pageId=pp.childId)`).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var p core.PagePair
+		err := rows.Scan(&p.ParentId, &p.ChildId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for questions: %v", err)
+		}
+		newPage, ok := pageMap[p.ChildId]
+		if !ok {
+			newPage = &core.Page{PageId: p.ChildId, Type: core.QuestionPageType}
+			pageMap[newPage.PageId] = newPage
+		}
+		newPage.Parents = append(newPage.Parents, &p)
+		sourcePageMap[p.ParentId].QuestionIds = append(sourcePageMap[p.ParentId].QuestionIds, fmt.Sprintf("%d", p.ChildId))
+		return nil
+	})
+	return err
+}
+
 type loadParentsIdsOptions struct {
 	// If set, the parents will be loaded for these pages, but added to the
 	// map passed in as the argument.

@@ -89,6 +89,29 @@ $(function() {
 			});
 		};
 
+		// Show the edit inline question box.
+		this.showEditInlineQuestion = function($scope, selection) {
+			this.clearRhs();
+			$(".toggle-inline-comment-div").hide();
+			this.showRhs(function() {
+				var $newInlineCommentDiv = $(".new-inline-comment-div");
+				var offset = {left: $questionDiv.offset().left + 30, top: $(".inline-comment-highlight").offset().top};
+				$(".inline-comment-div").offset(offset);
+				createEditQuestionDiv($(".inline-comment-div"), $newInlineCommentDiv, $scope, {
+					anchorContext: selection.context,
+					anchorText: selection.text,
+					anchorOffset: selection.offset,
+					primaryPageId: newInlineCommentPrimaryPageId,
+					callback: function() {
+						pageView.clearRhs();
+						pageView.hideRhs(function() {
+							$(".toggle-inline-comment-div").hide();
+						});
+					},
+				});
+			});
+		};
+
 		// Store the primary page id used for creating a new inline comment.
 		var newInlineCommentPrimaryPageId;
 		this.setNewInlineCommentPrimaryPageId = function(id) {
@@ -140,23 +163,28 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 			showSignupPopover($(event.currentTarget));
 			return true;
 		}
-		$(document).trigger("new-page-modal-event", {
+		var selection = getSelectedParagraphText();
+		if (selection) {
+			pageView.showEditInlineQuestion($scope, selection);
+		} else {
+		    $(document).trigger("new-page-modal-event", {
 			modalKey: "newQuestion",
 			parentPageId: pageService.primaryPage.pageId,
 			callback: function(result) {
-				if (result.abandon) {
-					$scope.$apply(function() {
-						pageService.primaryPage.childDraftId = 0;
-					});
-				} else if (result.hidden) {
-					$scope.$apply(function() {
-						pageService.primaryPage.childDraftId = result.alias;
-					});
-				} else {
-					window.location.href = "/pages/" + result.alias;
-				}
+			    if (result.abandon) {
+				$scope.$apply(function() {
+				    pageService.primaryPage.childDraftId = 0;
+				});
+			    } else if (result.hidden) {
+				$scope.$apply(function() {
+				    pageService.primaryPage.childDraftId = result.alias;
+				});
+			    } else {
+				window.location.href = "/pages/" + result.alias;
+			    }
 			},
-		});
+		    });
+		}
 	});
 
 	// Inline comment button stuff.

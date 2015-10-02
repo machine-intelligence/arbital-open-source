@@ -68,6 +68,65 @@ var createEditCommentDiv = function($parentDiv, $commentButton, scope, options) 
 	}
 };
 
+var createEditQuestionDiv = function($parentDiv, $commentButton, scope, options) {
+	// Create and show the edit page directive.
+	var createEditPage = function(newPageId) {
+		// Callback for processing when the user is done creating a new question.
+		var doneFnName = "doneFn" + newPageId;
+		scope[doneFnName] = function(result) {
+			if (result.abandon) {
+				toggleVisibility(true, false);
+				$parentDiv.find("arb-edit-page").remove();
+				if (options.callback) options.callback();
+			} else if (result.alias) {
+				smartPageReload("comment-" + result.alias);
+			}
+		};
+		var el = scope.$compile("<arb-edit-page page-id='" + newPageId +
+				"' primary-page-id='" + options.primaryPageId +
+				"' done-fn='" + doneFnName + "(result)'></arb-edit-page>")(scope);
+		$parentDiv.append(el);
+	};
+
+	// Toggle the visibility of involved elements.
+	// showButton - true if we should show the new/edit comment button/link
+	// showLoading - true if we should show the loading spinner
+	var toggleVisibility = function(showButton, showLoading) {
+		$commentButton.toggle(showButton);
+		$parentDiv.find(".loading-indicator").toggle(showLoading);
+		$parentDiv.find("arb-edit-page").toggle(!showButton && !showLoading);
+		return false;
+	};
+
+	if ($parentDiv.find("arb-edit-page").length > 0) {
+		toggleVisibility(false, false);
+	} else {
+		toggleVisibility(false, true);
+		scope.pageService.loadPages([], {
+			success: function(data, status) {
+				toggleVisibility(false, false);
+				var newPageId = Object.keys(data)[0];
+				var page = scope.pageService.pageMap[newPageId];
+				page.type = "question";
+				page.parents = [{parentId: options.primaryPageId, childId: newPageId}];
+				if (options.parentCommentId) {
+					page.parents.push({parentId: options.parentCommentId, childId: newPageId});
+				}
+				// Assuming it's a new page:
+				if (options.anchorContext) {
+					page.anchorContext = options.anchorContext;
+					page.anchorText = options.anchorText;
+					page.anchorOffset = options.anchorOffset;
+				}
+				createEditPage(newPageId);
+			},
+			error: function(data, status) {
+				console.log("Couldn't load pages: " + loadPagesIds);
+			}
+		});
+	}
+};
+
 // Directive for showing a comment.
 app.directive("arbComment", function ($compile, $timeout, pageService, autocompleteService) {
 	return {

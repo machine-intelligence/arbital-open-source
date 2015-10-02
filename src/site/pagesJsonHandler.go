@@ -140,6 +140,11 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 			if err != nil {
 				return nil, fmt.Errorf("Couldn't load comments: %v", err)
 			}
+
+			err = loadQuestionIds(db, pageMap, pageMap)
+			if err != nil {
+				return nil, fmt.Errorf("Couldn't load questions: %v", err)
+			}
 		}
 
 		// Load children

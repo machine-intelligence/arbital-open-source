@@ -325,6 +325,15 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						processComments(true);
 					}, 3000);
 				}
+
+				if (scope.page.questionIds != null) {
+					// Process questions in two passes. First normal questions.
+					processQuestions(false);
+					$timeout(function() {
+						// Inline questions after a delay long enough for MathJax to have been processed.
+						processQuestions(true);
+					}, 3000);
+				}
 			});
 
 			// Track toggle-inline-comment offsets, so we can prevent overlap.
@@ -352,6 +361,86 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 					var comment = pageService.pageMap[pageId];
 					var commentCount = comment.children.length + 1;
 					$commentDiv.find(".inline-comment-count").text("" + commentCount);
+					$(".question-div").append($commentDiv);
+	
+					// Process mouse events.
+					var $commentIcon = $commentDiv.find(".inline-comment-icon");
+					$commentIcon.on("mouseenter", function(event) {
+						$("." + highlightClass).addClass("inline-comment-highlight");
+					});
+					$commentIcon.on("mouseleave", function(event) {
+						if ($commentIcon.hasClass("on")) return true;
+						$("." + highlightClass).removeClass("inline-comment-highlight");
+					});
+					$commentIcon.on("click", function(event) {
+						pageView.toggleInlineComment($commentDiv, function() {
+							$("." + highlightClass).addClass("inline-comment-highlight");
+							var $comment = $compile("<arb-comment primary-page-id='" + scope.page.pageId +
+									"' page-id='" + pageId + "'></arb-comment>")(scope);
+							$(".inline-comment-div").append($comment);
+						});
+						return false;
+					});
+	
+					var commentIconLeft = $(".question-div").offset().left + 10;
+					var anchorNode = scope.pageJsController.createInlineCommentHighlight(paragraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
+					if (anchorNode) {
+						if (anchorNode.nodeType != Node.ELEMENT_NODE) {
+							anchorNode = anchorNode.parentElement;
+						}
+						var offset = {left: commentIconLeft, top: $(anchorNode).offset().top};
+						fixInlineCommentOffset(offset);
+						$commentDiv.offset(offset);
+	
+						// Check if we need to expand this inline comment because of the URL anchor.
+						var expandComment = window.location.hash === "#comment-" + pageId;
+						if (!expandComment) {
+							// Check if one of the children is selected.
+							for (var n = 0; n < comment.children.length; n++) {
+								expandComment |= window.location.hash === "#comment-" + comment.children[n].childId;
+							}
+						}
+						if (expandComment) {
+							// Delay to allow other inline comment buttons to compute their position correctly.
+							window.setTimeout(function() {
+								$commentIcon.trigger("click");
+								$("html, body").animate({
+				      	  scrollTop: $(anchorNode).offset().top - 100
+					    	}, 1000);
+							}, 100);
+						}
+					} else {
+						$commentDiv.hide();
+						console.log("ERROR: couldn't find anchor node for inline comment");
+					}
+				};
+				// Check that we don't have another lens selected, in which case we'll
+				// postpone creating the div.
+				if (pageService.primaryPage === scope.page) {
+					doCreate();
+				}
+				pageService.primaryPageCallbacks.push(function() {
+					if (created) {
+						$("#comment-" + pageId).toggle(pageService.primaryPage === scope.page);
+					} else if (pageService.primaryPage === scope.page) {
+						window.setTimeout(function() {  // wait until the page shows
+							doCreate();
+						});
+					}
+				});
+			}
+
+			// Create a toggle-inline-question-div.
+			var createNewInlineQuestionToggle = function(pageId, paragraphNode, anchorOffset, anchorLength) {
+				var created = false;
+				var doCreate = function() {
+					created = true;
+					var highlightClass = "inline-comment-" + pageId;
+					var $commentDiv = $(".toggle-inline-comment-div.template").clone();
+					$commentDiv.attr("id", "comment-" + pageId).removeClass("template");
+					var comment = pageService.pageMap[pageId];
+					var commentCount = comment.children.length + 1;
+					$commentDiv.find(".inline-comment-count").text("?");
 					$(".question-div").append($commentDiv);
 	
 					// Process mouse events.
@@ -512,6 +601,99 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 					var $comment = $compile("<arb-comment primary-page-id='" + scope.pageId +
 							"' page-id='" + comment.pageId + "'></arb-comment>")(scope);
 					$comments.prepend($comment);
+				}
+			};
+
+			// Dynamically create question elements.
+			var processQuestions = function(allowInline) {
+				var $questions = element.find(".questions");
+				var $markdown = element.find(".markdown-text");
+				var dmp = new diff_match_patch();
+				dmp.Match_MaxBits = 10000;
+				dmp.Match_Distance = 10000;
+
+				// If we have inline questions, we'll need to compute the raw text for
+				// each paragraph.
+				var paragraphTexts = undefined;
+				var populateParagraphTexts = function() {
+					paragraphTexts = [];
+					var i = 0;
+					$markdown.children().each(function() {
+						paragraphTexts.push(getParagraphText($(this).get(0)).context);
+						i++;
+					});
+				};
+				// Go through questions in chronological order.
+				scope.page.questionIds.sort(pageService.getChildSortFunc({sortChildrenBy: "chronological", type: "question"}));
+				for (var n = 0; n < scope.page.questionIds.length; n++) {
+					var question = pageService.pageMap[scope.page.questionIds[n]];
+					// Check if the question in anchored and we can still find the paragraph.
+					if (question.anchorContext && question.anchorText) {
+						if (!allowInline) continue;
+						// Find the best paragraph.
+						var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
+						if (!paragraphTexts) {
+							populateParagraphTexts();
+						}
+						for (var i = 0; i < paragraphTexts.length; i++) {
+							var text = paragraphTexts[i];
+							var diffs = dmp.diff_main(text, question.anchorContext);
+							var score = dmp.diff_levenshtein(diffs);
+							if (score < bestScore) {
+								bestParagraphNode = $markdown.children().get(i);
+								bestParagraphText = text;
+								bestScore = score;
+							}
+						}
+						if (bestScore > question.anchorContext.length / 2) {
+							// This is not a good paragraph match. Continue processing as a normal question.
+							question.text = "> " + question.anchorText + "\n\n" + question.text;
+						} else {
+							// Find offset into the best paragraph.
+							var anchorLength;
+							var anchorOffset = dmp.match_main(bestParagraphText, question.anchorText, question.anchorOffset);
+							if (anchorOffset < 0) {
+								// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor.
+								anchorOffset = 0;
+								anchorLength = bestParagraphText.length;
+							} else {
+								// Figure out how long the highlighted anchor should be.
+								var remainingText = bestParagraphText.substring(anchorOffset);
+								var diffs = dmp.diff_main(remainingText, question.anchorText);
+								anchorLength = remainingText.length;
+								if (diffs.length > 0) {
+									// Note: we can potentially be more clever here and discount
+									// edits done after anchorText.length chars higher.
+									var lastDiff = diffs[diffs.length - 1];
+									if (lastDiff[0] < 0) {
+										anchorLength -= lastDiff[1].length;
+									}
+								}
+							}
+							createNewInlineQuestionToggle(question.pageId, bestParagraphNode, anchorOffset, anchorLength);
+							continue;
+						}
+					} else if (allowInline) {
+						continue;
+					}
+					// Make sure this question is not a reply (i.e. it has a parent question)
+					// If it's a reply, add it as a child to the corresponding parent question.
+					if (question.parents != null) {
+						var hasParentQuestion = false;
+						for (var i = 0; i < question.parents.length; i++) {
+							var parent = pageService.pageMap[question.parents[i].parentId];
+							hasParentQuestion = parent.type === "question";
+							if (hasParentQuestion) {
+								if (parent.children == null) parent.children = [];
+								parent.children.push({parentId: parent.pageId, childId: question.pageId});
+								break;
+							}
+						}
+						if (hasParentQuestion) continue;
+					}
+					var $question = $compile("<arb-question primary-page-id='" + scope.pageId +
+							"' page-id='" + question.pageId + "'></arb-question>")(scope);
+					$questions.prepend($question);
 				}
 			};
 		},
