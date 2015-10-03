@@ -150,6 +150,8 @@ func RedirectWith(uri string) *Result {
 	return &Result{
 		ResponseCode: http.StatusSeeOther,
 		next:         uri,
+		// Set Data so we don't consider this a failed result
+		Data: "",
 	}
 }
 
