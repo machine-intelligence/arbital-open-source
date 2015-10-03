@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"appengine/taskqueue"
 
@@ -19,13 +21,8 @@ import (
 // Handler serves HTTP.
 type handler http.HandlerFunc
 
-// newPageOptions specify options when we create a new html page.
-// NOTE: make sure that default values are okay for all pages.
-type newPageOptions struct {
-	AdminOnly       bool
-	SkipLoadingUser bool
-	RequireLogin    bool
-}
+// siteHandler is our type for HTTP request handlers
+type siteHandler func(*pages.HandlerParams) *pages.Result
 
 // commonPageData contains data that is common between all pages.
 type commonPageData struct {
@@ -43,130 +40,189 @@ type commonPageData struct {
 	Domain *core.Group
 }
 
-// newHandler returns a standard handler from given handler function.
-//
-// The standard handlers requires are monitored, require the proper
-// domain for live requests, and require the user to be logged in.
-//
-// Note that the order of the chaining is relevant - the right-most
-// call is applied first, and if a check fails (e.g. the live domain
-// is incorrect) that may cause further checks not to run (e.g. we
-// wouldn't even check if the user was logged in).
-func stdHandler(h handler) handler {
-	return h.domain()
+// handlerWrapper wraps our siteHandler to provide standard http handler interface.
+func handlerWrapper(h siteHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rand.Seed(time.Now().UnixNano())
+
+		c := sessions.NewContext(r)
+		fail := func(responseCode int, message string, err error) {
+			c.Inc(fmt.Sprintf("%s-fail", r.URL.Path))
+			c.Errorf("handlerWrapper: %s: %v", message, err)
+			w.WriteHeader(responseCode)
+			fmt.Fprintf(w, "%s", message)
+		}
+
+		// Open DB connection
+		db, err := database.GetDB(c)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't open DB", err)
+			return
+		}
+
+		// Get user object
+		var u *user.User
+		u, err = user.LoadUser(w, r, db)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load user", err)
+			return
+		}
+		result := h(&pages.HandlerParams{W: w, R: r, C: c, DB: db, U: u})
+		if result.ResponseCode != http.StatusOK {
+			fail(result.ResponseCode, result.Message, result.Err)
+			return
+		}
+
+		if result.Data != nil {
+			// Return the pages in JSON format.
+			jsonData, err := json.Marshal(result.Data)
+			if err != nil {
+				fail(http.StatusInternalServerError, "Couldn't marshal json", err)
+				return
+			}
+			_, err = w.Write(jsonData)
+			if err != nil {
+				fail(http.StatusInternalServerError, "Couldn't write json", err)
+				return
+			}
+		}
+		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
+	}
 }
 
-// newPageWithOptions returns a new page which will wrap the given renderer so
-// that it gets the user object.
-func newPageWithOptions(uri string, renderer pages.Renderer, tmpls []string, options newPageOptions) pages.Page {
-	return pages.Add(uri, loadUserHandler(renderer, options), tmpls...)
+// pageHandlerWrapper wraps one of our page handlers.
+func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		rand.Seed(time.Now().UnixNano())
+
+		c := sessions.NewContext(r)
+		params := pages.HandlerParams{W: w, R: r, C: c}
+
+		addFuncMap := func(result *pages.Result, u *user.User) {
+			// Set up Go TMPL functions.
+			result.AddFuncMap(template.FuncMap{
+				"UserId":     func() int64 { return u.Id },
+				"IsAdmin":    func() bool { return u.IsAdmin },
+				"IsLoggedIn": func() bool { return u.IsLoggedIn },
+				"GetUserUrl": func(userId int64) string {
+					return core.GetUserUrl(userId)
+				},
+				"GetMaxKarmaLockFraction": func() float32 {
+					return core.MaxKarmaLockFraction
+				},
+				"GetUserJson": func() template.JS {
+					jsonData, _ := json.Marshal(u)
+					return template.JS(string(jsonData))
+				},
+				"GetPageJson": func(p *core.Page) template.JS {
+					jsonData, _ := json.Marshal(p)
+					return template.JS(string(jsonData))
+				},
+				"GetPageUrl": func(p *core.Page) string {
+					return getPageUrl(p)
+				},
+				"IsUpdatedPage": func(p *core.Page) bool {
+					return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
+				},
+				"CanComment":            func() bool { return u.Karma >= core.CommentKarmaReq },
+				"CanLike":               func() bool { return u.Karma >= core.LikeKarmaReq },
+				"CanCreatePrivatePage":  func() bool { return u.Karma >= core.PrivatePageKarmaReq },
+				"CanVote":               func() bool { return u.Karma >= core.VoteKarmaReq },
+				"CanKarmaLock":          func() bool { return u.Karma >= core.KarmaLockKarmaReq },
+				"CanCreateAlias":        func() bool { return u.Karma >= core.CreateAliasKarmaReq },
+				"CanChangeAlias":        func() bool { return u.Karma >= core.ChangeAliasKarmaReq },
+				"CanChangeSortChildren": func() bool { return u.Karma >= core.ChangeSortChildrenKarmaReq },
+				"CanAddParent":          func() bool { return u.Karma >= core.AddParentKarmaReq },
+				"CanDeleteParent":       func() bool { return u.Karma >= core.DeleteParentKarmaReq },
+				"CanDashlessAlias":      func() bool { return u.Karma >= core.DashlessAliasKarmaReq },
+			})
+		}
+
+		// Helper func to when an error occurs and we should render error page.
+		fail := func(message string, err error) {
+			c.Inc(fmt.Sprintf("%s-fail", r.URL.Path))
+			c.Errorf("%s: %v", message, err)
+			result := renderErrorPage(&params, message)
+			addFuncMap(result, params.U)
+			errorPage.ServeHTTP(w, r, result)
+		}
+
+		// Open DB connection
+		db, err := database.GetDB(c)
+		if err != nil {
+			fail("Couldn't open DB", err)
+			return
+		}
+		params.DB = db
+
+		// Get user object
+		var u *user.User
+		if !p.Options.SkipLoadingUser {
+			u, err = user.LoadUser(w, r, db)
+			if err != nil {
+				fail("Couldn't load user", err)
+				return
+			}
+			params.U = u
+
+			// Check user state
+			if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
+				// User has created an account but hasn't gone through signup page
+				http.Redirect(w, r, "/signup/", http.StatusSeeOther)
+				return
+			}
+			if p.Options.RequireLogin && !u.IsLoggedIn {
+				fail("Have to be logged in", nil)
+			}
+			if p.Options.AdminOnly && !u.IsAdmin {
+				fail("Have to be an admin", nil)
+			}
+			if u.Id > 0 {
+				statement := db.NewStatement(`
+						UPDATE users
+						SET lastWebsiteVisit=?
+						WHERE id=?`)
+				if _, err := statement.Exec(database.Now(), u.Id); err != nil {
+					fail("Couldn't update users", err)
+				}
+				// Load the groups the user belongs to.
+				if err = loadUserGroups(db, u); err != nil {
+					fail("Couldn't load user groups", err)
+				}
+			}
+		}
+
+		// Call the page's renderer
+		result := p.Render(&params)
+		if result.Data == nil {
+			c.Debugf("Primary renderer failed")
+			fail(result.Message, result.Err)
+			return
+		}
+
+		// Load more user stuff if required.
+		if !p.Options.SkipLoadingUser && u.Id > 0 {
+			// Load updates count. (Loading it afterwards since it could be affected by the page)
+			u.UpdateCount, err = loadUpdateCount(db, u.Id)
+			if err != nil {
+				fail("Couldn't retrieve updates count", err)
+			}
+		}
+
+		addFuncMap(result, u)
+		p.ServeHTTP(w, r, result)
+		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
+	}
 }
 
 // newPage returns a new page using default options.
 func newPage(uri string, renderer pages.Renderer, tmpls []string) pages.Page {
-	return newPageWithOptions(uri, renderer, tmpls, newPageOptions{})
+	return newPageWithOptions(uri, renderer, tmpls, pages.PageOptions{})
 }
 
-// loadUserHandler is a wrapper around a randerer, which allows us to load the
-// user object and add user related template functions.
-func loadUserHandler(h pages.Renderer, options newPageOptions) pages.Renderer {
-	return func(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-		var err error
-		c := sessions.NewContext(r)
-		if u != nil {
-			c.Errorf("User is already set when calling loadUserHandler.")
-		}
-
-		db, err := database.GetDB(c)
-		if err != nil {
-			return pages.InternalErrorWith(fmt.Errorf("Couldn't open DB"))
-		}
-
-		// Load user info if required.
-		if !options.SkipLoadingUser {
-			u, err = user.LoadUser(w, r, db)
-			if err != nil {
-				c.Errorf("Couldn't load user: %v", err)
-				return pages.InternalErrorWith(err)
-			}
-			if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
-				// User has created an account but hasn't gone through signup page
-				return pages.RedirectWith("/signup/")
-			}
-			if options.RequireLogin && u.Id <= 0 {
-				return pages.UnauthorizedWith(fmt.Errorf("Not logged in"))
-			}
-			if options.AdminOnly && !u.IsAdmin {
-				return pages.UnauthorizedWith(fmt.Errorf("Have to be an admin"))
-			}
-			if u.Id > 0 {
-				statement := db.NewStatement(`
-					UPDATE users
-					SET lastWebsiteVisit=?
-					WHERE id=?`)
-				if _, err := statement.Exec(database.Now(), u.Id); err != nil {
-					c.Errorf("Couldn't update users: %v", err)
-					return pages.InternalErrorWith(err)
-				}
-				// Load the groups the user belongs to.
-				if err = loadUserGroups(db, u); err != nil {
-					c.Errorf("Couldn't load user groups: %v", err)
-					return pages.InternalErrorWith(err)
-				}
-			}
-		}
-
-		// Main page processing
-		result := h(w, r, u)
-
-		// Load more user stuff if required.
-		if !options.SkipLoadingUser && u.Id > 0 {
-			// Load updates count. (Loading it afterwards since it could be affected by the page)
-			u.UpdateCount, err = loadUpdateCount(db, u.Id)
-			if err != nil {
-				c.Errorf("Couldn't retrieve updates count: %v", err)
-			}
-		}
-
-		// Set up Go TMPL functions.
-		funcMap := template.FuncMap{
-			"UserId":     func() int64 { return u.Id },
-			"IsAdmin":    func() bool { return u.IsAdmin },
-			"IsLoggedIn": func() bool { return u.IsLoggedIn },
-			"GetUserUrl": func(userId int64) string {
-				return core.GetUserUrl(userId)
-			},
-			"GetMaxKarmaLockFraction": func() float32 {
-				return core.MaxKarmaLockFraction
-			},
-			"GetUserJson": func() template.JS {
-				jsonData, _ := json.Marshal(u)
-				return template.JS(string(jsonData))
-			},
-			"GetPageJson": func(p *core.Page) template.JS {
-				jsonData, _ := json.Marshal(p)
-				return template.JS(string(jsonData))
-			},
-			"GetPageUrl": func(p *core.Page) string {
-				return getPageUrl(p)
-			},
-			"IsUpdatedPage": func(p *core.Page) bool {
-				return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
-			},
-			"CanComment":            func() bool { return u.Karma >= core.CommentKarmaReq },
-			"CanLike":               func() bool { return u.Karma >= core.LikeKarmaReq },
-			"CanCreatePrivatePage":  func() bool { return u.Karma >= core.PrivatePageKarmaReq },
-			"CanVote":               func() bool { return u.Karma >= core.VoteKarmaReq },
-			"CanKarmaLock":          func() bool { return u.Karma >= core.KarmaLockKarmaReq },
-			"CanCreateAlias":        func() bool { return u.Karma >= core.CreateAliasKarmaReq },
-			"CanChangeAlias":        func() bool { return u.Karma >= core.ChangeAliasKarmaReq },
-			"CanChangeSortChildren": func() bool { return u.Karma >= core.ChangeSortChildrenKarmaReq },
-			"CanAddParent":          func() bool { return u.Karma >= core.AddParentKarmaReq },
-			"CanDeleteParent":       func() bool { return u.Karma >= core.DeleteParentKarmaReq },
-			"CanDashlessAlias":      func() bool { return u.Karma >= core.DashlessAliasKarmaReq },
-		}
-		return result.AddFuncMap(funcMap)
-	}
+// newPageWithOptions returns a new page with the given options.
+func newPageWithOptions(uri string, renderer pages.Renderer, tmpls []string, options pages.PageOptions) pages.Page {
+	return pages.Add(uri, renderer, &options, tmpls...)
 }
 
 // domain redirects to proper HTML domain if user arrives elsewhere.

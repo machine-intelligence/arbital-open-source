@@ -3,11 +3,9 @@ package site
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 const (
@@ -21,43 +19,22 @@ type newLikeData struct {
 }
 
 // newLikeHandler handles requests to create/update a prior like.
-func newLikeHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func newLikeHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(params.R.Body)
 	var task newLikeData
 	err := decoder.Decode(&task)
 	if err != nil || task.PageId <= 0 {
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if task.Value < -1 || task.Value > 1 {
-		c.Errorf("Value has to be -1, 0, or 1")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
 	}
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Inc("new_like_fail")
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Load user.
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Inc("new_like_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	if !u.IsLoggedIn {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerForbiddenFail("Have to be logged in", nil)
 	}
 
 	// Check to see if we have a recent like by this user for this page.
@@ -70,10 +47,7 @@ func newLikeHandler(w http.ResponseWriter, r *http.Request) {
 		`).QueryRow(u.Id, task.PageId, database.Now(), redoWindow)
 	found, err = row.Scan(&id)
 	if err != nil {
-		c.Inc("new_like_fail")
-		c.Errorf("Couldn't check for a recent like: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't check for a recent like", err)
 	}
 	if found {
 		hashmap := make(map[string]interface{})
@@ -82,23 +56,18 @@ func newLikeHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("likes", hashmap, "value", "createdAt")
 		if _, err = statement.Exec(); err != nil {
-			c.Inc("new_like_fail")
-			c.Errorf("Couldn't update a like: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			return pages.HandlerErrorFail("Couldn't update a like", err)
 		}
-		return
+	} else {
+		hashmap := make(map[string]interface{})
+		hashmap["userId"] = u.Id
+		hashmap["pageId"] = task.PageId
+		hashmap["value"] = task.Value
+		hashmap["createdAt"] = database.Now()
+		statement := db.NewInsertStatement("likes", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return pages.HandlerErrorFail("Couldn't add a like", err)
+		}
 	}
-
-	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["pageId"] = task.PageId
-	hashmap["value"] = task.Value
-	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("likes", hashmap)
-	if _, err = statement.Exec(); err != nil {
-		c.Inc("new_like_fail")
-		c.Errorf("Couldn't add a like: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	return pages.StatusOK(nil)
 }

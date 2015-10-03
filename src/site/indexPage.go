@@ -2,14 +2,9 @@
 package site
 
 import (
-	"fmt"
-	"net/http"
-
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 )
 
 type featuredDomain struct {
@@ -34,32 +29,15 @@ var indexPage = newPageWithOptions(
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl",
 		"tmpl/footer.tmpl"),
-	newPageOptions{})
+	pages.PageOptions{})
 
 // indexRenderer renders the index page.
-func indexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	c := sessions.NewContext(r)
+func indexRenderer(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	data, err := indexInternalRenderer(w, r, u)
-	if err != nil {
-		c.Inc("index_page_served_fail")
-		c.Errorf("%s", err)
-		return showError(w, r, fmt.Errorf("%s", err))
-	}
-	c.Inc("index_page_served_success")
-	return pages.StatusOK(data)
-}
-
-// indexInternalRenderer renders the index page.
-func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*indexTmplData, error) {
 	var data indexTmplData
 	data.User = u
-	c := sessions.NewContext(r)
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		return nil, err
-	}
 
 	// Manually load some pages we like
 	if sessions.Live {
@@ -125,23 +103,23 @@ func indexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User)
 	}
 
 	// Load pages.
-	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{})
+	err := core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("error while loading pages: %v", err)
+		return pages.Fail("error while loading pages", err)
 	}
 
 	// Load auxillary data.
 	err = loadAuxPageData(db, u.Id, data.PageMap, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
+		return pages.Fail("Couldn't load aux data", err)
 	}
 
 	// Load all the groups.
 	data.GroupMap = make(map[int64]*core.Group)
 	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load group names: %v", err)
+		return pages.Fail("Couldn't load group names", err)
 	}
 
-	return &data, nil
+	return pages.StatusOK(&data)
 }

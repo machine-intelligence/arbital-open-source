@@ -472,6 +472,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	// Take data we get from BE search, and extract the data to forward it to
 	// an autocompelete input. Also update the pageMap.
 	this.processAutocompleteResults = function(data) {
+		if (!data) return [];
 		// Add new pages to the pageMap.
 		for (var pageId in data.pages) {
 			pageService.addPageToMap(data.pages[pageId], false);

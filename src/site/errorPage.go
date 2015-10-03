@@ -2,12 +2,7 @@
 package site
 
 import (
-	"fmt"
-	"net/http"
-
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 )
 
 type errorData struct {
@@ -18,7 +13,7 @@ type errorData struct {
 // errorPage serves the "error" page.
 var errorPage = newPage(
 	"/error/",
-	errorRender,
+	nil,
 	append(baseTmpls,
 		"tmpl/errorPage.tmpl", "tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
@@ -29,28 +24,17 @@ var page404 = newPage(
 	renderer404,
 	append(baseTmpls, "tmpl/errorPage.tmpl"))
 
-// errorRenderer renders the error page.
-func errorRender(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	c := sessions.NewContext(r)
-	c.Inc("error_page_served_success")
-	var data errorData
-	data.Error = r.URL.Query().Get("error_msg")
-	data.User = u
-	return pages.StatusOK(data)
-}
-
 // renderer404 renders the error page.
-func renderer404(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	c := sessions.NewContext(r)
-	c.Inc("404_page_served_success")
-	return showError(w, r, fmt.Errorf("Page not found :("))
+func renderer404(params *pages.HandlerParams) *pages.Result {
+	return pages.Fail("Page not found :(", nil)
 }
 
-// showError redirects to the error page, showing a standard message
-// and logging specified error.
-func showError(w http.ResponseWriter, r *http.Request, err error) *pages.Result {
-	next := pages.Values{
-		"error_msg": fmt.Sprintf("Error: %v", err),
-	}.AddTo(errorPage.URI)
-	return pages.RedirectWith(next)
+// renderErrorPage is a custom fallback renderer so we can render an error
+// message instead of the page.
+func renderErrorPage(params *pages.HandlerParams, message string) *pages.Result {
+	params.C.Inc("error_page_served_success")
+	var data errorData
+	data.Error = message
+	data.User = params.U
+	return pages.StatusOK(data)
 }

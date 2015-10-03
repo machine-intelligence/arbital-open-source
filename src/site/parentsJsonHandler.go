@@ -3,12 +3,9 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 
 	"github.com/gorilla/schema"
 )
@@ -19,40 +16,19 @@ type parentsJsonData struct {
 }
 
 // parentsJsonHandler handles the request.
-func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
 	// Decode data
 	var data parentsJsonData
-	r.ParseForm()
-	err := schema.NewDecoder().Decode(&data, r.Form)
+	params.R.ParseForm()
+	err := schema.NewDecoder().Decode(&data, params.R.Form)
 	if err != nil {
-		c.Errorf("Couldn't decode request: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 	if data.ChildId <= 0 {
-		c.Errorf("Need a valid childId", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Inc("parents_json_handler_fail")
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Load user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Inc("parents_json_handler_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerBadRequestFail("Need a valid childId", err)
 	}
 
 	// Load the parents.
@@ -60,9 +36,7 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	pageMap[data.ChildId] = &core.Page{PageId: data.ChildId}
 	err = loadParentsIds(db, pageMap, loadParentsIdsOptions{LoadHasParents: true})
 	if err != nil {
-		c.Errorf("Couldn't load parent ids: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't load parent ids", err)
 	}
 	// Remove child, since we only want to return parents.
 	delete(pageMap, data.ChildId)
@@ -70,34 +44,19 @@ func parentsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// Load pages.
 	err = core.LoadPages(db, pageMap, u.Id, nil)
 	if err != nil {
-		c.Errorf("error while loading pages: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
 	// Load auxillary data.
 	err = loadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
-		c.Errorf("Couldn't retrieve page likes: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't retrieve page likes", err)
 	}
-
-	// Load probability votes
-	/*err = loadVotes(db, u.Id, pageIdStr, pageMap)
-	if err != nil {
-		c.Errorf("Couldn't load probability votes: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}*/
 
 	// Return the pages in JSON format.
 	strPageMap := make(map[string]*core.Page)
 	for k, v := range pageMap {
 		strPageMap[fmt.Sprintf("%d", k)] = v
 	}
-	err = writeJson(w, strPageMap)
-	if err != nil {
-		fmt.Println("Error writing data to json:", err)
-	}
+	return pages.StatusOK(strPageMap)
 }

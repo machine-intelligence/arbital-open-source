@@ -3,13 +3,10 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 )
 
 // groupsTmplData stores the data that we pass to the template to render the page
@@ -26,16 +23,12 @@ var groupsPage = newPage(
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 // groupsRenderer renders the page page.
-func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
+func groupsRenderer(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
+
 	var data groupsTmplData
 	data.User = u
-	c := sessions.NewContext(r)
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Errorf("%v", err)
-		return pages.InternalErrorWith(fmt.Errorf("Couldn't open DB"))
-	}
 
 	// Load the groups and members
 	data.UserMap = make(map[int64]*core.User)
@@ -49,7 +42,7 @@ func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		) AS m
 		ON (g.id=m.groupId)
 		WHERE g.id IN (SELECT groupId FROM groupMembers WHERE userId=?)`).Query(data.User.Id)
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var g core.Group
 		var m core.Member
 		err := rows.Scan(
@@ -78,17 +71,14 @@ func groupsRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		return nil
 	})
 	if err != nil {
-		c.Errorf("error while loading group members: %v", err)
-		return pages.InternalErrorWith(err)
+		return pages.Fail("Error while loading group members", err)
 	}
 
 	// Load all the users.
 	err = core.LoadUsers(db, data.UserMap)
 	if err != nil {
-		c.Errorf("error while loading users: %v", err)
-		return pages.InternalErrorWith(err)
+		return pages.Fail("Error while loading users", err)
 	}
 
-	c.Inc("groups_page_served_success")
 	return pages.StatusOK(data)
 }

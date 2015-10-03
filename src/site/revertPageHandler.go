@@ -5,12 +5,10 @@ package site
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 // revertPageData is the data received from the request.
@@ -22,58 +20,35 @@ type revertPageData struct {
 }
 
 // revertPageHandler handles requests for deleting a page.
-func revertPageHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func revertPageHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(params.R.Body)
 	var data revertPageData
 	err := decoder.Decode(&data)
 	if err != nil || data.PageId == 0 {
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Get user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	if !u.IsLoggedIn {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerForbiddenFail("Need to be logged in", nil)
 	}
 
 	// Load the page
 	var page *core.Page
 	page, err = loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{loadSpecificEdit: data.EditNum})
 	if err != nil {
-		c.Errorf("Couldn't load page: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't load page", err)
 	} else if page == nil {
-		c.Errorf("Couldn't find page: %v", data.PageId)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerErrorFail("Couldn't find page", nil)
 	}
 
 	// TODO: check that this user can perform this kind of revertion
 
 	// Check that we have the lock
 	if page.LockedUntil > database.Now() && page.LockedBy != u.Id {
-		c.Errorf("Don't have the lock")
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerErrorFail("Don't have the lock", err)
 	}
 
 	// Delete the edit
@@ -82,9 +57,7 @@ func revertPageHandler(w http.ResponseWriter, r *http.Request) {
 		SET isCurrentEdit=(edit=?)
 		WHERE pageId=?`)
 	if _, err = statement.Exec(data.EditNum, data.PageId); err != nil {
-		c.Errorf("Couldn't update pages: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't update pages", err)
 	}
 
 	// Update pageInfos
@@ -93,8 +66,7 @@ func revertPageHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["currentEdit"] = data.EditNum
 	statement = db.NewInsertStatement("pageInfos", hashmap, "currentEdit")
 	if _, err = statement.Exec(); err != nil {
-		c.Errorf("Couldn't change lock: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't change lock", err)
 	}
+	return pages.StatusOK(nil)
 }

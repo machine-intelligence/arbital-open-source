@@ -3,12 +3,10 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
 
@@ -24,33 +22,30 @@ var signupPage = newPageWithOptions(
 	signupRenderer,
 	append(baseTmpls,
 		"tmpl/signupPage.tmpl", "tmpl/navbar.tmpl"),
-	newPageOptions{})
+	pages.PageOptions{})
 
 // signupRenderer renders the signup page.
-func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
+func signupRenderer(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
+
 	var data signupData
 	data.User = u
-	c := sessions.NewContext(r)
 
 	if data.User.Id <= 0 {
 		return pages.RedirectWith(data.User.LoginLink)
 	}
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		return pages.InternalErrorWith(fmt.Errorf("Couldn't open DB"))
-	}
-
 	// Check if there are parameters. In this case, this is a form submit
 	// request. We can process it and, if successful, redirect the user
 	// to the page they came from / were trying to get to.
-	q := r.URL.Query()
+	q := params.R.URL.Query()
 	firstName := q.Get("firstName")
 	lastName := q.Get("lastName")
 	if firstName != "" || lastName != "" {
 		// This is a form submission.
 		if len(firstName) <= 0 || len(lastName) <= 0 {
-			return pages.InternalErrorWith(fmt.Errorf("Must specify both first and last names"))
+			return pages.Fail("Must specify both first and last names", nil)
 		}
 
 		// Process invite code and assign karma
@@ -59,7 +54,7 @@ func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		if inviteCode == "BAYES" || inviteCode == "LESSWRONG" {
 			karma = 200
 		} else {
-			return showError(w, r, fmt.Errorf("Need invite code"))
+			return pages.Fail("Need invite code", nil)
 		}
 		if data.User.Karma > karma {
 			karma = data.User.Karma
@@ -75,14 +70,14 @@ func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 			hashmap["karma"] = karma
 			hashmap["createdAt"] = database.Now()
 			statement := tx.NewInsertTxStatement("users", hashmap, "firstName", "lastName", "inviteCode", "karma")
-			if _, err = statement.Exec(); err != nil {
+			if _, err := statement.Exec(); err != nil {
 				return fmt.Errorf("Couldn't update user's record: %v", err)
 			}
 			data.User.FirstName = firstName
 			data.User.LastName = lastName
 			data.User.Karma = karma
 			data.User.IsLoggedIn = true
-			err = data.User.Save(w, r)
+			err := data.User.Save(params.W, params.R)
 			if err != nil {
 				return fmt.Errorf("Couldn't re-save the user after adding the name: %v", err)
 			}
@@ -110,8 +105,7 @@ func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 			return nil
 		})
 		if err != nil {
-			c.Errorf("Couldn't exec transaction: %v", err)
-			return pages.InternalErrorWith(fmt.Errorf("Couldn't update the DB"))
+			return pages.Fail("Couldn't exec transaction", err)
 		}
 
 		continueUrl := q.Get("continueUrl")
@@ -121,6 +115,5 @@ func signupRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages
 		return pages.RedirectWith(continueUrl)
 	}
 	data.ContinueUrl = q.Get("continueUrl")
-	c.Inc("signup_page_served_success")
 	return pages.StatusOK(data)
 }

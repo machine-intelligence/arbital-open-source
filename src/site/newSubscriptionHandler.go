@@ -3,11 +3,9 @@ package site
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 // newSubscriptionData contains the data we get in the request.
@@ -17,51 +15,30 @@ type newSubscriptionData struct {
 }
 
 // newSubscriptionHandler handles requests for adding a new subscription.
-func newSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func newSubscriptionHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	decoder := json.NewDecoder(r.Body)
-	var emptyData, data newSubscriptionData
+	decoder := json.NewDecoder(params.R.Body)
+	var data newSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil || data == emptyData {
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	if err != nil || (data.PageId == 0 && data.UserId == 0) {
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Inc("new_subscription_fail")
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-
-	// Get user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Inc("new_subscription_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	if !u.IsLoggedIn {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerForbiddenFail("Have to be logged in", nil)
 	}
 
-	// TODO: check if this subscription already exists
 	if data.PageId > 0 {
 		err = addSubscriptionToPage(db, u.Id, data.PageId)
 	} else if data.UserId > 0 {
 		err = addSubscriptionToUser(db, u.Id, data.UserId)
 	}
 	if err != nil {
-		c.Inc("new_subscription_fail")
-		c.Errorf("Couldn't create new subscription: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't create new subscription", err)
 	}
+	return pages.StatusOK(nil)
 }
 
 func addSubscriptionToPage(db *database.DB, userId int64, pageId int64) error {

@@ -3,11 +3,9 @@ package site
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 // newMemberData contains data given to us in the request.
@@ -17,44 +15,22 @@ type newMemberData struct {
 }
 
 // newMemberHandler handles requests to add a new member to a group.
-func newMemberHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func newMemberHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(params.R.Body)
 	var data newMemberData
 	err := decoder.Decode(&data)
 	if err != nil {
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if data.GroupId <= 0 || data.UserId <= 0 {
-		c.Errorf("GroupId and UserId have to be set")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
 	}
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Inc("new_member_fail")
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Load user.
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Inc("new_member_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	if !u.IsLoggedIn {
-		c.Errorf("Not logged in")
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerForbiddenFail("Not logged in", nil)
 	}
 
 	// Check to see if this user can add members.
@@ -67,14 +43,9 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 		`).QueryRow(u.Id, data.GroupId)
 	found, err = row.Scan(&blank)
 	if err != nil {
-		c.Inc("new_member_fail")
-		c.Errorf("Couldn't check for a group member: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't check for a group member", err)
 	} else if !found {
-		c.Errorf("You don't have the permission to add a user")
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerForbiddenFail("You don't have the permission to add a user", nil)
 	}
 
 	// Check to see if the proposed member exists.
@@ -84,14 +55,9 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 		WHERE id=%d`).QueryRow(data.UserId)
 	found, err = row.Scan(&blank)
 	if err != nil {
-		c.Inc("new_member_fail")
-		c.Errorf("Couldn't check for a user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't check for a user", err)
 	} else if !found {
-		c.Errorf("New member id doesn't correspond to a user")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("New member id doesn't correspond to a user", nil)
 	}
 
 	hashmap := make(map[string]interface{})
@@ -100,9 +66,7 @@ func newMemberHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("groupMembers", hashmap)
 	if _, err = statement.Exec(); err != nil {
-		c.Inc("new_member_fail")
-		c.Errorf("Couldn't add a member: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't add a member", err)
 	}
+	return pages.StatusOK(nil)
 }

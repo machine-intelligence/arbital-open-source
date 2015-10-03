@@ -12,13 +12,15 @@
 		app.controller("ExploreCtrl", function ($scope, pageService) {
 			$scope.rootPages = {};
 			$scope.childPages = {};
-			for (id in pageService.pageMap) {
-				var page = pageService.pageMap[id];
-				if (page.parents.length <= 0) {
-					$scope.rootPages[id] = page;
-				} else {
-					$scope.childPages[id] = page;
-				}
+			for (var id in pageService.pageMap) {
+				$scope.childPages[id] = pageService.pageMap[id];
+			}
+
+			var rootPageIds = [{{range .RootPageIds}}{{.}},{{end}}];
+			for (var n = 0; n < rootPageIds.length; n++) {
+				var id = rootPageIds[n];
+				$scope.rootPages[id] = $scope.childPages[id];
+				delete $scope.childPages[id];
 			}
 		});
 	</script>

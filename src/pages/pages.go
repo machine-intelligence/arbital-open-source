@@ -16,45 +16,70 @@ import (
 	"net/http"
 	"net/url"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/logger"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
 
 var (
 	BaseTemplate        = "base"                                     // Name of top-level template to invoke for each page.
 	BadRequestMsg       = "Invalid request. Please try again later." // Message to display if ShowError is called.
-	StatusBadRequest    = Result{responseCode: http.StatusBadRequest}
-	StatusUnauthorized  = Result{responseCode: http.StatusUnauthorized}
-	StatusNotFound      = Result{responseCode: http.StatusNotFound}
-	StatusInternalError = Result{responseCode: http.StatusInternalServerError}
+	StatusBadRequest    = Result{ResponseCode: http.StatusBadRequest}
+	StatusUnauthorized  = Result{ResponseCode: http.StatusUnauthorized}
+	StatusNotFound      = Result{ResponseCode: http.StatusNotFound}
+	StatusInternalError = Result{ResponseCode: http.StatusInternalServerError}
 )
 
-// Renderer is a function to render a page result.
-type Renderer func(w http.ResponseWriter, r *http.Request, u *user.User) *Result
+// HandlerParams are passed to all handlers.
+type HandlerParams struct {
+	W  http.ResponseWriter
+	R  *http.Request
+	C  sessions.Context
+	DB *database.DB
+	U  *user.User
+}
+
+// Renderer is a function to render a page result. Returns:
+// data - result data object. If nil, we have failed.
+// string - error message we can display to the user
+// error - error to display to the developers
+type Renderer func(*HandlerParams) *Result
 
 // A Page to be rendered.
 type Page struct {
 	URI       string   // URI path
 	Render    Renderer // func to render the page
 	Templates []string // backing templates
+	Options   *PageOptions
+}
+
+// PageOptions specify various requirements we need to check for the page.
+// NOTE: make sure that default values are okay for all pages.
+type PageOptions struct {
+	AdminOnly       bool
+	SkipLoadingUser bool
+	RequireLogin    bool
 }
 
 // Add creates a new page.
 //
 // Add panics if the page templates cannot be parsed.
-func Add(uri string, render Renderer, tmpls ...string) Page {
+func Add(uri string, render Renderer, options *PageOptions, tmpls ...string) Page {
 	return Page{
 		URI:       uri,
 		Render:    render,
 		Templates: tmpls,
+		Options:   options,
 	}
 }
 
 // Result is the result of rendering a page.
 type Result struct {
-	data                interface{}      // Data to render the page.
-	responseCode        int              // HTTP response code.
-	err                 error            // Error, or nil.
+	Data                interface{}      // Data to render the page.
+	ResponseCode        int              // HTTP response code.
+	Err                 error            // Error, or nil.
+	Message             string           // Error string we can display to the user
 	next                string           // Next uri, if applicable.
 	funcMap             template.FuncMap // Functions map
 	additionalTemplates []string         // Optional additional templates used to compile the page
@@ -81,48 +106,50 @@ func (r *Result) AddAdditionalTemplates(tmpls []string) *Result {
 // StatusOK returns http.StatusOK with given data passed to the template.
 func StatusOK(data interface{}) *Result {
 	return &Result{
-		responseCode: http.StatusOK,
-		data:         data,
+		ResponseCode: http.StatusOK,
+		Data:         data,
 	}
 }
 
-// BadRequestWith returns a Result indicating a bad request.
-func BadRequestWith(err error) *Result {
+// StatusFail is used when we want to return the page, but mark it as failed.
+func StatusFail(data interface{}) *Result {
 	return &Result{
-		responseCode: http.StatusBadRequest,
-		err:          err,
+		ResponseCode: http.StatusInternalServerError,
+		Data:         data,
 	}
 }
 
-// UnauthorizedWith returns a Result indicating an authorized request.
-func UnauthorizedWith(err error) *Result {
+// Fail returns a Result that indicates failure to render.
+func Fail(message string, err error) *Result {
 	return &Result{
-		responseCode: http.StatusUnauthorized,
-		err:          err,
+		Message: message,
+		Err:     err,
 	}
 }
 
-// InternalErrorWith returns a Result indicating an internal error.
-func InternalErrorWith(err error) *Result {
+// HandlerFail is used by handler to indicate that they failed to execute.
+func HandlerFail(status int, message string, err error) *Result {
 	return &Result{
-		responseCode: http.StatusInternalServerError,
-		err:          err,
+		ResponseCode: status,
+		Message:      message,
+		Err:          err,
 	}
+}
+func HandlerForbiddenFail(message string, err error) *Result {
+	return HandlerFail(http.StatusForbidden, message, err)
+}
+func HandlerBadRequestFail(message string, err error) *Result {
+	return HandlerFail(http.StatusBadRequest, message, err)
+}
+func HandlerErrorFail(message string, err error) *Result {
+	return HandlerFail(http.StatusInternalServerError, message, err)
 }
 
 // RedirectWith returns a Result indicating to redirect to another URI.
 func RedirectWith(uri string) *Result {
 	return &Result{
-		responseCode: http.StatusSeeOther,
+		ResponseCode: http.StatusSeeOther,
 		next:         uri,
-	}
-}
-
-// CustomCodeWith returns a Result indicating the given responseCode.
-func CustomCodeWith(data interface{}, responseCode int) *Result {
-	return &Result{
-		responseCode: responseCode,
-		data:         data,
 	}
 }
 
@@ -160,31 +187,30 @@ func (v Values) AddTo(uri string) string {
 // ServeHTTP serves HTTP for the page.
 //
 // ServeHTTP panics if no logger has been registered with SetLogger.
-func (p Page) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p Page) ServeHTTP(w http.ResponseWriter, r *http.Request, result *Result) {
 	l := logger.GetLogger(r)
 	l.Infof("Page %+v will ServeHTTP for URL: %v", p, r.URL)
 
 	// Render the page, retrieving any data for the template.
-	pr := p.Render(w, r, nil)
-	if pr.err != nil || pr.responseCode != http.StatusOK {
-		if pr.err != nil {
-			l.Errorf("Error while rendering %v: %v\n", r.URL, pr.err)
+	if result.Err != nil || result.ResponseCode != http.StatusOK {
+		if result.Err != nil {
+			l.Errorf("Error while rendering %v: %v\n", r.URL, result.Err)
 		}
-		if pr.responseCode == http.StatusNotFound {
+		if result.ResponseCode == http.StatusNotFound {
 			http.NotFound(w, r)
-		} else if pr.responseCode == http.StatusBadRequest {
+		} else if result.ResponseCode == http.StatusBadRequest {
 			http.Error(w, "Bad request", http.StatusBadRequest)
-		} else if pr.responseCode == http.StatusSeeOther {
-			http.Redirect(w, r, pr.next, http.StatusSeeOther)
+		} else if result.ResponseCode == http.StatusSeeOther {
+			http.Redirect(w, r, result.next, http.StatusSeeOther)
 		} else {
-			http.Error(w, "Internal server error.", pr.responseCode)
+			http.Error(w, "Internal server error.", result.ResponseCode)
 		}
 		return
 	}
 
-	allTemplates := append(p.Templates, pr.additionalTemplates...)
-	template := template.Must(template.New(p.URI).Funcs(pr.funcMap).ParseFiles(allTemplates...))
-	err := template.ExecuteTemplate(w, BaseTemplate, pr.data)
+	allTemplates := append(p.Templates, result.additionalTemplates...)
+	template := template.Must(template.New(p.URI).Funcs(result.funcMap).ParseFiles(allTemplates...))
+	err := template.ExecuteTemplate(w, BaseTemplate, result.Data)
 	if err != nil {
 		// TODO: If this happens, partial template data is still written
 		// to w by ExecuteTemplate, which isn't ideal; we'd like the 500

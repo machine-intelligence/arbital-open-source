@@ -3,11 +3,9 @@ package site
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 // newVoteData contains data given to us in the request.
@@ -17,42 +15,22 @@ type newVoteData struct {
 }
 
 // newVoteHandler handles requests to create/update a prior vote.
-func newVoteHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func newVoteHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	decoder := json.NewDecoder(r.Body)
+	if !u.IsLoggedIn {
+		return pages.HandlerForbiddenFail("Need to be logged in", nil)
+	}
+
+	decoder := json.NewDecoder(params.R.Body)
 	var task newVoteData
 	err := decoder.Decode(&task)
 	if err != nil || task.PageId <= 0 {
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if task.Value < 0 || task.Value >= 100 {
-		c.Errorf("Value has to be [0, 100)")
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Inc("new_vote_fail")
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-
-	// Load user.
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Inc("new_vote_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if !u.IsLoggedIn {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerBadRequestFail("Value has to be [0, 100)", nil)
 	}
 
 	// Get the last vote.
@@ -68,15 +46,12 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 		LIMIT 1`).QueryRow(database.Now(), u.Id, task.PageId)
 	oldVoteExists, err = row.Scan(&oldVoteId, &oldVoteValue, &oldVoteAge)
 	if err != nil {
-		c.Inc("new_vote_fail")
-		c.Errorf("Couldn't check for a recent vote: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't check for a recent vote", err)
 	}
 
 	// If previous vote is exactly the same, don't do anything.
 	if oldVoteExists && oldVoteValue == task.Value {
-		return
+		return pages.StatusOK(nil)
 	}
 
 	// Check to see if we have a recent vote by this user for this page.
@@ -87,24 +62,19 @@ func newVoteHandler(w http.ResponseWriter, r *http.Request) {
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("votes", hashmap, "value", "createdAt")
 		if _, err = statement.Exec(); err != nil {
-			c.Inc("new_vote_fail")
-			c.Errorf("Couldn't update a vote: %v", err)
-			w.WriteHeader(http.StatusInternalServerError)
+			return pages.HandlerErrorFail("Couldn't update a vote", err)
 		}
-		return
+	} else {
+		// Insert new vote.
+		hashmap := make(map[string]interface{})
+		hashmap["userId"] = u.Id
+		hashmap["pageId"] = task.PageId
+		hashmap["value"] = task.Value
+		hashmap["createdAt"] = database.Now()
+		statement := db.NewInsertStatement("votes", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return pages.HandlerErrorFail("Couldn't add a vote", err)
+		}
 	}
-
-	// Insert new vote.
-	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["pageId"] = task.PageId
-	hashmap["value"] = task.Value
-	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("votes", hashmap)
-	if _, err = statement.Exec(); err != nil {
-		c.Inc("new_vote_fail")
-		c.Errorf("Couldn't add a vote: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	return pages.StatusOK(nil)
 }

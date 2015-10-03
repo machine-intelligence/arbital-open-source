@@ -3,12 +3,9 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 
 	"github.com/gorilla/schema"
 )
@@ -19,46 +16,19 @@ type childrenJsonData struct {
 }
 
 // childrenJsonHandler handles requests to create a new page.
-func childrenJsonHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
 	// Decode data
 	var data childrenJsonData
-	r.ParseForm()
-	err := schema.NewDecoder().Decode(&data, r.Form)
+	params.R.ParseForm()
+	err := schema.NewDecoder().Decode(&data, params.R.Form)
 	if err != nil {
-		c.Errorf("Couldn't decode request: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 	if data.ParentId <= 0 {
-		c.Errorf("Need a valid parentId", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	err = childrenJsonInternalHandler(w, r, &data)
-	if err != nil {
-		c.Errorf("%v", err)
-		c.Inc("children_json_handler_fail")
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-// childrenJsonInternalHandler handles requests to create a new page.
-func childrenJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *childrenJsonData) error {
-	c := sessions.NewContext(r)
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		return err
-	}
-
-	// Load user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		return fmt.Errorf("Couldn't load user: %v", err)
+		return pages.HandlerBadRequestFail("Need a valid parentId", err)
 	}
 
 	// Load the children.
@@ -66,7 +36,7 @@ func childrenJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *c
 	pageMap[data.ParentId] = &core.Page{PageId: data.ParentId}
 	err = loadChildrenIds(db, pageMap, loadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
-		return fmt.Errorf("Couldn't load children: %v", err)
+		return pages.HandlerErrorFail("Couldn't load children", err)
 	}
 	// Remove parent, since we only want to return children.
 	delete(pageMap, data.ParentId)
@@ -74,29 +44,19 @@ func childrenJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *c
 	// Load pages.
 	err = core.LoadPages(db, pageMap, u.Id, nil)
 	if err != nil {
-		return fmt.Errorf("error while loading pages: %v", err)
+		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
 	// Load likes.
 	err = loadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
-		return fmt.Errorf("Couldn't load aux data: %v", err)
+		return pages.HandlerErrorFail("Couldn't load aux data", err)
 	}
-
-	// Load probability votes
-	/*err = loadVotes(c, u.Id, pageIdStr, pageMap)
-	if err != nil {
-		return fmt.Errorf("Couldn't load probability votes: %v", err)
-	}*/
 
 	// Return the page in JSON format.
 	strPageMap := make(map[string]*core.Page)
 	for k, v := range pageMap {
 		strPageMap[fmt.Sprintf("%d", k)] = v
 	}
-	err = writeJson(w, strPageMap)
-	if err != nil {
-		fmt.Println("Error writing data to json:", err)
-	}
-	return nil
+	return pages.StatusOK(strPageMap)
 }

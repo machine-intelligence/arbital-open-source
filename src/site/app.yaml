@@ -11,7 +11,8 @@ handlers:
   static_dir: static
 
 - url: /favicon.ico
-  static_dir: static
+  static_files: static/images/favicon.ico
+  upload: static/images/favicon.ico
 
 - url: /.*
   script: _go_app

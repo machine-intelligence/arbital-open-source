@@ -3,7 +3,7 @@
 CREATE TABLE pageInfos (
 	/* Id of the page the info is for. */
 	pageId BIGINT NOT NULL,
-	/* Edit number currently used to display the page. -1 if this page hasn't
+	/* Edit number currently used to display the page. 0 if this page hasn't
 		been published. */
 	currentEdit INT NOT NULL,
 	/* Maximum edit number used by this page. */

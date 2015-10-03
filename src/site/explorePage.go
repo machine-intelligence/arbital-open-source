@@ -3,13 +3,10 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
 )
@@ -17,6 +14,7 @@ import (
 // exploreTmplData stores the data that we pass to the template to render the page
 type exploreTmplData struct {
 	commonPageData
+	RootPageIds []string
 }
 
 // explorePage serves the Explore page.
@@ -34,32 +32,16 @@ var explorePage = newPage(
 		"tmpl/explorePage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
 
 // exploreRenderer renders the explore page.
-func exploreRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	c := sessions.NewContext(r)
+func exploreRenderer(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
 
-	data, err := exploreInternalRenderer(w, r, u)
-	if err != nil {
-		c.Inc("explore_page_served_fail")
-		c.Errorf("%s", err)
-		return showError(w, r, fmt.Errorf("%s", err))
-	}
-	c.Inc("explore_page_served_success")
-	return pages.StatusOK(data)
-}
-
-// exploreInternalRenderer renders the page page.
-func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*exploreTmplData, error) {
 	var data exploreTmplData
 	data.User = u
-	c := sessions.NewContext(r)
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		return nil, err
-	}
+	data.RootPageIds = make([]string, 0)
 
 	// Load the domain.
-	domainAlias := mux.Vars(r)["domain"]
+	domainAlias := mux.Vars(params.R)["domain"]
 	if domainAlias != "" {
 		data.Domain = &core.Group{Alias: domainAlias}
 		data.User.DomainAlias = data.Domain.Alias
@@ -69,10 +51,11 @@ func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 			WHERE alias=?`).QueryRow(data.Domain.Alias)
 		foundDomain, err := row.Scan(&data.Domain.Id, &data.Domain.Name, &data.Domain.RootPageId)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't retrieve subscription: %v", err)
+			return pages.Fail("Couldn't retrieve subscription", err)
 		} else if !foundDomain {
-			return nil, fmt.Errorf("Couldn't find the domain: %s", data.Domain.Alias)
+			return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", data.Domain.Alias), nil)
 		}
+		data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", data.Domain.RootPageId))
 	}
 
 	// Load the root page(s)
@@ -90,29 +73,30 @@ func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 			var pageId int64
 			err := rows.Scan(&pageId)
 			if err != nil {
-				return fmt.Errorf("failed to scan a page id: %v", err)
+				return fmt.Errorf("failed to scan a page id", err)
 			}
 			p := &core.Page{PageId: pageId}
 			data.PageMap[pageId] = p
+			data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", pageId))
 			return nil
 		})
 		if err != nil {
-			return nil, fmt.Errorf("error while loading page pairs: %v", err)
+			return pages.Fail("error while loading page pairs", err)
 		}
 	} else {
 		data.PageMap[data.Domain.RootPageId] = &core.Page{PageId: data.Domain.RootPageId}
 	}
 
 	// Load the children
-	err = loadChildrenIds(db, data.PageMap, loadChildrenIdsOptions{LoadHasChildren: true})
+	err := loadChildrenIds(db, data.PageMap, loadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
-		return nil, fmt.Errorf("error while loading children: %v", err)
+		return pages.Fail("error while loading children", err)
 	}
 
 	// Load pages.
 	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading pages: %v", err)
+		return pages.Fail("error while loading pages", err)
 	}
 
 	// Filter unpublished pages.
@@ -125,13 +109,13 @@ func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 	// Load auxillary data.
 	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
+		return pages.Fail("Couldn't load aux data", err)
 	}
 
 	// Load number of red links.
 	err = loadLinks(db, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading links: %v", err)
+		return pages.Fail("error while loading links", err)
 	}
 	for _, p := range data.PageMap {
 		p.RedLinkCount = 0
@@ -142,5 +126,5 @@ func exploreInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.Use
 		}
 	}
 
-	return &data, nil
+	return pages.StatusOK(&data)
 }

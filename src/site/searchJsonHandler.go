@@ -2,16 +2,12 @@
 package site
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 type searchJsonData struct {
@@ -19,51 +15,29 @@ type searchJsonData struct {
 }
 
 // searchJsonHandler handles the request.
-func searchJsonHandler(w http.ResponseWriter, r *http.Request) {
-	var err error
-	c := sessions.NewContext(r)
+func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
 	// Decode data
 	var data searchJsonData
-	q := r.URL.Query()
+	q := params.R.URL.Query()
 	data.Term = q.Get("term")
-	if data.Term != "" {
-		err = searchJsonInternalHandler(w, r, &data)
-	} else {
-		err = fmt.Errorf("No search term specified")
-	}
-
-	if err != nil {
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *searchJsonData) error {
-	c := sessions.NewContext(r)
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		return err
-	}
-
-	// Load user object
-	u, err := user.LoadUser(w, r, db)
-	if err != nil {
-		return fmt.Errorf("Couldn't load user: %v", err)
+	if data.Term == "" {
+		return pages.HandlerBadRequestFail("No search term specified", nil)
 	}
 
 	// Load user groups
-	err = loadUserGroups(db, u)
+	err := loadUserGroups(db, u)
 	if err != nil {
-		return fmt.Errorf("Couldn't load user groups: %v", err)
+		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
 	// Compute list of group ids we can access
 	groupMap := make(map[int64]*core.Group)
 	err = loadGroupNames(db, u, groupMap)
 	if err != nil {
-		return fmt.Errorf("Couldn't load groupMap: %v", err)
+		return pages.HandlerErrorFail("Couldn't load groupMap", err)
 	}
 	groupIds := make([]string, 0)
 	groupIds = append(groupIds, "0")
@@ -115,7 +89,7 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 	// Perform search.
 	results, err := elastic.SearchPageIndex(db.C, jsonStr)
 	if err != nil {
-		return fmt.Errorf("Error with elastic search: %v", err)
+		return pages.HandlerErrorFail("Error with elastic search", err)
 	}
 
 	// Create page map.
@@ -127,13 +101,13 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 	// Load pages.
 	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{})
 	if err != nil {
-		return fmt.Errorf("error while loading pages: %v", err)
+		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
 	// Load auxillary data.
 	err = loadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
-		return fmt.Errorf("error while loading aux data: %v", err)
+		return pages.HandlerErrorFail("error while loading aux data", err)
 	}
 
 	// Return the data in JSON format.
@@ -146,12 +120,5 @@ func searchJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *sea
 	returnData["searchHits"] = results.Hits
 	returnData["pages"] = returnPageData
 
-	// Return the pages in JSON format.
-	jsonData, err := json.Marshal(returnData)
-	if err != nil {
-		return fmt.Errorf("Couldn't write json: %v", err)
-	}
-	w.Write(jsonData)
-
-	return nil
+	return pages.StatusOK(returnData)
 }
