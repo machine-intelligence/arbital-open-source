@@ -80,6 +80,7 @@ func init() {
 	r.HandleFunc("/json/similarPageSearch/", handlerWrapper(similarPageSearchJsonHandler)).Methods("POST")
 
 	// Admin stuff
+	r.HandleFunc("/fixText/", handlerWrapper(fixTextHandler)).Methods("GET")
 	r.HandleFunc("/updateElasticIndex/", handlerWrapper(updateElasticIndexHandler)).Methods("GET")
 	r.HandleFunc("/updateMetadata/", handlerWrapper(updateMetadataHandler)).Methods("GET")
 

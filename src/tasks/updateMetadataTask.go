@@ -9,10 +9,6 @@ import (
 	"zanaduu3/src/sessions"
 )
 
-var (
-	baseTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl"}
-)
-
 // UpdateMetadataTask is the object that's put into the daemon queue.
 type UpdateMetadataTask struct {
 }
