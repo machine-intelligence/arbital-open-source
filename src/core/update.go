@@ -10,6 +10,7 @@ import (
 // UpdateRow is a row from updates table
 type UpdateRow struct {
 	UserId             int64
+	ByUserId           int64
 	CreatedAt          string
 	Type               string
 	GroupByPageId      int64
@@ -31,6 +32,7 @@ type UpdateGroupKey struct {
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
 	UserId             int64
+	ByUserId           int64
 	Type               string
 	Repeated           int
 	SubscribedToPageId int64
@@ -57,7 +59,7 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 	}
 	updateRows := make([]*UpdateRow, 0, 0)
 	rows := db.NewStatement(`
-		SELECT userId,createdAt,type,newCount,
+		SELECT userId,byUserId,createdAt,type,newCount,
 			groupByPageId,groupByUserId,
 			subscribedToUserId,subscribedToPageId,goToPageId
 		FROM updates
@@ -68,6 +70,7 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 		var row UpdateRow
 		err := rows.Scan(
 			&row.UserId,
+			&row.ByUserId,
 			&row.CreatedAt,
 			&row.Type,
 			&row.NewCount,
@@ -88,6 +91,7 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 		}
 
 		userMap[row.UserId] = &User{Id: row.UserId}
+		userMap[row.ByUserId] = &User{Id: row.ByUserId}
 		if row.GroupByUserId > 0 {
 			userMap[row.GroupByUserId] = &User{Id: row.GroupByUserId}
 		}
@@ -144,6 +148,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[int64]*Page) []*Up
 			// Add new entry to the group
 			entry := &UpdateEntry{
 				UserId:             row.UserId,
+				ByUserId:           row.ByUserId,
 				Type:               row.Type,
 				Repeated:           1,
 				SubscribedToUserId: row.SubscribedToUserId,
