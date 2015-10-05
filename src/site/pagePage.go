@@ -52,7 +52,6 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	var data pageTmplData
 	result := pageInternalRenderer(params, &data)
 	if result.Data == nil {
-		params.C.Debugf("============ %v %v", result.Message, result.Err)
 		return pages.Fail(result.Message, result.Err)
 	}
 
