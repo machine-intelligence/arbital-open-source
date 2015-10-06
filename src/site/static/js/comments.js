@@ -283,6 +283,143 @@ app.directive("arbComment", function ($compile, $timeout, pageService, autocompl
 	};
 });
 
+// Directive for showing an inline question.
+app.directive("arbQuestion", function ($compile, $timeout, pageService, autocompleteService) {
+	return {
+		templateUrl: "/static/html/inlineQuestion.html",
+		controller: function ($scope, pageService, userService) {
+			$scope.userService = userService;
+			$scope.comment = pageService.pageMap[$scope.pageId];
+		},
+		scope: {
+			primaryPageId: "@",  // id of the primary page this comment belongs to
+			pageId: "@",  // id of this comment
+			parentCommentId: "@",  // id of the parent comment, if there is one
+		},
+		link: function(scope, element, attrs) {
+
+			$timeout(function() {
+				// Process comment's text using Markdown.
+				arbMarkdown.init(false, scope.pageId, scope.comment.text, element, pageService);
+			});
+
+			// Highlight the comment div. Used for selecting comments when #anchor matches.
+			var highlightCommentDiv = function() {
+				$(".hash-anchor").removeClass("hash-anchor");
+				element.find(".comment-content").addClass("hash-anchor");
+			};
+			if (window.location.hash === "#comment-" + scope.pageId) {
+				highlightCommentDiv();
+			}
+
+			// Comment voting stuff.
+			// likeClick is 1 is user clicked like and 0 if they clicked reset like.
+			element.find(".like-comment-link").on("click", function(event) {
+				var $target = $(event.target);
+				var $commentRow = $target.closest(".comment-row");
+				var $likeCount = $commentRow.find(".comment-like-count");
+			
+				// Update UI.
+				$target.toggleClass("on");
+				var newLikeValue = $target.hasClass("on") ? 1 : 0;
+				var totalLikes = ((+$likeCount.text()) + (newLikeValue > 0 ? 1 : -1));
+				if (totalLikes > 0) {
+					$likeCount.text("" + totalLikes);
+				} else {
+					$likeCount.text("");
+				}
+				
+				// Notify the server
+				var data = {
+					pageId: scope.pageId,
+					value: newLikeValue,
+				};
+				$.ajax({
+					type: "POST",
+					url: '/newLike/',
+					data: JSON.stringify(data),
+				})
+				.done(function(r) {
+				});
+				return false;
+			});
+
+			// Process comment subscribe click.
+			element.find(".subscribe-comment-link").on("click", function(event) {
+				var $target = $(event.target);
+				$target.toggleClass("on");
+				var data = {
+					pageId: scope.pageId,
+				};
+				$.ajax({
+					type: "POST",
+					url: $target.hasClass("on") ? "/newSubscription/" : "/deleteSubscription/",
+					data: JSON.stringify(data),
+				})
+				.done(function(r) {
+				});
+				return false;
+			});
+	
+			// Comment editing stuff.
+			var $comment = element.find(".comment-content");
+			// Create and show the edit page directive.
+			var createEditPage = function() {
+				var el = $compile("<arb-edit-page page-id='" + scope.pageId +
+						"' primary-page-id='" + scope.primaryPageId +
+						"' done-fn='doneFn(result)'></arb-edit-page>")(scope);
+				$comment.append(el);
+			};
+			var destroyEditPage = function() {
+				$comment.find("arb-edit-page").remove();
+			};
+			// Reload comment from the server, loading the last, potentially non-live edit.
+			var reloadComment = function() {
+				$comment.find(".loading-indicator").show();
+				pageService.removePageFromMap(scope.pageId);
+				pageService.loadPages([scope.pageId], {
+					includeText: true,
+					allowDraft: true,
+					success: function(data, status) {
+						$comment.find(".loading-indicator").hide();
+						createEditPage();
+					},
+				});
+			}
+			// Show/hide the comment vs the edit page.
+			function toggleEditComment(visible) {
+				$comment.find(".comment-body").toggle(!visible);
+				$comment.find("arb-edit-page").toggle(visible);
+			}
+			// Callback used when the user is done editing the comment.
+			scope.doneFn = function(result) {
+				if (result.abandon) {
+					toggleEditComment(false);
+					element.find(".edit-comment-link").removeClass("has-draft");
+					scope.comment.hasDraft = false;
+					destroyEditPage();
+				} else if (result.alias) {
+					smartPageReload("comment-" + result.alias);
+				}
+			};
+			element.find(".edit-comment-link").on("click", function(event) {
+				$(".hash-anchor").removeClass("hash-anchor");
+				// Dynamically create arb-edit-page directive if it doesn't exist already.
+				if ($comment.find("arb-edit-page").length <= 0) {
+					if (scope.comment.hasDraft) {
+						// Load the draft.
+						reloadComment();
+					} else {
+						createEditPage();
+					}
+				}
+				toggleEditComment(true);
+				return false;
+			});
+		},
+	};
+});
+
 // Directive for creating a new comment.
 app.directive("arbNewComment", function ($compile, pageService, userService) {
 	return {

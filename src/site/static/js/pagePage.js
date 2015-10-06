@@ -14,6 +14,7 @@ $(function() {
 		this.clearRhs = function() {
 			$questionDiv.find("arb-edit-page").remove();
 			$questionDiv.find("arb-comment").remove();
+			$questionDiv.find("arb-question").remove();
 			$(".inline-comment-icon").removeClass("on");
 		};
 	
@@ -50,6 +51,24 @@ $(function() {
 
 		// Hide/show an inline comment.
 		this.toggleInlineComment = function($toggleDiv, callback) {
+			var $inlineComment = $toggleDiv.find(".inline-comment-icon");
+			if ($inlineComment.hasClass("on")) {
+				this.clearRhs();
+				this.hideRhs();
+			} else {
+				this.clearRhs();
+				$(".inline-comment-highlight").removeClass("inline-comment-highlight");
+				this.showRhs(function() {
+					var offset = {left: $questionDiv.offset().left + 32, top: $toggleDiv.offset().top + 40};
+					$(".inline-comment-div").offset(offset);
+					$inlineComment.addClass("on");
+					callback();
+				});
+			}
+		};
+
+		// Hide/show an inline question.
+		this.toggleInlineQuestion = function($toggleDiv, callback) {
 			var $inlineComment = $toggleDiv.find(".inline-comment-icon");
 			if ($inlineComment.hasClass("on")) {
 				this.clearRhs();

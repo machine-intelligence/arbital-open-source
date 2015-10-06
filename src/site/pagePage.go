@@ -171,6 +171,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		}
 	}
 
+
 	// Load comment ids.
 	err = loadCommentIds(db, data.PageMap, embeddedPageMap)
 	if err != nil {
@@ -186,6 +187,13 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	// Add comments to the embedded pages map.
 	for id, p := range data.PageMap {
 		if p.Type == core.CommentPageType {
+			embeddedPageMap[id] = p
+		}
+	}
+
+	// Add questions to the embedded pages map.
+	for id, p := range data.PageMap {
+		if p.Type == core.QuestionPageType {
 			embeddedPageMap[id] = p
 		}
 	}
@@ -240,9 +248,11 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
 
+	c.Debugf("pagemap: %v", data.PageMap)
+
 	// Erase Text from pages that don't need it.
 	for _, p := range data.PageMap {
-		if (data.Page.Type != core.QuestionPageType || p.Type != core.AnswerPageType) && p.Type != core.CommentPageType {
+		if (data.Page.Type != core.QuestionPageType || p.Type != core.AnswerPageType) && (p.Type != core.CommentPageType && p.Type != core.QuestionPageType) {
 			p.Text = ""
 		}
 	}

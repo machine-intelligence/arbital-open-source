@@ -227,6 +227,20 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function($compile, scope) {
+		// for question pages, check if we need to add the anchor text
+//console.log("testing...");
+		if (page.type === "question") {
+//console.log("if (page.type === \"question\") {");
+//console.log("page: %s", page);
+//console.log("page.anchorContext: %s", page.anchorContext);
+//console.log("page.anchorText: %s", page.anchorText);
+//console.log("page.text: %s", page.text);
+
+			if (page.anchorContext && page.anchorText) {
+				page.text = "> " + page.anchorText + "\n\n" + page.text;
+			}
+		}
+
 		// Set up markdown.
 		arbMarkdown.init(false, pageId, page.text, $topParent, pageService);
 
@@ -292,7 +306,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 			for (var n = 0; n < $scope.page.children.length; n++) {
 				var id = $scope.page.children[n].childId;
 				var page = pageService.pageMap[id];
-				if (page.type === "question") {
+				if (page.type === "question" && !page.anchorContext) {
 					$scope.questionIds.push(id);
 				}
 			}
@@ -398,6 +412,11 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 							// Check if one of the children is selected.
 							for (var n = 0; n < comment.children.length; n++) {
 								expandComment |= window.location.hash === "#comment-" + comment.children[n].childId;
+//console.trace();
+//console.log("testing...");
+//console.log("expandComment: %s", expandComment);
+//console.log("window.location.hash: %s", window.location.hash);
+//console.log("pageId: %s", pageId);
 							}
 						}
 						if (expandComment) {
@@ -430,7 +449,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 				});
 			}
 
-			// Create a toggle-inline-question-div.
+			// Create a toggle-inline-comment-div, for a question.
 			var createNewInlineQuestionToggle = function(pageId, paragraphNode, anchorOffset, anchorLength) {
 				var created = false;
 				var doCreate = function() {
@@ -453,10 +472,10 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						$("." + highlightClass).removeClass("inline-comment-highlight");
 					});
 					$commentIcon.on("click", function(event) {
-						pageView.toggleInlineComment($commentDiv, function() {
+						pageView.toggleInlineQuestion($commentDiv, function() {
 							$("." + highlightClass).addClass("inline-comment-highlight");
-							var $comment = $compile("<arb-comment primary-page-id='" + scope.page.pageId +
-									"' page-id='" + pageId + "'></arb-comment>")(scope);
+							var $comment = $compile("<arb-question primary-page-id='" + scope.page.pageId +
+									"' page-id='" + pageId + "'></arb-question>")(scope);
 							$(".inline-comment-div").append($comment);
 						});
 						return false;
@@ -472,8 +491,13 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						fixInlineCommentOffset(offset);
 						$commentDiv.offset(offset);
 	
-						// Check if we need to expand this inline comment because of the URL anchor.
+						// Check if we need to expand this inline question because of the URL anchor.
 						var expandComment = window.location.hash === "#comment-" + pageId;
+//console.trace();
+//console.log("testing...");
+//console.log("expandComment: %s", expandComment);
+//console.log("window.location.hash: %s", window.location.hash);
+//console.log("pageId: %s", pageId);
 						if (!expandComment) {
 							// Check if one of the children is selected.
 							for (var n = 0; n < comment.children.length; n++) {
@@ -481,7 +505,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 							}
 						}
 						if (expandComment) {
-							// Delay to allow other inline comment buttons to compute their position correctly.
+							// Delay to allow other inline question buttons to compute their position correctly.
 							window.setTimeout(function() {
 								$commentIcon.trigger("click");
 								$("html, body").animate({
@@ -491,7 +515,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						}
 					} else {
 						$commentDiv.hide();
-						console.log("ERROR: couldn't find anchor node for inline comment");
+						console.log("ERROR: couldn't find anchor node for inline question");
 					}
 				};
 				// Check that we don't have another lens selected, in which case we'll
@@ -648,6 +672,9 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						if (bestScore > question.anchorContext.length / 2) {
 							// This is not a good paragraph match. Continue processing as a normal question.
 							question.text = "> " + question.anchorText + "\n\n" + question.text;
+							//question.anchorContext = null;
+							scope.questionIds.push(question.pageId);
+							continue;
 						} else {
 							// Find offset into the best paragraph.
 							var anchorLength;
