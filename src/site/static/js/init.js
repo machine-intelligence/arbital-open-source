@@ -1,5 +1,9 @@
 "use strict";
 
+RegExp.escape = function(s) {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+};
+
 // Prevent Enter key from submitting the form.
 // TODO: we should do this for each form that needs it in the place where the form is created.
 $(function() {

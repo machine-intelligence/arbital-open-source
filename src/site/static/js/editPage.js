@@ -278,6 +278,39 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Add existing parent tags
 	addParentTags();
 
+	// Convert all links with pageIds to alias links.
+	page.text = page.text.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + text + "](" + page.alias + ")";
+		}
+		return whole;
+	}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[vote: " + page.alias + "]";
+		}
+		return whole;
+	}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + page.alias + " " + text + "]";
+		}
+		return whole;
+	}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + page.alias + "]";
+		}
+		return whole;
+	}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + text + "](" + url + page.alias + ")";
+		}
+		return whole;
+	});
+
 	// Set up Markdown.
 	arbMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
 
@@ -491,6 +524,18 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		this.similarPagesInterval = window.setInterval(function(){
 			computeSimilarPages($compile, scope);
 		}, 1100);
+
+		// Set up interval for updating meta-data
+		var $metaTextInput = $topParent.find(".meta-text-input");
+		var $metaTextError = $topParent.find(".meta-text-error");
+		this.metaTextInterval = window.setInterval(function(){
+			try {
+				$metaTextError.hide();
+				jsyaml.load($metaTextInput.val());
+			} catch (err) {
+				$metaTextError.text(err.message).show();
+			} 
+		}, 1300);
 
 		// Compute prevEditPageData, so we don't fire off autosave when there were
 		// no changes made.

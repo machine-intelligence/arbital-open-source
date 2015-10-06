@@ -314,6 +314,12 @@
 .save-snapshot-button {
   margin: 0px 5px;
 }
+.meta-text-input {
+  font-family: monospace;
+}
+.meta-text-error {
+  white-space: pre;
+}
 .page {
   margin-bottom: 40px;
 }

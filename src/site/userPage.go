@@ -141,17 +141,9 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load number of red links for recently edited pages.
-	err = loadLinks(db, data.PageMap)
+	err = loadRedLinkCount(db, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading links", err)
-	}
-	for _, p := range data.PageMap {
-		p.RedLinkCount = 0
-		for _, title := range p.Links {
-			if title == "" {
-				p.RedLinkCount++
-			}
-		}
 	}
 
 	// Load recently edited by me comment ids

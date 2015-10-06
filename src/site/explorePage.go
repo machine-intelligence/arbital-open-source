@@ -113,17 +113,9 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load number of red links.
-	err = loadLinks(db, data.PageMap)
+	err = loadRedLinkCount(db, data.PageMap)
 	if err != nil {
-		return pages.Fail("error while loading links", err)
-	}
-	for _, p := range data.PageMap {
-		p.RedLinkCount = 0
-		for _, title := range p.Links {
-			if title == "" {
-				p.RedLinkCount++
-			}
-		}
+		return pages.Fail("error while loading red link count", err)
 	}
 
 	return pages.StatusOK(&data)

@@ -15,6 +15,8 @@ import (
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
+
+	"gopkg.in/yaml.v2"
 )
 
 // editPageData contains parameters passed in to create a page.
@@ -25,6 +27,7 @@ type editPageData struct {
 	Title          string
 	Clickbait      string
 	Text           string
+	MetaText       string
 	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
@@ -270,6 +273,13 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 				return pages.HandlerBadRequestFail("Can't change group to a more restrictive one", nil)
 			}
 		}
+
+		// Proces meta text
+		var metaData core.PageMetaData
+		err = yaml.Unmarshal([]byte(data.MetaText), &metaData)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't unmarshal meta-text", err)
+		}
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
@@ -316,6 +326,11 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		data.Alias = fmt.Sprintf("%d", data.PageId)
 	}
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
+	data.Text, err = core.StandardizeLinks(db, data.Text)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't standardize links", err)
+	}
+	data.MetaText = strings.Replace(data.MetaText, "\r\n", "\n", -1)
 
 	isMinorEditBool := data.IsMinorEditStr == "on"
 
@@ -403,6 +418,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait
 		hashmap["text"] = data.Text
+		hashmap["metaText"] = data.MetaText
 		hashmap["summary"] = core.ExtractSummary(data.Text)
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 		hashmap["alias"] = data.Alias

@@ -60,15 +60,21 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
+	text, err := core.StandardizeLinks(db, text)
+	if err != nil {
+		return fmt.Errorf("failed to standardize links: %v", err)
+	}
+
 	// Begin the transaction.
-	err := db.Transaction(func(tx *database.Tx) error {
+	err = db.Transaction(func(tx *database.Tx) error {
 		// Update page summary
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
 		hashmap["edit"] = edit
+		hashmap["text"] = text
 		hashmap["summary"] = core.ExtractSummary(text)
 		hashmap["todoCount"] = core.ExtractTodoCount(text)
-		statement := tx.NewInsertTxStatement("pages", hashmap, "summary", "todoCount")
+		statement := tx.NewInsertTxStatement("pages", hashmap, "text", "summary", "todoCount")
 		if _, err := statement.Exec(); err != nil {
 			return fmt.Errorf("Couldn't update pages table: %v", err)
 		}

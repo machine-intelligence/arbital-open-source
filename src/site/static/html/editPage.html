@@ -123,6 +123,20 @@
 
 		<!-- Page options -->
 		<div class="new-page-options form-horizontal">
+
+			<!-- Meta-text panel -->
+			<div ng-hide="isComment">
+				<textarea name="metaText"
+						class="meta-text-input form-control"
+						rows="20"
+						placeholder="Meta data"
+					  style="resize: none;"
+					  ng-bind="page.metaText"
+						ng-readonly="lockedByAnother"></textarea>
+				<div class="meta-text-error alert alert-danger"></div>
+			</div>
+
+			<!-- Page type -->
 			<div class="form-group" ng-show="!page.wasPublished && !isSecondary">
 				<label class="title-label control-label col-sm-2">Page Type</label>
 				<div class="col-sm-4">

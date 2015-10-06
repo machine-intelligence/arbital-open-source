@@ -98,11 +98,17 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load editHistory: %v", err)
 	}
 
-	// Load parents
+	// Load links
 	data.PageMap = make(map[int64]*core.Page)
+	primaryPageMap := make(map[int64]*core.Page)
+	primaryPageMap[data.Page.PageId] = data.Page
+	err = loadLinks(db, data.PageMap, &loadLinksOptions{FromPageMap: primaryPageMap})
+	if err != nil {
+		return pages.Fail("Couldn't load links", err)
+	}
+
+	// Load parents
 	data.GroupMap = make(map[int64]*core.Group)
-	pageMap := make(map[int64]*core.Page)
-	pageMap[data.Page.PageId] = data.Page
 	err = data.Page.ProcessParents(c, data.PageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load parents: %v", err)

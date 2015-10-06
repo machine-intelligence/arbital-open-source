@@ -126,6 +126,9 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 			return nil, "error while loading pages", err
 		}
 	} else {
+		if len(pageIds) > 1 {
+			return nil, "Non live edit loading supports only one page id", nil
+		}
 		pageId := pageIds[0]
 
 		// Load full edit for one page.
@@ -134,6 +137,12 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 			return nil, "error while loading full edit", err
 		}
 		pageMap[pageId] = p
+	}
+
+	// Load links
+	err := loadLinks(db, pageMap, nil)
+	if err != nil {
+		return nil, "Couldn't load links", err
 	}
 
 	// Load the auxillary data.
@@ -150,12 +159,6 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 		if err != nil {
 			return nil, "Couldn't load probability votes", err
 		}
-	}
-
-	// Load links
-	err := loadLinks(db, pageMap)
-	if err != nil {
-		return nil, "Couldn't load links", err
 	}
 
 	if data.LoadChildDraft {

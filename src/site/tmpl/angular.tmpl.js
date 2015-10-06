@@ -171,10 +171,6 @@ app.service("pageService", function(userService, $http){
 			}
 			return "";
 		},
-		// gets the link's title, using a lowercase alias
-		getLinkTitle: function(alias) {
-		    return this.links[alias.toLowerCase()];
-		},
 	};
 	
 	// Massage page's variables to be easier to deal with.
@@ -199,6 +195,9 @@ app.service("pageService", function(userService, $http){
 			existingPage.parents = existingPage.parents.concat(page.parents);
 		} else {
 			this.pageMap[page.pageId] = setUpPage(page);
+			if (page.pageId !== page.alias) {
+				this.pageMap[page.alias] = page;
+			}
 		}
 		return true;
 	};

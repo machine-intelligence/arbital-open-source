@@ -204,6 +204,12 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		return pages.Fail("Couldn't load domains", err)
 	}
 
+	// Load links
+	err = loadLinks(db, data.PageMap, &loadLinksOptions{FromPageMap: embeddedPageMap})
+	if err != nil {
+		return pages.Fail("Couldn't load links", err)
+	}
+
 	// Load pages.
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{LoadText: true})
 	if err != nil {
@@ -232,12 +238,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	err = loadVotes(db, data.User.Id, mainPageMap, data.UserMap)
 	if err != nil {
 		return pages.Fail("error while fetching votes", err)
-	}
-
-	// Load links
-	err = loadLinks(db, data.PageMap)
-	if err != nil {
-		return pages.Fail("Couldn't load links", err)
 	}
 
 	// Load child draft
