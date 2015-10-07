@@ -258,11 +258,11 @@ func loadRedLinkCount(db *database.DB, pageMap map[int64]*core.Page) error {
 	pageIdsList := core.PageIdsListFromMap(pageMap)
 
 	rows := database.NewQuery(`
-		SELECT l.parentId,COUNT(ISNULL(p.pageId))
+		SELECT l.parentId,SUM(ISNULL(p.pageId))
 		FROM pages AS p
-		JOIN links AS l
-		ON (p.pageId=l.childAlias OR p.alias=l.childAlias)
-		WHERE p.isCurrentEdit AND p.deletedBy<=0 AND l.parentId IN`).AddArgsGroup(pageIdsList).Add(`
+		RIGHT JOIN links AS l
+		ON (p.pageId=l.childAlias OR p.alias=l.childAlias AND (p.isCurrentEdit AND p.deletedBy<=0))
+		WHERE l.parentId IN`).AddArgsGroup(pageIdsList).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId int64
@@ -331,9 +331,8 @@ func loadLinks(db *database.DB, pageMap map[int64]*core.Page, options *loadLinks
 		return err
 	}
 
-	// Get the page titles for all the links.
+	// Convert all page aliases to page ids.
 	if len(aliasesList) > 0 {
-		// Double up aliases list because we'll use it twice in the query.
 		rows = database.NewQuery(`
 			SELECT pageId
 			FROM pages

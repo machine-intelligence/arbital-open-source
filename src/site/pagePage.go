@@ -219,6 +219,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Erase Text from pages that don't need it.
+	// Also erase pages that weren't loaded.
 	for _, p := range data.PageMap {
 		if (data.Page.Type != core.QuestionPageType || p.Type != core.AnswerPageType) && p.Type != core.CommentPageType {
 			p.Text = ""

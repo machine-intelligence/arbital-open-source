@@ -315,6 +315,11 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		}
 		return nil
 	})
+	for _, p := range pageMap {
+		if p.Type == "" {
+			delete(pageMap, p.PageId)
+		}
+	}
 	return err
 }
 

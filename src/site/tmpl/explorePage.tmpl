@@ -12,8 +12,10 @@
 		app.controller("ExploreCtrl", function ($scope, pageService) {
 			$scope.rootPages = {};
 			$scope.childPages = {};
-			for (var id in pageService.pageMap) {
-				$scope.childPages[id] = pageService.pageMap[id];
+			for (var alias in pageService.pageMap) {
+				var page = pageService.pageMap[alias];
+				if (page.pageId in $scope.childPages) continue;
+				$scope.childPages[page.pageId] = page;
 			}
 
 			var rootPageIds = [{{range .RootPageIds}}{{.}},{{end}}];
