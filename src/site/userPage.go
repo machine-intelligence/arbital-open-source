@@ -3,14 +3,10 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
 )
@@ -40,42 +36,26 @@ var userPage = newPageWithOptions(
 	"/user/{authorId:[0-9]+}",
 	userRenderer,
 	append(baseTmpls,
-		"tmpl/userPage.tmpl", "tmpl/pageHelpers.tmpl", "tmpl/navbar.tmpl",
+		"tmpl/userPage.tmpl", "tmpl/navbar.tmpl",
 		"tmpl/footer.tmpl", "tmpl/angular.tmpl.js"),
-	newPageOptions{})
+	pages.PageOptions{})
 
 // userRenderer renders the user page.
-func userRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	c := sessions.NewContext(r)
-	data, err := userInternalRenderer(w, r, u)
-	if err != nil {
-		c.Inc("user_page_served_fail")
-		c.Errorf("%s", err)
-		return showError(w, r, fmt.Errorf("%s", err))
-	}
-	c.Inc("user_page_served_success")
-	return pages.StatusOK(data)
-}
+func userRenderer(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
 
-// userInternalRenderer renders the page page.
-func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*userTmplData, error) {
 	var err error
 	var data userTmplData
 	data.User = u
-	c := sessions.NewContext(r)
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
 	data.GroupMap = make(map[int64]*core.Group)
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		return nil, err
-	}
-
 	// Check parameter limiting the user/creator of the pages
-	data.AuthorId, err = strconv.ParseInt(mux.Vars(r)["authorId"], 10, 64)
+	data.AuthorId, err = strconv.ParseInt(mux.Vars(params.R)["authorId"], 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't parse authorId: %s", mux.Vars(r)["authorId"])
+		return pages.Fail(fmt.Sprintf("Couldn't parse authorId: %s", mux.Vars(params.R)["authorId"]), err)
 	}
 
 	var throwaway int
@@ -85,7 +65,7 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		WHERE userId=? AND toUserId=?`).QueryRow(data.User.Id, data.AuthorId)
 	data.IsSubscribedToUser, err = row.Scan(&throwaway)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't retrieve subscription: %v", err)
+		return pages.Fail("Couldn't retrieve subscription", err)
 	}
 
 	// Load recently created by me page ids.
@@ -102,7 +82,7 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 	data.RecentlyCreatedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading recently created page ids: %v", err)
+		return pages.Fail("error while loading recently created page ids", err)
 	}
 
 	// Load recently edited by me page ids.
@@ -119,7 +99,7 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 	data.RecentlyEditedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading recently edited page ids: %v", err)
+		return pages.Fail("error while loading recently edited page ids", err)
 	}
 
 	if data.User.Id == data.AuthorId {
@@ -136,7 +116,7 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 		data.PagesWithDraftIds, err = loadPageIds(rows, data.PageMap)
 		if err != nil {
-			return nil, fmt.Errorf("error while loading pages with drafts ids: %v", err)
+			return pages.Fail("error while loading pages with drafts ids", err)
 		}
 
 		// Load page ids with the most todos.
@@ -156,22 +136,14 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 		data.MostTodosIds, err = loadPageIds(rows, data.PageMap)
 		if err != nil {
-			return nil, fmt.Errorf("error while loading most todos page ids: %v", err)
+			return pages.Fail("error while loading most todos page ids", err)
 		}
 	}
 
 	// Load number of red links for recently edited pages.
-	err = loadLinks(db, data.PageMap)
+	err = loadRedLinkCount(db, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading links: %v", err)
-	}
-	for _, p := range data.PageMap {
-		p.RedLinkCount = 0
-		for _, title := range p.Links {
-			if title == "" {
-				p.RedLinkCount++
-			}
-		}
+		return pages.Fail("error while loading links", err)
 	}
 
 	// Load recently edited by me comment ids
@@ -187,7 +159,7 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 	data.RecentlyEditedCommentIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading recently edited by me page ids: %v", err)
+		return pages.Fail("error while loading recently edited by me page ids", err)
 	}
 
 	// Load the following info for yourself only.
@@ -205,26 +177,26 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 		data.RecentlyVisitedIds, err = loadPageIds(rows, data.PageMap)
 		if err != nil {
-			return nil, fmt.Errorf("error while loading recently visited page ids: %v", err)
+			return pages.Fail("error while loading recently visited page ids", err)
 		}
 	}
 
 	// Load pages.
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
-		return nil, fmt.Errorf("error while loading pages: %v", err)
+		return pages.Fail("error while loading pages", err)
 	}
 
 	// Load auxillary data.
 	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading aux data: %v", err)
+		return pages.Fail("error while loading aux data", err)
 	}
 
 	// Load all the groups.
 	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load group names: %v", err)
+		return pages.Fail("Couldn't load group names", err)
 	}
 
 	// Load all the users.
@@ -235,8 +207,8 @@ func userInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 	err = core.LoadUsers(db, data.UserMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading users: %v", err)
+		return pages.Fail("error while loading users", err)
 	}
 
-	return &data, nil
+	return pages.StatusOK(&data)
 }

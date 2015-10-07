@@ -3,15 +3,11 @@ package site
 
 import (
 	"fmt"
-	"html/template"
-	"net/http"
 	"strconv"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
 )
@@ -31,35 +27,24 @@ type pageTmplData struct {
 }
 
 var (
-	pageOptions = newPageOptions{}
+	pageOptions = pages.PageOptions{}
 )
 
 // pagePage serves the page page.
 var pagePage = newPageWithOptions(
-	"/pages/{alias:[A-Za-z0-9_-]+}",
+	fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
 	pageRenderer,
 	append(baseTmpls,
-		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
-		"tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
-
-var privatePagePage = newPageWithOptions(
-	"/pages/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}",
-	pageRenderer,
-	append(baseTmpls,
-		"tmpl/pagePage.tmpl", "tmpl/pageHelpers.tmpl",
+		"tmpl/pagePage.tmpl",
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
 // pageRenderer renders the page page.
-func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	c := sessions.NewContext(r)
-
-	data, err := pageInternalRenderer(w, r, u)
-	if err != nil {
-		c.Errorf("%s", err)
-		c.Inc("page_page_served_fail")
-		return showError(w, r, fmt.Errorf("%s", err))
+func pageRenderer(params *pages.HandlerParams) *pages.Result {
+	var data pageTmplData
+	result := pageInternalRenderer(params, &data)
+	if result.Data == nil {
+		return pages.Fail(result.Message, result.Err)
 	}
 
 	if data.Page.Type == core.LensPageType {
@@ -82,68 +67,47 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 	}
 
 	data.PrimaryPageId = data.Page.PageId
-
-	funcMap := template.FuncMap{
-		"GetEditLevel": func(p *core.Page) string {
-			return getEditLevel(p, data.User)
-		},
-		"GetDeleteLevel": func(p *core.Page) string {
-			return getDeleteLevel(p, data.User)
-		},
-		"GetPageEditUrl": func(p *core.Page) string {
-			return getEditPageUrl(p)
-		},
-	}
-	c.Inc("page_page_served_success")
-	return pages.StatusOK(data).AddFuncMap(funcMap)
+	return pages.StatusOK(result.Data)
 }
 
 // pageInternalRenderer renders the page page.
-func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*pageTmplData, error) {
-	var err error
-	var data pageTmplData
-	data.User = u
-	c := sessions.NewContext(r)
+func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *pages.Result {
+	c := params.C
+	db := params.DB
+	u := params.U
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		return nil, err
-	}
+	var err error
+	data.User = u
 
 	// Figure out main page's id
 	var pageId int64
-	pageAlias := mux.Vars(r)["alias"]
+	pageAlias := mux.Vars(params.R)["alias"]
 	pageId, err = strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
 		// Okay, it's not an id, but could be an alias.
-		row := db.NewStatement(`SELECT pageId FROM aliases WHERE fullName=?`).QueryRow(pageAlias)
+		row := db.NewStatement(`
+			SELECT pageId
+			FROM pages
+			WHERE alias=? AND isCurrentEdit AND deletedBy<=0`).QueryRow(pageAlias)
 		exists, err := row.Scan(&pageId)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't query aliases: %v", err)
+			return pages.Fail("Couldn't convert alias=>pageId", err)
 		} else if !exists {
-			return nil, fmt.Errorf("Page with alias '%s' doesn't exists", pageAlias)
+			return pages.Fail(fmt.Sprintf("There is no page with alias: %s", pageAlias), nil)
 		}
 	}
 
 	// Load the main page
 	data.Page, err = loadFullEdit(db, pageId, data.User.Id, &loadEditOptions{ignoreParents: true})
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
+		return pages.Fail("Couldn't retrieve a page", err)
 	} else if data.Page == nil {
-		return nil, fmt.Errorf("Couldn't find a page with id: %d", pageId)
+		return pages.Fail(fmt.Sprintf("Couldn't find a page with id: %d", pageId), nil)
 	}
 
 	// Redirect lens pages to the parent page.
 	if data.Page.Type == core.LensPageType {
-		return &data, nil
-	}
-
-	// Check privacy setting
-	if data.Page.PrivacyKey > 0 {
-		privacyKey := mux.Vars(r)["privacyKey"]
-		if privacyKey != fmt.Sprintf("%d", data.Page.PrivacyKey) {
-			return nil, fmt.Errorf("Unauthorized access. You don't have the correct privacy key.")
-		}
+		return pages.StatusOK(&data)
 	}
 
 	// Create maps.
@@ -156,7 +120,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	// Load children
 	err = loadChildrenIds(db, data.PageMap, loadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load children: %v", err)
+		return pages.Fail("Couldn't load children", err)
 	}
 
 	// Create embedded pages map, which will have pages that are displayed more
@@ -175,7 +139,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	// Load comment ids.
 	err = loadSubpageIds(db, data.PageMap, embeddedPageMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load subpages: %v", err)
+		return pages.Fail("Couldn't load subpages", err)
 	}
 
 	// Add comments and questions to the embedded pages map.
@@ -188,11 +152,10 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	// Load parents
 	err = loadParentsIds(db, data.PageMap, loadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load parents: %v", err)
+		return pages.Fail("Couldn't load parents", err)
 	}
 
 	// Load where page is linked from.
-	// TODO: also account for old aliases
 	/*query := fmt.Sprintf(`
 		SELECT p.pageId
 		FROM links as l
@@ -202,7 +165,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		GROUP BY p.pageId`, pageId, data.Page.Alias)
 	data.Page.LinkedFrom, err = loadPageIds(c, query, mainPageMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load contexts: %v", err)
+		return pages.Fail("Couldn't load contexts", err)
 	}*/
 
 	// Load page ids of related pages (pages that have at least all the same parents).
@@ -219,23 +182,30 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 			HAVING SUM(1)>=?`, len(data.Page.Parents)).ToStatement(db).Query()
 		data.RelatedIds, err = loadPageIds(rows, data.PageMap)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't load related ids: %v", err)
+			return pages.Fail("Couldn't load related ids", err)
 		}
 	}
 
 	// Load the domains for the primary page
 	err = loadDomains(db, u, data.Page, data.PageMap, data.GroupMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load domains: %v", err)
+		return pages.Fail("Couldn't load domains", err)
+	}
+
+	// Load links
+	err = loadLinks(db, data.PageMap, &loadLinksOptions{FromPageMap: embeddedPageMap})
+	if err != nil {
+		return pages.Fail("Couldn't load links", err)
 	}
 
 	// Load pages.
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{LoadText: true})
 	if err != nil {
-		return nil, fmt.Errorf("error while loading pages: %v", err)
+		return pages.Fail("error while loading pages", err)
 	}
 
 	// Erase Text from pages that don't need it.
+	// Also erase pages that weren't loaded.
 	for _, p := range data.PageMap {
 		if (data.Page.Type != core.QuestionPageType || p.Type != core.AnswerPageType) && (p.Type != core.CommentPageType && p.Type != core.QuestionPageType) {
 			p.Text = ""
@@ -246,35 +216,29 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	data.PageMap[data.Page.PageId] = data.Page
 
 	// Load auxillary data.
-	q := r.URL.Query()
+	q := params.R.URL.Query()
 	options := loadAuxPageDataOptions{ForcedLastVisit: q.Get("lastVisit")}
 	err = loadAuxPageData(db, data.User.Id, data.PageMap, &options)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading aux data: %v", err)
+		return pages.Fail("error while loading aux data", err)
 	}
 
 	// Load all the votes
 	err = loadVotes(db, data.User.Id, mainPageMap, data.UserMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while fetching votes: %v", err)
-	}
-
-	// Load links
-	err = loadLinks(db, data.PageMap)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load links: %v", err)
+		return pages.Fail("error while fetching votes", err)
 	}
 
 	// Load child draft
 	err = loadChildDraft(db, u.Id, data.Page, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load child draft: %v", err)
+		return pages.Fail("Couldn't load child draft", err)
 	}
 
 	// Load all the groups.
 	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load group names: %v", err)
+		return pages.Fail("Couldn't load group names", err)
 	}
 
 	// Load all the users.
@@ -284,7 +248,7 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	}
 	err = core.LoadUsers(db, data.UserMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading users: %v", err)
+		return pages.Fail("error while loading users", err)
 	}
 
 	// From here on we can render the page successfully. Further queries are nice,
@@ -303,5 +267,5 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		c.Errorf("Error updating visits: %v", err)
 	}
 
-	return &data, nil
+	return pages.StatusOK(&data)
 }

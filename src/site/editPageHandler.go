@@ -4,19 +4,17 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
-	"net/http"
-	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
+	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
-	"zanaduu3/src/user"
+
+	"gopkg.in/yaml.v2"
 )
 
 // editPageData contains parameters passed in to create a page.
@@ -27,11 +25,10 @@ type editPageData struct {
 	Title          string
 	Clickbait      string
 	Text           string
+	MetaText       string
 	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
-	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
-	KeepPrivacyKey bool
 	GroupId        int64 `json:",string"`
 	KarmaLock      int
 	ParentIds      string
@@ -45,34 +42,24 @@ type editPageData struct {
 }
 
 // editPageHandler handles requests to create a new page.
-func editPageHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
-	header, str := editPageProcessor(w, r)
-	if header > 0 {
-		if header == http.StatusInternalServerError {
-			c.Inc(strings.Trim(r.URL.Path, "/") + "Fail")
-		}
-		c.Errorf("%s", str)
-		w.WriteHeader(header)
-	}
-	if len(str) > 0 {
-		fmt.Fprintf(w, "%s", str)
-	}
-}
+func editPageHandler(params *pages.HandlerParams) *pages.Result {
+	c := params.C
+	db := params.DB
+	u := params.U
 
-func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
-	c := sessions.NewContext(r)
-	rand.Seed(time.Now().UnixNano())
+	if !u.IsLoggedIn {
+		return pages.HandlerForbiddenFail("Need to be logged in", nil)
+	}
 
 	// Decode data
-	decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(params.R.Body)
 	var data editPageData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Sprintf("Couldn't decode json: %v", err)
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if data.PageId <= 0 {
-		return http.StatusBadRequest, fmt.Sprintf("No pageId specified")
+		return pages.HandlerBadRequestFail("No pageId specified", nil)
 	}
 	parentIds := make([]int64, 0)
 	parentIdArgs := make([]interface{}, 0)
@@ -81,38 +68,23 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		for _, parentStrId := range parentStrIds {
 			parentId, err := strconv.ParseInt(parentStrId, 10, 64)
 			if err != nil {
-				return http.StatusBadRequest, fmt.Sprintf("Invalid parent id: %s", parentStrId)
+				return pages.HandlerBadRequestFail(fmt.Sprintf("Invalid parent id: %s", parentStrId), nil)
 			}
 			parentIds = append(parentIds, parentId)
 			parentIdArgs = append(parentIdArgs, parentId)
 		}
 	}
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("%v", err)
-	}
-
-	// Load user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
-	}
-	if !u.IsLoggedIn {
-		return http.StatusForbidden, ""
-	}
-
 	// Load user groups
 	if err = loadUserGroups(db, u); err != nil {
-		return http.StatusForbidden, fmt.Sprintf("Couldn't load user groups: %v", err)
+		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
 	}
 
 	// Load the published page.
 	var oldPage *core.Page
 	oldPage, err = loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{})
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load the old page: %v", err)
+		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
 		oldPage = &core.Page{}
 	}
@@ -128,7 +100,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	_, err = row.Scan(&oldPage.WasPublished, &oldPage.MaxEditEver,
 		&oldPage.LockedBy, &oldPage.LockedUntil, &oldPage.MyLastAutosaveEdit, &oldPage.LockedVoteType)
 	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load additional page info: %v", err)
+		return pages.HandlerErrorFail("Couldn't load additional page info", err)
 	}
 
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
@@ -144,74 +116,68 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	// Error checking.
 	data.Type = strings.ToLower(data.Type)
 	if data.IsAutosave && data.IsSnapshot {
-		return http.StatusBadRequest, fmt.Sprintf("Can't be autosave and snapshot")
+		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
 	}
 	// Check that we have the lock.
 	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
-		return http.StatusBadRequest, fmt.Sprintf("Can't change locked page")
+		return pages.HandlerBadRequestFail("Can't change locked page", nil)
 	}
 	// Check the group settings
 	if oldPage.GroupId > 0 {
 		if !u.IsMemberOfGroup(oldPage.GroupId) {
-			return http.StatusBadRequest, fmt.Sprintf("Don't have group permissions to edit this page")
+			return pages.HandlerBadRequestFail("Don't have group permissions to edit this page", nil)
 		}
 	}
 	// Check PrevEdit number.
 	if data.PrevEdit < 0 {
-		return http.StatusBadRequest, fmt.Sprintf("PrevEdit number is not valid")
+		return pages.HandlerBadRequestFail("PrevEdit number is not valid", nil)
 	}
 	// TODO: check that this user has access to that edit
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
 		if len(data.Title) <= 0 && data.Type != core.CommentPageType {
-			return http.StatusBadRequest, fmt.Sprintf("Need title")
+			return pages.HandlerBadRequestFail("Need title", nil)
 		}
 		if data.Type != core.WikiPageType &&
 			data.Type != core.LensPageType &&
 			data.Type != core.QuestionPageType &&
 			data.Type != core.AnswerPageType &&
 			data.Type != core.CommentPageType {
-			return http.StatusBadRequest, fmt.Sprintf("Invalid page type.")
+			return pages.HandlerBadRequestFail("Invalid page type.", nil)
 		}
 		if data.SortChildrenBy != core.LikesChildSortingOption &&
 			data.SortChildrenBy != core.ChronologicalChildSortingOption &&
 			data.SortChildrenBy != core.AlphabeticalChildSortingOption {
-			return http.StatusBadRequest, fmt.Sprintf("Invalid sort children value.")
+			return pages.HandlerBadRequestFail("Invalid sort children value.", nil)
 		}
 		if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
-			return http.StatusBadRequest, fmt.Sprintf("Invalid vote type value.")
+			return pages.HandlerBadRequestFail("Invalid vote type value.", nil)
 		}
 		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
-			return http.StatusBadRequest, fmt.Sprintf("Karma value out of bounds")
+			return pages.HandlerBadRequestFail("Karma value out of bounds", nil)
 		}
 		if data.AnchorContext == "" && data.AnchorText != "" {
-			return http.StatusBadRequest, fmt.Sprintf("Anchor context isn't set")
+			return pages.HandlerBadRequestFail("Anchor context isn't set", nil)
 		}
 		if data.AnchorContext != "" && data.AnchorText == "" {
-			return http.StatusBadRequest, fmt.Sprintf("Anchor text isn't set")
+			return pages.HandlerBadRequestFail("Anchor text isn't set", nil)
 		}
 		if data.AnchorOffset < 0 || data.AnchorOffset > len(data.AnchorContext) {
-			return http.StatusBadRequest, fmt.Sprintf("Anchor offset out of bounds")
+			return pages.HandlerBadRequestFail("Anchor offset out of bounds", nil)
 		}
 		for _, parentId := range parentIds {
 			if parentId == data.PageId {
-				return http.StatusBadRequest, fmt.Sprintf("Can't set a page as its own parent")
+				return pages.HandlerBadRequestFail("Can't set a page as its own parent", nil)
 			}
 		}
 	}
 	if oldPage.WasPublished {
-		if oldPage.PrivacyKey > 0 && oldPage.PrivacyKey != data.PrivacyKey {
-			return http.StatusForbidden, fmt.Sprintf("Need to specify correct privacy key to edit that page")
-		}
 		editLevel := getEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
 			if editLevel == core.CommentPageType {
-				return http.StatusBadRequest, fmt.Sprintf("Can't edit a comment page you didn't create.")
+				return pages.HandlerBadRequestFail("Can't edit a comment page you didn't create.", nil)
 			}
-			return http.StatusBadRequest, fmt.Sprintf("Not enough karma to edit this page.")
-		}
-		if oldPage.PrivacyKey <= 0 && data.KeepPrivacyKey {
-			return http.StatusBadRequest, fmt.Sprintf("Can't change a public page to private.")
+			return pages.HandlerBadRequestFail("Not enough karma to edit this page.", nil)
 		}
 	}
 
@@ -236,13 +202,13 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				`, u.Id).ToStatement(db).QueryRow()
 			_, err = row.Scan(&count)
 			if err != nil {
-				return http.StatusInternalServerError, fmt.Sprintf("Couldn't check parents: %v", err)
+				return pages.HandlerErrorFail("Couldn't check parents", err)
 			}
 			if count != len(parentIds) {
 				if data.Type == core.AnswerPageType {
-					return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v. Perhaps because one of them is not a question.", data.ParentIds)
+					return pages.HandlerBadRequestFail("Some of the parents are invalid. Perhaps because one of them is not a question.", nil)
 				}
-				return http.StatusBadRequest, fmt.Sprintf("Some of the parents are invalid: %v. Perhaps one of them doesn't exist or is owned by a group you are a not a part of?", data.ParentIds)
+				return pages.HandlerBadRequestFail("Some of the parents are invalid. Perhaps one of them doesn't exist or is owned by a group you are a not a part of?", nil)
 			}
 
 			// Compute parent comment and primary page for the comment.
@@ -273,29 +239,36 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 					return nil
 				})
 				if err != nil {
-					return http.StatusBadRequest, fmt.Sprintf("Couldn't load comment's parents: %v", err)
+					return pages.HandlerBadRequestFail("Couldn't load comment's parents", err)
 				}
 				if commentPrimaryPageId <= 0 {
-					return http.StatusBadRequest, fmt.Sprintf("Comment pages need at least one normal page parent")
+					return pages.HandlerBadRequestFail("Comment pages need at least one normal page parent", nil)
 				}
 			}
 		}
 
 		if len(parentIds) <= 0 && (data.Type == core.CommentPageType || data.Type == core.AnswerPageType) {
-			return http.StatusBadRequest, fmt.Sprintf("%s pages need to have a parent", data.Type)
+			return pages.HandlerBadRequestFail(fmt.Sprintf("%s pages need to have a parent", data.Type), nil)
 		}
 
 		// Lens pages need to have exactly one parent.
 		if data.Type == core.LensPageType && len(parentIds) != 1 {
-			return http.StatusBadRequest, fmt.Sprintf("Lens pages need to have exactly one parent")
+			return pages.HandlerBadRequestFail("Lens pages need to have exactly one parent", nil)
 		}
 
 		// We can only change the group from to a more relaxed group:
 		// personal group -> any group -> no group
 		if oldPage.WasPublished && data.GroupId != oldPage.GroupId {
 			if oldPage.GroupId != u.Id && data.GroupId != 0 {
-				return http.StatusBadRequest, fmt.Sprintf("Can't change group to a more restrictive one")
+				return pages.HandlerBadRequestFail("Can't change group to a more restrictive one", nil)
 			}
+		}
+
+		// Process meta text
+		var metaData core.PageMetaData
+		err = yaml.Unmarshal([]byte(data.MetaText), &metaData)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't unmarshal meta-text", err)
 		}
 	}
 
@@ -320,7 +293,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				AND type!="comment" AND isCurrentEdit`).QueryRow(parentIdArgs...)
 		_, err := row.Scan(&data.GroupId)
 		if err != nil {
-			return http.StatusInternalServerError, fmt.Sprintf("Couldn't get primary page's group name: %v", err)
+			return pages.HandlerErrorFail("Couldn't get primary page's group name", err)
 		}
 	}
 	// Enforce SortChildrenBy
@@ -329,84 +302,58 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 	} else if data.Type == core.QuestionPageType {
 		data.SortChildrenBy = core.LikesChildSortingOption
 	}
-	// Can't turn on privacy after the page has been published.
-	var privacyKey int64
-	data.KeepPrivacyKey = false // FOR NOW
-	if data.KeepPrivacyKey {
-		if oldPage.PrivacyKey > 0 {
-			privacyKey = oldPage.PrivacyKey
-		} else {
-			privacyKey = rand.Int63()
-		}
-	}
+
+	// Make sure alias is valid
 	if data.Alias == "" {
 		data.Alias = fmt.Sprintf("%d", data.PageId)
+	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+		// Check if the alias matches the strict regexp
+		if !core.StrictAliasRegexp.MatchString(data.Alias) {
+			return pages.HandlerErrorFail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
+		}
+
+		// Prefix alias with the group alias, if appropriate
+		if data.GroupId > 0 {
+			groupMap := map[int64]*core.Group{data.GroupId: &core.Group{Id: data.GroupId}}
+			err = loadGroupNames(db, u, groupMap)
+			if err != nil {
+				return pages.HandlerErrorFail("Couldn't load the group", err)
+			}
+			data.Alias = fmt.Sprintf("%s.%s", groupMap[data.GroupId].Alias, data.Alias)
+		}
+
+		// Check if another page is already using the alias
+		var existingPageId int64
+		row := db.NewStatement(`
+					SELECT pageId
+					FROM pages
+					WHERE isCurrentEdit AND pageId!=? AND deletedBy<=0 AND alias=?`).QueryRow(data.PageId, data.Alias)
+		exists, err := row.Scan(&existingPageId)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't read from aliases", err)
+		} else if exists {
+			return pages.HandlerErrorFail(fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, existingPageId), nil)
+		}
 	}
+
+	// Standardize text
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
+	data.Text, err = core.StandardizeLinks(db, data.Text)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't standardize links", err)
+	}
+	data.MetaText = strings.Replace(data.MetaText, "\r\n", "\n", -1)
 
 	isMinorEditBool := data.IsMinorEditStr == "on"
 
 	// Begin the transaction.
-	err = db.Transaction(func(tx *database.Tx) error {
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		if isCurrentEdit {
 			// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
 			if oldPage.WasPublished {
 				statement := tx.NewTxStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit")
 				if _, err = statement.Exec(data.PageId); err != nil {
-					return fmt.Errorf("Couldn't update isCurrentEdit for old edits: %v", err)
-				}
-			}
-
-			// Update aliases table.
-			aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
-			if aliasRegexp.MatchString(data.Alias) {
-				// The user might be trying to create a new alias.
-				var maxSuffix int      // maximum suffix used with this alias
-				var existingSuffix int // if this page already used this suffix, this will be set to it
-				standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
-				row := tx.NewTxStatement(`
-					SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=?,suffix,-1)),-1)
-					FROM aliases
-					WHERE standardizedName=?`).QueryRow(data.PageId, standardizedName)
-				_, err := row.Scan(&maxSuffix, &existingSuffix)
-				if err != nil {
-					return fmt.Errorf("Couldn't read from aliases: %v", err)
-				}
-				if existingSuffix < 0 {
-					suffix := maxSuffix + 1
-					data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
-					if data.Type == core.QuestionPageType {
-						data.Alias = fmt.Sprintf("Q-%s", data.Alias)
-					} else if data.Type == core.QuestionPageType {
-						data.Alias = fmt.Sprintf("A-%s", data.Alias)
-					}
-					if isCurrentEdit {
-						hashmap := make(map[string]interface{})
-						hashmap["fullName"] = data.Alias
-						hashmap["standardizedName"] = standardizedName
-						hashmap["suffix"] = suffix
-						hashmap["pageId"] = data.PageId
-						hashmap["creatorId"] = u.Id
-						hashmap["createdAt"] = database.Now()
-						statement := tx.NewInsertTxStatement("aliases", hashmap)
-						if _, err = statement.Exec(); err != nil {
-							return fmt.Errorf("Couldn't add an alias: %v", err)
-						}
-					}
-				} else if existingSuffix > 0 {
-					data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
-				}
-			} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
-				// Check if we are simply reusing an existing alias.
-				var ignore int
-				row := tx.NewTxStatement(`
-					SELECT 1 FROM aliases
-					WHERE pageId=? AND fullName=?`).QueryRow(data.PageId, data.Alias)
-				exists, err := row.Scan(&ignore)
-				if err != nil {
-					return fmt.Errorf("Couldn't check existing alias: %v", err)
-				} else if !exists {
-					return fmt.Errorf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+					return "Couldn't update isCurrentEdit for old edits", err
 				}
 			}
 		}
@@ -430,6 +377,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait
 		hashmap["text"] = data.Text
+		hashmap["metaText"] = data.MetaText
 		hashmap["summary"] = core.ExtractSummary(data.Text)
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 		hashmap["alias"] = data.Alias
@@ -442,7 +390,6 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["type"] = data.Type
-		hashmap["privacyKey"] = privacyKey
 		hashmap["groupId"] = data.GroupId
 		hashmap["parents"] = strings.Join(encodedParentIds, ",")
 		hashmap["createdAt"] = database.Now()
@@ -456,7 +403,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			statement = tx.NewInsertTxStatement("pages", hashmap)
 		}
 		if _, err = statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't insert a new page: %v", err)
+			return "Couldn't insert a new page", err
 		}
 
 		// Update pageInfos
@@ -479,7 +426,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit")
 		}
 		if _, err = statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't update pageInfos: %v", err)
+			return "Couldn't update pageInfos", err
 		}
 
 		// Update pagePairs tables.
@@ -491,7 +438,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				WHERE childId=?`)
 			_, err = statement.Exec(data.PageId)
 			if err != nil {
-				return fmt.Errorf("Couldn't delete old pagePair: %v", err)
+				return "Couldn't delete old pagePair", err
 			}
 
 			if len(pagePairValues) > 0 {
@@ -500,7 +447,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 					INSERT INTO pagePairs (parentId,childId)
 					VALUES ` + database.ArgsPlaceholder(len(pagePairValues), 2))
 				if _, err = statement.Exec(pagePairValues...); err != nil {
-					return fmt.Errorf("Couldn't insert new pagePairs: %v", err)
+					return "Couldn't insert new pagePairs", err
 				}
 			}
 		}
@@ -516,7 +463,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			hashmap["createdAt"] = database.Now()
 			statement = tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
 			if _, err = statement.Exec(); err != nil {
-				return fmt.Errorf("Couldn't add a subscription: %v", err)
+				return "Couldn't add a subscription", err
 			}
 		}
 
@@ -524,13 +471,13 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		if isCurrentEdit {
 			err = core.UpdatePageLinks(tx, data.PageId, data.Text, sessions.GetDomain())
 			if err != nil {
-				return fmt.Errorf("Couldn't update links: %v", err)
+				return "Couldn't update links", err
 			}
 		}
-		return nil
+		return "", nil
 	})
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	// === Once the transaction has succeeded, we can't really fail on anything
@@ -577,14 +524,13 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
-			}
-			if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
 
 		// Generate updates for users who are subscribed to the author.
-		if !oldPage.WasPublished && data.Type != core.CommentPageType && privacyKey <= 0 && !isMinorEditBool {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType && !isMinorEditBool {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
@@ -593,8 +539,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			task.GoToPageId = data.PageId
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
-			}
-			if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -610,8 +555,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 				task.GoToPageId = data.PageId
 				if err := task.IsValid(); err != nil {
 					c.Errorf("Invalid task created: %v", err)
-				}
-				if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+				} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -634,8 +578,7 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			}
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
-			}
-			if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -645,20 +588,10 @@ func editPageProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		task.PageId = data.PageId
 		if err := task.IsValid(); err != nil {
 			c.Errorf("Invalid task created: %v", err)
-		}
-		if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+		} else if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 	}
 
-	// Return the full page url if the submission was for the current edit.
-	if isCurrentEdit {
-		privacyAddon := ""
-		if privacyKey > 0 {
-			privacyAddon = fmt.Sprintf("/%d", privacyKey)
-		}
-		return 0, fmt.Sprintf("/pages/%s%s", data.Alias, privacyAddon)
-	}
-	// Return just the privacy key
-	return 0, fmt.Sprintf("%d", newEditNum)
+	return pages.StatusOK(nil)
 }

@@ -5,12 +5,10 @@ package site
 
 import (
 	"encoding/json"
-	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 // abandonPageData is the data received from the request.
@@ -19,60 +17,32 @@ type abandonPageData struct {
 }
 
 // abandonPageHandler handles requests for deleting a page.
-func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func abandonPageHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	decoder := json.NewDecoder(r.Body)
+	if !u.IsLoggedIn {
+		return pages.HandlerForbiddenFail("Have to be logged in", nil)
+	}
+
+	decoder := json.NewDecoder(params.R.Body)
 	var data abandonPageData
 	err := decoder.Decode(&data)
 	if err != nil || data.PageId == 0 {
-		c.Inc("abandon_page_fail")
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Inc("abandon_page_fail")
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Get user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Inc("abandon_page_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if !u.IsLoggedIn {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 
 	// Load the page
 	var page *core.Page
 	page, err = loadFullEdit(db, data.PageId, u.Id, nil)
 	if err != nil {
-		c.Inc("delete_page_fail")
-		c.Errorf("Couldn't load page: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't load page", err)
 	} else if page == nil {
-		c.Errorf("Couldn't find page: %v", data.PageId)
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return pages.HandlerBadRequestFail("Couldn't find page", nil)
 	}
 	// Check that we have the lock
 	if page.LockedUntil > database.Now() && page.LockedBy != u.Id {
-		c.Inc("delete_page_fail")
-		c.Errorf("Don't have the lock")
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerForbiddenFail("Don't have the lock", nil)
 	}
 
 	// Get currentEdit number
@@ -83,10 +53,7 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 		WHERE isCurrentEdit AND pageId=?
 		`).QueryRow(data.PageId)
 	if _, err = row.Scan(&currentEdit); err != nil {
-		c.Inc("abandon_page_fail")
-		c.Errorf("Couldn't abandon a page: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't abandon a page", err)
 	}
 
 	// Delete the edit
@@ -95,10 +62,7 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 		SET deletedBy=?
 		WHERE pageId=? AND creatorId=? AND isAutosave`)
 	if _, err = statement.Exec(u.Id, data.PageId, u.Id); err != nil {
-		c.Inc("abandon_page_fail")
-		c.Errorf("Couldn't abandon a page: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't abandon a page", err)
 	}
 
 	// Update pageInfos
@@ -107,9 +71,7 @@ func abandonPageHandler(w http.ResponseWriter, r *http.Request) {
 	hashmap["lockedUntil"] = database.Now()
 	statement = db.NewInsertStatement("pageInfos", hashmap, "lockedUntil")
 	if _, err = statement.Exec(); err != nil {
-		c.Inc("abandon_page_fail")
-		c.Errorf("Couldn't change lock: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return pages.HandlerErrorFail("Couldn't change lock", err)
 	}
+	return pages.StatusOK(nil)
 }

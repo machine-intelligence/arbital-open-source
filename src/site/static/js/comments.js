@@ -128,7 +128,7 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 		};
 		$.ajax({
 			type: "POST",
-			url: '/newLike/',
+			url: "/newLike/",
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {

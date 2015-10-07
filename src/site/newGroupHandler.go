@@ -3,16 +3,11 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
-	"net/http"
-	"strings"
-	"time"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
+	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
-	"zanaduu3/src/user"
 )
 
 // newGroupData contains data given to us in the request.
@@ -25,58 +20,34 @@ type newGroupData struct {
 }
 
 // newGroupHandler handles requests to add a new group to a group.
-func newGroupHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
-	header, str := newGroupProcessor(w, r)
-	if header > 0 {
-		if header == http.StatusInternalServerError {
-			c.Inc(strings.Trim(r.URL.Path, "/") + "Fail")
-		}
-		c.Errorf("%s", str)
-		w.WriteHeader(header)
-	}
-	if len(str) > 0 {
-		fmt.Fprintf(w, "%s", str)
-	}
-}
+func newGroupHandler(params *pages.HandlerParams) *pages.Result {
+	c := params.C
+	db := params.DB
+	u := params.U
 
-func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
-	c := sessions.NewContext(r)
-
-	decoder := json.NewDecoder(r.Body)
+	decoder := json.NewDecoder(params.R.Body)
 	var data newGroupData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Sprintf("Couldn't decode json: %v", err)
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if data.Name == "" {
-		return http.StatusBadRequest, fmt.Sprintf("Name has to be set")
+		return pages.HandlerBadRequestFail("Name has to be set", nil)
 	}
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
-	}
-
-	// Load user.
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("Couldn't load user: %v", err)
-	}
+	// Check user related permissions.
 	if !u.IsLoggedIn {
-		return http.StatusForbidden, fmt.Sprintf("Not logged in")
+		return pages.HandlerForbiddenFail("Not logged in", nil)
 	}
 	if u.Karma < 200 {
-		return http.StatusForbidden, fmt.Sprintf("You don't have enough karma")
+		return pages.HandlerForbiddenFail("You don't have enough karma", nil)
 	}
 	if !u.IsAdmin {
-		return http.StatusForbidden, fmt.Sprintf("Have to be an admin to create domains or groups")
+		return pages.HandlerForbiddenFail("Have to be an admin to create domains or groups", nil)
 	}
 
 	// Begin the transaction.
-	err = db.Transaction(func(tx *database.Tx) error {
-		rand.Seed(time.Now().UnixNano())
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		groupId := rand.Int63()
 
 		// Create the new group.
@@ -91,7 +62,7 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 		statement := tx.NewInsertTxStatement("groups", hashmap)
 		if _, err = statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't create a group: %v", err)
+			return "Couldn't create a group", err
 		}
 
 		if !data.IsDomain {
@@ -104,13 +75,13 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 			hashmap["createdAt"] = database.Now()
 			statement = tx.NewInsertTxStatement("groupMembers", hashmap)
 			if _, err = statement.Exec(); err != nil {
-				return fmt.Errorf("Couldn't add a user to a group: %v", err)
+				return "Couldn't add a user to a group", err
 			}
 		}
-		return nil
+		return "", nil
 	})
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Sprintf("Error commit a transaction: %v\n", err)
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	if data.IsDomain {
@@ -125,5 +96,5 @@ func newGroupProcessor(w http.ResponseWriter, r *http.Request) (int, string) {
 		}
 	}
 
-	return 0, ""
+	return pages.StatusOK(nil)
 }

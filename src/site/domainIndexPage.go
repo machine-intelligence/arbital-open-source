@@ -3,13 +3,9 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
 )
@@ -29,45 +25,26 @@ type domainIndexTmplData struct {
 
 // domainIndexPage serves the domain index page.
 var domainIndexPage = newPageWithOptions(
-	"/domains/{domain:[A-Za-z0-9_-]+}",
+	fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
 	domainIndexRenderer,
 	append(baseTmpls,
 		"tmpl/domainIndexPage.tmpl",
-		"tmpl/pageHelpers.tmpl",
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl",
 		"tmpl/footer.tmpl"),
-	newPageOptions{})
+	pages.PageOptions{})
 
 // domainIndexRenderer renders the domain index page.
-func domainIndexRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.Result {
-	c := sessions.NewContext(r)
+func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
+	u := params.U
+	db := params.DB
 
-	data, err := domainIndexInternalRenderer(w, r, u)
-	if err != nil {
-		c.Inc("domain_index_page_served_fail")
-		c.Errorf("%s", err)
-		return showError(w, r, fmt.Errorf("%s", err))
-	}
-	c.Inc("domain_index_page_served_success")
-	return pages.StatusOK(data)
-}
-
-// domainIndexInternalRenderer renders the domain index page.
-func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) (*domainIndexTmplData, error) {
-	var err error
 	var data domainIndexTmplData
 	data.User = u
-	c := sessions.NewContext(r)
 	data.PageMap = make(map[int64]*core.Page)
 
-	db, err := database.GetDB(c)
-	if err != nil {
-		return nil, err
-	}
-
 	// Load the domain.
-	data.Domain = &core.Group{Alias: mux.Vars(r)["domain"]}
+	data.Domain = &core.Group{Alias: mux.Vars(params.R)["domain"]}
 	data.User.DomainAlias = data.Domain.Alias
 	row := db.NewStatement(`
 		SELECT id,name,rootPageId
@@ -75,9 +52,9 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		WHERE alias=?`).QueryRow(data.Domain.Alias)
 	foundDomain, err := row.Scan(&data.Domain.Id, &data.Domain.Name, &data.Domain.RootPageId)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't retrieve subscription: %v", err)
+		return pages.Fail("Couldn't retrieve subscription", err)
 	} else if !foundDomain {
-		return nil, fmt.Errorf("Couldn't find the domain: %s", data.Domain.Alias)
+		return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", data.Domain.Alias), nil)
 	}
 
 	// Load recently created page ids.
@@ -93,7 +70,7 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
 	data.RecentlyCreatedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading recently created page ids: %v", err)
+		return pages.Fail("error while loading recently created page ids", err)
 	}
 
 	// Load most liked page ids.
@@ -116,7 +93,7 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
 	data.MostLikedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading most liked page ids: %v", err)
+		return pages.Fail("error while loading most liked page ids", err)
 	}
 
 	// Load recently edited page ids.
@@ -136,7 +113,7 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
 	data.RecentlyEditedIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading recently edited page ids: %v", err)
+		return pages.Fail("error while loading recently edited page ids", err)
 	}
 
 	// Load most controversial page ids.
@@ -160,27 +137,27 @@ func domainIndexInternalRenderer(w http.ResponseWriter, r *http.Request, u *user
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
 	data.MostControversialIds, err = loadPageIds(rows, data.PageMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading most controversial page ids: %v", err)
+		return pages.Fail("error while loading most controversial page ids", err)
 	}
 
 	// Load pages.
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
-		return nil, fmt.Errorf("error while loading pages: %v", err)
+		return pages.Fail("error while loading pages", err)
 	}
 
 	// Load auxillary data.
 	err = loadAuxPageData(db, u.Id, data.PageMap, nil)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load aux data: %v", err)
+		return pages.Fail("Couldn't load aux data", err)
 	}
 
 	// Load all the groups.
 	data.GroupMap = make(map[int64]*core.Group)
 	err = loadGroupNames(db, u, data.GroupMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load group names: %v", err)
+		return pages.Fail("Couldn't load group names", err)
 	}
 
-	return &data, nil
+	return pages.StatusOK(&data)
 }

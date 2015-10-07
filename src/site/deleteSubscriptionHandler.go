@@ -3,12 +3,9 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
-	"net/http"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 )
 
 // deleteSubscriptionData contains the data we receive in the request.
@@ -18,49 +15,21 @@ type deleteSubscriptionData struct {
 }
 
 // deleteSubscriptionHandler handles requests for deleting a subscription.
-func deleteSubscriptionHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func deleteSubscriptionHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
-	decoder := json.NewDecoder(r.Body)
-	var emptyData, data deleteSubscriptionData
-	err := decoder.Decode(&data)
-	if err != nil || data == emptyData {
-		c.Inc("delete_subscription_fail")
-		c.Errorf("Couldn't decode json: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		c.Inc("delete_subscription_fail")
-		c.Errorf("%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Get user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
-	if err != nil {
-		c.Inc("delete_subscription_fail")
-		c.Errorf("Couldn't load user: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
 	if !u.IsLoggedIn {
-		w.WriteHeader(http.StatusForbidden)
-		return
+		return pages.HandlerForbiddenFail("Have to be logged in", nil)
 	}
 
-	err = deleteSubscriptionInternalHandler(u, db, &data)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		c.Inc("delete_subscription_fail")
+	decoder := json.NewDecoder(params.R.Body)
+	var data deleteSubscriptionData
+	err := decoder.Decode(&data)
+	if err != nil || (data.PageId == 0 && data.UserId == 0) {
+		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-}
 
-func deleteSubscriptionInternalHandler(u *user.User, db *database.DB, data *deleteSubscriptionData) error {
 	query := database.NewQuery(`
 		DELETE FROM subscriptions
 		WHERE userId=? AND `, u.Id)
@@ -70,7 +39,7 @@ func deleteSubscriptionInternalHandler(u *user.User, db *database.DB, data *dele
 		query.Add("toUserId=?", data.UserId)
 	}
 	if _, err := query.ToStatement(db).Exec(); err != nil {
-		return fmt.Errorf("Couldn't delete a subscription: %v", err)
+		return pages.HandlerErrorFail("Couldn't delete a subscription", err)
 	}
-	return nil
+	return pages.StatusOK(nil)
 }

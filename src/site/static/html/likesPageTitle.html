@@ -21,7 +21,7 @@
 
 	<!-- Link to quickly edit the page -->
 	<span class="quick-edit-span" ng-show="showQuickEditLink">
-		<a ng-href="{[{page.editUrl}]}" class="edit-page-link glyphicon glyphicon-pencil"></a>
+		<a ng-href="{[{page.editUrl()}]}" class="edit-page-link glyphicon glyphicon-pencil"></a>
 	</span>
 
 	<!-- Show new/updated stars -->
@@ -42,13 +42,13 @@
 	
 	<!-- Page title -->
 	<span class="inline-page-title" ng-style="{display: isSearchResult ? 'inline' : 'table-cell'}">
-		<a ng-href="{[{page.url}]}"
+		<a ng-href="{[{page.url()}]}"
 				page-id={[{page.pageId}]}
 				class="intrasite-link"
 				ng-hide="isSearchResult">
 			<span ng-bind="page.type == 'comment' ? 'Comment' : page.title"></span>
 		</a>
-		<span ng-bind="page.type == 'comment' ? 'Comment' : page.title" ng-show"isSearchResult"></span>
+		<span ng-bind="page.type == 'comment' ? 'Comment' : page.title" ng-show="isSearchResult"></span>
 	</span>
 
 	<span class="created-span gray-text" ng-bind="page.createdAt | relativeDateTime" ng-show="showCreatedAt">

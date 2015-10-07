@@ -78,14 +78,13 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		};
 		if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return;
 		prevSimilarPageData = data;
-		autocompleteService.findSimilarPages(data, function(data, status){
+		autocompleteService.findSimilarPages(data, function(data){
 			$similarPages.empty();
-			var hits = data.hits.hits;
-			for (var n = 0; n < hits.length; n++) {
-				var source = hits[n]._source;
-				var $el = $("<div><a href='/pages/" + source.pageId + "' page-id='" + source.pageId +
-					"' class='intrasite-link'>" + source.title + "</a><div class='gray-text'>" +
-					source.clickbait + "</div></div>");
+			for (var n = 0; n < data.length; n++) {
+				var pageId = data[n].value;
+				//if (pageId == page.pageId) continue;
+				var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
+					"' show-clickbait='true'></div>")(scope);
 				$similarPages.append($el);
 			}
 		});
@@ -97,12 +96,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
 			parentIds.push($(element).attr("tag-id"));
 		});
-		var privacyKey = $topParent.attr("privacy-key");
 		var data = {
 			pageId: pageId,
 			parentIds: parentIds.join(),
-			privacyKey: privacyKey,
-			keepPrivacyKey: $topParent.find("input[name='private']").is(":checked"),
 			karmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
 			isAutosave: isAutosave,
 			isSnapshot: isSnapshot,
@@ -175,7 +171,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$loadingText.hide();
 		savePage(false, false, function(r) {
 			if (doneFn) {
-				doneFn({alias: r.substring(r.lastIndexOf("/") + 1)});
+				doneFn({alias: pageId});
 			}
 		});
 		return false;
@@ -188,7 +184,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$loadingText.hide();
 		savePage(false, true, function(r) {
 			if (r !== undefined) {
-				$body.attr("privacy-key", r);
 				$loadingText.show().text("Saved!");
 			}
 		});
@@ -279,6 +274,39 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Add existing parent tags
 	addParentTags();
 
+	// Convert all links with pageIds to alias links.
+	page.text = page.text.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + text + "](" + page.alias + ")";
+		}
+		return whole;
+	}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[vote: " + page.alias + "]";
+		}
+		return whole;
+	}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + page.alias + " " + text + "]";
+		}
+		return whole;
+	}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + page.alias + "]";
+		}
+		return whole;
+	}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {
+		var page = pageService.pageMap[alias];
+		if (page) {
+			return prefix + "[" + text + "](" + url + page.alias + ")";
+		}
+		return whole;
+	});
+
 	// Set up Markdown.
 	arbMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
 
@@ -293,13 +321,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		selection: "none",
 		handle: "square",
 		tooltip: "always",
-	});
-
-	// Change all dates from UTC to local.
-	// TODO: actually we should be using moment.js and AngularJS filters
-	$topParent.find(".date").each(function(index, element) {
-		var date = new Date(element.innerHTML + " UTC");
-		element.innerHTML = date.toLocaleString();
 	});
 
 	// Map of edit number -> [array of: {edit: child edit num, path: length of path to the furthest node}]
@@ -409,7 +430,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
-			window.location.href = page.url;
+			window.location.href = page.url();
 		});
 	});
 
@@ -489,7 +510,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				if (r === undefined) {
 					$autosaveLabel.hide();
 				} else {
-					$("body").attr("privacy-key", r);
 					$autosaveLabel.text("Autosave: Saved!").show();
 				}
 			});
@@ -498,13 +518,25 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		// Set up finding similar pages
 		this.similarPagesInterval = window.setInterval(function(){
 			computeSimilarPages($compile, scope);
-		}, 11000);
+		}, 1100);
+
+		// Set up interval for updating meta-data
+		var $metaTextInput = $topParent.find(".meta-text-input");
+		var $metaTextError = $topParent.find(".meta-text-error");
+		this.metaTextInterval = window.setInterval(function(){
+			try {
+				$metaTextError.hide();
+				jsyaml.load($metaTextInput.val());
+			} catch (err) {
+				$metaTextError.text(err.message).show();
+			} 
+		}, 1300);
 
 		// Compute prevEditPageData, so we don't fire off autosave when there were
 		// no changes made.
 		prevEditPageData = computeAutosaveData(true, false);
 
-		// Set up an interval to make sure modal backdrop is the right size.
+		// Workaround: Set up an interval to make sure modal backdrop is the right size.
 		if (isModal) {
 			var $element = $topParent.closest(".modal-content");
 			if ($element.length > 0) {
@@ -518,7 +550,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			}
 		}
 
-		// Check when user hovers over intrasite links, and show a popover.
+		// Check when user hovers over a history edit node, and show a popover.
 		$editHistory.on("mouseenter", ".edit-node", function(event) {
 			var $linkPopoverTemplate = $("#link-popover-template");
 			var $target = $(event.currentTarget);
@@ -547,7 +579,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 						var $popover = $("#" + $target.attr("aria-describedby"));
 						var $el = $compile("<arb-edit-node-popover page-id='" + pageId +
 								"' edit-num='" + edit.edit +
-								"' is-opened='" + (edit.edit === page.edit) + "'>BLAH</arb-edit-node-popover>")(scope);
+								"' is-opened='" + (edit.edit === page.edit) + "'></arb-edit-node-popover>")(scope);
 						$popover.find(".popover-content").empty().append($el);
 					});
 					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'

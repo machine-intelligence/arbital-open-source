@@ -62,19 +62,24 @@ func loadGroupNames(db *database.DB, u *user.User, groupMap map[int64]*core.Grou
 
 	// Load names
 	rows := db.NewStatement(`
-		SELECT id,name
+		SELECT id,name,alias
 		FROM groups
 		WHERE ` + groupCondition + ` OR isVisible`).Query(groupIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var g core.Group
-		err := rows.Scan(&g.Id, &g.Name)
+		err := rows.Scan(&g.Id, &g.Name, &g.Alias)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a group: %v", err)
 		}
 		if _, ok := groupMap[g.Id]; !ok {
 			groupMap[g.Id] = &g
 		} else {
+			// TODO: Nope, nope, nope! Can't do this again. Figure out if we ever have
+			// a group that comes in here with preloaded info that we have to preserve.
+			// If so, let's refactor it so that this function is the one that loads all
+			// the data for groups.
 			groupMap[g.Id].Name = g.Name
+			groupMap[g.Id].Alias = g.Alias
 		}
 		return nil
 	})

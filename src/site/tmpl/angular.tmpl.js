@@ -171,20 +171,29 @@ app.service("pageService", function(userService, $http){
 			}
 			return "";
 		},
-		// gets the link's title, using a lowercase alias
-		getLinkTitle: function(alias) {
-		    return this.links[alias.toLowerCase()];
+		// Get page's url
+		url: function(forcePageId) {
+			if (forcePageId) {
+				return "/pages/" + this.pageId;
+			}
+			return "/pages/" + this.alias;
+		},
+		// Get url to edit the page
+		editUrl: function() {
+			return "/edit/" + this.pageId;
 		},
 	};
 	
 	// Massage page's variables to be easier to deal with.
-	var setUpPage = function(page) {
+	var setUpPage = function(page, pageMap) {
 		if (page.children == null) page.children = [];
 		if (page.parents == null) page.parents = [];
-		page.url = "/pages/" + page.alias;
-		page.editUrl = "/edit/" + page.pageId;
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
+		}
+		// Add page's alias to the map as well
+		if (page.pageId !== page.alias) {
+			pageMap[page.alias] = page;
 		}
 		return page;
 	};
@@ -198,7 +207,7 @@ app.service("pageService", function(userService, $http){
 			existingPage.children = existingPage.children.concat(page.children);
 			existingPage.parents = existingPage.parents.concat(page.parents);
 		} else {
-			this.pageMap[page.pageId] = setUpPage(page);
+			this.pageMap[page.pageId] = setUpPage(page, this.pageMap);
 		}
 		return true;
 	};
@@ -261,7 +270,7 @@ app.service("pageService", function(userService, $http){
 			};
 		} else {
 			if (page.sortChildrenBy !== "likes") {
-				console.log("Unknown sort type: " + page.sortChildrenBy);
+				console.error("Unknown sort type: " + page.sortChildrenBy);
 				console.log(page);
 			}
 			return function(aId, bId) {
@@ -452,7 +461,7 @@ app.service("pageService", function(userService, $http){
 	// Setup all initial pages.
 	console.log("Initial pageMap: "); console.log(this.pageMap);
 	for (var id in this.pageMap) {
-		setUpPage(this.pageMap[id]);
+		setUpPage(this.pageMap[id], this.pageMap);
 	}
 });
 
@@ -472,6 +481,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	// Take data we get from BE search, and extract the data to forward it to
 	// an autocompelete input. Also update the pageMap.
 	this.processAutocompleteResults = function(data) {
+		if (!data) return [];
 		// Add new pages to the pageMap.
 		for (var pageId in data.pages) {
 			pageService.addPageToMap(data.pages[pageId], false);
@@ -523,7 +533,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	this.findSimilarPages = function(pageData, callback) {
 		$http({method: "POST", url: "/json/similarPageSearch/", data: JSON.stringify(pageData)})
 		.success(function(data, status){
-			callback(data, status);
+			callback(that.processAutocompleteResults(data));
 		})
 		.error(function(data, status){
 			console.log("Error doing similar page search:"); console.log(data); console.log(status);
@@ -546,7 +556,7 @@ app.filter("relativeDateTime", function() {
 });
 
 // ArbitalCtrl is used across all pages.
-app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, userService, pageService, autocompleteService) {
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $compile, userService, pageService, autocompleteService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -601,20 +611,21 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 		// Don't allow recursive hover in popovers.
 		if ($target.closest(".popover-content").length > 0) return;
 
+		// Popover's title.
+		var getTitleHtml = function(pageId) {
+			return "<arb-likes-page-title is-search-result='true' page-id='" + pageId + "'></arb-likes-page-title>";
+		};
 		// Create options for the popover.
 		var options = {
 			html : true,
-			placement: "auto",
+			placement: "bottom",
 			trigger: "manual",
 			delay: { "hide": 100 },
 			title: function() {
 				var pageId = $target.attr("page-id");
 				var page = pageService.pageMap[pageId];
-				if (page) {
-					if (page.deletedBy !== "0") {
-						return "[DELETED]";
-					}
-					return page.title;
+				if (page && page.title) {
+					return getTitleHtml(pageId);
 				}
 				return "Loading...";
 			},
@@ -622,35 +633,20 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 				var $link = $target;
 				var pageAlias = $link.attr("page-id");
 				var setPopoverContent = function(page) {
+					var contentHtml = "<arb-intrasite-popover page-id='" + page.pageId + "'></arb-intrasite-popover>";
 					if (page.deletedBy !== "0") {
-						$content.html("");
-						return "";
-					}
-					var $content = $("<div>" + $linkPopoverTemplate.html() + "</div>");
-					if (page.type === "blog") {
-						var user = userService.userMap[page.creatorId];
-						var userName = user.firstName + " " + user.lastName;
-						$content.find(".popover-blog-owner").text("Author: " + userName);
+						return "[DELETED]";
 					}
 
-					$content.find(".like-count").text(page.likeCount);
-					$content.find(".dislike-count").text(page.dislikeCount);
-					var myLikeValue = +page.myLikeValue;
-					if (myLikeValue > 0) {
-						$content.find(".disabled-like").addClass("on");
-					} else if (myLikeValue < 0) {
-						$content.find(".disabled-dislike").addClass("on");
-					}
-
-					setTimeout(function() {
+					$timeout(function() {
 						var $popover = $("#" + $link.attr("aria-describedby"));
-						var $content = $popover.find(".popover-content");
-						arbMarkdown.init(false, page.pageId, page.summary, $content, pageService);
-						if (page.hasVote) {
-							createVoteSlider($content.find(".vote"), userService, page, true);
-						}
-					}, 300);
-					return $content.html();
+						$popover.find(".popover-title").html(getTitleHtml(page.pageId));
+						$compile($popover)($scope);
+						$timeout(function() {
+							arbMarkdown.init(false, page.pageId, page.summary, $popover.find(".intrasite-popover-body"), pageService);
+						});
+					});
+					return contentHtml;
 				};
 
 				// Check if we already have this page cached.
@@ -662,25 +658,19 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, user
 				// Fetch page data from the server.
 				pageService.loadPages([pageAlias], {
 					overwrite: true,
+					includeAuxData: true,
 					loadVotes: true,
 					success: function(data, status) {
-						// Should only be one page.
-						for (var pageId in data) {
-							var page = data[pageId];
-							if (!page.summary) {
-								page.summary = " "; // to avoid trying to load it again
-							}
-							// Replace page-id attribute in case it was an alias.
-							$link.attr("page-id", pageId);
-							var contentHtml = setPopoverContent(page);
-							var $popover = $("#" + $link.attr("aria-describedby"));
-							$popover.find(".popover-content").html(contentHtml);
-							$popover.find(".popover-title").text(page.title);
-							break;
+						var page = pageService.pageMap[pageAlias];
+						if (!page.summary) {
+							page.summary = " "; // to avoid trying to load it again
 						}
+						var contentHtml = setPopoverContent(page);
+						var $popover = $("#" + $link.attr("aria-describedby"));
+						$popover.find(".popover-content").html(contentHtml);
 					},
 				});
-				return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
+				return "<img src='/static/images/loading.gif' class='loading-indicator' style='display:block'/>";
 			}
 		};
 		// Check if this is the first time we hovered.
@@ -824,6 +814,21 @@ app.directive("arbNewLinkModal", function(autocompleteService) {
 	};
 });
 
+// intrasitePopover containts the popover body html.
+app.directive("arbIntrasitePopover", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/intrasitePopover.html",
+		scope: {
+			pageId: "@",
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.page = pageService.pageMap[scope.pageId];
+		},
+	};
+});
+
 // pageTitle displays page's title with optional meta info.
 app.directive("arbPageTitle", function(pageService, userService) {
 	return {
@@ -930,7 +935,5 @@ app.directive("arbPageTreeNode", function(RecursionHelper) {
 		},
 	};
 });
-
-
 </script>
 {{end}}

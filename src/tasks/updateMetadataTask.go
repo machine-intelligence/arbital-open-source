@@ -9,10 +9,6 @@ import (
 	"zanaduu3/src/sessions"
 )
 
-var (
-	baseTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl"}
-)
-
 // UpdateMetadataTask is the object that's put into the daemon queue.
 type UpdateMetadataTask struct {
 }
@@ -28,7 +24,7 @@ func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) 
 	c := db.C
 
 	if err = task.IsValid(); err != nil {
-		return -1, err
+		return 0, err
 	}
 
 	c.Debugf("==== UPDATE METADATA START ====")
@@ -41,7 +37,7 @@ func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) 
 		WHERE isCurrentEdit`).Query()
 	if err = rows.Process(updateMetadata); err != nil {
 		c.Debugf("ERROR, failed to update pages and pageLinks: %v", err)
-		return -1, err
+		return 0, err
 	}
 
 	// Regenerate pageInfos table
@@ -52,7 +48,7 @@ func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) 
 		GROUP BY pageId`).Query()
 	if err = rows.Process(updatePageInfos); err != nil {
 		c.Debugf("ERROR, failed to update pageInfos: %v", err)
-		return -1, err
+		return 0, err
 	}
 	return 0, err
 }
@@ -64,28 +60,34 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
+	text, err := core.StandardizeLinks(db, text)
+	if err != nil {
+		return fmt.Errorf("failed to standardize links: %v", err)
+	}
+
 	// Begin the transaction.
-	err := db.Transaction(func(tx *database.Tx) error {
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Update page summary
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
 		hashmap["edit"] = edit
+		hashmap["text"] = text
 		hashmap["summary"] = core.ExtractSummary(text)
 		hashmap["todoCount"] = core.ExtractTodoCount(text)
-		statement := tx.NewInsertTxStatement("pages", hashmap, "summary", "todoCount")
+		statement := tx.NewInsertTxStatement("pages", hashmap, "text", "summary", "todoCount")
 		if _, err := statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't update pages table: %v", err)
+			return "Couldn't update pages table", err
 		}
 
 		// Update page links table
 		err := core.UpdatePageLinks(tx, pageId, text, sessions.GetDomain())
 		if err != nil {
-			return fmt.Errorf("Couldn't update links: %v", err)
+			return "Couldn't update links", err
 		}
-		return nil
+		return "", nil
 	})
-	if err != nil {
-		return err
+	if errMessage != "" {
+		return fmt.Errorf("%s: %v", errMessage, err)
 	}
 
 	return nil
@@ -99,7 +101,7 @@ func updatePageInfos(db *database.DB, rows *database.Rows) error {
 	}
 
 	// Begin the transaction.
-	err := db.Transaction(func(tx *database.Tx) error {
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Update pageInfos summary
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
@@ -108,12 +110,12 @@ func updatePageInfos(db *database.DB, rows *database.Rows) error {
 		hashmap["createdAt"] = createdAt
 		statement := tx.NewInsertTxStatement("pageInfos", hashmap, "currentEdit", "maxEdit", "createdAt")
 		if _, err := statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't update pageInfos table: %v", err)
+			return "Couldn't update pageInfos table", err
 		}
-		return nil
+		return "", nil
 	})
-	if err != nil {
-		return err
+	if errMessage != "" {
+		return fmt.Errorf("%s: %v", errMessage, err)
 	}
 
 	return nil

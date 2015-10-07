@@ -1,3 +1,24 @@
+var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
+var noParen = "(?=$|[^(])";
+var aliasMatch = "([A-Za-z0-9.]+)";
+// [vote: alias]
+var voteEmbedRegexp = new RegExp(noBacktickOrBracket + 
+		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
+// [alias/url text] 
+var forwardLinkRegexp = new RegExp(noBacktickOrBracket + 
+		"\\[([^ \\]]+?) ([^\\]]+?)\\]" + noParen, "g");
+// [alias]
+var simpleLinkRegexp = new RegExp(noBacktickOrBracket + 
+		"\\[" + aliasMatch + "\\]" + noParen, "g");
+// [text](alias)
+var complexLinkRegexp = new RegExp(noBacktickOrBracket + 
+		"\\[([^\\]]+?)\\]" + // match [Text]
+		"\\(" + aliasMatch + "\\)", "g"); // match (Alias)
+// [text](url)
+var urlLinkRegexp = new RegExp(noBacktickOrBracket + 
+		"\\[([^\\]]+?)\\]" + // match [Text]
+		"\\((http://" + RegExp.escape(window.location.host) + "/pages/)([A-Za-z0-9_-]+?)\\)", "g"); // match (Url)
+
 var arbMarkdown = arbMarkdown || function() {
 	// Set up markdown editor and conversion.
 	function init(inEditMode, pageId, pageText, $topParent, pageService, autocompleteService) {
@@ -6,8 +27,6 @@ var arbMarkdown = arbMarkdown || function() {
 		var converter = Markdown.getSanitizingConverter();
 
 		var aliasRegexp = new RegExp("[A-Za-z0-9_-]+", "");
-		var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
-		var noParen = "(?=$|[^(])";
 
 		// Process [todo:text] spans.
 		var todoSpanRegexp = new RegExp(noBacktickOrBracket + 
@@ -28,8 +47,6 @@ var arbMarkdown = arbMarkdown || function() {
 		});
 
 		// Process [vote:alias] spans.
-		var voteEmbedRegexp = new RegExp(noBacktickOrBracket + 
-				"\\[vote: ?([A-Za-z0-9-_]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(voteEmbedRegexp, function (whole, prefix, alias) {
 				return prefix + "[Embedded " + alias + " vote. ](http://" + host + "/pages/" + alias + "/?embedVote=1)";
@@ -46,8 +63,6 @@ var arbMarkdown = arbMarkdown || function() {
 		});
 
 		// Convert [alias/url text] spans into links.
-		var forwardLinkRegexp = new RegExp(noBacktickOrBracket + 
-				"\\[([^ \\]]+?) ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
 				return prefix + "[" + text + "](" + alias + ")";
@@ -55,29 +70,21 @@ var arbMarkdown = arbMarkdown || function() {
 		});
 
 		// Convert [alias] spans into links.
-		var simpleLinkRegexp = new RegExp(noBacktickOrBracket + 
-				"\\[([A-Za-z0-9_-]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
-				if (alias.match(aliasRegexp)) {
-					var url = "http://" + host + "/pages/" + alias + "/";
-					var pageTitle = alias;
-					if (page.links && page.getLinkTitle(alias)) {
-						pageTitle = page.getLinkTitle(alias);
-					}
-					return prefix + "[" + pageTitle + "](" + url + ")";
+				var page = pageService.pageMap[alias];
+				if (page) {
+					var url = "http://" + host + "/pages/" + page.alias + "/";
+					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
-					return prefix + "[" + text + "](" + alias + ")";
+					return prefix + "[" + alias + "](" + alias + ")";
 				}
 			});
 		});
 	
 		// Convert [Text](Alias) spans into links.
-		var compexLinkRegexp = new RegExp(noBacktickOrBracket + 
-			"\\[([^[\\]()]+?)\\]" + // match [Text]
-			"\\(([A-Za-z0-9_-]+?)\\)", "g"); // match (Alias)
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(compexLinkRegexp, function (whole, prefix, text, alias) {
+			return text.replace(complexLinkRegexp, function (whole, prefix, text, alias) {
 				if (alias.match(aliasRegexp)) {
 					var url = "http://" + host + "/pages/" + alias;
 					return prefix + "[" + text + "](" + url + ")";
@@ -86,7 +93,7 @@ var arbMarkdown = arbMarkdown || function() {
 				}
 			});
 		});
-	
+
 		if (inEditMode) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId, {
@@ -112,8 +119,7 @@ var arbMarkdown = arbMarkdown || function() {
 		// Setup attributes for links that are within our domain.
 		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			host + // match the url host part
-			"\/pages\/([A-Za-z0-9_-]+)" + // [1] capture page alias
-			"(?:\/([0-9]+))?" + // [2] optionally capture privacyId
+			"\/pages\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 		$pageText.find("a").each(function(index, element) {
@@ -123,11 +129,11 @@ var arbMarkdown = arbMarkdown || function() {
 			if ($element.hasClass("intrasite-link")) {
 				return;
 			}
-			$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
+			$element.addClass("intrasite-link").attr("page-id", parts[1]);
 			// Check if we are embedding a vote
-			if (parts[3].indexOf("embedVote") > 0) {
+			if (parts[2].indexOf("embedVote") > 0) {
 				$element.attr("embed-vote-id", parts[1]);
-			} else if (page.links && page.getLinkTitle(parts[1])) {
+			} else if (parts[1] in pageService.pageMap) {
 				// Normal healthy link!
 			} else {
 				// Mark as red link

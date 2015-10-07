@@ -249,7 +249,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					// If the pane is now not visible, then don't do anything.
 					if (!$topParent.closest(".tab-pane").is(":visible")) return;
 					$lensTab.off("click", doCreateVoteSlider);
-					createVoteSlider($topParent.find(".page-vote"), userService, page, false);
+					//createVoteSlider($topParent.find(".page-vote"), userService, page, false);
 				});
 			};
 			$lensTab.on("click", doCreateVoteSlider);
@@ -271,9 +271,9 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					success: function(data, status) {
 						var pageId = Object.keys(data)[0];
 						var divId = "embed-vote-" + pageId;
-						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><arb-likes-page-title page-id='" + pageId + "'></arb-likes-page-title></div>")(scope);
+						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><arb-vote-bar page-id='" + pageId + "'></arb-vote-bar></div>")(scope);
 						$link.replaceWith($embedDiv);
-						createVoteSlider($("#" + divId), userService, pageService.pageMap[pageId], false);
+						//createVoteSlider($("#" + divId), userService, pageService.pageMap[pageId], false);
 					},
 					error: function(data, status) {
 						console.log("Couldn't load embedded votes: " + pageAlias);
@@ -318,7 +318,6 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 			pageId: "@",
 		},
 		link: function(scope, element, attrs) {
-
 			// Set up Page JS Controller.
 			$timeout(function(){
 				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
@@ -539,6 +538,289 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 					}
 				}
 			};
+		},
+	};
+});
+
+// Directive for showing a vote bar.
+app.directive("arbVoteBar", function(pageService, userService, $compile, $timeout) {
+	return {
+		templateUrl: "/static/html/voteBar.html",
+		scope: {
+			pageId: "@",
+			isPopoverVote: "@",
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			var page = pageService.pageMap[scope.pageId];
+			var userId = userService.user.id;
+
+			if (!page.hasVote) return;
+
+			// Convert votes into a user id -> {value, createdAt} map
+			var voteMap = {};
+			if (page.votes) {
+				for(var i = 0; i < page.votes.length; i++) {
+					var vote = page.votes[i];
+					voteMap[vote.userId] = {value: vote.value, createdAt: vote.createdAt};
+				}
+			}
+		
+			// Copy vote-template and add it to the parent.
+			var $voteDiv = element.attr("id", "vote" + page.pageId).appendTo(element);
+			var $input = $voteDiv.find(".vote-slider-input");
+			$input.attr("data-slider-id", $input.attr("data-slider-id") + page.pageId);
+			var userVoteStr = userId in voteMap ? ("" + voteMap[userId].value) : "";
+			var mySlider = $input.bootstrapSlider({
+				step: 1,
+				precision: 0,
+				selection: "none",
+				handle: "square",
+				value: +userVoteStr,
+				ticks: [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 99],
+				formatter: function(s) { return s + "%"; },
+			});
+			var $tooltip = element.find(".tooltip-main");
+		
+			// Set the value of the user's vote.
+			var setMyVoteValue = function($voteDiv, userVoteStr) {
+				$voteDiv.attr("my-vote", userVoteStr);
+				$voteDiv.find(".my-vote").toggle(userVoteStr !== "");
+				$voteDiv.find(".my-vote-value").text("| my vote is \"" + (+userVoteStr) + "%\"");
+			}
+			setMyVoteValue($voteDiv, userVoteStr);
+		
+			// Setup vote bars.
+			// A bar represents users' votes for a given value. The tiled background
+			// allows us to display each vote separately.
+			var bars = {}; // voteValue -> {bar: jquery bar element, users: array of user ids who voted on this value}
+			// Stuff for setting up the bars' css.
+			var $barBackground = element.find(".bar-background");
+			var $sliderTrack = element.find(".slider-track");
+			var originLeft = $sliderTrack.offset().left;
+			var originTop = $sliderTrack.offset().top;
+			var barWidth = Math.max(5, $sliderTrack.width() / (99 - 1) * 2);
+			// Set the correct css for the given bar object given the number of votes it has.
+			var setBarCss = function(bar) {
+				var $bar = bar.bar;
+				var voteCount = bar.users.length;
+				$bar.toggle(voteCount > 0);
+				$bar.css("height", 11 * voteCount);
+				$bar.css("z-index", 2 + voteCount);
+				$barBackground.css("height", Math.max($barBackground.height(), $bar.height()));
+				$barBackground.css("top", 10);
+			}
+			var highlightBar = function($bar, highlight) {
+				var css = "url(/static/images/vote-bar.png)";
+				var highlightColor = "rgba(128, 128, 255, 0.3)";
+				if(highlight) {
+					css = "linear-gradient(" + highlightColor + "," + highlightColor + ")," + css;
+				}
+				$bar.css("background", css);
+				$bar.css("background-size", "100% 11px"); // have to set this each time
+			};
+			// Get the bar object corresponding to the given vote value. Create a new one if there isn't one.
+			var getBar = function(vote) {
+				if (!(vote in bars)) {
+					var x = (vote - 1) / (99 - 1);
+					var $bar = $("<div></div>").addClass("vote-bar");
+					$bar.css("left", x * $sliderTrack.width() - barWidth / 2);
+					$bar.css("width", barWidth);
+					$barBackground.append($bar);
+					bars[vote] = {bar: $bar, users: []};
+				}
+				return bars[vote];
+			}
+			for(var id in voteMap){
+				// Create stacks for all the votes.
+				var bar = getBar(voteMap[id].value);
+				bar.users.push(id);
+				setBarCss(bar);
+			}
+		
+			// Convert mouse X position into % vote value.
+			var voteValueFromMousePosX = function(mouseX) {
+				var x = (mouseX - $sliderTrack.offset().left) / $sliderTrack.width();
+				x = Math.max(0, Math.min(1, x));
+				return Math.round(x * (99 - 1) + 1);
+			};
+		
+			// Update the label that shows how many votes have been cast.
+			var updateVoteCount = function() {
+				var votesLength = Object.keys(voteMap).length;
+				$voteDiv.find(".vote-count").text(votesLength + " vote" + (votesLength == 1 ? "" : "s"));
+			};
+			updateVoteCount();
+		
+			// Set handle's width.
+			var $handle = element.find(".min-slider-handle");
+			$handle.css("width", barWidth);
+		
+			// Don't track mouse movements and such for the vote in a popover.
+			if (scope.isPopoverVote) {
+				if (!(userId in voteMap)) {
+					$handle.hide();
+				}
+				return;
+			}
+		
+			// Catch mousemove event on the text, so that it doesn't propagate to parent
+			// and spawn popovers, which will prevent us clicking on "x" button to delete
+			// our vote.
+			element.find(".text-center").on("mousemove", function(event){
+				return false;
+			});
+		
+			var mouseInParent = false;
+			var mouseInPopover = false;
+			// Destroy the popover that displays who voted for a given value.
+			var $usersPopover = undefined;
+			var destroyUsersPopover = function() {
+				if ($usersPopover !== undefined) {
+					$usersPopover.popover("destroy");
+					highlightBar($usersPopover, false);
+				}
+				$usersPopover = undefined;
+				mouseInPopover = false;
+			};
+		
+			// Track mouse movement to show voter names.
+			element.on("mouseenter", function(event) {
+				mouseInParent = true;
+				$handle.show();
+				$tooltip.css("opacity", 1.0);
+			});
+			element.on("mouseleave", function(event) {
+				mouseInParent = false;
+				if (!(userId in voteMap)) {
+					$handle.hide();
+				} else {
+					$input.bootstrapSlider("setValue", voteMap[userId].value);
+				}
+				$tooltip.css("opacity", 0.0);
+				if (!mouseInPopover) {
+					destroyUsersPopover();
+				}
+			});
+			element.trigger("mouseleave");
+			element.on("mousemove", function(event) {
+				// Update slider.
+				var voteValue = voteValueFromMousePosX(event.pageX);
+				$input.bootstrapSlider("setValue", voteValue);
+				if (mouseInPopover) return true;
+		
+				// We do a funky search to see if there is a vote nearby, and if so, show popover.
+				var offset = 0, maxOffset = 5;
+				var offsetSign = 1;
+				var foundBar = false;
+				while(offset <= maxOffset) {
+					if(offsetSign < 0) offset++;
+					offsetSign = -offsetSign;
+					var hoverVoteValue = voteValue + offsetSign * offset;
+					if (!(hoverVoteValue in bars)) {
+						continue;
+					}
+					foundBar = true;
+					var bar = bars[hoverVoteValue];
+					// Don't do anything if it's still the same bar as last time.
+					if (bar.bar === $usersPopover) {
+						break;
+					}
+					// Destroy old one.
+					destroyUsersPopover();
+					// Create new popover.
+					$usersPopover = bar.bar;
+					highlightBar(bar.bar, true);
+					$usersPopover.popover({
+						html : true,
+						placement: "bottom",
+						trigger: "manual",
+						title: "Voters (" + hoverVoteValue + "%)",
+						content: function() {
+							var $anchor = $(this);
+							var html = "";
+							for(var i = 0; i < bar.users.length; i++) {
+								var userId = bar.users[i];
+								html += "<arb-user-name user-id='" + userId + "'></arb-user-name> " +
+									"<span class='gray-text'>{[{'" + voteMap[userId].createdAt + "' | relativeDateTime}]}</span><br>";
+							}
+							$timeout(function() {
+								var $popover = $("#" + $anchor.attr("aria-describedby"));
+								$compile($popover)(scope);
+							});
+							return html;
+						}
+					}).popover("show");
+					var $popover = $barBackground.find(".popover");
+					$popover.on("mouseenter", function(event){
+						mouseInPopover = true;
+					});
+					$popover.on("mouseleave", function(event){
+						mouseInPopover = false;
+						if (!mouseInParent) {
+							destroyUsersPopover();
+						}
+					});
+					break;
+				}
+				if (!foundBar) {
+					// We didn't find a bar, so destroy any existing popover.
+					destroyUsersPopover();
+				}
+			});
+		
+			// Handle user's request to delete their vote.
+			$voteDiv.find(".delete-my-vote-link").on("click", function(event) {
+				var bar = bars[voteMap[userId].value];
+				bar.users.splice(bar.users.indexOf(userId), 1);
+				setBarCss(bar);
+				if (bar.users.length <= 0){
+					delete bars[voteMap[userId].value];
+				}
+		
+				mouseInPopover = false;
+				mouseInParent = false;
+				delete voteMap[userId];
+				element.trigger("mouseleave");
+				element.trigger("mouseenter");
+		
+				postNewVote(page.pageId, 0.0);
+				setMyVoteValue($voteDiv, "");
+				updateVoteCount();
+				return false;
+			});
+			
+			// Track click to see when the user wants to vote / update their vote.
+			element.on("click", function(event) {
+				if (mouseInPopover) return true;
+				if (userId === "0") {
+					showSignupPopover($(event.currentTarget));
+					return true;
+				}
+				if (userId in voteMap && voteMap[userId].value in bars) {
+					// Update old bar.
+					var bar = bars[voteMap[userId].value];
+					bar.users.splice(bar.users.indexOf(userId), 1);
+					setBarCss(bar);
+					destroyUsersPopover();
+					if (bar.users.length <= 0) {
+						delete bars[voteMap[userId].value];
+					}
+				}
+		
+				// Set new vote and update all the things.
+				var vote = voteValueFromMousePosX(event.pageX); 
+				voteMap[userId] = {value: vote, createdAt: "now"};
+				postNewVote(page.pageId, vote);
+				setMyVoteValue($voteDiv, "" + vote);
+				updateVoteCount();
+		
+				// Update new bar.
+				var bar = getBar(vote);
+				bar.users.push(userId);
+				setBarCss(bar);
+			});
 		},
 	};
 });

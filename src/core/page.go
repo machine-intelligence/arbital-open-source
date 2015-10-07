@@ -47,6 +47,14 @@ const (
 
 	// How long the page lock lasts
 	PageLockDuration = 30 * 60 // in seconds
+
+	// String that can be used inside a regexp to match an a page alias or id
+	AliasRegexpStr = "[A-Za-z0-9.]+"
+)
+
+var (
+	// Regexp that strictly matches an alias
+	StrictAliasRegexp = regexp.MustCompile("^[0-9A-Za-z]*[A-Za-z][0-9A-Za-z]*$")
 )
 
 type Vote struct {
@@ -65,7 +73,9 @@ type Page struct {
 	Title     string `json:"title"`
 	Clickbait string `json:"clickbait"`
 	// Full text of the page. Not always sent to the FE.
-	Text           string `json:"text"`
+	Text string `json:"text"`
+	// Meta text of the page. Not always sent to the FE.
+	MetaText       string `json:"metaText"`
 	TextLength     int    `json:"textLength"`
 	Summary        string `json:"summary"`
 	Alias          string `json:"alias"`
@@ -75,7 +85,6 @@ type Page struct {
 	CreatorId      int64  `json:"creatorId,string"`
 	CreatedAt      string `json:"createdAt"`
 	KarmaLock      int    `json:"karmaLock"`
-	PrivacyKey     int64  `json:"privacyKey,string"`
 	GroupId        int64  `json:"groupId,string"`
 	ParentsStr     string `json:"parentsStr"`
 	DeletedBy      int64  `json:"deletedBy,string"`
@@ -116,8 +125,6 @@ type Page struct {
 	MaxEditEver int `json:"maxEditEver"`
 	// Highest edit number of an autosave this user created
 	MyLastAutosaveEdit sql.NullInt64 `json:"myLastAutosaveEdit"`
-	// Map of page aliases/ids -> page title, so we can expand [alias] links
-	Links map[string]string `json:"links"`
 	//LinkedFrom   []string        `json:"linkedFrom"`
 	RedLinkCount int `json:"redLinkCount"`
 	// Set to pageId corresponding to the question/answer the user started creating for this page
@@ -146,6 +153,14 @@ type Page struct {
 	Parents    []*PagePair `json:"parents"`
 	Children   []*PagePair `json:"children"`
 	LensIds    []string    `json:"lensIds"`
+}
+
+// PageMetaData contains all the meta date the user types in the meta-text field.
+type PageMetaData struct {
+	Mastery struct {
+		Alias  string
+		Levels map[float32]map[string]int
+	}
 }
 
 // PagePair describes a parent child relationship, which are stored in pagePairs db table.
@@ -239,7 +254,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 	statement := database.NewQuery(`
 		SELECT * FROM (
 			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
-				length(text),karmaLock,privacyKey,deletedBy,hasVote,voteType,` + summarySelect + `,
+				length(text),metaText,karmaLock,deletedBy,hasVote,voteType,` + summarySelect + `,
 				alias,sortChildrenBy,groupId,parents,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
 				todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
@@ -253,7 +268,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
-			&p.Text, &p.TextLength, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
+			&p.Text, &p.TextLength, &p.MetaText, &p.KarmaLock, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
@@ -273,9 +288,9 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 			op.Title = p.Title
 			op.Clickbait = p.Clickbait
 			op.Text = p.Text
+			op.MetaText = p.MetaText
 			op.TextLength = p.TextLength
 			op.KarmaLock = p.KarmaLock
-			op.PrivacyKey = p.PrivacyKey
 			op.DeletedBy = p.DeletedBy
 			op.HasVote = p.HasVote
 			op.VoteType = p.VoteType
@@ -298,6 +313,11 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		}
 		return nil
 	})
+	for _, p := range pageMap {
+		if p.Type == "" {
+			delete(pageMap, p.PageId)
+		}
+	}
 	return err
 }
 
@@ -363,6 +383,78 @@ func LoadEditHistory(db *database.DB, page *Page, userId int64) error {
 	return nil
 }
 
+// StandardizeLinks converts all alias links into pageId links.
+func StandardizeLinks(db *database.DB, text string) (string, error) {
+	// Populate a list of all the links
+	aliasesAndIds := make([]interface{}, 0)
+	// Track regexp matches, because ReplaceAllStringFunc doesn't support matching groups
+	matches := make(map[string][]string)
+	extractLinks := func(exp *regexp.Regexp) {
+		submatches := exp.FindAllStringSubmatch(text, -1)
+		for _, submatch := range submatches {
+			matches[submatch[0]] = submatch
+			aliasesAndIds = append(aliasesAndIds, submatch[2])
+		}
+	}
+
+	// NOTE: these regexps are waaaay too simplistic and don't account for the
+	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
+	// brackets / parens.
+	// NOTE: each regexp should have one group that captures stuff that comes before
+	// the alias, and then 0 or more groups that capture everything after
+	regexps := []*regexp.Regexp{
+		// Find directly encoded urls
+		regexp.MustCompile("(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)([A-Za-z0-9_-]+)"),
+		// Find ids and aliases using [id/alias optional text] syntax.
+		regexp.MustCompile("(\\[)([A-Za-z0-9_-]+)( [^\\]]*?)?(\\])([^(]|$)"),
+		// Find ids and aliases using [text](id/alias) syntax.
+		regexp.MustCompile("(\\[[^\\]]+?\\]\\()([A-Za-z0-9_-]+?)(\\))"),
+		// Find ids and aliases using [vote: id/alias] syntax.
+		regexp.MustCompile("(\\[vote: ?)([A-Za-z0-9_-]+?)(\\])"),
+	}
+	for _, exp := range regexps {
+		extractLinks(exp)
+	}
+
+	if len(aliasesAndIds) <= 0 {
+		return text, nil
+	}
+
+	// Populate alias -> pageId map
+	aliasMap := make(map[string]string)
+	rows := database.NewQuery(`
+		SELECT pageId,alias
+		FROM pages
+		WHERE isCurrentEdit AND alias IN`).AddArgsGroup(aliasesAndIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, alias string
+		err := rows.Scan(&pageId, &alias)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		aliasMap[alias] = pageId
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	// Perform replacement
+	replaceAlias := func(match string) string {
+		submatch := matches[match]
+		if id, ok := aliasMap[submatch[2]]; ok {
+			// Since ReplaceAllStringFunc gives us the whole match, rather than submatch
+			// array, we have stored it earlier and can now piece it together
+			return submatch[1] + id + strings.Join(submatch[3:], "")
+		}
+		return match
+	}
+	for _, exp := range regexps {
+		text = exp.ReplaceAllStringFunc(text, replaceAlias)
+	}
+	return text, nil
+}
+
 // UpdatePageLinks updates the links table for the given page by parsing the text.
 func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress string) error {
 	// Delete old links.
@@ -383,13 +475,13 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 		}
 	}
 	// Find directly encoded urls
-	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/([0-9]+)"))
-	// Find ids and aliases using [id/alias optional text] syntax.
-	extractLinks(regexp.MustCompile("\\[([A-Za-z0-9_-]+)[^\\]]*?\\](?:[^(]|$)"))
-	// Find ids and aliases using [text](id/alias) syntax.
-	extractLinks(regexp.MustCompile("\\[.+?\\]\\(([A-Za-z0-9_-]+?)\\)"))
-	// Find ids and aliases using [vote: id/alias] syntax.
-	extractLinks(regexp.MustCompile("\\[vote: ?([A-Za-z0-9_-]+?)\\]"))
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/(" + AliasRegexpStr + ")"))
+	// Find ids and aliases using [alias optional text] syntax.
+	extractLinks(regexp.MustCompile("\\[(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
+	// Find ids and aliases using [text](alias) syntax.
+	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
+	// Find ids and aliases using [vote: alias] syntax.
+	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasRegexpStr + ")\\]"))
 	if len(aliasesAndIds) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list

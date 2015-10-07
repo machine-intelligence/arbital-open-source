@@ -1,4 +1,4 @@
-// updateMetadataHandler.go kicks off the task to update metadata for all pages
+// fixTextHandler.go kicks off the task
 package site
 
 import (
@@ -6,17 +6,17 @@ import (
 	"zanaduu3/src/tasks"
 )
 
-// updateMetadataHandler kicks off the task to update the index for pages.
-func updateMetadataHandler(params *pages.HandlerParams) *pages.Result {
+// fixTextHandler kicks off the task.
+func fixTextHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	if !u.IsAdmin {
 		return pages.HandlerForbiddenFail("Have to be an admin", nil)
 	}
 
-	var task tasks.UpdateMetadataTask
+	var task tasks.FixTextTask
 	if err := task.IsValid(); err != nil {
 		return pages.HandlerErrorFail("Invalid task created", err)
-	} else if err := tasks.Enqueue(params.C, task, "updateMetadata"); err != nil {
+	} else if err := tasks.Enqueue(params.C, task, "fixText"); err != nil {
 		return pages.HandlerErrorFail("Couldn't enqueue a task", err)
 	}
 	return pages.StatusOK(nil)

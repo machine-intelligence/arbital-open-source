@@ -13,9 +13,6 @@
 				title="Click to see what changed since the last time you saw this page">
 			<span class="new-updated-label glyphicon glyphicon-star-empty"></span>
 		</button>
-		<span class="gray-text glyphicon glyphicon-lock"
-			    title="Nobody can access this page unless they have the exact URL"
-					ng-show="page.privacyKey > 0"></span>
 			<span ng-show="page.groupId != '0'">
 			[<span ng-bind="userService.groupMap[page.groupId].name"></span>]
 		</span>

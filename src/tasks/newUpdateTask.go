@@ -77,22 +77,19 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	}
 
 	// Figure out the subscriptions query constraint.
-	var whereClause string
-	var whereArg interface{}
+	whereClause := database.NewQuery("")
 	if task.SubscribedToPageId > 0 {
-		whereClause = "WHERE toPageId=?"
-		whereArg = task.SubscribedToPageId
+		whereClause.Add("WHERE toPageId=?", task.SubscribedToPageId)
 	} else if task.SubscribedToUserId > 0 {
-		whereClause = "WHERE toUserId=?"
-		whereArg = task.SubscribedToUserId
+		whereClause.Add("WHERE toUserId=?", task.SubscribedToUserId)
 	} else {
 		return -1, err
 	}
 
 	// Iterate through all users who are subscribed to this page/comment.
-	rows := db.NewStatement(`
+	rows := database.NewQuery(`
 		SELECT userId
-		FROM subscriptions ` + whereClause).Query(whereArg)
+		FROM subscriptions`).AddPart(whereClause).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId int64
 		err := rows.Scan(&userId)
@@ -110,12 +107,12 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		row := db.NewStatement(`
 			SELECT id
 			FROM updates
-			WHERE type=? AND newCount>0 AND
+			WHERE userId=? AND byUserId=? AND type=? AND newCount>0 AND
 				groupByPageId=? AND groupByUserId=? AND
 				subscribedToPageId=? AND subscribedToUserId=? AND
 				goToPageId=?
 			ORDER BY createdAt DESC
-			LIMIT 1`).QueryRow(task.UpdateType,
+			LIMIT 1`).QueryRow(userId, task.UserId, task.UpdateType,
 			task.GroupByPageId, task.GroupByUserId,
 			task.SubscribedToPageId, task.SubscribedToUserId,
 			task.GoToPageId)
@@ -124,16 +121,14 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			return fmt.Errorf("failed to check for existing update: %v", err)
 		}
 		if exists {
-			// This is a similar update, so don't count it
+			// If we already have an update like this, don't count this one
 			newCountValue = 0
 		}
 
-		// Insert new update / update newCount on existing one
+		// Insert new update
 		hashmap := make(map[string]interface{})
-		if previousUpdateId > 0 {
-			hashmap["id"] = previousUpdateId
-		}
 		hashmap["userId"] = userId
+		hashmap["byUserId"] = task.UserId
 		hashmap["type"] = task.UpdateType
 		hashmap["groupByPageId"] = task.GroupByPageId
 		hashmap["groupByUserId"] = task.GroupByUserId
@@ -142,7 +137,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["createdAt"] = database.Now()
 		hashmap["newCount"] = newCountValue
-		statement := db.NewInsertStatement("updates", hashmap, "newCount")
+		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {
 			c.Inc("new_update_fail")
 			c.Errorf("Couldn't create new update: %v", err)

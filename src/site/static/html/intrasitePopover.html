@@ -1,0 +1,10 @@
+<div class="intrasite-popover-body">
+	<div ng-show="page.creatorId === page.groupId">
+		Author: <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name>
+	</div>
+	<div class="markdown-text"></div>
+	<!-- Voting container -->
+	<div class="page-vote" ng-show="page.hasVote">
+		<arb-vote-bar page-id="{[{page.pageId}]}" is-popover-vote="true"></arb-vote-bar>
+	</div>
+</div>

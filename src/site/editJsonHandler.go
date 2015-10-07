@@ -3,12 +3,9 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
+	"zanaduu3/src/pages"
 
 	"github.com/gorilla/schema"
 )
@@ -22,51 +19,16 @@ type editJsonData struct {
 }
 
 // editJsonHandler handles the request.
-func editJsonHandler(w http.ResponseWriter, r *http.Request) {
-	c := sessions.NewContext(r)
+func editJsonHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
 
 	// Decode data
 	var data editJsonData
-	r.ParseForm()
-	err := schema.NewDecoder().Decode(&data, r.Form)
+	params.R.ParseForm()
+	err := schema.NewDecoder().Decode(&data, params.R.Form)
 	if err != nil {
-		c.Inc("edit_json_handler_fail")
-		c.Errorf("Couldn't decode request: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	returnData, err := editJsonInternalHandler(w, r, &data)
-	if err != nil {
-		c.Inc("edit_json_handler_fail")
-		c.Errorf("%s", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Write JSON response
-	err = writeJson(w, returnData)
-	if err != nil {
-		c.Inc("edit_handler_fail")
-		c.Errorf("Couldn't write json: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-// editJsonInternalHandler handles the request.
-func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJsonData) (map[string]interface{}, error) {
-	c := sessions.NewContext(r)
-	returnData := make(map[string]interface{})
-
-	db, err := database.GetDB(c)
-	if err != nil {
-		return nil, err
-	}
-
-	// Load user object
-	u, err := user.LoadUser(w, r, db)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load user: %v", err)
+		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 
 	// Load data
@@ -81,7 +43,7 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 	}
 	p, err := loadFullEdit(db, data.PageId, u.Id, &options)
 	if err != nil || p == nil {
-		return nil, fmt.Errorf("error while loading full edit: %v", err)
+		return pages.HandlerErrorFail("error while loading full edit", err)
 	}
 	pageMap[data.PageId] = p
 
@@ -91,7 +53,7 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 	}
 	err = core.LoadUsers(db, userMap)
 	if err != nil {
-		return nil, fmt.Errorf("error while loading users: %v", err)
+		return pages.HandlerErrorFail("error while loading users", err)
 	}
 
 	// Return the data in JSON format.
@@ -103,8 +65,9 @@ func editJsonInternalHandler(w http.ResponseWriter, r *http.Request, data *editJ
 	for k, v := range userMap {
 		returnUserData[fmt.Sprintf("%d", k)] = v
 	}
+	returnData := make(map[string]interface{})
 	returnData["pages"] = returnPageData
 	returnData["users"] = returnUserData
 
-	return returnData, nil
+	return pages.StatusOK(returnData)
 }

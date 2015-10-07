@@ -4,7 +4,6 @@ package site
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -63,10 +62,12 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 			)`, pageId, options.createdAtLimit)
 	}
 	statement := database.NewQuery(`
-		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.summary,p.alias,p.creatorId,
-			p.sortChildrenBy,p.hasVote,p.voteType,p.createdAt,p.karmaLock,p.privacyKey,
-			p.groupId,p.parents,p.deletedBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
-			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
+		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.metaText,
+			p.summary,p.alias,p.creatorId,p.sortChildrenBy,p.hasVote,p.voteType,
+			p.createdAt,p.karmaLock,p.groupId,p.parents,p.deletedBy,
+			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
+			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
+			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
 		FROM pages AS p
 		JOIN (
 			SELECT *
@@ -77,9 +78,9 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 		WHERE`).AddPart(whereClause).Add(`AND
 			(p.groupId=0 OR p.groupId IN (SELECT id FROM groups WHERE isVisible) OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
-	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit,
-		&p.Type, &p.Title, &p.Clickbait, &p.Text, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
-		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
+	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
+		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
+		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {
@@ -250,18 +251,65 @@ func loadVotes(db *database.DB, currentUserId int64, pageMap map[int64]*core.Pag
 	return err
 }
 
-// loadLinks loads the links for the given page.
-func loadLinks(db *database.DB, pageMap map[int64]*core.Page) error {
+// loadRedLinkCount loads the number of red links for a page.
+func loadRedLinkCount(db *database.DB, pageMap map[int64]*core.Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
-	// List of all aliases we need to get titles for
+	pageIdsList := core.PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT l.parentId,SUM(ISNULL(p.pageId))
+		FROM pages AS p
+		RIGHT JOIN links AS l
+		ON (p.pageId=l.childAlias OR p.alias=l.childAlias AND (p.isCurrentEdit AND p.deletedBy<=0))
+		WHERE l.parentId IN`).AddArgsGroup(pageIdsList).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var parentId int64
+		var count int
+		err := rows.Scan(&parentId, &count)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		pageMap[parentId].RedLinkCount = count
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("Error scanning for pageId links: %v", err)
+	}
+
+	return nil
+}
+
+type loadLinksOptions struct {
+	// If set, we'll only load links for the pages with these ids
+	FromPageMap map[int64]*core.Page
+}
+
+// loadLinks loads the links for the given pages, and adds them to the pageMap.
+func loadLinks(db *database.DB, pageMap map[int64]*core.Page, options *loadLinksOptions) error {
+	if options == nil {
+		options = &loadLinksOptions{}
+	}
+
+	sourceMap := options.FromPageMap
+	if sourceMap == nil {
+		sourceMap = pageMap
+	}
+
+	pageIds := make([]interface{}, 0, len(sourceMap))
+	for id, _ := range sourceMap {
+		pageIds = append(pageIds, id)
+	}
+	if len(pageIds) <= 0 {
+		return nil
+	}
+
+	// List of all aliases we'll need to convert to pageIds
 	aliasesList := make([]interface{}, 0)
-	// Map of each page alias to a list of pages which have it as a link.
-	linkMap := make(map[string]string)
 
 	// Load all links.
-	pageIds := core.PageIdsListFromMap(pageMap)
 	rows := db.NewStatement(`
 		SELECT parentId,childAlias
 		FROM links
@@ -271,51 +319,36 @@ func loadLinks(db *database.DB, pageMap map[int64]*core.Page) error {
 		var childAlias string
 		err := rows.Scan(&parentId, &childAlias)
 		if err != nil {
-			return fmt.Errorf("failed to scan for an alias: %v", err)
+			return fmt.Errorf("failed to scan for a link: %v", err)
 		}
-		aliasesList = append(aliasesList, childAlias)
-		if pageMap[parentId].Links == nil {
-			pageMap[parentId].Links = make(map[string]string)
+		if pageId, err := strconv.ParseInt(childAlias, 10, 64); err == nil {
+			pageMap[pageId] = &core.Page{PageId: pageId}
+		} else {
+			aliasesList = append(aliasesList, childAlias)
 		}
-		pageMap[parentId].Links[childAlias] = ""
 		return nil
 	})
 	if err != nil {
 		return err
 	}
 
-	// Get the page titles for all the links.
+	// Convert all page aliases to page ids.
 	if len(aliasesList) > 0 {
-		// Double up aliases list because we'll use it twice in the query.
-		placeholder := database.InArgsPlaceholder(len(aliasesList))
-		aliasesList = append(aliasesList, aliasesList...)
-		rows = db.NewStatement(`
-			SELECT pageId,alias,title
+		rows = database.NewQuery(`
+			SELECT pageId
 			FROM pages
-			WHERE isCurrentEdit AND deletedBy=0 AND
-				(alias IN ` + placeholder + ` OR pageId IN ` + placeholder + ` )`).Query(aliasesList...)
+			WHERE isCurrentEdit AND deletedBy=0 AND alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var pageId, alias, title string
-			err := rows.Scan(&pageId, &alias, &title)
-			lowercaseAlias := strings.ToLower(alias)
+			var pageId int64
+			err := rows.Scan(&pageId)
 			if err != nil {
-				return fmt.Errorf("failed to scan: %v", err)
+				return fmt.Errorf("failed to scan for a page: %v", err)
 			}
-			linkMap[lowercaseAlias] = title
-			if pageId != alias {
-				linkMap[pageId] = title
-			}
+			pageMap[pageId] = &core.Page{PageId: pageId}
 			return nil
 		})
 		if err != nil {
 			return err
-		}
-	}
-
-	// Set the links for all pages.
-	for _, p := range pageMap {
-		for alias, _ := range p.Links {
-			p.Links[alias] = linkMap[alias]
 		}
 	}
 	return nil
@@ -695,20 +728,12 @@ func getMaxKarmaLock(karma int) int {
 
 // getPageUrl returns the domain relative url for accessing the given page.
 func getPageUrl(p *core.Page) string {
-	privacyAddon := ""
-	if p.PrivacyKey > 0 {
-		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
-	}
-	return fmt.Sprintf("/pages/%s%s", p.Alias, privacyAddon)
+	return fmt.Sprintf("/pages/%s", p.Alias)
 }
 
 // getEditPageUrl returns the domain relative url for editing the given page.
 func getEditPageUrl(p *core.Page) string {
-	var privacyAddon string
-	if p.PrivacyKey > 0 {
-		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
-	}
-	return fmt.Sprintf("/edit/%d%s", p.PageId, privacyAddon)
+	return fmt.Sprintf("/edit/%d", p.PageId)
 }
 
 // Check if the user can edit this page. Possible return values:

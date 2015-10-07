@@ -3,7 +3,7 @@
 CREATE TABLE pages (
 	/* Id of the page the edit is for. */
 	pageId BIGINT NOT NULL,
-	/* The edit (version) number. Always >=0. */
+	/* The edit (version) number. Always >0. */
 	edit INT NOT NULL,
 	/* The edit that came before this. Set to 0 if there was none. */
 	prevEdit INT NOT NULL,
@@ -29,6 +29,9 @@ CREATE TABLE pages (
 	clickbait VARCHAR(512) NOT NULL,
 	/* Text of the page. */
 	text MEDIUMTEXT NOT NULL,
+	/* Meta-text for the page. This contains meta-data like clickbait, summary,
+		masteries, etc... */
+	metaText MEDIUMTEXT NOT NULL,
 	/* Summary of the page. */
 	summary TEXT NOT NULL,
 	/* Alias name of the page. */
@@ -44,8 +47,6 @@ CREATE TABLE pages (
 	voteType VARCHAR(32) NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
 	karmaLock INT NOT NULL,
-	/* If > 0, the page is accessible only with the right link. */
-	privacyKey BIGINT NOT NULL,
 	/* Optional id of the group this page belongs to. FK into groups. */
 	groupId BIGINT NOT NULL,
 	/* Comma separated string of parent ids in base 36. We store them so that we

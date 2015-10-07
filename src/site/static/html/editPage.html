@@ -30,12 +30,12 @@
 		<!-- Friendly warnings / info alerts -->
 		<div ng-show="page.wasPublished">
 			<div ng-show="page.isAutosave" class="alert alert-warning">
-				Restored autosave which was last updated on <span class="date" ng-bind="page.createdAt"></span>.
+				Restored autosave which was last updated {[{page.createdAt | relativeDateTime}]}.
 				<a href="#" class="abandon-edit">Delete my autosave and edit live version.</a>
 			</div>
 			<div ng-show="page.isSnapshot" class="alert alert-warning">
-				Restored snapshot which was last updated on <span class="date" ng-bind="page.createdAt"></span>.
-				<a ng-href="{[{page.editUrl}]}?edit=live">Switch to editing the live version.</a>
+				Restored snapshot which was last updated {[{page.createdAt | relativeDateTime}]}.
+				<a ng-href="{[{page.editUrl()}]}?edit=live">Switch to editing the live version.</a>
 			</div>
 		</div>
 	</div>
@@ -123,6 +123,20 @@
 
 		<!-- Page options -->
 		<div class="new-page-options form-horizontal">
+
+			<!-- Meta-text panel -->
+			<div ng-hide="isComment">
+				<textarea name="metaText"
+						class="meta-text-input form-control"
+						rows="20"
+						placeholder="Meta data"
+					  style="resize: none;"
+					  ng-bind="page.metaText"
+						ng-readonly="lockedByAnother"></textarea>
+				<div class="meta-text-error alert alert-danger"></div>
+			</div>
+
+			<!-- Page type -->
 			<div class="form-group" ng-show="!page.wasPublished && !isSecondary">
 				<label class="title-label control-label col-sm-2">Page Type</label>
 				<div class="col-sm-4">
@@ -194,21 +208,6 @@
 				</div>
 			</div>
 		
-			<!-- Privacy options -->
-			<!-- <div class="form-group" {{if and (le .privacyKey 0) .wasPublished}}hidden{{end}}>
-				<label class="control-label col-sm-2">
-					Private
-					<span title="This page will only be accessible by people who have the link." class="dashed-underline">(?)</span>
-				</label>
-				<div class="col-sm-8">
-					<div class="checkbox">
-						<label>
-							<input type="checkbox" name="private" {{if gt .privacyKey 0}}checked{{end}}>
-						</label>
-					</div>
-				</div>
-			</div>-->
-		
 			<!-- Parents -->
 			<div class="form-group" ng-show="!isComment">
 				<label class="control-label col-sm-2">Parents</label>
@@ -231,6 +230,7 @@
 			<div class="form-group" ng-show="!isAnswer && !isComment">
 				<label class="control-label col-sm-2">Alias</label>
 				<div class="col-sm-4">
+					<label class="control-label" ng-show="page.groupId != '0'">{[{userService.groupMap[page.groupId].alias}]}.</label>
 					<div class="input-group">
 						<input type="text"
 								name="alias"
