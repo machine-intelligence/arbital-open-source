@@ -3,6 +3,7 @@ package site
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"zanaduu3/src/database"
@@ -48,6 +49,11 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Must specify both first and last names", nil)
 		}
 
+		nameRegexp := regexp.MustCompile("^[A-Za-z]+$")
+		if !nameRegexp.MatchString(firstName) || !nameRegexp.MatchString(lastName) {
+			return pages.Fail("Only letter characters are allowed in the name", nil)
+		}
+
 		// Process invite code and assign karma
 		inviteCode := strings.ToUpper(q.Get("inviteCode"))
 		karma := 0
@@ -58,6 +64,25 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 		}
 		if data.User.Karma > karma {
 			karma = data.User.Karma
+		}
+
+		// Prevent alias collision
+		aliasBase := fmt.Sprintf("%s%s", firstName, lastName)
+		alias := aliasBase
+		suffix := 2
+		for ; ; suffix++ {
+			var ignore int
+			exists, err := db.NewStatement(`
+				SELECT 1
+				FROM groups
+				WHERE alias=?`).QueryRow(alias).Scan(&ignore)
+			if err != nil {
+				return pages.Fail("Error checking for existing alias", err)
+			}
+			if !exists {
+				break
+			}
+			alias = fmt.Sprintf("%s%d", aliasBase, suffix)
 		}
 
 		// Begin the transaction.
@@ -86,7 +111,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			hashmap = make(database.InsertMap)
 			hashmap["id"] = data.User.Id
 			hashmap["name"] = fmt.Sprintf("%s %s", firstName, lastName)
-			hashmap["alias"] = fmt.Sprintf("%s%s", firstName, lastName)
+			hashmap["alias"] = alias
 			hashmap["createdAt"] = database.Now()
 			hashmap["isVisible"] = true
 			statement = tx.NewInsertTxStatement("groups", hashmap)
