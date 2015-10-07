@@ -3,7 +3,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 
 	"zanaduu3/src/database"
@@ -48,7 +47,7 @@ func newGroupHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Begin the transaction.
-	err = db.Transaction(func(tx *database.Tx) error {
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		groupId := rand.Int63()
 
 		// Create the new group.
@@ -63,7 +62,7 @@ func newGroupHandler(params *pages.HandlerParams) *pages.Result {
 		}
 		statement := tx.NewInsertTxStatement("groups", hashmap)
 		if _, err = statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't create a group: %v", err)
+			return "Couldn't create a group", err
 		}
 
 		if !data.IsDomain {
@@ -76,13 +75,13 @@ func newGroupHandler(params *pages.HandlerParams) *pages.Result {
 			hashmap["createdAt"] = database.Now()
 			statement = tx.NewInsertTxStatement("groupMembers", hashmap)
 			if _, err = statement.Exec(); err != nil {
-				return fmt.Errorf("Couldn't add a user to a group: %v", err)
+				return "Couldn't add a user to a group", err
 			}
 		}
-		return nil
+		return "", nil
 	})
-	if err != nil {
-		return pages.HandlerErrorFail("Error commiting a transaction", err)
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	if data.IsDomain {

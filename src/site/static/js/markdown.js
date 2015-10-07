@@ -1,18 +1,19 @@
 var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
 var noParen = "(?=$|[^(])";
+var aliasMatch = "([A-Za-z0-9]+)";
 // [vote: alias]
 var voteEmbedRegexp = new RegExp(noBacktickOrBracket + 
-		"\\[vote: ?([A-Za-z0-9-_]+?)\\]" + noParen, "g");
+		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
 // [alias/url text] 
 var forwardLinkRegexp = new RegExp(noBacktickOrBracket + 
 		"\\[([^ \\]]+?) ([^\\]]+?)\\]" + noParen, "g");
 // [alias]
 var simpleLinkRegexp = new RegExp(noBacktickOrBracket + 
-		"\\[([A-Za-z0-9_-]+?)\\]" + noParen, "g");
+		"\\[" + aliasMatch + "\\]" + noParen, "g");
 // [text](alias)
 var complexLinkRegexp = new RegExp(noBacktickOrBracket + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
-		"\\(([A-Za-z0-9_-]+?)\\)", "g"); // match (Alias)
+		"\\(" + aliasMatch + "\\)", "g"); // match (Alias)
 // [text](url)
 var urlLinkRegexp = new RegExp(noBacktickOrBracket + 
 		"\\[([^\\]]+?)\\]" + // match [Text]

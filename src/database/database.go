@@ -23,7 +23,7 @@ var (
 // loaded from an sql query.
 type ProcessRowCallback func(db *DB, rows *Rows) error
 
-type TransactionCallback func(tx *Tx) error
+type TransactionCallback func(tx *Tx) (string, error)
 
 // InsertMap is the map passed in to various database helper functions.
 type InsertMap map[string]interface{}
@@ -266,23 +266,26 @@ func (row *Row) Scan(outArgs ...interface{}) (bool, error) {
 	return err != sql.ErrNoRows, nil
 }
 
-// NewTransaction returns a new transaction object for the database.
-func (db *DB) Transaction(f TransactionCallback) error {
+// Transaction calls the given callback with the transaction that will be
+// commited when the callback returns.
+// If an error occurs, the transaction is rolled back.
+func (db *DB) Transaction(f TransactionCallback) (string, error) {
 	tx, err := db.db.Begin()
 	if err != nil {
-		return fmt.Errorf("Couldn't create transaction: %v", err)
+		return "Couldn't create transaction", err
 	}
 
-	err = f(&Tx{tx: tx, DB: db})
-	if err != nil {
-		return err
+	message, err := f(&Tx{tx: tx, DB: db})
+	if message != "" {
+		tx.Rollback()
+		return message, err
 	}
 
 	// Commit transaction.
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()
-		return fmt.Errorf("Couldn't commit transaction: %v", err)
+		return "Couldn't commit transaction", err
 	}
-	return nil
+	return "", nil
 }

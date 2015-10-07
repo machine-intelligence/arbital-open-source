@@ -26,8 +26,8 @@ type editPageTmplData struct {
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
 var newPagePage = newPageWithOptions("/edit/", editPageRenderer, editPageTmpls, editPageOptions)
-var editPagePage = newPageWithOptions("/edit/{alias:[A-Za-z0-9_-]+}", editPageRenderer, editPageTmpls, editPageOptions)
-var editPrivatePagePage = newPageWithOptions("/edit/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}", editPageRenderer, editPageTmpls, editPageOptions)
+var editPagePage = newPageWithOptions(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr), editPageRenderer, editPageTmpls, editPageOptions)
+var editPrivatePagePage = newPageWithOptions(fmt.Sprintf("/edit/{alias:%s}/{privacyKey:[0-9]+}", core.AliasRegexpStr), editPageRenderer, editPageTmpls, editPageOptions)
 
 // editPageRenderer renders the page page.
 func editPageRenderer(params *pages.HandlerParams) *pages.Result {
@@ -46,10 +46,13 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	_, err := strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
 		// Okay, it's not an id, but could be an alias.
-		row := db.NewStatement(`SELECT pageId FROM aliases WHERE fullName=?`).QueryRow(pageAlias)
+		row := db.NewStatement(`
+			SELECT pageId
+			FROM pages
+			WHERE isCurrentEdit AND deletedBy<=0 AND alias=?`).QueryRow(pageAlias)
 		exists, err := row.Scan(&pageAlias)
 		if err != nil {
-			return pages.Fail("Couldn't query aliases", err)
+			return pages.Fail("Couldn't convert pageId=>alias", err)
 		} else if !exists {
 			// User is trying to create a new page with an alias.
 			return pages.RedirectWith(getEditPageUrl(&core.Page{PageId: rand.Int63()}) + "?alias=" + pageAlias)

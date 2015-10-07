@@ -47,6 +47,14 @@ const (
 
 	// How long the page lock lasts
 	PageLockDuration = 30 * 60 // in seconds
+
+	// String that can be used inside a regexp to match an a page alias or id
+	AliasRegexpStr = "[A-Za-z0-9]+"
+)
+
+var (
+	// Regexp that strictly matches an alias
+	StrictAliasRegexp = regexp.MustCompile("^[0-9A-Za-z]*[A-Za-z][0-9A-Za-z]*$")
 )
 
 type Vote struct {
@@ -464,13 +472,13 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 		}
 	}
 	// Find directly encoded urls
-	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/([0-9]+)"))
-	// Find ids and aliases using [id optional text] syntax.
-	extractLinks(regexp.MustCompile("\\[([0-9]+)[^\\]]*?\\](?:[^(]|$)"))
-	// Find ids and aliases using [text](id) syntax.
-	extractLinks(regexp.MustCompile("\\[.+?\\]\\(([0-9]+?)\\)"))
-	// Find ids and aliases using [vote: id] syntax.
-	extractLinks(regexp.MustCompile("\\[vote: ?([0-9]+?)\\]"))
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/(" + AliasRegexpStr + ")"))
+	// Find ids and aliases using [alias optional text] syntax.
+	extractLinks(regexp.MustCompile("\\[(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
+	// Find ids and aliases using [text](alias) syntax.
+	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
+	// Find ids and aliases using [vote: alias] syntax.
+	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasRegexpStr + ")\\]"))
 	if len(aliasesAndIds) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list

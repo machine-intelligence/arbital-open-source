@@ -174,13 +174,17 @@ app.service("pageService", function(userService, $http){
 	};
 	
 	// Massage page's variables to be easier to deal with.
-	var setUpPage = function(page) {
+	var setUpPage = function(page, pageMap) {
 		if (page.children == null) page.children = [];
 		if (page.parents == null) page.parents = [];
 		page.url = "/pages/" + page.alias;
 		page.editUrl = "/edit/" + page.pageId;
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
+		}
+		// Add page's alias to the map as well
+		if (page.pageId !== page.alias) {
+			pageMap[page.alias] = page;
 		}
 		return page;
 	};
@@ -194,10 +198,7 @@ app.service("pageService", function(userService, $http){
 			existingPage.children = existingPage.children.concat(page.children);
 			existingPage.parents = existingPage.parents.concat(page.parents);
 		} else {
-			this.pageMap[page.pageId] = setUpPage(page);
-			if (page.pageId !== page.alias) {
-				this.pageMap[page.alias] = page;
-			}
+			this.pageMap[page.pageId] = setUpPage(page, this.pageMap);
 		}
 		return true;
 	};
@@ -451,7 +452,7 @@ app.service("pageService", function(userService, $http){
 	// Setup all initial pages.
 	console.log("Initial pageMap: "); console.log(this.pageMap);
 	for (var id in this.pageMap) {
-		setUpPage(this.pageMap[id]);
+		setUpPage(this.pageMap[id], this.pageMap);
 	}
 });
 

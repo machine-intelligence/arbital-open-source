@@ -61,7 +61,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Begin the transaction.
-		err := db.Transaction(func(tx *database.Tx) error {
+		errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 			hashmap := make(database.InsertMap)
 			hashmap["id"] = data.User.Id
 			hashmap["firstName"] = firstName
@@ -71,7 +71,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			hashmap["createdAt"] = database.Now()
 			statement := tx.NewInsertTxStatement("users", hashmap, "firstName", "lastName", "inviteCode", "karma")
 			if _, err := statement.Exec(); err != nil {
-				return fmt.Errorf("Couldn't update user's record: %v", err)
+				return "Couldn't update user's record", err
 			}
 			data.User.FirstName = firstName
 			data.User.LastName = lastName
@@ -79,7 +79,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			data.User.IsLoggedIn = true
 			err := data.User.Save(params.W, params.R)
 			if err != nil {
-				return fmt.Errorf("Couldn't re-save the user after adding the name: %v", err)
+				return "Couldn't re-save the user after adding the name", err
 			}
 
 			// Add new group for the user.
@@ -90,7 +90,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			hashmap["isVisible"] = true
 			statement = tx.NewInsertTxStatement("groups", hashmap)
 			if _, err = statement.Exec(); err != nil {
-				return fmt.Errorf("Couldn't create a new group: %v", err)
+				return "Couldn't create a new group", err
 			}
 
 			// Add user to their own group.
@@ -100,12 +100,12 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			hashmap["createdAt"] = database.Now()
 			statement = tx.NewInsertTxStatement("groupMembers", hashmap)
 			if _, err = statement.Exec(); err != nil {
-				return fmt.Errorf("Couldn't add user to the group: %v", err)
+				return "Couldn't add user to the group", err
 			}
-			return nil
+			return "", nil
 		})
-		if err != nil {
-			return pages.Fail("Couldn't exec transaction", err)
+		if errMessage != "" {
+			return pages.Fail(errMessage, err)
 		}
 
 		continueUrl := q.Get("continueUrl")

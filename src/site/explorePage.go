@@ -26,7 +26,7 @@ var exploreAllPage = newPage(
 
 // explorePage serves the Explore page.
 var explorePage = newPage(
-	"/explore/{domain:[A-Za-z0-9_-]+}",
+	fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
 	exploreRenderer,
 	append(baseTmpls,
 		"tmpl/explorePage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))

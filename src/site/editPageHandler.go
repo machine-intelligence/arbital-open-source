@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -335,66 +334,41 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	isMinorEditBool := data.IsMinorEditStr == "on"
 
 	// Begin the transaction.
-	err = db.Transaction(func(tx *database.Tx) error {
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		if isCurrentEdit {
 			// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
 			if oldPage.WasPublished {
 				statement := tx.NewTxStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit")
 				if _, err = statement.Exec(data.PageId); err != nil {
-					return fmt.Errorf("Couldn't update isCurrentEdit for old edits: %v", err)
+					return "Couldn't update isCurrentEdit for old edits", err
 				}
 			}
 
 			// Update aliases table.
-			aliasRegexp := regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
-			if aliasRegexp.MatchString(data.Alias) {
-				// The user might be trying to create a new alias.
-				var maxSuffix int      // maximum suffix used with this alias
-				var existingSuffix int // if this page already used this suffix, this will be set to it
-				standardizedName := strings.Replace(strings.ToLower(data.Alias), "_", "", -1)
+			if core.StrictAliasRegexp.MatchString(data.Alias) {
+				var pageId int64
 				row := tx.NewTxStatement(`
-					SELECT ifnull(max(suffix),0),ifnull(max(if(pageId=?,suffix,-1)),-1)
-					FROM aliases
-					WHERE standardizedName=?`).QueryRow(data.PageId, standardizedName)
-				_, err := row.Scan(&maxSuffix, &existingSuffix)
+					SELECT pageId
+					FROM pages
+					WHERE isCurrentEdit AND pageId!=? AND deletedBy<=0 AND alias=?`).QueryRow(data.PageId, data.Alias)
+				exists, err := row.Scan(&pageId)
 				if err != nil {
-					return fmt.Errorf("Couldn't read from aliases: %v", err)
-				}
-				if existingSuffix < 0 {
-					suffix := maxSuffix + 1
-					data.Alias = fmt.Sprintf("%s-%d", data.Alias, suffix)
-					if data.Type == core.QuestionPageType {
-						data.Alias = fmt.Sprintf("Q-%s", data.Alias)
-					} else if data.Type == core.QuestionPageType {
-						data.Alias = fmt.Sprintf("A-%s", data.Alias)
-					}
-					if isCurrentEdit {
-						hashmap := make(map[string]interface{})
-						hashmap["fullName"] = data.Alias
-						hashmap["standardizedName"] = standardizedName
-						hashmap["suffix"] = suffix
-						hashmap["pageId"] = data.PageId
-						hashmap["creatorId"] = u.Id
-						hashmap["createdAt"] = database.Now()
-						statement := tx.NewInsertTxStatement("aliases", hashmap)
-						if _, err = statement.Exec(); err != nil {
-							return fmt.Errorf("Couldn't add an alias: %v", err)
-						}
-					}
-				} else if existingSuffix > 0 {
-					data.Alias = fmt.Sprintf("%s-%d", data.Alias, existingSuffix)
+					return "Couldn't read from aliases", err
+				} else if exists {
+					return fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, pageId), nil
 				}
 			} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
 				// Check if we are simply reusing an existing alias.
-				var ignore int
+				var unused int
 				row := tx.NewTxStatement(`
-					SELECT 1 FROM aliases
-					WHERE pageId=? AND fullName=?`).QueryRow(data.PageId, data.Alias)
-				exists, err := row.Scan(&ignore)
+					SELECT 1
+					FROM pages
+					WHERE isCurrentEdit AND pageId=? AND alias=?`).QueryRow(data.PageId, data.Alias)
+				exists, err := row.Scan(&unused)
 				if err != nil {
-					return fmt.Errorf("Couldn't check existing alias: %v", err)
+					return "Couldn't check existing alias", err
 				} else if !exists {
-					return fmt.Errorf("Invalid alias. Can only contain letters, underscores, and digits. It cannot be a number.")
+					return "Invalid alias. Can only contain letters and digits. It cannot be a number.", nil
 				}
 			}
 		}
@@ -445,7 +419,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			statement = tx.NewInsertTxStatement("pages", hashmap)
 		}
 		if _, err = statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't insert a new page: %v", err)
+			return "Couldn't insert a new page", err
 		}
 
 		// Update pageInfos
@@ -468,7 +442,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit")
 		}
 		if _, err = statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't update pageInfos: %v", err)
+			return "Couldn't update pageInfos", err
 		}
 
 		// Update pagePairs tables.
@@ -480,7 +454,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 				WHERE childId=?`)
 			_, err = statement.Exec(data.PageId)
 			if err != nil {
-				return fmt.Errorf("Couldn't delete old pagePair: %v", err)
+				return "Couldn't delete old pagePair", err
 			}
 
 			if len(pagePairValues) > 0 {
@@ -489,7 +463,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 					INSERT INTO pagePairs (parentId,childId)
 					VALUES ` + database.ArgsPlaceholder(len(pagePairValues), 2))
 				if _, err = statement.Exec(pagePairValues...); err != nil {
-					return fmt.Errorf("Couldn't insert new pagePairs: %v", err)
+					return "Couldn't insert new pagePairs", err
 				}
 			}
 		}
@@ -505,7 +479,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			hashmap["createdAt"] = database.Now()
 			statement = tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
 			if _, err = statement.Exec(); err != nil {
-				return fmt.Errorf("Couldn't add a subscription: %v", err)
+				return "Couldn't add a subscription", err
 			}
 		}
 
@@ -513,13 +487,13 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		if isCurrentEdit {
 			err = core.UpdatePageLinks(tx, data.PageId, data.Text, sessions.GetDomain())
 			if err != nil {
-				return fmt.Errorf("Couldn't update links: %v", err)
+				return "Couldn't update links", err
 			}
 		}
-		return nil
+		return "", nil
 	})
-	if err != nil {
-		return pages.HandlerErrorFail("Error commit a transaction", err)
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	// === Once the transaction has succeeded, we can't really fail on anything

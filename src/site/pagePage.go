@@ -32,7 +32,7 @@ var (
 
 // pagePage serves the page page.
 var pagePage = newPageWithOptions(
-	"/pages/{alias:[A-Za-z0-9_-]+}",
+	fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl",
@@ -40,7 +40,7 @@ var pagePage = newPageWithOptions(
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
 var privatePagePage = newPageWithOptions(
-	"/pages/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}",
+	fmt.Sprintf("/pages/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}", core.AliasRegexpStr),
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl",
@@ -93,12 +93,15 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	pageId, err = strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
 		// Okay, it's not an id, but could be an alias.
-		row := db.NewStatement(`SELECT pageId FROM aliases WHERE fullName=?`).QueryRow(pageAlias)
+		row := db.NewStatement(`
+			SELECT pageId
+			FROM pages
+			WHERE alias=? AND isCurrentEdit AND deletedBy<=0`).QueryRow(pageAlias)
 		exists, err := row.Scan(&pageId)
 		if err != nil {
-			return pages.Fail("Couldn't query aliases", err)
+			return pages.Fail("Couldn't convert alias=>pageId", err)
 		} else if !exists {
-			return pages.Fail(fmt.Sprintf("Page with alias '%s' doesn't exists", pageAlias), nil)
+			return pages.Fail(fmt.Sprintf("There is no page with alias: %s", pageAlias), nil)
 		}
 	}
 
@@ -167,7 +170,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load where page is linked from.
-	// TODO: also account for old aliases
 	/*query := fmt.Sprintf(`
 		SELECT p.pageId
 		FROM links as l

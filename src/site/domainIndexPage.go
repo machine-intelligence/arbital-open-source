@@ -25,7 +25,7 @@ type domainIndexTmplData struct {
 
 // domainIndexPage serves the domain index page.
 var domainIndexPage = newPageWithOptions(
-	"/domains/{domain:[A-Za-z0-9_-]+}",
+	fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
 	domainIndexRenderer,
 	append(baseTmpls,
 		"tmpl/domainIndexPage.tmpl",

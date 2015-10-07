@@ -75,10 +75,11 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 	// Convert actual aliases into page ids
 	if len(strAliases) > 0 {
-		rows := db.NewStatement(`
+		rows := database.NewQuery(`
 			SELECT pageId
-			FROM aliases
-			WHERE fullName IN ` + database.InArgsPlaceholder(len(strAliases))).Query(strAliases...)
+			FROM pages
+			WHERE isCurrentEdit AND deletedBy<=0 AND
+				alias IN`).AddArgsGroup(strAliases).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			err := rows.Scan(&pageId)
