@@ -408,73 +408,40 @@ func loadChildrenIds(db *database.DB, pageMap map[int64]*core.Page, options load
 	return err
 }
 
-// loadCommentIds loads the page ids for all the comments of the pages in the given pageMap.
-func loadCommentIds(db *database.DB, pageMap map[int64]*core.Page, sourcePageMap map[int64]*core.Page) error {
+// loadSubpageIds loads the page ids for all the subpages of the pages in the given pageMap.
+func loadSubpageIds(db *database.DB, pageMap map[int64]*core.Page, sourcePageMap map[int64]*core.Page) error {
 	if len(sourcePageMap) <= 0 {
 		return nil
 	}
 	pageIds := core.PageIdsListFromMap(sourcePageMap)
 	rows := db.NewStatement(`
-		SELECT pp.parentId,pp.childId
+		SELECT pp.parentId,pp.childId,p.type
 		FROM (
 			SELECT parentId,childId
 			FROM pagePairs
 			WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
 		) AS pp JOIN (
-			SELECT pageId
+			SELECT pageId,type
 			FROM pages
-			WHERE isCurrentEdit AND type="comment"
+			WHERE isCurrentEdit AND (type="comment" OR type="question")
 		) AS p
 		ON (p.pageId=pp.childId)`).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var p core.PagePair
-		err := rows.Scan(&p.ParentId, &p.ChildId)
+		var pp core.PagePair
+		var pageType string
+		err := rows.Scan(&pp.ParentId, &pp.ChildId, &pageType)
 		if err != nil {
-			return fmt.Errorf("failed to scan for comments: %v", err)
+			return fmt.Errorf("failed to scan for subpages: %v", err)
 		}
-		newPage, ok := pageMap[p.ChildId]
+		newPage, ok := pageMap[pp.ChildId]
 		if !ok {
-			newPage = &core.Page{PageId: p.ChildId, Type: core.CommentPageType}
+			newPage = &core.Page{PageId: pp.ChildId, Type: pageType}
 			pageMap[newPage.PageId] = newPage
 		}
-		newPage.Parents = append(newPage.Parents, &p)
-		sourcePageMap[p.ParentId].CommentIds = append(sourcePageMap[p.ParentId].CommentIds, fmt.Sprintf("%d", p.ChildId))
-		return nil
-	})
-	return err
-}
+		newPage.Parents = append(newPage.Parents, &pp)
 
-// loadQuestionIds loads the page ids for all the questions of the pages in the given pageMap.
-func loadQuestionIds(db *database.DB, pageMap map[int64]*core.Page, sourcePageMap map[int64]*core.Page) error {
-	if len(sourcePageMap) <= 0 {
-		return nil
-	}
-	pageIds := core.PageIdsListFromMap(sourcePageMap)
-	rows := db.NewStatement(`
-		SELECT pp.parentId,pp.childId
-		FROM (
-			SELECT parentId,childId
-			FROM pagePairs
-			WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
-		) AS pp JOIN (
-			SELECT pageId
-			FROM pages
-			WHERE isCurrentEdit AND type="question"
-		) AS p
-		ON (p.pageId=pp.childId)`).Query(pageIds...)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var p core.PagePair
-		err := rows.Scan(&p.ParentId, &p.ChildId)
-		if err != nil {
-			return fmt.Errorf("failed to scan for questions: %v", err)
-		}
-		newPage, ok := pageMap[p.ChildId]
-		if !ok {
-			newPage = &core.Page{PageId: p.ChildId, Type: core.QuestionPageType}
-			pageMap[newPage.PageId] = newPage
-		}
-		newPage.Parents = append(newPage.Parents, &p)
-		sourcePageMap[p.ParentId].QuestionIds = append(sourcePageMap[p.ParentId].QuestionIds, fmt.Sprintf("%d", p.ChildId))
+		sourcePageMap[pp.ParentId].SubpageIds = append(sourcePageMap[pp.ParentId].SubpageIds, fmt.Sprintf("%d", pp.ChildId))
+
 		return nil
 	})
 	return err

@@ -136,14 +136,9 @@ func pagesJsonHandlerInternal(w http.ResponseWriter, r *http.Request, data *page
 
 		// Load comment ids.
 		if data.LoadComments {
-			err = loadCommentIds(db, pageMap, pageMap)
+			err = loadSubpageIds(db, pageMap, pageMap)
 			if err != nil {
-				return nil, fmt.Errorf("Couldn't load comments: %v", err)
-			}
-
-			err = loadQuestionIds(db, pageMap, pageMap)
-			if err != nil {
-				return nil, fmt.Errorf("Couldn't load questions: %v", err)
+				return nil, fmt.Errorf("Couldn't load subpages: %v", err)
 			}
 		}
 

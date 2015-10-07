@@ -173,15 +173,9 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 
 
 	// Load comment ids.
-	err = loadCommentIds(db, data.PageMap, embeddedPageMap)
+	err = loadSubpageIds(db, data.PageMap, embeddedPageMap)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't load comments: %v", err)
-	}
-
-	// Load question ids.
-	err = loadQuestionIds(db, data.PageMap, embeddedPageMap)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load questions: %v", err)
+		return nil, fmt.Errorf("Couldn't load subpages: %v", err)
 	}
 
 	// Add comments to the embedded pages map.
@@ -247,8 +241,6 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 	if err != nil {
 		return nil, fmt.Errorf("error while loading pages: %v", err)
 	}
-
-	c.Debugf("pagemap: %v", data.PageMap)
 
 	// Erase Text from pages that don't need it.
 	for _, p := range data.PageMap {

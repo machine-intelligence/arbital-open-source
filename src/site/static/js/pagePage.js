@@ -49,8 +49,8 @@ $(function() {
 			}});
 		};
 
-		// Hide/show an inline comment.
-		this.toggleInlineComment = function($toggleDiv, callback) {
+		// Hide/show an inline subpage.
+		this.toggleInlineSubpage = function($toggleDiv, callback) {
 			var $inlineComment = $toggleDiv.find(".inline-comment-icon");
 			if ($inlineComment.hasClass("on")) {
 				this.clearRhs();
@@ -67,60 +67,20 @@ $(function() {
 			}
 		};
 
-		// Hide/show an inline question.
-		this.toggleInlineQuestion = function($toggleDiv, callback) {
-			var $inlineComment = $toggleDiv.find(".inline-comment-icon");
-			if ($inlineComment.hasClass("on")) {
-				this.clearRhs();
-				this.hideRhs();
-			} else {
-				this.clearRhs();
-				$(".inline-comment-highlight").removeClass("inline-comment-highlight");
-				this.showRhs(function() {
-					var offset = {left: $questionDiv.offset().left + 32, top: $toggleDiv.offset().top + 40};
-					$(".inline-comment-div").offset(offset);
-					$inlineComment.addClass("on");
-					callback();
-				});
-			}
-		};
-
-		// Show the edit inline comment box.
-		this.showEditInlineComment = function($scope, selection) {
+		// Show the edit inline subpage box.
+		this.showEditInlineSubpage = function($scope, selection, divType) {
 			this.clearRhs();
 			$(".toggle-inline-comment-div").hide();
 			this.showRhs(function() {
 				var $newInlineCommentDiv = $(".new-inline-comment-div");
 				var offset = {left: $questionDiv.offset().left + 30, top: $(".inline-comment-highlight").offset().top};
 				$(".inline-comment-div").offset(offset);
-				createEditCommentDiv($(".inline-comment-div"), $newInlineCommentDiv, $scope, {
+				createEditSubpageDiv($(".inline-comment-div"), $newInlineCommentDiv, $scope, {
 					anchorContext: selection.context,
 					anchorText: selection.text,
 					anchorOffset: selection.offset,
 					primaryPageId: newInlineCommentPrimaryPageId,
-					callback: function() {
-						pageView.clearRhs();
-						pageView.hideRhs(function() {
-							$(".toggle-inline-comment-div").hide();
-						});
-					},
-				});
-			});
-		};
-
-		// Show the edit inline question box.
-		this.showEditInlineQuestion = function($scope, selection) {
-			this.clearRhs();
-			$(".toggle-inline-comment-div").hide();
-			this.showRhs(function() {
-				var $newInlineCommentDiv = $(".new-inline-comment-div");
-				var offset = {left: $questionDiv.offset().left + 30, top: $(".inline-comment-highlight").offset().top};
-				$(".inline-comment-div").offset(offset);
-				createEditQuestionDiv($(".inline-comment-div"), $newInlineCommentDiv, $scope, {
-					anchorContext: selection.context,
-					anchorText: selection.text,
-					anchorOffset: selection.offset,
-					primaryPageId: newInlineCommentPrimaryPageId,
+					divType: divType,
 					callback: function() {
 						pageView.clearRhs();
 						pageView.hideRhs(function() {
@@ -184,7 +144,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 		}
 		var selection = getSelectedParagraphText();
 		if (selection) {
-			pageView.showEditInlineQuestion($scope, selection);
+			pageView.showEditInlineSubpage($scope, selection, "question");
 		} else {
 		    $(document).trigger("new-page-modal-event", {
 			modalKey: "newQuestion",
@@ -214,7 +174,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 		$(".inline-comment-highlight").removeClass("inline-comment-highlight");
 		var selection = getSelectedParagraphText();
 		if (selection) {
-			pageView.showEditInlineComment($scope, selection);
+			pageView.showEditInlineSubpage($scope, selection, "comment");
 		}
 		return false;
 	});
