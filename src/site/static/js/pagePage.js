@@ -185,7 +185,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 			if (result.abandon) {
 				getNewAnswerId();
 			} else if (result.alias) {
-				window.location.assign($scope.page.url + "#page-" + result.alias);
+				window.location.assign($scope.page.url() + "#page-" + result.alias);
 				window.location.reload();
 			}
 		};

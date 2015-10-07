@@ -85,7 +85,8 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			// Add new group for the user.
 			hashmap = make(database.InsertMap)
 			hashmap["id"] = data.User.Id
-			hashmap["name"] = fmt.Sprintf("%s_%s", firstName, lastName)
+			hashmap["name"] = fmt.Sprintf("%s %s", firstName, lastName)
+			hashmap["alias"] = fmt.Sprintf("%s%s", firstName, lastName)
 			hashmap["createdAt"] = database.Now()
 			hashmap["isVisible"] = true
 			statement = tx.NewInsertTxStatement("groups", hashmap)

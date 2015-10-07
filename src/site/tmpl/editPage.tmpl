@@ -16,7 +16,7 @@
 
 			// Called when the user is done editing the page.
 			$scope.doneFn = function(result) {
-				window.location.replace($scope.page.url);
+				window.location.href = $scope.page.url(true);
 			};
 		});
 	</script>

@@ -264,7 +264,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 
-		// Proces meta text
+		// Process meta text
 		var metaData core.PageMetaData
 		err = yaml.Unmarshal([]byte(data.MetaText), &metaData)
 		if err != nil {
@@ -302,9 +302,41 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	} else if data.Type == core.QuestionPageType {
 		data.SortChildrenBy = core.LikesChildSortingOption
 	}
+
+	// Make sure alias is valid
 	if data.Alias == "" {
 		data.Alias = fmt.Sprintf("%d", data.PageId)
+	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+		// Check if the alias matches the strict regexp
+		if !core.StrictAliasRegexp.MatchString(data.Alias) {
+			return pages.HandlerErrorFail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
+		}
+
+		// Prefix alias with the group alias, if appropriate
+		if data.GroupId > 0 {
+			groupMap := map[int64]*core.Group{data.GroupId: &core.Group{Id: data.GroupId}}
+			err = loadGroupNames(db, u, groupMap)
+			if err != nil {
+				return pages.HandlerErrorFail("Couldn't load the group", err)
+			}
+			data.Alias = fmt.Sprintf("%s.%s", groupMap[data.GroupId].Alias, data.Alias)
+		}
+
+		// Check if another page is already using the alias
+		var existingPageId int64
+		row := db.NewStatement(`
+					SELECT pageId
+					FROM pages
+					WHERE isCurrentEdit AND pageId!=? AND deletedBy<=0 AND alias=?`).QueryRow(data.PageId, data.Alias)
+		exists, err := row.Scan(&existingPageId)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't read from aliases", err)
+		} else if exists {
+			return pages.HandlerErrorFail(fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, existingPageId), nil)
+		}
 	}
+
+	// Standardize text
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 	data.Text, err = core.StandardizeLinks(db, data.Text)
 	if err != nil {
@@ -322,34 +354,6 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 				statement := tx.NewTxStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit")
 				if _, err = statement.Exec(data.PageId); err != nil {
 					return "Couldn't update isCurrentEdit for old edits", err
-				}
-			}
-
-			// Update aliases table.
-			if core.StrictAliasRegexp.MatchString(data.Alias) {
-				var pageId int64
-				row := tx.NewTxStatement(`
-					SELECT pageId
-					FROM pages
-					WHERE isCurrentEdit AND pageId!=? AND deletedBy<=0 AND alias=?`).QueryRow(data.PageId, data.Alias)
-				exists, err := row.Scan(&pageId)
-				if err != nil {
-					return "Couldn't read from aliases", err
-				} else if exists {
-					return fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, pageId), nil
-				}
-			} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
-				// Check if we are simply reusing an existing alias.
-				var unused int
-				row := tx.NewTxStatement(`
-					SELECT 1
-					FROM pages
-					WHERE isCurrentEdit AND pageId=? AND alias=?`).QueryRow(data.PageId, data.Alias)
-				exists, err := row.Scan(&unused)
-				if err != nil {
-					return "Couldn't check existing alias", err
-				} else if !exists {
-					return "Invalid alias. Can only contain letters and digits. It cannot be a number.", nil
 				}
 			}
 		}

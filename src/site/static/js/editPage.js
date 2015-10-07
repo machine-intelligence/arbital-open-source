@@ -430,7 +430,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			data: JSON.stringify(data),
 		})
 		.done(function(r) {
-			window.location.href = page.url;
+			window.location.href = page.url();
 		});
 	});
 

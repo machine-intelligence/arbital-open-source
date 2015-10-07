@@ -29,7 +29,7 @@
 			edit-num="{[{edit.edit}]}"
 			ng-hide="edit.isSnapshot || edit.isAutosave || edit.isCurrentEdit"
 			toggle-on-submit>Revert</button>
-		<a ng-href="{[{page.editUrl}]}?edit={[{edit.edit}]}"
+		<a ng-href="{[{page.editUrl()}]}?edit={[{edit.edit}]}"
 			class="btn btn-danger"
 			title="Load this edit in the editor"
 			ng-hide="{[{isOpened}]}"

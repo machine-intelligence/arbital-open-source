@@ -39,7 +39,7 @@
 				 class="page-anchor-link glyphicon glyphicon-link"
 				 title="Link to this answer"
 				 ng-show="page.type == 'answer'"></a>
-			<a ng-href="{[{page.editUrl}]}"
+			<a ng-href="{[{page.editUrl()}]}"
 				 class="edit-page-link glyphicon glyphicon-pencil"
 				 ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.hasDraft}"
 				 title="{[{page.hasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}]}"

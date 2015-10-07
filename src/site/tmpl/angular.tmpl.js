@@ -171,14 +171,23 @@ app.service("pageService", function(userService, $http){
 			}
 			return "";
 		},
+		// Get page's url
+		url: function(forcePageId) {
+			if (forcePageId) {
+				return "/pages/" + this.pageId;
+			}
+			return "/pages/" + this.alias;
+		},
+		// Get url to edit the page
+		editUrl: function() {
+			return "/edit/" + this.pageId;
+		},
 	};
 	
 	// Massage page's variables to be easier to deal with.
 	var setUpPage = function(page, pageMap) {
 		if (page.children == null) page.children = [];
 		if (page.parents == null) page.parents = [];
-		page.url = "/pages/" + page.alias;
-		page.editUrl = "/edit/" + page.pageId;
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
 		}

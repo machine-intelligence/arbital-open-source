@@ -1,6 +1,6 @@
 var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
 var noParen = "(?=$|[^(])";
-var aliasMatch = "([A-Za-z0-9]+)";
+var aliasMatch = "([A-Za-z0-9.]+)";
 // [vote: alias]
 var voteEmbedRegexp = new RegExp(noBacktickOrBracket + 
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");

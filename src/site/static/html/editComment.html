@@ -19,7 +19,7 @@
 				<button type="button" class="save-snapshot-button btn btn-default" toggle-on-submit>Save Snapshot</button>
 				<button type="submit" class="btn btn-primary" toggle-on-submit>Submit</button>
 				<span class="gray-text autosave-label" hidden></span>
-				<a ng-href="{[{page.editUrl}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal && page.type != 'answer'">Revert to Live Version</a>
+				<a ng-href="{[{page.editUrl()}]}?ignoreMySaves=1" class="btn btn-danger pull-right" ng-show="!isModal && page.type != 'answer'">Revert to Live Version</a>
 				<div class="alert alert-danger" hidden></div>
 				<span class="loading-text" style="display:none"></span>
 				<div class="clearfix"></div>

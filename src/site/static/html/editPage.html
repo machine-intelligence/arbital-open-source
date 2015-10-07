@@ -35,7 +35,7 @@
 			</div>
 			<div ng-show="page.isSnapshot" class="alert alert-warning">
 				Restored snapshot which was last updated {[{page.createdAt | relativeDateTime}]}.
-				<a ng-href="{[{page.editUrl}]}?edit=live">Switch to editing the live version.</a>
+				<a ng-href="{[{page.editUrl()}]}?edit=live">Switch to editing the live version.</a>
 			</div>
 		</div>
 	</div>
@@ -230,6 +230,7 @@
 			<div class="form-group" ng-show="!isAnswer && !isComment">
 				<label class="control-label col-sm-2">Alias</label>
 				<div class="col-sm-4">
+					<label class="control-label" ng-show="page.groupId != '0'">{[{userService.groupMap[page.groupId].alias}]}.</label>
 					<div class="input-group">
 						<input type="text"
 								name="alias"
