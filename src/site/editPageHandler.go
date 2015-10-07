@@ -4,7 +4,6 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"strconv"
 	"strings"
 
@@ -30,8 +29,6 @@ type editPageData struct {
 	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
-	PrivacyKey     int64 `json:",string"` // if the page is private, this proves that we can access it
-	KeepPrivacyKey bool
 	GroupId        int64 `json:",string"`
 	KarmaLock      int
 	ParentIds      string
@@ -175,18 +172,12 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 	if oldPage.WasPublished {
-		if oldPage.PrivacyKey > 0 && oldPage.PrivacyKey != data.PrivacyKey {
-			return pages.HandlerForbiddenFail("Need to specify correct privacy key to edit that page", nil)
-		}
 		editLevel := getEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
 			if editLevel == core.CommentPageType {
 				return pages.HandlerBadRequestFail("Can't edit a comment page you didn't create.", nil)
 			}
 			return pages.HandlerBadRequestFail("Not enough karma to edit this page.", nil)
-		}
-		if oldPage.PrivacyKey <= 0 && data.KeepPrivacyKey {
-			return pages.HandlerBadRequestFail("Can't change a public page to private.", nil)
 		}
 	}
 
@@ -311,16 +302,6 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	} else if data.Type == core.QuestionPageType {
 		data.SortChildrenBy = core.LikesChildSortingOption
 	}
-	// Can't turn on privacy after the page has been published.
-	var privacyKey int64
-	data.KeepPrivacyKey = false // FOR NOW
-	if data.KeepPrivacyKey {
-		if oldPage.PrivacyKey > 0 {
-			privacyKey = oldPage.PrivacyKey
-		} else {
-			privacyKey = rand.Int63()
-		}
-	}
 	if data.Alias == "" {
 		data.Alias = fmt.Sprintf("%d", data.PageId)
 	}
@@ -405,7 +386,6 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["type"] = data.Type
-		hashmap["privacyKey"] = privacyKey
 		hashmap["groupId"] = data.GroupId
 		hashmap["parents"] = strings.Join(encodedParentIds, ",")
 		hashmap["createdAt"] = database.Now()
@@ -546,7 +526,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Generate updates for users who are subscribed to the author.
-		if !oldPage.WasPublished && data.Type != core.CommentPageType && privacyKey <= 0 && !isMinorEditBool {
+		if !oldPage.WasPublished && data.Type != core.CommentPageType && !isMinorEditBool {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
@@ -609,16 +589,5 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// Return the full page url if the submission was for the current edit.
-	if isCurrentEdit {
-		privacyAddon := ""
-		if privacyKey > 0 {
-			privacyAddon = fmt.Sprintf("/%d", privacyKey)
-		}
-		fmt.Fprintf(params.W, "/pages/%s%s", data.Alias, privacyAddon)
-	} else {
-		// Return just the privacy key
-		fmt.Fprintf(params.W, "%d", newEditNum)
-	}
 	return pages.StatusOK(nil)
 }

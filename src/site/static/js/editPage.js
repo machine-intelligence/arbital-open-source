@@ -96,12 +96,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
 			parentIds.push($(element).attr("tag-id"));
 		});
-		var privacyKey = $topParent.attr("privacy-key");
 		var data = {
 			pageId: pageId,
 			parentIds: parentIds.join(),
-			privacyKey: privacyKey,
-			keepPrivacyKey: $topParent.find("input[name='private']").is(":checked"),
 			karmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
 			isAutosave: isAutosave,
 			isSnapshot: isSnapshot,
@@ -174,7 +171,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$loadingText.hide();
 		savePage(false, false, function(r) {
 			if (doneFn) {
-				doneFn({alias: r.substring(r.lastIndexOf("/") + 1)});
+				doneFn({alias: pageId});
 			}
 		});
 		return false;
@@ -187,7 +184,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$loadingText.hide();
 		savePage(false, true, function(r) {
 			if (r !== undefined) {
-				$body.attr("privacy-key", r);
 				$loadingText.show().text("Saved!");
 			}
 		});
@@ -514,7 +510,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				if (r === undefined) {
 					$autosaveLabel.hide();
 				} else {
-					$("body").attr("privacy-key", r);
 					$autosaveLabel.text("Autosave: Saved!").show();
 				}
 			});

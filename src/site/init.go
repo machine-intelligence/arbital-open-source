@@ -46,7 +46,6 @@ func init() {
 	r.HandleFunc(domainIndexPage.URI, pageHandlerWrapper(&domainIndexPage)).Methods("GET", "HEAD")
 	r.HandleFunc(domainsPage.URI, pageHandlerWrapper(&domainsPage)).Methods("GET", "HEAD")
 	r.HandleFunc(editPagePage.URI, pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
-	r.HandleFunc(editPrivatePagePage.URI, pageHandlerWrapper(&editPrivatePagePage)).Methods("GET", "HEAD")
 	r.HandleFunc(explorePage.URI, pageHandlerWrapper(&explorePage)).Methods("GET", "HEAD")
 	r.HandleFunc(exploreAllPage.URI, pageHandlerWrapper(&explorePage)).Methods("GET", "HEAD")
 	r.HandleFunc(groupsPage.URI, pageHandlerWrapper(&groupsPage)).Methods("GET", "HEAD")
@@ -54,7 +53,6 @@ func init() {
 	r.HandleFunc(newPagePage.URI, pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
 	r.HandleFunc(signupPage.URI, pageHandlerWrapper(&signupPage)).Methods("GET", "HEAD")
 	r.HandleFunc(pagePage.URI, pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
-	r.HandleFunc(privatePagePage.URI, pageHandlerWrapper(&privatePagePage)).Methods("GET", "HEAD")
 	r.HandleFunc(updatesPage.URI, pageHandlerWrapper(&updatesPage)).Methods("GET", "HEAD")
 	r.HandleFunc(userPage.URI, pageHandlerWrapper(&userPage)).Methods("GET", "HEAD")
 

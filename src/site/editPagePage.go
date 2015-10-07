@@ -27,7 +27,6 @@ type editPageTmplData struct {
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
 var newPagePage = newPageWithOptions("/edit/", editPageRenderer, editPageTmpls, editPageOptions)
 var editPagePage = newPageWithOptions(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr), editPageRenderer, editPageTmpls, editPageOptions)
-var editPrivatePagePage = newPageWithOptions(fmt.Sprintf("/edit/{alias:%s}/{privacyKey:[0-9]+}", core.AliasRegexpStr), editPageRenderer, editPageTmpls, editPageOptions)
 
 // editPageRenderer renders the page page.
 func editPageRenderer(params *pages.HandlerParams) *pages.Result {
@@ -87,12 +86,6 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	} else if data.Page == nil {
 		// Set IsAutosave to true, so we can check whether or not to show certain settings
 		data.Page = &core.Page{PageId: pageId, Alias: fmt.Sprintf("%d", pageId), IsAutosave: true}
-	}
-	// Check if the privacy key we got is correct.
-	if !data.Page.WasPublished && data.Page.CreatorId == data.User.Id {
-		// We can skip privacy key check
-	} else if data.Page.PrivacyKey > 0 && fmt.Sprintf("%d", data.Page.PrivacyKey) != mux.Vars(r)["privacyKey"] {
-		return pages.Fail("This page is private. Invalid privacy key given.", nil)
 	}
 
 	// Load edit history.

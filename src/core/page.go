@@ -85,7 +85,6 @@ type Page struct {
 	CreatorId      int64  `json:"creatorId,string"`
 	CreatedAt      string `json:"createdAt"`
 	KarmaLock      int    `json:"karmaLock"`
-	PrivacyKey     int64  `json:"privacyKey,string"`
 	GroupId        int64  `json:"groupId,string"`
 	ParentsStr     string `json:"parentsStr"`
 	DeletedBy      int64  `json:"deletedBy,string"`
@@ -255,7 +254,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 	statement := database.NewQuery(`
 		SELECT * FROM (
 			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
-				length(text),metaText,karmaLock,privacyKey,deletedBy,hasVote,voteType,` + summarySelect + `,
+				length(text),metaText,karmaLock,deletedBy,hasVote,voteType,` + summarySelect + `,
 				alias,sortChildrenBy,groupId,parents,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
 				todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
@@ -269,7 +268,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
-			&p.Text, &p.TextLength, &p.MetaText, &p.KarmaLock, &p.PrivacyKey, &p.DeletedBy, &p.HasVote,
+			&p.Text, &p.TextLength, &p.MetaText, &p.KarmaLock, &p.DeletedBy, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
@@ -292,7 +291,6 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 			op.MetaText = p.MetaText
 			op.TextLength = p.TextLength
 			op.KarmaLock = p.KarmaLock
-			op.PrivacyKey = p.PrivacyKey
 			op.DeletedBy = p.DeletedBy
 			op.HasVote = p.HasVote
 			op.VoteType = p.VoteType

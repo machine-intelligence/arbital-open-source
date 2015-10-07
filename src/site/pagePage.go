@@ -39,14 +39,6 @@ var pagePage = newPageWithOptions(
 		"tmpl/angular.tmpl.js",
 		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
 
-var privatePagePage = newPageWithOptions(
-	fmt.Sprintf("/pages/{alias:[A-Za-z0-9_-]+}/{privacyKey:[0-9]+}", core.AliasRegexpStr),
-	pageRenderer,
-	append(baseTmpls,
-		"tmpl/pagePage.tmpl",
-		"tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
-
 // pageRenderer renders the page page.
 func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	var data pageTmplData
@@ -116,14 +108,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	// Redirect lens pages to the parent page.
 	if data.Page.Type == core.LensPageType {
 		return pages.StatusOK(&data)
-	}
-
-	// Check privacy setting
-	if data.Page.PrivacyKey > 0 {
-		privacyKey := mux.Vars(params.R)["privacyKey"]
-		if privacyKey != fmt.Sprintf("%d", data.Page.PrivacyKey) {
-			return pages.Fail("Unauthorized access. You don't have the correct privacy key.", nil)
-		}
 	}
 
 	// Create maps.

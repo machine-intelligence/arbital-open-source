@@ -64,7 +64,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.metaText,
 			p.summary,p.alias,p.creatorId,p.sortChildrenBy,p.hasVote,p.voteType,
-			p.createdAt,p.karmaLock,p.privacyKey,p.groupId,p.parents,p.deletedBy,
+			p.createdAt,p.karmaLock,p.groupId,p.parents,p.deletedBy,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
 		FROM pages AS p
@@ -79,7 +79,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
-		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.PrivacyKey, &p.GroupId,
+		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.GroupId,
 		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {
@@ -724,20 +724,12 @@ func getMaxKarmaLock(karma int) int {
 
 // getPageUrl returns the domain relative url for accessing the given page.
 func getPageUrl(p *core.Page) string {
-	privacyAddon := ""
-	if p.PrivacyKey > 0 {
-		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
-	}
-	return fmt.Sprintf("/pages/%s%s", p.Alias, privacyAddon)
+	return fmt.Sprintf("/pages/%s", p.Alias)
 }
 
 // getEditPageUrl returns the domain relative url for editing the given page.
 func getEditPageUrl(p *core.Page) string {
-	var privacyAddon string
-	if p.PrivacyKey > 0 {
-		privacyAddon = fmt.Sprintf("/%d", p.PrivacyKey)
-	}
-	return fmt.Sprintf("/edit/%d%s", p.PageId, privacyAddon)
+	return fmt.Sprintf("/edit/%d", p.PageId)
 }
 
 // Check if the user can edit this page. Possible return values:

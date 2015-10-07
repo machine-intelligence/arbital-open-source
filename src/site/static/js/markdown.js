@@ -120,7 +120,6 @@ var arbMarkdown = arbMarkdown || function() {
 		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			host + // match the url host part
 			"\/pages\/" + aliasMatch + // [1] capture page alias
-			"(?:\/([0-9]+))?" + // [2] optionally capture privacyId
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 		$pageText.find("a").each(function(index, element) {
@@ -130,9 +129,9 @@ var arbMarkdown = arbMarkdown || function() {
 			if ($element.hasClass("intrasite-link")) {
 				return;
 			}
-			$element.addClass("intrasite-link").attr("page-id", parts[1]).attr("privacy-key", parts[2]);
+			$element.addClass("intrasite-link").attr("page-id", parts[1]);
 			// Check if we are embedding a vote
-			if (parts[3].indexOf("embedVote") > 0) {
+			if (parts[2].indexOf("embedVote") > 0) {
 				$element.attr("embed-vote-id", parts[1]);
 			} else if (parts[1] in pageService.pageMap) {
 				// Normal healthy link!

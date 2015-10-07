@@ -47,8 +47,6 @@ CREATE TABLE pages (
 	voteType VARCHAR(32) NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
 	karmaLock INT NOT NULL,
-	/* If > 0, the page is accessible only with the right link. */
-	privacyKey BIGINT NOT NULL,
 	/* Optional id of the group this page belongs to. FK into groups. */
 	groupId BIGINT NOT NULL,
 	/* Comma separated string of parent ids in base 36. We store them so that we
