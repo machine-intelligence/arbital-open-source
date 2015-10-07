@@ -609,13 +609,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		// Create options for the popover.
 		var options = {
 			html : true,
-			placement: "auto",
+			placement: "bottom",
 			trigger: "manual",
 			delay: { "hide": 100 },
 			title: function() {
 				var pageId = $target.attr("page-id");
 				var page = pageService.pageMap[pageId];
-				if (page) {
+				if (page && page.title) {
 					return getTitleHtml(pageId);
 				}
 				return "Loading...";
@@ -652,19 +652,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 					includeAuxData: true,
 					loadVotes: true,
 					success: function(data, status) {
-						// Should only be one page.
-						for (var pageId in data) {
-							var page = data[pageId];
-							if (!page.summary) {
-								page.summary = " "; // to avoid trying to load it again
-							}
-							// Replace page-id attribute in case it was an alias.
-							$link.attr("page-id", pageId);
-							var contentHtml = setPopoverContent(page);
-							var $popover = $("#" + $link.attr("aria-describedby"));
-							$popover.find(".popover-content").html(contentHtml);
-							break;
+						var page = pageService.pageMap[pageAlias];
+						if (!page.summary) {
+							page.summary = " "; // to avoid trying to load it again
 						}
+						var contentHtml = setPopoverContent(page);
+						var $popover = $("#" + $link.attr("aria-describedby"));
+						$popover.find(".popover-content").html(contentHtml);
 					},
 				});
 				return "<img src='/static/images/loading.gif' class='loading-indicator' style='display:block'/>";

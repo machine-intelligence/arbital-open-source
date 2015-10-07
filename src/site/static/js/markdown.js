@@ -119,7 +119,7 @@ var arbMarkdown = arbMarkdown || function() {
 		// Setup attributes for links that are within our domain.
 		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			host + // match the url host part
-			"\/pages\/([A-Za-z0-9_-]+)" + // [1] capture page alias
+			"\/pages\/" + aliasMatch + // [1] capture page alias
 			"(?:\/([0-9]+))?" + // [2] optionally capture privacyId
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
