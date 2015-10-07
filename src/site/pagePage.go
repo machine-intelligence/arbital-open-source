@@ -76,7 +76,7 @@ func pageRenderer(w http.ResponseWriter, r *http.Request, u *user.User) *pages.R
 			parent := data.PageMap[p.ParentId]
 			if parent.Type != core.CommentPageType {
 				pageUrl := getPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parent.PageId)})
-				return pages.RedirectWith(fmt.Sprintf("%s#comment-%d", pageUrl, data.Page.PageId))
+				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
 			}
 		}
 	}
@@ -178,16 +178,9 @@ func pageInternalRenderer(w http.ResponseWriter, r *http.Request, u *user.User) 
 		return nil, fmt.Errorf("Couldn't load subpages: %v", err)
 	}
 
-	// Add comments to the embedded pages map.
+	// Add comments and questions to the embedded pages map.
 	for id, p := range data.PageMap {
-		if p.Type == core.CommentPageType {
-			embeddedPageMap[id] = p
-		}
-	}
-
-	// Add questions to the embedded pages map.
-	for id, p := range data.PageMap {
-		if p.Type == core.QuestionPageType {
+		if p.Type == core.CommentPageType || p.Type == core.QuestionPageType {
 			embeddedPageMap[id] = p
 		}
 	}

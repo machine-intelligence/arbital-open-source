@@ -223,7 +223,7 @@ app.directive("arbComment", function ($compile, $timeout, pageService, autocompl
 			pageId: "@",  // id of this comment
 			parentCommentId: "@",  // id of the parent comment, if there is one
 		},
-		link:function(scope, element, attrs) {
+		link: function(scope, element, attrs) {
 		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, autocompleteService);
 		},
 	};
@@ -240,9 +240,8 @@ app.directive("arbQuestion", function ($compile, $timeout, pageService, autocomp
 		scope: {
 			primaryPageId: "@",  // id of the primary page this comment belongs to
 			pageId: "@",  // id of this comment
-			parentCommentId: "@",  // id of the parent comment, if there is one
 		},
-		link:function(scope, element, attrs) {
+		link: function(scope, element, attrs) {
 		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, autocompleteService);
 		},
 	};

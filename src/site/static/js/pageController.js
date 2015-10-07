@@ -227,7 +227,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function($compile, scope) {
-		// for question pages, check if we need to add the anchor text
+		// For question pages, check if we need to add the anchor text
 		if (page.type === "question") {
 			if (page.anchorContext && page.anchorText) {
 				page.text = "> " + page.anchorText + "\n\n" + page.text;
@@ -463,7 +463,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 				scope.page.subpageIds.sort(pageService.getChildSortFunc({sortChildrenBy: "chronological", type: "comment"}));
 				for (var n = 0; n < scope.page.subpageIds.length; n++) {
 					var subpage = pageService.pageMap[scope.page.subpageIds[n]];
-					// Check if the subpage in anchored and we can still find the paragraph.
+					// Check if the subpage is anchored and we can still find the paragraph.
 					if (subpage.anchorContext && subpage.anchorText) {
 						if (!allowInline) continue;
 						// Find the best paragraph.
@@ -485,7 +485,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 							// This is not a good paragraph match. Continue processing as a normal subpage.
 							subpage.text = "> " + subpage.anchorText + "\n\n" + subpage.text;
 							if (subpage.type == "question") {
-									scope.subpageIds.push(subpage.pageId);
+									scope.questionIds.push(subpage.pageId);
 									continue;
 							}
 						} else {
