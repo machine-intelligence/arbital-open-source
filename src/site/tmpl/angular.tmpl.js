@@ -360,9 +360,9 @@ app.service("pageService", function(userService, $http){
 				console.log("JSON /pages/ data:"); console.log(data);
 				var pagesData = data["pages"];
 				for (var id in pagesData) {
-					data[id] = service.addPageToMap(pagesData[id], overwrite);
+					service.addPageToMap(pagesData[id], overwrite);
 					delete loadingPageAliases[id];
-					delete loadingPageAliases[data[id].alias];
+					delete loadingPageAliases[pagesData[id].alias];
 				}
 				var usersData = data["users"];
 				for (var id in usersData) {
@@ -605,7 +605,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 
 	// Check when user hovers over intrasite links, and show a popover.
 	$("body").on("mouseenter", ".intrasite-link", function(event) {
-		var $linkPopoverTemplate = $("#link-popover-template");
 		var $target = $(event.currentTarget);
 		if ($target.hasClass("red-link")) return;
 		// Don't allow recursive hover in popovers.
@@ -631,9 +630,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			},
 			content: function() {
 				var $link = $target;
-				var pageAlias = $link.attr("page-id");
 				var setPopoverContent = function(page) {
-					var contentHtml = "<arb-intrasite-popover page-id='" + page.pageId + "'></arb-intrasite-popover>";
 					if (page.deletedBy !== "0") {
 						return "[DELETED]";
 					}
@@ -642,14 +639,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 						var $popover = $("#" + $link.attr("aria-describedby"));
 						$popover.find(".popover-title").html(getTitleHtml(page.pageId));
 						$compile($popover)($scope);
-						$timeout(function() {
-							arbMarkdown.init(false, page.pageId, page.summary, $popover.find(".intrasite-popover-body"), pageService);
-						});
 					});
+					var contentHtml = "<arb-intrasite-popover page-id='" + page.pageId + "'></arb-intrasite-popover>";
 					return contentHtml;
 				};
 
 				// Check if we already have this page cached.
+				var pageAlias = $link.attr("page-id");
 				var page = pageService.pageMap[pageAlias];
 				if (page && page.summary) {
 					return setPopoverContent(page);
@@ -825,6 +821,7 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
+			arbMarkdown.init(false, scope.pageId, scope.page.summary, element.find(".intrasite-popover-body"), pageService);
 		},
 	};
 });
