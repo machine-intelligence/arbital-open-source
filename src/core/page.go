@@ -137,8 +137,8 @@ type Page struct {
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
 
-	// Comments.
-	CommentIds []string `json:"commentIds"`
+	// Subpages.
+	SubpageIds []string `json:"subpageIds"`
 
 	// Domains.
 	DomainIds []string `json:"domainIds"`

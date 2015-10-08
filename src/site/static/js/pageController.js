@@ -227,6 +227,13 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.start = function($compile, scope) {
+		// For question pages, check if we need to add the anchor text
+		if (page.type === "question") {
+			if (page.anchorContext && page.anchorText) {
+				page.text = "> " + page.anchorText + "\n\n" + page.text;
+			}
+		}
+
 		// Set up markdown.
 		arbMarkdown.init(false, pageId, page.text, $topParent, pageService);
 
@@ -292,7 +299,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 			for (var n = 0; n < $scope.page.children.length; n++) {
 				var id = $scope.page.children[n].childId;
 				var page = pageService.pageMap[id];
-				if (page.type === "question") {
+				if (page.type === "question" && !page.anchorContext) {
 					$scope.questionIds.push(id);
 				}
 			}
@@ -316,16 +323,15 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
 				scope.pageJsController.start($compile, scope);
 
-				if (scope.page.commentIds != null) {
-					// Process comments in two passes. First normal comments.
-					processComments(false);
+				if (scope.page.subpageIds != null) {
+					// Process subpages in two passes. First normal subpages.
+					processSubpages(false);
 					$timeout(function() {
-						// Inline comments after a delay long enough for MathJax to have been processed.
-						processComments(true);
+						// Inline subpages after a delay long enough for MathJax to have been processed.
+						processSubpages(true);
 					}, 3000);
 				}
 			});
-
 			// Track toggle-inline-comment offsets, so we can prevent overlap.
 			var inlineCommentOffsets = [];
 			var fixInlineCommentOffset = function(offset) {
@@ -341,16 +347,21 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 			}
 
 			// Create a toggle-inline-comment-div.
-			var createNewInlineCommentToggle = function(pageId, paragraphNode, anchorOffset, anchorLength) {
+			var createNewInlineSubpageToggle = function(pageId, paragraphNode, anchorOffset, anchorLength, pageType) {
 				var created = false;
 				var doCreate = function() {
 					created = true;
 					var highlightClass = "inline-comment-" + pageId;
 					var $commentDiv = $(".toggle-inline-comment-div.template").clone();
-					$commentDiv.attr("id", "comment-" + pageId).removeClass("template");
+					$commentDiv.attr("id", "subpage-" + pageId).removeClass("template");
 					var comment = pageService.pageMap[pageId];
 					var commentCount = comment.children.length + 1;
-					$commentDiv.find(".inline-comment-count").text("" + commentCount);
+					if (pageType == "comment") {
+						$commentDiv.find(".inline-comment-count").text("" + commentCount);
+					}
+					if (pageType == "question") {
+						$commentDiv.find(".inline-comment-count").text("?");
+					}
 					$(".question-div").append($commentDiv);
 	
 					// Process mouse events.
@@ -363,11 +374,18 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						$("." + highlightClass).removeClass("inline-comment-highlight");
 					});
 					$commentIcon.on("click", function(event) {
-						pageView.toggleInlineComment($commentDiv, function() {
+						pageView.toggleInlineSubpage($commentDiv, function() {
 							$("." + highlightClass).addClass("inline-comment-highlight");
-							var $comment = $compile("<arb-comment primary-page-id='" + scope.page.pageId +
-									"' page-id='" + pageId + "'></arb-comment>")(scope);
-							$(".inline-comment-div").append($comment);
+							if (pageType == "comment") {
+								var $comment = $compile("<arb-comment primary-page-id='" + scope.page.pageId +
+																				"' page-id='" + pageId + "'></arb-comment>")(scope);
+								$(".inline-comment-div").append($comment);
+							}
+							if (pageType == "question") {
+								var $comment = $compile("<arb-question primary-page-id='" + scope.page.pageId +
+																				"' page-id='" + pageId + "'></arb-question>")(scope);
+								$(".inline-comment-div").append($comment);
+							}
 						});
 						return false;
 					});
@@ -382,16 +400,16 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						fixInlineCommentOffset(offset);
 						$commentDiv.offset(offset);
 	
-						// Check if we need to expand this inline comment because of the URL anchor.
-						var expandComment = window.location.hash === "#comment-" + pageId;
+						// Check if we need to expand this inline subpage because of the URL anchor.
+						var expandComment = window.location.hash === "#subpage-" + pageId;
 						if (!expandComment) {
 							// Check if one of the children is selected.
 							for (var n = 0; n < comment.children.length; n++) {
-								expandComment |= window.location.hash === "#comment-" + comment.children[n].childId;
+								expandComment |= window.location.hash === "#subpage-" + comment.children[n].childId;
 							}
 						}
 						if (expandComment) {
-							// Delay to allow other inline comment buttons to compute their position correctly.
+							// Delay to allow other inline subpage buttons to compute their position correctly.
 							window.setTimeout(function() {
 								$commentIcon.trigger("click");
 								$("html, body").animate({
@@ -401,7 +419,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						}
 					} else {
 						$commentDiv.hide();
-						console.log("ERROR: couldn't find anchor node for inline comment");
+						console.log("ERROR: couldn't find anchor node for inline subpage");
 					}
 				};
 				// Check that we don't have another lens selected, in which case we'll
@@ -411,7 +429,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 				}
 				pageService.primaryPageCallbacks.push(function() {
 					if (created) {
-						$("#comment-" + pageId).toggle(pageService.primaryPage === scope.page);
+						$("#subpage-" + pageId).toggle(pageService.primaryPage === scope.page);
 					} else if (pageService.primaryPage === scope.page) {
 						window.setTimeout(function() {  // wait until the page shows
 							doCreate();
@@ -420,15 +438,15 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 				});
 			}
 
-			// Dynamically create comment elements.
-			var processComments = function(allowInline) {
+			// Dynamically create subpage elements.
+			var processSubpages = function(allowInline) {
 				var $comments = element.find(".comments");
 				var $markdown = element.find(".markdown-text");
 				var dmp = new diff_match_patch();
 				dmp.Match_MaxBits = 10000;
 				dmp.Match_Distance = 10000;
 
-				// If we have inline comments, we'll need to compute the raw text for
+				// If we have inline subpages, we'll need to compute the raw text for
 				// each paragraph.
 				var paragraphTexts = undefined;
 				var populateParagraphTexts = function() {
@@ -440,12 +458,12 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 					});
 				};
 
-				// Go through comments in chronological order.
-				scope.page.commentIds.sort(pageService.getChildSortFunc({sortChildrenBy: "chronological", type: "comment"}));
-				for (var n = 0; n < scope.page.commentIds.length; n++) {
-					var comment = pageService.pageMap[scope.page.commentIds[n]];
-					// Check if the comment in anchored and we can still find the paragraph.
-					if (comment.anchorContext && comment.anchorText) {
+				// Go through subpages in chronological order.
+				scope.page.subpageIds.sort(pageService.getChildSortFunc({sortChildrenBy: "chronological", type: "comment"}));
+				for (var n = 0; n < scope.page.subpageIds.length; n++) {
+					var subpage = pageService.pageMap[scope.page.subpageIds[n]];
+					// Check if the subpage is anchored and we can still find the paragraph.
+					if (subpage.anchorContext && subpage.anchorText) {
 						if (!allowInline) continue;
 						// Find the best paragraph.
 						var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
@@ -454,7 +472,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						}
 						for (var i = 0; i < paragraphTexts.length; i++) {
 							var text = paragraphTexts[i];
-							var diffs = dmp.diff_main(text, comment.anchorContext);
+							var diffs = dmp.diff_main(text, subpage.anchorContext);
 							var score = dmp.diff_levenshtein(diffs);
 							if (score < bestScore) {
 								bestParagraphNode = $markdown.children().get(i);
@@ -462,13 +480,17 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 								bestScore = score;
 							}
 						}
-						if (bestScore > comment.anchorContext.length / 2) {
-							// This is not a good paragraph match. Continue processing as a normal comment.
-							comment.text = "> " + comment.anchorText + "\n\n" + comment.text;
+						if (bestScore > subpage.anchorContext.length / 2) {
+							// This is not a good paragraph match. Continue processing as a normal subpage.
+							subpage.text = "> " + subpage.anchorText + "\n\n" + subpage.text;
+							if (subpage.type == "question") {
+									scope.questionIds.push(subpage.pageId);
+									continue;
+							}
 						} else {
 							// Find offset into the best paragraph.
 							var anchorLength;
-							var anchorOffset = dmp.match_main(bestParagraphText, comment.anchorText, comment.anchorOffset);
+							var anchorOffset = dmp.match_main(bestParagraphText, subpage.anchorText, subpage.anchorOffset);
 							if (anchorOffset < 0) {
 								// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor.
 								anchorOffset = 0;
@@ -476,7 +498,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 							} else {
 								// Figure out how long the highlighted anchor should be.
 								var remainingText = bestParagraphText.substring(anchorOffset);
-								var diffs = dmp.diff_main(remainingText, comment.anchorText);
+								var diffs = dmp.diff_main(remainingText, subpage.anchorText);
 								anchorLength = remainingText.length;
 								if (diffs.length > 0) {
 									// Note: we can potentially be more clever here and discount
@@ -487,30 +509,33 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 									}
 								}
 							}
-							createNewInlineCommentToggle(comment.pageId, bestParagraphNode, anchorOffset, anchorLength);
+
+							createNewInlineSubpageToggle(subpage.pageId, bestParagraphNode, anchorOffset, anchorLength, subpage.type);
 							continue;
 						}
 					} else if (allowInline) {
 						continue;
 					}
-					// Make sure this comment is not a reply (i.e. it has a parent comment)
-					// If it's a reply, add it as a child to the corresponding parent comment.
-					if (comment.parents != null) {
-						var hasParentComment = false;
-						for (var i = 0; i < comment.parents.length; i++) {
-							var parent = pageService.pageMap[comment.parents[i].parentId];
-							hasParentComment = parent.type === "comment";
-							if (hasParentComment) {
-								if (parent.children == null) parent.children = [];
-								parent.children.push({parentId: parent.pageId, childId: comment.pageId});
-								break;
+					if (subpage.type == "comment" ) {
+						// Make sure this comment is not a reply (i.e. it has a parent comment)
+						// If it's a reply, add it as a child to the corresponding parent comment.
+						if (subpage.parents != null) {
+							var hasParentComment = false;
+							for (var i = 0; i < subpage.parents.length; i++) {
+								var parent = pageService.pageMap[subpage.parents[i].parentId];
+								hasParentComment = parent.type === "comment";
+								if (hasParentComment) {
+									if (parent.children == null) parent.children = [];
+									parent.children.push({parentId: parent.pageId, childId: subpage.pageId});
+									break;
+								}
 							}
+							if (hasParentComment) continue;
 						}
-						if (hasParentComment) continue;
+						var $comment = $compile("<arb-comment primary-page-id='" + scope.pageId +
+																			"' page-id='" + subpage.pageId + "'></arb-comment>")(scope);
+						$comments.prepend($comment);
 					}
-					var $comment = $compile("<arb-comment primary-page-id='" + scope.pageId +
-							"' page-id='" + comment.pageId + "'></arb-comment>")(scope);
-					$comments.prepend($comment);
 				}
 			};
 		},

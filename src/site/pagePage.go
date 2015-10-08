@@ -61,7 +61,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 			parent := data.PageMap[p.ParentId]
 			if parent.Type != core.CommentPageType {
 				pageUrl := getPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parent.PageId)})
-				return pages.RedirectWith(fmt.Sprintf("%s#comment-%d", pageUrl, data.Page.PageId))
+				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
 			}
 		}
 	}
@@ -135,14 +135,16 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		}
 	}
 
+
 	// Load comment ids.
-	err = loadCommentIds(db, data.PageMap, embeddedPageMap)
+	err = loadSubpageIds(db, data.PageMap, embeddedPageMap)
 	if err != nil {
-		return pages.Fail("Couldn't load comments", err)
+		return pages.Fail("Couldn't load subpages", err)
 	}
-	// Add comments to the embedded pages map.
+
+	// Add comments and questions to the embedded pages map.
 	for id, p := range data.PageMap {
-		if p.Type == core.CommentPageType {
+		if p.Type == core.CommentPageType || p.Type == core.QuestionPageType {
 			embeddedPageMap[id] = p
 		}
 	}
@@ -205,7 +207,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	// Erase Text from pages that don't need it.
 	// Also erase pages that weren't loaded.
 	for _, p := range data.PageMap {
-		if (data.Page.Type != core.QuestionPageType || p.Type != core.AnswerPageType) && p.Type != core.CommentPageType {
+		if (data.Page.Type != core.QuestionPageType || p.Type != core.AnswerPageType) && (p.Type != core.CommentPageType && p.Type != core.QuestionPageType) {
 			p.Text = ""
 		}
 	}

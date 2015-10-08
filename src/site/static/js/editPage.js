@@ -815,7 +815,7 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 				// TODO: shouldn't be setting Parents here
 				scope.page.parents = [{parentId: primaryPage.pageId}];
 				scope.useVerticalView = true;
-			} else if (scope.isComment && primaryPage) {
+			} else if ( (scope.isComment || scope.isQuestion) && primaryPage) {
 				scope.useVerticalView = true;
 			}
 

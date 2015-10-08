@@ -108,9 +108,9 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 		// Load comment ids.
 		if data.LoadComments {
-			err := loadCommentIds(db, pageMap, pageMap)
+			err := loadSubpageIds(db, pageMap, pageMap)
 			if err != nil {
-				return nil, "Couldn't load comments", err
+				return nil, "Couldn't load subpages", err
 			}
 		}
 

@@ -1,4 +1,4 @@
-<!-- Template for a given comment -->
+<!-- Template for a given inline question -->
 <div class="comment">
 	<div class="comment-row">
 		<!-- Icon column -->
@@ -8,20 +8,15 @@
 				<a href="#"
 					class="edit-comment-link glyphicon glyphicon-pencil"
 					ng-class="{'has-draft': comment.hasDraft}"
-					title="{[{comment.hasDraft ? 'You have an unpublished draft for this comment' : 'Edit this comment'}]}"
+					title="{[{comment.hasDraft ? 'You have an unpublished draft for this question' : 'Edit this question'}]}"
 					ng-show="comment.creatorId == userService.user.id"></a>
-				<a href="#"
-					class="subscribe-comment-link glyphicon glyphicon-eye-open"
-					ng-class="{'on': comment.isSubscribed}"
-					title="Subscribe to receive updates when this comment gets replies"
-					ng-show="userService.user.isLoggedIn && !parentCommentId"></a>
 				<a href="#"
 					class="like-comment-link glyphicon glyphicon-thumbs-up"
 					ng-class="{'on': comment.myLikeValue >= 1}"
-					title="This is a high quality comment"
+					title="This is a high quality question"
 					ng-show="userService.user.isLoggedIn && comment.creatorId != userService.user.id"></a>
 				<span class="comment-like-count"
-					title="Number of upvotes this comment has received"
+					title="Number of upvotes this question has received"
 					ng-bind="comment.likeCount"
 					ng-show="comment.likeCount > 0"></span>
 			</span>
@@ -35,14 +30,14 @@
 				<div class="comment-body">
 					<div class="comment-creator-name">
 						<span class="new-updated-label glyphicon glyphicon-star"
-							title="You haven't seen this comment before"
+							title="You haven't seen this question before"
 							ng-show="comment.isNewPage()"></span>
 						<span class="new-updated-label glyphicon glyphicon-star-empty"
-							title="This comment has been updated since the last time you've seen it"
+							title="This question has been updated since the last time you've seen it"
 							ng-show="comment.isUpdatedPage()"></span>
-						<arb-user-name user-id="{[{comment.creatorId}]}"></arb-user-name>:&nbsp;
+						<a href="{[{comment.pageId}]}"> {[{comment.title}]}</a>
 					</div>
-					<!-- Comment's text. Populated by markdown. -->
+					<!-- Question's text. Populated by markdown. -->
 					<div class="comment-text markdown-text"></div>
 				</div>
 				<!-- arb-edit-page is dynamically inserted here on demand -->
@@ -51,8 +46,5 @@
 		<div class="clearfix"></div>
 	</div>
 
-	<!-- Replies -->
-	<div class="replies">
-	</div>
 	<div class="clearfix"></div>
 </div>
