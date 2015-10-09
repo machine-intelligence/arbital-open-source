@@ -8,3 +8,4 @@ drop index name_3 on groups;
 drop index name_4 on groups;
 CREATE UNIQUE INDEX alias ON groups(alias);
 alter table pages drop column deletedBy;
+alter table updates add column emailed boolean not null;
