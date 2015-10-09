@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"regexp"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -606,6 +607,26 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				c.Errorf("Invalid task created: %v", err)
 			} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
+			}
+		}
+
+		if !oldPage.WasPublished && data.Type == core.CommentPageType {
+			// Generate updates for @mentions
+			// Find ids and aliases using [@text] syntax.
+			exp := regexp.MustCompile("\\[@([0-9]+)\\]")
+			submatches := exp.FindAllStringSubmatch(data.Text, -1)
+			for _, submatch := range submatches {
+				var task tasks.AtMentionUpdateTask
+				task.UserId = u.Id
+				task.MentionedUserId, err = strconv.ParseInt(submatch[1], 10, 64)
+				task.GroupByPageId = commentPrimaryPageId
+				task.GoToPageId = data.PageId
+				task.UpdateType = core.AtMentionUpdateType
+				if err := task.IsValid(); err != nil {
+					c.Errorf("Invalid task created: %v", err)
+				} else if err := tasks.Enqueue(c, task, "atMentionUpdate"); err != nil {
+					c.Errorf("Couldn't enqueue a task: %v", err)
+				}
 			}
 		}
 

@@ -69,7 +69,7 @@ var createEditSubpageDiv = function($parentDiv, $commentButton, scope, options) 
 	}
 };
 
-var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageService, autocompleteService) {
+var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageService, userService, autocompleteService) {
 	var $replies = element.find(".replies");
 	// Dynamically create reply elements.
 	if (scope.parentCommentId === undefined) {
@@ -92,7 +92,7 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 
 	$timeout(function() {
 		// Process comment's text using Markdown.
-		arbMarkdown.init(false, scope.pageId, scope.comment.text, element, pageService);
+		arbMarkdown.init(false, scope.pageId, scope.comment.text, element, pageService, userService);
 	});
 
 	// Highlight the comment div. Used for selecting comments when #anchor matches.
@@ -211,7 +211,7 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 }
 
 // Directive for showing a comment.
-app.directive("arbComment", function ($compile, $timeout, pageService, autocompleteService) {
+app.directive("arbComment", function ($compile, $timeout, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/comment.html",
 		controller: function ($scope, pageService, userService) {
@@ -224,13 +224,13 @@ app.directive("arbComment", function ($compile, $timeout, pageService, autocompl
 			parentCommentId: "@",  // id of the parent comment, if there is one
 		},
 		link: function(scope, element, attrs) {
-		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, autocompleteService);
+		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, userService, autocompleteService);
 		},
 	};
 });
 
 // Directive for showing an inline question.
-app.directive("arbQuestion", function ($compile, $timeout, pageService, autocompleteService) {
+app.directive("arbQuestion", function ($compile, $timeout, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/inlineQuestion.html",
 		controller: function ($scope, pageService, userService) {
@@ -242,7 +242,7 @@ app.directive("arbQuestion", function ($compile, $timeout, pageService, autocomp
 			pageId: "@",  // id of this comment
 		},
 		link: function(scope, element, attrs) {
-		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, autocompleteService);
+		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, userService, autocompleteService);
 		},
 	};
 });

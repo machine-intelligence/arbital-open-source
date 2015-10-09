@@ -235,7 +235,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		}
 
 		// Set up markdown.
-		arbMarkdown.init(false, pageId, page.text, $topParent, pageService);
+		arbMarkdown.init(false, pageId, page.text, $topParent, pageService, userService);
 
 		// Setup probability vote slider.
 		// NOTE: this pretty messy, since there are some race conditions here we are

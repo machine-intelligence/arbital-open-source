@@ -308,7 +308,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	});
 
 	// Set up Markdown.
-	arbMarkdown.init(true, pageId, "", undefined, pageService, autocompleteService);
+	arbMarkdown.init(true, pageId, "", undefined, pageService, userService, autocompleteService);
 
 	// Setup karma lock slider.
 	var $slider = $topParent.find(".karma-lock-slider");

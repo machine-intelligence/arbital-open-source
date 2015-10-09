@@ -820,7 +820,7 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
-			arbMarkdown.init(false, scope.pageId, scope.page.summary, element.find(".intrasite-popover-body"), pageService);
+			arbMarkdown.init(false, scope.pageId, scope.page.summary, element.find(".intrasite-popover-body"), pageService, userService);
 		},
 	};
 });
