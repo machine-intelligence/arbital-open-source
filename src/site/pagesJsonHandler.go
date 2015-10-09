@@ -107,7 +107,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 		// Load comment ids.
 		if data.LoadComments {
-			err := loadSubpageIds(db, pageMap, pageMap)
+			err := core.LoadSubpageIds(db, pageMap, pageMap)
 			if err != nil {
 				return nil, "Couldn't load subpages", err
 			}
@@ -115,7 +115,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 		// Load children
 		if data.LoadChildren {
-			err := loadChildrenIds(db, pageMap, loadChildrenIdsOptions{})
+			err := core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{})
 			if err != nil {
 				return nil, "Couldn't load children", err
 			}
@@ -132,7 +132,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 		pageId := pageIds[0]
 
 		// Load full edit for one page.
-		p, err := loadFullEdit(db, pageId, u.Id, &loadEditOptions{loadNonliveEdit: data.AllowDraft})
+		p, err := core.LoadFullEdit(db, pageId, u.Id, &core.LoadEditOptions{LoadNonliveEdit: data.AllowDraft})
 		if err != nil || p == nil {
 			return nil, "error while loading full edit", err
 		}
@@ -140,14 +140,14 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 	}
 
 	// Load links
-	err := loadLinks(db, pageMap, nil)
+	err := core.LoadLinks(db, pageMap, nil)
 	if err != nil {
 		return nil, "Couldn't load links", err
 	}
 
 	// Load the auxillary data.
 	if data.IncludeAuxData {
-		err := loadAuxPageData(db, u.Id, pageMap, nil)
+		err := core.LoadAuxPageData(db, u.Id, pageMap, nil)
 		if err != nil {
 			return nil, "error while loading aux data", err
 		}
@@ -155,7 +155,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 	// Load probability votes
 	if data.LoadVotes {
-		err := loadVotes(db, u.Id, pageMap, userMap)
+		err := core.LoadVotes(db, u.Id, pageMap, userMap)
 		if err != nil {
 			return nil, "Couldn't load probability votes", err
 		}
@@ -167,7 +167,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 			if p.Type == core.CommentPageType {
 				continue
 			}
-			err := loadChildDraft(db, u.Id, p, pageMap)
+			err := core.LoadChildDraft(db, u.Id, p, pageMap)
 			if err != nil {
 				return nil, "Couldn't load child draft", err
 			}

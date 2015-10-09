@@ -38,7 +38,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	pageAlias := mux.Vars(r)["alias"]
 	// If we are creating a new page, redirect to a new id
 	if len(pageAlias) <= 0 || pageAlias == "0" {
-		return pages.RedirectWith(getEditPageUrl(&core.Page{PageId: rand.Int63()}))
+		return pages.RedirectWith(core.GetEditPageUrl(&core.Page{PageId: rand.Int63()}))
 	}
 
 	// Check if the user is trying to create a new page with an alias.
@@ -54,7 +54,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Couldn't convert pageId=>alias", err)
 		} else if !exists {
 			// User is trying to create a new page with an alias.
-			return pages.RedirectWith(getEditPageUrl(&core.Page{PageId: rand.Int63()}) + "?alias=" + pageAlias)
+			return pages.RedirectWith(core.GetEditPageUrl(&core.Page{PageId: rand.Int63()}) + "?alias=" + pageAlias)
 		}
 		mux.Vars(r)["alias"] = pageAlias
 	}
@@ -67,20 +67,20 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Potentially get edit the person wants to load.
-	var options loadEditOptions
+	var options core.LoadEditOptions
 	q := r.URL.Query()
 	loadEdit, err := strconv.ParseInt(q.Get("edit"), 10, 64)
 	if err == nil {
-		options.loadSpecificEdit = int(loadEdit)
+		options.LoadSpecificEdit = int(loadEdit)
 	} else if q.Get("edit") != "live" {
-		options.loadNonliveEdit = true
+		options.LoadNonliveEdit = true
 	}
 
 	var data editPageTmplData
 	data.User = u
 
 	// Load the actual page.
-	data.Page, err = loadFullEdit(db, pageId, data.User.Id, &options)
+	data.Page, err = core.LoadFullEdit(db, pageId, data.User.Id, &options)
 	if err != nil {
 		return pages.Fail("Couldn't load existing page: %v", err)
 	} else if data.Page == nil {
@@ -98,7 +98,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	data.PageMap = make(map[int64]*core.Page)
 	primaryPageMap := make(map[int64]*core.Page)
 	primaryPageMap[data.Page.PageId] = data.Page
-	err = loadLinks(db, data.PageMap, &loadLinksOptions{FromPageMap: primaryPageMap})
+	err = core.LoadLinks(db, data.PageMap, &core.LoadLinksOptions{FromPageMap: primaryPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load links", err)
 	}
@@ -118,7 +118,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	data.PageMap[data.Page.PageId] = data.Page
 
 	// Load all the groups.
-	err = loadGroupNames(db, u, data.GroupMap)
+	err = core.LoadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return pages.Fail("Couldn't load group names: %v", err)
 	}

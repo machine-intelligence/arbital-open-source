@@ -50,7 +50,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	if data.Page.Type == core.LensPageType {
 		// Redirect lens pages to the parent page.
 		parentId, _ := strconv.ParseInt(data.Page.ParentsStr, core.PageIdEncodeBase, 64)
-		pageUrl := getPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parentId)})
+		pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parentId)})
 		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
 	} else if data.Page.Type == core.CommentPageType {
 		// Redirect comment pages to the primary page.
@@ -60,7 +60,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		for _, p := range data.Page.Parents {
 			parent := data.PageMap[p.ParentId]
 			if parent.Type != core.CommentPageType {
-				pageUrl := getPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parent.PageId)})
+				pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parent.PageId)})
 				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
 			}
 		}
@@ -98,7 +98,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load the main page
-	data.Page, err = loadFullEdit(db, pageId, data.User.Id, &loadEditOptions{ignoreParents: true})
+	data.Page, err = core.LoadFullEdit(db, pageId, data.User.Id, &core.LoadEditOptions{IgnoreParents: true})
 	if err != nil {
 		return pages.Fail("Couldn't retrieve a page", err)
 	} else if data.Page == nil {
@@ -118,7 +118,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
-	err = loadChildrenIds(db, data.PageMap, loadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
+	err = core.LoadChildrenIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
 	if err != nil {
 		return pages.Fail("Couldn't load children", err)
 	}
@@ -136,7 +136,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load comment ids.
-	err = loadSubpageIds(db, data.PageMap, embeddedPageMap)
+	err = core.LoadSubpageIds(db, data.PageMap, embeddedPageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load subpages", err)
 	}
@@ -149,7 +149,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load parents
-	err = loadParentsIds(db, data.PageMap, loadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
+	err = core.LoadParentsIds(db, data.PageMap, core.LoadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
 	if err != nil {
 		return pages.Fail("Couldn't load parents", err)
 	}
@@ -162,7 +162,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		ON l.parentId=p.pageId
 		WHERE (l.childAlias=%d || l.childAlias="%s") AND p.isCurrentEdit
 		GROUP BY p.pageId`, pageId, data.Page.Alias)
-	data.Page.LinkedFrom, err = loadPageIds(c, query, mainPageMap)
+	data.Page.LinkedFrom, err = core.LoadPageIds(c, query, mainPageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load contexts", err)
 	}*/
@@ -179,20 +179,20 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 			WHERE parentId IN`).AddArgsGroup(parentIds).Add(` AND childId != ?`, data.Page.PageId).Add(`
 			GROUP BY childId
 			HAVING SUM(1)>=?`, len(data.Page.Parents)).ToStatement(db).Query()
-		data.RelatedIds, err = loadPageIds(rows, data.PageMap)
+		data.RelatedIds, err = core.LoadPageIds(rows, data.PageMap)
 		if err != nil {
 			return pages.Fail("Couldn't load related ids", err)
 		}
 	}
 
 	// Load the domains for the primary page
-	err = loadDomains(db, u, data.Page, data.PageMap, data.GroupMap)
+	err = core.LoadDomains(db, u, data.Page, data.PageMap, data.GroupMap)
 	if err != nil {
 		return pages.Fail("Couldn't load domains", err)
 	}
 
 	// Load links
-	err = loadLinks(db, data.PageMap, &loadLinksOptions{FromPageMap: embeddedPageMap})
+	err = core.LoadLinks(db, data.PageMap, &core.LoadLinksOptions{FromPageMap: embeddedPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load links", err)
 	}
@@ -216,26 +216,26 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 
 	// Load auxillary data.
 	q := params.R.URL.Query()
-	options := loadAuxPageDataOptions{ForcedLastVisit: q.Get("lastVisit")}
-	err = loadAuxPageData(db, data.User.Id, data.PageMap, &options)
+	options := core.LoadAuxPageDataOptions{ForcedLastVisit: q.Get("lastVisit")}
+	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, &options)
 	if err != nil {
 		return pages.Fail("error while loading aux data", err)
 	}
 
 	// Load all the votes
-	err = loadVotes(db, data.User.Id, mainPageMap, data.UserMap)
+	err = core.LoadVotes(db, data.User.Id, mainPageMap, data.UserMap)
 	if err != nil {
 		return pages.Fail("error while fetching votes", err)
 	}
 
 	// Load child draft
-	err = loadChildDraft(db, u.Id, data.Page, data.PageMap)
+	err = core.LoadChildDraft(db, u.Id, data.Page, data.PageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load child draft", err)
 	}
 
 	// Load all the groups.
-	err = loadGroupNames(db, u, data.GroupMap)
+	err = core.LoadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return pages.Fail("Couldn't load group names", err)
 	}

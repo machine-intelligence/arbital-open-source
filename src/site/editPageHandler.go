@@ -4,9 +4,9 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
-	"regexp"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -83,13 +83,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Load user groups
-	if err := loadUserGroups(db, u); err != nil {
+	if err := core.LoadUserGroups(db, u); err != nil {
 		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
 	}
 
 	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err := loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{})
+	oldPage, err := core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -171,7 +171,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
 			return pages.HandlerBadRequestFail("Invalid vote type value.", nil)
 		}
-		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
+		if data.KarmaLock < 0 || data.KarmaLock > core.GetMaxKarmaLock(u.Karma) {
 			return pages.HandlerBadRequestFail("Karma value out of bounds", nil)
 		}
 		if data.AnchorContext == "" && data.AnchorText != "" {
@@ -191,7 +191,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	// Make sure the user has the right permissions to edit this page
 	if oldPage.WasPublished {
-		editLevel := getEditLevel(oldPage, u)
+		editLevel := core.GetEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
 			if editLevel == core.CommentPageType {
 				return pages.HandlerBadRequestFail("Can't edit a comment page you didn't create.", nil)
@@ -334,7 +334,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Prefix alias with the group alias, if appropriate
 		if data.GroupId > 0 {
 			groupMap := map[int64]*core.Group{data.GroupId: &core.Group{Id: data.GroupId}}
-			err = loadGroupNames(db, u, groupMap)
+			err = core.LoadGroupNames(db, u, groupMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the group", err)
 			}

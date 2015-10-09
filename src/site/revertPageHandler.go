@@ -38,7 +38,7 @@ func revertPageHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load the page
 	var page *core.Page
-	page, err = loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{loadSpecificEdit: data.EditNum})
+	page, err = core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	} else if page == nil {

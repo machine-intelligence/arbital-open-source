@@ -68,7 +68,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE p.isCurrentEdit AND pd.domainId=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
-	data.RecentlyCreatedIds, err = loadPageIds(rows, data.PageMap)
+	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -91,7 +91,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		GROUP BY l2.pageId
 		ORDER BY SUM(value) DESC
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
-	data.MostLikedIds, err = loadPageIds(rows, data.PageMap)
+	data.MostLikedIds, err = core.LoadPageIds(rows, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading most liked page ids", err)
 	}
@@ -111,7 +111,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE pd.domainId=?
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
-	data.RecentlyEditedIds, err = loadPageIds(rows, data.PageMap)
+	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
@@ -135,7 +135,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		GROUP BY pd.pageId
 		ORDER BY VAR_POP(v2.value) DESC
 		LIMIT ?`).Query(data.Domain.Id, indexPanelLimit)
-	data.MostControversialIds, err = loadPageIds(rows, data.PageMap)
+	data.MostControversialIds, err = core.LoadPageIds(rows, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading most controversial page ids", err)
 	}
@@ -147,14 +147,14 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(db, u.Id, data.PageMap, nil)
+	err = core.LoadAuxPageData(db, u.Id, data.PageMap, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load aux data", err)
 	}
 
 	// Load all the groups.
 	data.GroupMap = make(map[int64]*core.Group)
-	err = loadGroupNames(db, u, data.GroupMap)
+	err = core.LoadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return pages.Fail("Couldn't load group names", err)
 	}

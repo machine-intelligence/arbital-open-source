@@ -32,7 +32,7 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load the page
 	var page *core.Page
-	page, err = loadFullEdit(db, data.PageId, u.Id, nil)
+	page, err = core.LoadFullEdit(db, data.PageId, u.Id, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}

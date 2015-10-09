@@ -28,14 +28,14 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load user groups
-	err := loadUserGroups(db, u)
+	err := core.LoadUserGroups(db, u)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
 	// Compute list of group ids we can access
 	groupMap := make(map[int64]*core.Group)
-	err = loadGroupNames(db, u, groupMap)
+	err = core.LoadGroupNames(db, u, groupMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load groupMap", err)
 	}
@@ -105,7 +105,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(db, u.Id, pageMap, nil)
+	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading aux data", err)
 	}

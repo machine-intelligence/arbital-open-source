@@ -76,3 +76,14 @@ func LoadUsers(db *database.DB, userMap map[int64]*User) error {
 	})
 	return err
 }
+
+// LoadUpdateCount returns the number of unseen updates the given user has.
+func LoadUpdateCount(db *database.DB, userId int64) (int, error) {
+	var updateCount int
+	row := db.NewStatement(`
+		SELECT COALESCE(SUM(newCount), 0)
+		FROM updates
+		WHERE userId=?`).QueryRow(userId)
+	_, err := row.Scan(&updateCount)
+	return updateCount, err
+}

@@ -88,7 +88,7 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the children
-	err := loadChildrenIds(db, data.PageMap, loadChildrenIdsOptions{LoadHasChildren: true})
+	err := core.LoadChildrenIds(db, data.PageMap, core.LoadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		return pages.Fail("error while loading children", err)
 	}
@@ -107,13 +107,13 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
+	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load aux data", err)
 	}
 
 	// Load number of red links.
-	err = loadRedLinkCount(db, data.PageMap)
+	err = core.LoadRedLinkCount(db, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading red link count", err)
 	}
