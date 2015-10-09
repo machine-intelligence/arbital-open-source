@@ -130,6 +130,9 @@ a {text-decoration: none; }
 											{{else if eq .Type "commentEdit"}}
 											<a href="{{GetUserUrl .UserId}}" style="text-decoration: none;">{{GetUserName .UserId}}</a> edited a
 											<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>.
+											{{else if eq .Type "atMention"}}
+											<a href="{{GetUserUrl .UserId}}" style="text-decoration: none;">{{GetUserName .UserId}}</a> mentioned you in a
+											<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>.
 											{{end}}
 										</div>
 										{{end}}

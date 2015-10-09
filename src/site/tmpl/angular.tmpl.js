@@ -643,7 +643,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 						$popover.find(".popover-title").html(getTitleHtml(page.pageId));
 						$compile($popover)($scope);
 						$timeout(function() {
-							arbMarkdown.init(false, page.pageId, page.summary, $popover.find(".intrasite-popover-body"), pageService);
+							arbMarkdown.init(false, page.pageId, page.summary, $popover.find(".intrasite-popover-body"), pageService, userService);
 						});
 					});
 					return contentHtml;

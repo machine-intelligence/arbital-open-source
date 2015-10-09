@@ -40,6 +40,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.PopulateElasticTask{}
 	} else if leasedTask.Tag == "newUpdate" {
 		task = &tasks.NewUpdateTask{}
+	} else if leasedTask.Tag == "atMentionUpdate" {
+		task = &tasks.AtMentionUpdateTask{}
 	} else if leasedTask.Tag == "emailUpdates" {
 		task = &tasks.EmailUpdatesTask{}
 	} else if leasedTask.Tag == "propagateDomain" {

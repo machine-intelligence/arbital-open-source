@@ -63,6 +63,8 @@
 						New child page: <arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
 					{{else if eq .Type "commentEdit"}}
 						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name> edited a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}" page-id="{{.GoToPageId}}" class="intrasite-link">comment</a>.
+					{{else if eq .Type "atMention"}}
+						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name> mentioned you in a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}" page-id="{{.GoToPageId}}" class="intrasite-link">comment</a>.
 					{{end}}
 					</div>
 				{{end}}

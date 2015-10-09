@@ -18,10 +18,13 @@ var complexLinkRegexp = new RegExp(noBacktickOrBracket +
 var urlLinkRegexp = new RegExp(noBacktickOrBracket + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
 		"\\((http://" + RegExp.escape(window.location.host) + "/pages/)([A-Za-z0-9_-]+?)\\)", "g"); // match (Url)
+// [@alias]
+var atAliasRegexp = new RegExp(noBacktickOrBracket + 
+		"\\[@" + aliasMatch + "\\]" + noParen, "g");
 
 var arbMarkdown = arbMarkdown || function() {
 	// Set up markdown editor and conversion.
-	function init(inEditMode, pageId, pageText, $topParent, pageService, autocompleteService) {
+	function init(inEditMode, pageId, pageText, $topParent, pageService, userService, autocompleteService) {
 		var page = pageService.pageMap[pageId];
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
@@ -94,6 +97,14 @@ var arbMarkdown = arbMarkdown || function() {
 			});
 		});
 
+		// Convert [@alias] spans into links.
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
+				var url = "http://" + host + "/user/" + alias + "/";
+				return prefix + "[" + alias + "](" + url + ")";
+			});
+		});
+	
 		if (inEditMode) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId, {

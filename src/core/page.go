@@ -29,6 +29,7 @@ const (
 	CommentEditUpdateType     = "commentEdit"
 	NewPageByUserUpdateType   = "newPageByUser"
 	NewChildPageUpdateType    = "newChildPage"
+	AtMentionUpdateType       = "atMention"
 
 	// Options for sorting page's children.
 	ChronologicalChildSortingOption = "chronological"
