@@ -28,7 +28,7 @@
 				</li>
 			{{else}}
 				<li><a href="/signup/?continueUrl={{.CurrentUrl}}">Sign Up</a></li>
-				<li><a href="{{.LoginLink}}">Log In</a></li>
+				<li><a href="{{.LoginLink}}?continueUrl={{.CurrentUrl}}">Log In</a></li>
 			{{end}}
 		</ul>
 	</div>

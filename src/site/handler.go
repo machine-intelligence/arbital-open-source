@@ -168,7 +168,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			// Check user state
 			if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
 				// User has created an account but hasn't gone through signup page
-				http.Redirect(w, r, "/signup/", http.StatusSeeOther)
+				http.Redirect(w, r, fmt.Sprintf("/signup/?continueUrl=%s", r.URL), http.StatusSeeOther)
 				return
 			}
 			if p.Options.RequireLogin && !u.IsLoggedIn {

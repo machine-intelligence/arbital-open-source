@@ -16,6 +16,6 @@ CREATE TABLE groups (
 	alias VARCHAR(32) NOT NULL,
 	/* Is visible to outsiders. */
 	isVisible BOOLEAN NOT NULL,
-	UNIQUE(name),
+	UNIQUE(alias),
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

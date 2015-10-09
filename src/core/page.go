@@ -156,14 +156,6 @@ type Page struct {
 	LensIds    []string    `json:"lensIds"`
 }
 
-// PageMetaData contains all the meta date the user types in the meta-text field.
-type PageMetaData struct {
-	Mastery struct {
-		Alias  string
-		Levels map[float32]map[string]int
-	}
-}
-
 // PagePair describes a parent child relationship, which are stored in pagePairs db table.
 type PagePair struct {
 	Id       int64 `json:"id,string"`

@@ -14,8 +14,6 @@ import (
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
-
-	"gopkg.in/yaml.v2"
 )
 
 // editPageData contains parameters passed in to create a page.
@@ -266,8 +264,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Process meta text
-		var metaData core.PageMetaData
-		err = yaml.Unmarshal([]byte(data.MetaText), &metaData)
+		_, err := core.ParseMetaText(data.MetaText)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't unmarshal meta-text", err)
 		}
