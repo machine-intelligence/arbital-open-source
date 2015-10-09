@@ -52,8 +52,6 @@ CREATE TABLE pages (
 	/* Comma separated string of parent ids in base 36. We store them so that we
 	 can easily revert parents when reverting to an edit. */
 	parents VARCHAR(1024) NOT NULL,
-	/* If not 0, this edit has been deleted by this user id. */
-	deletedBy BIGINT NOT NULL,
 	/* Number of TODOs in this page. */
 	todoCount INT NOT NULL,
 

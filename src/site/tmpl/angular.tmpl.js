@@ -171,6 +171,9 @@ app.service("pageService", function(userService, $http){
 			}
 			return "";
 		},
+		isDeleted: function() {
+			return this.type === "deleted";
+		},
 		// Get page's url
 		url: function(forcePageId) {
 			if (forcePageId) {
@@ -631,10 +634,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			content: function() {
 				var $link = $target;
 				var setPopoverContent = function(page) {
-					if (page.deletedBy !== "0") {
-						return "[DELETED]";
-					}
-
 					$timeout(function() {
 						var $popover = $("#" + $link.attr("aria-describedby"));
 						$popover.find(".popover-title").html(getTitleHtml(page.pageId));

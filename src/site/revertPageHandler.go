@@ -5,9 +5,10 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -44,29 +45,34 @@ func revertPageHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't find page", nil)
 	}
 
-	// TODO: check that this user can perform this kind of revertion
-
-	// Check that we have the lock
-	if page.LockedUntil > database.Now() && page.LockedBy != u.Id {
-		return pages.HandlerErrorFail("Don't have the lock", err)
+	// Create the data to pass to the edit page handler
+	hasVoteStr := ""
+	if page.HasVote {
+		hasVoteStr = "on"
 	}
-
-	// Delete the edit
-	statement := db.NewStatement(`
-		UPDATE pages
-		SET isCurrentEdit=(edit=?)
-		WHERE pageId=?`)
-	if _, err = statement.Exec(data.EditNum, data.PageId); err != nil {
-		return pages.HandlerErrorFail("Couldn't update pages", err)
+	parentIds := make([]string, len(page.Parents))
+	for n, pair := range page.Parents {
+		parentIds[n] = fmt.Sprintf("%d", pair.ParentId)
 	}
-
-	// Update pageInfos
-	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = data.PageId
-	hashmap["currentEdit"] = data.EditNum
-	statement = db.NewInsertStatement("pageInfos", hashmap, "currentEdit")
-	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't change lock", err)
+	editData := &editPageData{
+		PageId:         page.PageId,
+		PrevEdit:       page.PrevEdit,
+		Type:           page.Type,
+		Title:          page.Title,
+		Clickbait:      page.Clickbait,
+		Text:           page.Text,
+		MetaText:       page.MetaText,
+		HasVoteStr:     hasVoteStr,
+		VoteType:       page.VoteType,
+		GroupId:        page.GroupId,
+		KarmaLock:      page.KarmaLock,
+		ParentIds:      strings.Join(parentIds, ","),
+		Alias:          page.Alias,
+		SortChildrenBy: page.SortChildrenBy,
+		AnchorContext:  page.AnchorContext,
+		AnchorText:     page.AnchorText,
+		AnchorOffset:   page.AnchorOffset,
+		RevertToEdit:   data.EditNum,
 	}
-	return pages.StatusOK(nil)
+	return editPageInternalHandler(params, editData)
 }

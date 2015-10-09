@@ -21,6 +21,7 @@ const (
 	QuestionPageType = "question"
 	AnswerPageType   = "answer"
 	LensPageType     = "lens"
+	DeletedPageType  = "deleted"
 
 	// Various types of updates a user can get.
 	TopLevelCommentUpdateType = "topLevelComment"
@@ -87,7 +88,6 @@ type Page struct {
 	KarmaLock      int    `json:"karmaLock"`
 	GroupId        int64  `json:"groupId,string"`
 	ParentsStr     string `json:"parentsStr"`
-	DeletedBy      int64  `json:"deletedBy,string"`
 	IsAutosave     bool   `json:"isAutosave"`
 	IsSnapshot     bool   `json:"isSnapshot"`
 	IsCurrentEdit  bool   `json:"isCurrentEdit"`
@@ -246,11 +246,11 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 	statement := database.NewQuery(`
 		SELECT * FROM (
 			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
-				length(text),metaText,karmaLock,deletedBy,hasVote,voteType,` + summarySelect + `,
+				length(text),metaText,karmaLock,hasVote,voteType,` + summarySelect + `,
 				alias,sortChildrenBy,groupId,parents,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
 				todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
-			WHERE`).AddPart(publishedConstraint).Add(`AND deletedBy=0 AND pageId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE`).AddPart(publishedConstraint).Add(`AND pageId IN`).AddArgsGroup(pageIds).Add(`
 			AND (groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
 			ORDER BY edit DESC
 		) AS p
@@ -260,48 +260,46 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
-			&p.Text, &p.TextLength, &p.MetaText, &p.KarmaLock, &p.DeletedBy, &p.HasVote,
+			&p.Text, &p.TextLength, &p.MetaText, &p.KarmaLock, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("failed to scan a page: %v", err)
 		}
-		if p.DeletedBy <= 0 {
-			// We are reduced to this mokery of copying every variable because the page
-			// in the pageMap might already have some variables populated.
-			// TODO: definitely fix this somehow. Probably by refactoring how we load pages
-			op := pageMap[p.PageId]
-			op.Edit = p.Edit
-			op.PrevEdit = p.PrevEdit
-			op.Type = p.Type
-			op.CreatorId = p.CreatorId
-			op.CreatedAt = p.CreatedAt
-			op.Title = p.Title
-			op.Clickbait = p.Clickbait
-			op.Text = p.Text
-			op.MetaText = p.MetaText
-			op.TextLength = p.TextLength
-			op.KarmaLock = p.KarmaLock
-			op.DeletedBy = p.DeletedBy
-			op.HasVote = p.HasVote
-			op.VoteType = p.VoteType
-			op.Summary = p.Summary
-			op.Alias = p.Alias
-			op.SortChildrenBy = p.SortChildrenBy
-			op.GroupId = p.GroupId
-			op.ParentsStr = p.ParentsStr
-			op.IsAutosave = p.IsAutosave
-			op.IsSnapshot = p.IsSnapshot
-			op.IsCurrentEdit = p.IsCurrentEdit
-			op.IsMinorEdit = p.IsMinorEdit
-			op.TodoCount = p.TodoCount
-			op.AnchorContext = p.AnchorContext
-			op.AnchorText = p.AnchorText
-			op.AnchorOffset = p.AnchorOffset
-			if err := op.ProcessParents(db.C, nil); err != nil {
-				return fmt.Errorf("Couldn't process parents: %v", err)
-			}
+
+		// We are reduced to this mokery of copying every variable because the page
+		// in the pageMap might already have some variables populated.
+		// TODO: definitely fix this somehow. Probably by refactoring how we load pages
+		op := pageMap[p.PageId]
+		op.Edit = p.Edit
+		op.PrevEdit = p.PrevEdit
+		op.Type = p.Type
+		op.CreatorId = p.CreatorId
+		op.CreatedAt = p.CreatedAt
+		op.Title = p.Title
+		op.Clickbait = p.Clickbait
+		op.Text = p.Text
+		op.MetaText = p.MetaText
+		op.TextLength = p.TextLength
+		op.KarmaLock = p.KarmaLock
+		op.HasVote = p.HasVote
+		op.VoteType = p.VoteType
+		op.Summary = p.Summary
+		op.Alias = p.Alias
+		op.SortChildrenBy = p.SortChildrenBy
+		op.GroupId = p.GroupId
+		op.ParentsStr = p.ParentsStr
+		op.IsAutosave = p.IsAutosave
+		op.IsSnapshot = p.IsSnapshot
+		op.IsCurrentEdit = p.IsCurrentEdit
+		op.IsMinorEdit = p.IsMinorEdit
+		op.TodoCount = p.TodoCount
+		op.AnchorContext = p.AnchorContext
+		op.AnchorText = p.AnchorText
+		op.AnchorOffset = p.AnchorOffset
+		if err := op.ProcessParents(db.C, nil); err != nil {
+			return fmt.Errorf("Couldn't process parents: %v", err)
 		}
 		return nil
 	})
@@ -317,7 +315,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 func LoadEditHistory(db *database.DB, page *Page, userId int64) error {
 	editHistoryMap := make(map[int]*Page)
 	rows := db.NewStatement(`
-		SELECT pageId,edit,prevEdit,creatorId,createdAt,deletedBy,isAutosave,
+		SELECT pageId,edit,prevEdit,creatorId,createdAt,isAutosave,
 			isSnapshot,isCurrentEdit,isMinorEdit,title,clickbait,length(text)
 		FROM pages
 		WHERE pageId=? AND (creatorId=? OR NOT isAutosave)
@@ -325,7 +323,7 @@ func LoadEditHistory(db *database.DB, page *Page, userId int64) error {
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p Page
 		err := rows.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt,
-			&p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.Title, &p.Clickbait, &p.TextLength)
 		if err != nil {
 			return fmt.Errorf("failed to scan a edit history page: %v", err)
@@ -344,10 +342,8 @@ func LoadEditHistory(db *database.DB, page *Page, userId int64) error {
 	page.EditHistoryMap = make(map[string]*Page)
 	for editNum, edit := range editHistoryMap {
 		if edit.CreatorId == userId || (!edit.IsSnapshot && !edit.IsAutosave) {
-			if edit.DeletedBy <= 0 {
-				// Only add non-deleted, public edits or our snapshots to the map
-				page.EditHistoryMap[fmt.Sprintf("%d", editNum)] = edit
-			}
+			// Only add public edits or our snapshots to the map
+			page.EditHistoryMap[fmt.Sprintf("%d", editNum)] = edit
 		}
 	}
 	// Second, fix the ancestry.

@@ -44,7 +44,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 			p.edit=(
 				SELECT MAX(edit)
 				FROM pages
-				WHERE pageId=? AND deletedBy<=0 AND (creatorId=? OR NOT (isSnapshot OR isAutosave))
+				WHERE pageId=? AND (creatorId=? OR NOT (isSnapshot OR isAutosave))
 			)`, pageId, userId)
 	} else if options.loadEditWithLimit > 0 {
 		whereClause = database.NewQuery(`
@@ -64,7 +64,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.metaText,
 			p.summary,p.alias,p.creatorId,p.sortChildrenBy,p.hasVote,p.voteType,
-			p.createdAt,p.karmaLock,p.groupId,p.parents,p.deletedBy,
+			p.createdAt,p.karmaLock,p.groupId,p.parents,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
 			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
@@ -81,7 +81,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.GroupId,
-		&p.ParentsStr, &p.DeletedBy, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+		&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
@@ -90,9 +90,7 @@ func loadFullEdit(db *database.DB, pageId, userId int64, options *loadEditOption
 	}
 
 	p.TextLength = len(p.Text)
-	if p.DeletedBy > 0 {
-		return &core.Page{PageId: p.PageId, DeletedBy: p.DeletedBy}, nil
-	} else if !options.ignoreParents {
+	if !options.ignoreParents {
 		if err := p.ProcessParents(db.C, nil); err != nil {
 			return nil, fmt.Errorf("Couldn't process parents: %v", err)
 		}
@@ -133,7 +131,7 @@ func loadChildDraft(db *database.DB, userId int64, p *core.Page, pageMap map[int
 			FROM (
 				SELECT pageId,creatorId
 				FROM pages
-				WHERE type="question" AND deletedBy<=0 AND parents REGEXP ?
+				WHERE type="question" AND parents REGEXP ?
 				GROUP BY pageId
 				HAVING SUM(isCurrentEdit)<=0
 			) AS p
@@ -150,7 +148,7 @@ func loadChildDraft(db *database.DB, userId int64, p *core.Page, pageMap map[int
 			FROM (
 				SELECT pageId,creatorId
 				FROM pages
-				WHERE type="answer" AND deletedBy<=0 AND parents REGEXP ?
+				WHERE type="answer" AND parents REGEXP ?
 				GROUP BY pageId
 				HAVING SUM(isCurrentEdit)<=0
 			) AS p
@@ -262,7 +260,7 @@ func loadRedLinkCount(db *database.DB, pageMap map[int64]*core.Page) error {
 		SELECT l.parentId,SUM(ISNULL(p.pageId))
 		FROM pages AS p
 		RIGHT JOIN links AS l
-		ON (p.pageId=l.childAlias OR p.alias=l.childAlias AND (p.isCurrentEdit AND p.deletedBy<=0))
+		ON ((p.pageId=l.childAlias OR p.alias=l.childAlias) AND p.isCurrentEdit AND p.type!="")
 		WHERE l.parentId IN`).AddArgsGroup(pageIdsList).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -337,7 +335,7 @@ func loadLinks(db *database.DB, pageMap map[int64]*core.Page, options *loadLinks
 		rows = database.NewQuery(`
 			SELECT pageId
 			FROM pages
-			WHERE isCurrentEdit AND deletedBy=0 AND alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
+			WHERE isCurrentEdit AND alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			err := rows.Scan(&pageId)
@@ -558,7 +556,7 @@ func loadDraftExistence(db *database.DB, userId int64, pageMap map[int64]*core.P
 	pageIds := core.PageIdsListFromMap(pageMap)
 	rows := database.NewQuery(`
 		SELECT pageId,MAX(
-				IF(isAutosave AND creatorId=? AND deletedBy=0, edit, -1)
+				IF(isAutosave AND creatorId=?, edit, -1)
 			) as myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
 		FROM pages`, userId).Add(`
 		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`

@@ -3,24 +3,21 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
-	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
 )
 
 // deletePageData is the data received from the request.
 type deletePageData struct {
-	PageId     int64 `json:",string"`
-	UndoDelete bool
+	PageId int64 `json:",string"`
 }
 
 // deletePageHandler handles requests for deleting a page.
 func deletePageHandler(params *pages.HandlerParams) *pages.Result {
-	c := params.C
-	db := params.DB
 	u := params.U
+	db := params.DB
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data deletePageData
@@ -39,28 +36,32 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}
-	// Check that we have the lock.
-	if page.LockedUntil > database.Now() && page.LockedBy != u.Id {
-		return pages.HandlerForbiddenFail("Don't have the lock", nil)
+	if page == nil || !page.WasPublished || page.Type == core.DeletedPageType {
+		// Looks like there is no need to delete this page.
+		return pages.StatusOK(nil)
 	}
 
-	// Perform delete.
-	deletedBy := u.Id
-	if data.UndoDelete {
-		deletedBy = 0
+	// Create the data to pass to the edit page handler
+	hasVoteStr := ""
+	if page.HasVote {
+		hasVoteStr = "on"
 	}
-	statement := db.NewStatement(`
-		UPDATE pages
-		SET deletedBy=?
-		WHERE pageId=?`)
-	if _, err = statement.Exec(deletedBy, data.PageId); err != nil {
-		return pages.HandlerErrorFail("Couldn't delete a page", err)
+	parentIds := make([]string, len(page.Children))
+	for n, pair := range page.Children {
+		parentIds[n] = fmt.Sprintf("%d", pair.ChildId)
 	}
-
-	// Delete it from the elastic index
-	err = elastic.DeletePageFromIndex(c, data.PageId)
-	if err != nil {
-		return pages.HandlerErrorFail("failed to update index", err)
+	editData := &editPageData{
+		PageId:         page.PageId,
+		PrevEdit:       page.Edit,
+		Type:           core.DeletedPageType,
+		Title:          "[DELETED]",
+		HasVoteStr:     hasVoteStr,
+		VoteType:       page.VoteType,
+		GroupId:        page.GroupId,
+		KarmaLock:      page.KarmaLock,
+		Alias:          fmt.Sprintf("%d", page.PageId),
+		SortChildrenBy: page.SortChildrenBy,
+		DeleteEdit:     true,
 	}
-	return pages.StatusOK(nil)
+	return editPageInternalHandler(params, editData)
 }

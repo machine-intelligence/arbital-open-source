@@ -88,7 +88,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		row := db.NewStatement(`
 			SELECT pageId
 			FROM pages
-			WHERE alias=? AND isCurrentEdit AND deletedBy<=0`).QueryRow(pageAlias)
+			WHERE alias=? AND isCurrentEdit`).QueryRow(pageAlias)
 		exists, err := row.Scan(&pageId)
 		if err != nil {
 			return pages.Fail("Couldn't convert alias=>pageId", err)
@@ -134,7 +134,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 			}
 		}
 	}
-
 
 	// Load comment ids.
 	err = loadSubpageIds(db, data.PageMap, embeddedPageMap)

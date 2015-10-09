@@ -23,22 +23,6 @@ $(function() {
 	$("#logout").click(function() {
 		$.removeCookie("zanaduu", {path: "/"});
 	});
-
-	$(".undo-page-delete").on("click", function(event) {
-		var data = {
-			pageId: $("body").attr("page-id"),
-			undoDelete: true,
-		};
-		$.ajax({
-			type: 'POST',
-			url: '/deletePage/',
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
-			smartPageReload();
-		});
-		return false;
-	});
 });
 
 // Setup things correctly.

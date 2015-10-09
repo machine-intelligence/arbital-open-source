@@ -31,21 +31,9 @@
 <!-- This modal is for creating new pages quickly. -->
 <arb-edit-page-modal parent-page-id="{{.Page.PageId}}"></arb-edit-page-modal>
 
-{{with .Page}}
-	{{if gt .DeletedBy 0}}
-		<div class="new-page-body-div">
-			<p class="text-center alert alert-danger">This page has been deleted.
-				{{if IsAdmin}}
-					<span class="admin">By id: {{.DeletedBy}}. <a href="#" class="undo-page-delete">Undo.</a></span>
-				{{end}}
-			</p>
-		</div>
-	{{else}}
-		<div class="new-page-body-div" ng-controller="MainCtrl">
-			<arb-edit-page page-id="{[{page.pageId}]}" done-fn="doneFn(result)"></arb-edit-page>
-		</div>
-	{{end}}
-{{end}}
+<div class="new-page-body-div" ng-controller="MainCtrl">
+	<arb-edit-page page-id="{[{page.pageId}]}" done-fn="doneFn(result)"></arb-edit-page>
+</div>
 
 {{template "footer"}}
 </body>

@@ -48,7 +48,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		row := db.NewStatement(`
 			SELECT pageId
 			FROM pages
-			WHERE isCurrentEdit AND deletedBy<=0 AND alias=?`).QueryRow(pageAlias)
+			WHERE isCurrentEdit AND alias=?`).QueryRow(pageAlias)
 		exists, err := row.Scan(&pageAlias)
 		if err != nil {
 			return pages.Fail("Couldn't convert pageId=>alias", err)

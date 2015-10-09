@@ -50,7 +50,7 @@ func updatesRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("error while loading aux data", err)
 	}
 
-	// Now that we have load last visit time for all pages,
+	// Now that we have loaded last visit time for all pages,
 	// go through all the update rows and group them.
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, data.PageMap)
 

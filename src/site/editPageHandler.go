@@ -37,15 +37,15 @@ type editPageData struct {
 	AnchorContext  string
 	AnchorText     string
 	AnchorOffset   int
+
+	// These parameters are only accepted from internal BE calls
+	RevertToEdit int  `json:"-"`
+	DeleteEdit   bool `json:"-"`
 }
 
 // editPageHandler handles requests to create a new page.
 func editPageHandler(params *pages.HandlerParams) *pages.Result {
-	c := params.C
-	db := params.DB
-	u := params.U
-
-	if !u.IsLoggedIn {
+	if !params.U.IsLoggedIn {
 		return pages.HandlerForbiddenFail("Need to be logged in", nil)
 	}
 
@@ -56,6 +56,14 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
+	return editPageInternalHandler(params, &data)
+}
+
+func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *pages.Result {
+	c := params.C
+	db := params.DB
+	u := params.U
+
 	if data.PageId <= 0 {
 		return pages.HandlerBadRequestFail("No pageId specified", nil)
 	}
@@ -74,13 +82,13 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load user groups
-	if err = loadUserGroups(db, u); err != nil {
+	if err := loadUserGroups(db, u); err != nil {
 		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
 	}
 
 	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err = loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{})
+	oldPage, err := loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -110,13 +118,18 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		overwritingEdit = true
 		newEditNum = int(oldPage.MyLastAutosaveEdit.Int64)
 	}
+	if data.RevertToEdit > 0 {
+		// ... or unless we are reverting an edit
+		overwritingEdit = true
+		newEditNum = data.RevertToEdit
+	}
 
 	// Error checking.
 	data.Type = strings.ToLower(data.Type)
 	if data.IsAutosave && data.IsSnapshot {
 		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
 	}
-	// Check that we have the lock.
+	// Check the page isn't locked by someone else
 	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
 		return pages.HandlerBadRequestFail("Can't change locked page", nil)
 	}
@@ -141,7 +154,13 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			data.Type != core.QuestionPageType &&
 			data.Type != core.AnswerPageType &&
 			data.Type != core.CommentPageType {
-			return pages.HandlerBadRequestFail("Invalid page type.", nil)
+			if data.Type == core.DeletedPageType {
+				if !data.DeleteEdit {
+					return pages.HandlerBadRequestFail("Can't delete the page like that.", nil)
+				}
+			} else {
+				return pages.HandlerBadRequestFail("Invalid page type.", nil)
+			}
 		}
 		if data.SortChildrenBy != core.LikesChildSortingOption &&
 			data.SortChildrenBy != core.ChronologicalChildSortingOption &&
@@ -169,6 +188,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 	}
+	// Make sure the user has the right permissions to edit this page
 	if oldPage.WasPublished {
 		editLevel := getEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
@@ -279,9 +299,10 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	} else {
 		hasVote = data.VoteType != ""
 	}
-	if oldPage.WasPublished {
+	if oldPage.WasPublished && data.RevertToEdit <= 0 && !data.DeleteEdit {
 		data.Type = oldPage.Type
-	} else if data.Type == core.CommentPageType {
+	}
+	if data.Type == core.CommentPageType {
 		// Set the groupId to primary page's group name
 		row := db.NewStatement(`
 			SELECT max(groupId)
@@ -324,7 +345,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		row := db.NewStatement(`
 					SELECT pageId
 					FROM pages
-					WHERE isCurrentEdit AND pageId!=? AND deletedBy<=0 AND alias=?`).QueryRow(data.PageId, data.Alias)
+					WHERE isCurrentEdit AND pageId!=? AND alias=?`).QueryRow(data.PageId, data.Alias)
 		exists, err := row.Scan(&existingPageId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't read from aliases", err)
@@ -481,20 +502,28 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	// else. So we print out errors, but don't return an error. ===
 
 	if isCurrentEdit {
-		// Update elastic search index.
-		doc := &elastic.Document{
-			PageId:    data.PageId,
-			Type:      data.Type,
-			Title:     data.Title,
-			Clickbait: data.Clickbait,
-			Text:      data.Text,
-			Alias:     data.Alias,
-			GroupId:   data.GroupId,
-			CreatorId: u.Id,
-		}
-		err = elastic.AddPageToIndex(c, doc)
-		if err != nil {
-			c.Errorf("failed to update index: %v", err)
+		if data.DeleteEdit {
+			// Delete it from the elastic index
+			err = elastic.DeletePageFromIndex(c, data.PageId)
+			if err != nil {
+				return pages.HandlerErrorFail("failed to update index", err)
+			}
+		} else {
+			// Update elastic search index.
+			doc := &elastic.Document{
+				PageId:    data.PageId,
+				Type:      data.Type,
+				Title:     data.Title,
+				Clickbait: data.Clickbait,
+				Text:      data.Text,
+				Alias:     data.Alias,
+				GroupId:   data.GroupId,
+				CreatorId: u.Id,
+			}
+			err = elastic.AddPageToIndex(c, doc)
+			if err != nil {
+				c.Errorf("failed to update index: %v", err)
+			}
 		}
 
 		// Generate updates for users who are subscribed to this page.
@@ -590,5 +619,6 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
+	fmt.Fprintf(params.W, "%d", newEditNum)
 	return pages.StatusOK(nil)
 }

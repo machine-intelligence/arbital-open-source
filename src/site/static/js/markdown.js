@@ -126,15 +126,22 @@ var arbMarkdown = arbMarkdown || function() {
 			var $element = $(element);
 			var parts = $element.attr("href").match(re);
 			if (parts === null) return;
+			var pageAlias = parts[1];
+
 			if ($element.hasClass("intrasite-link")) {
 				return;
 			}
-			$element.addClass("intrasite-link").attr("page-id", parts[1]);
+			$element.addClass("intrasite-link").attr("page-id", pageAlias);
 			// Check if we are embedding a vote
 			if (parts[2].indexOf("embedVote") > 0) {
-				$element.attr("embed-vote-id", parts[1]);
-			} else if (parts[1] in pageService.pageMap) {
-				// Normal healthy link!
+				$element.attr("embed-vote-id", pageAlias);
+			} else if (pageAlias in pageService.pageMap) {
+				if (pageService.pageMap[pageAlias].isDeleted()) {
+					// Link to a deleted page.
+					$element.addClass("red-link");
+				} else {
+					// Normal healthy link!
+				}
 			} else {
 				// Mark as red link
 				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
