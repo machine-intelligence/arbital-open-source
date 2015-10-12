@@ -37,9 +37,6 @@ const (
 	ProbabilityVoteType = "probability"
 	ApprovalVoteType    = "approval"
 
-	// Highest karma lock a user can create is equal to their karma * this constant.
-	MaxKarmaLockFraction = 0.8
-
 	// When encoding a page id into a compressed string, we use this base.
 	PageIdEncodeBase = 36
 
@@ -82,8 +79,8 @@ type Page struct {
 	VoteType       string `json:"voteType"`
 	CreatorId      int64  `json:"creatorId,string"`
 	CreatedAt      string `json:"createdAt"`
-	KarmaLock      int    `json:"karmaLock"`
-	GroupId        int64  `json:"groupId,string"`
+	EditKarmaLock  int    `json:"editKarmaLock"`
+	SeeGroupId     int64  `json:"seeGroupId,string"`
 	ParentsStr     string `json:"parentsStr"`
 	IsAutosave     bool   `json:"isAutosave"`
 	IsSnapshot     bool   `json:"isSnapshot"`
@@ -191,12 +188,12 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 	statement := database.NewQuery(`
 		SELECT * FROM (
 			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
-				length(text),metaText,karmaLock,hasVote,voteType,` + summarySelect + `,
-				alias,sortChildrenBy,groupId,parents,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
+				length(text),metaText,editKarmaLock,hasVote,voteType,` + summarySelect + `,
+				alias,sortChildrenBy,seeGroupId,parents,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
 				todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE`).AddPart(publishedConstraint).Add(`AND pageId IN`).AddArgsGroup(pageIds).Add(`
-			AND (groupId=0 OR groupId IN (SELECT id FROM groups WHERE isVisible) OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
+			AND (seeGroupId=0 OR seeGroupId IN (SELECT id FROM groups WHERE isVisible) OR seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
 			ORDER BY edit DESC
 		) AS p
 		GROUP BY pageId`).ToStatement(db)
@@ -205,8 +202,8 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		var p Page
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
-			&p.Text, &p.TextLength, &p.MetaText, &p.KarmaLock, &p.HasVote,
-			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.GroupId,
+			&p.Text, &p.TextLength, &p.MetaText, &p.EditKarmaLock, &p.HasVote,
+			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.SeeGroupId,
 			&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -227,13 +224,13 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		op.Text = p.Text
 		op.MetaText = p.MetaText
 		op.TextLength = p.TextLength
-		op.KarmaLock = p.KarmaLock
+		op.EditKarmaLock = p.EditKarmaLock
 		op.HasVote = p.HasVote
 		op.VoteType = p.VoteType
 		op.Summary = p.Summary
 		op.Alias = p.Alias
 		op.SortChildrenBy = p.SortChildrenBy
-		op.GroupId = p.GroupId
+		op.SeeGroupId = p.SeeGroupId
 		op.ParentsStr = p.ParentsStr
 		op.IsAutosave = p.IsAutosave
 		op.IsSnapshot = p.IsSnapshot
@@ -370,7 +367,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.metaText,
 			p.summary,p.alias,p.creatorId,p.sortChildrenBy,p.hasVote,p.voteType,
-			p.createdAt,p.karmaLock,p.groupId,p.parents,
+			p.createdAt,p.editKarmaLock,p.seeGroupId,p.parents,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
 			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
@@ -382,11 +379,11 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 		) AS i
 		ON (p.pageId=i.pageId)
 		WHERE`).AddPart(whereClause).Add(`AND
-			(p.groupId=0 OR p.groupId IN (SELECT id FROM groups WHERE isVisible) OR p.groupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
+			(p.seeGroupId=0 OR p.seeGroupId IN (SELECT id FROM groups WHERE isVisible) OR p.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
-		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.KarmaLock, &p.GroupId,
+		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
 	if err != nil {

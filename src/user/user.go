@@ -17,18 +17,22 @@ import (
 var (
 	userKey  = "user" // key for session storage
 	fakeUser = User{Id: -1, Email: "fake@fake.com", FirstName: "Dr.", LastName: "Fake"}
+
+	// Highest karma lock a user can create is equal to their karma * this constant.
+	MaxKarmaLockFraction = 0.8
 )
 
 // User holds information about a user of the app.
 // Note: this structure is also stored in a cookie.
 type User struct {
 	// DB variables
-	Id        int64  `json:"id,string"`
-	Email     string `json:"email"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-	IsAdmin   bool   `json:"isAdmin"`
-	Karma     int    `json:"karma"`
+	Id           int64  `json:"id,string"`
+	Email        string `json:"email"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
+	IsAdmin      bool   `json:"isAdmin"`
+	Karma        int    `json:"karma"`
+	MaxKarmaLock int    `json:"maxKarmaLock"`
 
 	// Computed variables
 	IsLoggedIn  bool     `json:"isLoggedIn"`
@@ -42,6 +46,12 @@ type User struct {
 
 func (user *User) FullName() string {
 	return user.FirstName + " " + user.LastName
+}
+
+// GetMaxKarmaLock returns the highest possible karma lock a user with the
+// given amount of karma can create.
+func GetMaxKarmaLock(karma int) int {
+	return int(float64(karma) * MaxKarmaLockFraction)
 }
 
 // IsMemberOfGroup returns true iff the user is member of the given group.
@@ -132,6 +142,7 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 		}
 		u.Email = appEngineUser.Email
 	}
+	u.MaxKarmaLock = GetMaxKarmaLock(u.Karma)
 	u.IsLoggedIn = u.FirstName != ""
 	return &u, err
 }

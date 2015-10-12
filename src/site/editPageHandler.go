@@ -28,8 +28,8 @@ type editPageData struct {
 	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
-	GroupId        int64 `json:",string"`
-	KarmaLock      int
+	SeeGroupId     int64 `json:",string"`
+	EditKarmaLock  int
 	ParentIds      string
 	Alias          string // if empty, leave the current one
 	SortChildrenBy string
@@ -135,8 +135,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.HandlerBadRequestFail("Can't change locked page", nil)
 	}
 	// Check the group settings
-	if oldPage.GroupId > 0 {
-		if !u.IsMemberOfGroup(oldPage.GroupId) {
+	if oldPage.SeeGroupId > 0 {
+		if !u.IsMemberOfGroup(oldPage.SeeGroupId) {
 			return pages.HandlerBadRequestFail("Don't have group permissions to edit this page", nil)
 		}
 	}
@@ -171,7 +171,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
 			return pages.HandlerBadRequestFail("Invalid vote type value.", nil)
 		}
-		if data.KarmaLock < 0 || data.KarmaLock > core.GetMaxKarmaLock(u.Karma) {
+		if data.EditKarmaLock < 0 || data.EditKarmaLock > u.MaxKarmaLock {
 			return pages.HandlerBadRequestFail("Karma value out of bounds", nil)
 		}
 		if data.AnchorContext == "" && data.AnchorText != "" {
@@ -217,7 +217,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				WHERE pageId IN`).AddArgsGroup(parentIdArgs).Add(`
 					AND (isCurrentEdit OR creatorId=?)`, u.Id).Add(`AND
 					`+typeConstraint+` AND
-					(groupId="" OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=?))
+					(seeGroupId="" OR seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))
 				`, u.Id).ToStatement(db).QueryRow()
 			_, err = row.Scan(&count)
 			if err != nil {
@@ -277,8 +277,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// We can only change the group from to a more relaxed group:
 		// personal group -> any group -> no group
-		if oldPage.WasPublished && data.GroupId != oldPage.GroupId {
-			if oldPage.GroupId != u.Id && data.GroupId != 0 {
+		if oldPage.WasPublished && data.SeeGroupId != oldPage.SeeGroupId {
+			if oldPage.SeeGroupId != u.Id && data.SeeGroupId != 0 {
 				return pages.HandlerBadRequestFail("Can't change group to a more restrictive one", nil)
 			}
 		}
@@ -304,13 +304,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		data.Type = oldPage.Type
 	}
 	if data.Type == core.CommentPageType {
-		// Set the groupId to primary page's group name
+		// Set the seeGroupId to primary page's group name
 		row := db.NewStatement(`
-			SELECT max(groupId)
+			SELECT max(seeGroupId)
 			FROM pages
 			WHERE pageId IN ` + database.InArgsPlaceholder(len(parentIdArgs)) + `
 				AND type!="comment" AND isCurrentEdit`).QueryRow(parentIdArgs...)
-		_, err := row.Scan(&data.GroupId)
+		_, err := row.Scan(&data.SeeGroupId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get primary page's group name", err)
 		}
@@ -332,13 +332,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if data.GroupId > 0 {
-			groupMap := map[int64]*core.Group{data.GroupId: &core.Group{Id: data.GroupId}}
+		if data.SeeGroupId > 0 {
+			groupMap := map[int64]*core.Group{data.SeeGroupId: &core.Group{Id: data.SeeGroupId}}
 			err = core.LoadGroupNames(db, u, groupMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the group", err)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", groupMap[data.GroupId].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", groupMap[data.SeeGroupId].Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias
@@ -405,11 +405,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["isMinorEdit"] = isMinorEditBool
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
-		hashmap["karmaLock"] = data.KarmaLock
+		hashmap["editKarmaLock"] = data.EditKarmaLock
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["type"] = data.Type
-		hashmap["groupId"] = data.GroupId
+		hashmap["seeGroupId"] = data.SeeGroupId
 		hashmap["parents"] = strings.Join(encodedParentIds, ",")
 		hashmap["createdAt"] = database.Now()
 		hashmap["anchorContext"] = data.AnchorContext
@@ -512,14 +512,14 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		} else {
 			// Update elastic search index.
 			doc := &elastic.Document{
-				PageId:    data.PageId,
-				Type:      data.Type,
-				Title:     data.Title,
-				Clickbait: data.Clickbait,
-				Text:      data.Text,
-				Alias:     data.Alias,
-				GroupId:   data.GroupId,
-				CreatorId: u.Id,
+				PageId:     data.PageId,
+				Type:       data.Type,
+				Title:      data.Title,
+				Clickbait:  data.Clickbait,
+				Text:       data.Text,
+				Alias:      data.Alias,
+				SeeGroupId: data.SeeGroupId,
+				CreatorId:  u.Id,
 			}
 			err = elastic.AddPageToIndex(c, doc)
 			if err != nil {

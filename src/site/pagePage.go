@@ -23,7 +23,6 @@ type pageTmplData struct {
 	commonPageData
 	Page        *core.Page
 	LinkedPages []*core.Page
-	RelatedIds  []string
 }
 
 var (
@@ -152,37 +151,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	err = core.LoadParentsIds(db, data.PageMap, core.LoadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
 	if err != nil {
 		return pages.Fail("Couldn't load parents", err)
-	}
-
-	// Load where page is linked from.
-	/*query := fmt.Sprintf(`
-		SELECT p.pageId
-		FROM links as l
-		JOIN pages as p
-		ON l.parentId=p.pageId
-		WHERE (l.childAlias=%d || l.childAlias="%s") AND p.isCurrentEdit
-		GROUP BY p.pageId`, pageId, data.Page.Alias)
-	data.Page.LinkedFrom, err = core.LoadPageIds(c, query, mainPageMap)
-	if err != nil {
-		return pages.Fail("Couldn't load contexts", err)
-	}*/
-
-	// Load page ids of related pages (pages that have at least all the same parents).
-	parentIds := make([]interface{}, len(data.Page.Parents))
-	for i, parent := range data.Page.Parents {
-		parentIds[i] = parent.ParentId
-	}
-	if len(parentIds) > 0 {
-		rows := database.NewQuery(`
-			SELECT childId
-			FROM pagePairs AS pp
-			WHERE parentId IN`).AddArgsGroup(parentIds).Add(` AND childId != ?`, data.Page.PageId).Add(`
-			GROUP BY childId
-			HAVING SUM(1)>=?`, len(data.Page.Parents)).ToStatement(db).Query()
-		data.RelatedIds, err = core.LoadPageIds(rows, data.PageMap)
-		if err != nil {
-			return pages.Fail("Couldn't load related ids", err)
-		}
 	}
 
 	// Load the domains for the primary page

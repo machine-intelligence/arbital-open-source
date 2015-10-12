@@ -107,9 +107,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				"GetUserUrl": func(userId int64) string {
 					return core.GetUserUrl(userId)
 				},
-				"GetMaxKarmaLockFraction": func() float32 {
-					return core.MaxKarmaLockFraction
-				},
 				"GetUserJson": func() template.JS {
 					jsonData, _ := json.Marshal(u)
 					return template.JS(string(jsonData))

@@ -11,10 +11,6 @@
 	<script src="/static/js/pageController.js"></script>
 	<script src="/static/js/editPage.js"></script>
 	<script src="/static/js/pagePage.js"></script>
-	<script>
-		// List of ids related to the primary page.
-		var gRelatedIds = {{.RelatedIds}};
-	</script>
 </head>
 
 <body last-visit="{{.Page.LastVisit}}" ng-app="arbital" ng-controller="ArbitalCtrl">
@@ -75,14 +71,6 @@
 			<div class="panel-heading">Children</div>
 			<div class="panel-body">
 				<arb-page-tree init-map="initialChildren"></arb-page-tree>
-			</div>
-		</div>
-
-		<!-- Siblings -->
-		<div class="panel panel-default" ng-show="false && relatedIds.length > 0">
-			<div class="panel-heading">Related</div>
-			<div class="panel-body">
-				<arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in relatedIds"></arb-likes-page-title>
 			</div>
 		</div>
 		&nbsp;

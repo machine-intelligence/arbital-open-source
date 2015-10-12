@@ -215,12 +215,6 @@ func ExtractTodoCount(text string) int {
 	return len(submatches)
 }
 
-// GetMaxKarmaLock returns the highest possible karma lock a user with the
-// given amount of karma can create.
-func GetMaxKarmaLock(karma int) int {
-	return int(float32(karma) * MaxKarmaLockFraction)
-}
-
 // GetPageUrl returns the domain relative url for accessing the given page.
 func GetPageUrl(p *Page) string {
 	return fmt.Sprintf("/pages/%s", p.Alias)
@@ -244,7 +238,7 @@ func GetEditLevel(p *Page, u *user.User) string {
 			return p.Type
 		}
 	}
-	karmaReq := p.KarmaLock
+	karmaReq := p.EditKarmaLock
 	if karmaReq < EditPageKarmaReq && p.WasPublished {
 		karmaReq = EditPageKarmaReq
 	}
@@ -271,7 +265,7 @@ func GetDeleteLevel(p *Page, u *user.User) string {
 			return p.Type
 		}
 	}
-	karmaReq := p.KarmaLock
+	karmaReq := p.EditKarmaLock
 	if karmaReq < DeletePageKarmaReq {
 		karmaReq = DeletePageKarmaReq
 	}

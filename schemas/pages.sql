@@ -37,6 +37,15 @@ CREATE TABLE pages (
 	/* Alias name of the page. */
 	alias VARCHAR(64) NOT NULL,
 
+	/* === Permission settings === */
+	/* see: who can see the page */
+	/* act: who can perform actions on the page (e.g. vote, comment) */
+	/* edit: who can edit the page */
+	/* If set, only this group can see the page. FK into groups. */
+	seeGroupId BIGINT NOT NULL,
+	/* Minimum amount of karma a user needs to edit this page. */
+	editKarmaLock INT NOT NULL,
+
 	/* How to sort the page's children. */
 	sortChildrenBy VARCHAR(32) NOT NULL,
 	/* True iff the page has a probability vote. */
@@ -45,10 +54,6 @@ CREATE TABLE pages (
 	 But once voting is set, it can only be turned on/off, the type cannot be
 	 changed. */
 	voteType VARCHAR(32) NOT NULL,
-	/* Minimum amount of karma a user needs to edit this page. */
-	karmaLock INT NOT NULL,
-	/* Optional id of the group this page belongs to. FK into groups. */
-	groupId BIGINT NOT NULL,
 	/* Comma separated string of parent ids in base 36. We store them so that we
 	 can easily revert parents when reverting to an edit. */
 	parents VARCHAR(1024) NOT NULL,

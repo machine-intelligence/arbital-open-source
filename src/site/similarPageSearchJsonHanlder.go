@@ -81,14 +81,14 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 							{
 								"term": { "type": "question" }
 							}, {
-								"terms": { "groupId": [%[4]s] }
+								"terms": { "seeGroupId": [%[4]s] }
 							}
 						]
 					}
 				}
 			}
 		},
-		"_source": ["pageId", "alias", "title", "clickbait", "groupId"]
+		"_source": ["pageId", "alias", "title", "clickbait", "seeGroupId"]
 	}`, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIds, ","))
 
 	// Perform search.

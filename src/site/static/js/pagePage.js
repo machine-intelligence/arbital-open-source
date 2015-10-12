@@ -103,7 +103,6 @@ $(function() {
 app.controller("MainCtrl", function($scope, $compile, $location, pageService, userService) {
 	$scope.pageService = pageService;
 	$scope.$compile = $compile;
-	$scope.relatedIds = gRelatedIds;
 	$scope.answerIds = [];
 	$scope.page = pageService.primaryPage;
 

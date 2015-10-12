@@ -76,14 +76,14 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"terms": { "groupId": [%[2]s] }
+								"terms": { "seeGroupId": [%[2]s] }
 							}
 						]
 					}
 				}
 			}
 		},
-		"_source": ["pageId", "alias", "title", "clickbait", "groupId"]
+		"_source": ["pageId", "alias", "title", "clickbait", "seeGroupId"]
 	}`, escapedTerm, strings.Join(groupIds, ","))
 
 	// Perform search.

@@ -80,7 +80,7 @@ func parentsSearchJsonInternalHandler(params *pages.HandlerParams, data *searchJ
 						],
 						"must": [
 							{
-								"terms": { "groupId": [%[2]s] }
+								"terms": { "seeGroupId": [%[2]s] }
 							}
 						]
 					}

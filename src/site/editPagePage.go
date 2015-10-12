@@ -124,7 +124,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Grab the lock to this page, but only if we have the right group permissions
-	if data.Page.GroupId <= 0 || u.IsMemberOfGroup(data.Page.GroupId) {
+	if data.Page.SeeGroupId <= 0 || u.IsMemberOfGroup(data.Page.SeeGroupId) {
 		now := database.Now()
 		if data.Page.LockedBy <= 0 || data.Page.LockedUntil < now {
 			hashmap := make(map[string]interface{})
