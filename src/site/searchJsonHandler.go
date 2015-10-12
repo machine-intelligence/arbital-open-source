@@ -58,10 +58,10 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 								"term": { "pageId": "%[1]s" }
 							},
 							{
-								"match_phrase_prefix": { "title": "%[1]s" }
+								"match": { "title": "%[1]s" }
 							},
 							{
-								"match_phrase_prefix": { "clickbait": "%[1]s" }
+								"match": { "clickbait": "%[1]s" }
 							},
 							{
 								"match": { "text": "%[1]s" }
