@@ -153,6 +153,12 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		return pages.Fail("Couldn't load tagged as", err)
 	}
 
+	// Load related ids
+	err = core.LoadRelatedIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	if err != nil {
+		return pages.Fail("Couldn't load related", err)
+	}
+
 	// Load parents
 	err = core.LoadParentsIds(db, data.PageMap, core.LoadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
 	if err != nil {

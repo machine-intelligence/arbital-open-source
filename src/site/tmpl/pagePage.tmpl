@@ -66,6 +66,14 @@
 			</div>
 		</div>
 
+		<!-- Tagged -->
+		<div class="panel panel-default" ng-show="page.taggedAsIds.length > 0">
+			<div class="panel-heading">Tagged As</div>
+			<div class="panel-body">
+				<arb-tags-panel></arb-tags-panel>
+			</div>
+		</div>
+
 		<!-- Children -->
 		<div class="panel panel-default" ng-show="initialChildrenCount > 0">
 			<div class="panel-heading">Children</div>
@@ -74,11 +82,13 @@
 			</div>
 		</div>
 
-		<!-- Tagged -->
-		<div class="panel panel-default">
-			<div class="panel-heading">Tags</div>
+		<!-- Related -->
+		<div class="panel panel-default" ng-show="page.relatedIds.length > 0">
+			<div class="panel-heading">Related</div>
 			<div class="panel-body">
-				<arb-tags-panel></arb-tags-panel>
+				<arb-likes-page-title
+					page-id="{[{pageId}]}"
+					ng-repeat="pageId in page.relatedIds"></arb-likes-page-title>
 			</div>
 		</div>
 		&nbsp;
