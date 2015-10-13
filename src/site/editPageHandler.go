@@ -384,7 +384,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		pagePairValues := make([]interface{}, 0, len(parentIds)*2)
 		for _, id := range parentIds {
 			encodedParentIds = append(encodedParentIds, strconv.FormatInt(id, core.PageIdEncodeBase))
-			pagePairValues = append(pagePairValues, id, data.PageId)
+			pagePairValues = append(pagePairValues, id, data.PageId, core.ParentPagePairType)
 		}
 
 		// Create a new edit.
@@ -454,8 +454,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Delete previous values.
 			statement := tx.NewTxStatement(`
 				DELETE FROM pagePairs
-				WHERE childId=?`)
-			_, err = statement.Exec(data.PageId)
+				WHERE type=? AND childId=?`)
+			_, err = statement.Exec(core.ParentPagePairType, data.PageId)
 			if err != nil {
 				return "Couldn't delete old pagePair", err
 			}
@@ -463,8 +463,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			if len(pagePairValues) > 0 {
 				// Insert new pagePairs values.
 				statement := tx.NewTxStatement(`
-					INSERT INTO pagePairs (parentId,childId)
-					VALUES ` + database.ArgsPlaceholder(len(pagePairValues), 2))
+					INSERT INTO pagePairs (parentId,childId,type)
+					VALUES ` + database.ArgsPlaceholder(len(pagePairValues), 3))
 				if _, err = statement.Exec(pagePairValues...); err != nil {
 					return "Couldn't insert new pagePairs", err
 				}

@@ -19,6 +19,10 @@ const (
 	LensPageType     = "lens"
 	DeletedPageType  = "deleted"
 
+	// Various types of page connections.
+	ParentPagePairType = "parent"
+	TagPagePairType    = "tag"
+
 	// Various types of updates a user can get.
 	TopLevelCommentUpdateType = "topLevelComment"
 	ReplyUpdateType           = "reply"
@@ -151,9 +155,10 @@ type Page struct {
 
 // PagePair describes a parent child relationship, which are stored in pagePairs db table.
 type PagePair struct {
-	Id       int64 `json:"id,string"`
-	ParentId int64 `json:"parentId,string"`
-	ChildId  int64 `json:"childId,string"`
+	Id       int64  `json:"id,string"`
+	ParentId int64  `json:"parentId,string"`
+	ChildId  int64  `json:"childId,string"`
+	Type     string `json:"type"`
 }
 
 // LoadPageOptions describes options for loading page(s) from the db
@@ -173,11 +178,11 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		return nil
 	}
 	pageIds := PageIdsListFromMap(pageMap)
-	textSelect := "\"\" AS text"
+	textSelect := `"" AS text`
 	if options.LoadText {
 		textSelect = "text"
 	}
-	summarySelect := "\"\" AS summary"
+	summarySelect := `"" AS summary`
 	if options.LoadSummary {
 		summarySelect = "summary"
 	}
@@ -674,38 +679,38 @@ func LoadChildrenIds(db *database.DB, pageMap map[int64]*Page, options LoadChild
 	}
 	pageIds := PageIdsListFromMap(sourcePageMap)
 	newPages := make(map[int64]*Page)
-	rows := db.NewStatement(`
-		SELECT pp.parentId,pp.childId,p.type
+	rows := database.NewQuery(`
+		SELECT pp.parentId,pp.childId,pp.type,p.type
 		FROM (
-			SELECT parentId,childId
+			SELECT parentId,childId,type
 			FROM pagePairs
-			WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+			WHERE type=?`, ParentPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp JOIN (
 			SELECT pageId,type
 			FROM pages
-			WHERE isCurrentEdit AND type!="comment"
+			WHERE isCurrentEdit AND type!=? AND type!=?`, CommentPageType, QuestionPageType).Add(`
 		) AS p
-		ON (p.pageId=pp.childId)`).Query(pageIds...)
+		ON (p.pageId=pp.childId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var p PagePair
+		var pp PagePair
 		var childType string
-		err := rows.Scan(&p.ParentId, &p.ChildId, &childType)
+		err := rows.Scan(&pp.ParentId, &pp.ChildId, &pp.Type, &childType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		newPage, ok := pageMap[p.ChildId]
+		newPage, ok := pageMap[pp.ChildId]
 		if !ok {
-			newPage = &Page{PageId: p.ChildId, Type: childType}
+			newPage = &Page{PageId: pp.ChildId, Type: childType}
 			pageMap[newPage.PageId] = newPage
 			newPages[newPage.PageId] = newPage
 		}
-		newPage.Parents = append(newPage.Parents, &p)
+		newPage.Parents = append(newPage.Parents, &pp)
 
-		parent := sourcePageMap[p.ParentId]
+		parent := sourcePageMap[pp.ParentId]
 		if newPage.Type == LensPageType {
 			parent.LensIds = append(parent.LensIds, fmt.Sprintf("%d", newPage.PageId))
 		} else {
-			parent.Children = append(parent.Children, &p)
+			parent.Children = append(parent.Children, &pp)
 			parent.HasChildren = true
 		}
 		return nil
@@ -715,19 +720,19 @@ func LoadChildrenIds(db *database.DB, pageMap map[int64]*Page, options LoadChild
 	}
 	if options.LoadHasChildren && len(newPages) > 0 {
 		pageIds = PageIdsListFromMap(newPages)
-		rows := db.NewStatement(`
+		rows := database.NewQuery(`
 			SELECT pp.parentId,sum(1)
 			FROM (
-				SELECT parentId,childId
+				SELECT parentId,childId,type
 				FROM pagePairs
-				WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+				WHERE type=?`, ParentPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
 			) AS pp JOIN (
 				SELECT pageId
 				FROM pages
-				WHERE isCurrentEdit AND type!="comment"
+				WHERE isCurrentEdit AND type!=? AND type!=?`, CommentPageType, QuestionPageType).Add(`
 			) AS p
 			ON (p.pageId=pp.childId)
-			GROUP BY 1`).Query(pageIds...)
+			GROUP BY 1`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var children int
@@ -748,22 +753,22 @@ func LoadSubpageIds(db *database.DB, pageMap map[int64]*Page, sourcePageMap map[
 		return nil
 	}
 	pageIds := PageIdsListFromMap(sourcePageMap)
-	rows := db.NewStatement(`
-		SELECT pp.parentId,pp.childId,p.type
+	rows := database.NewQuery(`
+		SELECT pp.parentId,pp.childId,pp.type,p.type
 		FROM (
-			SELECT parentId,childId
+			SELECT parentId,childId,type
 			FROM pagePairs
-			WHERE parentId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+			WHERE type=?`, ParentPagePairType).Add(`AND parentId IN `).AddArgsGroup(pageIds).Add(`
 		) AS pp JOIN (
 			SELECT pageId,type
 			FROM pages
-			WHERE isCurrentEdit AND (type="comment" OR type="question")
+			WHERE isCurrentEdit AND (type=? OR type=?)`, CommentPageType, QuestionPageType).Add(`
 		) AS p
-		ON (p.pageId=pp.childId)`).Query(pageIds...)
+		ON (p.pageId=pp.childId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pp PagePair
 		var pageType string
-		err := rows.Scan(&pp.ParentId, &pp.ChildId, &pageType)
+		err := rows.Scan(&pp.ParentId, &pp.ChildId, &pp.Type, &pageType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for subpages: %v", err)
 		}
@@ -801,10 +806,11 @@ func LoadParentsIds(db *database.DB, pageMap map[int64]*Page, options LoadParent
 
 	pageIds := PageIdsListFromMap(sourcePageMap)
 	newPages := make(map[int64]*Page)
-	rows := db.NewStatement(`
+	rows := database.NewQuery(`
 		SELECT parentId,childId
 		FROM pagePairs
-		WHERE childId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
+		WHERE type=?`, ParentPagePairType).Add(`
+			AND childId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p PagePair
 		err := rows.Scan(&p.ParentId, &p.ChildId)
@@ -827,11 +833,11 @@ func LoadParentsIds(db *database.DB, pageMap map[int64]*Page, options LoadParent
 	}
 	if options.LoadHasParents && len(newPages) > 0 {
 		pageIds = PageIdsListFromMap(newPages)
-		rows := db.NewStatement(`
+		rows := database.NewQuery(`
 			SELECT childId,sum(1)
 			FROM pagePairs
-			WHERE childId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
-			GROUP BY 1`).Query(pageIds...)
+			WHERE type=?`, ParentPagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
+			GROUP BY 1`).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var parents int

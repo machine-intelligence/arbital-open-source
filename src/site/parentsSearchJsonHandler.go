@@ -63,7 +63,7 @@ func parentsSearchJsonInternalHandler(params *pages.HandlerParams, data *searchJ
 								"term": { "pageId": "%[1]s" }
 							},
 							{
-								"match": { "title": "%[1]s" }
+								"match_phrase_prefix": { "title": "%[1]s" }
 							},
 							{
 								"match_phrase_prefix": { "alias": "%[1]s" }
