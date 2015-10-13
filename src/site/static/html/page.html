@@ -1,11 +1,11 @@
-<div class="page-body-div" ng-show="page.deletedBy > 0">
+<div class="page-body-div" ng-show="page.isDeleted()">
 	<div class="alert alert-danger">This page has been deleted.
 		<span class="admin" ng-show="userService.user.isAdmin">
-			By id: {[{page.deletedBy}]}. <a href="#" class="undo-page-delete">Undo.</a>
+			By <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name>.
 		</span>
 	</div>
 </div>
-<div class="page-body-div" ng-hide="page.deletedBy > 0">
+<div class="page-body-div" ng-hide="page.isDeleted()">
 	<!-- Left column -->
 	<div class="like-column pull-left">
 		<!-- Likes / dislikes and approval voting -->

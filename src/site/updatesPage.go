@@ -44,18 +44,18 @@ func updatesRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
+	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return pages.Fail("error while loading aux data", err)
 	}
 
-	// Now that we have load last visit time for all pages,
+	// Now that we have loaded last visit time for all pages,
 	// go through all the update rows and group them.
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, data.PageMap)
 
 	// Load all the groups.
 	data.GroupMap = make(map[int64]*core.Group)
-	err = loadGroupNames(db, u, data.GroupMap)
+	err = core.LoadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return pages.Fail("Couldn't load group names", err)
 	}
@@ -71,7 +71,7 @@ func updatesRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load subscriptions to users
-	err = loadUserSubscriptions(db, u.Id, data.UserMap)
+	err = core.LoadUserSubscriptions(db, u.Id, data.UserMap)
 	if err != nil {
 		return pages.Fail("error while loading subscriptions to users", err)
 	}

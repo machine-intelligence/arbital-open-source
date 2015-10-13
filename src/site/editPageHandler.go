@@ -4,9 +4,9 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
-	"regexp"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -28,8 +28,8 @@ type editPageData struct {
 	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
-	GroupId        int64 `json:",string"`
-	KarmaLock      int
+	SeeGroupId     int64 `json:",string"`
+	EditKarmaLock  int
 	ParentIds      string
 	Alias          string // if empty, leave the current one
 	SortChildrenBy string
@@ -38,15 +38,15 @@ type editPageData struct {
 	AnchorContext  string
 	AnchorText     string
 	AnchorOffset   int
+
+	// These parameters are only accepted from internal BE calls
+	RevertToEdit int  `json:"-"`
+	DeleteEdit   bool `json:"-"`
 }
 
 // editPageHandler handles requests to create a new page.
 func editPageHandler(params *pages.HandlerParams) *pages.Result {
-	c := params.C
-	db := params.DB
-	u := params.U
-
-	if !u.IsLoggedIn {
+	if !params.U.IsLoggedIn {
 		return pages.HandlerForbiddenFail("Need to be logged in", nil)
 	}
 
@@ -57,6 +57,14 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
+	return editPageInternalHandler(params, &data)
+}
+
+func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *pages.Result {
+	c := params.C
+	db := params.DB
+	u := params.U
+
 	if data.PageId <= 0 {
 		return pages.HandlerBadRequestFail("No pageId specified", nil)
 	}
@@ -75,13 +83,13 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load user groups
-	if err = loadUserGroups(db, u); err != nil {
+	if err := core.LoadUserGroups(db, u); err != nil {
 		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
 	}
 
 	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err = loadFullEdit(db, data.PageId, u.Id, &loadEditOptions{})
+	oldPage, err := core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -111,19 +119,24 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		overwritingEdit = true
 		newEditNum = int(oldPage.MyLastAutosaveEdit.Int64)
 	}
+	if data.RevertToEdit > 0 {
+		// ... or unless we are reverting an edit
+		overwritingEdit = true
+		newEditNum = data.RevertToEdit
+	}
 
 	// Error checking.
 	data.Type = strings.ToLower(data.Type)
 	if data.IsAutosave && data.IsSnapshot {
 		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
 	}
-	// Check that we have the lock.
+	// Check the page isn't locked by someone else
 	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
 		return pages.HandlerBadRequestFail("Can't change locked page", nil)
 	}
 	// Check the group settings
-	if oldPage.GroupId > 0 {
-		if !u.IsMemberOfGroup(oldPage.GroupId) {
+	if oldPage.SeeGroupId > 0 {
+		if !u.IsMemberOfGroup(oldPage.SeeGroupId) {
 			return pages.HandlerBadRequestFail("Don't have group permissions to edit this page", nil)
 		}
 	}
@@ -142,7 +155,13 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			data.Type != core.QuestionPageType &&
 			data.Type != core.AnswerPageType &&
 			data.Type != core.CommentPageType {
-			return pages.HandlerBadRequestFail("Invalid page type.", nil)
+			if data.Type == core.DeletedPageType {
+				if !data.DeleteEdit {
+					return pages.HandlerBadRequestFail("Can't delete the page like that.", nil)
+				}
+			} else {
+				return pages.HandlerBadRequestFail("Invalid page type.", nil)
+			}
 		}
 		if data.SortChildrenBy != core.LikesChildSortingOption &&
 			data.SortChildrenBy != core.ChronologicalChildSortingOption &&
@@ -152,7 +171,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
 			return pages.HandlerBadRequestFail("Invalid vote type value.", nil)
 		}
-		if data.KarmaLock < 0 || data.KarmaLock > getMaxKarmaLock(u.Karma) {
+		if data.EditKarmaLock < 0 || data.EditKarmaLock > u.MaxKarmaLock {
 			return pages.HandlerBadRequestFail("Karma value out of bounds", nil)
 		}
 		if data.AnchorContext == "" && data.AnchorText != "" {
@@ -170,8 +189,9 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 	}
+	// Make sure the user has the right permissions to edit this page
 	if oldPage.WasPublished {
-		editLevel := getEditLevel(oldPage, u)
+		editLevel := core.GetEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
 			if editLevel == core.CommentPageType {
 				return pages.HandlerBadRequestFail("Can't edit a comment page you didn't create.", nil)
@@ -197,7 +217,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 				WHERE pageId IN`).AddArgsGroup(parentIdArgs).Add(`
 					AND (isCurrentEdit OR creatorId=?)`, u.Id).Add(`AND
 					`+typeConstraint+` AND
-					(groupId="" OR groupId IN (SELECT groupId FROM groupMembers WHERE userId=?))
+					(seeGroupId="" OR seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))
 				`, u.Id).ToStatement(db).QueryRow()
 			_, err = row.Scan(&count)
 			if err != nil {
@@ -257,8 +277,8 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 
 		// We can only change the group from to a more relaxed group:
 		// personal group -> any group -> no group
-		if oldPage.WasPublished && data.GroupId != oldPage.GroupId {
-			if oldPage.GroupId != u.Id && data.GroupId != 0 {
+		if oldPage.WasPublished && data.SeeGroupId != oldPage.SeeGroupId {
+			if oldPage.SeeGroupId != u.Id && data.SeeGroupId != 0 {
 				return pages.HandlerBadRequestFail("Can't change group to a more restrictive one", nil)
 			}
 		}
@@ -280,16 +300,17 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	} else {
 		hasVote = data.VoteType != ""
 	}
-	if oldPage.WasPublished {
+	if oldPage.WasPublished && data.RevertToEdit <= 0 && !data.DeleteEdit {
 		data.Type = oldPage.Type
-	} else if data.Type == core.CommentPageType {
-		// Set the groupId to primary page's group name
+	}
+	if data.Type == core.CommentPageType {
+		// Set the seeGroupId to primary page's group name
 		row := db.NewStatement(`
-			SELECT max(groupId)
+			SELECT max(seeGroupId)
 			FROM pages
 			WHERE pageId IN ` + database.InArgsPlaceholder(len(parentIdArgs)) + `
 				AND type!="comment" AND isCurrentEdit`).QueryRow(parentIdArgs...)
-		_, err := row.Scan(&data.GroupId)
+		_, err := row.Scan(&data.SeeGroupId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get primary page's group name", err)
 		}
@@ -311,13 +332,13 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if data.GroupId > 0 {
-			groupMap := map[int64]*core.Group{data.GroupId: &core.Group{Id: data.GroupId}}
-			err = loadGroupNames(db, u, groupMap)
+		if data.SeeGroupId > 0 {
+			groupMap := map[int64]*core.Group{data.SeeGroupId: &core.Group{Id: data.SeeGroupId}}
+			err = core.LoadGroupNames(db, u, groupMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the group", err)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", groupMap[data.GroupId].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", groupMap[data.SeeGroupId].Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias
@@ -325,7 +346,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		row := db.NewStatement(`
 					SELECT pageId
 					FROM pages
-					WHERE isCurrentEdit AND pageId!=? AND deletedBy<=0 AND alias=?`).QueryRow(data.PageId, data.Alias)
+					WHERE isCurrentEdit AND pageId!=? AND alias=?`).QueryRow(data.PageId, data.Alias)
 		exists, err := row.Scan(&existingPageId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't read from aliases", err)
@@ -363,7 +384,7 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		pagePairValues := make([]interface{}, 0, len(parentIds)*2)
 		for _, id := range parentIds {
 			encodedParentIds = append(encodedParentIds, strconv.FormatInt(id, core.PageIdEncodeBase))
-			pagePairValues = append(pagePairValues, id, data.PageId)
+			pagePairValues = append(pagePairValues, id, data.PageId, core.ParentPagePairType)
 		}
 
 		// Create a new edit.
@@ -384,11 +405,11 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		hashmap["isMinorEdit"] = isMinorEditBool
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
-		hashmap["karmaLock"] = data.KarmaLock
+		hashmap["editKarmaLock"] = data.EditKarmaLock
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["type"] = data.Type
-		hashmap["groupId"] = data.GroupId
+		hashmap["seeGroupId"] = data.SeeGroupId
 		hashmap["parents"] = strings.Join(encodedParentIds, ",")
 		hashmap["createdAt"] = database.Now()
 		hashmap["anchorContext"] = data.AnchorContext
@@ -433,8 +454,8 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			// Delete previous values.
 			statement := tx.NewTxStatement(`
 				DELETE FROM pagePairs
-				WHERE childId=?`)
-			_, err = statement.Exec(data.PageId)
+				WHERE type=? AND childId=?`)
+			_, err = statement.Exec(core.ParentPagePairType, data.PageId)
 			if err != nil {
 				return "Couldn't delete old pagePair", err
 			}
@@ -442,8 +463,8 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 			if len(pagePairValues) > 0 {
 				// Insert new pagePairs values.
 				statement := tx.NewTxStatement(`
-					INSERT INTO pagePairs (parentId,childId)
-					VALUES ` + database.ArgsPlaceholder(len(pagePairValues), 2))
+					INSERT INTO pagePairs (parentId,childId,type)
+					VALUES ` + database.ArgsPlaceholder(len(pagePairValues), 3))
 				if _, err = statement.Exec(pagePairValues...); err != nil {
 					return "Couldn't insert new pagePairs", err
 				}
@@ -482,20 +503,28 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 	// else. So we print out errors, but don't return an error. ===
 
 	if isCurrentEdit {
-		// Update elastic search index.
-		doc := &elastic.Document{
-			PageId:    data.PageId,
-			Type:      data.Type,
-			Title:     data.Title,
-			Clickbait: data.Clickbait,
-			Text:      data.Text,
-			Alias:     data.Alias,
-			GroupId:   data.GroupId,
-			CreatorId: u.Id,
-		}
-		err = elastic.AddPageToIndex(c, doc)
-		if err != nil {
-			c.Errorf("failed to update index: %v", err)
+		if data.DeleteEdit {
+			// Delete it from the elastic index
+			err = elastic.DeletePageFromIndex(c, data.PageId)
+			if err != nil {
+				return pages.HandlerErrorFail("failed to update index", err)
+			}
+		} else {
+			// Update elastic search index.
+			doc := &elastic.Document{
+				PageId:     data.PageId,
+				Type:       data.Type,
+				Title:      data.Title,
+				Clickbait:  data.Clickbait,
+				Text:       data.Text,
+				Alias:      data.Alias,
+				SeeGroupId: data.SeeGroupId,
+				CreatorId:  u.Id,
+			}
+			err = elastic.AddPageToIndex(c, doc)
+			if err != nil {
+				c.Errorf("failed to update index: %v", err)
+			}
 		}
 
 		// Generate updates for users who are subscribed to this page.
@@ -611,5 +640,6 @@ func editPageHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
+	fmt.Fprintf(params.W, "%d", newEditNum)
 	return pages.StatusOK(nil)
 }

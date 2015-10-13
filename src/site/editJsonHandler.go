@@ -36,12 +36,12 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	pageMap := make(map[int64]*core.Page)
 
 	// Load full edit for one page.
-	options := loadEditOptions{
-		loadSpecificEdit:  data.SpecificEdit,
-		loadEditWithLimit: data.EditLimit,
-		createdAtLimit:    data.CreatedAtLimit,
+	options := core.LoadEditOptions{
+		LoadSpecificEdit:  data.SpecificEdit,
+		LoadEditWithLimit: data.EditLimit,
+		CreatedAtLimit:    data.CreatedAtLimit,
 	}
-	p, err := loadFullEdit(db, data.PageId, u.Id, &options)
+	p, err := core.LoadFullEdit(db, data.PageId, u.Id, &options)
 	if err != nil || p == nil {
 		return pages.HandlerErrorFail("error while loading full edit", err)
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -91,10 +92,14 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			hashmap["id"] = data.User.Id
 			hashmap["firstName"] = firstName
 			hashmap["lastName"] = lastName
+			hashmap["email"] = data.User.Email
+			hashmap["createdAt"] = database.Now()
+			hashmap["lastWebsiteVisit"] = database.Now()
 			hashmap["inviteCode"] = inviteCode
 			hashmap["karma"] = karma
-			hashmap["createdAt"] = database.Now()
-			statement := tx.NewInsertTxStatement("users", hashmap, "firstName", "lastName", "inviteCode", "karma")
+			// Don't send emails to anyone yet (except Alexei and Eliezer)
+			hashmap["updateEmailSentAt"] = time.Now().UTC().Add(30000 * time.Hour).Format(database.TimeLayout)
+			statement := tx.NewReplaceTxStatement("users", hashmap)
 			if _, err := statement.Exec(); err != nil {
 				return "Couldn't update user's record", err
 			}

@@ -9,6 +9,7 @@ import (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
+	Id                 int64
 	UserId             int64
 	ByUserId           int64
 	CreatedAt          string
@@ -52,23 +53,24 @@ type UpdateGroup struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, userMap map[int64]*User, onlyNew bool) ([]*UpdateRow, error) {
-	onlyNewStr := ""
-	if onlyNew {
-		onlyNewStr = "AND newCount>0"
+func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, userMap map[int64]*User, forEmail bool) ([]*UpdateRow, error) {
+	emailFilter := ""
+	if forEmail {
+		emailFilter = "AND newCount>0 AND NOT emailed"
 	}
 	updateRows := make([]*UpdateRow, 0, 0)
 	rows := db.NewStatement(`
-		SELECT userId,byUserId,createdAt,type,newCount,
+		SELECT id,userId,byUserId,createdAt,type,newCount,
 			groupByPageId,groupByUserId,
 			subscribedToUserId,subscribedToPageId,goToPageId
 		FROM updates
-		WHERE userId=? ` + onlyNewStr + `
+		WHERE userId=? ` + emailFilter + `
 		ORDER BY createdAt DESC
 		LIMIT 100`).Query(userId)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		err := rows.Scan(
+			&row.Id,
 			&row.UserId,
 			&row.ByUserId,
 			&row.CreatedAt,

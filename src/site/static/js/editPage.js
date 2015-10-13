@@ -28,10 +28,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	var updateParentElements = function() {
 		$topParent.find(".tag[tag-id]").each(function() {
 			var parentPage = pageService.pageMap[$(this).attr("tag-id")];
-			if (parentPage.groupId === page.groupId || parentPage.groupId === "0") {
+			if (parentPage.seeGroupId === page.seeGroupId || parentPage.seeGroupId === "0") {
 				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
 			} else {
-				var tooltip = "This parent belongs to " + userService.groupMap[parentPage.groupId].name + " group, but the page you are editing does not.";
+				var tooltip = "This parent belongs to " + userService.groupMap[parentPage.seeGroupId].name + " group, but the page you are editing does not.";
 				$(this).addClass("label-danger").removeClass("label-default").attr("title", tooltip).tooltip();
 			}
 		});
@@ -645,7 +645,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 							newPage.parents = [{parentId: primaryPage.pageId}];
 						}
 						newPage.creatorId = userService.user.id;
-						newPage.groupId = primaryPage.groupId;
+						newPage.seeGroupId = primaryPage.seeGroupId;
 					}
 
 					// Dynamically create arb-edit-page directive.
@@ -834,9 +834,9 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			}
 			// Also check if we are part of the necessary group.
 			scope.groupPermissionsPassed = true;
-			if (!(scope.page.groupId in scope.groupOptions)) {
+			if (!(scope.page.seeGroupId in scope.groupOptions)) {
 				scope.groupPermissionsPassed = false;
-				scope.groupOptions[scope.page.groupId] = userService.groupMap[scope.page.groupId].name;
+				scope.groupOptions[scope.page.seeGroupId] = userService.groupMap[scope.page.seeGroupId].name;
 			}
 
 			// if starting a new edit, clear the minor edit checkbox

@@ -22,6 +22,8 @@ CREATE TABLE updates (
 	/* Amount this update contributes to the "number of new updates user has".
 		Usually 1 or 0. */
 	newCount INT NOT NULL,
+	/* True if this update has been emailed out. */
+	emailed BOOLEAN NOT NULL,
 
 	/* One of these has to be set. Updates will be grouped by this key and show up
 		in the same panel. */

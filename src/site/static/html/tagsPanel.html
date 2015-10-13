@@ -1,0 +1,10 @@
+<div class="page-tag-row" ng-repeat="pageId in page.taggedAsIds">
+	<a href="#"
+		page-id="{[{pageId}]}"
+		class="delete-tag-link glyphicon glyphicon-remove"
+		ng-class="{'admin': page.getDeleteLevel() == 'admin'}"
+		title="Delete this tag"
+		ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
+	<arb-likes-page-title page-id="{[{pageId}]}" show-clickbait="true"></arb-likes-page-title>
+</div>
+<input type="text" class="tag-input form-control" placeholder="Enter new tag">

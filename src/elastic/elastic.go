@@ -20,14 +20,14 @@ var (
 
 // Document describes the document which goes into the pages search index.
 type Document struct {
-	PageId    int64  `json:"pageId,string"`
-	Alias     string `json:"alias"`
-	Type      string `json:"type"`
-	Title     string `json:"title"`
-	Clickbait string `json:"clickbait"`
-	Text      string `json:"text"`
-	GroupId   int64  `json:"groupId,string"`
-	CreatorId int64  `json:"creatorId,string"`
+	PageId     int64  `json:"pageId,string"`
+	Alias      string `json:"alias"`
+	Type       string `json:"type"`
+	Title      string `json:"title"`
+	Clickbait  string `json:"clickbait"`
+	Text       string `json:"text"`
+	SeeGroupId int64  `json:"seeGroupId,string"`
+	CreatorId  int64  `json:"creatorId,string"`
 }
 
 // All the elasticsearch result structs
@@ -147,7 +147,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["clickbait"] = &Property{Type: "string", Analyzer: "english"}
 	mapping.Properties["text"] = &Property{Type: "string", Analyzer: "english"}
 	mapping.Properties["alias"] = &Property{Type: "string"}
-	mapping.Properties["groupId"] = &Property{Type: "string", Index: "not_analyzed"}
+	mapping.Properties["seeGroupId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["creatorId"] = &Property{Type: "string", Index: "not_analyzed"}
 
 	var schema IndexSchema

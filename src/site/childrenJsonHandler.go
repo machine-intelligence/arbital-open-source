@@ -34,7 +34,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load the children.
 	pageMap := make(map[int64]*core.Page)
 	pageMap[data.ParentId] = &core.Page{PageId: data.ParentId}
-	err = loadChildrenIds(db, pageMap, loadChildrenIdsOptions{LoadHasChildren: true})
+	err = core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load children", err)
 	}
@@ -48,7 +48,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load likes.
-	err = loadAuxPageData(db, u.Id, pageMap, nil)
+	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load aux data", err)
 	}

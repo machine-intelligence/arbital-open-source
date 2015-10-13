@@ -34,10 +34,6 @@ app.service("userService", function(){
 	};
 	console.log("Initial user map:"); console.log(this.userMap);
 
-	// Get maximum karma lock a user can set up.
-	this.user.getMaxKarmaLock = function() {
-		return Math.floor(this.karma * {{GetMaxKarmaLockFraction}});
-	};
 	this.getUserUrl = function(userId) {
 		return "/user/" + userId;
 	};
@@ -132,7 +128,7 @@ app.service("pageService", function(userService, $http){
 					return this.type;
 				}
 			}
-			var karmaReq = this.karmaLock;
+			var karmaReq = this.editKarmaLock;
 			var editPageKarmaReq = 10; // TODO: fix this
 			if (karmaReq < editPageKarmaReq && this.wasPublished) {
 				karmaReq = editPageKarmaReq
@@ -158,7 +154,7 @@ app.service("pageService", function(userService, $http){
 					return this.type;
 				}
 			}
-			var karmaReq = this.karmaLock;
+			var karmaReq = this.editKarmaLock;
 			var deletePageKarmaReq = 200; // TODO: fix this
 			if (karmaReq < deletePageKarmaReq) {
 				karmaReq = deletePageKarmaReq;
@@ -170,6 +166,9 @@ app.service("pageService", function(userService, $http){
 				return "" + karmaReq;
 			}
 			return "";
+		},
+		isDeleted: function() {
+			return this.type === "deleted";
 		},
 		// Get page's url
 		url: function(forcePageId) {
@@ -418,11 +417,12 @@ app.service("pageService", function(userService, $http){
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)}).
-			success(function(data, status){
+		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)})
+			.success(function(data, status){
 				console.log("Successfully deleted " + pageId);
 				if(success) success(data, status);
-			}).error(function(data, status){
+			})
+			.error(function(data, status){
 				console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}
@@ -438,7 +438,8 @@ app.service("pageService", function(userService, $http){
 			success(function(data, status){
 				console.log("Successfully abandoned " + pageId);
 				if(success) success(data, status);
-			}).error(function(data, status){
+			})
+			.error(function(data, status){
 				console.log("Error abandoning " + pageId + ":"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}
@@ -449,13 +450,13 @@ app.service("pageService", function(userService, $http){
 	this.showPublic = function(pageId) {
 		var page = this.pageMap[pageId];
 		if (!this.primaryPage) return false;
-		return this.primaryPage.groupId !== page.groupId && page.groupId === "0";
+		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId === "0";
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showLockedGroup = function(pageId) {
 		var page = this.pageMap[pageId];
-		if (!this.primaryPage) return page.groupId !== "0";
-		return this.primaryPage.groupId !== page.groupId && page.groupId !== "0";
+		if (!this.primaryPage) return page.seeGroupId !== "0";
+		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId !== "0";
 	};
 
 	// Setup all initial pages.
@@ -496,7 +497,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 				alias: source.alias,
 				title: source.title,
 				clickbait: source.clickbait,
-				groupId: source.groupId,
+				seeGroupId: source.seeGroupId,
 			});
 		}
 		return resultList;
@@ -631,10 +632,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			content: function() {
 				var $link = $target;
 				var setPopoverContent = function(page) {
-					if (page.deletedBy !== "0") {
-						return "[DELETED]";
-					}
-
 					$timeout(function() {
 						var $popover = $("#" + $link.attr("aria-describedby"));
 						$popover.find(".popover-title").html(getTitleHtml(page.pageId));

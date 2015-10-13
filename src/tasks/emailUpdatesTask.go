@@ -100,6 +100,20 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	}
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, nil)
 
+	// Mark loaded updates as emailed
+	updateIds := make([]interface{}, 0)
+	for _, row := range updateRows {
+		updateIds = append(updateIds, row.Id)
+	}
+	statement = database.NewQuery(`
+		UPDATE updates
+		SET emailed=true
+		WHERE id IN`).AddArgsGroup(updateIds).ToStatement(db)
+	_, err = statement.Exec()
+	if err != nil {
+		return fmt.Errorf("Couldn't update updates an emailed: %v", err)
+	}
+
 	// Load pages.
 	err = core.LoadPages(db, pageMap, userId, nil)
 	if err != nil {
@@ -152,7 +166,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	buffer := &bytes.Buffer{}
 	t, err := template.New("email").Funcs(funcMap).Parse(string(templateBytes))
 	if err != nil {
-		return fmt.Errorf("Couldn't create template: %v", err)
+		return fmt.Errorf("Couldn't parse template: %v", err)
 	}
 	err = t.Execute(buffer, data)
 	if err != nil {

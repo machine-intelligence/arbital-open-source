@@ -107,9 +107,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				"GetUserUrl": func(userId int64) string {
 					return core.GetUserUrl(userId)
 				},
-				"GetMaxKarmaLockFraction": func() float32 {
-					return core.MaxKarmaLockFraction
-				},
 				"GetUserJson": func() template.JS {
 					jsonData, _ := json.Marshal(u)
 					return template.JS(string(jsonData))
@@ -119,7 +116,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					return template.JS(string(jsonData))
 				},
 				"GetPageUrl": func(p *core.Page) string {
-					return getPageUrl(p)
+					return core.GetPageUrl(p)
 				},
 				"IsUpdatedPage": func(p *core.Page) bool {
 					return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
@@ -186,7 +183,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					fail("Couldn't update users", err)
 				}
 				// Load the groups the user belongs to.
-				if err = loadUserGroups(db, u); err != nil {
+				if err = core.LoadUserGroups(db, u); err != nil {
 					fail("Couldn't load user groups", err)
 				}
 			}
@@ -203,7 +200,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		// Load more user stuff if required.
 		if !p.Options.SkipLoadingUser && u.Id > 0 {
 			// Load updates count. (Loading it afterwards since it could be affected by the page)
-			u.UpdateCount, err = loadUpdateCount(db, u.Id)
+			u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
 			if err != nil {
 				fail("Couldn't retrieve updates count", err)
 			}

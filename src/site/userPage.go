@@ -80,7 +80,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyCreatedIds, err = loadPageIds(rows, data.PageMap)
+	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -97,7 +97,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE maxEdit>minEdit
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyEditedIds, err = loadPageIds(rows, data.PageMap)
+	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
@@ -114,7 +114,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 			) AS p
 			ORDER BY createdAt DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.PagesWithDraftIds, err = loadPageIds(rows, data.PageMap)
+		data.PagesWithDraftIds, err = core.LoadPageIds(rows, data.PageMap)
 		if err != nil {
 			return pages.Fail("error while loading pages with drafts ids", err)
 		}
@@ -134,14 +134,14 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 			GROUP BY 1
 			ORDER BY SUM(IF(p.pageId IS NULL, 1, 0)) DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.MostTodosIds, err = loadPageIds(rows, data.PageMap)
+		data.MostTodosIds, err = core.LoadPageIds(rows, data.PageMap)
 		if err != nil {
 			return pages.Fail("error while loading most todos page ids", err)
 		}
 	}
 
 	// Load number of red links for recently edited pages.
-	err = loadRedLinkCount(db, data.PageMap)
+	err = core.LoadRedLinkCount(db, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading links", err)
 	}
@@ -157,7 +157,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		) AS p
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyEditedCommentIds, err = loadPageIds(rows, data.PageMap)
+	data.RecentlyEditedCommentIds, err = core.LoadPageIds(rows, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading recently edited by me page ids", err)
 	}
@@ -175,7 +175,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 			) AS v
 			ORDER BY v.createdAt DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.RecentlyVisitedIds, err = loadPageIds(rows, data.PageMap)
+		data.RecentlyVisitedIds, err = core.LoadPageIds(rows, data.PageMap)
 		if err != nil {
 			return pages.Fail("error while loading recently visited page ids", err)
 		}
@@ -188,13 +188,13 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load auxillary data.
-	err = loadAuxPageData(db, data.User.Id, data.PageMap, nil)
+	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return pages.Fail("error while loading aux data", err)
 	}
 
 	// Load all the groups.
-	err = loadGroupNames(db, u, data.GroupMap)
+	err = core.LoadGroupNames(db, u, data.GroupMap)
 	if err != nil {
 		return pages.Fail("Couldn't load group names", err)
 	}
