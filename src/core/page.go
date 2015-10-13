@@ -137,6 +137,7 @@ type Page struct {
 
 	// Subpages.
 	SubpageIds []string `json:"subpageIds"`
+	TaggedIds  []string `json:"taggedIds"`
 
 	// Domains.
 	DomainIds []string `json:"domainIds"`
@@ -781,6 +782,44 @@ func LoadSubpageIds(db *database.DB, pageMap map[int64]*Page, sourcePageMap map[
 
 		sourcePageMap[pp.ParentId].SubpageIds = append(sourcePageMap[pp.ParentId].SubpageIds, fmt.Sprintf("%d", pp.ChildId))
 
+		return nil
+	})
+	return err
+}
+
+// LoadTaggedIds loads the ids of all the pages that are tagged with one of the pages in the given pageMap.
+func LoadTaggedIds(db *database.DB, pageMap map[int64]*Page, options LoadChildrenIdsOptions) error {
+	sourcePageMap := pageMap
+	if options.ForPages != nil {
+		sourcePageMap = options.ForPages
+	}
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(sourcePageMap)
+	rows := database.NewQuery(`
+		SELECT pp.parentId,pp.childId
+		FROM (
+			SELECT parentId,childId
+			FROM pagePairs
+			WHERE type=?`, TagPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
+		) AS pp JOIN (
+			SELECT pageId
+			FROM pages
+			WHERE isCurrentEdit AND type=?`, WikiPageType).Add(`
+		) AS p
+		ON (p.pageId=pp.childId)`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pp PagePair
+		err := rows.Scan(&pp.ParentId, &pp.ChildId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for page pairs: %v", err)
+		}
+		parent := sourcePageMap[pp.ParentId]
+		parent.TaggedIds = append(parent.TaggedIds, fmt.Sprintf("%d", pp.ChildId))
+		if _, ok := pageMap[pp.ChildId]; !ok {
+			pageMap[pp.ChildId] = &Page{PageId: pp.ChildId}
+		}
 		return nil
 	})
 	return err

@@ -72,8 +72,10 @@ func init() {
 	r.HandleFunc("/newMember/", handlerWrapper(newMemberHandler)).Methods("POST")
 	r.HandleFunc("/newGroup/", handlerWrapper(newGroupHandler)).Methods("POST")
 	r.HandleFunc("/newVote/", handlerWrapper(newVoteHandler)).Methods("POST")
+	r.HandleFunc("/newTag/", handlerWrapper(newTagHandler)).Methods("POST")
 	r.HandleFunc("/deleteSubscription/", handlerWrapper(deleteSubscriptionHandler)).Methods("POST")
 	r.HandleFunc("/deletePage/", handlerWrapper(deletePageHandler)).Methods("POST")
+	r.HandleFunc("/deleteTag/", handlerWrapper(deleteTagHandler)).Methods("POST")
 	r.HandleFunc("/revertPage/", handlerWrapper(revertPageHandler)).Methods("POST")
 	r.HandleFunc("/json/similarPageSearch/", handlerWrapper(similarPageSearchJsonHandler)).Methods("POST")
 

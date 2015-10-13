@@ -269,3 +269,59 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 		});
 	}
 });
+
+// Directive for showing a the panel with tags.
+app.directive("arbTagsPanel", function(pageService, userService, autocompleteService, $timeout, $http) {
+	return {
+		templateUrl: "/static/html/tagsPanel.html",
+		scope: {
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.page = pageService.primaryPage;
+			if (!scope.page.taggedIds) {
+				scope.page.taggedIds = [];
+			}
+			
+			// Setup autocomplete for input field.
+			autocompleteService.setupParentsAutocomplete(element.find(".tag-input"), function(event, ui) {
+				var data = {
+					parentId: scope.page.pageId,
+					childId: ui.item.label,
+				};
+				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
+					.error(function(data, status){
+						console.log("Error creating tag:"); console.log(data); console.log(status);
+					});
+
+				scope.page.taggedIds.push(data.childId);
+				scope.$apply();
+				$(event.target).val("");
+				return false;
+			});
+
+			// Process deleting tags.
+			element.on("click", ".delete-tag-link", function(event) {
+				var $target = $(event.target);
+				var data = {
+					parentId: scope.page.pageId,
+					childId: $target.attr("page-id"),
+				};
+				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
+					.error(function(data, status){
+						console.log("Error deleting tag:"); console.log(data); console.log(status);
+					});
+
+				scope.page.taggedIds.splice(scope.page.taggedIds.indexOf(data.childId), 1);
+				scope.$apply();
+			});
+
+			$timeout(function() {
+				// Set the rendering for tags autocomplete
+				autocompleteService.setAutocompleteRendering(element.find(".tag-input"), scope);
+			});
+		},
+	};
+});
+

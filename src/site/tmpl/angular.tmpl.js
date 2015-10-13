@@ -417,11 +417,12 @@ app.service("pageService", function(userService, $http){
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)}).
-			success(function(data, status){
+		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)})
+			.success(function(data, status){
 				console.log("Successfully deleted " + pageId);
 				if(success) success(data, status);
-			}).error(function(data, status){
+			})
+			.error(function(data, status){
 				console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}
@@ -437,7 +438,8 @@ app.service("pageService", function(userService, $http){
 			success(function(data, status){
 				console.log("Successfully abandoned " + pageId);
 				if(success) success(data, status);
-			}).error(function(data, status){
+			})
+			.error(function(data, status){
 				console.log("Error abandoning " + pageId + ":"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}

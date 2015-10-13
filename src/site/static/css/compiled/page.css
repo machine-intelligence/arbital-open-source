@@ -486,6 +486,36 @@
   position: absolute;
   z-index: 1;
 }
+.page-tag-row {
+  margin-bottom: 10px;
+}
+.delete-tag-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+  float: left;
+  margin-right: 10px;
+}
+.delete-tag-link.on {
+  color: #5050FF;
+}
+.delete-tag-link.on:focus {
+  color: #5050FF;
+}
+.delete-tag-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.delete-tag-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.delete-tag-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
 .title-span {
   white-space: normal;
 }
