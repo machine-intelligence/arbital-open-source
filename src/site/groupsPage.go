@@ -19,8 +19,7 @@ var groupsPage = newPage(
 	"/groups/",
 	groupsRenderer,
 	append(baseTmpls,
-		"tmpl/groupsPage.tmpl", "tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/groupsPage.tmpl", "tmpl/angular.tmpl.js"))
 
 // groupsRenderer renders the page page.
 func groupsRenderer(params *pages.HandlerParams) *pages.Result {

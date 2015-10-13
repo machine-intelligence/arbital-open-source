@@ -23,7 +23,7 @@
 </head>
 
 <body ng-app="arbital" ng-controller="ArbitalCtrl">
-{{template "navbar" .User}}
+<arb-navbar></arb-navbar>
 
 <!-- This modal is for inserting new links. -->
 <arb-new-link-modal></arb-new-link-modal>
@@ -47,7 +47,7 @@
 	{{end}}
 {{end}}
 
-{{template "footer"}}
+<arb-footer></arb-footer>
 </body>
 </html>
 {{end}}

@@ -15,8 +15,7 @@ var errorPage = newPage(
 	"/error/",
 	nil,
 	append(baseTmpls,
-		"tmpl/errorPage.tmpl", "tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/errorPage.tmpl", "tmpl/angular.tmpl.js"))
 
 // everyThing serves the "error" page.
 var page404 = newPage(

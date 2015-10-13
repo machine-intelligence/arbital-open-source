@@ -26,7 +26,7 @@
 </head>
 
 <body ng-app="arbital" ng-controller="ArbitalCtrl">
-{{template "navbar" .User}}
+<arb-navbar></arb-navbar>
 
 <div class="filter-body-div" ng-controller="MainCtrl">
 	{{range $k, $v := .GroupMap}}
@@ -97,7 +97,7 @@
 	{{end}}
 </div>
 
-{{template "footer"}}
+<arb-footer></arb-footer>
 </body>
 </html>
 {{end}}

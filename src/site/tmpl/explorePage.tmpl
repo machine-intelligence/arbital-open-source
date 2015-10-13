@@ -29,13 +29,13 @@
 </head>
 
 <body ng-app="arbital" ng-controller="ArbitalCtrl">
-	{{template "navbar" .User}}
+	<arb-navbar></arb-navbar>
 	
 	<div class="filter-body-div" ng-controller="ExploreCtrl">
 		<arb-page-tree init-map="rootPages" additional-map="childPages" supersize-roots="true"></arb-page-tree>
 	</div>
 	
-	{{template "footer"}}
+	<arb-footer></arb-footer>
 </body>
 </html>
 {{end}}

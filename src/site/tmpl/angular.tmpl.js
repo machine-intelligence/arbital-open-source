@@ -777,6 +777,27 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 
 // =============================== DIRECTIVES =================================
 
+// navbar directive displays the navbar at the top of each page
+app.directive("arbNavbar", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/navbar.html",
+		scope: {
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.user = userService.user;
+		},
+	};
+});
+
+// footer directive displays the page's footer
+app.directive("arbFooter", function() {
+	return {
+		templateUrl: "/static/html/footer.html",
+	};
+});
+
 // userName directive displayes a user's name.
 app.directive("arbUserName", function(userService) {
 	return {

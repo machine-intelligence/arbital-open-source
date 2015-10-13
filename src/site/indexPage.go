@@ -26,9 +26,7 @@ var indexPage = newPageWithOptions(
 	indexRenderer,
 	append(baseTmpls,
 		"tmpl/indexPage.tmpl",
-		"tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl",
-		"tmpl/footer.tmpl"),
+		"tmpl/angular.tmpl.js"),
 	pages.PageOptions{})
 
 // indexRenderer renders the index page.

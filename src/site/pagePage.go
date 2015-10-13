@@ -36,8 +36,7 @@ var pagePage = newPageWithOptions(
 	pageRenderer,
 	append(baseTmpls,
 		"tmpl/pagePage.tmpl",
-		"tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl"), pageOptions)
+		"tmpl/angular.tmpl.js"), pageOptions)
 
 // pageRenderer renders the page page.
 func pageRenderer(params *pages.HandlerParams) *pages.Result {

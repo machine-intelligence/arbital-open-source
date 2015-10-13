@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl")
+	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/angular.tmpl.js")
 	editPageOptions = pages.PageOptions{RequireLogin: true}
 )
 
