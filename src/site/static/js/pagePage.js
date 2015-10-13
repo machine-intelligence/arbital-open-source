@@ -280,22 +280,22 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.page = pageService.primaryPage;
-			if (!scope.page.taggedIds) {
-				scope.page.taggedIds = [];
+			if (!scope.page.taggedAsIds) {
+				scope.page.taggedAsIds = [];
 			}
 			
 			// Setup autocomplete for input field.
 			autocompleteService.setupParentsAutocomplete(element.find(".tag-input"), function(event, ui) {
 				var data = {
-					parentId: scope.page.pageId,
-					childId: ui.item.label,
+					parentId: ui.item.label,
+					childId: scope.page.pageId,
 				};
 				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
 					.error(function(data, status){
 						console.log("Error creating tag:"); console.log(data); console.log(status);
 					});
 
-				scope.page.taggedIds.push(data.childId);
+				scope.page.taggedAsIds.push(data.parentId);
 				scope.$apply();
 				$(event.target).val("");
 				return false;
@@ -305,15 +305,15 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 			element.on("click", ".delete-tag-link", function(event) {
 				var $target = $(event.target);
 				var data = {
-					parentId: scope.page.pageId,
-					childId: $target.attr("page-id"),
+					parentId: $target.attr("page-id"),
+					childId: scope.page.pageId,
 				};
 				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
 					.error(function(data, status){
 						console.log("Error deleting tag:"); console.log(data); console.log(status);
 					});
 
-				scope.page.taggedIds.splice(scope.page.taggedIds.indexOf(data.childId), 1);
+				scope.page.taggedAsIds.splice(scope.page.taggedAsIds.indexOf(data.parentId), 1);
 				scope.$apply();
 			});
 

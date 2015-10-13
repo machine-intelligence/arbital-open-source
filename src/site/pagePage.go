@@ -148,9 +148,9 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load taggeds ids
-	err = core.LoadTaggedIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	err = core.LoadTaggedAsIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
 	if err != nil {
-		return pages.Fail("Couldn't load tagged", err)
+		return pages.Fail("Couldn't load tagged as", err)
 	}
 
 	// Load parents
