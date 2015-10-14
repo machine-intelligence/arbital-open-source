@@ -22,14 +22,14 @@ var exploreAllPage = newPage(
 	"/explore/",
 	exploreRenderer,
 	append(baseTmpls,
-		"tmpl/explorePage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/explorePage.tmpl", "tmpl/angular.tmpl.js"))
 
 // explorePage serves the Explore page.
 var explorePage = newPage(
 	fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
 	exploreRenderer,
 	append(baseTmpls,
-		"tmpl/explorePage.tmpl", "tmpl/angular.tmpl.js", "tmpl/navbar.tmpl", "tmpl/footer.tmpl"))
+		"tmpl/explorePage.tmpl", "tmpl/angular.tmpl.js"))
 
 // exploreRenderer renders the explore page.
 func exploreRenderer(params *pages.HandlerParams) *pages.Result {

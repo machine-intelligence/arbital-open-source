@@ -23,7 +23,7 @@ var signupPage = newPageWithOptions(
 	"/signup/",
 	signupRenderer,
 	append(baseTmpls,
-		"tmpl/signupPage.tmpl", "tmpl/navbar.tmpl"),
+		"tmpl/signupPage.tmpl"),
 	pages.PageOptions{})
 
 // signupRenderer renders the signup page.

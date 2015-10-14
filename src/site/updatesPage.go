@@ -18,7 +18,6 @@ var updatesPage = newPageWithOptions(
 	updatesRenderer,
 	append(baseTmpls,
 		"tmpl/updatesPage.tmpl",
-		"tmpl/navbar.tmpl", "tmpl/footer.tmpl",
 		"tmpl/angular.tmpl.js"),
 	pages.PageOptions{RequireLogin: true})
 

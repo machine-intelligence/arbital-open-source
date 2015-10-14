@@ -596,36 +596,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		$location.search("lastVisit", null);
 	}
 
-	// Function for getting search results from the server.
-	var searchSource = function(request, callback) {
-		$http({method: "GET", url: "/json/search/", params: {term: request.term}})
-		.success(function(data, status){
-			var resultMap = autocompleteService.processAutocompleteResults(data);
-			callback(resultMap);
-		})
-		.error(function(data, status){
-			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
-		});
-	};
-
-	// Setup search via navbar.
-	var $navSearch = $("#nav-search");
-	if ($navSearch.length > 0) {
-		$navSearch.autocomplete({
-			source: searchSource,
-			minLength: 3,
-			delay: 400,
-			focus: function (event, ui) {
-				return false;
-			},
-			select: function (event, ui) {
-				window.location.href = "/pages/" + ui.item.value;
-				return false;
-			},
-		});
-		autocompleteService.setAutocompleteRendering($navSearch, $scope);
-	}
-
 	// Check when user hovers over intrasite links, and show a popover.
 	$("body").on("mouseenter", ".intrasite-link", function(event) {
 		var $target = $(event.currentTarget);
@@ -795,6 +765,61 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 
 
 // =============================== DIRECTIVES =================================
+
+// navbar directive displays the navbar at the top of each page
+app.directive("arbNavbar", function(pageService, userService, autocompleteService, $http) {
+	return {
+		templateUrl: "/static/html/navbar.html",
+		scope: {
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.user = userService.user;
+
+			$("#logout").click(function() {
+				$.removeCookie("zanaduu", {path: "/"});
+			});
+
+			// Function for getting search results from the server.
+			var searchSource = function(request, callback) {
+				$http({method: "GET", url: "/json/search/", params: {term: request.term}})
+				.success(function(data, status){
+					var resultMap = autocompleteService.processAutocompleteResults(data);
+					callback(resultMap);
+				})
+				.error(function(data, status){
+					console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
+				});
+			};
+
+			// Setup search via navbar.
+			var $navSearch = element.find("#nav-search");
+			if ($navSearch.length > 0) {
+				$navSearch.autocomplete({
+					source: searchSource,
+					minLength: 3,
+					delay: 400,
+					focus: function (event, ui) {
+						return false;
+					},
+					select: function (event, ui) {
+						window.location.href = "/pages/" + ui.item.value;
+						return false;
+					},
+				});
+				autocompleteService.setAutocompleteRendering($navSearch, scope);
+			}
+		},
+	};
+});
+
+// footer directive displays the page's footer
+app.directive("arbFooter", function() {
+	return {
+		templateUrl: "/static/html/footer.html",
+	};
+});
 
 // userName directive displayes a user's name.
 app.directive("arbUserName", function(userService) {

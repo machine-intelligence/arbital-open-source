@@ -29,9 +29,7 @@ var domainIndexPage = newPageWithOptions(
 	domainIndexRenderer,
 	append(baseTmpls,
 		"tmpl/domainIndexPage.tmpl",
-		"tmpl/angular.tmpl.js",
-		"tmpl/navbar.tmpl",
-		"tmpl/footer.tmpl"),
+		"tmpl/angular.tmpl.js"),
 	pages.PageOptions{})
 
 // domainIndexRenderer renders the domain index page.

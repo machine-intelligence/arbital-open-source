@@ -1,0 +1,65 @@
+<!-- Template for the navbar, the navigation drop down menu shown at the top right of some pages -->
+<nav class="navbar navbar-default">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<a class="navbar-brand" href="/">Arbital</a>
+		</div>
+		<div class="navbar-text" ng-show="user.domainAlias">
+			<a ng-href="/explore/{[{user.domainAlias}]}" class="navbar-link">Explore</a>
+		</div>
+		<ul class="nav navbar-nav navbar-right">
+				<li ng-show="user.isLoggedIn">
+					<a href="/edit">+New Page</a>
+				</li>
+				<li ng-show="user.isLoggedIn">
+					<a href="/updates">
+						Updates <span class="badge" ng-class="{'alert-danger': user.updateCount > 0}" ng-bind="user.updateCount"></span>
+					</a>
+				</li>
+				<li class="dropdown" ng-show="user.isLoggedIn">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+						<span ng-bind="user.email"></span>
+						<span class="karma badge" ng-bind="user.karma"></span>
+						<span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu" role="menu">
+						<li ng-show="user.isAdmin"><a class="admin" href="/domains">All Domains</a></li>
+						<li class="divider" ng-show="user.isAdmin"></li>
+						<li><a ng-href="{[{userService.getUserUrl(user.id)}]}">My Profile</a></li>
+						<li><a ng-href="/groups">My Groups</a></li>
+						<li><a ng-href="{[{user.logoutLink}]}" id="logout">Log Out</a></li>
+					</ul>
+				</li>
+				<li ng-hide="user.isLoggedIn"><a ng-href="/signup/?continueUrl={[{user.currentUrl}]}">Sign Up</a></li>
+				<li ng-hide="user.isLoggedIn"><a ng-href="{[{user.loginLink}]}?continueUrl={[{user.currentUrl}]}">Log In</a></li>
+		</ul>
+	</div>
+</nav>
+<input type="text" id="nav-search" class="nav-search form-control" placeholder="Search">
+
+<!-- ======= Collection of commonly popover templates ======= -->
+
+<!-- This div shows up when the user tries to take an action that requires them to be logged in. -->
+<div id="signup-popover-template" hidden>
+	<div class="popover-summary">
+		You have to be logged in.
+	</div>
+</div>
+
+<!-- This div shows up when the user hovers over an intra-site link. -->
+<div id="link-popover-template" hidden>
+	<div class="popover-blog-owner"></div>
+	<span class="popover-summary markdown-text"></span>
+
+	<!-- Likes / dislikes and approval voting -->
+	<div class="like-span">
+		<span class="like-count">JS inserts likes</span>
+		<span class="disabled-like glyphicon glyphicon-thumbs-up"></span>
+		&nbsp;
+		<span class="dislike-count">JS inserts dislikes</span>
+		<span class="disabled-dislike glyphicon glyphicon-thumbs-down"></span>
+	</div>
+
+	<!-- Answers and probability votes -->
+	<div class="vote"></div>
+</div>

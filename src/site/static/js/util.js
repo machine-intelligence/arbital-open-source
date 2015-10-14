@@ -3,7 +3,7 @@ var keepDivFixed = function($div, offsetY) {
 	// Make sure it's always in the top right corner.
 	var divIsFixed = false;
 	$div.css("left", $div.offset().left);
-	var initialY = $div.offset().top;
+	var initialY = $div.offset().top + 20;
 	var qButtonOffsetY = 20;
 	$(window).scroll(function(){
 		var isFixed = $(window).scrollTop() > (initialY - qButtonOffsetY);
