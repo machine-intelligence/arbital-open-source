@@ -63,6 +63,7 @@ func init() {
 	r.HandleFunc("/json/edit/", handlerWrapper(editJsonHandler)).Methods("GET")
 	r.HandleFunc("/json/children/", handlerWrapper(childrenJsonHandler)).Methods("GET")
 	r.HandleFunc("/json/parents/", handlerWrapper(parentsJsonHandler)).Methods("GET")
+	r.HandleFunc("/json/similarPageSearch/", handlerWrapper(similarPageSearchJsonHandler)).Methods("POST")
 
 	// POST handlers (API)
 	r.HandleFunc("/abandonPage/", handlerWrapper(abandonPageHandler)).Methods("POST")
@@ -77,7 +78,7 @@ func init() {
 	r.HandleFunc("/deletePage/", handlerWrapper(deletePageHandler)).Methods("POST")
 	r.HandleFunc("/deleteTag/", handlerWrapper(deleteTagHandler)).Methods("POST")
 	r.HandleFunc("/revertPage/", handlerWrapper(revertPageHandler)).Methods("POST")
-	r.HandleFunc("/json/similarPageSearch/", handlerWrapper(similarPageSearchJsonHandler)).Methods("POST")
+	r.HandleFunc("/updateMastery/", handlerWrapper(updateMasteryHandler)).Methods("POST")
 
 	// Admin stuff
 	r.HandleFunc("/fixText/", handlerWrapper(fixTextHandler)).Methods("GET")

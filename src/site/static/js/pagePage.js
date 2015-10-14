@@ -289,6 +289,7 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 				var data = {
 					parentId: ui.item.label,
 					childId: scope.page.pageId,
+					type: "tag",
 				};
 				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
 					.error(function(data, status){
@@ -315,6 +316,67 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 
 				scope.page.taggedAsIds.splice(scope.page.taggedAsIds.indexOf(data.parentId), 1);
 				scope.$apply();
+			});
+
+			$timeout(function() {
+				// Set the rendering for tags autocomplete
+				autocompleteService.setAutocompleteRendering(element.find(".tag-input"), scope);
+			});
+		},
+	};
+});
+
+// Directive for showing a the panel with requirements.
+app.directive("arbRequirementsPanel", function(pageService, userService, autocompleteService, $timeout, $http) {
+	return {
+		templateUrl: "/static/html/requirementsPanel.html",
+		scope: {
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.page = pageService.primaryPage;
+			if (!scope.page.requirementIds) {
+				scope.page.requirementIds = [];
+			}
+			
+			// Setup autocomplete for input field.
+			autocompleteService.setupParentsAutocomplete(element.find(".tag-input"), function(event, ui) {
+				var data = {
+					parentId: scope.page.pageId,
+					childId: ui.item.label,
+					type: "requirement",
+				};
+				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
+					.error(function(data, status){
+						console.log("Error creating requirement:"); console.log(data); console.log(status);
+					});
+
+				pageService.masteryMap[data.childId] = {pageId: data.childId, isMet: true, isManuallySet: true};
+				scope.page.requirementIds.push(data.childId);
+				scope.$apply();
+				$(event.target).val("");
+				return false;
+			});
+
+			// Process deleting requirements.
+			element.on("click", ".delete-requirement-link", function(event) {
+				var $target = $(event.target);
+				var data = {
+					parentId: scope.page.pageId,
+					childId: $target.attr("page-id"),
+				};
+				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
+					.error(function(data, status){
+						console.log("Error deleting requirement:"); console.log(data); console.log(status);
+					});
+
+				scope.page.requirementIds.splice(scope.page.requirementIds.indexOf(data.childId), 1);
+				scope.$apply();
+			});
+
+			element.on("click", ".requirement-not-met", function(event) {
+				pageService.updateMastery(scope, $(event.target).attr("page-id"), true);
 			});
 
 			$timeout(function() {

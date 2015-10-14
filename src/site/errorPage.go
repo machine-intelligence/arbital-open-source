@@ -2,6 +2,8 @@
 package site
 
 import (
+	"fmt"
+
 	"zanaduu3/src/pages"
 )
 
@@ -26,7 +28,7 @@ var page404 = newPage(
 
 // renderer404 renders the error page.
 func renderer404(params *pages.HandlerParams) *pages.Result {
-	return pages.Fail("Page not found :(", nil)
+	return pages.Fail("Page not found :(", fmt.Errorf("Not found"))
 }
 
 // renderErrorPage is a custom fallback renderer so we can render an error

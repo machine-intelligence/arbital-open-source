@@ -234,6 +234,14 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 			}
 		}
 
+		// Process mastery events.
+		$topParent.find(".claim-mastery").on("click", function(event) {
+			pageService.updateMastery(scope, pageId, true);
+		});
+		$topParent.find(".discard-mastery").on("click", function(event) {
+			pageService.updateMastery(scope, pageId, false);
+		});
+
 		// Set up markdown.
 		arbMarkdown.init(false, pageId, page.text, $topParent, pageService, userService);
 
@@ -293,8 +301,10 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 	return {
 		templateUrl: "/static/html/page.html",
 		controller: function ($scope, pageService, userService) {
+			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.mastery = pageService.masteryMap[$scope.pageId];
 			$scope.questionIds = [];
 			for (var n = 0; n < $scope.page.children.length; n++) {
 				var id = $scope.page.children[n].childId;

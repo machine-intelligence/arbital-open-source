@@ -36,6 +36,8 @@ type commonPageData struct {
 	UserMap map[int64]*core.User
 	// Map of groups
 	GroupMap map[int64]*core.Group
+	// Map of masteries
+	MasteryMap map[int64]*core.Mastery
 	// Primary domain
 	Domain *core.Group
 }
@@ -107,12 +109,24 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				"GetUserUrl": func(userId int64) string {
 					return core.GetUserUrl(userId)
 				},
-				"GetUserJson": func() template.JS {
+				"GetCurrentUserJson": func() template.JS {
+					jsonData, _ := json.Marshal(u)
+					return template.JS(string(jsonData))
+				},
+				"GetUserJson": func(u *core.User) template.JS {
 					jsonData, _ := json.Marshal(u)
 					return template.JS(string(jsonData))
 				},
 				"GetPageJson": func(p *core.Page) template.JS {
 					jsonData, _ := json.Marshal(p)
+					return template.JS(string(jsonData))
+				},
+				"GetGroupJson": func(g *core.Group) template.JS {
+					jsonData, _ := json.Marshal(g)
+					return template.JS(string(jsonData))
+				},
+				"GetMasteryJson": func(m *core.Mastery) template.JS {
+					jsonData, _ := json.Marshal(m)
 					return template.JS(string(jsonData))
 				},
 				"GetPageUrl": func(p *core.Page) string {
@@ -136,18 +150,19 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// Helper func to when an error occurs and we should render error page.
-		fail := func(message string, err error) {
+		fail := func(responseCode int, message string, err error) {
 			c.Inc(fmt.Sprintf("%s-fail", r.URL.Path))
 			c.Errorf("%s: %v", message, err)
 			result := renderErrorPage(&params, message)
 			addFuncMap(result, params.U)
+			w.WriteHeader(responseCode)
 			errorPage.ServeHTTP(w, r, result)
 		}
 
 		// Open DB connection
 		db, err := database.GetDB(c)
 		if err != nil {
-			fail("Couldn't open DB", err)
+			fail(http.StatusInternalServerError, "Couldn't open DB", err)
 			return
 		}
 		params.DB = db
@@ -157,7 +172,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		if !p.Options.SkipLoadingUser {
 			u, err = user.LoadUser(w, r, db)
 			if err != nil {
-				fail("Couldn't load user", err)
+				fail(http.StatusInternalServerError, "Couldn't load user", err)
 				return
 			}
 			params.U = u
@@ -169,10 +184,10 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				return
 			}
 			if p.Options.RequireLogin && !u.IsLoggedIn {
-				fail("Have to be logged in", nil)
+				fail(http.StatusBadRequest, "Have to be logged in", nil)
 			}
 			if p.Options.AdminOnly && !u.IsAdmin {
-				fail("Have to be an admin", nil)
+				fail(http.StatusBadRequest, "Have to be an admin", nil)
 			}
 			if u.Id > 0 {
 				statement := db.NewStatement(`
@@ -180,11 +195,11 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 						SET lastWebsiteVisit=?
 						WHERE id=?`)
 				if _, err := statement.Exec(database.Now(), u.Id); err != nil {
-					fail("Couldn't update users", err)
+					fail(http.StatusInternalServerError, "Couldn't update users", err)
 				}
 				// Load the groups the user belongs to.
 				if err = core.LoadUserGroups(db, u); err != nil {
-					fail("Couldn't load user groups", err)
+					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
 				}
 			}
 		}
@@ -193,7 +208,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		result := p.Render(&params)
 		if result.Data == nil {
 			c.Debugf("Primary renderer failed")
-			fail(result.Message, result.Err)
+			fail(result.ResponseCode, result.Message, result.Err)
 			return
 		}
 
@@ -202,7 +217,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			// Load updates count. (Loading it afterwards since it could be affected by the page)
 			u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
 			if err != nil {
-				fail("Couldn't retrieve updates count", err)
+				fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
 			}
 		}
 

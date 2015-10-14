@@ -122,8 +122,9 @@ func StatusFail(data interface{}) *Result {
 // Fail returns a Result that indicates failure to render.
 func Fail(message string, err error) *Result {
 	return &Result{
-		Message: message,
-		Err:     err,
+		ResponseCode: http.StatusBadRequest,
+		Message:      message,
+		Err:          err,
 	}
 }
 

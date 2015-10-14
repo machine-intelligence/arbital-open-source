@@ -159,6 +159,13 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		return pages.Fail("Couldn't load related", err)
 	}
 
+	// Load requirement ids
+	data.MasteryMap = make(map[int64]*core.Mastery)
+	err = core.LoadRequirements(db, u.Id, data.PageMap, data.MasteryMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	if err != nil {
+		return pages.Fail("Couldn't load requirements", err)
+	}
+
 	// Load parents
 	err = core.LoadParentsIds(db, data.PageMap, core.LoadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
 	if err != nil {

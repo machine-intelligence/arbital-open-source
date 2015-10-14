@@ -19,16 +19,11 @@ app.config(function($interpolateProvider, $locationProvider){
 // User service.
 app.service("userService", function(){
 	// Logged in user.
-	this.user = {{GetUserJson}};
+	this.user = {{GetCurrentUserJson}};
 	this.userMap = {
 		{{if .UserMap}}
-			{{range .UserMap}}
-				"{{.Id}}": {
-					id: "{{.Id}}",
-					firstName: "{{.FirstName}}",
-					lastName: "{{.LastName}}",
-					isSubscribed: {{.IsSubscribed}},
-				},
+			{{range $k,$v := .UserMap}}
+				"{{$k}}": {{GetUserJson $v}},
 			{{end}}
 		{{end}}
 	};
@@ -41,15 +36,8 @@ app.service("userService", function(){
 	// Loaded groups.
 	this.groupMap = {
 		{{if .GroupMap}}
-			{{range .GroupMap}}
-				"{{.Id}}": {
-					id: "{{.Id}}",
-					name: "{{.Name}}",
-					alias: "{{.Alias}}",
-					isVisible: "{{.IsVisible}}",
-					rootPageId: "{{.RootPageId}}",
-					createdAt: "{{.CreatedAt}}",
-				},
+			{{range $k,$v := .GroupMap}}
+				"{{$k}}": {{GetGroupJson $v}},
 			{{end}}
 		{{end}}
 	};
@@ -85,11 +73,45 @@ app.service("userService", function(){
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
 app.service("pageService", function(userService, $http){
+	var that = this;
+
 	// All loaded pages.
 	this.pageMap = {
 		{{range $k,$v := .PageMap}}
 			"{{$k}}": {{GetPageJson $v}},
 		{{end}}
+	};
+
+	// All loaded masteries.
+	this.masteryMap = {
+		{{range $k,$v := .MasteryMap}}
+			"{{$k}}": {{GetMasteryJson $v}},
+		{{end}}
+	};
+
+	// Update whether on not the user has a mastery.
+	this.updateMastery = function(scope, masteryId, has) {
+		var mastery = that.masteryMap[masteryId];
+		if (!mastery) {
+			mastery = {pageId: masteryId};
+			that.masteryMap[masteryId] = mastery;
+		}
+		mastery.has = has;
+		mastery.isManuallySet = true;
+		scope.$apply();
+
+		// Send POST request.
+		var data = {
+			masteryId: masteryId,
+			has: has,
+		};
+		$.ajax({
+			type: "POST",
+			url: "/updateMastery/",
+			data: JSON.stringify(data),
+		}).fail(function(r) {
+			console.log("Failed to claim mastery:"); console.log(r);
+		});
 	};
 
 	// Primary page is the one that's displayed front and center.

@@ -72,10 +72,17 @@
 		<!-- Main page text. Populated by markdown. -->
 		<div class="page-text markdown-text"></div>
 
-		<!--Admin stuff -->
-		<span class="admin" ng-show="userService.user.isAdmin">
-			Last Visit: {[{page.lastVisit}]}; Last Edit At: {[{page.createdAt}]} by <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name>
-		</span>
+		<!-- Mastery container -->
+		<div class="mastery-div">
+			<button class="discard-mastery btn btn-success" title="Click to discard this mastery" ng-show="mastery.has">
+				<span ng-show="mastery.isManuallySet">You have this mastery (manual).</span>
+				<span ng-hide="mastery.isManuallySet">You have this mastery.</span>
+			</button>
+			<button class="claim-mastery btn btn-info" title="Click to claim this mastery" ng-hide="mastery.has">
+				<span ng-show="mastery.isManuallySet">You don't have this mastery (manual).</span>
+				<span ng-hide="mastery.isManuallySet">Click to claim this mastery.</span>
+			</button>
+		</div>
 	</div>
 
 	<div class="clearfix"></div>

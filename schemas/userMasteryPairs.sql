@@ -8,9 +8,9 @@ CREATE TABLE userMasteryPairs (
   createdAt DATETIME NOT NULL,
   /* Date this entry was updated. */
   updatedAt DATETIME NOT NULL,
-	/* Level of the mastery as determined by our system. */
-	level FLOAT NOT NULL,
-	/* Level of the master as set directly by the user. */
-	setLevel FLOAT NOT NULL,
+	/* Set if the user has this mastery. */
+	has BOOLEAN NOT NULL,
+	/* Set if the user manually set the 'has' value. */
+	isManuallySet BOOLEAN NOT NULL,
   PRIMARY KEY(userId,masteryId)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

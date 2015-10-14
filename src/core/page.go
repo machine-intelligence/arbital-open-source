@@ -20,8 +20,9 @@ const (
 	DeletedPageType  = "deleted"
 
 	// Various types of page connections.
-	ParentPagePairType = "parent"
-	TagPagePairType    = "tag"
+	ParentPagePairType      = "parent"
+	TagPagePairType         = "tag"
+	RequirementPagePairType = "requirement"
 
 	// Various types of updates a user can get.
 	TopLevelCommentUpdateType = "topLevelComment"
@@ -136,9 +137,10 @@ type Page struct {
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
 
 	// Subpages.
-	SubpageIds  []string `json:"subpageIds"`
-	TaggedAsIds []string `json:"taggedAsIds"`
-	RelatedIds  []string `json:"relatedIds"`
+	SubpageIds     []string `json:"subpageIds"`
+	TaggedAsIds    []string `json:"taggedAsIds"`
+	RelatedIds     []string `json:"relatedIds"`
+	RequirementIds []string `json:"requirementIds"`
 
 	// Domains.
 	DomainIds []string `json:"domainIds"`
@@ -161,6 +163,14 @@ type PagePair struct {
 	ParentId int64  `json:"parentId,string"`
 	ChildId  int64  `json:"childId,string"`
 	Type     string `json:"type"`
+}
+
+// Mastery is a page you should have mastered before you can understand another page.
+type Mastery struct {
+	PageId        int64  `json:"pageId,string"`
+	Has           bool   `json:"has"`
+	UpdatedAt     string `json:"updatedAt"`
+	IsManuallySet bool   `json:"isManuallySet"`
 }
 
 // LoadPageOptions describes options for loading page(s) from the db
@@ -848,6 +858,72 @@ func LoadRelatedIds(db *database.DB, pageMap map[int64]*Page, options LoadChildr
 		return nil
 	})
 	return err
+}
+
+// LoadRequirements for each page in the source map loads the ids of the pages that it has as a requirement.
+func LoadRequirements(db *database.DB, userId int64, pageMap map[int64]*Page, masteryMap map[int64]*Mastery, options LoadChildrenIdsOptions) error {
+	sourcePageMap := pageMap
+	if options.ForPages != nil {
+		sourcePageMap = options.ForPages
+	}
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(sourcePageMap)
+	masteryIds := make([]interface{}, 0)
+	masteryIds = append(masteryIds, pageIds...)
+
+	// Load the requirements for all pages
+	rows := database.NewQuery(`
+		SELECT parentId,childId
+		FROM pagePairs
+		WHERE type=?`, RequirementPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
+		`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var parentId, childId int64
+		err := rows.Scan(&parentId, &childId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for requirement: %v", err)
+		}
+		parent := sourcePageMap[parentId]
+		masteryIds = append(masteryIds, childId)
+		parent.RequirementIds = append(parent.RequirementIds, fmt.Sprintf("%d", childId))
+		if _, ok := pageMap[childId]; !ok {
+			pageMap[childId] = &Page{PageId: childId}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Load what requirements the user has met
+	rows = database.NewQuery(`
+		SELECT masteryId,updatedAt,has,isManuallySet
+		FROM userMasteryPairs
+		WHERE userId=?`, userId).Add(`AND masteryId IN`).AddArgsGroup(masteryIds).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var mastery Mastery
+		err := rows.Scan(&mastery.PageId, &mastery.UpdatedAt, &mastery.Has, &mastery.IsManuallySet)
+		if err != nil {
+			return fmt.Errorf("failed to scan for mastery: %v", err)
+		}
+		masteryMap[mastery.PageId] = &mastery
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// Go through all the pages for which we loaded masteries, and if we haven't
+	// loaded a mastery for it, just create one.
+	for _, id := range masteryIds {
+		masteryId := id.(int64)
+		if _, ok := masteryMap[masteryId]; !ok {
+			masteryMap[masteryId] = &Mastery{PageId: masteryId}
+		}
+	}
+	return nil
 }
 
 type LoadParentsIdsOptions struct {

@@ -4,7 +4,6 @@ package site
 import (
 	"encoding/json"
 
-	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
@@ -13,6 +12,7 @@ import (
 type newTagData struct {
 	ParentId int64 `json:",string"`
 	ChildId  int64 `json:",string"`
+	Type     string
 }
 
 // newTagHandler handles requests for adding a new tag.
@@ -37,7 +37,7 @@ func newTagHandler(params *pages.HandlerParams) *pages.Result {
 	hashmap := make(database.InsertMap)
 	hashmap["parentId"] = data.ParentId
 	hashmap["childId"] = data.ChildId
-	hashmap["type"] = core.TagPagePairType
+	hashmap["type"] = data.Type
 	statement := db.NewInsertStatement("pagePairs", hashmap, "parentId")
 	_, err = statement.Exec()
 	if err != nil {

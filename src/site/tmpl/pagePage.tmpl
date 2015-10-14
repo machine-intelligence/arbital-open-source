@@ -66,8 +66,16 @@
 			</div>
 		</div>
 
-		<!-- Tagged -->
-		<div class="panel panel-default" ng-show="page.taggedAsIds.length > 0">
+		<!-- Requirements -->
+		<div class="panel panel-default" ng-hide="page.isDeleted()">
+			<div class="panel-heading">Required Masteries</div>
+			<div class="panel-body">
+				<arb-requirements-panel></arb-requirements-panel>
+			</div>
+		</div>
+
+		<!-- Tagged As -->
+		<div class="panel panel-default" ng-hide="page.isDeleted()">
 			<div class="panel-heading">Tagged As</div>
 			<div class="panel-body">
 				<arb-tags-panel></arb-tags-panel>

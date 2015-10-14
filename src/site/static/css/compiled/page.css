@@ -516,6 +516,58 @@
   color: #8383ff;
   text-decoration: none;
 }
+.delete-requirement-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+  margin-right: 10px;
+}
+.delete-requirement-link.on {
+  color: #5050FF;
+}
+.delete-requirement-link.on:focus {
+  color: #5050FF;
+}
+.delete-requirement-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.delete-requirement-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.delete-requirement-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.requirement-not-met {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+  margin-right: 10px;
+}
+.requirement-not-met.on {
+  color: #5050FF;
+}
+.requirement-not-met.on:focus {
+  color: #5050FF;
+}
+.requirement-not-met:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.requirement-not-met:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.requirement-not-met:active {
+  color: #8383ff;
+  text-decoration: none;
+}
 .title-span {
   white-space: normal;
 }

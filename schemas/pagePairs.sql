@@ -7,6 +7,6 @@ CREATE TABLE pagePairs (
   childId BIGINT NOT NULL,
 	/* Type of the relationship. */
 	type VARCHAR(32) NOT NULL,
-  UNIQUE(parentId, childId),
+  UNIQUE(parentId, childId, type),
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
