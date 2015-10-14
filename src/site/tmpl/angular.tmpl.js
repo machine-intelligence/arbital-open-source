@@ -784,6 +784,9 @@ app.directive("arbNavbar", function(pageService, userService) {
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.user = userService.user;
+			$("#logout").click(function() {
+				$.removeCookie("zanaduu", {path: "/"});
+			});
 		},
 	};
 });

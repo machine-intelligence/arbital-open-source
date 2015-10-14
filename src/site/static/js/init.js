@@ -18,13 +18,6 @@ $(function() {
 	});
 });
 
-// Setup event handlers.
-$(function() {
-	$("#logout").click(function() {
-		$.removeCookie("zanaduu", {path: "/"});
-	});
-});
-
 // Setup things correctly.
 window.addEventListener("load", function () {
 	// Adjust the footer position.
