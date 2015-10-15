@@ -237,6 +237,31 @@ func newPageWithOptions(uri string, renderer pages.Renderer, tmpls []string, opt
 	return pages.Add(uri, renderer, &options, tmpls...)
 }
 
+// createReturnData puts together various maps into one "json" object, so we
+// can send it to the front-end.
+func createReturnData(pages map[int64]*core.Page, users map[int64]*core.User, masteries map[int64]*core.Mastery) map[string]interface{} {
+	returnPageData := make(map[string]*core.Page)
+	for k, v := range pages {
+		returnPageData[fmt.Sprintf("%d", k)] = v
+	}
+
+	returnUserData := make(map[string]*core.User)
+	for k, v := range users {
+		returnUserData[fmt.Sprintf("%d", k)] = v
+	}
+
+	returnMasteryData := make(map[string]*core.Mastery)
+	for k, v := range masteries {
+		returnMasteryData[fmt.Sprintf("%d", k)] = v
+	}
+
+	returnData := make(map[string]interface{})
+	returnData["pages"] = returnPageData
+	returnData["users"] = returnUserData
+	returnData["masteries"] = returnMasteryData
+	return returnData
+}
+
 // domain redirects to proper HTML domain if user arrives elsewhere.
 //
 // The need for this is e.g. for http://foo.rewards.xelaie.com/, which

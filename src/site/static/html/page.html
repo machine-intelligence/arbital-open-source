@@ -66,6 +66,9 @@
 		<arb-page-title page-id="{[{page.pageId}]}" class="page-title"></arb-page-title>
 		<div class="author-text" ng-show="page.type == 'blog'">by <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name></div>
 
+		<!-- Requirements -->
+		<arb-requirements-panel page-id="{[{page.pageId}]}"></arb-requirements-panel>
+
 		<!-- Voting container -->
 		<arb-vote-bar page-id="{[{page.pageId}]}" ng-show="page.hasVote"></arb-vote-bar>
 

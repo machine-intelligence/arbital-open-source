@@ -100,7 +100,7 @@ $(function() {
 });
 
 // MainCtrl is for the Page page.
-app.controller("MainCtrl", function($scope, $compile, $location, pageService, userService) {
+app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageService, userService) {
 	$scope.pageService = pageService;
 	$scope.$compile = $compile;
 	$scope.answerIds = [];
@@ -145,23 +145,23 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 		if (selection) {
 			pageView.showEditInlineSubpage($scope, selection, "question");
 		} else {
-		    $(document).trigger("new-page-modal-event", {
-			modalKey: "newQuestion",
-			parentPageId: pageService.primaryPage.pageId,
-			callback: function(result) {
-			    if (result.abandon) {
-				$scope.$apply(function() {
-				    pageService.primaryPage.childDraftId = 0;
-				});
-			    } else if (result.hidden) {
-				$scope.$apply(function() {
-				    pageService.primaryPage.childDraftId = result.alias;
-				});
-			    } else {
-				window.location.href = "/pages/" + result.alias;
-			    }
-			},
-		    });
+			$(document).trigger("new-page-modal-event", {
+				modalKey: "newQuestion",
+				parentPageId: pageService.primaryPage.pageId,
+				callback: function(result) {
+					if (result.abandon) {
+				 		$scope.$apply(function() {
+							pageService.primaryPage.childDraftId = 0;
+				 		});
+					} else if (result.hidden) {
+				 		$scope.$apply(function() {
+							pageService.primaryPage.childDraftId = result.alias;
+				 		});
+			 	 	} else {
+				 		window.location.href = "/pages/" + result.alias;
+			 	 	}
+				},
+			});
 		}
 	});
 
@@ -225,6 +225,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 	var performSwitchToLens = function(lensPage) {
 		pageService.setPrimaryPage(lensPage);
 		// Sigh. This generates an error, but it seems benign.
+		console.log("==== Error might generated, but it's not actually an error.... I think ====");
 		var url = window.location.pathname + "?lens=" + lensPage.pageId + window.location.hash;
 		history.pushState(null, lensPage.title + " - Arbital", url);
 	};
@@ -242,6 +243,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 				loadVotes: true, 
 				loadChildren: true,
 				loadChildDraft: true,
+				loadRequirements: true,
 				overwrite: true,
 				success: function(data, status) {
 					var page = pageService.pageMap[lensId];
@@ -263,7 +265,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, pageService, us
 	});
 	// Process url ?lens parameter.
 	var searchLensId = $location.search().lens;
-	if (searchLensId) {
+	if (searchLensId && searchLensId != pageService.primaryPage.pageId) {
 		switchToLens(searchLensId, function() {
 			$("[data-target='#lens-" + searchLensId + "']").tab("show");
 		});
@@ -325,65 +327,3 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 		},
 	};
 });
-
-// Directive for showing a the panel with requirements.
-app.directive("arbRequirementsPanel", function(pageService, userService, autocompleteService, $timeout, $http) {
-	return {
-		templateUrl: "/static/html/requirementsPanel.html",
-		scope: {
-		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = pageService.primaryPage;
-			if (!scope.page.requirementIds) {
-				scope.page.requirementIds = [];
-			}
-			
-			// Setup autocomplete for input field.
-			autocompleteService.setupParentsAutocomplete(element.find(".tag-input"), function(event, ui) {
-				var data = {
-					parentId: scope.page.pageId,
-					childId: ui.item.label,
-					type: "requirement",
-				};
-				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
-					.error(function(data, status){
-						console.log("Error creating requirement:"); console.log(data); console.log(status);
-					});
-
-				pageService.masteryMap[data.childId] = {pageId: data.childId, isMet: true, isManuallySet: true};
-				scope.page.requirementIds.push(data.childId);
-				scope.$apply();
-				$(event.target).val("");
-				return false;
-			});
-
-			// Process deleting requirements.
-			element.on("click", ".delete-requirement-link", function(event) {
-				var $target = $(event.target);
-				var data = {
-					parentId: scope.page.pageId,
-					childId: $target.attr("page-id"),
-				};
-				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
-					.error(function(data, status){
-						console.log("Error deleting requirement:"); console.log(data); console.log(status);
-					});
-
-				scope.page.requirementIds.splice(scope.page.requirementIds.indexOf(data.childId), 1);
-				scope.$apply();
-			});
-
-			element.on("click", ".requirement-not-met", function(event) {
-				pageService.updateMastery(scope, $(event.target).attr("page-id"), true);
-			});
-
-			$timeout(function() {
-				// Set the rendering for tags autocomplete
-				autocompleteService.setAutocompleteRendering(element.find(".tag-input"), scope);
-			});
-		},
-	};
-});
-

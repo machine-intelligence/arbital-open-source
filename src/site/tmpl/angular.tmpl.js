@@ -240,7 +240,7 @@ app.service("pageService", function(userService, $http){
 	// Load children for the given page. Success/error callbacks are called only
 	// if request was actually made to the server.
 	this.loadChildren = function(parent, success, error) {
-		var service = this;
+		var that = this;
 		if (parent.hasLoadedChildren) {
 			success(parent.loadChildrenData, 200);
 			return;
@@ -254,7 +254,7 @@ app.service("pageService", function(userService, $http){
 				parent.isLoadingChildren = false;
 				parent.hasLoadedChildren = true;
 				for (id in data) {
-					data[id] = service.addPageToMap(data[id]);
+					data[id] = that.addPageToMap(data[id]);
 				}
 				parent.loadChildrenData = data;
 				success(data, status);
@@ -314,7 +314,7 @@ app.service("pageService", function(userService, $http){
 	// Load parents for the given page. Success/error callbacks are called only
 	// if request was actually made to the server.
 	this.loadParents = function(child, success, error) {
-		var service = this;
+		var that = this;
 		if (child.hasLoadedParents) {
 			success(child.loadParentsData, 200);
 			return;
@@ -328,7 +328,7 @@ app.service("pageService", function(userService, $http){
 				child.isLoadingParents = false;
 				child.hasLoadedParents = true;
 				for (id in data) {
-					data[id] = service.addPageToMap(data[id]);
+					data[id] = that.addPageToMap(data[id]);
 				}
 				child.loadParentsData = data;
 				success(data, status);
@@ -346,6 +346,7 @@ app.service("pageService", function(userService, $http){
 	//   includeAuxData: include likes, subscription, etc...
 	//   loadComments: whether or not to load comments
 	//   loadVotes: whether or not to load votes
+	//   loadRequirements: whether or not to load requirements and masteries
 	//   allowDraft: allow the server to load an autosave / snapshot, if it's most recent
 	//   overwrite: overwrite the existing pages with loaded data
 	//   success: callback on success
@@ -355,7 +356,7 @@ app.service("pageService", function(userService, $http){
 	var loadingPageAliases = {};
 	var count = 0;
 	this.loadPages = function(pageAliases, options) {
-		var service = this;
+		var that = this;
 		options.pageAliases = [];
 		// Add pages to the global map as necessary. Set pages as loading.
 		// Compute pageAliasesStr for page ids that are not being loaded already.
@@ -379,17 +380,21 @@ app.service("pageService", function(userService, $http){
 		$http({method: "GET", url: "/json/pages/", params: options}).
 			success(function(data, status){
 				console.log("JSON /pages/ data:"); console.log(data);
-				var pagesData = data["pages"];
-				for (var id in pagesData) {
-					service.addPageToMap(pagesData[id], overwrite);
+				var pageData = data["pages"];
+				for (var id in pageData) {
+					that.addPageToMap(pageData[id], overwrite);
 					delete loadingPageAliases[id];
-					delete loadingPageAliases[pagesData[id].alias];
+					delete loadingPageAliases[pageData[id].alias];
 				}
-				var usersData = data["users"];
-				for (var id in usersData) {
-					userService.userMap[id] = usersData[id];
+				var userData = data["users"];
+				for (var id in userData) {
+					userService.userMap[id] = userData[id];
 				}
-				if(success) success(pagesData, status);
+				var masteryData = data["masteries"];
+				for (var id in masteryData) {
+					that.masteryMap[id] = masteryData[id];
+				}
+				if(success) success(pageData, status);
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
@@ -407,8 +412,6 @@ app.service("pageService", function(userService, $http){
 	//   error: callback on error
 	// }
 	this.loadEdit = function(options) {
-		var service = this;
-
 		// Set up options.
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;

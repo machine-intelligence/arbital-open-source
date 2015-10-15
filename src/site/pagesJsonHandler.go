@@ -22,11 +22,12 @@ type pagesJsonData struct {
 	IncludeAuxData bool
 	// If true, at most one page id can be passed. We'll load the most recent version
 	// of the page, even if it's a draft.
-	AllowDraft     bool
-	LoadComments   bool
-	LoadVotes      bool
-	LoadChildren   bool
-	LoadChildDraft bool
+	AllowDraft       bool
+	LoadComments     bool
+	LoadVotes        bool
+	LoadChildren     bool
+	LoadChildDraft   bool
+	LoadRequirements bool
 }
 
 // pagesJsonHandler handles the request.
@@ -99,15 +100,18 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 	// Load data
 	userMap := make(map[int64]*core.User)
 	pageMap := make(map[int64]*core.Page)
+	masteryMap := make(map[int64]*core.Mastery)
 	if !data.AllowDraft {
+		sourceMap := make(map[int64]*core.Page)
 		// Process pageIds
 		for _, pageId := range pageIds {
 			pageMap[pageId] = &core.Page{PageId: pageId}
+			sourceMap[pageId] = pageMap[pageId]
 		}
 
 		// Load comment ids.
 		if data.LoadComments {
-			err := core.LoadSubpageIds(db, pageMap, pageMap)
+			err := core.LoadSubpageIds(db, pageMap, sourceMap)
 			if err != nil {
 				return nil, "Couldn't load subpages", err
 			}
@@ -115,7 +119,14 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 		// Load children
 		if data.LoadChildren {
-			err := core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{})
+			err := core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{ForPages: sourceMap})
+			if err != nil {
+				return nil, "Couldn't load children", err
+			}
+		}
+
+		if data.LoadRequirements {
+			err := core.LoadRequirements(db, u.Id, pageMap, masteryMap, core.LoadChildrenIdsOptions{ForPages: sourceMap})
 			if err != nil {
 				return nil, "Couldn't load children", err
 			}
@@ -184,23 +195,16 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 		return nil, "error while loading users", err
 	}
 
-	// Return the data in JSON format.
+	// Erase the text for pages if necessary; otherwise, mark them as visited
+	// TODO: this is completely incorrect
 	visitedValues := make([]interface{}, 0)
-	returnPageData := make(map[string]*core.Page)
 	for k, v := range pageMap {
 		if !data.IncludeText {
 			v.Text = ""
 		} else {
 			visitedValues = append(visitedValues, u.Id, k, database.Now())
 		}
-		returnPageData[fmt.Sprintf("%d", k)] = v
 	}
-	returnUserData := make(map[string]*core.User)
-	for k, v := range userMap {
-		returnUserData[fmt.Sprintf("%d", k)] = v
-	}
-	returnData["pages"] = returnPageData
-	returnData["users"] = returnUserData
 
 	// Add a visit to pages for which we loaded text.
 	if len(visitedValues) > 0 {
@@ -212,5 +216,6 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 		}
 	}
 
+	returnData = createReturnData(pageMap, userMap, masteryMap)
 	return returnData, "", nil
 }
