@@ -236,19 +236,45 @@ app.service("pageService", function(userService, $http){
 		}
 		return page;
 	};
-	// Add the given page to the global pageMap.
-	// overwrite - if true, the given value will overwrite the page data we might already have.
-	this.addPageToMap = function(page, overwrite) {
-		var existingPage = this.pageMap[page.pageId];
-		if (existingPage !== undefined && !overwrite) {
-			if (page === existingPage) return false;
-			// Merge.
-			existingPage.children = existingPage.children.concat(page.children);
-			existingPage.parents = existingPage.parents.concat(page.parents);
-		} else {
-			this.pageMap[page.pageId] = setUpPage(page, this.pageMap);
+	// Add the given page to the global pageMap. If the page with the same id
+	// already exists, we do a clever merge.
+	var isPageValueTruthy = function(v) {
+		// "0" is falsy
+		if (v === "0") {
+			return false;
+		}
+		// Empty array is falsy.
+		if ($.isArray(v) && v.length == 0) {
+			return false;
+		}
+		// Empty object is falsy.
+		if ($.isEmptyObject(v)) {
+			return false;
 		}
 		return true;
+	};
+	this.addPageToMap = function(newPage) {
+		var oldPage = this.pageMap[newPage.pageId];
+		if (newPage === oldPage) return;
+		if (oldPage === undefined) {
+			this.pageMap[newPage.pageId] = setUpPage(newPage, this.pageMap);
+			return;
+		}
+		// Merge each variable.
+		for (var k in oldPage) {
+			var oldV = isPageValueTruthy(oldPage[k]);
+			var newV = isPageValueTruthy(newPage[k]);
+			if (!newV) {
+				// No new value.
+				continue;
+			}
+			if (!oldV) {
+				// No old value, so use the new one.
+				oldPage[k] = newPage[k];
+			}
+			// Both new and old values are legit. Overwrite.
+			oldPage[k] = newPage[k];
+		}
 	};
 	// Remove page with the given pageId from the global pageMap.
 	this.removePageFromMap = function(pageId) {

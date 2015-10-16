@@ -124,8 +124,7 @@ type Page struct {
 	MaxEditEver int `json:"maxEditEver"`
 	// Highest edit number of an autosave this user created
 	MyLastAutosaveEdit sql.NullInt64 `json:"myLastAutosaveEdit"`
-	//LinkedFrom   []string        `json:"linkedFrom"`
-	RedLinkCount int `json:"redLinkCount"`
+	RedLinkCount       int           `json:"redLinkCount"`
 	// Set to pageId corresponding to the question/answer the user started creating for this page
 	ChildDraftId int64 `json:"childDraftId,string"`
 	// Page is locked by this user
