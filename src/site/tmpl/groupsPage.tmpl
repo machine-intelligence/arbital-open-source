@@ -8,94 +8,12 @@
 	{{template "scripts"}}
 	{{template "angular" .}}
 	<script src="/static/js/groupsPage.js"></script>
-	<script>
-		// MainCtrl is for main controller for page.
-		app.controller("MainCtrl", function ($scope, pageService) {
-			$scope.rootPages = {};
-			$scope.childPages = {};
-			for (id in pageService.pageMap) {
-				var page = pageService.pageMap[id];
-				if (page.parents.length <= 0) {
-					$scope.rootPages[id] = page;
-				} else {
-					$scope.childPages[id] = page;
-				}
-			}
-		});
-	</script>
 </head>
 
 <body ng-app="arbital" ng-controller="ArbitalCtrl">
 <arb-navbar></arb-navbar>
 
-<div class="filter-body-div" ng-controller="MainCtrl">
-	{{range $k, $v := .GroupMap}}
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<h3 class="panel-title">{{.Name}}</h3>
-			</div>
-
-			<!-- Members table -->
-			<table class="table">
-			  <tr>
-					<td><b>Name</b></td>
-					<td><b>Add Members</b></td>
-					<td><b>Group Admin</b></td>
-				</tr>
-				{{range .Members}}
-					<tr>
-						<td><arb-user-name user-id="{{.UserId}}"></arb-user-name></td>
-						<td>
-							{{if .CanAddMembers}}
-								<span class="glyphicon glyphicon-ok"></span>
-							{{end}}
-						</td>
-						<td>
-							{{if .CanAdmin}}
-								<span class="glyphicon glyphicon-ok"></span>
-							{{end}}
-						</td>
-					</tr>
-				{{end}}
-		  </table>
-
-		<!-- New Member form -->
-		{{if .UserMember.CanAddMembers}}
-			<div class="panel-body">
-			<form class="new-member-form form-inline" group-id="{{.Id}}">
-				<div class="form-group">
-					<input name="userId" type="text" class="form-control" placeholder="New Member Id">
-				</div>
-				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-				<button type="submit" class="btn btn-primary" toggle-on-submit>Add Member</button>
-				<div class="submit-form-error alert alert-danger" hidden></div>
-			</form>
-			</div>
-		{{end}}
-		</div>
-	{{end}}
-
-	<!-- Create new group -->
-	{{if .User.IsAdmin}}
-		<br><br>
-		<div class="panel panel-success" {{if lt .User.Karma 200}}hidden{{end}}>
-			<div class="panel-heading">
-				<h3 class="admin panel-title">New Group</h3>
-			</div>
-			<div class="panel-body">
-				<form id="new-group-form" class="form-inline">
-					<div class="form-group">
-						<label>Name</label>
-						<input name="name" type="text" class="form-control" placeholder="Group name">
-					</div>
-					<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-					<button type="submit" class="btn btn-primary" toggle-on-submit>Create Group</button>
-					<div class="submit-form-error alert alert-danger" hidden></div>
-				</form>
-			</div>
-		</div>
-	{{end}}
-</div>
+<arb-groups-page></arb-groups-page>
 
 <arb-footer></arb-footer>
 </body>

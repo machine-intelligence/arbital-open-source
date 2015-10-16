@@ -18,6 +18,8 @@ app.config(function($interpolateProvider, $locationProvider){
 
 // User service.
 app.service("userService", function(){
+	var that = this;
+
 	// Logged in user.
 	this.user = {{GetCurrentUserJson}};
 	this.userMap = {
@@ -68,6 +70,12 @@ app.service("userService", function(){
 		};
 		subscribeTo($target.hasClass("on"), data, function(r) {});
 	};
+
+	// Call this to process data we received from the server.
+	this.processServerData = function(data) {
+		$.extend(that.userMap, data["users"]);
+		$.extend(that.groupMap, data["groups"]);
+	}
 });
 
 // pages stores all the loaded pages and provides multiple helper functions for
@@ -126,6 +134,16 @@ app.service("pageService", function(userService, $http){
 			this.primaryPageCallbacks[n](oldPrimaryPage);
 		}
 	};
+	
+	// Call this to process data we received from the server.
+	this.processServerData = function(data, overwrite) {
+		$.extend(this.userMap, data["users"]);
+		$.extend(this.masteryMap, data["masteries"]);
+		var pageData = data["pages"];
+		for (var id in pageData) {
+			this.addPageToMap(pageData[id], overwrite);
+		}
+	}
 
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
@@ -380,21 +398,14 @@ app.service("pageService", function(userService, $http){
 		$http({method: "GET", url: "/json/pages/", params: options}).
 			success(function(data, status){
 				console.log("JSON /pages/ data:"); console.log(data);
+				userService.processServerData(data);
+				that.processServerData(data, overwrite);
 				var pageData = data["pages"];
 				for (var id in pageData) {
-					that.addPageToMap(pageData[id], overwrite);
 					delete loadingPageAliases[id];
 					delete loadingPageAliases[pageData[id].alias];
 				}
-				var userData = data["users"];
-				for (var id in userData) {
-					userService.userMap[id] = userData[id];
-				}
-				var masteryData = data["masteries"];
-				for (var id in masteryData) {
-					that.masteryMap[id] = masteryData[id];
-				}
-				if(success) success(pageData, status);
+				if(success) success(data["pages"], status);
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);

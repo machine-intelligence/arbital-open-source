@@ -24,9 +24,7 @@ type Group struct {
 	CreatedAt  string `json:"createdAt"`
 
 	// Optionally populated.
-	Members []*Member `json:"members"`
-	// Member obj corresponding to the active user
-	UserMember *Member `json:"userMember"`
+	Members map[string]*Member `json:"members"`
 }
 
 // LoadUserGroups loads all the group names this user belongs to.
