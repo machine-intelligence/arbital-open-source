@@ -136,7 +136,7 @@ app.service("pageService", function(userService, $http){
 	};
 	
 	// Call this to process data we received from the server.
-	this.processServerData = function(data) {
+	this.processServerData = function(data, overwrite) {
 		$.extend(this.userMap, data["users"]);
 		$.extend(this.masteryMap, data["masteries"]);
 		var pageData = data["pages"];
@@ -399,7 +399,7 @@ app.service("pageService", function(userService, $http){
 			success(function(data, status){
 				console.log("JSON /pages/ data:"); console.log(data);
 				userService.processServerData(data);
-				that.processServerData(data);
+				that.processServerData(data, overwrite);
 				var pageData = data["pages"];
 				for (var id in pageData) {
 					delete loadingPageAliases[id];
