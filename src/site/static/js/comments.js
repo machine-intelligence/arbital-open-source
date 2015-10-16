@@ -44,17 +44,15 @@ var createEditSubpageDiv = function($parentDiv, $commentButton, scope, options) 
 		toggleVisibility(false, false);
 	} else {
 		toggleVisibility(false, true);
-		scope.pageService.loadPages([], {
-			success: function(data, status) {
+		scope.pageService.getNewPage({
+			success: function(newPageId) {
 				toggleVisibility(false, false);
-				var newPageId = Object.keys(data)[0];
-				var page = scope.pageService.pageMap[newPageId];
+				var page = scope.pageService.editMap[newPageId];
 				page.type = options.divType;
 				page.parents = [{parentId: options.primaryPageId, childId: newPageId}];
 				if (options.parentCommentId) {
 					page.parents.push({parentId: options.parentCommentId, childId: newPageId});
 				}
-				// Assuming it's a new page:
 				if (options.anchorContext) {
 					page.anchorContext = options.anchorContext;
 					page.anchorText = options.anchorText;
@@ -62,9 +60,6 @@ var createEditSubpageDiv = function($parentDiv, $commentButton, scope, options) 
 				}
 				createEditPage(newPageId);
 			},
-			error: function(data, status) {
-				console.log("Couldn't load pages: " + loadPagesIds);
-			}
 		});
 	}
 };
@@ -169,12 +164,11 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 	var reloadComment = function() {
 		$comment.find(".loading-indicator").show();
 		pageService.removePageFromMap(scope.pageId);
-		pageService.loadPages([scope.pageId], {
-			includeText: true,
-			allowDraft: true,
-			success: function(data, status) {
+		pageService.loadEdit({
+			pageAlias: scope.pageId,
+			success: function() {
 				$comment.find(".loading-indicator").hide();
-				createEditPage();
+				createEditPage(scope.pageId);
 			},
 		});
 	}
@@ -202,7 +196,7 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 				// Load the draft.
 				reloadComment();
 			} else {
-				createEditPage();
+				createEditPage(scope.comment.pageId);
 			}
 		}
 		toggleEditComment(true);

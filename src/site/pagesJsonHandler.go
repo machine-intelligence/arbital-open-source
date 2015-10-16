@@ -3,7 +3,6 @@ package site
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 
 	"zanaduu3/src/core"
@@ -39,6 +38,10 @@ func pagesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
+	// If no page ids, return a new random page id.
+	if len(data.PageAliases) <= 0 {
+		return pages.HandlerBadRequestFail("No page ids/aliases were specified.", nil)
+	}
 
 	returnData, message, err := pagesJsonHandlerInternal(params, &data)
 	if returnData == nil {
@@ -52,15 +55,6 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 	db := params.DB
 	u := params.U
 	returnData := make(map[string]interface{})
-
-	// If no page ids, return a new random page id.
-	if len(data.PageAliases) <= 0 {
-		pageId := rand.Int63()
-		returnPageData := make(map[string]*core.Page)
-		returnPageData[fmt.Sprintf("%d", pageId)] = &core.Page{PageId: pageId}
-		returnData["pages"] = returnPageData
-		return returnData, "", nil
-	}
 
 	// Convert all aliases to ids
 	pageIds := make([]int64, 0)

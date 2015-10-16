@@ -212,7 +212,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		} else {
 			// Load the edit from the server.
 			pageService.loadEdit({
-				pageId: pageId,
+				pageAlias: pageId,
 				createdAtLimit: $("body").attr("last-visit"),
 				success: function(data, status) {
 					var dmp = new diff_match_patch();
@@ -275,7 +275,6 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 				pageService.loadPages([pageAlias], {
 					includeAuxData: true,
 					loadVotes: true,
-					overwrite: true,
 					success: function(data, status) {
 						var pageId = Object.keys(data)[0];
 						var divId = "embed-vote-" + pageId;
@@ -553,7 +552,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 });
 
 // Directive for showing a vote bar.
-app.directive("arbVoteBar", function(pageService, userService, $compile, $timeout) {
+app.directive("arbVoteBar", function($compile, $timeout, pageService, userService) {
 	return {
 		templateUrl: "/static/html/voteBar.html",
 		scope: {
@@ -821,7 +820,7 @@ app.directive("arbVoteBar", function(pageService, userService, $compile, $timeou
 		
 				// Set new vote and update all the things.
 				var vote = voteValueFromMousePosX(event.pageX); 
-				voteMap[userId] = {value: vote, createdAt: "now"};
+				voteMap[userId] = {value: vote, createdAt: moment.utc().format("YYYY-MM-DD HH:mm:ss")};
 				postNewVote(page.pageId, vote);
 				setMyVoteValue($voteDiv, "" + vote);
 				updateVoteCount();

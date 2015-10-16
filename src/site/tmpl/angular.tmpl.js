@@ -89,6 +89,9 @@ app.service("pageService", function(userService, $http){
 			"{{$k}}": {{GetPageJson $v}},
 		{{end}}
 	};
+	
+	// All loaded edits. (These are the pages we will be editing.)
+	this.editMap = {};
 
 	// All loaded masteries.
 	this.masteryMap = {
@@ -136,15 +139,26 @@ app.service("pageService", function(userService, $http){
 	};
 	
 	// Call this to process data we received from the server.
-	this.processServerData = function(data, overwrite) {
-		$.extend(this.userMap, data["users"]);
+	this.processServerData = function(data) {
 		$.extend(this.masteryMap, data["masteries"]);
+
 		var pageData = data["pages"];
 		for (var id in pageData) {
-			this.addPageToMap(pageData[id], overwrite);
+			var page = pageData[id];
+			if (page.isCurrentEdit) {
+				this.addPageToMap(pageData[id]);
+			} else {
+				this.addPageToEditMap(pageData[id]);
+			}
+		}
+
+		var editData = data["edits"];
+		for (var id in editData) {
+			this.addPageToEditMap(editData[id]);
 		}
 	}
 
+	// These functions will be added to each page object.
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
@@ -231,7 +245,7 @@ app.service("pageService", function(userService, $http){
 			page[name] = pageFuncs[name];
 		}
 		// Add page's alias to the map as well
-		if (page.pageId !== page.alias) {
+		if (pageMap && page.pageId !== page.alias) {
 			pageMap[page.alias] = page;
 		}
 		return page;
@@ -276,9 +290,20 @@ app.service("pageService", function(userService, $http){
 			oldPage[k] = newPage[k];
 		}
 	};
+
 	// Remove page with the given pageId from the global pageMap.
 	this.removePageFromMap = function(pageId) {
 		delete this.pageMap[pageId];
+	};
+
+	// Add the given page to the global editMap.
+	this.addPageToEditMap = function(page) {
+		this.editMap[page.pageId] = setUpPage(page);
+	}
+
+	// Remove page with the given pageId from the global editMap;
+	this.removePageFromEditMap = function(pageId) {
+		delete this.editMap[pageId];
 	};
 
 	// Load children for the given page. Success/error callbacks are called only
@@ -391,8 +416,6 @@ app.service("pageService", function(userService, $http){
 	//   loadComments: whether or not to load comments
 	//   loadVotes: whether or not to load votes
 	//   loadRequirements: whether or not to load requirements and masteries
-	//   allowDraft: allow the server to load an autosave / snapshot, if it's most recent
-	//   overwrite: overwrite the existing pages with loaded data
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -418,20 +441,19 @@ app.service("pageService", function(userService, $http){
 		// Set up options.
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
-		var overwrite = options.overwrite; delete options.overwrite;
 
 		console.log("Issuing a GET request to: /json/pages/?pageAliases=" + pageAliases);
 		$http({method: "GET", url: "/json/pages/", params: options}).
 			success(function(data, status){
 				console.log("JSON /pages/ data:"); console.log(data);
 				userService.processServerData(data);
-				that.processServerData(data, overwrite);
+				that.processServerData(data);
 				var pageData = data["pages"];
 				for (var id in pageData) {
 					delete loadingPageAliases[id];
 					delete loadingPageAliases[pageData[id].alias];
 				}
-				if(success) success(data["pages"], status);
+				if(success) success();
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
@@ -441,10 +463,9 @@ app.service("pageService", function(userService, $http){
 	
 	// Load edit.
 	// options {
-	//   pageId: pageId to load
+	//   pageAlias: pageAlias to load
 	//	 editLimit: only load edits lower than this number
 	//	 createdAtLimit: only load edits that were created before this date
-	//   overwrite: overwrite the existing pages with loaded data
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -452,27 +473,37 @@ app.service("pageService", function(userService, $http){
 		// Set up options.
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
-		var overwrite = options.overwrite; delete options.overwrite;
 
-		console.log("Issuing a GET request to: /json/edit/?pageId=" + options.pageId);
+		console.log("Issuing a GET request to: /json/edit/?pageAlias=" + options.pageAlias);
 		$http({method: "GET", url: "/json/edit/", params: options}).
 			success(function(data, status){
-				console.log("JSON /edit/ data:"); console.log(data);
-				var pagesData = data["pages"];
-				for (var id in pagesData) {
-					data[id] = pagesData[id];
-				}
-				var usersData = data["users"];
-				for (var id in usersData) {
-					userService.userMap[id] = usersData[id];
-				}
-				if(success) success(pagesData, status);
+				console.log("JSON /json/edit/ data:"); console.log(data);
+				userService.processServerData(data);
+				that.processServerData(data);
+				if(success) success(data["pages"], status);
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}
 		);
 	};
+
+	// Get a new page from the server.
+	// options {
+	//	success: callback on success
+	//}
+	this.getNewPage = function(options) {
+		$http({method: "GET", url: "/json/newPage/"}).
+			success(function(data, status){
+				console.log("JSON /json/newPage/ data:"); console.log(data);
+				var pageId = Object.keys(data["pages"])[0];
+				that.processServerData(data);
+				if(options.success) options.success(pageId);
+			}).error(function(data, status){
+				console.log("Error loading page:"); console.log(data); console.log(status);
+				if(error) error(data, status);
+			});
+	}
 
 	// Delete the page with the given pageId.
 	this.deletePage = function(pageId, success, error) {
@@ -508,6 +539,7 @@ app.service("pageService", function(userService, $http){
 		);
 	};
 
+	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId) {
 		var page = this.pageMap[pageId];
@@ -547,7 +579,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		if (!data) return [];
 		// Add new pages to the pageMap.
 		for (var pageId in data.pages) {
-			pageService.addPageToMap(data.pages[pageId], false);
+			pageService.addPageToMap(data.pages[pageId]);
 		}
 		// Create list of results we can give to autocomplete.
 		var resultList = [];
@@ -697,11 +729,10 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 
 				// Fetch page data from the server.
 				pageService.loadPages([pageAlias], {
-					overwrite: true,
 					includeAuxData: true,
 					loadVotes: true,
 					loadChildren: true,
-					success: function(data, status) {
+					success: function() {
 						var page = pageService.pageMap[pageAlias];
 						if (!page.summary) {
 							page.summary = " "; // to avoid trying to load it again

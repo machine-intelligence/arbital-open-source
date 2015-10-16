@@ -27,7 +27,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// the same as for primary page.
 	var updateParentElements = function() {
 		$topParent.find(".tag[tag-id]").each(function() {
-			var parentPage = pageService.pageMap[$(this).attr("tag-id")];
+			var parentPageId = $(this).attr("tag-id");
+			var parentPage = pageService.editMap[parentPageId];
+			if (!parentPage) {
+				parentPage = pageService.pageMap[parentPageId];
+			}
 			if (parentPage.seeGroupId === page.seeGroupId || parentPage.seeGroupId === "0") {
 				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
 			} else {
@@ -43,10 +47,13 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Create a new tag for the page.
 	var createNewParentElement = function(parentId) {
-		var parentPage = pageService.pageMap[parentId];
+		var parentPage = pageService.editMap[parentId];
 		if (!parentPage) {
-			console.log("ERROR: parent is not in the pageMap: " + parentId);
-			return;
+			parentPage = pageService.pageMap[parentId];
+			if (!parentPage) {
+				console.error("ERROR: parent is not in any map: " + parentId);
+				return;
+			}
 		}
 
 		// Prevent duplicates.
@@ -458,7 +465,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	$("body").on("click", ".edit-node-diff-edit", function(event) {
 		// Load the edit from the server.
 		pageService.loadEdit({
-			pageId: pageId,
+			pageAlias: pageId,
 			specificEdit: $(event.target).attr("edit-num"),
 			success: function(data, status) {
 				diffPage = data[pageId];
@@ -621,7 +628,10 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 			//	callback: function(result) to call when the user is done with the modal
 			// }
 			$(document).on("new-page-modal-event", function(e, options) {
-				var primaryPage = pageService.pageMap[options.parentPageId];
+				var primaryPage = pageService.editMap[options.parentPageId];
+				if (!primaryPage) {
+					primaryPage = pageService.pageMap[options.parentPageId];
+				}
 				var resumePageId = pageIdCache[options.modalKey + primaryPage.pageId];
 				var isQuestion = options.modalKey === "newQuestion";
 				if (isQuestion && !resumePageId && primaryPage.childDraftId !== "0") {
@@ -634,7 +644,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 				
 				// Setup modal.
 				var setupModal = function(pageId, isResumed) {
-					var newPage = pageService.pageMap[pageId];
+					var newPage = pageService.editMap[pageId];
 					if (!isResumed) {
 						if (isQuestion) {
 							newPage.type = "question";
@@ -693,33 +703,35 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 				
 				// Resume editing the page or get a new id from the server.
 				var loadPages = function() {
-					var loadPagesIds = [];
 					if (resumePageId) {
+						if (resumePageId === primaryPage.pageId) {
+							console.log("Error: trying to edit the same page in modal");
+							return;
+						}
 						// Resume editing some page.
-						loadPagesIds = [resumePageId];
-						pageService.removePageFromMap(resumePageId);
-					}
-					pageService.loadPages(loadPagesIds, {
-						includeText: true,
-						allowDraft: true,
-						success: function(data, status) {
-							resumePageId = Object.keys(data)[0];
-							// Let's not try to edit the same page in two places
-							if (resumePageId !== primaryPage.pageId) {
-								setupModal(resumePageId, loadPagesIds.length > 0);
-							} else {
-								console.log("Error: trying to edit the same page in modal");
-							}
-						},
-						error: function(data, status) {
-							console.log("Couldn't load pages: " + loadPagesIds);
-							if (loadPagesIds.length > 0) {
+						pageService.loadEdit({
+							pageAlias: resumePageId,
+							success: function(data, status) {
+								setupModal(resumePageId, true);
+							},
+							error: function(data, status) {
 								// Let's try again, but without trying to resume editing.
 								resumePageId = undefined;
 								loadPages();
-							}
-						}
-					});
+							},
+						});
+					} else {
+						pageService.getNewPage({
+							success: function(newPageId) {
+								resumePageId = newPageId;
+								if (resumePageId !== primaryPage.pageId) {
+									setupModal(resumePageId, false);
+								} else {
+									console.log("Error: trying to edit the same page in modal");
+								}
+							},
+						});
+					}
 				};
 				loadPages();
 			});
@@ -754,7 +766,13 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 		},
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+			scope.page = pageService.editMap[scope.pageId];
+
+			// If the page has "Group.Alias" alias, just change it to "Alias"
+			var dotIndex = scope.page.alias.indexOf(".");
+			if (dotIndex >= 0) {
+				scope.page.alias = scope.page.alias.substring(dotIndex + 1);
+			}
 
 			// Set up some helper variables.
 			scope.isQuestion = scope.page.type === "question";
@@ -808,14 +826,17 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 
 			var primaryPage = undefined;
 			if (scope.primaryPageId) {
-				primaryPage = pageService.pageMap[scope.primaryPageId];
+				primaryPage = pageService.editMap[scope.primaryPageId];
+				if (!primaryPage) {
+					primaryPage = pageService.pageMap[scope.primaryPageId];
+				}
 			}
 			if (scope.isAnswer && primaryPage) {
 				// Set up answer page for when it appears on a question page.
 				// TODO: shouldn't be setting Parents here
 				scope.page.parents = [{parentId: primaryPage.pageId}];
 				scope.useVerticalView = true;
-			} else if ( (scope.isComment || scope.isQuestion) && primaryPage) {
+			} else if ((scope.isComment || scope.isQuestion) && primaryPage) {
 				scope.useVerticalView = true;
 			}
 
@@ -913,7 +934,7 @@ app.directive("arbEditNodePopover", function (pageService, userService) {
 			$scope.isOpened = $scope.isOpened === 'true';
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.edit = pageService.pageMap[$scope.pageId].editHistoryMap[$scope.editNum];
+			$scope.edit = pageService.editMap[$scope.pageId].editHistoryMap[$scope.editNum];
 		},
 	};
 });

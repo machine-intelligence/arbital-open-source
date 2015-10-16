@@ -3,39 +3,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{if .Page.Title}}Edit - {{.Page.Title}}{{else}}New Page{{end}} - Arbital</title>
+	<title>Edit Page</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
 	<script src="/static/js/editPage.js"></script>
 	<script>
 		// MainCtrl is the main control for this page.
-		app.controller("MainCtrl", function ($scope, pageService, userService) {
-			$scope.pageId = "{{.Page.PageId}}";
-			$scope.page = pageService.pageMap[$scope.pageId];
+		app.controller("MainCtrl", function($scope, $compile, $location, pageService, userService) {
+			var match = $location.path().match(/[0-9]+/);
+			var pageId = match ? match[0] : undefined;
+
+			// Call this when pageId is determined and page is loaded.
+			var createEditPage = function() {
+				var page = pageService.editMap[pageId];
+				pageService.setPrimaryPage(page);
+				document.title = "Edit - " + (page.title ? page.title : "New Page") + " - Abital";
+				var el = $compile("<arb-edit-page page-id='" + pageId + "' done-fn='doneFn(result)'></arb-edit-page>")($scope);
+				$(".new-page-body-div").append(el);
+			};
+	
+			if (pageId) {
+				// Load the last edit
+				var specificEdit = $location.search().edit;
+				pageService.loadEdit({
+					pageAlias: pageId,
+					specificEdit: specificEdit,
+					success: createEditPage,
+				});
+			} else {
+				// Create a new page to edit
+				pageService.getNewPage({
+					success: function(newPageId) {
+						pageId = newPageId;
+						var aliasParam = $location.search().alias;
+						if (aliasParam) {
+							pageService.editMap[pageId].alias = aliasParam;
+						}
+						$location.path("/edit/" + pageId);
+						createEditPage();
+					},
+				});
+			}
 
 			// Called when the user is done editing the page.
 			$scope.doneFn = function(result) {
-				window.location.href = $scope.page.url(true);
+				window.location.href = pageService.primaryPage.url(true);
 			};
 		});
 	</script>
 </head>
 
 <body ng-app="arbital" ng-controller="ArbitalCtrl">
-<arb-navbar></arb-navbar>
-
-<!-- This modal is for inserting new links. -->
-<arb-new-link-modal></arb-new-link-modal>
-
-<!-- This modal is for creating new pages quickly. -->
-<arb-edit-page-modal parent-page-id="{{.Page.PageId}}"></arb-edit-page-modal>
-
-<div class="new-page-body-div" ng-controller="MainCtrl">
-	<arb-edit-page page-id="{[{page.pageId}]}" done-fn="doneFn(result)"></arb-edit-page>
-</div>
-
-<arb-footer></arb-footer>
+	<arb-navbar></arb-navbar>
+	
+	<!-- This modal is for inserting new links. -->
+	<arb-new-link-modal></arb-new-link-modal>
+	
+	<!-- This modal is for creating new pages quickly. -->
+	<arb-edit-page-modal></arb-edit-page-modal>
+	
+	<div class="new-page-body-div" ng-controller="MainCtrl">
+	</div>
+	
+	<arb-footer></arb-footer>
 </body>
 </html>
 {{end}}

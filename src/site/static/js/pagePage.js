@@ -204,9 +204,9 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 		};
 		var getNewAnswerId = function() {
 			$(".new-answer").find("arb-edit-page").remove();
-			pageService.loadPages([], {
-				success: function(data, status) {
-					var page = pageService.pageMap[Object.keys(data)[0]];
+			pageService.getNewPage({
+				success: function(newPageId) {
+					var page = pageService.editMap[newPageId];
 					page.group = $.extend({}, $scope.page.group);
 					page.type = "answer";
 					page.parents = [{parentId: $scope.page.pageId, childId: page.pageId}];
@@ -244,7 +244,6 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 				loadChildren: true,
 				loadChildDraft: true,
 				loadRequirements: true,
-				overwrite: true,
 				success: function(data, status) {
 					var page = pageService.pageMap[lensId];
 					var el = $compile("<arb-page page-id='" + page.pageId + "'></arb-page>")($scope);

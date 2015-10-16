@@ -30,15 +30,15 @@ type siteHandler func(*pages.HandlerParams) *pages.Result
 type commonPageData struct {
 	// Id of the page that's most prominantly displayed. Usually the id is also in the URL
 	PrimaryPageId int64 `json:",string"`
-	// Map of page ids to the corresponding page objects
+	// Map of page id -> currently live version of the page
 	PageMap map[int64]*core.Page
+	// Map of page id -> some edit of the page
+	EditMap map[int64]*core.Page
 	// Logged in user
 	User *user.User
 	// Map of user ids to corresponding user objects
-	UserMap map[int64]*core.User
-	// Map of groups
-	GroupMap map[int64]*core.Group
-	// Map of masteries
+	UserMap    map[int64]*core.User
+	GroupMap   map[int64]*core.Group
 	MasteryMap map[int64]*core.Mastery
 	// Primary domain
 	Domain *core.Group
@@ -267,6 +267,15 @@ func createReturnData(pages map[int64]*core.Page) returnJsonData {
 	returnData := make(returnJsonData)
 	returnData["pages"] = returnPageData
 	return returnData
+}
+
+func (d returnJsonData) AddEditMap(pages map[int64]*core.Page) returnJsonData {
+	returnEditData := make(map[string]*core.Page)
+	for k, v := range pages {
+		returnEditData[fmt.Sprintf("%d", k)] = v
+	}
+	d["edits"] = returnEditData
+	return d
 }
 
 func (d returnJsonData) AddUsers(users map[int64]*core.User) returnJsonData {
