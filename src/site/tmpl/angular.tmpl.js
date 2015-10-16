@@ -599,6 +599,21 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		$location.search("lastVisit", null);
 	}
 
+	$("body").on("click", ".intrasite-lens-tab", function(event) {
+		var $tab = $(event.currentTarget);
+		var lensId = $tab.attr("data-target");
+		lensId = lensId.substring(lensId.indexOf("-") + 1);
+		var lensPage = pageService.pageMap[lensId];
+		if (!lensPage) return;
+		if (lensPage.summary.length > 0) {
+			var page = pageService.pageMap[lensId];
+			var lensElement = $("#lens-" + page.pageId);
+			lensElement.empty().append('<div class="markdown-text"></div>');
+			arbMarkdown.init(false, page.pageId, page.summary, lensElement, pageService, userService);
+		}
+		return true;
+	});
+
 	// Check when user hovers over intrasite links, and show a popover.
 	$("body").on("mouseenter", ".intrasite-link", function(event) {
 		var $target = $(event.currentTarget);
@@ -648,6 +663,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 					overwrite: true,
 					includeAuxData: true,
 					loadVotes: true,
+					loadChildren: true,
 					success: function(data, status) {
 						var page = pageService.pageMap[pageAlias];
 						if (!page.summary) {
