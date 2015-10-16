@@ -57,6 +57,14 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			fmt.Fprintf(w, "%s", message)
 		}
 
+		// Recover from panic.
+		defer func() {
+			if r := recover(); r != nil {
+				c.Errorf("%v", r)
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+			}
+		}()
 		// Open DB connection
 		db, err := database.GetDB(c)
 		if err != nil {
@@ -160,6 +168,15 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			w.WriteHeader(responseCode)
 			errorPage.ServeHTTP(w, r, result)
 		}
+
+		// Recover from panic.
+		defer func() {
+			if r := recover(); r != nil {
+				c.Errorf("%v", r)
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+			}
+		}()
 
 		// Open DB connection
 		db, err := database.GetDB(c)
