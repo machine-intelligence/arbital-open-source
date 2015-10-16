@@ -39,7 +39,7 @@ func newMemberHandler(params *pages.HandlerParams) *pages.Result {
 	row := db.NewStatement(`
 		SELECT 1
 		FROM groupMembers
-		WHERE userId=%d AND groupId=%d AND canAddMembers
+		WHERE userId=? AND groupId=? AND canAddMembers
 		`).QueryRow(u.Id, data.GroupId)
 	found, err = row.Scan(&blank)
 	if err != nil {
@@ -52,7 +52,7 @@ func newMemberHandler(params *pages.HandlerParams) *pages.Result {
 	row = db.NewStatement(`
 		SELECT 1
 		FROM users
-		WHERE id=%d`).QueryRow(data.UserId)
+		WHERE id=?`).QueryRow(data.UserId)
 	found, err = row.Scan(&blank)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't check for a user", err)

@@ -216,6 +216,6 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 		}
 	}
 
-	returnData = createReturnData(pageMap, userMap, masteryMap)
+	returnData = createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
 	return returnData, "", nil
 }

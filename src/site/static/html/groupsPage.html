@@ -1,0 +1,78 @@
+<div class="filter-body-div">
+	<div class="panel panel-default"
+			ng-repeat="(groupId,group) in userService.groupMap"
+			ng-init="userCanAddMembers=group.members[userService.user.id].canAddMembers;userCanAdmin=group.members[userService.user.id].canAdmin"
+			group-id="{[{groupId}]}">
+		<div class="panel-heading">
+			<h3 class="panel-title" ng-bind="group.name"></h3>
+		</div>
+	
+		<!-- Members table -->
+		<table class="table">
+		  <tr>
+				<td></td>
+				<td><b>Name</b></td>
+				<td><b>Add Members</b></td>
+				<td><b>Group Admin</b></td>
+			</tr>
+			<tr ng-repeat="(memberId,member) in group.members" member-id="{[{memberId}]}">
+				<span ng-bind="memberId"></span>
+				<td>
+					<a href="#"
+							class="remove-from-group glyphicon glyphicon-remove"
+							ng-show="userCanAddMembers && !(member.canAdmin && !userCanAdmin)"></a>
+				</td>
+				<td>
+					<arb-user-name user-id="{[{memberId}]}"></arb-user-name>
+				</td>
+				<td>
+					<span class="glyphicon glyphicon-ok"
+							ng-show="(!userCanAddMembers && member.canAddMembers) || member.canAdmin"></span>
+					<input type="checkbox"
+							class="set-can-add-members"
+							ng-model="member.canAddMembers"
+							ng-show="userCanAddMembers && !member.canAdmin">
+				</td>
+				<td>
+					<span class="glyphicon glyphicon-ok"
+							ng-show="!userCanAdmin && member.canAdmin"></span>
+					<input type="checkbox"
+							class="set-can-admin"
+							ng-model="member.canAdmin"
+							ng-show="userCanAdmin">
+				</td>
+			</tr>
+	  </table>
+	
+		<!-- New Member form -->
+		<div class="panel-body" ng-show="userCanAddMembers">
+			<form class="new-member-form form-inline" group-id="{[{groupId}]}">
+				<div class="form-group">
+					<input name="userId" type="text" class="form-control" placeholder="New Member Id">
+				</div>
+				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+				<button type="submit" class="btn btn-primary" toggle-on-submit>Add Member</button>
+				<div class="submit-form-error alert alert-danger" hidden></div>
+			</form>
+		</div>
+	</div>
+	
+	<!-- Create new group -->
+	<br><br>
+	<div class="panel panel-success" ng-show="userService.user.isAdmin">
+		<div class="panel-heading">
+			<h3 class="admin panel-title">New Group</h3>
+		</div>
+		<div class="panel-body">
+			<form id="new-group-form" class="form-inline">
+				<div class="form-group">
+					<label>Name</label>
+					<input name="name" type="text" class="form-control" placeholder="Group name">
+				</div>
+				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+				<button type="submit" class="btn btn-primary" toggle-on-submit>Create Group</button>
+				<div class="submit-form-error alert alert-danger" hidden></div>
+			</form>
+		</div>
+	</div>
+</div>

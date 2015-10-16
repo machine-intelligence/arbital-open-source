@@ -21,6 +21,8 @@ import (
 // Handler serves HTTP.
 type handler http.HandlerFunc
 
+type returnJsonData map[string]interface{}
+
 // siteHandler is our type for HTTP request handlers
 type siteHandler func(*pages.HandlerParams) *pages.Result
 
@@ -239,27 +241,41 @@ func newPageWithOptions(uri string, renderer pages.Renderer, tmpls []string, opt
 
 // createReturnData puts together various maps into one "json" object, so we
 // can send it to the front-end.
-func createReturnData(pages map[int64]*core.Page, users map[int64]*core.User, masteries map[int64]*core.Mastery) map[string]interface{} {
+func createReturnData(pages map[int64]*core.Page) returnJsonData {
 	returnPageData := make(map[string]*core.Page)
 	for k, v := range pages {
 		returnPageData[fmt.Sprintf("%d", k)] = v
 	}
+	returnData := make(returnJsonData)
+	returnData["pages"] = returnPageData
+	return returnData
+}
 
+func (d returnJsonData) AddUsers(users map[int64]*core.User) returnJsonData {
 	returnUserData := make(map[string]*core.User)
 	for k, v := range users {
 		returnUserData[fmt.Sprintf("%d", k)] = v
 	}
+	d["users"] = returnUserData
+	return d
+}
 
+func (d returnJsonData) AddMasteries(masteries map[int64]*core.Mastery) returnJsonData {
 	returnMasteryData := make(map[string]*core.Mastery)
 	for k, v := range masteries {
 		returnMasteryData[fmt.Sprintf("%d", k)] = v
 	}
+	d["masteries"] = returnMasteryData
+	return d
+}
 
-	returnData := make(map[string]interface{})
-	returnData["pages"] = returnPageData
-	returnData["users"] = returnUserData
-	returnData["masteries"] = returnMasteryData
-	return returnData
+func (d returnJsonData) AddGroups(groups map[int64]*core.Group) returnJsonData {
+	returnGroupData := make(map[string]*core.Group)
+	for k, v := range groups {
+		returnGroupData[fmt.Sprintf("%d", k)] = v
+	}
+	d["groups"] = returnGroupData
+	return d
 }
 
 // domain redirects to proper HTML domain if user arrives elsewhere.
