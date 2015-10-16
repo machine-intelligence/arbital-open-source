@@ -241,6 +241,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		addFuncMap(result, u)
+		w.Header().Add("Cache-Control", "max-age=0, no-cache, no-store")
 		p.ServeHTTP(w, r, result)
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
 	}
