@@ -639,7 +639,9 @@ func LoadLinks(db *database.DB, pageMap map[int64]*Page, options *LoadLinksOptio
 			return fmt.Errorf("failed to scan for a link: %v", err)
 		}
 		if pageId, err := strconv.ParseInt(childAlias, 10, 64); err == nil {
-			pageMap[pageId] = &Page{PageId: pageId}
+			if _, ok := pageMap[pageId]; !ok {
+				pageMap[pageId] = &Page{PageId: pageId}
+			}
 		} else {
 			aliasesList = append(aliasesList, childAlias)
 		}
@@ -661,7 +663,9 @@ func LoadLinks(db *database.DB, pageMap map[int64]*Page, options *LoadLinksOptio
 			if err != nil {
 				return fmt.Errorf("failed to scan for a page: %v", err)
 			}
-			pageMap[pageId] = &Page{PageId: pageId}
+			if _, ok := pageMap[pageId]; !ok {
+				pageMap[pageId] = &Page{PageId: pageId}
+			}
 			return nil
 		})
 		if err != nil {

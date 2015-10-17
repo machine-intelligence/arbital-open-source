@@ -29,8 +29,9 @@ app.service("userService", function(){
 			{{end}}
 		{{end}}
 	};
-	console.log("Initial user map:"); console.log(this.userMap);
+	console.log("Initial user map:"); console.dir(this.userMap);
 
+	// Return url to the user page.
 	this.getUserUrl = function(userId) {
 		return "/user/" + userId;
 	};
@@ -175,7 +176,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
-			if (this.type === "blog" || this.type === "comment") {
+			if (this.type === "comment") {
 				if (this.creatorId == userService.user.id) {
 					return "";
 				} else {
@@ -199,7 +200,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
 		getDeleteLevel: function() {
-			if (this.type === "blog" || this.type === "comment") {
+			if (this.type === "comment") {
 				if (this.creatorId == userService.user.id) {
 					return "";
 				} else if (userService.user.isAdmin) {
@@ -445,7 +446,7 @@ app.service("pageService", function(userService, $http){
 		console.log("Issuing a GET request to: /json/pages/?pageAliases=" + pageAliases);
 		$http({method: "GET", url: "/json/pages/", params: options}).
 			success(function(data, status){
-				console.log("JSON /pages/ data:"); console.log(data);
+				console.log("JSON /pages/ data:"); console.dir(data);
 				userService.processServerData(data);
 				that.processServerData(data);
 				var pageData = data["pages"];
@@ -477,7 +478,7 @@ app.service("pageService", function(userService, $http){
 		console.log("Issuing a GET request to: /json/edit/?pageAlias=" + options.pageAlias);
 		$http({method: "GET", url: "/json/edit/", params: options}).
 			success(function(data, status){
-				console.log("JSON /json/edit/ data:"); console.log(data);
+				console.log("JSON /json/edit/ data:"); console.dir(data);
 				userService.processServerData(data);
 				that.processServerData(data);
 				if(success) success(data["pages"], status);
@@ -495,7 +496,7 @@ app.service("pageService", function(userService, $http){
 	this.getNewPage = function(options) {
 		$http({method: "GET", url: "/json/newPage/"}).
 			success(function(data, status){
-				console.log("JSON /json/newPage/ data:"); console.log(data);
+				console.log("JSON /json/newPage/ data:"); console.dir(data);
 				var pageId = Object.keys(data["pages"])[0];
 				that.processServerData(data);
 				if(options.success) options.success(pageId);
@@ -554,7 +555,7 @@ app.service("pageService", function(userService, $http){
 	};
 
 	// Setup all initial pages.
-	console.log("Initial pageMap: "); console.log(this.pageMap);
+	console.log("Initial pageMap: "); console.dir(this.pageMap);
 	for (var id in this.pageMap) {
 		setUpPage(this.pageMap[id], this.pageMap);
 	}

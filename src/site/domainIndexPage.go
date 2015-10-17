@@ -139,7 +139,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
+	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
 	}
