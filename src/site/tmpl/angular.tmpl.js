@@ -6,7 +6,7 @@
 
 // Set up angular module.
 var app = angular.module("arbital", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
-app.config(function($interpolateProvider, $locationProvider){
+app.config(function($interpolateProvider, $locationProvider, $provide){
 	$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
 
 	$locationProvider.html5Mode({
@@ -656,11 +656,14 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
-	// Refresh all the dates.
-	var refreshDates = function() {
-		$timeout(refreshDates, 30000);
+	// Refresh all the fields that need to be updated every so often.
+	var refreshAutoupdates = function() {
+		$(".autoupdate").each(function(index, element) {
+			$compile($(element))($scope);
+		});
+		$timeout(refreshAutoupdates, 30000);
 	};
-	refreshDates();
+	refreshAutoupdates();
 
 	// Process last visit url parameter
 	var lastVisit = $location.search().lastVisit;

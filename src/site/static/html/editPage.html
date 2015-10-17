@@ -5,16 +5,20 @@
 			<div ng-switch-when="admin" class="alert alert-warning">Enforcing admin priviledges.</div>
 			<div ng-switch-when="comment" class="alert alert-danger" role="alert">Can't edit a comment you didn't create.</div>
 			<div ng-switch-when="" hidden></div>
-			<div ng-switch-default class="alert alert-danger" role="alert">You don't have enough karma to edit this page. Required: {[{page.getEditLevel()}]}.</div>
+			<div ng-switch-default class="alert alert-danger" role="alert">
+				You don't have enough karma to edit this page. Required: {[{page.getEditLevel()}]}.
+			</div>
 		</div>
 		<!-- Lock info -->
-		<div ng-show="lockExists">
-			<div ng-show="page.lockedBy!='0' && page.lockedBy===userService.user.id" class="alert alert-info">
-				You have locked the page. The lock will expire {[{page.lockedUntil | relativeDateTime}]}.
+		<div class="lock-alert" ng-show="lockExists">
+			<div class="alert alert-info" ng-show="page.lockedBy!='0' && page.lockedBy===userService.user.id">
+				You have locked the page. The lock will expire
+				<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>.
 			</div>
-			<div ng-show="lockedByAnother" class="alert alert-danger">
+			<div class="alert alert-danger" ng-show="lockedByAnother">
 				<arb-user-name user-id="{[{page.lockedBy}]}"></arb-user-name>
-				has the page locked. The lock will end {[{page.lockedUntil | relativeDateTime}]}.
+				has the page locked. The lock will end
+				<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>.
 			</div>
 		</div>
 		<!-- Show a warning if we are on a different branch from the current edit. -->
@@ -30,11 +34,13 @@
 		<!-- Friendly warnings / info alerts -->
 		<div ng-show="page.wasPublished">
 			<div ng-show="page.isAutosave" class="alert alert-warning">
-				Restored autosave which was last updated {[{page.createdAt | relativeDateTime}]}.
+				Restored autosave which was last updated
+				<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
 				<a href="#" class="abandon-edit">Delete my autosave and edit live version.</a>
 			</div>
 			<div ng-show="page.isSnapshot" class="alert alert-warning">
-				Restored snapshot which was last updated {[{page.createdAt | relativeDateTime}]}.
+				Restored snapshot which was last updated
+				<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
 				<a ng-href="{[{page.editUrl()}]}?edit=live">Switch to editing the live version.</a>
 			</div>
 		</div>

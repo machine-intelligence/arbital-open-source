@@ -766,6 +766,7 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 		},
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
+			scope.pageService = pageService;
 			scope.page = pageService.editMap[scope.pageId];
 
 			// If the page has "Group.Alias" alias, just change it to "Alias"
