@@ -30,6 +30,9 @@
 					pageAlias: pageId,
 					specificEdit: specificEdit,
 					success: createEditPage,
+					error: function(data) {
+						$(".error-message").text(data).show();
+					},
 				});
 			} else {
 				// Create a new page to edit
@@ -64,6 +67,8 @@
 	<arb-edit-page-modal></arb-edit-page-modal>
 	
 	<div class="new-page-body-div" ng-controller="MainCtrl">
+		<div class="error-message alert alert-danger" hidden>
+		</div>
 	</div>
 	
 	<arb-footer></arb-footer>
