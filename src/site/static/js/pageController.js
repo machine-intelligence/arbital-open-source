@@ -276,7 +276,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					includeAuxData: true,
 					loadVotes: true,
 					success: function(data, status) {
-						var pageId = Object.keys(data)[0];
+						var pageId = pageService.pageMap[pageAlias].pageId;
 						var divId = "embed-vote-" + pageId;
 						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><arb-vote-bar page-id='" + pageId + "'></arb-vote-bar></div>")(scope);
 						$link.replaceWith($embedDiv);
