@@ -95,7 +95,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	} else if oldPage == nil {
 		oldPage = &core.Page{}
 	}
-	oldPage.ProcessParents(c, nil)
 
 	// Load additional info
 	row := db.NewStatement(`
@@ -571,9 +570,18 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		if !oldPage.WasPublished && data.Type != core.CommentPageType && !isMinorEditBool {
-			// Generate updates for users who are subscribed to the parent pages.
+		// Generate updates for users who are subscribed to the parent pages.
+		if data.Type != core.CommentPageType {
 			for _, parentId := range parentIds {
+				// Make sure this parent was just added
+				parentIsOld := false
+				for _, pp := range oldPage.Parents {
+					parentIsOld = parentIsOld || (pp.ParentId == parentId)
+				}
+				if parentIsOld {
+					continue
+				}
+
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.UpdateType = core.NewChildPageUpdateType
