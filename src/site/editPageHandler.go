@@ -526,27 +526,18 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		// Generate updates for users who are subscribed to this page.
+		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !isMinorEditBool {
-			// This is an edit.
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
-			task.UpdateType = core.PageEditUpdateType
-			task.GroupByPageId = data.PageId
-			task.SubscribedToPageId = data.PageId
 			task.GoToPageId = data.PageId
-			if data.Type == core.CommentPageType {
-				// It's actually a comment, so redo some stuff.
+			task.SubscribedToPageId = data.PageId
+			if data.Type != core.CommentPageType {
+				task.UpdateType = core.PageEditUpdateType
+				task.GroupByPageId = data.PageId
+			} else {
 				task.UpdateType = core.CommentEditUpdateType
-				if commentParentId <= 0 {
-					// It's a top level comment.
-					task.GroupByPageId = commentPrimaryPageId
-					task.SubscribedToPageId = commentPrimaryPageId
-				} else {
-					// It's actually a reply.
-					task.GroupByPageId = commentParentId
-					task.SubscribedToPageId = commentParentId
-				}
+				task.GroupByPageId = commentPrimaryPageId
 			}
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)

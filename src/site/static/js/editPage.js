@@ -769,6 +769,11 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			scope.userService = userService;
 			scope.pageService = pageService;
 			scope.page = pageService.editMap[scope.pageId];
+			if (!scope.page && scope.pageId in pageService.pageMap) {
+				// We are going to edit a page that's not in the editMap yet. Add it.
+				scope.page = $.extend(true, {}, pageService.pageMap[scope.pageId]);
+				pageService.addPageToEditMap(scope.page);
+			}
 
 			// If the page has "Group.Alias" alias, just change it to "Alias"
 			var dotIndex = scope.page.alias.indexOf(".");
