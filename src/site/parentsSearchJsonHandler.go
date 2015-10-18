@@ -13,6 +13,9 @@ import (
 
 // parentsSearchJsonHandler handles the request.
 func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
+	db := params.DB
+	u := params.U
+
 	// Decode data
 	var data searchJsonData
 	q := params.R.URL.Query()
@@ -20,29 +23,18 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if data.Term == "" {
 		return pages.HandlerBadRequestFail("No search term specified", nil)
 	}
-	result, message, err := parentsSearchJsonInternalHandler(params, &data)
-
-	if result == nil {
-		return pages.HandlerErrorFail(message, err)
-	}
-	return pages.StatusOK(result)
-}
-
-func parentsSearchJsonInternalHandler(params *pages.HandlerParams, data *searchJsonData) (map[string]interface{}, string, error) {
-	db := params.DB
-	u := params.U
 
 	// Load user grups
 	err := core.LoadUserGroups(db, u)
 	if err != nil {
-		return nil, "Couldn't load user groups", err
+		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
 	// Compute list of group ids we can access
 	groupMap := make(map[int64]*core.Group)
 	err = core.LoadGroupNames(db, u, groupMap)
 	if err != nil {
-		return nil, "Couldn't load groupMap", err
+		return pages.HandlerErrorFail("Couldn't load groupMap", err)
 	}
 	groupIds := make([]string, 0)
 	groupIds = append(groupIds, "0")
@@ -93,7 +85,7 @@ func parentsSearchJsonInternalHandler(params *pages.HandlerParams, data *searchJ
 	// Perform search.
 	results, err := elastic.SearchPageIndex(params.C, jsonStr)
 	if err != nil {
-		return nil, "Error with elastic search", err
+		return pages.HandlerErrorFail("Error with elastic search", err)
 	}
 
 	// Create page map.
@@ -105,23 +97,15 @@ func parentsSearchJsonInternalHandler(params *pages.HandlerParams, data *searchJ
 	// Load pages.
 	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{})
 	if err != nil {
-		return nil, "error while loading pages", err
+		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
 	// Load auxillary data.
 	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
 	if err != nil {
-		return nil, "error while loading aux data", err
+		return pages.HandlerErrorFail("error while loading aux data", err)
 	}
 
-	// Return the data in JSON format.
-	returnPageData := make(map[string]*core.Page)
-	for k, v := range pageMap {
-		returnPageData[fmt.Sprintf("%d", k)] = v
-	}
-
-	returnData := make(map[string]interface{})
-	returnData["searchHits"] = results.Hits
-	returnData["pages"] = returnPageData
-	return returnData, "", nil
+	returnData := createReturnData(pageMap).AddSearchHits(results.Hits)
+	return pages.StatusOK(returnData)
 }

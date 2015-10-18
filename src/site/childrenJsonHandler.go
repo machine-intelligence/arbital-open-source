@@ -2,8 +2,6 @@
 package site
 
 import (
-	"fmt"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 
@@ -53,10 +51,6 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load aux data", err)
 	}
 
-	// Return the page in JSON format.
-	strPageMap := make(map[string]*core.Page)
-	for k, v := range pageMap {
-		strPageMap[fmt.Sprintf("%d", k)] = v
-	}
-	return pages.StatusOK(strPageMap)
+	returnData := createReturnData(pageMap)
+	return pages.StatusOK(returnData)
 }

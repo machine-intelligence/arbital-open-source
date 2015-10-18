@@ -115,15 +115,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("error while loading aux data", err)
 	}
 
-	// Return the data in JSON format.
-	returnPageData := make(map[string]*core.Page)
-	for k, v := range pageMap {
-		returnPageData[fmt.Sprintf("%d", k)] = v
-	}
-
-	returnData := make(map[string]interface{})
-	returnData["searchHits"] = results.Hits
-	returnData["pages"] = returnPageData
-
+	returnData := createReturnData(pageMap).AddSearchHits(results.Hits)
 	return pages.StatusOK(returnData)
 }

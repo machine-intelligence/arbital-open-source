@@ -17,6 +17,7 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	pageId := rand.Int63()
 	pageMap := make(map[int64]*core.Page)
 	pageMap[pageId] = &core.Page{PageId: pageId}
+
 	returnData := createReturnData(pageMap)
 	return pages.StatusOK(returnData)
 }

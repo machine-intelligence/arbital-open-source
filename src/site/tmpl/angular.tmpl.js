@@ -323,11 +323,10 @@ app.service("pageService", function(userService, $http){
 			success(function(data, status){
 				parent.isLoadingChildren = false;
 				parent.hasLoadedChildren = true;
-				for (id in data) {
-					data[id] = that.addPageToMap(data[id]);
-				}
-				parent.loadChildrenData = data;
-				success(data, status);
+				userService.processServerData(data);
+				that.processServerData(data);
+				parent.loadChildrenData = data["pages"];
+				success(data["pages"], status);
 			}).error(function(data, status){
 				parent.isLoadingChildren = false;
 				console.log("Error loading children:"); console.log(data); console.log(status);
@@ -397,11 +396,10 @@ app.service("pageService", function(userService, $http){
 			success(function(data, status){
 				child.isLoadingParents = false;
 				child.hasLoadedParents = true;
-				for (id in data) {
-					data[id] = that.addPageToMap(data[id]);
-				}
-				child.loadParentsData = data;
-				success(data, status);
+				userService.processServerData(data);
+				that.processServerData(data);
+				child.loadParentsData = data["pages"];
+				success(data["pages"], status);
 			}).error(function(data, status){
 				child.isLoadingParents = false;
 				console.log("Error loading parents:"); console.log(data); console.log(status);

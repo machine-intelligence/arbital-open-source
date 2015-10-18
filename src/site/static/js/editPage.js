@@ -145,15 +145,16 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
 				}
 				if (isSnapshot) {
+					var editNum = r.result;
 					// Update prevEdit
-					$form.find(".prev-edit").val(r);
+					$form.find(".prev-edit").val(editNum);
 					// Prevent an autosave from triggering right after a successful snapshot
 					prevEditPageData.isSnapshot = false;
 					prevEditPageData.isAutosave = true;
-					prevEditPageData.prevEdit = r;
+					prevEditPageData.prevEdit = editNum;
 					data.__invisibleSubmit = true; 
 				}
-				callback(r);
+				callback(true);
 			}, function() {
 				if (isAutosave) autosaving = false;
 				if (publishing) {
@@ -165,7 +166,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			});
 			prevEditPageData = data;
 		} else {
-			callback(undefined);
+			callback(false);
 			autosaving = false;
 		}
 	}
@@ -176,7 +177,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		var $body = $target.closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		savePage(false, false, function(r) {
+		savePage(false, false, function(saved) {
 			if (doneFn) {
 				doneFn({alias: pageId});
 			}
@@ -189,8 +190,8 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		var $body = $(event.target).closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		savePage(false, true, function(r) {
-			if (r !== undefined) {
+		savePage(false, true, function(saved) {
+			if (saved) {
 				$loadingText.show().text("Saved!");
 			}
 		});
@@ -513,11 +514,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		var $autosaveLabel = $topParent.find(".autosave-label");
 		this.autosaveInterval = window.setInterval(function(){
 			$autosaveLabel.text("Autosave: Saving...").show();
-			savePage(true, false, function(r) {
-				if (r === undefined) {
-					$autosaveLabel.hide();
-				} else {
+			savePage(true, false, function(saved) {
+				if (saved) {
 					$autosaveLabel.text("Autosave: Saved!").show();
+				} else {
+					$autosaveLabel.hide();
 				}
 			});
 		}, 5000);
@@ -604,7 +605,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		clearInterval(this.similarPagesInterval);
 		clearInterval(this.backdropInterval);
 		// Autosave just in case.
-		savePage(true, false, function(r) {});
+		savePage(true, false, function(saved) {});
 	};
 };
 

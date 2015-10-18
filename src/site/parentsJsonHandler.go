@@ -2,8 +2,6 @@
 package site
 
 import (
-	"fmt"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 
@@ -53,10 +51,6 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't retrieve page likes", err)
 	}
 
-	// Return the pages in JSON format.
-	strPageMap := make(map[string]*core.Page)
-	for k, v := range pageMap {
-		strPageMap[fmt.Sprintf("%d", k)] = v
-	}
-	return pages.StatusOK(strPageMap)
+	returnData := createReturnData(pageMap)
+	return pages.StatusOK(returnData)
 }

@@ -640,6 +640,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	fmt.Fprintf(params.W, "%d", newEditNum)
-	return pages.StatusOK(nil)
+	returnData := createReturnData(nil).AddResult(newEditNum)
+	return pages.StatusOK(returnData)
 }

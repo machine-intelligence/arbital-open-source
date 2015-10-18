@@ -86,6 +86,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		if result.Data != nil {
+			w.Header().Set("Content-type", "application/json")
 			// Return the pages in JSON format.
 			jsonData, err := json.Marshal(result.Data)
 			if err != nil {
@@ -269,6 +270,11 @@ func createReturnData(pages map[int64]*core.Page) returnJsonData {
 	return returnData
 }
 
+func (d returnJsonData) AddResult(result interface{}) returnJsonData {
+	d["result"] = result
+	return d
+}
+
 func (d returnJsonData) AddEditMap(pages map[int64]*core.Page) returnJsonData {
 	returnEditData := make(map[string]*core.Page)
 	for k, v := range pages {
@@ -302,6 +308,11 @@ func (d returnJsonData) AddGroups(groups map[int64]*core.Group) returnJsonData {
 		returnGroupData[fmt.Sprintf("%d", k)] = v
 	}
 	d["groups"] = returnGroupData
+	return d
+}
+
+func (d returnJsonData) AddSearchHits(searchHits interface{}) returnJsonData {
+	d["searchHits"] = searchHits
 	return d
 }
 
