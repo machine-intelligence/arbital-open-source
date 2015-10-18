@@ -386,7 +386,9 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 			p.createdAt,p.editKarmaLock,p.seeGroupId,p.parents,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
-			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil
+			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil,
+			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=?`, pageId).Add(`
+					AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pages AS p
 		JOIN (
 			SELECT *
@@ -401,7 +403,8 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.ParentsStr, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
-		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil)
+		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
+		&p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {
