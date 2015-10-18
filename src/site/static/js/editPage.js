@@ -89,7 +89,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			$similarPages.empty();
 			for (var n = 0; n < data.length; n++) {
 				var pageId = data[n].value;
-				//if (pageId == page.pageId) continue;
+				if (pageId == page.pageId) continue;
 				var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
 					"' show-clickbait='true'></div>")(scope);
 				$similarPages.append($el);

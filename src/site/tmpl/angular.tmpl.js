@@ -562,6 +562,7 @@ app.service("pageService", function(userService, $http){
 // Autocomplete service provides data for autocompletion.
 app.service("autocompleteService", function($http, $compile, pageService){
 	var that = this;
+
 	// Set how to render search results for the given autocomplete input.
 	this.setAutocompleteRendering = function($input, scope) {
 		$input.data("ui-autocomplete")._renderItem = function(ul, item) {
@@ -582,8 +583,8 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		}
 		// Create list of results we can give to autocomplete.
 		var resultList = [];
-		for (var n = 0; n < data.searchHits.hits.length; n++) {
-			var source = data.searchHits.hits[n]._source;
+		for (var n = 0; n < data.result.hits.length; n++) {
+			var source = data.result.hits[n]._source;
 			resultList.push({
 				value: source.pageId,
 				label: source.pageId,
@@ -595,6 +596,25 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		}
 		return resultList;
 	};
+
+
+	// Do a normal search with the given options.
+	// options = {
+	//	term: string to search for
+	//	pageType: contraint for what type of pages we are looking for
+	// }
+	// Returns: list of results
+	this.performSearch = function(options, callback) {
+		$http({method: "POST", url: "/json/search/", data: JSON.stringify(options)})
+		.success(function(data, status){
+			var results = that.processAutocompleteResults(data);
+			if (callback) callback(results);
+		})
+		.error(function(data, status){
+			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
+			if (callback) callback({});
+		});
+	}
 
 	// Load data for autocompleting parents search.
 	var parentsSource = function(request, callback) {
@@ -870,23 +890,13 @@ app.directive("arbNavbar", function(pageService, userService, autocompleteServic
 				$.removeCookie("zanaduu", {path: "/"});
 			});
 
-			// Function for getting search results from the server.
-			var searchSource = function(request, callback) {
-				$http({method: "GET", url: "/json/search/", params: {term: request.term}})
-				.success(function(data, status){
-					var resultMap = autocompleteService.processAutocompleteResults(data);
-					callback(resultMap);
-				})
-				.error(function(data, status){
-					console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
-				});
-			};
-
 			// Setup search via navbar.
 			var $navSearch = element.find("#nav-search");
 			if ($navSearch.length > 0) {
 				$navSearch.autocomplete({
-					source: searchSource,
+					source: function(request, callback) {
+						autocompleteService.performSearch({term: request.term}, callback);
+					},
 					minLength: 3,
 					delay: 400,
 					focus: function (event, ui) {

@@ -115,6 +115,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("error while loading aux data", err)
 	}
 
-	returnData := createReturnData(pageMap).AddSearchHits(results.Hits)
+	returnData := createReturnData(pageMap).AddResult(results.Hits)
 	return pages.StatusOK(returnData)
 }

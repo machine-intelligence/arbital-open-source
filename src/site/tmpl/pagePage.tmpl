@@ -125,6 +125,14 @@
 
 		<!-- New Answer for a question page -->
 		<div class="new-answer" ng-show="page.type === 'question'">
+			<h1>Find Existing Answer</h1>
+			<input id="find-answer-search"
+					type="text"
+					class="form-control"
+					placeholder="Find existing answer"
+					ng-model="findAnswerTerm">
+			<div id="found-answers"></div>
+			<!-- arbFindAnswer is inserted here dynamically when primary page is a question -->
 			<h1>Your Answer</h1>
 			<!-- arbEditPage is inserted here dynamically when primary page is a question -->
 		</div>

@@ -100,7 +100,7 @@ $(function() {
 });
 
 // MainCtrl is for the Page page.
-app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageService, userService) {
+app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageService, userService, autocompleteService) {
 	$scope.pageService = pageService;
 	$scope.$compile = $compile;
 	$scope.answerIds = [];
@@ -185,6 +185,52 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 		$answersList.append(el);
 	}
 
+	// Set up finding existing answer for question pages.
+	if (pageService.primaryPage.type === "question") {
+		var waitLock = false;
+		var searchAgainTimeout = undefined;
+		$scope.findAnswerTerm = "";
+		// Get similar pages
+		var prevFindAnswerTerm = "";
+		var $foundAnswers = $("#found-answers");
+		var findAnswerTermChanged = function() {
+			if ($scope.findAnswerTerm.length <= 2) return;
+			if (waitLock) {
+				if (!searchAgainTimeout) {
+					searchAgainTimeout = $timeout(function() {
+						searchAgainTimeout = undefined;
+						findAnswerTermChanged();
+					}, 300);
+				}
+				return;
+			}
+			waitLock = true;
+			$timeout(function() {
+				waitLock = false;
+			}, 300);
+			var options = {
+				term: $scope.findAnswerTerm,
+				pageType: "answer",
+			};
+			if (options.term === prevFindAnswerTerm) return;
+			autocompleteService.performSearch(options, function(results){
+				$foundAnswers.empty();
+				for (var n = 0; n < results.length; n++) {
+					var pageId = results[n].value;
+					var $el = $compile("<button class='suggest-answer btn btn-info' answer-id='" + pageId + "'>Suggest</button><span arb-likes-page-title page-id='" + pageId +
+						"' show-clickbait='true'></span>")($scope);
+					$foundAnswers.append($el);
+				}
+			});
+		};
+		$scope.$watch("findAnswerTerm", findAnswerTermChanged);
+
+		$("body").on("click", ".suggest-answer", function(event) {
+			var answerId = $(event.target).attr("answer-id");
+			console.log(answerId);
+		});
+	}
+
 	// Add edit page for the answer.
 	if ($scope.page.type === "question") {
 		$scope.answerDoneFn = function(result) {
@@ -197,7 +243,10 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 		};
 
 		var createAnswerEditPage = function(page) {
-			var el = $compile("<arb-edit-page page-id='" + page.pageId +
+			var el = $compile("<arb-find-answer></arb-find-answer>")($scope);
+			$(".new-answer").append(el);
+
+			el = $compile("<arb-edit-page page-id='" + page.pageId +
 				"' primary-page-id='" + $scope.page.pageId +
 				"' done-fn='answerDoneFn(result)'></arb-edit-page>")($scope);
 			$(".new-answer").append(el);

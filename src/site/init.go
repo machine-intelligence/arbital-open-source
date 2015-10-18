@@ -64,7 +64,7 @@ func init() {
 	r.HandleFunc("/json/pages/", handlerWrapper(pagesJsonHandler)).Methods("GET")
 	r.HandleFunc("/json/parents/", handlerWrapper(parentsJsonHandler)).Methods("GET")
 	r.HandleFunc("/json/parentsSearch/", handlerWrapper(parentsSearchJsonHandler)).Methods("GET")
-	r.HandleFunc("/json/search/", handlerWrapper(searchJsonHandler)).Methods("GET")
+	r.HandleFunc("/json/search/", handlerWrapper(searchJsonHandler)).Methods("POST")
 	r.HandleFunc("/json/similarPageSearch/", handlerWrapper(similarPageSearchJsonHandler)).Methods("POST")
 
 	// POST handlers (API)

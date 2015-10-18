@@ -311,11 +311,6 @@ func (d returnJsonData) AddGroups(groups map[int64]*core.Group) returnJsonData {
 	return d
 }
 
-func (d returnJsonData) AddSearchHits(searchHits interface{}) returnJsonData {
-	d["searchHits"] = searchHits
-	return d
-}
-
 // domain redirects to proper HTML domain if user arrives elsewhere.
 //
 // The need for this is e.g. for http://foo.rewards.xelaie.com/, which
