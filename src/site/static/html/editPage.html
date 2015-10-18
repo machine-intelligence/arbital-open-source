@@ -41,7 +41,7 @@
 			<div ng-show="page.isSnapshot" class="alert alert-warning">
 				Restored snapshot which was last updated
 				<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-				<a ng-href="{[{page.editUrl()}]}?edit=live">Switch to editing the live version.</a>
+				<a ng-href="{[{page.editUrl()}]}?edit={[{currentEditNum}]}">Switch to editing the live version.</a>
 			</div>
 		</div>
 	</div>

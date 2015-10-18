@@ -678,7 +678,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 								returnedResult = result;
 								$modal.modal("hide");
 								if (result.abandon) {
-									pageService.deletePage(result.alias);
+									pageService.abandonPage(result.alias);
 								}
 								if (result.abandon || result.alias) {
 									resumePageId = undefined;
@@ -795,6 +795,15 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 					scope.showDifferentBranchWarning &= !editPage.isCurrentEdit;
 					tempEdit = editPage.prevEdit;
 				} while (tempEdit > 0);
+			}
+
+			// Compute the editNum of the current edit.
+			for (var editNum in scope.page.editHistoryMap) {
+				var edit = scope.page.editHistoryMap[editNum];
+				if (edit.isCurrentEdit) {
+					scope.currentEditNum = editNum;
+					break;
+				}
 			}
 
 			// Set up page types.
