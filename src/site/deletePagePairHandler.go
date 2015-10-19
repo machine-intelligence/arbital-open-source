@@ -1,21 +1,23 @@
-// deleteTagHandler.go handles requests for deleting a tag.
+// deletePagePairHandler.go handles requests for deleting a tag.
 package site
 
 import (
 	"encoding/json"
+	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 )
 
-// deleteTagData contains the data we receive in the request.
-type deleteTagData struct {
+// deletePagePairData contains the data we receive in the request.
+type deletePagePairData struct {
 	ParentId int64 `json:",string"`
 	ChildId  int64 `json:",string"`
+	Type     string
 }
 
-// deleteTagHandler handles requests for deleting a tag.
-func deleteTagHandler(params *pages.HandlerParams) *pages.Result {
+// deletePagePairHandler handles requests for deleting a tag.
+func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
@@ -24,19 +26,25 @@ func deleteTagHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	decoder := json.NewDecoder(params.R.Body)
-	var data deleteTagData
+	var data deletePagePairData
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.ParentId == 0 || data.ChildId == 0 {
+	if data.ParentId <= 0 || data.ChildId <= 0 {
 		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", err)
+	}
+	data.Type = strings.ToLower(data.Type)
+	if data.Type != core.ParentPagePairType &&
+		data.Type != core.TagPagePairType &&
+		data.Type != core.RequirementPagePairType {
+		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 
 	query := db.NewStatement(`
 		DELETE FROM pagePairs
 		WHERE parentId=? AND childId=? AND type=?`)
-	if _, err := query.Exec(data.ParentId, data.ChildId, core.TagPagePairType); err != nil {
+	if _, err := query.Exec(data.ParentId, data.ChildId, data.Type); err != nil {
 		return pages.HandlerErrorFail("Couldn't delete a tag", err)
 	}
 	return pages.StatusOK(nil)

@@ -5,8 +5,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -50,10 +48,6 @@ func revertPageHandler(params *pages.HandlerParams) *pages.Result {
 	if page.HasVote {
 		hasVoteStr = "on"
 	}
-	parentIds := make([]string, len(page.Parents))
-	for n, pair := range page.Parents {
-		parentIds[n] = fmt.Sprintf("%d", pair.ParentId)
-	}
 	editData := &editPageData{
 		PageId:         page.PageId,
 		PrevEdit:       page.PrevEdit,
@@ -66,7 +60,6 @@ func revertPageHandler(params *pages.HandlerParams) *pages.Result {
 		VoteType:       page.VoteType,
 		SeeGroupId:     page.SeeGroupId,
 		EditKarmaLock:  page.EditKarmaLock,
-		ParentIds:      strings.Join(parentIds, ","),
 		Alias:          page.Alias,
 		SortChildrenBy: page.SortChildrenBy,
 		AnchorContext:  page.AnchorContext,

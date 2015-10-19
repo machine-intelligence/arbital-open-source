@@ -67,9 +67,23 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$newTag.attr("tag-id", parentId);
 		$newTag.insertBefore($template);
 		updateParentElements();
+
+		// Notify the BE of this potentially new parent connection.
+		pageService.newPagePair({
+			parentId: parentId,
+			childId: pageId,
+			type: "parent",
+		});
 	}
 	var deleteParentElement = function($target) {
+		var tagId = $target.attr("tag-id");
 		$target.tooltip("destroy").remove();
+
+		pageService.deletePagePair({
+			parentId: tagId,
+			childId: pageId,
+			type: "parent",
+		});
 	};
 
 	// Get similar pages
@@ -99,13 +113,8 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Helper function for savePage. Computes the data to submit via AJAX.
 	var computeAutosaveData = function(isAutosave, isSnapshot) {
-		var parentIds = [];
-		$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
-			parentIds.push($(element).attr("tag-id"));
-		});
 		var data = {
 			pageId: pageId,
-			parentIds: parentIds.join(),
 			karmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
 			isAutosave: isAutosave,
 			isSnapshot: isSnapshot,

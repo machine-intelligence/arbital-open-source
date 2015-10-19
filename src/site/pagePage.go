@@ -47,8 +47,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 
 	if data.Page.Type == core.LensPageType {
 		// Redirect lens pages to the parent page.
-		parentId, _ := strconv.ParseInt(data.Page.ParentsStr, core.PageIdEncodeBase, 64)
-		pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parentId)})
+		pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", data.Page.Parents[0].ParentId)})
 		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
 	} else if data.Page.Type == core.CommentPageType {
 		// Redirect comment pages to the primary page.
@@ -96,7 +95,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load the main page
-	data.Page, err = core.LoadFullEdit(db, pageId, data.User.Id, &core.LoadEditOptions{IgnoreParents: true})
+	data.Page, err = core.LoadFullEdit(db, pageId, data.User.Id, nil)
 	if err != nil {
 		return pages.Fail("Couldn't retrieve a page", err)
 	} else if data.Page == nil {
@@ -104,7 +103,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Redirect lens pages to the parent page.
-	if data.Page.Type == core.LensPageType {
+	if data.Page.Type == core.LensPageType && len(data.Page.Parents) > 0 {
 		return pages.StatusOK(&data)
 	}
 
@@ -116,7 +115,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
-	err = core.LoadChildrenIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
+	err = core.LoadChildrenIds(db, data.PageMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
 	if err != nil {
 		return pages.Fail("Couldn't load children", err)
 	}
@@ -147,26 +146,26 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load taggeds ids
-	err = core.LoadTaggedAsIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	err = core.LoadTaggedAsIds(db, data.PageMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load tagged as", err)
 	}
 
 	// Load related ids
-	err = core.LoadRelatedIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	err = core.LoadRelatedIds(db, data.PageMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load related", err)
 	}
 
 	// Load requirement ids
 	data.MasteryMap = make(map[int64]*core.Mastery)
-	err = core.LoadRequirements(db, u.Id, data.PageMap, data.MasteryMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	err = core.LoadRequirements(db, u.Id, data.PageMap, data.MasteryMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load requirements", err)
 	}
 
 	// Load parents
-	err = core.LoadParentsIds(db, data.PageMap, core.LoadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
+	err = core.LoadParentsIds(db, data.PageMap, &core.LoadParentsIdsOptions{ForPages: embeddedPageMap, LoadHasParents: true})
 	if err != nil {
 		return pages.Fail("Couldn't load parents", err)
 	}

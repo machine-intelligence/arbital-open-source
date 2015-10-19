@@ -225,9 +225,16 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 		};
 		$scope.$watch("findAnswerTerm", findAnswerTermChanged);
 
+		// User clicks to suggest an answer
 		$("body").on("click", ".suggest-answer", function(event) {
 			var answerId = $(event.target).attr("answer-id");
-			console.log(answerId);
+			pageService.newPagePair({
+				parentId: pageService.primaryPage.pageId,
+				childId: answerId,
+				type: "parent",
+			}, function() {
+				location.reload();
+			});
 		});
 	}
 
@@ -341,7 +348,7 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 					childId: scope.page.pageId,
 					type: "tag",
 				};
-				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
+				$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(data)})
 					.error(function(data, status){
 						console.log("Error creating tag:"); console.log(data); console.log(status);
 					});
@@ -358,6 +365,7 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 				var data = {
 					parentId: $target.attr("page-id"),
 					childId: scope.page.pageId,
+					type: "tag",
 				};
 				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
 					.error(function(data, status){

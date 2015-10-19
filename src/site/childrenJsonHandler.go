@@ -32,7 +32,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load the children.
 	pageMap := make(map[int64]*core.Page)
 	pageMap[data.ParentId] = &core.Page{PageId: data.ParentId}
-	err = core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{LoadHasChildren: true})
+	err = core.LoadChildrenIds(db, pageMap, &core.LoadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load children", err)
 	}

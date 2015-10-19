@@ -88,7 +88,7 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the children
-	err := core.LoadChildrenIds(db, data.PageMap, core.LoadChildrenIdsOptions{LoadHasChildren: true})
+	err := core.LoadChildrenIds(db, data.PageMap, &core.LoadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		return pages.Fail("error while loading children", err)
 	}

@@ -538,6 +538,30 @@ app.service("pageService", function(userService, $http){
 		);
 	};
 
+	// Add a new relationship between pages using the given options.
+	// options = {
+	//	parentId: id of the parent page
+	//	childId: id of the child page
+	//	type: type of the relationships
+	// }
+	this.newPagePair = function(options, success) {
+		$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(options)})
+			.success(function(data, status){
+				if(success) success();
+			})
+			.error(function(data, status){
+				console.log("Error creating new page pair:"); console.log(data); console.log(status);
+			});
+	};
+	// Note: you also need to specify the type of the relationship here, sinc we
+	// don't want to accidentally delete the wrong type.
+	this.deletePagePair = function(options) {
+		$http({method: "POST", url: "/deletePagePair/", data: JSON.stringify(options)})
+			.error(function(data, status){
+				console.log("Error deleting a page pair:"); console.log(data); console.log(status);
+			});
+	};
+
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId) {

@@ -534,8 +534,6 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 								var parent = pageService.pageMap[subpage.parents[i].parentId];
 								hasParentComment = parent.type === "comment";
 								if (hasParentComment) {
-									if (parent.children == null) parent.children = [];
-									parent.children.push({parentId: parent.pageId, childId: subpage.pageId});
 									break;
 								}
 							}
@@ -856,7 +854,7 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 					childId: ui.item.label,
 					type: "requirement",
 				};
-				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
+				$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(data)})
 					.error(function(data, status){
 						console.log("Error creating requirement:"); console.log(data); console.log(status);
 					});
@@ -874,6 +872,7 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 				var data = {
 					parentId: scope.page.pageId,
 					childId: $target.attr("page-id"),
+					type: "requirement",
 				};
 				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
 					.error(function(data, status){

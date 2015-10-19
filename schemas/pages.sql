@@ -54,9 +54,6 @@ CREATE TABLE pages (
 	 But once voting is set, it can only be turned on/off, the type cannot be
 	 changed. */
 	voteType VARCHAR(32) NOT NULL,
-	/* Comma separated string of parent ids in base 36. We store them so that we
-	 can easily revert parents when reverting to an edit. */
-	parents VARCHAR(1024) NOT NULL,
 	/* Number of TODOs in this page. */
 	todoCount INT NOT NULL,
 

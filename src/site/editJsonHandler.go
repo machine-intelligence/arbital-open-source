@@ -23,7 +23,6 @@ type editJsonData struct {
 
 // editJsonHandler handles the request.
 func editJsonHandler(params *pages.HandlerParams) *pages.Result {
-	c := params.C
 	db := params.DB
 	u := params.U
 
@@ -92,7 +91,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load parents
-	err = p.ProcessParents(c, pageMap)
+	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{ForPages: primaryPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load parents: %v", err)
 	}

@@ -116,7 +116,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 	// Load children
 	if data.LoadChildren {
-		err := core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{ForPages: sourceMap})
+		err := core.LoadChildrenIds(db, pageMap, &core.LoadChildrenIdsOptions{ForPages: sourceMap})
 		if err != nil {
 			return nil, "Couldn't load children", err
 		}
@@ -124,7 +124,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 	// Load requirements
 	if data.LoadRequirements {
-		err := core.LoadRequirements(db, u.Id, pageMap, masteryMap, core.LoadChildrenIdsOptions{ForPages: sourceMap})
+		err := core.LoadRequirements(db, u.Id, pageMap, masteryMap, &core.LoadChildrenIdsOptions{ForPages: sourceMap})
 		if err != nil {
 			return nil, "Couldn't load children", err
 		}

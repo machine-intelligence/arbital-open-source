@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -13,36 +12,6 @@ import (
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
-
-// ProcessParents converts ParentsStr from this page to the Parents array, and
-// populates the given pageMap with the parents.
-// pageMap can be nil.
-func (p *Page) ProcessParents(c sessions.Context, pageMap map[int64]*Page) error {
-	if len(p.ParentsStr) <= 0 {
-		return nil
-	}
-	p.Parents = nil
-	p.HasParents = false
-	parentIds := strings.Split(p.ParentsStr, ",")
-	for _, idStr := range parentIds {
-		id, err := strconv.ParseInt(idStr, PageIdEncodeBase, 64)
-		if err != nil {
-			return err
-		}
-		pair := PagePair{ParentId: id, ChildId: p.PageId}
-		if pageMap != nil {
-			newPage, ok := pageMap[pair.ParentId]
-			if !ok {
-				newPage = &Page{PageId: pair.ParentId}
-				pageMap[newPage.PageId] = newPage
-			}
-			newPage.Children = append(newPage.Children, &pair)
-		}
-		p.Parents = append(p.Parents, &pair)
-		p.HasParents = true
-	}
-	return nil
-}
 
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
 func PageIdsStringFromMap(pageMap map[int64]*Page) string {
