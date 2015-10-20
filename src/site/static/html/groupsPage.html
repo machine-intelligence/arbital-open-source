@@ -4,7 +4,9 @@
 			ng-init="userCanAddMembers=group.members[userService.user.id].canAddMembers;userCanAdmin=group.members[userService.user.id].canAdmin"
 			group-id="{[{groupId}]}">
 		<div class="panel-heading">
-			<h3 class="panel-title" ng-bind="group.title"></h3>
+			<h3 class="panel-title">
+				<arb-likes-page-title page-id="{[{groupId}]}"><arb-likes-page-title>
+			</h3>
 		</div>
 	
 		<!-- Members table -->

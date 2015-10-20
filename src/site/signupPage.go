@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/user"
@@ -118,6 +119,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			hashmap["title"] = fmt.Sprintf("%s %s", firstName, lastName)
 			hashmap["alias"] = alias
 			hashmap["createdAt"] = database.Now()
+			hashmap["type"] = core.GroupPageType
 			statement = tx.NewInsertTxStatement("pages", hashmap)
 			if _, err = statement.Exec(); err != nil {
 				return "Couldn't create a new page", err
