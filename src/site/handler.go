@@ -59,10 +59,12 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 
 		// Recover from panic.
 		defer func() {
-			if r := recover(); r != nil {
-				c.Errorf("%v", r)
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+			if sessions.Live {
+				if r := recover(); r != nil {
+					c.Errorf("%v", r)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+				}
 			}
 		}()
 		// Open DB connection
@@ -172,10 +174,12 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 
 		// Recover from panic.
 		defer func() {
-			if r := recover(); r != nil {
-				c.Errorf("%v", r)
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+			if sessions.Live {
+				if r := recover(); r != nil {
+					c.Errorf("%v", r)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+				}
 			}
 		}()
 

@@ -527,6 +527,10 @@ func LoadLikes(db *database.DB, currentUserId int64, pageMap map[int64]*Page) er
 
 // LoadVotes loads probability votes corresponding to the given pages and updates the pages.
 func LoadVotes(db *database.DB, currentUserId int64, pageMap map[int64]*Page, usersMap map[int64]*User) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := db.NewStatement(`
 		SELECT userId,pageId,value,createdAt

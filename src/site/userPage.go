@@ -106,13 +106,12 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		// Load recently edited by me page ids.
 		rows = db.NewStatement(`
 			SELECT p.pageId
-			FROM (
-				SELECT pageId,createdAt
-				FROM pages
-				WHERE creatorId=? AND type!="comment" AND isAutosave
-				GROUP BY pageId
-			) AS p
-			ORDER BY createdAt DESC
+			FROM pages AS p
+			JOIN pageInfos AS i
+			ON (p.pageId = i.pageId)
+			WHERE p.creatorId=? AND p.type!="comment" AND p.edit>i.currentEdit
+			GROUP BY p.pageId
+			ORDER BY p.createdAt DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 		data.PagesWithDraftIds, err = core.LoadPageIds(rows, data.PageMap)
 		if err != nil {
