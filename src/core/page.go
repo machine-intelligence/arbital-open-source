@@ -32,6 +32,10 @@ const (
 	NewPageByUserUpdateType   = "newPageByUser"
 	NewParentUpdateType       = "newParent"
 	NewChildUpdateType        = "newChild"
+	NewRequirementUpdateType  = "newRequirement"
+	NewRequiredByUpdateType   = "newRequiredBy"
+	NewTagUpdateType          = "newTag"
+	NewTaggedByUpdateType     = "newTaggedBy"
 	AtMentionUpdateType       = "atMention"
 
 	// Options for sorting page's children.

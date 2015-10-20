@@ -146,6 +146,9 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[int64]*Page) []*Up
 				}
 			}
 		}
+		if _, ok := pageMap[row.GoToPageId]; !ok {
+			createNewEntry = false
+		}
 		if createNewEntry {
 			// Add new entry to the group
 			entry := &UpdateEntry{

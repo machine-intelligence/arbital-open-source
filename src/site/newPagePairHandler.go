@@ -117,8 +117,14 @@ func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
 	// Generate updates for users who are subscribed to the parent pages.
 	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" {
 		var task tasks.NewUpdateTask
+		if data.Type == core.ParentPagePairType {
+			task.UpdateType = core.NewParentUpdateType
+		} else if data.Type == core.RequirementPagePairType {
+			task.UpdateType = core.NewRequiredByUpdateType
+		} else if data.Type == core.TagPagePairType {
+			task.UpdateType = core.NewTagUpdateType
+		}
 		task.UserId = u.Id
-		task.UpdateType = core.NewParentUpdateType
 		task.GroupByPageId = child.PageId
 		task.SubscribedToPageId = child.PageId
 		task.GoToPageId = parent.PageId
@@ -130,7 +136,13 @@ func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
 
 		task = tasks.NewUpdateTask{}
 		task.UserId = u.Id
-		task.UpdateType = core.NewChildUpdateType
+		if data.Type == core.ParentPagePairType {
+			task.UpdateType = core.NewChildUpdateType
+		} else if data.Type == core.RequirementPagePairType {
+			task.UpdateType = core.NewRequirementUpdateType
+		} else if data.Type == core.TagPagePairType {
+			task.UpdateType = core.NewTaggedByUpdateType
+		}
 		task.GroupByPageId = parent.PageId
 		task.SubscribedToPageId = parent.PageId
 		task.GoToPageId = child.PageId
