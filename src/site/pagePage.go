@@ -3,6 +3,7 @@ package site
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 
 	"zanaduu3/src/core"
@@ -41,26 +42,11 @@ var pagePage = newPageWithOptions(
 func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	var data pageTmplData
 	result := pageInternalRenderer(params, &data)
+	if result.ResponseCode == http.StatusSeeOther {
+		return result
+	}
 	if result.Data == nil {
 		return pages.Fail(result.Message, result.Err)
-	}
-
-	if data.Page.Type == core.LensPageType {
-		// Redirect lens pages to the parent page.
-		pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", data.Page.Parents[0].ParentId)})
-		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
-	} else if data.Page.Type == core.CommentPageType {
-		// Redirect comment pages to the primary page.
-		// Note: we are actually redirecting blindly to a parent, which for replies
-		// could be the parent comment. For now that's okay, since we just do anther
-		// redirect then.
-		for _, p := range data.Page.Parents {
-			parent := data.PageMap[p.ParentId]
-			if parent.Type != core.CommentPageType {
-				pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parent.PageId)})
-				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
-			}
-		}
 	}
 
 	data.PrimaryPageId = data.Page.PageId
@@ -73,15 +59,12 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	db := params.DB
 	u := params.U
 
-	var err error
 	data.User = u
 
-	// Figure out main page's id
-	var pageId int64
+	// If it's not a page id but an alias, the redirect
 	pageAlias := mux.Vars(params.R)["alias"]
-	pageId, err = strconv.ParseInt(pageAlias, 10, 64)
+	pageId, err := strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
-		// Okay, it's not an id, but could be an alias.
 		row := db.NewStatement(`
 			SELECT pageId
 			FROM pages
@@ -92,6 +75,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		} else if !exists {
 			return pages.Fail(fmt.Sprintf("There is no page with alias: %s", pageAlias), nil)
 		}
+		return pages.RedirectWith(core.GetPageUrl(pageId))
 	}
 
 	// Load the main page
@@ -100,11 +84,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		return pages.Fail("Couldn't retrieve a page", err)
 	} else if data.Page == nil {
 		return pages.Fail(fmt.Sprintf("Couldn't find a page with id: %d", pageId), nil)
-	}
-
-	// Redirect lens pages to the parent page.
-	if data.Page.Type == core.LensPageType && len(data.Page.Parents) > 0 {
-		return pages.StatusOK(&data)
 	}
 
 	// Create maps.
@@ -168,6 +147,27 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	err = core.LoadParentsIds(db, data.PageMap, &core.LoadParentsIdsOptions{ForPages: embeddedPageMap, LoadHasParents: true})
 	if err != nil {
 		return pages.Fail("Couldn't load parents", err)
+	}
+
+	// Check if a redirect is necessary.
+	// TODO: do this earlier
+	if data.Page.Type == core.LensPageType && len(data.Page.Parents) > 0 {
+		// Redirect lens pages to the parent page.
+		pageUrl := core.GetPageUrl(data.Page.Parents[0].ParentId)
+		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
+	}
+	if data.Page.Type == core.CommentPageType {
+		// Redirect comment pages to the primary page.
+		// Note: we are actually redirecting blindly to a parent, which for replies
+		// could be the parent comment. For now that's okay, since we just do another
+		// redirect then.
+		for _, p := range data.Page.Parents {
+			parent := data.PageMap[p.ParentId]
+			if parent.Type != core.CommentPageType {
+				pageUrl := core.GetPageUrl(parent.PageId)
+				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
+			}
+		}
 	}
 
 	// Load the domains for the primary page

@@ -51,8 +51,8 @@
 
 			// Called when the user is done editing the page.
 			$scope.doneFn = function(result) {
-				if (pageService.primaryPage.wasPublished) {
-					window.location.href = pageService.primaryPage.url(true);
+				if (pageService.primaryPage.wasPublished || !result.abandon) {
+					window.location.href = pageService.primaryPage.url();
 				} else {
 					window.location.href = "/edit/";
 				}

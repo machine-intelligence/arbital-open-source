@@ -185,13 +185,13 @@ func ExtractTodoCount(text string) int {
 }
 
 // GetPageUrl returns the domain relative url for accessing the given page.
-func GetPageUrl(p *Page) string {
-	return fmt.Sprintf("/pages/%s", p.Alias)
+func GetPageUrl(pageId int64) string {
+	return fmt.Sprintf("/pages/%d", pageId)
 }
 
 // GetEditPageUrl returns the domain relative url for editing the given page.
-func GetEditPageUrl(p *Page) string {
-	return fmt.Sprintf("/edit/%d", p.PageId)
+func GetEditPageUrl(pageId int64) string {
+	return fmt.Sprintf("/edit/%d", pageId)
 }
 
 // GetEditLevel checks if the user can edit this page. Possible return values:

@@ -226,11 +226,8 @@ app.service("pageService", function(userService, $http){
 			return this.type === "deleted";
 		},
 		// Get page's url
-		url: function(forcePageId) {
-			if (forcePageId) {
-				return "/pages/" + this.pageId;
-			}
-			return "/pages/" + this.alias;
+		url: function() {
+			return "/pages/" + this.pageId;
 		},
 		// Get url to edit the page
 		editUrl: function() {

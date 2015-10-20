@@ -47,7 +47,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Couldn't convert pageId=>alias", err)
 		} else if !exists {
 			// No alias found. Assume user is trying to create a new page with an alias.
-			return pages.RedirectWith(core.GetEditPageUrl(&core.Page{PageId: rand.Int63()}) + "?alias=" + data.PageAlias)
+			return pages.RedirectWith(core.GetEditPageUrl(rand.Int63()) + "?alias=" + data.PageAlias)
 		}
 	}
 

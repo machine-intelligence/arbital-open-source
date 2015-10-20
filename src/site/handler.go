@@ -141,7 +141,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					return template.JS(string(jsonData))
 				},
 				"GetPageUrl": func(p *core.Page) string {
-					return core.GetPageUrl(p)
+					return core.GetPageUrl(p.PageId)
 				},
 				"IsUpdatedPage": func(p *core.Page) bool {
 					return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
