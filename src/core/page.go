@@ -18,6 +18,8 @@ const (
 	AnswerPageType   = "answer"
 	LensPageType     = "lens"
 	DeletedPageType  = "deleted"
+	GroupPageType    = "group"
+	DomainPageType   = "domain"
 
 	// Various types of page connections.
 	ParentPagePairType      = "parent"

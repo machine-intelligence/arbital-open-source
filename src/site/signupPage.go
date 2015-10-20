@@ -58,7 +58,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 		// Process invite code and assign karma
 		inviteCode := strings.ToUpper(q.Get("inviteCode"))
 		karma := 0
-		if inviteCode == "BAYES" || inviteCode == "LESSWRONG" {
+		if inviteCode == "TRUTH" {
 			karma = 200
 		} else {
 			return pages.Fail("Need invite code", nil)
