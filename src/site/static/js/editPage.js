@@ -88,26 +88,29 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Get similar pages
 	var prevSimilarPageData = {};
 	var $similarPages = $topParent.find(".similar-pages").find(".panel-body");
-	var computeSimilarPages = function($compile, scope) {
-		var fullPageData = computeAutosaveData(false, false);
-		if (fullPageData.type !== "question") return;
-		var data = {
-			title: fullPageData.title,
-			text: fullPageData.text,
-			clickbait: fullPageData.clickbait,
-		};
-		if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return;
-		prevSimilarPageData = data;
-		autocompleteService.findSimilarPages(data, function(data){
-			$similarPages.empty();
-			for (var n = 0; n < data.length; n++) {
-				var pageId = data[n].value;
-				if (pageId == page.pageId) continue;
-				var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
-					"' show-clickbait='true'></div>")(scope);
-				$similarPages.append($el);
-			}
-		});
+	var getComputeSimilarPagesFunc = function($compile, scope) {
+		return createThrottledCallback(function() {
+			var fullPageData = computeAutosaveData(false, false);
+			var data = {
+				title: fullPageData.title,
+				text: fullPageData.text,
+				clickbait: fullPageData.clickbait,
+				pageType: fullPageData.type,
+			};
+			if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return false;
+			prevSimilarPageData = data;
+			autocompleteService.findSimilarPages(data, function(data){
+				$similarPages.empty();
+				for (var n = 0; n < data.length; n++) {
+					var pageId = data[n].value;
+					if (pageId == page.pageId) continue;
+					var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
+						"' show-clickbait='true'></div>")(scope);
+					$similarPages.append($el);
+				}
+			});
+			return true;
+		}, 2000);
 	};
 
 	// Helper function for savePage. Computes the data to submit via AJAX.
@@ -532,9 +535,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		}, 5000);
 
 		// Set up finding similar pages
-		this.similarPagesInterval = window.setInterval(function(){
-			computeSimilarPages($compile, scope);
-		}, 1100);
+		var func = getComputeSimilarPagesFunc($compile, scope);
+		scope.$watch("page.title", func);
+		scope.$watch("page.clickbait", func);
+		scope.$watch("page.text", func);
 
 		// Set up interval for updating meta-data
 		var $metaTextInput = $topParent.find(".meta-text-input");
@@ -702,7 +706,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 						if (options.callback) {
 							// Make sure we got alias and not pageId
 							var tempEditPage = pageService.editMap[returnedResult.alias];
-							returnedResult.alias = tempEditPage.alias;
+							returnedResult.alias = editPage.alias;
 							options.callback(returnedResult);
 						}
 						editPage.stop();

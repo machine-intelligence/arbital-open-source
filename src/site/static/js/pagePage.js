@@ -187,32 +187,17 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 
 	// Set up finding existing answer for question pages.
 	if (pageService.primaryPage.type === "question") {
-		var waitLock = false;
-		var searchAgainTimeout = undefined;
 		$scope.findAnswerTerm = "";
 		// Get similar pages
 		var prevFindAnswerTerm = "";
 		var $foundAnswers = $("#found-answers");
-		var findAnswerTermChanged = function() {
-			if ($scope.findAnswerTerm.length <= 2) return;
-			if (waitLock) {
-				if (!searchAgainTimeout) {
-					searchAgainTimeout = $timeout(function() {
-						searchAgainTimeout = undefined;
-						findAnswerTermChanged();
-					}, 300);
-				}
-				return;
-			}
-			waitLock = true;
-			$timeout(function() {
-				waitLock = false;
-			}, 300);
+		var findAnswerTermChanged = createThrottledCallback(function() {
+			if ($scope.findAnswerTerm.length <= 2) return false;
 			var options = {
 				term: $scope.findAnswerTerm,
 				pageType: "answer",
 			};
-			if (options.term === prevFindAnswerTerm) return;
+			if (options.term === prevFindAnswerTerm) return false;
 			autocompleteService.performSearch(options, function(results){
 				$foundAnswers.empty();
 				for (var n = 0; n < results.length; n++) {
@@ -222,7 +207,8 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 					$foundAnswers.append($el);
 				}
 			});
-		};
+			return true;
+		}, 300);
 		$scope.$watch("findAnswerTerm", findAnswerTermChanged);
 
 		// User clicks to suggest an answer

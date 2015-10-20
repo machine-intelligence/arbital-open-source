@@ -16,6 +16,7 @@ type similarPageSearchJsonData struct {
 	Title     string
 	Clickbait string
 	Text      string
+	PageType  string
 }
 
 // similarPageSearchJsonHandler handles the request.
@@ -55,6 +56,7 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)
+	escapedPageType := elastic.EscapeMatchTerm(strings.ToLower(data.PageType))
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
@@ -79,7 +81,7 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"term": { "type": "question" }
+								"term": { "type": "`+escapedPageType+`" }
 							}, {
 								"terms": { "seeGroupId": [%[4]s] }
 							}

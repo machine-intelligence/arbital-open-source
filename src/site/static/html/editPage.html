@@ -58,9 +58,9 @@
 	</div>
 
 	<!-- Show similar pages -->
-	<div class="similar-pages panel panel-default" ng-show="isQuestion">
+	<div class="similar-pages panel panel-default">
 		<div class="panel-heading">
-			Similar questions
+			Similar pages
 		</div>
 		<div class="panel-body">
 		</div>
@@ -107,7 +107,7 @@
 						rows="{[{isComment ? 10 : 30}]}"
 						placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 					  style="resize: none;"
-					  ng-bind="page.text"
+					  ng-model="page.text"
 						ng-readonly="lockedByAnother"></textarea>
 				<div class="wmd-panel-bottom-buttons">
 					<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
