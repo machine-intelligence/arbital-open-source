@@ -51,6 +51,18 @@
   left: 33%;
   width: 33%;
 }
+.search-result {
+  text-decoration: none;
+}
+.search-result:focus {
+  text-decoration: none;
+}
+.search-result:hover {
+  text-decoration: none;
+}
+.search-result:active {
+  text-decoration: none;
+}
 .page-footer {
   color: #b8b8b8;
   font-size: 10px;

@@ -49,6 +49,7 @@
 			<span ng-bind="page.type == 'comment' ? 'Comment' : page.title"></span>
 		</a>
 		<span ng-bind="page.type == 'comment' ? 'Comment' : page.title" ng-show="isSearchResult"></span>
+		<span class="gray-text" ng-show="isSearchResult && page.pageId != page.alias">({[{page.alias}]})</span>
 	</span>
 
 	<span class="created-span gray-text" ng-bind="page.createdAt | relativeDateTime" ng-show="showCreatedAt">

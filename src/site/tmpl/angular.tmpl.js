@@ -585,10 +585,17 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	var that = this;
 
 	// Set how to render search results for the given autocomplete input.
-	this.setAutocompleteRendering = function($input, scope) {
+	this.setAutocompleteRendering = function($input, scope, resultsAreLinks) {
 		$input.data("ui-autocomplete")._renderItem = function(ul, item) {
-			var $el = $compile("<li class='search-result ui-menu-item' arb-likes-page-title page-id='" + item.value +
-				"' show-clickbait='true' is-search-result='true'></li>")(scope);
+			var elementType = "span";
+			var elementTypeEnd = "span";
+			if (resultsAreLinks) {
+				elementType = "a href='/pages/" + item.value + "'";
+				elementTypeEnd = "a";
+			}
+			var $el = $compile("<li class='ui-menu-item'><" + elementType +
+				" arb-likes-page-title class='search-result' page-id='" + item.value +
+				"' show-clickbait='true' is-search-result='true'></" + elementTypeEnd + "></li>")(scope);
 			$el.attr("data-value", item.value);
 			return $el.appendTo(ul);
 		};
@@ -924,11 +931,14 @@ app.directive("arbNavbar", function(pageService, userService, autocompleteServic
 						return false;
 					},
 					select: function (event, ui) {
+						if (event.ctrlKey) {
+							return false;
+						}
 						window.location.href = "/pages/" + ui.item.value;
 						return false;
 					},
 				});
-				autocompleteService.setAutocompleteRendering($navSearch, scope);
+				autocompleteService.setAutocompleteRendering($navSearch, scope, true);
 			}
 		},
 	};
