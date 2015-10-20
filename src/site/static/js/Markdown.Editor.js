@@ -9,7 +9,6 @@
 		re = window.RegExp,
 		nav = window.navigator,
 		SETTINGS = { lineLength: 72 },
-		autocompleteService = null,
 
 	// Used to work around some browser bugs where we can't use feature testing.
 	uaSniffed = {
@@ -92,7 +91,6 @@
 		if (options.helpButton) {
 			options.strings.help = options.strings.help || options.helpButton.title;
 		}
-		autocompleteService = options.autocompleteService;
 		var getString = function (identifier) { return options.strings[identifier] || defaultsStrings[identifier]; }
 
 		idPostfix = idPostfix || "";

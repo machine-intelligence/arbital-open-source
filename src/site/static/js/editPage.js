@@ -8,11 +8,10 @@
 //   primaryPage - for an answer page, points to the question page; for a comment, point to the root page
 //   isModal - set if the page is being edited inside a modal
 //   doneFn - function to call when the user is done with editing.
-//			Function should return true iff the event was processed.
 // }
 // Result returned from doneFn {
 // 	abandon - if set to true, the page specified with 'alias' will be deleted
-// 	alias - set to alias/page id of the created page
+// 	alias - set to page id of the created page
 // }
 var EditPage = function(page, pageService, userService, autocompleteService, options) {
 	var page = page;
@@ -701,6 +700,9 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 					$modal.on("hidden.bs.modal", function (e) {
 						pageIdCache[options.modalKey + pageService.primaryPage.pageId] = resumePageId
 						if (options.callback) {
+							// Make sure we got alias and not pageId
+							var tempEditPage = pageService.editMap[returnedResult.alias];
+							returnedResult.alias = tempEditPage.alias;
 							options.callback(returnedResult);
 						}
 						editPage.stop();

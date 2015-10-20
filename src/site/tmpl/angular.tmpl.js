@@ -614,7 +614,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		for (var n = 0; n < data.result.hits.length; n++) {
 			var source = data.result.hits[n]._source;
 			resultList.push({
-				value: source.pageId,
+				value: source.alias,
 				label: source.pageId,
 				alias: source.alias,
 				title: source.title,
