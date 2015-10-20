@@ -38,10 +38,9 @@ type commonPageData struct {
 	User *user.User
 	// Map of user ids to corresponding user objects
 	UserMap    map[int64]*core.User
-	GroupMap   map[int64]*core.Group
 	MasteryMap map[int64]*core.Mastery
-	// Primary domain
-	Domain *core.Group
+	// Primary domain alias
+	DomainId int64 `json:",string"`
 }
 
 // handlerWrapper wraps our siteHandler to provide standard http handler interface.
@@ -134,10 +133,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					jsonData, _ := json.Marshal(p)
 					return template.JS(string(jsonData))
 				},
-				"GetGroupJson": func(g *core.Group) template.JS {
-					jsonData, _ := json.Marshal(g)
-					return template.JS(string(jsonData))
-				},
 				"GetMasteryJson": func(m *core.Mastery) template.JS {
 					jsonData, _ := json.Marshal(m)
 					return template.JS(string(jsonData))
@@ -222,7 +217,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					fail(http.StatusInternalServerError, "Couldn't update users", err)
 				}
 				// Load the groups the user belongs to.
-				if err = core.LoadUserGroups(db, u); err != nil {
+				if err = core.LoadUserGroupIds(db, u); err != nil {
 					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
 				}
 			}
@@ -303,15 +298,6 @@ func (d returnJsonData) AddMasteries(masteries map[int64]*core.Mastery) returnJs
 		returnMasteryData[fmt.Sprintf("%d", k)] = v
 	}
 	d["masteries"] = returnMasteryData
-	return d
-}
-
-func (d returnJsonData) AddGroups(groups map[int64]*core.Group) returnJsonData {
-	returnGroupData := make(map[string]*core.Group)
-	for k, v := range groups {
-		returnGroupData[fmt.Sprintf("%d", k)] = v
-	}
-	d["groups"] = returnGroupData
 	return d
 }
 

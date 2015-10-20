@@ -2,10 +2,7 @@
 package site
 
 import (
-	"fmt"
-
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -34,31 +31,13 @@ func domainsRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Load the domains
 	data.PageMap = make(map[int64]*core.Page)
-	data.GroupMap = make(map[int64]*core.Group)
-	rows := db.NewStatement(`
-		SELECT id,alias,name,rootPageId,createdAt
-		FROM groups
-		WHERE isDomain`).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var g core.Group
-		err := rows.Scan(
-			&g.Id,
-			&g.Alias,
-			&g.Name,
-			&g.RootPageId,
-			&g.CreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan a group: %v", err)
-		}
-		data.GroupMap[g.Id] = &g
-		data.PageMap[g.RootPageId] = &core.Page{PageId: g.RootPageId}
-		return nil
-	})
+	err = core.LoadDomainIds(db, u, nil, data.PageMap)
 	if err != nil {
 		return pages.Fail("error while loading group members", err)
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)

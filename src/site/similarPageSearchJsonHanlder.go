@@ -36,23 +36,12 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load user groups
-	err = core.LoadUserGroups(db, u)
+	err = core.LoadUserGroupIds(db, u)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
-	// Compute list of group ids we can access
-	groupMap := make(map[int64]*core.Group)
-	err = core.LoadGroupNames(db, u, groupMap)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load groupMap", err)
-	}
-	groupIds := make([]string, 0)
-	groupIds = append(groupIds, "0")
-	for id, _ := range groupMap {
-		groupIds = append(groupIds, fmt.Sprintf("%d", id))
-	}
-
+	groupIds := append(u.GroupIds, "0")
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)

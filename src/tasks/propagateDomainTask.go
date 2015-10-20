@@ -79,9 +79,9 @@ func propagateDomainToPage(db *database.DB, pageId int64, pageMap map[int64]bool
 			ON (pp.parentId=pd.pageId)
 			WHERE childId=?)
 			UNION
-			(SELECT id
-			FROM groups
-			WHERE isDomain AND rootPageId=?)`).Query(pageId, pageId)
+			(SELECT pageId
+			FROM pages
+			WHERE isCurrentEdit AND type="domain")`).Query(pageId)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var domainId int64
 			if err := rows.Scan(&domainId); err != nil {

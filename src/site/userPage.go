@@ -50,7 +50,6 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	data.User = u
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	data.GroupMap = make(map[int64]*core.Group)
 
 	// Check parameter limiting the user/creator of the pages
 	data.AuthorId, err = strconv.ParseInt(mux.Vars(params.R)["authorId"], 10, 64)
@@ -181,6 +180,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
@@ -190,12 +190,6 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return pages.Fail("error while loading aux data", err)
-	}
-
-	// Load all the groups.
-	err = core.LoadGroupNames(db, u, data.GroupMap)
-	if err != nil {
-		return pages.Fail("Couldn't load group names", err)
 	}
 
 	// Load all the users.

@@ -7,6 +7,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/tasks"
 )
 
 // deletePagePairData contains the data we receive in the request.
@@ -18,6 +19,7 @@ type deletePagePairData struct {
 
 // deletePagePairHandler handles requests for deleting a tag.
 func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
+	c := params.C
 	db := params.DB
 	u := params.U
 
@@ -46,6 +48,17 @@ func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 		WHERE parentId=? AND childId=? AND type=?`)
 	if _, err := query.Exec(data.ParentId, data.ChildId, data.Type); err != nil {
 		return pages.HandlerErrorFail("Couldn't delete a tag", err)
+	}
+
+	if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
+		// Create a task to propagate the domain change to all children
+		var task tasks.PropagateDomainTask
+		task.PageId = data.ChildId
+		if err := task.IsValid(); err != nil {
+			c.Errorf("Invalid task created: %v", err)
+		} else if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
 	}
 	return pages.StatusOK(nil)
 }

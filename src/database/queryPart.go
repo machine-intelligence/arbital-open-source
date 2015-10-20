@@ -42,6 +42,13 @@ func (q *QueryPart) AddArgsGroup(args []interface{}) *QueryPart {
 	q.args = append(q.args, args...)
 	return q
 }
+func (q *QueryPart) AddArgsGroupStr(args []string) *QueryPart {
+	q.query = append(q.query, " ", InArgsPlaceholder(len(args)))
+	for _, arg := range args {
+		q.args = append(q.args, arg)
+	}
+	return q
+}
 
 // AddPart appends the given query part to this part, mering the query and the args.
 func (q *QueryPart) AddPart(part *QueryPart) *QueryPart {

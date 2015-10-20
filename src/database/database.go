@@ -153,8 +153,6 @@ func newInsertStmtInternal(command string, tableName string, hashmap InsertMap, 
 
 	query := NewQuery(command + " INTO " + tableName + "(" + variables + ") VALUES").AddArgsGroup(
 		hashValues).AddPart(onDuplicateKeyPart)
-
-	//query := fmt.Sprintf("%s INTO %s (%s) VALUES (%s) %s", command, tableName, variables,
 	return query
 }
 

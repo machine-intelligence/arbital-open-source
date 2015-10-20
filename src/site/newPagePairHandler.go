@@ -75,7 +75,7 @@ func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load user groups
-	if err := core.LoadUserGroups(db, u); err != nil {
+	if err := core.LoadUserGroupIds(db, u); err != nil {
 		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
 	}
 
@@ -150,6 +150,17 @@ func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
 			c.Errorf("Invalid task created: %v", err)
 		} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
+
+		if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
+			// Create a task to propagate the domain change to all children
+			var task tasks.PropagateDomainTask
+			task.PageId = child.PageId
+			if err := task.IsValid(); err != nil {
+				c.Errorf("Invalid task created: %v", err)
+			} else if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
+			}
 		}
 	}
 

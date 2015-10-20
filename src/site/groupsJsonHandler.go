@@ -13,36 +13,37 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
+	// Load user groups
+	err := core.LoadUserGroupIds(db, u)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't load user groups", err)
+	}
+
 	// Load the groups and members
 	userMap := make(map[int64]*core.User)
-	groupMap := make(map[int64]*core.Group)
-	rows := db.NewStatement(`
-		SELECT g.id,g.name,m.userId,m.canAddMembers,m.canAdmin
-		FROM groups AS g
+	pageMap := make(map[int64]*core.Page)
+	rows := database.NewQuery(`
+		SELECT p.pageId,m.userId,m.canAddMembers,m.canAdmin
+		FROM pages AS p
 		LEFT JOIN (
 			SELECT userId,groupId,canAddMembers,canAdmin
 			FROM groupMembers
 		) AS m
-		ON (g.id=m.groupId)
-		WHERE g.id IN (SELECT groupId FROM groupMembers WHERE userId=?)`).Query(u.Id)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var g core.Group
+		ON (p.pageId=m.groupId)
+		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIds).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var groupId int64
 		var m core.Member
-		err := rows.Scan(
-			&g.Id,
-			&g.Name,
-			&m.UserId,
-			&m.CanAddMembers,
-			&m.CanAdmin)
+		err := rows.Scan(&groupId, &m.UserId, &m.CanAddMembers, &m.CanAdmin)
 		if err != nil {
 			return fmt.Errorf("failed to scan a group member: %v", err)
 		}
 
 		// Add group
-		curGroup := groupMap[g.Id]
+		curGroup := pageMap[groupId]
 		if curGroup == nil {
-			curGroup = &g
-			groupMap[g.Id] = curGroup
+			curGroup = &core.Page{PageId: groupId}
+			pageMap[groupId] = curGroup
 			curGroup.Members = make(map[string]*core.Member)
 		}
 
@@ -55,12 +56,25 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error while loading group members", err)
 	}
 
+	// Load pages.
+	core.AddUserGroupIdsToPageMap(u, pageMap)
+	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{LoadSummary: true})
+	if err != nil {
+		return pages.Fail("error while loading pages", err)
+	}
+
+	// Load aux data
+	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
+	if err != nil {
+		return pages.Fail("error while loading aux data", err)
+	}
+
 	// Load all the users.
 	err = core.LoadUsers(db, userMap)
 	if err != nil {
 		return pages.Fail("Error while loading users", err)
 	}
 
-	returnData := createReturnData(nil).AddUsers(userMap).AddGroups(groupMap)
+	returnData := createReturnData(pageMap).AddUsers(userMap)
 	return pages.StatusOK(returnData)
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"appengine/urlfetch"
 
@@ -47,7 +48,10 @@ type Hit struct {
 	Source *Document `json:"_source"`
 }
 
+// EscapeMatchTerm escapes various characters in the given text so it's safe to
+// pass to elastic.
 func EscapeMatchTerm(text string) string {
+	text = strings.Replace(strings.Replace(text, "\r", "", -1), "\n", "", -1)
 	escapeRx := regexp.MustCompile(`(["\\])`)
 	return escapeRx.ReplaceAllStringFunc(text, func(term string) string {
 		return `\` + term

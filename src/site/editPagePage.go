@@ -44,10 +44,11 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load all the groups.
-	data.GroupMap = make(map[int64]*core.Group)
-	err = core.LoadGroupNames(params.DB, data.User, data.GroupMap)
+	data.PageMap = make(map[int64]*core.Page)
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
+	err = core.LoadPages(db, data.PageMap, params.U.Id, nil)
 	if err != nil {
-		return pages.Fail("Couldn't load group names: %v", err)
+		return pages.Fail("error while loading pages", err)
 	}
 
 	return pages.StatusOK(data)

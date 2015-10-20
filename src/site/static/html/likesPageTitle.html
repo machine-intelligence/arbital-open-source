@@ -33,7 +33,7 @@
 			    title="This page has been updated since the last time you saw it"
 					ng-show="page.isUpdatedPage()"></span>
 		<span class="public-private-label glyphicon glyphicon-lock"
-					title="This page belongs to {[{userService.groupMap[page.seeGroupId].name}]} group"
+					title="This page belongs to {[{pageService.pageMap[page.seeGroupId].title}]} group"
 					ng-show="pageService.showLockedGroup(page.pageId)"></span>
 		<span class="public-private-label glyphicon glyphicon-globe"
 					title="This page is public"

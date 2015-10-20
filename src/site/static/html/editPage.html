@@ -29,7 +29,7 @@
 		</div>
 		<!-- Check permissions -->
 		<div ng-hide="groupPermissionsPassed" class="alert alert-danger">
-			You need to be part of {[{userService.groupMap[page.seeGroupId].name}]} group to edit this page.
+			You need to be part of {[{pageService.pageMap[page.seeGroupId].title}]} group to edit this page.
 		</div>
 		<!-- Friendly warnings / info alerts -->
 		<div ng-show="page.wasPublished">
@@ -218,7 +218,9 @@
 			<div class="form-group" ng-show="!isAnswer && !isComment">
 				<label class="control-label col-sm-2">Alias</label>
 				<div class="col-sm-4">
-					<label class="control-label" ng-show="page.seeGroupId != '0'">{[{userService.groupMap[page.seeGroupId].alias}]}.</label>
+					<label class="control-label" ng-show="page.seeGroupId != '0'">
+						{[{pageService.pageMap[page.seeGroupId].alias}]}.
+					</label>
 					<div class="input-group">
 						<input type="text"
 								name="alias"

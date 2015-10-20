@@ -90,7 +90,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	mainPageMap := make(map[int64]*core.Page)
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	data.GroupMap = make(map[int64]*core.Group)
 	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
@@ -171,7 +170,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load the domains for the primary page
-	err = core.LoadDomains(db, u, data.Page, data.PageMap, data.GroupMap)
+	err = core.LoadDomainIds(db, u, data.Page, data.PageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load domains", err)
 	}
@@ -183,6 +182,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{LoadText: true})
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
@@ -217,12 +217,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	err = core.LoadChildDraft(db, u.Id, data.Page, data.PageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load child draft", err)
-	}
-
-	// Load all the groups.
-	err = core.LoadGroupNames(db, u, data.GroupMap)
-	if err != nil {
-		return pages.Fail("Couldn't load group names", err)
 	}
 
 	// Load all the users.

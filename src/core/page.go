@@ -157,6 +157,9 @@ type Page struct {
 	HasParents bool        `json:"hasParents"`
 	Children   []*PagePair `json:"children"`
 	Parents    []*PagePair `json:"parents"`
+
+	// Populated for groups
+	Members map[string]*Member `json:"members"`
 }
 
 // PagePair describes a parent child relationship, which are stored in pagePairs db table.
@@ -212,7 +215,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 				todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE`).AddPart(publishedConstraint).Add(`AND pageId IN`).AddArgsGroup(pageIds).Add(`
-			AND (seeGroupId=0 OR seeGroupId IN (SELECT id FROM groups WHERE isVisible) OR seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
+			AND (seeGroupId=0 OR seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
 			ORDER BY edit DESC
 		) AS p
 		GROUP BY pageId`).ToStatement(db)
@@ -394,7 +397,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 		) AS i
 		ON (p.pageId=i.pageId)
 		WHERE`).AddPart(whereClause).Add(`AND
-			(p.seeGroupId=0 OR p.seeGroupId IN (SELECT id FROM groups WHERE isVisible) OR p.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
+			(p.seeGroupId=0 OR p.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,

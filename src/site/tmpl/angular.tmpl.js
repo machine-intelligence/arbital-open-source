@@ -36,15 +36,6 @@ app.service("userService", function(){
 		return "/user/" + userId;
 	};
 
-	// Loaded groups.
-	this.groupMap = {
-		{{if .GroupMap}}
-			{{range $k,$v := .GroupMap}}
-				"{{$k}}": {{GetGroupJson $v}},
-			{{end}}
-		{{end}}
-	};
-
 	// (Un)subscribe a user to a thing.
 	var subscribeTo = function(doSubscribe, data, done) {
 		$.ajax({
@@ -75,7 +66,6 @@ app.service("userService", function(){
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
 		$.extend(that.userMap, data["users"]);
-		$.extend(that.groupMap, data["groups"]);
 	}
 });
 

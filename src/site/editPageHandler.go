@@ -69,7 +69,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Load user groups
-	if err := core.LoadUserGroups(db, u); err != nil {
+	if err := core.LoadUserGroupIds(db, u); err != nil {
 		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
 	}
 
@@ -240,12 +240,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Prefix alias with the group alias, if appropriate
 		if data.SeeGroupId > 0 {
-			groupMap := map[int64]*core.Group{data.SeeGroupId: &core.Group{Id: data.SeeGroupId}}
-			err = core.LoadGroupNames(db, u, groupMap)
+			tempPageMap := map[int64]*core.Page{data.SeeGroupId: &core.Page{PageId: data.SeeGroupId}}
+			err = core.LoadPages(db, tempPageMap, u.Id, nil)
 			if err != nil {
-				return pages.HandlerErrorFail("Couldn't load the group", err)
+				return pages.HandlerErrorFail("Couldn't load the see group", err)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", groupMap[data.SeeGroupId].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupId].Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias

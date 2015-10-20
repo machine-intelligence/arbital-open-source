@@ -34,7 +34,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			if (parentPage.seeGroupId === page.seeGroupId || parentPage.seeGroupId === "0") {
 				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
 			} else {
-				var tooltip = "This parent belongs to " + userService.groupMap[parentPage.seeGroupId].name + " group, but the page you are editing does not.";
+				var tooltip = "This parent belongs to " + pageService.pageMap[parentPage.seeGroupId].title + " group, but the page you are editing does not.";
 				$(this).addClass("label-danger").removeClass("label-default").attr("title", tooltip).tooltip();
 			}
 		});
@@ -878,7 +878,7 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
-					var groupName = userService.groupMap[groupId].name;
+					var groupName = pageService.pageMap[groupId].title;
 					scope.groupOptions[groupId] = groupName;
 				}
 			} else {
@@ -888,7 +888,7 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			scope.groupPermissionsPassed = true;
 			if (!(scope.page.seeGroupId in scope.groupOptions)) {
 				scope.groupPermissionsPassed = false;
-				scope.groupOptions[scope.page.seeGroupId] = userService.groupMap[scope.page.seeGroupId].name;
+				scope.groupOptions[scope.page.seeGroupId] = pageService.pageMap[scope.page.seeGroupId].title;
 			}
 
 			// if starting a new edit, clear the minor edit checkbox
