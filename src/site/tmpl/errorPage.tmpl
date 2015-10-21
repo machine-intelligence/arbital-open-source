@@ -1,7 +1,7 @@
 {{/* oops.tmpl: catch-all error page */}}
 {{define "base"}}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	<title>Error - Arbital</title>
 	{{template "style"}}
@@ -12,7 +12,7 @@
 	<script src="/static/js/editPage.js"></script>
 	<script src="/static/js/pagePage.js"></script>
 </head>
-<body>
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 <arb-navbar></arb-navbar>
 
 <p class="error-message alert alert-danger">{{.Error}}</p>

@@ -100,7 +100,7 @@ $(function() {
 });
 
 // MainCtrl is for the Page page.
-app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageService, userService) {
+app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageService, userService, autocompleteService) {
 	$scope.pageService = pageService;
 	$scope.$compile = $compile;
 	$scope.answerIds = [];
@@ -185,6 +185,45 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 		$answersList.append(el);
 	}
 
+	// Set up finding existing answer for question pages.
+	if (pageService.primaryPage.type === "question") {
+		$scope.findAnswerTerm = "";
+		// Get similar pages
+		var prevFindAnswerTerm = "";
+		var $foundAnswers = $("#found-answers");
+		var findAnswerTermChanged = createThrottledCallback(function() {
+			if ($scope.findAnswerTerm.length <= 2) return false;
+			var options = {
+				term: $scope.findAnswerTerm,
+				pageType: "answer",
+			};
+			if (options.term === prevFindAnswerTerm) return false;
+			autocompleteService.performSearch(options, function(results){
+				$foundAnswers.empty();
+				for (var n = 0; n < results.length; n++) {
+					var pageId = results[n].value;
+					var $el = $compile("<button class='suggest-answer btn btn-info' answer-id='" + pageId + "'>Suggest</button><span arb-likes-page-title page-id='" + pageId +
+						"' show-clickbait='true'></span>")($scope);
+					$foundAnswers.append($el);
+				}
+			});
+			return true;
+		}, 300);
+		$scope.$watch("findAnswerTerm", findAnswerTermChanged);
+
+		// User clicks to suggest an answer
+		$("body").on("click", ".suggest-answer", function(event) {
+			var answerId = $(event.target).attr("answer-id");
+			pageService.newPagePair({
+				parentId: pageService.primaryPage.pageId,
+				childId: answerId,
+				type: "parent",
+			}, function() {
+				location.reload();
+			});
+		});
+	}
+
 	// Add edit page for the answer.
 	if ($scope.page.type === "question") {
 		$scope.answerDoneFn = function(result) {
@@ -197,16 +236,19 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 		};
 
 		var createAnswerEditPage = function(page) {
-			var el = $compile("<arb-edit-page page-id='" + page.pageId +
+			var el = $compile("<arb-find-answer></arb-find-answer>")($scope);
+			$(".new-answer").append(el);
+
+			el = $compile("<arb-edit-page page-id='" + page.pageId +
 				"' primary-page-id='" + $scope.page.pageId +
 				"' done-fn='answerDoneFn(result)'></arb-edit-page>")($scope);
 			$(".new-answer").append(el);
 		};
 		var getNewAnswerId = function() {
 			$(".new-answer").find("arb-edit-page").remove();
-			pageService.loadPages([], {
-				success: function(data, status) {
-					var page = pageService.pageMap[Object.keys(data)[0]];
+			pageService.getNewPage({
+				success: function(newPageId) {
+					var page = pageService.editMap[newPageId];
 					page.group = $.extend({}, $scope.page.group);
 					page.type = "answer";
 					page.parents = [{parentId: $scope.page.pageId, childId: page.pageId}];
@@ -244,7 +286,6 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 				loadChildren: true,
 				loadChildDraft: true,
 				loadRequirements: true,
-				overwrite: true,
 				success: function(data, status) {
 					var page = pageService.pageMap[lensId];
 					var el = $compile("<arb-page page-id='" + page.pageId + "'></arb-page>")($scope);
@@ -293,7 +334,7 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 					childId: scope.page.pageId,
 					type: "tag",
 				};
-				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
+				$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(data)})
 					.error(function(data, status){
 						console.log("Error creating tag:"); console.log(data); console.log(status);
 					});
@@ -310,6 +351,7 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 				var data = {
 					parentId: $target.attr("page-id"),
 					childId: scope.page.pageId,
+					type: "tag",
 				};
 				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
 					.error(function(data, status){

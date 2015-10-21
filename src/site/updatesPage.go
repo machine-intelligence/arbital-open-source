@@ -38,6 +38,7 @@ func updatesRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, data.User.Id, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
@@ -52,13 +53,6 @@ func updatesRenderer(params *pages.HandlerParams) *pages.Result {
 	// Now that we have loaded last visit time for all pages,
 	// go through all the update rows and group them.
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, data.PageMap)
-
-	// Load all the groups.
-	data.GroupMap = make(map[int64]*core.Group)
-	err = core.LoadGroupNames(db, u, data.GroupMap)
-	if err != nil {
-		return pages.Fail("Couldn't load group names", err)
-	}
 
 	// Load the names for all users.
 	data.UserMap[u.Id] = &core.User{Id: u.Id}

@@ -2,8 +2,6 @@
 package site
 
 import (
-	"fmt"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 
@@ -34,7 +32,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load the children.
 	pageMap := make(map[int64]*core.Page)
 	pageMap[data.ParentId] = &core.Page{PageId: data.ParentId}
-	err = core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{LoadHasChildren: true})
+	err = core.LoadChildrenIds(db, pageMap, &core.LoadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load children", err)
 	}
@@ -53,10 +51,6 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load aux data", err)
 	}
 
-	// Return the page in JSON format.
-	strPageMap := make(map[string]*core.Page)
-	for k, v := range pageMap {
-		strPageMap[fmt.Sprintf("%d", k)] = v
-	}
-	return pages.StatusOK(strPageMap)
+	returnData := createReturnData(pageMap)
+	return pages.StatusOK(returnData)
 }

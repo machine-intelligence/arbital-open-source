@@ -52,19 +52,58 @@
 				{{range .Updates}}
 					<div class="update-row {{if not .IsVisited}}unvisited-update{{end}}">
 					{{if eq .Type "topLevelComment"}}
-						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name> wrote a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}" page-id="{{.GoToPageId}}" class="intrasite-link">new comment</a>.
+						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
+						wrote a
+						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
+								page-id="{{.GoToPageId}}"
+								class="intrasite-link">new comment</a>.
 					{{else if eq .Type "reply"}}
-						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name> wrote a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}" page-id="{{.GoToPageId}}" class="intrasite-link">new comment reply</a>.
+						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
+						wrote a
+						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
+								page-id="{{.GoToPageId}}"
+								class="intrasite-link">new comment reply</a>.
 					{{else if eq .Type "pageEdit"}}
-						This page has been edited<span ng-show="{{.Repeated}}==1"> by <arb-user-name user-id="{{.ByUserId}}"></arb-user-name></span><span ng-show="{{.Repeated}}>1"> {{.Repeated}} times</span>.
+						This page has been edited
+						<span ng-show="{{.Repeated}}==1">
+							by <arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
+						</span>
+						<span ng-show="{{.Repeated}}>1">
+							{{.Repeated}} times
+						</span>.
 					{{else if eq .Type "newPageByUser"}}
-						Created a new page: <arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
-					{{else if eq .Type "newChildPage"}}
-						New child page: <arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
+						Created a new page:
+						<arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
+					{{else if eq .Type "newParent"}}
+						New parent page:
+						<arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
+					{{else if eq .Type "newChild"}}
+						New child page:
+						<arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
+					{{else if eq .Type "newRequirement"}}
+						New requirement:
+						<arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
+					{{else if eq .Type "newRequiredBy"}}
+						This page is now a requirement for
+						<arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
+					{{else if eq .Type "newTag"}}
+						New tag:
+						<arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
+					{{else if eq .Type "newTaggedBy"}}
+						This page now tags
+						<arb-likes-page-title page-id="{{.GoToPageId}}"></arb-likes-page-title>
 					{{else if eq .Type "commentEdit"}}
-						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name> edited a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}" page-id="{{.GoToPageId}}" class="intrasite-link">comment</a>.
+						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
+						edited a
+						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
+								page-id="{{.GoToPageId}}"
+								class="intrasite-link">comment</a>.
 					{{else if eq .Type "atMention"}}
-						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name> mentioned you in a <a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}" page-id="{{.GoToPageId}}" class="intrasite-link">comment</a>.
+						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
+						mentioned you in a
+						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
+								page-id="{{.GoToPageId}}"
+								class="intrasite-link">comment</a>.
 					{{end}}
 					</div>
 				{{end}}

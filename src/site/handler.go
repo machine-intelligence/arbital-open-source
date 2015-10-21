@@ -30,18 +30,17 @@ type siteHandler func(*pages.HandlerParams) *pages.Result
 type commonPageData struct {
 	// Id of the page that's most prominantly displayed. Usually the id is also in the URL
 	PrimaryPageId int64 `json:",string"`
-	// Map of page ids to the corresponding page objects
+	// Map of page id -> currently live version of the page
 	PageMap map[int64]*core.Page
+	// Map of page id -> some edit of the page
+	EditMap map[int64]*core.Page
 	// Logged in user
 	User *user.User
 	// Map of user ids to corresponding user objects
-	UserMap map[int64]*core.User
-	// Map of groups
-	GroupMap map[int64]*core.Group
-	// Map of masteries
+	UserMap    map[int64]*core.User
 	MasteryMap map[int64]*core.Mastery
-	// Primary domain
-	Domain *core.Group
+	// Primary domain alias
+	DomainId int64 `json:",string"`
 }
 
 // handlerWrapper wraps our siteHandler to provide standard http handler interface.
@@ -59,10 +58,12 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 
 		// Recover from panic.
 		defer func() {
-			if r := recover(); r != nil {
-				c.Errorf("%v", r)
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+			if sessions.Live {
+				if r := recover(); r != nil {
+					c.Errorf("%v", r)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+				}
 			}
 		}()
 		// Open DB connection
@@ -86,6 +87,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		if result.Data != nil {
+			w.Header().Set("Content-type", "application/json")
 			// Return the pages in JSON format.
 			jsonData, err := json.Marshal(result.Data)
 			if err != nil {
@@ -131,16 +133,12 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					jsonData, _ := json.Marshal(p)
 					return template.JS(string(jsonData))
 				},
-				"GetGroupJson": func(g *core.Group) template.JS {
-					jsonData, _ := json.Marshal(g)
-					return template.JS(string(jsonData))
-				},
 				"GetMasteryJson": func(m *core.Mastery) template.JS {
 					jsonData, _ := json.Marshal(m)
 					return template.JS(string(jsonData))
 				},
 				"GetPageUrl": func(p *core.Page) string {
-					return core.GetPageUrl(p)
+					return core.GetPageUrl(p.PageId)
 				},
 				"IsUpdatedPage": func(p *core.Page) bool {
 					return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
@@ -171,10 +169,12 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 
 		// Recover from panic.
 		defer func() {
-			if r := recover(); r != nil {
-				c.Errorf("%v", r)
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+			if sessions.Live {
+				if r := recover(); r != nil {
+					c.Errorf("%v", r)
+					w.WriteHeader(http.StatusInternalServerError)
+					fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+				}
 			}
 		}()
 
@@ -217,7 +217,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					fail(http.StatusInternalServerError, "Couldn't update users", err)
 				}
 				// Load the groups the user belongs to.
-				if err = core.LoadUserGroups(db, u); err != nil {
+				if err = core.LoadUserGroupIds(db, u); err != nil {
 					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
 				}
 			}
@@ -269,6 +269,20 @@ func createReturnData(pages map[int64]*core.Page) returnJsonData {
 	return returnData
 }
 
+func (d returnJsonData) AddResult(result interface{}) returnJsonData {
+	d["result"] = result
+	return d
+}
+
+func (d returnJsonData) AddEditMap(pages map[int64]*core.Page) returnJsonData {
+	returnEditData := make(map[string]*core.Page)
+	for k, v := range pages {
+		returnEditData[fmt.Sprintf("%d", k)] = v
+	}
+	d["edits"] = returnEditData
+	return d
+}
+
 func (d returnJsonData) AddUsers(users map[int64]*core.User) returnJsonData {
 	returnUserData := make(map[string]*core.User)
 	for k, v := range users {
@@ -284,15 +298,6 @@ func (d returnJsonData) AddMasteries(masteries map[int64]*core.Mastery) returnJs
 		returnMasteryData[fmt.Sprintf("%d", k)] = v
 	}
 	d["masteries"] = returnMasteryData
-	return d
-}
-
-func (d returnJsonData) AddGroups(groups map[int64]*core.Group) returnJsonData {
-	returnGroupData := make(map[string]*core.Group)
-	for k, v := range groups {
-		returnGroupData[fmt.Sprintf("%d", k)] = v
-	}
-	d["groups"] = returnGroupData
 	return d
 }
 

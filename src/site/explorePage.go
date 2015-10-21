@@ -43,19 +43,18 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	// Load the domain.
 	domainAlias := mux.Vars(params.R)["domain"]
 	if domainAlias != "" {
-		data.Domain = &core.Group{Alias: domainAlias}
-		data.User.DomainAlias = data.Domain.Alias
+		data.User.DomainAlias = domainAlias
 		row := db.NewStatement(`
-			SELECT id,name,rootPageId
-			FROM groups
-			WHERE alias=?`).QueryRow(data.Domain.Alias)
-		foundDomain, err := row.Scan(&data.Domain.Id, &data.Domain.Name, &data.Domain.RootPageId)
+			SELECT pageId
+			FROM pages
+			WHERE alias=?`).QueryRow(domainAlias)
+		foundDomain, err := row.Scan(&data.DomainId)
 		if err != nil {
-			return pages.Fail("Couldn't retrieve subscription", err)
+			return pages.Fail("Couldn't retrieve domain", err)
 		} else if !foundDomain {
-			return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", data.Domain.Alias), nil)
+			return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
 		}
-		data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", data.Domain.RootPageId))
+		data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", data.DomainId))
 	}
 
 	// Load the root page(s)
@@ -84,16 +83,17 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading page pairs", err)
 		}
 	} else {
-		data.PageMap[data.Domain.RootPageId] = &core.Page{PageId: data.Domain.RootPageId}
+		data.PageMap[data.DomainId] = &core.Page{PageId: data.DomainId}
 	}
 
 	// Load the children
-	err := core.LoadChildrenIds(db, data.PageMap, core.LoadChildrenIdsOptions{LoadHasChildren: true})
+	err := core.LoadChildrenIds(db, data.PageMap, &core.LoadChildrenIdsOptions{LoadHasChildren: true})
 	if err != nil {
 		return pages.Fail("error while loading children", err)
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)

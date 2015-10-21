@@ -8,11 +8,10 @@
 //   primaryPage - for an answer page, points to the question page; for a comment, point to the root page
 //   isModal - set if the page is being edited inside a modal
 //   doneFn - function to call when the user is done with editing.
-//			Function should return true iff the event was processed.
 // }
 // Result returned from doneFn {
 // 	abandon - if set to true, the page specified with 'alias' will be deleted
-// 	alias - set to alias/page id of the created page
+// 	alias - set to page id of the created page
 // }
 var EditPage = function(page, pageService, userService, autocompleteService, options) {
 	var page = page;
@@ -27,11 +26,15 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// the same as for primary page.
 	var updateParentElements = function() {
 		$topParent.find(".tag[tag-id]").each(function() {
-			var parentPage = pageService.pageMap[$(this).attr("tag-id")];
+			var parentPageId = $(this).attr("tag-id");
+			var parentPage = pageService.editMap[parentPageId];
+			if (!parentPage) {
+				parentPage = pageService.pageMap[parentPageId];
+			}
 			if (parentPage.seeGroupId === page.seeGroupId || parentPage.seeGroupId === "0") {
 				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
 			} else {
-				var tooltip = "This parent belongs to " + userService.groupMap[parentPage.seeGroupId].name + " group, but the page you are editing does not.";
+				var tooltip = "This parent belongs to " + pageService.pageMap[parentPage.seeGroupId].title + " group, but the page you are editing does not.";
 				$(this).addClass("label-danger").removeClass("label-default").attr("title", tooltip).tooltip();
 			}
 		});
@@ -43,10 +46,13 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Create a new tag for the page.
 	var createNewParentElement = function(parentId) {
-		var parentPage = pageService.pageMap[parentId];
+		var parentPage = pageService.editMap[parentId];
 		if (!parentPage) {
-			console.log("ERROR: parent is not in the pageMap: " + parentId);
-			return;
+			parentPage = pageService.pageMap[parentId];
+			if (!parentPage) {
+				console.error("ERROR: parent is not in any map: " + parentId);
+				return;
+			}
 		}
 
 		// Prevent duplicates.
@@ -60,45 +66,57 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$newTag.attr("tag-id", parentId);
 		$newTag.insertBefore($template);
 		updateParentElements();
+
+		// Notify the BE of this potentially new parent connection.
+		pageService.newPagePair({
+			parentId: parentId,
+			childId: pageId,
+			type: "parent",
+		});
 	}
 	var deleteParentElement = function($target) {
+		var tagId = $target.attr("tag-id");
 		$target.tooltip("destroy").remove();
+
+		pageService.deletePagePair({
+			parentId: tagId,
+			childId: pageId,
+			type: "parent",
+		});
 	};
 
 	// Get similar pages
 	var prevSimilarPageData = {};
 	var $similarPages = $topParent.find(".similar-pages").find(".panel-body");
-	var computeSimilarPages = function($compile, scope) {
-		var fullPageData = computeAutosaveData(false, false);
-		if (fullPageData.type !== "question") return;
-		var data = {
-			title: fullPageData.title,
-			text: fullPageData.text,
-			clickbait: fullPageData.clickbait,
-		};
-		if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return;
-		prevSimilarPageData = data;
-		autocompleteService.findSimilarPages(data, function(data){
-			$similarPages.empty();
-			for (var n = 0; n < data.length; n++) {
-				var pageId = data[n].value;
-				//if (pageId == page.pageId) continue;
-				var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
-					"' show-clickbait='true'></div>")(scope);
-				$similarPages.append($el);
-			}
-		});
+	var getComputeSimilarPagesFunc = function($compile, scope) {
+		return createThrottledCallback(function() {
+			var fullPageData = computeAutosaveData(false, false);
+			var data = {
+				title: fullPageData.title,
+				text: fullPageData.text,
+				clickbait: fullPageData.clickbait,
+				pageType: fullPageData.type,
+			};
+			if (JSON.stringify(data) === JSON.stringify(prevSimilarPageData)) return false;
+			prevSimilarPageData = data;
+			autocompleteService.findSimilarPages(data, function(data){
+				$similarPages.empty();
+				for (var n = 0; n < data.length; n++) {
+					var pageId = data[n].value;
+					if (pageId == page.pageId) continue;
+					var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
+						"' show-clickbait='true'></div>")(scope);
+					$similarPages.append($el);
+				}
+			});
+			return true;
+		}, 2000);
 	};
 
 	// Helper function for savePage. Computes the data to submit via AJAX.
 	var computeAutosaveData = function(isAutosave, isSnapshot) {
-		var parentIds = [];
-		$topParent.find(".parent-container").children(".tag:not(.template)").each(function(index, element) {
-			parentIds.push($(element).attr("tag-id"));
-		});
 		var data = {
 			pageId: pageId,
-			parentIds: parentIds.join(),
 			karmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
 			isAutosave: isAutosave,
 			isSnapshot: isSnapshot,
@@ -138,15 +156,16 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
 				}
 				if (isSnapshot) {
+					var editNum = r.result;
 					// Update prevEdit
-					$form.find(".prev-edit").val(r);
+					$form.find(".prev-edit").val(editNum);
 					// Prevent an autosave from triggering right after a successful snapshot
 					prevEditPageData.isSnapshot = false;
 					prevEditPageData.isAutosave = true;
-					prevEditPageData.prevEdit = r;
+					prevEditPageData.prevEdit = editNum;
 					data.__invisibleSubmit = true; 
 				}
-				callback(r);
+				callback(true);
 			}, function() {
 				if (isAutosave) autosaving = false;
 				if (publishing) {
@@ -158,7 +177,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			});
 			prevEditPageData = data;
 		} else {
-			callback(undefined);
+			callback(false);
 			autosaving = false;
 		}
 	}
@@ -169,7 +188,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		var $body = $target.closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		savePage(false, false, function(r) {
+		savePage(false, false, function(saved) {
 			if (doneFn) {
 				doneFn({alias: pageId});
 			}
@@ -182,8 +201,8 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		var $body = $(event.target).closest("body");
 		var $loadingText = $body.find(".loading-text");
 		$loadingText.hide();
-		savePage(false, true, function(r) {
-			if (r !== undefined) {
+		savePage(false, true, function(saved) {
+			if (saved) {
 				$loadingText.show().text("Saved!");
 			}
 		});
@@ -458,7 +477,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	$("body").on("click", ".edit-node-diff-edit", function(event) {
 		// Load the edit from the server.
 		pageService.loadEdit({
-			pageId: pageId,
+			pageAlias: pageId,
 			specificEdit: $(event.target).attr("edit-num"),
 			success: function(data, status) {
 				diffPage = data[pageId];
@@ -506,19 +525,20 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		var $autosaveLabel = $topParent.find(".autosave-label");
 		this.autosaveInterval = window.setInterval(function(){
 			$autosaveLabel.text("Autosave: Saving...").show();
-			savePage(true, false, function(r) {
-				if (r === undefined) {
-					$autosaveLabel.hide();
-				} else {
+			savePage(true, false, function(saved) {
+				if (saved) {
 					$autosaveLabel.text("Autosave: Saved!").show();
+				} else {
+					$autosaveLabel.hide();
 				}
 			});
 		}, 5000);
 
 		// Set up finding similar pages
-		this.similarPagesInterval = window.setInterval(function(){
-			computeSimilarPages($compile, scope);
-		}, 1100);
+		var func = getComputeSimilarPagesFunc($compile, scope);
+		scope.$watch("page.title", func);
+		scope.$watch("page.clickbait", func);
+		scope.$watch("page.text", func);
 
 		// Set up interval for updating meta-data
 		var $metaTextInput = $topParent.find(".meta-text-input");
@@ -597,7 +617,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		clearInterval(this.similarPagesInterval);
 		clearInterval(this.backdropInterval);
 		// Autosave just in case.
-		savePage(true, false, function(r) {});
+		savePage(true, false, function(saved) {});
 	};
 };
 
@@ -621,7 +641,10 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 			//	callback: function(result) to call when the user is done with the modal
 			// }
 			$(document).on("new-page-modal-event", function(e, options) {
-				var primaryPage = pageService.pageMap[options.parentPageId];
+				var primaryPage = pageService.editMap[options.parentPageId];
+				if (!primaryPage) {
+					primaryPage = pageService.pageMap[options.parentPageId];
+				}
 				var resumePageId = pageIdCache[options.modalKey + primaryPage.pageId];
 				var isQuestion = options.modalKey === "newQuestion";
 				if (isQuestion && !resumePageId && primaryPage.childDraftId !== "0") {
@@ -634,7 +657,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 				
 				// Setup modal.
 				var setupModal = function(pageId, isResumed) {
-					var newPage = pageService.pageMap[pageId];
+					var newPage = pageService.editMap[pageId];
 					if (!isResumed) {
 						if (isQuestion) {
 							newPage.type = "question";
@@ -668,7 +691,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 								returnedResult = result;
 								$modal.modal("hide");
 								if (result.abandon) {
-									pageService.deletePage(result.alias);
+									pageService.abandonPage(result.alias);
 								}
 								if (result.abandon || result.alias) {
 									resumePageId = undefined;
@@ -681,6 +704,9 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 					$modal.on("hidden.bs.modal", function (e) {
 						pageIdCache[options.modalKey + pageService.primaryPage.pageId] = resumePageId
 						if (options.callback) {
+							// Make sure we got alias and not pageId
+							var tempEditPage = pageService.editMap[returnedResult.alias];
+							returnedResult.alias = editPage.alias;
 							options.callback(returnedResult);
 						}
 						editPage.stop();
@@ -693,33 +719,35 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 				
 				// Resume editing the page or get a new id from the server.
 				var loadPages = function() {
-					var loadPagesIds = [];
 					if (resumePageId) {
+						if (resumePageId === primaryPage.pageId) {
+							console.log("Error: trying to edit the same page in modal");
+							return;
+						}
 						// Resume editing some page.
-						loadPagesIds = [resumePageId];
-						pageService.removePageFromMap(resumePageId);
-					}
-					pageService.loadPages(loadPagesIds, {
-						includeText: true,
-						allowDraft: true,
-						success: function(data, status) {
-							resumePageId = Object.keys(data)[0];
-							// Let's not try to edit the same page in two places
-							if (resumePageId !== primaryPage.pageId) {
-								setupModal(resumePageId, loadPagesIds.length > 0);
-							} else {
-								console.log("Error: trying to edit the same page in modal");
-							}
-						},
-						error: function(data, status) {
-							console.log("Couldn't load pages: " + loadPagesIds);
-							if (loadPagesIds.length > 0) {
+						pageService.loadEdit({
+							pageAlias: resumePageId,
+							success: function(data, status) {
+								setupModal(resumePageId, true);
+							},
+							error: function(data, status) {
 								// Let's try again, but without trying to resume editing.
 								resumePageId = undefined;
 								loadPages();
-							}
-						}
-					});
+							},
+						});
+					} else {
+						pageService.getNewPage({
+							success: function(newPageId) {
+								resumePageId = newPageId;
+								if (resumePageId !== primaryPage.pageId) {
+									setupModal(resumePageId, false);
+								} else {
+									console.log("Error: trying to edit the same page in modal");
+								}
+							},
+						});
+					}
 				};
 				loadPages();
 			});
@@ -754,7 +782,19 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 		},
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+			scope.pageService = pageService;
+			scope.page = pageService.editMap[scope.pageId];
+			if (!scope.page && scope.pageId in pageService.pageMap) {
+				// We are going to edit a page that's not in the editMap yet. Add it.
+				scope.page = $.extend(true, {}, pageService.pageMap[scope.pageId]);
+				pageService.addPageToEditMap(scope.page);
+			}
+
+			// If the page has "Group.Alias" alias, just change it to "Alias"
+			var dotIndex = scope.page.alias.indexOf(".");
+			if (dotIndex >= 0) {
+				scope.page.alias = scope.page.alias.substring(dotIndex + 1);
+			}
 
 			// Set up some helper variables.
 			scope.isQuestion = scope.page.type === "question";
@@ -776,6 +816,15 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 					scope.showDifferentBranchWarning &= !editPage.isCurrentEdit;
 					tempEdit = editPage.prevEdit;
 				} while (tempEdit > 0);
+			}
+
+			// Compute the editNum of the current edit.
+			for (var editNum in scope.page.editHistoryMap) {
+				var edit = scope.page.editHistoryMap[editNum];
+				if (edit.isCurrentEdit) {
+					scope.currentEditNum = editNum;
+					break;
+				}
 			}
 
 			// Set up page types.
@@ -808,14 +857,17 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 
 			var primaryPage = undefined;
 			if (scope.primaryPageId) {
-				primaryPage = pageService.pageMap[scope.primaryPageId];
+				primaryPage = pageService.editMap[scope.primaryPageId];
+				if (!primaryPage) {
+					primaryPage = pageService.pageMap[scope.primaryPageId];
+				}
 			}
 			if (scope.isAnswer && primaryPage) {
 				// Set up answer page for when it appears on a question page.
 				// TODO: shouldn't be setting Parents here
 				scope.page.parents = [{parentId: primaryPage.pageId}];
 				scope.useVerticalView = true;
-			} else if ( (scope.isComment || scope.isQuestion) && primaryPage) {
+			} else if ((scope.isComment || scope.isQuestion) && primaryPage) {
 				scope.useVerticalView = true;
 			}
 
@@ -826,7 +878,7 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
-					var groupName = userService.groupMap[groupId].name;
+					var groupName = pageService.pageMap[groupId].title;
 					scope.groupOptions[groupId] = groupName;
 				}
 			} else {
@@ -836,7 +888,7 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			scope.groupPermissionsPassed = true;
 			if (!(scope.page.seeGroupId in scope.groupOptions)) {
 				scope.groupPermissionsPassed = false;
-				scope.groupOptions[scope.page.seeGroupId] = userService.groupMap[scope.page.seeGroupId].name;
+				scope.groupOptions[scope.page.seeGroupId] = pageService.pageMap[scope.page.seeGroupId].title;
 			}
 
 			// if starting a new edit, clear the minor edit checkbox
@@ -913,7 +965,7 @@ app.directive("arbEditNodePopover", function (pageService, userService) {
 			$scope.isOpened = $scope.isOpened === 'true';
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.edit = pageService.pageMap[$scope.pageId].editHistoryMap[$scope.editNum];
+			$scope.edit = pageService.editMap[$scope.pageId].editHistoryMap[$scope.editNum];
 		},
 	};
 });

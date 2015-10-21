@@ -3,18 +3,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>{{.Domain.Name}} - Arbital</title>
+	<title>Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
 	<script>
 		// IndexCtrl is for the Index page.
-		app.controller("IndexCtrl", ["$scope", function ($scope) {
+		app.controller("IndexCtrl", function ($scope, pageService) {
 			$scope.mostLikedIds = [{{range .MostLikedIds}}{{.}},{{end}}];
 			$scope.mostControversialIds = [{{range .MostControversialIds}}{{.}},{{end}}];
 			$scope.recentlyCreatedIds = [{{range .RecentlyCreatedIds}}{{.}},{{end}}];
 			$scope.recentlyEditedIds = [{{range .RecentlyEditedIds}}{{.}},{{end}}];
-		}]);
+			document.title = pageService.pageMap["{{.DomainId}}"].title + " - Abital";
+		});
 	</script>
 </head>
 

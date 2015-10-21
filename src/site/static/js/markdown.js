@@ -108,7 +108,6 @@ var arbMarkdown = arbMarkdown || function() {
 		if (inEditMode) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId, {
-				autocompleteService: autocompleteService,
 				handler: function(){
 					window.open("http://math.stackexchange.com/editing-help", "_blank");
 				},

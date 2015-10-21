@@ -101,6 +101,7 @@ func indexRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err := core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{})
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
@@ -110,13 +111,6 @@ func indexRenderer(params *pages.HandlerParams) *pages.Result {
 	err = core.LoadAuxPageData(db, u.Id, data.PageMap, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load aux data", err)
-	}
-
-	// Load all the groups.
-	data.GroupMap = make(map[int64]*core.Group)
-	err = core.LoadGroupNames(db, u, data.GroupMap)
-	if err != nil {
-		return pages.Fail("Couldn't load group names", err)
 	}
 
 	return pages.StatusOK(&data)

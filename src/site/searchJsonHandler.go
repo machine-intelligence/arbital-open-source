@@ -2,6 +2,7 @@
 package site
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -12,6 +13,8 @@ import (
 
 type searchJsonData struct {
 	Term string `json:"term"`
+	// If this is set, only pages of this type will be returned
+	PageType string
 }
 
 // searchJsonHandler handles the request.
@@ -21,31 +24,28 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Decode data
 	var data searchJsonData
-	q := params.R.URL.Query()
-	data.Term = q.Get("term")
+	decoder := json.NewDecoder(params.R.Body)
+	err := decoder.Decode(&data)
+	if err != nil {
+		return pages.HandlerErrorFail("Error decoding JSON", err)
+	}
 	if data.Term == "" {
 		return pages.HandlerBadRequestFail("No search term specified", nil)
 	}
 
 	// Load user groups
-	err := core.LoadUserGroups(db, u)
+	err = core.LoadUserGroupIds(db, u)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
-	// Compute list of group ids we can access
-	groupMap := make(map[int64]*core.Group)
-	err = core.LoadGroupNames(db, u, groupMap)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load groupMap", err)
-	}
-	groupIds := make([]string, 0)
-	groupIds = append(groupIds, "0")
-	for id, _ := range groupMap {
-		groupIds = append(groupIds, fmt.Sprintf("%d", id))
-	}
-
+	groupIds := append(u.GroupIds, "0")
 	escapedTerm := elastic.EscapeMatchTerm(data.Term)
+
+	optionalTermFilter := ""
+	if data.PageType != "" {
+		optionalTermFilter = fmt.Sprintf(`{"term": { "type": "%s" } },`, elastic.EscapeMatchTerm(data.PageType))
+	}
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
@@ -74,7 +74,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 				},
 				"filter": {
 					"bool": {
-						"must": [
+						"must": [`+optionalTermFilter+`
 							{
 								"terms": { "seeGroupId": [%[2]s] }
 							}
@@ -110,15 +110,6 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("error while loading aux data", err)
 	}
 
-	// Return the data in JSON format.
-	returnPageData := make(map[string]*core.Page)
-	for k, v := range pageMap {
-		returnPageData[fmt.Sprintf("%d", k)] = v
-	}
-
-	returnData := make(map[string]interface{})
-	returnData["searchHits"] = results.Hits
-	returnData["pages"] = returnPageData
-
+	returnData := createReturnData(pageMap).AddResult(results.Hits)
 	return pages.StatusOK(returnData)
 }

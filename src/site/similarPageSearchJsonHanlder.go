@@ -16,6 +16,7 @@ type similarPageSearchJsonData struct {
 	Title     string
 	Clickbait string
 	Text      string
+	PageType  string
 }
 
 // similarPageSearchJsonHandler handles the request.
@@ -35,26 +36,16 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load user groups
-	err = core.LoadUserGroups(db, u)
+	err = core.LoadUserGroupIds(db, u)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
-	// Compute list of group ids we can access
-	groupMap := make(map[int64]*core.Group)
-	err = core.LoadGroupNames(db, u, groupMap)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load groupMap", err)
-	}
-	groupIds := make([]string, 0)
-	groupIds = append(groupIds, "0")
-	for id, _ := range groupMap {
-		groupIds = append(groupIds, fmt.Sprintf("%d", id))
-	}
-
+	groupIds := append(u.GroupIds, "0")
 	escapedTitle := elastic.EscapeMatchTerm(data.Title)
 	escapedClickbait := elastic.EscapeMatchTerm(data.Clickbait)
 	escapedText := elastic.EscapeMatchTerm(data.Text)
+	escapedPageType := elastic.EscapeMatchTerm(strings.ToLower(data.PageType))
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
@@ -79,7 +70,7 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"term": { "type": "question" }
+								"term": { "type": "`+escapedPageType+`" }
 							}, {
 								"terms": { "seeGroupId": [%[4]s] }
 							}
@@ -115,15 +106,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("error while loading aux data", err)
 	}
 
-	// Return the data in JSON format.
-	returnPageData := make(map[string]*core.Page)
-	for k, v := range pageMap {
-		returnPageData[fmt.Sprintf("%d", k)] = v
-	}
-
-	returnData := make(map[string]interface{})
-	returnData["searchHits"] = results.Hits
-	returnData["pages"] = returnPageData
-
+	returnData := createReturnData(pageMap).AddResult(results.Hits)
 	return pages.StatusOK(returnData)
 }

@@ -6,7 +6,7 @@
 
 // Set up angular module.
 var app = angular.module("arbital", ["ngResource", "ui.bootstrap", "RecursionHelper"]);
-app.config(function($interpolateProvider, $locationProvider){
+app.config(function($interpolateProvider, $locationProvider, $provide){
 	$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
 
 	$locationProvider.html5Mode({
@@ -29,19 +29,11 @@ app.service("userService", function(){
 			{{end}}
 		{{end}}
 	};
-	console.log("Initial user map:"); console.log(this.userMap);
+	console.log("Initial user map:"); console.dir(this.userMap);
 
+	// Return url to the user page.
 	this.getUserUrl = function(userId) {
 		return "/user/" + userId;
-	};
-
-	// Loaded groups.
-	this.groupMap = {
-		{{if .GroupMap}}
-			{{range $k,$v := .GroupMap}}
-				"{{$k}}": {{GetGroupJson $v}},
-			{{end}}
-		{{end}}
 	};
 
 	// (Un)subscribe a user to a thing.
@@ -74,7 +66,6 @@ app.service("userService", function(){
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
 		$.extend(that.userMap, data["users"]);
-		$.extend(that.groupMap, data["groups"]);
 	}
 });
 
@@ -89,6 +80,9 @@ app.service("pageService", function(userService, $http){
 			"{{$k}}": {{GetPageJson $v}},
 		{{end}}
 	};
+	
+	// All loaded edits. (These are the pages we will be editing.)
+	this.editMap = {};
 
 	// All loaded masteries.
 	this.masteryMap = {
@@ -136,15 +130,26 @@ app.service("pageService", function(userService, $http){
 	};
 	
 	// Call this to process data we received from the server.
-	this.processServerData = function(data, overwrite) {
-		$.extend(this.userMap, data["users"]);
+	this.processServerData = function(data) {
 		$.extend(this.masteryMap, data["masteries"]);
+
 		var pageData = data["pages"];
 		for (var id in pageData) {
-			this.addPageToMap(pageData[id], overwrite);
+			var page = pageData[id];
+			if (page.isCurrentEdit) {
+				this.addPageToMap(pageData[id]);
+			} else {
+				this.addPageToEditMap(pageData[id]);
+			}
+		}
+
+		var editData = data["edits"];
+		for (var id in editData) {
+			this.addPageToEditMap(editData[id]);
 		}
 	}
 
+	// These functions will be added to each page object.
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
@@ -161,7 +166,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
-			if (this.type === "blog" || this.type === "comment") {
+			if (this.type === "comment") {
 				if (this.creatorId == userService.user.id) {
 					return "";
 				} else {
@@ -185,7 +190,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
 		getDeleteLevel: function() {
-			if (this.type === "blog" || this.type === "comment") {
+			if (this.type === "comment") {
 				if (this.creatorId == userService.user.id) {
 					return "";
 				} else if (userService.user.isAdmin) {
@@ -211,11 +216,8 @@ app.service("pageService", function(userService, $http){
 			return this.type === "deleted";
 		},
 		// Get page's url
-		url: function(forcePageId) {
-			if (forcePageId) {
-				return "/pages/" + this.pageId;
-			}
-			return "/pages/" + this.alias;
+		url: function() {
+			return "/pages/" + this.pageId;
 		},
 		// Get url to edit the page
 		editUrl: function() {
@@ -231,7 +233,7 @@ app.service("pageService", function(userService, $http){
 			page[name] = pageFuncs[name];
 		}
 		// Add page's alias to the map as well
-		if (page.pageId !== page.alias) {
+		if (pageMap && page.pageId !== page.alias) {
 			pageMap[page.alias] = page;
 		}
 		return page;
@@ -276,9 +278,20 @@ app.service("pageService", function(userService, $http){
 			oldPage[k] = newPage[k];
 		}
 	};
+
 	// Remove page with the given pageId from the global pageMap.
 	this.removePageFromMap = function(pageId) {
 		delete this.pageMap[pageId];
+	};
+
+	// Add the given page to the global editMap.
+	this.addPageToEditMap = function(page) {
+		this.editMap[page.pageId] = setUpPage(page);
+	}
+
+	// Remove page with the given pageId from the global editMap;
+	this.removePageFromEditMap = function(pageId) {
+		delete this.editMap[pageId];
 	};
 
 	// Load children for the given page. Success/error callbacks are called only
@@ -297,11 +310,10 @@ app.service("pageService", function(userService, $http){
 			success(function(data, status){
 				parent.isLoadingChildren = false;
 				parent.hasLoadedChildren = true;
-				for (id in data) {
-					data[id] = that.addPageToMap(data[id]);
-				}
-				parent.loadChildrenData = data;
-				success(data, status);
+				userService.processServerData(data);
+				that.processServerData(data);
+				parent.loadChildrenData = data["pages"];
+				success(data["pages"], status);
 			}).error(function(data, status){
 				parent.isLoadingChildren = false;
 				console.log("Error loading children:"); console.log(data); console.log(status);
@@ -371,11 +383,10 @@ app.service("pageService", function(userService, $http){
 			success(function(data, status){
 				child.isLoadingParents = false;
 				child.hasLoadedParents = true;
-				for (id in data) {
-					data[id] = that.addPageToMap(data[id]);
-				}
-				child.loadParentsData = data;
-				success(data, status);
+				userService.processServerData(data);
+				that.processServerData(data);
+				child.loadParentsData = data["pages"];
+				success(data["pages"], status);
 			}).error(function(data, status){
 				child.isLoadingParents = false;
 				console.log("Error loading parents:"); console.log(data); console.log(status);
@@ -391,8 +402,6 @@ app.service("pageService", function(userService, $http){
 	//   loadComments: whether or not to load comments
 	//   loadVotes: whether or not to load votes
 	//   loadRequirements: whether or not to load requirements and masteries
-	//   allowDraft: allow the server to load an autosave / snapshot, if it's most recent
-	//   overwrite: overwrite the existing pages with loaded data
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -418,20 +427,19 @@ app.service("pageService", function(userService, $http){
 		// Set up options.
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
-		var overwrite = options.overwrite; delete options.overwrite;
 
 		console.log("Issuing a GET request to: /json/pages/?pageAliases=" + pageAliases);
 		$http({method: "GET", url: "/json/pages/", params: options}).
 			success(function(data, status){
-				console.log("JSON /pages/ data:"); console.log(data);
+				console.log("JSON /pages/ data:"); console.dir(data);
 				userService.processServerData(data);
-				that.processServerData(data, overwrite);
+				that.processServerData(data);
 				var pageData = data["pages"];
 				for (var id in pageData) {
 					delete loadingPageAliases[id];
 					delete loadingPageAliases[pageData[id].alias];
 				}
-				if(success) success(data["pages"], status);
+				if(success) success();
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
@@ -441,10 +449,9 @@ app.service("pageService", function(userService, $http){
 	
 	// Load edit.
 	// options {
-	//   pageId: pageId to load
+	//   pageAlias: pageAlias to load
 	//	 editLimit: only load edits lower than this number
 	//	 createdAtLimit: only load edits that were created before this date
-	//   overwrite: overwrite the existing pages with loaded data
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -452,27 +459,37 @@ app.service("pageService", function(userService, $http){
 		// Set up options.
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
-		var overwrite = options.overwrite; delete options.overwrite;
 
-		console.log("Issuing a GET request to: /json/edit/?pageId=" + options.pageId);
+		console.log("Issuing a GET request to: /json/edit/?pageAlias=" + options.pageAlias);
 		$http({method: "GET", url: "/json/edit/", params: options}).
 			success(function(data, status){
-				console.log("JSON /edit/ data:"); console.log(data);
-				var pagesData = data["pages"];
-				for (var id in pagesData) {
-					data[id] = pagesData[id];
-				}
-				var usersData = data["users"];
-				for (var id in usersData) {
-					userService.userMap[id] = usersData[id];
-				}
-				if(success) success(pagesData, status);
+				console.log("JSON /json/edit/ data:"); console.dir(data);
+				userService.processServerData(data);
+				that.processServerData(data);
+				if(success) success(data["pages"], status);
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}
 		);
 	};
+
+	// Get a new page from the server.
+	// options {
+	//	success: callback on success
+	//}
+	this.getNewPage = function(options) {
+		$http({method: "GET", url: "/json/newPage/"}).
+			success(function(data, status){
+				console.log("JSON /json/newPage/ data:"); console.dir(data);
+				var pageId = Object.keys(data["pages"])[0];
+				that.processServerData(data);
+				if(options.success) options.success(pageId);
+			}).error(function(data, status){
+				console.log("Error loading page:"); console.log(data); console.log(status);
+				if(error) error(data, status);
+			});
+	}
 
 	// Delete the page with the given pageId.
 	this.deletePage = function(pageId, success, error) {
@@ -508,6 +525,31 @@ app.service("pageService", function(userService, $http){
 		);
 	};
 
+	// Add a new relationship between pages using the given options.
+	// options = {
+	//	parentId: id of the parent page
+	//	childId: id of the child page
+	//	type: type of the relationships
+	// }
+	this.newPagePair = function(options, success) {
+		$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(options)})
+			.success(function(data, status){
+				if(success) success();
+			})
+			.error(function(data, status){
+				console.log("Error creating new page pair:"); console.log(data); console.log(status);
+			});
+	};
+	// Note: you also need to specify the type of the relationship here, sinc we
+	// don't want to accidentally delete the wrong type.
+	this.deletePagePair = function(options) {
+		$http({method: "POST", url: "/deletePagePair/", data: JSON.stringify(options)})
+			.error(function(data, status){
+				console.log("Error deleting a page pair:"); console.log(data); console.log(status);
+			});
+	};
+
+	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId) {
 		var page = this.pageMap[pageId];
@@ -522,7 +564,7 @@ app.service("pageService", function(userService, $http){
 	};
 
 	// Setup all initial pages.
-	console.log("Initial pageMap: "); console.log(this.pageMap);
+	console.log("Initial pageMap: "); console.dir(this.pageMap);
 	for (var id in this.pageMap) {
 		setUpPage(this.pageMap[id], this.pageMap);
 	}
@@ -531,11 +573,19 @@ app.service("pageService", function(userService, $http){
 // Autocomplete service provides data for autocompletion.
 app.service("autocompleteService", function($http, $compile, pageService){
 	var that = this;
+
 	// Set how to render search results for the given autocomplete input.
-	this.setAutocompleteRendering = function($input, scope) {
+	this.setAutocompleteRendering = function($input, scope, resultsAreLinks) {
 		$input.data("ui-autocomplete")._renderItem = function(ul, item) {
-			var $el = $compile("<li class='search-result ui-menu-item' arb-likes-page-title page-id='" + item.value +
-				"' show-clickbait='true' is-search-result='true'></li>")(scope);
+			var elementType = "span";
+			var elementTypeEnd = "span";
+			if (resultsAreLinks) {
+				elementType = "a href='/pages/" + item.value + "'";
+				elementTypeEnd = "a";
+			}
+			var $el = $compile("<li class='ui-menu-item'><" + elementType +
+				" arb-likes-page-title class='search-result' page-id='" + item.value +
+				"' show-clickbait='true' is-search-result='true'></" + elementTypeEnd + "></li>")(scope);
 			$el.attr("data-value", item.value);
 			return $el.appendTo(ul);
 		};
@@ -547,14 +597,14 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		if (!data) return [];
 		// Add new pages to the pageMap.
 		for (var pageId in data.pages) {
-			pageService.addPageToMap(data.pages[pageId], false);
+			pageService.addPageToMap(data.pages[pageId]);
 		}
 		// Create list of results we can give to autocomplete.
 		var resultList = [];
-		for (var n = 0; n < data.searchHits.hits.length; n++) {
-			var source = data.searchHits.hits[n]._source;
+		for (var n = 0; n < data.result.hits.length; n++) {
+			var source = data.result.hits[n]._source;
 			resultList.push({
-				value: source.pageId,
+				value: source.alias,
 				label: source.pageId,
 				alias: source.alias,
 				title: source.title,
@@ -564,6 +614,25 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		}
 		return resultList;
 	};
+
+
+	// Do a normal search with the given options.
+	// options = {
+	//	term: string to search for
+	//	pageType: contraint for what type of pages we are looking for
+	// }
+	// Returns: list of results
+	this.performSearch = function(options, callback) {
+		$http({method: "POST", url: "/json/search/", data: JSON.stringify(options)})
+		.success(function(data, status){
+			var results = that.processAutocompleteResults(data);
+			if (callback) callback(results);
+		})
+		.error(function(data, status){
+			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
+			if (callback) callback({});
+		});
+	}
 
 	// Load data for autocompleting parents search.
 	var parentsSource = function(request, callback) {
@@ -623,11 +692,14 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
-	// Refresh all the dates.
-	var refreshDates = function() {
-		$timeout(refreshDates, 30000);
+	// Refresh all the fields that need to be updated every so often.
+	var refreshAutoupdates = function() {
+		$(".autoupdate").each(function(index, element) {
+			$compile($(element))($scope);
+		});
+		$timeout(refreshAutoupdates, 30000);
 	};
-	refreshDates();
+	refreshAutoupdates();
 
 	// Process last visit url parameter
 	var lastVisit = $location.search().lastVisit;
@@ -697,11 +769,10 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 
 				// Fetch page data from the server.
 				pageService.loadPages([pageAlias], {
-					overwrite: true,
 					includeAuxData: true,
 					loadVotes: true,
 					loadChildren: true,
-					success: function(data, status) {
+					success: function() {
 						var page = pageService.pageMap[pageAlias];
 						if (!page.summary) {
 							page.summary = " "; // to avoid trying to load it again
@@ -837,34 +908,27 @@ app.directive("arbNavbar", function(pageService, userService, autocompleteServic
 				$.removeCookie("zanaduu", {path: "/"});
 			});
 
-			// Function for getting search results from the server.
-			var searchSource = function(request, callback) {
-				$http({method: "GET", url: "/json/search/", params: {term: request.term}})
-				.success(function(data, status){
-					var resultMap = autocompleteService.processAutocompleteResults(data);
-					callback(resultMap);
-				})
-				.error(function(data, status){
-					console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
-				});
-			};
-
 			// Setup search via navbar.
 			var $navSearch = element.find("#nav-search");
 			if ($navSearch.length > 0) {
 				$navSearch.autocomplete({
-					source: searchSource,
+					source: function(request, callback) {
+						autocompleteService.performSearch({term: request.term}, callback);
+					},
 					minLength: 3,
 					delay: 400,
 					focus: function (event, ui) {
 						return false;
 					},
 					select: function (event, ui) {
+						if (event.ctrlKey) {
+							return false;
+						}
 						window.location.href = "/pages/" + ui.item.value;
 						return false;
 					},
 				});
-				autocompleteService.setAutocompleteRendering($navSearch, scope);
+				autocompleteService.setAutocompleteRendering($navSearch, scope, true);
 			}
 		},
 	};

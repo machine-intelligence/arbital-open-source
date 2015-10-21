@@ -3,7 +3,6 @@ package site
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 
 	"zanaduu3/src/core"
@@ -19,10 +18,7 @@ type pagesJsonData struct {
 	// Load entire page text
 	IncludeText bool
 	// Load auxillary data: likes, votes, subscription
-	IncludeAuxData bool
-	// If true, at most one page id can be passed. We'll load the most recent version
-	// of the page, even if it's a draft.
-	AllowDraft       bool
+	IncludeAuxData   bool
 	LoadComments     bool
 	LoadVotes        bool
 	LoadChildren     bool
@@ -39,6 +35,10 @@ func pagesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
+	// If no page ids, return a new random page id.
+	if len(data.PageAliases) <= 0 {
+		return pages.HandlerBadRequestFail("No page ids/aliases were specified.", nil)
+	}
 
 	returnData, message, err := pagesJsonHandlerInternal(params, &data)
 	if returnData == nil {
@@ -52,15 +52,6 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 	db := params.DB
 	u := params.U
 	returnData := make(map[string]interface{})
-
-	// If no page ids, return a new random page id.
-	if len(data.PageAliases) <= 0 {
-		pageId := rand.Int63()
-		returnPageData := make(map[string]*core.Page)
-		returnPageData[fmt.Sprintf("%d", pageId)] = &core.Page{PageId: pageId}
-		returnData["pages"] = returnPageData
-		return returnData, "", nil
-	}
 
 	// Convert all aliases to ids
 	pageIds := make([]int64, 0)
@@ -101,59 +92,48 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 	userMap := make(map[int64]*core.User)
 	pageMap := make(map[int64]*core.Page)
 	masteryMap := make(map[int64]*core.Mastery)
-	if !data.AllowDraft {
-		sourceMap := make(map[int64]*core.Page)
-		// Process pageIds
-		for _, pageId := range pageIds {
-			pageMap[pageId] = &core.Page{PageId: pageId}
-			sourceMap[pageId] = pageMap[pageId]
-		}
+	sourceMap := make(map[int64]*core.Page)
 
-		// Load comment ids.
-		if data.LoadComments {
-			err := core.LoadSubpageIds(db, pageMap, sourceMap)
-			if err != nil {
-				return nil, "Couldn't load subpages", err
-			}
-		}
+	// Process pageIds
+	for _, pageId := range pageIds {
+		pageMap[pageId] = &core.Page{PageId: pageId}
+		sourceMap[pageId] = pageMap[pageId]
+	}
 
-		// Load children
-		if data.LoadChildren {
-			err := core.LoadChildrenIds(db, pageMap, core.LoadChildrenIdsOptions{ForPages: sourceMap})
-			if err != nil {
-				return nil, "Couldn't load children", err
-			}
-		}
-
-		if data.LoadRequirements {
-			err := core.LoadRequirements(db, u.Id, pageMap, masteryMap, core.LoadChildrenIdsOptions{ForPages: sourceMap})
-			if err != nil {
-				return nil, "Couldn't load children", err
-			}
-		}
-
-		err := core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{LoadText: true, LoadSummary: true})
+	// Load comment ids.
+	if data.LoadComments {
+		err := core.LoadSubpageIds(db, pageMap, sourceMap)
 		if err != nil {
-			return nil, "error while loading pages", err
+			return nil, "Couldn't load subpages", err
 		}
-	} else {
-		if len(pageIds) > 1 {
-			return nil, "Non live edit loading supports only one page id", nil
-		}
-		pageId := pageIds[0]
-
-		// Load full edit for one page.
-		p, err := core.LoadFullEdit(db, pageId, u.Id, &core.LoadEditOptions{LoadNonliveEdit: data.AllowDraft})
-		if err != nil || p == nil {
-			return nil, "error while loading full edit", err
-		}
-		pageMap[pageId] = p
 	}
 
 	// Load links
 	err := core.LoadLinks(db, pageMap, nil)
 	if err != nil {
 		return nil, "Couldn't load links", err
+	}
+
+	// Load children
+	if data.LoadChildren {
+		err := core.LoadChildrenIds(db, pageMap, &core.LoadChildrenIdsOptions{ForPages: sourceMap})
+		if err != nil {
+			return nil, "Couldn't load children", err
+		}
+	}
+
+	// Load requirements
+	if data.LoadRequirements {
+		err := core.LoadRequirements(db, u.Id, pageMap, masteryMap, &core.LoadChildrenIdsOptions{ForPages: sourceMap})
+		if err != nil {
+			return nil, "Couldn't load children", err
+		}
+	}
+
+	// Load page data
+	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{LoadText: true, LoadSummary: true})
+	if err != nil {
+		return nil, "error while loading pages", err
 	}
 
 	// Load the auxillary data.
@@ -196,7 +176,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 	}
 
 	// Erase the text for pages if necessary; otherwise, mark them as visited
-	// TODO: this is completely incorrect
+	// TODO: keep text only for pages in sourceMap
 	visitedValues := make([]interface{}, 0)
 	for k, v := range pageMap {
 		if !data.IncludeText {

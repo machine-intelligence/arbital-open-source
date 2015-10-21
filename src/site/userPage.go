@@ -50,7 +50,6 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	data.User = u
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	data.GroupMap = make(map[int64]*core.Group)
 
 	// Check parameter limiting the user/creator of the pages
 	data.AuthorId, err = strconv.ParseInt(mux.Vars(params.R)["authorId"], 10, 64)
@@ -106,13 +105,12 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		// Load recently edited by me page ids.
 		rows = db.NewStatement(`
 			SELECT p.pageId
-			FROM (
-				SELECT pageId,createdAt
-				FROM pages
-				WHERE creatorId=? AND type!="comment" AND isAutosave
-				GROUP BY pageId
-			) AS p
-			ORDER BY createdAt DESC
+			FROM pages AS p
+			JOIN pageInfos AS i
+			ON (p.pageId = i.pageId)
+			WHERE p.creatorId=? AND p.type!="comment" AND p.edit>i.currentEdit
+			GROUP BY p.pageId
+			ORDER BY p.createdAt DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
 		data.PagesWithDraftIds, err = core.LoadPageIds(rows, data.PageMap)
 		if err != nil {
@@ -182,6 +180,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
@@ -191,12 +190,6 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
 	if err != nil {
 		return pages.Fail("error while loading aux data", err)
-	}
-
-	// Load all the groups.
-	err = core.LoadGroupNames(db, u, data.GroupMap)
-	if err != nil {
-		return pages.Fail("Couldn't load group names", err)
 	}
 
 	// Load all the users.

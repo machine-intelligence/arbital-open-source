@@ -10,12 +10,22 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			scope.pageService = pageService;
 			scope.userService = userService;
 
+			scope.groupMap = {};
+
 			// Get the data.
 			$http({method: "GET", url: "/json/groups/"}).
 				success(function(data, status){
 					console.log("JSON /groups/ data:"); console.log(data);
 					userService.processServerData(data);
 					pageService.processServerData(data);
+
+					for (var pageId in pageService.pageMap) {
+						if (!+pageId) continue; // don't process aliases
+						var page = pageService.pageMap[pageId];
+						if (page.type === "group") {
+							scope.groupMap[pageId] = page;
+						}
+					}
 				}).error(function(data, status){
 					console.log("Error groups page:"); console.log(data); console.log(status);
 				}
@@ -34,14 +44,14 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 					});
 
 				// Adjust data
-				delete userService.groupMap[data.groupId].members[data.userId];
+				delete scope.groupMap[data.groupId].members[data.userId];
 			});
 
 			// Process updating a member's permissions
 			var updateMemberPermission = function($target, data) {
 				data.userId = $target.closest("[member-id]").attr("member-id");
 				data.groupId = $target.closest("[group-id]").attr("group-id");
-				var member = userService.groupMap[data.groupId].members[data.userId];
+				var member = scope.groupMap[data.groupId].members[data.userId];
 				if (!("canAddMembers" in data)) data.canAddMembers = member.canAddMembers;
 				if (!("canAdmin" in data)) data.canAdmin = member.canAdmin;
 				$http({method: "POST", url: "/updateMember/", data: JSON.stringify(data)})

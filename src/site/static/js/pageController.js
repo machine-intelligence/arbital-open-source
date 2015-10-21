@@ -212,7 +212,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		} else {
 			// Load the edit from the server.
 			pageService.loadEdit({
-				pageId: pageId,
+				pageAlias: pageId,
 				createdAtLimit: $("body").attr("last-visit"),
 				success: function(data, status) {
 					var dmp = new diff_match_patch();
@@ -275,9 +275,8 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 				pageService.loadPages([pageAlias], {
 					includeAuxData: true,
 					loadVotes: true,
-					overwrite: true,
 					success: function(data, status) {
-						var pageId = Object.keys(data)[0];
+						var pageId = pageService.pageMap[pageAlias].pageId;
 						var divId = "embed-vote-" + pageId;
 						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><arb-vote-bar page-id='" + pageId + "'></arb-vote-bar></div>")(scope);
 						$link.replaceWith($embedDiv);
@@ -535,8 +534,6 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 								var parent = pageService.pageMap[subpage.parents[i].parentId];
 								hasParentComment = parent.type === "comment";
 								if (hasParentComment) {
-									if (parent.children == null) parent.children = [];
-									parent.children.push({parentId: parent.pageId, childId: subpage.pageId});
 									break;
 								}
 							}
@@ -553,7 +550,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 });
 
 // Directive for showing a vote bar.
-app.directive("arbVoteBar", function(pageService, userService, $compile, $timeout) {
+app.directive("arbVoteBar", function($compile, $timeout, pageService, userService) {
 	return {
 		templateUrl: "/static/html/voteBar.html",
 		scope: {
@@ -821,7 +818,7 @@ app.directive("arbVoteBar", function(pageService, userService, $compile, $timeou
 		
 				// Set new vote and update all the things.
 				var vote = voteValueFromMousePosX(event.pageX); 
-				voteMap[userId] = {value: vote, createdAt: "now"};
+				voteMap[userId] = {value: vote, createdAt: moment.utc().format("YYYY-MM-DD HH:mm:ss")};
 				postNewVote(page.pageId, vote);
 				setMyVoteValue($voteDiv, "" + vote);
 				updateVoteCount();
@@ -857,7 +854,7 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 					childId: ui.item.label,
 					type: "requirement",
 				};
-				$http({method: "POST", url: "/newTag/", data: JSON.stringify(data)})
+				$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(data)})
 					.error(function(data, status){
 						console.log("Error creating requirement:"); console.log(data); console.log(status);
 					});
@@ -875,6 +872,7 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 				var data = {
 					parentId: scope.page.pageId,
 					childId: $target.attr("page-id"),
+					type: "requirement",
 				};
 				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
 					.error(function(data, status){

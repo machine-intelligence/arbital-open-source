@@ -15,20 +15,8 @@ type Member struct {
 	CanAdmin      bool  `json:"canAdmin"`
 }
 
-type Group struct {
-	Id         int64  `json:"id,string"`
-	Name       string `json:"name"`
-	Alias      string `json:"alias"`
-	IsVisible  bool   `json:"isVisible"`
-	RootPageId int64  `json:"rootPageId,string"`
-	CreatedAt  string `json:"createdAt"`
-
-	// Optionally populated.
-	Members map[string]*Member `json:"members"`
-}
-
-// LoadUserGroups loads all the group names this user belongs to.
-func LoadUserGroups(db *database.DB, u *user.User) error {
+// LoadUserGroupIds loads all the group names this user belongs to.
+func LoadUserGroupIds(db *database.DB, u *user.User) error {
 	u.GroupIds = make([]string, 0)
 	rows := db.NewStatement(`
 		SELECT groupId
@@ -46,71 +34,37 @@ func LoadUserGroups(db *database.DB, u *user.User) error {
 	return err
 }
 
-// LoadGroupNames loads the names and other info for the groups in the map
-func LoadGroupNames(db *database.DB, u *user.User, groupMap map[int64]*Group) error {
-	// Make sure all user groups are in the map
-	for _, idStr := range u.GroupIds {
-		id, _ := strconv.ParseInt(idStr, 10, 64)
-		if _, ok := groupMap[id]; !ok {
-			groupMap[id] = &Group{Id: id}
+// AddUserGroupIdsToPageMap adds user's groups to the page map so we can load them.
+func AddUserGroupIdsToPageMap(u *user.User, pageMap map[int64]*Page) {
+	for _, pageIdStr := range u.GroupIds {
+		pageId, _ := strconv.ParseInt(pageIdStr, 10, 64)
+		if _, ok := pageMap[pageId]; !ok {
+			pageMap[pageId] = &Page{PageId: pageId}
 		}
 	}
-
-	// Create the group string
-	groupCondition := "FALSE"
-	groupIds := make([]interface{}, 0, len(groupMap))
-	if len(groupMap) > 0 {
-		for id, _ := range groupMap {
-			groupIds = append(groupIds, id)
-		}
-		groupCondition = "id IN " + database.InArgsPlaceholder(len(groupIds))
-	}
-
-	// Load names
-	rows := db.NewStatement(`
-		SELECT id,name,alias
-		FROM groups
-		WHERE ` + groupCondition + ` OR isVisible`).Query(groupIds...)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var g Group
-		err := rows.Scan(&g.Id, &g.Name, &g.Alias)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a group: %v", err)
-		}
-		if _, ok := groupMap[g.Id]; !ok {
-			groupMap[g.Id] = &g
-		} else {
-			// TODO: Nope, nope, nope! Can't do this again. Figure out if we ever have
-			// a group that comes in here with preloaded info that we have to preserve.
-			// If so, let's refactor it so that this function is the one that loads all
-			// the data for groups. That way we can just replace the group, instead of
-			// doing setting each variable.
-			groupMap[g.Id].Name = g.Name
-			groupMap[g.Id].Alias = g.Alias
-		}
-		return nil
-	})
-	return err
 }
 
-// LoadDomains loads the domains for the given page and adds them to the map
-func LoadDomains(db *database.DB, u *user.User, page *Page, pageMap map[int64]*Page, groupMap map[int64]*Group) error {
-	rows := db.NewStatement(`
-		SELECT g.id,g.name,g.alias,g.createdAt,g.rootPageId
-		FROM groups AS g
+// LoadDomainIds loads the domain ids for the given page and adds them to the map
+func LoadDomainIds(db *database.DB, u *user.User, page *Page, pageMap map[int64]*Page) error {
+	pageIdConstraint := database.NewQuery("")
+	if page != nil {
+		pageIdConstraint = database.NewQuery("AND pd.pageId=?", page.PageId)
+	}
+	rows := database.NewQuery(`
+		SELECT p.pageId
+		FROM pages AS p
 		JOIN pageDomainPairs AS pd
-		ON (g.id=pd.domainId)
-		WHERE isDomain AND pd.pageId=?`).Query(page.PageId)
+		ON (p.pageId=pd.domainId)
+		WHERE p.type="domain"`).AddPart(pageIdConstraint).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var g Group
-		err := rows.Scan(&g.Id, &g.Name, &g.Alias, &g.CreatedAt, &g.RootPageId)
+		var domainId int64
+		err := rows.Scan(&domainId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a domain: %v", err)
 		}
-		groupMap[g.Id] = &g
-		page.DomainIds = append(page.DomainIds, fmt.Sprintf("%d", g.Id))
-		if _, ok := pageMap[g.RootPageId]; !ok {
-			pageMap[g.RootPageId] = &Page{PageId: g.RootPageId}
+		page.DomainIds = append(page.DomainIds, fmt.Sprintf("%d", domainId))
+		if _, ok := pageMap[domainId]; !ok {
+			pageMap[domainId] = &Page{PageId: domainId}
 		}
 		return nil
 	})

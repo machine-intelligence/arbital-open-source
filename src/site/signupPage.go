@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/user"
@@ -58,7 +59,7 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 		// Process invite code and assign karma
 		inviteCode := strings.ToUpper(q.Get("inviteCode"))
 		karma := 0
-		if inviteCode == "BAYES" || inviteCode == "LESSWRONG" {
+		if inviteCode == "TRUTH" {
 			karma = 200
 		} else {
 			return pages.Fail("Need invite code", nil)
@@ -122,14 +123,14 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 
 			// Add new group for the user.
 			hashmap = make(database.InsertMap)
-			hashmap["id"] = data.User.Id
-			hashmap["name"] = fmt.Sprintf("%s %s", firstName, lastName)
+			hashmap["pageId"] = data.User.Id
+			hashmap["title"] = fmt.Sprintf("%s %s", firstName, lastName)
 			hashmap["alias"] = alias
 			hashmap["createdAt"] = database.Now()
-			hashmap["isVisible"] = true
-			statement = tx.NewInsertTxStatement("groups", hashmap)
+			hashmap["type"] = core.GroupPageType
+			statement = tx.NewInsertTxStatement("pages", hashmap)
 			if _, err = statement.Exec(); err != nil {
-				return "Couldn't create a new group", err
+				return "Couldn't create a new page", err
 			}
 
 			// Add user to their own group.

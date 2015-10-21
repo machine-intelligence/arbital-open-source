@@ -3,6 +3,7 @@ package site
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 
 	"zanaduu3/src/core"
@@ -41,27 +42,11 @@ var pagePage = newPageWithOptions(
 func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	var data pageTmplData
 	result := pageInternalRenderer(params, &data)
+	if result.ResponseCode == http.StatusSeeOther {
+		return result
+	}
 	if result.Data == nil {
 		return pages.Fail(result.Message, result.Err)
-	}
-
-	if data.Page.Type == core.LensPageType {
-		// Redirect lens pages to the parent page.
-		parentId, _ := strconv.ParseInt(data.Page.ParentsStr, core.PageIdEncodeBase, 64)
-		pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parentId)})
-		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
-	} else if data.Page.Type == core.CommentPageType {
-		// Redirect comment pages to the primary page.
-		// Note: we are actually redirecting blindly to a parent, which for replies
-		// could be the parent comment. For now that's okay, since we just do anther
-		// redirect then.
-		for _, p := range data.Page.Parents {
-			parent := data.PageMap[p.ParentId]
-			if parent.Type != core.CommentPageType {
-				pageUrl := core.GetPageUrl(&core.Page{Alias: fmt.Sprintf("%d", parent.PageId)})
-				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
-			}
-		}
 	}
 
 	data.PrimaryPageId = data.Page.PageId
@@ -74,15 +59,12 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	db := params.DB
 	u := params.U
 
-	var err error
 	data.User = u
 
-	// Figure out main page's id
-	var pageId int64
+	// If it's not a page id but an alias, the redirect
 	pageAlias := mux.Vars(params.R)["alias"]
-	pageId, err = strconv.ParseInt(pageAlias, 10, 64)
+	pageId, err := strconv.ParseInt(pageAlias, 10, 64)
 	if err != nil {
-		// Okay, it's not an id, but could be an alias.
 		row := db.NewStatement(`
 			SELECT pageId
 			FROM pages
@@ -93,30 +75,25 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		} else if !exists {
 			return pages.Fail(fmt.Sprintf("There is no page with alias: %s", pageAlias), nil)
 		}
+		return pages.RedirectWith(core.GetPageUrl(pageId))
 	}
 
 	// Load the main page
-	data.Page, err = core.LoadFullEdit(db, pageId, data.User.Id, &core.LoadEditOptions{IgnoreParents: true})
+	data.Page, err = core.LoadFullEdit(db, pageId, data.User.Id, nil)
 	if err != nil {
 		return pages.Fail("Couldn't retrieve a page", err)
 	} else if data.Page == nil {
 		return pages.Fail(fmt.Sprintf("Couldn't find a page with id: %d", pageId), nil)
 	}
 
-	// Redirect lens pages to the parent page.
-	if data.Page.Type == core.LensPageType {
-		return pages.StatusOK(&data)
-	}
-
 	// Create maps.
 	mainPageMap := make(map[int64]*core.Page)
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	data.GroupMap = make(map[int64]*core.Group)
 	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
-	err = core.LoadChildrenIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
+	err = core.LoadChildrenIds(db, data.PageMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap, LoadHasChildren: true})
 	if err != nil {
 		return pages.Fail("Couldn't load children", err)
 	}
@@ -147,32 +124,53 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load taggeds ids
-	err = core.LoadTaggedAsIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	err = core.LoadTaggedAsIds(db, data.PageMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load tagged as", err)
 	}
 
 	// Load related ids
-	err = core.LoadRelatedIds(db, data.PageMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	err = core.LoadRelatedIds(db, data.PageMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load related", err)
 	}
 
 	// Load requirement ids
 	data.MasteryMap = make(map[int64]*core.Mastery)
-	err = core.LoadRequirements(db, u.Id, data.PageMap, data.MasteryMap, core.LoadChildrenIdsOptions{ForPages: mainPageMap})
+	err = core.LoadRequirements(db, u.Id, data.PageMap, data.MasteryMap, &core.LoadChildrenIdsOptions{ForPages: mainPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load requirements", err)
 	}
 
 	// Load parents
-	err = core.LoadParentsIds(db, data.PageMap, core.LoadParentsIdsOptions{ForPages: mainPageMap, LoadHasParents: true})
+	err = core.LoadParentsIds(db, data.PageMap, &core.LoadParentsIdsOptions{ForPages: embeddedPageMap, LoadHasParents: true})
 	if err != nil {
 		return pages.Fail("Couldn't load parents", err)
 	}
 
+	// Check if a redirect is necessary.
+	// TODO: do this earlier
+	if data.Page.Type == core.LensPageType && len(data.Page.Parents) > 0 {
+		// Redirect lens pages to the parent page.
+		pageUrl := core.GetPageUrl(data.Page.Parents[0].ParentId)
+		return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, data.Page.PageId))
+	}
+	if data.Page.Type == core.CommentPageType {
+		// Redirect comment pages to the primary page.
+		// Note: we are actually redirecting blindly to a parent, which for replies
+		// could be the parent comment. For now that's okay, since we just do another
+		// redirect then.
+		for _, p := range data.Page.Parents {
+			parent := data.PageMap[p.ParentId]
+			if parent.Type != core.CommentPageType {
+				pageUrl := core.GetPageUrl(parent.PageId)
+				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
+			}
+		}
+	}
+
 	// Load the domains for the primary page
-	err = core.LoadDomains(db, u, data.Page, data.PageMap, data.GroupMap)
+	err = core.LoadDomainIds(db, u, data.Page, data.PageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load domains", err)
 	}
@@ -184,6 +182,7 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Load pages.
+	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{LoadText: true})
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
@@ -218,12 +217,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	err = core.LoadChildDraft(db, u.Id, data.Page, data.PageMap)
 	if err != nil {
 		return pages.Fail("Couldn't load child draft", err)
-	}
-
-	// Load all the groups.
-	err = core.LoadGroupNames(db, u, data.GroupMap)
-	if err != nil {
-		return pages.Fail("Couldn't load group names", err)
 	}
 
 	// Load all the users.
