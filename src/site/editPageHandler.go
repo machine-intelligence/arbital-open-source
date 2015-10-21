@@ -566,15 +566,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				}
 			}
 		}
-
-		// Create a task to propagate the domain change to all children
-		var task tasks.PropagateDomainTask
-		task.PageId = data.PageId
-		if err := task.IsValid(); err != nil {
-			c.Errorf("Invalid task created: %v", err)
-		} else if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
 	}
 
 	returnData := createReturnData(nil).AddResult(newEditNum)

@@ -4,12 +4,15 @@ package tasks
 import (
 	"fmt"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 )
 
 // PropagateDomainTask is the object that's put into the daemon queue.
 type PropagateDomainTask struct {
 	PageId int64
+	// If true, the page was deleted and we should update children + parents
+	Deleted bool
 }
 
 type domainFlags struct {
@@ -37,14 +40,47 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 	c.Debugf("==== PROPAGATE DOMAIN START ====")
 	defer c.Debugf("==== PROPAGATE DOMAIN COMPLETED SUCCESSFULLY ====")
 
+	// Compute what pages we need to process
+	affectedPageIds := make([]int64, 0)
+	affectedPageIds = append(affectedPageIds, task.PageId)
+	if task.Deleted {
+		// If we are deleting the page, then remember the children, and then delete
+		// the relationships.
+		rows := db.NewStatement(`
+			SELECT childId
+			FROM pagePairs
+			WHERE parentId=? AND (type=? OR type=?)`).Query(task.PageId, core.ParentPagePairType, core.TagPagePairType)
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var childId int64
+			if err := rows.Scan(&childId); err != nil {
+				return fmt.Errorf("failed to scan for childId: %v", err)
+			}
+			affectedPageIds = append(affectedPageIds, childId)
+			return nil
+		})
+		if err != nil {
+			return -1, fmt.Errorf("Faled to load pageDomainPairs: %v", err)
+		}
+
+		// Delete all relationships.
+		statement := db.NewStatement(`
+			DELETE FROM pagePairs
+			WHERE parentId=? OR childId=?`)
+		if _, err := statement.Exec(task.PageId, task.PageId); err != nil {
+			return -1, fmt.Errorf("Couldn't delete page pairs: %v", err)
+		}
+	}
+
 	// Process the first page.
 	// Map of pageId -> whether or not we processed the children
 	pageMap := make(map[int64]bool)
-	err = propagateDomainToPage(db, task.PageId, pageMap)
-	if err != nil {
-		c.Debugf("ERROR: %v", err)
-		return -1, err
+	for _, pageId := range affectedPageIds {
+		err = propagateDomainToPage(db, pageId, pageMap)
+		if err != nil {
+			return -1, fmt.Errorf("Error propagating domain: %v", err)
+		}
 	}
+
 	return 0, nil
 }
 
@@ -81,7 +117,7 @@ func propagateDomainToPage(db *database.DB, pageId int64, pageMap map[int64]bool
 			UNION
 			(SELECT pageId
 			FROM pages
-			WHERE isCurrentEdit AND type="domain")`).Query(pageId)
+			WHERE pageId=? AND isCurrentEdit AND type="domain")`).Query(pageId, pageId)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var domainId int64
 			if err := rows.Scan(&domainId); err != nil {

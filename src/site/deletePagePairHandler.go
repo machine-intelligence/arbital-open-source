@@ -43,6 +43,7 @@ func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 
+	// Delete the pair
 	query := db.NewStatement(`
 		DELETE FROM pagePairs
 		WHERE parentId=? AND childId=? AND type=?`)

@@ -7,6 +7,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/tasks"
 )
 
 // deletePageData is the data received from the request.
@@ -39,6 +40,16 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	if page == nil || !page.WasPublished || page.Type == core.DeletedPageType {
 		// Looks like there is no need to delete this page.
 		return pages.StatusOK(nil)
+	}
+
+	// Create a task to propagate the domain change to all children
+	var task tasks.PropagateDomainTask
+	task.PageId = data.PageId
+	task.Deleted = true
+	if err := task.IsValid(); err != nil {
+		return pages.HandlerErrorFail("Invalid task created: %v", err)
+	} else if err := tasks.Enqueue(params.C, task, "propagateDomain"); err != nil {
+		return pages.HandlerErrorFail("Couldn't enqueue a task: %v", err)
 	}
 
 	// Create the data to pass to the edit page handler

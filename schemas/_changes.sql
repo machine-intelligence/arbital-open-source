@@ -29,4 +29,4 @@ alter table pages drop column parents;
 drop table groups;
 alter table users add column emailFrequency int not null;
 alter table users add column emailThreshold int not null;
-UPDATE `users` SET `emailFrequency`=2,`emailThreshold`=3 WHERE `emailThreshold`=0
+UPDATE `users` SET `emailFrequency`=2,`emailThreshold`=3 WHERE `emailThreshold`=0;
