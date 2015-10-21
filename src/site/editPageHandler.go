@@ -29,6 +29,7 @@ type editPageData struct {
 	HasVoteStr     string
 	VoteType       string
 	SeeGroupId     int64 `json:",string"`
+	EditGroupId    int64 `json:",string"`
 	EditKarmaLock  int
 	Alias          string // if empty, leave the current one
 	SortChildrenBy string
@@ -122,7 +123,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Check the group settings
 	if oldPage.SeeGroupId > 0 {
 		if !u.IsMemberOfGroup(oldPage.SeeGroupId) {
-			return pages.HandlerBadRequestFail("Don't have group permissions to edit this page", nil)
+			return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
+		}
+	}
+	if oldPage.EditGroupId > 0 {
+		if !u.IsMemberOfGroup(oldPage.EditGroupId) {
+			return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 		}
 	}
 	// Check PrevEdit number.
@@ -361,6 +367,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["type"] = data.Type
 		hashmap["seeGroupId"] = data.SeeGroupId
+		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["createdAt"] = database.Now()
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText

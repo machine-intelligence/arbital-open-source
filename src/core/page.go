@@ -90,6 +90,7 @@ type Page struct {
 	CreatedAt      string `json:"createdAt"`
 	EditKarmaLock  int    `json:"editKarmaLock"`
 	SeeGroupId     int64  `json:"seeGroupId,string"`
+	EditGroupId    int64  `json:"editGroupId,string"`
 	IsAutosave     bool   `json:"isAutosave"`
 	IsSnapshot     bool   `json:"isSnapshot"`
 	IsCurrentEdit  bool   `json:"isCurrentEdit"`
@@ -211,7 +212,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		SELECT * FROM (
 			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
 				length(text),metaText,editKarmaLock,hasVote,voteType,` + summarySelect + `,
-				alias,sortChildrenBy,seeGroupId,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
+				alias,sortChildrenBy,seeGroupId,editGroupId,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
 				todoCount,anchorContext,anchorText,anchorOffset
 			FROM pages
 			WHERE`).AddPart(publishedConstraint).Add(`AND pageId IN`).AddArgsGroup(pageIds).Add(`
@@ -225,7 +226,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.EditKarmaLock, &p.HasVote,
-			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.SeeGroupId,
+			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.SeeGroupId, &p.EditGroupId,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -253,6 +254,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		op.Alias = p.Alias
 		op.SortChildrenBy = p.SortChildrenBy
 		op.SeeGroupId = p.SeeGroupId
+		op.EditGroupId = p.EditGroupId
 		op.IsAutosave = p.IsAutosave
 		op.IsSnapshot = p.IsSnapshot
 		op.IsCurrentEdit = p.IsCurrentEdit
@@ -383,7 +385,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.metaText,
 			p.summary,p.alias,p.creatorId,p.sortChildrenBy,p.hasVote,p.voteType,
-			p.createdAt,p.editKarmaLock,p.seeGroupId,
+			p.createdAt,p.editKarmaLock,p.seeGroupId,p.editGroupId,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
 			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil,
@@ -402,7 +404,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
-		&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+		&p.EditGroupId, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
 	if err != nil {

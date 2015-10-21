@@ -25,9 +25,10 @@
 					<ul class="dropdown-menu" role="menu">
 						<li ng-show="user.isAdmin"><a class="admin" href="/domains">All Domains</a></li>
 						<li class="divider" ng-show="user.isAdmin"></li>
-						<li><a ng-href="{[{userService.getUserUrl(user.id)}]}">My Profile</a></li>
-						<li><a ng-href="/groups">My Groups</a></li>
+						<li><a ng-href="{[{userService.getUserUrl(user.id)}]}">Profile</a></li>
+						<li><a ng-href="/groups">Groups</a></li>
 						<li><a ng-href="/settings">Settings</a></li>
+						<li class="divider"></li>
 						<li><a ng-href="{[{user.logoutLink}]}" id="logout">Log Out</a></li>
 					</ul>
 				</li>

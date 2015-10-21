@@ -75,16 +75,23 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("No page with such alias/id", err)
 	}
 
+	primaryPageMap := make(map[int64]*core.Page)
+	primaryPageMap[pageId] = p
+
 	// Load edit history.
 	err = core.LoadEditHistory(db, p, u.Id)
 	if err != nil {
 		return pages.Fail("Couldn't load editHistory: %v", err)
 	}
 
-	// Load links
 	pageMap := make(map[int64]*core.Page)
-	primaryPageMap := make(map[int64]*core.Page)
-	primaryPageMap[pageId] = p
+	if p.EditGroupId > 0 {
+		if _, ok := pageMap[p.EditGroupId]; !ok {
+			pageMap[p.EditGroupId] = &core.Page{PageId: p.EditGroupId}
+		}
+	}
+
+	// Load links
 	err = core.LoadLinks(db, pageMap, &core.LoadLinksOptions{FromPageMap: primaryPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load links", err)

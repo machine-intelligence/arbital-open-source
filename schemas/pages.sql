@@ -41,8 +41,10 @@ CREATE TABLE pages (
 	/* see: who can see the page */
 	/* act: who can perform actions on the page (e.g. vote, comment) */
 	/* edit: who can edit the page */
-	/* If set, only this group can see the page. FK into groups. */
+	/* If set, only this group can see the page. FK into pages. */
 	seeGroupId BIGINT NOT NULL,
+	/* If set, only this group can edit the page. FK into pages. */
+	editGroupId BIGINT NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
 	editKarmaLock INT NOT NULL,
 

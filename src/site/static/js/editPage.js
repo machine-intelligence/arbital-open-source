@@ -103,7 +103,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				$similarPages.empty();
 				for (var n = 0; n < data.length; n++) {
 					var pageId = data[n].value;
-					if (pageId == page.pageId) continue;
+					if (pageId === page.alias) continue;
 					var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
 						"' show-clickbait='true'></div>")(scope);
 					$similarPages.append($el);
@@ -886,9 +886,9 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			}
 			// Also check if we are part of the necessary group.
 			scope.groupPermissionsPassed = true;
-			if (!(scope.page.seeGroupId in scope.groupOptions)) {
+			if (!(scope.page.editGroupId in scope.groupOptions)) {
 				scope.groupPermissionsPassed = false;
-				scope.groupOptions[scope.page.seeGroupId] = pageService.pageMap[scope.page.seeGroupId].title;
+				scope.groupOptions[scope.page.editGroupId] = pageService.pageMap[scope.page.editGroupId].title;
 			}
 
 			// if starting a new edit, clear the minor edit checkbox
