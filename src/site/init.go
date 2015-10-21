@@ -55,6 +55,7 @@ func init() {
 	r.HandleFunc(pagePage.URI, pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	r.HandleFunc(updatesPage.URI, pageHandlerWrapper(&updatesPage)).Methods("GET", "HEAD")
 	r.HandleFunc(userPage.URI, pageHandlerWrapper(&userPage)).Methods("GET", "HEAD")
+	r.HandleFunc(settingsPage.URI, pageHandlerWrapper(&settingsPage)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
 	r.HandleFunc("/json/search/", handlerWrapper(searchJsonHandler)).Methods("GET")
@@ -82,6 +83,7 @@ func init() {
 	r.HandleFunc("/revertPage/", handlerWrapper(revertPageHandler)).Methods("POST")
 	r.HandleFunc("/updateMastery/", handlerWrapper(updateMasteryHandler)).Methods("POST")
 	r.HandleFunc("/updateMember/", handlerWrapper(updateMemberHandler)).Methods("POST")
+	r.HandleFunc("/updateSettings/", handlerWrapper(updateSettingsHandler)).Methods("POST")
 
 	// Admin stuff
 	r.HandleFunc("/fixText/", handlerWrapper(fixTextHandler)).Methods("GET")

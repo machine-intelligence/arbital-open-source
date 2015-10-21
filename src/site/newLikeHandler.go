@@ -1,4 +1,4 @@
-// newLikeHadler.go adds a new like for for a page.
+// newLikeHandler.go adds a new like for for a page.
 package site
 
 import (

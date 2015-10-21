@@ -20,6 +20,9 @@ var (
 
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	MaxKarmaLockFraction = 0.8
+
+	DefaultEmailFrequency = 2 // 2 is daily
+	DefaultEmailThreshold = 3
 )
 
 // User holds information about a user of the app.
@@ -33,6 +36,8 @@ type User struct {
 	IsAdmin      bool   `json:"isAdmin"`
 	Karma        int    `json:"karma"`
 	MaxKarmaLock int    `json:"maxKarmaLock"`
+	EmailFrequency int  `json:"emailFrequency"`
+	EmailThreshold int  `json:"emailThreshold"`
 
 	// Computed variables
 	IsLoggedIn  bool     `json:"isLoggedIn"`
@@ -113,10 +118,11 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 
 	var u User
 	row := db.NewStatement(`
-		SELECT id,email,firstName,lastName,isAdmin,karma
+		SELECT id,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold
 		FROM users
 		WHERE email=?`).QueryRow(appEngineUser.Email)
-	exists, err := row.Scan(&u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma)
+	exists, err := row.Scan(&u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
+		&u.EmailFrequency, &u.EmailThreshold)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
@@ -130,6 +136,8 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 		insertMap["createdAt"] = database.Now()
 		insertMap["lastWebsiteVisit"] = database.Now()
 		insertMap["updateEmailSentAt"] = database.Now()
+		insertMap["emailFrequency"] = DefaultEmailFrequency
+		insertMap["emailThreshold"] = DefaultEmailThreshold
 
 		statement := db.NewInsertStatement("users", insertMap)
 		result, err := statement.Exec()

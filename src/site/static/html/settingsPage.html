@@ -1,0 +1,43 @@
+<div class="filter-body-div">
+	<!-- Email Settings -->
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h3 class="panel-title">Email Settings</h3>
+		</div>
+		<div class="settings-options form-horizontal">
+			<form id="settings-form">
+
+				<!-- Email frequency -->
+				<div class="form-group">
+					<label class="title-label control-label col-sm-2">
+						Email Frequency
+						<span title="How frequently the update emails will be sent." class="dashed-underline">(?)</span>
+					</label>
+					<div class="col-sm-4">
+						<select ng-model="emailFrequency"
+										name="emailFrequency" class="form-control"
+										ng-options="type as label for (type,label) in frequencyTypes">
+						</select>
+					</div>
+				</div>
+
+				<!-- Email Threshold -->
+				<div class="form-group">
+					<label class="title-label control-label col-sm-2">
+						Email Threshold
+						<span title="The minimum number of new updates required before an update email will be sent." class="dashed-underline">(?)</span>
+					</label>
+					<div class="col-sm-4">
+						<input name="emailThreshold" type="text" class="form-control" placeholder="Email Threshold" ng-model="emailThreshold">
+					</div>
+				</div>
+
+				<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+				<button type="submit" class="btn btn-primary" toggle-on-submit>Submit</button>
+				<div ng-bind="resultText" ng-show="savedEmailFrequency == emailFrequency && savedEmailThreshold == emailThreshold"></div>
+				<div class="submit-form-error alert alert-danger" hidden></div>
+			</form>
+		</div>
+	</div>
+</div>
+

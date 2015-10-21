@@ -30,4 +30,6 @@ CREATE TABLE userMasteryPairs (
 	isManuallySet BOOLEAN NOT NULL,
   PRIMARY KEY(userId,masteryId)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
+alter table users add column emailFrequency int not null;
+alter table users add column emailThreshold int not null;
 

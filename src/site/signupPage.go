@@ -67,6 +67,10 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			karma = data.User.Karma
 		}
 
+		// Set default email settings
+		emailFrequency := user.DefaultEmailFrequency
+		emailThreshold := user.DefaultEmailThreshold
+
 		// Prevent alias collision
 		aliasBase := fmt.Sprintf("%s%s", firstName, lastName)
 		alias := aliasBase
@@ -99,6 +103,8 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			hashmap["karma"] = karma
 			// Don't send emails to anyone yet (except Alexei and Eliezer)
 			hashmap["updateEmailSentAt"] = time.Now().UTC().Add(30000 * time.Hour).Format(database.TimeLayout)
+			hashmap["emailFrequency"] = emailFrequency
+			hashmap["emailThreshold"] = emailThreshold
 			statement := tx.NewReplaceTxStatement("users", hashmap)
 			if _, err := statement.Exec(); err != nil {
 				return "Couldn't update user's record", err
@@ -107,6 +113,8 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			data.User.LastName = lastName
 			data.User.Karma = karma
 			data.User.IsLoggedIn = true
+			data.User.EmailFrequency = emailFrequency
+			data.User.EmailThreshold = emailThreshold
 			err := data.User.Save(params.W, params.R)
 			if err != nil {
 				return "Couldn't re-save the user after adding the name", err

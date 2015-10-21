@@ -1,4 +1,4 @@
-// newGroupHadler.go creates a new group.
+// newGroupHandler.go creates a new group.
 package site
 
 import (

@@ -1,4 +1,4 @@
-// newMemberHadler.go adds a new member for a group.
+// newMemberHandler.go adds a new member for a group.
 package site
 
 import (

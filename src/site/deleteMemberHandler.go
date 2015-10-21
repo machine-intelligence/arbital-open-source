@@ -1,4 +1,4 @@
-// deleteMemberHadler.go deletes a group member from the group
+// deleteMemberHandler.go deletes a group member from the group
 package site
 
 import (
