@@ -121,6 +121,8 @@ type Page struct {
 	LockedBy int64 `json:"lockedBy,string"`
 	// User has the page lock until this time
 	LockedUntil string `json:"lockedUntil"`
+	NextPageId  int64  `json:"nextPageId,string"`
+	PrevPageId  int64  `json:"prevPageId,string"`
 
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".

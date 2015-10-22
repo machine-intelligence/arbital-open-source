@@ -48,7 +48,24 @@
 <div class="primary-page-body-div" ng-controller="MainCtrl">
 	<!-- Navigation column -->
 	<div class="navigation-column pull-left">
-		<!-- Parents -->
+		<!-- Navigation -->
+		<div class "panel panel-default" ng-show="page.nextPageId != '0' || page.prevPageId != '0'">
+			<div class="panel-heading">Navigation</div>
+			<div class="panel-body">
+				<a href="#"
+					class="intrasite-link"
+					page-id="page.prevPageId"
+					ng-show="page.prevPageId != '0'">Prev &lt;&lt;</a>
+				<a href="#"
+					class="intrasite-link"
+					page-id="page.nextPageId"
+					ng-show="page.nextPageId != '0'">&gt;&gt; Next</a>
+				<span class="gray-text"
+					ng-show="page.nextPageId == '0'">&gt;&gt; All done</span>
+			</div>
+		</div>
+
+		<!-- Domains -->
 		<div class="panel panel-default" ng-show="page.domainIds.length > 0">
 			<div class="panel-heading">Domains</div>
 			<div class="panel-body">
