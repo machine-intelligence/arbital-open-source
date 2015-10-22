@@ -450,6 +450,7 @@ app.service("pageService", function(userService, $http){
 	// Load edit.
 	// options {
 	//   pageAlias: pageAlias to load
+	//   specificEdit: load page with this edit number
 	//	 editLimit: only load edits lower than this number
 	//	 createdAtLimit: only load edits that were created before this date
 	//   success: callback on success
@@ -464,9 +465,11 @@ app.service("pageService", function(userService, $http){
 		$http({method: "GET", url: "/json/edit/", params: options}).
 			success(function(data, status){
 				console.log("JSON /json/edit/ data:"); console.dir(data);
-				userService.processServerData(data);
-				that.processServerData(data);
-				if(success) success(data["pages"], status);
+				if (!options.specificEdit) {
+					userService.processServerData(data);
+					that.processServerData(data);
+				}
+				if(success) success(data["edits"], status);
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
 				if(error) error(data, status);
