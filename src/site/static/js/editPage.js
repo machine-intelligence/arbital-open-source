@@ -31,10 +31,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			if (!parentPage) {
 				parentPage = pageService.pageMap[parentPageId];
 			}
-			if (parentPage.seeGroupId === page.seeGroupId || parentPage.seeGroupId === "0") {
+			if (parentPage.seeGroupId === page.seeGroupId) {
 				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
 			} else {
-				var tooltip = "This parent belongs to " + pageService.pageMap[parentPage.seeGroupId].title + " group, but the page you are editing does not.";
+				var tooltip = "This parent belongs to a different See Group.";
 				$(this).addClass("label-danger").removeClass("label-default").attr("title", tooltip).tooltip();
 			}
 		});

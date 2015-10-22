@@ -94,13 +94,16 @@ func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
 	// TODO: handle cases where either parent or child (or both) are unpublished
 	if parent.Alias != "" && child.Alias != "" {
 		if data.Type == core.ParentPagePairType && parent.SeeGroupId != 0 && parent.SeeGroupId != child.SeeGroupId {
-			return pages.HandlerErrorFail("SeeGroupId has to be the same for parent and child", err)
+			return pages.HandlerErrorFail("SeeGroupId has to be the same for parent and child", nil)
 		}
 		if data.Type == core.RequirementPagePairType && parent.SeeGroupId == 0 && child.SeeGroupId != 0 {
-			return pages.HandlerErrorFail("For a public parent, all requirements have to be public", err)
+			return pages.HandlerErrorFail("For a public parent, all requirements have to be public", nil)
 		}
 		if child.Type == core.AnswerPageType && parent.Type != core.QuestionPageType {
-			return pages.HandlerErrorFail("Answer page can only be a child of a question page", err)
+			return pages.HandlerErrorFail("Answer page can only be a child of a question page", nil)
+		}
+		if child.SeeGroupId != parent.SeeGroupId {
+			return pages.HandlerErrorFail("Parent and child need to have the same See Group", nil)
 		}
 	}
 

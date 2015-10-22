@@ -2,6 +2,7 @@
 package site
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -186,12 +187,25 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 	if isCurrentEdit {
-		// We can only change the group from to a more relaxed group:
-		// personal group -> any group -> no group
-		if oldPage.WasPublished && data.SeeGroupId != oldPage.SeeGroupId {
-			if oldPage.SeeGroupId != u.Id && data.SeeGroupId != 0 {
-				return pages.HandlerBadRequestFail("Can't change group to a more restrictive one", nil)
-			}
+		// Set the seeGroupId to primary page's group name
+		// Make sure that SeeGroupId is the same as the parents' and childrens'
+		seeGroupCount := 0
+		var seeGroupId sql.NullInt64
+		row = database.NewQuery(`
+			SELECT max(p.seeGroupId),count(distinct p.seeGroupId)
+			FROM pages AS p
+			JOIN pagePairs AS pp
+			ON ((p.pageId = pp.parentId AND pp.childId = ?)`, data.PageId).Add(`
+				OR (p.pageId = pp.childId AND pp.parentId = ?))`, data.PageId).Add(`
+			WHERE p.isCurrentEdit`).ToStatement(db).QueryRow()
+		_, err = row.Scan(&seeGroupId, &seeGroupCount)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't get primary page's group name", err)
+		}
+		if seeGroupCount > 1 {
+			return pages.HandlerErrorFail("The page, its parents, and its children need to have the same See Group", nil)
+		} else if seeGroupCount == 1 {
+			data.SeeGroupId = seeGroupId.Int64
 		}
 
 		// Process meta text
@@ -213,20 +227,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	if oldPage.WasPublished && data.RevertToEdit <= 0 && !data.DeleteEdit {
 		data.Type = oldPage.Type
-	}
-	if data.Type == core.CommentPageType {
-		// Set the seeGroupId to primary page's group name
-		row := database.NewQuery(`
-			SELECT max(p.seeGroupId)
-			FROM pages AS p
-			JOIN pagePairs AS pp
-			ON (p.pageId = pp.parentId)
-			WHERE pp.childId=?`, data.PageId).Add(`
-				AND p.type!="comment" AND p.isCurrentEdit`).ToStatement(db).QueryRow()
-		_, err := row.Scan(&data.SeeGroupId)
-		if err != nil {
-			return pages.HandlerErrorFail("Couldn't get primary page's group name", err)
-		}
 	}
 	// Enforce SortChildrenBy
 	if data.Type == core.CommentPageType {
@@ -571,6 +571,17 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				} else if err := tasks.Enqueue(c, task, "atMentionUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
+			}
+		}
+
+		// Create a task to propagate the domain change to all children
+		if !oldPage.WasPublished {
+			var task tasks.PropagateDomainTask
+			task.PageId = data.PageId
+			if err := task.IsValid(); err != nil {
+				c.Errorf("Invalid task created: %v", err)
+			} else if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
 	}

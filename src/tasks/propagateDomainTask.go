@@ -109,24 +109,26 @@ func propagateDomainToPage(db *database.DB, pageId int64, pageMap map[int64]bool
 		// Compute what domains the page should have based on its parents and
 		// whether or not it's a root page for some domain
 		rows = db.NewStatement(`
-			(SELECT pd.domainId
+			(SELECT pd.domainId,p.seeGroupId
 			FROM pageDomainPairs AS pd
-			JOIN pagePairs as pp
+			JOIN pagePairs AS pp
 			ON (pp.parentId=pd.pageId)
+			JOIN pages AS p
+			ON (pd.pageId=p.pageId AND p.isCurrentEdit)
 			WHERE childId=?)
 			UNION
-			(SELECT pageId
+			(SELECT pageId,seeGroupId
 			FROM pages
 			WHERE pageId=? AND isCurrentEdit AND type="domain")`).Query(pageId, pageId)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var domainId int64
-			if err := rows.Scan(&domainId); err != nil {
+			var domainId, seeGroupId int64
+			if err := rows.Scan(&domainId, &seeGroupId); err != nil {
 				return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
 			}
 			if flags, ok := domainMap[domainId]; ok {
-				flags.ShouldHave = true
+				flags.ShouldHave = seeGroupId == 0
 			} else {
-				domainMap[domainId] = &domainFlags{ShouldHave: true}
+				domainMap[domainId] = &domainFlags{ShouldHave: seeGroupId == 0}
 			}
 			return nil
 		})
