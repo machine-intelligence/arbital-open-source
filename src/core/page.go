@@ -26,20 +26,6 @@ const (
 	TagPagePairType         = "tag"
 	RequirementPagePairType = "requirement"
 
-	// Various types of updates a user can get.
-	TopLevelCommentUpdateType = "topLevelComment"
-	ReplyUpdateType           = "reply"
-	PageEditUpdateType        = "pageEdit"
-	CommentEditUpdateType     = "commentEdit"
-	NewPageByUserUpdateType   = "newPageByUser"
-	NewParentUpdateType       = "newParent"
-	NewChildUpdateType        = "newChild"
-	NewRequirementUpdateType  = "newRequirement"
-	NewRequiredByUpdateType   = "newRequiredBy"
-	NewTagUpdateType          = "newTag"
-	NewTaggedByUpdateType     = "newTaggedBy"
-	AtMentionUpdateType       = "atMention"
-
 	// Options for sorting page's children.
 	ChronologicalChildSortingOption = "chronological"
 	AlphabeticalChildSortingOption  = "alphabetical"

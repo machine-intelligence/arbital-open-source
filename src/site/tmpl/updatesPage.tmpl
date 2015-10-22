@@ -104,6 +104,18 @@
 						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
 								page-id="{{.GoToPageId}}"
 								class="intrasite-link">comment</a>.
+					{{else if eq .Type "addedToGroup"}}
+						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
+						added you to the
+						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
+								page-id="{{.GoToPageId}}"
+								class="intrasite-link">{[{pageService.pageMap['{{.GoToPageId}}'].title}]} group</a>.
+					{{else if eq .Type "removedFromGroup"}}
+						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
+						removed you from the
+						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
+								page-id="{{.GoToPageId}}"
+								class="intrasite-link">{[{pageService.pageMap['{{.GoToPageId}}'].title}]} group</a>.
 					{{end}}
 					</div>
 				{{end}}

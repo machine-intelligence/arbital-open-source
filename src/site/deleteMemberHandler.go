@@ -4,7 +4,9 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/tasks"
 )
 
 // deleteMemberData contains data given to us in the request.
@@ -14,6 +16,7 @@ type deleteMemberData struct {
 }
 
 func deleteMemberHandler(params *pages.HandlerParams) *pages.Result {
+	c := params.C
 	db := params.DB
 	u := params.U
 
@@ -71,5 +74,18 @@ func deleteMemberHandler(params *pages.HandlerParams) *pages.Result {
 	if _, err := statement.Exec(data.UserId, data.GroupId); err != nil {
 		return pages.HandlerErrorFail("Couldn't delete the group member", err)
 	}
+
+	// Create a task to do further processing
+	var task tasks.MemberUpdateTask
+	task.UserId = u.Id
+	task.UpdateType = core.RemovedFromGroupUpdateType
+	task.MemberId = data.UserId
+	task.GroupId = data.GroupId
+	if err := task.IsValid(); err != nil {
+		c.Errorf("Invalid task created: %v", err)
+	} else if err := tasks.Enqueue(c, task, "memberUpdate"); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
+	}
+
 	return pages.StatusOK(nil)
 }

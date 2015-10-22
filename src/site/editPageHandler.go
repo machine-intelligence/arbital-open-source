@@ -562,10 +562,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			for _, submatch := range submatches {
 				var task tasks.AtMentionUpdateTask
 				task.UserId = u.Id
-				task.MentionedUserId, err = strconv.ParseInt(submatch[1], 10, 64)
+				task.MentionedUserId, _ = strconv.ParseInt(submatch[1], 10, 64)
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
-				task.UpdateType = core.AtMentionUpdateType
 				if err := task.IsValid(); err != nil {
 					c.Errorf("Invalid task created: %v", err)
 				} else if err := tasks.Enqueue(c, task, "atMentionUpdate"); err != nil {

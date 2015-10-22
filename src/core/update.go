@@ -7,6 +7,24 @@ import (
 	"zanaduu3/src/database"
 )
 
+const (
+	// Various types of updates a user can get.
+	TopLevelCommentUpdateType  = "topLevelComment"
+	ReplyUpdateType            = "reply"
+	PageEditUpdateType         = "pageEdit"
+	CommentEditUpdateType      = "commentEdit"
+	NewPageByUserUpdateType    = "newPageByUser"
+	NewParentUpdateType        = "newParent"
+	NewChildUpdateType         = "newChild"
+	NewRequirementUpdateType   = "newRequirement"
+	NewRequiredByUpdateType    = "newRequiredBy"
+	NewTagUpdateType           = "newTag"
+	NewTaggedByUpdateType      = "newTaggedBy"
+	AtMentionUpdateType        = "atMention"
+	AddedToGroupUpdateType     = "addedToGroup"
+	RemovedFromGroupUpdateType = "removedFromGroup"
+)
+
 // UpdateRow is a row from updates table
 type UpdateRow struct {
 	Id                 int64

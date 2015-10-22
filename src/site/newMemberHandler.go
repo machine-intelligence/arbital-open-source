@@ -4,8 +4,10 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/tasks"
 )
 
 // newMemberData contains data given to us in the request.
@@ -16,6 +18,7 @@ type newMemberData struct {
 
 // newMemberHandler handles requests to add a new member to a group.
 func newMemberHandler(params *pages.HandlerParams) *pages.Result {
+	c := params.C
 	db := params.DB
 	u := params.U
 
@@ -60,6 +63,7 @@ func newMemberHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("New member id doesn't correspond to a user", nil)
 	}
 
+	// Update groupMembers table
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = data.UserId
 	hashmap["groupId"] = data.GroupId
@@ -68,5 +72,18 @@ func newMemberHandler(params *pages.HandlerParams) *pages.Result {
 	if _, err = statement.Exec(); err != nil {
 		return pages.HandlerErrorFail("Couldn't add a member", err)
 	}
+
+	// Create a task to do further processing
+	var task tasks.MemberUpdateTask
+	task.UserId = u.Id
+	task.UpdateType = core.AddedToGroupUpdateType
+	task.MemberId = data.UserId
+	task.GroupId = data.GroupId
+	if err := task.IsValid(); err != nil {
+		c.Errorf("Invalid task created: %v", err)
+	} else if err := tasks.Enqueue(c, task, "memberUpdate"); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
+	}
+
 	return pages.StatusOK(nil)
 }

@@ -4,17 +4,17 @@ package tasks
 import (
 	"fmt"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 )
 
-// AtMentionTask is the object that's put into the daemon queue.
+// AtMentionUpdateTask is the object that's put into the daemon queue.
 type AtMentionUpdateTask struct {
 	// User who performed an action, e.g. creating a comment
-	UserId     int64
-	UpdateType string
+	UserId int64
 
 	// User who was mentioned
-	MentionedUserId     int64
+	MentionedUserId int64
 
 	// Grouping key. One of these has to set. We'll group all updates by this key
 	// to show in one panel.
@@ -30,9 +30,9 @@ type AtMentionUpdateTask struct {
 // Check if this task is valid, and we can safely execute it.
 func (task *AtMentionUpdateTask) IsValid() error {
 	if task.UserId <= 0 {
-		return fmt.Errorf("User id has to be set")
-	} else if task.UpdateType == "" {
-		return fmt.Errorf("Update type has to be set")
+		return fmt.Errorf("UserId has to be set")
+	} else if task.MentionedUserId <= 0 {
+		return fmt.Errorf("MentionedUserId has to be set")
 	}
 
 	groupByCount := 0
@@ -63,14 +63,11 @@ func (task *AtMentionUpdateTask) Execute(db *database.DB) (delay int, err error)
 		return -1, err
 	}
 
-	// Figure out the subscriptions query constraint.
-	whereClause := database.NewQuery("")
-	whereClause.Add("WHERE id=?", task.MentionedUserId)
-
 	// Check if the user id is valid
 	rows := database.NewQuery(`
 		SELECT id
-		FROM users`).AddPart(whereClause).ToStatement(db).Query()
+		FROM users`).Add(`
+		WHERE id=?`, task.MentionedUserId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId int64
 		err := rows.Scan(&userId)
@@ -85,7 +82,7 @@ func (task *AtMentionUpdateTask) Execute(db *database.DB) (delay int, err error)
 		hashmap := make(map[string]interface{})
 		hashmap["userId"] = userId
 		hashmap["byUserId"] = task.UserId
-		hashmap["type"] = task.UpdateType
+		hashmap["type"] = core.AtMentionUpdateType
 		hashmap["groupByPageId"] = task.GroupByPageId
 		hashmap["groupByUserId"] = task.GroupByUserId
 		hashmap["goToPageId"] = task.GoToPageId
@@ -99,7 +96,7 @@ func (task *AtMentionUpdateTask) Execute(db *database.DB) (delay int, err error)
 		return nil
 	})
 	if err != nil {
-		c.Errorf("Couldn't process subscriptions: %v", err)
+		c.Errorf("Couldn't process users: %v", err)
 		return -1, err
 	}
 	return 0, nil

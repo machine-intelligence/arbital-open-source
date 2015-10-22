@@ -178,6 +178,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	msg := &mail.Message{
 		Sender:   "Arbital <updates@zanaduu3.appspotmail.com>",
 		To:       []string{userEmail},
+		Bcc:      []string{"alexei@arbital.com"},
 		Subject:  subject,
 		HTMLBody: buffer.String(),
 	}
