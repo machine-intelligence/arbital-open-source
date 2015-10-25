@@ -121,14 +121,31 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 				return "Couldn't re-save the user after adding the name", err
 			}
 
-			// Add new group for the user.
+			// Create new group for the user.
+			fullName := fmt.Sprintf("%s %s", firstName, lastName)
 			hashmap = make(database.InsertMap)
 			hashmap["pageId"] = data.User.Id
-			hashmap["title"] = fmt.Sprintf("%s %s", firstName, lastName)
+			hashmap["edit"] = 1
+			hashmap["title"] = fullName
 			hashmap["alias"] = alias
+			hashmap["creatorId"] = data.User.Id
 			hashmap["createdAt"] = database.Now()
 			hashmap["type"] = core.GroupPageType
+			hashmap["editGroupId"] = data.User.Id
+			hashmap["clickbait"] = "Automatically generated group for " + fullName
+			hashmap["isCurrentEdit"] = true
 			statement = tx.NewInsertTxStatement("pages", hashmap)
+			if _, err = statement.Exec(); err != nil {
+				return "Couldn't create a new page", err
+			}
+
+			// Add new group to pageInfos.
+			hashmap = make(database.InsertMap)
+			hashmap["pageId"] = data.User.Id
+			hashmap["currentEdit"] = 1
+			hashmap["maxEdit"] = 1
+			hashmap["createdAt"] = database.Now()
+			statement = tx.NewInsertTxStatement("pageInfos", hashmap)
 			if _, err = statement.Exec(); err != nil {
 				return "Couldn't create a new page", err
 			}
