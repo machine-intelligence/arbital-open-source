@@ -80,8 +80,8 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 			var ignore int
 			exists, err := db.NewStatement(`
 				SELECT 1
-				FROM groups
-				WHERE alias=?`).QueryRow(alias).Scan(&ignore)
+				FROM pages
+				WHERE type="group" AND alias=?`).QueryRow(alias).Scan(&ignore)
 			if err != nil {
 				return pages.Fail("Error checking for existing alias", err)
 			}
