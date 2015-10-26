@@ -70,3 +70,69 @@ func LoadDomainIds(db *database.DB, u *user.User, page *Page, pageMap map[int64]
 	})
 	return err
 }
+
+// newInternalGroup creates a new group. For internal use only.
+func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, title, alias, clickbait string, isPersonalGroup bool) (string, error) {
+	// Create new group for the user.
+	hashmap := make(database.InsertMap)
+	hashmap["pageId"] = groupId
+	hashmap["edit"] = 1
+	hashmap["title"] = title
+	hashmap["alias"] = alias
+	hashmap["creatorId"] = userId
+	hashmap["createdAt"] = database.Now()
+	hashmap["type"] = groupType
+	hashmap["clickbait"] = clickbait
+	hashmap["isCurrentEdit"] = true
+	if groupType == GroupPageType {
+		hashmap["editGroupId"] = groupId
+	}
+	statement := tx.NewInsertTxStatement("pages", hashmap)
+	if _, err := statement.Exec(); err != nil {
+		return "Couldn't create a new page", err
+	}
+
+	// Add new group to pageInfos.
+	hashmap = make(database.InsertMap)
+	hashmap["pageId"] = groupId
+	hashmap["currentEdit"] = 1
+	hashmap["maxEdit"] = 1
+	hashmap["createdAt"] = database.Now()
+	statement = tx.NewInsertTxStatement("pageInfos", hashmap)
+	if _, err := statement.Exec(); err != nil {
+		return "Couldn't create a new page", err
+	}
+
+	// Add user to the group.
+	if groupType == GroupPageType {
+		hashmap = make(database.InsertMap)
+		hashmap["userId"] = userId
+		hashmap["groupId"] = groupId
+		hashmap["createdAt"] = database.Now()
+		if !isPersonalGroup {
+			hashmap["canAddMembers"] = true
+			hashmap["canAdmin"] = true
+		}
+		statement = tx.NewInsertTxStatement("groupMembers", hashmap)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't add user to the group", err
+		}
+	}
+	return "", nil
+}
+
+// NewGroup creates a new group and a corresponding page..
+func NewGroup(tx *database.Tx, groupId, userId int64, title, alias string) (string, error) {
+	return newInternalGroup(tx, GroupPageType, groupId, userId, title, alias, "", false)
+}
+
+// NewDomain create a new domain and a corresponding page.
+func NewDomain(tx *database.Tx, domainId, userId int64, fullName, alias string) (string, error) {
+	return newInternalGroup(tx, DomainPageType, domainId, userId, fullName, alias, "", false)
+}
+
+// NewUserGroup create a new person group for a user and the corresponding page.
+func NewUserGroup(tx *database.Tx, userId int64, fullName, alias string) (string, error) {
+	clickbait := "Automatically generated group for " + fullName
+	return newInternalGroup(tx, GroupPageType, userId, userId, fullName, alias, clickbait, true)
+}

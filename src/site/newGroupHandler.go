@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math/rand"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
@@ -49,36 +50,10 @@ func newGroupHandler(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		groupId := rand.Int63()
-
-		// Create the new group.
-		hashmap := make(map[string]interface{})
-		hashmap["id"] = groupId
-		hashmap["name"] = data.Name
-		hashmap["createdAt"] = database.Now()
 		if data.IsDomain {
-			hashmap["isDomain"] = true
-			hashmap["alias"] = data.Alias
-			hashmap["rootPageId"] = data.RootPageId
+			return core.NewDomain(tx, groupId, u.Id, data.Name, data.Alias)
 		}
-		statement := tx.NewInsertTxStatement("groups", hashmap)
-		if _, err = statement.Exec(); err != nil {
-			return "Couldn't create a group", err
-		}
-
-		if !data.IsDomain {
-			// Add the user to the group as an admin.
-			hashmap = make(map[string]interface{})
-			hashmap["userId"] = u.Id
-			hashmap["groupId"] = groupId
-			hashmap["canAddMembers"] = true
-			hashmap["canAdmin"] = true
-			hashmap["createdAt"] = database.Now()
-			statement = tx.NewInsertTxStatement("groupMembers", hashmap)
-			if _, err = statement.Exec(); err != nil {
-				return "Couldn't add a user to a group", err
-			}
-		}
-		return "", nil
+		return core.NewGroup(tx, groupId, u.Id, data.Name, data.Alias)
 	})
 	if errMessage != "" {
 		return pages.HandlerErrorFail(errMessage, err)

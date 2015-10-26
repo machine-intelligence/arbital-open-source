@@ -89,6 +89,7 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			$form.on("submit", function(event) {
 				var data = {
 					name: $form.attr("name"),
+					alias: $form.attr("alias"),
 				};
 				submitForm($form, "/newGroup/", data, function(r) {
 					location.reload();
