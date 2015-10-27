@@ -156,7 +156,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 		if data.SortChildrenBy != core.LikesChildSortingOption &&
-			data.SortChildrenBy != core.ChronologicalChildSortingOption &&
+			data.SortChildrenBy != core.RecentFirstChildSortingOption &&
+			data.SortChildrenBy != core.OldestFirstChildSortingOption &&
 			data.SortChildrenBy != core.AlphabeticalChildSortingOption {
 			return pages.HandlerBadRequestFail("Invalid sort children value.", nil)
 		}
@@ -230,7 +231,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	// Enforce SortChildrenBy
 	if data.Type == core.CommentPageType {
-		data.SortChildrenBy = core.ChronologicalChildSortingOption
+		data.SortChildrenBy = core.RecentFirstChildSortingOption
 	} else if data.Type == core.QuestionPageType {
 		data.SortChildrenBy = core.LikesChildSortingOption
 	}

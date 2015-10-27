@@ -842,7 +842,8 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			// Set up sort types.
 			scope.sortTypes = {
 				likes: "By Likes",
-				chronological: "Chronologically",
+				recentFirst: "Recent First",
+				oldestFirst: "Oldest First",
 				alphabetical: "Alphabetically",
 			};
 			scope.page.sortChildrenBy = scope.page.sortChildrenBy in scope.sortTypes ? scope.page.sortChildrenBy : "likes";

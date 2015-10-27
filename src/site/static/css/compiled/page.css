@@ -413,6 +413,32 @@
   color: #8383ff;
   text-decoration: none;
 }
+.start-reading {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 21px;
+  margin: 5px 0;
+  font-size: 18px;
+}
+.start-reading.on {
+  color: #5050FF;
+}
+.start-reading.on:focus {
+  color: #5050FF;
+}
+.start-reading:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.start-reading:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.start-reading:active {
+  color: #8383ff;
+  text-decoration: none;
+}
 .page-anchor-link {
   color: #e0e0e0;
   text-decoration: none;

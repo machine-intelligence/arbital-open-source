@@ -27,9 +27,10 @@ const (
 	RequirementPagePairType = "requirement"
 
 	// Options for sorting page's children.
-	ChronologicalChildSortingOption = "chronological"
-	AlphabeticalChildSortingOption  = "alphabetical"
-	LikesChildSortingOption         = "likes"
+	RecentFirstChildSortingOption  = "recentFirst"
+	OldestFirstChildSortingOption  = "oldestFirst"
+	AlphabeticalChildSortingOption = "alphabetical"
+	LikesChildSortingOption        = "likes"
 
 	// Options for vote types
 	ProbabilityVoteType = "probability"
@@ -785,15 +786,14 @@ func LoadSubpageIds(db *database.DB, pageMap map[int64]*Page, sourcePageMap map[
 		if err != nil {
 			return fmt.Errorf("failed to scan for subpages: %v", err)
 		}
+
 		newPage, ok := pageMap[pp.ChildId]
 		if !ok {
 			newPage = &Page{PageId: pp.ChildId, Type: pageType}
 			pageMap[newPage.PageId] = newPage
 		}
 		newPage.Parents = appendToPagePairList(newPage.Parents, &pp)
-
 		sourcePageMap[pp.ParentId].SubpageIds = append(sourcePageMap[pp.ParentId].SubpageIds, fmt.Sprintf("%d", pp.ChildId))
-
 		return nil
 	})
 	return err
@@ -1008,6 +1008,124 @@ func LoadParentsIds(db *database.DB, pageMap map[int64]*Page, options *LoadParen
 	return nil
 }
 
+// loadOrderedChildrenIds loads and returns ordered list of children for the
+// given parent page
+func loadOrderedChildrenIds(db *database.DB, parentId int64, sortType string) ([]int64, error) {
+	orderClause := "pp.childId"
+	if sortType == RecentFirstChildSortingOption {
+		orderClause = "pi.createdAt DESC"
+	} else if sortType == OldestFirstChildSortingOption {
+		orderClause = "pi.createdAt"
+	} else if sortType == AlphabeticalChildSortingOption {
+		orderClause = "p.title"
+	}
+	childrenIds := make([]int64, 0)
+	rows := database.NewQuery(`
+		SELECT pp.childId
+		FROM pagePairs AS pp
+		JOIN pages AS p
+		ON (pp.childId=p.pageId AND p.isCurrentEdit AND
+				p.type!=? AND p.type!=? AND p.type!=?)`, CommentPageType, QuestionPageType, LensPageType).Add(`
+		JOIN pageInfos AS pi
+		ON (pi.pageId=p.pageId)
+		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.parentId=?`, parentId).Add(`
+		ORDER BY ` + orderClause).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var childId int64
+		err := rows.Scan(&childId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for childId: %v", err)
+		}
+		childrenIds = append(childrenIds, childId)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load children: %v", err)
+	}
+	return childrenIds, nil
+}
+
+// loadSiblingId loads the next/prev sibling page id, based on the "parent"
+// relationships. We search recursively up the hierarchy if necessary.
+func loadSiblingId(db *database.DB, pageId int64, useNextSibling bool) (int64, error) {
+	// Load the parent and the sorting order
+	var parentId int64
+	var sortType string
+	var parentCount int
+	row := database.NewQuery(`
+		SELECt ifnull(max(pp.parentId),0),ifnull(max(p.sortChildrenBy),""),count(*)
+		FROM pagePairs AS pp
+		JOIN pages AS p
+		ON (pp.parentId=p.pageId AND p.isCurrentEdit)
+		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.childId=?`, pageId).ToStatement(db).QueryRow()
+	found, err := row.Scan(&parentId, &sortType, &parentCount)
+	if err != nil {
+		return 0, err
+	} else if !found || parentCount != 1 {
+		return 0, nil
+	}
+
+	// Load the sibling pages in order
+	orderedSiblingIds, err := loadOrderedChildrenIds(db, parentId, sortType)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to load children: %v", err)
+	}
+
+	// Find where the current page sits in the ordered sibling list
+	pageSiblingIndex := -1
+	for i, childId := range orderedSiblingIds {
+		if childId == pageId {
+			pageSiblingIndex = i
+			break
+		}
+	}
+	// Then get the next / prev sibling accordingly
+	if useNextSibling {
+		if pageSiblingIndex < len(orderedSiblingIds)-1 {
+			return orderedSiblingIds[pageSiblingIndex+1], nil
+		} else if pageSiblingIndex == len(orderedSiblingIds)-1 {
+			// It's the last child, so we need to recurse
+			return loadSiblingId(db, parentId, useNextSibling)
+		}
+	} else {
+		if pageSiblingIndex > 0 {
+			return orderedSiblingIds[pageSiblingIndex-1], nil
+		} else if pageSiblingIndex == 0 {
+			// It's the first child, so just return the parent
+			return parentId, nil
+		}
+	}
+	return 0, fmt.Errorf("That's just odd! Couldn't find pageSiblingIndex")
+}
+
+// LoadNextPrevPageIds loads the pages that come before / after the given page
+// in the reading sequence.
+func LoadNextPrevPageIds(db *database.DB, userId int64, p *Page) error {
+	var err error
+	p.PrevPageId, err = loadSiblingId(db, p.PageId, false)
+	if err != nil {
+		return fmt.Errorf("Error while loading prev page id: %v", err)
+	}
+
+	// NextPageId will be the first child if there are children
+	orderedChildrenIds, err := loadOrderedChildrenIds(db, p.PageId, p.SortChildrenBy)
+	if err != nil {
+		return fmt.Errorf("Error getting first child: %v", err)
+	}
+	if len(orderedChildrenIds) > 0 {
+		p.NextPageId = orderedChildrenIds[0]
+	}
+
+	// If there are no children, then get the next sibling
+	if p.NextPageId <= 0 {
+		p.NextPageId, err = loadSiblingId(db, p.PageId, true)
+		if err != nil {
+			return fmt.Errorf("Error while loading next page id: %v", err)
+		}
+	}
+	return nil
+}
+
 // LoadDraftExistence computes for each page whether or not the user has an
 // autosave draft for it.
 // This only makes sense to call for pages which were loaded for isCurrentEdit=true.
@@ -1143,11 +1261,9 @@ func LoadAuxPageData(db *database.DB, userId int64, pageMap map[int64]*Page, opt
 	if len(pageMap) > 0 {
 		pageIds := PageIdsListFromMap(pageMap)
 		rows := db.NewStatement(`
-			SELECT pageId,MIN(createdAt)
-			FROM pages
-			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
-				AND NOT isAutosave AND NOT isSnapshot
-			GROUP BY 1`).Query(pageIds...)
+			SELECT pageId,createdAt
+			FROM pageInfos
+			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var originalCreatedAt string

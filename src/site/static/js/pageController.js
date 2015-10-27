@@ -468,7 +468,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 				};
 
 				// Go through subpages in chronological order.
-				scope.page.subpageIds.sort(pageService.getChildSortFunc({sortChildrenBy: "chronological", type: "comment"}));
+				scope.page.subpageIds.sort(pageService.getChildSortFunc("recentFirst"));
 				for (var n = 0; n < scope.page.subpageIds.length; n++) {
 					var subpage = pageService.pageMap[scope.page.subpageIds[n]];
 					// Check if the subpage is anchored and we can still find the paragraph.

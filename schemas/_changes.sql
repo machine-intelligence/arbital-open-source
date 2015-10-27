@@ -31,3 +31,4 @@ alter table users add column emailFrequency int not null;
 alter table users add column emailThreshold int not null;
 UPDATE `users` SET `emailFrequency`=2,`emailThreshold`=3 WHERE `emailThreshold`=0;
 alter table pages add column editGroupId BIGINT not null;
+update pages set sortChildrenBy="recentFirst" where sortChildrenBy="chronological";

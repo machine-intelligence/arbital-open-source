@@ -116,7 +116,7 @@ app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageS
 			// Do nothing, process them in pageController.
 		} else if (page.type === "answer") {
 			$scope.answerIds.push(id);
-		} else if (page.type === "comment") {
+		} else if (page.type === "comment" || page.type === "lens") {
 			// do nothing
 		} else {
 			$scope.initialChildren[id] = page;

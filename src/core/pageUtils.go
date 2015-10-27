@@ -13,6 +13,21 @@ import (
 	"zanaduu3/src/user"
 )
 
+// addPageIdToMap adds a new page with the given page id to the map if it's not
+// in the map already.
+// Returns the new/existing page.
+func addPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
+	if pageId <= 0 {
+		return nil
+	}
+	if p, ok := pageMap[pageId]; ok {
+		return p
+	}
+	p := &Page{PageId: pageId}
+	pageMap[pageId] = p
+	return p
+}
+
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
 func PageIdsStringFromMap(pageMap map[int64]*Page) string {
 	var buffer bytes.Buffer

@@ -149,6 +149,13 @@ app.service("pageService", function(userService, $http){
 		}
 	}
 
+	this.getPageUrl = function(pageId){
+		return "/pages/" + pageId;
+	};
+	this.getEditPageUrl = function(pageId){
+		return "/edit/" + pageId;
+	};
+
 	// These functions will be added to each page object.
 	var pageFuncs = {
 		// Check if the user has never visited this page before.
@@ -212,16 +219,17 @@ app.service("pageService", function(userService, $http){
 			}
 			return "";
 		},
+		// Return true iff the page is deleted.
 		isDeleted: function() {
 			return this.type === "deleted";
 		},
 		// Get page's url
 		url: function() {
-			return "/pages/" + this.pageId;
+			return that.getPageUrl(this.pageId);
 		},
 		// Get url to edit the page
 		editUrl: function() {
-			return "/edit/" + this.pageId;
+			return that.getEditPageUrl(this.pageId);
 		},
 	};
 	
@@ -322,9 +330,9 @@ app.service("pageService", function(userService, $http){
 	};
 
 	// Return function for sorting children ids.
-	this.getChildSortFunc = function(page) {
+	this.getChildSortFunc = function(sortChildrenBy) {
 		var pageMap = this.pageMap;
-		if(page.sortChildrenBy === "alphabetical") {
+		if(sortChildrenBy === "alphabetical") {
 			return function(aId, bId) {
 				var aTitle = pageMap[aId].title;
 				var bTitle = pageMap[bId].title;
@@ -339,15 +347,17 @@ app.service("pageService", function(userService, $http){
 				}
 				return pageMap[aId].title.localeCompare(pageMap[bId].title);
 			};
-		} else if (page.sortChildrenBy === "chronological") {
-			var reverse = page.type === "comment";
+		} else if (sortChildrenBy === "recentFirst") {
 			return function(aId, bId) {
-				var r = pageMap[bId].originalCreatedAt.localeCompare(pageMap[aId].originalCreatedAt);
-				return reverse ? -1*r : r;
+				return pageMap[bId].originalCreatedAt.localeCompare(pageMap[aId].originalCreatedAt);
+			};
+		} else if (sortChildrenBy === "oldestFirst") {
+			return function(aId, bId) {
+				return pageMap[aId].originalCreatedAt.localeCompare(pageMap[bId].originalCreatedAt);
 			};
 		} else {
-			if (page.sortChildrenBy !== "likes") {
-				console.error("Unknown sort type: " + page.sortChildrenBy);
+			if (sortChildrenBy !== "likes") {
+				console.error("Unknown sort type: " + sortChildrenBy);
 				console.log(page);
 			}
 			return function(aId, bId) {
@@ -361,7 +371,7 @@ app.service("pageService", function(userService, $http){
 	};
 	// Sort the given page's children.
 	this.sortChildren = function(page) {
-		var sortFunc = this.getChildSortFunc(page);
+		var sortFunc = this.getChildSortFunc(page.sortChildrenBy);
 		page.children.sort(function(aChild, bChild) {
 			return sortFunc(aChild.childId, bChild.childId);
 		});
@@ -821,11 +831,15 @@ app.controller("PageTreeCtrl", function ($scope, pageService) {
 
 	// Sort node's children based on how the corresponding page sorts its children.
 	$scope.sortNodeChildren = function(node) {
+		var sortChildrenBy = "alphabetical";
 		if (node === $scope.rootNode) {
-			var sortFunc = pageService.getChildSortFunc({sortChildrenBy: "alphabetical"});
+			if ($scope.primaryPageId) {
+				sortChildrenBy = pageService.pageMap[$scope.primaryPageId].sortChildrenBy;
+			}
 		} else {
-			var sortFunc = pageService.getChildSortFunc(pageService.pageMap[node.pageId]);
+			sortChildrenBy = pageService.pageMap[node.pageId].sortChildrenBy;
 		}
+		var sortFunc = pageService.getChildSortFunc(sortChildrenBy);
 		node.children.sort(function(aNode, bNode) {
 			return sortFunc(aNode.pageId, bNode.pageId);
 		});
@@ -1035,9 +1049,9 @@ app.directive("arbPageTree", function() {
 		templateUrl: "/static/html/pageTree.html",
 		controller: "PageTreeCtrl",
 		scope: {
-			// Display options
 			supersizeRoots: "@", // if defined, the root nodes are displayed bigger
 			isParentTree: "@", // if defined, the nodes' children actually represent page's parents, not children
+			primaryPageId: "@", // if defined, we'll assume this page is the parent of the roots
 			initMap: "=", // if defined, the pageId->page map will be used to seed the tree's roots
 			additionalMap: "=", // if defined, the pageId->page map will be used to populate this tree
 		},

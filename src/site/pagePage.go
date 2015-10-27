@@ -87,9 +87,9 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 	}
 
 	// Create maps.
-	mainPageMap := make(map[int64]*core.Page)
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
+	mainPageMap := make(map[int64]*core.Page)
 	mainPageMap[data.Page.PageId] = data.Page
 
 	// Load children
@@ -167,6 +167,12 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
 			}
 		}
+	}
+
+	// Load Next and Prev page ids.
+	err = core.LoadNextPrevPageIds(db, u.Id, data.Page)
+	if err != nil {
+		return pages.Fail("Couldn't load next/prev", err)
 	}
 
 	// Load the domains for the primary page

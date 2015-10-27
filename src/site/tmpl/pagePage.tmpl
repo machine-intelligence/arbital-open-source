@@ -52,16 +52,19 @@
 		<div class="panel panel-default" ng-show="page.nextPageId != '0' || page.prevPageId != '0'">
 			<div class="panel-heading">Navigation</div>
 			<div class="panel-body">
-				<a href="#"
+				<a ng-href="{[{pageService.getPageUrl(page.prevPageId)}]}"
 					class="intrasite-link"
-					page-id="page.prevPageId"
-					ng-show="page.prevPageId != '0'">Prev &lt;&lt;</a>
-				<a href="#"
-					class="intrasite-link"
-					page-id="page.nextPageId"
-					ng-show="page.nextPageId != '0'">&gt;&gt; Next</a>
+					page-id="{[{page.prevPageId}]}"
+					ng-show="page.prevPageId != '0'">&lt;&lt; Prev</a>
 				<span class="gray-text"
-					ng-show="page.nextPageId == '0'">&gt;&gt; All done</span>
+					ng-show="page.prevPageId == '0'">No Prev</span>
+				<a href="#" class="start-reading gray-glyph glyphicon glyphicon-record"></a>
+				<a ng-href="{[{pageService.getPageUrl(page.nextPageId)}]}"
+					class="intrasite-link"
+					page-id="{[{page.nextPageId}]}"
+					ng-show="page.nextPageId != '0'">Next &gt;&gt;</a>
+				<span class="gray-text"
+					ng-show="page.nextPageId == '0'">No Next</span>
 			</div>
 		</div>
 
@@ -95,7 +98,7 @@
 		<div class="panel panel-default" ng-show="initialChildrenCount > 0">
 			<div class="panel-heading">Children</div>
 			<div class="panel-body">
-				<arb-page-tree init-map="initialChildren"></arb-page-tree>
+				<arb-page-tree primary-page-id="{[{page.pageId}]}" init-map="initialChildren"></arb-page-tree>
 			</div>
 		</div>
 
