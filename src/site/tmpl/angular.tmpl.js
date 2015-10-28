@@ -173,13 +173,6 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
-			if (this.type === "comment") {
-				if (this.creatorId == userService.user.id) {
-					return "";
-				} else {
-					return this.type;
-				}
-			}
 			var karmaReq = this.editKarmaLock;
 			var editPageKarmaReq = 10; // TODO: fix this
 			if (karmaReq < editPageKarmaReq && this.wasPublished) {
@@ -197,15 +190,6 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
 		getDeleteLevel: function() {
-			if (this.type === "comment") {
-				if (this.creatorId == userService.user.id) {
-					return "";
-				} else if (userService.user.isAdmin) {
-					return "admin";
-				} else {
-					return this.type;
-				}
-			}
 			var karmaReq = this.editKarmaLock;
 			var deletePageKarmaReq = 200; // TODO: fix this
 			if (karmaReq < deletePageKarmaReq) {

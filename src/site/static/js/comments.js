@@ -49,6 +49,7 @@ var createEditSubpageDiv = function($parentDiv, $commentButton, scope, options) 
 				toggleVisibility(false, false);
 				var page = scope.pageService.editMap[newPageId];
 				page.type = options.divType;
+				page.editGroupId = scope.userService.user.id;
 				page.parents = [{parentId: options.primaryPageId, childId: newPageId}];
 				if (options.parentCommentId) {
 					page.parents.push({parentId: options.parentCommentId, childId: newPageId});
@@ -253,6 +254,7 @@ app.directive("arbNewComment", function ($compile, pageService, userService) {
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
+			scope.userService = userService;
 			scope.$compile = $compile;
 			var $newComment = element.find(".new-comment");
 			element.find(".new-comment-link").on("click", function(event) {
@@ -264,7 +266,7 @@ app.directive("arbNewComment", function ($compile, pageService, userService) {
 				createEditSubpageDiv($newComment, $newComment.find(".new-comment-link"), scope, {
 					primaryPageId: scope.primaryPageId,
 					divType: "comment",
-					parentCommentId: scope.parentCommentId
+					parentCommentId: scope.parentCommentId,
 				});
 				return false;
 			});

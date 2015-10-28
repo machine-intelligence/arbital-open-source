@@ -215,13 +215,6 @@ func GetEditPageUrl(pageId int64) string {
 // "comment" = can't perform action because this is a comment page the user doesn't own
 // "###" = user doesn't have at least ### karma
 func GetEditLevel(p *Page, u *user.User) string {
-	if p.Type == CommentPageType {
-		if p.CreatorId == u.Id {
-			return ""
-		} else {
-			return p.Type
-		}
-	}
 	karmaReq := p.EditKarmaLock
 	if karmaReq < EditPageKarmaReq && p.WasPublished {
 		karmaReq = EditPageKarmaReq
@@ -240,15 +233,6 @@ func GetEditLevel(p *Page, u *user.User) string {
 // "admin" = user can perform the action, but only because they are an admin
 // "###" = user doesn't have at least ### karma
 func GetDeleteLevel(p *Page, u *user.User) string {
-	if p.Type == CommentPageType {
-		if p.CreatorId == u.Id {
-			return ""
-		} else if u.IsAdmin {
-			return "admin"
-		} else {
-			return p.Type
-		}
-	}
 	karmaReq := p.EditKarmaLock
 	if karmaReq < DeletePageKarmaReq {
 		karmaReq = DeletePageKarmaReq

@@ -27,3 +27,4 @@ CREATE TABLE changeLogs (
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
+update pages set editGroupId=creatorId where type="comment";

@@ -175,9 +175,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if oldPage.WasPublished {
 		editLevel := core.GetEditLevel(oldPage, u)
 		if editLevel != "" && editLevel != "admin" {
-			if editLevel == core.CommentPageType {
-				return pages.HandlerBadRequestFail("Can't edit a comment page you didn't create.", nil)
-			}
 			return pages.HandlerBadRequestFail("Not enough karma to edit this page.", nil)
 		}
 	}
@@ -192,7 +189,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			JOIN pagePairs AS pp
 			ON ((p.pageId = pp.parentId AND pp.childId = ?)`, data.PageId).Add(`
 				OR (p.pageId = pp.childId AND pp.parentId = ?))`, data.PageId).Add(`
-			WHERE p.isCurrentEdit`).ToStatement(db).QueryRow()
+			WHERE p.isCurrentEdit AND
+				(pp.type=? OR pp.type=?)`, core.ParentPagePairType, core.TagPagePairType).ToStatement(db).QueryRow()
 		_, err = row.Scan(&seeGroupId, &seeGroupCount)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get primary page's group name", err)
@@ -271,9 +269,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			SELECT p.pageId,p.type
 			FROM pages AS p
 			JOIN pagePairs AS pp
-			ON (p.pageId=pp.parentId)
+			ON (p.pageId=pp.parentId AND pp.type=?)
 			WHERE pp.childId=?
-			`).Query(data.PageId)
+			`).Query(core.ParentPagePairType, data.PageId)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId int64
 			var pageType string

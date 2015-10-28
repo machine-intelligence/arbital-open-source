@@ -441,10 +441,12 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		}, 5000);
 
 		// Set up finding similar pages
-		var func = getComputeSimilarPagesFunc($compile, scope);
-		scope.$watch("page.title", func);
-		scope.$watch("page.clickbait", func);
-		scope.$watch("page.text", func);
+		if (page.type !== "comment") {
+			var func = getComputeSimilarPagesFunc($compile, scope);
+			scope.$watch("page.title", func);
+			scope.$watch("page.clickbait", func);
+			scope.$watch("page.text", func);
+		}
 
 		// Set up interval for updating meta-data
 		var $metaTextInput = $topParent.find(".meta-text-input");

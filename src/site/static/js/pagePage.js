@@ -102,6 +102,7 @@ $(function() {
 // MainCtrl is for the Page page.
 app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageService, userService, autocompleteService) {
 	$scope.pageService = pageService;
+	$scope.userService = userService;
 	$scope.$compile = $compile;
 	$scope.answerIds = [];
 	$scope.page = pageService.primaryPage;
