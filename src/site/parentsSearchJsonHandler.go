@@ -3,6 +3,7 @@
 package site
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -18,14 +19,17 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Decode data
 	var data searchJsonData
-	q := params.R.URL.Query()
-	data.Term = q.Get("term")
+	decoder := json.NewDecoder(params.R.Body)
+	err := decoder.Decode(&data)
+	if err != nil {
+		return pages.HandlerErrorFail("Error decoding JSON", err)
+	}
 	if data.Term == "" {
 		return pages.HandlerBadRequestFail("No search term specified", nil)
 	}
 
 	// Load user grups
-	err := core.LoadUserGroupIds(db, u)
+	err = core.LoadUserGroupIds(db, u)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}

@@ -623,32 +623,33 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	// Returns: list of results
 	this.performSearch = function(options, callback) {
 		$http({method: "POST", url: "/json/search/", data: JSON.stringify(options)})
-		.success(function(data, status){
-			var results = that.processAutocompleteResults(data);
-			if (callback) callback(results);
-		})
-		.error(function(data, status){
-			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
-			if (callback) callback({});
-		});
+			.success(function(data, status){
+				var results = that.processAutocompleteResults(data);
+				if (callback) callback(results);
+			})
+			.error(function(data, status){
+				console.log("Error loading /search/ autocomplete data:"); console.log(data); console.log(status);
+				if (callback) callback({});
+			});
 	}
 
 	// Load data for autocompleting parents search.
-	var parentsSource = function(request, callback) {
-		$http({method: "GET", url: "/json/parentsSearch/", params: {term: request.term}})
-		.success(function(data, status){
-			callback(that.processAutocompleteResults(data));
-		})
-		.error(function(data, status){
-			console.log("Error loading parentsSource autocomplete data:"); console.log(data); console.log(status);
-			callback([]);
-		});
+	this.parentsSource = function(request, callback) {
+		$http({method: "POST", url: "/json/parentsSearch/", data: JSON.stringify(request)})
+			.success(function(data, status){
+				var results = that.processAutocompleteResults(data);
+				if (callback) callback(results);
+			})
+			.error(function(data, status){
+				console.log("Error loading /parentsSearch/ autocomplete data:"); console.log(data); console.log(status);
+				callback([]);
+			});
 	};
 
 	// Set up autocompletion based on parents search for the given input field.
 	this.setupParentsAutocomplete = function($input, selectCallback) {
 	  $input.autocomplete({
-			source: parentsSource,
+			source: that.parentsSource,
 			minLength: 3,
 			delay: 300,
 			focus: function (event, ui) {
@@ -664,7 +665,8 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	this.findSimilarPages = function(pageData, callback) {
 		$http({method: "POST", url: "/json/similarPageSearch/", data: JSON.stringify(pageData)})
 		.success(function(data, status){
-			callback(that.processAutocompleteResults(data));
+			var results = that.processAutocompleteResults(data);
+			if (callback) callback(results);
 		})
 		.error(function(data, status){
 			console.log("Error doing similar page search:"); console.log(data); console.log(status);

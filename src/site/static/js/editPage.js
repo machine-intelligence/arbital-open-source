@@ -230,7 +230,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	});
 
 	// Resive textarea height to fit the screen.
-	$("#wmd-input").height($(window).height() - 140);
+	$topParent.find(".wmd-input").height($(window).height() - 140);
 
 	// Scroll wmd-panel so it's always inside the viewport.
 	if (primaryPage === undefined && !isModal) {
@@ -414,6 +414,32 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 		// Set the rendering for parents autocomplete
 		autocompleteService.setAutocompleteRendering($topParent.find(".tag-input"), scope);
+
+		// Set up link suggestions for the primary markdown textarea.
+		$topParent.find(".wmd-input").textcomplete([
+			{
+				match: /\[([A-Za-z0-9.]+)$/,
+				search: function (term, callback) {
+					autocompleteService.parentsSource({term: term}, callback);
+				},
+				template: function (item) {
+					return "<span arb-likes-page-title class='search-result' page-id='" + item.value +
+						"' show-clickbait='true' is-search-result='true'></span>";
+				},
+				replace: function (value) {
+					return ["[" + value.alias, "]"];
+				},
+				index: 1,
+				cache: true,
+			},
+		])
+		.on({
+			"textComplete:show": function (e) {
+				setTimeout(function() {
+					$compile($(".textcomplete-dropdown"))(scope);
+				});
+			},
+    });
 
 		// Autofocus on some input.
 		if (page.type !== "answer" || !primaryPage) {  
