@@ -423,7 +423,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					autocompleteService.parentsSource({term: term}, callback);
 				},
 				template: function (item) {
-					return "<span arb-likes-page-title class='search-result' page-id='" + item.value +
+					return "<span class='search-result' arb-likes-page-title page-id='" + item.value +
 						"' show-clickbait='true' is-search-result='true'></span>";
 				},
 				replace: function (value) {
@@ -432,14 +432,19 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				index: 1,
 				cache: true,
 			},
-		])
-		.on({
-			"textComplete:show": function (e) {
+		],
+		{
+			appendTo: $("body"),
+			zIndex: 10001,
+			header: function (data) {
+				// HACK: we need to compile the angular template code, and header() is
+				// called any time there is any kind of change, so we call compile here.
 				setTimeout(function() {
 					$compile($(".textcomplete-dropdown"))(scope);
 				});
-			},
-    });
+				return "";
+	    },
+		});
 
 		// Autofocus on some input.
 		if (page.type !== "answer" || !primaryPage) {  
