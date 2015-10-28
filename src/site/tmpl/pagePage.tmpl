@@ -52,19 +52,21 @@
 		<div class="panel panel-default" ng-show="page.nextPageId != '0' || page.prevPageId != '0'">
 			<div class="panel-heading">Navigation</div>
 			<div class="panel-body">
-				<a ng-href="{[{pageService.getPageUrl(page.prevPageId)}]}"
-					class="intrasite-link"
-					page-id="{[{page.prevPageId}]}"
-					ng-show="page.prevPageId != '0'">&lt;&lt; Prev</a>
-				<span class="gray-text"
-					ng-show="page.prevPageId == '0'">No Prev</span>
-				<a href="#" class="start-reading gray-glyph glyphicon glyphicon-record"></a>
-				<a ng-href="{[{pageService.getPageUrl(page.nextPageId)}]}"
-					class="intrasite-link"
-					page-id="{[{page.nextPageId}]}"
-					ng-show="page.nextPageId != '0'">Next &gt;&gt;</a>
-				<span class="gray-text"
-					ng-show="page.nextPageId == '0'">No Next</span>
+				<ul class="pager">
+					<li>
+						<a ng-href="{[{pageService.getPageUrl(page.prevPageId)}]}"
+							class="intrasite-link"
+							ng-class="{disabled: page.prevPageId === '0'}"
+							page-id="{[{page.prevPageId}]}">&larr; Prev</a>
+					</li>
+					<!-- <a href="#" class="start-reading gray-glyph glyphicon glyphicon-record"></a> -->
+					<li>
+						<a ng-href="{[{pageService.getPageUrl(page.nextPageId)}]}"
+							class="intrasite-link"
+							page-id="{[{page.nextPageId}]}"
+							ng-class="{disabled: page.nextPageId === '0'}">Next &rarr;</a>
+					</li>
+				</ul>
 			</div>
 		</div>
 
