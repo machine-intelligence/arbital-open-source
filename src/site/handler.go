@@ -204,9 +204,11 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 			if p.Options.RequireLogin && !u.IsLoggedIn {
 				fail(http.StatusBadRequest, "Have to be logged in", nil)
+				return
 			}
 			if p.Options.AdminOnly && !u.IsAdmin {
 				fail(http.StatusBadRequest, "Have to be an admin", nil)
+				return
 			}
 			if u.Id > 0 {
 				statement := db.NewStatement(`
@@ -215,10 +217,12 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 						WHERE id=?`)
 				if _, err := statement.Exec(database.Now(), u.Id); err != nil {
 					fail(http.StatusInternalServerError, "Couldn't update users", err)
+					return
 				}
 				// Load the groups the user belongs to.
 				if err = core.LoadUserGroupIds(db, u); err != nil {
 					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
+					return
 				}
 			}
 		}
@@ -237,6 +241,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
 			if err != nil {
 				fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
+				return
 			}
 		}
 
