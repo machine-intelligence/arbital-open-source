@@ -50,7 +50,6 @@ func revertPageHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	editData := &editPageData{
 		PageId:         page.PageId,
-		PrevEdit:       page.PrevEdit,
 		Type:           page.Type,
 		Title:          page.Title,
 		Clickbait:      page.Clickbait,

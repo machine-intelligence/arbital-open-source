@@ -869,17 +869,14 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 			// Process deleting requirements.
 			element.on("click", ".delete-requirement-link", function(event) {
 				var $target = $(event.target);
-				var data = {
+				var options = {
 					parentId: scope.page.pageId,
 					childId: $target.attr("page-id"),
 					type: "requirement",
 				};
-				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
-					.error(function(data, status){
-						console.log("Error deleting requirement:"); console.log(data); console.log(status);
-					});
+				pageService.deletePagePair(options);
 
-				scope.page.requirementIds.splice(scope.page.requirementIds.indexOf(data.childId), 1);
+				scope.page.requirementIds.splice(scope.page.requirementIds.indexOf(options.childId), 1);
 				scope.$apply();
 			});
 

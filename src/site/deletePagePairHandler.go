@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
 )
@@ -43,12 +44,62 @@ func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 
-	// Delete the pair
-	query := db.NewStatement(`
-		DELETE FROM pagePairs
-		WHERE parentId=? AND childId=? AND type=?`)
-	if _, err := query.Exec(data.ParentId, data.ChildId, data.Type); err != nil {
-		return pages.HandlerErrorFail("Couldn't delete a tag", err)
+	// Load the pages
+	parent := &core.Page{PageId: data.ParentId}
+	child := &core.Page{PageId: data.ChildId}
+	pageMap := map[int64]*core.Page{data.ParentId: parent, data.ChildId: child}
+
+	// Load pages.
+	err = core.LoadPages(db, pageMap, u.Id, nil)
+	if err != nil {
+		return pages.HandlerErrorFail("error while loading pages", err)
+	}
+
+	// Do it!
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Delete the pair
+		query := tx.NewTxStatement(`
+			DELETE FROM pagePairs
+			WHERE parentId=? AND childId=? AND type=?`)
+		if _, err := query.Exec(data.ParentId, data.ChildId, data.Type); err != nil {
+			return "Couldn't delete a page pair", err
+		}
+
+		// Update change log
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = data.ParentId
+		hashmap["auxPageId"] = data.ChildId
+		hashmap["userId"] = u.Id
+		hashmap["edit"] = parent.Edit
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.DeleteChildChangeLog,
+			core.TagPagePairType:         core.DeleteTagTargetChangeLog,
+			core.RequirementPagePairType: core.DeleteRequiredForChangeLog,
+		}[data.Type]
+		statement := tx.NewInsertTxStatement("changeLogs", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
+		hashmap = make(database.InsertMap)
+		hashmap["pageId"] = data.ChildId
+		hashmap["auxPageId"] = data.ParentId
+		hashmap["userId"] = u.Id
+		hashmap["edit"] = child.Edit
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.DeleteParentChangeLog,
+			core.TagPagePairType:         core.DeleteTagChangeLog,
+			core.RequirementPagePairType: core.DeleteRequirementChangeLog,
+		}[data.Type]
+		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
+		return "", nil
+	})
+	if err != nil {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {

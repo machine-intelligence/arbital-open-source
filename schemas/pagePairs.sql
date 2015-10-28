@@ -8,7 +8,8 @@ CREATE TABLE pagePairs (
 	/* Type of the relationship. 
 		parent: parentId is a parent of childId
 		tag: parentId is a tag of childId
-		requirement: parentId is a requirement for childId */
+		requirement: parentId is a requirement for childId
+		Easy way to memorize: {parentId} is {childId}'s {type} */
 	type VARCHAR(32) NOT NULL,
   UNIQUE(parentId, childId, type),
   PRIMARY KEY(id)

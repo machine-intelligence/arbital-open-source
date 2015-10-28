@@ -276,47 +276,10 @@
 .edit-page-body .diff-half {
   display: none;
 }
-.edit-history-body {
-  position: relative;
-  overflow: auto;
-}
-.edit-history {
+.change-logs {
   width: 45%;
   margin: 0px 2% 20px 2%;
   max-width: 45%;
-}
-.edit-history .edit-block {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-}
-.edit-history .edit-block .edit-node {
-  position: relative;
-  top: 30px;
-  left: 33px;
-  background-color: lightblue;
-  width: 16px;
-  height: 16px;
-  z-index: 1;
-  border-radius: 16px;
-}
-.edit-history .edit-block .edit-node.snapshot-node {
-  background-color: gray;
-}
-.edit-history .edit-block .edit-node.autosave-node {
-  background-color: red;
-}
-.edit-history .edit-block .edit-node.current-edit-node {
-  background-color: blue;
-}
-.edit-history .edit-block .edit-node.being-edited-node {
-  border: 4px solid black;
-}
-.edit-history .edit-block.hor-line {
-  border-bottom: 5px solid lightgray;
-}
-.edit-history .edit-block.ver-line {
-  border-left: 5px solid lightgray;
 }
 .similar-pages {
   width: 45%;

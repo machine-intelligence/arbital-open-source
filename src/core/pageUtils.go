@@ -13,10 +13,10 @@ import (
 	"zanaduu3/src/user"
 )
 
-// addPageIdToMap adds a new page with the given page id to the map if it's not
+// AddPageIdToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
-func addPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
+func AddPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
 	if pageId <= 0 {
 		return nil
 	}

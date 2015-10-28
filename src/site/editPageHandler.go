@@ -20,7 +20,6 @@ import (
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
 	PageId         int64 `json:",string"`
-	PrevEdit       int   `json:",string"`
 	Type           string
 	Title          string
 	Clickbait      string
@@ -132,11 +131,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 		}
 	}
-	// Check PrevEdit number.
-	if data.PrevEdit < 0 {
-		return pages.HandlerBadRequestFail("PrevEdit number is not valid", nil)
-	}
-	// TODO: check that this user has access to that edit
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
 		if len(data.Title) <= 0 && data.Type != core.CommentPageType {
@@ -349,7 +343,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
-		hashmap["prevEdit"] = data.PrevEdit
 		hashmap["creatorId"] = u.Id
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait
@@ -404,6 +397,29 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update pageInfos", err
+		}
+
+		// Update change logs
+		updateChangeLogs := true
+		hashmap = make(database.InsertMap)
+		hashmap["pageId"] = data.PageId
+		hashmap["edit"] = newEditNum
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		if data.RevertToEdit != 0 {
+			hashmap["type"] = core.RevertEditChangeLog
+		} else if data.IsSnapshot {
+			hashmap["type"] = core.NewSnapshotChangeLog
+		} else if isCurrentEdit {
+			hashmap["type"] = core.NewEditChangeLog
+		} else {
+			updateChangeLogs = false
+		}
+		if updateChangeLogs {
+			statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+			if _, err = statement.Exec(); err != nil {
+				return "Couldn't insert new child change log", err
+			}
 		}
 
 		// Add subscription.

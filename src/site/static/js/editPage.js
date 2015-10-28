@@ -140,7 +140,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		// Prevent stacking up saves without them returning.
 		if (publishing) return;
 		publishing = !isAutosave && !isSnapshot;
-		// TODO: if publishing, check history lineage and double check if we are jumping across branches
 		if (isAutosave && autosaving) return;
 		autosaving = isAutosave;
 
@@ -342,100 +341,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		tooltip: "always",
 	});
 
-	// Map of edit number -> [array of: {edit: child edit num, path: length of path to the furthest node}]
-	var editChildMap = {};
-	// Set up edit history
-	var $editHistory = $topParent.find(".edit-history");
-	$editHistory.find(".panel-heading").find("a").on("click", function(event) {
-		var squareSize = 40;
-		// Set up divs and such
-		var $panelBody = $editHistory.find(".panel-body");
-		if ($panelBody.children().length > 0) return true;
-
-		// Populate editChildMap and find root nodes.
-		var rootNums = [];
-		for (var editNum in page.editHistoryMap) {
-			var edit = page.editHistoryMap[editNum];
-			if (edit.prevEdit !== 0) {
-				if (edit.prevEdit in editChildMap) {
-					editChildMap[edit.prevEdit].push({edit: edit.edit});
-				} else {
-					editChildMap[edit.prevEdit] = [{edit: edit.edit}];
-				}
-			} else {
-				rootNums.push(editNum);
-			}
-		}
-
-		// Function used for sorting array of children by "path" value from longest to shortest.
-		var childSortFunc = function(childA, childB) {
-			return childB.path - childA.path;
-		};
-		// Recursively go through the editChildMap and compute path values. Also sort children.
-		var computePathValue = function(editNum) {
-			var maxPath = 0;
-			var children = editChildMap[editNum];
-			if (!children) return 1;
-			for (var n = 0; n < children.length; n++) {
-				var child = children[n];
-				child.path = computePathValue(child.edit) + 1;
-				if (child.path > maxPath) maxPath = child.path;
-			}
-			children.sort(childSortFunc);
-			return maxPath;
-		};
-		for (var n = 0; n < rootNums.length; n++){
-			computePathValue(rootNums[n]);
-		}
-
-		// Next free line.
-		var nextLine = 1;
-		// Create all the nodes.
-		var createNode = function(editNum, xStep, line, horLine, verLine) {
-			var edit = page.editHistoryMap[editNum];
-			var $block = $("<div></div>").addClass("edit-block");
-			if (horLine) $block.addClass("hor-line");
-			if (verLine) $block.addClass("ver-line");
-			$block.css("left", xStep * squareSize).css("top", line * squareSize);
-
-			var $node = $("<div></div>").addClass("edit-node").attr("edit", edit.edit);
-			if (edit.isSnapshot) $node.addClass("snapshot-node");
-			if (edit.isAutosave) $node.addClass("autosave-node");
-			if (edit.isCurrentEdit) $node.addClass("current-edit-node");
-			if (edit.edit === page.edit) $node.addClass("being-edited-node");
-			$block.append($node);
-
-			$panelBody.append($block);
-
-			// Process children.
-			var children = editChildMap[editNum];
-			if (!children || children.length <= 0) return;
-			// First child will be on the same line.
-			createNode(children[0].edit, xStep + 1, line, true, false);
-			for (var n = 1; n < children.length; n++) {
-				// Other children will be on new line.
-				if (nextLine - line >= 2) {
-					// We are making a large vertical jump and need to create a vertical line.
-					var $block = $("<div></div>").addClass("edit-block ver-line");
-					$block.css("left", (xStep + 1) * squareSize)
-						.css("top", (line + 1) * squareSize)
-						.css("height", (nextLine - line - 1) * squareSize);
-					$panelBody.append($block);
-				}
-				createNode(children[n].edit, xStep + 1, nextLine, true, true);
-				nextLine++;
-			}
-		}
-		for (var n = 0; n < rootNums.length; n++){
-			computePathValue(rootNums[n]);
-			createNode(rootNums[n], 0, nextLine - 1, false, false);
-			nextLine++;
-		}
-		$panelBody.height(nextLine * squareSize);
-		
-		return true;
-	});
-
 	// Process click event to revert the page to a certain edit
 	$("body").on("click", ".edit-node-revert-to-edit", function(event) {
 		var $target = $(event.target);
@@ -479,6 +384,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		pageService.loadEdit({
 			pageAlias: pageId,
 			specificEdit: $(event.target).attr("edit-num"),
+			skipProcessDataStep: true,
 			success: function(data, status) {
 				diffPage = data[pageId];
 				refreshDiff();
@@ -569,46 +475,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				}, 1000);
 			}
 		}
-
-		// Check when user hovers over a history edit node, and show a popover.
-		$editHistory.on("mouseenter", ".edit-node", function(event) {
-			var $linkPopoverTemplate = $("#link-popover-template");
-			var $target = $(event.currentTarget);
-			// Check if this is the first time we hovered.
-			var firstTime = $target.attr("first-time");
-			if (firstTime) return false;
-			$target.attr("first-time", false);
-
-			var edit = page.editHistoryMap[$target.attr("edit")];
-			// Don't allow recursive hover in popovers.
-			if ($target.closest(".popover-content").length > 0) return;
-	
-			var $editNodePopoverTemplate = $("#edit-node-popover-template");
-	
-			// Create options for the popover.
-			var options = {
-				html : true,
-				placement: "bottom",
-				trigger: "manual",
-				delay: { "show": 0, "hide": 100 },
-				title: "(#" + edit.edit + ") " + edit.title,
-				container: "body",
-				content: function() {
-					// Have to wait for the popover to appear, so we can then replace its contents.
-					window.setTimeout(function() {
-						var $popover = $("#" + $target.attr("aria-describedby"));
-						var $el = $compile("<arb-edit-node-popover page-id='" + pageId +
-								"' edit-num='" + edit.edit +
-								"' is-opened='" + (edit.edit === page.edit) + "'></arb-edit-node-popover>")(scope);
-						$popover.find(".popover-content").empty().append($el);
-					});
-					return '<img src="/static/images/loading.gif" class="loading-indicator" style="display:block"/>'
-				},
-			};
-			createHoverablePopover($target, options, {uniqueName: "edit-node", showDelay: 0});
-			$target.trigger("mouseenter");
-			return false;
-		});
 	};
 
 	// Called before this editPage is destroyed.
@@ -803,29 +669,8 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			scope.isLens = scope.page.type === "lens";
 			scope.isSecondary = scope.isQuestion || scope.isComment;
 			scope.useVerticalView = scope.isModal;
-			scope.lockExists = scope.page.lockedBy != '0' && moment.utc(scope.page.lockedUntil).isAfter(moment.utc());
+			scope.lockExists = scope.page.lockedBy != "0" && moment.utc(scope.page.lockedUntil).isAfter(moment.utc());
 			scope.lockedByAnother = scope.lockExists && scope.page.lockedBy !== userService.user.id;
-			
-			// Compute if we have to show warning to the user that the edit they are
-			// looking at doesn't descend from currently published edit.
-			scope.showDifferentBranchWarning = scope.page.wasPublished;
-			if (scope.showDifferentBranchWarning && scope.page.editHistoryMap) {
-				var tempEdit = scope.page.edit;
-				do {
-					var editPage = scope.page.editHistoryMap[tempEdit];
-					scope.showDifferentBranchWarning &= !editPage.isCurrentEdit;
-					tempEdit = editPage.prevEdit;
-				} while (tempEdit > 0);
-			}
-
-			// Compute the editNum of the current edit.
-			for (var editNum in scope.page.editHistoryMap) {
-				var edit = scope.page.editHistoryMap[editNum];
-				if (edit.isCurrentEdit) {
-					scope.currentEditNum = editNum;
-					break;
-				}
-			}
 
 			// Set up page types.
 			if (scope.isQuestion) {
@@ -947,26 +792,6 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 					});
 				});
 			}
-		},
-	};
-});
-
-// Directive for the body of an edit node popover.
-app.directive("arbEditNodePopover", function (pageService, userService) {
-	return {
-		templateUrl: "/static/html/editNodePopover.html",
-		scope: {
-			pageId: "@",
-			editNum: "@",
-			// True if this edit is the one that's currently opened
-			isOpened: "@",
-		},
-		controller: function ($scope) {
-			$scope.editNum = +$scope.editNum;
-			$scope.isOpened = $scope.isOpened === 'true';
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.edit = pageService.editMap[$scope.pageId].editHistoryMap[$scope.editNum];
 		},
 	};
 });

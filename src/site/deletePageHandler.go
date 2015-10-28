@@ -63,7 +63,6 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	editData := &editPageData{
 		PageId:         page.PageId,
-		PrevEdit:       page.Edit,
 		Type:           core.DeletedPageType,
 		Title:          "[DELETED]",
 		HasVoteStr:     hasVoteStr,

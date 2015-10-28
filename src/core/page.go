@@ -36,6 +36,23 @@ const (
 	ProbabilityVoteType = "probability"
 	ApprovalVoteType    = "approval"
 
+	// Various events we log when a page changes
+	NewParentChangeLog         = "newParent"
+	DeleteParentChangeLog      = "deleteParent"
+	NewChildChangeLog          = "newChild"
+	DeleteChildChangeLog       = "deleteChild"
+	NewTagChangeLog            = "newTag"
+	DeleteTagChangeLog         = "deleteTag"
+	NewTagTargetChangeLog      = "newTagTarget"
+	DeleteTagTargetChangeLog   = "deleteTagTarget"
+	NewRequirementChangeLog    = "newRequirement"
+	DeleteRequirementChangeLog = "deleteRequirement"
+	NewRequiredForChangeLog    = "newRequiredFor"
+	DeleteRequiredForChangeLog = "deleteRequiredFor"
+	NewEditChangeLog           = "newEdit"
+	RevertEditChangeLog        = "revertEdit"
+	NewSnapshotChangeLog       = "newSnapshot"
+
 	// How long the page lock lasts
 	PageLockDuration = 30 * 60 // in seconds
 
@@ -59,7 +76,6 @@ type Page struct {
 	// Any time we load a page, you can at least expect all this data.
 	PageId    int64  `json:"pageId,string"`
 	Edit      int    `json:"edit"`
-	PrevEdit  int    `json:"prevEdit"`
 	Type      string `json:"type"`
 	Title     string `json:"title"`
 	Clickbait string `json:"clickbait"`
@@ -104,6 +120,8 @@ type Page struct {
 
 	// === Full data. ===
 	// For pages that are displayed fully, we load more additional data.
+	// Edit number for the currently live version
+	CurrentEditNum int `json:"currentEditNum"`
 	// True iff there is an edit that has isCurrentEdit set for this page
 	WasPublished bool    `json:"wasPublished"`
 	Votes        []*Vote `json:"votes"`
@@ -138,8 +156,8 @@ type Page struct {
 	// Domains.
 	DomainIds []string `json:"domainIds"`
 
-	// Edit history map. Edit number -> page edit
-	EditHistoryMap map[string]*Page `json:"editHistoryMap"`
+	// List of changes to this page
+	ChangeLogs []*ChangeLog `json:"changeLogs"`
 
 	// Whether or not this page has children
 	HasChildren bool `json:"hasChildren"`
@@ -158,6 +176,15 @@ type PagePair struct {
 	ParentId int64  `json:"parentId,string"`
 	ChildId  int64  `json:"childId,string"`
 	Type     string `json:"type"`
+}
+
+// ChangeLog describes a row from changeLogs table.
+type ChangeLog struct {
+	UserId    int64  `json:"userId,string"`
+	Edit      int    `json:"edit"`
+	Type      string `json:"type"`
+	CreatedAt string `json:"createdAt"`
+	AuxPageId int64  `json:"auxPageId,string"`
 }
 
 // Mastery is a page you should have mastered before you can understand another page.
@@ -199,7 +226,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 	}
 	statement := database.NewQuery(`
 		SELECT * FROM (
-			SELECT pageId,edit,prevEdit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
+			SELECT pageId,edit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
 				length(text),metaText,editKarmaLock,hasVote,voteType,` + summarySelect + `,
 				alias,sortChildrenBy,seeGroupId,editGroupId,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
 				todoCount,anchorContext,anchorText,anchorOffset
@@ -213,7 +240,7 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p Page
 		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
+			&p.PageId, &p.Edit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.EditKarmaLock, &p.HasVote,
 			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.SeeGroupId, &p.EditGroupId,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
@@ -227,7 +254,6 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 		// TODO: definitely fix this somehow. Probably by refactoring how we load pages
 		op := pageMap[p.PageId]
 		op.Edit = p.Edit
-		op.PrevEdit = p.PrevEdit
 		op.Type = p.Type
 		op.CreatorId = p.CreatorId
 		op.CreatedAt = p.CreatedAt
@@ -264,59 +290,24 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 
 // LoadEditHistory loads the edit history for the given page.
 func LoadEditHistory(db *database.DB, page *Page, userId int64) error {
-	editHistoryMap := make(map[int]*Page)
-	rows := db.NewStatement(`
-		SELECT pageId,edit,prevEdit,creatorId,createdAt,isAutosave,
-			isSnapshot,isCurrentEdit,isMinorEdit,title,clickbait,length(text)
-		FROM pages
-		WHERE pageId=? AND (creatorId=? OR NOT isAutosave)
-		ORDER BY edit`).Query(page.PageId, userId)
+	page.ChangeLogs = make([]*ChangeLog, 0)
+	rows := database.NewQuery(`
+		SELECT userId,edit,type,createdAt,auxPageId
+		FROM changeLogs
+		WHERE pageId=?`, page.PageId).Add(`
+			AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
+		ORDER BY createdAt DESC`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var p Page
-		err := rows.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt,
-			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
-			&p.Title, &p.Clickbait, &p.TextLength)
+		var l ChangeLog
+		err := rows.Scan(&l.UserId, &l.Edit, &l.Type, &l.CreatedAt, &l.AuxPageId)
 		if err != nil {
-			return fmt.Errorf("failed to scan a edit history page: %v", err)
+			return fmt.Errorf("failed to scan a page log: %v", err)
 		}
-		editHistoryMap[p.Edit] = &p
+		page.ChangeLogs = append(page.ChangeLogs, &l)
 		return nil
 	})
 	if err != nil {
-		return err
-	}
-
-	// We have loaded some snapshots that might not be our own, but they could be
-	// relevant to presenting the history data accurately. So we have to clean
-	// out those edits, while preserving the ancestry.
-	// First, just copy over edits we want to keep.
-	page.EditHistoryMap = make(map[string]*Page)
-	for editNum, edit := range editHistoryMap {
-		if edit.CreatorId == userId || (!edit.IsSnapshot && !edit.IsAutosave) {
-			// Only add public edits or our snapshots to the map
-			page.EditHistoryMap[fmt.Sprintf("%d", editNum)] = edit
-		}
-	}
-	// Second, fix the ancestry.
-	for _, edit := range page.EditHistoryMap {
-		prevEditNum := fmt.Sprintf("%d", edit.PrevEdit)
-		if prevEditNum == "0" {
-			continue
-		}
-		_, ok := page.EditHistoryMap[prevEditNum]
-		for !ok {
-			prevEdit64, _ := strconv.ParseInt(prevEditNum, 10, 64)
-			prevEditNum = fmt.Sprintf("%d", editHistoryMap[int(prevEdit64)].PrevEdit)
-			if prevEditNum == "0" {
-				break
-			}
-			_, ok = page.EditHistoryMap[prevEditNum]
-		}
-		if !ok {
-			prevEditNum = "0"
-		}
-		prevEdit64, _ := strconv.ParseInt(prevEditNum, 10, 64)
-		edit.PrevEdit = int(prevEdit64)
+		return fmt.Errorf("Couldn't load changeLogs: %v", err)
 	}
 
 	return nil
@@ -372,12 +363,12 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 			)`, pageId, options.CreatedAtLimit)
 	}
 	statement := database.NewQuery(`
-		SELECT p.pageId,p.edit,p.prevEdit,p.type,p.title,p.clickbait,p.text,p.metaText,
+		SELECT p.pageId,p.edit,p.type,p.title,p.clickbait,p.text,p.metaText,
 			p.summary,p.alias,p.creatorId,p.sortChildrenBy,p.hasVote,p.voteType,
 			p.createdAt,p.editKarmaLock,p.seeGroupId,p.editGroupId,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
-			i.currentEdit>0,i.maxEdit,i.lockedBy,i.lockedUntil,
+			i.currentEdit>0,i.currentEdit,i.maxEdit,i.lockedBy,i.lockedUntil,
 			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=?`, pageId).Add(`
 					AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
 		FROM pages AS p
@@ -390,12 +381,12 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 		WHERE`).AddPart(whereClause).Add(`AND
 			(p.seeGroupId=0 OR p.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
-	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
+	exists, err := row.Scan(&p.PageId, &p.Edit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.EditGroupId, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
-		&p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
+		&p.CurrentEditNum, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {

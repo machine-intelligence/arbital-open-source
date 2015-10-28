@@ -463,6 +463,7 @@ app.service("pageService", function(userService, $http){
 	//   specificEdit: load page with this edit number
 	//	 editLimit: only load edits lower than this number
 	//	 createdAtLimit: only load edits that were created before this date
+	//	 skipProcessDataStep: if true, we don't process the data we get from the server
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -470,12 +471,13 @@ app.service("pageService", function(userService, $http){
 		// Set up options.
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
+		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
 		console.log("Issuing a GET request to: /json/edit/?pageAlias=" + options.pageAlias);
 		$http({method: "GET", url: "/json/edit/", params: options}).
 			success(function(data, status){
 				console.log("JSON /json/edit/ data:"); console.dir(data);
-				if (!options.specificEdit) {
+				if (!skipProcessDataStep) {
 					userService.processServerData(data);
 					that.processServerData(data);
 				}

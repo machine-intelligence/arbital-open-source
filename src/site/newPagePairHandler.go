@@ -107,14 +107,53 @@ func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	hashmap := make(database.InsertMap)
-	hashmap["parentId"] = data.ParentId
-	hashmap["childId"] = data.ChildId
-	hashmap["type"] = data.Type
-	statement := db.NewInsertStatement("pagePairs", hashmap, "parentId")
-	_, err = statement.Exec()
+	// Do it!
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Create new page pair
+		hashmap := make(database.InsertMap)
+		hashmap["parentId"] = data.ParentId
+		hashmap["childId"] = data.ChildId
+		hashmap["type"] = data.Type
+		statement := tx.NewInsertTxStatement("pagePairs", hashmap, "parentId")
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't insert pagePair", err
+		}
+
+		// Update change log
+		hashmap = make(database.InsertMap)
+		hashmap["pageId"] = data.ParentId
+		hashmap["auxPageId"] = data.ChildId
+		hashmap["userId"] = u.Id
+		hashmap["edit"] = parent.Edit
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.NewChildChangeLog,
+			core.TagPagePairType:         core.NewTagTargetChangeLog,
+			core.RequirementPagePairType: core.NewRequiredForChangeLog,
+		}[data.Type]
+		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
+		hashmap = make(database.InsertMap)
+		hashmap["pageId"] = data.ChildId
+		hashmap["auxPageId"] = data.ParentId
+		hashmap["userId"] = u.Id
+		hashmap["edit"] = child.Edit
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.NewParentChangeLog,
+			core.TagPagePairType:         core.NewTagChangeLog,
+			core.RequirementPagePairType: core.NewRequirementChangeLog,
+		}[data.Type]
+		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
+		return "", nil
+	})
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't create new tag", err)
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	// Generate updates for users who are subscribed to the parent pages.

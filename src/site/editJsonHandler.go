@@ -87,7 +87,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	pageMap := make(map[int64]*core.Page)
 	if p.EditGroupId > 0 {
 		if _, ok := pageMap[p.EditGroupId]; !ok {
-			pageMap[p.EditGroupId] = &core.Page{PageId: p.EditGroupId}
+			core.AddPageIdToMap(p.EditGroupId, pageMap)
 		}
 	}
 
@@ -101,6 +101,13 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{ForPages: primaryPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load parents: %v", err)
+	}
+
+	// Process change logs
+	userMap = make(map[int64]*core.User)
+	for _, log := range p.ChangeLogs {
+		userMap[log.UserId] = &core.User{Id: log.UserId}
+		core.AddPageIdToMap(log.AuxPageId, pageMap)
 	}
 
 	// Load pages.
@@ -130,7 +137,6 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load all the users.
-	userMap = make(map[int64]*core.User)
 	userMap[u.Id] = &core.User{Id: u.Id}
 	userMap[p.LockedBy] = &core.User{Id: p.LockedBy}
 	for _, p := range pageMap {

@@ -27,6 +27,13 @@
 				The edit you are working on doesn't descend from the currently published edit.
 			</div>
 		</div>
+		<!-- Show a warning if you've loaded an edit that's not currently live. -->
+		<div ng-show="page.edit !== page.currentEditNum && !page.isAutosave && !page.isSnapshot">
+			<div class="alert alert-warning">
+				Currently looking at a non-live edit.
+				<a ng-href="{[{page.editUrl()}]}?edit={[{page.currentEditNum}]}">Switch to editing the live version.</a>
+			</div>
+		</div>
 		<!-- Check permissions -->
 		<div ng-hide="groupPermissionsPassed" class="alert alert-danger">
 			You need to be part of {[{pageService.pageMap[page.editGroupId].title}]} group to edit this page.
@@ -41,20 +48,61 @@
 			<div ng-show="page.isSnapshot" class="alert alert-warning">
 				Restored snapshot which was last updated
 				<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-				<a ng-href="{[{page.editUrl()}]}?edit={[{currentEditNum}]}">Switch to editing the live version.</a>
+				<a ng-href="{[{page.editUrl()}]}?edit={[{page.currentEditNum}]}">Switch to editing the live version.</a>
 			</div>
 		</div>
 	</div>
 
-	<!-- Edit history panel -->
-	<div class="edit-history panel panel-default" ng-show="page.editHistoryMap">
+	<!-- Edit change logs panel -->
+	<div class="change-logs panel panel-default" ng-show="page.changeLogs">
 		<div class="panel-heading">
-			<a data-toggle="collapse" data-parent="#accordion" href="#editHistory">Edit History</a>
+			<a data-toggle="collapse" data-parent="#accordion" href="#changeLogs">Change Logs</a>
 		</div>
-		<div id="editHistory" class="panel-collapse collapse">
-			<div class="panel-body edit-history-body">
-			</div>
-		</div>
+		<ul id="changeLogs" class="list-group collapse">
+			<li change-log-row
+					class="list-group-item"
+					ng-repeat="(index,changeLog) in page.changeLogs">
+				<div>
+					<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
+					</span>
+					<span ng-show="changeLog.auxPageId != '0'">
+						<a class="intrasite-link"
+								page-id="{[{changeLog.auxPageId}]}"
+								ng-href="{[{pageService.getPageUrl(changeLog.auxPageid)}]}"
+								ng-bind="changeLog.type"></a>
+					</span>
+					(edit #{[{changeLog.edit}]}) by
+
+					<span ng-show="userService.user.id === changeLog.userId">you</span>
+					<span ng-show="userService.user.id !== changeLog.userId">
+						<arb-user-name user-id="{[{changeLog.userId}]}"></arb-user-name>
+					</span>
+
+					<span ng-bind="changeLog.createdAt | relativeDateTime"></span>.
+
+					<!-- Extra functionality for new edits -->
+					<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit">
+						<button type="button"
+							class="edit-node-revert-to-edit btn btn-danger"
+							title="Revert to this edit"
+							edit-num="{[{changeLog.edit}]}"
+							ng-show="changeLog.type === 'newEdit'"
+							toggle-on-submit>Revert</button>
+						<a ng-href="{[{page.editUrl()}]}?edit={[{changeLog.edit}]}"
+							class="btn btn-danger"
+							title="Load this edit in the editor"
+							toggle-on-submit>Load Edit</a>
+						<button type="button"
+							class="edit-node-diff-edit btn btn-default"
+							title="Diff with this edit"
+							edit-num="{[{changeLog.edit}]}"
+							toggle-on-submit>Diff</button>
+						<div class="submit-form-error alert alert-danger" hidden></div>
+					</div>
+
+				</div>
+			</li>
+		</ul>
 	</div>
 
 	<!-- Show similar pages -->
@@ -106,17 +154,14 @@
 						id="wmd-input{[{page.pageId}]}"
 						rows="{[{isComment ? 10 : 30}]}"
 						placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
-					  style="resize: none;"
-					  ng-model="page.text"
+						style="resize: none;"
+						ng-model="page.text"
 						ng-readonly="lockedByAnother"></textarea>
 				<div class="wmd-panel-bottom-buttons">
 					<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
 					<button type="button" class="abandon-edit btn btn-danger" ng-hide="lockedByAnother" toggle-on-submit>Abandon</button>
 					<button type="button" class="go-to-page-view btn btn-default" ng-bind="isModal ? 'Hide Popup' : 'Go To Page View'" toggle-on-submit></button>
 					<span class="gray-text autosave-label" hidden></span>
-					<span class="warning-glyph glyphicon glyphicon-warning-sign pull-right"
-						title="The edit you are working on doesn't descend from the currently published edit."
-						ng-show="showDifferentBranchWarning"></span>
 					<button type="submit" class="btn btn-primary pull-right" ng-hide="lockedByAnother" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
 					<button type="button" class="save-snapshot-button btn btn-default pull-right" ng-hide="lockedByAnother" toggle-on-submit>Save Snapshot</button>
 					<div class="alert alert-danger" hidden></div>
@@ -136,8 +181,8 @@
 						class="meta-text-input form-control"
 						rows="20"
 						placeholder="Meta data"
-					  style="resize: none;"
-					  ng-bind="page.metaText"
+						style="resize: none;"
+						ng-bind="page.metaText"
 						ng-readonly="lockedByAnother"></textarea>
 				<div class="meta-text-error alert alert-danger"></div>
 			</div>
@@ -152,8 +197,12 @@
 					</select>
 				</div>
 				<div class="type-help col-sm-6">
-					<p class="type-help-wiki help-block" ng-show="page.type=='wiki'">Standard wiki page.</p>
-					<p class="type-help-lens help-block" ng-show="page.type=='lens'">A lens page is used to present the same material as another page but with different emphasis / assumptions.</p>
+					<p class="type-help-wiki help-block" ng-show="page.type=='wiki'">
+						Standard wiki page.
+					</p>
+					<p class="type-help-lens help-block" ng-show="page.type=='lens'">
+						A lens page is used to present the same material as another page but with different emphasis / assumptions.
+					</p>
 				</div>
 			</div>
 
@@ -262,8 +311,8 @@
 					<div class="input-group">
 						<input type="text" class="tag-input form-control" placeholder="Enter new parent">
 						<button type="button"
-							  class="btn btn-default btn-xs child-parent-option"
-							  ng-show="isModal && !isQuestion && !isLens">
+								class="btn btn-default btn-xs child-parent-option"
+								ng-show="isModal && !isQuestion && !isLens">
 							Make this page a sibling.
 						</button>
 					</div>

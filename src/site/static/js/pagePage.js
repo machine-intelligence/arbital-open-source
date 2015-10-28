@@ -348,17 +348,14 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 			// Process deleting tags.
 			element.on("click", ".delete-tag-link", function(event) {
 				var $target = $(event.target);
-				var data = {
+				var options = {
 					parentId: $target.attr("page-id"),
 					childId: scope.page.pageId,
 					type: "tag",
 				};
-				$http({method: "POST", url: "/deleteTag/", data: JSON.stringify(data)})
-					.error(function(data, status){
-						console.log("Error deleting tag:"); console.log(data); console.log(status);
-					});
+				pageService.deletePagePair(options);
 
-				scope.page.taggedAsIds.splice(scope.page.taggedAsIds.indexOf(data.parentId), 1);
+				scope.page.taggedAsIds.splice(scope.page.taggedAsIds.indexOf(options.parentId), 1);
 				scope.$apply();
 			});
 
