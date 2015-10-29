@@ -74,8 +74,7 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 			if err != nil {
 				return fmt.Errorf("failed to scan a page id", err)
 			}
-			p := &core.Page{PageId: pageId}
-			data.PageMap[pageId] = p
+			core.AddPageIdToMap(pageId, data.PageMap)
 			data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", pageId))
 			return nil
 		})
@@ -83,7 +82,7 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading page pairs", err)
 		}
 	} else {
-		data.PageMap[data.DomainId] = &core.Page{PageId: data.DomainId}
+		core.AddPageIdToMap(data.DomainId, data.PageMap)
 	}
 
 	// Load the children

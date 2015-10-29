@@ -69,7 +69,7 @@ func indexRenderer(params *pages.HandlerParams) *pages.Result {
 	data.PageMap = make(map[int64]*core.Page)
 	for _, domain := range data.FeaturedDomains {
 		for _, pageId := range domain.ChildIds {
-			data.PageMap[pageId] = &core.Page{PageId: pageId}
+			core.AddPageIdToMap(pageId, data.PageMap)
 		}
 	}
 

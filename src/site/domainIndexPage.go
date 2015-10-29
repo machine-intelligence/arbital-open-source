@@ -139,7 +139,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	data.PageMap[data.DomainId] = &core.Page{PageId: data.DomainId}
+	core.AddPageIdToMap(data.DomainId, data.PageMap)
 	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
 	err = core.LoadPages(db, data.PageMap, u.Id, nil)
 	if err != nil {

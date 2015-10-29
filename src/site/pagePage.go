@@ -3,7 +3,6 @@ package site
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 
 	"zanaduu3/src/core"
@@ -40,25 +39,11 @@ var pagePage = newPageWithOptions(
 
 // pageRenderer renders the page page.
 func pageRenderer(params *pages.HandlerParams) *pages.Result {
-	var data pageTmplData
-	result := pageInternalRenderer(params, &data)
-	if result.ResponseCode == http.StatusSeeOther {
-		return result
-	}
-	if result.Data == nil {
-		return pages.Fail(result.Message, result.Err)
-	}
-
-	data.PrimaryPageId = data.Page.PageId
-	return pages.StatusOK(result.Data)
-}
-
-// pageInternalRenderer renders the page page.
-func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
 
+	var data pageTmplData
 	data.User = u
 
 	// If it's not a page id but an alias, the redirect
@@ -160,12 +145,9 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		// Note: we are actually redirecting blindly to a parent, which for replies
 		// could be the parent comment. For now that's okay, since we just do another
 		// redirect then.
-		for _, p := range data.Page.Parents {
-			parent := data.PageMap[p.ParentId]
-			if parent.Type != core.CommentPageType {
-				pageUrl := core.GetPageUrl(parent.PageId)
-				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
-			}
+		for _, pp := range data.Page.Parents {
+			pageUrl := core.GetPageUrl(pp.ParentId)
+			return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, data.Page.PageId))
 		}
 	}
 
@@ -251,5 +233,6 @@ func pageInternalRenderer(params *pages.HandlerParams, data *pageTmplData) *page
 		c.Errorf("Error updating visits: %v", err)
 	}
 
+	data.PrimaryPageId = data.Page.PageId
 	return pages.StatusOK(&data)
 }

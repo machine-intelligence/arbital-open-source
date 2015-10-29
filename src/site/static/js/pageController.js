@@ -268,7 +268,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		}
 
 		// Process all embedded votes.
-		window.setTimeout(function() {
+		/*window.setTimeout(function() {
 			$topParent.find("[embed-vote-id]").each(function(index) {
 				var $link = $(this);
 				var pageAlias = $link.attr("embed-vote-id");
@@ -287,7 +287,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					}
 				});
 			});
-		});
+		});*/
 	};
 
 	// Called before this controller is destroyed.

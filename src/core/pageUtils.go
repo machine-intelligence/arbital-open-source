@@ -23,7 +23,7 @@ func AddPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
 	if p, ok := pageMap[pageId]; ok {
 		return p
 	}
-	p := &Page{PageId: pageId}
+	p := NewPage(pageId)
 	pageMap[pageId] = p
 	return p
 }

@@ -84,7 +84,7 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Create page map.
 	pageMap := make(map[int64]*core.Page)
 	for _, hit := range results.Hits.Hits {
-		pageMap[hit.Id] = &core.Page{PageId: hit.Id}
+		core.AddPageIdToMap(hit.Id, pageMap)
 	}
 
 	// Load pages.

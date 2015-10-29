@@ -14,9 +14,8 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Have to be logged in", nil)
 	}
 
-	pageId := rand.Int63()
 	pageMap := make(map[int64]*core.Page)
-	pageMap[pageId] = &core.Page{PageId: pageId}
+	core.AddPageIdToMap(rand.Int63(), pageMap)
 
 	returnData := createReturnData(pageMap)
 	return pages.StatusOK(returnData)

@@ -96,8 +96,8 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 	// Process pageIds
 	for _, pageId := range pageIds {
-		pageMap[pageId] = &core.Page{PageId: pageId}
-		sourceMap[pageId] = pageMap[pageId]
+		p := core.AddPageIdToMap(pageId, pageMap)
+		sourceMap[pageId] = p
 	}
 
 	// Load comment ids.

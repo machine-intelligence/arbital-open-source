@@ -45,9 +45,9 @@ func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the pages
-	parent := &core.Page{PageId: data.ParentId}
-	child := &core.Page{PageId: data.ChildId}
-	pageMap := map[int64]*core.Page{data.ParentId: parent, data.ChildId: child}
+	pageMap := make(map[int64]*core.Page)
+	parent := core.AddPageIdToMap(data.ParentId, pageMap)
+	child := core.AddPageIdToMap(data.ChildId, pageMap)
 
 	// Load pages.
 	err = core.LoadPages(db, pageMap, u.Id, nil)

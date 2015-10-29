@@ -32,12 +32,13 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the page
-	var page *core.Page
-	page, err = core.LoadFullEdit(db, data.PageId, u.Id, nil)
+	pageMap := make(map[int64]*core.Page)
+	page := core.AddPageIdToMap(data.PageId, pageMap)
+	err = core.LoadPages(db, pageMap, u.Id, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}
-	if page == nil || !page.WasPublished || page.Type == core.DeletedPageType {
+	if page == nil || page.Type == core.DeletedPageType {
 		// Looks like there is no need to delete this page.
 		return pages.StatusOK(nil)
 	}
@@ -56,10 +57,6 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	hasVoteStr := ""
 	if page.HasVote {
 		hasVoteStr = "on"
-	}
-	parentIds := make([]string, len(page.Children))
-	for n, pair := range page.Children {
-		parentIds[n] = fmt.Sprintf("%d", pair.ChildId)
 	}
 	editData := &editPageData{
 		PageId:         page.PageId,

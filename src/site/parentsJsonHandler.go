@@ -31,7 +31,7 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load the parents.
 	pageMap := make(map[int64]*core.Page)
-	pageMap[data.ChildId] = &core.Page{PageId: data.ChildId}
+	core.AddPageIdToMap(data.ChildId, pageMap)
 	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{LoadHasParents: true})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load parent ids", err)

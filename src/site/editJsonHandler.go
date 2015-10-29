@@ -78,17 +78,20 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	primaryPageMap := make(map[int64]*core.Page)
 	primaryPageMap[pageId] = p
 
+	pageMap := make(map[int64]*core.Page)
+	core.AddPageIdToMap(p.EditGroupId, pageMap)
+
 	// Load edit history.
-	err = core.LoadEditHistory(db, p, u.Id)
+	err = core.LoadChangeLogs(db, p, u.Id)
 	if err != nil {
 		return pages.Fail("Couldn't load editHistory: %v", err)
 	}
 
-	pageMap := make(map[int64]*core.Page)
-	if p.EditGroupId > 0 {
-		if _, ok := pageMap[p.EditGroupId]; !ok {
-			core.AddPageIdToMap(p.EditGroupId, pageMap)
-		}
+	// Process change logs
+	userMap = make(map[int64]*core.User)
+	for _, log := range p.ChangeLogs {
+		userMap[log.UserId] = &core.User{Id: log.UserId}
+		core.AddPageIdToMap(log.AuxPageId, pageMap)
 	}
 
 	// Load links
@@ -101,13 +104,6 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{ForPages: primaryPageMap})
 	if err != nil {
 		return pages.Fail("Couldn't load parents: %v", err)
-	}
-
-	// Process change logs
-	userMap = make(map[int64]*core.User)
-	for _, log := range p.ChangeLogs {
-		userMap[log.UserId] = &core.User{Id: log.UserId}
-		core.AddPageIdToMap(log.AuxPageId, pageMap)
 	}
 
 	// Load pages.

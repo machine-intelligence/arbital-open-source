@@ -40,10 +40,8 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Add group
-		curGroup := pageMap[groupId]
-		if curGroup == nil {
-			curGroup = &core.Page{PageId: groupId}
-			pageMap[groupId] = curGroup
+		curGroup := core.AddPageIdToMap(groupId, pageMap)
+		if curGroup.Members == nil {
 			curGroup.Members = make(map[string]*core.Member)
 		}
 
