@@ -13,6 +13,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/user"
 )
 
 const (
@@ -58,11 +59,15 @@ func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	c := db.C
 
-	var userId int64
-	var userEmail string
-	err := rows.Scan(&userId, &userEmail)
+	u := &user.User{}
+	err := rows.Scan(&u.Id, &u.Email)
 	if err != nil {
 		return fmt.Errorf("failed to scan a user id: %v", err)
+	}
+
+	// Load the groups the user belongs to.
+	if err = core.LoadUserGroupIds(db, u); err != nil {
+		return fmt.Errorf("Couldn't load user groups: %v", err)
 	}
 
 	// Update database first, even though we might fail to send the email. This
@@ -71,7 +76,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 		UPDATE users
 		SET updateEmailSentAt=NOW()
 		WHERE id=?`)
-	_, err = statement.Exec(userId)
+	_, err = statement.Exec(u.Id)
 	if err != nil {
 		return fmt.Errorf("failed to update updateEmailSentAt: %v", err)
 	}
@@ -88,7 +93,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	// Load updates and populate the maps
 	pageMap := make(map[int64]*core.Page)
 	userMap := make(map[int64]*core.User)
-	updateRows, err := core.LoadUpdateRows(db, userId, pageMap, userMap, true)
+	updateRows, err := core.LoadUpdateRows(db, u.Id, pageMap, userMap, true)
 	if err != nil {
 		return fmt.Errorf("failed to load updates: %v", err)
 	}
@@ -115,13 +120,13 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	}
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, userId, nil)
+	err = core.LoadPages(db, pageMap, u, nil)
 	if err != nil {
 		return fmt.Errorf("error while loading pages: %v", err)
 	}
 
 	// Load the names for all users.
-	userMap[userId] = &core.User{Id: userId}
+	userMap[u.Id] = &core.User{Id: u.Id}
 	for _, p := range pageMap {
 		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
 	}
@@ -177,7 +182,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	subject := fmt.Sprintf("%d new updates on Arbital", data.UpdateCount)
 	msg := &mail.Message{
 		Sender:   "Arbital <updates@zanaduu3.appspotmail.com>",
-		To:       []string{userEmail},
+		To:       []string{u.Email},
 		Bcc:      []string{"alexei@arbital.com"},
 		Subject:  subject,
 		HTMLBody: buffer.String(),

@@ -107,7 +107,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, u.Id, nil)
+	err = core.LoadPages(db, pageMap, u, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages: %v", err)
 	}

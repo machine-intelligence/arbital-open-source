@@ -39,7 +39,7 @@ func updatesRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Load pages.
 	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, data.User.Id, nil)
+	err = core.LoadPages(db, data.PageMap, data.User, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
 	}

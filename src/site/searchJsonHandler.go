@@ -99,7 +99,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{})
+	err = core.LoadPages(db, pageMap, u, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}

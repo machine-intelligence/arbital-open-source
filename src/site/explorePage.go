@@ -93,7 +93,7 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Load pages.
 	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, u.Id, nil)
+	err = core.LoadPages(db, data.PageMap, u, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
 	}

@@ -240,7 +240,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Prefix alias with the group alias, if appropriate
 		if data.SeeGroupId > 0 {
 			tempPageMap := map[int64]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
-			err = core.LoadPages(db, tempPageMap, u.Id, nil)
+			err = core.LoadPages(db, tempPageMap, u, nil)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the see group", err)
 			}

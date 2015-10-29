@@ -75,7 +75,7 @@ func indexRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Load pages.
 	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err := core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{})
+	err := core.LoadPages(db, data.PageMap, u, &core.LoadPageOptions{})
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
 	}

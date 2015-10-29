@@ -131,7 +131,7 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 	}
 
 	// Load page data
-	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{LoadText: true, LoadSummary: true})
+	err = core.LoadPages(db, pageMap, u, &core.LoadPageOptions{LoadText: true, LoadSummary: true})
 	if err != nil {
 		return nil, "error while loading pages", err
 	}

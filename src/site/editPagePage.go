@@ -46,7 +46,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	// Load all the groups.
 	data.PageMap = make(map[int64]*core.Page)
 	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, params.U.Id, nil)
+	err = core.LoadPages(db, data.PageMap, params.U, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
 	}

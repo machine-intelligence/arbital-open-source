@@ -4,6 +4,7 @@ package core
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -12,6 +13,51 @@ import (
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
 )
+
+type pageLoadOptions struct {
+	// Load options for embedded pages
+	Comments  bool
+	Questions bool
+	Answers   bool
+
+	// Load options for titlePlus pages
+	Children     bool
+	Parents      bool
+	Tags         bool
+	Related      bool
+	Requirements bool
+	Lenses       bool
+
+	// Load options for basic pages
+	Links   bool
+	Domains bool
+
+	// If we are loading an edit, set some stuff here
+
+	// Options for what data to load for the page itself
+	Text              bool
+	Summary           bool
+	PrevNextIds       bool
+	ChildDraftId      bool
+	HasDraft          bool
+	HasChildren       bool
+	Likes             bool
+	Votes             bool
+	OriginalCreatedAt bool
+	LastVisit         bool
+	IsSubscribed      bool
+}
+
+// Add creates a union of the existing load options with the given ones.
+func (o *pageLoadOptions) Add(with *pageLoadOptions) *pageLoadOptions {
+	oVal := reflect.ValueOf(o)
+	withVal := reflect.ValueOf(with)
+	for i := 0; i < oVal.NumField(); i++ {
+		oField := oVal.Field(i)
+		oField.SetBool(oField.Bool() || withVal.Field(i).Bool())
+	}
+	return o
+}
 
 // AddPageIdToMap adds a new page with the given page id to the map if it's not
 // in the map already.

@@ -50,7 +50,7 @@ func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 	child := core.AddPageIdToMap(data.ChildId, pageMap)
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, u.Id, nil)
+	err = core.LoadPages(db, pageMap, u, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}

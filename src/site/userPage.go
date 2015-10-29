@@ -102,8 +102,8 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	if data.User.Id == data.AuthorId {
-		// Load recently edited by me page ids.
-		rows = db.NewStatement(`
+		// Load pages with unpublished drafts
+		/*rows = db.NewStatement(`
 			SELECT p.pageId
 			FROM pages AS p
 			JOIN pageInfos AS i
@@ -115,7 +115,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		data.PagesWithDraftIds, err = core.LoadPageIds(rows, data.PageMap)
 		if err != nil {
 			return pages.Fail("error while loading pages with drafts ids", err)
-		}
+		}*/
 
 		// Load page ids with the most todos.
 		rows = db.NewStatement(`
@@ -181,7 +181,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Load pages.
 	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, u.Id, &core.LoadPageOptions{AllowUnpublished: true})
+	err = core.LoadPages(db, data.PageMap, u, nil)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
 	}

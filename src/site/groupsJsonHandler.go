@@ -56,7 +56,7 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load pages.
 	core.AddUserGroupIdsToPageMap(u, pageMap)
-	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{LoadSummary: true})
+	err = core.LoadPages(db, pageMap, u, &core.LoadPageOptions{LoadSummary: true})
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
 	}

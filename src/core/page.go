@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"zanaduu3/src/database"
+	"zanaduu3/src/user"
 )
 
 const (
@@ -107,6 +108,8 @@ type corePageData struct {
 
 type Page struct {
 	corePageData
+
+	loadOptions pageLoadOptions `json:"-"`
 
 	// === Auxillary data. ===
 	// For some pages we load additional data.
@@ -209,12 +212,10 @@ func NewPage(pageId int64) *Page {
 type LoadPageOptions struct {
 	LoadText    bool
 	LoadSummary bool
-	// If set to true, load snapshots and autosaves, not only current edits
-	AllowUnpublished bool
 }
 
 // LoadPages loads the given pages.
-func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *LoadPageOptions) error {
+func LoadPages(db *database.DB, pageMap map[int64]*Page, user *user.User, options *LoadPageOptions) error {
 	if options == nil {
 		options = &LoadPageOptions{}
 	}
@@ -230,22 +231,15 @@ func LoadPages(db *database.DB, pageMap map[int64]*Page, userId int64, options *
 	if options.LoadSummary {
 		summarySelect = "summary"
 	}
-	publishedConstraint := database.NewQuery("isCurrentEdit")
-	if options.AllowUnpublished {
-		publishedConstraint = database.NewQuery("(isCurrentEdit || creatorId=?)", userId)
-	}
 	statement := database.NewQuery(`
-		SELECT * FROM (
-			SELECT pageId,edit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
-				length(text),metaText,editKarmaLock,hasVote,voteType,` + summarySelect + `,
-				alias,sortChildrenBy,seeGroupId,editGroupId,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
-				todoCount,anchorContext,anchorText,anchorOffset
-			FROM pages
-			WHERE`).AddPart(publishedConstraint).Add(`AND pageId IN`).AddArgsGroup(pageIds).Add(`
-			AND (seeGroupId=0 OR seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=`).AddArg(userId).Add(`))
-			ORDER BY edit DESC
-		) AS p
-		GROUP BY pageId`).ToStatement(db)
+		SELECT pageId,edit,type,creatorId,createdAt,title,clickbait,` + textSelect + `,
+			length(text),metaText,editKarmaLock,hasVote,voteType,` + summarySelect + `,
+			alias,sortChildrenBy,seeGroupId,editGroupId,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
+			todoCount,anchorContext,anchorText,anchorOffset
+		FROM pages
+		WHERE isCurrentEdit AND pageId IN`).AddArgsGroup(pageIds).Add(`
+			AND (seeGroupId=0 OR seeGroupId IN`).AddArgsGroupStr(user.GroupIds).Add(`)
+		`).ToStatement(db)
 	rows := statement.Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p corePageData
