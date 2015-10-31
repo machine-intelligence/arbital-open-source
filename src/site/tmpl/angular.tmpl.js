@@ -82,7 +82,11 @@ app.service("pageService", function(userService, $http){
 	};
 	
 	// All loaded edits. (These are the pages we will be editing.)
-	this.editMap = {};
+	this.editMap = {
+		{{range $k,$v := .EditMap}}
+			"{{$k}}": {{GetPageJson $v}},
+		{{end}}
+	};
 
 	// All loaded masteries.
 	this.masteryMap = {
@@ -127,6 +131,7 @@ app.service("pageService", function(userService, $http){
 		for (var n = 0; n < this.primaryPageCallbacks.length; n++) {
 			this.primaryPageCallbacks[n](oldPrimaryPage);
 		}
+		$("body").attr("last-visit", moment.utc(this.primaryPage.lastVisit).format("YYYY-MM-DD HH:mm:ss"));
 	};
 	
 	// Call this to process data we received from the server.
@@ -266,7 +271,7 @@ app.service("pageService", function(userService, $http){
 				// No old value, so use the new one.
 				oldPage[k] = newPage[k];
 			}
-			// Both new and old values are legit. Overwrite.
+			// Both new and old values are legit. Overwrite with new.
 			oldPage[k] = newPage[k];
 		}
 	};
@@ -388,57 +393,51 @@ app.service("pageService", function(userService, $http){
 			});
 	};
 
-	// Load the page with the given pageAliases. If it's empty, ask the server for
-	// a new page id.
+	// Load the page with the given pageAlias.
 	// options {
-	//   includeText: include the full text of the page
-	//   includeAuxData: include likes, subscription, etc...
-	//   loadComments: whether or not to load comments
-	//   loadVotes: whether or not to load votes
-	//   loadRequirements: whether or not to load requirements and masteries
+	//	 url: url to call
 	//   success: callback on success
 	//   error: callback on error
 	// }
-	// Track which pages we are already loading. Map pageAlias -> true.
+	// Track which pages we are already loading. Map url+pageAlias -> true.
 	var loadingPageAliases = {};
-	var count = 0;
-	this.loadPages = function(pageAliases, options) {
-		var that = this;
-		options.pageAliases = [];
-		// Add pages to the global map as necessary. Set pages as loading.
-		// Compute pageAliasesStr for page ids that are not being loaded already.
-		for (var n = 0; n < pageAliases.length; n++) {
-			var pageAlias = pageAliases[n];
-			if (!(pageAlias in loadingPageAliases)) {
-				loadingPageAliases[pageAlias] = true;
-				options.pageAliases.push(pageAlias);
-			}
+	var loadPage = function(pageAlias, options) {
+		// Check if the page is already being loaded, and mark it as such if it's not.
+		var loadKey = options.url + pageAlias;
+		if (loadKey in loadingPageAliases) {
+			return;
 		}
-		if (pageAliases.length > 0 && options.pageAliases.length == 0) {
-			return;  // we are loading all the pages already
-		}
+		loadingPageAliases[loadKey] = true;
 
-		// Set up options.
-		var success = options.success; delete options.success;
-		var error = options.error; delete options.error;
-
-		console.log("Issuing a GET request to: /json/pages/?pageAliases=" + pageAliases);
-		$http({method: "GET", url: "/json/pages/", params: options}).
+		console.log("Issuing a POST request to: " + options.url + "?pageAlias=" + pageAlias);
+		$http({method: "POST", url: options.url, data: JSON.stringify({pageAlias: pageAlias})}).
 			success(function(data, status){
-				console.log("JSON /pages/ data:"); console.dir(data);
+				console.log("JSON " + options.url + " data:"); console.dir(data);
 				userService.processServerData(data);
 				that.processServerData(data);
 				var pageData = data["pages"];
 				for (var id in pageData) {
-					delete loadingPageAliases[id];
-					delete loadingPageAliases[pageData[id].alias];
+					delete loadingPageAliases[options.url + id];
+					delete loadingPageAliases[options.url + pageData[id].alias];
 				}
-				if(success) success();
+				if(options.success) options.success();
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
-				if(error) error(data, status);
+				if(options.error) options.error(data, status);
 			}
 		);
+	};
+
+	// Get data to display a popover for the page with the given alias.
+	this.loadIntrasitePopover = function(pageAlias, options) {
+		options.url = "/json/intrasitePopover/";
+		loadPage(pageAlias, options);
+	};
+
+	// Get data to display a lens.
+	this.loadLens = function(pageAlias, options) {
+		options.url = "/json/lens/";
+		loadPage(pageAlias, options);
 	};
 	
 	// Load edit.
@@ -579,7 +578,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 			var elementType = "span";
 			var elementTypeEnd = "span";
 			if (resultsAreLinks) {
-				elementType = "a href='/pages/" + item.value + "'";
+				elementType = "a href='" + pageService.getPageUrl(item.label) + "'";
 				elementTypeEnd = "a";
 			}
 			var $el = $compile("<li class='ui-menu-item'><" + elementType +
@@ -609,6 +608,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 				title: source.title,
 				clickbait: source.clickbait,
 				seeGroupId: source.seeGroupId,
+				score: data.result.hits[n]._score,
 			});
 		}
 		return resultList;
@@ -702,13 +702,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	};
 	refreshAutoupdates();
 
-	// Process last visit url parameter
-	var lastVisit = $location.search().lastVisit;
-	if (lastVisit) {
-		$("body").attr("last-visit", lastVisit);
-		$location.search("lastVisit", null);
-	}
-
 	$("body").on("click", ".intrasite-lens-tab", function(event) {
 		var $tab = $(event.currentTarget);
 		var lensId = $tab.attr("data-target");
@@ -769,10 +762,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				}
 
 				// Fetch page data from the server.
-				pageService.loadPages([pageAlias], {
-					includeAuxData: true,
-					loadVotes: true,
-					loadChildren: true,
+				pageService.loadIntrasitePopover(pageAlias, {
 					success: function() {
 						var page = pageService.pageMap[pageAlias];
 						if (!page.summary) {
@@ -794,6 +784,49 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		}
 		return false;
 	});
+
+	// ========== Smart loading ==============
+	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		var pageId = match[1];
+		// Process last visit url parameter
+		var lastVisit = $location.search().lastVisit;
+		if (lastVisit) {
+			$("body").attr("last-visit", lastVisit);
+			$location.search("lastVisit", null);
+		}
+
+		// Get the primary page data
+		var postData = {
+			pageAlias: pageId,
+			forcedLastVisit: lastVisit,
+		};
+		$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
+		.success(function(data, status){
+			console.log("JSON /primaryPage/ data:"); console.log(data);
+			userService.processServerData(data);
+			pageService.processServerData(data);
+			var page = pageService.pageMap[pageId];
+			if (page) {
+				$scope.page = page;
+				pageService.setPrimaryPage(page);
+
+				document.title = $scope.page.title + " - Arbital";
+
+				var $el = $compile("<arb-primary-page></arb-primary-page>")($scope);
+				$(".primary-page-body-div").append($el);
+			} else {
+				$(".global-error").text("Page doesn't exist, was deleted, or you don't have permission to view it.").show();
+				document.title = "Not Found - Arbital";
+			}
+		})
+		.error(function(data, status){
+			console.log("Error /primaryPage/:"); console.log(data); console.log(status);
+			$(".global-error").text("An error occured while getting the page. :(").show();
+			document.title = "Error - Arbital";
+		});
+	}
 });
 
 // PageTreeCtrl is controller for the PageTree.

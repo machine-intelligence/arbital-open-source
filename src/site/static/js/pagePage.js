@@ -99,219 +99,222 @@ $(function() {
 	}();
 });
 
-// MainCtrl is for the Page page.
-app.controller("MainCtrl", function($scope, $compile, $location, $timeout, pageService, userService, autocompleteService) {
-	$scope.pageService = pageService;
-	$scope.userService = userService;
-	$scope.$compile = $compile;
-	$scope.answerIds = [];
-	$scope.page = pageService.primaryPage;
-
-	// Set up children pages and question ids.
-	$scope.initialChildren = {};
-	$scope.initialChildrenCount = 0;
-	for (var n = 0; n < $scope.page.children.length; n++) {
-		var id = $scope.page.children[n].childId;
-		var page = pageService.pageMap[id];
-		if (page.type === "question") {
-			// Do nothing, process them in pageController.
-		} else if (page.type === "answer") {
-			$scope.answerIds.push(id);
-		} else if (page.type === "comment" || page.type === "lens") {
-			// do nothing
-		} else {
-			$scope.initialChildren[id] = page;
-			$scope.initialChildrenCount++;
-		}
-	}
-
-	// Set up parents pages.
-	$scope.initialParents = {};
-	$scope.initialParentsCount = $scope.page.parents.length;
-	for (var n = 0; n < $scope.initialParentsCount; n++) {
-		var id = $scope.page.parents[n].parentId;
-		$scope.initialParents[id] = pageService.pageMap[id];
-	}
-
-	// Question button stuff.
-	keepDivFixed($(".rhs-buttons-div"));
-
-	// Process question button click.
-	$(".question-button").on("click", function(event) {
-		if (userService.user.id === "0") {
-			showSignupPopover($(event.currentTarget));
-			return true;
-		}
-		var selection = getSelectedParagraphText();
-		if (selection) {
-			pageView.showEditInlineSubpage($scope, selection, "question");
-		} else {
-			$(document).trigger("new-page-modal-event", {
-				modalKey: "newQuestion",
-				parentPageId: pageService.primaryPage.pageId,
-				callback: function(result) {
-					if (result.abandon) {
-				 		$scope.$apply(function() {
-							pageService.primaryPage.childDraftId = 0;
-				 		});
-					} else if (result.hidden) {
-				 		$scope.$apply(function() {
-							pageService.primaryPage.childDraftId = result.alias;
-				 		});
-			 	 	} else {
-				 		window.location.href = "/pages/" + result.alias;
-			 	 	}
-				},
-			});
-		}
-	});
-
-	// Inline comment button stuff.
-	var $newInlineCommentDiv = $(".new-inline-comment-div");
-	var $commentButton = $newInlineCommentDiv.find(".new-inline-comment-button");
-	// Process new inline comment button click.
-	$commentButton.on("click", function(event) {
-		$(".inline-comment-highlight").removeClass("inline-comment-highlight");
-		var selection = getSelectedParagraphText();
-		if (selection) {
-			pageView.showEditInlineSubpage($scope, selection, "comment");
-		}
-		return false;
-	});
-
-	// Add answers pages.
-	var $answersList = $(".answers-list");
-	for (var n = 0; n < $scope.answerIds.length; n++){
-		var el = $compile("<arb-page page-id='" + $scope.answerIds[n] + "'></arb-page><hr></hr>")($scope);
-		$answersList.append(el);
-	}
-
-	// Set up finding existing answer for question pages.
-	if (pageService.primaryPage.type === "question") {
-		$scope.findAnswerTerm = "";
-		// Get similar pages
-		var prevFindAnswerTerm = "";
-		var $foundAnswers = $("#found-answers");
-		var findAnswerTermChanged = createThrottledCallback(function() {
-			if ($scope.findAnswerTerm.length <= 2) return false;
-			var options = {
-				term: $scope.findAnswerTerm,
-				pageType: "answer",
-			};
-			if (options.term === prevFindAnswerTerm) return false;
-			autocompleteService.performSearch(options, function(results){
-				$foundAnswers.empty();
-				for (var n = 0; n < results.length; n++) {
-					var pageId = results[n].value;
-					var $el = $compile("<button class='suggest-answer btn btn-info' answer-id='" + pageId + "'>Suggest</button><span arb-likes-page-title page-id='" + pageId +
-						"' show-clickbait='true'></span>")($scope);
-					$foundAnswers.append($el);
+// Directive for the entire primary page.
+app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageService, userService, autocompleteService) {
+	return {
+		templateUrl: "/static/html/primaryPage.html",
+		scope: {
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.$compile = $compile;
+			scope.answerIds = [];
+			scope.page = pageService.primaryPage;
+		
+			// Set up children pages and question ids.
+			scope.initialChildren = {};
+			scope.initialChildrenCount = 0;
+			for (var n = 0; n < scope.page.children.length; n++) {
+				var id = scope.page.children[n].childId;
+				var page = pageService.pageMap[id];
+				if (!page) {
+					continue;
+				}
+				if (page.type === "question") {
+					// Do nothing, process them in pageController.
+				} else if (page.type === "answer") {
+					scope.answerIds.push(id);
+				} else if (page.type === "comment" || page.type === "lens") {
+					// do nothing
+				} else {
+					scope.initialChildren[id] = page;
+					scope.initialChildrenCount++;
+				}
+			}
+		
+			// Set up parents pages.
+			scope.initialParents = {};
+			scope.initialParentsCount = scope.page.parents.length;
+			for (var n = 0; n < scope.initialParentsCount; n++) {
+				var id = scope.page.parents[n].parentId;
+				scope.initialParents[id] = pageService.pageMap[id];
+			}
+		
+			// Question button stuff.
+			keepDivFixed($(".rhs-buttons-div"));
+		
+			// Process question button click.
+			$(".question-button").on("click", function(event) {
+				if (userService.user.id === "0") {
+					showSignupPopover($(event.currentTarget));
+					return true;
+				}
+				var selection = getSelectedParagraphText();
+				if (selection) {
+					pageView.showEditInlineSubpage(scope, selection, "question");
+				} else {
+					$(document).trigger("new-page-modal-event", {
+						modalKey: "newQuestion",
+						parentPageId: pageService.primaryPage.pageId,
+						callback: function(result) {
+							if (result.abandon) {
+						 		scope.$apply(function() {
+									pageService.primaryPage.childDraftId = 0;
+						 		});
+							} else if (result.hidden) {
+						 		scope.$apply(function() {
+									pageService.primaryPage.childDraftId = result.alias;
+						 		});
+					 	 	} else {
+						 		window.location.href = "/pages/" + result.alias;
+					 	 	}
+						},
+					});
 				}
 			});
-			return true;
-		}, 300);
-		$scope.$watch("findAnswerTerm", findAnswerTermChanged);
-
-		// User clicks to suggest an answer
-		$("body").on("click", ".suggest-answer", function(event) {
-			var answerId = $(event.target).attr("answer-id");
-			pageService.newPagePair({
-				parentId: pageService.primaryPage.pageId,
-				childId: answerId,
-				type: "parent",
-			}, function() {
-				location.reload();
+		
+			// Inline comment button stuff.
+			var $newInlineCommentDiv = $(".new-inline-comment-div");
+			var $commentButton = $newInlineCommentDiv.find(".new-inline-comment-button");
+			// Process new inline comment button click.
+			$commentButton.on("click", function(event) {
+				$(".inline-comment-highlight").removeClass("inline-comment-highlight");
+				var selection = getSelectedParagraphText();
+				if (selection) {
+					pageView.showEditInlineSubpage(scope, selection, "comment");
+				}
+				return false;
 			});
-		});
-	}
-
-	// Add edit page for the answer.
-	if ($scope.page.type === "question") {
-		$scope.answerDoneFn = function(result) {
-			if (result.abandon) {
-				getNewAnswerId();
-			} else if (result.alias) {
-				window.location.assign($scope.page.url() + "#page-" + result.alias);
-				window.location.reload();
+		
+			// Add answers pages.
+			var $answersList = $(".answers-list");
+			for (var n = 0; n < scope.answerIds.length; n++){
+				var el = $compile("<arb-page page-id='" + scope.answerIds[n] + "'></arb-page><hr></hr>")(scope);
+				$answersList.append(el);
 			}
-		};
-
-		var createAnswerEditPage = function(page) {
-			var el = $compile("<arb-find-answer></arb-find-answer>")($scope);
-			$(".new-answer").append(el);
-
-			el = $compile("<arb-edit-page page-id='" + page.pageId +
-				"' primary-page-id='" + $scope.page.pageId +
-				"' done-fn='answerDoneFn(result)'></arb-edit-page>")($scope);
-			$(".new-answer").append(el);
-		};
-		var getNewAnswerId = function() {
-			$(".new-answer").find("arb-edit-page").remove();
-			pageService.getNewPage({
-				success: function(newPageId) {
-					var page = pageService.editMap[newPageId];
-					page.group = $.extend({}, $scope.page.group);
-					page.type = "answer";
-					page.parents = [{parentId: $scope.page.pageId, childId: page.pageId}];
-					createAnswerEditPage(page);
-				},
-			});
-		};
-		if ($scope.page.childDraftId > 0) {
-			createAnswerEditPage(pageService.pageMap[$scope.page.childDraftId]);
-		} else {
-			getNewAnswerId();
-		}
-	}
-
-	// Toggle between lenses.
-	var performSwitchToLens = function(lensPage) {
-		pageService.setPrimaryPage(lensPage);
-		// Sigh. This generates an error, but it seems benign.
-		console.log("==== Error might be generated, but it's not actually an error.... I think ====");
-		var url = window.location.pathname + "?lens=" + lensPage.pageId + window.location.hash;
-		history.pushState(null, lensPage.title + " - Arbital", url);
-	};
-	var switchToLens = function(lensId, callback) {
-		var lensPage = pageService.pageMap[lensId];
-		if (!lensPage) return;
-		if (lensPage.text.length > 0) {
-			performSwitchToLens(lensPage);
-			if(callback) callback();
-		} else {
-			pageService.loadPages([lensId], {
-				includeText: true,
-				includeAuxData: true,
-				loadComments: true,
-				loadVotes: true, 
-				loadChildren: true,
-				loadChildDraft: true,
-				loadRequirements: true,
-				success: function(data, status) {
-					var page = pageService.pageMap[lensId];
-					var el = $compile("<arb-page page-id='" + page.pageId + "'></arb-page>")($scope);
-					$("#lens-" + page.pageId).empty().append(el);
-					performSwitchToLens(page);
+		
+			// Set up finding existing answer for question pages.
+			if (pageService.primaryPage.type === "question") {
+				scope.findAnswerTerm = "";
+				// Get similar pages
+				var prevFindAnswerTerm = "";
+				var $foundAnswers = $("#found-answers");
+				var findAnswerTermChanged = createThrottledCallback(function() {
+					if (scope.findAnswerTerm.length <= 2) return false;
+					var options = {
+						term: scope.findAnswerTerm,
+						pageType: "answer",
+					};
+					if (options.term === prevFindAnswerTerm) return false;
+					autocompleteService.performSearch(options, function(results){
+						$foundAnswers.empty();
+						for (var n = 0; n < results.length; n++) {
+							var pageId = results[n].value;
+							var $el = $compile("<button class='suggest-answer btn btn-info' answer-id='" + pageId + "'>Suggest</button><span arb-likes-page-title page-id='" + pageId +
+								"' show-clickbait='true'></span>")(scope);
+							$foundAnswers.append($el);
+						}
+					});
+					return true;
+				}, 300);
+				scope.$watch("findAnswerTerm", findAnswerTermChanged);
+		
+				// User clicks to suggest an answer
+				$("body").on("click", ".suggest-answer", function(event) {
+					var answerId = $(event.target).attr("answer-id");
+					pageService.newPagePair({
+						parentId: pageService.primaryPage.pageId,
+						childId: answerId,
+						type: "parent",
+					}, function() {
+						location.reload();
+					});
+				});
+			}
+		
+			// Add edit page for the answer.
+			if (scope.page.type === "question") {
+				scope.answerDoneFn = function(result) {
+					if (result.abandon) {
+						getNewAnswerId();
+					} else if (result.alias) {
+						window.location.assign(scope.page.url() + "#page-" + result.alias);
+						window.location.reload();
+					}
+				};
+		
+				var createAnswerEditPage = function(page) {
+					var el = $compile("<arb-find-answer></arb-find-answer>")(scope);
+					$(".new-answer").append(el);
+		
+					el = $compile("<arb-edit-page page-id='" + page.pageId +
+						"' primary-page-id='" + scope.page.pageId +
+						"' done-fn='answerDoneFn(result)'></arb-edit-page>")(scope);
+					$(".new-answer").append(el);
+				};
+				var getNewAnswerId = function() {
+					$(".new-answer").find("arb-edit-page").remove();
+					pageService.getNewPage({
+						success: function(newPageId) {
+							var page = pageService.editMap[newPageId];
+							page.group = $.extend({}, scope.page.group);
+							page.type = "answer";
+							page.parents = [{parentId: scope.page.pageId, childId: page.pageId}];
+							createAnswerEditPage(page);
+						},
+					});
+				};
+				if (scope.page.childDraftId > 0) {
+					createAnswerEditPage(pageService.pageMap[scope.page.childDraftId]);
+				} else {
+					getNewAnswerId();
+				}
+			}
+		
+			// Toggle between lenses.
+			var performSwitchToLens = function(lensPage) {
+				pageService.setPrimaryPage(lensPage);
+				// Sigh. This generates an error, but it seems benign.
+				console.log("==== Error might be generated, but it's not actually an error.... I think ====");
+				var url = window.location.pathname + "?lens=" + lensPage.pageId + window.location.hash;
+				history.pushState(null, lensPage.title + " - Arbital", url);
+			};
+			var switchToLens = function(lensId, callback) {
+				var lensPage = pageService.pageMap[lensId];
+				if (!lensPage) return;
+				if (lensPage.text.length > 0) {
+					performSwitchToLens(lensPage);
 					if(callback) callback();
-				},
+				} else {
+					pageService.loadLens(lensId, {
+						success: function(data, status) {
+							var page = pageService.pageMap[lensId];
+							var el = $compile("<arb-page page-id='" + page.pageId + "'></arb-page>")(scope);
+							$("#lens-" + page.pageId).empty().append(el);
+							performSwitchToLens(page);
+							if(callback) callback();
+						},
+					});
+				}
+			};
+			$(".lens-tabs").on("click", ".lens-tab", function(event) {
+				var $tab = $(event.currentTarget);
+				var lensId = $tab.attr("data-target");
+				lensId = lensId.substring(lensId.indexOf("-") + 1);
+				switchToLens(lensId);
+				scope.$apply();
+				return true;
 			});
-		}
+			// Process url ?lens parameter.
+			var searchLensId = $location.search().lens;
+			if (searchLensId && searchLensId != pageService.primaryPage.pageId) {
+				switchToLens(searchLensId, function() {
+					$("[data-target='#lens-" + searchLensId + "']").tab("show");
+				});
+			}
+		},
 	};
-	$(".lens-tabs").on("click", ".lens-tab", function(event) {
-		var $tab = $(event.currentTarget);
-		var lensId = $tab.attr("data-target");
-		lensId = lensId.substring(lensId.indexOf("-") + 1);
-		switchToLens(lensId);
-		$scope.$apply();
-		return true;
-	});
-	// Process url ?lens parameter.
-	var searchLensId = $location.search().lens;
-	if (searchLensId && searchLensId != pageService.primaryPage.pageId) {
-		switchToLens(searchLensId, function() {
-			$("[data-target='#lens-" + searchLensId + "']").tab("show");
-		});
-	}
 });
 
 // Directive for showing a the panel with tags.
@@ -337,7 +340,7 @@ app.directive("arbTagsPanel", function(pageService, userService, autocompleteSer
 				};
 				$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(data)})
 					.error(function(data, status){
-						console.log("Error creating tag:"); console.log(data); console.log(status);
+						console.error("Error creating tag:"); console.log(data); console.log(status);
 					});
 
 				scope.page.taggedAsIds.push(data.parentId);

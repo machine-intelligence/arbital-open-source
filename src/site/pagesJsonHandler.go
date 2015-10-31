@@ -1,7 +1,7 @@
 // pagesJsonHandler.go contains the handler for returning JSON with pages data.
 package site
 
-import (
+/*import (
 	"fmt"
 	"strconv"
 
@@ -198,4 +198,4 @@ func pagesJsonHandlerInternal(params *pages.HandlerParams, data *pagesJsonData) 
 
 	returnData = createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
 	return returnData, "", nil
-}
+}*/

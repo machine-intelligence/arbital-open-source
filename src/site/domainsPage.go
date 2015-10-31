@@ -37,10 +37,9 @@ func domainsRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, u, nil)
+	err = core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
-		return pages.Fail("error while loading pages", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	return pages.StatusOK(&data)

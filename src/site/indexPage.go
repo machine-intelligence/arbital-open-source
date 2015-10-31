@@ -69,21 +69,15 @@ func indexRenderer(params *pages.HandlerParams) *pages.Result {
 	data.PageMap = make(map[int64]*core.Page)
 	for _, domain := range data.FeaturedDomains {
 		for _, pageId := range domain.ChildIds {
-			core.AddPageIdToMap(pageId, data.PageMap)
+			core.AddPageToMap(pageId, data.PageMap, core.TitlePlusLoadOptions)
 		}
 	}
 
 	// Load pages.
-	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err := core.LoadPages(db, data.PageMap, u, &core.LoadPageOptions{})
+	data.UserMap = make(map[int64]*core.User)
+	err := core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, u.Id, data.PageMap, nil)
-	if err != nil {
-		return pages.Fail("Couldn't load aux data", err)
 	}
 
 	return pages.StatusOK(&data)

@@ -69,10 +69,10 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 	var $replies = element.find(".replies");
 	// Dynamically create reply elements.
 	if (scope.parentCommentId === undefined) {
-		if (scope.comment.children != null) {
-			pageService.sortChildren(scope.comment);
-			for (var n = 0; n < scope.comment.children.length; n++) {
-				var childId = scope.comment.children[n].childId;
+		if (scope.comment.commentIds != null) {
+			scope.comment.commentIds.sort(pageService.getChildSortFunc("oldestFirst"));
+			for (var n = 0; n < scope.comment.commentIds.length; n++) {
+				var childId = scope.comment.commentIds[n];
 				if (pageService.pageMap[childId].type !== "comment") continue;
 				var $comment = $compile("<arb-comment primary-page-id='" + scope.primaryPageId +
 						"' page-id='" + childId +
@@ -219,7 +219,7 @@ app.directive("arbComment", function ($compile, $timeout, pageService, userServi
 			parentCommentId: "@",  // id of the parent comment, if there is one
 		},
 		link: function(scope, element, attrs) {
-		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, userService, autocompleteService);
+	    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, userService, autocompleteService);
 		},
 	};
 });
@@ -237,7 +237,7 @@ app.directive("arbQuestion", function ($compile, $timeout, pageService, userServ
 			pageId: "@",  // id of this comment
 		},
 		link: function(scope, element, attrs) {
-		    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, userService, autocompleteService);
+	    commentLinkFunc(scope, element, attrs, $compile, $timeout, pageService, userService, autocompleteService);
 		},
 	};
 });

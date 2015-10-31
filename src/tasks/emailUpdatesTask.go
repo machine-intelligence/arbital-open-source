@@ -93,6 +93,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	// Load updates and populate the maps
 	pageMap := make(map[int64]*core.Page)
 	userMap := make(map[int64]*core.User)
+	masteryMap := make(map[int64]*core.Mastery)
 	updateRows, err := core.LoadUpdateRows(db, u.Id, pageMap, userMap, true)
 	if err != nil {
 		return fmt.Errorf("failed to load updates: %v", err)
@@ -120,19 +121,9 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	}
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, u, nil)
+	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
 	if err != nil {
-		return fmt.Errorf("error while loading pages: %v", err)
-	}
-
-	// Load the names for all users.
-	userMap[u.Id] = &core.User{Id: u.Id}
-	for _, p := range pageMap {
-		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
-	}
-	err = core.LoadUsers(db, userMap)
-	if err != nil {
-		return fmt.Errorf("error while loading users: %v", err)
+		return fmt.Errorf("Pipeline error: %v", err)
 	}
 
 	// Load the template file

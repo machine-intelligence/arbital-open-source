@@ -85,31 +85,34 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		},
 		"_source": ["pageId", "alias", "title", "clickbait", "seeGroupId"]
 	}`, escapedTerm, strings.Join(groupIds, ","))
+	return searchJsonInternalHandler(params, jsonStr)
+}
+
+func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages.Result {
+	u := params.U
+	db := params.DB
 
 	// Perform search.
-	results, err := elastic.SearchPageIndex(db.C, jsonStr)
+	results, err := elastic.SearchPageIndex(params.C, query)
 	if err != nil {
 		return pages.HandlerErrorFail("Error with elastic search", err)
 	}
 
-	// Create page map.
 	pageMap := make(map[int64]*core.Page)
+	userMap := make(map[int64]*core.User)
+	masteryMap := make(map[int64]*core.Mastery)
+
+	// Create page map.
 	for _, hit := range results.Hits.Hits {
-		core.AddPageIdToMap(hit.Id, pageMap)
+		core.AddPageToMap(hit.Id, pageMap, core.TitlePlusLoadOptions)
 	}
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, u, nil)
+	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading aux data", err)
-	}
-
-	returnData := createReturnData(pageMap).AddResult(results.Hits)
+	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap).AddResult(results.Hits)
 	return pages.StatusOK(returnData)
 }

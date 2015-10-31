@@ -80,6 +80,12 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			fail(http.StatusInternalServerError, "Couldn't load user", err)
 			return
 		}
+		// Load the groups the user belongs to.
+		if err = core.LoadUserGroupIds(db, u); err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load user groups", err)
+			return
+		}
+
 		result := h(&pages.HandlerParams{W: w, R: r, C: c, DB: db, U: u})
 		if result.ResponseCode != http.StatusOK {
 			fail(result.ResponseCode, result.Message, result.Err)

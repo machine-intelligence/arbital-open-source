@@ -59,7 +59,18 @@
 	<div class="panel panel-default" ng-hide="pagesWithDraftIds.length <= 0">
 	  <div class="panel-heading">Pages With Drafts</div>
 	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{[{pageId}]}" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in pagesWithDraftIds"></arb-likes-page-title>
+			<ul class="list-unstyled">
+				<li ng-repeat="pageId in pagesWithDraftIds"
+						ng-init="page=pageService.editMap[pageId]">
+					<a ng-href="{[{pageService.getEditPageUrl(page.pageId)}]}"
+							page-id="{[{page.pageId}]}"
+							class="intrasite-link"
+							ng-class="{'red-link': !page.wasPublished}"
+							style="display: table-cell"
+							ng-bind="page.title"></a>
+					<span class="created-span gray-text" ng-bind="page.createdAt | relativeDateTime"></span>
+				</li>
+			</ul>
 	  </div>
 	</div>
 

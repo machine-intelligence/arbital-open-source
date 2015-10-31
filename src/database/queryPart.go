@@ -50,6 +50,21 @@ func (q *QueryPart) AddArgsGroupStr(args []string) *QueryPart {
 	return q
 }
 
+// These versions the the same functions insert the default value if the args
+// slice is empty.
+func (q *QueryPart) AddIdsGroup(args []interface{}) *QueryPart {
+	if len(args) <= 0 {
+		return q.AddArgsGroup([]interface{}{-1})
+	}
+	return q.AddArgsGroup(args)
+}
+func (q *QueryPart) AddIdsGroupStr(args []string) *QueryPart {
+	if len(args) <= 0 {
+		return q.AddArgsGroupStr([]string{"-1"})
+	}
+	return q.AddArgsGroupStr(args)
+}
+
 // AddPart appends the given query part to this part, mering the query and the args.
 func (q *QueryPart) AddPart(part *QueryPart) *QueryPart {
 	q.query = append(q.query, " ")

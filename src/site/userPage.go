@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 
 	"github.com/gorilla/mux"
@@ -49,6 +50,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	var data userTmplData
 	data.User = u
 	data.PageMap = make(map[int64]*core.Page)
+	data.EditMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
 
 	// Check parameter limiting the user/creator of the pages
@@ -79,7 +81,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap)
+	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -96,26 +98,43 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE maxEdit>minEdit
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap)
+	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
 
 	if data.User.Id == data.AuthorId {
 		// Load pages with unpublished drafts
-		/*rows = db.NewStatement(`
-			SELECT p.pageId
+		rows = db.NewStatement(`
+			SELECT p.pageId,p.title,p.createdAt,i.currentEdit>0
 			FROM pages AS p
 			JOIN pageInfos AS i
 			ON (p.pageId = i.pageId)
-			WHERE p.creatorId=? AND p.type!="comment" AND p.edit>i.currentEdit
+			WHERE p.creatorId=? AND p.type!=? AND p.edit>i.currentEdit
 			GROUP BY p.pageId
 			ORDER BY p.createdAt DESC
-			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.PagesWithDraftIds, err = core.LoadPageIds(rows, data.PageMap)
+			LIMIT ?`).Query(data.AuthorId, core.CommentPageType, indexPanelLimit)
+		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var pageId int64
+			var title, createdAt string
+			var wasPublished bool
+			err := rows.Scan(&pageId, &title, &createdAt, &wasPublished)
+			if err != nil {
+				return fmt.Errorf("failed to scan: %v", err)
+			}
+			data.PagesWithDraftIds = append(data.PagesWithDraftIds, fmt.Sprintf("%d", pageId))
+			page := core.AddPageIdToMap(pageId, data.EditMap)
+			if title == "" {
+				title = "*Untitled*"
+			}
+			page.Title = title
+			page.CreatedAt = createdAt
+			page.WasPublished = wasPublished
+			return nil
+		})
 		if err != nil {
 			return pages.Fail("error while loading pages with drafts ids", err)
-		}*/
+		}
 
 		// Load page ids with the most todos.
 		rows = db.NewStatement(`
@@ -132,7 +151,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 			GROUP BY 1
 			ORDER BY SUM(IF(p.pageId IS NULL, 1, 0)) DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.MostTodosIds, err = core.LoadPageIds(rows, data.PageMap)
+		data.MostTodosIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
 			return pages.Fail("error while loading most todos page ids", err)
 		}
@@ -155,7 +174,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		) AS p
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyEditedCommentIds, err = core.LoadPageIds(rows, data.PageMap)
+	data.RecentlyEditedCommentIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited by me page ids", err)
 	}
@@ -173,34 +192,17 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 			) AS v
 			ORDER BY v.createdAt DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.RecentlyVisitedIds, err = core.LoadPageIds(rows, data.PageMap)
+		data.RecentlyVisitedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
 			return pages.Fail("error while loading recently visited page ids", err)
 		}
 	}
 
 	// Load pages.
-	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, u, nil)
-	if err != nil {
-		return pages.Fail("error while loading pages", err)
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
-	if err != nil {
-		return pages.Fail("error while loading aux data", err)
-	}
-
-	// Load all the users.
-	data.UserMap[u.Id] = &core.User{Id: u.Id}
 	data.UserMap[data.AuthorId] = &core.User{Id: data.AuthorId}
-	for _, p := range data.PageMap {
-		data.UserMap[p.CreatorId] = &core.User{Id: p.CreatorId}
-	}
-	err = core.LoadUsers(db, data.UserMap)
+	err = core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
-		return pages.Fail("error while loading users", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	return pages.StatusOK(&data)

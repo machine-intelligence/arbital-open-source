@@ -40,19 +40,18 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 	var data domainIndexTmplData
 	data.User = u
 	data.PageMap = make(map[int64]*core.Page)
+	data.UserMap = make(map[int64]*core.User)
 
-	// Load the domain.
-	domainAlias := mux.Vars(params.R)["domain"]
-	data.User.DomainAlias = domainAlias
-	row := db.NewStatement(`
-		SELECT pageId
-		FROM pages
-		WHERE alias=?`).QueryRow(domainAlias)
-	foundDomain, err := row.Scan(&data.DomainId)
+	// Get actual page id
+	data.User.DomainAlias = mux.Vars(params.R)["domain"]
+	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{data.User.DomainAlias})
 	if err != nil {
-		return pages.Fail("Couldn't retrieve subscription", err)
-	} else if !foundDomain {
-		return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
+		return pages.Fail("Couldn't convert alias", err)
+	}
+	var ok bool
+	data.DomainId, ok = aliasToIdMap[data.User.DomainAlias]
+	if !ok {
+		return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", data.User.DomainAlias), nil)
 	}
 
 	// Load recently created page ids.
@@ -66,7 +65,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE p.isCurrentEdit AND pd.domainId=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.DomainId, indexPanelLimit)
-	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap)
+	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -89,7 +88,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		GROUP BY l2.pageId
 		ORDER BY SUM(value) DESC
 		LIMIT ?`).Query(data.DomainId, indexPanelLimit)
-	data.MostLikedIds, err = core.LoadPageIds(rows, data.PageMap)
+	data.MostLikedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading most liked page ids", err)
 	}
@@ -109,7 +108,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE pd.domainId=?
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.DomainId, indexPanelLimit)
-	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap)
+	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
@@ -133,23 +132,16 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		GROUP BY pd.pageId
 		ORDER BY VAR_POP(v2.value) DESC
 		LIMIT ?`).Query(data.DomainId, indexPanelLimit)
-	data.MostControversialIds, err = core.LoadPageIds(rows, data.PageMap)
+	data.MostControversialIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading most controversial page ids", err)
 	}
 
 	// Load pages.
-	core.AddPageIdToMap(data.DomainId, data.PageMap)
-	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, u, nil)
+	core.AddPageToMap(data.DomainId, data.PageMap, core.EmptyLoadOptions)
+	err = core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, u.Id, data.PageMap, nil)
-	if err != nil {
-		return pages.Fail("Couldn't load aux data", err)
 	}
 
 	return pages.StatusOK(&data)

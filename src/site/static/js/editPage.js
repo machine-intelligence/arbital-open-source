@@ -50,7 +50,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		if (!parentPage) {
 			parentPage = pageService.pageMap[parentId];
 			if (!parentPage) {
-				console.error("ERROR: parent is not in any map: " + parentId);
+				console.error("parent is not in any map: " + parentId);
 				return;
 			}
 		}
@@ -104,7 +104,8 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				for (var n = 0; n < data.length; n++) {
 					var pageId = data[n].value;
 					if (pageId === page.alias) continue;
-					var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
+					var $el = $compile("<span class='admin' ng-show='userService.user.isAdmin'>" + data[n].score + "</span>" +
+						"<div arb-likes-page-title page-id='" + pageId +
 						"' show-clickbait='true'></div>")(scope);
 					$similarPages.append($el);
 				}
@@ -229,8 +230,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		return false;
 	});
 
-	// Resive textarea height to fit the screen.
-	$topParent.find(".wmd-input").height($(window).height() - 140);
+	if (primaryPage && pageId === primaryPage.pageId) {
+		// Resive textarea height to fit the screen.
+		$topParent.find(".wmd-input").height($(window).height() - 140);
+	}
 
 	// Scroll wmd-panel so it's always inside the viewport.
 	if (primaryPage === undefined && !isModal) {
@@ -299,12 +302,12 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			return prefix + "[" + text + "](" + page.alias + ")";
 		}
 		return whole;
-	}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
+	/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
 		var page = pageService.pageMap[alias];
 		if (page) {
 			return prefix + "[vote: " + page.alias + "]";
 		}
-		return whole;
+		return whole;*/
 	}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
 		var page = pageService.pageMap[alias];
 		if (page) {
@@ -605,7 +608,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 						if (options.callback) {
 							// Make sure we got alias and not pageId
 							var tempEditPage = pageService.editMap[returnedResult.alias];
-							returnedResult.alias = editPage.alias;
+							returnedResult.alias = tempEditPage.alias;
 							options.callback(returnedResult);
 						}
 						editPage.stop();
@@ -620,7 +623,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 				var loadPages = function() {
 					if (resumePageId) {
 						if (resumePageId === primaryPage.pageId) {
-							console.log("Error: trying to edit the same page in modal");
+							console.error("trying to edit the same page in modal");
 							return;
 						}
 						// Resume editing some page.
@@ -642,7 +645,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 								if (resumePageId !== primaryPage.pageId) {
 									setupModal(resumePageId, false);
 								} else {
-									console.log("Error: trying to edit the same page in modal");
+									console.error("trying to edit the same page in modal");
 								}
 							},
 						});
@@ -687,6 +690,11 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 				// We are going to edit a page that's not in the editMap yet. Add it.
 				scope.page = $.extend(true, {}, pageService.pageMap[scope.pageId]);
 				pageService.addPageToEditMap(scope.page);
+			}
+
+			// Fix alias
+			if (!scope.page.alias) {
+				scope.page.alias = scope.page.pageId;
 			}
 
 			// If the page has "Group.Alias" alias, just change it to "Alias"

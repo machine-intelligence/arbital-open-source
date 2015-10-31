@@ -34,7 +34,7 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	// Load the page
 	pageMap := make(map[int64]*core.Page)
 	page := core.AddPageIdToMap(data.PageId, pageMap)
-	err = core.LoadPages(db, pageMap, u, nil)
+	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}

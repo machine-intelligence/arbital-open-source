@@ -19,9 +19,11 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
-	// Load the groups and members
 	userMap := make(map[int64]*core.User)
 	pageMap := make(map[int64]*core.Page)
+	masteryMap := make(map[int64]*core.Mastery)
+
+	// Load the groups and members
 	rows := database.NewQuery(`
 		SELECT p.pageId,m.userId,m.canAddMembers,m.canAdmin
 		FROM pages AS p
@@ -55,24 +57,11 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	core.AddUserGroupIdsToPageMap(u, pageMap)
-	err = core.LoadPages(db, pageMap, u, &core.LoadPageOptions{LoadSummary: true})
+	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
 	if err != nil {
-		return pages.Fail("error while loading pages", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	// Load aux data
-	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
-	if err != nil {
-		return pages.Fail("error while loading aux data", err)
-	}
-
-	// Load all the users.
-	err = core.LoadUsers(db, userMap)
-	if err != nil {
-		return pages.Fail("Error while loading users", err)
-	}
-
-	returnData := createReturnData(pageMap).AddUsers(userMap)
+	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
 	return pages.StatusOK(returnData)
 }

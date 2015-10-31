@@ -29,28 +29,22 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Need a valid childId", err)
 	}
 
-	// Load the parents.
+	// Load the parents
 	pageMap := make(map[int64]*core.Page)
-	core.AddPageIdToMap(data.ChildId, pageMap)
-	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{LoadHasParents: true})
+	userMap := make(map[int64]*core.User)
+	masteryMap := make(map[int64]*core.Mastery)
+
+	loadOptions := (&core.PageLoadOptions{
+		Parents: true,
+	}).Add(core.TitlePlusLoadOptions)
+	core.AddPageToMap(data.ChildId, pageMap, loadOptions)
+	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load parent ids", err)
+		return pages.HandlerErrorFail("Couldn't load pages", err)
 	}
-	// Remove child, since we only want to return parents.
+	// Remove the child, since we only want to return parents.
 	delete(pageMap, data.ChildId)
 
-	// Load pages.
-	err = core.LoadPages(db, pageMap, u, nil)
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't retrieve page likes", err)
-	}
-
-	returnData := createReturnData(pageMap)
+	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
 	return pages.StatusOK(returnData)
 }

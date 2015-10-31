@@ -231,7 +231,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Make sure alias is valid
 	if data.Alias == "" {
 		data.Alias = fmt.Sprintf("%d", data.PageId)
-	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+	} else if isCurrentEdit && data.Alias != fmt.Sprintf("%d", data.PageId) {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
 			return pages.HandlerErrorFail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
@@ -240,7 +240,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Prefix alias with the group alias, if appropriate
 		if data.SeeGroupId > 0 {
 			tempPageMap := map[int64]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
-			err = core.LoadPages(db, tempPageMap, u, nil)
+			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the see group", err)
 			}
@@ -305,11 +305,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	pageMap := make(map[int64]*core.Page)
 	if isCurrentEdit && !oldPage.WasPublished {
 		// Load parents and children.
-		err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadParentIds(db, pageMap, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load parents", err)
 		}
-		err = core.LoadChildrenIds(db, pageMap, &core.LoadChildrenIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadChildIds(db, pageMap, &core.LoadChildIdsOptions{ForPages: primaryPageMap})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load children", err)
 		}

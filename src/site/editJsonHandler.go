@@ -2,9 +2,7 @@
 package site
 
 import (
-	"fmt"
 	"math/rand"
-	"strconv"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -34,31 +32,16 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 
-	// Check if the user is trying to create a new page with an alias.
-	_, err = strconv.ParseInt(data.PageAlias, 10, 64)
+	// Get actual page id
+	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{data.PageAlias})
 	if err != nil {
-		// Okay, it's not an id, but could be an alias.
-		row := db.NewStatement(`
-			SELECT pageId
-			FROM pages
-			WHERE isCurrentEdit AND alias=?`).QueryRow(data.PageAlias)
-		exists, err := row.Scan(&data.PageAlias)
-		if err != nil {
-			return pages.Fail("Couldn't convert pageId=>alias", err)
-		} else if !exists {
-			// No alias found. Assume user is trying to create a new page with an alias.
-			return pages.RedirectWith(core.GetEditPageUrl(rand.Int63()) + "?alias=" + data.PageAlias)
-		}
+		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
-
-	// Get page id.
-	pageIdStr := data.PageAlias
-	pageId, err := strconv.ParseInt(pageIdStr, 10, 64)
-	if err != nil {
-		return pages.Fail(fmt.Sprintf("Invalid id passed: %s", pageIdStr), nil)
+	pageId, ok := aliasToIdMap[data.PageAlias]
+	if !ok {
+		// No alias found. Assume user is trying to create a new page with an alias.
+		return pages.RedirectWith(core.GetEditPageUrl(rand.Int63()) + "?alias=" + data.PageAlias)
 	}
-
-	userMap := make(map[int64]*core.User)
 
 	// Load full edit for one page.
 	options := core.LoadEditOptions{
@@ -72,46 +55,20 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Error while loading full edit", err)
 	}
 	if p == nil {
-		return pages.HandlerErrorFail("No page with such alias/id", err)
+		return pages.HandlerErrorFail("Exact page not found", err)
 	}
+	p.LoadOptions.Add(core.PrimaryEditLoadOptions)
 
-	primaryPageMap := make(map[int64]*core.Page)
-	primaryPageMap[pageId] = p
-
+	// Load data
+	userMap := make(map[int64]*core.User)
 	pageMap := make(map[int64]*core.Page)
+	masteryMap := make(map[int64]*core.Mastery)
+	pageMap[p.PageId] = p
 	core.AddPageIdToMap(p.EditGroupId, pageMap)
-
-	// Load edit history.
-	err = core.LoadChangeLogs(db, p, u.Id)
+	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
 	if err != nil {
-		return pages.Fail("Couldn't load editHistory: %v", err)
+		return pages.HandlerErrorFail("Pipeline error", err)
 	}
-
-	// Process change logs
-	userMap = make(map[int64]*core.User)
-	for _, log := range p.ChangeLogs {
-		userMap[log.UserId] = &core.User{Id: log.UserId}
-		core.AddPageIdToMap(log.AuxPageId, pageMap)
-	}
-
-	// Load links
-	err = core.LoadLinks(db, pageMap, &core.LoadLinksOptions{FromPageMap: primaryPageMap})
-	if err != nil {
-		return pages.Fail("Couldn't load links", err)
-	}
-
-	// Load parents
-	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{ForPages: primaryPageMap})
-	if err != nil {
-		return pages.Fail("Couldn't load parents: %v", err)
-	}
-
-	// Load pages.
-	err = core.LoadPages(db, pageMap, u, nil)
-	if err != nil {
-		return pages.Fail("error while loading pages: %v", err)
-	}
-	pageMap[pageId] = p
 
 	// Grab the lock to this page, but only if we have the right group permissions
 	if p.SeeGroupId <= 0 || u.IsMemberOfGroup(p.SeeGroupId) {
@@ -132,22 +89,11 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// Load all the users.
-	userMap[u.Id] = &core.User{Id: u.Id}
-	userMap[p.LockedBy] = &core.User{Id: p.LockedBy}
-	for _, p := range pageMap {
-		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
-	}
-	err = core.LoadUsers(db, userMap)
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading users", err)
-	}
-
 	// Remove the primary page from the pageMap and add it to the editMap
 	editMap := make(map[int64]*core.Page)
 	editMap[pageId] = p
 	delete(pageMap, pageId)
 
-	returnData := createReturnData(pageMap).AddEditMap(editMap).AddUsers(userMap)
+	returnData := createReturnData(pageMap).AddEditMap(editMap).AddUsers(userMap).AddMasteries(masteryMap)
 	return pages.StatusOK(returnData)
 }

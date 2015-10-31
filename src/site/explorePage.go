@@ -43,22 +43,31 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	// Load the domain.
 	domainAlias := mux.Vars(params.R)["domain"]
 	if domainAlias != "" {
-		data.User.DomainAlias = domainAlias
-		row := db.NewStatement(`
-			SELECT pageId
-			FROM pages
-			WHERE alias=?`).QueryRow(domainAlias)
-		foundDomain, err := row.Scan(&data.DomainId)
+		// Get actual domain id
+		aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{domainAlias})
 		if err != nil {
-			return pages.Fail("Couldn't retrieve domain", err)
-		} else if !foundDomain {
-			return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
+			return pages.Fail("Couldn't convert alias", err)
+		}
+
+		var ok bool
+		data.DomainId, ok = aliasToIdMap[domainAlias]
+		if !ok {
+			return pages.Fail("Couldn't find alias", nil)
 		}
 		data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", data.DomainId))
 	}
 
+	// Options for loading the root pages
+	loadOptions := (&core.PageLoadOptions{
+		Children:                true,
+		HasGrandChildren:        true,
+		RedLinkCountForChildren: true,
+		RedLinkCount:            true,
+	}).Add(core.TitlePlusLoadOptions)
+
 	// Load the root page(s)
 	data.PageMap = make(map[int64]*core.Page)
+	data.UserMap = make(map[int64]*core.User)
 	if domainAlias == "" {
 		rows := db.NewStatement(`
 			SELECT parentPair.parentId
@@ -67,14 +76,14 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 			ON (parentPair.parentId=grandParentPair.childId)
 			WHERE grandParentPair.parentId IS NULL
 			GROUP BY 1
-			LIMIT 50`).Query()
+			LIMIT 10`).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			err := rows.Scan(&pageId)
 			if err != nil {
 				return fmt.Errorf("failed to scan a page id", err)
 			}
-			core.AddPageIdToMap(pageId, data.PageMap)
+			core.AddPageToMap(pageId, data.PageMap, loadOptions)
 			data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", pageId))
 			return nil
 		})
@@ -82,39 +91,13 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading page pairs", err)
 		}
 	} else {
-		core.AddPageIdToMap(data.DomainId, data.PageMap)
-	}
-
-	// Load the children
-	err := core.LoadChildrenIds(db, data.PageMap, &core.LoadChildrenIdsOptions{LoadHasChildren: true})
-	if err != nil {
-		return pages.Fail("error while loading children", err)
+		core.AddPageToMap(data.DomainId, data.PageMap, loadOptions)
 	}
 
 	// Load pages.
-	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, u, nil)
+	err := core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
-	}
-
-	// Filter unpublished pages.
-	for id, p := range data.PageMap {
-		if !p.IsCurrentEdit {
-			delete(data.PageMap, id)
-		}
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
-	if err != nil {
-		return pages.Fail("Couldn't load aux data", err)
-	}
-
-	// Load number of red links.
-	err = core.LoadRedLinkCount(db, data.PageMap)
-	if err != nil {
-		return pages.Fail("error while loading red link count", err)
 	}
 
 	return pages.StatusOK(&data)

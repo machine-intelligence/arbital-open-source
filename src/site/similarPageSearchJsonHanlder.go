@@ -49,6 +49,7 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
+		"min_score": 0.1,
 		"query": {
 			"filtered": {
 				"query": {
@@ -81,31 +82,5 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		},
 		"_source": ["pageId", "alias", "title", "clickbait", "seeGroupId"]
 	}`, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIds, ","))
-
-	// Perform search.
-	results, err := elastic.SearchPageIndex(params.C, jsonStr)
-	if err != nil {
-		return pages.HandlerErrorFail("Error with elastic search", err)
-	}
-
-	// Create page map.
-	pageMap := make(map[int64]*core.Page)
-	for _, hit := range results.Hits.Hits {
-		core.AddPageIdToMap(hit.Id, pageMap)
-	}
-
-	// Load pages.
-	err = core.LoadPages(db, pageMap, u, nil)
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading aux data", err)
-	}
-
-	returnData := createReturnData(pageMap).AddResult(results.Hits)
-	return pages.StatusOK(returnData)
+	return searchJsonInternalHandler(params, jsonStr)
 }

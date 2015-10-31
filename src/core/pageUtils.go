@@ -4,7 +4,6 @@ package core
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -14,49 +13,9 @@ import (
 	"zanaduu3/src/user"
 )
 
-type pageLoadOptions struct {
-	// Load options for embedded pages
-	Comments  bool
-	Questions bool
-	Answers   bool
-
-	// Load options for titlePlus pages
-	Children     bool
-	Parents      bool
-	Tags         bool
-	Related      bool
-	Requirements bool
-	Lenses       bool
-
-	// Load options for basic pages
-	Links   bool
-	Domains bool
-
-	// If we are loading an edit, set some stuff here
-
-	// Options for what data to load for the page itself
-	Text              bool
-	Summary           bool
-	PrevNextIds       bool
-	ChildDraftId      bool
-	HasDraft          bool
-	HasChildren       bool
-	Likes             bool
-	Votes             bool
-	OriginalCreatedAt bool
-	LastVisit         bool
-	IsSubscribed      bool
-}
-
-// Add creates a union of the existing load options with the given ones.
-func (o *pageLoadOptions) Add(with *pageLoadOptions) *pageLoadOptions {
-	oVal := reflect.ValueOf(o)
-	withVal := reflect.ValueOf(with)
-	for i := 0; i < oVal.NumField(); i++ {
-		oField := oVal.Field(i)
-		oField.SetBool(oField.Bool() || withVal.Field(i).Bool())
-	}
-	return o
+// NewPage returns a pointer to a new page object created with the given page id
+func NewPage(pageId int64) *Page {
+	return &Page{corePageData: corePageData{PageId: pageId}}
 }
 
 // AddPageIdToMap adds a new page with the given page id to the map if it's not
@@ -70,6 +29,23 @@ func AddPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
 		return p
 	}
 	p := NewPage(pageId)
+	pageMap[pageId] = p
+	return AddPageToMap(pageId, pageMap, EmptyLoadOptions)
+}
+
+// AddPageToMap adds a new page with the given page id to the map if it's not
+// in the map already.
+// Returns the new/existing page.
+func AddPageToMap(pageId int64, pageMap map[int64]*Page, loadOptions *PageLoadOptions) *Page {
+	if pageId <= 0 {
+		return nil
+	}
+	if p, ok := pageMap[pageId]; ok {
+		p.LoadOptions.Add(loadOptions)
+		return p
+	}
+	p := NewPage(pageId)
+	p.LoadOptions = *loadOptions
 	pageMap[pageId] = p
 	return p
 }
