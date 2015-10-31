@@ -2,15 +2,20 @@
 package site
 
 import (
+	"encoding/json"
+
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
-
-	"github.com/gorilla/schema"
 )
 
 // parentsJsonData contains parameters passed in via the request.
 type parentsJsonData struct {
-	ChildId int64
+	ChildId int64 `json:",string"`
+}
+
+var parentsHandler = siteHandler{
+	URI:         "/json/parents/",
+	HandlerFunc: parentsJsonHandler,
 }
 
 // parentsJsonHandler handles the request.
@@ -20,8 +25,7 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Decode data
 	var data parentsJsonData
-	params.R.ParseForm()
-	err := schema.NewDecoder().Decode(&data, params.R.Form)
+	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
@@ -30,21 +34,18 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the parents
-	pageMap := make(map[int64]*core.Page)
-	userMap := make(map[int64]*core.User)
-	masteryMap := make(map[int64]*core.Mastery)
+	returnData := newHandlerData()
 
 	loadOptions := (&core.PageLoadOptions{
 		Parents: true,
 	}).Add(core.TitlePlusLoadOptions)
-	core.AddPageToMap(data.ChildId, pageMap, loadOptions)
-	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	core.AddPageToMap(data.ChildId, returnData.PageMap, loadOptions)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load pages", err)
 	}
 	// Remove the child, since we only want to return parents.
-	delete(pageMap, data.ChildId)
+	delete(returnData.PageMap, data.ChildId)
 
-	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

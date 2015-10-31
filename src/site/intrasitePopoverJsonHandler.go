@@ -14,6 +14,11 @@ type intrasitePopoverJsonData struct {
 	PageAlias string
 }
 
+var intrasitePopoverHandler = siteHandler{
+	URI:         "/json/intrasitePopover/",
+	HandlerFunc: intrasitePopoverJsonHandler,
+}
+
 // intrasitePopoverJsonHandler handles the request.
 func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
@@ -38,16 +43,12 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	userMap := make(map[int64]*core.User)
-	pageMap := make(map[int64]*core.Page)
-	masteryMap := make(map[int64]*core.Mastery)
-
-	core.AddPageToMap(pageId, pageMap, core.IntrasitePopoverLoadOptions)
-	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	returnData := newHandlerData()
+	core.AddPageToMap(pageId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

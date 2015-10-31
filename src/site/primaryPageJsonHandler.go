@@ -16,6 +16,11 @@ type primaryPageJsonData struct {
 	ForcedLastVisit string
 }
 
+var primaryPageHandler = siteHandler{
+	URI:         "/json/primaryPage/",
+	HandlerFunc: primaryPageJsonHandler,
+}
+
 // primaryPageJsonHandler handles the request.
 func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
@@ -40,19 +45,16 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	userMap := make(map[int64]*core.User)
-	pageMap := make(map[int64]*core.Page)
-	masteryMap := make(map[int64]*core.Mastery)
-
-	core.AddPageToMap(pageId, pageMap, core.PrimaryPageLoadOptions)
-	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	returnData := newHandlerData()
+	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
 	// Computed which pages count as visited. Also update LastVisit if forced
 	visitedValues := make([]interface{}, 0)
-	for id, p := range pageMap {
+	for id, p := range returnData.PageMap {
 		if p.Text != "" {
 			visitedValues = append(visitedValues, u.Id, id, database.Now())
 		}
@@ -71,6 +73,5 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

@@ -41,6 +41,7 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	data.RootPageIds = make([]string, 0)
 
 	// Load the domain.
+	var domainId int64
 	domainAlias := mux.Vars(params.R)["domain"]
 	if domainAlias != "" {
 		// Get actual domain id
@@ -50,11 +51,11 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 		}
 
 		var ok bool
-		data.DomainId, ok = aliasToIdMap[domainAlias]
+		domainId, ok = aliasToIdMap[domainAlias]
 		if !ok {
 			return pages.Fail("Couldn't find alias", nil)
 		}
-		data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", data.DomainId))
+		data.RootPageIds = append(data.RootPageIds, fmt.Sprintf("%d", domainId))
 	}
 
 	// Options for loading the root pages
@@ -91,7 +92,7 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("error while loading page pairs", err)
 		}
 	} else {
-		core.AddPageToMap(data.DomainId, data.PageMap, loadOptions)
+		core.AddPageToMap(domainId, data.PageMap, loadOptions)
 	}
 
 	// Load pages.

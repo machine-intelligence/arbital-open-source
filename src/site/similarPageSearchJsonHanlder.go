@@ -19,6 +19,11 @@ type similarPageSearchJsonData struct {
 	PageType  string
 }
 
+var similarPageSearchHandler = siteHandler{
+	URI:         "/json/similarPageSearch/",
+	HandlerFunc: similarPageSearchJsonHandler,
+}
+
 // similarPageSearchJsonHandler handles the request.
 func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
@@ -80,7 +85,7 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 				}
 			}
 		},
-		"_source": ["pageId", "alias", "title", "clickbait", "seeGroupId"]
+		"_source": []
 	}`, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIds, ","))
 	return searchJsonInternalHandler(params, jsonStr)
 }

@@ -14,7 +14,6 @@
 			$scope.mostControversialIds = [{{range .MostControversialIds}}{{.}},{{end}}];
 			$scope.recentlyCreatedIds = [{{range .RecentlyCreatedIds}}{{.}},{{end}}];
 			$scope.recentlyEditedIds = [{{range .RecentlyEditedIds}}{{.}},{{end}}];
-			document.title = pageService.pageMap["{{.DomainId}}"].title + " - Abital";
 		});
 	</script>
 </head>

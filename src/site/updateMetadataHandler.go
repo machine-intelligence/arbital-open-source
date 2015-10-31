@@ -6,8 +6,13 @@ import (
 	"zanaduu3/src/tasks"
 )
 
-// updateMetadataHandler kicks off the task to update the index for pages.
-func updateMetadataHandler(params *pages.HandlerParams) *pages.Result {
+var updateMetadataHandler = siteHandler{
+	URI:         "/updateMetadata/",
+	HandlerFunc: updateMetadataHandlerFunc,
+}
+
+// updateMetadataHandlerFunc kicks off the task to update the index for pages.
+func updateMetadataHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	if !u.IsAdmin {
 		return pages.HandlerForbiddenFail("Have to be an admin", nil)

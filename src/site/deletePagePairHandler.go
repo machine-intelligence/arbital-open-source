@@ -18,16 +18,22 @@ type deletePagePairData struct {
 	Type     string
 }
 
-// deletePagePairHandler handles requests for deleting a tag.
-func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
+var deletePagePairHandler = siteHandler{
+	URI:         "/deletePagePair/",
+	HandlerFunc: deletePagePairHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
+
+// deletePagePairHandlerFunc handles requests for deleting a tag.
+func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
 
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
-	}
-
+	// Get and check input data
 	decoder := json.NewDecoder(params.R.Body)
 	var data deletePagePairData
 	err := decoder.Decode(&data)

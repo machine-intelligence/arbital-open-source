@@ -14,14 +14,18 @@ type newVoteData struct {
 	Value  float32
 }
 
-// newVoteHandler handles requests to create/update a prior vote.
-func newVoteHandler(params *pages.HandlerParams) *pages.Result {
+var newVoteHandler = siteHandler{
+	URI:         "/newVote/",
+	HandlerFunc: newVoteHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// newVoteHandlerFunc handles requests to create/update a prior vote.
+func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Need to be logged in", nil)
-	}
 
 	decoder := json.NewDecoder(params.R.Body)
 	var task newVoteData

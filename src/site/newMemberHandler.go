@@ -16,8 +16,16 @@ type newMemberData struct {
 	UserId  int64 `json:",string"`
 }
 
-// newMemberHandler handles requests to add a new member to a group.
-func newMemberHandler(params *pages.HandlerParams) *pages.Result {
+var newMemberHandler = siteHandler{
+	URI:         "/newMember/",
+	HandlerFunc: newMemberHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// newMemberHandlerFunc handles requests to add a new member to a group.
+func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
@@ -30,10 +38,6 @@ func newMemberHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.GroupId <= 0 || data.UserId <= 0 {
 		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Not logged in", nil)
 	}
 
 	// Check to see if this user can add members.

@@ -4,8 +4,8 @@
 		<div class="navbar-header">
 			<a class="navbar-brand" href="/">Arbital</a>
 		</div>
-		<div class="navbar-text" ng-show="user.domainAlias">
-			<a ng-href="/explore/{[{user.domainAlias}]}" class="navbar-link">Explore</a>
+		<div class="domain-link navbar-text" ng-show="pageService.domainAlias">
+			<a ng-href="/explore/{[{pageService.domainAlias}]}" class="navbar-link">Explore</a>
 		</div>
 		<ul class="nav navbar-nav navbar-right">
 				<li ng-show="user.isLoggedIn">

@@ -1,22 +1,20 @@
 <!-- Navigation column -->
 <div class="navigation-column pull-left">
 	<!-- Navigation -->
-	<div class="panel panel-default" ng-show="page.nextPageId != '0' || page.prevPageId != '0'">
+	<div class="panel panel-default" ng-hide="page.nextPageId === '0' && page.prevPageId === '0'">
 		<div class="panel-heading">Navigation</div>
 		<div class="panel-body">
 			<ul class="pager">
-				<li>
+				<li ng-hide="page.prevPageId === '0'">
 					<a ng-href="{[{pageService.getPageUrl(page.prevPageId)}]}"
 						class="intrasite-link"
-						ng-class="{disabled: page.prevPageId === '0'}"
 						page-id="{[{page.prevPageId}]}">&larr; Prev</a>
 				</li>
 				<!-- <a href="#" class="start-reading gray-glyph glyphicon glyphicon-record"></a> -->
-				<li>
+				<li ng-hide="page.nextPageId === '0'">
 					<a ng-href="{[{pageService.getPageUrl(page.nextPageId)}]}"
 						class="intrasite-link"
-						page-id="{[{page.nextPageId}]}"
-						ng-class="{disabled: page.nextPageId === '0'}">Next &rarr;</a>
+						page-id="{[{page.nextPageId}]}">Next &rarr;</a>
 				</li>
 			</ul>
 		</div>

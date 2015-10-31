@@ -8,15 +8,17 @@ import (
 	"zanaduu3/src/pages"
 )
 
+var newPageHandler = siteHandler{
+	URI:         "/json/newPage/",
+	HandlerFunc: newPageJsonHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
 // newPageJsonHandler handles the request.
 func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
-	if !params.U.IsLoggedIn {
-		return pages.HandlerBadRequestFail("Have to be logged in", nil)
-	}
-
-	pageMap := make(map[int64]*core.Page)
-	core.AddPageIdToMap(rand.Int63(), pageMap)
-
-	returnData := createReturnData(pageMap)
-	return pages.StatusOK(returnData)
+	returnData := newHandlerData()
+	core.AddPageIdToMap(rand.Int63(), returnData.PageMap)
+	return pages.StatusOK(returnData.toJson())
 }

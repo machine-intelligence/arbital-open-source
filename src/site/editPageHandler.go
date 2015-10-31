@@ -44,15 +44,19 @@ type editPageData struct {
 	DeleteEdit   bool `json:"-"`
 }
 
-// editPageHandler handles requests to create a new page.
-func editPageHandler(params *pages.HandlerParams) *pages.Result {
-	if !params.U.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Need to be logged in", nil)
-	}
+var editPageHandler = siteHandler{
+	URI:         "/editPage/",
+	HandlerFunc: editPageHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
 
+// editPageHandlerFunc handles requests to create a new page.
+func editPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	decoder := json.NewDecoder(params.R.Body)
 	var data editPageData
+	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
@@ -600,6 +604,5 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	returnData := createReturnData(nil).AddResult(newEditNum)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(nil)
 }

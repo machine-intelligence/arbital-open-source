@@ -23,7 +23,8 @@
 		<div class="panel panel-default">
 		  <div class="panel-heading">
 				<h1 class="panel-title index-page-domain-link">
-					<a href="/domains/{{.DomainAlias}}">{{.DomainName}}</a>
+					<a ng-href="/domains/{[{pageService.pageMap['{{.DomainId}}'].alias}]}"
+						ng-bind="pageService.pageMap['{{.DomainId}}'].title"></a>
 				</h1>
 			</div>
 		  <div class="panel-body">

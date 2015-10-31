@@ -9,6 +9,11 @@ import (
 	"zanaduu3/src/pages"
 )
 
+var groupsHandler = siteHandler{
+	URI:         "/json/groups/",
+	HandlerFunc: groupsJsonHandler,
+}
+
 func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
@@ -19,9 +24,7 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
-	userMap := make(map[int64]*core.User)
-	pageMap := make(map[int64]*core.Page)
-	masteryMap := make(map[int64]*core.Mastery)
+	returnData := newHandlerData()
 
 	// Load the groups and members
 	rows := database.NewQuery(`
@@ -42,14 +45,14 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Add group
-		curGroup := core.AddPageIdToMap(groupId, pageMap)
+		curGroup := core.AddPageIdToMap(groupId, returnData.PageMap)
 		if curGroup.Members == nil {
 			curGroup.Members = make(map[string]*core.Member)
 		}
 
 		// Add member
 		curGroup.Members[fmt.Sprintf("%d", m.UserId)] = &m
-		userMap[m.UserId] = &core.User{Id: m.UserId}
+		returnData.UserMap[m.UserId] = &core.User{Id: m.UserId}
 		return nil
 	})
 	if err != nil {
@@ -57,11 +60,10 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

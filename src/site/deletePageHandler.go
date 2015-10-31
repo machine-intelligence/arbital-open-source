@@ -16,8 +16,17 @@ type deletePageData struct {
 	PageId int64 `json:",string"`
 }
 
-// deletePageHandler handles requests for deleting a page.
-func deletePageHandler(params *pages.HandlerParams) *pages.Result {
+var deletePageHandler = siteHandler{
+	URI:         "/deletePage/",
+	HandlerFunc: deletePageHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
+
+// deletePageHandlerFunc handles requests for deleting a page.
+func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 
@@ -26,13 +35,6 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	err := decoder.Decode(&data)
 	if err != nil || data.PageId == 0 {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
-	}
-	if u.Karma < 200 {
-		return pages.HandlerForbiddenFail("Not enough karma", nil)
 	}
 
 	// Load the page

@@ -121,7 +121,7 @@ app.service("pageService", function(userService, $http){
 	};
 
 	// Primary page is the one that's displayed front and center.
-	this.primaryPage = "{{.PrimaryPageId}}" === "0" ? undefined : this.pageMap["{{.PrimaryPageId}}"];
+	this.primaryPage = undefined;
 	// List of callbacks to notify when primary page changes.
 	this.primaryPageCallbacks = [];
 	// Set the primary page, triggering the callbacks.
@@ -302,8 +302,8 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		parent.isLoadingChildren = true;
-		console.log("Issuing GET request to /json/children/?parentId=" + parent.pageId);
-		$http({method: "GET", url: "/json/children/", params: {parentId: parent.pageId}}).
+		console.log("Issuing POST request to /json/children/?parentId=" + parent.pageId);
+		$http({method: "POST", url: "/json/children/", data: JSON.stringify({parentId: parent.pageId})}).
 			success(function(data, status){
 				parent.isLoadingChildren = false;
 				parent.hasLoadedChildren = true;
@@ -377,8 +377,8 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		child.isLoadingParents = true;
-		console.log("Issuing GET request to /json/parents/?childId=" + child.pageId);
-		$http({method: "GET", url: "/json/parents/", params: {childId: child.pageId}}).
+		console.log("Issuing POST request to /json/parents/?childId=" + child.pageId);
+		$http({method: "POST", url: "/json/parents/", data: JSON.stringify({childId: child.pageId})}).
 			success(function(data, status){
 				child.isLoadingParents = false;
 				child.hasLoadedParents = true;
@@ -456,8 +456,8 @@ app.service("pageService", function(userService, $http){
 		var error = options.error; delete options.error;
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
-		console.log("Issuing a GET request to: /json/edit/?pageAlias=" + options.pageAlias);
-		$http({method: "GET", url: "/json/edit/", params: options}).
+		console.log("Issuing a POST request to: /json/edit/?pageAlias=" + options.pageAlias);
+		$http({method: "POST", url: "/json/edit/", data: JSON.stringify(options)}).
 			success(function(data, status){
 				console.log("JSON /json/edit/ data:"); console.dir(data);
 				if (!skipProcessDataStep) {
@@ -477,7 +477,7 @@ app.service("pageService", function(userService, $http){
 	//	success: callback on success
 	//}
 	this.getNewPage = function(options) {
-		$http({method: "GET", url: "/json/newPage/"}).
+		$http({method: "POST", url: "/json/newPage/"}).
 			success(function(data, status){
 				console.log("JSON /json/newPage/ data:"); console.dir(data);
 				var pageId = Object.keys(data["pages"])[0];
@@ -599,8 +599,9 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		}
 		// Create list of results we can give to autocomplete.
 		var resultList = [];
-		for (var n = 0; n < data.result.hits.length; n++) {
-			var source = data.result.hits[n]._source;
+		var hits = data.result.search.hits;
+		for (var n = 0; n < hits.length; n++) {
+			var source = hits[n]._source;
 			resultList.push({
 				value: source.alias,
 				label: source.pageId,
@@ -608,7 +609,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 				title: source.title,
 				clickbait: source.clickbait,
 				seeGroupId: source.seeGroupId,
-				score: data.result.hits[n]._score,
+				score: hits[n]._score,
 			});
 		}
 		return resultList;
@@ -786,6 +787,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	});
 
 	// ========== Smart loading ==============
+	// Primary page
 	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
@@ -826,6 +828,24 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			$(".global-error").text("An error occured while getting the page. :(").show();
 			document.title = "Error - Arbital";
 		});
+	}
+
+	// Domain index page
+	var pagesPath = /^\/domains\/([A-Za-z0-9]+)\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		document.title = pageService.pageMap[match[1]].title + " - Abital";
+		pageService.domainAlias = match[1];
+		$compile($(".domain-link"))($scope);
+	}
+
+	// Explore index page
+	var pagesPath = /^\/explore\/([A-Za-z0-9]+)\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		document.title = pageService.pageMap[match[1]].title + " - Abital";
+		pageService.domainAlias = match[1];
+		$compile($(".domain-link"))($scope);
 	}
 });
 

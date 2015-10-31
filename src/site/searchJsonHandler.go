@@ -12,9 +12,14 @@ import (
 )
 
 type searchJsonData struct {
-	Term string `json:"term"`
+	Term string
 	// If this is set, only pages of this type will be returned
 	PageType string
+}
+
+var searchHandler = siteHandler{
+	URI:         "/json/search/",
+	HandlerFunc: searchJsonHandler,
 }
 
 // searchJsonHandler handles the request.
@@ -83,7 +88,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 				}
 			}
 		},
-		"_source": ["pageId", "alias", "title", "clickbait", "seeGroupId"]
+		"_source": []
 	}`, escapedTerm, strings.Join(groupIds, ","))
 	return searchJsonInternalHandler(params, jsonStr)
 }
@@ -98,21 +103,19 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		return pages.HandlerErrorFail("Error with elastic search", err)
 	}
 
-	pageMap := make(map[int64]*core.Page)
-	userMap := make(map[int64]*core.User)
-	masteryMap := make(map[int64]*core.Mastery)
+	returnData := newHandlerData()
 
 	// Create page map.
 	for _, hit := range results.Hits.Hits {
-		core.AddPageToMap(hit.Id, pageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap(hit.Id, returnData.PageMap, core.TitlePlusLoadOptions)
 	}
 
 	// Load pages.
-	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
-	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap).AddResult(results.Hits)
-	return pages.StatusOK(returnData)
+	returnData.ResultMap["search"] = results.Hits
+	return pages.StatusOK(returnData.toJson())
 }

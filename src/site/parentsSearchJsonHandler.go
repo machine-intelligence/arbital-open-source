@@ -12,6 +12,11 @@ import (
 	"zanaduu3/src/pages"
 )
 
+var parentsSearchHandler = siteHandler{
+	URI:         "/json/parentsSearch/",
+	HandlerFunc: parentsSearchJsonHandler,
+}
+
 // parentsSearchJsonHandler handles the request.
 func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB

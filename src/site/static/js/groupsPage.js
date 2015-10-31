@@ -13,7 +13,7 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			scope.groupMap = {};
 
 			// Get the data.
-			$http({method: "GET", url: "/json/groups/"}).
+			$http({method: "POST", url: "/json/groups/"}).
 				success(function(data, status){
 					console.log("JSON /groups/ data:"); console.log(data);
 					userService.processServerData(data);

@@ -19,15 +19,19 @@ type newPagePairData struct {
 	Type     string
 }
 
-// newPagePairHandler handles requests for adding a new tag.
-func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
+var newPagePairHandler = siteHandler{
+	URI:         "/newPagePair/",
+	HandlerFunc: newPagePairHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// newPagePairHandlerFunc handles requests for adding a new tag.
+func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
-	}
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data newPagePairData

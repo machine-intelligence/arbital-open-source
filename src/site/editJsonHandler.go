@@ -2,13 +2,12 @@
 package site
 
 import (
+	"encoding/json"
 	"math/rand"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-
-	"github.com/gorilla/schema"
 )
 
 // editJsonData contains parameters passed in via the request.
@@ -19,6 +18,11 @@ type editJsonData struct {
 	CreatedAtLimit string
 }
 
+var editHandler = siteHandler{
+	URI:         "/json/edit/",
+	HandlerFunc: editJsonHandler,
+}
+
 // editJsonHandler handles the request.
 func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
@@ -26,8 +30,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Decode data
 	var data editJsonData
-	params.R.ParseForm()
-	err := schema.NewDecoder().Decode(&data, params.R.Form)
+	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
@@ -60,12 +63,10 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	p.LoadOptions.Add(core.PrimaryEditLoadOptions)
 
 	// Load data
-	userMap := make(map[int64]*core.User)
-	pageMap := make(map[int64]*core.Page)
-	masteryMap := make(map[int64]*core.Mastery)
-	pageMap[p.PageId] = p
-	core.AddPageIdToMap(p.EditGroupId, pageMap)
-	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	returnData := newHandlerData()
+	returnData.PageMap[p.PageId] = p
+	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
@@ -90,10 +91,8 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Remove the primary page from the pageMap and add it to the editMap
-	editMap := make(map[int64]*core.Page)
-	editMap[pageId] = p
-	delete(pageMap, pageId)
+	returnData.EditMap[pageId] = p
+	delete(returnData.PageMap, pageId)
 
-	returnData := createReturnData(pageMap).AddEditMap(editMap).AddUsers(userMap).AddMasteries(masteryMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

@@ -51,7 +51,7 @@ type Page struct {
 	URI       string   // URI path
 	Render    Renderer // func to render the page
 	Templates []string // backing templates
-	Options   *PageOptions
+	Options   PageOptions
 }
 
 // PageOptions specify various requirements we need to check for the page.
@@ -60,12 +60,13 @@ type PageOptions struct {
 	AdminOnly       bool
 	SkipLoadingUser bool
 	RequireLogin    bool
+	MinKarma        int
 }
 
 // Add creates a new page.
 //
 // Add panics if the page templates cannot be parsed.
-func Add(uri string, render Renderer, options *PageOptions, tmpls ...string) Page {
+func Add(uri string, render Renderer, options PageOptions, tmpls ...string) Page {
 	return Page{
 		URI:       uri,
 		Render:    render,

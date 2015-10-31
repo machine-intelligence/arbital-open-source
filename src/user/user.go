@@ -29,15 +29,15 @@ var (
 // Note: this structure is also stored in a cookie.
 type User struct {
 	// DB variables
-	Id           int64  `json:"id,string"`
-	Email        string `json:"email"`
-	FirstName    string `json:"firstName"`
-	LastName     string `json:"lastName"`
-	IsAdmin      bool   `json:"isAdmin"`
-	Karma        int    `json:"karma"`
-	MaxKarmaLock int    `json:"maxKarmaLock"`
-	EmailFrequency int  `json:"emailFrequency"`
-	EmailThreshold int  `json:"emailThreshold"`
+	Id             int64  `json:"id,string"`
+	Email          string `json:"email"`
+	FirstName      string `json:"firstName"`
+	LastName       string `json:"lastName"`
+	IsAdmin        bool   `json:"isAdmin"`
+	Karma          int    `json:"karma"`
+	MaxKarmaLock   int    `json:"maxKarmaLock"`
+	EmailFrequency int    `json:"emailFrequency"`
+	EmailThreshold int    `json:"emailThreshold"`
 
 	// Computed variables
 	IsLoggedIn  bool     `json:"isLoggedIn"`
@@ -46,7 +46,6 @@ type User struct {
 	LogoutLink  string   `json:"logoutLink"`
 	UpdateCount int      `json:"updateCount"`
 	GroupIds    []string `json:"groupIds"`
-	DomainAlias string   `json:"domainAlias"`
 }
 
 func (user *User) FullName() string {

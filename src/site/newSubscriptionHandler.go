@@ -14,8 +14,16 @@ type newSubscriptionData struct {
 	UserId int64 `json:",string"`
 }
 
-// newSubscriptionHandler handles requests for adding a new subscription.
-func newSubscriptionHandler(params *pages.HandlerParams) *pages.Result {
+var newSubscriptionHandler = siteHandler{
+	URI:         "/newSubscription/",
+	HandlerFunc: newSubscriptionHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// newSubscriptionHandlerFunc handles requests for adding a new subscription.
+func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
@@ -24,10 +32,6 @@ func newSubscriptionHandler(params *pages.HandlerParams) *pages.Result {
 	err := decoder.Decode(&data)
 	if err != nil || (data.PageId == 0 && data.UserId == 0) {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
 	}
 
 	if data.PageId > 0 {

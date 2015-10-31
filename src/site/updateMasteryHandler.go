@@ -14,8 +14,16 @@ type updateMasteryData struct {
 	Has       bool
 }
 
-// updateMasteryHandler handles requests for adding a new subscription.
-func updateMasteryHandler(params *pages.HandlerParams) *pages.Result {
+var updateMasteryHandler = siteHandler{
+	URI:         "/updateMastery/",
+	HandlerFunc: updateMasteryHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// updateMasteryHandlerFunc handles requests for adding a new subscription.
+func updateMasteryHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
@@ -27,10 +35,6 @@ func updateMasteryHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.MasteryId == 0 {
 		return pages.HandlerBadRequestFail("Mastery id has to be set", err)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
 	}
 
 	hashmap := make(map[string]interface{})

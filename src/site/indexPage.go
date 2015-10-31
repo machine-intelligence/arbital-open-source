@@ -7,10 +7,9 @@ import (
 )
 
 type featuredDomain struct {
-	DomainAlias string
-	DomainName  string
-	ImageUrl    string
-	ChildIds    []int64
+	DomainId int64
+	ImageUrl string
+	ChildIds []int64
 }
 
 // indexTmplData stores the data that we pass to the index.tmpl to render the page
@@ -39,9 +38,8 @@ func indexRenderer(params *pages.HandlerParams) *pages.Result {
 	// Manually load some pages we like
 	data.FeaturedDomains = append(data.FeaturedDomains,
 		&featuredDomain{
-			DomainAlias: "vat",
-			DomainName:  "Value Alignment Theory",
-			ImageUrl:    "/static/images/vatIndexLogo.png",
+			DomainId: 8639103000879599414,
+			ImageUrl: "/static/images/vatIndexLogo.png",
 			ChildIds: []int64{
 				8639103000879599414, // VAT
 				4213693741839491939, // List: value alignment subjects
@@ -53,9 +51,8 @@ func indexRenderer(params *pages.HandlerParams) *pages.Result {
 				6053065048861201341, // Diamond maximizer
 			},
 		}, &featuredDomain{
-			DomainAlias: "arbital",
-			DomainName:  "Arbital",
-			ImageUrl:    "/static/images/arbitalIndexLogo.png",
+			DomainId: 3560540392275264633,
+			ImageUrl: "/static/images/arbitalIndexLogo.png",
 			ChildIds: []int64{
 				3560540392275264633, // What is Arbital
 				8992241719442104138, // Page hierarchy

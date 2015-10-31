@@ -156,13 +156,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
 				}
 				if (isSnapshot) {
-					var editNum = r.result;
-					// Update prevEdit
-					$form.find(".prev-edit").val(editNum);
 					// Prevent an autosave from triggering right after a successful snapshot
 					prevEditPageData.isSnapshot = false;
 					prevEditPageData.isAutosave = true;
-					prevEditPageData.prevEdit = editNum;
 					data.__invisibleSubmit = true; 
 				}
 				callback(true);

@@ -2,15 +2,20 @@
 package site
 
 import (
+	"encoding/json"
+
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
-
-	"github.com/gorilla/schema"
 )
 
 // childrenJsonData contains parameters passed in to create a page.
 type childrenJsonData struct {
-	ParentId int64
+	ParentId int64 `json:",string"`
+}
+
+var childrenHandler = siteHandler{
+	URI:         "/json/children/",
+	HandlerFunc: childrenJsonHandler,
 }
 
 // childrenJsonHandler handles requests to create a new page.
@@ -20,8 +25,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Decode data
 	var data childrenJsonData
-	params.R.ParseForm()
-	err := schema.NewDecoder().Decode(&data, params.R.Form)
+	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
@@ -29,24 +33,21 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Need a valid parentId", err)
 	}
 
-	// Load the children.
-	pageMap := make(map[int64]*core.Page)
-	userMap := make(map[int64]*core.User)
-	masteryMap := make(map[int64]*core.Mastery)
+	returnData := newHandlerData()
 
+	// Load the children.
 	loadOptions := (&core.PageLoadOptions{
 		Children:                true,
 		HasGrandChildren:        true,
 		RedLinkCountForChildren: true,
 	}).Add(core.TitlePlusLoadOptions)
-	core.AddPageToMap(data.ParentId, pageMap, loadOptions)
-	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	core.AddPageToMap(data.ParentId, returnData.PageMap, loadOptions)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline failed", err)
+		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 	// Remove parent, since we only want to return children.
-	delete(pageMap, data.ParentId)
+	delete(returnData.PageMap, data.ParentId)
 
-	returnData := createReturnData(pageMap).AddUsers(userMap).AddMasteries(masteryMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

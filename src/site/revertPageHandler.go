@@ -18,8 +18,17 @@ type revertPageData struct {
 	EditNum int
 }
 
-// revertPageHandler handles requests for deleting a page.
-func revertPageHandler(params *pages.HandlerParams) *pages.Result {
+var revertPageHandler = siteHandler{
+	URI:         "/revertPage/",
+	HandlerFunc: revertPageHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
+
+// revertPageHandlerFunc handles requests for deleting a page.
+func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
@@ -28,10 +37,6 @@ func revertPageHandler(params *pages.HandlerParams) *pages.Result {
 	err := decoder.Decode(&data)
 	if err != nil || data.PageId == 0 {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Need to be logged in", nil)
 	}
 
 	// Load the page
