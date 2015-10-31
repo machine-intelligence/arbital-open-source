@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
 )
@@ -30,6 +31,9 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	if !u.IsLoggedIn {
 		return pages.HandlerForbiddenFail("Have to be logged in", nil)
 	}
+	if u.Karma < 200 {
+		return pages.HandlerForbiddenFail("Not enough karma", nil)
+	}
 
 	// Load the page
 	pageMap := make(map[int64]*core.Page)
@@ -41,6 +45,30 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	if page == nil || page.Type == core.DeletedPageType {
 		// Looks like there is no need to delete this page.
 		return pages.StatusOK(nil)
+	}
+
+	// Delete all pairs
+	rows := database.NewQuery(`
+		SELECT parentId,childId,type
+		FROM pagePairs
+		WHERE parentId=? OR childId=?`, data.PageId, data.PageId).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var parentId, childId int64
+		var pairType string
+		err := rows.Scan(&parentId, &childId, &pairType)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+			return deletePagePair(tx, u.Id, parentId, childId, pairType)
+		})
+		if errMessage != "" {
+			return fmt.Errorf("%s: %v", errMessage, err)
+		}
+		return nil
+	})
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't load pairs: %v", err)
 	}
 
 	// Create a task to propagate the domain change to all children

@@ -498,7 +498,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 	summarySelect := database.NewQuery(`IF(pageId IN`).AddIdsGroup(summaryIds).Add(`,summary,"") AS summary`)
 
 	// Load the page data
-	statement := database.NewQuery(`
+	rows := database.NewQuery(`
 		SELECT pageId,edit,type,creatorId,createdAt,title,clickbait,`).AddPart(textSelect).Add(`,
 			length(text),metaText,editKarmaLock,hasVote,voteType,`).AddPart(summarySelect).Add(`,
 			alias,sortChildrenBy,seeGroupId,editGroupId,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
@@ -506,8 +506,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 		FROM pages
 		WHERE isCurrentEdit AND pageId IN`).AddArgsGroup(pageIds).Add(`
 			AND (seeGroupId=0 OR seeGroupId IN`).AddIdsGroupStr(user.GroupIds).Add(`)
-		`).ToStatement(db)
-	rows := statement.Query()
+		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p corePageData
 		err := rows.Scan(

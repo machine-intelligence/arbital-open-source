@@ -57,46 +57,7 @@ func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Do it!
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		// Delete the pair
-		query := tx.NewTxStatement(`
-			DELETE FROM pagePairs
-			WHERE parentId=? AND childId=? AND type=?`)
-		if _, err := query.Exec(data.ParentId, data.ChildId, data.Type); err != nil {
-			return "Couldn't delete a page pair", err
-		}
-
-		// Update change log
-		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.ParentId
-		hashmap["auxPageId"] = data.ChildId
-		hashmap["userId"] = u.Id
-		hashmap["edit"] = parent.Edit
-		hashmap["createdAt"] = database.Now()
-		hashmap["type"] = map[string]string{
-			core.ParentPagePairType:      core.DeleteChildChangeLog,
-			core.TagPagePairType:         core.DeleteTagTargetChangeLog,
-			core.RequirementPagePairType: core.DeleteRequiredForChangeLog,
-		}[data.Type]
-		statement := tx.NewInsertTxStatement("changeLogs", hashmap)
-		if _, err = statement.Exec(); err != nil {
-			return "Couldn't insert new child change log", err
-		}
-		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = data.ChildId
-		hashmap["auxPageId"] = data.ParentId
-		hashmap["userId"] = u.Id
-		hashmap["edit"] = child.Edit
-		hashmap["createdAt"] = database.Now()
-		hashmap["type"] = map[string]string{
-			core.ParentPagePairType:      core.DeleteParentChangeLog,
-			core.TagPagePairType:         core.DeleteTagChangeLog,
-			core.RequirementPagePairType: core.DeleteRequirementChangeLog,
-		}[data.Type]
-		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
-		if _, err = statement.Exec(); err != nil {
-			return "Couldn't insert new child change log", err
-		}
-		return "", nil
+		return deletePagePair(tx, u.Id, parent.PageId, child.PageId, data.Type)
 	})
 	if err != nil {
 		return pages.HandlerErrorFail(errMessage, err)
@@ -113,4 +74,47 @@ func deletePagePairHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 	return pages.StatusOK(nil)
+}
+
+// deletePagePair deletes the parent-child pagePair of the given type.
+func deletePagePair(tx *database.Tx, userId, parentId, childId int64, pairType string) (string, error) {
+	// Delete the pair
+	query := tx.NewTxStatement(`
+			DELETE FROM pagePairs
+			WHERE parentId=? AND childId=? AND type=?`)
+	if _, err := query.Exec(parentId, childId, pairType); err != nil {
+		return "Couldn't delete a page pair", err
+	}
+
+	// Update change log
+	hashmap := make(database.InsertMap)
+	hashmap["pageId"] = parentId
+	hashmap["auxPageId"] = childId
+	hashmap["userId"] = userId
+	hashmap["createdAt"] = database.Now()
+	hashmap["type"] = map[string]string{
+		core.ParentPagePairType:      core.DeleteChildChangeLog,
+		core.TagPagePairType:         core.DeleteTagTargetChangeLog,
+		core.RequirementPagePairType: core.DeleteRequiredForChangeLog,
+	}[pairType]
+	statement := tx.NewInsertTxStatement("changeLogs", hashmap)
+	if _, err := statement.Exec(); err != nil {
+		return "Couldn't insert new child change log", err
+	}
+
+	hashmap = make(database.InsertMap)
+	hashmap["pageId"] = childId
+	hashmap["auxPageId"] = parentId
+	hashmap["userId"] = userId
+	hashmap["createdAt"] = database.Now()
+	hashmap["type"] = map[string]string{
+		core.ParentPagePairType:      core.DeleteParentChangeLog,
+		core.TagPagePairType:         core.DeleteTagChangeLog,
+		core.RequirementPagePairType: core.DeleteRequirementChangeLog,
+	}[pairType]
+	statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+	if _, err := statement.Exec(); err != nil {
+		return "Couldn't insert new child change log", err
+	}
+	return "", nil
 }

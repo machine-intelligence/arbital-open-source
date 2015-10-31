@@ -71,7 +71,8 @@
 								ng-href="{[{pageService.getPageUrl(changeLog.auxPageid)}]}"
 								ng-bind="changeLog.type"></a>
 					</span>
-					(edit #{[{changeLog.edit}]}) by
+					<span ng-show="changeLog.edit != 0">(edit #{[{changeLog.edit}]})</span>
+					by
 
 					<span ng-show="userService.user.id === changeLog.userId">you</span>
 					<span ng-show="userService.user.id !== changeLog.userId">
