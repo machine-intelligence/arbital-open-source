@@ -49,6 +49,7 @@ var editPageHandler = siteHandler{
 	HandlerFunc: editPageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
+		MinKarma:     200,
 	},
 }
 

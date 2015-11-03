@@ -20,6 +20,7 @@ var deleteMemberHandler = siteHandler{
 	HandlerFunc: deleteMemberHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
+		MinKarma:     200,
 	},
 }
 

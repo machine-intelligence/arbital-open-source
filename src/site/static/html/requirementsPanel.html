@@ -19,6 +19,9 @@
 			</span>
 			<arb-likes-page-title page-id="{[{requirementId}]}" show-clickbait="true"></arb-likes-page-title>
 		</div>
-		<input type="text" class="tag-input form-control" placeholder="Enter new mastery requirement">
+		<input type="text"
+				class="tag-input form-control"
+				placeholder="Enter new mastery requirement"
+				ng-show="userService.userIsCool()">
 	</div>
 </div>

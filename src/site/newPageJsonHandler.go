@@ -13,6 +13,7 @@ var newPageHandler = siteHandler{
 	HandlerFunc: newPageJsonHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
+		MinKarma:     200,
 	},
 }
 

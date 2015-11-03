@@ -19,6 +19,7 @@ var abandonPageHandler = siteHandler{
 	HandlerFunc: abandonPageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
+		MinKarma:     200,
 	},
 }
 

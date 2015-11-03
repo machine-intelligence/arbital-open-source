@@ -24,6 +24,7 @@ var newPagePairHandler = siteHandler{
 	HandlerFunc: newPagePairHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
+		MinKarma:     200,
 	},
 }
 

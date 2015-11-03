@@ -7,4 +7,7 @@
 		ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
 	<arb-likes-page-title page-id="{[{pageId}]}" show-clickbait="true"></arb-likes-page-title>
 </div>
-<input type="text" class="tag-input form-control" placeholder="Enter new tag">
+<input type="text"
+		class="tag-input form-control"
+		placeholder="Enter new tag"
+		ng-show="userService.userIsCool()">

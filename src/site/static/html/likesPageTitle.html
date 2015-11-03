@@ -20,7 +20,7 @@
 	</span>
 
 	<!-- Link to quickly edit the page -->
-	<span class="quick-edit-span" ng-show="showQuickEditLink">
+	<span class="quick-edit-span" ng-show="showQuickEditLink && userService.userIsCool()">
 		<a ng-href="{[{page.editUrl()}]}" class="edit-page-link glyphicon glyphicon-pencil"></a>
 	</span>
 

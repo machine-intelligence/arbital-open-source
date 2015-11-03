@@ -31,6 +31,11 @@ app.service("userService", function(){
 	};
 	console.log("Initial user map:"); console.dir(this.userMap);
 
+	// Check if we can let this user do stuff.
+	this.userIsCool = function() {
+		return this.user.karma >= 200;
+	};
+
 	// Return url to the user page.
 	this.getUserUrl = function(userId) {
 		return "/user/" + userId;
@@ -178,11 +183,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
-			var karmaReq = this.editKarmaLock;
-			var editPageKarmaReq = 10; // TODO: fix this
-			if (karmaReq < editPageKarmaReq && this.wasPublished) {
-				karmaReq = editPageKarmaReq
-			}
+			var karmaReq = 200; // TODO: fix this
 			if (userService.user.karma < karmaReq) {
 				if (userService.user.isAdmin) {
 					// Can edit but only because user is an admin.
@@ -195,11 +196,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
 		getDeleteLevel: function() {
-			var karmaReq = this.editKarmaLock;
-			var deletePageKarmaReq = 200; // TODO: fix this
-			if (karmaReq < deletePageKarmaReq) {
-				karmaReq = deletePageKarmaReq;
-			}
+			var karmaReq = 200; // TODO: fix this
 			if (userService.user.karma < karmaReq) {
 				if (userService.user.isAdmin) {
 					return "admin";

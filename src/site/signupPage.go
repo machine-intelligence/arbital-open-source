@@ -61,8 +61,6 @@ func signupRenderer(params *pages.HandlerParams) *pages.Result {
 		karma := 0
 		if inviteCode == "TRUTH" {
 			karma = 200
-		} else {
-			return pages.Fail("Need invite code", nil)
 		}
 		if data.User.Karma > karma {
 			karma = data.User.Karma

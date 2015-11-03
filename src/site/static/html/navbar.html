@@ -8,7 +8,7 @@
 			<a ng-href="/explore/{[{pageService.domainAlias}]}" class="navbar-link">Explore</a>
 		</div>
 		<ul class="nav navbar-nav navbar-right">
-				<li ng-show="user.isLoggedIn">
+				<li ng-show="user.isLoggedIn && userService.userIsCool()">
 					<a href="/edit">+New Page</a>
 				</li>
 				<li ng-show="user.isLoggedIn">
