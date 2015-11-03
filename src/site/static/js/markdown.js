@@ -17,7 +17,7 @@ var complexLinkRegexp = new RegExp(noBacktickOrBracket +
 // [text](url)
 var urlLinkRegexp = new RegExp(noBacktickOrBracket + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
-		"\\((http://" + RegExp.escape(window.location.host) + "/pages/)([A-Za-z0-9_-]+?)\\)", "g"); // match (Url)
+		"\\((http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch + "\\)", "g"); // match (Url)
 // [@alias]
 var atAliasRegexp = new RegExp(noBacktickOrBracket + 
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");

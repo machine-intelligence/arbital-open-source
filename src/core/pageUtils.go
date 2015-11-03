@@ -219,9 +219,14 @@ func ExtractSummary(text string) string {
 
 // ExtractTodoCount extracts the number of todos from a page text.
 func ExtractTodoCount(text string) int {
+	// Match [todo: text]
 	re := regexp.MustCompile("\\[todo: ?[^\\]]*\\]")
 	submatches := re.FindAllString(text, -1)
-	return len(submatches)
+	todoCount := len(submatches)
+	// Match [ red link text]
+	re = regexp.MustCompile("\\[ [^\\]]+\\]")
+	submatches = re.FindAllString(text, -1)
+	return todoCount + len(submatches)
 }
 
 // GetPageUrl returns the domain relative url for accessing the given page.

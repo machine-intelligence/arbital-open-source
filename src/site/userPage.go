@@ -69,6 +69,10 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't retrieve subscription", err)
 	}
 
+	pageOptions := (&core.PageLoadOptions{
+		RedLinkCount: true,
+	}).Add(core.TitlePlusLoadOptions)
+
 	// Load recently created by me page ids.
 	rows := db.NewStatement(`
 		SELECT p.pageId
@@ -81,7 +85,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -98,7 +102,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE maxEdit>minEdit
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
@@ -140,27 +144,21 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		rows = db.NewStatement(`
 			SELECT l.parentId
 			FROM (
-				SELECT l.parentId AS parentId,l.childAlias AS childAlias
+				SELECT l.parentId AS parentId,l.childAlias AS childAlias,p.todoCount AS parentTodoCount
 				FROM links AS l
 				JOIN pages AS p
 				ON (l.parentId=p.pageId)
 				WHERE p.creatorId=? AND p.type!="comment" AND p.isCurrentEdit
 			) AS l
 			LEFT JOIN pages AS p
-			ON (l.childAlias=p.alias)
+			ON (l.childAlias=p.alias OR l.childAlias=p.pageId)
 			GROUP BY 1
-			ORDER BY SUM(IF(p.pageId IS NULL, 1, 0)) DESC
+			ORDER BY (SUM(ISNULL(p.pageId)) + max(l.parentTodoCount)) DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.MostTodosIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+		data.MostTodosIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
 		if err != nil {
 			return pages.Fail("error while loading most todos page ids", err)
 		}
-	}
-
-	// Load number of red links for recently edited pages.
-	err = core.LoadRedLinkCount(db, data.PageMap)
-	if err != nil {
-		return pages.Fail("error while loading links", err)
 	}
 
 	// Load recently edited by me comment ids
@@ -192,7 +190,7 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 			) AS v
 			ORDER BY v.createdAt DESC
 			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.RecentlyVisitedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+		data.RecentlyVisitedIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
 		if err != nil {
 			return pages.Fail("error while loading recently visited page ids", err)
 		}
