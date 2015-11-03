@@ -102,8 +102,8 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			autocompleteService.findSimilarPages(data, function(data){
 				$similarPages.empty();
 				for (var n = 0; n < data.length; n++) {
-					var pageId = data[n].value;
-					if (pageId === page.alias) continue;
+					var pageId = data[n].label;
+					if (pageId === page.pageId) continue;
 					var $el = $compile("<span class='admin' ng-show='userService.user.isAdmin'>" + data[n].score + "</span>" +
 						"<div arb-likes-page-title page-id='" + pageId +
 						"' show-clickbait='true'></div>")(scope);

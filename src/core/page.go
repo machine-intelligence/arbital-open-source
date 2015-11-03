@@ -663,6 +663,9 @@ func LoadPageIds(rows *database.Rows, pageMap map[int64]*Page, loadOptions *Page
 // LoadChildDrafts loads a potentially existing draft for the given page. If it's
 // loaded, it'll be added to the given map.
 func LoadChildDrafts(db *database.DB, userId int64, options *LoadDataOptions) error {
+	if len(options.ForPages) > 1 {
+		db.C.Warningf("LoadChildDrafts called with more than one page")
+	}
 	for _, p := range options.ForPages {
 		row := database.NewQuery(`
 				SELECT a.pageId
@@ -1224,6 +1227,9 @@ func loadSiblingId(db *database.DB, pageId int64, useNextSibling bool) (int64, e
 // LoadNextPrevPageIds loads the pages that come before / after the given page
 // in the reading sequence.
 func LoadNextPrevPageIds(db *database.DB, userId int64, options *LoadDataOptions) error {
+	if len(options.ForPages) > 1 {
+		db.C.Warningf("LoadNextPrevPageIds called with more than one page")
+	}
 	for _, p := range options.ForPages {
 		var err error
 		p.PrevPageId, err = loadSiblingId(db, p.PageId, false)

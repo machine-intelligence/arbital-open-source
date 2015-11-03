@@ -235,6 +235,7 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 		
 			// Add edit page for the answer.
 			if (scope.page.type === "question") {
+				// Callback for when we are done with editing the answer.
 				scope.answerDoneFn = function(result) {
 					if (result.abandon) {
 						getNewAnswerId();
@@ -244,15 +245,17 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 					}
 				};
 		
-				var createAnswerEditPage = function(page) {
+				// Create the edit answer form
+				var createAnswerEditPage = function(answerId) {
 					var el = $compile("<arb-find-answer></arb-find-answer>")(scope);
 					$(".new-answer").append(el);
 		
-					el = $compile("<arb-edit-page page-id='" + page.pageId +
+					el = $compile("<arb-edit-page page-id='" + answerId +
 						"' primary-page-id='" + scope.page.pageId +
 						"' done-fn='answerDoneFn(result)'></arb-edit-page>")(scope);
 					$(".new-answer").append(el);
 				};
+				// Request a new page id from the server, and then create a new edit answer form
 				var getNewAnswerId = function() {
 					$(".new-answer").find("arb-edit-page").remove();
 					pageService.getNewPage({
@@ -261,12 +264,18 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 							page.group = $.extend({}, scope.page.group);
 							page.type = "answer";
 							page.parents = [{parentId: scope.page.pageId, childId: page.pageId}];
-							createAnswerEditPage(page);
+							createAnswerEditPage(newPageId);
 						},
 					});
 				};
 				if (scope.page.childDraftId > 0) {
-					createAnswerEditPage(pageService.pageMap[scope.page.childDraftId]);
+					// Load the edit to resume editing it
+					pageService.loadEdit({
+						pageAlias: scope.page.childDraftId,
+						success: function(data, status) {
+							createAnswerEditPage(scope.page.childDraftId);
+						},
+					});
 				} else {
 					getNewAnswerId();
 				}
