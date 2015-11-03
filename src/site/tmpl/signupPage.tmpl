@@ -3,31 +3,49 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<title>Sign up - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
+	{{template "angular" .}}
+	<script src="/static/js/signupPage.js"></script>
 </head>
 
-<body>
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
 
 <div class="signup-body-div">
-	<form method="GET" action="/signup/" class="signup-form form-horizontal">
+	<form class="signup-form form-horizontal">
 		<div class="form-group">
 			<h3 class="form-control-static col-sm-8 col-sm-offset-4">Sign Up</h3>
 		</div>
 		<div class="form-group">
 			<label class="control-label col-sm-4">Email</label>
-			<p class="form-control-static col-sm-8">{{.User.Email}}</p>
+			<p class="form-control-static col-sm-8" ng-bind="userService.user.email"></p>
+			<input name="email"
+					type="text"
+					ng-model="userService.user.email"
+					required="true"
+					hidden/>
 		</div>
 		<div class="form-group">
 			<label class="control-label col-sm-4">First Name</label>
 			<div class="col-sm-8">
-				<input name="firstName" type="text" class="form-control" value="{{.User.FirstName}}" required="true" placeholder="First Name"/>
+				<input name="firstName"
+						type="text"
+						class="form-control"
+						ng-model="userService.user.firstName"
+						required="true"
+						placeholder="First Name"/>
 			</div>
 		</div>
 		<div class="form-group">
 			<label class="control-label col-sm-4">Last Name</label>
 			<div class="col-sm-8">
-				<input name="lastName" type="text" class="form-control" value="{{.User.LastName}}" required="true" placeholder="Last Name"/>
+				<input name="lastName"
+						type="text"
+						class="form-control"
+						ng-model="userService.user.lastName"
+						required="true"
+						placeholder="Last Name"/>
 			</div>
 		</div>
 		<div class="form-group">
@@ -37,7 +55,11 @@
 			</div>
 		</div>
 		<input name="continueUrl" type="hidden" value="{{.ContinueUrl}}"/>
-		<button name="action" type="submit" class="btn btn-primary pull-right">Sign Up</button>
+
+		<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
+		<button name="action" type="submit" class="submit-form btn btn-primary pull-right" toggle-on-submit>Sign Up</button>
+		<div class="clearfix"></div>
+		<div class="submit-form-error alert alert-danger" hidden></div>
 	</form>
 </div>
 

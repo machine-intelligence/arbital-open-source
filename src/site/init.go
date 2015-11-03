@@ -84,6 +84,7 @@ func init() {
 	r.HandleFunc(newSubscriptionHandler.URI, handlerWrapper(newSubscriptionHandler)).Methods("POST")
 	r.HandleFunc(newVoteHandler.URI, handlerWrapper(newVoteHandler)).Methods("POST")
 	r.HandleFunc(revertPageHandler.URI, handlerWrapper(revertPageHandler)).Methods("POST")
+	r.HandleFunc(signupHandler.URI, handlerWrapper(signupHandler)).Methods("POST")
 	r.HandleFunc(updateMasteryHandler.URI, handlerWrapper(updateMasteryHandler)).Methods("POST")
 	r.HandleFunc(updateMemberHandler.URI, handlerWrapper(updateMemberHandler)).Methods("POST")
 	r.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")

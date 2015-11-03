@@ -57,6 +57,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				}
 			}
 		}()
+
 		// Open DB connection
 		db, err := database.GetDB(c)
 		if err != nil {
@@ -97,7 +98,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		result := h.HandlerFunc(&pages.HandlerParams{W: w, R: r, C: c, DB: db, U: u})
-		if result.ResponseCode != http.StatusOK {
+		if result.ResponseCode != http.StatusOK && result.ResponseCode != http.StatusSeeOther {
 			fail(result.ResponseCode, result.Message, result.Err)
 			return
 		}

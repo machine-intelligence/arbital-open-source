@@ -158,7 +158,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 
 		// Call the page's renderer
 		result := p.Render(&params)
-		if result.Data == nil {
+		if result.ResponseCode != http.StatusOK && result.ResponseCode != http.StatusSeeOther {
 			c.Errorf("Primary renderer failed")
 			fail(result.ResponseCode, result.Message, result.Err)
 			return

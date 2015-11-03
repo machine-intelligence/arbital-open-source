@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Edit Page</title>
+	<title>Edit Page - Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
@@ -18,7 +18,7 @@
 			var createEditPage = function() {
 				var page = pageService.editMap[pageId];
 				pageService.setPrimaryPage(page);
-				document.title = "Edit - " + (page.title ? page.title : "New Page") + " - Abital";
+				document.title = "Edit " + (page.title ? page.title : "New Page") + " - Abital";
 				var el = $compile("<arb-edit-page page-id='" + pageId + "' done-fn='doneFn(result)'></arb-edit-page>")($scope);
 				$(".new-page-body-div").append(el);
 			};
