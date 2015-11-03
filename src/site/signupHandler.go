@@ -44,7 +44,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if len(data.Email) <= 0 || len(data.FirstName) <= 0 || len(data.LastName) <= 0 {
-		return pages.HandlerBadRequestFail("Must specify email, first and last names", nil)
+		return pages.HandlerBadRequestFail("Must specify email, first and last names.", nil)
 	}
 	nameRegexp := regexp.MustCompile("^[A-Za-z]+$")
 	if !nameRegexp.MatchString(data.FirstName) || !nameRegexp.MatchString(data.LastName) {
@@ -125,6 +125,5 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.ContinueUrl == "" {
 		data.ContinueUrl = "/"
 	}
-	params.C.Debugf("======================================")
 	return pages.RedirectWith(data.ContinueUrl)
 }
