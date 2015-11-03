@@ -243,7 +243,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if data.SeeGroupId > 0 {
+		if data.SeeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
 			tempPageMap := map[int64]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {

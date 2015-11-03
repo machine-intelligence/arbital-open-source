@@ -705,6 +705,8 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			scope.isComment = scope.page.type === "comment";
 			scope.isLens = scope.page.type === "lens";
 			scope.isSecondary = scope.isQuestion || scope.isComment;
+			scope.isGroup = scope.page.type === "group" || scope.page.type === "domain";
+			scope.isFixedType = scope.isSecondary || scope.isGroup;
 			scope.useVerticalView = scope.isModal;
 			scope.lockExists = scope.page.lockedBy != "0" && moment.utc(scope.page.lockedUntil).isAfter(moment.utc());
 			scope.lockedByAnother = scope.lockExists && scope.page.lockedBy !== userService.user.id;

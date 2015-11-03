@@ -33,8 +33,11 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data deletePageData
 	err := decoder.Decode(&data)
-	if err != nil || data.PageId == 0 {
+	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+	}
+	if data.PageId == 0 {
+		return pages.HandlerBadRequestFail("PageId isn't set", nil)
 	}
 
 	// Load the page
@@ -47,6 +50,11 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if page == nil || page.Type == core.DeletedPageType {
 		// Looks like there is no need to delete this page.
 		return pages.StatusOK(nil)
+	}
+	if page.Type == core.GroupPageType || page.Type == core.DomainPageType {
+		if !u.IsAdmin {
+			return pages.HandlerForbiddenFail("Have to be an admin to delete a group/domain", nil)
+		}
 	}
 
 	// Delete all pairs
