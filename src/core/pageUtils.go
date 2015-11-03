@@ -200,6 +200,9 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 func GetPageLockedUntilTime() string {
 	return time.Now().UTC().Add(PageLockDuration * time.Second).Format(database.TimeLayout)
 }
+func GetPageQuickLockedUntilTime() string {
+	return time.Now().UTC().Add(PageQuickLockDuration * time.Second).Format(database.TimeLayout)
+}
 
 // ExtractSummary extracts the summary text from a page text.
 func ExtractSummary(text string) string {

@@ -80,7 +80,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 			hashmap["createdAt"] = database.Now()
 			hashmap["currentEdit"] = -1
 			hashmap["lockedBy"] = u.Id
-			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
+			hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 			statement := db.NewInsertStatement("pageInfos", hashmap, "lockedBy", "lockedUntil")
 			if _, err = statement.Exec(); err != nil {
 				return pages.Fail("Couldn't add a lock: %v", err)

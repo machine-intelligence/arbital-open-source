@@ -55,7 +55,8 @@ const (
 	NewSnapshotChangeLog       = "newSnapshot"
 
 	// How long the page lock lasts
-	PageLockDuration = 30 * 60 // in seconds
+	PageQuickLockDuration = 60      // in seconds
+	PageLockDuration      = 30 * 60 // in seconds
 
 	// String that can be used inside a regexp to match an a page alias or id
 	AliasRegexpStr = "[A-Za-z0-9.]+"
