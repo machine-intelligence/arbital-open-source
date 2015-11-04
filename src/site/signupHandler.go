@@ -116,7 +116,13 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Create new group for the user.
 		fullName := fmt.Sprintf("%s %s", data.FirstName, data.LastName)
-		return core.NewUserGroup(tx, u.Id, fullName, alias)
+		errorMessage, err := core.NewUserGroup(tx, u.Id, fullName, alias)
+		if errorMessage != "" {
+			return errorMessage, err
+		}
+
+		// Signup for that page
+		return addSubscriptionToUser(tx, u.Id, u.Id)
 	})
 	if errMessage != "" {
 		return pages.HandlerErrorFail(errMessage, err)

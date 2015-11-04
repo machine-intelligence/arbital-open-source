@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"zanaduu3/src/database"
+	"zanaduu3/src/elastic"
 	"zanaduu3/src/user"
 )
 
@@ -80,6 +81,7 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 	hashmap["type"] = groupType
 	hashmap["clickbait"] = clickbait
 	hashmap["isCurrentEdit"] = true
+	hashmap["sortChildrenBy"] = AlphabeticalChildSortingOption
 	if groupType == GroupPageType {
 		hashmap["editGroupId"] = groupId
 	}
@@ -113,6 +115,21 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't add user to the group", err
 		}
+	}
+
+	// Update elastic search index.
+	doc := &elastic.Document{
+		PageId:    groupId,
+		Type:      groupType,
+		Title:     title,
+		Clickbait: clickbait,
+		Text:      "",
+		Alias:     alias,
+		CreatorId: userId,
+	}
+	err := elastic.AddPageToIndex(tx.DB.C, doc)
+	if err != nil {
+		return "Failed to update index", err
 	}
 	return "", nil
 }

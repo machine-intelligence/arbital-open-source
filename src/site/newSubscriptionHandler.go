@@ -34,31 +34,35 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 
-	if data.PageId > 0 {
-		err = addSubscriptionToPage(db, u.Id, data.PageId)
-	} else if data.UserId > 0 {
-		err = addSubscriptionToUser(db, u.Id, data.UserId)
-	}
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't create new subscription", err)
+	errorMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		if data.PageId > 0 {
+			return addSubscriptionToPage(tx, u.Id, data.PageId)
+		}
+		return addSubscriptionToUser(tx, u.Id, data.UserId)
+	})
+	if errorMessage != "" {
+		return pages.HandlerErrorFail(errorMessage, err)
 	}
 	return pages.StatusOK(nil)
 }
 
-func addSubscriptionToPage(db *database.DB, userId int64, pageId int64) error {
-	hashmap := map[string]interface{}{"toPageId": pageId}
-	return addSubscription(db, hashmap, userId)
+func addSubscriptionToPage(tx *database.Tx, userId int64, toPageId int64) (string, error) {
+	hashmap := map[string]interface{}{"toPageId": toPageId}
+	return addSubscription(tx, hashmap, userId)
 }
 
-func addSubscriptionToUser(db *database.DB, userId int64, toUserId int64) error {
+func addSubscriptionToUser(tx *database.Tx, userId int64, toUserId int64) (string, error) {
 	hashmap := map[string]interface{}{"toUserId": toUserId}
-	return addSubscription(db, hashmap, userId)
+	return addSubscription(tx, hashmap, userId)
 }
 
-func addSubscription(db *database.DB, hashmap map[string]interface{}, userId int64) error {
+func addSubscription(tx *database.Tx, hashmap map[string]interface{}, userId int64) (string, error) {
 	hashmap["userId"] = userId
 	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("subscriptions", hashmap, "userId")
+	statement := tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
 	_, err := statement.Exec()
-	return err
+	if err != nil {
+		return "Couldn't subscribe", err
+	}
+	return "", nil
 }
