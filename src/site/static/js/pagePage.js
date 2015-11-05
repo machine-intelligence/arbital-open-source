@@ -109,8 +109,8 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.$compile = $compile;
-			scope.answerIds = [];
 			scope.page = pageService.primaryPage;
+			scope.answerIds = scope.page.answerIds || [];
 		
 			// Set up children pages and question ids.
 			scope.initialChildren = {};
@@ -121,12 +121,8 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 				if (!page) {
 					continue;
 				}
-				if (page.type === "question") {
-					// Do nothing, process them in pageController.
-				} else if (page.type === "answer") {
-					scope.answerIds.push(id);
-				} else if (page.type === "comment" || page.type === "lens") {
-					// do nothing
+				if (page.type === "question" || page.type === "comment" || page.type === "lens") {
+					// Do nothing
 				} else {
 					scope.initialChildren[id] = page;
 					scope.initialChildrenCount++;

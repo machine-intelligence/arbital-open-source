@@ -1138,13 +1138,15 @@ func LoadCommentIds(db *database.DB, pageMap map[int64]*Page, options *LoadDataO
 // loadOrderedChildrenIds loads and returns ordered list of children for the
 // given parent page
 func loadOrderedChildrenIds(db *database.DB, parentId int64, sortType string) ([]int64, error) {
-	orderClause := "pp.childId"
+	orderClause := ""
 	if sortType == RecentFirstChildSortingOption {
 		orderClause = "pi.createdAt DESC"
 	} else if sortType == OldestFirstChildSortingOption {
 		orderClause = "pi.createdAt"
 	} else if sortType == AlphabeticalChildSortingOption {
 		orderClause = "p.title"
+	} else {
+		return nil, nil
 	}
 	childrenIds := make([]int64, 0)
 	rows := database.NewQuery(`
@@ -1222,7 +1224,7 @@ func loadSiblingId(db *database.DB, pageId int64, useNextSibling bool) (int64, e
 			return parentId, nil
 		}
 	}
-	return 0, fmt.Errorf("That's just odd! Couldn't find pageSiblingIndex")
+	return 0, nil
 }
 
 // LoadNextPrevPageIds loads the pages that come before / after the given page
