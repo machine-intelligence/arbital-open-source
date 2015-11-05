@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"zanaduu3/src/core"
@@ -13,6 +14,8 @@ import (
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
+
+	"github.com/gorilla/mux"
 )
 
 // siteHandler is the wrapper object for handler functions
@@ -97,7 +100,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			}
 		}
 
-		result := h.HandlerFunc(&pages.HandlerParams{W: w, R: r, C: c, DB: db, U: u})
+		params := &pages.HandlerParams{W: w, R: r, C: c, DB: db, U: u}
+		errorMessage, err := loadSubdomain(params, r, db)
+		if errorMessage != "" {
+			fail(http.StatusInternalServerError, errorMessage, err)
+			return
+		}
+		result := h.HandlerFunc(params)
 		if result.ResponseCode != http.StatusOK && result.ResponseCode != http.StatusSeeOther {
 			fail(result.ResponseCode, result.Message, result.Err)
 			return
@@ -163,4 +172,23 @@ func (data *commonHandlerData) toJson() map[string]interface{} {
 
 	jsonData["result"] = data.ResultMap
 	return jsonData
+}
+
+// loadSubdomain loads the id for the private group corresponding to the private group id.
+func loadSubdomain(params *pages.HandlerParams, r *http.Request, db *database.DB) (string, error) {
+	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
+	if subdomain == "" {
+		return "", nil
+	}
+	// Get actual page id for the group
+	var ok bool
+	var err error
+	params.PrivateGroupId, ok, err = core.LoadAliasToPageId(db, subdomain)
+	if err != nil {
+		return "Couldn't convert subdomain to id", err
+	}
+	if !ok {
+		return fmt.Sprintf("Couldn't find private group %s", subdomain), nil
+	}
+	return "", nil
 }

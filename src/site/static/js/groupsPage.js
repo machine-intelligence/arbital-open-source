@@ -10,26 +10,15 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			scope.pageService = pageService;
 			scope.userService = userService;
 
+			// Populate the groupMap with the groups the user belongs to
 			scope.groupMap = {};
-
-			// Get the data.
-			$http({method: "POST", url: "/json/groups/"}).
-				success(function(data, status){
-					console.log("JSON /groups/ data:"); console.log(data);
-					userService.processServerData(data);
-					pageService.processServerData(data);
-
-					for (var pageId in pageService.pageMap) {
-						if (!+pageId) continue; // don't process aliases
-						var page = pageService.pageMap[pageId];
-						if (page.type === "group") {
-							scope.groupMap[pageId] = page;
-						}
-					}
-				}).error(function(data, status){
-					console.log("Error groups page:"); console.log(data); console.log(status);
+			for (var pageId in pageService.pageMap) {
+				if (!+pageId) continue; // don't process aliases
+				var page = pageService.pageMap[pageId];
+				if (page.type === "group") {
+					scope.groupMap[pageId] = page;
 				}
-			);
+			}
 
 			// Process removing user from a group.
 			element.on("click", ".remove-from-group", function(event) {

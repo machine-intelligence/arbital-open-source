@@ -1,0 +1,25 @@
+{{/* dynamicPage.tmpl is used as the basic starting point for bootstrapping dynamic content */}}
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Arbital</title>
+	{{template "style"}}
+	{{template "scripts"}}
+	{{template "angular" .}}
+	<script src="/static/js/groupsPage.js"></script>
+	<script src="/static/js/groupIndex.js"></script>
+	<script src="/static/js/indexDir.js"></script>
+</head>
+
+<body ng-app="arbital" ng-controller="ArbitalCtrl">
+	<arb-navbar></arb-navbar>
+	
+	<div class="dynamic-body">
+		<div class="global-error alert alert-danger" hidden></div>
+	</div>
+	
+	<arb-footer></arb-footer>
+</body>
+</html>
+{{end}}

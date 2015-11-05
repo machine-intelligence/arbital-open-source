@@ -33,11 +33,10 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{data.PageAlias})
+	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
-	pageId, ok := aliasToIdMap[data.PageAlias]
 	if !ok {
 		return pages.HandlerErrorFail("Couldn't find page", err)
 	}

@@ -36,14 +36,15 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Get actual page id
 	pageAlias := mux.Vars(params.R)["alias"]
-	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{pageAlias})
+	pageId, ok, err := core.LoadAliasToPageId(db, pageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
-	pageId, ok := aliasToIdMap[pageAlias]
 	if !ok {
 		return pages.HandlerErrorFail("Couldn't find page", err)
 	}
+	// If the url has an actual alias, then redirect to use page id
+	// TODO: do this on the FE
 	if pageAlias != fmt.Sprintf("%d", pageId) {
 		return pages.RedirectWith(core.GetPageUrl(pageId))
 	}

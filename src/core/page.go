@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/user"
@@ -59,7 +60,8 @@ const (
 	PageLockDuration      = 30 * 60 // in seconds
 
 	// String that can be used inside a regexp to match an a page alias or id
-	AliasRegexpStr = "[A-Za-z0-9.]+"
+	AliasRegexpStr          = "[A-Za-z0-9.]+"
+	SubdomainAliasRegexpStr = "[A-Za-z0-9]*"
 )
 
 var (
@@ -1412,7 +1414,7 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]int64, 
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
-			aliasToIdMap[alias] = pageId
+			aliasToIdMap[strings.ToLower(alias)] = pageId
 			return nil
 		})
 		if err != nil {
@@ -1420,6 +1422,16 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]int64, 
 		}
 	}
 	return aliasToIdMap, nil
+}
+
+// LoadAliasToPageId converts the given page alias to page id.
+func LoadAliasToPageId(db *database.DB, alias string) (int64, bool, error) {
+	aliasToIdMap, err := LoadAliasToPageIdMap(db, []string{alias})
+	if err != nil {
+		return 0, false, err
+	}
+	pageId, ok := aliasToIdMap[strings.ToLower(alias)]
+	return pageId, ok, nil
 }
 
 // appendToPagePairList adds the given PagePair to the given list, but prevents duplicates.

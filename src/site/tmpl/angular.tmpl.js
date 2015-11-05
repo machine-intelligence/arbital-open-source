@@ -784,6 +784,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	});
 
 	// ========== Smart loading ==============
+	// Get subdomain if any
+	var subdomain = undefined;
+	var subdomainMatch = /^([A-Za-z0-9]+)\.(localhost|arbital\.com)\/?$/.exec($location.host());
+	if (subdomainMatch) {
+		subdomain = subdomainMatch[1];
+	}
+
 	// Primary page
 	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
 	var match = pagesPath.exec($location.path());
@@ -831,9 +838,31 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	var pagesPath = /^\/domains\/([A-Za-z0-9]+)\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
-		document.title = pageService.pageMap[match[1]].title + " - Abital";
-		pageService.domainAlias = match[1];
-		$compile($(".domain-link"))($scope);
+		var domainAlias = match[1];
+		var postData = {
+			domainAlias: domainAlias,
+		};
+		// Get the domain index page data
+		$http({method: "POST", url: "/json/domainIndex/", data: JSON.stringify(postData)})
+		.success(function(data, status){
+			console.log("JSON /domainIndex/ data:"); console.log(data);
+			userService.processServerData(data);
+			pageService.processServerData(data);
+
+			document.title = pageService.pageMap[domainAlias].title + " - Domain - Abital";
+			pageService.domainAlias = domainAlias;
+			$compile($(".domain-link"))($scope);
+
+			$scope.indexPageIdsMap = data["result"];
+			var $el = $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>");
+			$(".dynamic-body").append($el);
+			$compile($(".dynamic-body"))($scope);
+		})
+		.error(function(data, status){
+			console.log("Error /json/privateIndex/:"); console.log(data); console.log(status);
+			$(".global-error").text(data).show();
+			document.title = "Error - Arbital";
+		});
 	}
 
 	// Explore index page
@@ -843,6 +872,86 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		document.title = pageService.pageMap[match[1]].title + " - Abital";
 		pageService.domainAlias = match[1];
 		$compile($(".domain-link"))($scope);
+	}
+
+	// Groups page
+	var pagesPath = /^\/groups\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		$http({method: "POST", url: "/json/groups/"}).
+			success(function(data, status){
+				console.log("JSON /groups/ data:"); console.log(data);
+				userService.processServerData(data);
+				pageService.processServerData(data);
+				document.title = "Groups - Abital";
+
+				var $el = $("<arb-groups-page></arb-groups-page>");
+				$(".dynamic-body").append($el);
+				$compile($(".dynamic-body"))($scope);
+			}).error(function(data, status){
+				console.log("Error groups page:"); console.log(data); console.log(status);
+			}
+		);
+
+		/*document.title = pageService.pageMap[match[1]].title + " - Abital";
+		pageService.domainAlias = match[1];
+		$compile($(".domain-link"))($scope);*/
+	}
+
+	// Index page
+	var pagesPath = /^\/$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		if (subdomain) {
+			// Get the private group index page data
+			$http({method: "POST", url: "/json/privateIndex/"})
+			.success(function(data, status){
+				console.log("JSON /privateIndex/ data:"); console.log(data);
+				userService.processServerData(data);
+				pageService.processServerData(data);
+
+				// Because the subdomain could have any case, we need to find the alias
+				// in the loaded map so we can get the alias with correct case
+				for (var pageAlias in pageService.pageMap) {
+					if (subdomain.toUpperCase() === pageAlias.toUpperCase()) {
+						subdomain = pageAlias;
+						break;
+					}
+				}
+
+				document.title = pageService.pageMap[subdomain].title + " - Private Group - Abital";
+				pageService.privateGroupAlias = subdomain;
+				$compile($(".group-link"))($scope);
+
+				$scope.indexPageIdsMap = data["result"];
+				var $el = $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>");
+				$(".dynamic-body").append($el);
+				$compile($(".dynamic-body"))($scope);
+			})
+			.error(function(data, status){
+				console.log("Error /json/privateIndex/:"); console.log(data); console.log(status);
+				$(".global-error").text(data).show();
+				document.title = "Error - Arbital";
+			});
+		} else {
+			// Get the index page data
+			$http({method: "POST", url: "/json/index/"})
+			.success(function(data, status){
+				console.log("/json/index/ data:"); console.log(data);
+				userService.processServerData(data);
+				pageService.processServerData(data);
+
+				$scope.featuredDomains = data["result"].featuredDomains;
+				var $el = $("<arb-index featured-domains='featuredDomains'></arb-index>");
+				$(".dynamic-body").append($el);
+				$compile($(".dynamic-body"))($scope);
+			})
+			.error(function(data, status){
+				console.log("Error /json/index/:"); console.log(data); console.log(status);
+				$(".global-error").text(data).show();
+				document.title = "Error - Arbital";
+			});
+		}
 	}
 });
 

@@ -1,54 +1,47 @@
-// domainIndexPage.go serves the index page for a domain.
+// domainIndexJsonHandler.go serves JSON data to display domain index page.
 package site
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
-
-	"github.com/gorilla/mux"
 )
 
 const (
 	indexPanelLimit = 10
 )
 
-// domainIndexTmplData stores the data that we pass to the domainIndex.tmpl to render the page
-type domainIndexTmplData struct {
-	commonPageData
-	MostLikedIds         []string
-	MostControversialIds []string
-	RecentlyCreatedIds   []string
-	RecentlyEditedIds    []string
+type domainIndexJsonData struct {
+	DomainAlias string
 }
 
-// domainIndexPage serves the domain index page.
-var domainIndexPage = newPageWithOptions(
-	fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
-	domainIndexRenderer,
-	append(baseTmpls,
-		"tmpl/domainIndexPage.tmpl",
-		"tmpl/angular.tmpl.js"),
-	pages.PageOptions{})
+var domainIndexHandler = siteHandler{
+	URI:         "/json/domainIndex/",
+	HandlerFunc: domainIndexJsonHandler,
+}
 
-// domainIndexRenderer renders the domain index page.
-func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
-	u := params.U
+// domainIndexJsonHandler handles the request.
+func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
+	u := params.U
+	returnData := newHandlerData()
 
-	var data domainIndexTmplData
-	data.User = u
-	data.PageMap = make(map[int64]*core.Page)
-	data.UserMap = make(map[int64]*core.User)
+	// Decode data
+	var data domainIndexJsonData
+	decoder := json.NewDecoder(params.R.Body)
+	err := decoder.Decode(&data)
+	if err != nil {
+		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+	}
 
-	// Get actual page id
-	domainAlias := mux.Vars(params.R)["domain"]
-	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{domainAlias})
+	// Get actual domain id
+	domainAlias := data.DomainAlias
+	domainId, ok, err := core.LoadAliasToPageId(db, domainAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
 	}
-	domainId, ok := aliasToIdMap[domainAlias]
 	if !ok {
 		return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
 	}
@@ -64,7 +57,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE p.isCurrentEdit AND pd.domainId=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(domainId, indexPanelLimit)
-	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
 	}
@@ -87,7 +80,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		GROUP BY l2.pageId
 		ORDER BY SUM(value) DESC
 		LIMIT ?`).Query(domainId, indexPanelLimit)
-	data.MostLikedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading most liked page ids", err)
 	}
@@ -107,7 +100,7 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		WHERE pd.domainId=?
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(domainId, indexPanelLimit)
-	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
 	}
@@ -131,17 +124,17 @@ func domainIndexRenderer(params *pages.HandlerParams) *pages.Result {
 		GROUP BY pd.pageId
 		ORDER BY VAR_POP(v2.value) DESC
 		LIMIT ?`).Query(domainId, indexPanelLimit)
-	data.MostControversialIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
+	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading most controversial page ids", err)
 	}
 
 	// Load pages.
-	core.AddPageToMap(domainId, data.PageMap, core.EmptyLoadOptions)
-	err = core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
+	core.AddPageToMap(domainId, returnData.PageMap, core.EmptyLoadOptions)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
-		return pages.Fail("error while loading pages", err)
+		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(&data)
+	return pages.StatusOK(returnData.toJson())
 }

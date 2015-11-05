@@ -4,8 +4,15 @@
 		<div class="navbar-header">
 			<a class="navbar-brand" href="/">Arbital</a>
 		</div>
+		<!-- Explore link for a domain index page -->
 		<div class="domain-link navbar-text" ng-show="pageService.domainAlias">
 			<a ng-href="/explore/{[{pageService.domainAlias}]}" class="navbar-link">Explore</a>
+		</div>
+		<!-- Group link for a private group index page -->
+		<div class="group-link navbar-text" ng-show="pageService.privateGroupAlias">
+			<a ng-href="/"
+					class="navbar-link"
+					ng-bind="pageService.pageMap[pageService.privateGroupAlias].title"></a>
 		</div>
 		<ul class="nav navbar-nav navbar-right">
 				<li ng-show="user.isLoggedIn && userService.userIsCool()">
@@ -13,7 +20,10 @@
 				</li>
 				<li ng-show="user.isLoggedIn">
 					<a href="/updates">
-						Updates <span class="badge" ng-class="{'alert-danger': user.updateCount > 0}" ng-bind="user.updateCount"></span>
+						Updates
+						<span class="badge"
+								ng-class="{'alert-danger': user.updateCount > 0}"
+								ng-bind="user.updateCount"></span>
 					</a>
 				</li>
 				<li class="dropdown" ng-show="user.isLoggedIn">
@@ -32,14 +42,18 @@
 						<li><a ng-href="{[{user.logoutLink}]}" id="logout">Log Out</a></li>
 					</ul>
 				</li>
-				<li ng-hide="user.isLoggedIn"><a ng-href="/signup/?continueUrl={[{user.currentUrl}]}">Sign Up</a></li>
-				<li ng-hide="user.isLoggedIn"><a ng-href="{[{user.loginLink}]}?continueUrl={[{user.currentUrl}]}">Log In</a></li>
+				<li ng-hide="user.isLoggedIn">
+					<a ng-href="/signup/?continueUrl={[{user.currentUrl}]}">Sign Up</a>
+				</li>
+				<li ng-hide="user.isLoggedIn">
+					<a ng-href="{[{user.loginLink}]}?continueUrl={[{user.currentUrl}]}">Log In</a>
+				</li>
 		</ul>
 	</div>
 </nav>
 <input type="text" id="nav-search" class="nav-search form-control" placeholder="Search">
 
-<!-- ======= Collection of commonly popover templates ======= -->
+<!-- ======= Collection of common popover templates ======= -->
 
 <!-- This div shows up when the user tries to take an action that requires them to be logged in. -->
 <div id="signup-popover-template" hidden>

@@ -28,6 +28,14 @@ func GetDomain() string {
 	return strings.TrimPrefix(address, "http://")
 }
 
+func GetMuxDomain() string {
+	address := "localhost"
+	if Live {
+		return config.XC.Site.Live.Address
+	}
+	return strings.TrimPrefix(address, "http://")
+}
+
 func GetElasticDomain() string {
 	if Live {
 		return config.XC.Elastic.Live.Address

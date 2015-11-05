@@ -115,6 +115,13 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 		params.DB = db
 
+		// Get subdomain info
+		errorMessage, err := loadSubdomain(&params, r, db)
+		if errorMessage != "" {
+			fail(http.StatusInternalServerError, errorMessage, err)
+			return
+		}
+
 		// Get user object
 		var u *user.User
 		if !p.Options.SkipLoadingUser {
@@ -129,6 +136,11 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
 				// User has created an account but hasn't gone through signup page
 				http.Redirect(w, r, fmt.Sprintf("/signup/?continueUrl=%s", r.URL), http.StatusSeeOther)
+				return
+			}
+			// When in a subdomain, we always have to be logged in
+			if params.PrivateGroupId > 0 && !u.IsLoggedIn {
+				http.Redirect(w, r, fmt.Sprintf("%s/?continueUrl=%s", u.LoginLink, r.URL), http.StatusSeeOther)
 				return
 			}
 			if p.Options.RequireLogin && !u.IsLoggedIn {

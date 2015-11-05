@@ -45,13 +45,12 @@ func exploreRenderer(params *pages.HandlerParams) *pages.Result {
 	domainAlias := mux.Vars(params.R)["domain"]
 	if domainAlias != "" {
 		// Get actual domain id
-		aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{domainAlias})
+		var ok bool
+		var err error
+		domainId, ok, err = core.LoadAliasToPageId(db, domainAlias)
 		if err != nil {
 			return pages.Fail("Couldn't convert alias", err)
 		}
-
-		var ok bool
-		domainId, ok = aliasToIdMap[domainAlias]
 		if !ok {
 			return pages.Fail("Couldn't find alias", nil)
 		}

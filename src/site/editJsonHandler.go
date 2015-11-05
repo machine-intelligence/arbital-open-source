@@ -36,11 +36,10 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, []string{data.PageAlias})
+	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
-	pageId, ok := aliasToIdMap[data.PageAlias]
 	if !ok {
 		// No alias found. Assume user is trying to create a new page with an alias.
 		return pages.RedirectWith(core.GetEditPageUrl(rand.Int63()) + "?alias=" + data.PageAlias)

@@ -33,11 +33,12 @@ var (
 
 // HandlerParams are passed to all handlers.
 type HandlerParams struct {
-	W  http.ResponseWriter
-	R  *http.Request
-	C  sessions.Context
-	DB *database.DB
-	U  *user.User
+	W              http.ResponseWriter
+	R              *http.Request
+	C              sessions.Context
+	DB             *database.DB
+	U              *user.User
+	PrivateGroupId int64
 }
 
 // Renderer is a function to render a page result. Returns:
