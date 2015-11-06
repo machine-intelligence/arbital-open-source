@@ -891,12 +891,14 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			pageService.processServerData(data);
 
 			// Decide on the domain alias
-			pageService.domainAlias = postData.groupAlias;
 			if (subdomain) {
 				updateSubdomain();
-				pageService.domainAlias = subdomain;
+				pageService.privateGroupAlias = subdomain;
+				document.title = pageService.pageMap[pageService.privateGroupAlias].title + " - Explore - Abital";
+			} else {
+				pageService.domainAlias = postData.groupAlias;
+				document.title = pageService.pageMap[pageService.domainAlias].title + " - Explore - Abital";
 			}
-			document.title = pageService.pageMap[pageService.domainAlias].title + " - Explore - Abital";
 
 			// Compute root and children maps
 			var rootPage = pageService.pageMap[data["result"].rootPageId];
