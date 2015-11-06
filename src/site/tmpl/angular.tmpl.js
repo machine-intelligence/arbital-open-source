@@ -862,7 +862,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 
 			document.title = pageService.pageMap[domainAlias].title + " - Domain - Abital";
 			pageService.domainAlias = domainAlias;
-			$compile($(".domain-link"))($scope);
+			$compile($(".group-link"))($scope);
 
 			$scope.indexPageIdsMap = data["result"];
 			var $el = $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>");
@@ -916,7 +916,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 					"supersize-roots='true'></arb-page-tree>");
 			$(".dynamic-body").append($el);
 			$compile($(".dynamic-body"))($scope);
-			$compile($(".navbar"))($scope);
+			$compile($(".group-link"))($scope);
 		})
 		.error(function(data, status){
 			console.log("Error /json/explore/:"); console.log(data); console.log(status);
