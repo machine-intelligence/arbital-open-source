@@ -11,10 +11,10 @@ app.directive("arbSettingsPage", function(pageService, userService, autocomplete
 			scope.userService = userService;
 
 			// Set up frequency types.
-			scope.frequencyTypes = {0: "Never", 1: "Weekly", 2: "Daily", 3: "Immediately"};
+			scope.frequencyTypes = {Never: "Never", Weekly: "Weekly", Daily: "Daily", Immediately: "Immediately"};
 
 			// Get the data.
-			scope.emailFrequency = String(userService.user.emailFrequency);
+			scope.emailFrequency = userService.user.emailFrequency;
 			scope.emailThreshold = userService.user.emailThreshold;
 
 			// Store the last saved values, to show or hide the "Submitted" text

@@ -15,13 +15,12 @@ import (
 )
 
 var (
-	userKey  = "user" // key for session storage
-	fakeUser = User{Id: -1, Email: "fake@fake.com", FirstName: "Dr.", LastName: "Fake"}
+	userKey = "user" // key for session storage
 
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	MaxKarmaLockFraction = 0.8
 
-	DefaultEmailFrequency = 2 // 2 is daily
+	DefaultEmailFrequency = "Daily"
 	DefaultEmailThreshold = 3
 )
 
@@ -29,15 +28,15 @@ var (
 // Note: this structure is also stored in a cookie.
 type User struct {
 	// DB variables
-	Id           int64  `json:"id,string"`
-	Email        string `json:"email"`
-	FirstName    string `json:"firstName"`
-	LastName     string `json:"lastName"`
-	IsAdmin      bool   `json:"isAdmin"`
-	Karma        int    `json:"karma"`
-	MaxKarmaLock int    `json:"maxKarmaLock"`
-	EmailFrequency int  `json:"emailFrequency"`
-	EmailThreshold int  `json:"emailThreshold"`
+	Id             int64  `json:"id,string"`
+	Email          string `json:"email"`
+	FirstName      string `json:"firstName"`
+	LastName       string `json:"lastName"`
+	IsAdmin        bool   `json:"isAdmin"`
+	Karma          int    `json:"karma"`
+	MaxKarmaLock   int    `json:"maxKarmaLock"`
+	EmailFrequency string `json:"emailFrequency"`
+	EmailThreshold int    `json:"emailThreshold"`
 
 	// Computed variables
 	IsLoggedIn  bool     `json:"isLoggedIn"`
@@ -85,25 +84,6 @@ func (u *User) Save(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("failed to save user to session: %v", err)
 	}*/
-	return nil
-}
-
-// BecomeUserWithId allows an admin to pretend they are a specific user.
-func (u *User) BecomeUserWithId(id string, c sessions.Context) error {
-	db, err := database.GetDB(c)
-	if err != nil {
-		return err
-	}
-	row := db.NewStatement(`
-		SELECT id,email,firstName,lastName,isAdmin
-		FROM users
-		WHERE id=?`).QueryRow(id)
-	exists, err := row.Scan(&u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin)
-	if err != nil {
-		return fmt.Errorf("Couldn't retrieve a user: %v", err)
-	} else if !exists {
-		return fmt.Errorf("Couldn't find a user with id: %s", id)
-	}
 	return nil
 }
 
@@ -200,25 +180,6 @@ func ParseUser(rc io.ReadCloser) (*User, error) {
 		return nil, fmt.Errorf("Error decoding the user: %v", err)
 	}
 	return &user, nil
-}
-
-// BecomeFakeUser sets the current user's cookie to a static fake profile.
-func BecomeFakeUser(w http.ResponseWriter, r *http.Request) error {
-	c := sessions.NewContext(r)
-	if sessions.Live {
-		m := "BecomeFakeUser was called on Live, which is a very bad idea\n"
-		c.Criticalf(m)
-		return fmt.Errorf(m)
-	}
-	err := sessions.FakeCreds.Save(w, r)
-	if err != nil {
-		return fmt.Errorf("failed to save fake creds: %v", err)
-	}
-	err = fakeUser.Save(w, r)
-	if err != nil {
-		return fmt.Errorf("failed to save fake user: %v", err)
-	}
-	return nil
 }
 
 func init() {

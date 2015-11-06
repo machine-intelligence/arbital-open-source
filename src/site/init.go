@@ -90,6 +90,7 @@ func init() {
 	r.HandleFunc("/fixText/", handlerWrapper(fixTextHandler)).Methods("GET")
 	r.HandleFunc("/updateElasticIndex/", handlerWrapper(updateElasticIndexHandler)).Methods("GET")
 	r.HandleFunc("/updateMetadata/", handlerWrapper(updateMetadataHandler)).Methods("GET")
+	//r.HandleFunc("/sendTestEmail/", handlerWrapper(sendTestEmailHandler)).Methods("GET")
 
 	// Various internal handlers
 	r.HandleFunc("/mon", reportMonitoring).Methods("POST")
@@ -97,6 +98,9 @@ func init() {
 
 	// Error handlers
 	r.NotFoundHandler = http.HandlerFunc(pageHandlerWrapper(&page404))
+
+	// Raw handlers
+	http.HandleFunc("/sendTestEmail/", sendTestEmailHandler)
 
 	http.Handle("/", r)
 }
