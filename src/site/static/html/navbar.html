@@ -2,17 +2,18 @@
 <nav class="navbar navbar-default">
 	<div class="container-fluid">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="/">Arbital</a>
-		</div>
-		<!-- Explore link for a domain index page -->
-		<div class="domain-link navbar-text" ng-show="pageService.domainAlias">
-			<a ng-href="/explore/{[{pageService.domainAlias}]}" class="navbar-link">Explore</a>
+			<a class="navbar-brand" ng-href="{[{getDomain()}]}">Arbital</a>
 		</div>
 		<!-- Group link for a private group index page -->
 		<div class="group-link navbar-text" ng-show="pageService.privateGroupAlias">
 			<a ng-href="/"
 					class="navbar-link"
 					ng-bind="pageService.pageMap[pageService.privateGroupAlias].title"></a>
+			<a href="/explore/" class="navbar-link">Explore</a>
+		</div>
+		<!-- Explore link for a domain index page -->
+		<div class="domain-link navbar-text" ng-show="pageService.domainAlias">
+			<a ng-href="/explore/{[{pageService.domainAlias}]}" class="navbar-link">Explore</a>
 		</div>
 		<ul class="nav navbar-nav navbar-right">
 				<li ng-show="user.isLoggedIn && userService.userIsCool()">

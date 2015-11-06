@@ -791,6 +791,17 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		subdomain = subdomainMatch[1];
 	}
 
+	// Because the subdomain could have any case, we need to find the alias
+	// in the loaded map so we can get the alias with correct case
+	var updateSubdomain = function() {
+		for (var pageAlias in pageService.pageMap) {
+			if (subdomain.toUpperCase() === pageAlias.toUpperCase()) {
+				subdomain = pageAlias;
+				break;
+			}
+		}
+	};
+
 	// Primary page
 	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
 	var match = pagesPath.exec($location.path());
@@ -865,13 +876,51 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		});
 	}
 
-	// Explore index page
-	var pagesPath = /^\/explore\/([A-Za-z0-9]+)\/?$/;
+	// Explore page
+	var pagesPath = /^\/explore\/?([A-Za-z0-9]*)\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
-		document.title = pageService.pageMap[match[1]].title + " - Abital";
-		pageService.domainAlias = match[1];
-		$compile($(".domain-link"))($scope);
+		var postData = {
+			groupAlias: subdomain ? subdomain : match[1],
+		};
+		// Get the explore data
+		$http({method: "POST", url: "/json/explore/", data: JSON.stringify(postData)})
+		.success(function(data, status){
+			console.log("json/explore/ data:"); console.log(data);
+			userService.processServerData(data);
+			pageService.processServerData(data);
+
+			// Decide on the domain alias
+			pageService.domainAlias = postData.groupAlias;
+			if (subdomain) {
+				updateSubdomain();
+				pageService.domainAlias = subdomain;
+			}
+			document.title = pageService.pageMap[pageService.domainAlias].title + " - Explore - Abital";
+
+			// Compute root and children maps
+			var rootPage = pageService.pageMap[data["result"].rootPageId];
+			$scope.rootPages = {};
+			$scope.rootPages[rootPage.pageId] = rootPage;
+			$scope.childPages = {};
+			var length = rootPage.children ? rootPage.children.length : 0;
+			for (var n = 0; n < length; n++) {
+				var childId = rootPage.children[n].childId;
+				$scope.childPages[childId] = pageService.pageMap[childId];
+			}
+
+			// Add the tree directive
+			var $el = $("<arb-page-tree init-map='rootPages' additional-map='childPages'" +
+					"supersize-roots='true'></arb-page-tree>");
+			$(".dynamic-body").append($el);
+			$compile($(".dynamic-body"))($scope);
+			$compile($(".navbar"))($scope);
+		})
+		.error(function(data, status){
+			console.log("Error /json/explore/:"); console.log(data); console.log(status);
+			$(".global-error").text(data).show();
+			document.title = "Error - Arbital";
+		});
 	}
 
 	// Groups page
@@ -892,10 +941,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				console.log("Error groups page:"); console.log(data); console.log(status);
 			}
 		);
-
-		/*document.title = pageService.pageMap[match[1]].title + " - Abital";
-		pageService.domainAlias = match[1];
-		$compile($(".domain-link"))($scope);*/
 	}
 
 	// Index page
@@ -910,15 +955,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				userService.processServerData(data);
 				pageService.processServerData(data);
 
-				// Because the subdomain could have any case, we need to find the alias
-				// in the loaded map so we can get the alias with correct case
-				for (var pageAlias in pageService.pageMap) {
-					if (subdomain.toUpperCase() === pageAlias.toUpperCase()) {
-						subdomain = pageAlias;
-						break;
-					}
-				}
-
+				updateSubdomain();
 				document.title = pageService.pageMap[subdomain].title + " - Private Group - Abital";
 				pageService.privateGroupAlias = subdomain;
 				$compile($(".group-link"))($scope);
@@ -955,110 +992,12 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	}
 });
 
-// PageTreeCtrl is controller for the PageTree.
-app.controller("PageTreeCtrl", function ($scope, pageService) {
-	// Map of pageId -> array of nodes.
-	var pageIdToNodesMap = {};
-	// Return a new node object corresponding to the given pageId.
-	// The pair will also be added to the pageIdToNodesMap.
-	var createNode = function(pageId) {
-		var node = {
-			pageId: pageId,
-			showChildren: false,
-			children: [],
-		};
-		var nodes = pageIdToNodesMap[node.pageId];
-		if (nodes === undefined) {
-			nodes = [];
-			pageIdToNodesMap[node.pageId] = nodes;
-		}
-		nodes.push(node);
-		return node;
-	};
-
-	// Sort node's children based on how the corresponding page sorts its children.
-	$scope.sortNodeChildren = function(node) {
-		var sortChildrenBy = "alphabetical";
-		if (node === $scope.rootNode) {
-			if ($scope.primaryPageId) {
-				sortChildrenBy = pageService.pageMap[$scope.primaryPageId].sortChildrenBy;
-			}
-		} else {
-			sortChildrenBy = pageService.pageMap[node.pageId].sortChildrenBy;
-		}
-		var sortFunc = pageService.getChildSortFunc(sortChildrenBy);
-		node.children.sort(function(aNode, bNode) {
-			return sortFunc(aNode.pageId, bNode.pageId);
-		});
-	};
-
-	// Return true iff the given node has a node child corresponding to the pageId.
-	var nodeHasPageChild = function(node, pageId) {
-		return node.children.some(function(child) {
-			return child.pageId == pageId;
-		});
-	};
-
-	// processPages adds a new node for every page in the given newPagesMap.
-	$scope.processPages = function(newPagesMap, topLevel) {
-		if (newPagesMap === undefined) return;
-		// Process parents and create children nodes.
-		for (var pageId in newPagesMap) {
-			var page = pageService.pageMap[pageId];
-			var parents = page.parents; // array of pagePairs used to populate children nodes
-			if ($scope.isParentTree !== undefined) {
-				parents = page.children;
-			}
-			if (topLevel) {
-				if (!nodeHasPageChild($scope.rootNode, pageId)) {
-					var node = createNode(pageId);
-					node.isTopLevel = true;
-					$scope.rootNode.children.push(node);
-				}
-			} else {
-				// For each parent the page has, find all corresponding nodes, and add
-				// a new child node to each of them.
-				var parentsLen = parents.length;
-				for (var i = 0; i < parentsLen; i++){
-					var parentId = parents[i].parentId;
-					if ($scope.isParentTree !== undefined) {
-						parentId = parents[i].childId;
-					}
-					var parentPage = pageService.pageMap[parentId];
-					var parentNodes = parentPage ? (pageIdToNodesMap[parentPage.pageId] || []) : [];
-					var parentNodesLen = parentNodes.length;
-					for (var ii = 0; ii < parentNodesLen; ii++){
-						var parentNode = parentNodes[ii];
-						if (!nodeHasPageChild(parentNode, pageId)) {
-							parentNode.children.push(createNode(pageId));
-						}
-					}
-				}
-			}
-		}
-	};
-
-	// Imaginary root node we use to make the architecture simpler.
-	$scope.rootNode = {pageId:"-1", children:[]};
-
-	// Populate the tree.
-	$scope.processPages($scope.initMap, true);
-	$scope.processPages($scope.additionalMap);
-
-	if (!$scope.isParentTree) {
-		// Sort children.
-		$scope.sortNodeChildren($scope.rootNode);
-		for (var n = 0; n < $scope.rootNode.children.length; n++) {
-			$scope.sortNodeChildren($scope.rootNode.children[n]);
-		}
-	}
-});
 
 
 // =============================== DIRECTIVES =================================
 
 // navbar directive displays the navbar at the top of each page
-app.directive("arbNavbar", function(pageService, userService, autocompleteService, $http) {
+app.directive("arbNavbar", function($http, $location, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/navbar.html",
 		scope: {
@@ -1067,6 +1006,15 @@ app.directive("arbNavbar", function(pageService, userService, autocompleteServic
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.user = userService.user;
+
+			// Get the current domain
+			scope.getDomain = function() {
+				if (/localhost/.exec($location.host())) {
+					return "http://localhost:8012";
+				} else {
+					return "http://arbital.com"
+				}
+			};
 
 			$("#logout").click(function() {
 				$.removeCookie("zanaduu", {path: "/"});
@@ -1194,7 +1142,109 @@ app.directive("arbLikesPageTitle", function(pageService, userService) {
 app.directive("arbPageTree", function() {
 	return {
 		templateUrl: "/static/html/pageTree.html",
-		controller: "PageTreeCtrl",
+		controller: function ($scope, pageService) {
+			// Map of pageId -> array of nodes.
+			var pageIdToNodesMap = {};
+			// Return a new node object corresponding to the given pageId.
+			// The pair will also be added to the pageIdToNodesMap.
+			var createNode = function(pageId) {
+				var node = {
+					pageId: pageId,
+					showChildren: false,
+					children: [],
+				};
+				var nodes = pageIdToNodesMap[node.pageId];
+				if (nodes === undefined) {
+					nodes = [];
+					pageIdToNodesMap[node.pageId] = nodes;
+				}
+				nodes.push(node);
+				return node;
+			};
+		
+			// Sort node's children based on how the corresponding page sorts its children.
+			$scope.sortNodeChildren = function(node) {
+				var sortChildrenBy = "alphabetical";
+				if (node === $scope.rootNode) {
+					if ($scope.primaryPageId) {
+						sortChildrenBy = pageService.pageMap[$scope.primaryPageId].sortChildrenBy;
+					}
+				} else {
+					sortChildrenBy = pageService.pageMap[node.pageId].sortChildrenBy;
+				}
+				var sortFunc = pageService.getChildSortFunc(sortChildrenBy);
+				node.children.sort(function(aNode, bNode) {
+					return sortFunc(aNode.pageId, bNode.pageId);
+				});
+			};
+		
+			// Return true iff the given node has a node child corresponding to the pageId.
+			var nodeHasPageChild = function(node, pageId) {
+				return node.children.some(function(child) {
+					return child.pageId == pageId;
+				});
+			};
+		
+			// processPages adds a new node for every page in the given newPagesMap.
+			$scope.processPages = function(newPagesMap, topLevel) {
+				if (newPagesMap === undefined) return;
+				// Process parents and create children nodes.
+				for (var pageId in newPagesMap) {
+					var page = pageService.pageMap[pageId];
+					if (!page) {
+						console.warn("Couldn't find child id " + pageId);
+						continue;
+					}
+					var parents = page.parents; // array of pagePairs used to populate children nodes
+					if ($scope.isParentTree !== undefined) {
+						parents = page.children;
+					}
+					if (topLevel) {
+						if (!nodeHasPageChild($scope.rootNode, pageId)) {
+							var node = createNode(pageId);
+							node.isTopLevel = true;
+							$scope.rootNode.children.push(node);
+						}
+					} else {
+						// For each parent the page has, find all corresponding nodes, and add
+						// a new child node to each of them.
+						var parentsLen = parents.length;
+						for (var i = 0; i < parentsLen; i++){
+							var parentId = parents[i].parentId;
+							if ($scope.isParentTree !== undefined) {
+								parentId = parents[i].childId;
+							}
+							var parentPage = pageService.pageMap[parentId];
+							var parentNodes = parentPage ? (pageIdToNodesMap[parentPage.pageId] || []) : [];
+							var parentNodesLen = parentNodes.length;
+							for (var ii = 0; ii < parentNodesLen; ii++){
+								var parentNode = parentNodes[ii];
+								if (!nodeHasPageChild(parentNode, pageId)) {
+									parentNode.children.push(createNode(pageId));
+								}
+							}
+						}
+					}
+				}
+			};
+		
+			// Imaginary root node we use to make the architecture simpler.
+			$scope.rootNode = {pageId:"-1", children:[]};
+		
+			// Populate the tree.
+			console.log($scope.initMap);
+			console.log($scope.additionalMap);
+			$scope.processPages($scope.initMap, true);
+			$scope.processPages($scope.additionalMap);
+		
+			if (!$scope.isParentTree) {
+				// Sort children.
+				$scope.sortNodeChildren($scope.rootNode);
+				for (var n = 0; n < $scope.rootNode.children.length; n++) {
+					$scope.sortNodeChildren($scope.rootNode.children[n]);
+				}
+			}
+		},
 		scope: {
 			supersizeRoots: "@", // if defined, the root nodes are displayed bigger
 			isParentTree: "@", // if defined, the nodes' children actually represent page's parents, not children

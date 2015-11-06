@@ -40,10 +40,10 @@ func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	domainAlias := data.DomainAlias
 	domainId, ok, err := core.LoadAliasToPageId(db, domainAlias)
 	if err != nil {
-		return pages.Fail("Couldn't convert alias", err)
+		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
 	if !ok {
-		return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
+		return pages.HandlerErrorFail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
 	}
 
 	// Load recently created page ids.
@@ -59,7 +59,7 @@ func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`).Query(domainId, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
-		return pages.Fail("error while loading recently created page ids", err)
+		return pages.HandlerErrorFail("error while loading recently created page ids", err)
 	}
 
 	// Load most liked page ids.
@@ -82,7 +82,7 @@ func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`).Query(domainId, indexPanelLimit)
 	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
-		return pages.Fail("error while loading most liked page ids", err)
+		return pages.HandlerErrorFail("error while loading most liked page ids", err)
 	}
 
 	// Load recently edited page ids.
@@ -102,7 +102,7 @@ func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`).Query(domainId, indexPanelLimit)
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
-		return pages.Fail("error while loading recently edited page ids", err)
+		return pages.HandlerErrorFail("error while loading recently edited page ids", err)
 	}
 
 	// Load most controversial page ids.
@@ -126,7 +126,7 @@ func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`).Query(domainId, indexPanelLimit)
 	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
-		return pages.Fail("error while loading most controversial page ids", err)
+		return pages.HandlerErrorFail("error while loading most controversial page ids", err)
 	}
 
 	// Load pages.

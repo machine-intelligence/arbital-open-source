@@ -31,7 +31,7 @@ func GetDomain() string {
 func GetMuxDomain() string {
 	address := "localhost"
 	if Live {
-		return config.XC.Site.Live.Address
+		address = config.XC.Site.Live.Address
 	}
 	return strings.TrimPrefix(address, "http://")
 }
