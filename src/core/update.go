@@ -102,13 +102,9 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
-		pageMap[row.GoToPageId] = &Page{PageId: row.GoToPageId}
-		if row.GroupByPageId > 0 {
-			pageMap[row.GroupByPageId] = &Page{PageId: row.GroupByPageId}
-		}
-		if row.SubscribedToPageId > 0 {
-			pageMap[row.SubscribedToPageId] = &Page{PageId: row.SubscribedToPageId}
-		}
+		AddPageIdToMap(row.GoToPageId, pageMap)
+		AddPageIdToMap(row.GroupByPageId, pageMap)
+		AddPageIdToMap(row.SubscribedToPageId, pageMap)
 
 		userMap[row.UserId] = &User{Id: row.UserId}
 		userMap[row.ByUserId] = &User{Id: row.ByUserId}

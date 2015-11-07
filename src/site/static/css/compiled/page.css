@@ -1291,8 +1291,12 @@ textarea.new-comment-text {
   display: table-cell;
   width: 120px;
 }
+.explore-tree {
+  margin: 0px auto 0px auto;
+  max-width: 90%;
+}
 .page-panel {
-  margin: 10px 0px 0px 0px;
+  margin-top: 10px;
   font-size: 14px;
 }
 .page-panel .big-page-panel-header {

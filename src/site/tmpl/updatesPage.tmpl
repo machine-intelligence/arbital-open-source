@@ -37,10 +37,15 @@
 		<div class="panel {{if .Key.IsNew}}panel-info{{else}}panel-default{{end}}">
 			<div class="panel-heading">
 				{{if ne .Key.GroupByPageId 0}}
-					<span class="pull-right">
-						<a href="#" class="group-subscribe-to-page-link glyph-link glyphicon glyphicon-eye-open" ng-class="{on: pageService.pageMap['{{.Key.GroupByPageId}}'].isSubscribed}" page-id="{{.Key.GroupByPageId}}"></a>
+					<span ng-show="pageService.pageMap['{{.Key.GroupByPageId}}'].title">
+						<span class="pull-right">
+							<a href="#" class="group-subscribe-to-page-link glyph-link glyphicon glyphicon-eye-open" ng-class="{on: pageService.pageMap['{{.Key.GroupByPageId}}'].isSubscribed}" page-id="{{.Key.GroupByPageId}}"></a>
+						</span>
+						<arb-likes-page-title page-id="{{.Key.GroupByPageId}}"></arb-likes-page-title>
 					</span>
-					<arb-likes-page-title page-id="{{.Key.GroupByPageId}}"></arb-likes-page-title>
+					<span ng-hide="pageService.pageMap['{{.Key.GroupByPageId}}'].title">
+						Private page
+					</span>
 				{{else}}
 					<span class="pull-right">
 						<a href="#" class="group-subscribe-to-user-link glyphicon glyphicon-eye-open" ng-class="{on: userService.userMap['{{.Key.GroupByUserId}}'].isSubscribed}" user-id="{{.Key.GroupByUserId}}"></a>
@@ -109,13 +114,25 @@
 						added you to the
 						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
 								page-id="{{.GoToPageId}}"
-								class="intrasite-link">{[{pageService.pageMap['{{.GoToPageId}}'].title}]} group</a>.
+								class="intrasite-link"
+								ng-show="pageService.pageMap['{{.GoToPageId}}'].title">
+							{[{pageService.pageMap['{{.GoToPageId}}'].title}]} group.
+						</a>
+						<span ng-hide="pageService.pageMap['{{.GoToPageId}}'].title">
+							a private group.
+						</span>
 					{{else if eq .Type "removedFromGroup"}}
 						<arb-user-name user-id="{{.ByUserId}}"></arb-user-name>
-						removed you from the
+						removed you from
 						<a ng-href="{[{pageService.pageMap['{{.GoToPageId}}'].url()}]}"
 								page-id="{{.GoToPageId}}"
-								class="intrasite-link">{[{pageService.pageMap['{{.GoToPageId}}'].title}]} group</a>.
+								class="intrasite-link"
+								ng-show="pageService.pageMap['{{.GoToPageId}}'].title">
+							the {[{pageService.pageMap['{{.GoToPageId}}'].title}]} group.
+						</a>
+						<span ng-hide="pageService.pageMap['{{.GoToPageId}}'].title">
+							a private group.
+						</span>
 					{{end}}
 					</div>
 				{{end}}

@@ -33,11 +33,12 @@ var (
 
 // HandlerParams are passed to all handlers.
 type HandlerParams struct {
-	W  http.ResponseWriter
-	R  *http.Request
-	C  sessions.Context
-	DB *database.DB
-	U  *user.User
+	W              http.ResponseWriter
+	R              *http.Request
+	C              sessions.Context
+	DB             *database.DB
+	U              *user.User
+	PrivateGroupId int64
 }
 
 // Renderer is a function to render a page result. Returns:
@@ -51,7 +52,7 @@ type Page struct {
 	URI       string   // URI path
 	Render    Renderer // func to render the page
 	Templates []string // backing templates
-	Options   *PageOptions
+	Options   PageOptions
 }
 
 // PageOptions specify various requirements we need to check for the page.
@@ -60,12 +61,13 @@ type PageOptions struct {
 	AdminOnly       bool
 	SkipLoadingUser bool
 	RequireLogin    bool
+	MinKarma        int
 }
 
 // Add creates a new page.
 //
 // Add panics if the page templates cannot be parsed.
-func Add(uri string, render Renderer, options *PageOptions, tmpls ...string) Page {
+func Add(uri string, render Renderer, options PageOptions, tmpls ...string) Page {
 	return Page{
 		URI:       uri,
 		Render:    render,
@@ -151,8 +153,7 @@ func RedirectWith(uri string) *Result {
 	return &Result{
 		ResponseCode: http.StatusSeeOther,
 		next:         uri,
-		// Set Data so we don't consider this a failed result
-		Data: "",
+		Data:         uri,
 	}
 }
 

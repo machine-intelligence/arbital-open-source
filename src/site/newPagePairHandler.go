@@ -19,15 +19,20 @@ type newPagePairData struct {
 	Type     string
 }
 
-// newPagePairHandler handles requests for adding a new tag.
-func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
+var newPagePairHandler = siteHandler{
+	URI:         "/newPagePair/",
+	HandlerFunc: newPagePairHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
+
+// newPagePairHandlerFunc handles requests for adding a new tag.
+func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
-	}
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data newPagePairData
@@ -80,12 +85,12 @@ func newPagePairHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the pages
-	parent := &core.Page{PageId: data.ParentId}
-	child := &core.Page{PageId: data.ChildId}
-	pageMap := map[int64]*core.Page{data.ParentId: parent, data.ChildId: child}
+	pageMap := make(map[int64]*core.Page)
+	parent := core.AddPageIdToMap(data.ParentId, pageMap)
+	child := core.AddPageIdToMap(data.ChildId, pageMap)
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, u.Id, nil)
+	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}

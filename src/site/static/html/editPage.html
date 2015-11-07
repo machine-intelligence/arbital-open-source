@@ -71,7 +71,8 @@
 								ng-href="{[{pageService.getPageUrl(changeLog.auxPageid)}]}"
 								ng-bind="changeLog.type"></a>
 					</span>
-					(edit #{[{changeLog.edit}]}) by
+					<span ng-show="changeLog.edit != 0">(edit #{[{changeLog.edit}]})</span>
+					by
 
 					<span ng-show="userService.user.id === changeLog.userId">you</span>
 					<span ng-show="userService.user.id !== changeLog.userId">
@@ -188,7 +189,7 @@
 			</div>
 
 			<!-- Page type -->
-			<div class="form-group" ng-show="!page.wasPublished && !isSecondary">
+			<div class="form-group" ng-show="!page.wasPublished && !fixedPageType">
 				<label class="title-label control-label col-sm-2">Page Type</label>
 				<div class="col-sm-4">
 					<select ng-model="page.type" required="string"
@@ -220,7 +221,11 @@
 		
 			<!-- See group id -->
 			<div class="form-group" ng-show="canChangeGroup">
-				<label class="title-label control-label col-sm-2">See Group <span class="dashed-underline" title="Only members of the selected group will be able to see this page.">(?)</span></label>
+				<label class="title-label control-label col-sm-2">
+					See Group
+					<span class="dashed-underline"
+							title="Only members of the selected group will be able to see this page.">(?)</span>
+				</label>
 				<div class="col-sm-4">
 					<select ng-model="page.seeGroupId"
 							name="seeGroupId" class="group-select type-select form-control"
@@ -231,7 +236,11 @@
 		
 			<!-- Edit group id -->
 			<div class="form-group">
-				<label class="title-label control-label col-sm-2">Edit Group <span class="dashed-underline" title="Only members of the selected group will be able to edit this page.">(?)</span></label>
+				<label class="title-label control-label col-sm-2">
+					Edit Group
+					<span class="dashed-underline"
+							title="Only members of the selected group will be able to edit this page.">(?)</span>
+				</label>
 				<div class="col-sm-4">
 					<select ng-model="page.editGroupId"
 							name="editGroupId" class="group-select type-select form-control"
@@ -275,7 +284,7 @@
 			</div>
 		
 			<!-- Alias -->
-			<div class="form-group" ng-show="!isAnswer && !isComment">
+			<div class="form-group" ng-show="!isAnswer && !isComment && !isGroup">
 				<label class="control-label col-sm-2">Alias</label>
 				<div class="col-sm-4">
 					<label class="control-label" ng-show="page.seeGroupId != '0'">
@@ -286,6 +295,7 @@
 								name="alias"
 								placeholder='Optional alias, e.g. "HumanHealth"'
 								class="form-control"
+								autocomplete="off"
 								ng-model="page.alias">
 					</div>
 				</div>

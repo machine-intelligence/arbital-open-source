@@ -12,6 +12,11 @@ import (
 	"zanaduu3/src/pages"
 )
 
+var parentsSearchHandler = siteHandler{
+	URI:         "/json/parentsSearch/",
+	HandlerFunc: parentsSearchJsonHandler,
+}
+
 // parentsSearchJsonHandler handles the request.
 func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
@@ -74,31 +79,5 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		},
 		"_source": []
 	}`, escapedTerm, strings.Join(groupIds, ","))
-
-	// Perform search.
-	results, err := elastic.SearchPageIndex(params.C, jsonStr)
-	if err != nil {
-		return pages.HandlerErrorFail("Error with elastic search", err)
-	}
-
-	// Create page map.
-	pageMap := make(map[int64]*core.Page)
-	for _, hit := range results.Hits.Hits {
-		pageMap[hit.Id] = &core.Page{PageId: hit.Id}
-	}
-
-	// Load pages.
-	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{})
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading aux data", err)
-	}
-
-	returnData := createReturnData(pageMap).AddResult(results.Hits)
-	return pages.StatusOK(returnData)
+	return searchJsonInternalHandler(params, jsonStr)
 }

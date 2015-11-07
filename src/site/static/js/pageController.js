@@ -268,7 +268,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		}
 
 		// Process all embedded votes.
-		window.setTimeout(function() {
+		/*window.setTimeout(function() {
 			$topParent.find("[embed-vote-id]").each(function(index) {
 				var $link = $(this);
 				var pageAlias = $link.attr("embed-vote-id");
@@ -287,7 +287,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					}
 				});
 			});
-		});
+		});*/
 	};
 
 	// Called before this controller is destroyed.
@@ -304,14 +304,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
-			$scope.questionIds = [];
-			for (var n = 0; n < $scope.page.children.length; n++) {
-				var id = $scope.page.children[n].childId;
-				var page = pageService.pageMap[id];
-				if (page.type === "question" && !page.anchorContext) {
-					$scope.questionIds.push(id);
-				}
-			}
+			$scope.questionIds = $scope.page.questionIds || [];
 
 			// Sort question ids by likes, but put the ones created by current user first.
 			$scope.questionIds.sort(function(id1, id2) {
@@ -327,6 +320,7 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 			pageId: "@",
 		},
 		link: function(scope, element, attrs) {
+			scope.page.subpageIds = (scope.page.questionIds || []).concat(scope.page.commentIds || []);
 			// Set up Page JS Controller.
 			$timeout(function(){
 				scope.pageJsController = new PageJsController(scope.page, element, pageService, userService);
@@ -526,19 +520,6 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 						continue;
 					}
 					if (subpage.type == "comment" ) {
-						// Make sure this comment is not a reply (i.e. it has a parent comment)
-						// If it's a reply, add it as a child to the corresponding parent comment.
-						if (subpage.parents != null) {
-							var hasParentComment = false;
-							for (var i = 0; i < subpage.parents.length; i++) {
-								var parent = pageService.pageMap[subpage.parents[i].parentId];
-								hasParentComment = parent.type === "comment";
-								if (hasParentComment) {
-									break;
-								}
-							}
-							if (hasParentComment) continue;
-						}
 						var $comment = $compile("<arb-comment primary-page-id='" + scope.pageId +
 																			"' page-id='" + subpage.pageId + "'></arb-comment>")(scope);
 						$comments.prepend($comment);
@@ -850,8 +831,8 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 			// Setup autocomplete for input field.
 			autocompleteService.setupParentsAutocomplete(element.find(".tag-input"), function(event, ui) {
 				var data = {
-					parentId: scope.page.pageId,
-					childId: ui.item.label,
+					parentId: ui.item.label,
+					childId: scope.page.pageId,
 					type: "requirement",
 				};
 				$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(data)})
@@ -859,8 +840,8 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 						console.log("Error creating requirement:"); console.log(data); console.log(status);
 					});
 
-				pageService.masteryMap[data.childId] = {pageId: data.childId, isMet: true, isManuallySet: true};
-				scope.page.requirementIds.push(data.childId);
+				pageService.masteryMap[data.parentId] = {pageId: data.parentId, isMet: true, isManuallySet: true};
+				scope.page.requirementIds.push(data.parentId);
 				scope.$apply();
 				$(event.target).val("");
 				return false;
@@ -870,13 +851,13 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 			element.on("click", ".delete-requirement-link", function(event) {
 				var $target = $(event.target);
 				var options = {
-					parentId: scope.page.pageId,
-					childId: $target.attr("page-id"),
+					parentId: $target.attr("page-id"),
+					childId: scope.page.pageId,
 					type: "requirement",
 				};
 				pageService.deletePagePair(options);
 
-				scope.page.requirementIds.splice(scope.page.requirementIds.indexOf(options.childId), 1);
+				scope.page.requirementIds.splice(scope.page.requirementIds.indexOf(options.parentId), 1);
 				scope.$apply();
 			});
 

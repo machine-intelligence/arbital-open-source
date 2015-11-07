@@ -13,6 +13,11 @@ import (
 	"zanaduu3/src/user"
 )
 
+// NewPage returns a pointer to a new page object created with the given page id
+func NewPage(pageId int64) *Page {
+	return &Page{corePageData: corePageData{PageId: pageId}}
+}
+
 // AddPageIdToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
@@ -23,7 +28,24 @@ func AddPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
 	if p, ok := pageMap[pageId]; ok {
 		return p
 	}
-	p := &Page{PageId: pageId}
+	p := NewPage(pageId)
+	pageMap[pageId] = p
+	return AddPageToMap(pageId, pageMap, EmptyLoadOptions)
+}
+
+// AddPageToMap adds a new page with the given page id to the map if it's not
+// in the map already.
+// Returns the new/existing page.
+func AddPageToMap(pageId int64, pageMap map[int64]*Page, loadOptions *PageLoadOptions) *Page {
+	if pageId <= 0 {
+		return nil
+	}
+	if p, ok := pageMap[pageId]; ok {
+		p.LoadOptions.Add(loadOptions)
+		return p
+	}
+	p := NewPage(pageId)
+	p.LoadOptions = *loadOptions
 	pageMap[pageId] = p
 	return p
 }
@@ -178,6 +200,9 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 func GetPageLockedUntilTime() string {
 	return time.Now().UTC().Add(PageLockDuration * time.Second).Format(database.TimeLayout)
 }
+func GetPageQuickLockedUntilTime() string {
+	return time.Now().UTC().Add(PageQuickLockDuration * time.Second).Format(database.TimeLayout)
+}
 
 // ExtractSummary extracts the summary text from a page text.
 func ExtractSummary(text string) string {
@@ -194,9 +219,14 @@ func ExtractSummary(text string) string {
 
 // ExtractTodoCount extracts the number of todos from a page text.
 func ExtractTodoCount(text string) int {
+	// Match [todo: text]
 	re := regexp.MustCompile("\\[todo: ?[^\\]]*\\]")
 	submatches := re.FindAllString(text, -1)
-	return len(submatches)
+	todoCount := len(submatches)
+	// Match [ red link text]
+	re = regexp.MustCompile("\\[ [^\\]]+\\]")
+	submatches = re.FindAllString(text, -1)
+	return todoCount + len(submatches)
 }
 
 // GetPageUrl returns the domain relative url for accessing the given page.

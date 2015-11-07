@@ -2,15 +2,12 @@
 package site
 
 import (
-	"fmt"
+	"encoding/json"
 	"math/rand"
-	"strconv"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-
-	"github.com/gorilla/schema"
 )
 
 // editJsonData contains parameters passed in via the request.
@@ -21,6 +18,11 @@ type editJsonData struct {
 	CreatedAtLimit string
 }
 
+var editHandler = siteHandler{
+	URI:         "/json/edit/",
+	HandlerFunc: editJsonHandler,
+}
+
 // editJsonHandler handles the request.
 func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
@@ -28,37 +30,20 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Decode data
 	var data editJsonData
-	params.R.ParseForm()
-	err := schema.NewDecoder().Decode(&data, params.R.Form)
+	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 
-	// Check if the user is trying to create a new page with an alias.
-	_, err = strconv.ParseInt(data.PageAlias, 10, 64)
+	// Get actual page id
+	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
 	if err != nil {
-		// Okay, it's not an id, but could be an alias.
-		row := db.NewStatement(`
-			SELECT pageId
-			FROM pages
-			WHERE isCurrentEdit AND alias=?`).QueryRow(data.PageAlias)
-		exists, err := row.Scan(&data.PageAlias)
-		if err != nil {
-			return pages.Fail("Couldn't convert pageId=>alias", err)
-		} else if !exists {
-			// No alias found. Assume user is trying to create a new page with an alias.
-			return pages.RedirectWith(core.GetEditPageUrl(rand.Int63()) + "?alias=" + data.PageAlias)
-		}
+		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
-
-	// Get page id.
-	pageIdStr := data.PageAlias
-	pageId, err := strconv.ParseInt(pageIdStr, 10, 64)
-	if err != nil {
-		return pages.Fail(fmt.Sprintf("Invalid id passed: %s", pageIdStr), nil)
+	if !ok {
+		// No alias found. Assume user is trying to create a new page with an alias.
+		return pages.RedirectWith(core.GetEditPageUrl(rand.Int63()) + "?alias=" + data.PageAlias)
 	}
-
-	userMap := make(map[int64]*core.User)
 
 	// Load full edit for one page.
 	options := core.LoadEditOptions{
@@ -72,50 +57,18 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Error while loading full edit", err)
 	}
 	if p == nil {
-		return pages.HandlerErrorFail("No page with such alias/id", err)
+		return pages.HandlerErrorFail("Exact page not found", err)
 	}
+	p.LoadOptions.Add(core.PrimaryEditLoadOptions)
 
-	primaryPageMap := make(map[int64]*core.Page)
-	primaryPageMap[pageId] = p
-
-	// Load edit history.
-	err = core.LoadEditHistory(db, p, u.Id)
+	// Load data
+	returnData := newHandlerData()
+	returnData.PageMap[p.PageId] = p
+	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
-		return pages.Fail("Couldn't load editHistory: %v", err)
+		return pages.HandlerErrorFail("Pipeline error", err)
 	}
-
-	pageMap := make(map[int64]*core.Page)
-	if p.EditGroupId > 0 {
-		if _, ok := pageMap[p.EditGroupId]; !ok {
-			core.AddPageIdToMap(p.EditGroupId, pageMap)
-		}
-	}
-
-	// Load links
-	err = core.LoadLinks(db, pageMap, &core.LoadLinksOptions{FromPageMap: primaryPageMap})
-	if err != nil {
-		return pages.Fail("Couldn't load links", err)
-	}
-
-	// Load parents
-	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{ForPages: primaryPageMap})
-	if err != nil {
-		return pages.Fail("Couldn't load parents: %v", err)
-	}
-
-	// Process change logs
-	userMap = make(map[int64]*core.User)
-	for _, log := range p.ChangeLogs {
-		userMap[log.UserId] = &core.User{Id: log.UserId}
-		core.AddPageIdToMap(log.AuxPageId, pageMap)
-	}
-
-	// Load pages.
-	err = core.LoadPages(db, pageMap, u.Id, nil)
-	if err != nil {
-		return pages.Fail("error while loading pages: %v", err)
-	}
-	pageMap[pageId] = p
 
 	// Grab the lock to this page, but only if we have the right group permissions
 	if p.SeeGroupId <= 0 || u.IsMemberOfGroup(p.SeeGroupId) {
@@ -126,7 +79,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 			hashmap["createdAt"] = database.Now()
 			hashmap["currentEdit"] = -1
 			hashmap["lockedBy"] = u.Id
-			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
+			hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 			statement := db.NewInsertStatement("pageInfos", hashmap, "lockedBy", "lockedUntil")
 			if _, err = statement.Exec(); err != nil {
 				return pages.Fail("Couldn't add a lock: %v", err)
@@ -136,22 +89,9 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// Load all the users.
-	userMap[u.Id] = &core.User{Id: u.Id}
-	userMap[p.LockedBy] = &core.User{Id: p.LockedBy}
-	for _, p := range pageMap {
-		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
-	}
-	err = core.LoadUsers(db, userMap)
-	if err != nil {
-		return pages.HandlerErrorFail("error while loading users", err)
-	}
-
 	// Remove the primary page from the pageMap and add it to the editMap
-	editMap := make(map[int64]*core.Page)
-	editMap[pageId] = p
-	delete(pageMap, pageId)
+	returnData.EditMap[pageId] = p
+	delete(returnData.PageMap, pageId)
 
-	returnData := createReturnData(pageMap).AddEditMap(editMap).AddUsers(userMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

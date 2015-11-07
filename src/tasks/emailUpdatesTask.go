@@ -36,7 +36,7 @@ func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 
 	// Find all users who need emailing.
 	rows := db.NewStatement(`
-		SELECT id,email,emailFrequency,emailThreshold
+		SELECT id
 		FROM users
 		WHERE (DATEDIFF(NOW(),updateEmailSentAt)>=7 AND emailFrequency="Weekly")
 			OR (DATEDIFF(NOW(),updateEmailSentAt)>=1 AND emailFrequency="Daily")
@@ -51,19 +51,15 @@ func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 
 func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 	c := db.C
+
 	var userId int64
-	var userEmail, userEmailFrequency string
-	var userEmailThreshold int
-	err := rows.Scan(&userId, &userEmail, &userEmailFrequency, &userEmailThreshold)
+	err := rows.Scan(&userId)
 	if err != nil {
 		return fmt.Errorf("failed to scan a user id: %v", err)
 	}
 
 	var task SendOneEmailTask
 	task.UserId = userId
-	task.UserEmail = userEmail
-	task.UserEmailFrequency = userEmailFrequency
-	task.UserEmailThreshold = userEmailThreshold
 	if err := task.IsValid(); err != nil {
 		c.Errorf("Invalid task created: %v", err)
 	} else if err := Enqueue(c, task, "sendOneEmail"); err != nil {

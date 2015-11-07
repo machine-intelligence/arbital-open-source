@@ -28,8 +28,15 @@ func GetDomain() string {
 	return strings.TrimPrefix(address, "http://")
 }
 
-// GetDomainHack tries to fix an issue with getting the wrong value in sendTestEmailHandler
-func GetDomainHack() string {
+func GetMuxDomain() string {
+	address := "localhost"
+	if Live {
+		address = config.XC.Site.Live.Address
+	}
+	return strings.TrimPrefix(address, "http://")
+}
+
+func GetDomainForTestEmail() string {
 	address := ""
 	if Live {
 		return config.XC.Site.Live.Address

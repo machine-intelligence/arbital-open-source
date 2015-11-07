@@ -6,8 +6,13 @@ import (
 	"zanaduu3/src/tasks"
 )
 
-// fixTextHandler kicks off the task.
-func fixTextHandler(params *pages.HandlerParams) *pages.Result {
+var fixTextHandler = siteHandler{
+	URI:         "/fixText/",
+	HandlerFunc: fixTextHandlerFunc,
+}
+
+// fixTextHandlerFunc kicks off the task.
+func fixTextHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	if !u.IsAdmin {
 		return pages.HandlerForbiddenFail("Have to be an admin", nil)

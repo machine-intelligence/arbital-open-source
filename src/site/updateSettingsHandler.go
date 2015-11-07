@@ -13,13 +13,21 @@ type updateSettingsData struct {
 	EmailThreshold string
 }
 
-// updateSettingsHandler handles submitting the settings from the Settings page
-func updateSettingsHandler(params *pages.HandlerParams) *pages.Result {
+var updateSettingsHandler = siteHandler{
+	URI:         "/updateSettings/",
+	HandlerFunc: updateSettingsHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// updateSettingsHandlerFunc handles submitting the settings from the Settings page
+func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	decoder := json.NewDecoder(params.R.Body)
 	var data updateSettingsData
+	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
@@ -29,11 +37,6 @@ func updateSettingsHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.EmailThreshold <= "0" {
 		return pages.HandlerBadRequestFail("Email Threshold has to be greater than 0", nil)
-	}
-
-	// Check user related permissions.
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Not logged in", nil)
 	}
 
 	statement := db.NewStatement(`

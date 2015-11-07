@@ -1,8 +1,9 @@
 <!-- Display page's likes and title. -->
 
 <div class="likes-page-title" ng-hide="page.title=='' && page.type!='comment'">
-	<span class="extra-info pull-right" ng-show="showRedLinkCount && page.redLinkCount>0">
-		<span class="red-link-count" title="Number of [todo: ...] blocks in text + number of broken links">
+	<span class="extra-info pull-right"
+				ng-show="showRedLinkCount && (page.redLinkCount>0 || page.todoCount>0)">
+		<span class="red-link-count" title="Number of manual todos in text + number of broken links">
 			TODOs: <span ng-bind="page.todoCount"></span>
 			+ <span ng-bind="page.redLinkCount"></span>
 		</span>
@@ -20,7 +21,7 @@
 	</span>
 
 	<!-- Link to quickly edit the page -->
-	<span class="quick-edit-span" ng-show="showQuickEditLink">
+	<span class="quick-edit-span" ng-show="showQuickEditLink && userService.userIsCool()">
 		<a ng-href="{[{page.editUrl()}]}" class="edit-page-link glyphicon glyphicon-pencil"></a>
 	</span>
 

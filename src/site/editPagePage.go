@@ -45,10 +45,10 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// Load all the groups.
 	data.PageMap = make(map[int64]*core.Page)
-	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, params.U.Id, nil)
+	data.UserMap = make(map[int64]*core.User)
+	err = core.ExecuteLoadPipeline(db, params.U, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
-		return pages.Fail("error while loading pages", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	return pages.StatusOK(data)

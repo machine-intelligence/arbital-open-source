@@ -20,31 +20,29 @@ type newGroupData struct {
 	RootPageId int64 `json:",string"`
 }
 
-// newGroupHandler handles requests to add a new group to a group.
-func newGroupHandler(params *pages.HandlerParams) *pages.Result {
+var newGroupHandler = siteHandler{
+	URI:         "/newGroup/",
+	HandlerFunc: newGroupHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		AdminOnly:    true,
+	},
+}
+
+// newGroupHandlerFunc handles requests to add a new group to a group.
+func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
 
-	decoder := json.NewDecoder(params.R.Body)
 	var data newGroupData
+	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if data.Name == "" {
 		return pages.HandlerBadRequestFail("Name has to be set", nil)
-	}
-
-	// Check user related permissions.
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Not logged in", nil)
-	}
-	if u.Karma < 200 {
-		return pages.HandlerForbiddenFail("You don't have enough karma", nil)
-	}
-	if !u.IsAdmin {
-		return pages.HandlerForbiddenFail("Have to be an admin to create domains or groups", nil)
 	}
 
 	// Begin the transaction.

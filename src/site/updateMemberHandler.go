@@ -15,7 +15,15 @@ type updateMemberData struct {
 	CanAdmin      bool
 }
 
-func updateMemberHandler(params *pages.HandlerParams) *pages.Result {
+var updateMemberHandler = siteHandler{
+	URI:         "/updateMember/",
+	HandlerFunc: updateMemberHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
@@ -27,10 +35,6 @@ func updateMemberHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.GroupId <= 0 || data.UserId <= 0 {
 		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Not logged in", nil)
 	}
 
 	// Check to see if this user can add members.

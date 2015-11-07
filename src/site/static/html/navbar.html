@@ -2,44 +2,62 @@
 <nav class="navbar navbar-default">
 	<div class="container-fluid">
 		<div class="navbar-header">
-			<a class="navbar-brand" href="/">Arbital</a>
+			<a class="navbar-brand" ng-href="{[{getDomain()}]}">Arbital</a>
 		</div>
-		<div class="navbar-text" ng-show="user.domainAlias">
-			<a ng-href="/explore/{[{user.domainAlias}]}" class="navbar-link">Explore</a>
-		</div>
+		<ul class="nav navbar-nav">
+			<!-- Group link for a private group index page -->
+			<li class="group-link" ng-show="pageService.privateGroupAlias">
+				<a ng-href="/"
+						ng-bind="pageService.pageMap[pageService.privateGroupAlias].title"></a>
+			</li>
+			<li class="group-link" ng-show="pageService.privateGroupAlias">
+				<a href="/explore/" class="navbar-link">Explore</a>
+			</li>
+			<!-- Explore link for a domain index page -->
+			<li class="group-link" ng-show="pageService.domainAlias">
+				<a ng-href="/explore/{[{pageService.domainAlias}]}">Explore</a>
+			</li>
+		</ul>
 		<ul class="nav navbar-nav navbar-right">
-				<li ng-show="user.isLoggedIn">
-					<a href="/edit">+New Page</a>
-				</li>
-				<li ng-show="user.isLoggedIn">
-					<a href="/updates">
-						Updates <span class="badge" ng-class="{'alert-danger': user.updateCount > 0}" ng-bind="user.updateCount"></span>
-					</a>
-				</li>
-				<li class="dropdown" ng-show="user.isLoggedIn">
-					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
-						<span ng-bind="user.email"></span>
-						<!-- <span class="karma badge" ng-bind="user.karma"></span> -->
-						<span class="caret"></span>
-					</a>
-					<ul class="dropdown-menu" role="menu">
-						<li ng-show="user.isAdmin"><a class="admin" href="/domains">All Domains</a></li>
-						<li class="divider" ng-show="user.isAdmin"></li>
-						<li><a ng-href="{[{userService.getUserUrl(user.id)}]}">Profile</a></li>
-						<li><a ng-href="/groups">Groups</a></li>
-						<li><a ng-href="/settings">Settings</a></li>
-						<li class="divider"></li>
-						<li><a ng-href="{[{user.logoutLink}]}" id="logout">Log Out</a></li>
-					</ul>
-				</li>
-				<li ng-hide="user.isLoggedIn"><a ng-href="/signup/?continueUrl={[{user.currentUrl}]}">Sign Up</a></li>
-				<li ng-hide="user.isLoggedIn"><a ng-href="{[{user.loginLink}]}?continueUrl={[{user.currentUrl}]}">Log In</a></li>
+			<li ng-show="user.isLoggedIn && userService.userIsCool()">
+				<a href="/edit">+New Page</a>
+			</li>
+			<li ng-show="user.isLoggedIn">
+				<a href="/updates">
+					Updates
+					<span class="badge"
+							ng-class="{'alert-danger': user.updateCount > 0}"
+							ng-bind="user.updateCount"></span>
+				</a>
+			</li>
+			<li class="dropdown" ng-show="user.isLoggedIn">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
+					<span ng-bind="user.email"></span>
+					<!-- <span class="karma badge" ng-bind="user.karma"></span> -->
+					<span class="caret"></span>
+				</a>
+				<ul class="dropdown-menu" role="menu">
+					<li ng-show="user.isAdmin"><a class="admin" href="/domains">All Domains</a></li>
+					<li class="divider" ng-show="user.isAdmin"></li>
+					<li><a ng-href="{[{userService.getUserUrl(user.id)}]}">Profile</a></li>
+					<li><a ng-href="/groups">Groups</a></li>
+					<li><a ng-href="/settings">Settings</a></li>
+					<li class="divider"></li>
+					<li><a ng-href="{[{user.logoutLink}]}" id="logout">Log Out</a></li>
+				</ul>
+			</li>
+			<li ng-hide="user.isLoggedIn">
+				<a ng-href="/signup/?continueUrl={[{user.currentUrl}]}">Sign Up</a>
+			</li>
+			<li ng-hide="user.isLoggedIn">
+				<a ng-href="{[{user.loginLink}]}?continueUrl={[{user.currentUrl}]}">Log In</a>
+			</li>
 		</ul>
 	</div>
 </nav>
 <input type="text" id="nav-search" class="nav-search form-control" placeholder="Search">
 
-<!-- ======= Collection of commonly popover templates ======= -->
+<!-- ======= Collection of common popover templates ======= -->
 
 <!-- This div shows up when the user tries to take an action that requires them to be logged in. -->
 <div id="signup-popover-template" hidden>

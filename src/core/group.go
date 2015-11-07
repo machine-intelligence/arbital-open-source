@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"zanaduu3/src/database"
+	"zanaduu3/src/elastic"
 	"zanaduu3/src/user"
 )
 
@@ -38,9 +39,7 @@ func LoadUserGroupIds(db *database.DB, u *user.User) error {
 func AddUserGroupIdsToPageMap(u *user.User, pageMap map[int64]*Page) {
 	for _, pageIdStr := range u.GroupIds {
 		pageId, _ := strconv.ParseInt(pageIdStr, 10, 64)
-		if _, ok := pageMap[pageId]; !ok {
-			pageMap[pageId] = &Page{PageId: pageId}
-		}
+		AddPageIdToMap(pageId, pageMap)
 	}
 }
 
@@ -63,9 +62,7 @@ func LoadDomainIds(db *database.DB, u *user.User, page *Page, pageMap map[int64]
 			return fmt.Errorf("failed to scan for a domain: %v", err)
 		}
 		page.DomainIds = append(page.DomainIds, fmt.Sprintf("%d", domainId))
-		if _, ok := pageMap[domainId]; !ok {
-			pageMap[domainId] = &Page{PageId: domainId}
-		}
+		AddPageIdToMap(domainId, pageMap)
 		return nil
 	})
 	return err
@@ -84,6 +81,7 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 	hashmap["type"] = groupType
 	hashmap["clickbait"] = clickbait
 	hashmap["isCurrentEdit"] = true
+	hashmap["sortChildrenBy"] = AlphabeticalChildSortingOption
 	if groupType == GroupPageType {
 		hashmap["editGroupId"] = groupId
 	}
@@ -117,6 +115,21 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't add user to the group", err
 		}
+	}
+
+	// Update elastic search index.
+	doc := &elastic.Document{
+		PageId:    groupId,
+		Type:      groupType,
+		Title:     title,
+		Clickbait: clickbait,
+		Text:      "",
+		Alias:     alias,
+		CreatorId: userId,
+	}
+	err := elastic.AddPageToIndex(tx.DB.C, doc)
+	if err != nil {
+		return "Failed to update index", err
 	}
 	return "", nil
 }

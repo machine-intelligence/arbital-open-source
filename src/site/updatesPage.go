@@ -38,31 +38,14 @@ func updatesRenderer(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	core.AddUserGroupIdsToPageMap(data.User, data.PageMap)
-	err = core.LoadPages(db, data.PageMap, data.User.Id, nil)
+	err = core.ExecuteLoadPipeline(db, data.User, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
 		return pages.Fail("error while loading pages", err)
-	}
-
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, data.User.Id, data.PageMap, nil)
-	if err != nil {
-		return pages.Fail("error while loading aux data", err)
 	}
 
 	// Now that we have loaded last visit time for all pages,
 	// go through all the update rows and group them.
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, data.PageMap)
-
-	// Load the names for all users.
-	data.UserMap[u.Id] = &core.User{Id: u.Id}
-	for _, p := range data.PageMap {
-		data.UserMap[p.CreatorId] = &core.User{Id: p.CreatorId}
-	}
-	err = core.LoadUsers(db, data.UserMap)
-	if err != nil {
-		return pages.Fail("error while loading user names", err)
-	}
 
 	// Load subscriptions to users
 	err = core.LoadUserSubscriptions(db, u.Id, data.UserMap)

@@ -15,23 +15,28 @@ type deleteMemberData struct {
 	UserId  int64 `json:",string"`
 }
 
-func deleteMemberHandler(params *pages.HandlerParams) *pages.Result {
+var deleteMemberHandler = siteHandler{
+	URI:         "/deleteMember/",
+	HandlerFunc: deleteMemberHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
+
+func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
 
-	decoder := json.NewDecoder(params.R.Body)
 	var data deleteMemberData
+	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if data.GroupId <= 0 || data.UserId <= 0 {
 		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Not logged in", nil)
 	}
 
 	// Check to see if this user can add members.

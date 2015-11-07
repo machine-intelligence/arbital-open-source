@@ -31,6 +31,11 @@ app.service("userService", function(){
 	};
 	console.log("Initial user map:"); console.dir(this.userMap);
 
+	// Check if we can let this user do stuff.
+	this.userIsCool = function() {
+		return this.user.karma >= 200;
+	};
+
 	// Return url to the user page.
 	this.getUserUrl = function(userId) {
 		return "/user/" + userId;
@@ -82,7 +87,11 @@ app.service("pageService", function(userService, $http){
 	};
 	
 	// All loaded edits. (These are the pages we will be editing.)
-	this.editMap = {};
+	this.editMap = {
+		{{range $k,$v := .EditMap}}
+			"{{$k}}": {{GetPageJson $v}},
+		{{end}}
+	};
 
 	// All loaded masteries.
 	this.masteryMap = {
@@ -117,7 +126,7 @@ app.service("pageService", function(userService, $http){
 	};
 
 	// Primary page is the one that's displayed front and center.
-	this.primaryPage = "{{.PrimaryPageId}}" === "0" ? undefined : this.pageMap["{{.PrimaryPageId}}"];
+	this.primaryPage = undefined;
 	// List of callbacks to notify when primary page changes.
 	this.primaryPageCallbacks = [];
 	// Set the primary page, triggering the callbacks.
@@ -127,6 +136,7 @@ app.service("pageService", function(userService, $http){
 		for (var n = 0; n < this.primaryPageCallbacks.length; n++) {
 			this.primaryPageCallbacks[n](oldPrimaryPage);
 		}
+		$("body").attr("last-visit", moment.utc(this.primaryPage.lastVisit).format("YYYY-MM-DD HH:mm:ss"));
 	};
 	
 	// Call this to process data we received from the server.
@@ -173,11 +183,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
 		getEditLevel: function() {
-			var karmaReq = this.editKarmaLock;
-			var editPageKarmaReq = 10; // TODO: fix this
-			if (karmaReq < editPageKarmaReq && this.wasPublished) {
-				karmaReq = editPageKarmaReq
-			}
+			var karmaReq = 200; // TODO: fix this
 			if (userService.user.karma < karmaReq) {
 				if (userService.user.isAdmin) {
 					// Can edit but only because user is an admin.
@@ -190,11 +196,7 @@ app.service("pageService", function(userService, $http){
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
 		getDeleteLevel: function() {
-			var karmaReq = this.editKarmaLock;
-			var deletePageKarmaReq = 200; // TODO: fix this
-			if (karmaReq < deletePageKarmaReq) {
-				karmaReq = deletePageKarmaReq;
-			}
+			var karmaReq = 200; // TODO: fix this
 			if (userService.user.karma < karmaReq) {
 				if (userService.user.isAdmin) {
 					return "admin";
@@ -266,7 +268,7 @@ app.service("pageService", function(userService, $http){
 				// No old value, so use the new one.
 				oldPage[k] = newPage[k];
 			}
-			// Both new and old values are legit. Overwrite.
+			// Both new and old values are legit. Overwrite with new.
 			oldPage[k] = newPage[k];
 		}
 	};
@@ -297,8 +299,8 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		parent.isLoadingChildren = true;
-		console.log("Issuing GET request to /json/children/?parentId=" + parent.pageId);
-		$http({method: "GET", url: "/json/children/", params: {parentId: parent.pageId}}).
+		console.log("Issuing POST request to /json/children/?parentId=" + parent.pageId);
+		$http({method: "POST", url: "/json/children/", data: JSON.stringify({parentId: parent.pageId})}).
 			success(function(data, status){
 				parent.isLoadingChildren = false;
 				parent.hasLoadedChildren = true;
@@ -372,8 +374,8 @@ app.service("pageService", function(userService, $http){
 			return;
 		}
 		child.isLoadingParents = true;
-		console.log("Issuing GET request to /json/parents/?childId=" + child.pageId);
-		$http({method: "GET", url: "/json/parents/", params: {childId: child.pageId}}).
+		console.log("Issuing POST request to /json/parents/?childId=" + child.pageId);
+		$http({method: "POST", url: "/json/parents/", data: JSON.stringify({childId: child.pageId})}).
 			success(function(data, status){
 				child.isLoadingParents = false;
 				child.hasLoadedParents = true;
@@ -388,57 +390,51 @@ app.service("pageService", function(userService, $http){
 			});
 	};
 
-	// Load the page with the given pageAliases. If it's empty, ask the server for
-	// a new page id.
+	// Load the page with the given pageAlias.
 	// options {
-	//   includeText: include the full text of the page
-	//   includeAuxData: include likes, subscription, etc...
-	//   loadComments: whether or not to load comments
-	//   loadVotes: whether or not to load votes
-	//   loadRequirements: whether or not to load requirements and masteries
+	//	 url: url to call
 	//   success: callback on success
 	//   error: callback on error
 	// }
-	// Track which pages we are already loading. Map pageAlias -> true.
+	// Track which pages we are already loading. Map url+pageAlias -> true.
 	var loadingPageAliases = {};
-	var count = 0;
-	this.loadPages = function(pageAliases, options) {
-		var that = this;
-		options.pageAliases = [];
-		// Add pages to the global map as necessary. Set pages as loading.
-		// Compute pageAliasesStr for page ids that are not being loaded already.
-		for (var n = 0; n < pageAliases.length; n++) {
-			var pageAlias = pageAliases[n];
-			if (!(pageAlias in loadingPageAliases)) {
-				loadingPageAliases[pageAlias] = true;
-				options.pageAliases.push(pageAlias);
-			}
+	var loadPage = function(pageAlias, options) {
+		// Check if the page is already being loaded, and mark it as such if it's not.
+		var loadKey = options.url + pageAlias;
+		if (loadKey in loadingPageAliases) {
+			return;
 		}
-		if (pageAliases.length > 0 && options.pageAliases.length == 0) {
-			return;  // we are loading all the pages already
-		}
+		loadingPageAliases[loadKey] = true;
 
-		// Set up options.
-		var success = options.success; delete options.success;
-		var error = options.error; delete options.error;
-
-		console.log("Issuing a GET request to: /json/pages/?pageAliases=" + pageAliases);
-		$http({method: "GET", url: "/json/pages/", params: options}).
+		console.log("Issuing a POST request to: " + options.url + "?pageAlias=" + pageAlias);
+		$http({method: "POST", url: options.url, data: JSON.stringify({pageAlias: pageAlias})}).
 			success(function(data, status){
-				console.log("JSON /pages/ data:"); console.dir(data);
+				console.log("JSON " + options.url + " data:"); console.dir(data);
 				userService.processServerData(data);
 				that.processServerData(data);
 				var pageData = data["pages"];
 				for (var id in pageData) {
-					delete loadingPageAliases[id];
-					delete loadingPageAliases[pageData[id].alias];
+					delete loadingPageAliases[options.url + id];
+					delete loadingPageAliases[options.url + pageData[id].alias];
 				}
-				if(success) success();
+				if(options.success) options.success();
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
-				if(error) error(data, status);
+				if(options.error) options.error(data, status);
 			}
 		);
+	};
+
+	// Get data to display a popover for the page with the given alias.
+	this.loadIntrasitePopover = function(pageAlias, options) {
+		options.url = "/json/intrasitePopover/";
+		loadPage(pageAlias, options);
+	};
+
+	// Get data to display a lens.
+	this.loadLens = function(pageAlias, options) {
+		options.url = "/json/lens/";
+		loadPage(pageAlias, options);
 	};
 	
 	// Load edit.
@@ -457,8 +453,8 @@ app.service("pageService", function(userService, $http){
 		var error = options.error; delete options.error;
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
-		console.log("Issuing a GET request to: /json/edit/?pageAlias=" + options.pageAlias);
-		$http({method: "GET", url: "/json/edit/", params: options}).
+		console.log("Issuing a POST request to: /json/edit/?pageAlias=" + options.pageAlias);
+		$http({method: "POST", url: "/json/edit/", data: JSON.stringify(options)}).
 			success(function(data, status){
 				console.log("JSON /json/edit/ data:"); console.dir(data);
 				if (!skipProcessDataStep) {
@@ -478,7 +474,7 @@ app.service("pageService", function(userService, $http){
 	//	success: callback on success
 	//}
 	this.getNewPage = function(options) {
-		$http({method: "GET", url: "/json/newPage/"}).
+		$http({method: "POST", url: "/json/newPage/"}).
 			success(function(data, status){
 				console.log("JSON /json/newPage/ data:"); console.dir(data);
 				var pageId = Object.keys(data["pages"])[0];
@@ -579,7 +575,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 			var elementType = "span";
 			var elementTypeEnd = "span";
 			if (resultsAreLinks) {
-				elementType = "a href='/pages/" + item.value + "'";
+				elementType = "a href='" + pageService.getPageUrl(item.label) + "'";
 				elementTypeEnd = "a";
 			}
 			var $el = $compile("<li class='ui-menu-item'><" + elementType +
@@ -600,8 +596,9 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		}
 		// Create list of results we can give to autocomplete.
 		var resultList = [];
-		for (var n = 0; n < data.result.hits.length; n++) {
-			var source = data.result.hits[n]._source;
+		var hits = data.result.search.hits;
+		for (var n = 0; n < hits.length; n++) {
+			var source = hits[n]._source;
 			resultList.push({
 				value: source.alias,
 				label: source.pageId,
@@ -609,6 +606,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 				title: source.title,
 				clickbait: source.clickbait,
 				seeGroupId: source.seeGroupId,
+				score: hits[n]._score,
 			});
 		}
 		return resultList;
@@ -702,13 +700,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	};
 	refreshAutoupdates();
 
-	// Process last visit url parameter
-	var lastVisit = $location.search().lastVisit;
-	if (lastVisit) {
-		$("body").attr("last-visit", lastVisit);
-		$location.search("lastVisit", null);
-	}
-
 	$("body").on("click", ".intrasite-lens-tab", function(event) {
 		var $tab = $(event.currentTarget);
 		var lensId = $tab.attr("data-target");
@@ -769,10 +760,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				}
 
 				// Fetch page data from the server.
-				pageService.loadPages([pageAlias], {
-					includeAuxData: true,
-					loadVotes: true,
-					loadChildren: true,
+				pageService.loadIntrasitePopover(pageAlias, {
 					success: function() {
 						var page = pageService.pageMap[pageAlias];
 						if (!page.summary) {
@@ -794,112 +782,224 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		}
 		return false;
 	});
-});
 
-// PageTreeCtrl is controller for the PageTree.
-app.controller("PageTreeCtrl", function ($scope, pageService) {
-	// Map of pageId -> array of nodes.
-	var pageIdToNodesMap = {};
-	// Return a new node object corresponding to the given pageId.
-	// The pair will also be added to the pageIdToNodesMap.
-	var createNode = function(pageId) {
-		var node = {
-			pageId: pageId,
-			showChildren: false,
-			children: [],
+	// ========== Smart loading ==============
+	// Get subdomain if any
+	var subdomain = undefined;
+	var subdomainMatch = /^([A-Za-z0-9]+)\.(localhost|arbital\.com)\/?$/.exec($location.host());
+	if (subdomainMatch) {
+		subdomain = subdomainMatch[1];
+	}
+
+	// Because the subdomain could have any case, we need to find the alias
+	// in the loaded map so we can get the alias with correct case
+	var updateSubdomain = function() {
+		for (var pageAlias in pageService.pageMap) {
+			if (subdomain.toUpperCase() === pageAlias.toUpperCase()) {
+				subdomain = pageAlias;
+				break;
+			}
+		}
+	};
+
+	// Primary page
+	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		var pageId = match[1];
+		// Process last visit url parameter
+		var lastVisit = $location.search().lastVisit;
+		if (lastVisit) {
+			$("body").attr("last-visit", lastVisit);
+			$location.search("lastVisit", null);
+		}
+
+		// Get the primary page data
+		var postData = {
+			pageAlias: pageId,
+			forcedLastVisit: lastVisit,
 		};
-		var nodes = pageIdToNodesMap[node.pageId];
-		if (nodes === undefined) {
-			nodes = [];
-			pageIdToNodesMap[node.pageId] = nodes;
-		}
-		nodes.push(node);
-		return node;
-	};
-
-	// Sort node's children based on how the corresponding page sorts its children.
-	$scope.sortNodeChildren = function(node) {
-		var sortChildrenBy = "alphabetical";
-		if (node === $scope.rootNode) {
-			if ($scope.primaryPageId) {
-				sortChildrenBy = pageService.pageMap[$scope.primaryPageId].sortChildrenBy;
-			}
-		} else {
-			sortChildrenBy = pageService.pageMap[node.pageId].sortChildrenBy;
-		}
-		var sortFunc = pageService.getChildSortFunc(sortChildrenBy);
-		node.children.sort(function(aNode, bNode) {
-			return sortFunc(aNode.pageId, bNode.pageId);
-		});
-	};
-
-	// Return true iff the given node has a node child corresponding to the pageId.
-	var nodeHasPageChild = function(node, pageId) {
-		return node.children.some(function(child) {
-			return child.pageId == pageId;
-		});
-	};
-
-	// processPages adds a new node for every page in the given newPagesMap.
-	$scope.processPages = function(newPagesMap, topLevel) {
-		if (newPagesMap === undefined) return;
-		// Process parents and create children nodes.
-		for (var pageId in newPagesMap) {
+		$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
+		.success(function(data, status){
+			console.log("JSON /primaryPage/ data:"); console.log(data);
+			userService.processServerData(data);
+			pageService.processServerData(data);
 			var page = pageService.pageMap[pageId];
-			var parents = page.parents; // array of pagePairs used to populate children nodes
-			if ($scope.isParentTree !== undefined) {
-				parents = page.children;
-			}
-			if (topLevel) {
-				if (!nodeHasPageChild($scope.rootNode, pageId)) {
-					var node = createNode(pageId);
-					node.isTopLevel = true;
-					$scope.rootNode.children.push(node);
-				}
+			if (page) {
+				$scope.page = page;
+				pageService.setPrimaryPage(page);
+
+				document.title = $scope.page.title + " - Arbital";
+
+				var $el = $compile("<arb-primary-page></arb-primary-page>")($scope);
+				$(".primary-page-body-div").append($el);
 			} else {
-				// For each parent the page has, find all corresponding nodes, and add
-				// a new child node to each of them.
-				var parentsLen = parents.length;
-				for (var i = 0; i < parentsLen; i++){
-					var parentId = parents[i].parentId;
-					if ($scope.isParentTree !== undefined) {
-						parentId = parents[i].childId;
-					}
-					var parentPage = pageService.pageMap[parentId];
-					var parentNodes = parentPage ? (pageIdToNodesMap[parentPage.pageId] || []) : [];
-					var parentNodesLen = parentNodes.length;
-					for (var ii = 0; ii < parentNodesLen; ii++){
-						var parentNode = parentNodes[ii];
-						if (!nodeHasPageChild(parentNode, pageId)) {
-							parentNode.children.push(createNode(pageId));
-						}
-					}
-				}
+				$(".global-error").text("Page doesn't exist, was deleted, or you don't have permission to view it.").show();
+				document.title = "Not Found - Arbital";
 			}
-		}
-	};
+		})
+		.error(function(data, status){
+			console.log("Error /primaryPage/:"); console.log(data); console.log(status);
+			$(".global-error").text("An error occured while getting the page. :(").show();
+			document.title = "Error - Arbital";
+		});
+	}
 
-	// Imaginary root node we use to make the architecture simpler.
-	$scope.rootNode = {pageId:"-1", children:[]};
+	// Domain index page
+	var pagesPath = /^\/domains\/([A-Za-z0-9]+)\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		var domainAlias = match[1];
+		var postData = {
+			domainAlias: domainAlias,
+		};
+		// Get the domain index page data
+		$http({method: "POST", url: "/json/domainIndex/", data: JSON.stringify(postData)})
+		.success(function(data, status){
+			console.log("JSON /domainIndex/ data:"); console.log(data);
+			userService.processServerData(data);
+			pageService.processServerData(data);
 
-	// Populate the tree.
-	$scope.processPages($scope.initMap, true);
-	$scope.processPages($scope.additionalMap);
+			document.title = pageService.pageMap[domainAlias].title + " - Domain - Abital";
+			pageService.domainAlias = domainAlias;
+			$compile($(".group-link"))($scope);
 
-	if (!$scope.isParentTree) {
-		// Sort children.
-		$scope.sortNodeChildren($scope.rootNode);
-		for (var n = 0; n < $scope.rootNode.children.length; n++) {
-			$scope.sortNodeChildren($scope.rootNode.children[n]);
+			$scope.indexPageIdsMap = data["result"];
+			var $el = $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>");
+			$(".dynamic-body").append($el);
+			$compile($(".dynamic-body"))($scope);
+		})
+		.error(function(data, status){
+			console.log("Error /json/privateIndex/:"); console.log(data); console.log(status);
+			$(".global-error").text(data).show();
+			document.title = "Error - Arbital";
+		});
+	}
+
+	// Explore page
+	var pagesPath = /^\/explore\/?([A-Za-z0-9]*)\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		var postData = {
+			groupAlias: subdomain ? subdomain : match[1],
+		};
+		// Get the explore data
+		$http({method: "POST", url: "/json/explore/", data: JSON.stringify(postData)})
+		.success(function(data, status){
+			console.log("json/explore/ data:"); console.log(data);
+			userService.processServerData(data);
+			pageService.processServerData(data);
+
+			// Decide on the domain alias
+			if (subdomain) {
+				updateSubdomain();
+				pageService.privateGroupAlias = subdomain;
+				document.title = pageService.pageMap[pageService.privateGroupAlias].title + " - Explore - Abital";
+			} else {
+				pageService.domainAlias = postData.groupAlias;
+				document.title = pageService.pageMap[pageService.domainAlias].title + " - Explore - Abital";
+			}
+
+			// Compute root and children maps
+			var rootPage = pageService.pageMap[data["result"].rootPageId];
+			$scope.rootPages = {};
+			$scope.rootPages[rootPage.pageId] = rootPage;
+			$scope.childPages = {};
+			var length = rootPage.children ? rootPage.children.length : 0;
+			for (var n = 0; n < length; n++) {
+				var childId = rootPage.children[n].childId;
+				$scope.childPages[childId] = pageService.pageMap[childId];
+			}
+
+			// Add the tree directive
+			var $el = $("<arb-page-tree init-map='rootPages' additional-map='childPages'" +
+					"supersize-roots='true'></arb-page-tree>");
+			$(".dynamic-body").append($el);
+			$compile($(".dynamic-body"))($scope);
+			$compile($(".group-link"))($scope);
+		})
+		.error(function(data, status){
+			console.log("Error /json/explore/:"); console.log(data); console.log(status);
+			$(".global-error").text(data).show();
+			document.title = "Error - Arbital";
+		});
+	}
+
+	// Groups page
+	var pagesPath = /^\/groups\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		$http({method: "POST", url: "/json/groups/"}).
+			success(function(data, status){
+				console.log("JSON /groups/ data:"); console.log(data);
+				userService.processServerData(data);
+				pageService.processServerData(data);
+				document.title = "Groups - Abital";
+
+				var $el = $("<arb-groups-page></arb-groups-page>");
+				$(".dynamic-body").append($el);
+				$compile($(".dynamic-body"))($scope);
+			}).error(function(data, status){
+				console.log("Error groups page:"); console.log(data); console.log(status);
+			}
+		);
+	}
+
+	// Index page
+	var pagesPath = /^\/$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		if (subdomain) {
+			// Get the private group index page data
+			$http({method: "POST", url: "/json/privateIndex/"})
+			.success(function(data, status){
+				console.log("JSON /privateIndex/ data:"); console.log(data);
+				userService.processServerData(data);
+				pageService.processServerData(data);
+
+				updateSubdomain();
+				document.title = pageService.pageMap[subdomain].title + " - Private Group - Abital";
+				pageService.privateGroupAlias = subdomain;
+				$compile($(".group-link"))($scope);
+
+				$scope.indexPageIdsMap = data["result"];
+				var $el = $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>");
+				$(".dynamic-body").append($el);
+				$compile($(".dynamic-body"))($scope);
+			})
+			.error(function(data, status){
+				console.log("Error /json/privateIndex/:"); console.log(data); console.log(status);
+				$(".global-error").text(data).show();
+				document.title = "Error - Arbital";
+			});
+		} else {
+			// Get the index page data
+			$http({method: "POST", url: "/json/index/"})
+			.success(function(data, status){
+				console.log("/json/index/ data:"); console.log(data);
+				userService.processServerData(data);
+				pageService.processServerData(data);
+
+				$scope.featuredDomains = data["result"].featuredDomains;
+				var $el = $("<arb-index featured-domains='featuredDomains'></arb-index>");
+				$(".dynamic-body").append($el);
+				$compile($(".dynamic-body"))($scope);
+			})
+			.error(function(data, status){
+				console.log("Error /json/index/:"); console.log(data); console.log(status);
+				$(".global-error").text(data).show();
+				document.title = "Error - Arbital";
+			});
 		}
 	}
 });
 
 
+
 // =============================== DIRECTIVES =================================
 
 // navbar directive displays the navbar at the top of each page
-app.directive("arbNavbar", function(pageService, userService, autocompleteService, $http) {
+app.directive("arbNavbar", function($http, $location, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/navbar.html",
 		scope: {
@@ -908,6 +1008,15 @@ app.directive("arbNavbar", function(pageService, userService, autocompleteServic
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.user = userService.user;
+
+			// Get the current domain
+			scope.getDomain = function() {
+				if (/localhost/.exec($location.host())) {
+					return "http://localhost:8012";
+				} else {
+					return "http://arbital.com"
+				}
+			};
 
 			$("#logout").click(function() {
 				$.removeCookie("zanaduu", {path: "/"});
@@ -1035,7 +1144,109 @@ app.directive("arbLikesPageTitle", function(pageService, userService) {
 app.directive("arbPageTree", function() {
 	return {
 		templateUrl: "/static/html/pageTree.html",
-		controller: "PageTreeCtrl",
+		controller: function ($scope, pageService) {
+			// Map of pageId -> array of nodes.
+			var pageIdToNodesMap = {};
+			// Return a new node object corresponding to the given pageId.
+			// The pair will also be added to the pageIdToNodesMap.
+			var createNode = function(pageId) {
+				var node = {
+					pageId: pageId,
+					showChildren: false,
+					children: [],
+				};
+				var nodes = pageIdToNodesMap[node.pageId];
+				if (nodes === undefined) {
+					nodes = [];
+					pageIdToNodesMap[node.pageId] = nodes;
+				}
+				nodes.push(node);
+				return node;
+			};
+		
+			// Sort node's children based on how the corresponding page sorts its children.
+			$scope.sortNodeChildren = function(node) {
+				var sortChildrenBy = "alphabetical";
+				if (node === $scope.rootNode) {
+					if ($scope.primaryPageId) {
+						sortChildrenBy = pageService.pageMap[$scope.primaryPageId].sortChildrenBy;
+					}
+				} else {
+					sortChildrenBy = pageService.pageMap[node.pageId].sortChildrenBy;
+				}
+				var sortFunc = pageService.getChildSortFunc(sortChildrenBy);
+				node.children.sort(function(aNode, bNode) {
+					return sortFunc(aNode.pageId, bNode.pageId);
+				});
+			};
+		
+			// Return true iff the given node has a node child corresponding to the pageId.
+			var nodeHasPageChild = function(node, pageId) {
+				return node.children.some(function(child) {
+					return child.pageId == pageId;
+				});
+			};
+		
+			// processPages adds a new node for every page in the given newPagesMap.
+			$scope.processPages = function(newPagesMap, topLevel) {
+				if (newPagesMap === undefined) return;
+				// Process parents and create children nodes.
+				for (var pageId in newPagesMap) {
+					var page = pageService.pageMap[pageId];
+					if (!page) {
+						console.warn("Couldn't find child id " + pageId);
+						continue;
+					}
+					var parents = page.parents; // array of pagePairs used to populate children nodes
+					if ($scope.isParentTree !== undefined) {
+						parents = page.children;
+					}
+					if (topLevel) {
+						if (!nodeHasPageChild($scope.rootNode, pageId)) {
+							var node = createNode(pageId);
+							node.isTopLevel = true;
+							$scope.rootNode.children.push(node);
+						}
+					} else {
+						// For each parent the page has, find all corresponding nodes, and add
+						// a new child node to each of them.
+						var parentsLen = parents.length;
+						for (var i = 0; i < parentsLen; i++){
+							var parentId = parents[i].parentId;
+							if ($scope.isParentTree !== undefined) {
+								parentId = parents[i].childId;
+							}
+							var parentPage = pageService.pageMap[parentId];
+							var parentNodes = parentPage ? (pageIdToNodesMap[parentPage.pageId] || []) : [];
+							var parentNodesLen = parentNodes.length;
+							for (var ii = 0; ii < parentNodesLen; ii++){
+								var parentNode = parentNodes[ii];
+								if (!nodeHasPageChild(parentNode, pageId)) {
+									parentNode.children.push(createNode(pageId));
+								}
+							}
+						}
+					}
+				}
+			};
+		
+			// Imaginary root node we use to make the architecture simpler.
+			$scope.rootNode = {pageId:"-1", children:[]};
+		
+			// Populate the tree.
+			console.log($scope.initMap);
+			console.log($scope.additionalMap);
+			$scope.processPages($scope.initMap, true);
+			$scope.processPages($scope.additionalMap);
+		
+			if (!$scope.isParentTree) {
+				// Sort children.
+				$scope.sortNodeChildren($scope.rootNode);
+				for (var n = 0; n < $scope.rootNode.children.length; n++) {
+					$scope.sortNodeChildren($scope.rootNode.children[n]);
+				}
+			}
+		},
 		scope: {
 			supersizeRoots: "@", // if defined, the root nodes are displayed bigger
 			isParentTree: "@", // if defined, the nodes' children actually represent page's parents, not children

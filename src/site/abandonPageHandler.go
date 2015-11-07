@@ -14,14 +14,19 @@ type abandonPageData struct {
 	PageId int64 `json:",string"`
 }
 
-// abandonPageHandler handles requests for deleting a page.
-func abandonPageHandler(params *pages.HandlerParams) *pages.Result {
+var abandonPageHandler = siteHandler{
+	URI:         "/abandonPage/",
+	HandlerFunc: abandonPageHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
+
+// abandonPageHandlerFunc handles requests for deleting a page.
+func abandonPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
-	}
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data abandonPageData

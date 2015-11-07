@@ -18,23 +18,27 @@ type newLikeData struct {
 	Value  int
 }
 
-// newLikeHandler handles requests to create/update a prior like.
-func newLikeHandler(params *pages.HandlerParams) *pages.Result {
+var newLikeHandler = siteHandler{
+	URI:         "/newLike/",
+	HandlerFunc: newLikeHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// newLikeHandlerFunc handles requests to create/update a prior like.
+func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	decoder := json.NewDecoder(params.R.Body)
 	var task newLikeData
+	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&task)
 	if err != nil || task.PageId <= 0 {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if task.Value < -1 || task.Value > 1 {
 		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
-	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
 	}
 
 	// Check to see if we have a recent like by this user for this page.

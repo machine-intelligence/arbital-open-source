@@ -2,15 +2,20 @@
 package site
 
 import (
+	"encoding/json"
+
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
-
-	"github.com/gorilla/schema"
 )
 
 // parentsJsonData contains parameters passed in via the request.
 type parentsJsonData struct {
-	ChildId int64
+	ChildId int64 `json:",string"`
+}
+
+var parentsHandler = siteHandler{
+	URI:         "/json/parents/",
+	HandlerFunc: parentsJsonHandler,
 }
 
 // parentsJsonHandler handles the request.
@@ -20,8 +25,7 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Decode data
 	var data parentsJsonData
-	params.R.ParseForm()
-	err := schema.NewDecoder().Decode(&data, params.R.Form)
+	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
@@ -29,28 +33,19 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Need a valid childId", err)
 	}
 
-	// Load the parents.
-	pageMap := make(map[int64]*core.Page)
-	pageMap[data.ChildId] = &core.Page{PageId: data.ChildId}
-	err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{LoadHasParents: true})
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load parent ids", err)
-	}
-	// Remove child, since we only want to return parents.
-	delete(pageMap, data.ChildId)
+	// Load the parents
+	returnData := newHandlerData()
 
-	// Load pages.
-	err = core.LoadPages(db, pageMap, u.Id, nil)
+	loadOptions := (&core.PageLoadOptions{
+		Parents: true,
+	}).Add(core.TitlePlusLoadOptions)
+	core.AddPageToMap(data.ChildId, returnData.PageMap, loadOptions)
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
+		return pages.HandlerErrorFail("Couldn't load pages", err)
 	}
+	// Remove the child, since we only want to return parents.
+	delete(returnData.PageMap, data.ChildId)
 
-	// Load auxillary data.
-	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't retrieve page likes", err)
-	}
-
-	returnData := createReturnData(pageMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

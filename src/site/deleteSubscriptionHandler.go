@@ -14,17 +14,22 @@ type deleteSubscriptionData struct {
 	UserId int64 `json:",string"`
 }
 
-// deleteSubscriptionHandler handles requests for deleting a subscription.
-func deleteSubscriptionHandler(params *pages.HandlerParams) *pages.Result {
+var deleteSubscriptionHandler = siteHandler{
+	URI:         "/deleteSubscription/",
+	HandlerFunc: deleteSubscriptionHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
+}
+
+// deleteSubscriptionHandlerFunc handles requests for deleting a subscription.
+func deleteSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
-	}
-
-	decoder := json.NewDecoder(params.R.Body)
+	// Get and check data
 	var data deleteSubscriptionData
+	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil || (data.PageId == 0 && data.UserId == 0) {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)

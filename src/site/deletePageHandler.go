@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
 )
@@ -15,31 +16,69 @@ type deletePageData struct {
 	PageId int64 `json:",string"`
 }
 
-// deletePageHandler handles requests for deleting a page.
-func deletePageHandler(params *pages.HandlerParams) *pages.Result {
+var deletePageHandler = siteHandler{
+	URI:         "/deletePage/",
+	HandlerFunc: deletePageHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
+
+// deletePageHandlerFunc handles requests for deleting a page.
+func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data deletePageData
 	err := decoder.Decode(&data)
-	if err != nil || data.PageId == 0 {
+	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-
-	if !u.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Have to be logged in", nil)
+	if data.PageId == 0 {
+		return pages.HandlerBadRequestFail("PageId isn't set", nil)
 	}
 
 	// Load the page
-	var page *core.Page
-	page, err = core.LoadFullEdit(db, data.PageId, u.Id, nil)
+	pageMap := make(map[int64]*core.Page)
+	page := core.AddPageIdToMap(data.PageId, pageMap)
+	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}
-	if page == nil || !page.WasPublished || page.Type == core.DeletedPageType {
+	if page == nil || page.Type == core.DeletedPageType {
 		// Looks like there is no need to delete this page.
 		return pages.StatusOK(nil)
+	}
+	if page.Type == core.GroupPageType || page.Type == core.DomainPageType {
+		if !u.IsAdmin {
+			return pages.HandlerForbiddenFail("Have to be an admin to delete a group/domain", nil)
+		}
+	}
+
+	// Delete all pairs
+	rows := database.NewQuery(`
+		SELECT parentId,childId,type
+		FROM pagePairs
+		WHERE parentId=? OR childId=?`, data.PageId, data.PageId).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var parentId, childId int64
+		var pairType string
+		err := rows.Scan(&parentId, &childId, &pairType)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+			return deletePagePair(tx, u.Id, parentId, childId, pairType)
+		})
+		if errMessage != "" {
+			return fmt.Errorf("%s: %v", errMessage, err)
+		}
+		return nil
+	})
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't load pairs: %v", err)
 	}
 
 	// Create a task to propagate the domain change to all children
@@ -56,10 +95,6 @@ func deletePageHandler(params *pages.HandlerParams) *pages.Result {
 	hasVoteStr := ""
 	if page.HasVote {
 		hasVoteStr = "on"
-	}
-	parentIds := make([]string, len(page.Children))
-	for n, pair := range page.Children {
-		parentIds[n] = fmt.Sprintf("%d", pair.ChildId)
 	}
 	editData := &editPageData{
 		PageId:         page.PageId,

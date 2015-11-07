@@ -44,15 +44,20 @@ type editPageData struct {
 	DeleteEdit   bool `json:"-"`
 }
 
-// editPageHandler handles requests to create a new page.
-func editPageHandler(params *pages.HandlerParams) *pages.Result {
-	if !params.U.IsLoggedIn {
-		return pages.HandlerForbiddenFail("Need to be logged in", nil)
-	}
+var editPageHandler = siteHandler{
+	URI:         "/editPage/",
+	HandlerFunc: editPageHandlerFunc,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+		MinKarma:     200,
+	},
+}
 
+// editPageHandlerFunc handles requests to create a new page.
+func editPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	decoder := json.NewDecoder(params.R.Body)
 	var data editPageData
+	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
@@ -76,7 +81,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{})
+	oldPage, err := core.LoadFullEdit(db, data.PageId, u.Id, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -231,16 +236,16 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Make sure alias is valid
 	if data.Alias == "" {
 		data.Alias = fmt.Sprintf("%d", data.PageId)
-	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+	} else if isCurrentEdit && data.Alias != fmt.Sprintf("%d", data.PageId) {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
 			return pages.HandlerErrorFail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if data.SeeGroupId > 0 {
-			tempPageMap := map[int64]*core.Page{data.SeeGroupId: &core.Page{PageId: data.SeeGroupId}}
-			err = core.LoadPages(db, tempPageMap, u.Id, nil)
+		if data.SeeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+			tempPageMap := map[int64]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
+			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the see group", err)
 			}
@@ -300,16 +305,16 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	primaryPage := &core.Page{PageId: data.PageId}
-	primaryPageMap := map[int64]*core.Page{data.PageId: primaryPage}
+	primaryPageMap := make(map[int64]*core.Page)
+	primaryPage := core.AddPageIdToMap(data.PageId, primaryPageMap)
 	pageMap := make(map[int64]*core.Page)
 	if isCurrentEdit && !oldPage.WasPublished {
 		// Load parents and children.
-		err = core.LoadParentsIds(db, pageMap, &core.LoadParentsIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadParentIds(db, pageMap, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load parents", err)
 		}
-		err = core.LoadChildrenIds(db, pageMap, &core.LoadChildrenIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadChildIds(db, pageMap, &core.LoadChildIdsOptions{ForPages: primaryPageMap})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load children", err)
 		}
@@ -600,6 +605,5 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	returnData := createReturnData(nil).AddResult(newEditNum)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(nil)
 }

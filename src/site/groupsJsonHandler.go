@@ -9,6 +9,11 @@ import (
 	"zanaduu3/src/pages"
 )
 
+var groupsHandler = siteHandler{
+	URI:         "/json/groups/",
+	HandlerFunc: groupsJsonHandler,
+}
+
 func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
@@ -19,9 +24,9 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
+	returnData := newHandlerData()
+
 	// Load the groups and members
-	userMap := make(map[int64]*core.User)
-	pageMap := make(map[int64]*core.Page)
 	rows := database.NewQuery(`
 		SELECT p.pageId,m.userId,m.canAddMembers,m.canAdmin
 		FROM pages AS p
@@ -40,16 +45,14 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Add group
-		curGroup := pageMap[groupId]
-		if curGroup == nil {
-			curGroup = &core.Page{PageId: groupId}
-			pageMap[groupId] = curGroup
+		curGroup := core.AddPageIdToMap(groupId, returnData.PageMap)
+		if curGroup.Members == nil {
 			curGroup.Members = make(map[string]*core.Member)
 		}
 
 		// Add member
 		curGroup.Members[fmt.Sprintf("%d", m.UserId)] = &m
-		userMap[m.UserId] = &core.User{Id: m.UserId}
+		returnData.UserMap[m.UserId] = &core.User{Id: m.UserId}
 		return nil
 	})
 	if err != nil {
@@ -57,24 +60,10 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	core.AddUserGroupIdsToPageMap(u, pageMap)
-	err = core.LoadPages(db, pageMap, u.Id, &core.LoadPageOptions{LoadSummary: true})
+	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
-		return pages.Fail("error while loading pages", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	// Load aux data
-	err = core.LoadAuxPageData(db, u.Id, pageMap, nil)
-	if err != nil {
-		return pages.Fail("error while loading aux data", err)
-	}
-
-	// Load all the users.
-	err = core.LoadUsers(db, userMap)
-	if err != nil {
-		return pages.Fail("Error while loading users", err)
-	}
-
-	returnData := createReturnData(pageMap).AddUsers(userMap)
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(returnData.toJson())
 }

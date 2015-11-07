@@ -50,7 +50,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		if (!parentPage) {
 			parentPage = pageService.pageMap[parentId];
 			if (!parentPage) {
-				console.error("ERROR: parent is not in any map: " + parentId);
+				console.error("parent is not in any map: " + parentId);
 				return;
 			}
 		}
@@ -102,9 +102,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			autocompleteService.findSimilarPages(data, function(data){
 				$similarPages.empty();
 				for (var n = 0; n < data.length; n++) {
-					var pageId = data[n].value;
-					if (pageId === page.alias) continue;
-					var $el = $compile("<div arb-likes-page-title page-id='" + pageId +
+					var pageId = data[n].label;
+					if (pageId === page.pageId) continue;
+					var $el = $compile("<span class='admin' ng-show='userService.user.isAdmin'>" + data[n].score + "</span>" +
+						"<div arb-likes-page-title page-id='" + pageId +
 						"' show-clickbait='true'></div>")(scope);
 					$similarPages.append($el);
 				}
@@ -155,13 +156,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
 				}
 				if (isSnapshot) {
-					var editNum = r.result;
-					// Update prevEdit
-					$form.find(".prev-edit").val(editNum);
 					// Prevent an autosave from triggering right after a successful snapshot
 					prevEditPageData.isSnapshot = false;
 					prevEditPageData.isAutosave = true;
-					prevEditPageData.prevEdit = editNum;
 					data.__invisibleSubmit = true; 
 				}
 				callback(true);
@@ -229,8 +226,10 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		return false;
 	});
 
-	// Resive textarea height to fit the screen.
-	$topParent.find(".wmd-input").height($(window).height() - 140);
+	if (primaryPage && pageId === primaryPage.pageId) {
+		// Resive textarea height to fit the screen.
+		$topParent.find(".wmd-input").height($(window).height() - 140);
+	}
 
 	// Scroll wmd-panel so it's always inside the viewport.
 	if (primaryPage === undefined && !isModal) {
@@ -299,12 +298,12 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			return prefix + "[" + text + "](" + page.alias + ")";
 		}
 		return whole;
-	}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
+	/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
 		var page = pageService.pageMap[alias];
 		if (page) {
 			return prefix + "[vote: " + page.alias + "]";
 		}
-		return whole;
+		return whole;*/
 	}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
 		var page = pageService.pageMap[alias];
 		if (page) {
@@ -605,7 +604,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 						if (options.callback) {
 							// Make sure we got alias and not pageId
 							var tempEditPage = pageService.editMap[returnedResult.alias];
-							returnedResult.alias = editPage.alias;
+							returnedResult.alias = tempEditPage.alias;
 							options.callback(returnedResult);
 						}
 						editPage.stop();
@@ -620,7 +619,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 				var loadPages = function() {
 					if (resumePageId) {
 						if (resumePageId === primaryPage.pageId) {
-							console.log("Error: trying to edit the same page in modal");
+							console.error("trying to edit the same page in modal");
 							return;
 						}
 						// Resume editing some page.
@@ -642,7 +641,7 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 								if (resumePageId !== primaryPage.pageId) {
 									setupModal(resumePageId, false);
 								} else {
-									console.log("Error: trying to edit the same page in modal");
+									console.error("trying to edit the same page in modal");
 								}
 							},
 						});
@@ -689,6 +688,11 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 				pageService.addPageToEditMap(scope.page);
 			}
 
+			// Fix alias
+			if (!scope.page.alias) {
+				scope.page.alias = scope.page.pageId;
+			}
+
 			// If the page has "Group.Alias" alias, just change it to "Alias"
 			var dotIndex = scope.page.alias.indexOf(".");
 			if (dotIndex >= 0) {
@@ -701,6 +705,8 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			scope.isComment = scope.page.type === "comment";
 			scope.isLens = scope.page.type === "lens";
 			scope.isSecondary = scope.isQuestion || scope.isComment;
+			scope.isGroup = scope.page.type === "group" || scope.page.type === "domain";
+			scope.isFixedType = scope.isSecondary || scope.isGroup;
 			scope.useVerticalView = scope.isModal;
 			scope.lockExists = scope.page.lockedBy != "0" && moment.utc(scope.page.lockedUntil).isAfter(moment.utc());
 			scope.lockedByAnother = scope.lockExists && scope.page.lockedBy !== userService.user.id;

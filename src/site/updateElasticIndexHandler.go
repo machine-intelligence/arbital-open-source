@@ -6,8 +6,13 @@ import (
 	"zanaduu3/src/tasks"
 )
 
-// updateElasticIndexHandler kicks off the task to update the index for pages.
-func updateElasticIndexHandler(params *pages.HandlerParams) *pages.Result {
+var updateElasticIndexHandler = siteHandler{
+	URI:         "/updateElasticIndex/",
+	HandlerFunc: updateElasticIndexHandlerFunc,
+}
+
+// updateElasticIndexHandlerFunc kicks off the task to update the index for pages.
+func updateElasticIndexHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 
 	if !u.IsAdmin {

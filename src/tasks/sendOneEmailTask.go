@@ -13,14 +13,12 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/user"
 )
 
 // SendOneEmailTask is the object that's put into the daemon queue.
 type SendOneEmailTask struct {
-	UserId             int64
-	UserEmail          string
-	UserEmailFrequency string
-	UserEmailThreshold int
+	UserId int64
 }
 
 // Check if this task is valid, and we can safely execute it.
@@ -41,21 +39,36 @@ func (task *SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 	c.Debugf("==== SEND EMAIL START ====")
 	defer c.Debugf("==== SEND EMAIL COMPLETED SUCCESSFULLY ====")
 
-	SendTheEmail(db, task.UserId, task.UserEmail, task.UserEmailThreshold)
+	SendTheEmail(db, task.UserId)
 
 	return
 }
 
-func SendTheEmail(db *database.DB, userId int64, userEmail string, userEmailThreshold int) (retErr error, resultData string) {
+func SendTheEmail(db *database.DB, userId int64) (retErr error, resultData string) {
 	c := db.C
+
+	resultData = ""
 
 	c.Debugf("starting sendTheEmail")
 
-	c.Debugf("userId: %v", userId)
-	c.Debugf("userEmail: %v", userEmail)
-	c.Debugf("userEmailThreshold: %v", userEmailThreshold)
+	u := &user.User{}
+	row := db.NewStatement(`
+		SELECT id,email,emailFrequency,emailThreshold
+		FROM users
+		WHERE id=?`).QueryRow(userId)
+	_, err := row.Scan(&u.Id, &u.Email, &u.EmailFrequency, &u.EmailThreshold)
+	if err != nil {
+		return fmt.Errorf("Couldn't retrieve a user: %v", err), resultData
+	}
 
-	resultData = ""
+	c.Debugf("u.Id: %v", u.Id)
+	c.Debugf("u.Email: %v", u.Email)
+	c.Debugf("u.EmailThreshold: %v", u.EmailThreshold)
+
+	// Load the groups the user belongs to.
+	if err = core.LoadUserGroupIds(db, u); err != nil {
+		return fmt.Errorf("Couldn't load user groups: %v", err), resultData
+	}
 
 	// Update database first, even though we might fail to send the email. This
 	// way we definitely won't accidentally email a person twice.
@@ -63,7 +76,7 @@ func SendTheEmail(db *database.DB, userId int64, userEmail string, userEmailThre
 		UPDATE users
 		SET updateEmailSentAt=NOW()
 		WHERE id=?`)
-	_, err := statement.Exec(userId)
+	_, err = statement.Exec(u.Id)
 	if err != nil {
 		return fmt.Errorf("failed to update updateEmailSentAt: %v", err), resultData
 	}
@@ -82,8 +95,8 @@ func SendTheEmail(db *database.DB, userId int64, userEmail string, userEmailThre
 	// Load updates and populate the maps
 	pageMap := make(map[int64]*core.Page)
 	userMap := make(map[int64]*core.User)
-	//updateRows, err := core.LoadUpdateRows(db, userId, pageMap, userMap, true) //TODO:change this back
-	updateRows, err := core.LoadUpdateRows(db, userId, pageMap, userMap, false)
+	masteryMap := make(map[int64]*core.Mastery)
+	updateRows, err := core.LoadUpdateRows(db, u.Id, pageMap, userMap, true)
 	if err != nil {
 		return fmt.Errorf("failed to load updates: %v", err), resultData
 	}
@@ -101,43 +114,30 @@ func SendTheEmail(db *database.DB, userId int64, userEmail string, userEmailThre
 
 	// Check to make sure there are enough updates
 	data.UpdateCount = len(updateRows)
-	if data.UpdateCount < userEmailThreshold {
+	if data.UpdateCount < u.EmailThreshold {
 		c.Debugf("no updates to email")
 		return nil, resultData
 	}
 	data.UpdateGroups = core.ConvertUpdateRowsToGroups(updateRows, pageMap)
-	//TODO: uncomment this
-	/*
-		// Mark loaded updates as emailed
-		updateIds := make([]interface{}, 0)
-		for _, row := range updateRows {
-			updateIds = append(updateIds, row.Id)
-		}
-		statement = database.NewQuery(`
+	// Mark loaded updates as emailed
+	updateIds := make([]interface{}, 0)
+	for _, row := range updateRows {
+		updateIds = append(updateIds, row.Id)
+	}
+	statement = database.NewQuery(`
 			UPDATE updates
 			SET emailed=true
 			WHERE id IN`).AddArgsGroup(updateIds).ToStatement(db)
-		_, err = statement.Exec()
-		if err != nil {
-			return fmt.Errorf("Couldn't update updates an emailed: %v", err), resultData
-		}
-	*/
+	_, err = statement.Exec()
+	if err != nil {
+		return fmt.Errorf("Couldn't update updates an emailed: %v", err), resultData
+	}
 	c.Debugf("marked updates as emailed")
 
 	// Load pages.
-	err = core.LoadPages(db, pageMap, userId, nil)
+	err = core.ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
 	if err != nil {
-		return fmt.Errorf("error while loading pages: %v", err), resultData
-	}
-
-	// Load the names for all users.
-	userMap[userId] = &core.User{Id: userId}
-	for _, p := range pageMap {
-		userMap[p.CreatorId] = &core.User{Id: p.CreatorId}
-	}
-	err = core.LoadUsers(db, userMap)
-	if err != nil {
-		return fmt.Errorf("error while loading users: %v", err), resultData
+		return fmt.Errorf("Pipeline error: %v", err), resultData
 	}
 
 	// Load the template file
@@ -159,13 +159,13 @@ func SendTheEmail(db *database.DB, userId int64, userEmail string, userEmailThre
 	funcMap := template.FuncMap{
 		//"UserFirstName": func() int64 { return u.Id },
 		"GetUserUrl": func(userId int64) string {
-			return fmt.Sprintf(`%s/user/%d`, sessions.GetDomainHack(), userId)
+			return fmt.Sprintf(`%s/user/%d`, sessions.GetDomainForTestEmail(), userId)
 		},
 		"GetUserName": func(userId int64) string {
 			return userMap[userId].FullName()
 		},
 		"GetPageUrl": func(pageId int64) string {
-			return fmt.Sprintf("%s/pages/%d", sessions.GetDomainHack(), pageId)
+			return fmt.Sprintf("%s/pages/%d", sessions.GetDomainForTestEmail(), pageId)
 		},
 		"GetPageTitle": func(pageId int64) string {
 			return pageMap[pageId].Title
@@ -193,7 +193,7 @@ func SendTheEmail(db *database.DB, userId int64, userEmail string, userEmailThre
 		subject := fmt.Sprintf("%d new updates on Arbital", data.UpdateCount)
 		msg := &mail.Message{
 			Sender:   "Arbital <updates@zanaduu3.appspotmail.com>",
-			To:       []string{userEmail},
+			To:       []string{u.Email},
 			Bcc:      []string{"alexei@arbital.com"},
 			Subject:  subject,
 			HTMLBody: buffer.String(),

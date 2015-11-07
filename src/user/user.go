@@ -45,7 +45,6 @@ type User struct {
 	LogoutLink  string   `json:"logoutLink"`
 	UpdateCount int      `json:"updateCount"`
 	GroupIds    []string `json:"groupIds"`
-	DomainAlias string   `json:"domainAlias"`
 }
 
 func (user *User) FullName() string {
