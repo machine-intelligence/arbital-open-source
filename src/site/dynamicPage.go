@@ -17,7 +17,6 @@ func dynamicPageRenderer(params *pages.HandlerParams) *pages.Result {
 
 	var data commonPageData
 	data.User = u
-
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
 	data.MasteryMap = make(map[int64]*core.Mastery)

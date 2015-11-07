@@ -26,9 +26,6 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	var data pageTmplData
-	data.User = u
-
 	// Get actual page id
 	pageAlias := mux.Vars(params.R)["alias"]
 	pageId, ok, err := core.LoadAliasToPageId(db, pageAlias)
@@ -102,6 +99,18 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 		return pages.RedirectWith(core.GetPageFullUrl(subdomain, pageId))
+	}
+
+	var data pageTmplData
+	data.User = u
+	data.PageMap = make(map[int64]*core.Page)
+	data.UserMap = make(map[int64]*core.User)
+	data.MasteryMap = make(map[int64]*core.Mastery)
+
+	// Load pages.
+	err = core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
 	}
 
 	return pages.StatusOK(&data)
