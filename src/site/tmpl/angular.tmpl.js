@@ -1072,6 +1072,18 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		})();
 	}
 
+	// Settings page
+	var pagesPath = /^\/settings\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		getSuccessFunc(function(data){
+			return {
+				title: "Settings",
+				element: $("<arb-settings-page></arb-settings-page>"),
+			};
+		})();
+	}
+
 	// Index page
 	var pagesPath = /^\/$/;
 	var match = pagesPath.exec($location.path());

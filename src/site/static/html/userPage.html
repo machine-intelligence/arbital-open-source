@@ -5,7 +5,7 @@
 	</h3>
 
 	<!-- Panels -->
-	<div class="panel panel-default">
+	<div class="panel panel-default" ng-hide="idsMap.recentlyCreatedIds.length <= 0">
 	  <div class="panel-heading">
 			Recently Created Pages
 		</div>
@@ -18,7 +18,7 @@
 	  </div>
 	</div>
 
-	<div class="panel panel-default">
+	<div class="panel panel-default" ng-hide="idsMap.recentlyEditedIds.length <= 0">
 	  <div class="panel-heading">
 			Recently Edited Pages
 		</div>
@@ -31,7 +31,7 @@
 	  </div>
 	</div>
 
-	<div class="panel panel-default" ng-hide="pagesWithDraftIds.length <= 0">
+	<div class="panel panel-default" ng-hide="idsMap.pagesWithDraftIds.length <= 0">
 	  <div class="panel-heading">
 			Pages With Drafts
 		</div>
@@ -51,7 +51,7 @@
 	  </div>
 	</div>
 
-	<div class="panel panel-default" ng-hide="mostTodosIds.length <= 0">
+	<div class="panel panel-default" ng-hide="idsMap.mostTodosIds.length <= 0">
 	  <div class="panel-heading">
 			Pages With Most TODOs
 		</div>
@@ -64,7 +64,7 @@
 	  </div>
 	</div>
 
-	<div class="panel panel-default" ng-hide="recentlyEditedCommentIds.length <= 0">
+	<div class="panel panel-default" ng-hide="idsMap.recentlyEditedCommentIds.length <= 0">
 	  <div class="panel-heading">
 			Recently Edited Comments
 		</div>
