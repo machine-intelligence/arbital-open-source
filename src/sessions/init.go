@@ -36,6 +36,15 @@ func GetMuxDomain() string {
 	return strings.TrimPrefix(address, "http://")
 }
 
+// GetRawDomain returns the domain without http:// but with port #.
+func GetRawDomain() string {
+	address := config.XC.Site.Dev.Address
+	if Live {
+		address = config.XC.Site.Live.Address
+	}
+	return strings.TrimPrefix(address, "http://")
+}
+
 func GetElasticDomain() string {
 	if Live {
 		return config.XC.Elastic.Live.Address

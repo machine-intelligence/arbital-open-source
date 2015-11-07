@@ -239,7 +239,7 @@ func GetPageFullUrl(subdomain string, pageId int64) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
-	domain := strings.TrimPrefix(sessions.GetMuxDomain(), "http://")
+	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
 	return fmt.Sprintf("http://%s%s/pages/%d", subdomain, domain, pageId)
 }
 
