@@ -12,13 +12,12 @@ import (
 )
 
 var (
-	editPageTmpls   = append(baseTmpls, "tmpl/dynamicPage.tmpl", "tmpl/angular.tmpl.js")
 	editPageOptions = pages.PageOptions{RequireLogin: true}
 )
 
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
-var newPagePage = newPageWithOptions("/edit/", editPageRenderer, editPageTmpls, editPageOptions)
-var editPagePage = newPageWithOptions(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr), editPageRenderer, editPageTmpls, editPageOptions)
+var newPagePage = newPageWithOptions("", editPageRenderer, dynamicTmpls, editPageOptions)
+var editPagePage = newPageWithOptions("", editPageRenderer, dynamicTmpls, editPageOptions)
 
 // editPageRenderer renders the page page.
 func editPageRenderer(params *pages.HandlerParams) *pages.Result {

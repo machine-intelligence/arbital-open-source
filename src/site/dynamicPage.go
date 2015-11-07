@@ -6,13 +6,9 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var dynamicPage = newPageWithOptions(
-	"",
-	dynamicPageRenderer,
-	append(baseTmpls,
-		"tmpl/dynamicPage.tmpl",
-		"tmpl/angular.tmpl.js"),
-	pages.PageOptions{})
+var (
+	dynamicPage = newPageWithOptions("", dynamicPageRenderer, dynamicTmpls, pages.PageOptions{})
+)
 
 // dynamicPageRenderer renders the dynamic page.
 func dynamicPageRenderer(params *pages.HandlerParams) *pages.Result {
@@ -29,7 +25,7 @@ func dynamicPageRenderer(params *pages.HandlerParams) *pages.Result {
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
-		return pages.Fail("error while loading pages", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	return pages.StatusOK(&data)

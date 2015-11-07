@@ -1021,6 +1021,18 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		.error(getErrorFunc("groups"));
 	}
 
+	// Signup page
+	var pagesPath = /^\/signup\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		getSuccessFunc(function(data){
+			return {
+				title: "Sign Up",
+				element: $("<arb-signup></arb-signup>"),
+			};
+		})();
+	}
+
 	// Index page
 	var pagesPath = /^\/$/;
 	var match = pagesPath.exec($location.path());
@@ -1067,8 +1079,10 @@ app.directive("arbNavbar", function($http, $location, pageService, userService, 
 
 			// Get a domain url (with optional subdomain)
 			scope.getDomainUrl = function(subdomain) {
-				if (subdomain !== "") {
+				if (subdomain) {
 					subdomain += ".";
+				} else {
+					subdomain = "";
 				}
 				if (/localhost/.exec($location.host())) {
 					return "http://" + subdomain + "localhost:8012";
