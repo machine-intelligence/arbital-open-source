@@ -547,6 +547,9 @@ app.service("pageService", function(userService, $http){
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId) {
+		/*if (this.privateGroupId !== undefined) {
+			return this.privateGroupId !== this.pageMap[pageId].seeGroupId;
+		}*/
 		var page = this.pageMap[pageId];
 		if (!this.primaryPage) return false;
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId === "0";
@@ -691,6 +694,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
+	// Process last visit url parameter
+	var lastVisit = $location.search().lastVisit;
+	if (lastVisit) {
+		$("body").attr("last-visit", lastVisit);
+		$location.search("lastVisit", null);
+	}
+
 	// Refresh all the fields that need to be updated every so often.
 	var refreshAutoupdates = function() {
 		$(".autoupdate").each(function(index, element) {
@@ -784,6 +794,8 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	});
 
 	// ========== Smart loading ==============
+	// Here we check the url to dynamically load the necessary data.
+	
 	// Get subdomain if any
 	var subdomain = undefined;
 	var subdomainMatch = /^([A-Za-z0-9]+)\.(localhost|arbital\.com)\/?$/.exec($location.host());
@@ -791,28 +803,63 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		subdomain = subdomainMatch[1];
 	}
 
-	// Because the subdomain could have any case, we need to find the alias
-	// in the loaded map so we can get the alias with correct case
-	var updateSubdomain = function() {
-		for (var pageAlias in pageService.pageMap) {
-			if (subdomain.toUpperCase() === pageAlias.toUpperCase()) {
-				subdomain = pageAlias;
-				break;
+	// Returns a function we can use as success handler for POST requests for dynamic data.
+	// callback - returns {
+	//   title: title to set for the window
+	//   element: optional jQuery element to add dynamically to the body
+	//   error: optional error message to print
+	// }
+	var getSuccessFunc = function(callback) {
+		return function(data) {
+			// Sometimes we don't get data.
+			if (data) {
+				console.log("Dynamic request data:"); console.log(data);
+				userService.processServerData(data);
+				pageService.processServerData(data);
 			}
-		}
+
+			// Because the subdomain could have any case, we need to find the alias
+			// in the loaded map so we can get the alias with correct case
+			if (subdomain) {
+				for (var pageAlias in pageService.pageMap) {
+					if (subdomain.toUpperCase() === pageAlias.toUpperCase()) {
+						subdomain = pageAlias;
+						pageService.privateGroupId = pageService.pageMap[pageAlias].pageId;
+						break;
+					}
+				}
+			}
+
+			// Get the results from page-specific callback
+			var result = callback(data);
+			if (result.error) {
+				$(".global-error").text(result.error).show();
+				document.title = "Error - Arbital";
+			}
+			if (result.element) {
+				$(".dynamic-body").append(result.element);
+				$compile($(".dynamic-body"))($scope);
+			}
+			if (result.title) {
+				document.title = result.title + " - Arbital";
+			}
+		};
 	};
+
+	// Returns a function we can use as error handler for POST requests for dynamic data.
+	var getErrorFunc = function(urlPageType) {
+		return function(data, status){
+			console.log("Error /json/" + urlPageType + "/:"); console.log(data); console.log(status);
+			$(".global-error").text(data).show();
+			document.title = "Error - Arbital";
+		};
+	}
 
 	// Primary page
 	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
 		var pageId = match[1];
-		// Process last visit url parameter
-		var lastVisit = $location.search().lastVisit;
-		if (lastVisit) {
-			$("body").attr("last-visit", lastVisit);
-			$location.search("lastVisit", null);
-		}
 
 		// Get the primary page data
 		var postData = {
@@ -820,60 +867,93 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			forcedLastVisit: lastVisit,
 		};
 		$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
-		.success(function(data, status){
-			console.log("JSON /primaryPage/ data:"); console.log(data);
-			userService.processServerData(data);
-			pageService.processServerData(data);
+		.success(getSuccessFunc(function(data){
 			var page = pageService.pageMap[pageId];
 			if (page) {
 				$scope.page = page;
 				pageService.setPrimaryPage(page);
 
-				document.title = $scope.page.title + " - Arbital";
-
-				var $el = $compile("<arb-primary-page></arb-primary-page>")($scope);
-				$(".primary-page-body-div").append($el);
-			} else {
-				$(".global-error").text("Page doesn't exist, was deleted, or you don't have permission to view it.").show();
-				document.title = "Not Found - Arbital";
+				return {
+					title: $scope.page.title,
+					element: $("<arb-primary-page></arb-primary-page>")
+				};
 			}
-		})
-		.error(function(data, status){
-			console.log("Error /primaryPage/:"); console.log(data); console.log(status);
-			$(".global-error").text("An error occured while getting the page. :(").show();
-			document.title = "Error - Arbital";
+			return {
+				title: "Not Found",
+				error: "Page doesn't exist, was deleted, or you don't have permission to view it."
+			};
+		}))
+		.error(getErrorFunc("primaryPage"));
+	}
+	
+	// Edit page
+	var editPagePath = /^\/edit\/?([0-9]*)\/?$/;
+	var match = editPagePath.exec($location.path());
+	if (match) {
+		var pageId = match[1];
+
+		// Call this when pageId is determined and page is loaded.
+		var createEditPage = getSuccessFunc(function() {
+			var page = pageService.editMap[pageId];
+			pageService.setPrimaryPage(page);
+
+			// Called when the user is done editing the page.
+			$scope.doneFn = function(result) {
+				if (pageService.primaryPage.wasPublished || !result.abandon) {
+					window.location.href = pageService.primaryPage.url();
+				} else {
+					window.location.href = "/edit/";
+				}
+			};
+			return {
+				title: "Edit " + (page.title ? page.title : "New Page"),
+				element: $("<arb-edit-page page-id='" + pageId + "' done-fn='doneFn(result)'></arb-edit-page>"),
+			};
 		});
+
+		if (pageId) {
+			// Load the last edit
+			var specificEdit = $location.search().edit;
+			pageService.loadEdit({
+				pageAlias: pageId,
+				specificEdit: specificEdit,
+				success: createEditPage,
+				error: getErrorFunc("loadEdit"),
+			});
+		} else {
+			// Create a new page to edit
+			pageService.getNewPage({
+				success: function(newPageId) {
+					pageId = newPageId;
+					var aliasParam = $location.search().alias;
+					if (aliasParam) {
+						pageService.editMap[pageId].alias = aliasParam;
+					}
+					$location.path("/edit/" + pageId);
+					createEditPage();
+				},
+			});
+		}
 	}
 
 	// Domain index page
 	var pagesPath = /^\/domains\/([A-Za-z0-9]+)\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
-		var domainAlias = match[1];
+		pageService.domainAlias = match[1];
 		var postData = {
-			domainAlias: domainAlias,
+			domainAlias: pageService.domainAlias,
 		};
 		// Get the domain index page data
 		$http({method: "POST", url: "/json/domainIndex/", data: JSON.stringify(postData)})
-		.success(function(data, status){
-			console.log("JSON /domainIndex/ data:"); console.log(data);
-			userService.processServerData(data);
-			pageService.processServerData(data);
-
-			document.title = pageService.pageMap[domainAlias].title + " - Domain - Abital";
-			pageService.domainAlias = domainAlias;
-			$compile($(".group-link"))($scope);
-
+		.success(getSuccessFunc(function(data){
 			$scope.indexPageIdsMap = data["result"];
-			var $el = $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>");
-			$(".dynamic-body").append($el);
-			$compile($(".dynamic-body"))($scope);
-		})
-		.error(function(data, status){
-			console.log("Error /json/privateIndex/:"); console.log(data); console.log(status);
-			$(".global-error").text(data).show();
-			document.title = "Error - Arbital";
-		});
+			return {
+				title: pageService.pageMap[pageService.domainAlias].title,
+				element: $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>"),
+			};
+		}))
+		.error(getErrorFunc("privateIndex"));
 	}
 
 	// Explore page
@@ -885,19 +965,14 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		};
 		// Get the explore data
 		$http({method: "POST", url: "/json/explore/", data: JSON.stringify(postData)})
-		.success(function(data, status){
-			console.log("json/explore/ data:"); console.log(data);
-			userService.processServerData(data);
-			pageService.processServerData(data);
-
+		.success(getSuccessFunc(function(data){
 			// Decide on the domain alias
+			var title;
 			if (subdomain) {
-				updateSubdomain();
-				pageService.privateGroupAlias = subdomain;
-				document.title = pageService.pageMap[pageService.privateGroupAlias].title + " - Explore - Abital";
+				title = pageService.pageMap[pageService.privateGroupId].title + " - Explore";
 			} else {
 				pageService.domainAlias = postData.groupAlias;
-				document.title = pageService.pageMap[pageService.domainAlias].title + " - Explore - Abital";
+				title = pageService.pageMap[pageService.domainAlias].title + " - Explore";
 			}
 
 			// Compute root and children maps
@@ -912,37 +987,27 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			}
 
 			// Add the tree directive
-			var $el = $("<arb-page-tree init-map='rootPages' additional-map='childPages'" +
-					"supersize-roots='true'></arb-page-tree>");
-			$(".dynamic-body").append($el);
-			$compile($(".dynamic-body"))($scope);
-			$compile($(".group-link"))($scope);
-		})
-		.error(function(data, status){
-			console.log("Error /json/explore/:"); console.log(data); console.log(status);
-			$(".global-error").text(data).show();
-			document.title = "Error - Arbital";
-		});
+			return {
+				title: title,
+				element: $("<arb-page-tree init-map='rootPages' additional-map='childPages'" +
+					"supersize-roots='true'></arb-page-tree>"),
+			};
+		}))
+		.error(getErrorFunc("explore"));
 	}
 
 	// Groups page
 	var pagesPath = /^\/groups\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
-		$http({method: "POST", url: "/json/groups/"}).
-			success(function(data, status){
-				console.log("JSON /groups/ data:"); console.log(data);
-				userService.processServerData(data);
-				pageService.processServerData(data);
-				document.title = "Groups - Abital";
-
-				var $el = $("<arb-groups-page></arb-groups-page>");
-				$(".dynamic-body").append($el);
-				$compile($(".dynamic-body"))($scope);
-			}).error(function(data, status){
-				console.log("Error groups page:"); console.log(data); console.log(status);
-			}
-		);
+		$http({method: "POST", url: "/json/groups/"})
+		.success(getSuccessFunc(function(data){
+			return {
+				title: "Groups",
+				element: $("<arb-groups-page></arb-groups-page>"),
+			};
+		}))
+		.error(getErrorFunc("groups"));
 	}
 
 	// Index page
@@ -952,44 +1017,24 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		if (subdomain) {
 			// Get the private group index page data
 			$http({method: "POST", url: "/json/privateIndex/"})
-			.success(function(data, status){
-				console.log("JSON /privateIndex/ data:"); console.log(data);
-				userService.processServerData(data);
-				pageService.processServerData(data);
-
-				updateSubdomain();
-				document.title = pageService.pageMap[subdomain].title + " - Private Group - Abital";
-				pageService.privateGroupAlias = subdomain;
-				$compile($(".group-link"))($scope);
-
+			.success(getSuccessFunc(function(data){
 				$scope.indexPageIdsMap = data["result"];
-				var $el = $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>");
-				$(".dynamic-body").append($el);
-				$compile($(".dynamic-body"))($scope);
-			})
-			.error(function(data, status){
-				console.log("Error /json/privateIndex/:"); console.log(data); console.log(status);
-				$(".global-error").text(data).show();
-				document.title = "Error - Arbital";
-			});
+				return {
+					title: pageService.pageMap[subdomain].title + " - Private Group",
+					element: $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>"),
+				};
+			}))
+			.error(getErrorFunc("privateIndex"));
 		} else {
 			// Get the index page data
 			$http({method: "POST", url: "/json/index/"})
-			.success(function(data, status){
-				console.log("/json/index/ data:"); console.log(data);
-				userService.processServerData(data);
-				pageService.processServerData(data);
-
+			.success(getSuccessFunc(function(data){
 				$scope.featuredDomains = data["result"].featuredDomains;
-				var $el = $("<arb-index featured-domains='featuredDomains'></arb-index>");
-				$(".dynamic-body").append($el);
-				$compile($(".dynamic-body"))($scope);
-			})
-			.error(function(data, status){
-				console.log("Error /json/index/:"); console.log(data); console.log(status);
-				$(".global-error").text(data).show();
-				document.title = "Error - Arbital";
-			});
+				return {
+					element: $("<arb-index featured-domains='featuredDomains'></arb-index>"),
+				};
+			}))
+			.error(getErrorFunc("index"));
 		}
 	}
 });
@@ -1009,12 +1054,15 @@ app.directive("arbNavbar", function($http, $location, pageService, userService, 
 			scope.userService = userService;
 			scope.user = userService.user;
 
-			// Get the current domain
-			scope.getDomain = function() {
+			// Get a domain url (with optional subdomain)
+			scope.getDomainUrl = function(subdomain) {
+				if (subdomain !== "") {
+					subdomain += ".";
+				}
 				if (/localhost/.exec($location.host())) {
-					return "http://localhost:8012";
+					return "http://" + subdomain + "localhost:8012";
 				} else {
-					return "http://arbital.com"
+					return "http://" + subdomain + "arbital.com"
 				}
 			};
 
@@ -1234,8 +1282,6 @@ app.directive("arbPageTree", function() {
 			$scope.rootNode = {pageId:"-1", children:[]};
 		
 			// Populate the tree.
-			console.log($scope.initMap);
-			console.log($scope.additionalMap);
 			$scope.processPages($scope.initMap, true);
 			$scope.processPages($scope.additionalMap);
 		

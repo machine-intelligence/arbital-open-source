@@ -1,12 +1,16 @@
 {{/* dynamicPage.tmpl is used as the basic starting point for bootstrapping dynamic content */}}
 {{define "base"}}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	<title>Arbital</title>
 	{{template "style"}}
 	{{template "scripts"}}
 	{{template "angular" .}}
+	<script src="/static/js/comments.js"></script>
+	<script src="/static/js/pageController.js"></script>
+	<script src="/static/js/editPage.js"></script>
+	<script src="/static/js/pagePage.js"></script>
 	<script src="/static/js/groupsPage.js"></script>
 	<script src="/static/js/groupIndex.js"></script>
 	<script src="/static/js/indexDir.js"></script>
@@ -14,7 +18,36 @@
 
 <body ng-app="arbital" ng-controller="ArbitalCtrl">
 	<arb-navbar></arb-navbar>
+
+	<!-- This modal is for inserting new links. -->
+	<arb-new-link-modal></arb-new-link-modal>
 	
+	<!-- This modal is for asking a new question. -->
+	<arb-edit-page-modal></arb-edit-page-modal>
+	
+	<!-- This div is used to create embedded page divs. -->
+	<div id="embedded-page-template" class="embedded-page" hidden>
+		<div>
+			<h2>
+				<a href="#" class="hide-embedded-page glyphicon glyphicon-triangle-bottom"></a>&nbsp;
+				<a href="#" class="embedded-page-title">JS inserts title here</a>
+			</h2>
+		</div>
+		<div class="embedded-page-body">
+			<div class="embedded-vote-container"></div>
+			<div class="embedded-page-text">JS inserts page text here</div>
+		</div>
+	</div>
+	
+	<!-- This div is used to create icons to toggle inline comments. -->
+	<div class="toggle-inline-comment-div template">
+		<a href="#" class="inline-comment">
+			<span class="inline-comment-icon glyphicon glyphicon-comment"></span>
+			<span class="inline-comment-count"><span>
+		</a>
+	</div>
+	
+	<!-- We append dynamic content to this div. -->
 	<div class="dynamic-body">
 		<div class="global-error alert alert-danger" hidden></div>
 	</div>

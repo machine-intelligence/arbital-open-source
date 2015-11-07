@@ -8,7 +8,6 @@ app.directive("arbIndex", function(pageService, userService) {
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
 			scope.userService = userService;
-			console.log(scope.featuredDomains);
 		},
 	};
 });

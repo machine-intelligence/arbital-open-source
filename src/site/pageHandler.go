@@ -97,15 +97,15 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// Recover from panic.
-		defer func() {
-			if sessions.Live {
+		if sessions.Live {
+			defer func() {
 				if r := recover(); r != nil {
 					c.Errorf("%v", r)
 					w.WriteHeader(http.StatusInternalServerError)
 					fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
 				}
-			}
-		}()
+			}()
+		}
 
 		// Open DB connection
 		db, err := database.GetDB(c)
@@ -116,9 +116,9 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		params.DB = db
 
 		// Get subdomain info
-		errorMessage, err := loadSubdomain(&params, r, db)
-		if errorMessage != "" {
-			fail(http.StatusInternalServerError, errorMessage, err)
+		params.PrivateGroupId, err = loadSubdomain(r, db)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
 			return
 		}
 
@@ -165,6 +165,11 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
 					return
 				}
+			}
+			// Check if we have access to the private group
+			if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
+				fail(http.StatusForbidden, "Don't have access to this group", nil)
+				return
 			}
 		}
 

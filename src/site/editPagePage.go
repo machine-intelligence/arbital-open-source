@@ -3,16 +3,16 @@ package site
 
 import (
 	"fmt"
-	"strconv"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 
 	"github.com/gorilla/mux"
 )
 
 var (
-	editPageTmpls   = append(baseTmpls, "tmpl/editPage.tmpl", "tmpl/angular.tmpl.js")
+	editPageTmpls   = append(baseTmpls, "tmpl/dynamicPage.tmpl", "tmpl/angular.tmpl.js")
 	editPageOptions = pages.PageOptions{RequireLogin: true}
 )
 
@@ -29,24 +29,51 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 
 	// If it's not a page id but an alias, the redirect
 	pageAlias := mux.Vars(params.R)["alias"]
-	pageId, err := strconv.ParseInt(pageAlias, 10, 64)
-	if err != nil {
-		row := db.NewStatement(`
-			SELECT pageId
-			FROM pages
-			WHERE alias=? AND isCurrentEdit`).QueryRow(pageAlias)
-		exists, err := row.Scan(&pageId)
+	if len(pageAlias) > 0 {
+		// Get page id
+		pageId, ok, err := core.LoadAliasToPageId(db, pageAlias)
 		if err != nil {
-			return pages.Fail("Couldn't convert alias=>pageId", err)
-		} else if exists {
+			return pages.Fail("Couldn't convert alias", err)
+		}
+		if !ok {
+			return pages.Fail("Couldn't find alias", err)
+		}
+		if pageAlias != fmt.Sprintf("%d", pageId) {
 			return pages.RedirectWith(core.GetEditPageUrl(pageId))
+		}
+
+		// Check if we need to redirect.
+		var seeGroupId int64
+		row := database.NewQuery(`
+			SELECT seeGroupId
+			FROM pages
+			WHERE isCurrentEdit AND pageId=?`, pageId).ToStatement(db).QueryRow()
+		exists, err := row.Scan(&seeGroupId)
+		if err != nil {
+			return pages.Fail("Couldn't get page info", err)
+		}
+
+		// Check if a subdomain redirect is necessary.
+		if exists && seeGroupId != params.PrivateGroupId {
+			subdomain := ""
+			if seeGroupId > 0 {
+				row := database.NewQuery(`
+					SELECT alias
+					FROM pages
+					WHERE pageId=? and isCurrentEdit`, seeGroupId).ToStatement(db).QueryRow()
+				exists, err := row.Scan(&subdomain)
+				if err != nil || !exists {
+					return pages.Fail("Failed to redirect to subdomain", err)
+				}
+			}
+			return pages.RedirectWith(core.GetPageFullUrl(subdomain, pageId))
 		}
 	}
 
 	// Load all the groups.
 	data.PageMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
-	err = core.ExecuteLoadPipeline(db, params.U, data.PageMap, data.UserMap, data.MasteryMap)
+	err := core.ExecuteLoadPipeline(db, params.U, data.PageMap, data.UserMap, data.MasteryMap)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}

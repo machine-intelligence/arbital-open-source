@@ -18,7 +18,6 @@
 			$scope.recentlyEditedIds = [{{range .RecentlyEditedIds}}{{.}},{{end}}];
 			$scope.pagesWithDraftIds = [{{range .PagesWithDraftIds}}{{.}},{{end}}];
 			$scope.mostTodosIds = [{{range .MostTodosIds}}{{.}},{{end}}];
-			$scope.recentlyVisitedIds = [{{range .RecentlyVisitedIds}}{{.}},{{end}}];
 			$scope.recentlyEditedCommentIds = [{{range .RecentlyEditedCommentIds}}{{.}},{{end}}];
 		
 			$(".subscribe-to-user-link").on("click", function(event) {
@@ -78,13 +77,6 @@
 	  <div class="panel-heading">Pages With Most TODOs</div>
 	  <div class="panel-body">
 	    <arb-likes-page-title page-id="{[{pageId}]}" show-red-link-count="true" show-quick-edit-link="true" show-created-at="true" ng-repeat="pageId in mostTodosIds"></arb-likes-page-title>
-	  </div>
-	</div>
-
-	<div class="panel panel-default" ng-hide="userService.user.id !== '{{.AuthorId}}'">
-	  <div class="panel-heading">Recently Visited</div>
-	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in recentlyVisitedIds"></arb-likes-page-title>
 	  </div>
 	</div>
 

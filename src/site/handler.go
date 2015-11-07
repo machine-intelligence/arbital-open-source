@@ -68,6 +68,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
+		params := &pages.HandlerParams{W: w, R: r, C: c, DB: db}
+		params.PrivateGroupId, err = loadSubdomain(r, db)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
+			return
+		}
+
 		// Get user object
 		var u *user.User
 		if !h.Options.SkipLoadingUser {
@@ -76,6 +83,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				fail(http.StatusInternalServerError, "Couldn't load user", err)
 				return
 			}
+			params.U = u
 
 			// Check permissions
 			if h.Options.RequireLogin && !u.IsLoggedIn {
@@ -98,14 +106,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 					return
 				}
 			}
+			// Check if we have access to the private group
+			if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
+				fail(http.StatusForbidden, "Don't have access to this group", nil)
+				return
+			}
 		}
 
-		params := &pages.HandlerParams{W: w, R: r, C: c, DB: db, U: u}
-		errorMessage, err := loadSubdomain(params, r, db)
-		if errorMessage != "" {
-			fail(http.StatusInternalServerError, errorMessage, err)
-			return
-		}
 		result := h.HandlerFunc(params)
 		if result.ResponseCode != http.StatusOK && result.ResponseCode != http.StatusSeeOther {
 			fail(result.ResponseCode, result.Message, result.Err)
@@ -175,20 +182,18 @@ func (data *commonHandlerData) toJson() map[string]interface{} {
 }
 
 // loadSubdomain loads the id for the private group corresponding to the private group id.
-func loadSubdomain(params *pages.HandlerParams, r *http.Request, db *database.DB) (string, error) {
+func loadSubdomain(r *http.Request, db *database.DB) (int64, error) {
 	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
 	if subdomain == "" {
-		return "", nil
+		return 0, nil
 	}
 	// Get actual page id for the group
-	var ok bool
-	var err error
-	params.PrivateGroupId, ok, err = core.LoadAliasToPageId(db, subdomain)
+	privateGroupId, ok, err := core.LoadAliasToPageId(db, subdomain)
 	if err != nil {
-		return "Couldn't convert subdomain to id", err
+		return 0, fmt.Errorf("Couldn't convert subdomain to id: %v", err)
 	}
 	if !ok {
-		return fmt.Sprintf("Couldn't find private group %s", subdomain), nil
+		return 0, fmt.Errorf("Couldn't find private group %s", subdomain)
 	}
-	return "", nil
+	return privateGroupId, nil
 }

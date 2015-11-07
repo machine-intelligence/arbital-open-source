@@ -29,7 +29,6 @@ type userTmplData struct {
 	PagesWithDraftIds        []string
 	MostTodosIds             []string
 	RecentlyEditedCommentIds []string
-	RecentlyVisitedIds       []string
 }
 
 // userPage serves the recent pages page.
@@ -77,14 +76,14 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	rows := db.NewStatement(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId,edit
+			SELECT pageId,edit,seeGroupId
 			FROM pages
 			WHERE creatorId=? AND type!="comment"
 		) AS p
 		JOIN pageInfos AS pi
-		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
+		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit AND p.seeGroupId=?)
 		ORDER BY pi.createdAt DESC
-		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+		LIMIT ?`).Query(data.AuthorId, params.PrivateGroupId, indexPanelLimit)
 	data.RecentlyCreatedIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently created page ids", err)
@@ -94,14 +93,15 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 	rows = db.NewStatement(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId,max(edit) AS maxEdit,min(edit) AS minEdit,max(createdAt) AS createdAt
+			SELECT pageId,max(edit) AS maxEdit,min(edit) AS minEdit,
+				max(createdAt) AS createdAt,max(seeGroupId) AS seeGroupId
 			FROM pages
 			WHERE creatorId=? AND type!="comment" AND NOT isAutosave
 			GROUP BY 1
 		) AS p
-		WHERE maxEdit>minEdit
+		WHERE maxEdit>minEdit AND p.seeGroupId=?
 		ORDER BY p.createdAt DESC
-		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+		LIMIT ?`).Query(data.AuthorId, params.PrivateGroupId, indexPanelLimit)
 	data.RecentlyEditedIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited page ids", err)
@@ -114,10 +114,10 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 			FROM pages AS p
 			JOIN pageInfos AS i
 			ON (p.pageId = i.pageId)
-			WHERE p.creatorId=? AND p.type!=? AND p.edit>i.currentEdit
+			WHERE p.creatorId=? AND p.type!=? AND p.edit>i.currentEdit AND p.seeGroupId=?
 			GROUP BY p.pageId
 			ORDER BY p.createdAt DESC
-			LIMIT ?`).Query(data.AuthorId, core.CommentPageType, indexPanelLimit)
+			LIMIT ?`).Query(data.AuthorId, core.CommentPageType, params.PrivateGroupId, indexPanelLimit)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var title, createdAt string
@@ -148,13 +148,13 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 				FROM links AS l
 				JOIN pages AS p
 				ON (l.parentId=p.pageId)
-				WHERE p.creatorId=? AND p.type!="comment" AND p.isCurrentEdit
+				WHERE p.creatorId=? AND p.type!="comment" AND p.isCurrentEdit AND p.seeGroupId=?
 			) AS l
 			LEFT JOIN pages AS p
 			ON (l.childAlias=p.alias OR l.childAlias=p.pageId)
 			GROUP BY 1
 			ORDER BY (SUM(ISNULL(p.pageId)) + max(l.parentTodoCount)) DESC
-			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+			LIMIT ?`).Query(data.AuthorId, params.PrivateGroupId, indexPanelLimit)
 		data.MostTodosIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
 		if err != nil {
 			return pages.Fail("error while loading most todos page ids", err)
@@ -167,33 +167,14 @@ func userRenderer(params *pages.HandlerParams) *pages.Result {
 		FROM (
 			SELECT pageId,createdAt
 			FROM pages
-			WHERE creatorId=? AND type="comment"
+			WHERE creatorId=? AND type="comment" AND seeGroupId=?
 			GROUP BY pageId
 		) AS p
 		ORDER BY p.createdAt DESC
-		LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
+		LIMIT ?`).Query(data.AuthorId, params.PrivateGroupId, indexPanelLimit)
 	data.RecentlyEditedCommentIds, err = core.LoadPageIds(rows, data.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.Fail("error while loading recently edited by me page ids", err)
-	}
-
-	// Load the following info for yourself only.
-	if data.User.Id == data.AuthorId {
-		// Load recently visited page ids.
-		rows = db.NewStatement(`
-			SELECT v.pageId
-			FROM (
-				SELECT pageId,max(createdAt) AS createdAt
-				FROM visits
-				WHERE userId=?
-				GROUP BY 1
-			) AS v
-			ORDER BY v.createdAt DESC
-			LIMIT ?`).Query(data.AuthorId, indexPanelLimit)
-		data.RecentlyVisitedIds, err = core.LoadPageIds(rows, data.PageMap, pageOptions)
-		if err != nil {
-			return pages.Fail("error while loading recently visited page ids", err)
-		}
 	}
 
 	// Load pages.

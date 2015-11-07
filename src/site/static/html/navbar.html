@@ -1,20 +1,21 @@
 <!-- Template for the navbar, the navigation drop down menu shown at the top right of some pages -->
-<nav class="navbar navbar-default">
+<nav class="navbar navbar-default"
+		ng-class="{'navbar-default': !pageService.privateGroupId, 'navbar-inverse': pageService.privateGroupId}">
 	<div class="container-fluid">
 		<div class="navbar-header">
-			<a class="navbar-brand" ng-href="{[{getDomain()}]}">Arbital</a>
+			<a class="navbar-brand" ng-href="{[{getDomainUrl()}]}">Arbital</a>
 		</div>
 		<ul class="nav navbar-nav">
 			<!-- Group link for a private group index page -->
-			<li class="group-link" ng-show="pageService.privateGroupAlias">
-				<a ng-href="/"
-						ng-bind="pageService.pageMap[pageService.privateGroupAlias].title"></a>
+			<li class="navbar-header" ng-show="pageService.privateGroupId">
+				<a class="navbar-brand" ng-href="/"
+						ng-bind="pageService.pageMap[pageService.privateGroupId].title"></a>
 			</li>
-			<li class="group-link" ng-show="pageService.privateGroupAlias">
+			<li ng-show="pageService.privateGroupId">
 				<a href="/explore/" class="navbar-link">Explore</a>
 			</li>
 			<!-- Explore link for a domain index page -->
-			<li class="group-link" ng-show="pageService.domainAlias">
+			<li ng-show="pageService.domainAlias">
 				<a ng-href="/explore/{[{pageService.domainAlias}]}">Explore</a>
 			</li>
 		</ul>
@@ -37,8 +38,19 @@
 					<span class="caret"></span>
 				</a>
 				<ul class="dropdown-menu" role="menu">
-					<li ng-show="user.isAdmin"><a class="admin" href="/domains">All Domains</a></li>
+					<li ng-show="user.isAdmin">
+						<a class="admin" href="/domains">All Domains</a>
+					</li>
 					<li class="divider" ng-show="user.isAdmin"></li>
+
+					<!-- List of groups -->
+					<li class="dropdown-header" ng-show="userService.user.groupIds.length > 0">Go To Group</li>
+					<li ng-repeat="groupId in userService.user.groupIds"
+						ng-init="groupAlias=pageService.pageMap[groupId].alias">
+						<a ng-href="{[{getDomainUrl(groupAlias)}]}" ng-bind="groupAlias"></a>
+					</li>
+					<li class="divider" ng-show="userService.user.groupIds.length > 0"></li>
+
 					<li><a ng-href="{[{userService.getUserUrl(user.id)}]}">Profile</a></li>
 					<li><a ng-href="/groups">Groups</a></li>
 					<li><a ng-href="/settings">Settings</a></li>

@@ -234,6 +234,14 @@ func GetPageUrl(pageId int64) string {
 	return fmt.Sprintf("/pages/%d", pageId)
 }
 
+// GetPageFullUrl returns the full url for accessing the given page.
+func GetPageFullUrl(subdomain string, pageId int64) string {
+	if len(subdomain) > 0 {
+		subdomain += "."
+	}
+	return fmt.Sprintf("http://%s%s/pages/%d", subdomain, sessions.GetDomain(), pageId)
+}
+
 // GetEditPageUrl returns the domain relative url for editing the given page.
 func GetEditPageUrl(pageId int64) string {
 	return fmt.Sprintf("/edit/%d", pageId)

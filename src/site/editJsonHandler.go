@@ -59,6 +59,13 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if p == nil {
 		return pages.HandlerErrorFail("Exact page not found", err)
 	}
+	if p.SeeGroupId != params.PrivateGroupId {
+		if p.SeeGroupId > 0 {
+			return pages.HandlerBadRequestFail("Trying to edit a private page. Go to the corresponding group", err)
+		} else {
+			return pages.HandlerBadRequestFail("Trying to edit a public page. Go to arbital.com", err)
+		}
+	}
 	p.LoadOptions.Add(core.PrimaryEditLoadOptions)
 
 	// Load data

@@ -62,7 +62,6 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		MetaText:       page.MetaText,
 		HasVoteStr:     hasVoteStr,
 		VoteType:       page.VoteType,
-		SeeGroupId:     page.SeeGroupId,
 		EditKarmaLock:  page.EditKarmaLock,
 		Alias:          page.Alias,
 		SortChildrenBy: page.SortChildrenBy,

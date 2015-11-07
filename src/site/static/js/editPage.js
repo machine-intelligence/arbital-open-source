@@ -31,12 +31,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			if (!parentPage) {
 				parentPage = pageService.pageMap[parentPageId];
 			}
-			if (parentPage.seeGroupId === page.seeGroupId) {
-				$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
-			} else {
-				var tooltip = "This parent belongs to a different See Group.";
-				$(this).addClass("label-danger").removeClass("label-default").attr("title", tooltip).tooltip();
-			}
+			$(this).removeClass("label-danger").addClass("label-default").attr("title", parent.alias).tooltip();
 		});
 	}
 	// Update all the parent tags when the group changes.
@@ -566,7 +561,6 @@ app.directive("arbEditPageModal", function (pageService, userService) {
 							newPage.parents = [{parentId: primaryPage.pageId}];
 						}
 						newPage.creatorId = userService.user.id;
-						newPage.seeGroupId = primaryPage.seeGroupId;
 					}
 
 					// Dynamically create arb-edit-page directive.
@@ -759,15 +753,12 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 			// Set up group names.
 			var groupIds = userService.user.groupIds;
 			scope.groupOptions = {"0": "-"};
-			scope.canChangeGroup = !scope.isComment;
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
 					var groupName = pageService.pageMap[groupId].title;
 					scope.groupOptions[groupId] = groupName;
 				}
-			} else {
-				scope.canChangeGroup = false;
 			}
 			// Also check if we are part of the necessary group.
 			scope.groupPermissionsPassed = true;
@@ -778,7 +769,7 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 
 			// if starting a new edit, clear the minor edit checkbox
 			if (scope.page.isCurrentEdit) {
-			    scope.page.isMinorEdit = false;
+		    scope.page.isMinorEdit = false;
 			}
 
 			// Get the text that should appear on the primary submit button.
