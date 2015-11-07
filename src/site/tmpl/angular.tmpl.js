@@ -958,7 +958,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		// Get the domain index page data
 		$http({method: "POST", url: "/json/domainIndex/", data: JSON.stringify(postData)})
 		.success(getSuccessFunc(function(data){
-			$scope.indexPageIdsMap = data["result"];
+			$scope.indexPageIdsMap = data.result;
 			return {
 				title: pageService.pageMap[pageService.domainAlias].title,
 				element: $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>"),
@@ -987,7 +987,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			}
 
 			// Compute root and children maps
-			var rootPage = pageService.pageMap[data["result"].rootPageId];
+			var rootPage = pageService.pageMap[data.result.rootPageId];
 			$scope.rootPages = {};
 			$scope.rootPages[rootPage.pageId] = rootPage;
 			$scope.childPages = {};
@@ -997,11 +997,33 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				$scope.childPages[childId] = pageService.pageMap[childId];
 			}
 
-			// Add the tree directive
 			return {
 				title: title,
 				element: $("<arb-page-tree init-map='rootPages' additional-map='childPages'" +
 					"supersize-roots='true'></arb-page-tree>"),
+			};
+		}))
+		.error(getErrorFunc("explore"));
+	}
+
+	// User page
+	var userPagePath = /^\/user\/?([A-Za-z0-9]*)\/?$/;
+	var match = userPagePath.exec($location.path());
+	if (match) {
+		var userId = match[1];
+		if (!userId) {
+			userId = userService.user.id;
+		}
+		var postData = {
+			userId: userId,
+		};
+		// Get the data
+		$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
+		.success(getSuccessFunc(function(data){
+			$scope.userPageIdsMap = data.result;
+			return {
+				title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
+				element: $("<arb-user-page ids-map='userPageIdsMap'></arb-user-page>"),
 			};
 		}))
 		.error(getErrorFunc("explore"));
@@ -1015,7 +1037,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		// Get the explore data
 		$http({method: "POST", url: "/json/updates/", data: JSON.stringify(postData)})
 		.success(getSuccessFunc(function(data){
-			$scope.updateGroups = data["result"].updateGroups;
+			$scope.updateGroups = data.result.updateGroups;
 			return {
 				title: "Updates",
 				element: $("<arb-updates update-groups='updateGroups'></arb-updates>"),
@@ -1058,7 +1080,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			// Get the private group index page data
 			$http({method: "POST", url: "/json/privateIndex/"})
 			.success(getSuccessFunc(function(data){
-				$scope.indexPageIdsMap = data["result"];
+				$scope.indexPageIdsMap = data.result;
 				return {
 					title: pageService.pageMap[subdomain].title + " - Private Group",
 					element: $("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>"),
@@ -1069,7 +1091,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			// Get the index page data
 			$http({method: "POST", url: "/json/index/"})
 			.success(getSuccessFunc(function(data){
-				$scope.featuredDomains = data["result"].featuredDomains;
+				$scope.featuredDomains = data.result.featuredDomains;
 				return {
 					element: $("<arb-index featured-domains='featuredDomains'></arb-index>"),
 				};

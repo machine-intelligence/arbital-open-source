@@ -6,11 +6,6 @@ import (
 	"zanaduu3/src/pages"
 )
 
-// updatesTmplData stores the data that we pass to the updates.tmpl to render the page
-type updatesTmplData struct {
-	commonPageData
-}
-
 var updatesHandler = siteHandler{
 	URI:         "/json/updates/",
 	HandlerFunc: updatesJsonHandler,
@@ -27,7 +22,7 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData := newHandlerData()
 	updateRows, err := core.LoadUpdateRows(db, u.Id, returnData.PageMap, returnData.UserMap, false)
 	if err != nil {
-		return pages.Fail("failed to load updates", err)
+		return pages.HandlerErrorFail("failed to load updates", err)
 	}
 
 	// Load data
@@ -43,7 +38,7 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load subscriptions to users
 	err = core.LoadUserSubscriptions(db, u.Id, returnData.UserMap)
 	if err != nil {
-		return pages.Fail("error while loading subscriptions to users", err)
+		return pages.HandlerErrorFail("error while loading subscriptions to users", err)
 	}
 
 	// Zero out all counts.
@@ -52,7 +47,7 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 		SET newCount=0
 		WHERE userId=?`)
 	if _, err = statement.Exec(u.Id); err != nil {
-		return pages.Fail("Couldn't mark updates seen", err)
+		return pages.HandlerErrorFail("Couldn't mark updates seen", err)
 	}
 	return pages.StatusOK(returnData.toJson())
 }
