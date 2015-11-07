@@ -239,7 +239,8 @@ func GetPageFullUrl(subdomain string, pageId int64) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
-	return fmt.Sprintf("http://%s%s/pages/%d", subdomain, sessions.GetDomain(), pageId)
+	domain := strings.TrimPrefix(sessions.GetMuxDomain(), "http://")
+	return fmt.Sprintf("http://%s%s/pages/%d", subdomain, domain, pageId)
 }
 
 // GetEditPageUrl returns the domain relative url for editing the given page.

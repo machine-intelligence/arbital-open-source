@@ -793,6 +793,16 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		return false;
 	});
 
+	// Handle intrasite link clicks.
+	/*$("body").on("click", ".intrasite-link", function(event) {
+		var $link = $(event.target);
+		if ($link.attr("href") !== "#") return true;
+		$(".dynamic-body").empty();
+		pageService.pageMap = {};
+		pageService.userMap = {};
+		loadPrimaryPage($link.attr("page-id"));
+	});*/
+
 	// ========== Smart loading ==============
 	// Here we check the url to dynamically load the necessary data.
 	
@@ -856,11 +866,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	}
 
 	// Primary page
-	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
-	var match = pagesPath.exec($location.path());
-	if (match) {
-		var pageId = match[1];
-
+	var loadPrimaryPage = function(pageId) {
 		// Get the primary page data
 		var postData = {
 			pageAlias: pageId,
@@ -880,10 +886,15 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			}
 			return {
 				title: "Not Found",
-				error: "Page doesn't exist, was deleted, or you don't have permission to view it."
+				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}))
 		.error(getErrorFunc("primaryPage"));
+	};
+	var pagesPath = /^\/pages\/([0-9]+)\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		loadPrimaryPage(match[1]);
 	}
 	
 	// Edit page
