@@ -48,7 +48,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
+		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
 	// Computed which pages count as visited. Also update LastVisit if forced

@@ -42,31 +42,31 @@ type UpdateRow struct {
 
 // UpdateGroupKey is what we group updateEntries by
 type UpdateGroupKey struct {
-	GroupByPageId int64
-	GroupByUserId int64
+	GroupByPageId int64 `json:"groupByPageId,string"`
+	GroupByUserId int64 `json:"groupByUserId,string"`
 	// True if this is the first time the user is seeing this update
-	IsNew bool
+	IsNew bool `json:"isNew"`
 }
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
-	UserId             int64
-	ByUserId           int64
-	Type               string
-	Repeated           int
-	SubscribedToPageId int64
-	SubscribedToUserId int64
-	GoToPageId         int64
+	UserId             int64  `json:"userId,string"`
+	ByUserId           int64  `json:"byUserId,string"`
+	Type               string `json:"type"`
+	Repeated           int    `json:"repeated"`
+	SubscribedToPageId int64  `json:"subscribedToPageId,string"`
+	SubscribedToUserId int64  `json:"subscribedToUserId,string"`
+	GoToPageId         int64  `json:"goToPageId,string"`
 	// True if the user has gone to the GoToPage
-	IsVisited bool
+	IsVisited bool `json:"isVisited"`
 }
 
 // UpdateGroup is a collection of updates groupped by the context page.
 type UpdateGroup struct {
-	Key *UpdateGroupKey
+	Key *UpdateGroupKey `json:"key"`
 	// The date of the most recent update
-	MostRecentDate string
-	Updates        []*UpdateEntry
+	MostRecentDate string         `json:"mostRecentUpdate"`
+	Updates        []*UpdateEntry `json:"updates"`
 }
 
 // LoadUpdateRows loads all the updates for the given user, populating the
@@ -76,10 +76,21 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 	if forEmail {
 		emailFilter = "AND newCount>0 AND NOT emailed"
 	}
+
+	// Create group loading options
+	groupLoadOptions := (&PageLoadOptions{
+		OriginalCreatedAt: true,
+		LastVisit:         true,
+		IsSubscribed:      true,
+	}).Add(TitlePlusLoadOptions)
+	goToPageLoadOptions := (&PageLoadOptions{
+		OriginalCreatedAt: true,
+		LastVisit:         true,
+	}).Add(TitlePlusLoadOptions)
+
 	updateRows := make([]*UpdateRow, 0, 0)
 	rows := db.NewStatement(`
-		SELECT id,userId,byUserId,createdAt,type,newCount,
-			groupByPageId,groupByUserId,
+		SELECT id,userId,byUserId,createdAt,type,newCount,groupByPageId,groupByUserId,
 			subscribedToUserId,subscribedToPageId,goToPageId
 		FROM updates
 		WHERE userId=? ` + emailFilter + `
@@ -87,27 +98,20 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 		LIMIT 100`).Query(userId)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
-		err := rows.Scan(
-			&row.Id,
-			&row.UserId,
-			&row.ByUserId,
-			&row.CreatedAt,
-			&row.Type,
-			&row.NewCount,
-			&row.GroupByPageId,
-			&row.GroupByUserId,
-			&row.SubscribedToUserId,
-			&row.SubscribedToPageId,
-			&row.GoToPageId)
+		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
+			&row.NewCount, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToUserId,
+			&row.SubscribedToPageId, &row.GoToPageId)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
-		AddPageIdToMap(row.GoToPageId, pageMap)
-		AddPageIdToMap(row.GroupByPageId, pageMap)
+		AddPageToMap(row.GoToPageId, pageMap, goToPageLoadOptions)
+		AddPageToMap(row.GroupByPageId, pageMap, groupLoadOptions)
 		AddPageIdToMap(row.SubscribedToPageId, pageMap)
 
 		userMap[row.UserId] = &User{Id: row.UserId}
-		userMap[row.ByUserId] = &User{Id: row.ByUserId}
+		if row.ByUserId > 0 {
+			userMap[row.ByUserId] = &User{Id: row.ByUserId}
+		}
 		if row.GroupByUserId > 0 {
 			userMap[row.GroupByUserId] = &User{Id: row.GroupByUserId}
 		}

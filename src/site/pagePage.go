@@ -19,12 +19,7 @@ type pageTmplData struct {
 }
 
 // pagePage serves the page page.
-var pagePage = newPageWithOptions(
-	fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
-	pageRenderer,
-	append(baseTmpls,
-		"tmpl/dynamicPage.tmpl",
-		"tmpl/angular.tmpl.js"), pages.PageOptions{})
+var pagePage = newPageWithOptions("", pageRenderer, dynamicTmpls, pages.PageOptions{})
 
 // pageRenderer renders the page page.
 func pageRenderer(params *pages.HandlerParams) *pages.Result {

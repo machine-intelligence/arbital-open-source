@@ -244,10 +244,10 @@ app.service("pageService", function(userService, $http){
 			return false;
 		}
 		// Empty object is falsy.
-		if ($.isEmptyObject(v)) {
+		if ($.isPlainObject(v) && $.isEmptyObject(v)) {
 			return false;
 		}
-		return true;
+		return !!v;
 	};
 	this.addPageToMap = function(newPage) {
 		var oldPage = this.pageMap[newPage.pageId];
@@ -1007,6 +1007,23 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		.error(getErrorFunc("explore"));
 	}
 
+	// Updates page
+	var pagesPath = /^\/updates\/?$/;
+	var match = pagesPath.exec($location.path());
+	if (match) {
+		var postData = { };
+		// Get the explore data
+		$http({method: "POST", url: "/json/updates/", data: JSON.stringify(postData)})
+		.success(getSuccessFunc(function(data){
+			$scope.updateGroups = data["result"].updateGroups;
+			return {
+				title: "Updates",
+				element: $("<arb-updates update-groups='updateGroups'></arb-updates>"),
+			};
+		}))
+		.error(getErrorFunc("explore"));
+	}
+
 	// Groups page
 	var pagesPath = /^\/groups\/?$/;
 	var match = pagesPath.exec($location.path());
@@ -1217,6 +1234,13 @@ app.directive("arbLikesPageTitle", function(pageService, userService) {
 app.directive("arbPageTree", function() {
 	return {
 		templateUrl: "/static/html/pageTree.html",
+		scope: {
+			supersizeRoots: "@", // if defined, the root nodes are displayed bigger
+			isParentTree: "@", // if defined, the nodes' children actually represent page's parents, not children
+			primaryPageId: "@", // if defined, we'll assume this page is the parent of the roots
+			initMap: "=", // if defined, the pageId->page map will be used to seed the tree's roots
+			additionalMap: "=", // if defined, the pageId->page map will be used to populate this tree
+		},
 		controller: function ($scope, pageService) {
 			// Map of pageId -> array of nodes.
 			var pageIdToNodesMap = {};
@@ -1317,13 +1341,6 @@ app.directive("arbPageTree", function() {
 					$scope.sortNodeChildren($scope.rootNode.children[n]);
 				}
 			}
-		},
-		scope: {
-			supersizeRoots: "@", // if defined, the root nodes are displayed bigger
-			isParentTree: "@", // if defined, the nodes' children actually represent page's parents, not children
-			primaryPageId: "@", // if defined, we'll assume this page is the parent of the roots
-			initMap: "=", // if defined, the pageId->page map will be used to seed the tree's roots
-			additionalMap: "=", // if defined, the pageId->page map will be used to populate this tree
 		},
 	};
 });

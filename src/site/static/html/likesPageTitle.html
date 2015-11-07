@@ -43,7 +43,7 @@
 	
 	<!-- Page title -->
 	<span class="inline-page-title" ng-style="{display: isSearchResult ? 'inline' : 'table-cell'}">
-		<a ng-href="{[{page.url()}]}"
+		<a ng-href="{[{pageService.getPageUrl(page.pageId)}]}"
 				page-id={[{page.pageId}]}
 				class="intrasite-link"
 				ng-hide="isSearchResult">

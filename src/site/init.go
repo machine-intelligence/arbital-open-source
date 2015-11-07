@@ -58,8 +58,9 @@ func init() {
 	s.HandleFunc("/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/edit/", pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/signup/", pageHandlerWrapper(&signupPage)).Methods("GET", "HEAD")
-	s.HandleFunc(pagePage.URI, pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
-	s.HandleFunc(updatesPage.URI, pageHandlerWrapper(&updatesPage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
+		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/updates/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(userPage.URI, pageHandlerWrapper(&userPage)).Methods("GET", "HEAD")
 	s.HandleFunc(settingsPage.URI, pageHandlerWrapper(&settingsPage)).Methods("GET", "HEAD")
 
@@ -79,6 +80,7 @@ func init() {
 	s.HandleFunc(privateIndexHandler.URI, handlerWrapper(privateIndexHandler)).Methods("POST")
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
+	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
 
 	// POST handlers (API)
 	s.HandleFunc(abandonPageHandler.URI, handlerWrapper(abandonPageHandler)).Methods("POST")
