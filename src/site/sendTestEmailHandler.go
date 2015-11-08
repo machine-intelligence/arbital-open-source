@@ -5,42 +5,20 @@ import (
 	"fmt"
 	"net/http"
 
-	"math/rand"
-	"time"
-
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
-
-	"zanaduu3/src/tasks"
 	"zanaduu3/src/user"
 )
 
 func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 
-	rand.Seed(time.Now().UnixNano())
-
 	c := sessions.NewContext(r)
-	fail := func(responseCode int, message string, err error) {
-		c.Inc(fmt.Sprintf("%s-fail", r.URL.Path))
-		c.Errorf("handlerWrapper: %s: %v", message, err)
-		w.WriteHeader(responseCode)
-		fmt.Fprintf(w, "%s", message)
-	}
 
-	// Recover from panic.
-	defer func() {
-		if sessions.Live {
-			if r := recover(); r != nil {
-				c.Errorf("%v", r)
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
-			}
-		}
-	}()
 	// Open DB connection
 	db, err := database.GetDB(c)
 	if err != nil {
-		fail(http.StatusInternalServerError, "Couldn't open DB", err)
+		fmt.Fprintf(w, "Failed to load database")
 		return
 	}
 
@@ -48,16 +26,14 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 	var u *user.User
 	u, err = user.LoadUser(w, r, db)
 	if err != nil {
-		fail(http.StatusInternalServerError, "Couldn't load user", err)
+		fmt.Fprintf(w, "Failed to load user")
 		return
 	}
 
 	if !u.IsAdmin {
-		fail(http.StatusInternalServerError, "Have to be an admin", err)
+		fmt.Fprintf(w, "Have to be an admin")
 		return
 	}
-
-	c.Debugf("In sendTestEmailHandler, starting task")
 
 	// Set last email sent date to user created date, for testing
 	statement := db.NewStatement(`
@@ -96,9 +72,16 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 		statement.Exec(u.Id)
 	*/
 
-	var resultData string
+	emailData, err := core.LoadUpdateEmail(db, u.Id)
+	if err != nil {
+		fmt.Fprintf(w, "Loading email failed")
+		return
+	}
 
-	_, resultData = tasks.SendTheEmail(db, u.Id)
+	if emailData.UpdateEmailAddress == "" || emailData.UpdateEmailText == "" {
+		fmt.Fprintf(w, "Email is empty")
+		return
+	}
 
-	fmt.Fprintf(w, resultData)
+	fmt.Fprintf(w, emailData.UpdateEmailText)
 }

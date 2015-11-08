@@ -11,7 +11,7 @@ app.directive("arbSettingsPage", function(pageService, userService, autocomplete
 			scope.userService = userService;
 
 			// Set up frequency types.
-			scope.frequencyTypes = {Never: "Never", Weekly: "Weekly", Daily: "Daily", Immediately: "Immediately"};
+			scope.frequencyTypes = {never: "Never", weekly: "Weekly", daily: "Daily", immediately: "Immediately"};
 
 			// Get the data.
 			scope.emailFrequency = userService.user.emailFrequency;

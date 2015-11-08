@@ -28,8 +28,8 @@ CREATE TABLE changeLogs (
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;
 update pages set editGroupId=creatorId where type="comment";
 ALTER TABLE `users` CHANGE `emailFrequency` `emailFrequency` VARCHAR( 16 ) NOT NULL ;
-UPDATE `users` SET `emailFrequency`="Daily",`emailThreshold`=3 WHERE `emailThreshold`=0;
-UPDATE `users` SET `emailFrequency`="Never" WHERE `emailFrequency`="0";
-UPDATE `users` SET `emailFrequency`="Weekly" WHERE `emailFrequency`="1";
-UPDATE `users` SET `emailFrequency`="Daily" WHERE `emailFrequency`="2";
-UPDATE `users` SET `emailFrequency`="Immediately" WHERE `emailFrequency`="3";
+UPDATE `users` SET `emailFrequency`="daily",`emailThreshold`=3 WHERE `emailThreshold`=0;
+UPDATE `users` SET `emailFrequency`="never" WHERE `emailFrequency`="0";
+UPDATE `users` SET `emailFrequency`="weekly" WHERE `emailFrequency`="1";
+UPDATE `users` SET `emailFrequency`="daily" WHERE `emailFrequency`="2";
+UPDATE `users` SET `emailFrequency`="immediately" WHERE `emailFrequency`="3";

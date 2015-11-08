@@ -14,13 +14,20 @@ import (
 	"zanaduu3/src/sessions"
 )
 
+const (
+	DailyEmailFrequency       = "daily"
+	WeeklyEmailFrequency      = "weekly"
+	NeverEmailFrequency       = "never"
+	ImmediatelyEmailFrequency = "immediately"
+)
+
 var (
 	userKey = "user" // key for session storage
 
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	MaxKarmaLockFraction = 0.8
 
-	DefaultEmailFrequency = "Daily"
+	DefaultEmailFrequency = DailyEmailFrequency
 	DefaultEmailThreshold = 3
 )
 

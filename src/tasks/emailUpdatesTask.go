@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"zanaduu3/src/database"
+	"zanaduu3/src/user"
 )
 
 const (
@@ -38,9 +39,9 @@ func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 	rows := db.NewStatement(`
 		SELECT id
 		FROM users
-		WHERE (DATEDIFF(NOW(),updateEmailSentAt)>=7 AND emailFrequency="Weekly")
-			OR (DATEDIFF(NOW(),updateEmailSentAt)>=1 AND emailFrequency="Daily")
-			OR (DATEDIFF(NOW(),updateEmailSentAt)>=0 AND emailFrequency="Immediately")`).Query()
+		WHERE (DATEDIFF(NOW(),updateEmailSentAt)>=7 AND emailFrequency=?)
+			OR (DATEDIFF(NOW(),updateEmailSentAt)>=1 AND emailFrequency=?)
+			OR (DATEDIFF(NOW(),updateEmailSentAt)>=0 AND emailFrequency=?)`).Query(user.WeeklyEmailFrequency, user.DailyEmailFrequency, user.ImmediatelyEmailFrequency)
 
 	err = rows.Process(emailUpdatesProcessUser)
 	if err != nil {
