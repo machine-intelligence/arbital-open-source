@@ -241,11 +241,9 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 		}))
 		.error($scope.getErrorFunc("privateIndex"));
 	} else {
-		console.log("1");
 		// Get the index page data
 		$http({method: "POST", url: "/json/index/"})
 		.success($scope.getSuccessFunc(function(data){
-		console.log("2");
 			$scope.featuredDomains = data.result.featuredDomains;
 			return {
 				element: $compile("<arb-index featured-domains='featuredDomains'></arb-index>")($scope),
