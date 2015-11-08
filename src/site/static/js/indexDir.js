@@ -1,3 +1,5 @@
+"use strict";
+
 // arb-index directive displays a set of featured domains
 app.directive("arbIndex", function(pageService, userService) {
 	return {

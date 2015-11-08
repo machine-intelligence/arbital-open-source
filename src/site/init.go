@@ -16,8 +16,7 @@ import (
 )
 
 var (
-	baseTmpls    = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl"}
-	dynamicTmpls = append(baseTmpls, "tmpl/dynamicPage.tmpl", "tmpl/angular.tmpl.js")
+	dynamicTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl", "tmpl/dynamicPage.tmpl"}
 )
 
 // notFoundHandler serves HTTP 404 when no matching handler is registered.
@@ -114,7 +113,7 @@ func init() {
 	s.HandleFunc("/_ah/start", ahHandler).Methods("GET")
 
 	// Error handlers
-	s.NotFoundHandler = http.HandlerFunc(pageHandlerWrapper(&page404))
+	s.NotFoundHandler = http.HandlerFunc(pageHandlerWrapper(&dynamicPage))
 
 	http.Handle("/", r)
 }

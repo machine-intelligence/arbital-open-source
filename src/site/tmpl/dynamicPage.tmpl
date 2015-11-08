@@ -4,9 +4,20 @@
 <html lang="en">
 <head>
 	<title>Arbital</title>
+
 	{{template "style"}}
 	{{template "scripts"}}
-	{{template "angular" .}}
+
+	<!-- Angular scripts -->
+	<script src="/static/js/angular.js"></script>
+	<script src="/static/js/pageService.js"></script>
+	<script src="/static/js/userService.js"></script>
+	<script src="/static/js/autocompleteService.js"></script>
+	<script src="/static/js/angularDirectives.js"></script>
+	<script src="/static/js/navbar.js"></script>
+	<script src="/static/js/pageTreeDir.js"></script>
+
+	<!-- Page specific scripts -->
 	<script src="/static/js/comments.js"></script>
 	<script src="/static/js/pageController.js"></script>
 	<script src="/static/js/editPage.js"></script>
