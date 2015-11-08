@@ -55,14 +55,19 @@
 					<li><a ng-href="/groups">Groups</a></li>
 					<li><a ng-href="/settings">Settings</a></li>
 					<li class="divider"></li>
-					<li><a ng-href="{[{userService.user.logoutLink}]}" id="logout">Log Out</a></li>
+					<li>
+						<a ng-href="/logout/?continueUrl={[{currentUrl}]}"
+								id="logout"
+								target="_self">Log Out</a>
+					</li>
 				</ul>
 			</li>
 			<li ng-hide="userService.user.isLoggedIn">
-				<a ng-href="/signup/?continueUrl={[{userService.user.currentUrl}]}">Sign Up</a>
+				<a ng-href="/signup/?continueUrl={[{currentUrl}]}">Sign Up</a>
 			</li>
 			<li ng-hide="userService.user.isLoggedIn">
-				<a ng-href="{[{userService.user.loginLink}]}?continueUrl={[{userService.user.currentUrl}]}">Log In</a>
+				<a ng-href="/login/?continueUrl={[{currentUrl}]}"
+						target="_self">Log In</a>
 			</li>
 		</ul>
 	</div>

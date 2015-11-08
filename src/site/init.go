@@ -45,23 +45,25 @@ func init() {
 	s.StrictSlash(true)
 
 	// Pages
+	s.HandleFunc("/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/edit/", pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/groups/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/edit/", pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
-	s.HandleFunc("/signup/", pageHandlerWrapper(&signupPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/login/", pageHandlerWrapper(&loginPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/logout/", pageHandlerWrapper(&logoutPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/signup/", pageHandlerWrapper(&signupPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/updates/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/user/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")

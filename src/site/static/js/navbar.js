@@ -1,7 +1,7 @@
 "use strict";
 
 // navbar directive displays the navbar at the top of each page
-app.directive("arbNavbar", function(pageService, userService, autocompleteService, $http, $location, $compile) {
+app.directive("arbNavbar", function($http, $location, $compile, $rootScope, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/navbar.html",
 		scope: {
@@ -9,6 +9,12 @@ app.directive("arbNavbar", function(pageService, userService, autocompleteServic
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
 			scope.userService = userService;
+
+			// Keep the current url updated
+			scope.currentUrl = encodeURIComponent($location.absUrl());
+			$rootScope.$on("$routeChangeSuccess", function() {
+				scope.currentUrl = encodeURIComponent($location.absUrl());
+			});
 
 			// Get a domain url (with optional subdomain)
 			scope.getDomainUrl = function(subdomain) {

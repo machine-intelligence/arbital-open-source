@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"time"
 
 	"appengine/taskqueue"
@@ -84,12 +85,17 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		// Check user state
 		if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
 			// User has created an account but hasn't gone through signup page
-			http.Redirect(w, r, fmt.Sprintf("/signup/?continueUrl=%s", r.URL), http.StatusSeeOther)
+			http.Redirect(w, r, fmt.Sprintf("/signup/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 			return
 		}
 		// When in a subdomain, we always have to be logged in
 		if params.PrivateGroupId > 0 && !u.IsLoggedIn {
-			http.Redirect(w, r, fmt.Sprintf("%s/?continueUrl=%s", u.LoginLink, r.URL), http.StatusSeeOther)
+			loginLink, err := user.GetLoginLink(c, r.URL.String())
+			if err != nil {
+				fail(http.StatusInternalServerError, "Couldn't redirect to login", err)
+				return
+			}
+			http.Redirect(w, r, loginLink, http.StatusSeeOther)
 			return
 		}
 		if u.Id > 0 {

@@ -1,9 +1,10 @@
 {{/* dynamicPage.tmpl is used as the basic starting point for bootstrapping dynamic content */}}
 {{define "base"}}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" ng-app="arbital">
 <head>
 	<title>Arbital</title>
+	<base href="/">
 
 	{{template "style"}}
 	{{template "scripts"}}
@@ -22,16 +23,16 @@
 	<script src="/static/js/pageController.js"></script>
 	<script src="/static/js/editPage.js"></script>
 	<script src="/static/js/pagePage.js"></script>
+	<script src="/static/js/indexDir.js"></script>
 	<script src="/static/js/groupIndex.js"></script>
 	<script src="/static/js/updatesDir.js"></script>
-	<script src="/static/js/indexDir.js"></script>
 	<script src="/static/js/groupsPage.js"></script>
 	<script src="/static/js/userPage.js"></script>
 	<script src="/static/js/signupDir.js"></script>
 	<script src="/static/js/settingsPage.js"></script>
 </head>
 
-<body ng-app="arbital" ng-controller="ArbitalCtrl">
+<body ng-controller="ArbitalCtrl">
 	<arb-navbar></arb-navbar>
 	
 	<!-- ======= Collection of common popover templates ======= -->
@@ -93,8 +94,7 @@
 	<div class="global-error alert alert-danger" hidden></div>
 
 	<!-- We append dynamic content to this div. -->
-	<div class="dynamic-body">
-	</div>
+	<div ng-view></div>
 	
 	<arb-footer></arb-footer>
 </body>

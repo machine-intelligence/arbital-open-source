@@ -41,9 +41,6 @@ type User struct {
 
 	// Computed variables
 	IsLoggedIn  bool     `json:"isLoggedIn"`
-	CurrentUrl  string   `json:"currentUrl"`
-	LoginLink   string   `json:"loginLink"`
-	LogoutLink  string   `json:"logoutLink"`
 	UpdateCount int      `json:"updateCount"`
 	GroupIds    []string `json:"groupIds"`
 }
@@ -154,18 +151,14 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 	return &u, err
 }
 
-// Set Login/Logout links for the given user object.
-func setLinksForUser(r *http.Request, c sessions.Context, u *User) (err error) {
-	u.LoginLink, err = user.LoginURL(c, r.URL.String())
-	if err != nil {
-		return fmt.Errorf("error getting login url: %v", err)
-	}
-	u.LogoutLink, err = user.LogoutURL(c, r.URL.String())
-	if err != nil {
-		return fmt.Errorf("error getting logout url: %v", err)
-	}
-	u.CurrentUrl = r.URL.String()
-	return nil
+// GetLoginLink returns the link to log the user in
+func GetLoginLink(c sessions.Context, continueUrl string) (string, error) {
+	return user.LoginURL(c, continueUrl)
+}
+
+// GetLogoutLink returns the link to log the user out
+func GetLogoutLink(c sessions.Context, continueUrl string) (string, error) {
+	return user.LogoutURL(c, continueUrl)
 }
 
 // LoadUser returns user object corresponding to logged in user. First, we check
@@ -174,7 +167,6 @@ func setLinksForUser(r *http.Request, c sessions.Context, u *User) (err error) {
 // User object.
 // A user object is returned iff there is no error.
 func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *User, err error) {
-	c := sessions.NewContext(r)
 	userPtr, err = loadUserFromDb(db)
 	if err != nil {
 		return
@@ -182,9 +174,6 @@ func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr 
 		userPtr.Save(w, r)
 	} else {
 		userPtr = &User{}
-	}
-	if err = setLinksForUser(r, c, userPtr); err != nil {
-		userPtr = nil
 	}
 	return
 }
