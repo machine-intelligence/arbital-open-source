@@ -21,6 +21,9 @@ type editJsonData struct {
 var editHandler = siteHandler{
 	URI:         "/json/edit/",
 	HandlerFunc: editJsonHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
 }
 
 // editJsonHandler handles the request.
@@ -69,7 +72,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	p.LoadOptions.Add(core.PrimaryEditLoadOptions)
 
 	// Load data
-	returnData := newHandlerData()
+	returnData := newHandlerData(false)
 	returnData.PageMap[p.PageId] = p
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)

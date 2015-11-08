@@ -36,7 +36,8 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		data.UserId = u.Id
 	}
 
-	returnData := newHandlerData()
+	returnData := newHandlerData(true)
+	returnData.User = u
 
 	// Options to load the pages with
 	pageOptions := (&core.PageLoadOptions{

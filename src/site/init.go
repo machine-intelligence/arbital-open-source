@@ -46,14 +46,13 @@ func init() {
 	s.StrictSlash(true)
 
 	// Pages
-	r.HandleFunc(fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
+	s.HandleFunc(fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	r.HandleFunc(domainsPage.URI, pageHandlerWrapper(&domainsPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
-	r.HandleFunc(fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
+	s.HandleFunc(fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	r.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/groups/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/edit/", pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
@@ -67,9 +66,10 @@ func init() {
 
 	// JSON handlers (API)
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
-	s.HandleFunc(domainIndexHandler.URI, handlerWrapper(domainIndexHandler)).Methods("POST")
+	s.HandleFunc(domainPageHandler.URI, handlerWrapper(domainPageHandler)).Methods("POST")
 	s.HandleFunc(editHandler.URI, handlerWrapper(editHandler)).Methods("POST")
 	s.HandleFunc(exploreHandler.URI, handlerWrapper(exploreHandler)).Methods("POST")
+	s.HandleFunc(defaultHandler.URI, handlerWrapper(defaultHandler)).Methods("POST")
 	s.HandleFunc(groupsHandler.URI, handlerWrapper(groupsHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")
 	s.HandleFunc(intrasitePopoverHandler.URI, handlerWrapper(intrasitePopoverHandler)).Methods("POST")
@@ -104,6 +104,7 @@ func init() {
 	s.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")
 
 	// Admin stuff
+	s.HandleFunc(domainsPageHandler.URI, handlerWrapper(domainsPageHandler)).Methods("POST")
 	s.HandleFunc(fixTextHandler.URI, handlerWrapper(fixTextHandler)).Methods("GET")
 	s.HandleFunc(updateElasticIndexHandler.URI, handlerWrapper(updateElasticIndexHandler)).Methods("GET")
 	s.HandleFunc(updateMetadataHandler.URI, handlerWrapper(updateMetadataHandler)).Methods("GET")

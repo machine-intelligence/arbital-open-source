@@ -11,20 +11,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var (
-	editPageOptions = pages.PageOptions{RequireLogin: true}
-)
-
 // These pages serve the edit page, but vary slightly in the parameters they take in the url.
-var newPagePage = newPageWithOptions("", editPageRenderer, dynamicTmpls, editPageOptions)
-var editPagePage = newPageWithOptions("", editPageRenderer, dynamicTmpls, editPageOptions)
+var newPagePage = newPage(editPageRenderer, dynamicTmpls)
+var editPagePage = newPage(editPageRenderer, dynamicTmpls)
 
 // editPageRenderer renders the page page.
 func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-
-	var data commonPageData
-	data.User = params.U
 
 	// If it's not a page id but an alias, the redirect
 	pageAlias := mux.Vars(params.R)["alias"]
@@ -69,13 +62,5 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// Load all the groups.
-	data.PageMap = make(map[int64]*core.Page)
-	data.UserMap = make(map[int64]*core.User)
-	err := core.ExecuteLoadPipeline(db, params.U, data.PageMap, data.UserMap, data.MasteryMap)
-	if err != nil {
-		return pages.Fail("Pipeline error", err)
-	}
-
-	return pages.StatusOK(data)
+	return pages.StatusOK(nil)
 }

@@ -27,6 +27,10 @@ type siteHandler struct {
 
 // commonHandlerData is what handlers fill out and return
 type commonHandlerData struct {
+	// If set, then this packet should reset everything on the FE
+	ResetEverything bool
+	// Optional user object with the current user's data
+	User *user.User
 	// Map of page id -> currently live version of the page
 	PageMap map[int64]*core.Page
 	// Map of page id -> some edit of the page
@@ -138,8 +142,9 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 }
 
 // newHandlerData creates and initializes a new commonHandlerData object.
-func newHandlerData() *commonHandlerData {
+func newHandlerData(resetEverything bool) *commonHandlerData {
 	var data commonHandlerData
+	data.ResetEverything = resetEverything
 	data.PageMap = make(map[int64]*core.Page)
 	data.EditMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
@@ -152,6 +157,12 @@ func newHandlerData() *commonHandlerData {
 // can send it to the front-end.
 func (data *commonHandlerData) toJson() map[string]interface{} {
 	jsonData := make(map[string]interface{})
+
+	jsonData["resetEverything"] = data.ResetEverything
+
+	if data.User != nil {
+		jsonData["user"] = data.User
+	}
 
 	returnPageData := make(map[string]*core.Page)
 	for k, v := range data.PageMap {

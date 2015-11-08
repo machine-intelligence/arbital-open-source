@@ -18,13 +18,8 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	// Load user groups
-	err := core.LoadUserGroupIds(db, u)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load user groups", err)
-	}
-
-	returnData := newHandlerData()
+	returnData := newHandlerData(true)
+	returnData.User = u
 
 	// Load the groups and members
 	rows := database.NewQuery(`
@@ -36,7 +31,7 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		) AS m
 		ON (p.pageId=m.groupId)
 		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIds).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId int64
 		var m core.Member
 		err := rows.Scan(&groupId, &m.UserId, &m.CanAddMembers, &m.CanAdmin)

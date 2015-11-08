@@ -11,20 +11,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// pageTmplData stores the data that we pass to the index.tmpl to render the page
-type pageTmplData struct {
-	commonPageData
-	Page        *core.Page
-	LinkedPages []*core.Page
-}
-
 // pagePage serves the page page.
-var pagePage = newPageWithOptions("", pageRenderer, dynamicTmpls, pages.PageOptions{})
+var pagePage = newPage(pageRenderer, dynamicTmpls)
 
 // pageRenderer renders the page page.
 func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
 	// Get actual page id
 	pageAlias := mux.Vars(params.R)["alias"]
@@ -101,17 +93,5 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.RedirectWith(core.GetPageFullUrl(subdomain, pageId))
 	}
 
-	var data pageTmplData
-	data.User = u
-	data.PageMap = make(map[int64]*core.Page)
-	data.UserMap = make(map[int64]*core.User)
-	data.MasteryMap = make(map[int64]*core.Mastery)
-
-	// Load pages.
-	err = core.ExecuteLoadPipeline(db, u, data.PageMap, data.UserMap, data.MasteryMap)
-	if err != nil {
-		return pages.Fail("Pipeline error", err)
-	}
-
-	return pages.StatusOK(&data)
+	return pages.StatusOK(nil)
 }

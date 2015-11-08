@@ -34,7 +34,7 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the parents
-	returnData := newHandlerData()
+	returnData := newHandlerData(false)
 
 	loadOptions := (&core.PageLoadOptions{
 		Parents: true,

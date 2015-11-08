@@ -9,16 +9,13 @@ import (
 var updateElasticIndexHandler = siteHandler{
 	URI:         "/updateElasticIndex/",
 	HandlerFunc: updateElasticIndexHandlerFunc,
+	Options: pages.PageOptions{
+		AdminOnly: true,
+	},
 }
 
 // updateElasticIndexHandlerFunc kicks off the task to update the index for pages.
 func updateElasticIndexHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	u := params.U
-
-	if !u.IsAdmin {
-		return pages.HandlerForbiddenFail("Have to be an admin", nil)
-	}
-
 	var task tasks.PopulateElasticTask
 	if err := task.IsValid(); err != nil {
 		return pages.HandlerErrorFail("Invalid task created", err)

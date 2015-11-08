@@ -20,28 +20,28 @@
 			</li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
-			<li ng-show="user.isLoggedIn && userService.userIsCool()">
+			<li ng-show="userService.user.isLoggedIn && userService.userIsCool()">
 				<a href="/edit">+New Page</a>
 			</li>
-			<li ng-show="user.isLoggedIn">
+			<li ng-show="userService.user.isLoggedIn">
 				<a href="/updates">
 					Updates
 					<span class="badge"
-							ng-class="{'alert-danger': user.updateCount > 0}"
-							ng-bind="user.updateCount"></span>
+							ng-class="{'alert-danger': userService.user.updateCount > 0}"
+							ng-bind="userService.user.updateCount"></span>
 				</a>
 			</li>
-			<li class="dropdown" ng-show="user.isLoggedIn">
+			<li class="dropdown" ng-show="userService.user.isLoggedIn">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">
-					<span ng-bind="user.email"></span>
+					<span ng-bind="userService.user.email"></span>
 					<!-- <span class="karma badge" ng-bind="user.karma"></span> -->
 					<span class="caret"></span>
 				</a>
 				<ul class="dropdown-menu" role="menu">
-					<li ng-show="user.isAdmin">
+					<li ng-show="userService.user.isAdmin">
 						<a class="admin" href="/domains">All Domains</a>
 					</li>
-					<li class="divider" ng-show="user.isAdmin"></li>
+					<li class="divider" ng-show="userService.user.isAdmin"></li>
 
 					<!-- List of groups -->
 					<li class="dropdown-header" ng-show="userService.user.groupIds.length > 0">Go To Group</li>
@@ -51,47 +51,20 @@
 					</li>
 					<li class="divider" ng-show="userService.user.groupIds.length > 0"></li>
 
-					<li><a ng-href="{[{userService.getUserUrl(user.id)}]}">Profile</a></li>
+					<li><a ng-href="{[{userService.getUserUrl(userService.user.id)}]}">Profile</a></li>
 					<li><a ng-href="/groups">Groups</a></li>
 					<li><a ng-href="/settings">Settings</a></li>
 					<li class="divider"></li>
-					<li><a ng-href="{[{user.logoutLink}]}" id="logout">Log Out</a></li>
+					<li><a ng-href="{[{userService.user.logoutLink}]}" id="logout">Log Out</a></li>
 				</ul>
 			</li>
-			<li ng-hide="user.isLoggedIn">
-				<a ng-href="/signup/?continueUrl={[{user.currentUrl}]}">Sign Up</a>
+			<li ng-hide="userService.user.isLoggedIn">
+				<a ng-href="/signup/?continueUrl={[{userService.user.currentUrl}]}">Sign Up</a>
 			</li>
-			<li ng-hide="user.isLoggedIn">
-				<a ng-href="{[{user.loginLink}]}?continueUrl={[{user.currentUrl}]}">Log In</a>
+			<li ng-hide="userService.user.isLoggedIn">
+				<a ng-href="{[{userService.user.loginLink}]}?continueUrl={[{userService.user.currentUrl}]}">Log In</a>
 			</li>
 		</ul>
 	</div>
 </nav>
 <input type="text" id="nav-search" class="nav-search form-control" placeholder="Search">
-
-<!-- ======= Collection of common popover templates ======= -->
-
-<!-- This div shows up when the user tries to take an action that requires them to be logged in. -->
-<div id="signup-popover-template" hidden>
-	<div class="popover-summary">
-		You have to be logged in.
-	</div>
-</div>
-
-<!-- This div shows up when the user hovers over an intra-site link. -->
-<div id="link-popover-template" hidden>
-	<div class="popover-blog-owner"></div>
-	<span class="popover-summary markdown-text"></span>
-
-	<!-- Likes / dislikes and approval voting -->
-	<div class="like-span">
-		<span class="like-count">JS inserts likes</span>
-		<span class="disabled-like glyphicon glyphicon-thumbs-up"></span>
-		&nbsp;
-		<span class="dislike-count">JS inserts dislikes</span>
-		<span class="disabled-dislike glyphicon glyphicon-thumbs-down"></span>
-	</div>
-
-	<!-- Answers and probability votes -->
-	<div class="vote"></div>
-</div>

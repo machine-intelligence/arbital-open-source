@@ -18,8 +18,10 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
+	returnData := newHandlerData(true)
+	returnData.User = u
+
 	// Load the updates and populate page & user maps
-	returnData := newHandlerData()
 	updateRows, err := core.LoadUpdateRows(db, u.Id, returnData.PageMap, returnData.UserMap, false)
 	if err != nil {
 		return pages.HandlerErrorFail("failed to load updates", err)

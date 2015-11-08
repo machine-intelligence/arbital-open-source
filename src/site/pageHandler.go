@@ -2,9 +2,7 @@
 package site
 
 import (
-	"encoding/json"
 	"fmt"
-	"html/template"
 	"math/rand"
 	"net/http"
 	"time"
@@ -41,59 +39,12 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		c := sessions.NewContext(r)
 		params := pages.HandlerParams{W: w, R: r, C: c}
 
-		addFuncMap := func(result *pages.Result, u *user.User) {
-			// Set up Go TMPL functions.
-			result.AddFuncMap(template.FuncMap{
-				"UserId":     func() int64 { return u.Id },
-				"IsAdmin":    func() bool { return u.IsAdmin },
-				"IsLoggedIn": func() bool { return u.IsLoggedIn },
-				"GetUserUrl": func(userId int64) string {
-					return core.GetUserUrl(userId)
-				},
-				"GetCurrentUserJson": func() template.JS {
-					jsonData, _ := json.Marshal(u)
-					return template.JS(string(jsonData))
-				},
-				"GetUserJson": func(u *core.User) template.JS {
-					jsonData, _ := json.Marshal(u)
-					return template.JS(string(jsonData))
-				},
-				"GetPageJson": func(p *core.Page) template.JS {
-					jsonData, _ := json.Marshal(p)
-					return template.JS(string(jsonData))
-				},
-				"GetMasteryJson": func(m *core.Mastery) template.JS {
-					jsonData, _ := json.Marshal(m)
-					return template.JS(string(jsonData))
-				},
-				"GetPageUrl": func(p *core.Page) string {
-					return core.GetPageUrl(p.PageId)
-				},
-				"IsUpdatedPage": func(p *core.Page) bool {
-					return p.CreatorId != u.Id && p.LastVisit != "" && p.CreatedAt >= p.LastVisit
-				},
-				"CanComment":            func() bool { return u.Karma >= core.CommentKarmaReq },
-				"CanLike":               func() bool { return u.Karma >= core.LikeKarmaReq },
-				"CanCreatePrivatePage":  func() bool { return u.Karma >= core.PrivatePageKarmaReq },
-				"CanVote":               func() bool { return u.Karma >= core.VoteKarmaReq },
-				"CanKarmaLock":          func() bool { return u.Karma >= core.KarmaLockKarmaReq },
-				"CanCreateAlias":        func() bool { return u.Karma >= core.CreateAliasKarmaReq },
-				"CanChangeAlias":        func() bool { return u.Karma >= core.ChangeAliasKarmaReq },
-				"CanChangeSortChildren": func() bool { return u.Karma >= core.ChangeSortChildrenKarmaReq },
-				"CanAddParent":          func() bool { return u.Karma >= core.AddParentKarmaReq },
-				"CanDeleteParent":       func() bool { return u.Karma >= core.DeleteParentKarmaReq },
-				"CanDashlessAlias":      func() bool { return u.Karma >= core.DashlessAliasKarmaReq },
-			})
-		}
-
 		// Helper func to when an error occurs and we should render error page.
 		fail := func(responseCode int, message string, err error) {
 			c.Inc(fmt.Sprintf("%s-fail", r.URL.Path))
 			c.Errorf("%s: %v", message, err)
-			result := renderErrorPage(&params, message)
-			addFuncMap(result, params.U)
 			w.WriteHeader(responseCode)
-			errorPage.ServeHTTP(w, r, result)
+			fmt.Fprintf(w, "Error rendering the page: %s", message)
 		}
 
 		// Recover from panic.
@@ -123,54 +74,43 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// Get user object
-		var u *user.User
-		if !p.Options.SkipLoadingUser {
-			u, err = user.LoadUser(w, r, db)
-			if err != nil {
-				fail(http.StatusInternalServerError, "Couldn't load user", err)
-				return
-			}
-			params.U = u
+		u, err := user.LoadUser(w, r, db)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load user", err)
+			return
+		}
+		params.U = u
 
-			// Check user state
-			if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
-				// User has created an account but hasn't gone through signup page
-				http.Redirect(w, r, fmt.Sprintf("/signup/?continueUrl=%s", r.URL), http.StatusSeeOther)
-				return
-			}
-			// When in a subdomain, we always have to be logged in
-			if params.PrivateGroupId > 0 && !u.IsLoggedIn {
-				http.Redirect(w, r, fmt.Sprintf("%s/?continueUrl=%s", u.LoginLink, r.URL), http.StatusSeeOther)
-				return
-			}
-			if p.Options.RequireLogin && !u.IsLoggedIn {
-				fail(http.StatusBadRequest, "Have to be logged in", nil)
-				return
-			}
-			if p.Options.AdminOnly && !u.IsAdmin {
-				fail(http.StatusBadRequest, "Have to be an admin", nil)
-				return
-			}
-			if u.Id > 0 {
-				statement := db.NewStatement(`
+		// Check user state
+		if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
+			// User has created an account but hasn't gone through signup page
+			http.Redirect(w, r, fmt.Sprintf("/signup/?continueUrl=%s", r.URL), http.StatusSeeOther)
+			return
+		}
+		// When in a subdomain, we always have to be logged in
+		if params.PrivateGroupId > 0 && !u.IsLoggedIn {
+			http.Redirect(w, r, fmt.Sprintf("%s/?continueUrl=%s", u.LoginLink, r.URL), http.StatusSeeOther)
+			return
+		}
+		if u.Id > 0 {
+			statement := db.NewStatement(`
 						UPDATE users
 						SET lastWebsiteVisit=?
 						WHERE id=?`)
-				if _, err := statement.Exec(database.Now(), u.Id); err != nil {
-					fail(http.StatusInternalServerError, "Couldn't update users", err)
-					return
-				}
-				// Load the groups the user belongs to.
-				if err = core.LoadUserGroupIds(db, u); err != nil {
-					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
-					return
-				}
-			}
-			// Check if we have access to the private group
-			if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
-				fail(http.StatusForbidden, "Don't have access to this group", nil)
+			if _, err := statement.Exec(database.Now(), u.Id); err != nil {
+				fail(http.StatusInternalServerError, "Couldn't update users", err)
 				return
 			}
+			// Load the groups the user belongs to.
+			if err = core.LoadUserGroupIds(db, u); err != nil {
+				fail(http.StatusInternalServerError, "Couldn't load user groups", err)
+				return
+			}
+		}
+		// Check if we have access to the private group
+		if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
+			fail(http.StatusForbidden, "Don't have access to this group", nil)
+			return
 		}
 
 		// Call the page's renderer
@@ -181,31 +121,22 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			return
 		}
 
-		// Load more user stuff if required.
-		if !p.Options.SkipLoadingUser && u.Id > 0 {
-			// Load updates count. (Loading it afterwards since it could be affected by the page)
-			u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
-			if err != nil {
-				fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
-				return
-			}
+		// Load updates count. (Loading it afterwards since it could be affected by the page)
+		u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
+			return
 		}
 
-		addFuncMap(result, u)
-		w.Header().Add("Cache-Control", "max-age=0, no-cache, no-store")
+		//w.Header().Add("Cache-Control", "max-age=0, no-cache, no-store")
 		p.ServeHTTP(w, r, result)
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
 	}
 }
 
 // newPage returns a new page using default options.
-func newPage(uri string, renderer pages.Renderer, tmpls []string) pages.Page {
-	return newPageWithOptions(uri, renderer, tmpls, pages.PageOptions{})
-}
-
-// newPageWithOptions returns a new page with the given options.
-func newPageWithOptions(uri string, renderer pages.Renderer, tmpls []string, options pages.PageOptions) pages.Page {
-	return pages.Add(uri, renderer, options, tmpls...)
+func newPage(renderer pages.Renderer, tmpls []string) pages.Page {
+	return pages.Add("", renderer, pages.PageOptions{}, tmpls...)
 }
 
 // domain redirects to proper HTML domain if user arrives elsewhere.

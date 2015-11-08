@@ -21,15 +21,10 @@ app.service("userService", function(){
 	var that = this;
 
 	// Logged in user.
-	this.user = {{GetCurrentUserJson}};
-	this.userMap = {
-		{{if .UserMap}}
-			{{range $k,$v := .UserMap}}
-				"{{$k}}": {{GetUserJson $v}},
-			{{end}}
-		{{end}}
-	};
-	console.log("Initial user map:"); console.dir(this.userMap);
+	this.user = undefined;
+
+	// Map of all user objects.
+	this.userMap = {};
 
 	// Check if we can let this user do stuff.
 	this.userIsCool = function() {
@@ -70,6 +65,12 @@ app.service("userService", function(){
 
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
+		if (data.resetEverything) {
+			that.userMap = {};
+		}
+		if (data.user) {
+			that.user = data.user;
+		}
 		$.extend(that.userMap, data["users"]);
 	}
 });
@@ -80,25 +81,13 @@ app.service("pageService", function(userService, $http){
 	var that = this;
 
 	// All loaded pages.
-	this.pageMap = {
-		{{range $k,$v := .PageMap}}
-			"{{$k}}": {{GetPageJson $v}},
-		{{end}}
-	};
+	this.pageMap = {};
 	
 	// All loaded edits. (These are the pages we will be editing.)
-	this.editMap = {
-		{{range $k,$v := .EditMap}}
-			"{{$k}}": {{GetPageJson $v}},
-		{{end}}
-	};
+	this.editMap = {};
 
 	// All loaded masteries.
-	this.masteryMap = {
-		{{range $k,$v := .MasteryMap}}
-			"{{$k}}": {{GetMasteryJson $v}},
-		{{end}}
-	};
+	this.masteryMap = {};
 
 	// Update whether on not the user has a mastery.
 	this.updateMastery = function(scope, masteryId, has) {
@@ -141,6 +130,11 @@ app.service("pageService", function(userService, $http){
 	
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
+		if (data.resetEverything) {
+			this.pageMap = {};
+			this.editMap = {};
+			this.masteryMap = {};
+		}
 		$.extend(this.masteryMap, data["masteries"]);
 
 		var pageData = data["pages"];
@@ -477,8 +471,9 @@ app.service("pageService", function(userService, $http){
 		$http({method: "POST", url: "/json/newPage/"}).
 			success(function(data, status){
 				console.log("JSON /json/newPage/ data:"); console.dir(data);
-				var pageId = Object.keys(data["pages"])[0];
+				userService.processServerData(data);
 				that.processServerData(data);
+				var pageId = Object.keys(data["pages"])[0];
 				if(options.success) options.success(pageId);
 			}).error(function(data, status){
 				console.log("Error loading page:"); console.log(data); console.log(status);
@@ -560,12 +555,6 @@ app.service("pageService", function(userService, $http){
 		if (!this.primaryPage) return page.seeGroupId !== "0";
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId !== "0";
 	};
-
-	// Setup all initial pages.
-	console.log("Initial pageMap: "); console.dir(this.pageMap);
-	for (var id in this.pageMap) {
-		setUpPage(this.pageMap[id], this.pageMap);
-	}
 });
 
 // Autocomplete service provides data for autocompletion.
@@ -922,32 +911,38 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			};
 		});
 
-		if (pageId) {
-			// Load the last edit
-			var specificEdit = $location.search().edit;
-			pageService.loadEdit({
-				pageAlias: pageId,
-				specificEdit: specificEdit,
-				success: createEditPage,
-				error: getErrorFunc("loadEdit"),
-			});
-		} else {
-			// Create a new page to edit
-			pageService.getNewPage({
-				success: function(newPageId) {
-					pageId = newPageId;
-					var aliasParam = $location.search().alias;
-					if (aliasParam) {
-						pageService.editMap[pageId].alias = aliasParam;
-					}
-					$location.path("/edit/" + pageId);
-					createEditPage();
-				},
-			});
-		}
+		$http({method: "POST", url: "/json/default/"})
+		.success(getSuccessFunc(function(data){
+			if (pageId) {
+				// Load the last edit
+				pageService.loadEdit({
+					pageAlias: pageId,
+					specificEdit: $location.search().edit,
+					success: createEditPage,
+					error: getErrorFunc("loadEdit"),
+				});
+			} else {
+				// Create a new page to edit
+				pageService.getNewPage({
+					success: function(newPageId) {
+						pageId = newPageId;
+						var aliasParam = $location.search().alias;
+						if (aliasParam) {
+							pageService.editMap[pageId].alias = aliasParam;
+						}
+						$location.path("/edit/" + pageId);
+						createEditPage();
+					},
+				});
+			}
+			return {
+				title: "Edit Page",
+			};
+		}))
+		.error(getErrorFunc("Edit Page"));
 	}
 
-	// Domain index page
+	// Domain page
 	var pagesPath = /^\/domains\/([A-Za-z0-9]+)\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
@@ -956,7 +951,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			domainAlias: pageService.domainAlias,
 		};
 		// Get the domain index page data
-		$http({method: "POST", url: "/json/domainIndex/", data: JSON.stringify(postData)})
+		$http({method: "POST", url: "/json/domainPage/", data: JSON.stringify(postData)})
 		.success(getSuccessFunc(function(data){
 			$scope.indexPageIdsMap = data.result;
 			return {
@@ -1026,7 +1021,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				element: $("<arb-user-page ids-map='userPageIdsMap'></arb-user-page>"),
 			};
 		}))
-		.error(getErrorFunc("explore"));
+		.error(getErrorFunc("Explore"));
 	}
 
 	// Updates page
@@ -1043,7 +1038,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				element: $("<arb-updates update-groups='updateGroups'></arb-updates>"),
 			};
 		}))
-		.error(getErrorFunc("explore"));
+		.error(getErrorFunc("Updates"));
 	}
 
 	// Groups page
@@ -1064,24 +1059,28 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	var pagesPath = /^\/signup\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
-		getSuccessFunc(function(data){
+		$http({method: "POST", url: "/json/default/"})
+		.success(getSuccessFunc(function(data){
 			return {
 				title: "Sign Up",
 				element: $("<arb-signup></arb-signup>"),
 			};
-		})();
+		}))
+		.error(getErrorFunc("Settings"));
 	}
 
 	// Settings page
 	var pagesPath = /^\/settings\/?$/;
 	var match = pagesPath.exec($location.path());
 	if (match) {
-		getSuccessFunc(function(data){
+		$http({method: "POST", url: "/json/default/"})
+		.success(getSuccessFunc(function(data){
 			return {
 				title: "Settings",
 				element: $("<arb-settings-page></arb-settings-page>"),
 			};
-		})();
+		}))
+		.error(getErrorFunc("Settings"));
 	}
 
 	// Index page
@@ -1118,7 +1117,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 // =============================== DIRECTIVES =================================
 
 // navbar directive displays the navbar at the top of each page
-app.directive("arbNavbar", function($http, $location, pageService, userService, autocompleteService) {
+app.directive("arbNavbar", function(pageService, userService, autocompleteService, $http, $location, $compile) {
 	return {
 		templateUrl: "/static/html/navbar.html",
 		scope: {
@@ -1126,7 +1125,6 @@ app.directive("arbNavbar", function($http, $location, pageService, userService, 
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
 			scope.userService = userService;
-			scope.user = userService.user;
 
 			// Get a domain url (with optional subdomain)
 			scope.getDomainUrl = function(subdomain) {
