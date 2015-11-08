@@ -1,3 +1,5 @@
+"use strict";
+
 var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
 var noParen = "(?=$|[^(])";
 var aliasMatch = "([A-Za-z0-9.]+)";

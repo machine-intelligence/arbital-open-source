@@ -1,3 +1,5 @@
+"use strict";
+
 // pageView controls various portions of the page like the navigation and RHS columns.
 var pageView;
 $(function() {

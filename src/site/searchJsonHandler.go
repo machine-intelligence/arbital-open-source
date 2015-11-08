@@ -103,7 +103,7 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		return pages.HandlerErrorFail("Error with elastic search", err)
 	}
 
-	returnData := newHandlerData()
+	returnData := newHandlerData(false)
 
 	// Create page map.
 	for _, hit := range results.Hits.Hits {

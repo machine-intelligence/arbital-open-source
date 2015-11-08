@@ -2,7 +2,6 @@
 package site
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -28,7 +27,6 @@ type editPageData struct {
 	IsMinorEditStr string
 	HasVoteStr     string
 	VoteType       string
-	SeeGroupId     int64 `json:",string"`
 	EditGroupId    int64 `json:",string"`
 	EditKarmaLock  int
 	Alias          string // if empty, leave the current one
@@ -74,11 +72,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.HandlerBadRequestFail("No pageId specified", nil)
 	}
 
-	// Load user groups
-	if err := core.LoadUserGroupIds(db, u); err != nil {
-		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
-	}
-
 	// Load the published page.
 	var oldPage *core.Page
 	oldPage, err := core.LoadFullEdit(db, data.PageId, u.Id, nil)
@@ -116,6 +109,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		newEditNum = data.RevertToEdit
 	}
 
+	// Set the see-group
+	var seeGroupId int64
+	if params.PrivateGroupId > 0 {
+		seeGroupId = params.PrivateGroupId
+	}
+
 	// Error checking.
 	data.Type = strings.ToLower(data.Type)
 	if data.IsAutosave && data.IsSnapshot {
@@ -126,15 +125,17 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.HandlerBadRequestFail("Can't change locked page", nil)
 	}
 	// Check the group settings
-	if oldPage.SeeGroupId > 0 {
-		if !u.IsMemberOfGroup(oldPage.SeeGroupId) {
-			return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
-		}
+	if oldPage.SeeGroupId != seeGroupId && newEditNum != 1 {
+		return pages.HandlerBadRequestFail("Editing this page in incorrect private group", nil)
 	}
-	if oldPage.EditGroupId > 0 {
-		if !u.IsMemberOfGroup(oldPage.EditGroupId) {
-			return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
-		}
+	if seeGroupId > 0 && !u.IsMemberOfGroup(seeGroupId) {
+		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
+	}
+	if oldPage.SeeGroupId > 0 && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
+		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
+	}
+	if oldPage.EditGroupId > 0 && !u.IsMemberOfGroup(oldPage.EditGroupId) {
+		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
@@ -184,28 +185,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 	if isCurrentEdit {
-		// Set the seeGroupId to primary page's group name
-		// Make sure that SeeGroupId is the same as the parents' and childrens'
-		seeGroupCount := 0
-		var seeGroupId sql.NullInt64
-		row = database.NewQuery(`
-			SELECT max(p.seeGroupId),count(distinct p.seeGroupId)
-			FROM pages AS p
-			JOIN pagePairs AS pp
-			ON ((p.pageId = pp.parentId AND pp.childId = ?)`, data.PageId).Add(`
-				OR (p.pageId = pp.childId AND pp.parentId = ?))`, data.PageId).Add(`
-			WHERE p.isCurrentEdit AND
-				(pp.type=? OR pp.type=?)`, core.ParentPagePairType, core.TagPagePairType).ToStatement(db).QueryRow()
-		_, err = row.Scan(&seeGroupId, &seeGroupCount)
-		if err != nil {
-			return pages.HandlerErrorFail("Couldn't get primary page's group name", err)
-		}
-		if seeGroupCount > 1 {
-			return pages.HandlerErrorFail("The page, its parents, and its children need to have the same See Group", nil)
-		} else if seeGroupCount == 1 {
-			data.SeeGroupId = seeGroupId.Int64
-		}
-
 		// Process meta text
 		_, err := core.ParseMetaText(data.MetaText)
 		if err != nil {
@@ -243,13 +222,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if data.SeeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
-			tempPageMap := map[int64]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
+		if seeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+			tempPageMap := map[int64]*core.Page{seeGroupId: core.NewPage(seeGroupId)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the see group", err)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupId].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[seeGroupId].Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias
@@ -363,7 +342,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["type"] = data.Type
-		hashmap["seeGroupId"] = data.SeeGroupId
+		hashmap["seeGroupId"] = seeGroupId
 		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["createdAt"] = database.Now()
 		hashmap["anchorContext"] = data.AnchorContext
@@ -472,7 +451,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				Clickbait:  data.Clickbait,
 				Text:       data.Text,
 				Alias:      data.Alias,
-				SeeGroupId: data.SeeGroupId,
+				SeeGroupId: seeGroupId,
 				CreatorId:  u.Id,
 			}
 			err = elastic.AddPageToIndex(c, doc)

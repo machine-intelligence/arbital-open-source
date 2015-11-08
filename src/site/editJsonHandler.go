@@ -21,6 +21,9 @@ type editJsonData struct {
 var editHandler = siteHandler{
 	URI:         "/json/edit/",
 	HandlerFunc: editJsonHandler,
+	Options: pages.PageOptions{
+		RequireLogin: true,
+	},
 }
 
 // editJsonHandler handles the request.
@@ -59,10 +62,17 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if p == nil {
 		return pages.HandlerErrorFail("Exact page not found", err)
 	}
+	if p.SeeGroupId != params.PrivateGroupId {
+		if p.SeeGroupId > 0 {
+			return pages.HandlerBadRequestFail("Trying to edit a private page. Go to the corresponding group", err)
+		} else {
+			return pages.HandlerBadRequestFail("Trying to edit a public page. Go to arbital.com", err)
+		}
+	}
 	p.LoadOptions.Add(core.PrimaryEditLoadOptions)
 
 	// Load data
-	returnData := newHandlerData()
+	returnData := newHandlerData(false)
 	returnData.PageMap[p.PageId] = p
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)

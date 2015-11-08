@@ -9,15 +9,13 @@ import (
 var fixTextHandler = siteHandler{
 	URI:         "/fixText/",
 	HandlerFunc: fixTextHandlerFunc,
+	Options: pages.PageOptions{
+		AdminOnly: true,
+	},
 }
 
 // fixTextHandlerFunc kicks off the task.
 func fixTextHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	u := params.U
-	if !u.IsAdmin {
-		return pages.HandlerForbiddenFail("Have to be an admin", nil)
-	}
-
 	var task tasks.FixTextTask
 	if err := task.IsValid(); err != nil {
 		return pages.HandlerErrorFail("Invalid task created", err)

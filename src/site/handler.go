@@ -27,6 +27,10 @@ type siteHandler struct {
 
 // commonHandlerData is what handlers fill out and return
 type commonHandlerData struct {
+	// If set, then this packet should reset everything on the FE
+	ResetEverything bool
+	// Optional user object with the current user's data
+	User *user.User
 	// Map of page id -> currently live version of the page
 	PageMap map[int64]*core.Page
 	// Map of page id -> some edit of the page
@@ -68,6 +72,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
+		params := &pages.HandlerParams{W: w, R: r, C: c, DB: db}
+		params.PrivateGroupId, err = loadSubdomain(r, db)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
+			return
+		}
+
 		// Get user object
 		var u *user.User
 		if !h.Options.SkipLoadingUser {
@@ -76,6 +87,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				fail(http.StatusInternalServerError, "Couldn't load user", err)
 				return
 			}
+			params.U = u
 
 			// Check permissions
 			if h.Options.RequireLogin && !u.IsLoggedIn {
@@ -98,14 +110,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 					return
 				}
 			}
+			// Check if we have access to the private group
+			if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
+				fail(http.StatusForbidden, "Don't have access to this group", nil)
+				return
+			}
 		}
 
-		params := &pages.HandlerParams{W: w, R: r, C: c, DB: db, U: u}
-		errorMessage, err := loadSubdomain(params, r, db)
-		if errorMessage != "" {
-			fail(http.StatusInternalServerError, errorMessage, err)
-			return
-		}
 		result := h.HandlerFunc(params)
 		if result.ResponseCode != http.StatusOK && result.ResponseCode != http.StatusSeeOther {
 			fail(result.ResponseCode, result.Message, result.Err)
@@ -131,8 +142,9 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 }
 
 // newHandlerData creates and initializes a new commonHandlerData object.
-func newHandlerData() *commonHandlerData {
+func newHandlerData(resetEverything bool) *commonHandlerData {
 	var data commonHandlerData
+	data.ResetEverything = resetEverything
 	data.PageMap = make(map[int64]*core.Page)
 	data.EditMap = make(map[int64]*core.Page)
 	data.UserMap = make(map[int64]*core.User)
@@ -145,6 +157,12 @@ func newHandlerData() *commonHandlerData {
 // can send it to the front-end.
 func (data *commonHandlerData) toJson() map[string]interface{} {
 	jsonData := make(map[string]interface{})
+
+	jsonData["resetEverything"] = data.ResetEverything
+
+	if data.User != nil {
+		jsonData["user"] = data.User
+	}
 
 	returnPageData := make(map[string]*core.Page)
 	for k, v := range data.PageMap {
@@ -175,20 +193,18 @@ func (data *commonHandlerData) toJson() map[string]interface{} {
 }
 
 // loadSubdomain loads the id for the private group corresponding to the private group id.
-func loadSubdomain(params *pages.HandlerParams, r *http.Request, db *database.DB) (string, error) {
+func loadSubdomain(r *http.Request, db *database.DB) (int64, error) {
 	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
 	if subdomain == "" {
-		return "", nil
+		return 0, nil
 	}
 	// Get actual page id for the group
-	var ok bool
-	var err error
-	params.PrivateGroupId, ok, err = core.LoadAliasToPageId(db, subdomain)
+	privateGroupId, ok, err := core.LoadAliasToPageId(db, subdomain)
 	if err != nil {
-		return "Couldn't convert subdomain to id", err
+		return 0, fmt.Errorf("Couldn't convert subdomain to id: %v", err)
 	}
 	if !ok {
-		return fmt.Sprintf("Couldn't find private group %s", subdomain), nil
+		return 0, fmt.Errorf("Couldn't find private group %s", subdomain)
 	}
-	return "", nil
+	return privateGroupId, nil
 }

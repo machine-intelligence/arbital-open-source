@@ -19,7 +19,7 @@ var newPageHandler = siteHandler{
 
 // newPageJsonHandler handles the request.
 func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
-	returnData := newHandlerData()
+	returnData := newHandlerData(false)
 	core.AddPageIdToMap(rand.Int63(), returnData.PageMap)
 	return pages.StatusOK(returnData.toJson())
 }

@@ -1,4 +1,4 @@
-// domainIndexJsonHandler.go serves JSON data to display domain index page.
+// domainPageJsonHandler.go serves JSON data to display domain index page.
 package site
 
 import (
@@ -13,23 +13,22 @@ const (
 	indexPanelLimit = 10
 )
 
-type domainIndexJsonData struct {
+type domainPageJsonData struct {
 	DomainAlias string
 }
 
-var domainIndexHandler = siteHandler{
-	URI:         "/json/domainIndex/",
-	HandlerFunc: domainIndexJsonHandler,
+var domainPageHandler = siteHandler{
+	URI:         "/json/domainPage/",
+	HandlerFunc: domainPageJsonHandler,
 }
 
-// domainIndexJsonHandler handles the request.
-func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
+// domainPageJsonHandler handles the request.
+func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-	returnData := newHandlerData()
 
 	// Decode data
-	var data domainIndexJsonData
+	var data domainPageJsonData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
@@ -45,6 +44,9 @@ func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if !ok {
 		return pages.HandlerErrorFail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
 	}
+
+	returnData := newHandlerData(true)
+	returnData.User = u
 
 	// Load recently created page ids.
 	rows := db.NewStatement(`
@@ -120,10 +122,12 @@ func domainIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		) AS v2
 		JOIN pageDomainPairs AS pd
 		ON (v2.pageId=pd.pageId)
-		WHERE pd.domainId=?
+		JOIN pages AS p
+		ON (pd.pageId=p.pageId)
+		WHERE pd.domainId=? AND p.isCurrentEdit AND p.seeGroupId=?
 		GROUP BY pd.pageId
 		ORDER BY VAR_POP(v2.value) DESC
-		LIMIT ?`).Query(domainId, indexPanelLimit)
+		LIMIT ?`).Query(domainId, params.PrivateGroupId, indexPanelLimit)
 	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading most controversial page ids", err)

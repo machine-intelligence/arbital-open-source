@@ -22,7 +22,9 @@ var indexHandler = siteHandler{
 func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-	returnData := newHandlerData()
+
+	returnData := newHandlerData(true)
+	returnData.User = u
 
 	// Manually load some pages we like
 	featuredDomains := make([]*featuredDomain, 0)

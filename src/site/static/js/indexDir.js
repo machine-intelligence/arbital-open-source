@@ -1,3 +1,5 @@
+"use strict";
+
 // arb-index directive displays a set of featured domains
 app.directive("arbIndex", function(pageService, userService) {
 	return {
@@ -8,7 +10,6 @@ app.directive("arbIndex", function(pageService, userService) {
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
 			scope.userService = userService;
-			console.log(scope.featuredDomains);
 		},
 	};
 });

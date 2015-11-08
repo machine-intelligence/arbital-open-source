@@ -1,3 +1,5 @@
+"use strict";
+
 // Keep the given div in a fixed position when the window is scrolled.
 var keepDivFixed = function($div, offsetY) {
 	// Make sure it's always in the top right corner.

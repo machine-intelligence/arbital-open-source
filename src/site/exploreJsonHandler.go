@@ -21,7 +21,6 @@ var exploreHandler = siteHandler{
 func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := newHandlerData()
 
 	// Decode data
 	var data exploreJsonData
@@ -49,6 +48,8 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("No domain specified", nil)
 	}
 
+	returnData := newHandlerData(true)
+	returnData.User = u
 	returnData.ResultMap["rootPageId"] = fmt.Sprintf("%d", domainId)
 
 	// Load the root page

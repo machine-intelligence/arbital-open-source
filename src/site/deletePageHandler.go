@@ -102,7 +102,6 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		Title:          "[DELETED]",
 		HasVoteStr:     hasVoteStr,
 		VoteType:       page.VoteType,
-		SeeGroupId:     page.SeeGroupId,
 		EditKarmaLock:  page.EditKarmaLock,
 		Alias:          fmt.Sprintf("%d", page.PageId),
 		SortChildrenBy: page.SortChildrenBy,

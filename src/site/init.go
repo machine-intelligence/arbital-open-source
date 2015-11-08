@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	baseTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl"}
+	dynamicTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl", "tmpl/dynamicPage.tmpl"}
 )
 
 // notFoundHandler serves HTTP 404 when no matching handler is registered.
@@ -45,27 +45,30 @@ func init() {
 	s.StrictSlash(true)
 
 	// Pages
-	r.HandleFunc(fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
+	s.HandleFunc(fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	r.HandleFunc(domainsPage.URI, pageHandlerWrapper(&domainsPage)).Methods("GET", "HEAD")
-	s.HandleFunc(editPagePage.URI, pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
-	r.HandleFunc(fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
+	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr),
+		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	r.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/groups/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc(newPagePage.URI, pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
-	s.HandleFunc(signupPage.URI, pageHandlerWrapper(&signupPage)).Methods("GET", "HEAD")
-	s.HandleFunc(pagePage.URI, pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
-	s.HandleFunc(updatesPage.URI, pageHandlerWrapper(&updatesPage)).Methods("GET", "HEAD")
-	s.HandleFunc(userPage.URI, pageHandlerWrapper(&userPage)).Methods("GET", "HEAD")
-	s.HandleFunc(settingsPage.URI, pageHandlerWrapper(&settingsPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/edit/", pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/signup/", pageHandlerWrapper(&signupPage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
+		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/updates/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/user/{domain:%s}", core.AliasRegexpStr),
+		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
-	s.HandleFunc(domainIndexHandler.URI, handlerWrapper(domainIndexHandler)).Methods("POST")
+	s.HandleFunc(domainPageHandler.URI, handlerWrapper(domainPageHandler)).Methods("POST")
 	s.HandleFunc(editHandler.URI, handlerWrapper(editHandler)).Methods("POST")
 	s.HandleFunc(exploreHandler.URI, handlerWrapper(exploreHandler)).Methods("POST")
+	s.HandleFunc(defaultHandler.URI, handlerWrapper(defaultHandler)).Methods("POST")
 	s.HandleFunc(groupsHandler.URI, handlerWrapper(groupsHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")
 	s.HandleFunc(intrasitePopoverHandler.URI, handlerWrapper(intrasitePopoverHandler)).Methods("POST")
@@ -77,6 +80,8 @@ func init() {
 	s.HandleFunc(privateIndexHandler.URI, handlerWrapper(privateIndexHandler)).Methods("POST")
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
+	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
+	s.HandleFunc(userPageHandler.URI, handlerWrapper(userPageHandler)).Methods("POST")
 
 	// POST handlers (API)
 	s.HandleFunc(abandonPageHandler.URI, handlerWrapper(abandonPageHandler)).Methods("POST")
@@ -98,6 +103,7 @@ func init() {
 	s.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")
 
 	// Admin stuff
+	s.HandleFunc(domainsPageHandler.URI, handlerWrapper(domainsPageHandler)).Methods("POST")
 	s.HandleFunc(fixTextHandler.URI, handlerWrapper(fixTextHandler)).Methods("GET")
 	s.HandleFunc(updateElasticIndexHandler.URI, handlerWrapper(updateElasticIndexHandler)).Methods("GET")
 	s.HandleFunc(updateMetadataHandler.URI, handlerWrapper(updateMetadataHandler)).Methods("GET")
@@ -107,7 +113,7 @@ func init() {
 	s.HandleFunc("/_ah/start", ahHandler).Methods("GET")
 
 	// Error handlers
-	s.NotFoundHandler = http.HandlerFunc(pageHandlerWrapper(&page404))
+	s.NotFoundHandler = http.HandlerFunc(pageHandlerWrapper(&dynamicPage))
 
 	// Raw handlers
 	http.HandleFunc("/sendTestEmail/", sendTestEmailHandler)

@@ -16,11 +16,10 @@ import (
 
 // signupHandlerData is the data received from the request.
 type signupHandlerData struct {
-	Email       string
-	FirstName   string
-	LastName    string
-	InviteCode  string
-	ContinueUrl string
+	Email      string
+	FirstName  string
+	LastName   string
+	InviteCode string
 }
 
 var signupHandler = siteHandler{
@@ -128,8 +127,5 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail(errMessage, err)
 	}
 
-	if data.ContinueUrl == "" {
-		data.ContinueUrl = "/"
-	}
-	return pages.RedirectWith(data.ContinueUrl)
+	return pages.StatusOK(nil)
 }

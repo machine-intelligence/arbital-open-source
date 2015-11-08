@@ -21,7 +21,8 @@ func privateIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	privateGroupId := params.PrivateGroupId
 
 	var err error
-	returnData := newHandlerData()
+	returnData := newHandlerData(true)
+	returnData.User = u
 
 	// Load recently created page ids.
 	rows := db.NewStatement(`

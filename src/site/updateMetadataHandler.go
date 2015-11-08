@@ -9,15 +9,13 @@ import (
 var updateMetadataHandler = siteHandler{
 	URI:         "/updateMetadata/",
 	HandlerFunc: updateMetadataHandlerFunc,
+	Options: pages.PageOptions{
+		AdminOnly: true,
+	},
 }
 
 // updateMetadataHandlerFunc kicks off the task to update the index for pages.
 func updateMetadataHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	u := params.U
-	if !u.IsAdmin {
-		return pages.HandlerForbiddenFail("Have to be an admin", nil)
-	}
-
 	var task tasks.UpdateMetadataTask
 	if err := task.IsValid(); err != nil {
 		return pages.HandlerErrorFail("Invalid task created", err)
