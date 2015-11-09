@@ -2,10 +2,10 @@
 	<div class="panel panel-default"
 			ng-repeat="(groupId,group) in groupMap"
 			ng-init="userCanAddMembers=group.members[userService.user.id].canAddMembers;userCanAdmin=group.members[userService.user.id].canAdmin"
-			group-id="{[{groupId}]}">
+			group-id="{{groupId}}">
 		<div class="panel-heading">
 			<h3 class="panel-title">
-				<arb-likes-page-title page-id="{[{groupId}]}"><arb-likes-page-title>
+				<arb-likes-page-title page-id="{{groupId}}"><arb-likes-page-title>
 			</h3>
 		</div>
 	
@@ -17,7 +17,7 @@
 				<td><b>Add Members</b></td>
 				<td><b>Group Admin</b></td>
 			</tr>
-			<tr ng-repeat="(memberId,member) in group.members" member-id="{[{memberId}]}">
+			<tr ng-repeat="(memberId,member) in group.members" member-id="{{memberId}}">
 				<span ng-bind="memberId"></span>
 				<td>
 					<a href="#"
@@ -25,7 +25,7 @@
 							ng-show="userCanAddMembers && !(member.canAdmin && !userCanAdmin)"></a>
 				</td>
 				<td>
-					<arb-user-name user-id="{[{memberId}]}"></arb-user-name>
+					<arb-user-name user-id="{{memberId}}"></arb-user-name>
 				</td>
 				<td>
 					<span class="glyphicon glyphicon-ok"
@@ -48,7 +48,7 @@
 	
 		<!-- New Member form -->
 		<div class="panel-body" ng-show="userCanAddMembers">
-			<form class="new-member-form form-inline" group-id="{[{groupId}]}">
+			<form class="new-member-form form-inline" group-id="{{groupId}}">
 				<div class="form-group">
 					<input name="userId" type="text" class="form-control" placeholder="New Member Id">
 				</div>

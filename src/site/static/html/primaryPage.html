@@ -7,15 +7,15 @@
 			<div class="panel-body">
 				<ul class="pager">
 					<li ng-hide="page.prevPageId === '0'">
-						<a ng-href="{[{pageService.getPageUrl(page.prevPageId)}]}"
+						<a ng-href="{{pageService.getPageUrl(page.prevPageId)}}"
 							class="intrasite-link"
-							page-id="{[{page.prevPageId}]}">&larr; Prev</a>
+							page-id="{{page.prevPageId}}">&larr; Prev</a>
 					</li>
 					<!-- <a href="#" class="start-reading gray-glyph glyphicon glyphicon-record"></a> -->
 					<li ng-hide="page.nextPageId === '0'">
-						<a ng-href="{[{pageService.getPageUrl(page.nextPageId)}]}"
+						<a ng-href="{{pageService.getPageUrl(page.nextPageId)}}"
 							class="intrasite-link"
-							page-id="{[{page.nextPageId}]}">Next &rarr;</a>
+							page-id="{{page.nextPageId}}">Next &rarr;</a>
 					</li>
 				</ul>
 			</div>
@@ -26,7 +26,7 @@
 			<div class="panel-heading">Domains</div>
 			<div class="panel-body">
 				<arb-likes-page-title
-					page-id="{[{domainId}]}"
+					page-id="{{domainId}}"
 					ng-repeat="domainId in page.domainIds"></arb-likes-page-title>
 			</div>
 		</div>
@@ -51,7 +51,7 @@
 		<div class="panel panel-default" ng-show="initialChildrenCount > 0">
 			<div class="panel-heading">Children</div>
 			<div class="panel-body">
-				<arb-page-tree primary-page-id="{[{page.pageId}]}" init-map="initialChildren"></arb-page-tree>
+				<arb-page-tree primary-page-id="{{page.pageId}}" init-map="initialChildren"></arb-page-tree>
 			</div>
 		</div>
 	
@@ -60,7 +60,7 @@
 			<div class="panel-heading">Is Tagging</div>
 			<div class="panel-body">
 				<arb-likes-page-title
-					page-id="{[{pageId}]}"
+					page-id="{{pageId}}"
 					ng-repeat="pageId in page.relatedIds"></arb-likes-page-title>
 			</div>
 		</div>
@@ -73,18 +73,18 @@
 	  <ul class="lens-tabs nav nav-tabs" role="tablist" ng-show="page.lensIds !== null">
 			<li><span class="gray-glyph glyphicon glyphicon-search"></span>&nbsp;</li>
 	    <li class="active">
-				<a href="#" data-target="#lens-{[{page.pageId}]}" class="lens-tab" data-toggle="tab">Default Lens</a>
+				<a href="#" data-target="#lens-{{page.pageId}}" class="lens-tab" data-toggle="tab">Default Lens</a>
 			</li>
 	    <li ng-repeat="lensId in page.lensIds">
-				<a href="#" data-target="#lens-{[{lensId}]}" class="lens-tab" data-toggle="tab">{[{pageService.pageMap[lensId].title}]}</a>
+				<a href="#" data-target="#lens-{{lensId}}" class="lens-tab" data-toggle="tab">{{pageService.pageMap[lensId].title}}</a>
 			</li>
 	  </ul>
 	
 		<div class="tab-content">
-			<div class="tab-pane active" id="lens-{[{page.pageId}]}">
-				<arb-page page-id="{[{page.pageId}]}"></arb-page>
+			<div class="tab-pane active" id="lens-{{page.pageId}}">
+				<arb-page page-id="{{page.pageId}}"></arb-page>
 			</div>
-			<div class="tab-pane" id="lens-{[{lensId}]}" ng-repeat="lensId in page.lensIds">
+			<div class="tab-pane" id="lens-{{lensId}}" ng-repeat="lensId in page.lensIds">
 				<img src="/static/images/loading.gif" class="loading-indicator"/>
 			</div>
 		</div>

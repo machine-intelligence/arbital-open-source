@@ -1,7 +1,7 @@
 <div class="page-body-div" ng-show="page.isDeleted()">
 	<div class="alert alert-danger">This page has been deleted.
 		<span class="admin" ng-show="userService.user.isAdmin">
-			By <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name>.
+			By <arb-user-name user-id="{{page.creatorId}}"></arb-user-name>.
 		</span>
 	</div>
 </div>
@@ -9,7 +9,7 @@
 	<!-- Left column -->
 	<div class="like-column pull-left">
 		<!-- Likes / dislikes and approval voting -->
-		<div class="page-like-div pull-right" my-like="{[{page.myLikeValue}]}">
+		<div class="page-like-div pull-right" my-like="{{page.myLikeValue}}">
 			<div class="pull-right">
 				<span class="like-count" ng-bind="page.likeCount"></span>
 				<a href="#"
@@ -35,14 +35,14 @@
 				 ng-class="{'on': page.isSubscribed}"
 				 title="Subscribe to receive updates when this page changes or gets new comments"
 				 ></a>
-			<a ng-href="#page-{[{page.pageId}]}"
+			<a ng-href="#page-{{page.pageId}}"
 				 class="page-anchor-link glyphicon glyphicon-link"
 				 title="Link to this answer"
 				 ng-show="page.type == 'answer'"></a>
-			<a ng-href="{[{page.editUrl()}]}"
+			<a ng-href="{{page.editUrl()}}"
 				 class="edit-page-link glyphicon glyphicon-pencil"
 				 ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.hasDraft}"
-				 title="{[{page.hasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}]}"
+				 title="{{page.hasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}}"
 				 ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
 			<a href="#"
 				 class="delete-page-link glyphicon glyphicon-remove"
@@ -62,15 +62,15 @@
 
 	<!-- Main page column -->
 	<div class="text-column">
-		<a id="page-{[{page.pageId}]}"></a>
-		<arb-page-title page-id="{[{page.pageId}]}" class="page-title"></arb-page-title>
-		<div class="author-text" ng-show="page.type == 'blog'">by <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name></div>
+		<a id="page-{{page.pageId}}"></a>
+		<arb-page-title page-id="{{page.pageId}}" class="page-title"></arb-page-title>
+		<div class="author-text" ng-show="page.type == 'blog'">by <arb-user-name user-id="{{page.creatorId}}"></arb-user-name></div>
 
 		<!-- Requirements -->
-		<arb-requirements-panel page-id="{[{page.pageId}]}"></arb-requirements-panel>
+		<arb-requirements-panel page-id="{{page.pageId}}"></arb-requirements-panel>
 
 		<!-- Voting container -->
-		<arb-vote-bar page-id="{[{page.pageId}]}" ng-show="page.hasVote"></arb-vote-bar>
+		<arb-vote-bar page-id="{{page.pageId}}" ng-show="page.hasVote"></arb-vote-bar>
 
 		<!-- Main page text. Populated by markdown. -->
 		<div class="page-text markdown-text"></div>
@@ -100,7 +100,7 @@
 			<div ng-show="questionIds.length > 0">
 				<b id="comments-label">Questions:</b>
 				<div>
-					<arb-likes-page-title page-id="{[{pageId}]}" ng-repeat="pageId in questionIds"></arb-likes-page-title>
+					<arb-likes-page-title page-id="{{pageId}}" ng-repeat="pageId in questionIds"></arb-likes-page-title>
 				</div>
 				<br>
 			</div>
@@ -108,7 +108,7 @@
 			<!-- Comments -->
 			<b id="comments-label">Comments:</b>
 			<div class="comments">
-				<arb-new-comment primary-page-id="{[{page.pageId}]}"></arb-new-comment>
+				<arb-new-comment primary-page-id="{{page.pageId}}"></arb-new-comment>
 			</div>
 		</div>
 	</div>

@@ -1,7 +1,7 @@
 <div class="filter-body-div">
 	<!-- User header -->
 	<h3>
-		<arb-user-name user-id="{[{authorId}]}"></arb-user-name>
+		<arb-user-name user-id="{{authorId}}"></arb-user-name>
 	</h3>
 
 	<!-- Panels -->
@@ -10,7 +10,7 @@
 			Recently Created Pages
 		</div>
 	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{[{pageId}]}"
+	    <arb-likes-page-title page-id="{{pageId}}"
 					show-red-link-count="true"
 					show-quick-edit-link="true"
 					show-created-at="true"
@@ -23,7 +23,7 @@
 			Recently Edited Pages
 		</div>
 	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{[{pageId}]}"
+	    <arb-likes-page-title page-id="{{pageId}}"
 					show-red-link-count="true"
 					show-quick-edit-link="true"
 					show-created-at="true"
@@ -39,8 +39,8 @@
 			<ul class="list-unstyled">
 				<li ng-repeat="pageId in idsMap.pagesWithDraftIds"
 						ng-init="page=pageService.editMap[pageId]">
-					<a ng-href="{[{pageService.getEditPageUrl(page.pageId)}]}"
-							page-id="{[{page.pageId}]}"
+					<a ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
+							page-id="{{page.pageId}}"
 							class="intrasite-link"
 							ng-class="{'red-link': !page.wasPublished}"
 							style="display: table-cell"
@@ -56,7 +56,7 @@
 			Pages With Most TODOs
 		</div>
 	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{[{pageId}]}"
+	    <arb-likes-page-title page-id="{{pageId}}"
 					show-red-link-count="true"
 					show-quick-edit-link="true"
 					show-created-at="true"
@@ -69,7 +69,7 @@
 			Recently Edited Comments
 		</div>
 	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{[{pageId}]}"
+	    <arb-likes-page-title page-id="{{pageId}}"
 					show-created-at="true"
 					ng-repeat="pageId in idsMap.recentlyEditedCommentIds"></arb-likes-page-title>
 	  </div>

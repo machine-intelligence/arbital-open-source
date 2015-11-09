@@ -3,7 +3,6 @@
 // Set up angular module.
 var app = angular.module("arbital", ["ngResource", "ui.bootstrap", "RecursionHelper", "ngRoute"]);
 app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider){
-	$interpolateProvider.startSymbol("{[{").endSymbol("}]}");
 	$locationProvider.html5Mode(true);
 
 	$routeProvider
@@ -308,6 +307,7 @@ app.controller("ExplorePageController", function ($scope, $routeParams, $http, $
 
 
 app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
+	console.log("PrimaryPageController");
 	// Get the primary page data
 	var postData = {
 		pageAlias: $routeParams.alias,
@@ -315,17 +315,18 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 	};
 	$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
+		console.log("PrimaryPageController2");
 		var page = pageService.pageMap[postData.pageAlias];
-		if (page) {
-			pageService.setPrimaryPage(page);
+		if (!page) {
 			return {
-				title: page.title,
-				element: $compile("<arb-primary-page></arb-primary-page>")($scope),
+				title: "Not Found",
+				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
+		pageService.setPrimaryPage(page);
 		return {
-			title: "Not Found",
-			error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
+			title: page.title,
+			element: $compile("<arb-primary-page></arb-primary-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("primaryPage"));
@@ -343,10 +344,12 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 		// Called when the user is done editing the page.
 		$scope.doneFn = function(result) {
 			if (pageService.primaryPage.wasPublished || !result.abandon) {
-				window.location.href = pageService.primaryPage.url();
+				console.log(pageService.primaryPage.url());
+				$location.path(pageService.primaryPage.url());
 			} else {
-				window.location.href = "/edit/";
+				$location.path("/edit/");
 			}
+			$scope.$apply();
 		};
 		return {
 			title: "Edit " + (page.title ? page.title : "New Page"),

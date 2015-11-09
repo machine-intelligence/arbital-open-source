@@ -165,7 +165,7 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 									pageService.primaryPage.childDraftId = result.alias;
 						 		});
 					 	 	} else {
-						 		window.location.href = "/pages/" + result.alias;
+						 		$location.path("/pages/" + result.alias);
 					 	 	}
 						},
 					});

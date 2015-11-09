@@ -6,7 +6,7 @@
 			<div ng-switch-when="comment" class="alert alert-danger" role="alert">Can't edit a comment you didn't create.</div>
 			<div ng-switch-when="" hidden></div>
 			<div ng-switch-default class="alert alert-danger" role="alert">
-				You don't have enough karma to edit this page. Required: {[{page.getEditLevel()}]}.
+				You don't have enough karma to edit this page. Required: {{page.getEditLevel()}}.
 			</div>
 		</div>
 		<!-- Lock info -->
@@ -16,7 +16,7 @@
 				<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>.
 			</div>
 			<div class="alert alert-danger" ng-show="lockedByAnother">
-				<arb-user-name user-id="{[{page.lockedBy}]}"></arb-user-name>
+				<arb-user-name user-id="{{page.lockedBy}}"></arb-user-name>
 				has the page locked. The lock will end
 				<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>.
 			</div>
@@ -31,12 +31,12 @@
 		<div ng-show="page.edit !== page.currentEditNum && !page.isAutosave && !page.isSnapshot">
 			<div class="alert alert-warning">
 				Currently looking at a non-live edit.
-				<a ng-href="{[{page.editUrl()}]}?edit={[{page.currentEditNum}]}">Switch to editing the live version.</a>
+				<a ng-href="{{page.editUrl()}}?edit={{page.currentEditNum}}">Switch to editing the live version.</a>
 			</div>
 		</div>
 		<!-- Check permissions -->
 		<div ng-hide="groupPermissionsPassed" class="alert alert-danger">
-			You need to be part of {[{pageService.pageMap[page.editGroupId].title}]} group to edit this page.
+			You need to be part of {{pageService.pageMap[page.editGroupId].title}} group to edit this page.
 		</div>
 		<!-- Friendly warnings / info alerts -->
 		<div ng-show="page.wasPublished">
@@ -48,7 +48,7 @@
 			<div ng-show="page.isSnapshot" class="alert alert-warning">
 				Restored snapshot which was last updated
 				<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-				<a ng-href="{[{page.editUrl()}]}?edit={[{page.currentEditNum}]}">Switch to editing the live version.</a>
+				<a ng-href="{{page.editUrl()}}?edit={{page.currentEditNum}}">Switch to editing the live version.</a>
 			</div>
 		</div>
 	</div>
@@ -67,16 +67,16 @@
 					</span>
 					<span ng-show="changeLog.auxPageId != '0'">
 						<a class="intrasite-link"
-								page-id="{[{changeLog.auxPageId}]}"
-								ng-href="{[{pageService.getPageUrl(changeLog.auxPageid)}]}"
+								page-id="{{changeLog.auxPageId}}"
+								ng-href="{{pageService.getPageUrl(changeLog.auxPageid)}}"
 								ng-bind="changeLog.type"></a>
 					</span>
-					<span ng-show="changeLog.edit != 0">(edit #{[{changeLog.edit}]})</span>
+					<span ng-show="changeLog.edit != 0">(edit #{{changeLog.edit}})</span>
 					by
 
 					<span ng-show="userService.user.id === changeLog.userId">you</span>
 					<span ng-show="userService.user.id !== changeLog.userId">
-						<arb-user-name user-id="{[{changeLog.userId}]}"></arb-user-name>
+						<arb-user-name user-id="{{changeLog.userId}}"></arb-user-name>
 					</span>
 
 					<span ng-bind="changeLog.createdAt | relativeDateTime"></span>.
@@ -86,17 +86,17 @@
 						<button type="button"
 							class="edit-node-revert-to-edit btn btn-danger"
 							title="Revert to this edit"
-							edit-num="{[{changeLog.edit}]}"
+							edit-num="{{changeLog.edit}}"
 							ng-show="changeLog.type === 'newEdit'"
 							toggle-on-submit>Revert</button>
-						<a ng-href="{[{page.editUrl()}]}?edit={[{changeLog.edit}]}"
+						<a ng-href="{{page.editUrl()}}?edit={{changeLog.edit}}"
 							class="btn btn-danger"
 							title="Load this edit in the editor"
 							toggle-on-submit>Load Edit</a>
 						<button type="button"
 							class="edit-node-diff-edit btn btn-default"
 							title="Diff with this edit"
-							edit-num="{[{changeLog.edit}]}"
+							edit-num="{{changeLog.edit}}"
 							toggle-on-submit>Diff</button>
 						<div class="submit-form-error alert alert-danger" hidden></div>
 					</div>
@@ -129,7 +129,7 @@
 				type="text"
 				class="form-control input-lg"
 				ng-model="page.title"
-				placeholder="{[{getTitlePlaceholder()}]}"
+				placeholder="{{getTitlePlaceholder()}}"
 				ng-required="!isComment"
 				autocomplete="off"
 				ng-readonly="lockedByAnother">
@@ -149,11 +149,11 @@
 		<!-- WMD edit panel -->
 		<div class="wmd-panel-container">
 			<div class="wmd-panel">
-				<div id="wmd-button-bar{[{page.pageId}]}"></div>
+				<div id="wmd-button-bar{{page.pageId}}"></div>
 				<textarea name="text"
 						class="edit-page-text wmd-input form-control"
-						id="wmd-input{[{page.pageId}]}"
-						rows="{[{isComment ? 10 : 30}]}"
+						id="wmd-input{{page.pageId}}"
+						rows="{{isComment ? 10 : 30}}"
 						placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 						style="resize: none;"
 						ng-model="page.text"
@@ -264,7 +264,7 @@
 					<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
 				</label>
 				<div class="col-sm-4">
-					<div class="karma-lock-slider" ng-model="page.editKarmaLock" max="{[{userService.user.maxKarmaLock}]}"></div>
+					<div class="karma-lock-slider" ng-model="page.editKarmaLock" max="{{userService.user.maxKarmaLock}}"></div>
 				</div>
 			</div>
 		
@@ -273,7 +273,7 @@
 				<label class="control-label col-sm-2">Alias</label>
 				<div class="col-sm-4">
 					<label class="control-label" ng-show="page.seeGroupId != '0'">
-						{[{pageService.pageMap[page.seeGroupId].alias}]}.
+						{{pageService.pageMap[page.seeGroupId].alias}}.
 					</label>
 					<div class="input-group">
 						<input type="text"
@@ -328,7 +328,7 @@
 				<span class="gray-text" ng-show="useVerticalView">(Preview)<span>
 			</div>
 			<div ng-class="{'panel-body': useVerticalView}">
-				<div id="wmd-preview{[{page.pageId}]}" class="wmd-preview pagedown"></div>
+				<div id="wmd-preview{{page.pageId}}" class="wmd-preview pagedown"></div>
 				<div class="wmd-preview pagedown"></div>
 			</div>
 		</div>

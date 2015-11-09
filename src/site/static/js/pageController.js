@@ -335,6 +335,14 @@ app.directive("arbPage", function (pageService, userService, $compile, $timeout)
 					}, 3000);
 				}
 			});
+
+			// Do cleanup when destroyed
+			scope.$on('$destroy', function() {
+				if (scope.pageJsController) {
+					scope.pageJsController.stop();
+				}
+			});
+
 			// Track toggle-inline-comment offsets, so we can prevent overlap.
 			var inlineCommentOffsets = [];
 			var fixInlineCommentOffset = function(offset) {
@@ -731,7 +739,7 @@ app.directive("arbVoteBar", function($compile, $timeout, pageService, userServic
 							for(var i = 0; i < bar.users.length; i++) {
 								var userId = bar.users[i];
 								html += "<arb-user-name user-id='" + userId + "'></arb-user-name> " +
-									"<span class='gray-text'>{[{'" + voteMap[userId].createdAt + "' | relativeDateTime}]}</span><br>";
+									"<span class='gray-text'>{{'" + voteMap[userId].createdAt + "' | relativeDateTime}}</span><br>";
 							}
 							$timeout(function() {
 								var $popover = $("#" + $anchor.attr("aria-describedby"));

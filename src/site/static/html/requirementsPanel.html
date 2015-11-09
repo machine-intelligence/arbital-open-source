@@ -6,18 +6,18 @@
 				ng-init="mastery=pageService.masteryMap[requirementId]">
 			<span class="pull-left">
 				<a href="#"
-					page-id="{[{requirementId}]}"
+					page-id="{{requirementId}}"
 					class="delete-requirement-link glyphicon glyphicon-remove"
 					ng-class="{'admin': page.getDeleteLevel() == 'admin'}"
 					title="Delete this requirement"
 					ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
 				<a href="#"
-					page-id="{[{requirementId}]}"
+					page-id="{{requirementId}}"
 					class="requirement-not-met glyphicon glyphicon-exclamation-sign"
 					title="You don't have this mastery. Read the corresponding page or click this icon to manually acquire it."
 					ng-hide="mastery.has"></a>
 			</span>
-			<arb-likes-page-title page-id="{[{requirementId}]}" show-clickbait="true"></arb-likes-page-title>
+			<arb-likes-page-title page-id="{{requirementId}}" show-clickbait="true"></arb-likes-page-title>
 		</div>
 		<input type="text"
 				class="tag-input form-control"

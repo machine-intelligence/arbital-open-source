@@ -3,7 +3,7 @@
 		ng-class="{'navbar-default': !pageService.privateGroupId, 'navbar-inverse': pageService.privateGroupId}">
 	<div class="container-fluid">
 		<div class="navbar-header">
-			<a class="navbar-brand" ng-href="{[{getDomainUrl()}]}">Arbital</a>
+			<a class="navbar-brand" ng-href="{{getDomainUrl()}}">Arbital</a>
 		</div>
 		<ul class="nav navbar-nav">
 			<!-- Group link for a private group index page -->
@@ -16,7 +16,7 @@
 			</li>
 			<!-- Explore link for a domain index page -->
 			<li ng-show="pageService.domainAlias">
-				<a ng-href="/explore/{[{pageService.domainAlias}]}">Explore</a>
+				<a ng-href="/explore/{{pageService.domainAlias}}">Explore</a>
 			</li>
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
@@ -47,26 +47,26 @@
 					<li class="dropdown-header" ng-show="userService.user.groupIds.length > 0">Go To Group</li>
 					<li ng-repeat="groupId in userService.user.groupIds"
 						ng-init="groupAlias=pageService.pageMap[groupId].alias">
-						<a ng-href="{[{getDomainUrl(groupAlias)}]}" ng-bind="groupAlias"></a>
+						<a ng-href="{{getDomainUrl(groupAlias)}}" ng-bind="groupAlias"></a>
 					</li>
 					<li class="divider" ng-show="userService.user.groupIds.length > 0"></li>
 
-					<li><a ng-href="{[{userService.getUserUrl(userService.user.id)}]}">Profile</a></li>
+					<li><a ng-href="{{userService.getUserUrl(userService.user.id)}}">Profile</a></li>
 					<li><a ng-href="/groups">Groups</a></li>
 					<li><a ng-href="/settings">Settings</a></li>
 					<li class="divider"></li>
 					<li>
-						<a ng-href="/logout/?continueUrl={[{currentUrl}]}"
+						<a ng-href="/logout/?continueUrl={{currentUrl}}"
 								id="logout"
 								target="_self">Log Out</a>
 					</li>
 				</ul>
 			</li>
 			<li ng-hide="userService.user.isLoggedIn">
-				<a ng-href="/signup/?continueUrl={[{currentUrl}]}">Sign Up</a>
+				<a ng-href="/signup/?continueUrl={{currentUrl}}">Sign Up</a>
 			</li>
 			<li ng-hide="userService.user.isLoggedIn">
-				<a ng-href="/login/?continueUrl={[{currentUrl}]}"
+				<a ng-href="/login/?continueUrl={{currentUrl}}"
 						target="_self">Log In</a>
 			</li>
 		</ul>

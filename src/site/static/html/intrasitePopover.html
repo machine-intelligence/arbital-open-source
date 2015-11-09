@@ -3,28 +3,28 @@
 	<ul class="intrasite-lens-tabs nav nav-tabs" role="tablist" ng-show="page.lensIds !== null">
 		<li><span class="gray-glyph glyphicon glyphicon-search"></span>&nbsp;</li>
 		<li class="active">
-			<a href="#" data-target="#lens-{[{page.pageId}]}" class="intrasite-lens-tab" data-toggle="tab">Default Lens</a>
+			<a href="#" data-target="#lens-{{page.pageId}}" class="intrasite-lens-tab" data-toggle="tab">Default Lens</a>
 		</li>
 		<li ng-repeat="lensId in page.lensIds">
-			<a href="#" data-target="#lens-{[{lensId}]}" class="intrasite-lens-tab" data-toggle="tab">{[{pageService.pageMap[lensId].title}]}</a>
+			<a href="#" data-target="#lens-{{lensId}}" class="intrasite-lens-tab" data-toggle="tab">{{pageService.pageMap[lensId].title}}</a>
 		</li>
 	</ul>
 
 	<div ng-show="page.creatorId === page.seeGroupId">
-		Author: <arb-user-name user-id="{[{page.creatorId}]}"></arb-user-name>
+		Author: <arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
 	</div>
 
 	<div class="tab-content">
-		<div class="tab-pane active" id="lens-{[{page.pageId}]}">
+		<div class="tab-pane active" id="lens-{{page.pageId}}">
 			<div class="markdown-text"></div>
 		</div>
-		<div class="tab-pane" id="lens-{[{lensId}]}" ng-repeat="lensId in page.lensIds">
+		<div class="tab-pane" id="lens-{{lensId}}" ng-repeat="lensId in page.lensIds">
 			<img src="/static/images/loading.gif" class="loading-indicator"/>
 		</div>
 	</div>
 
 	<!-- Voting container -->
 	<div class="page-vote" ng-show="page.hasVote">
-		<arb-vote-bar page-id="{[{page.pageId}]}" is-popover-vote="true"></arb-vote-bar>
+		<arb-vote-bar page-id="{{page.pageId}}" is-popover-vote="true"></arb-vote-bar>
 	</div>
 </div>

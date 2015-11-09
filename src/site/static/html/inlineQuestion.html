@@ -8,7 +8,7 @@
 				<a href="#"
 					class="edit-comment-link glyphicon glyphicon-pencil"
 					ng-class="{'has-draft': comment.hasDraft}"
-					title="{[{comment.hasDraft ? 'You have an unpublished draft for this question' : 'Edit this question'}]}"
+					title="{{comment.hasDraft ? 'You have an unpublished draft for this question' : 'Edit this question'}}"
 					ng-show="comment.creatorId == userService.user.id"></a>
 				<a href="#"
 					class="like-comment-link glyphicon glyphicon-thumbs-up"
@@ -24,7 +24,7 @@
 
 		<!-- Comment column -->
 		<div class="text-column">
-			<a id="subpage-{[{comment.pageId}]}"></a>
+			<a id="subpage-{{comment.pageId}}"></a>
 			<div class="comment-content" ng-class="{'reply': parentCommentId}">
 				<img src="/static/images/loading.gif" class="loading-indicator"/>
 				<div class="comment-body">
@@ -35,7 +35,7 @@
 						<span class="new-updated-label glyphicon glyphicon-star-empty"
 							title="This question has been updated since the last time you've seen it"
 							ng-show="comment.isUpdatedPage()"></span>
-						<a href="{[{comment.pageId}]}"> {[{comment.title}]}</a>
+						<a href="{{comment.pageId}}"> {{comment.title}}</a>
 					</div>
 					<!-- Question's text. Populated by markdown. -->
 					<div class="comment-text markdown-text"></div>
