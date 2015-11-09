@@ -1,27 +1,27 @@
 "use strict";
 
-var noBacktickOrBracket = "(^|\\\\`|\\\\\\[|[^`[])";
+var notEscaped = "(^|\\\\`|\\\\\\[| |\n)";
 var noParen = "(?=$|[^(])";
-var aliasMatch = "([A-Za-z0-9.]+)";
+var aliasMatch = "([A-Za-z0-9]+\.?[A-Za-z0-9]*)";
 /*// [vote: alias]
-var voteEmbedRegexp = new RegExp(noBacktickOrBracket + 
+var voteEmbedRegexp = new RegExp(notEscaped + 
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");*/
 // [alias/url text] 
-var forwardLinkRegexp = new RegExp(noBacktickOrBracket + 
+var forwardLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^ \\]]+?) ([^\\]]+?)\\]" + noParen, "g");
 // [alias]
-var simpleLinkRegexp = new RegExp(noBacktickOrBracket + 
+var simpleLinkRegexp = new RegExp(notEscaped + 
 		"\\[" + aliasMatch + "\\]" + noParen, "g");
 // [text](alias)
-var complexLinkRegexp = new RegExp(noBacktickOrBracket + 
+var complexLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
 		"\\(" + aliasMatch + "\\)", "g"); // match (Alias)
 // [text](url)
-var urlLinkRegexp = new RegExp(noBacktickOrBracket + 
+var urlLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
 		"\\((http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch + "\\)", "g"); // match (Url)
 // [@alias]
-var atAliasRegexp = new RegExp(noBacktickOrBracket + 
+var atAliasRegexp = new RegExp(notEscaped + 
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");
 
 var arbMarkdown = arbMarkdown || function() {
@@ -34,7 +34,7 @@ var arbMarkdown = arbMarkdown || function() {
 		var aliasRegexp = new RegExp("[A-Za-z0-9_-]+", "");
 
 		// Process [todo:text] spans.
-		var todoSpanRegexp = new RegExp(noBacktickOrBracket + 
+		var todoSpanRegexp = new RegExp(notEscaped + 
 				"\\[todo: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(todoSpanRegexp, function (whole, prefix, alias) {
@@ -43,7 +43,7 @@ var arbMarkdown = arbMarkdown || function() {
 		});
 
 		// Process [comment:text] spans.
-		var commentSpanRegexp = new RegExp(noBacktickOrBracket + 
+		var commentSpanRegexp = new RegExp(notEscaped + 
 				"\\[comment: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(commentSpanRegexp, function (whole, prefix, alias) {
@@ -59,7 +59,7 @@ var arbMarkdown = arbMarkdown || function() {
 		});*/
 
 		// Convert [ text] spans into links.
-		var spaceTextRegexp = new RegExp(noBacktickOrBracket + 
+		var spaceTextRegexp = new RegExp(notEscaped + 
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
