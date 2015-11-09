@@ -114,24 +114,24 @@ a {text-decoration: none; }
 										{{range .Updates}}
 										<div class="update-entry" style="margin: 5px 0px;">
 											{{if eq .Type "topLevelComment"}}
-											<a href="{{GetUserUrl .UserId}}" style="text-decoration: none;">{{GetUserName .UserId}}</a> wrote a
+											<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
 											<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment</a>.
 											{{else if eq .Type "reply"}}
-											<a href="{{GetUserUrl .UserId}}" style="text-decoration: none;">{{GetUserName .UserId}}</a> wrote a
+											<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
 											<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>.
 											{{else if eq .Type "pageEdit"}}
 											This page has been edited
-											{{if eq .Repeated 1}}by <a href="{{GetUserUrl .UserId}}" style="text-decoration: none;">{{GetUserName .UserId}}</a>{{end}}
+											{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>{{end}}
 											{{if gt .Repeated 1}}{{.Repeated}} times{{end}}.
 											{{else if eq .Type "newPageByUser"}}
 											Created a new page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-											{{else if eq .Type "newChildPage"}}
+											{{else if eq .Type "newChild"}}
 											New child page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 											{{else if eq .Type "commentEdit"}}
-											<a href="{{GetUserUrl .UserId}}" style="text-decoration: none;">{{GetUserName .UserId}}</a> edited a
+											<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> edited a
 											<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>.
 											{{else if eq .Type "atMention"}}
-											<a href="{{GetUserUrl .UserId}}" style="text-decoration: none;">{{GetUserName .UserId}}</a> mentioned you in a
+											<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> mentioned you in a
 											<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>.
 											{{end}}
 										</div>

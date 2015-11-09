@@ -117,6 +117,9 @@ func init() {
 	// Error handlers
 	s.NotFoundHandler = http.HandlerFunc(pageHandlerWrapper(&dynamicPage))
 
+	// Raw handlers
+	http.HandleFunc("/sendTestEmail/", sendTestEmailHandler)
+
 	http.Handle("/", r)
 }
 
