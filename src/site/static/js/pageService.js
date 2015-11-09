@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service("pageService", function(userService, $http){
+app.service("pageService", function($http, $location, userService){
 	var that = this;
 
 	// All loaded pages.
@@ -79,10 +79,36 @@ app.service("pageService", function(userService, $http){
 	}
 
 	this.getPageUrl = function(pageId){
-		return "/pages/" + pageId;
+		var url = "/pages/" + pageId;
+		var page = that.pageMap[pageId];
+		if (page) {
+			// Check if we should set the domain
+			if (page.seeGroupId != that.privateGroupId) {
+				if (page.seeGroupId !== "0") {
+					url = that.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
+				} else {
+					url = that.getDomainUrl() + url;
+				}
+			}
+		}
+		return url;
 	};
 	this.getEditPageUrl = function(pageId){
 		return "/edit/" + pageId;
+	};
+
+	// Get a domain url (with optional subdomain)
+	this.getDomainUrl = function(subdomain) {
+		if (subdomain) {
+			subdomain += ".";
+		} else {
+			subdomain = "";
+		}
+		if (/localhost/.exec($location.host())) {
+			return "http://" + subdomain + "localhost:8012";
+		} else {
+			return "http://" + subdomain + "arbital.com"
+		}
 	};
 
 	// These functions will be added to each page object.
@@ -471,12 +497,20 @@ app.service("pageService", function(userService, $http){
 			return this.privateGroupId !== this.pageMap[pageId].seeGroupId;
 		}*/
 		var page = this.pageMap[pageId];
+		if (!page) {
+			console.warn("Couldn't find pageId: " + pageId);
+			return false;
+		}
 		if (!this.primaryPage) return false;
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId === "0";
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showLockedGroup = function(pageId) {
 		var page = this.pageMap[pageId];
+		if (!page) {
+			console.warn("Couldn't find pageId: " + pageId);
+			return false;
+		}
 		if (!this.primaryPage) return page.seeGroupId !== "0";
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId !== "0";
 	};

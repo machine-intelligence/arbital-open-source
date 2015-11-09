@@ -16,20 +16,6 @@ app.directive("arbNavbar", function($http, $location, $compile, $rootScope, page
 				scope.currentUrl = encodeURIComponent($location.absUrl());
 			});
 
-			// Get a domain url (with optional subdomain)
-			scope.getDomainUrl = function(subdomain) {
-				if (subdomain) {
-					subdomain += ".";
-				} else {
-					subdomain = "";
-				}
-				if (/localhost/.exec($location.host())) {
-					return "http://" + subdomain + "localhost:8012";
-				} else {
-					return "http://" + subdomain + "arbital.com"
-				}
-			};
-
 			$("#logout").click(function() {
 				$.removeCookie("zanaduu", {path: "/"});
 			});
