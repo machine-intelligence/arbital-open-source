@@ -21,7 +21,7 @@ var (
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	MaxKarmaLockFraction = 0.8
 
-	DefaultEmailFrequency = 2 // 2 is daily
+	DefaultEmailFrequency = "daily"
 	DefaultEmailThreshold = 3
 )
 
@@ -36,7 +36,7 @@ type User struct {
 	IsAdmin        bool   `json:"isAdmin"`
 	Karma          int    `json:"karma"`
 	MaxKarmaLock   int    `json:"maxKarmaLock"`
-	EmailFrequency int    `json:"emailFrequency"`
+	EmailFrequency string `json:"emailFrequency"`
 	EmailThreshold int    `json:"emailThreshold"`
 
 	// Computed variables
