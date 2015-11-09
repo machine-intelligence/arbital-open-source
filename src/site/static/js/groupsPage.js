@@ -15,7 +15,7 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			for (var pageId in pageService.pageMap) {
 				if (!+pageId) continue; // don't process aliases
 				var page = pageService.pageMap[pageId];
-				if (page.type === "group") {
+				if (page.type === "group" || page.type === "domain") {
 					scope.groupMap[pageId] = page;
 				}
 			}
