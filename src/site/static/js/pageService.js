@@ -39,8 +39,12 @@ app.service("pageService", function($http, $location, userService){
 		});
 	};
 
+	// Id of the private group we are in. (Corresponds to the subdomain).
+	this.privateGroupId = "0";
+
 	// Primary page is the one that's displayed front and center.
 	this.primaryPage = undefined;
+	// TODO: use $watch instead of this
 	// List of callbacks to notify when primary page changes.
 	this.primaryPageCallbacks = [];
 	// Set the primary page, triggering the callbacks.
@@ -78,6 +82,7 @@ app.service("pageService", function($http, $location, userService){
 		}
 	}
 
+	// Rreturns the url for the given page.
 	this.getPageUrl = function(pageId){
 		var url = "/pages/" + pageId;
 		var page = that.pageMap[pageId];

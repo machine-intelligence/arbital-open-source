@@ -48,17 +48,13 @@ function getUrlParameter(sParam) {
 // looking at a page at that time. This way new/updated markers are displayed
 // correctly.
 function smartPageReload(hash) {
-	var lastVisit = encodeURIComponent($("body").attr("last-visit"));
-	if (!lastVisit) {
-		lastVisit = "0";
-	}
 	var lens = getUrlParameter("lens");
 	if (lens) {
 		lens = "&lens=" + encodeURIComponent(lens);
 	} else {
 		lens = "";
 	}
-	window.location.href = window.location.pathname + "?lastVisit=" + lastVisit + lens + (hash ? "#" + hash : "");
+	window.location.href = window.location.pathname + lens + (hash ? "#" + hash : "");
 }
 
 // serializeFormData takes input values from the given form and returns them as

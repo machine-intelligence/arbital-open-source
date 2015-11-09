@@ -60,13 +60,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		$scope.subdomain = subdomainMatch[1];
 	}
 
-	// Process last visit url parameter
-	var lastVisit = $location.search().lastVisit;
-	if (lastVisit) {
-		$("body").attr("last-visit", lastVisit);
-		$location.search("lastVisit", null);
-	}
-
 	// Refresh all the fields that need to be updated every so often.
 	var refreshAutoupdates = function() {
 		$(".autoupdate").each(function(index, element) {
@@ -307,15 +300,12 @@ app.controller("ExplorePageController", function ($scope, $routeParams, $http, $
 
 
 app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
-	console.log("PrimaryPageController");
 	// Get the primary page data
 	var postData = {
 		pageAlias: $routeParams.alias,
-		forcedLastVisit: $("body").attr("last-visit"),
 	};
 	$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
-		console.log("PrimaryPageController2");
 		var page = pageService.pageMap[postData.pageAlias];
 		if (!page) {
 			return {

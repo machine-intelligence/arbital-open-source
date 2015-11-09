@@ -1,6 +1,6 @@
 <!-- Template for the navbar, the navigation drop down menu shown at the top right of some pages -->
 <nav class="navbar navbar-default"
-		ng-class="{'navbar-default': !pageService.privateGroupId, 'navbar-inverse': pageService.privateGroupId}">
+		ng-class="{'navbar-default': pageService.privateGroupId === '0', 'navbar-inverse': pageService.privateGroupId !== '0'}">
 	<div class="container-fluid">
 		<div class="navbar-header">
 			<a class="navbar-brand" ng-href="{{pageService.getDomainUrl()}}">Arbital</a>

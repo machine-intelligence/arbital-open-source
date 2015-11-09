@@ -12,8 +12,7 @@ import (
 
 // primaryPageJsonData contains parameters passed in via the request.
 type primaryPageJsonData struct {
-	PageAlias       string
-	ForcedLastVisit string
+	PageAlias string
 }
 
 var primaryPageHandler = siteHandler{
@@ -52,14 +51,11 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	// Computed which pages count as visited. Also update LastVisit if forced
+	// Computed which pages count as visited.
 	visitedValues := make([]interface{}, 0)
 	for id, p := range returnData.PageMap {
 		if p.Text != "" {
 			visitedValues = append(visitedValues, u.Id, id, database.Now())
-		}
-		if data.ForcedLastVisit != "" && p.LastVisit > data.ForcedLastVisit {
-			p.LastVisit = data.ForcedLastVisit
 		}
 	}
 
