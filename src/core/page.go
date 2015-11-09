@@ -265,7 +265,6 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Parents })
 	err = LoadParentIds(db, pageMap, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
-		Type:         WikiPageType,
 		PagePairType: ParentPagePairType,
 		LoadOptions:  TitlePlusLoadOptions,
 	})
@@ -277,7 +276,6 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Tags })
 	err = LoadParentIds(db, pageMap, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
-		Type:         WikiPageType,
 		PagePairType: TagPagePairType,
 		LoadOptions:  TitlePlusLoadOptions,
 	})
@@ -313,7 +311,6 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Requirements })
 	err = LoadParentIds(db, pageMap, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
-		Type:         WikiPageType,
 		PagePairType: RequirementPagePairType,
 		LoadOptions:  TitlePlusLoadOptions,
 		MasteryMap:   masteryMap,
@@ -1003,8 +1000,6 @@ type LoadParentIdsOptions struct {
 	ForPages map[int64]*Page
 	// Load whether or not each parent has parents of its own.
 	LoadHasParents bool
-	// Type of parents to load
-	Type string
 	// Type of the parent relationship to follow
 	PagePairType string
 	// Load options to set for the new pages
@@ -1030,7 +1025,7 @@ func LoadParentIds(db *database.DB, pageMap map[int64]*Page, options *LoadParent
 			WHERE type=?`, options.PagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pages AS p
-		ON (p.pageId=pp.parentId AND p.isCurrentEdit AND p.type=?)`, options.Type).ToStatement(db).Query()
+		ON (p.pageId=pp.parentId AND p.isCurrentEdit AND p.type!=?)`, DeletedPageType).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pp PagePair
 		err := rows.Scan(&pp.Id, &pp.ParentId, &pp.ChildId, &pp.Type)

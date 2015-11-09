@@ -239,7 +239,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					WHERE isCurrentEdit AND pageId!=? AND alias=?`).QueryRow(data.PageId, data.Alias)
 		exists, err := row.Scan(&existingPageId)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't read from aliases", err)
+			return pages.HandlerErrorFail("Failed on looking for conflicting alias", err)
 		} else if exists {
 			return pages.HandlerErrorFail(fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, existingPageId), nil)
 		}
