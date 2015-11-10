@@ -128,7 +128,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	};
 	var autosaving = false;
 	var publishing = false;
-	var prevEditPageData = {};
+	var prevEditPageData = undefined;
 	// Save the current page.
 	// callback is called when the server replies with success. If it's an autosave
 	// and the same data has already been submitted, the callback is called with "".
@@ -155,6 +155,15 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					prevEditPageData.isSnapshot = false;
 					prevEditPageData.isAutosave = true;
 					data.__invisibleSubmit = true; 
+				}
+
+				// Process warnings
+				var warningsLength = r.result.aliasWarnings.length;
+				var $aliasWarning = $topParent.find(".alias-warning");
+				$aliasWarning.text("").toggle(warningsLength > 0);
+				$topParent.find(".alias-form-group").toggleClass("has-warning", warningsLength > 0);
+				for(var n = 0; n < warningsLength; n++){
+					$aliasWarning.text($aliasWarning.text() + r.result.aliasWarnings[n] + "\n");
 				}
 				callback(true);
 			}, function() {
@@ -454,7 +463,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 		// Set up autosaving.
 		var $autosaveLabel = $topParent.find(".autosave-label");
-		this.autosaveInterval = window.setInterval(function(){
+		var autosaveFunc = function(){
 			$autosaveLabel.text("Autosave: Saving...").show();
 			savePage(true, false, function(saved) {
 				if (saved) {
@@ -463,7 +472,13 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 					$autosaveLabel.hide();
 				}
 			});
-		}, 5000);
+		};
+		this.autosaveInterval = window.setInterval(autosaveFunc, 5000);
+		window.setTimeout(function() {
+			// Compute prevEditPageData, so we don't fire off autosave when there were
+			// no changes made.
+			prevEditPageData = computeAutosaveData(true, false);
+		});
 
 		// Set up finding similar pages
 		if (page.type !== "comment") {
@@ -484,10 +499,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				$metaTextError.text(err.message).show();
 			} 
 		}, 1300);
-
-		// Compute prevEditPageData, so we don't fire off autosave when there were
-		// no changes made.
-		prevEditPageData = computeAutosaveData(true, false);
 
 		// Workaround: Set up an interval to make sure modal backdrop is the right size.
 		if (isModal) {

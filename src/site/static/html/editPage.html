@@ -116,13 +116,6 @@
 	</div>
 
 	<div ng-class="{'half': !useVerticalView}">
-		<!-- Invisible meta data -->
-		<input name="prevEdit"
-			type="text"
-			class="prev-edit"
-			ng-value="page.isAutosave ? page.prevEdit : page.edit"
-			hidden>
-		
 		<!-- Title -->
 		<div class="page-title" ng-hide="isComment">
 			<input name="title"
@@ -269,7 +262,7 @@
 			</div>
 		
 			<!-- Alias -->
-			<div class="form-group" ng-show="!isAnswer && !isComment && !isGroup">
+			<div class="alias-form-group form-group" ng-show="!isAnswer && !isComment && !isGroup">
 				<label class="control-label col-sm-2">Alias</label>
 				<div class="col-sm-4">
 					<label class="control-label" ng-show="page.seeGroupId != '0'">
@@ -283,6 +276,8 @@
 								autocomplete="off"
 								ng-model="page.alias">
 					</div>
+				</div>
+				<div class="alias-warning col-sm-4 alert alert-warning" hidden>
 				</div>
 			</div>
 		

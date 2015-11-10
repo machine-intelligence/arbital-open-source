@@ -67,6 +67,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	c := params.C
 	db := params.DB
 	u := params.U
+	aliasWarningList := make([]string, 0)
 
 	if data.PageId <= 0 {
 		return pages.HandlerBadRequestFail("No pageId specified", nil)
@@ -213,12 +214,19 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Make sure alias is valid
-	if data.Alias == "" {
+	if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
+		data.Alias = oldPage.Alias
+	} else if data.Alias == "" {
 		data.Alias = fmt.Sprintf("%d", data.PageId)
-	} else if isCurrentEdit && data.Alias != fmt.Sprintf("%d", data.PageId) {
+	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
-			return pages.HandlerErrorFail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
+			aliasError := "Invalid alias. Can only contain letters and digits. It cannot be a number."
+			if isCurrentEdit {
+				return pages.HandlerErrorFail(aliasError, nil)
+			} else {
+				aliasWarningList = append(aliasWarningList, aliasError)
+			}
 		}
 
 		// Prefix alias with the group alias, if appropriate
@@ -241,7 +249,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if err != nil {
 			return pages.HandlerErrorFail("Failed on looking for conflicting alias", err)
 		} else if exists {
-			return pages.HandlerErrorFail(fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, existingPageId), nil)
+			aliasUsedMessage := fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, existingPageId)
+			if isCurrentEdit {
+				return pages.HandlerErrorFail(aliasUsedMessage, nil)
+			} else {
+				aliasWarningList = append(aliasWarningList, aliasUsedMessage)
+			}
 		}
 	}
 
@@ -584,5 +597,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	return pages.StatusOK(nil)
+	returnData := newHandlerData(false)
+	returnData.ResultMap["aliasWarnings"] = aliasWarningList
+	return pages.StatusOK(returnData.toJson())
 }
