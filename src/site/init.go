@@ -78,6 +78,7 @@ func init() {
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
+	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
 	s.HandleFunc(privateIndexHandler.URI, handlerWrapper(privateIndexHandler)).Methods("POST")
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")

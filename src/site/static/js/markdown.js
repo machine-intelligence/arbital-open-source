@@ -102,8 +102,13 @@ var arbMarkdown = arbMarkdown || function() {
 		// Convert [@alias] spans into links.
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
-				var url = "http://" + host + "/user/" + alias + "/";
-				return prefix + "[" + alias + "](" + url + ")";
+				var page = pageService.pageMap[alias];
+				if (page) {
+					var url = "http://" + host + "/user/" + alias + "/";
+					return prefix + "[" + page.title + "](" + url + ")";
+				} else {
+					return prefix + "[" + alias + "](" + url + ")";
+				}
 			});
 		});
 	

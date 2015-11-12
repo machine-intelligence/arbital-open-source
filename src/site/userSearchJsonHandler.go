@@ -1,4 +1,4 @@
-// parentsSearchJsonHandler.go contains the handler for matching a partial query against
+// userSearchJsonHandler.go contains the handler for matching a partial query against
 // pages' ids, aliases, and titles.
 package site
 
@@ -12,13 +12,13 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var parentsSearchHandler = siteHandler{
-	URI:         "/json/parentsSearch/",
-	HandlerFunc: parentsSearchJsonHandler,
+var userSearchHandler = siteHandler{
+	URI:         "/json/userSearch/",
+	HandlerFunc: userSearchJsonHandler,
 }
 
-// parentsSearchJsonHandler handles the request.
-func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
+// userSearchJsonHandler handles the request.
+func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
@@ -63,14 +63,12 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 				},
 				"filter": {
 					"bool": {
-						"must_not": [
-							{
-								"terms": { "type": ["comment", "answer"] }
-							}
-						],
 						"must": [
 							{
 								"terms": { "seeGroupId": [%[2]s] }
+							},
+							{
+								"terms": { "type": ["group"] }
 							}
 						]
 					}

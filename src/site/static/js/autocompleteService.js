@@ -79,10 +79,38 @@ app.service("autocompleteService", function($http, $compile, pageService){
 			});
 	};
 
+	// Load data for autocompleting user search.
+	this.userSource = function(request, callback) {
+		$http({method: "POST", url: "/json/userSearch/", data: JSON.stringify(request)})
+			.success(function(data, status){
+				var results = that.processAutocompleteResults(data);
+				if (callback) callback(results);
+			})
+			.error(function(data, status){
+				console.log("Error loading /userSearch/ autocomplete data:"); console.log(data); console.log(status);
+				callback([]);
+			});
+	};
+
 	// Set up autocompletion based on parents search for the given input field.
 	this.setupParentsAutocomplete = function($input, selectCallback) {
 	  $input.autocomplete({
 			source: that.parentsSource,
+			minLength: 3,
+			delay: 300,
+			focus: function (event, ui) {
+				return false;
+			},
+			select: function (event, ui) {
+				return selectCallback(event, ui);
+			}
+	  });
+	}
+
+	// Set up autocompletion based on user search for the given input field.
+	this.setupUserAutocomplete = function($input, selectCallback) {
+	  $input.autocomplete({
+			source: that.userSource,
 			minLength: 3,
 			delay: 300,
 			focus: function (event, ui) {

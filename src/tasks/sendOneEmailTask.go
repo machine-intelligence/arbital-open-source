@@ -54,6 +54,11 @@ func (task *SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 		return 0, fmt.Errorf("Failed to load email text: %v", err)
 	}
 
+	// if emailData is nil, that means there is no update to send, so just return
+	if emailData == nil {
+		return
+	}
+
 	if emailData.UpdateEmailAddress == "" || emailData.UpdateEmailText == "" {
 		return 0, fmt.Errorf("Email is empty")
 	}
