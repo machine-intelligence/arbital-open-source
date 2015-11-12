@@ -15,6 +15,8 @@ import (
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
+
+	"github.com/gorilla/mux"
 )
 
 // Handler serves HTTP.
@@ -39,6 +41,17 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 
 		c := sessions.NewContext(r)
 		params := pages.HandlerParams{W: w, R: r, C: c}
+
+		// Redirect www.
+		if mux.Vars(r)["www"] != "" {
+			subdomainStr := ""
+			if mux.Vars(r)["subdomain"] != "" {
+				subdomainStr = mux.Vars(r)["subdomain"] + "."
+			}
+			url := fmt.Sprintf("http://%s%s%s", subdomainStr, sessions.GetRawDomain(), r.URL.String())
+			http.Redirect(w, r, url, http.StatusSeeOther)
+			return
+		}
 
 		// Helper func to when an error occurs and we should render error page.
 		fail := func(responseCode int, message string, err error) {

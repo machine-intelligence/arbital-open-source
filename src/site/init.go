@@ -41,7 +41,7 @@ func init() {
 	})
 
 	r := mux.NewRouter()
-	s := r.Host(fmt.Sprintf("{subdomain:%s}{subdomaindot:\\.?}%s", core.SubdomainAliasRegexpStr, sessions.GetMuxDomain())).Subrouter()
+	s := r.Host(fmt.Sprintf("{www:w?w?w?\\.?}{subdomain:%s}{subdomaindot:\\.?}%s", core.SubdomainAliasRegexpStr, sessions.GetMuxDomain())).Subrouter()
 	s.StrictSlash(true)
 
 	// Pages
