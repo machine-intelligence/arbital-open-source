@@ -35,15 +35,14 @@ type PageLoadOptions struct {
 	ChangeLogs bool
 
 	// Options for what data to load for the page itself
-	ChildDraftId      bool
-	HasDraft          bool
-	Likes             bool
-	Votes             bool
-	OriginalCreatedAt bool
-	LastVisit         bool
-	IsSubscribed      bool
-	RedLinkCount      bool
-	Mastery           bool
+	ChildDraftId bool
+	HasDraft     bool
+	Likes        bool
+	Votes        bool
+	LastVisit    bool
+	IsSubscribed bool
+	RedLinkCount bool
+	Mastery      bool
 
 	// Options for what fields to load from pages table
 	Text    bool
@@ -111,9 +110,8 @@ var (
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading a page to display the title + some additional info.
 	TitlePlusLoadOptions = &PageLoadOptions{
-		Likes:             true,
-		OriginalCreatedAt: true,
-		LastVisit:         true,
+		Likes:     true,
+		LastVisit: true,
 	}
 	EmptyLoadOptions = &PageLoadOptions{}
 )

@@ -116,8 +116,8 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	aliasMap := make(map[string]string)
 	rows := database.NewQuery(`
 		SELECT pageId,alias
-		FROM pages
-		WHERE isCurrentEdit AND alias IN`).AddArgsGroup(aliasesAndIds).ToStatement(db).Query()
+		FROM pageInfos
+		WHERE alias IN`).AddArgsGroup(aliasesAndIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, alias string
 		err := rows.Scan(&pageId, &alias)

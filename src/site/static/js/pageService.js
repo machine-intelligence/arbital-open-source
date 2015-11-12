@@ -157,7 +157,7 @@ app.service("pageService", function($http, $location, userService){
 		},
 		// Return true iff the page is deleted.
 		isDeleted: function() {
-			return this.type === "deleted";
+			return this.type === "";
 		},
 		// Get page's url
 		url: function() {

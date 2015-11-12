@@ -26,12 +26,10 @@ func privateIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load recently created page ids.
 	rows := db.NewStatement(`
-		SELECT p.pageId
-		FROM pages AS p
-		JOIN pageInfos AS pi
-		ON (p.pageId=pi.pageId)
-		WHERE p.isCurrentEdit AND p.seeGroupId=?
-		ORDER BY pi.createdAt DESC
+		SELECT pageId
+		FROM pageInfos
+		WHERE currentEdit>0 AND seeGroupId=?
+		ORDER BY createdAt DESC
 		LIMIT ?`).Query(privateGroupId, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
@@ -50,11 +48,11 @@ func privateIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			) AS l1
 			GROUP BY userId,pageId
 		) AS l2
-		JOIN pages AS p
-		ON (l2.pageId=p.pageId)
-		WHERE p.seeGroupId=?
+		JOIN pageInfos AS pi
+		ON (l2.pageId=pi.pageId)
+		WHERE pi.seeGroupId=?
 		GROUP BY l2.pageId
-		ORDER BY SUM(value) DESC
+		ORDER BY SUM(l2.value) DESC
 		LIMIT ?`).Query(privateGroupId, indexPanelLimit)
 	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
@@ -65,13 +63,15 @@ func privateIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	rows = db.NewStatement(`
 		SELECT p.pageId
 		FROM (
-			SELECT pageId,max(createdAt) AS createdAt,max(if(isCurrentEdit,seeGroupId,0)) AS seeGroupId
+			SELECT pageId,max(createdAt) AS createdAt
 			FROM pages
 			WHERE NOT isSnapshot AND NOT isAutosave
 			GROUP BY pageId
 			HAVING(SUM(1) > 1)
 		) AS p
-		WHERE p.seeGroupId=?
+		JOIN pageInfos AS pi
+		ON (p.pageId=pi.pageId)
+		WHERE pi.seeGroupId=?
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(privateGroupId, indexPanelLimit)
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
@@ -82,7 +82,7 @@ func privateIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load most controversial page ids.
 	// TODO: make sure the page still has voting turned on
 	rows = db.NewStatement(`
-		SELECT p.pageId
+		SELECT pi.pageId
 		FROM (
 			SELECT *
 			FROM (
@@ -92,10 +92,10 @@ func privateIndexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			) AS v1
 			GROUP BY userId,pageId
 		) AS v2
-		JOIN pages AS p
-		ON (v2.pageId=p.pageId)
-		WHERE p.seeGroupId=?
-		GROUP BY p.pageId
+		JOIN pageInfos AS pi
+		ON (v2.pageId=pi.pageId)
+		WHERE pi.seeGroupId=?
+		GROUP BY pi.pageId
 		ORDER BY VAR_POP(v2.value) DESC
 		LIMIT ?`).Query(privateGroupId, indexPanelLimit)
 	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)

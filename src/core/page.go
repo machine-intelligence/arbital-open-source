@@ -19,7 +19,6 @@ const (
 	QuestionPageType = "question"
 	AnswerPageType   = "answer"
 	LensPageType     = "lens"
-	DeletedPageType  = "deleted"
 	GroupPageType    = "group"
 	DomainPageType   = "domain"
 
@@ -51,12 +50,20 @@ const (
 	DeleteRequirementChangeLog = "deleteRequirement"
 	NewRequiredForChangeLog    = "newRequiredFor"
 	DeleteRequiredForChangeLog = "deleteRequiredFor"
+	DeletePageChangeLog        = "deletePage"
 	NewEditChangeLog           = "newEdit"
 	RevertEditChangeLog        = "revertEdit"
 	NewSnapshotChangeLog       = "newSnapshot"
+	NewAliasChangeLog          = "newAlias"
+	NewSortChildrenByChangeLog = "newSortChildrenBy"
+	TurnOnVoteChangeLog        = "turnOnVote"
+	TurnOffVoteChangeLog       = "turnOffVote"
+	SetVoteTypeChangeLog       = "setVoteType"
+	NewEditKarmaLockChangeLog  = "newEditKarmaLock"
+	NewEditGroupChangeLog      = "newEditGroup"
 
 	// How long the page lock lasts
-	PageQuickLockDuration = 60      // in seconds
+	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
 
 	// String that can be used inside a regexp to match an a page alias or id
@@ -79,34 +86,35 @@ type Vote struct {
 type corePageData struct {
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
-	PageId    int64  `json:"pageId,string"`
-	Edit      int    `json:"edit"`
-	Type      string `json:"type"`
-	Title     string `json:"title"`
-	Clickbait string `json:"clickbait"`
-	// Full text of the page. Not always sent to the FE.
-	Text string `json:"text"`
-	// Meta text of the page. Not always sent to the FE.
-	MetaText       string `json:"metaText"`
-	TextLength     int    `json:"textLength"`
-	Summary        string `json:"summary"`
-	Alias          string `json:"alias"`
-	SortChildrenBy string `json:"sortChildrenBy"`
-	HasVote        bool   `json:"hasVote"`
-	VoteType       string `json:"voteType"`
-	CreatorId      int64  `json:"creatorId,string"`
-	CreatedAt      string `json:"createdAt"`
-	EditKarmaLock  int    `json:"editKarmaLock"`
-	SeeGroupId     int64  `json:"seeGroupId,string"`
-	EditGroupId    int64  `json:"editGroupId,string"`
-	IsAutosave     bool   `json:"isAutosave"`
-	IsSnapshot     bool   `json:"isSnapshot"`
-	IsCurrentEdit  bool   `json:"isCurrentEdit"`
-	IsMinorEdit    bool   `json:"isMinorEdit"`
-	TodoCount      int    `json:"todoCount"`
-	AnchorContext  string `json:"anchorContext"`
-	AnchorText     string `json:"anchorText"`
-	AnchorOffset   int    `json:"anchorOffset"`
+	PageId            int64  `json:"pageId,string"`
+	Edit              int    `json:"edit"`
+	Type              string `json:"type"`
+	Title             string `json:"title"`
+	Clickbait         string `json:"clickbait"`
+	TextLength        int    `json:"textLength"`
+	Alias             string `json:"alias"`
+	SortChildrenBy    string `json:"sortChildrenBy"`
+	HasVote           bool   `json:"hasVote"`
+	VoteType          string `json:"voteType"`
+	CreatorId         int64  `json:"creatorId,string"`
+	CreatedAt         string `json:"createdAt"`
+	OriginalCreatedAt string `json:"originalCreatedAt"`
+	EditKarmaLock     int    `json:"editKarmaLock"`
+	SeeGroupId        int64  `json:"seeGroupId,string"`
+	EditGroupId       int64  `json:"editGroupId,string"`
+	IsAutosave        bool   `json:"isAutosave"`
+	IsSnapshot        bool   `json:"isSnapshot"`
+	IsCurrentEdit     bool   `json:"isCurrentEdit"`
+	IsMinorEdit       bool   `json:"isMinorEdit"`
+	TodoCount         int    `json:"todoCount"`
+	AnchorContext     string `json:"anchorContext"`
+	AnchorText        string `json:"anchorText"`
+	AnchorOffset      int    `json:"anchorOffset"`
+
+	// The following data is filled on demand.
+	Text     string `json:"text"`
+	MetaText string `json:"metaText"`
+	Summary  string `json:"summary"`
 }
 
 type Page struct {
@@ -122,8 +130,6 @@ type Page struct {
 	MyLikeValue  int  `json:"myLikeValue"`
 	// Computed from LikeCount and DislikeCount
 	LikeScore int `json:"likeScore"`
-	// Date when this page was first published.
-	OriginalCreatedAt string `json:"originalCreatedAt"`
 	// Last time the user visited this page.
 	LastVisit string `json:"lastVisit"`
 	// True iff the user has a work-in-progress draft for this page
@@ -371,13 +377,6 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 		return fmt.Errorf("LoadLikes failed: %v", err)
 	}
 
-	// Load original creation dates
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.OriginalCreatedAt })
-	err = LoadOriginalCreatedAt(db, filteredPageMap)
-	if err != nil {
-		return fmt.Errorf("LoadOriginalCreatedAt failed: %v", err)
-	}
-
 	// Load last visit dates
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LastVisit })
 	err = LoadLastVisits(db, u.Id, filteredPageMap)
@@ -494,25 +493,29 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 			summaryIds = append(summaryIds, p.PageId)
 		}
 	}
-	textSelect := database.NewQuery(`IF(pageId IN`).AddIdsGroup(textIds).Add(`,text,"") AS text`)
-	summarySelect := database.NewQuery(`IF(pageId IN`).AddIdsGroup(summaryIds).Add(`,summary,"") AS summary`)
+	textSelect := database.NewQuery(`IF(p.pageId IN`).AddIdsGroup(textIds).Add(`,p.text,"") AS text`)
+	summarySelect := database.NewQuery(`IF(p.pageId IN`).AddIdsGroup(summaryIds).Add(`,p.summary,"") AS summary`)
 
 	// Load the page data
 	rows := database.NewQuery(`
-		SELECT pageId,edit,type,creatorId,createdAt,title,clickbait,`).AddPart(textSelect).Add(`,
-			length(text),metaText,editKarmaLock,hasVote,voteType,`).AddPart(summarySelect).Add(`,
-			alias,sortChildrenBy,seeGroupId,editGroupId,isAutosave,isSnapshot,isCurrentEdit,isMinorEdit,
-			todoCount,anchorContext,anchorText,anchorOffset
-		FROM pages
-		WHERE isCurrentEdit AND pageId IN`).AddArgsGroup(pageIds).Add(`
-			AND (seeGroupId=0 OR seeGroupId IN`).AddIdsGroupStr(user.GroupIds).Add(`)
+		SELECT p.pageId,p.edit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
+			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,`).AddPart(summarySelect).Add(`,
+			pi.alias,pi.createdAt,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
+			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
+			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset
+		FROM pages AS p
+		JOIN pageInfos AS pi
+		ON (p.pageId = pi.pageId AND p.isCurrentEdit)
+		WHERE p.pageId IN`).AddArgsGroup(pageIds).Add(`
+			AND (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(user.GroupIds).Add(`)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p corePageData
 		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.Type, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
-			&p.Text, &p.TextLength, &p.MetaText, &p.EditKarmaLock, &p.HasVote,
-			&p.VoteType, &p.Summary, &p.Alias, &p.SortChildrenBy, &p.SeeGroupId, &p.EditGroupId,
+			&p.PageId, &p.Edit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
+			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
+			&p.VoteType, &p.Summary, &p.Alias, &p.OriginalCreatedAt, &p.SortChildrenBy,
+			&p.SeeGroupId, &p.EditGroupId,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -612,24 +615,23 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 			)`, pageId, options.CreatedAtLimit)
 	}
 	statement := database.NewQuery(`
-		SELECT p.pageId,p.edit,p.type,p.title,p.clickbait,p.text,p.metaText,
-			p.summary,p.alias,p.creatorId,p.sortChildrenBy,p.hasVote,p.voteType,
-			p.createdAt,p.editKarmaLock,p.seeGroupId,p.editGroupId,
+		SELECT p.pageId,p.edit,pi.type,p.title,p.clickbait,p.text,p.metaText,
+			p.summary,pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
+			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
-			i.currentEdit>0,i.currentEdit,i.maxEdit,i.lockedBy,i.lockedUntil,
-			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=?`, pageId).Add(`
-					AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
+			pi.currentEdit>0,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
+			pi.voteType
 		FROM pages AS p
-		JOIN pageInfos AS i
-		ON (p.pageId=i.pageId AND p.pageId=?)`, pageId).Add(`
+		JOIN pageInfos AS pi
+		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageId).Add(`
 		WHERE`).AddPart(whereClause).Add(`AND
-			(p.seeGroupId=0 OR p.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
+			(pi.seeGroupId=0 OR pi.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
-		&p.EditGroupId, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+		&p.EditGroupId, &p.OriginalCreatedAt, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.CurrentEditNum, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
 	if err != nil {
@@ -674,8 +676,10 @@ func LoadChildDrafts(db *database.DB, userId int64, options *LoadDataOptions) er
 					FROM pages AS p
 					JOIN pagePairs AS pp
 					ON (p.pageId=pp.childId)
+					JOIN pageInfos AS pi
+					ON (p.pageId=pi.pageId)
 					WHERE pp.parentId=? AND`, p.PageId).Add(`
-						(p.type=? OR p.type=?)`, QuestionPageType, AnswerPageType).Add(`
+						(pi.type=? OR pi.type=?)`, QuestionPageType, AnswerPageType).Add(`
 					GROUP BY p.pageId
 					HAVING SUM(p.isCurrentEdit)<=0
 				) AS a
@@ -781,10 +785,10 @@ func LoadRedLinkCount(db *database.DB, pageMap map[int64]*Page) error {
 	pageIdsList := PageIdsListFromMap(pageMap)
 
 	rows := database.NewQuery(`
-		SELECT l.parentId,SUM(ISNULL(p.pageId))
-		FROM pages AS p
+		SELECT l.parentId,SUM(ISNULL(pi.pageId))
+		FROM pageInfos AS pi
 		RIGHT JOIN links AS l
-		ON ((p.pageId=l.childAlias OR p.alias=l.childAlias) AND p.isCurrentEdit AND p.type!="")
+		ON ((pi.pageId=l.childAlias OR pi.alias=l.childAlias) AND pi.currentEdit>0 AND pi.type!="")
 		WHERE l.parentId IN`).AddArgsGroup(pageIdsList).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -853,8 +857,8 @@ func LoadLinks(db *database.DB, pageMap map[int64]*Page, options *LoadDataOption
 	if len(aliasesList) > 0 {
 		rows = database.NewQuery(`
 			SELECT pageId
-			FROM pages
-			WHERE isCurrentEdit AND alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
+			FROM pageInfos
+			WHERE currentEdit>0 AND alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			err := rows.Scan(&pageId)
@@ -898,8 +902,8 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 			FROM pagePairs
 			WHERE type=?`, options.PagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
-		JOIN pages AS p
-		ON (p.pageId=pp.childId AND p.isCurrentEdit AND p.type=?)`, options.Type).ToStatement(db).Query()
+		JOIN pageInfos AS pi
+		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND pi.type=?)`, options.Type).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pp PagePair
 		err := rows.Scan(&pp.Id, &pp.ParentId, &pp.ChildId, &pp.Type)
@@ -943,10 +947,10 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 				WHERE type=?`, ParentPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
 			) AS pp JOIN (
 				SELECT pageId
-				FROM pages
-				WHERE isCurrentEdit AND type!=? AND type!=?`, CommentPageType, QuestionPageType).Add(`
-			) AS p
-			ON (p.pageId=pp.childId)
+				FROM pageInfos
+				WHERE currentEdit>0 AND type!=? AND type!=?`, CommentPageType, QuestionPageType).Add(`
+			) AS pi
+			ON (pi.pageId=pp.childId)
 			GROUP BY 1`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
@@ -1024,8 +1028,8 @@ func LoadParentIds(db *database.DB, pageMap map[int64]*Page, options *LoadParent
 			FROM pagePairs
 			WHERE type=?`, options.PagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
-		JOIN pages AS p
-		ON (p.pageId=pp.parentId AND p.isCurrentEdit AND p.type!=?)`, DeletedPageType).ToStatement(db).Query()
+		JOIN pageInfos AS pi
+		ON (pi.pageId=pp.parentId AND pi.currentEdit>0)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pp PagePair
 		err := rows.Scan(&pp.Id, &pp.ParentId, &pp.ChildId, &pp.Type)
@@ -1094,8 +1098,8 @@ func LoadCommentIds(db *database.DB, pageMap map[int64]*Page, options *LoadDataO
 		WHERE type=?`, ParentPagePairType).Add(`AND childId IN (
 			SELECT pp.childId
 			FROM pagePairs AS pp
-			JOIN pages AS p
-			ON (p.pageId=pp.childId AND p.isCurrentEdit AND p.type=?`, CommentPageType).Add(`
+			JOIN pageInfos AS pi
+			ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND pi.type=?`, CommentPageType).Add(`
 				AND pp.type=?`, ParentPagePairType).Add(`
 				AND pp.parentId IN`).AddArgsGroup(pageIds).Add(`)
 		)`).ToStatement(db).Query()
@@ -1151,7 +1155,7 @@ func loadOrderedChildrenIds(db *database.DB, parentId int64, sortType string) ([
 		FROM pagePairs AS pp
 		JOIN pages AS p
 		ON (pp.childId=p.pageId AND p.isCurrentEdit AND
-				p.type!=? AND p.type!=? AND p.type!=?)`, CommentPageType, QuestionPageType, LensPageType).Add(`
+				pi.type!=? AND pi.type!=? AND pi.type!=?)`, CommentPageType, QuestionPageType, LensPageType).Add(`
 		JOIN pageInfos AS pi
 		ON (pi.pageId=p.pageId)
 		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.parentId=?`, parentId).Add(`
@@ -1179,10 +1183,10 @@ func loadSiblingId(db *database.DB, pageId int64, useNextSibling bool) (int64, e
 	var sortType string
 	var parentCount int
 	row := database.NewQuery(`
-		SELECt ifnull(max(pp.parentId),0),ifnull(max(p.sortChildrenBy),""),count(*)
+		SELECt ifnull(max(pp.parentId),0),ifnull(max(pi.sortChildrenBy),""),count(*)
 		FROM pagePairs AS pp
-		JOIN pages AS p
-		ON (pp.parentId=p.pageId AND p.isCurrentEdit)
+		JOIN pageInfos AS pi
+		ON (pp.parentId=pi.pageId AND pi.currentEdit>0)
 		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.childId=?`, pageId).ToStatement(db).QueryRow()
 	found, err := row.Scan(&parentId, &sortType, &parentCount)
 	if err != nil {
@@ -1269,7 +1273,7 @@ func LoadDraftExistence(db *database.DB, userId int64, options *LoadDataOptions)
 	rows := database.NewQuery(`
 		SELECT pageId,MAX(
 				IF(isAutosave AND creatorId=?, edit, -1)
-			) as myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
+			) AS myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
 		FROM pages`, userId).Add(`
 		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
 		GROUP BY pageId
@@ -1357,32 +1361,6 @@ func LoadUserSubscriptions(db *database.DB, currentUserId int64, userMap map[int
 	return err
 }
 
-// LoadOriginalCreatedAt loads OriginalCreatedAt values for all pages.
-func LoadOriginalCreatedAt(db *database.DB, pageMap map[int64]*Page) error {
-	if len(pageMap) <= 0 {
-		return nil
-	}
-	pageIds := PageIdsListFromMap(pageMap)
-	rows := db.NewStatement(`
-			SELECT pageId,createdAt
-			FROM pageInfos
-			WHERE pageId IN` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId int64
-		var originalCreatedAt string
-		err := rows.Scan(&pageId, &originalCreatedAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan for original createdAt: %v", err)
-		}
-		pageMap[pageId].OriginalCreatedAt = originalCreatedAt
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("Couldn't load original createdAt: %v", err)
-	}
-	return nil
-}
-
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.
 func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]int64, error) {
 	aliasToIdMap := make(map[string]int64)
@@ -1400,8 +1378,8 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]int64, 
 	if len(strictAliases) > 0 {
 		rows := database.NewQuery(`
 			SELECT pageId,alias
-			FROM pages
-			WHERE isCurrentEdit AND alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db).Query()
+			FROM pageInfos
+			WHERE currentEdit>0 AND alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId int64
 			var alias string

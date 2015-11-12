@@ -49,26 +49,16 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Create the data to pass to the edit page handler
-	hasVoteStr := ""
-	if page.HasVote {
-		hasVoteStr = "on"
-	}
 	editData := &editPageData{
-		PageId:         page.PageId,
-		Type:           page.Type,
-		Title:          page.Title,
-		Clickbait:      page.Clickbait,
-		Text:           page.Text,
-		MetaText:       page.MetaText,
-		HasVoteStr:     hasVoteStr,
-		VoteType:       page.VoteType,
-		EditKarmaLock:  page.EditKarmaLock,
-		Alias:          page.Alias,
-		SortChildrenBy: page.SortChildrenBy,
-		AnchorContext:  page.AnchorContext,
-		AnchorText:     page.AnchorText,
-		AnchorOffset:   page.AnchorOffset,
-		RevertToEdit:   data.EditNum,
+		PageId:        page.PageId,
+		Title:         page.Title,
+		Clickbait:     page.Clickbait,
+		Text:          page.Text,
+		MetaText:      page.MetaText,
+		AnchorContext: page.AnchorContext,
+		AnchorText:    page.AnchorText,
+		AnchorOffset:  page.AnchorOffset,
+		RevertToEdit:  data.EditNum,
 	}
 	return editPageInternalHandler(params, editData)
 }

@@ -11,7 +11,7 @@
 				<a class="navbar-brand" ng-href="/"
 						ng-bind="pageService.pageMap[pageService.privateGroupId].title"></a>
 			</li>
-			<li ng-show="pageService.privateGroupId">
+			<li ng-show="pageService.privateGroupId !== '0'">
 				<a href="/explore/" class="navbar-link">Explore</a>
 			</li>
 			<!-- Explore link for a domain index page -->

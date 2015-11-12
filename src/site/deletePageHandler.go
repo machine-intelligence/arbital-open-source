@@ -7,6 +7,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
+	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
 )
@@ -47,7 +48,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}
-	if page == nil || page.Type == core.DeletedPageType {
+	if page == nil {
 		// Looks like there is no need to delete this page.
 		return pages.StatusOK(nil)
 	}
@@ -57,28 +58,66 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// Delete all pairs
-	rows := database.NewQuery(`
-		SELECT parentId,childId,type
-		FROM pagePairs
-		WHERE parentId=? OR childId=?`, data.PageId, data.PageId).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId int64
-		var pairType string
-		err := rows.Scan(&parentId, &childId, &pairType)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-			return deletePagePair(tx, u.Id, parentId, childId, pairType)
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Delete all pairs
+		rows := database.NewQuery(`
+			SELECT parentId,childId,type
+			FROM pagePairs
+			WHERE parentId=? OR childId=?`, data.PageId, data.PageId).ToStatement(db).Query()
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var parentId, childId int64
+			var pairType string
+			err := rows.Scan(&parentId, &childId, &pairType)
+			if err != nil {
+				return fmt.Errorf("failed to scan: %v", err)
+			}
+			errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+				return deletePagePair(tx, u.Id, parentId, childId, pairType)
+			})
+			if errMessage != "" {
+				return fmt.Errorf("%s: %v", errMessage, err)
+			}
+			return nil
 		})
-		if errMessage != "" {
-			return fmt.Errorf("%s: %v", errMessage, err)
+		if err != nil {
+			return "Couldn't load pairs: %v", err
 		}
-		return nil
+
+		// Clear the current edit in pages
+		statement := tx.NewTxStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit")
+		if _, err = statement.Exec(data.PageId); err != nil {
+			return "Couldn't update isCurrentEdit for old edits", err
+		}
+
+		// Update pageInfos table
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = data.PageId
+		hashmap["currentEdit"] = 0
+		statement = tx.NewInsertTxStatement("pageInfos", hashmap, "currentEdit")
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't update pageInfos", err
+		}
+
+		// Update change log
+		hashmap = make(database.InsertMap)
+		hashmap["pageId"] = data.PageId
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = core.DeletePageChangeLog
+		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't update change logs", err
+		}
+
+		// Delete it from the elastic index
+		err = elastic.DeletePageFromIndex(params.C, data.PageId)
+		if err != nil {
+			return "failed to update index", err
+		}
+		return "", nil
 	})
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load pairs: %v", err)
+	if errMessage != "" {
+		return pages.HandlerErrorFail(fmt.Sprintf("Transaction failed: %s", errMessage), err)
 	}
 
 	// Create a task to propagate the domain change to all children
@@ -91,21 +130,5 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't enqueue a task: %v", err)
 	}
 
-	// Create the data to pass to the edit page handler
-	hasVoteStr := ""
-	if page.HasVote {
-		hasVoteStr = "on"
-	}
-	editData := &editPageData{
-		PageId:         page.PageId,
-		Type:           core.DeletedPageType,
-		Title:          "[DELETED]",
-		HasVoteStr:     hasVoteStr,
-		VoteType:       page.VoteType,
-		EditKarmaLock:  page.EditKarmaLock,
-		Alias:          fmt.Sprintf("%d", page.PageId),
-		SortChildrenBy: page.SortChildrenBy,
-		DeleteEdit:     true,
-	}
-	return editPageInternalHandler(params, editData)
+	return pages.StatusOK(nil)
 }

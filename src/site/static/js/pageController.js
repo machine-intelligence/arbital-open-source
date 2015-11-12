@@ -213,7 +213,7 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 			// Load the edit from the server.
 			pageService.loadEdit({
 				pageAlias: pageId,
-				createdAtLimit: page.lastVisit,
+				createdAtLimit: $("body").attr("last-visit"),
 				success: function(data, status) {
 					var dmp = new diff_match_patch();
 					var diffs = dmp.diff_main(data[pageId].text, page.text);

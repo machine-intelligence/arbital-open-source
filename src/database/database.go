@@ -67,6 +67,15 @@ func Now() string {
 	return time.Now().UTC().Format(TimeLayout)
 }
 
+// GetKeys returns all the keys in the InsertMap.
+func (m InsertMap) GetKeys() []string {
+	keys := make([]string, 0)
+	for key, _ := range m {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
 // ArgsPlaceholder returns the placeholder string for an sql.
 // Examplers: "(?)", "(?,?,?)", "(?,?),(?,?)"
 // Total number of question marks will be argsLen. They will be grouped in
