@@ -125,14 +125,30 @@
 														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}.
 													{{else if eq .Type "newPageByUser"}}
 														Created a new page: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newParent"}}
+														New parent page: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
 													{{else if eq .Type "newChild"}}
 														New child page: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newRequirement"}}
+														New requirement: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newRequiredBy"}}
+														This page is now a requirement for: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newTag"}}
+														New tag: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newTaggedBy"}}
+														This page now tags: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
 													{{else if eq .Type "commentEdit"}}
 														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> edited a
 														<a href="{{GetPageUrl .GoToPageId}}">comment</a>.
 													{{else if eq .Type "atMention"}}
 														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> mentioned you in a
 														<a href="{{GetPageUrl .GoToPageId}}">comment</a>.
+													{{else if eq .Type "addedToGroup"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> added you to
+														<a href="{{GetPageUrl .GoToPageId}}">the {{GetPageTitle .GoToPageId}} group</a>.
+													{{else if eq .Type "removedFromGroup"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> removed you from
+														<a href="{{GetPageUrl .GoToPageId}}">the {{GetPageTitle .GoToPageId}} group</a>.
 													{{end}}
 												</div>
 											{{end}}
