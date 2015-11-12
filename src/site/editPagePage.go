@@ -38,8 +38,8 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		var seeGroupId int64
 		row := database.NewQuery(`
 			SELECT seeGroupId
-			FROM pages
-			WHERE isCurrentEdit AND pageId=?`, pageId).ToStatement(db).QueryRow()
+			FROM pageInfos
+			WHERE currentEdit>0 AND pageId=?`, pageId).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&seeGroupId)
 		if err != nil {
 			return pages.Fail("Couldn't get page info", err)

@@ -38,8 +38,8 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	var seeGroupId int64
 	row := database.NewQuery(`
 		SELECT type,seeGroupId
-		FROM pages
-		WHERE isCurrentEdit AND pageId=?`, pageId).ToStatement(db).QueryRow()
+		FROM pageInfos
+		WHERE currentEdit>0 AND pageId=?`, pageId).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&pageType, &seeGroupId)
 	if err != nil {
 		return pages.Fail("Couldn't get page info", err)
@@ -50,11 +50,11 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		var parentId int64
 		row := database.NewQuery(`
 			SELECT pp.parentId
-			FROM pages AS p
+			FROM pageInfos AS pi
 			JOIN pagePairs AS pp
-			ON p.pageId=pp.parentId
-			WHERE p.isCurrentEdit AND pp.childId=?`, pageId).Add(`
-				AND p.type!=?`, core.CommentPageType).Add(`
+			ON pi.pageId=pp.parentId
+			WHERE pi.currentEdit>0 AND pp.childId=?`, pageId).Add(`
+				AND pi.type!=?`, core.CommentPageType).Add(`
 			LIMIT 1`).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&parentId)
 		if err != nil {
@@ -83,8 +83,8 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		if seeGroupId > 0 {
 			row := database.NewQuery(`
 					SELECT alias
-					FROM pages
-					WHERE pageId=? and isCurrentEdit`, seeGroupId).ToStatement(db).QueryRow()
+					FROM pageInfos
+					WHERE pageId=? AND currentEdit>0`, seeGroupId).ToStatement(db).QueryRow()
 			exists, err := row.Scan(&subdomain)
 			if err != nil || !exists {
 				return pages.Fail("Failed to redirect to subdomain", err)

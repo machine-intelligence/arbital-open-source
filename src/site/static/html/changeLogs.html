@@ -1,0 +1,51 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<a data-toggle="collapse" data-parent="#accordion" href="#changeLogs">Change Logs</a>
+	</div>
+	<ul id="changeLogs" class="list-group collapse">
+		<li change-log-row
+				class="list-group-item"
+				ng-repeat="(index,changeLog) in page.changeLogs">
+			<div>
+				<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
+				</span>
+				<span ng-show="changeLog.auxPageId != '0'">
+					<a class="intrasite-link"
+							page-id="{{changeLog.auxPageId}}"
+							ng-href="{{pageService.getPageUrl(changeLog.auxPageid)}}"
+							ng-bind="changeLog.type"></a>
+				</span>
+				<span ng-show="changeLog.edit != 0">(edit #{{changeLog.edit}})</span>
+				by
+
+				<span ng-show="userService.user.id === changeLog.userId">you</span>
+				<span ng-show="userService.user.id !== changeLog.userId">
+					<arb-user-name user-id="{{changeLog.userId}}"></arb-user-name>
+				</span>
+
+				<span ng-bind="changeLog.createdAt | relativeDateTime"></span>.
+
+				<!-- Extra functionality for new edits -->
+				<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit">
+					<button type="button"
+						class="edit-node-revert-to-edit btn btn-danger"
+						title="Revert to this edit"
+						edit-num="{{changeLog.edit}}"
+						ng-show="changeLog.type === 'newEdit'"
+						toggle-on-submit>Revert</button>
+					<a ng-href="{{page.editUrl()}}?edit={{changeLog.edit}}"
+						class="btn btn-danger"
+						title="Load this edit in the editor"
+						toggle-on-submit>Load Edit</a>
+					<button type="button"
+						class="edit-node-diff-edit btn btn-default"
+						title="Diff with this edit"
+						edit-num="{{changeLog.edit}}"
+						toggle-on-submit>Diff</button>
+					<div class="submit-form-error alert alert-danger" hidden></div>
+				</div>
+
+			</div>
+		</li>
+	</ul>
+</div>

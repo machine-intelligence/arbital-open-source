@@ -92,6 +92,7 @@ func init() {
 	s.HandleFunc(deletePagePairHandler.URI, handlerWrapper(deletePagePairHandler)).Methods("POST")
 	s.HandleFunc(deleteSubscriptionHandler.URI, handlerWrapper(deleteSubscriptionHandler)).Methods("POST")
 	s.HandleFunc(editPageHandler.URI, handlerWrapper(editPageHandler)).Methods("POST")
+	s.HandleFunc(editPageInfoHandler.URI, handlerWrapper(editPageInfoHandler)).Methods("POST")
 	s.HandleFunc(newGroupHandler.URI, handlerWrapper(newGroupHandler)).Methods("POST")
 	s.HandleFunc(newLikeHandler.URI, handlerWrapper(newLikeHandler)).Methods("POST")
 	s.HandleFunc(newMemberHandler.URI, handlerWrapper(newMemberHandler)).Methods("POST")

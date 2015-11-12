@@ -326,27 +326,6 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 app.controller("EditPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
 	var pageId = $routeParams.alias;
 
-	// Call this when pageId is determined and page is loaded.
-	var createEditPage = $scope.getSuccessFunc(function() {
-		var page = pageService.editMap[pageId];
-		pageService.setPrimaryPage(page);
-
-		// Called when the user is done editing the page.
-		$scope.doneFn = function(result) {
-			if (pageService.primaryPage.wasPublished || !result.abandon) {
-				console.log(pageService.primaryPage.url());
-				$location.path(pageService.primaryPage.url());
-			} else {
-				$location.path("/edit/");
-			}
-			$scope.$apply();
-		};
-		return {
-			title: "Edit " + (page.title ? page.title : "New Page"),
-			element: $compile("<arb-edit-page page-id='" + pageId + "' done-fn='doneFn(result)'></arb-edit-page>")($scope),
-		};
-	});
-
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (pageId) {
@@ -354,19 +333,32 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 			pageService.loadEdit({
 				pageAlias: pageId,
 				specificEdit: $location.search().edit,
-				success: createEditPage,
+				success: $scope.getSuccessFunc(function() {
+					var page = pageService.editMap[pageId];
+					pageService.setPrimaryPage(page);
+			
+					// Called when the user is done editing the page.
+					$scope.doneFn = function(result) {
+						if (pageService.primaryPage.wasPublished || !result.abandon) {
+							$location.path(pageService.primaryPage.url());
+						} else {
+							$location.path("/edit/");
+						}
+						$scope.$apply();
+					};
+					return {
+						title: "Edit " + (page.title ? page.title : "New Page"),
+						element: $compile("<arb-edit-page page-id='" + pageId +
+							"' done-fn='doneFn(result)'></arb-edit-page>")($scope),
+					};
+				}),
 				error: $scope.getErrorFunc("loadEdit"),
 			});
 		} else {
 			// Create a new page to edit
 			pageService.getNewPage({
 				success: function(newPageId) {
-					pageId = newPageId;
-					var aliasParam = $location.search().alias;
-					if (aliasParam) {
-						pageService.editMap[pageId].alias = aliasParam;
-					}
-					createEditPage();
+					$location.path(pageService.getEditPageUrl(newPageId));
 				},
 			});
 		}

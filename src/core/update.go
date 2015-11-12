@@ -19,6 +19,7 @@ const (
 	TopLevelCommentUpdateType  = "topLevelComment"
 	ReplyUpdateType            = "reply"
 	PageEditUpdateType         = "pageEdit"
+	PageInfoEditUpdateType     = "pageInfoEdit"
 	CommentEditUpdateType      = "commentEdit"
 	NewPageByUserUpdateType    = "newPageByUser"
 	NewParentUpdateType        = "newParent"
@@ -95,13 +96,11 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 
 	// Create group loading options
 	groupLoadOptions := (&PageLoadOptions{
-		OriginalCreatedAt: true,
-		LastVisit:         true,
-		IsSubscribed:      true,
+		LastVisit:    true,
+		IsSubscribed: true,
 	}).Add(TitlePlusLoadOptions)
 	goToPageLoadOptions := (&PageLoadOptions{
-		OriginalCreatedAt: true,
-		LastVisit:         true,
+		LastVisit: true,
 	}).Add(TitlePlusLoadOptions)
 
 	updateRows := make([]*UpdateRow, 0, 0)

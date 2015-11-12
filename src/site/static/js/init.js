@@ -72,6 +72,7 @@ var serializeFormData = function($form, data) {
 // showing/hiding UI elements and doing the AJAX call.
 var submitForm = function($form, url, data, success, error) {
 	var $errorText = $form.find(".submit-form-error");
+	var $successText = $form.find(".submit-form-success");
 	var invisibleSubmit = data["__invisibleSubmit"];
 	if (!invisibleSubmit) {
 		$form.find("[toggle-on-submit]").toggle();
@@ -93,11 +94,13 @@ var submitForm = function($form, url, data, success, error) {
 		}
 	}).success(function(r) {
 		$errorText.hide();
+		$successText.show();
 		success(r);
 	}).fail(function(r) {
 		// Want to show an error even on invisible submit.
 		$errorText.show();
 		$errorText.text(r.statusText + ": " + r.responseText);
+		$successText.hide();
 		console.log(r);
 		if (error) error();
 	});

@@ -109,11 +109,42 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		}, 2000);
 	};
 
+
+	// Helper function for savePageInfo. Computes the data to submit via AJAX.
+	var computePageInfoData = function() {
+		var data = {
+			pageId: pageId,
+			editKarmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
+		};
+		serializeFormData($topParent.find(".page-info-form"), data);
+		return data;
+	};
+	var prevPageInfoData = undefined;
+	// Save the page info.
+	// callback is called when the server replies with success.
+	var savePageInfo = function(){
+		// Submit the form.
+		var data = computePageInfoData();
+		var $form = $topParent.find(".page-info-form");
+		if (JSON.stringify(data) !== JSON.stringify(prevPageInfoData)) {
+			submitForm($form, "/editPageInfo/", data, function(r) {
+			});
+			prevPageInfoData = data;
+		}
+	}
+
+	// Process form submission for page options.
+	$topParent.find(".page-info-form").on("submit", function(event) {
+		var $target = $(event.target);
+		var $body = $target.closest("body");
+		savePageInfo();
+		return false;
+	});
+
 	// Helper function for savePage. Computes the data to submit via AJAX.
 	var computeAutosaveData = function(isAutosave, isSnapshot) {
 		var data = {
 			pageId: pageId,
-			karmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
 			isAutosave: isAutosave,
 			isSnapshot: isSnapshot,
 			__invisibleSubmit: isAutosave,
@@ -334,7 +365,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	// Setup karma lock slider.
 	var $slider = $topParent.find(".karma-lock-slider");
 	$slider.bootstrapSlider({
-		value: +$slider.attr("value"),
+		value: page.editKarmaLock,
 		min: 0,
 		max: +$slider.attr("max"),
 		step: 1,
@@ -449,6 +480,14 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	    },
 		});
 
+		// Create change logs if necessary
+		if (page.changeLogs) {
+			setTimeout(function() {
+				$topParent.find(".change-logs").append($compile("<arb-change-logs page-id='" + pageId +
+						"'></arb-change-logs>")(scope));
+			});
+		}
+
 		// Autofocus on some input.
 		if (page.type !== "answer" || !primaryPage) {  
 			window.setTimeout(function() {
@@ -478,6 +517,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			// Compute prevEditPageData, so we don't fire off autosave when there were
 			// no changes made.
 			prevEditPageData = computeAutosaveData(true, false);
+			prevPageInfoData = computePageInfoData();
 		});
 
 		// Set up finding similar pages
@@ -833,6 +873,21 @@ app.directive("arbEditPage", function($timeout, $compile, pageService, userServi
 					});
 				});
 			}
+		},
+	};
+});
+
+// Directive for showing page's change log.
+app.directive("arbChangeLogs", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/changeLogs.html",
+		scope: {
+			pageId: "@",
+		},
+		link: function(scope, element, attrs) {
+			scope.userService = userService;
+			scope.pageService = pageService;
+			scope.page = pageService.editMap[scope.pageId];
 		},
 	};
 });

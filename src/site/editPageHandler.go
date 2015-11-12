@@ -1,4 +1,4 @@
-// editPageHandler.go contains the handler for creating a new page / edit.
+// editPageHandler.go contains the handler for creating a new page edit.
 package site
 
 import (
@@ -19,18 +19,11 @@ import (
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
 	PageId         int64 `json:",string"`
-	Type           string
 	Title          string
 	Clickbait      string
 	Text           string
 	MetaText       string
 	IsMinorEditStr string
-	HasVoteStr     string
-	VoteType       string
-	EditGroupId    int64 `json:",string"`
-	EditKarmaLock  int
-	Alias          string // if empty, leave the current one
-	SortChildrenBy string
 	IsAutosave     bool
 	IsSnapshot     bool
 	AnchorContext  string
@@ -51,7 +44,7 @@ var editPageHandler = siteHandler{
 	},
 }
 
-// editPageHandlerFunc handles requests to create a new page.
+// editPageHandlerFunc handles requests to create a new edit.
 func editPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Decode data
 	var data editPageData
@@ -79,34 +72,33 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
-		oldPage = &core.Page{}
+		// Likely the page hasn't been published yet, so let's load the unpublished version.
+		oldPage, err = core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{LoadNonliveEdit: true})
+		if err != nil || oldPage == nil {
+			return pages.HandlerErrorFail("Couldn't load the old page2", err)
+		}
 	}
 
 	// Load additional info
 	row := db.NewStatement(`
-		SELECT currentEdit>0,maxEdit,lockedBy,lockedUntil,
-			(SELECT max(edit) FROM pages WHERE pageId=? AND creatorId=? AND isAutosave) AS myLastAutosaveEdit,
-			(SELECT ifnull(max(voteType),"") FROM pages WHERE pageId=? AND NOT isAutosave AND NOT isSnapshot AND voteType!="") AS lockedVoteType
-		FROM pageInfos
-		WHERE pageId=?`).QueryRow(data.PageId, u.Id, data.PageId, data.PageId)
-	_, err = row.Scan(&oldPage.WasPublished, &oldPage.MaxEditEver,
-		&oldPage.LockedBy, &oldPage.LockedUntil, &oldPage.MyLastAutosaveEdit, &oldPage.LockedVoteType)
+		SELECT max(edit)
+		FROM pages
+		WHERE pageId=? AND creatorId=? AND isAutosave
+		`).QueryRow(data.PageId, u.Id)
+	_, err = row.Scan(&oldPage.MyLastAutosaveEdit)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load additional page info", err)
 	}
 
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
 	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
-	overwritingEdit := !oldPage.WasPublished && isCurrentEdit
 	newEditNum := oldPage.MaxEditEver + 1
 	if oldPage.MyLastAutosaveEdit.Valid {
 		// ... unless we can just replace a existing autosave.
-		overwritingEdit = true
 		newEditNum = int(oldPage.MyLastAutosaveEdit.Int64)
 	}
 	if data.RevertToEdit > 0 {
 		// ... or unless we are reverting an edit
-		overwritingEdit = true
 		newEditNum = data.RevertToEdit
 	}
 
@@ -117,7 +109,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Error checking.
-	data.Type = strings.ToLower(data.Type)
 	if data.IsAutosave && data.IsSnapshot {
 		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
 	}
@@ -140,33 +131,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
-		if len(data.Title) <= 0 && data.Type != core.CommentPageType {
+		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
-		}
-		if data.Type != core.WikiPageType &&
-			data.Type != core.LensPageType &&
-			data.Type != core.QuestionPageType &&
-			data.Type != core.AnswerPageType &&
-			data.Type != core.CommentPageType {
-			if data.Type == core.DeletedPageType {
-				if !data.DeleteEdit {
-					return pages.HandlerBadRequestFail("Can't delete the page like that.", nil)
-				}
-			} else {
-				return pages.HandlerBadRequestFail("Invalid page type.", nil)
-			}
-		}
-		if data.SortChildrenBy != core.LikesChildSortingOption &&
-			data.SortChildrenBy != core.RecentFirstChildSortingOption &&
-			data.SortChildrenBy != core.OldestFirstChildSortingOption &&
-			data.SortChildrenBy != core.AlphabeticalChildSortingOption {
-			return pages.HandlerBadRequestFail("Invalid sort children value.", nil)
-		}
-		if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
-			return pages.HandlerBadRequestFail("Invalid vote type value.", nil)
-		}
-		if data.EditKarmaLock < 0 || data.EditKarmaLock > u.MaxKarmaLock {
-			return pages.HandlerBadRequestFail("Karma value out of bounds", nil)
 		}
 		if data.AnchorContext == "" && data.AnchorText != "" {
 			return pages.HandlerBadRequestFail("Anchor context isn't set", nil)
@@ -193,75 +159,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	// Data correction. Rewrite the data structure so that we can just use it
-	// in a straight-forward way to populate the database.
-	// Can't change certain parameters after the page has been published.
-	var hasVote bool
-	if oldPage.LockedVoteType != "" {
-		hasVote = data.HasVoteStr == "on"
-		data.VoteType = oldPage.LockedVoteType
-	} else {
-		hasVote = data.VoteType != ""
-	}
-	if oldPage.WasPublished && data.RevertToEdit <= 0 && !data.DeleteEdit {
-		data.Type = oldPage.Type
-	}
-	// Enforce SortChildrenBy
-	if data.Type == core.CommentPageType {
-		data.SortChildrenBy = core.RecentFirstChildSortingOption
-	} else if data.Type == core.QuestionPageType {
-		data.SortChildrenBy = core.LikesChildSortingOption
-	}
-
-	// Make sure alias is valid
-	if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
-		data.Alias = oldPage.Alias
-	} else if data.Alias == "" {
-		data.Alias = fmt.Sprintf("%d", data.PageId)
-	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
-		// Check if the alias matches the strict regexp
-		if !core.StrictAliasRegexp.MatchString(data.Alias) {
-			aliasError := "Invalid alias. Can only contain letters and digits. It cannot be a number."
-			if isCurrentEdit {
-				return pages.HandlerErrorFail(aliasError, nil)
-			} else {
-				aliasWarningList = append(aliasWarningList, aliasError)
-			}
-		}
-
-		// Prefix alias with the group alias, if appropriate
-		if seeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
-			tempPageMap := map[int64]*core.Page{seeGroupId: core.NewPage(seeGroupId)}
-			err = core.LoadPages(db, u, tempPageMap)
-			if err != nil {
-				return pages.HandlerErrorFail("Couldn't load the see group", err)
-			}
-			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[seeGroupId].Alias, data.Alias)
-		}
-
-		// Check if another page is already using the alias
-		var existingPageId int64
-		row := db.NewStatement(`
-					SELECT pageId
-					FROM pages
-					WHERE isCurrentEdit AND pageId!=? AND alias=?`).QueryRow(data.PageId, data.Alias)
-		exists, err := row.Scan(&existingPageId)
-		if err != nil {
-			return pages.HandlerErrorFail("Failed on looking for conflicting alias", err)
-		} else if exists {
-			aliasUsedMessage := fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, existingPageId)
-			if isCurrentEdit {
-				return pages.HandlerErrorFail(aliasUsedMessage, nil)
-			} else {
-				aliasWarningList = append(aliasWarningList, aliasUsedMessage)
-			}
-		}
-	}
-
 	// Load parents for comments
 	var commentParentId int64
 	var commentPrimaryPageId int64
-	if isCurrentEdit && data.Type == core.CommentPageType {
+	if isCurrentEdit && oldPage.Type == core.CommentPageType {
 		rows := db.NewStatement(`
 			SELECT p.pageId,p.type
 			FROM pages AS p
@@ -335,7 +236,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Create a new edit.
-		hashmap := make(map[string]interface{})
+		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
 		hashmap["creatorId"] = u.Id
@@ -345,36 +246,25 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["metaText"] = data.MetaText
 		hashmap["summary"] = core.ExtractSummary(data.Text)
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
-		hashmap["alias"] = data.Alias
-		hashmap["sortChildrenBy"] = data.SortChildrenBy
 		hashmap["isCurrentEdit"] = isCurrentEdit
 		hashmap["isMinorEdit"] = isMinorEdit
-		hashmap["hasVote"] = hasVote
-		hashmap["voteType"] = data.VoteType
-		hashmap["editKarmaLock"] = data.EditKarmaLock
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
-		hashmap["type"] = data.Type
-		hashmap["seeGroupId"] = seeGroupId
-		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["createdAt"] = database.Now()
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText
 		hashmap["anchorOffset"] = data.AnchorOffset
-		var statement *database.Stmt
-		if overwritingEdit {
-			statement = tx.NewReplaceTxStatement("pages", hashmap)
-		} else {
-			statement = tx.NewInsertTxStatement("pages", hashmap)
-		}
+		statement := tx.NewInsertTxStatement("pages", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't insert a new page", err
 		}
 
 		// Update pageInfos
-		hashmap = make(map[string]interface{})
+		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
-		hashmap["createdAt"] = database.Now()
+		if !oldPage.WasPublished && isCurrentEdit {
+			hashmap["createdAt"] = database.Now()
+		}
 		hashmap["maxEdit"] = oldPage.MaxEditEver
 		if oldPage.MaxEditEver < newEditNum {
 			hashmap["maxEdit"] = newEditNum
@@ -382,14 +272,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if isCurrentEdit {
 			hashmap["currentEdit"] = newEditNum
 			hashmap["lockedUntil"] = database.Now()
-			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit", "currentEdit", "lockedUntil")
 		} else if data.IsAutosave {
 			hashmap["lockedBy"] = u.Id
 			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
-			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit", "lockedBy", "lockedUntil")
-		} else {
-			statement = tx.NewInsertTxStatement("pageInfos", hashmap, "maxEdit")
 		}
+		statement = tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update pageInfos", err
 		}
@@ -422,7 +309,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			hashmap = make(map[string]interface{})
 			hashmap["userId"] = u.Id
 			hashmap["toPageId"] = data.PageId
-			if data.Type == core.CommentPageType && commentParentId > 0 {
+			if oldPage.Type == core.CommentPageType && commentParentId > 0 {
 				hashmap["toPageId"] = commentParentId // subscribe to the parent comment
 			}
 			hashmap["createdAt"] = database.Now()
@@ -459,11 +346,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Update elastic search index.
 			doc := &elastic.Document{
 				PageId:     data.PageId,
-				Type:       data.Type,
+				Type:       oldPage.Type,
 				Title:      data.Title,
 				Clickbait:  data.Clickbait,
 				Text:       data.Text,
-				Alias:      data.Alias,
+				Alias:      oldPage.Alias,
 				SeeGroupId: seeGroupId,
 				CreatorId:  u.Id,
 			}
@@ -479,7 +366,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.UserId = u.Id
 			task.GoToPageId = data.PageId
 			task.SubscribedToPageId = data.PageId
-			if data.Type != core.CommentPageType {
+			if oldPage.Type != core.CommentPageType {
 				task.UpdateType = core.PageEditUpdateType
 				task.GroupByPageId = data.PageId
 			} else {
@@ -494,7 +381,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Generate updates for users who are subscribed to the author.
-		if !oldPage.WasPublished && data.Type != core.CommentPageType && !isMinorEdit {
+		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType && !isMinorEdit {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
@@ -509,7 +396,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Do some stuff for a new parent/child.
-		if !oldPage.WasPublished && data.Type != core.CommentPageType {
+		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType {
 			// Generate updates for users who are subscribed to the parent pages.
 			for _, pp := range primaryPage.Parents {
 				parentId := pp.ParentId
@@ -544,7 +431,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Do some stuff for a new comment.
-		if !oldPage.WasPublished && data.Type == core.CommentPageType {
+		if !oldPage.WasPublished && oldPage.Type == core.CommentPageType {
 			// Send updates.
 			if !isMinorEdit {
 				var task tasks.NewUpdateTask
