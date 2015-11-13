@@ -1154,11 +1154,12 @@ func loadOrderedChildrenIds(db *database.DB, parentId int64, sortType string) ([
 		SELECT pp.childId
 		FROM pagePairs AS pp
 		JOIN pages AS p
-		ON (pp.childId=p.pageId AND p.isCurrentEdit AND
-				pi.type!=? AND pi.type!=? AND pi.type!=?)`, CommentPageType, QuestionPageType, LensPageType).Add(`
+		ON (pp.childId=p.pageId) 
 		JOIN pageInfos AS pi
 		ON (pi.pageId=p.pageId)
-		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.parentId=?`, parentId).Add(`
+		WHERE p.isCurrentEdit
+			AND pi.type!=? AND pi.type!=? AND pi.type!=?`, CommentPageType, QuestionPageType, LensPageType).Add(`
+			AND pp.type=?`, ParentPagePairType).Add(`AND pp.parentId=?`, parentId).Add(`
 		ORDER BY ` + orderClause).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var childId int64
