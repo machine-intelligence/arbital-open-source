@@ -74,6 +74,7 @@ func PageIdsListFromMap(pageMap map[int64]*Page) []interface{} {
 
 // StandardizeLinks converts all alias links into pageId links.
 func StandardizeLinks(db *database.DB, text string) (string, error) {
+
 	// Populate a list of all the links
 	aliasesAndIds := make([]interface{}, 0)
 	// Track regexp matches, because ReplaceAllStringFunc doesn't support matching groups
@@ -100,6 +101,8 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 		regexp.MustCompile("(\\[[^\\]]+?\\]\\()([A-Za-z0-9_-]+?)(\\))"),
 		// Find ids and aliases using [vote: id/alias] syntax.
 		regexp.MustCompile("(\\[vote: ?)([A-Za-z0-9_-]+?)(\\])"),
+		// Find ids and aliases using [@id/alias] syntax.
+		regexp.MustCompile("(\\[@)([A-Za-z0-9_-]+)(\\])([^(]|$)"),
 	}
 	for _, exp := range regexps {
 		extractLinks(exp)
@@ -171,6 +174,8 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
 	// Find ids and aliases using [vote: alias] syntax.
 	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasRegexpStr + ")\\]"))
+	// Find ids and aliases using [@alias] syntax.
+	extractLinks(regexp.MustCompile("\\[@?(" + AliasRegexpStr + ")\\]"))
 	if len(aliasesAndIds) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list
