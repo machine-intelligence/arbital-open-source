@@ -122,9 +122,9 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		) AS v2
 		JOIN pageDomainPairs AS pd
 		ON (v2.pageId=pd.pageId)
-		JOIN pages AS p
-		ON (pd.pageId=p.pageId)
-		WHERE pd.domainId=? AND p.isCurrentEdit AND p.seeGroupId=?
+		JOIN pageInfos AS pi
+		ON (pd.pageId=pi.pageId)
+		WHERE pd.domainId=? AND pi.currentEdit>0 AND pi.seeGroupId=?
 		GROUP BY pd.pageId
 		ORDER BY VAR_POP(v2.value) DESC
 		LIMIT ?`).Query(domainId, params.PrivateGroupId, indexPanelLimit)
