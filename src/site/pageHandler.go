@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"appengine/taskqueue"
@@ -44,12 +45,16 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 
 		// Redirect www.
 		if mux.Vars(r)["www"] != "" {
-			subdomainStr := ""
-			if mux.Vars(r)["subdomain"] != "" {
-				subdomainStr = mux.Vars(r)["subdomain"] + "."
+			if sessions.Live {
+				http.Redirect(w, r, strings.Replace(r.URL.String(), "www.", "", -1), http.StatusSeeOther)
+			} else {
+				subdomainStr := ""
+				if mux.Vars(r)["subdomain"] != "" {
+					subdomainStr = mux.Vars(r)["subdomain"] + "."
+				}
+				url := fmt.Sprintf("http://%s%s%s", subdomainStr, sessions.GetRawDomain(), r.URL.String())
+				http.Redirect(w, r, url, http.StatusSeeOther)
 			}
-			url := fmt.Sprintf("http://%s%s%s", subdomainStr, sessions.GetRawDomain(), r.URL.String())
-			http.Redirect(w, r, url, http.StatusSeeOther)
 			return
 		}
 
