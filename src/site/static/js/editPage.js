@@ -110,27 +110,21 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	};
 
 
-	// Helper function for savePageInfo. Computes the data to submit via AJAX.
-	var computePageInfoData = function() {
+	// Save the page info.
+	// callback is called when the server replies.
+	var savePageInfo = function(callback){
+		// Submit the form.
 		var data = {
 			pageId: pageId,
 			editKarmaLock: +$topParent.find(".karma-lock-slider").bootstrapSlider("getValue"),
 		};
 		serializeFormData($topParent.find(".page-info-form"), data);
-		return data;
-	};
-	var prevPageInfoData = undefined;
-	// Save the page info.
-	// callback is called when the server replies with success.
-	var savePageInfo = function(){
-		// Submit the form.
-		var data = computePageInfoData();
 		var $form = $topParent.find(".page-info-form");
-		if (JSON.stringify(data) !== JSON.stringify(prevPageInfoData)) {
-			submitForm($form, "/editPageInfo/", data, function(r) {
-			});
-			prevPageInfoData = data;
-		}
+		submitForm($form, "/editPageInfo/", data, function(r) {
+			if(callback) callback(true);
+		}, function(r) {
+			if(callback) callback(false);
+		});
 	}
 
 	// Process form submission for page options.
@@ -215,13 +209,17 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Process form submission.
 	$topParent.find(".new-page-form").on("submit", function(event) {
-		var $target = $(event.target);
-		var $body = $target.closest("body");
-		var $loadingText = $body.find(".loading-text");
-		$loadingText.hide();
-		savePage(false, false, function(saved) {
-			if (doneFn) {
-				doneFn({alias: pageId});
+		savePageInfo(function(success) {
+			if (success) {
+				var $target = $(event.target);
+				var $body = $target.closest("body");
+				var $loadingText = $body.find(".loading-text");
+				$loadingText.hide();
+				savePage(false, false, function(saved) {
+					if (doneFn) {
+						doneFn({alias: pageId});
+					}
+				});
 			}
 		});
 		return false;
@@ -533,7 +531,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			// Compute prevEditPageData, so we don't fire off autosave when there were
 			// no changes made.
 			prevEditPageData = computeAutosaveData(true, false);
-			prevPageInfoData = computePageInfoData();
 		});
 
 		// Set up finding similar pages

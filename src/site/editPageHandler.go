@@ -164,11 +164,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	var commentPrimaryPageId int64
 	if isCurrentEdit && oldPage.Type == core.CommentPageType {
 		rows := db.NewStatement(`
-			SELECT p.pageId,p.type
-			FROM pages AS p
+			SELECT pi.pageId,pi.type
+			FROM pageInfos AS pi
 			JOIN pagePairs AS pp
-			ON (p.pageId=pp.parentId AND pp.type=?)
-			WHERE pp.childId=?
+			ON (pi.pageId=pp.parentId)
+			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0
 			`).Query(core.ParentPagePairType, data.PageId)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId int64
