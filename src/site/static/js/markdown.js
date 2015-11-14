@@ -27,7 +27,6 @@ var atAliasRegexp = new RegExp(notEscaped +
 var arbMarkdown = arbMarkdown || function() {
 	// Set up markdown editor and conversion.
 	function init(inEditMode, pageId, pageText, $topParent, pageService, userService, autocompleteService) {
-		var page = pageService.pageMap[pageId];
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
@@ -79,7 +78,20 @@ var arbMarkdown = arbMarkdown || function() {
 			return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
-					var url = "http://" + host + "/pages/" + page.alias + "/";
+					var url = "http://" + host + "/pages/" + page.pageId;
+					return prefix + "[" + page.title + "](" + url + ")";
+				} else {
+					return prefix + "[" + alias + "](" + alias + ")";
+				}
+			});
+		});
+
+		// Convert [@alias] spans into links.
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
+				var page = pageService.pageMap[alias];
+				if (page) {
+					var url = "http://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
 					return prefix + "[" + alias + "](" + alias + ")";
@@ -95,19 +107,6 @@ var arbMarkdown = arbMarkdown || function() {
 					return prefix + "[" + text + "](" + url + ")";
 				} else {
 					return prefix + "[" + text + "](" + alias + ")";
-				}
-			});
-		});
-
-		// Convert [@alias] spans into links.
-		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
-				var page = pageService.pageMap[alias];
-				if (page) {
-					var url = "http://" + host + "/user/" + alias + "/";
-					return prefix + "[" + page.title + "](" + url + ")";
-				} else {
-					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
 		});

@@ -46,8 +46,10 @@ func (task *PopulateElasticTask) Execute(db *database.DB) (delay int, err error)
 
 	// Compute all priors.
 	rows := db.NewStatement(`
-		SELECT pageId,type,title,clickbait,text,alias,seeGroupId,creatorId
-		FROM pages
+		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeGroupId,p.creatorId
+		FROM pages AS p
+		JOIN pageInfos AS pi
+		ON (p.pageId=pi.pageId)
 		WHERE isCurrentEdit`).Query()
 	err = rows.Process(populateElasticProcessPage)
 	if err != nil {

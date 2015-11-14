@@ -69,11 +69,14 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return pages.HandlerBadRequestFail("Trying to edit a public page. Go to arbital.com", err)
 		}
 	}
-	p.LoadOptions.Add(core.PrimaryEditLoadOptions)
+
+	// Remove the primary page from the pageMap and add it to the editMap
+	returnData := newHandlerData(false)
+	returnData.EditMap[pageId] = p
+	delete(returnData.PageMap, pageId)
 
 	// Load data
-	returnData := newHandlerData(false)
-	returnData.PageMap[p.PageId] = p
+	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
@@ -98,10 +101,6 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 			p.LockedUntil = hashmap["lockedUntil"].(string)
 		}
 	}
-
-	// Remove the primary page from the pageMap and add it to the editMap
-	returnData.EditMap[pageId] = p
-	delete(returnData.PageMap, pageId)
 
 	return pages.StatusOK(returnData.toJson())
 }

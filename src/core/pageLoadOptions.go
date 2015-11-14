@@ -72,15 +72,14 @@ var (
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
-		Parents:    true,
-		ChangeLogs: true,
-	}).Add(EditLoadOptions)
-	// Options for a quick edit
-	EditLoadOptions = (&PageLoadOptions{
-		Links: true,
-		Edit:  true,
-		Text:  true,
-	}).Add(TitlePlusLoadOptions)
+		Children:     true,
+		Parents:      true,
+		Tags:         true,
+		Requirements: true,
+		ChangeLogs:   true,
+		Links:        true,
+		Text:         true,
+	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
 		Questions:    true,
