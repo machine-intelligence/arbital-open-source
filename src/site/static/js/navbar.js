@@ -20,6 +20,20 @@ app.directive("arbNavbar", function($http, $location, $compile, $rootScope, page
 				$.removeCookie("zanaduu", {path: "/"});
 			});
 
+			$("#newPageButton").click(function() {
+				window.location.href = "/edit";
+			});
+
+			$("#newSibling").click(function() {
+				var listString = "";
+				var listArray = [];
+				for (var key in pageService.primaryPage.parents) {
+					listArray.push(pageService.primaryPage.parents[key].parentId);
+				}
+				listString = listArray.join(",");
+				window.location.href = "/edit?newParentId=" + listString;
+			});
+
 			// Setup search via navbar.
 			var $navSearch = element.find("#nav-search");
 			if ($navSearch.length > 0) {

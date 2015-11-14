@@ -21,7 +21,18 @@
 		</ul>
 		<ul class="nav navbar-nav navbar-right">
 			<li ng-show="userService.user.isLoggedIn && userService.userIsCool()">
-				<a href="/edit">+New Page</a>
+				<div class="btn-group">
+					<button type="button" class="btn btn-default navbar-btn" id="newPageButton">+New Page</button>
+					<button type="button" class="btn btn-default dropdown-toggle navbar-btn" data-toggle="dropdown"
+							ng-show="pageService.primaryPage.pageId">
+						<span class="caret"></span>
+						<span class="sr-only">Toggle Dropdown</span>
+					</button>
+					<ul class="dropdown-menu" ng-show="pageService.primaryPage.pageId">
+						<li><a href="/edit?newParentId={{pageService.primaryPage.pageId}}">New Child</a></li>
+						<li ng-show="pageService.primaryPage.parents.length"><a href="#" id="newSibling">New Sibling</a></li>
+					</ul>
+				</div>
 			</li>
 			<li ng-show="userService.user.isLoggedIn">
 				<a href="/updates">

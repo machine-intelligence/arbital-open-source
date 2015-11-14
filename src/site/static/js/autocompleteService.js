@@ -107,21 +107,6 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	  });
 	}
 
-	// Set up autocompletion based on user search for the given input field.
-	this.setupUserAutocomplete = function($input, selectCallback) {
-	  $input.autocomplete({
-			source: that.userSource,
-			minLength: 3,
-			delay: 300,
-			focus: function (event, ui) {
-				return false;
-			},
-			select: function (event, ui) {
-				return selectCallback(event, ui);
-			}
-	  });
-	}
-
 	// Find other pages similar to the page with the given data.
 	this.findSimilarPages = function(pageData, callback) {
 		$http({method: "POST", url: "/json/similarPageSearch/", data: JSON.stringify(pageData)})

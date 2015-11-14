@@ -82,7 +82,7 @@ app.service("pageService", function($http, $location, userService){
 		}
 	}
 
-	// Rreturns the url for the given page.
+	// Returns the url for the given page.
 	this.getPageUrl = function(pageId){
 		var url = "/pages/" + pageId;
 		var page = that.pageMap[pageId];

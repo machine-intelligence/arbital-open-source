@@ -358,7 +358,34 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 			// Create a new page to edit
 			pageService.getNewPage({
 				success: function(newPageId) {
-					$location.path(pageService.getEditPageUrl(newPageId));
+					var newParentIdString = $location.search().newParentId;
+					var unfinishedCallbackCount = 0;
+					var readyToRedirect = false;
+					if (newParentIdString) {
+						var newParentIdList = newParentIdString.split(",");
+						for (var key in newParentIdList) {
+							var newParentId = newParentIdList[key];
+							if (newParentId) {
+								unfinishedCallbackCount++;
+								pageService.newPagePair({
+									parentId: newParentId,
+									childId: newPageId,
+									type: "parent",
+								}, function() {
+									unfinishedCallbackCount--;
+									if (unfinishedCallbackCount <= 0 && readyToRedirect) {
+										$location.path(pageService.getEditPageUrl(newPageId));
+									}
+								});
+							}
+						}
+					}
+					readyToRedirect = true;
+					setTimeout(function() {
+						if (unfinishedCallbackCount > 0) {
+							$location.path(pageService.getEditPageUrl(newPageId));
+						}
+					}, 1000);
 				},
 			});
 		}

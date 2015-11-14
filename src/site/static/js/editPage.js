@@ -323,13 +323,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		return false;
 	});
 
-	// Setup autocomplete for user field.
-	autocompleteService.setupUserAutocomplete($topParent.find(".tag-input"), function(event, ui) {
-		createNewParentElement(ui.item.label);
-		$(event.target).val("");
-		return false;
-	});
-
 	// Add existing parent tags
 	addParentTags();
 
