@@ -379,13 +379,15 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 								});
 							}
 						}
+						readyToRedirect = true;
+						setTimeout(function() {
+							if (unfinishedCallbackCount > 0) {
+								$location.path(pageService.getEditPageUrl(newPageId));
+							}
+						}, 1000);
+					} else {
+						$location.path(pageService.getEditPageUrl(newPageId));
 					}
-					readyToRedirect = true;
-					setTimeout(function() {
-						if (unfinishedCallbackCount > 0) {
-							$location.path(pageService.getEditPageUrl(newPageId));
-						}
-					}, 1000);
 				},
 			});
 		}
