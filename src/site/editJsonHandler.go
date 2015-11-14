@@ -83,6 +83,11 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
+	// We need to copy some data from the loaded live version to the edit
+	livePage := returnData.PageMap[pageId]
+	p.Children = livePage.Children
+	p.Parents = livePage.Parents
+
 	// Grab the lock to this page, but only if we have the right group permissions
 	if p.SeeGroupId <= 0 || u.IsMemberOfGroup(p.SeeGroupId) {
 		now := database.Now()

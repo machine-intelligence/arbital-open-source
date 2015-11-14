@@ -356,9 +356,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		}
 		return whole;
 	}).replace(atAliasRegexp, function(whole, prefix, alias) {
-		console.log(alias);
 		var page = pageService.pageMap[alias];
-		console.log(page);
 		if (page) {
 			return prefix + "[@" + page.alias + "]";
 		}

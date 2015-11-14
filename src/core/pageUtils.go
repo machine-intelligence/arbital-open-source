@@ -21,7 +21,21 @@ const (
 
 // NewPage returns a pointer to a new page object created with the given page id
 func NewPage(pageId int64) *Page {
-	return &Page{corePageData: corePageData{PageId: pageId}}
+	p := &Page{corePageData: corePageData{PageId: pageId}}
+	p.Votes = make([]*Vote, 0)
+	p.AnswerIds = make([]string, 0)
+	p.CommentIds = make([]string, 0)
+	p.QuestionIds = make([]string, 0)
+	p.LensIds = make([]string, 0)
+	p.TaggedAsIds = make([]string, 0)
+	p.RelatedIds = make([]string, 0)
+	p.RequirementIds = make([]string, 0)
+	p.DomainIds = make([]string, 0)
+	p.ChangeLogs = make([]*ChangeLog, 0)
+	p.Children = make([]*PagePair, 0)
+	p.Parents = make([]*PagePair, 0)
+	p.Members = make(map[string]*Member)
+	return p
 }
 
 // AddPageIdToMap adds a new page with the given page id to the map if it's not
