@@ -13,6 +13,12 @@ import (
 	"zanaduu3/src/user"
 )
 
+const (
+	// Helpers for matching our markdown extensions
+	SpacePrefix   = "(^| |\n)"
+	NoParenSuffix = "($|[^(])"
+)
+
 // NewPage returns a pointer to a new page object created with the given page id
 func NewPage(pageId int64) *Page {
 	return &Page{corePageData: corePageData{PageId: pageId}}
@@ -76,33 +82,33 @@ func PageIdsListFromMap(pageMap map[int64]*Page) []interface{} {
 func StandardizeLinks(db *database.DB, text string) (string, error) {
 
 	// Populate a list of all the links
-	aliasesAndIds := make([]interface{}, 0)
+	aliasesAndIds := make([]string, 0)
 	// Track regexp matches, because ReplaceAllStringFunc doesn't support matching groups
 	matches := make(map[string][]string)
 	extractLinks := func(exp *regexp.Regexp) {
 		submatches := exp.FindAllStringSubmatch(text, -1)
 		for _, submatch := range submatches {
 			matches[submatch[0]] = submatch
-			aliasesAndIds = append(aliasesAndIds, submatch[2])
+			aliasesAndIds = append(aliasesAndIds, submatch[3])
 		}
 	}
 
 	// NOTE: these regexps are waaaay too simplistic and don't account for the
 	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
 	// brackets / parens.
-	// NOTE: each regexp should have one group that captures stuff that comes before
+	// NOTE: each regexp should have two groups that captures stuff that comes before
 	// the alias, and then 0 or more groups that capture everything after
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile("(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)([A-Za-z0-9_-]+)"),
-		// Find ids and aliases using [id/alias optional text] syntax.
-		regexp.MustCompile("(\\[)([A-Za-z0-9_-]+)( [^\\]]*?)?(\\])([^(]|$)"),
-		// Find ids and aliases using [text](id/alias) syntax.
-		regexp.MustCompile("(\\[[^\\]]+?\\]\\()([A-Za-z0-9_-]+?)(\\))"),
-		// Find ids and aliases using [vote: id/alias] syntax.
-		regexp.MustCompile("(\\[vote: ?)([A-Za-z0-9_-]+?)(\\])"),
-		// Find ids and aliases using [@id/alias] syntax.
-		regexp.MustCompile("(\\[@)([A-Za-z0-9_-]+)(\\])([^(]|$)"),
+		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)(" + AliasRegexpStr + ")"),
+		// Find ids and aliases using [alias optional text] syntax.
+		regexp.MustCompile(SpacePrefix + "(\\[)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
+		// Find ids and aliases using [text](alias) syntax.
+		regexp.MustCompile(SpacePrefix + "(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))"),
+		// Find ids and aliases using [vote: alias] syntax.
+		regexp.MustCompile(SpacePrefix + "(\\[vote: ?)(" + AliasRegexpStr + ")(\\])"),
+		// Find ids and aliases using [@alias] syntax.
+		regexp.MustCompile(SpacePrefix + "(\\[@)(" + AliasRegexpStr + ")(\\])([^(]|$)"),
 	}
 	for _, exp := range regexps {
 		extractLinks(exp)
@@ -117,7 +123,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	rows := database.NewQuery(`
 		SELECT pageId,alias
 		FROM pageInfos
-		WHERE alias IN`).AddArgsGroup(aliasesAndIds).ToStatement(db).Query()
+		WHERE alias IN`).AddArgsGroupStr(aliasesAndIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, alias string
 		err := rows.Scan(&pageId, &alias)
@@ -134,10 +140,10 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// Perform replacement
 	replaceAlias := func(match string) string {
 		submatch := matches[match]
-		if id, ok := aliasMap[submatch[2]]; ok {
+		if id, ok := aliasMap[submatch[3]]; ok {
 			// Since ReplaceAllStringFunc gives us the whole match, rather than submatch
 			// array, we have stored it earlier and can now piece it together
-			return submatch[1] + id + strings.Join(submatch[3:], "")
+			return submatch[1] + submatch[2] + id + strings.Join(submatch[4:], "")
 		}
 		return match
 	}

@@ -67,7 +67,7 @@ const (
 	PageLockDuration      = 30 * 60 // in seconds
 
 	// String that can be used inside a regexp to match an a page alias or id
-	AliasRegexpStr          = "[A-Za-z0-9.]+"
+	AliasRegexpStr          = "[A-Za-z0-9]+\\.?[A-Za-z0-9]*"
 	SubdomainAliasRegexpStr = "[A-Za-z0-9]*"
 )
 
