@@ -874,7 +874,7 @@ app.directive("arbRequirementsPanel", function(pageService, userService, autocom
 			});
 
 			$timeout(function() {
-				// Set the rendering for tags autocomplete
+				// Set the rendering for requirement autocomplete
 				autocompleteService.setAutocompleteRendering(element.find(".tag-input"), scope);
 			});
 		},

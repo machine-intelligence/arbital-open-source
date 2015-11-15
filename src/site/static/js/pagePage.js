@@ -282,10 +282,7 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 			// Toggle between lenses.
 			var performSwitchToLens = function(lensPage) {
 				pageService.setPrimaryPage(lensPage);
-				// Sigh. This generates an error, but it seems benign.
-				console.log("==== Error might be generated, but it's not actually an error.... I think ====");
-				var url = window.location.pathname + "?lens=" + lensPage.pageId + window.location.hash;
-				history.pushState(null, lensPage.title + " - Arbital", url);
+				$location.search("lens", lensPage.pageId);
 			};
 			var switchToLens = function(lensId, callback) {
 				var lensPage = pageService.pageMap[lensId];
