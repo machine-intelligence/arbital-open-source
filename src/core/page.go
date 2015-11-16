@@ -948,7 +948,7 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 			) AS pp JOIN (
 				SELECT pageId
 				FROM pageInfos
-				WHERE currentEdit>0 AND type!=? AND type!=?`, CommentPageType, QuestionPageType).Add(`
+				WHERE currentEdit>0 AND type!=? AND type!=? AND type!=?`, CommentPageType, QuestionPageType, LensPageType).Add(`
 			) AS pi
 			ON (pi.pageId=pp.childId)
 			GROUP BY 1`).ToStatement(db).Query()
