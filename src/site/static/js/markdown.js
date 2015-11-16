@@ -1,6 +1,6 @@
 "use strict";
 
-var notEscaped = "(^|\\\\`|\\\\\\[| |\n)";
+var notEscaped = "(^|\\\\`|\\\\\\[| |>|\n)";
 var noParen = "(?=$|[^(])";
 var aliasMatch = "([A-Za-z0-9]+\.?[A-Za-z0-9]*)";
 /*// [vote: alias]
