@@ -273,6 +273,14 @@ func GetEditPageUrl(pageId int64) string {
 	return fmt.Sprintf("/edit/%d", pageId)
 }
 
+// GetNewPageUrl returns the domain relative url for creating a page with a set alias.
+func GetNewPageUrl(alias string) string {
+	if alias != "" {
+		alias = fmt.Sprintf("?alias=%s", alias)
+	}
+	return fmt.Sprintf("/edit/%s", alias)
+}
+
 // GetEditLevel checks if the user can edit this page. Possible return values:
 // "" = user has correct permissions to perform the action
 // "admin" = user can perform the action, but only because they are an admin

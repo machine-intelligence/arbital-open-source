@@ -25,6 +25,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 	.when("/edit/:alias?", {
 		template: "",
 		controller: "EditPageController",
+		reloadOnSearch: false,
 	})
 	.when("/user/:id?", {
 		template: "",
@@ -328,13 +329,19 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
-		if (pageId) {
+		if (+pageId) {
 			// Load the last edit
 			pageService.loadEdit({
 				pageAlias: pageId,
 				specificEdit: $location.search().edit,
 				success: $scope.getSuccessFunc(function() {
 					var page = pageService.editMap[pageId];
+					if ($location.search().alias) {
+						// Set page's alias
+						page.alias = $location.search().alias;
+						$location.search("alias", undefined);
+					}
+
 					pageService.setPrimaryPage(page);
 			
 					// Called when the user is done editing the page.
@@ -358,15 +365,18 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 			// Create a new page to edit
 			pageService.getNewPage({
 				success: function(newPageId) {
+					// Check if we need to add parents to this new page
 					var newParentIdString = $location.search().newParentId;
 					var unfinishedCallbackCount = 0;
 					var readyToRedirect = false;
 					if (newParentIdString) {
+						// Add the parents, and then wait for the server to reply
 						var newParentIdList = newParentIdString.split(",");
 						for (var key in newParentIdList) {
 							var newParentId = newParentIdList[key];
 							if (newParentId) {
 								unfinishedCallbackCount++;
+								// Add a parent for this new page
 								pageService.newPagePair({
 									parentId: newParentId,
 									childId: newPageId,

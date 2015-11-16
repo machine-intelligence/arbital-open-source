@@ -28,7 +28,8 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 			return pages.Fail("Couldn't convert alias", err)
 		}
 		if !ok {
-			return pages.Fail("Couldn't find alias", err)
+			// Couldn't find alias, so let's create a page with it
+			return pages.RedirectWith(core.GetNewPageUrl(pageAlias))
 		}
 		if pageAlias != fmt.Sprintf("%d", pageId) {
 			return pages.RedirectWith(core.GetEditPageUrl(pageId))
