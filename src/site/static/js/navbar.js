@@ -50,7 +50,7 @@ app.directive("arbNavbar", function($http, $location, $compile, $rootScope, page
 						if (event.ctrlKey) {
 							return false;
 						}
-						$location.path(pageService.getPageUrl(ui.item.label));
+						window.location.href = pageService.getPageUrl(ui.item.label);
 						return false;
 					},
 				});
