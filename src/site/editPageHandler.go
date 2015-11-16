@@ -373,9 +373,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UpdateType = core.CommentEditUpdateType
 				task.GroupByPageId = commentPrimaryPageId
 			}
-			if err := task.IsValid(); err != nil {
-				c.Errorf("Invalid task created: %v", err)
-			} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -388,9 +386,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GroupByUserId = u.Id
 			task.SubscribedToId = u.Id
 			task.GoToPageId = data.PageId
-			if err := task.IsValid(); err != nil {
-				c.Errorf("Invalid task created: %v", err)
-			} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -406,9 +402,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.GroupByPageId = parentId
 				task.SubscribedToId = parentId
 				task.GoToPageId = data.PageId
-				if err := task.IsValid(); err != nil {
-					c.Errorf("Invalid task created: %v", err)
-				} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -422,9 +416,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.GroupByPageId = childId
 				task.SubscribedToId = childId
 				task.GoToPageId = data.PageId
-				if err := task.IsValid(); err != nil {
-					c.Errorf("Invalid task created: %v", err)
-				} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -447,9 +439,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					task.UpdateType = core.TopLevelCommentUpdateType
 					task.SubscribedToId = commentPrimaryPageId
 				}
-				if err := task.IsValid(); err != nil {
-					c.Errorf("Invalid task created: %v", err)
-				} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -464,9 +454,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.MentionedUserId, _ = strconv.ParseInt(submatch[1], 10, 64)
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
-				if err := task.IsValid(); err != nil {
-					c.Errorf("Invalid task created: %v", err)
-				} else if err := tasks.Enqueue(c, task, "atMentionUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, "atMentionUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -476,9 +464,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
 			task.PageId = data.PageId
-			if err := task.IsValid(); err != nil {
-				c.Errorf("Invalid task created: %v", err)
-			} else if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+			if err := tasks.Enqueue(c, &task, "propagateDomain"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}

@@ -22,7 +22,11 @@ type QueueTask interface {
 }
 
 // Add the task to the queue.
-func EnqueueWithName(c sessions.Context, task interface{}, tag string, name string) (err error) {
+func EnqueueWithName(c sessions.Context, task QueueTask, tag string, name string) (err error) {
+	if err = task.IsValid(); err != nil {
+		err = fmt.Errorf("Attempting to enqueue invalid task: %v", err)
+		return
+	}
 	buffer := new(bytes.Buffer)
 	err = gob.NewEncoder(buffer).Encode(task)
 	if err != nil {
@@ -43,17 +47,21 @@ func EnqueueWithName(c sessions.Context, task interface{}, tag string, name stri
 }
 
 // Add the task to the queue.
-func Enqueue(c sessions.Context, task interface{}, tag string) (err error) {
+func Enqueue(c sessions.Context, task QueueTask, tag string) (err error) {
 	return EnqueueWithName(c, task, tag, "")
 }
 
 // Convert byte stream into a QueueTask.
-func Dequeue(leasedTask *taskqueue.Task, task interface{}) (err error) {
+func Decode(leasedTask *taskqueue.Task, task QueueTask) (err error) {
 	buffer := bytes.NewBuffer(leasedTask.Payload)
 	dec := gob.NewDecoder(buffer)
 	err = dec.Decode(task)
 	if err != nil {
 		err = fmt.Errorf("Couldn't decode a task: %v", err)
+		return
+	}
+	if err = task.IsValid(); err != nil {
+		err = fmt.Errorf("Attempting to decode invalid task: %v", err)
 		return
 	}
 	return

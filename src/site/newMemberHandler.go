@@ -83,9 +83,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	task.UpdateType = core.AddedToGroupUpdateType
 	task.MemberId = data.UserId
 	task.GroupId = data.GroupId
-	if err := task.IsValid(); err != nil {
-		c.Errorf("Invalid task created: %v", err)
-	} else if err := tasks.Enqueue(c, task, "memberUpdate"); err != nil {
+	if err := tasks.Enqueue(c, &task, "memberUpdate"); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 

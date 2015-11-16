@@ -273,9 +273,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.SubscribedToId = data.PageId
 		task.UpdateType = core.PageInfoEditUpdateType
 		task.GroupByPageId = data.PageId
-		if err := task.IsValid(); err != nil {
-			c.Errorf("Invalid task created: %v", err)
-		} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 	}
