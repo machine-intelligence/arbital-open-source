@@ -173,7 +173,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 		task.UserId = u.Id
 		task.GroupByPageId = child.PageId
-		task.SubscribedToPageId = child.PageId
+		task.SubscribedToId = child.PageId
 		task.GoToPageId = parent.PageId
 		if err := task.IsValid(); err != nil {
 			c.Errorf("Invalid task created: %v", err)
@@ -191,7 +191,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			task.UpdateType = core.NewTaggedByUpdateType
 		}
 		task.GroupByPageId = parent.PageId
-		task.SubscribedToPageId = parent.PageId
+		task.SubscribedToId = parent.PageId
 		task.GoToPageId = child.PageId
 		if err := task.IsValid(); err != nil {
 			c.Errorf("Invalid task created: %v", err)

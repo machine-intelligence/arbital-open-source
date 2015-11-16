@@ -11,7 +11,6 @@ import (
 // newSubscriptionData contains the data we get in the request.
 type newSubscriptionData struct {
 	PageId int64 `json:",string"`
-	UserId int64 `json:",string"`
 }
 
 var newSubscriptionHandler = siteHandler{
@@ -30,15 +29,15 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data newSubscriptionData
 	err := decoder.Decode(&data)
-	if err != nil || (data.PageId == 0 && data.UserId == 0) {
+	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+	}
+	if data.PageId <= 0 {
+		return pages.HandlerBadRequestFail("Page id has to be set", err)
 	}
 
 	errorMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		if data.PageId > 0 {
-			return addSubscriptionToPage(tx, u.Id, data.PageId)
-		}
-		return addSubscriptionToUser(tx, u.Id, data.UserId)
+		return addSubscription(tx, u.Id, data.PageId)
 	})
 	if errorMessage != "" {
 		return pages.HandlerErrorFail(errorMessage, err)
@@ -46,18 +45,10 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.StatusOK(nil)
 }
 
-func addSubscriptionToPage(tx *database.Tx, userId int64, toPageId int64) (string, error) {
-	hashmap := map[string]interface{}{"toPageId": toPageId}
-	return addSubscription(tx, hashmap, userId)
-}
-
-func addSubscriptionToUser(tx *database.Tx, userId int64, toUserId int64) (string, error) {
-	hashmap := map[string]interface{}{"toUserId": toUserId}
-	return addSubscription(tx, hashmap, userId)
-}
-
-func addSubscription(tx *database.Tx, hashmap map[string]interface{}, userId int64) (string, error) {
+func addSubscription(tx *database.Tx, userId int64, toPageId int64) (string, error) {
+	hashmap := make(map[string]interface{})
 	hashmap["userId"] = userId
+	hashmap["toId"] = toPageId
 	hashmap["createdAt"] = database.Now()
 	statement := tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
 	_, err := statement.Exec()

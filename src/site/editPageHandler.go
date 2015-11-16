@@ -308,9 +308,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if isCurrentEdit && !oldPage.WasPublished {
 			hashmap = make(map[string]interface{})
 			hashmap["userId"] = u.Id
-			hashmap["toPageId"] = data.PageId
+			hashmap["toId"] = data.PageId
 			if oldPage.Type == core.CommentPageType && commentParentId > 0 {
-				hashmap["toPageId"] = commentParentId // subscribe to the parent comment
+				hashmap["toId"] = commentParentId // subscribe to the parent comment
 			}
 			hashmap["createdAt"] = database.Now()
 			statement = tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
@@ -365,7 +365,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.GoToPageId = data.PageId
-			task.SubscribedToPageId = data.PageId
+			task.SubscribedToId = data.PageId
 			if oldPage.Type != core.CommentPageType {
 				task.UpdateType = core.PageEditUpdateType
 				task.GroupByPageId = data.PageId
@@ -386,7 +386,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
 			task.GroupByUserId = u.Id
-			task.SubscribedToUserId = u.Id
+			task.SubscribedToId = u.Id
 			task.GoToPageId = data.PageId
 			if err := task.IsValid(); err != nil {
 				c.Errorf("Invalid task created: %v", err)
@@ -404,7 +404,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UserId = u.Id
 				task.UpdateType = core.NewChildUpdateType
 				task.GroupByPageId = parentId
-				task.SubscribedToPageId = parentId
+				task.SubscribedToId = parentId
 				task.GoToPageId = data.PageId
 				if err := task.IsValid(); err != nil {
 					c.Errorf("Invalid task created: %v", err)
@@ -420,7 +420,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UserId = u.Id
 				task.UpdateType = core.NewParentUpdateType
 				task.GroupByPageId = childId
-				task.SubscribedToPageId = childId
+				task.SubscribedToId = childId
 				task.GoToPageId = data.PageId
 				if err := task.IsValid(); err != nil {
 					c.Errorf("Invalid task created: %v", err)
@@ -441,11 +441,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				if commentParentId > 0 {
 					// This is a new reply
 					task.UpdateType = core.ReplyUpdateType
-					task.SubscribedToPageId = commentParentId
+					task.SubscribedToId = commentParentId
 				} else {
 					// This is a new top level comment
 					task.UpdateType = core.TopLevelCommentUpdateType
-					task.SubscribedToPageId = commentPrimaryPageId
+					task.SubscribedToId = commentPrimaryPageId
 				}
 				if err := task.IsValid(); err != nil {
 					c.Errorf("Invalid task created: %v", err)

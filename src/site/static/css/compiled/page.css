@@ -1362,49 +1362,26 @@ textarea.new-comment-text {
   padding: 3px 3px;
   background-color: #f7f8ff;
 }
-.group-subscribe-to-page-link {
+.group-subscribe-to-link {
   color: #e0e0e0;
   text-decoration: none;
 }
-.group-subscribe-to-page-link.on {
+.group-subscribe-to-link.on {
   color: #5050FF;
 }
-.group-subscribe-to-page-link.on:focus {
+.group-subscribe-to-link.on:focus {
   color: #5050FF;
 }
-.group-subscribe-to-page-link:focus {
+.group-subscribe-to-link:focus {
   outline: none;
   color: #e0e0e0;
   text-decoration: none;
 }
-.group-subscribe-to-page-link:hover {
+.group-subscribe-to-link:hover {
   color: #0000e9;
   text-decoration: none;
 }
-.group-subscribe-to-page-link:active {
-  color: #8383ff;
-  text-decoration: none;
-}
-.group-subscribe-to-user-link {
-  color: #e0e0e0;
-  text-decoration: none;
-}
-.group-subscribe-to-user-link.on {
-  color: #5050FF;
-}
-.group-subscribe-to-user-link.on:focus {
-  color: #5050FF;
-}
-.group-subscribe-to-user-link:focus {
-  outline: none;
-  color: #e0e0e0;
-  text-decoration: none;
-}
-.group-subscribe-to-user-link:hover {
-  color: #0000e9;
-  text-decoration: none;
-}
-.group-subscribe-to-user-link:active {
+.group-subscribe-to-link:active {
   color: #8383ff;
   text-decoration: none;
 }

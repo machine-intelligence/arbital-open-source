@@ -1324,9 +1324,9 @@ func LoadSubscriptions(db *database.DB, currentUserId int64, pageMap map[int64]*
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT toPageId
+		SELECT toId
 		FROM subscriptions
-		WHERE userId=?`, currentUserId).Add(`AND toPageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+		WHERE userId=?`, currentUserId).Add(`AND toId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var toPageId int64
 		err := rows.Scan(&toPageId)
@@ -1334,29 +1334,6 @@ func LoadSubscriptions(db *database.DB, currentUserId int64, pageMap map[int64]*
 			return fmt.Errorf("failed to scan for a subscription: %v", err)
 		}
 		pageMap[toPageId].IsSubscribed = true
-		return nil
-	})
-	return err
-}
-
-// LoadUserSubscriptions loads subscription statuses corresponding to the given
-// users, and then updates the given map.
-func LoadUserSubscriptions(db *database.DB, currentUserId int64, userMap map[int64]*User) error {
-	if len(userMap) <= 0 {
-		return nil
-	}
-	userIds := IdsListFromUserMap(userMap)
-	rows := database.NewQuery(`
-		SELECT toUserId
-		FROM subscriptions
-		WHERE userId=?`, currentUserId).Add(`AND toUserId IN`).AddArgsGroup(userIds).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var toUserId int64
-		err := rows.Scan(&toUserId)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a subscription: %v", err)
-		}
-		userMap[toUserId].IsSubscribed = true
 		return nil
 	})
 	return err

@@ -7,27 +7,22 @@
 			<div class="panel-heading">
 				<!-- Header when grouping by page -->
 				<span ng-show="group.key.groupByPageId !== '0'">
-					<span ng-show="pageService.pageMap[group.key.groupByPageId].title">
-						<span class="pull-right">
-							<a href="#"
-									class="group-subscribe-to-page-link glyph-link glyphicon glyphicon-eye-open"
-									ng-class="{on: pageService.pageMap[group.key.groupByPageId].isSubscribed}"
-									page-id="{{group.key.groupByPageId}}"></a>
-						</span>
-						<arb-likes-page-title page-id="{{group.key.groupByPageId}}"></arb-likes-page-title>
+					<span class="pull-right">
+						<a href="#"
+								class="group-subscribe-to-link glyph-link glyphicon glyphicon-eye-open"
+								ng-class="{on: pageService.pageMap[group.key.groupByPageId].isSubscribed}"
+								page-id="{{group.key.groupByPageId}}"></a>
 					</span>
-					<span ng-hide="pageService.pageMap[group.key.groupByPageId].title">
-						Private page
-					</span>
+					<arb-likes-page-title page-id="{{group.key.groupByPageId}}"></arb-likes-page-title>
 				</span>
 
 				<!-- Header when grouping by user -->
 				<span ng-show="group.key.groupByUserId !== '0'">
 					<span class="pull-right">
 						<a href="#"
-								class="group-subscribe-to-user-link glyphicon glyphicon-eye-open"
-								ng-class="{on: userService.userMap[group.key.groupByUserId].isSubscribed}"
-								user-id="{{group.key.groupByUserId}}"></a>
+								class="group-subscribe-to-link glyphicon glyphicon-eye-open"
+								ng-class="{on: pageService.pageMap[group.key.groupByUserId].isSubscribed}"
+								page-id="{{group.key.groupByUserId}}"></a>
 					</span>
 					<arb-user-name user-id="{{group.key.groupByUserId}}"></arb-user-name>
 				</span>
@@ -122,13 +117,9 @@
 							added you to
 							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
 									page-id="{{update.goToPageId}}"
-									class="intrasite-link"
-									ng-show="pageService.pageMap[update.goToPageId].title">
+									class="intrasite-link">
 								the {{pageService.pageMap[update.goToPageId].title}} group
 							</a>
-							<span ng-hide="pageService.pageMap[update.goToPageId].title">
-								a private group
-							</span>
 						</div>
 		
 						<div ng-switch-when="removedFromGroup">
@@ -136,13 +127,9 @@
 							removed you from
 							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
 									page-id="{{update.goToPageId}}"
-									class="intrasite-link"
-									ng-show="pageService.pageMap[update.goToPageId].title">
+									class="intrasite-link">
 								the {{pageService.pageMap[update.goToPageId].title}} group
 							</a>
-							<span ng-hide="pageService.pageMap[update.goToPageId].title">
-								a private group
-							</span>
 						</div>
 		
 						<div ng-switch-default class="alert alert-danger" role="alert">

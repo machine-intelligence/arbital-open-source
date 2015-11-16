@@ -29,8 +29,6 @@ type User struct {
 	Id        int64  `json:"id,string"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
-	// True if the current user is subscribed to this user
-	IsSubscribed bool `json:"isSubscribed"`
 }
 
 // FullName returns user's first and last name.

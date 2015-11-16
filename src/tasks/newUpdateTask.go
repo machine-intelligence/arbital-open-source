@@ -18,10 +18,9 @@ type NewUpdateTask struct {
 	GroupByPageId int64
 	GroupByUserId int64
 
-	// Subscription check. One of these has to be set. We'll notify the users who
-	// are subscribed to "this thing", e.g. this page id.
-	SubscribedToPageId int64
-	SubscribedToUserId int64
+	// We'll notify the users who are subscribed to this page id (also could be a
+	// user id, group id, domain id)
+	SubscribedToId int64
 
 	// Go to destination. One of these has to be set. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
@@ -35,6 +34,8 @@ func (task *NewUpdateTask) IsValid() error {
 		return fmt.Errorf("User id has to be set")
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
+	} else if task.SubscribedToId <= 0 {
+		return fmt.Errorf("SubscibedTo id has to be set")
 	}
 
 	groupByCount := 0
@@ -46,17 +47,6 @@ func (task *NewUpdateTask) IsValid() error {
 	}
 	if groupByCount != 1 {
 		return fmt.Errorf("Exactly one GroupBy... has to be set")
-	}
-
-	toCount := 0
-	if task.SubscribedToPageId > 0 {
-		toCount++
-	}
-	if task.SubscribedToUserId > 0 {
-		toCount++
-	}
-	if toCount != 1 {
-		return fmt.Errorf("Exactly one of 'SubscribedTo...' variables has to be set")
 	}
 
 	if task.GoToPageId <= 0 {
@@ -76,20 +66,11 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, err
 	}
 
-	// Figure out the subscriptions query constraint.
-	whereClause := database.NewQuery("")
-	if task.SubscribedToPageId > 0 {
-		whereClause.Add("WHERE toPageId=?", task.SubscribedToPageId)
-	} else if task.SubscribedToUserId > 0 {
-		whereClause.Add("WHERE toUserId=?", task.SubscribedToUserId)
-	} else {
-		return -1, err
-	}
-
 	// Iterate through all users who are subscribed to this page/comment.
 	rows := database.NewQuery(`
 		SELECT userId
-		FROM subscriptions`).AddPart(whereClause).ToStatement(db).Query()
+		FROM subscriptions
+		WHERE toId=?`, task.SubscribedToId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId int64
 		err := rows.Scan(&userId)
@@ -109,13 +90,11 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			FROM updates
 			WHERE userId=? AND byUserId=? AND type=? AND newCount>0 AND
 				groupByPageId=? AND groupByUserId=? AND
-				subscribedToPageId=? AND subscribedToUserId=? AND
-				goToPageId=?
+				subscribedToId=? AND goToPageId=?
 			ORDER BY createdAt DESC
 			LIMIT 1`).QueryRow(userId, task.UserId, task.UpdateType,
 			task.GroupByPageId, task.GroupByUserId,
-			task.SubscribedToPageId, task.SubscribedToUserId,
-			task.GoToPageId)
+			task.SubscribedToId, task.GoToPageId)
 		exists, err = row.Scan(&previousUpdateId)
 		if err != nil {
 			return fmt.Errorf("failed to check for existing update: %v", err)
@@ -132,8 +111,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["type"] = task.UpdateType
 		hashmap["groupByPageId"] = task.GroupByPageId
 		hashmap["groupByUserId"] = task.GroupByUserId
-		hashmap["subscribedToPageId"] = task.SubscribedToPageId
-		hashmap["subscribedToUserId"] = task.SubscribedToUserId
+		hashmap["subscribedToId"] = task.SubscribedToId
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["createdAt"] = database.Now()
 		hashmap["newCount"] = newCountValue

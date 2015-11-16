@@ -16,3 +16,5 @@ alter table pageInfos add column alias VARCHAR(64) NOT NULL,
 	add column editKarmaLock INT NOT NULL;
 update pageInfos as pi join pages as p on (pi.pageId=p.pageId and p.isCurrentEdit) set pi.alias=p.alias,pi.type=p.type,pi.sortChildrenBy=p.sortChildrenBy,pi.hasVote=p.hasVote,pi.voteType=p.voteType,pi.seeGroupId=p.seeGroupId,pi.editGroupId=p.editGroupId,pi.editKarmaLock=p.editKarmaLock ;
 alter table pages drop column `alias`,drop column `type`,drop column sortChildrenBy,drop column hasVote,drop column voteType,drop column seeGroupId,drop column editGroupId,drop column editKarmaLock;
+update subscriptions set toPageId=toUserId where toPageId=0; alter table subscriptions drop column toUserId; alter table subscriptions change column toPageId toId bigint not null;
+update updates set subscribedToPageId=subscribedToUserId where subscribedToPageId=0; alter table updates drop column subscribedToUserId; alter table updates change column subscribedToPageId subscribedToId bigint not null;

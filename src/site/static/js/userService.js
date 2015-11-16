@@ -20,33 +20,6 @@ app.service("userService", function(){
 		return "/user/" + userId;
 	};
 
-	// (Un)subscribe a user to a thing.
-	var subscribeTo = function(doSubscribe, data, done) {
-		$.ajax({
-			type: "POST",
-			url: doSubscribe ? "/newSubscription/" : "/deleteSubscription/",
-			data: JSON.stringify(data),
-		})
-		.done(done);
-	};
-	// (Un)subscribe a user to another user.
-	this.subscribeToUser = function($target) {
-		var $target = $(event.target);
-		$target.toggleClass("on");
-		var data = {
-			userId: $target.attr("user-id"),
-		};
-		subscribeTo($target.hasClass("on"), data, function(r) {});
-	}
-	this.subscribeToPage = function($target) {
-		var $target = $(event.target);
-		$target.toggleClass("on");
-		var data = {
-			pageId: $target.attr("page-id"),
-		};
-		subscribeTo($target.hasClass("on"), data, function(r) {});
-	};
-
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
 		if (data.resetEverything) {

@@ -31,24 +31,24 @@
 		<!-- Page icons like subscribe, edit, and delete. -->
 		<div class="page-glyphs pull-right">
 			<a href="#"
-				 class="subscribe-to-page-link glyphicon glyphicon-eye-open"
-				 ng-class="{'on': page.isSubscribed}"
-				 title="Subscribe to receive updates when this page changes or gets new comments"
-				 ></a>
+					page-id="{{page.pageId}}"
+					class="subscribe-to-page-link glyphicon glyphicon-eye-open"
+					ng-class="{'on': page.isSubscribed}"
+					title="Subscribe to receive updates when this page changes or gets new comments"></a>
 			<a ng-href="#page-{{page.pageId}}"
-				 class="page-anchor-link glyphicon glyphicon-link"
-				 title="Link to this answer"
-				 ng-show="page.type == 'answer'"></a>
+					class="page-anchor-link glyphicon glyphicon-link"
+					title="Link to this answer"
+					ng-show="page.type == 'answer'"></a>
 			<a ng-href="{{page.editUrl()}}"
-				 class="edit-page-link glyphicon glyphicon-pencil"
-				 ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.hasDraft}"
-				 title="{{page.hasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}}"
-				 ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
+					class="edit-page-link glyphicon glyphicon-pencil"
+					ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.hasDraft}"
+					title="{{page.hasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}}"
+					ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
 			<a href="#"
-				 class="delete-page-link glyphicon glyphicon-remove"
-				 ng-class="{'admin': page.getDeleteLevel() == 'admin'}"
-				 title="Delete this page"
-				 ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
+					class="delete-page-link glyphicon glyphicon-remove"
+					ng-class="{'admin': page.getDeleteLevel() == 'admin'}"
+					title="Delete this page"
+					ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
 		</div>
 		<div class="clearfix"></div>
 

@@ -30,12 +30,9 @@ CREATE TABLE updates (
 	groupByPageId BIGINT NOT NULL,
 	groupByUserId BIGINT NOT NULL,
 
-	/* One of these has to be set. User got this update because they are subscribed
-		to "this thing".
-		FK into pages. */
-  subscribedToPageId BIGINT NOT NULL,
-	/* FK into users. */
-	subscribedToUserId BIGINT NOT NULL,
+	/* User got this update because they are subscribed to "this thing". FK into
+		pages. */
+  subscribedToId BIGINT NOT NULL,
 
 	/* One of these has to be set. User will be directed to "this thing" for more
 		information about the update. */

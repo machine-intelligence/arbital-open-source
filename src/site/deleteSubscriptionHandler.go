@@ -11,7 +11,6 @@ import (
 // deleteSubscriptionData contains the data we receive in the request.
 type deleteSubscriptionData struct {
 	PageId int64 `json:",string"`
-	UserId int64 `json:",string"`
 }
 
 var deleteSubscriptionHandler = siteHandler{
@@ -31,18 +30,16 @@ func deleteSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data deleteSubscriptionData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
-	if err != nil || (data.PageId == 0 && data.UserId == 0) {
+	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+	}
+	if data.PageId <= 0 {
+		return pages.HandlerBadRequestFail("Page id has to be set", err)
 	}
 
 	query := database.NewQuery(`
 		DELETE FROM subscriptions
-		WHERE userId=? AND `, u.Id)
-	if data.PageId > 0 {
-		query.Add("toPageId=?", data.PageId)
-	} else if data.UserId > 0 {
-		query.Add("toUserId=?", data.UserId)
-	}
+		WHERE userId=? AND toId=?`, u.Id, data.PageId)
 	if _, err := query.ToStatement(db).Exec(); err != nil {
 		return pages.HandlerErrorFail("Couldn't delete a subscription", err)
 	}

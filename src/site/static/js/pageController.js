@@ -181,19 +181,8 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 			showSignupPopover($(event.currentTarget));
 			return false;
 		}
-
 		var $target = $(event.target);
-		$target.toggleClass("on");
-		var data = {
-			pageId: pageId,
-		};
-		$.ajax({
-			type: "POST",
-			url: $target.hasClass("on") ? "/newSubscription/" : "/deleteSubscription/",
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
-		});
+		pageService.subscribeTo($target);
 		return false;
 	});
 

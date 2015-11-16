@@ -121,7 +121,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Signup for that page
-		return addSubscriptionToUser(tx, u.Id, u.Id)
+		return addSubscription(tx, u.Id, u.Id)
 	})
 	if errMessage != "" {
 		return pages.HandlerErrorFail(errMessage, err)

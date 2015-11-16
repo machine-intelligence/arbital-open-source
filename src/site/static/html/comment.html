@@ -11,6 +11,7 @@
 					title="{{comment.hasDraft ? 'You have an unpublished draft for this comment' : 'Edit this comment'}}"
 					ng-show="comment.creatorId == userService.user.id"></a>
 				<a href="#"
+					page-id="{[{comment.pageId}]}"
 					class="subscribe-comment-link glyphicon glyphicon-eye-open"
 					ng-class="{'on': comment.isSubscribed}"
 					title="Subscribe to receive updates when this comment gets replies"

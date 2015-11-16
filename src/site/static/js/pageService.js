@@ -471,6 +471,23 @@ app.service("pageService", function($http, $location, userService){
 		);
 	};
 
+	// (Un)subscribe a user to a page.
+	this.subscribeTo = function($target) {
+		var $target = $(event.target);
+		$target.toggleClass("on");
+		var data = {
+			pageId: $target.attr("page-id"),
+		};
+		var isSubscribed = $target.hasClass("on");
+		$.ajax({
+			type: "POST",
+			url: isSubscribed ? "/newSubscription/" : "/deleteSubscription/",
+			data: JSON.stringify(data),
+		});
+		this.pageMap[data.pageId].isSubscribed = isSubscribed;
+		$rootScope.$apply();
+	}
+
 	// Add a new relationship between pages using the given options.
 	// options = {
 	//	parentId: id of the parent page
@@ -503,7 +520,7 @@ app.service("pageService", function($http, $location, userService){
 		}*/
 		var page = this.pageMap[pageId];
 		if (!page) {
-			console.warn("Couldn't find pageId: " + pageId);
+			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
 		if (!this.primaryPage) return false;
@@ -513,7 +530,7 @@ app.service("pageService", function($http, $location, userService){
 	this.showLockedGroup = function(pageId) {
 		var page = this.pageMap[pageId];
 		if (!page) {
-			console.warn("Couldn't find pageId: " + pageId);
+			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
 		if (!this.primaryPage) return page.seeGroupId !== "0";

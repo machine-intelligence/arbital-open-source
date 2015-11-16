@@ -270,7 +270,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		var task tasks.NewUpdateTask
 		task.UserId = u.Id
 		task.GoToPageId = data.PageId
-		task.SubscribedToPageId = data.PageId
+		task.SubscribedToId = data.PageId
 		task.UpdateType = core.PageInfoEditUpdateType
 		task.GroupByPageId = data.PageId
 		if err := task.IsValid(); err != nil {

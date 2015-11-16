@@ -134,18 +134,7 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 
 	// Process comment subscribe click.
 	element.find(".subscribe-comment-link").on("click", function(event) {
-		var $target = $(event.target);
-		$target.toggleClass("on");
-		var data = {
-			pageId: scope.pageId,
-		};
-		$.ajax({
-			type: "POST",
-			url: $target.hasClass("on") ? "/newSubscription/" : "/deleteSubscription/",
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
-		});
+		pageService.subscribeTo($target);
 		return false;
 	});
 	
