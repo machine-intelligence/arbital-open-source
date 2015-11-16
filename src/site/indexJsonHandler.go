@@ -38,7 +38,6 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 				"7722661858289734773", // Value alignment problem
 				"3158562585659930031", // Orthogonality theses
 				"6820582940749120623", // Ontology identification problem
-				"7879626441094927809", // Real world agents should be omni-safe
 				"5534008569097047764", // Mindcrime
 				"6053065048861201341", // Diamond maximizer
 			},
@@ -47,8 +46,8 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ImageUrl: "/static/images/arbitalIndexLogo.png",
 			ChildIds: []string{
 				"3560540392275264633", // What is Arbital
-				"8992241719442104138", // Page hierarchy
-				"7894360080081727761", // Arbital wiki page
+				"5092144177314150382", // Arbital features
+				"8992241719442104138", // Parents and children
 				"5933317145970853046", // Editing
 				"4675907493088898985", // Liking
 				"8676677094741262267", // Voting

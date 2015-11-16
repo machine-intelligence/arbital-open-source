@@ -21,7 +21,6 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 	.when("/pages/:alias", {
 		template: "",
 		controller: "PrimaryPageController",
-		reloadOnSearch: false,
 	})
 	.when("/edit/:alias?", {
 		template: "",
