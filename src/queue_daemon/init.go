@@ -58,7 +58,7 @@ func processTask(c sessions.Context) error {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
 	}
 
-	err = tasks.Dequeue(leasedTask, task)
+	err = tasks.Decode(leasedTask, task)
 	if err != nil {
 		taskqueue.Delete(c, leasedTask, daemonQueueName)
 		return fmt.Errorf("Couldn't decode a task: %v", err)
@@ -97,11 +97,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Insert the first Tick task
 	// TODO: catch errors, but ignore "already added" error
-	err := tasks.EnqueueWithName(c, tasks.TickTask{}, "tick", "tick")
+	var tickTask tasks.TickTask
+	err := tasks.EnqueueWithName(c, &tickTask, "tick", "tick")
 	if err != nil {
 		c.Debugf("TickTask enqueue error: %v", err)
 	}
-	err = tasks.EnqueueWithName(c, tasks.EmailUpdatesTask{}, "emailUpdates", "emailUpdates")
+	var emailUpdatesTask tasks.EmailUpdatesTask
+	err = tasks.EnqueueWithName(c, &emailUpdatesTask, "emailUpdates", "emailUpdates")
 	if err != nil {
 		c.Debugf("EmailUpdatesTask enqueue error: %v", err)
 	}

@@ -367,6 +367,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 				success: function(newPageId) {
 					// Check if we need to add parents to this new page
 					var newParentIdString = $location.search().newParentId;
+					$location.search("newParentId", undefined);
 					var unfinishedCallbackCount = 0;
 					var readyToRedirect = false;
 					if (newParentIdString) {

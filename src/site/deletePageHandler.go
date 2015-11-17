@@ -124,9 +124,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var task tasks.PropagateDomainTask
 	task.PageId = data.PageId
 	task.Deleted = true
-	if err := task.IsValid(); err != nil {
-		return pages.HandlerErrorFail("Invalid task created: %v", err)
-	} else if err := tasks.Enqueue(params.C, task, "propagateDomain"); err != nil {
+	if err := tasks.Enqueue(params.C, &task, "propagateDomain"); err != nil {
 		return pages.HandlerErrorFail("Couldn't enqueue a task: %v", err)
 	}
 

@@ -61,9 +61,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 
 	var task SendOneEmailTask
 	task.UserId = userId
-	if err := task.IsValid(); err != nil {
-		c.Errorf("Invalid task created: %v", err)
-	} else if err := Enqueue(c, task, "sendOneEmail"); err != nil {
+	if err := Enqueue(c, &task, "sendOneEmail"); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 

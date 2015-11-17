@@ -175,9 +175,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.GroupByPageId = child.PageId
 		task.SubscribedToId = child.PageId
 		task.GoToPageId = parent.PageId
-		if err := task.IsValid(); err != nil {
-			c.Errorf("Invalid task created: %v", err)
-		} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
@@ -193,9 +191,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.GroupByPageId = parent.PageId
 		task.SubscribedToId = parent.PageId
 		task.GoToPageId = child.PageId
-		if err := task.IsValid(); err != nil {
-			c.Errorf("Invalid task created: %v", err)
-		} else if err := tasks.Enqueue(c, task, "newUpdate"); err != nil {
+		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
@@ -203,9 +199,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			// Create a task to propagate the domain change to all children
 			var task tasks.PropagateDomainTask
 			task.PageId = child.PageId
-			if err := task.IsValid(); err != nil {
-				c.Errorf("Invalid task created: %v", err)
-			} else if err := tasks.Enqueue(c, task, "propagateDomain"); err != nil {
+			if err := tasks.Enqueue(c, &task, "propagateDomain"); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}

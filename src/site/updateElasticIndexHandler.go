@@ -17,9 +17,7 @@ var updateElasticIndexHandler = siteHandler{
 // updateElasticIndexHandlerFunc kicks off the task to update the index for pages.
 func updateElasticIndexHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var task tasks.PopulateElasticTask
-	if err := task.IsValid(); err != nil {
-		return pages.HandlerErrorFail("Invalid task created", err)
-	} else if err := tasks.Enqueue(params.C, task, "populateElastic"); err != nil {
+	if err := tasks.Enqueue(params.C, &task, "populateElastic"); err != nil {
 		return pages.HandlerErrorFail("Couldn't enqueue a task", err)
 	}
 	return pages.StatusOK(nil)
