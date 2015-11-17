@@ -2,10 +2,10 @@
 
 var notEscaped = "(^|\\\\`|\\\\\\[| |>|\n)";
 var noParen = "(?=$|[^(])";
-var aliasMatch = "([A-Za-z0-9]+\.?[A-Za-z0-9]*)";
-/*// [vote: alias]
+var aliasMatch = "([A-Za-z0-9]+\\.?[A-Za-z0-9]*)";
+// [vote: alias]
 var voteEmbedRegexp = new RegExp(notEscaped + 
-		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");*/
+		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
 // [alias/url text] 
 var forwardLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^ \\]]+?) ([^\\]]+?)\\]" + noParen, "g");
@@ -50,12 +50,12 @@ var arbMarkdown = arbMarkdown || function() {
 			});
 		});
 
-		/*// Process [vote:alias] spans.
+		// Process [vote:alias] spans.
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(voteEmbedRegexp, function (whole, prefix, alias) {
 				return prefix + "[Embedded " + alias + " vote. ](http://" + host + "/pages/" + alias + "/?embedVote=1)";
 			});
-		});*/
+		});
 
 		// Convert [ text] spans into links.
 		var spaceTextRegexp = new RegExp(notEscaped + 
@@ -149,9 +149,9 @@ var arbMarkdown = arbMarkdown || function() {
 			}
 			$element.addClass("intrasite-link").attr("page-id", pageAlias);
 			// Check if we are embedding a vote
-			/*if (parts[2].indexOf("embedVote") > 0) {
+			if (parts[2].indexOf("embedVote") > 0) {
 				$element.attr("embed-vote-id", pageAlias);
-			} else */if (pageAlias in pageService.pageMap) {
+			} else if (pageAlias in pageService.pageMap) {
 				if (pageService.pageMap[pageAlias].isDeleted()) {
 					// Link to a deleted page.
 					$element.addClass("red-link");

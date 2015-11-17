@@ -246,7 +246,6 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 					// If the pane is now not visible, then don't do anything.
 					if (!$topParent.closest(".tab-pane").is(":visible")) return;
 					$lensTab.off("click", doCreateVoteSlider);
-					//createVoteSlider($topParent.find(".page-vote"), userService, page, false);
 				});
 			};
 			$lensTab.on("click", doCreateVoteSlider);
@@ -257,26 +256,23 @@ var PageJsController = function(page, $topParent, pageService, userService) {
 		}
 
 		// Process all embedded votes.
-		/*window.setTimeout(function() {
+		window.setTimeout(function() {
 			$topParent.find("[embed-vote-id]").each(function(index) {
 				var $link = $(this);
 				var pageAlias = $link.attr("embed-vote-id");
-				pageService.loadPages([pageAlias], {
-					includeAuxData: true,
-					loadVotes: true,
+				pageService.loadIntrasitePopover(pageAlias, {
 					success: function(data, status) {
 						var pageId = pageService.pageMap[pageAlias].pageId;
 						var divId = "embed-vote-" + pageId;
 						var $embedDiv = $compile("<div id='" + divId + "' class='embedded-vote'><arb-vote-bar page-id='" + pageId + "'></arb-vote-bar></div>")(scope);
 						$link.replaceWith($embedDiv);
-						//createVoteSlider($("#" + divId), userService, pageService.pageMap[pageId], false);
 					},
 					error: function(data, status) {
-						console.log("Couldn't load embedded votes: " + pageAlias);
+						console.error("Couldn't load embedded votes: " + pageAlias);
 					}
 				});
 			});
-		});*/
+		});
 	};
 
 	// Called before this controller is destroyed.
