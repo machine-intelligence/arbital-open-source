@@ -57,6 +57,11 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.HandlerForbiddenFail("Have to be an admin to delete a group/domain", nil)
 		}
 	}
+	if page.Type == core.CommentPageType && u.Id != page.CreatorId {
+		if !u.IsAdmin {
+			return pages.HandlerForbiddenFail("Have to be an admin to delete someone else's comment", nil)
+		}
+	}
 
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Delete all pairs
