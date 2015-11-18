@@ -466,7 +466,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 						"' show-clickbait='true' is-search-result='true'></span>";
 				},
 				replace: function (value) {
-					return ["[" + value.alias, "]"];
+					return "[" + value.alias;
 				},
 				index: 1,
 				cache: true,
@@ -481,7 +481,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 						"' show-clickbait='true' is-search-result='true'></span>";
 				},
 				replace: function (value) {
-					return ["[@" + value.alias, "]"];
+					return "[@" + value.alias;
 				},
 				index: 1,
 				cache: true,
