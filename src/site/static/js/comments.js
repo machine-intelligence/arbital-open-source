@@ -178,6 +178,36 @@ var commentLinkFunc = function(scope, element, attrs, $compile, $timeout, pageSe
 			smartPageReload("subpage-" + result.alias);
 		}
 	};
+	element.find(".permalink-comment-link").on("click", function(event) {
+		smartPageReload("subpage-" + scope.comment.pageId);
+		return false;
+	});
+
+	// Callback used when the user confirms deleting a comment.
+	scope.confirmDeleteCommentFn = function(returnedPageId) {
+		pageService.deletePage(returnedPageId, (function(data, status) {
+			smartPageReload();
+		}));
+		return false;
+	};
+	// Deleting a comment
+	element.find(".delete-comment-link").on("click", function(event) {
+
+		var $replies = element.find(".replies");
+		var $deleteButton = element.find(".delete-comment-link");
+		var position = $deleteButton.position();
+		var $confirmPopover = $compile("<arb-confirm-popover message='Are you sure you want to delete this comment?" +
+																 "' page-id='" + scope.comment.pageId +
+																 "' x-pos='" + position.left  +
+																 "' y-pos='" + position.top  +
+																 "' confirm-fn='confirmDeleteCommentFn(returnedPageId)" + 
+																 "'></arb-confirm-popover>")(scope);
+		$replies.append($confirmPopover);
+
+		return false;
+	});
+
+	// Editing a comment
 	element.find(".edit-comment-link").on("click", function(event) {
 		$(".hash-anchor").removeClass("hash-anchor");
 		// Dynamically create arb-edit-page directive if it doesn't exist already.

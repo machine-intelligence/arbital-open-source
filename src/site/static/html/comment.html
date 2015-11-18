@@ -6,6 +6,14 @@
 			<span class="pull-right">
 				&nbsp;
 				<a href="#"
+					class="permalink-comment-link glyphicon glyphicon-link"
+					title="Permalink to this comment"</a>
+				<a href="#"
+					class="delete-comment-link glyphicon glyphicon-remove"
+					ng-class="{'admin': userService.user.isAdmin && comment.creatorId != userService.user.id}"
+					title="Delete this comment"
+					ng-show="(comment.creatorId == userService.user.id && userService.userIsCool()) || userService.user.isAdmin"></a>
+				<a href="#"
 					class="edit-comment-link glyphicon glyphicon-pencil"
 					ng-class="{'has-draft': comment.hasDraft}"
 					title="{{comment.hasDraft ? 'You have an unpublished draft for this comment' : 'Edit this comment'}}"

@@ -815,6 +815,70 @@
 .reply.new-comment {
   border-radius: 0 0 0 10px;
 }
+.permalink-comment-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  visibility: hidden;
+}
+.permalink-comment-link.on {
+  color: #5050FF;
+}
+.permalink-comment-link.on:focus {
+  color: #5050FF;
+}
+.permalink-comment-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.permalink-comment-link:hover {
+  color: #0000e9;
+  text-decoration: none;
+}
+.permalink-comment-link:active {
+  color: #8383ff;
+  text-decoration: none;
+}
+.comment-row:hover .permalink-comment-link {
+  visibility: visible;
+}
+.permalink-comment-link.on {
+  visibility: visible;
+}
+.delete-comment-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  visibility: hidden;
+}
+.delete-comment-link.on {
+  color: #FF0000;
+}
+.delete-comment-link.on:focus {
+  color: #FF0000;
+}
+.delete-comment-link:focus {
+  outline: none;
+  color: #e0e0e0;
+  text-decoration: none;
+}
+.delete-comment-link:hover {
+  color: #990000;
+  text-decoration: none;
+}
+.delete-comment-link:active {
+  color: #ff3333;
+  text-decoration: none;
+}
+.comment-row:hover .delete-comment-link {
+  visibility: visible;
+}
+.delete-comment-link.on {
+  visibility: visible;
+}
+#confirm-popover {
+  position: absolute;
+  z-index: 1;
+}
 .edit-comment-link {
   color: #e0e0e0;
   text-decoration: none;
