@@ -75,16 +75,10 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 	hashmap["pageId"] = groupId
 	hashmap["edit"] = 1
 	hashmap["title"] = title
-	hashmap["alias"] = alias
+	hashmap["clickbait"] = clickbait
 	hashmap["creatorId"] = userId
 	hashmap["createdAt"] = database.Now()
-	hashmap["type"] = groupType
-	hashmap["clickbait"] = clickbait
 	hashmap["isCurrentEdit"] = true
-	hashmap["sortChildrenBy"] = AlphabeticalChildSortingOption
-	if groupType == GroupPageType {
-		hashmap["editGroupId"] = groupId
-	}
 	statement := tx.NewInsertTxStatement("pages", hashmap)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't create a new page", err
@@ -93,9 +87,15 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 	// Add new group to pageInfos.
 	hashmap = make(database.InsertMap)
 	hashmap["pageId"] = groupId
+	hashmap["alias"] = alias
+	hashmap["type"] = groupType
 	hashmap["currentEdit"] = 1
 	hashmap["maxEdit"] = 1
 	hashmap["createdAt"] = database.Now()
+	hashmap["sortChildrenBy"] = AlphabeticalChildSortingOption
+	if groupType == GroupPageType {
+		hashmap["editGroupId"] = groupId
+	}
 	statement = tx.NewInsertTxStatement("pageInfos", hashmap)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't create a new page", err

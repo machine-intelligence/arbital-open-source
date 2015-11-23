@@ -72,7 +72,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		var ignore int
 		exists, err := db.NewStatement(`
 				SELECT 1
-				FROM pages
+				FROM pageInfos
 				WHERE type="group" AND alias=?`).QueryRow(alias).Scan(&ignore)
 		if err != nil {
 			return pages.HandlerErrorFail("Error checking for existing alias", err)
