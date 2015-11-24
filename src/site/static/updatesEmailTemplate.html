@@ -1,0 +1,265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Arbital Updates</title>
+<style type="text/css">
+  body {padding: 0px; min-width: 100%!important;}
+  img {height: auto;}
+  .content {width: 100%; max-width: 600px;}
+  .header {padding: 30px 30px 10px 30px;}
+  .innerpadding {padding: 20px 30px 20px 30px;}
+  .borderbottom {border-bottom: 1px solid #f2eeed;}
+  .subhead {font-size: 15px; color: #333333; font-family: sans-serif;}
+  .h1, .h2, .bodycopy {color: #153643; font-family: sans-serif;}
+  .h1 {font-size: 33px; line-height: 38px; font-weight: bold;}
+  .h2 {padding: 0 0 15px 0; font-size: 24px; line-height: 28px; font-weight: bold;}
+  .bodycopy {font-size: 16px; line-height: 22px;}
+	a {text-decoration: none; }
+	.group-table {width: 100%; max-width: 425px; margin: 15px 0px;}
+	.group-table-header {font-size: 20px; font-family: sans-serif;}
+	.update-entry {margin: 5px 0px;}
+  .unimportant {color: #a5a5a5;}
+  .button {text-align: center; font-size: 18px; font-family: sans-serif; font-weight: bold; padding: 0 30px 0 30px;}
+  .button a {color: #ffffff; text-decoration: none;}
+  .footer {padding: 20px 30px 15px 30px;}
+  .footercopy {font-family: sans-serif; font-size: 14px; color: #ffffff;}
+  .footercopy a {color: #ffffff; text-decoration: underline;}
+  
+  @media only screen and (max-width: 550px), screen and (max-device-width: 550px) {
+    body[yahoo] .hide {display: none!important;}
+    body[yahoo] .buttonwrapper {background-color: transparent!important;}
+    body[yahoo] .button {padding: 0px!important;}
+    body[yahoo] .button a {background-color: #e05443; padding: 15px 15px 13px!important;}
+    body[yahoo] .unsubscribe {display: block; margin-top: 20px; padding: 10px 50px; background: #2f3942; border-radius: 5px; text-decoration: none!important; font-weight: bold;}
+  }
+  
+  /*@media only screen and (min-device-width: 601px) {
+  .content {width: 600px !important;}
+  .col425 {width: 425px!important;}
+  .col380 {width: 380px!important;}
+  }*/
+  
+</style>
+</head>
+
+<body yahoo bgcolor="#f6f8f1">
+<table width="100%" bgcolor="#f6f8f1" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td>
+      <!--[if (gte mso 9)|(IE)]>
+      <table width="600" align="center" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td>
+    <![endif]-->     
+      <table bgcolor="#ffffff" class="content" align="center" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td bgcolor="#ccccff" class="header">
+            <table width="70" align="left" border="0" cellpadding="0" cellspacing="0">  
+              <tr>
+                <td height="70" style="padding: 0 20px 20px 0;">
+                  <img class="fix" src="http://arbital.com/static/images/emailLogo.png" width="70" height="70" border="0" alt="" />
+                </td>
+              </tr>
+            </table>
+            <!--[if (gte mso 9)|(IE)]>
+            <table width="425" align="left" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+          <![endif]-->
+            <table class="col425" align="left" border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 425px;">  
+              <tr>
+                <td height="70">
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td class="h1" style="padding: 0 0 0 3px;">
+                        ARBITAL
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="subhead" style="padding: 5px 0 0 0;">
+												<i>&nbsp;{{.UpdateCount}} new updates</i>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <!--[if (gte mso 9)|(IE)]>
+                </td>
+              </tr>
+          </table>
+          <![endif]-->
+          </td>
+        </tr>
+        <tr>
+          <td class="innerpadding borderbottom">
+            <div width="100%">
+							{{range .UpdateGroups}}
+								<table class="group-table" align="middle" border="0" cellpadding="0" cellspacing="0">
+									<!-- Group header -->
+                  <tr>
+                    <td class="h1" style="padding: 0 0 0 3px;">
+											{{if ne .Key.GroupByPageId 0}}
+												<a href="{{GetPageUrl .Key.GroupByPageId}}">{{GetPageTitle .Key.GroupByPageId}}</a>
+											{{else}}
+												<a href="{{GetUserUrl .Key.GroupByUserId}}">{{GetUserName .Key.GroupByUserId}}</a>
+											{{end}}
+										</td>
+									<tr>
+									<!-- Group body -->
+                  <tr>
+										<td>
+											{{range .Updates}}
+												<div class="update-entry">
+													{{if eq .Type "topLevelComment"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> wrote a
+														<a href="{{GetPageUrl .GoToPageId}}">new comment</a>.
+													{{else if eq .Type "reply"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> wrote a
+														<a href="{{GetPageUrl .GoToPageId}}">new comment reply</a>.
+													{{else if eq .Type "pageEdit"}}
+														This page has been edited
+														{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a>{{end}}
+														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}.
+													{{else if eq .Type "newPageByUser"}}
+														Created a new page: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newParent"}}
+														New parent page: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newChild"}}
+														New child page: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newRequirement"}}
+														New requirement: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newRequiredBy"}}
+														This page is now a requirement for: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newTag"}}
+														New tag: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "newTaggedBy"}}
+														This page now tags: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
+													{{else if eq .Type "commentEdit"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> edited a
+														<a href="{{GetPageUrl .GoToPageId}}">comment</a>.
+													{{else if eq .Type "atMention"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> mentioned you in a
+														<a href="{{GetPageUrl .GoToPageId}}">comment</a>.
+													{{else if eq .Type "addedToGroup"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> added you to
+														<a href="{{GetPageUrl .GoToPageId}}">the {{GetPageTitle .GoToPageId}} group</a>.
+													{{else if eq .Type "removedFromGroup"}}
+														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> removed you from
+														<a href="{{GetPageUrl .GoToPageId}}">the {{GetPageTitle .GoToPageId}} group</a>.
+													{{end}}
+												</div>
+											{{end}}
+										</td>
+									</tr>
+								</table>
+							{{end}}
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="innerpadding borderbottom">
+            <!--<table width="115" align="left" border="0" cellpadding="0" cellspacing="0">  
+              <tr>
+                <td height="115" style="padding: 0px 20px 20px 0px;">
+                  <img class="fix" src="http://www.xelaie.com/images/logo.png" width="115" height="115" border="0" alt="" />
+                </td>
+              </tr>
+            </table>-->
+            <!--[if (gte mso 9)|(IE)]>
+            <table width="380" align="left" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+          <![endif]-->
+            <table class="col380" align="left" border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 480px;"><!--used to be 380px with a picture on the left--> 
+              <tr>
+                <td>
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td class="bodycopy">
+												<!--BODYCOPY 2-->
+												<a href="http://arbital.com/updates">See all updates.</a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 10px 0 30px 0;">
+                        <!--<table class="buttonwrapper" bgcolor="#e05443" border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td class="button" height="45">
+                              <a href="http://rewards.xelaie.com/">Log in to Win</a>
+                            </td>
+                          </tr>
+												</table>-->
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="bodycopy">
+												<!--BODYCOPY 3-->
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <!--[if (gte mso 9)|(IE)]>
+                </td>
+              </tr>
+          </table>
+          <![endif]-->
+          </td>
+        </tr>
+        <tr>
+          <td class="innerpadding borderbottom">
+						<!--<img class="fix" src="http://rewards.xelaie.com/static/images/island_email_template.png" width="100%" border="0" alt="" />-->
+          </td>
+        </tr>
+        <!--<tr>
+          <td class="innerpadding bodycopy">
+            Can write something here too.
+          </td>
+        </tr>-->
+        <tr>
+          <td class="footer" bgcolor="#666699">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" class="footercopy">
+                  &reg; Omniment Inc 2015<br/>
+									Questions? Comments? We would love to hear from you. <a href="mailto:alexei.andreev@gmail.com"><u>Email us!</u></a>
+                  <!--<a href="#" class="unsubscribe"><font color="#ffffff">Unsubscribe</font></a> 
+                  <span class="hide">from this newsletter instantly</span>-->
+                </td>
+              </tr>
+              <tr>
+                <td align="center" style="padding: 20px 0 0 0;">
+                  <table border="0" cellspacing="0" cellpadding="0">
+                    <tr>
+                    <!--<td width="37" style="text-align: center; padding: 0 10px 0 10px;">
+                      <a href="http://www.facebook.com/">
+                        <img src="images/facebook.png" width="37" height="37" alt="Facebook" border="0" />
+                      </a>
+                    </td>-->
+                      <!--<td width="37" style="text-align: center; padding: 0 10px 0 10px;">
+                        <a href="http://www.twitter.com/Xelaie">
+                          <img src="http://rewards.xelaie.com/static/images/twitter_64.png" width="37" height="37" alt="Twitter" border="0" />
+                        </a>
+											</td>-->
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+      <!--[if (gte mso 9)|(IE)]>
+          </td>
+        </tr>
+    </table>
+    <![endif]-->
+    </td>
+  </tr>
+</table>
+</body>
+</html>

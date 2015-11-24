@@ -16,13 +16,12 @@
 	<script src="/static/js/userService.js"></script>
 	<script src="/static/js/autocompleteService.js"></script>
 	<script src="/static/js/angularDirectives.js"></script>
-	<script src="/static/js/navbar.js"></script>
-	<script src="/static/js/pageTreeDir.js"></script>
+	<script src="/static/js/toolbar.js"></script>
 
 	<!-- Page specific scripts -->
 	<script src="/static/js/comments.js"></script>
 	<script src="/static/js/pageController.js"></script>
-	<script src="/static/js/editPage.js"></script>
+	<!--<script src="/static/js/editPage.js"></script>
 	<script src="/static/js/pagePage.js"></script>
 	<script src="/static/js/indexDir.js"></script>
 	<script src="/static/js/groupIndex.js"></script>
@@ -30,12 +29,10 @@
 	<script src="/static/js/groupsPage.js"></script>
 	<script src="/static/js/userPage.js"></script>
 	<script src="/static/js/signupDir.js"></script>
-	<script src="/static/js/settingsPage.js"></script>
+	<script src="/static/js/settingsPage.js"></script>-->
 </head>
 
 <body ng-controller="ArbitalCtrl">
-	<arb-navbar></arb-navbar>
-	
 	<!-- ======= Collection of common popover templates ======= -->
 
 	<!-- This modal is for inserting new links. -->
@@ -91,13 +88,18 @@
 		</a>
 	</div>
 	
-	<!-- Global info messages -->
-	<div class="global-error alert alert-danger" hidden></div>
-
-	<!-- We append dynamic content to this div. -->
-	<div ng-view></div>
+	<!-- All the content -->
+	<div layout="column">
+		<arb-toolbar></arb-toolbar>
 	
-	<arb-footer></arb-footer>
+		<!-- Global info messages -->
+		<div class="global-error alert alert-danger" hidden></div>
+
+		<!-- We append dynamic content to this div. -->
+		<div ng-view></div>
+	
+		<arb-footer></arb-footer>
+	</div>
 </body>
 </html>
 {{end}}

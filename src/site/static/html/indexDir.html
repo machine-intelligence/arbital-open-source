@@ -1,0 +1,26 @@
+<div class="index-body-div container-fluid">
+	<div class="global-error alert alert-danger" hidden></div>
+	<div ng-repeat="(index,domain) in featuredDomains">
+		<div class="panel panel-default">
+		  <div class="panel-heading">
+				<h1 class="panel-title index-page-domain-link">
+					<a ng-href="/domains/{{pageService.pageMap[domain.domainId].alias}}"
+						ng-bind="pageService.pageMap[domain.domainId].title"></a>
+				</h1>
+			</div>
+		  <div class="panel-body">
+				<div class="thumbnail">
+					<img ng-src="{{domain.imageUrl}}">
+				</div>
+		  </div>
+		
+		  <!-- List group -->
+		  <ul class="list-group">
+				<li class="list-group-item"
+						ng-repeat="childId in domain.childIds">
+					<arb-likes-page-title page-id="{{childId}}"></arb-likes-page-title>
+				</li>
+		  </ul>
+		</div>
+	</div>
+</div>
