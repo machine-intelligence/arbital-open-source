@@ -20,6 +20,12 @@ app.service("userService", function(){
 		return "/user/" + userId;
 	};
 
+	// Return a user's full name.
+	this.getFullName = function(userId) {
+		var user = this.userMap[userId];
+		return user.firstName + " " + user.lastName;
+	};
+
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
 		if (data.resetEverything) {

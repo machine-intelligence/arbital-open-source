@@ -1,8 +1,11 @@
 "use strict";
 
 // Set up angular module.
-var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute"]);
-app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider){
+var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute", "RecursionHelper"]);
+app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider, $mdIconProvider){
+	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
+		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg");
+
 	$locationProvider.html5Mode(true);
 
 	$routeProvider
@@ -21,6 +24,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 	.when("/pages/:alias", {
 		template: "",
 		controller: "PrimaryPageController",
+		reloadOnSearch: false,
 	})
 	.when("/edit/:alias?", {
 		template: "",

@@ -1,0 +1,63 @@
+<div layout="column"
+		class="md-whiteframe-1dp"
+		ng-mouseenter="hovering = true"
+		ng-mouseleave="hovering = false">
+	<div layout="row" layout-align="start center">
+		<md-icon ng-show="page.type === 'comment'">comment</md-icon>
+		<md-icon ng-show="page.type === 'question'">question_answer</md-icon>
+
+		<div ng-bind="userService.getFullName(page.creatorId)"></div>
+
+		<div layout="column" flex>
+			<md-button ng-click="isCollapsed = !isCollapsed"
+					ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
+				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
+				<md-icon ng-show="isCollapsed">expand_more</md-icon>
+			</md-button>
+		</div>
+		<md-button class="md-icon-button"
+				ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
+				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
+			<md-icon>create</md-icon>
+		</md-button>
+		<md-button class="md-icon-button"
+				ng-click="linkClicked()"
+				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
+			<md-icon>link</md-icon>
+		</md-button>
+	</div>
+
+	<!-- Collapsable body -->
+	<div layout="column" ng-hide="isCollapsed">
+		<arb-markdown page-id="{{page.pageId}}"></arb-markdown>
+
+		<!-- Footer -->
+		<div>
+			<arb-likes page-id="{{page.pageId}}" is-button="true"></arb-likes>
+			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
+			<md-button ng-hide="parentSubpageId">
+				<md-icon>reply</md-icon>
+				Reply
+			</md-button>
+			<span ng-bind="page.createdAt | relativeDateTime"></span>
+		</div>
+
+		<div layout="row" ng-show="page.subpageIds.length > 0">
+			<div flex="10"></div>
+			<div flex="90" layout="column">
+				<!-- Replies -->
+				<div class="md-whiteframe-1dp">
+					<div ng-repeat="subpageId in page.subpageIds">
+						<arb-subpage lens-id="{{lensId}}"
+								page-id="{{subpageId}}"
+								parent-subpage-id="{{page.pageId}}"></arb-subpage>
+					</div>
+				</div>
+				<md-button>
+					<md-icon>reply</md-icon>
+					Reply
+				</md-button>
+			</div>
+		</div>
+	</div>
+</div>

@@ -23,20 +23,29 @@ app.service("pageService", function($http, $location, userService){
 		}
 		mastery.has = has;
 		mastery.isManuallySet = true;
-		scope.$apply();
 
 		// Send POST request.
 		var data = {
 			masteryId: masteryId,
 			has: has,
 		};
-		$.ajax({
-			type: "POST",
-			url: "/updateMastery/",
-			data: JSON.stringify(data),
-		}).fail(function(r) {
-			console.log("Failed to claim mastery:"); console.log(r);
+		$http({method: "POST", url: "/updateMastery/", data: JSON.stringify(data)})
+		.error(function(data, status){
+			console.error("Failed to change mastery:"); console.log(data); console.log(status);
 		});
+	};
+
+	this.addMasteryToMap = function(newMastery) {
+		var oldMastery = this.masteryMap[newMastery.pageId];
+		if (newMastery === oldMastery) return;
+		if (oldMastery === undefined) {
+			this.masteryMap[newMastery.pageId] = newMastery;
+			return;
+		}
+		// Merge each variable.
+		for (var k in oldMastery) {
+			oldMastery[k] = smartMerge(oldMastery[k], newMastery[k]);
+		}
 	};
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -64,7 +73,11 @@ app.service("pageService", function($http, $location, userService){
 			this.editMap = {};
 			this.masteryMap = {};
 		}
-		$.extend(this.masteryMap, data["masteries"]);
+
+		var masteryData = data["masteries"];
+		for (var id in masteryData) {
+			this.addMasteryToMap(masteryData[id]);
+		}
 
 		var pageData = data["pages"];
 		for (var id in pageData) {
@@ -184,7 +197,7 @@ app.service("pageService", function($http, $location, userService){
 	};
 	// Add the given page to the global pageMap. If the page with the same id
 	// already exists, we do a clever merge.
-	var isPageValueTruthy = function(v) {
+	var isValueTruthy = function(v) {
 		// "0" is falsy
 		if (v === "0") {
 			return false;
@@ -199,6 +212,12 @@ app.service("pageService", function($http, $location, userService){
 		}
 		return !!v;
 	};
+	var smartMerge = function(oldV, newV) {
+		if (!isValueTruthy(newV)) {
+			return oldV;
+		}
+		return newV;
+	};
 	this.addPageToMap = function(newPage) {
 		var oldPage = this.pageMap[newPage.pageId];
 		if (newPage === oldPage) return;
@@ -208,18 +227,7 @@ app.service("pageService", function($http, $location, userService){
 		}
 		// Merge each variable.
 		for (var k in oldPage) {
-			var oldV = isPageValueTruthy(oldPage[k]);
-			var newV = isPageValueTruthy(newPage[k]);
-			if (!newV) {
-				// No new value.
-				continue;
-			}
-			if (!oldV) {
-				// No old value, so use the new one.
-				oldPage[k] = newPage[k];
-			}
-			// Both new and old values are legit. Overwrite with new.
-			oldPage[k] = newPage[k];
+			oldPage[k] = smartMerge(oldPage[k], newPage[k]);
 		}
 	};
 

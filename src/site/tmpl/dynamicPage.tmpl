@@ -10,20 +10,23 @@
 	{{template "style"}}
 	{{template "scripts"}}
 
-	<!-- Angular scripts -->
+	<!-- General scripts -->
 	<script src="/static/js/angular.js"></script>
 	<script src="/static/js/pageService.js"></script>
 	<script src="/static/js/userService.js"></script>
 	<script src="/static/js/autocompleteService.js"></script>
 	<script src="/static/js/angularDirectives.js"></script>
+	<script src="/static/js/markdown.js"></script>
 	<script src="/static/js/toolbar.js"></script>
 
 	<!-- Page specific scripts -->
-	<script src="/static/js/comments.js"></script>
-	<script src="/static/js/pageController.js"></script>
-	<!--<script src="/static/js/editPage.js"></script>
-	<script src="/static/js/pagePage.js"></script>
-	<script src="/static/js/indexDir.js"></script>
+	<script src="/static/js/primaryPage.js"></script>
+	<script src="/static/js/page.js"></script>
+	<script src="/static/js/lens.js"></script>
+	<script src="/static/js/editPage.js"></script>
+	<script src="/static/js/discussion.js"></script>
+	<script src="/static/js/subpage.js"></script>
+	<!--<script src="/static/js/indexDir.js"></script>
 	<script src="/static/js/groupIndex.js"></script>
 	<script src="/static/js/updatesDir.js"></script>
 	<script src="/static/js/groupsPage.js"></script>
@@ -87,14 +90,14 @@
 			<span class="inline-comment-count"><span>
 		</a>
 	</div>
+
+	<!-- Global info messages -->
+	<div class="global-error alert alert-danger" hidden></div>
 	
 	<!-- All the content -->
 	<div layout="column">
 		<arb-toolbar></arb-toolbar>
 	
-		<!-- Global info messages -->
-		<div class="global-error alert alert-danger" hidden></div>
-
 		<!-- We append dynamic content to this div. -->
 		<div ng-view></div>
 	

@@ -1,7 +1,7 @@
 "use strict";
 
 // toolbar directive displays the toolbar at the top of each page
-app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $rootScope, pageService, userService, autocompleteService) {
+app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $rootScope, $timeout, $q, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/toolbar.html",
 		scope: {
@@ -16,10 +16,28 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 				scope.currentUrl = encodeURIComponent($location.absUrl());
 			});
 
-			scope.openRightMenu = function() {
+			// Set up search
+			scope.getSearchResults = function(text) {
+				if (!text) return [];
+				var deferred = $q.defer();
+				autocompleteService.performSearch({term: text}, function(results) {
+					deferred.resolve(results);
+				});
+        return deferred.promise;
+			};
+			scope.searchResultSelected = function(result) {
+				/*if (event.ctrlKey) {
+					return false;
+				}*/
+				window.location.href = pageService.getPageUrl(result.label);
+			}
+
+			// Open RHS menu
+			scope.toggleRightMenu = function() {
 		    $mdSidenav("right").toggle();
 		  };
 
+			// Handle logging out
 			$("#logout").click(function() {
 				$.removeCookie("zanaduu", {path: "/"});
 			});
@@ -37,29 +55,6 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 				listString = listArray.join(",");
 				window.location.href = "/edit?newParentId=" + listString;
 			});
-
-			// Setup search via toolbar.
-			var $navSearch = element.find("#nav-search");
-			if ($navSearch.length > 0) {
-				/*$navSearch.autocomplete({
-					source: function(request, callback) {
-						autocompleteService.performSearch({term: request.term}, callback);
-					},
-					minLength: 3,
-					delay: 400,
-					focus: function (event, ui) {
-						return false;
-					},
-					select: function (event, ui) {
-						if (event.ctrlKey) {
-							return false;
-						}
-						window.location.href = pageService.getPageUrl(ui.item.label);
-						return false;
-					},
-				});*/
-				autocompleteService.setAutocompleteRendering($navSearch, scope, true);
-			}
 		},
 	};
 });

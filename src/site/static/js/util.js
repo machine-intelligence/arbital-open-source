@@ -364,18 +364,3 @@ var escapeMarkdownChars = function(s) {
 var unescapeMarkdownChars = function(s) {
 	return s.replace(/\\([\\`*_{}[\]()#+\-.!$])/g, "$1");
 }
-
-// Send a new probability vote value to the server.
-var postNewVote = function(pageId, value) {
-	var data = {
-		pageId: pageId,
-		value: value,
-	};
-	$.ajax({
-		type: "POST",
-		url: "/newVote/",
-		data: JSON.stringify(data),
-	})
-	.done(function(r) {
-	});
-}

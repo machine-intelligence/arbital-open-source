@@ -1,0 +1,25 @@
+<div layout="column">
+	<!-- Requirements -->
+	<arb-requirements-panel page-id="{{page.pageId}}"></arb-requirements-panel>
+
+	<!-- Page's text. Populated by markdown. -->
+	<arb-markdown page-id="{{page.pageId}}"></arb-markdown>
+
+	<!-- Mastery container -->
+	<div>
+		<md-button ng-click="toggleMastery()">
+			<span ng-show="mastery.has">
+				<md-icon>done_all</md-icon>
+				<span ng-show="mastery.isManuallySet">You marked this requirement as fulfilled</span>
+				<span ng-hide="mastery.isManuallySet">This requirement is fulfilled</span>
+			</span>
+			<span ng-hide="mastery.has">
+				<md-icon>done</md-icon>
+				<span ng-show="mastery.isManuallySet">You marked this requirement unfulfilled</span>
+				<span ng-hide="mastery.isManuallySet">Click to fulfill the requirement</span>
+			</span>
+		</md-button>
+	</div>
+
+	<arb-discussion page-id="{{page.pageId}}"></arb-discussion>
+</div>

@@ -1,137 +1,59 @@
-<div class="primary-page-body-div">
-	<!-- Navigation column -->
-	<div class="navigation-column pull-left">
-		<!-- Navigation -->
-		<div class="panel panel-default" ng-hide="page.nextPageId === '0' && page.prevPageId === '0'">
-			<div class="panel-heading">Navigation</div>
-			<div class="panel-body">
-				<ul class="pager">
-					<li ng-hide="page.prevPageId === '0'">
-						<a ng-href="{{pageService.getPageUrl(page.prevPageId)}}"
-							class="intrasite-link"
-							page-id="{{page.prevPageId}}">&larr; Prev</a>
-					</li>
-					<!-- <a href="#" class="start-reading gray-glyph glyphicon glyphicon-record"></a> -->
-					<li ng-hide="page.nextPageId === '0'">
-						<a ng-href="{{pageService.getPageUrl(page.nextPageId)}}"
-							class="intrasite-link"
-							page-id="{{page.nextPageId}}">Next &rarr;</a>
-					</li>
-				</ul>
-			</div>
+<div layout="column">
+	<!-- All the pages -->
+	<div>
+		<arb-page page-id="{{pageService.primaryPage.pageId}}"></arb-page>
+	</div>
+
+	<!-- Answers for a question page -->
+	<div class="answers" ng-show="answerIds.length > 0">
+		<h1>Answers</h1>
+		<div class="answers-list">
 		</div>
+	</div>
+
+	<!-- New Answer for a question page -->
+	<div class="new-answer" ng-show="page.type === 'question'">
+		<h1>Find Existing Answer</h1>
+		<input id="find-answer-search"
+				type="text"
+				class="form-control"
+				placeholder="Find existing answer"
+				ng-model="findAnswerTerm">
+		<div id="found-answers"></div>
+		<!-- arbFindAnswer is inserted here dynamically when primary page is a question -->
+		<h1>Your Answer</h1>
+		<!-- arbEditPage is inserted here dynamically when primary page is a question -->
+	</div>
 	
-		<!-- Domains -->
-		<div class="panel panel-default" ng-show="page.domainIds.length > 0">
-			<div class="panel-heading">Domains</div>
-			<div class="panel-body">
-				<arb-likes-page-title
-					page-id="{{domainId}}"
-					ng-repeat="domainId in page.domainIds"></arb-likes-page-title>
-			</div>
-		</div>
-	
-		<!-- Parents -->
-		<div class="panel panel-default" ng-show="initialParentsCount > 0">
-			<div class="panel-heading">Parents</div>
-			<div class="panel-body">
-				<arb-page-tree init-map="initialParents" is-parent-tree="true"></arb-page-tree>
-			</div>
-		</div>
-	
-		<!-- Has Tags -->
-		<div class="panel panel-default" ng-hide="page.isDeleted()">
-			<div class="panel-heading">Has Tags</div>
-			<div class="panel-body">
-				<arb-tags-panel></arb-tags-panel>
-			</div>
-		</div>
-	
+	<div layout="row" layout-margin>
 		<!-- Children -->
-		<div class="panel panel-default" ng-show="initialChildrenCount > 0">
-			<div class="panel-heading">Children</div>
-			<div class="panel-body">
-				<arb-page-tree primary-page-id="{{page.pageId}}" init-map="initialChildren"></arb-page-tree>
-			</div>
+		<div class="md-whiteframe-1dp" layout="column" flex>
+			<h2>Children</h2>
+			<md-list>
+				<md-list-item class="md-2-line" ng-repeat="childPair in page.children">
+					<arb-likes page-id="{{childPair.childId}}"></arb-likes>
+					<div class="md-list-item-text" layout="column">
+						<arb-page-title page-id="{{childPair.childId}}"
+								is-link="true"
+								show-clickbait="true"></arb-page-title>
+					</div>
+				</md-list-item>
+			</md-list>
 		</div>
-	
-		<!-- Is Tagging -->
-		<div class="panel panel-default" ng-show="page.relatedIds.length > 0">
-			<div class="panel-heading">Is Tagging</div>
-			<div class="panel-body">
-				<arb-likes-page-title
-					page-id="{{pageId}}"
-					ng-repeat="pageId in page.relatedIds"></arb-likes-page-title>
-			</div>
-		</div>
-		&nbsp;
-	</div>
-	
-	<!-- Middle column containing the primary page, comments, etc... -->
-	<div class="mid-column pull-left">
-		<!-- Lens tabs -->
-		<ul class="lens-tabs nav nav-tabs" role="tablist" ng-show="page.lensIds.length > 0">
-			<li><span class="gray-glyph glyphicon glyphicon-search"></span>&nbsp;</li>
-	    <li class="active">
-				<a href="#" data-target="#lens-{{page.pageId}}" class="lens-tab" data-toggle="tab">Default Lens</a>
-			</li>
-	    <li ng-repeat="lensId in page.lensIds">
-				<a href="#" data-target="#lens-{{lensId}}" class="lens-tab" data-toggle="tab">{{pageService.pageMap[lensId].title}}</a>
-			</li>
-	  </ul>
-	
-		<div class="tab-content">
-			<div class="tab-pane active" id="lens-{{page.pageId}}">
-				<arb-page page-id="{{page.pageId}}"></arb-page>
-			</div>
-			<div class="tab-pane" id="lens-{{lensId}}" ng-repeat="lensId in page.lensIds">
-				<img src="/static/images/loading.gif" class="loading-indicator"/>
-			</div>
-		</div>
-		
-		<!-- Answers for a question page -->
-		<div class="answers" ng-show="answerIds.length > 0">
-			<h1>Answers</h1>
-			<div class="answers-list">
-			</div>
-		</div>
-	
-		<!-- New Answer for a question page -->
-		<div class="new-answer" ng-show="page.type === 'question'">
-			<h1>Find Existing Answer</h1>
-			<input id="find-answer-search"
-					type="text"
-					class="form-control"
-					placeholder="Find existing answer"
-					ng-model="findAnswerTerm">
-			<div id="found-answers"></div>
-			<!-- arbFindAnswer is inserted here dynamically when primary page is a question -->
-			<h1>Your Answer</h1>
-			<!-- arbEditPage is inserted here dynamically when primary page is a question -->
+
+		<!-- Related -->
+		<div class="md-whiteframe-1dp" layout="column" flex>
+			<h2>Related</h2>
+			<md-list>
+				<md-list-item class="md-2-line" ng-repeat="relatedId in page.relatedIds">
+					<arb-likes page-id="{{relatedId}}"></arb-likes>
+					<div class="md-list-item-text" layout="column">
+						<arb-page-title page-id="{{relatedId}}"
+								is-link="true"
+								show-clickbait="true"></arb-page-title>
+					</div>
+				</md-list-item>
+			</md-list>
 		</div>
 	</div>
-	
-	<!-- Right hand side (RHS) column -->
-	<div class="question-div pull-left">
-		<div class="rhs-buttons-div">
-			<!-- Question button -->
-			<button type="button" class="question-button btn btn-info" title="Ask a question" ng-show="pageService.primaryPage.type != 'question'">
-			  <span class="glyphicon glyphicon-question-sign"></span>
-				<span class="has-question-draft-icon glyphicon glyphicon-pencil" ng-show="pageService.primaryPage.childDraftId > 0"></span>
-			</button>
-			<!-- Inline comment button -->
-			<span class="new-inline-comment-div" hidden>
-				<button type="button" class="new-inline-comment-button btn btn-info" title="New inline comment">
-					<span class="glyphicon glyphicon-comment"></span>
-				</button>
-			</span>
-		</div>
-		<!-- Div to hold an expanded inline comment or edit -->
-		<div class="inline-comment-div">
-			<!-- arbComment is inserted here dynamically when expanding an inline comment -->
-			<!-- arbEditPage is inserted here dynamically when creating a new inline comment -->
-		</div>
-	</div>
-	
-	<div class="clearfix"></div>
 </div>

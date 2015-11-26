@@ -1,5 +1,4 @@
-// lensJsonHandler.go contains the handler for returning JSON with data
-// to display a primary page.
+// lensJsonHandler.go contains the handler for returning JSON with data to display a lens.
 package site
 
 import (

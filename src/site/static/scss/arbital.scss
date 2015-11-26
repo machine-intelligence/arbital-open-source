@@ -1,0 +1,108 @@
+// Used to style the dot we display when a page hasn't been visited / was updated
+.blue-dot {
+	position: relative;
+	top: -0.4em;
+	display: inline-block;
+	background-color: blue;
+	width: 0.4em;
+	height: 0.4em;
+	border-radius: 50%;
+}
+
+.autocomplete-custom-template li {
+	//border-bottom: 1px solid #ccc;
+	height: auto;
+	//padding-top: 8px;
+	padding-bottom: 8px;
+	//white-space: normal;
+}
+
+// Voting bar
+.vote-bar {
+	$vote-bar-height: 18px;
+	$vote-bar-margin: $vote-bar-height * 1.5;
+	$my-vote-width: 10px;
+
+	// This is one of the 10 buckets we show for voting
+	.vote-bucket-div {
+		border: 1px solid black;
+		height: $vote-bar-height;
+
+		// Vote bucket background, which we change based on the vote count
+		.vote-bucket {
+			background-color: black;
+			opacity: 0.0;
+
+		}
+
+		// Added when the div is hovered over
+		&.selected {
+			border: 1px solid red;
+		}
+	}
+
+	// This is the space surrounding the vote bar on top and bottom
+	.vote-bar-margin {
+		height: $vote-bar-margin;
+	}
+	
+	// This is the div we show when the user is hovering over the bar to vote
+	.new-vote-div {
+		position: relative;
+		top: $vote-bar-margin / 2.0;
+		z-index: 2;
+
+		// This is the actual knob we show visually
+		.new-vote-knob {
+			position: relative;
+			// Move left by $my-vote-width because my-vote-knob pushes this know to the right
+			left: -$my-vote-width / 2.0 - $my-vote-width;
+			background-color: red;
+			width: $my-vote-width;
+			height: $vote-bar-height + $vote-bar-margin;
+		}
+
+		// This is the actual knob we show visually
+		.new-vote-knob-hor {
+			position: relative;
+			// Move left by $my-vote-width because my-vote-knob pushes this know to the right
+			left: -$my-vote-width * 2.5 - 0.5 * $my-vote-width;
+			top: -2.0 * $vote-bar-height - $vote-bar-margin;
+			width: $my-vote-width * 5;
+			height: $vote-bar-height;
+			text-align: center;
+		}
+	}
+	
+	// This is the bar we show where the user's vote is
+	.my-vote-div {
+		position: relative;
+		top: $vote-bar-margin / 2.0;
+		z-index: 1;
+
+		// This is the actual knob we show visually
+		.my-vote-knob {
+			position: relative;
+			left: -$my-vote-width / 2.0;
+			background-color: black;
+			width: $my-vote-width;
+			height: $vote-bar-height + $vote-bar-margin;
+		}
+	}
+}
+
+// Div containing the entire voting bar
+.vote-bar-body:focus {
+	// Prevent outline appearing when the user clicks to vote
+	outline: none;
+}
+
+// Helper used to center text horizontally
+.center-text {
+	text-align: center;
+}
+
+// Helper to preserve whitespace
+.pre {
+	white-space: pre;
+}

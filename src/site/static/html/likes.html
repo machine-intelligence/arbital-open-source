@@ -1,0 +1,12 @@
+<md-button ng-class="{'md-icon-button': !isStretched}"
+		ng-click="likeClick()"
+		ng-if="isButton">
+	<md-icon ng-show="page.myLikeValue > 0">thumb_up</md-icon>
+	<md-icon md-svg-icon="thumb_up_outline" ng-show="page.myLikeValue <= 0"></md-icon>
+	<span ng-bind="page.likeCount + page.myLikeValue"></span>
+</md-button>
+<span ng-if="!isButton">
+	<md-icon ng-show="page.myLikeValue > 0">thumb_up</md-icon>
+	<md-icon md-svg-icon="thumb_up_outline" ng-show="page.myLikeValue <= 0"></md-icon>
+	<span ng-bind="page.likeCount + page.myLikeValue"></span>
+</span>

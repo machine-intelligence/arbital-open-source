@@ -717,7 +717,10 @@ func LoadLikes(db *database.DB, currentUserId int64, pageMap map[int64]*Page) er
 			return fmt.Errorf("failed to scan for a like: %v", err)
 		}
 		page := pageMap[pageId]
-		if value > 0 {
+		// We count the current user's like value towards the sum here in the FE.
+		if userId == currentUserId {
+			page.MyLikeValue = value
+		} else if value > 0 {
 			if page.LikeCount >= page.DislikeCount {
 				page.LikeScore++
 			} else {
@@ -729,9 +732,6 @@ func LoadLikes(db *database.DB, currentUserId int64, pageMap map[int64]*Page) er
 				page.LikeScore--
 			}
 			page.DislikeCount++
-		}
-		if userId == currentUserId {
-			page.MyLikeValue = value
 		}
 		return nil
 	})

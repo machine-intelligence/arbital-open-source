@@ -1,4 +1,66 @@
-<div class="panel panel-default">
+<div layout="column" ng-show="showPanel">
+	<!-- Header -->
+	<div layout="row">
+		<!-- Title -->
+		<h3 flex>This version relies on:</h3>
+
+		<!-- Edit button -->
+		<md-button class="md-icon-button" ng-click="inEditModeToggle()">
+			<md-icon>create</md-icon>
+		</md-button>
+	</div>
+
+	<!-- List of requirements -->
+	<div layout="row"
+			layout-align="start center"
+			ng-repeat="requirementId in page.requirementIds"
+			ng-init="mastery=pageService.masteryMap[requirementId]">
+
+		<!-- Mark as done button -->
+		<md-button class="md-icon-button"
+				ng-click="toggleRequirement(requirementId)"
+				ng-show="!inEditMode">
+			<md-icon ng-show="hasMastery(requirementId)">done_all</md-icon>
+			<md-icon ng-hide="hasMastery(requirementId)">done</md-icon>
+		</md-button>
+
+		<!-- Delete button -->
+		<md-button class="md-icon-button"
+				ng-click="deleteRequirement(requirementId)"
+				ng-show="inEditMode">
+			<md-icon>delete</md-icon>
+		</md-button>
+
+		<!-- Requirement title -->
+		<arb-page-title page-id="{{requirementId}}" is-link="true"></arb-page-title>
+	</div>
+
+	<!-- Add requirements -->
+	<md-autocomplete md-selected-item="searchItem"
+			md-search-text="searchText"
+			md-items="result in getSearchResults(searchText)"
+			md-item-text="searchText"
+			md-selected-item-change="searchResultSelected(result)"
+			md-menu-class="autocomplete-custom-template"
+			md-no-cache="true"
+			md-min-length="2"
+			md-delay="300"
+			md-autofocus="true"
+			placeholder="Add a requirement"
+			ng-show="inEditMode">
+		<md-item-template>
+			<div layout="row">
+				<arb-likes page-id="{{result.label}}"></arb-likes>
+					<arb-page-title page-id="{{result.label}}" show-clickbait="true"></arb-page-title>
+			</div>
+		</md-item-template>
+		<md-not-found>
+			No matches found.
+		</md-not-found>
+	</md-autocomplete>
+</div>
+
+<!--<div class="panel panel-default">
 	<div class="panel-heading">Required Masteries</div>
 	<div class="panel-body">
 		<div class="page-tag-row"
@@ -24,4 +86,4 @@
 				placeholder="Enter new mastery requirement"
 				ng-show="userService.userIsCool()">
 	</div>
-</div>
+</div>-->

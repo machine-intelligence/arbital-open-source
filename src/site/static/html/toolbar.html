@@ -3,26 +3,45 @@
 	<div class="md-toolbar-tools">
 		<a ng-href="{{pageService.getDomainUrl()}}">Arbital</a>
 
+		<span flex="5"></span>
+
 		<a ng-href="/"
 				ng-bind="pageService.pageMap[pageService.privateGroupId].title"
 				ng-show="pageService.privateGroupId"></a>
 
+		<span flex="5"></span>
+
 		<!-- Search -->
-		<span flex="10"></span>
-		<md-autocomplete md-selected-item="selectedItem" md-search-text="searchText" md-items="item in getMatches(searchText)" md-item-text="item.display" flex="80">
+		<md-autocomplete md-selected-item="searchItem"
+				md-search-text="searchText"
+				md-items="result in getSearchResults(searchText)"
+				md-item-text="searchText"
+				md-selected-item-change="searchResultSelected(result)"
+				md-menu-class="autocomplete-custom-template"
+				md-no-cache="true"
+				md-min-length="2"
+				md-delay="300"
+				md-autofocus="true"
+				placeholder="Search"
+				flex="80">
 			<md-item-template>
-				<span md-highlight-text="searchText">{{item.display}}</span>
+				<div layout="row">
+					<arb-likes page-id="{{result.label}}"></arb-likes>
+						<arb-page-title page-id="{{result.label}}" show-clickbait="true"></arb-page-title>
+				</div>
 			</md-item-template>
 			<md-not-found>
 				No matches found.
 			</md-not-found>
 		</md-autocomplete>
+
 		<span flex="10"></span>
 
 		<!-- Updates -->
 		<md-button class="md-icon-button" ng-show="userService.user.isLoggedIn">
-			<md-icon>notifications</md-icon>
-			<span ng-bind="userService.user.updateCount"></span>
+			<md-icon ng-show="userService.user.updateCount <= 0">notifications_none</md-icon>
+			<md-icon ng-show="userService.user.updateCount > 0">notifications</md-icon>
+			<span ng-bind="userService.user.updateCount" ng-show="userService.user.updateCount > 0"></span>
 		</md-button>
 
 		<!-- Login/signup buttons -->
@@ -38,7 +57,7 @@
 
 		<!-- Button for RHS sidebar -->
 		<md-button class="md-icon-button"
-				ng-click="openRightMenu()"
+				ng-click="toggleRightMenu()"
 				ng-show="userService.user.isLoggedIn">
 			<md-icon>menu</md-icon>
     </md-button>
@@ -47,17 +66,18 @@
 
 <md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right">
 	<md-toolbar>
-		<h1 class="md-toolbar-tools" ng-bind="userService.user.email"></h1>
+		<h1 class="md-toolbar-tools">
+			{{userService.user.email}}
+			<md-button class="md-icon-button"
+					ng-click="toggleRightMenu()">
+				<md-icon>arrow_forward</md-icon>
+			</md-button>
+		</h1>
 	</md-toolbar>
 	<md-content>
-			<div ng-show="userService.user.isAdmin">
-				<a class="admin" href="/domains">All Domains</a>
-			</div>
-			<md-divider></md-divider>
-
 			<!-- List of groups -->
 			<md-subheader ng-show="userService.user.groupIds.length > 0">
-				Go To Group
+				My Groups
 			</md-subheader>
 			<div ng-repeat="groupId in userService.user.groupIds"
 				ng-init="groupAlias=pageService.pageMap[groupId].alias">
@@ -65,9 +85,15 @@
 			</div>
 			<md-divider></md-divider>
 
-			<a ng-href="{{userService.getUserUrl(userService.user.id)}}">Profile</a>
-			<a ng-href="/groups">Groups</a>
-			<a ng-href="/settings">Settings</a>
+			<div>
+				<a ng-href="{{userService.getUserUrl(userService.user.id)}}">My Profile</a>
+			</div>
+			<div>
+				<a ng-href="/groups">My Groups</a>
+			</div>
+			<div>
+				<a ng-href="/settings">My Settings</a>
+			</div>
 			<md-divider></md-divider>
 
 			<md-button ng-href="/logout/?continueUrl={{currentUrl}}"

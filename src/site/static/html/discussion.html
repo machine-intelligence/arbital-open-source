@@ -1,0 +1,13 @@
+<!-- Discussion section for some page -->
+<div layout="column" ng-show="page.subpageIds.length > 0">
+	<h2>Discussion</h2>
+
+	<div ng-repeat="subpageId in page.subpageIds">
+		<arb-subpage lens-id="{{page.pageId}}" page-id="{{subpageId}}"></arb-subpage>
+	</div>
+
+	<md-button>
+		<md-icon>reply</md-icon>
+		New Comment
+	</md-button>
+</div>

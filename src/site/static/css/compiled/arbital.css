@@ -1,0 +1,64 @@
+.blue-dot {
+  position: relative;
+  top: -0.4em;
+  display: inline-block;
+  background-color: blue;
+  width: 0.4em;
+  height: 0.4em;
+  border-radius: 50%; }
+
+.autocomplete-custom-template li {
+  height: auto;
+  padding-bottom: 8px; }
+
+.vote-bar .vote-bucket-div {
+  border: 1px solid black;
+  height: 18px; }
+  .vote-bar .vote-bucket-div .vote-bucket {
+    background-color: black;
+    opacity: 0.0; }
+  .vote-bar .vote-bucket-div.selected {
+    border: 1px solid red; }
+.vote-bar .vote-bar-margin {
+  height: 27px; }
+.vote-bar .new-vote-div {
+  position: relative;
+  top: 13.5px;
+  z-index: 2; }
+  .vote-bar .new-vote-div .new-vote-knob {
+    position: relative;
+    left: -15px;
+    background-color: red;
+    width: 10px;
+    height: 45px; }
+  .vote-bar .new-vote-div .new-vote-knob-hor {
+    position: relative;
+    left: -30px;
+    top: -63px;
+    width: 50px;
+    height: 18px;
+    text-align: center; }
+.vote-bar .my-vote-div {
+  position: relative;
+  top: 13.5px;
+  z-index: 1; }
+  .vote-bar .my-vote-div .my-vote-knob {
+    position: relative;
+    left: -5px;
+    background-color: black;
+    width: 10px;
+    height: 45px; }
+
+.vote-bar-body:focus {
+  outline: none; }
+
+.center-text {
+  text-align: center; }
+
+.pre {
+  white-space: pre; }
+
+.no-marign {
+  margin: 0; }
+
+/*# sourceMappingURL=arbital.css.map */

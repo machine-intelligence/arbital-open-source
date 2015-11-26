@@ -1,17 +1,15 @@
-<!-- Display page's title with potential additional meta info. This is used to
- display the title of an embedded page. -->
-<span class="title-span">
-	<span class="new-updated-label glyphicon glyphicon-star"
-				title="This is your first time viewing this page"
-				ng-show="page.isNewPage()"></span>
-	<button class="show-page-diff btn btn-default"
-			data-toggle="button"
-			ng-show="page.isUpdatedPage()"
-			title="Click to see what changed since the last time you saw this page">
-		<span class="new-updated-label glyphicon glyphicon-star-empty"></span>
-	</button>
-	<span ng-show="page.type == 'question'">
-	  <span class="glyphicon glyphicon-question-sign"></span>
-	</span>
-	<span class="page-title-text" ng-bind="page.title"></span>
-</span>
+<!-- Display page's title with potential additional meta info. -->
+<md-icon ng-show="pageService.showLockedGroup(page.pageId)">
+	<md-tooltip>This page belongs to {{pageService.pageMap[page.seeGroupId].title}} group</md-tooltip>
+</md-icon>
+<md-icon ng-show="pageService.showPublic(page.pageId)">
+	<md-tooltip>This page is public</md-tooltip>
+</md-icon>
+<a ng-href="{{pageService.getPageUrl(page.pageId)}}"
+		ng-bind="pageTitle"
+		ng-if="isLink"></a>
+<span ng-bind="pageTitle"
+		ng-if="!isLink"></span>
+<span class="blue-dot" ng-show="page.isNewPage()"></span>
+<div class="md-body-1" ng-bind="page.clickbait" ng-show="showClickbait">
+</div>
