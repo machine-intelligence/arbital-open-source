@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("arbEditPage", function($location, $timeout, $compile, pageService, userService, autocompleteService, markdownFactory) {
+app.directive("arbEditPage", function($location, $timeout, $interval, $http, pageService, userService, markdownFactory) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
@@ -30,7 +30,6 @@ app.directive("arbEditPage", function($location, $timeout, $compile, pageService
 
 			// Called when user selects a page from insert link input
 			$scope.insertLinkSelect = function(result) {
-				console.log(result);
 				$scope.showInsertLink = false;
 				$timeout(function() {
 					$scope.insertLinkCallback(result.alias);
@@ -91,80 +90,190 @@ app.directive("arbEditPage", function($location, $timeout, $compile, pageService
 			$scope.lockExists = $scope.page.lockedBy != "0" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== userService.user.id;
 
+			// Convert all links with pageIds to alias links.
+			$scope.page.text = $scope.page.text.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
+				var page = pageService.pageMap[alias];
+				if (page) {
+					return prefix + "[" + text + "](" + page.alias + ")";
+				}
+				return whole;
+			/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
+				var page = pageService.pageMap[alias];
+				if (page) {
+					return prefix + "[vote: " + page.alias + "]";
+				}
+				return whole;*/
+			}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
+				var page = pageService.pageMap[alias];
+				if (page) {
+					return prefix + "[" + page.alias + " " + text + "]";
+				}
+				return whole;
+			}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
+				var page = pageService.pageMap[alias];
+				if (page) {
+					return prefix + "[" + page.alias + "]";
+				}
+				return whole;
+			}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {
+				var page = pageService.pageMap[alias];
+				if (page) {
+					return prefix + "[" + text + "](" + url + page.alias + ")";
+				}
+				return whole;
+			}).replace(atAliasRegexp, function(whole, prefix, alias) {
+				var page = pageService.pageMap[alias];
+				if (page) {
+					return prefix + "[@" + page.alias + "]";
+				}
+				return whole;
+			});
+
+			// =========== Error, warning, and info management system ==============
+			var messages = {};
+			var addMessage = function(key, text, type) {
+				messages[key] = {text: text, type: type};
+			};
+			var deleteMessage = function(key) {
+				delete messages[key];
+			};
+
+			// =========== Autosaving / snapshotting / publishing stuff ==============
+			$scope.autosaving = false;
+			$scope.publishing = false;
+			$scope.snapshotting = false;
+
+			var prevEditPageData = undefined;
+			$timeout(function() {
+				// Compute prevEditPageData, so we don't fire off autosave when there were
+				// no changes made.
+				prevEditPageData = computeAutosaveData();
+			});
 
 			// Helper function for savePage. Computes the data to submit via AJAX.
-			var computeAutosaveData = function(isAutosave, isSnapshot) {
+			var computeAutosaveData = function() {
 				var data = {
 					pageId: $scope.pageId,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
-					isAutosave: isAutosave,
-					isSnapshot: isSnapshot,
-					__invisibleSubmit: isAutosave,
 				};
-				if (page.anchorContext) {
-					data.anchorContext = page.anchorContext;
-					data.anchorText = page.anchorText;
-					data.anchorOffset = page.anchorOffset;
+				if ($scope.page.anchorContext) {
+					data.anchorContext = $scope.page.anchorContext;
+					data.anchorText = $scope.page.anchorText;
+					data.anchorOffset = $scope.page.anchorOffset;
 				}
 				return data;
 			};
-			$scope.autosaving = false;
-			$scope.publishing = false;
-			var prevEditPageData = undefined;
 			// Save the current page.
-			// callback is called when the server replies with success. If it's an autosave
-			// and the same data has already been submitted, the callback is called with "".
-			var savePage = function(isAutosave, isSnapshot, callback) {
-				// Prevent stacking up saves without them returning.
-				if ($scope.publishing) return;
-				$scope.publishing = !isAutosave;
-				if (isAutosave && $scope.autosaving) return;
-				$scope.autosaving = isAutosave;
-
-				// Submit the form.
-				var data = computeAutosaveData(isAutosave, isSnapshot);
-				var $form = $topParent.find(".new-page-form");
+			// callback is called with the error (or undefined on success)
+			var savePage = function(isAutosave, isSnapshot, callback, autosaveNotPerformedCallback) {
+				var data = computeAutosaveData();
 				if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
+					prevEditPageData = $.extend({}, data);
+					data.isAutosave = isAutosave;
+					data.isSnapshot = isSnapshot;
+					console.log("HTTP");
+					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
-					submitForm($form, "/editPage/", data, function(r) {
+					$http({method: "POST", url: "/editPage/", data: JSON.stringify(data)})
+					.success(function(data) {
 						if (isAutosave) {
-							$scope.autosaving = false;
 							// Refresh the lock
-							page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
+							$scope.page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
 						}
-						if (isSnapshot) {
-							// Prevent an autosave from triggering right after a successful snapshot
-							prevEditPageData.isSnapshot = false;
-							prevEditPageData.isAutosave = true;
-							data.__invisibleSubmit = true; 
-						}
-
-						// Process warnings
-						var warningsLength = r.result.aliasWarnings.length;
-						var $aliasWarning = $topParent.find(".alias-warning");
-						$aliasWarning.text("").toggle(warningsLength > 0);
-						$topParent.find(".alias-form-group").toggleClass("has-warning", warningsLength > 0);
-						for(var n = 0; n < warningsLength; n++){
-							$aliasWarning.text($aliasWarning.text() + r.result.aliasWarnings[n] + "\n");
-						}
-						callback(true);
-					}, function() {
-						if (isAutosave) $scope.autosaving = false;
-						if ($scope.publishing) {
-							$scope.publishing = false;
-							// Pretend it was a failed autosave
-							data.__invisibleSubmit = true; 
-							data.isAutosave = true;
-						}
+						callback();
+					})
+					.error(function(data) {
+						callback(data);
 					});
-					prevEditPageData = data;
 				} else {
-					callback(false);
-					$scope.autosaving = false;
+					if (autosaveNotPerformedCallback) autosaveNotPerformedCallback();
 				}
-			}
+			};
+
+			// Called when user clicks Publish button
+			$scope.publishPage = function() {
+				$scope.publishing = true;
+				savePage(false, false, function(error) {
+					$scope.publishing = false;
+					if (error) {
+						addMessage("publish", "Publishing failed: " + error, "error");
+					} else {
+						doneFn({alias: $scope.page.pageId});
+					}
+				});
+			};
+
+			// Process Snapshot button click
+			$scope.snapshotPage = function() {
+				$scope.snapshotting = true;
+				$scope.successfulSnapshot = false;
+				savePage(false, true, function(error) {
+					$scope.snapshotting = false;
+					if (error) {
+						addMessage("snapshot", "Snapshot failed: " + error, "error");
+					} else {
+						addMessage("snapshot", "Snapshot saved!", "info");
+					}
+				});
+			};
+
+			// Process Discard button click.
+			$scope.discardPage = function() {
+				if (doneFn) {
+					doneFn({alias: $scope.page.pageId, abandon: true});
+				}
+			};
+
+			// Set up autosaving.
+			$scope.successfulAutosave = false;
+			var autosaveFunc = function() {
+				if ($scope.autosaving) return;
+				$scope.autosaving = true;
+				$scope.successfulAutosave = false;
+				savePage(true, false, function(error) {
+					$scope.autosaving = false;
+					$scope.successfulAutosave = !error;
+					$scope.autosaveError = error;
+				}, function() {
+					$scope.autosaving = false;
+				});
+			};
+			var autosaveInterval = $interval(autosaveFunc, 5000);
+			$scope.$on("$destroy", function() {
+				$interval.cancel(autosaveInterval);
+				// Autosave just in case.
+				savePage(true, false, function() {});
+			});
+		},
+		link: function(scope, element, attrs) {
+			$timeout(function() {
+				/*var $textarea = ;
+				var textarea = $textarea[0];
+				$textarea.on("scroll", function(event) {
+					console.log(textarea.scrollTop);
+					console.log(textarea.scrollTop / (textarea.scrollHeight - textarea.offsetHeight));
+				});*/
+
+				var $divs = $(element).find(".wmd-input").add($(element).find(".preview-area"));
+				var syncScroll = function(event) {
+					var $other = $divs.not(this).off("scroll"), other = $other.get(0);
+					var percentage = this.scrollTop / (this.scrollHeight - this.offsetHeight);
+					other.scrollTop = percentage * (other.scrollHeight - other.offsetHeight);
+					// Firefox workaround. Rebinding without delay isn't enough.
+					//setTimeout(function() {
+						$other.on("scroll", syncScroll);
+					//}, 10);
+				};
+				var mouseEnterScrollArea = function(event) {
+					var $other = $divs.not(this).off("scroll");
+					console.log(this);
+					console.log($other);
+					$(this).on("scroll", syncScroll);
+				};
+				$divs.on("mouseenter", mouseEnterScrollArea);
+			});
 		},
 	};
 });

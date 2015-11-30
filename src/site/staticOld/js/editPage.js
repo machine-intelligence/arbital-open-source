@@ -69,16 +69,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			type: "parent",
 		});
 	}
-	var deleteParentElement = function($target) {
-		var tagId = $target.attr("tag-id");
-		$target.tooltip("destroy").remove();
-
-		pageService.deletePagePair({
-			parentId: tagId,
-			childId: pageId,
-			type: "parent",
-		});
-	};
 
 	// Get similar pages
 	var prevSimilarPageData = {};
@@ -135,78 +125,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		return false;
 	});
 
-	// Helper function for savePage. Computes the data to submit via AJAX.
-	var computeAutosaveData = function(isAutosave, isSnapshot) {
-		var data = {
-			pageId: pageId,
-			isAutosave: isAutosave,
-			isSnapshot: isSnapshot,
-			__invisibleSubmit: isAutosave,
-		};
-		serializeFormData($topParent.find(".new-page-form"), data);
-		if (page.anchorContext) {
-			data.anchorContext = page.anchorContext;
-			data.anchorText = page.anchorText;
-			data.anchorOffset = page.anchorOffset;
-		}
-		return data;
-	};
-	var autosaving = false;
-	var publishing = false;
-	var prevEditPageData = undefined;
-	// Save the current page.
-	// callback is called when the server replies with success. If it's an autosave
-	// and the same data has already been submitted, the callback is called with "".
-	var savePage = function(isAutosave, isSnapshot, callback) {
-		// Prevent stacking up saves without them returning.
-		if (publishing) return;
-		publishing = !isAutosave && !isSnapshot;
-		if (isAutosave && autosaving) return;
-		autosaving = isAutosave;
-
-		// Submit the form.
-		var data = computeAutosaveData(isAutosave, isSnapshot);
-		var $form = $topParent.find(".new-page-form");
-		if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
-			// TODO: if the call takes too long, we should show a warning.
-			submitForm($form, "/editPage/", data, function(r) {
-				if (isAutosave) {
-					autosaving = false;
-					// Refresh the lock
-					page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
-				}
-				if (isSnapshot) {
-					// Prevent an autosave from triggering right after a successful snapshot
-					prevEditPageData.isSnapshot = false;
-					prevEditPageData.isAutosave = true;
-					data.__invisibleSubmit = true; 
-				}
-
-				// Process warnings
-				var warningsLength = r.result.aliasWarnings.length;
-				var $aliasWarning = $topParent.find(".alias-warning");
-				$aliasWarning.text("").toggle(warningsLength > 0);
-				$topParent.find(".alias-form-group").toggleClass("has-warning", warningsLength > 0);
-				for(var n = 0; n < warningsLength; n++){
-					$aliasWarning.text($aliasWarning.text() + r.result.aliasWarnings[n] + "\n");
-				}
-				callback(true);
-			}, function() {
-				if (isAutosave) autosaving = false;
-				if (publishing) {
-					publishing = false;
-					// Pretend it was a failed autosave
-					data.__invisibleSubmit = true; 
-					data.isAutosave = true;
-				}
-			});
-			prevEditPageData = data;
-		} else {
-			callback(false);
-			autosaving = false;
-		}
-	}
-
 	// Process form submission.
 	$topParent.find(".new-page-form").on("submit", function(event) {
 		savePageInfo(function(success) {
@@ -225,71 +143,11 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		return false;
 	});
 
-	// Process safe snapshot button.
-	$topParent.find(".save-snapshot-button").on("click", function(event) {
-		var $body = $(event.target).closest("body");
-		var $loadingText = $body.find(".loading-text");
-		$loadingText.hide();
-		savePage(false, true, function(saved) {
-			if (saved) {
-				$loadingText.show().text("Saved!");
-			}
-		});
-		return false;
-	});
-
-	// Process Abandon button click.
-	$topParent.find(".abandon-edit").on("click", function(event) {
-		if (doneFn) {
-			doneFn({alias: pageId, abandon: true});
-		}
-	});
-
 	// Process Close button click.
 	$topParent.find(".go-to-page-view").on("click", function(event) {
 		if (doneFn) {
 			doneFn({});
 		}
-	});
-
-	// Deleting parents. (Only inside the parent container.)
-	$topParent.find(".parent-container .tag").on("click", function(event) {
-		var $target = $(event.target);
-		deleteParentElement($target);
-		return false;
-	});
-
-	if (primaryPage && pageId === primaryPage.pageId) {
-		// Resive textarea height to fit the screen.
-		$topParent.find(".wmd-input").height($(window).height() - 140);
-	}
-
-	// Scroll wmd-panel so it's always inside the viewport.
-	if (primaryPage === undefined && !isModal) {
-		var $wmdPanelContainer = $topParent.find(".wmd-panel-container");
-		var $wmdPreview = $topParent.find(".wmd-preview");
-		var $wmdPanel = $topParent.find(".wmd-panel");
-		var wmdPanelY = $wmdPanel.offset().top;
-		var wmdPanelHeight = $wmdPanel.outerHeight();
-		var initialContainerHeight = $wmdPanelContainer.height();
-		$(window).scroll(function(){
-			var y = $(window).scrollTop() - wmdPanelY;
-			y = Math.min($wmdPreview.outerHeight() - wmdPanelHeight, y);
-			y = Math.max(0, y);
-			$wmdPanel.stop(true).animate({top: y}, "fast");
-		});
-		// Automatically adjust height of wmd-panel-container.
-		var adjustHeight = function(){
-			$wmdPanelContainer.height(Math.max(initialContainerHeight, $wmdPreview.height() + $wmdPreview.offset().top - $wmdPanelContainer.offset().top));
-		};
-		window.setInterval(adjustHeight, 1000);
-		adjustHeight();
-	}
-
-	// Keep title label in sync with the title input.
-	var $titleLabel = $topParent.find(".page-title-text");
-	$topParent.find("input[name='title']").on("keyup", function(event) {
-		$titleLabel.text($(event.target).val());
 	});
 
 	// Add parent tags.
@@ -314,70 +172,9 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// === Trigger initial setup. ===
 
-	// Setup autocomplete for parents field.
-	autocompleteService.setupParentsAutocomplete($topParent.find(".tag-input"), function(event, ui) {
-		createNewParentElement(ui.item.label);
-		$(event.target).val("");
-		return false;
-	});
-
 	// Add existing parent tags
 	addParentTags();
 
-	// Convert all links with pageIds to alias links.
-	page.text = page.text.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
-		var page = pageService.pageMap[alias];
-		if (page) {
-			return prefix + "[" + text + "](" + page.alias + ")";
-		}
-		return whole;
-	/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
-		var page = pageService.pageMap[alias];
-		if (page) {
-			return prefix + "[vote: " + page.alias + "]";
-		}
-		return whole;*/
-	}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
-		var page = pageService.pageMap[alias];
-		if (page) {
-			return prefix + "[" + page.alias + " " + text + "]";
-		}
-		return whole;
-	}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
-		var page = pageService.pageMap[alias];
-		if (page) {
-			return prefix + "[" + page.alias + "]";
-		}
-		return whole;
-	}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {
-		var page = pageService.pageMap[alias];
-		if (page) {
-			return prefix + "[" + text + "](" + url + page.alias + ")";
-		}
-		return whole;
-	}).replace(atAliasRegexp, function(whole, prefix, alias) {
-		var page = pageService.pageMap[alias];
-		if (page) {
-			return prefix + "[@" + page.alias + "]";
-		}
-		return whole;
-	});
-
-	// Set up Markdown.
-	arbMarkdown.init(true, pageId, "", undefined, pageService, userService, autocompleteService);
-
-	// Setup karma lock slider.
-	var $slider = $topParent.find(".karma-lock-slider");
-	$slider.bootstrapSlider({
-		value: page.editKarmaLock,
-		min: 0,
-		max: +$slider.attr("max"),
-		step: 1,
-		precision: 0,
-		selection: "none",
-		handle: "square",
-		tooltip: "always",
-	});
 
 	// Process click event to revert the page to a certain edit
 	$("body").on("click", ".edit-node-revert-to-edit", function(event) {
@@ -450,12 +247,8 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		// Hide new page button if this is a modal.
 		$topParent.find("#wmd-new-page-button" + pageId).toggle(!isModal);
 
-		// Set the rendering for parents autocomplete
-		autocompleteService.setAutocompleteRendering($topParent.find(".tag-input"), scope);
-
 		// Set up link suggestions for the primary markdown textarea.
 		$topParent.find(".wmd-input").textcomplete([
-
 			{
 				match: /\[([A-Za-z0-9.]+)$/,
 				search: function (term, callback) {
@@ -500,14 +293,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 	    },
 		});
 
-		// Create change logs if necessary
-		if (page.changeLogs) {
-			setTimeout(function() {
-				$topParent.find(".change-logs").append($compile("<arb-change-logs page-id='" + pageId +
-						"'></arb-change-logs>")(scope));
-			});
-		}
-
 		// Autofocus on some input.
 		if (page.type !== "answer" || !primaryPage) {  
 			window.setTimeout(function() {
@@ -520,25 +305,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			});
 		}
 
-		// Set up autosaving.
-		var $autosaveLabel = $topParent.find(".autosave-label");
-		var autosaveFunc = function(){
-			$autosaveLabel.text("Autosave: Saving...").show();
-			savePage(true, false, function(saved) {
-				if (saved) {
-					$autosaveLabel.text("Autosave: Saved!").show();
-				} else {
-					$autosaveLabel.hide();
-				}
-			});
-		};
-		this.autosaveInterval = window.setInterval(autosaveFunc, 5000);
-		window.setTimeout(function() {
-			// Compute prevEditPageData, so we don't fire off autosave when there were
-			// no changes made.
-			prevEditPageData = computeAutosaveData(true, false);
-		});
-
 		// Set up finding similar pages
 		if (page.type !== "comment") {
 			var func = getComputeSimilarPagesFunc($compile, scope);
@@ -546,41 +312,6 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 			scope.$watch("page.clickbait", func);
 			scope.$watch("page.text", func);
 		}
-
-		// Set up interval for updating meta-data
-		var $metaTextInput = $topParent.find(".meta-text-input");
-		var $metaTextError = $topParent.find(".meta-text-error");
-		this.metaTextInterval = window.setInterval(function(){
-			try {
-				$metaTextError.hide();
-				jsyaml.load($metaTextInput.val());
-			} catch (err) {
-				$metaTextError.text(err.message).show();
-			} 
-		}, 1300);
-
-		// Workaround: Set up an interval to make sure modal backdrop is the right size.
-		if (isModal) {
-			var $element = $topParent.closest(".modal-content");
-			if ($element.length > 0) {
-				var lastHeight = 0;
-				this.backdropInterval = window.setInterval(function(){
-					if ($element.css("height") != lastHeight) {
-						lastHeight = $element.css("height"); 
-						$("#new-page-modal").data("bs.modal").handleUpdate();
-					}
-				}, 1000);
-			}
-		}
-	};
-
-	// Called before this editPage is destroyed.
-	this.stop = function() {
-		clearInterval(this.autosaveInterval);
-		clearInterval(this.similarPagesInterval);
-		clearInterval(this.backdropInterval);
-		// Autosave just in case.
-		savePage(true, false, function(saved) {});
 	};
 };
 

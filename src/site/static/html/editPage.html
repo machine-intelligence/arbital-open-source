@@ -17,6 +17,9 @@
 						<label>Clickbait</label>
 						<input ng-model="page.clickbait" md-maxlength="200">
 					</md-input-container>
+					<div>
+						You need to publish the page to save these changes.
+					</div>
 				</div>
 				</md-tab-body>
 			</md-tab>
@@ -112,8 +115,7 @@
 						placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 						ng-model="page.text"
 						ng-readonly="lockedByAnother"
-						ng-disabled="showInsertLink"
-						flex></textarea>
+						ng-disabled="showInsertLink"></textarea>
 
 				<!-- Footer -->
 				<div class="edit-text-footer" layout="row" layout-align="start center">
@@ -131,19 +133,31 @@
 		
 					<div flex></div>
 		
-					<div ng-show="!isPublishing && isAutosaving">
+					<div ng-show="autosaving">
 						Autosaving...
 					</div>
-					<div ng-show="isPublishing">
+					<div ng-show="successfulAutosave">
+						Autosaved
+					</div>
+					<div class="md-warn" ng-bind="autosaveError">
+					</div>
+					<div ng-show="snapshotting">
+						Saving a snapshot...
+					</div>
+					<div ng-show="publishing">
 						Publishing...
 					</div>
-					<md-button class="md-warn" ng-disable="isPublishing">
+					<md-button class="md-warn"
+							ng-click="discardPage()"
+							ng-disable="publishing || snapshotting">
 						Discard
 					</md-button>
-					<md-button ng-disable="isPublishing">
+					<md-button ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
 						Snapshot
 					</md-button>
-					<md-button class="md-primary" ng-disable="isPublishing">
+					<md-button class="md-primary"
+							ng-click="publishPage()"
+							ng-disable="publishing || snapshotting">
 						Publish
 					</md-button>
 				</div>
@@ -268,14 +282,7 @@
 				</md-tab-body>
 			</md-tab>
 
-			<!-- (3) Changelog tab -->
-			<md-tab label="Changelog">
-				<md-tab-body>
-					<arb-changelog page-id="{{page.pageId}}"><arb-changelog>
-				</md-tab-body>
-			</md-tab>
-
-			<!-- (4) Relationships tab -->
+			<!-- (3) Relationships tab -->
 			<md-tab label="Relationships">
 				<md-tab-body>
 					<div layout="column">
@@ -294,6 +301,13 @@
 					</div>
 				</md-tab-body>
 			</md-tab>
+
+			<!-- (4) Changelog tab -->
+			<md-tab label="Changelog">
+				<md-tab-body>
+					<arb-changelog page-id="{{page.pageId}}"><arb-changelog>
+				</md-tab-body>
+			</md-tab>
 		</md-tabs>
 	</div>
 
@@ -301,12 +315,13 @@
 
 	<!-- Preview (right half) -->
 	<div class="full-height" layout="column" flex="50" ng-if="showPreview">
-		<md-content flex>
+		<md-content class="preview-area" flex>
 			<h2 class="md-display-2" ng-bind="page.title"></h2>
 			<div id="wmd-preview{{page.pageId}}"></div>
+			<div class="messages-overlay"></div>
 		</md-content>
 		<div>
-			SOME MESSAGES
+			RELATED PAGES
 			<md-button>A</md-button>
 		</div>
 	</div>
