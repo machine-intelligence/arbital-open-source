@@ -11,3 +11,4 @@
 /xelaiemon
 *.cp
 *.swp
+.sass-cache
