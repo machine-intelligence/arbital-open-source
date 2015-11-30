@@ -32,8 +32,8 @@ func NewPage(pageId int64) *Page {
 	p.RequirementIds = make([]string, 0)
 	p.DomainIds = make([]string, 0)
 	p.ChangeLogs = make([]*ChangeLog, 0)
-	p.Children = make([]*PagePair, 0)
-	p.Parents = make([]*PagePair, 0)
+	p.ChildIds = make([]string, 0)
+	p.ParentIds = make([]string, 0)
 	p.Members = make(map[string]*Member)
 	return p
 }

@@ -24,12 +24,11 @@ var urlLinkRegexp = new RegExp(notEscaped +
 var atAliasRegexp = new RegExp(notEscaped + 
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");
 
-
-
-// pages stores all the loaded pages and provides multiple helper functions for
-// working with pages.
-app.factory("markdownConverter", function(pageService){
-	return function() {
+// markdownFactory provides a constructor you can use to create a markdown converter,
+// either for converting markdown to text or editing.
+app.factory("markdownFactory", function(pageService){
+	// Pass in a pageId to create an editor for that page
+	return function(pageId) {
 		var host = window.location.host;
 		this.converter = Markdown.getSanitizingConverter();
 
@@ -112,33 +111,26 @@ app.factory("markdownConverter", function(pageService){
 				}
 			});
 		});
-		
-		// For normal pages:
-		InitMathjax(this.converter);
-	};
-});
 
-/*var arbMarkdown = arbMarkdown || function() {
-	// Set up markdown editor and conversion.
-	function init(inEditMode, pageId, pageText, $topParent, pageService) {
-
-	
-		if (inEditMode) {
+		if (pageId) {
 			// Setup the editor stuff.
-			var editor = new Markdown.Editor(converter, pageId, {
+			this.editor = new Markdown.Editor(this.converter, pageId, {
 				handler: function(){
 					window.open("http://math.stackexchange.com/editing-help", "_blank");
 				},
 			});
-			InitMathjax(converter, editor, pageId);
-			editor.run();
-			return;
 		}
-	
-	};*/
+		
+		InitMathjax(this.converter);
+
+		if (this.editor) {
+			this.editor.run();
+		}
+	};
+});
 
 // Directive for rendering markdown text.
-app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdownConverter) {
+app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdownFactory) {
 	return {
 		template: "<div class='markdown-text'></div>",
 		scope: {
@@ -147,7 +139,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 		},
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];
-			var markdown = new markdownConverter();
+			var markdown = new markdownFactory();
 			var host = window.location.host;
 
 			// Convert page text to html.

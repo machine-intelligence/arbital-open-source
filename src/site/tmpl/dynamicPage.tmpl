@@ -15,6 +15,7 @@
 	<script src="/static/js/pageService.js"></script>
 	<script src="/static/js/userService.js"></script>
 	<script src="/static/js/autocompleteService.js"></script>
+	<script src="/static/js/popoverService.js"></script>
 	<script src="/static/js/angularDirectives.js"></script>
 	<script src="/static/js/markdown.js"></script>
 	<script src="/static/js/toolbar.js"></script>
@@ -26,6 +27,7 @@
 	<script src="/static/js/editPage.js"></script>
 	<script src="/static/js/discussion.js"></script>
 	<script src="/static/js/subpage.js"></script>
+	<script src="/static/js/relationships.js"></script>
 	<!--<script src="/static/js/indexDir.js"></script>
 	<script src="/static/js/groupIndex.js"></script>
 	<script src="/static/js/updatesDir.js"></script>
@@ -43,32 +45,7 @@
 	
 	<!-- This modal is for asking a new question. -->
 	<arb-edit-page-modal></arb-edit-page-modal>
-
-	<!-- This div shows up when the user tries to take an action that requires them to be logged in. -->
-	<div id="signup-popover-template" hidden>
-		<div class="popover-summary">
-			You have to be logged in.
-		</div>
-	</div>
 	
-	<!-- This div shows up when the user hovers over an intra-site link. -->
-	<div id="link-popover-template" hidden>
-		<div class="popover-blog-owner"></div>
-		<span class="popover-summary markdown-text"></span>
-	
-		<!-- Likes / dislikes and approval voting -->
-		<div class="like-span">
-			<span class="like-count">JS inserts likes</span>
-			<span class="disabled-like glyphicon glyphicon-thumbs-up"></span>
-			&nbsp;
-			<span class="dislike-count">JS inserts dislikes</span>
-			<span class="disabled-dislike glyphicon glyphicon-thumbs-down"></span>
-		</div>
-	
-		<!-- Answers and probability votes -->
-		<div class="vote"></div>
-	</div>
-
 	<!-- This div is used to create embedded page divs. -->
 	<div id="embedded-page-template" class="embedded-page" hidden>
 		<div>
@@ -93,15 +70,16 @@
 
 	<!-- Global info messages -->
 	<div class="global-error alert alert-danger" hidden></div>
+
+	<!-- Compose fab -->
+	<arb-compose-fab></arb-compose-fab>
 	
 	<!-- All the content -->
-	<div layout="column">
+	<div class="full-height">
 		<arb-toolbar></arb-toolbar>
 	
 		<!-- We append dynamic content to this div. -->
-		<div ng-view></div>
-	
-		<arb-footer></arb-footer>
+		<div id="dynamic-view" class="full-height" ng-view></div>
 	</div>
 </body>
 </html>

@@ -85,8 +85,12 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// We need to copy some data from the loaded live version to the edit
 	livePage := returnData.PageMap[pageId]
-	p.Children = livePage.Children
-	p.Parents = livePage.Parents
+	p.ChildIds = livePage.ChildIds
+	p.ParentIds = livePage.ParentIds
+	p.TaggedAsIds = livePage.TaggedAsIds
+	p.RequirementIds = livePage.RequirementIds
+	p.ChangeLogs = livePage.ChangeLogs
+	livePage.ChangeLogs = []*core.ChangeLog{}
 
 	// Grab the lock to this page, but only if we have the right group permissions
 	if p.SeeGroupId <= 0 || u.IsMemberOfGroup(p.SeeGroupId) {

@@ -1,30 +1,54 @@
-<div class="intrasite-popover-body">
-
-	<ul class="intrasite-lens-tabs nav nav-tabs" role="tablist" ng-show="page.lensIds.length > 0">
-		<li><span class="gray-glyph glyphicon glyphicon-search"></span>&nbsp;</li>
-		<li class="active">
-			<a href="#" data-target="#lens-{{page.pageId}}" class="intrasite-lens-tab" data-toggle="tab">Default Lens</a>
-		</li>
-		<li ng-repeat="lensId in page.lensIds">
-			<a href="#" data-target="#lens-{{lensId}}" class="intrasite-lens-tab" data-toggle="tab">{{pageService.pageMap[lensId].title}}</a>
-		</li>
-	</ul>
-
-	<div ng-show="page.creatorId === page.seeGroupId">
-		Author: <arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
-	</div>
-
-	<div class="tab-content">
-		<div class="tab-pane active" id="lens-{{page.pageId}}">
-			<div class="markdown-text"></div>
+<div class="intrasite-popover md-whiteframe-8dp"
+		layout="column">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<arb-page-title page-id="{{page.pageId}}"></arb-page-title> 
 		</div>
-		<div class="tab-pane" id="lens-{{lensId}}" ng-repeat="lensId in page.lensIds">
-			<img src="/static/images/loading.gif" class="loading-indicator"/>
-		</div>
-	</div>
+	</md-toolbar>
 
-	<!-- Voting container -->
-	<div class="page-vote" ng-show="page.hasVote">
-		<arb-vote-bar page-id="{{page.pageId}}" is-popover-vote="true"></arb-vote-bar>
-	</div>
+	<arb-vote-bar page-id="{{page.pageId}}" ng-if="page.hasVote && isLoaded(page.pageId)"></arb-vote-bar> 
+	
+	<!-- Lens tabs -->
+	<md-tabs md-dynamic-height
+			ng-class="{'hide-tabs': page.lensIds.length <= 1}">
+		<md-tab ng-repeat="lensId in page.lensIds"
+				md-on-select="tabSelect(lensId)">
+			<md-tab-label>
+				<arb-page-title page-id="{{lensId}}"
+						custom-page-title="{{lensId === page.pageId ? 'Primary' : ''}}"></arb-page-title>
+				<md-icon>done</md-icon>
+			</md-tab-label>
+			<md-tab-body>
+				<!-- Lens body -->
+				<div ng-if="isLoaded(lensId)">
+					<arb-markdown page-id="{{lensId}}" use-summary="true"></arb-markdown>
+
+					<!-- Footer -->
+					<div layout="row" ng-if="isLoaded(lensId)">
+						<arb-likes page-id="{{lensId}}" is-button="true"></arb-likes>
+						<arb-subscribe page-id="{{lensId}}" ng-hide="parentSubpageId"></arb-subscribe>
+						<div ng-show="page.commentCount">
+							<md-icon>comment</md-icon>
+							<span ng-bind="page.commentCount"></span>
+						</div>
+						<div flex></div>
+						<div ng-show="page.type !== 'question'">
+							{{page.textLength}} characters
+						</div>
+						<div ng-show="page.type === 'question'">
+							<ng-pluralize count="page.answerCount"
+									when="{'0': 'No answers', 'one': 'One answer', 'other': '{} answers'}"></ng-pluralize>
+						</div>
+					</div>
+				</div>
+
+				<!-- Loading spinner -->
+				<div layout="column"
+						layout-align="center center"
+						ng-if="!isLoaded(lensId)">
+					<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+				</div>
+			</md-tab-body>
+		</md-tab>
+	</md-tabs>
 </div>

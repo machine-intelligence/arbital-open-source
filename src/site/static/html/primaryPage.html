@@ -1,18 +1,17 @@
 <div layout="column">
-	<!-- All the pages -->
-	<div>
-		<arb-page page-id="{{pageService.primaryPage.pageId}}"></arb-page>
-	</div>
+	<!-- The primary page -->
+	<arb-page page-id="{{pageService.primaryPage.pageId}}"></arb-page>
 
 	<!-- Answers for a question page -->
-	<div class="answers" ng-show="answerIds.length > 0">
-		<h1>Answers</h1>
-		<div class="answers-list">
+	<div ng-show="page.type === 'question'">
+		<h1>Answers ({{page.answerIds.length}})</h1>
+		<div ng-repeat="answerId in page.answerIds">
+			<arb-page page-id="{{answerId}}"></arb-page>
 		</div>
 	</div>
 
 	<!-- New Answer for a question page -->
-	<div class="new-answer" ng-show="page.type === 'question'">
+	<!--<div ng-show="page.type === 'question'">
 		<h1>Find Existing Answer</h1>
 		<input id="find-answer-search"
 				type="text"
@@ -20,20 +19,22 @@
 				placeholder="Find existing answer"
 				ng-model="findAnswerTerm">
 		<div id="found-answers"></div>
-		<!-- arbFindAnswer is inserted here dynamically when primary page is a question -->
+	</div>-->
+
+	<!-- Create an answer -->
+	<div ng-show="page.type === 'question'">
 		<h1>Your Answer</h1>
-		<!-- arbEditPage is inserted here dynamically when primary page is a question -->
 	</div>
 	
 	<div layout="row" layout-margin>
 		<!-- Children -->
-		<div class="md-whiteframe-1dp" layout="column" flex>
+		<div class="md-whiteframe-1dp" layout="column" flex ng-hide="page.childIds.length <= 0">
 			<h2>Children</h2>
 			<md-list>
-				<md-list-item class="md-2-line" ng-repeat="childPair in page.children">
-					<arb-likes page-id="{{childPair.childId}}"></arb-likes>
+				<md-list-item class="md-2-line" ng-repeat="childId in page.childIds">
+					<arb-likes page-id="{{childId}}"></arb-likes>
 					<div class="md-list-item-text" layout="column">
-						<arb-page-title page-id="{{childPair.childId}}"
+						<arb-page-title page-id="{{childId}}"
 								is-link="true"
 								show-clickbait="true"></arb-page-title>
 					</div>
@@ -42,7 +43,7 @@
 		</div>
 
 		<!-- Related -->
-		<div class="md-whiteframe-1dp" layout="column" flex>
+		<div class="md-whiteframe-1dp" layout="column" flex ng-hide="page.relatedIds.length <= 0">
 			<h2>Related</h2>
 			<md-list>
 				<md-list-item class="md-2-line" ng-repeat="relatedId in page.relatedIds">
@@ -56,4 +57,6 @@
 			</md-list>
 		</div>
 	</div>
+
+	<arb-footer></arb-footer>
 </div>

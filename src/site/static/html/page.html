@@ -3,9 +3,9 @@
 	<div class="md-whiteframe-1dp" layout="column" flex="70">
 		<!-- Parents -->
 		<div>
-			<span ng-repeat="(index, parentPair) in page.parents">
+			<span ng-repeat="(index, parentId) in page.parentIds">
 				<span ng-show="index > 0">,</span>
-				<arb-page-title page-id="{{parentPair.parentId}}" is-link="true"></arb-page-title>
+				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
 
@@ -14,7 +14,7 @@
 
 		<!-- Page title -->
 		<h1 class="md-display-3">
-			<arb-page-title page-id="{{page.pageId}}"></arb-page-title>
+			<arb-page-title page-id="{{page.pageId}}" show-type="true"></arb-page-title>
 		</h1>
 
 		<!-- Tags -->
@@ -30,9 +30,9 @@
 
 		<!-- Lens tabs -->
 		<md-tabs md-dynamic-height
+				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
 				ng-style="{'min-height': tabsMinHeight}"
-				md-selected="selectedLensIndex"
-				ng-if="page.lensIds.length > 1">
+				md-selected="selectedLensIndex">
 			<md-tab ng-repeat="lensId in page.lensIds"
 					md-on-select="tabSelect(lensId)">
 				<md-tab-label>
@@ -51,9 +51,6 @@
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
-
-		<!-- Just display the primary lens if there are no alternative lenses -->
-		<arb-lens page-id="{{page.pageId}}" ng-if="page.lensIds.length <= 1"></arb-lens>
 	</div>
 
 	<div flex="15"></div>

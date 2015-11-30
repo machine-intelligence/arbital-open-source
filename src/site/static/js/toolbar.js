@@ -16,20 +16,11 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 				scope.currentUrl = encodeURIComponent($location.absUrl());
 			});
 
-			// Set up search
-			scope.getSearchResults = function(text) {
-				if (!text) return [];
-				var deferred = $q.defer();
-				autocompleteService.performSearch({term: text}, function(results) {
-					deferred.resolve(results);
-				});
-        return deferred.promise;
-			};
+			// Called when a search result is selected
 			scope.searchResultSelected = function(result) {
-				/*if (event.ctrlKey) {
-					return false;
-				}*/
-				window.location.href = pageService.getPageUrl(result.label);
+				if (result) {
+					window.location.href = pageService.getPageUrl(result.label);
+				}
 			}
 
 			// Open RHS menu
@@ -47,13 +38,8 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 			});
 
 			$("#newSibling").click(function() {
-				var listString = "";
-				var listArray = [];
-				for (var key in pageService.primaryPage.parents) {
-					listArray.push(pageService.primaryPage.parents[key].parentId);
-				}
-				listString = listArray.join(",");
-				window.location.href = "/edit?newParentId=" + listString;
+				var parentString = pageService.primaryPage.parentIds.join(",");
+				window.location.href = "/edit?newParentId=" + parentString;
 			});
 		},
 	};

@@ -50,9 +50,9 @@ var createEditSubpageDiv = function($parentDiv, $commentButton, scope, options) 
 				var page = scope.pageService.editMap[newPageId];
 				page.type = options.divType;
 				page.editGroupId = scope.userService.user.id;
-				page.parents = [{parentId: options.primaryPageId, childId: newPageId}];
+				page.parentIds = [options.primaryPageId];
 				if (options.parentCommentId) {
-					page.parents.push({parentId: options.parentCommentId, childId: newPageId});
+					page.parentIds.push(options.parentCommentId);
 				}
 				if (options.anchorContext) {
 					page.anchorContext = options.anchorContext;
@@ -78,42 +78,29 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, pageService
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
-			if ($scope.page.type === 'comment') {
+			$scope.isComment = $scope.page.type === "comment";
+			$scope.isQuestion = $scope.page.type === "question";
+			if ($scope.isComment) {
 				$scope.page.subpageIds = $scope.page.commentIds;
-			} else if ($scope.page.type === 'question') {
+			} else if ($scope.isQuestion) {
 				$scope.page.subpageIds = $scope.page.answerIds;
 			}
+			$scope.isCollapsed = $scope.isQuestion;
 
-			$scope.linkClicked = function() {
-				$location.hash("subpage-" + $scope.page.pageId);
+			if ($scope.isComment) {
+				$scope.myUrl = pageService.getPageUrl($scope.lensId) + "#subpage-" + $scope.page.pageId;
+			} else {
+				$scope.myUrl = pageService.getPageUrl($scope.page.pageId);
+			}
+
+			// Called when the user collapses/expands this subpage
+			$scope.collapseToggle = function() {
+				$scope.isCollapsed = !$scope.isCollapsed;
 			};
 		},
 		link: function(scope, element, attrs) {
 			return;
 			var $replies = element.find(".replies");
-			// Dynamically create reply elements.
-			if (scope.parentCommentId === undefined) {
-				if (scope.comment.commentIds != null) {
-					scope.comment.commentIds.sort(pageService.getChildSortFunc("oldestFirst"));
-					for (var n = 0; n < scope.comment.commentIds.length; n++) {
-						var childId = scope.comment.commentIds[n];
-						if (pageService.pageMap[childId].type !== "comment") continue;
-						var $comment = $compile("<arb-comment primary-page-id='" + scope.primaryPageId +
-								"' page-id='" + childId +
-								"' parent-comment-id='" + scope.pageId + "'></arb-comment>")(scope);
-						$replies.append($comment);
-					}
-				}
-				// Add New Comment element.
-				var $newComment = $compile("<arb-new-comment primary-page-id='" + scope.primaryPageId +
-						"' parent-comment-id='" + scope.pageId + "'></arb-new-comment>")(scope);
-				$replies.append($newComment);
-			}
-		
-			$timeout(function() {
-				// Process comment's text using Markdown.
-				//arbMarkdown.init(false, scope.pageId, scope.comment.text, element, pageService, userService);
-			});
 		
 			// Highlight the comment div. Used for selecting comments when #anchor matches.
 			var highlightCommentDiv = function() {
@@ -124,44 +111,6 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, pageService
 				highlightCommentDiv();
 			}
 		
-			// Comment voting stuff.
-			// likeClick is 1 is user clicked like and 0 if they clicked reset like.
-			element.find(".like-comment-link").on("click", function(event) {
-				var $target = $(event.target);
-				var $commentRow = $target.closest(".comment-row");
-				var $likeCount = $commentRow.find(".comment-like-count");
-			
-				// Update UI.
-				$target.toggleClass("on");
-				var newLikeValue = $target.hasClass("on") ? 1 : 0;
-				var totalLikes = ((+$likeCount.text()) + (newLikeValue > 0 ? 1 : -1));
-				if (totalLikes > 0) {
-					$likeCount.text("" + totalLikes);
-				} else {
-					$likeCount.text("");
-				}
-				
-				// Notify the server
-				var data = {
-					pageId: scope.pageId,
-					value: newLikeValue,
-				};
-				$.ajax({
-					type: "POST",
-					url: "/newLike/",
-					data: JSON.stringify(data),
-				})
-				.done(function(r) {
-				});
-				return false;
-			});
-		
-			// Process comment subscribe click.
-			element.find(".subscribe-comment-link").on("click", function(event) {
-				pageService.subscribeTo($target);
-				return false;
-			});
-			
 			// Comment editing stuff.
 			var $comment = element.find(".comment-content");
 			// Create and show the edit page directive.
@@ -204,30 +153,6 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, pageService
 			};
 			element.find(".permalink-comment-link").on("click", function(event) {
 				smartPageReload("subpage-" + scope.comment.pageId);
-				return false;
-			});
-		
-			// Callback used when the user confirms deleting a comment.
-			scope.confirmDeleteCommentFn = function(returnedPageId) {
-				pageService.deletePage(returnedPageId, (function(data, status) {
-					smartPageReload();
-				}));
-				return false;
-			};
-			// Deleting a comment
-			element.find(".delete-comment-link").on("click", function(event) {
-		
-				var $replies = element.find(".replies");
-				var $deleteButton = element.find(".delete-comment-link");
-				var position = $deleteButton.position();
-				var $confirmPopover = $compile("<arb-confirm-popover message='Are you sure you want to delete this comment?" +
-																		 "' page-id='" + scope.comment.pageId +
-																		 "' x-pos='" + position.left  +
-																		 "' y-pos='" + position.top  +
-																		 "' confirm-fn='confirmDeleteCommentFn(returnedPageId)" + 
-																		 "'></arb-confirm-popover>")(scope);
-				$replies.append($confirmPopover);
-		
 				return false;
 			});
 		

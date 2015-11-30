@@ -1,5 +1,10 @@
 "use strict";
 
+// Used to escape regexp symbols in a string to make it safe for injecting into a regexp
+RegExp.escape = function(s) {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+};
+
 // Keep the given div in a fixed position when the window is scrolled.
 var keepDivFixed = function($div, offsetY) {
 	// Make sure it's always in the top right corner.

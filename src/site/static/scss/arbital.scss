@@ -1,3 +1,25 @@
+// All the z-indices we use
+$popoverZ: 100;
+$composeFabZ: 200;
+
+// Set height to 100%
+.full-height {
+	height: 100%;
+
+	// For md-tabs, also propagate the height change
+	[md-tabs-template] {
+		height: 100%;
+	}
+}
+
+// Move dynamic-view down to account for the toolbar
+#dynamic-view {
+	position: relative;
+	top: -64px;
+	padding-top: 64px;
+	box-sizing: border-box;
+}
+
 // Used to style the dot we display when a page hasn't been visited / was updated
 .blue-dot {
 	position: relative;
@@ -105,4 +127,102 @@
 // Helper to preserve whitespace
 .pre {
 	white-space: pre;
+}
+
+// Style all the links
+a {
+	$color: #0000cc;
+	text-decoration: none;
+	color: $color;
+	&:hover {
+		color: darken($color, 20%);
+	}
+	&:active {
+		color: lighten($color, 20%);
+	}
+}
+
+// Tooltips that show up when you hover over things
+md-tooltip .md-content {
+	background-color: rgba(0,0,0,0.9);
+	font-size: 12px;
+	font-weight: bold;
+}
+
+// Style all md-icons to have size proportionate to the font size
+/*md-icon.material-icons {
+	width: 1em;
+	height: 1em;
+	font-size: max(1em, 24px);
+	min-width: 24px;
+	min-height: 24px;
+}*/
+
+// Helper for coloring broken links
+.red-link {
+	color: #c70a0a;
+}
+
+// Intrasite popover
+arb-intrasite-popover {
+	position: absolute;
+	z-index: $popoverZ;
+	background-color: white;
+}
+
+// Compose fab that appears in the bottom right corner
+arb-compose-fab {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	z-index: $composeFabZ;
+}
+
+// Helper class for hiding the tabs (used when we only have one)
+.hide-tabs {
+	md-tabs-wrapper {
+		display: none;
+	}
+}
+
+$edit-text-header-height: 38px;
+.edit-text-header {
+	height: $edit-text-header-height;
+}
+
+$edit-text-footer-height: 48px;
+.edit-text-footer {
+	height: $edit-text-footer-height;
+}
+
+// Contains all markdown buttons
+.wmd-button-bar {
+	border-bottom: 2px solid silver;
+
+	button {
+		width: 24px;
+		min-width: 24px;
+		margin: 0px 5px;
+		padding: 0;
+	}
+
+	.separator {
+		margin: 10px 10px;
+		width: 1px;
+		background-color: silver;
+	}
+}
+
+// Textarea for editing markdown
+.wmd-input {
+	width: 100%;
+	height: calc(100% - #{$edit-text-header-height} - #{$edit-text-footer-height});
+	resize: none;
+	border: none;
+	padding: 0;
+}
+
+// Div for the preview separator
+.wmd-preview-separator {
+	width: 20px;
 }

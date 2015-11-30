@@ -1,3 +1,14 @@
+.full-height {
+  height: 100%; }
+  .full-height [md-tabs-template] {
+    height: 100%; }
+
+#dynamic-view {
+  position: relative;
+  top: -64px;
+  padding-top: 64px;
+  box-sizing: border-box; }
+
 .blue-dot {
   position: relative;
   top: -0.4em;
@@ -58,7 +69,69 @@
 .pre {
   white-space: pre; }
 
-.no-marign {
-  margin: 0; }
+a {
+  text-decoration: none;
+  color: #0000cc; }
+  a:hover {
+    color: #000066; }
+  a:active {
+    color: #3333ff; }
+
+md-tooltip .md-content {
+  background-color: rgba(0, 0, 0, 0.9);
+  font-size: 12px;
+  font-weight: bold; }
+
+/*md-icon.material-icons {
+	width: 1em;
+	height: 1em;
+	font-size: max(1em, 24px);
+	min-width: 24px;
+	min-height: 24px;
+}*/
+.red-link {
+  color: #c70a0a; }
+
+arb-intrasite-popover {
+  position: absolute;
+  z-index: 100;
+  background-color: white; }
+
+arb-compose-fab {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 200; }
+
+.hide-tabs md-tabs-wrapper {
+  display: none; }
+
+.edit-text-header {
+  height: 38px; }
+
+.edit-text-footer {
+  height: 48px; }
+
+.wmd-button-bar {
+  border-bottom: 2px solid silver; }
+  .wmd-button-bar button {
+    width: 24px;
+    min-width: 24px;
+    margin: 0px 5px;
+    padding: 0; }
+  .wmd-button-bar .separator {
+    margin: 10px 10px;
+    width: 1px;
+    background-color: silver; }
+
+.wmd-input {
+  width: 100%;
+  height: calc(100% - 38px - 48px);
+  resize: none;
+  border: none;
+  padding: 0; }
+
+.wmd-preview-separator {
+  width: 20px; }
 
 /*# sourceMappingURL=arbital.css.map */

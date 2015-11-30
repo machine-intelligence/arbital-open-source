@@ -172,6 +172,10 @@ type Page struct {
 	RelatedIds     []string `json:"relatedIds"`
 	RequirementIds []string `json:"requirementIds"`
 
+	// Subpage counts (these might be zeroes if not loaded explicitly)
+	AnswerCount  int `json:"answerCount"`
+	CommentCount int `json:"commentCount"`
+
 	// Domains.
 	DomainIds []string `json:"domainIds"`
 
@@ -181,20 +185,12 @@ type Page struct {
 	// Whether or not this page has children
 	HasChildren bool `json:"hasChildren"`
 	// Whether or not this page has parents
-	HasParents bool        `json:"hasParents"`
-	Children   []*PagePair `json:"children"`
-	Parents    []*PagePair `json:"parents"`
+	HasParents bool     `json:"hasParents"`
+	ChildIds   []string `json:"childIds"`
+	ParentIds  []string `json:"parentIds"`
 
 	// Populated for groups
 	Members map[string]*Member `json:"members"`
-}
-
-// PagePair describes a parent child relationship, which are stored in pagePairs db table.
-type PagePair struct {
-	Id       int64  `json:"id,string"`
-	ParentId int64  `json:"parentId,string"`
-	ChildId  int64  `json:"childId,string"`
-	Type     string `json:"type"`
 }
 
 // ChangeLog describes a row from changeLogs table.
@@ -249,7 +245,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 		ForPages:     filteredPageMap,
 		Type:         QuestionPageType,
 		PagePairType: ParentPagePairType,
-		LoadOptions:  TitlePlusLoadOptions,
+		LoadOptions:  IntrasitePopoverLoadOptions,
 	})
 	if err != nil {
 		return fmt.Errorf("LoadChildIds for questions failed: %v", err)
@@ -389,6 +385,13 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	err = LoadSubscriptions(db, u.Id, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSubscriptions failed: %v", err)
+	}
+
+	// Load subpage counts
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SubpageCounts })
+	err = LoadSubpageCounts(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadSubpageCounts failed: %v", err)
 	}
 
 	// Load number of red links.
@@ -587,7 +590,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	if options == nil {
 		options = &LoadEditOptions{}
 	}
-	var p Page
+	p := NewPage(pageId)
 
 	whereClause := database.NewQuery("p.isCurrentEdit")
 	if options.LoadSpecificEdit > 0 {
@@ -641,7 +644,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	}
 
 	p.TextLength = len(p.Text)
-	return &p, nil
+	return p, nil
 }
 
 // LoadPageIds from the given query and return an array containing them, while
@@ -894,9 +897,8 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 		return nil
 	}
 	pageIds := PageIdsListFromMap(sourcePageMap)
-	newPages := make(map[int64]*Page)
 	rows := database.NewQuery(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.type
+		SELECT pp.parentId,pp.childId,pp.type
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
@@ -905,14 +907,15 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND pi.type=?)`, options.Type).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pp PagePair
-		err := rows.Scan(&pp.Id, &pp.ParentId, &pp.ChildId, &pp.Type)
+		var parentId, childId int64
+		var ppType string
+		err := rows.Scan(&parentId, &childId, &ppType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		newPage := AddPageToMap(pp.ChildId, pageMap, options.LoadOptions)
+		newPage := AddPageToMap(childId, pageMap, options.LoadOptions)
 
-		parent := sourcePageMap[pp.ParentId]
+		parent := sourcePageMap[parentId]
 		if options.Type == LensPageType {
 			parent.LensIds = append(parent.LensIds, fmt.Sprintf("%d", newPage.PageId))
 		} else if options.Type == AnswerPageType {
@@ -922,11 +925,11 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 		} else if options.Type == QuestionPageType {
 			parent.QuestionIds = append(parent.QuestionIds, fmt.Sprintf("%d", newPage.PageId))
 		} else if options.Type == WikiPageType && options.PagePairType == ParentPagePairType {
-			newPage.Parents = appendToPagePairList(newPage.Parents, &pp)
-			parent.Children = appendToPagePairList(parent.Children, &pp)
+			newPage.ParentIds = append(newPage.ParentIds, fmt.Sprintf("%d", parentId))
+			parent.ChildIds = append(parent.ChildIds, fmt.Sprintf("%d", childId))
 			parent.HasChildren = true
 			if parent.LoadOptions.HasGrandChildren {
-				newPages[newPage.PageId] = newPage
+				newPage.LoadOptions.SubpageCounts = true
 			}
 			if parent.LoadOptions.RedLinkCountForChildren {
 				newPage.LoadOptions.RedLinkCount = true
@@ -934,35 +937,43 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 		}
 		return nil
 	})
-	if err != nil {
-		return err
+	return err
+}
+
+// LoadSubpageCounts loads the number of various types of children the pages have
+func LoadSubpageCounts(db *database.DB, pageMap map[int64]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
 	}
-	if len(newPages) > 0 {
-		pageIds = PageIdsListFromMap(newPages)
-		rows := database.NewQuery(`
-			SELECT pp.parentId,sum(1)
-			FROM (
-				SELECT parentId,childId,type
-				FROM pagePairs
-				WHERE type=?`, ParentPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
-			) AS pp JOIN (
-				SELECT pageId
-				FROM pageInfos
-				WHERE currentEdit>0 AND type!=? AND type!=? AND type!=?`, CommentPageType, QuestionPageType, LensPageType).Add(`
-			) AS pi
-			ON (pi.pageId=pp.childId)
-			GROUP BY 1`).ToStatement(db).Query()
-		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var pageId int64
-			var children int
-			err := rows.Scan(&pageId, &children)
-			if err != nil {
-				return fmt.Errorf("failed to scan for grandchildren: %v", err)
-			}
-			pageMap[pageId].HasChildren = children > 0
-			return nil
-		})
-	}
+	pageIds := PageIdsListFromMap(pageMap)
+	rows := database.NewQuery(`
+		SELECT pp.parentId,pi.type,sum(1)
+		FROM (
+			SELECT parentId,childId
+			FROM pagePairs
+			WHERE type=?`, ParentPagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
+		) AS pp JOIN (
+			SELECT pageId,type
+			FROM pageInfos
+			WHERE currentEdit>0`).Add(`
+		) AS pi
+		ON (pi.pageId=pp.childId)
+		GROUP BY 1,2`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId int64
+		var childType string
+		var count int
+		err := rows.Scan(&pageId, &childType, &count)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		if childType == CommentPageType {
+			pageMap[pageId].CommentCount = count
+		} else if childType == AnswerPageType {
+			pageMap[pageId].AnswerCount = count
+		}
+		return nil
+	})
 	return err
 }
 
@@ -1022,7 +1033,7 @@ func LoadParentIds(db *database.DB, pageMap map[int64]*Page, options *LoadParent
 	pageIds := PageIdsListFromMap(sourcePageMap)
 	newPages := make(map[int64]*Page)
 	rows := database.NewQuery(`
-		SELECT pp.id,pp.parentId,pp.childId,pp.type
+		SELECT pp.parentId,pp.childId,pp.type
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
@@ -1031,27 +1042,28 @@ func LoadParentIds(db *database.DB, pageMap map[int64]*Page, options *LoadParent
 		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.parentId AND pi.currentEdit>0)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pp PagePair
-		err := rows.Scan(&pp.Id, &pp.ParentId, &pp.ChildId, &pp.Type)
+		var parentId, childId int64
+		var ppType string
+		err := rows.Scan(&parentId, &childId, &ppType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		newPage := AddPageToMap(pp.ParentId, pageMap, options.LoadOptions)
-		childPage := pageMap[pp.ChildId]
+		newPage := AddPageToMap(parentId, pageMap, options.LoadOptions)
+		childPage := pageMap[childId]
 
 		if options.PagePairType == ParentPagePairType {
-			newPage.Children = appendToPagePairList(newPage.Children, &pp)
-			childPage.Parents = appendToPagePairList(childPage.Parents, &pp)
+			newPage.ChildIds = append(newPage.ChildIds, fmt.Sprintf("%d", childId))
+			childPage.ParentIds = append(childPage.ParentIds, fmt.Sprintf("%d", parentId))
 			childPage.HasParents = true
 			newPages[newPage.PageId] = newPage
 		} else if options.PagePairType == RequirementPagePairType {
-			childPage.RequirementIds = append(childPage.RequirementIds, fmt.Sprintf("%d", pp.ParentId))
+			childPage.RequirementIds = append(childPage.RequirementIds, fmt.Sprintf("%d", parentId))
 			// If it's a requirement, add to the mastery map
-			if _, ok := options.MasteryMap[pp.ParentId]; !ok {
-				options.MasteryMap[pp.ParentId] = &Mastery{PageId: pp.ParentId}
+			if _, ok := options.MasteryMap[parentId]; !ok {
+				options.MasteryMap[parentId] = &Mastery{PageId: parentId}
 			}
 		} else if options.PagePairType == TagPagePairType {
-			childPage.TaggedAsIds = append(childPage.TaggedAsIds, fmt.Sprintf("%d", pp.ParentId))
+			childPage.TaggedAsIds = append(childPage.TaggedAsIds, fmt.Sprintf("%d", parentId))
 		}
 		return nil
 	})
@@ -1104,13 +1116,13 @@ func LoadCommentIds(db *database.DB, pageMap map[int64]*Page, options *LoadDataO
 				AND pp.parentId IN`).AddArgsGroup(pageIds).Add(`)
 		)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pp PagePair
-		err := rows.Scan(&pp.ParentId, &pp.ChildId)
+		var parentId, childId int64
+		err := rows.Scan(&parentId, &childId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
-		parentPage := AddPageToMap(pp.ParentId, pageMap, SubpageLoadOptions)
-		childPage := AddPageToMap(pp.ChildId, pageMap, SubpageLoadOptions)
+		parentPage := AddPageToMap(parentId, pageMap, SubpageLoadOptions)
+		childPage := AddPageToMap(childId, pageMap, SubpageLoadOptions)
 		parentPage.CommentIds = append(parentPage.CommentIds, fmt.Sprintf("%d", childPage.PageId))
 		return nil
 	})
@@ -1383,14 +1395,4 @@ func LoadAliasToPageId(db *database.DB, alias string) (int64, bool, error) {
 	}
 	pageId, ok := aliasToIdMap[strings.ToLower(alias)]
 	return pageId, ok, nil
-}
-
-// appendToPagePairList adds the given PagePair to the given list, but prevents duplicates.
-func appendToPagePairList(list []*PagePair, pair *PagePair) []*PagePair {
-	for _, existingPair := range list {
-		if existingPair.Id == pair.Id {
-			return list
-		}
-	}
-	return append(list, pair)
 }

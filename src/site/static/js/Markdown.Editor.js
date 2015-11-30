@@ -1016,6 +1016,10 @@
 	//	  was chosen).
 	// isIntraLink: Set to true if the input is for page aliases.
 	ui.prompt = function (title, helpText, callback, isIntraLink) {
+		var $buttonBar = $(util.panels.buttonBar);
+		$buttonBar.trigger("showInsertLink", callback);
+		return;
+
 		var $modal = $("#new-link-modal");
 		var $input = $modal.find(".new-link-input");
 		$modal.modal();
@@ -1073,6 +1077,8 @@
 			keyEvent = "keypress";
 		}
 
+		util.panels = panels;
+
 		util.addEvent(inputBox, keyEvent, function (key) {
 
 			// Check to see if we have a button key and, if so execute the callback.
@@ -1095,7 +1101,7 @@
 					case "l":
 						doClick(buttons.link);
 						break;
-					case "e":
+					case "p":
 						doClick(buttons.newPage);
 						break;
 					case "q":
@@ -1116,7 +1122,7 @@
 					case "h":
 						doClick(buttons.heading);
 						break;
-					case "r":
+					case "e":
 						doClick(buttons.hr);
 						break;
 					case "y":
@@ -1171,7 +1177,6 @@
 
 		// Perform the button's action.
 		function doClick(button) {
-
 			inputBox.focus();
 
 			if (button.textOp) {
@@ -1231,34 +1236,8 @@
 		};
 
 		function setupButton(button, isEnabled) {
-
-			var normalYShift = "0px";
-			var disabledYShift = "-20px";
-			var highlightYShift = "-40px";
-			var image = button.getElementsByTagName("span")[0];
+			$(button).attr("disabled", !isEnabled);
 			if (isEnabled) {
-				image.style.backgroundPosition = button.xShift + " " + normalYShift;
-				button.onmouseover = function () {
-					image.style.backgroundPosition = this.xShift + " " + highlightYShift;
-				};
-
-				button.onmouseout = function () {
-					image.style.backgroundPosition = this.xShift + " " + normalYShift;
-				};
-
-				// IE tries to select the background image "button" text (it's
-				// implemented in a list item) so we have to cache the selection
-				// on mousedown.
-				if (uaSniffed.isIE) {
-					button.onmousedown = function () {
-						if (doc.activeElement && doc.activeElement !== panels.input) { // we're not even in the input box, so there's no selection
-							return;
-						}
-						panels.ieCachedRange = document.selection.createRange();
-						panels.ieCachedScrollTop = panels.input.scrollTop;
-					};
-				}
-
 				if (!button.isHelp) {
 					button.onclick = function () {
 						if (this.onmouseout) {
@@ -1270,7 +1249,6 @@
 				}
 			}
 			else {
-				image.style.backgroundPosition = button.xShift + " " + disabledYShift;
 				button.onmouseover = button.onmouseout = button.onclick = function () { };
 			}
 		}
@@ -1282,61 +1260,32 @@
 		}
 
 		function makeSpritedButtonRow() {
+			var $buttonBar = $(panels.buttonBar);
 
-			var buttonBar = panels.buttonBar;
-
-			var normalYShift = "0px";
-			var disabledYShift = "-20px";
-			var highlightYShift = "-40px";
-
-			var buttonRow = document.createElement("ul");
-			buttonRow.id = "wmd-button-row" + postfix;
-			buttonRow.className = 'wmd-button-row';
-			buttonRow = buttonBar.appendChild(buttonRow);
-			var xPosition = 0;
 			var makeButton = function (id, title, xShift, textOp) {
-				var button = document.createElement("li");
-				button.className = "wmd-button";
-				button.style.left = xPosition + "px";
-				xPosition += 25;
-				var buttonImage = document.createElement("span");
+				var button = $buttonBar.find("." + id).get(0);
 				button.id = id + postfix;
-				button.appendChild(buttonImage);
-				button.title = title;
-				button.xShift = xShift;
-				if (textOp)
-					button.textOp = textOp;
+				if (textOp) button.textOp = textOp;
 				setupButton(button, true);
-				buttonRow.appendChild(button);
 				return button;
 			};
-			var makeSpacer = function (num) {
-				var spacer = document.createElement("li");
-				spacer.style.left = xPosition + "px";
-				spacer.className = "wmd-spacer wmd-spacer" + num;
-				spacer.id = "wmd-spacer" + num + postfix;
-				buttonRow.appendChild(spacer);
-				xPosition += 25;
-			}
 
 			buttons.bold = makeButton("wmd-bold-button", getString("bold"), "0px", bindCommand("doBold"));
 			buttons.italic = makeButton("wmd-italic-button", getString("italic"), "-20px", bindCommand("doItalic"));
-			makeSpacer(1);
 			buttons.link = makeButton("wmd-link-button", getString("link"), "-40px", bindCommand(function (chunk, postProcessing) {
 				return this.doLinkOrImage(chunk, postProcessing, false);
 			}));
 			buttons.intralink = makeButton("wmd-intralink-button", getString("intralink"), "-60px", bindCommand(function (chunk, postProcessing) {
 				return this.doIntraLink(chunk, postProcessing);
 			}));
-			buttons.newPage = makeButton("wmd-new-page-button", getString("newpage"), "-60px", bindCommand(function (chunk, postProcessing) {
+			/*buttons.newPage = makeButton("wmd-new-page-button", getString("newpage"), "-60px", bindCommand(function (chunk, postProcessing) {
 				return this.doNewPage(chunk, postProcessing);
-			}));
+			}));*/
 			buttons.quote = makeButton("wmd-quote-button", getString("quote"), "-80px", bindCommand("doBlockquote"));
 			buttons.code = makeButton("wmd-code-button", getString("code"), "-100px", bindCommand("doCode"));
 			buttons.image = makeButton("wmd-image-button", getString("image"), "-120px", bindCommand(function (chunk, postProcessing) {
 				return this.doLinkOrImage(chunk, postProcessing, true);
 			}));
-			makeSpacer(2);
 			buttons.olist = makeButton("wmd-olist-button", getString("olist"), "-140px", bindCommand(function (chunk, postProcessing) {
 				this.doList(chunk, postProcessing, true);
 			}));
@@ -1345,7 +1294,6 @@
 			}));
 			buttons.heading = makeButton("wmd-heading-button", getString("heading"), "-180px", bindCommand("doHeading"));
 			buttons.hr = makeButton("wmd-hr-button", getString("hr"), "-200px", bindCommand("doHorizontalRule"));
-			makeSpacer(3);
 			buttons.undo = makeButton("wmd-undo-button", getString("undo"), "-220px", null);
 			buttons.undo.execute = function (manager) { if (manager) manager.undo(); };
 
@@ -1357,19 +1305,12 @@
 			buttons.redo.execute = function (manager) { if (manager) manager.redo(); };
 
 			if (helpOptions) {
-				var helpButton = document.createElement("li");
-				var helpButtonImage = document.createElement("span");
-				helpButton.appendChild(helpButtonImage);
-				helpButton.className = "wmd-button wmd-help-button";
+				var helpButton = $buttonBar.find(".wmd-help-button").get(0);
 				helpButton.id = "wmd-help-button" + postfix;
-				helpButton.xShift = "-260px";
 				helpButton.isHelp = true;
-				helpButton.style.right = "0px";
-				helpButton.title = getString("help");
 				helpButton.onclick = helpOptions.handler;
 
 				setupButton(helpButton, true);
-				buttonRow.appendChild(helpButton);
 				buttons.help = helpButton;
 			}
 
@@ -1640,7 +1581,7 @@
 					// the first bracket could then not act as the "not a backslash" for the second.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
 					chunk.startTag = isImage ? "![" : "[";
-					chunk.endTag = "](" + properlyEncoded(link) + ")";
+					chunk.endTag = "](" + link + ")";
 
 					if (!chunk.selection) {
 						if (isImage) {
@@ -1651,15 +1592,18 @@
 						}
 					}
 				}
-				postProcessing();
+				// NOTE: for some reason this doubles up the link
+				//postProcessing();
 			};
 
 			if (isImage) {
 				if (!this.hooks.insertImageDialog(linkEnteredCallback)) {
-					ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
+					linkEnteredCallback("http://google.com");
+					//ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
 				}
 			} else {
-				ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
+				linkEnteredCallback("http://google.com");
+				//ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
 			}
 			return true;
 		}

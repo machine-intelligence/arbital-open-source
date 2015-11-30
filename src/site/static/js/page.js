@@ -90,7 +90,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, pageService, u
 					var $commentDiv = $(".toggle-inline-comment-div.template").clone();
 					$commentDiv.attr("id", "subpage-" + pageId).removeClass("template");
 					var comment = pageService.pageMap[pageId];
-					var commentCount = comment.children.length + 1;
+					var commentCount = comment.childIds.length + 1;
 					if (pageType == "comment") {
 						$commentDiv.find(".inline-comment-count").text("" + commentCount);
 					}
@@ -139,8 +139,8 @@ app.directive("arbPage", function ($location, $compile, $timeout, pageService, u
 						var expandComment = window.location.hash === "#subpage-" + pageId;
 						if (!expandComment) {
 							// Check if one of the children is selected.
-							for (var n = 0; n < comment.children.length; n++) {
-								expandComment |= window.location.hash === "#subpage-" + comment.children[n].childId;
+							for (var n = 0; n < comment.childIds.length; n++) {
+								expandComment |= window.location.hash === "#subpage-" + comment.childIds[n];
 							}
 						}
 						if (expandComment) {

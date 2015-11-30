@@ -1,6 +1,8 @@
 <div layout="column">
 	<!-- Requirements -->
-	<arb-requirements-panel page-id="{{page.pageId}}"></arb-requirements-panel>
+	<arb-relationships page-id="{{page.pageId}}"
+			type="requirement"
+			custom-title="This version relies on:"></arb-relationships>
 
 	<!-- Page's text. Populated by markdown. -->
 	<arb-markdown page-id="{{page.pageId}}"></arb-markdown>

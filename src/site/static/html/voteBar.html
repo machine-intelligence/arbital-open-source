@@ -21,11 +21,12 @@
 				flex>
 			<!-- Top margin -->
 			<div class="vote-bar-margin" layout="row" flex>
+				<!-- Knob to show where user's vote is -->
 				<div class="my-vote-div"
-						ng-style="{left: valueToOffset(userVoteValue)}"
-						ng-show="userVoteValue">
+						ng-style="{left: valueToOffset(userVoteValue), visibility: userVoteValue ? 'visible' : 'hidden'}">
 					<div class="my-vote-knob md-whiteframe-2dp"></div>
 				</div>
+				<!-- Know to show where the user will vote -->
 				<div class="new-vote-div"
 						ng-style="{left: valueToOffset(newVoteValue)}"
 						ng-show="isHovering">

@@ -1,349 +1,313 @@
-<div class="edit-page-body">
-	<!-- Alerts -->
-	<div class="edit-page-alerts">
-		<div ng-switch="page.getEditLevel()" ng-show="page.wasPublished">
-			<div ng-switch-when="admin" class="alert alert-warning">Enforcing admin priviledges.</div>
-			<div ng-switch-when="comment" class="alert alert-danger" role="alert">Can't edit a comment you didn't create.</div>
-			<div ng-switch-when="" hidden></div>
-			<div ng-switch-default class="alert alert-danger" role="alert">
-				You don't have enough karma to edit this page. Required: {{page.getEditLevel()}}.
-			</div>
-		</div>
-		<!-- Lock info -->
-		<div class="lock-alert" ng-show="lockExists">
-			<div class="alert alert-info" ng-show="page.lockedBy!='0' && page.lockedBy===userService.user.id">
-				You have locked the page. The lock will expire
-				<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>.
-			</div>
-			<div class="alert alert-danger" ng-show="lockedByAnother">
-				<arb-user-name user-id="{{page.lockedBy}}"></arb-user-name>
-				has the page locked. The lock will end
-				<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>.
-			</div>
-		</div>
-		<!-- Show a warning if we are on a different branch from the current edit. -->
-		<div ng-show="showDifferentBranchWarning">
-			<div class="alert alert-warning">
-				The edit you are working on doesn't descend from the currently published edit.
-			</div>
-		</div>
-		<!-- Show a warning if you've loaded an edit that's not currently live. -->
-		<div ng-show="page.edit !== page.currentEditNum && !page.isAutosave && !page.isSnapshot">
-			<div class="alert alert-warning">
-				Currently looking at a non-live edit.
-				<a ng-href="{{page.editUrl()}}?edit={{page.currentEditNum}}">Switch to editing the live version.</a>
-			</div>
-		</div>
-		<!-- Check permissions -->
-		<div ng-hide="groupPermissionsPassed" class="alert alert-danger">
-			You need to be part of {{pageService.pageMap[page.editGroupId].title}} group to edit this page.
-		</div>
-		<!-- Friendly warnings / info alerts -->
-		<div ng-show="page.wasPublished">
-			<div ng-show="page.isAutosave" class="alert alert-warning">
-				Restored autosave which was last updated
-				<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-				<a href="#" class="abandon-edit">Delete my autosave and edit live version.</a>
-			</div>
-			<div ng-show="page.isSnapshot" class="alert alert-warning">
-				Restored snapshot which was last updated
-				<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-				<a ng-href="{{page.editUrl()}}?edit={{page.currentEditNum}}">Switch to editing the live version.</a>
-			</div>
-		</div>
-	</div>
-	<!-- Alerts -->
+<div class="full-height" layout="row">
+	<!-- Main edit column (left half) -->
+	<div class="full-height" layout="column" flex="50">
+		<md-tabs md-selected="selectedTab"
+				md-stretch-tabs="always"
+				md-border-bottom
+				flex>
+			<!-- (0) Title tab -->
+			<md-tab label="Title">
+				<md-tab-body>
+					<div layout="column">
+					<md-input-container>
+						<label>Title</label>
+						<input ng-model="page.title" md-maxlength="100">
+					</md-input-container>
+					<md-input-container>
+						<label>Clickbait</label>
+						<input ng-model="page.clickbait" md-maxlength="200">
+					</md-input-container>
+				</div>
+				</md-tab-body>
+			</md-tab>
 
-	<!-- Edit change logs panel -->
-	<div class="change-logs">
-	</div>
-	<!-- /Edit change logs panel -->
+			<!-- (1) Text tab -->
+			<md-tab label="Text">
+				<!-- Input we show when entering a new link -->
+				<div class="edit-text-header" ng-show="showInsertLink">
+					<arb-autocomplete class="insert-autocomplete"
+							placeholder="Search for a page to link"
+							on-select="insertLinkSelect(result)"></arb-autocomplete>
+				</div>
 
-	<!-- Show similar pages -->
-	<div class="similar-pages panel panel-default" ng-hide="isComment">
-		<div class="panel-heading">
-			Similar pages
-		</div>
-		<div class="panel-body">
-		</div>
-	</div>
-
-	<!-- Main form for editing currently loaded edit -->
-	<form class="new-page-form" ng-class="{'half': !useVerticalView}">
-		<!-- Title -->
-		<div class="page-title" ng-hide="isComment">
-			<input name="title"
-				type="text"
-				class="form-control input-lg"
-				ng-model="page.title"
-				placeholder="{{getTitlePlaceholder()}}"
-				ng-required="!isComment"
-				autocomplete="off"
-				ng-readonly="lockedByAnother">
-		</div>
-
-		<!-- Clickbait -->
-		<div class="page-clickbait" ng-hide="isComment">
-			<input name="clickbait"
-				type="text"
-				class="form-control input-lg"
-				ng-model="page.clickbait"
-				placeholder="Clickbait"
-				autocomplete="off"
-				ng-readonly="lockedByAnother">
-		</div>
-
-		<!-- WMD edit panel -->
-		<div class="wmd-panel-container">
-			<div class="wmd-panel">
-				<div id="wmd-button-bar{{page.pageId}}"></div>
+				<!-- Markdown toolbar -->
+				<div id="wmd-button-bar{{page.pageId}}" class="edit-text-header wmd-button-bar"
+						layout="row"
+						flex
+						ng-hide="hideMarkdownToolbar || showInsertLink">
+					<md-button class="wmd-bold-button">
+						<md-icon>format_bold</md-icon>
+						<md-tooltip>**Bold** | Ctrl+B</md-tooltip>
+					</md-button>
+					<md-button class="wmd-italic-button">
+						<md-icon>format_italic</md-icon>
+						<md-tooltip>**Italics** | Ctrl+I</md-tooltip>
+					</md-button>
+					<div class="separator"></div>
+					<md-button class="wmd-link-button">
+						<md-icon>insert_link</md-icon>
+						<md-tooltip>[hyper](link) | Ctrl+L</md-tooltip>
+					</md-button>
+					<md-button class="wmd-intralink-button">
+						<md-icon md-svg-icon="link_variant"></md-icon>
+						<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
+					</md-button>
+					<!--<md-button class="wmd-new-page-button">
+						<md-icon>note_add</md-icon>
+						<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
+					</md-button>-->
+					<div class="separator"></div>
+					<md-button class="wmd-quote-button">
+						<md-icon>format_quote</md-icon>
+						<md-tooltip>&gt; Blockquote | Ctrl+Q</md-tooltip>
+					</md-button>
+					<md-button class="wmd-code-button">
+						<md-icon>format_clear</md-icon>
+						<md-tooltip>`Escape` | Ctrl+K</md-tooltip>
+					</md-button>
+					<md-button class="wmd-image-button">
+						<md-icon>insert_photo</md-icon>
+						<md-tooltip>![image](url) | Ctrl+G</md-tooltip>
+					</md-button>
+					<div class="separator"></div>
+					<md-button class="wmd-olist-button">
+						<md-icon>format_list_numbered</md-icon>
+						<md-tooltip>1. Numbered list | Ctrl+O</md-tooltip>
+					</md-button>
+					<md-button class="wmd-ulist-button">
+						<md-icon>format_list_bulleted</md-icon>
+						<md-tooltip>* Bullet list | Ctrl+U</md-tooltip>
+					</md-button>
+					<md-button class="wmd-heading-button">
+						<md-icon md-svg-icon="format_header_pound"></md-icon>
+						<md-tooltip># Heading | Ctrl+H</md-tooltip>
+					</md-button>
+					<md-button class="wmd-hr-button">
+						<md-icon>remove</md-icon>
+						<md-tooltip>--- Line | Ctrl+E</md-tooltip>
+					</md-button>
+					<div class="separator"></div>
+					<md-button class="wmd-undo-button">
+						<md-icon>undo</md-icon>
+						<md-tooltip>Undo | Ctrl+Z</md-tooltip>
+					</md-button>
+					<md-button class="wmd-redo-button">
+						<md-icon>redo</md-icon>
+						<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
+					</md-button>
+					<div flex></div>
+					<md-button class="wmd-help-button">
+						<md-icon>help</md-icon>
+						<md-tooltip>Markdown editing help</md-tooltip>
+					</md-button>
+					<!--<div class="separator"></div>
+					<md-button ng-click="hideMarkdownToolbar=true">
+						<md-icon>close</md-icon>
+						<md-tooltip>Close this toolbar</md-tooltip>
+					</md-button>-->
+				</div>
 				<textarea name="text"
-						class="edit-page-text wmd-input form-control"
+						class="wmd-input"
 						id="wmd-input{{page.pageId}}"
-						rows="{{isComment ? 10 : 30}}"
 						placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
-						style="resize: none;"
 						ng-model="page.text"
-						ng-readonly="lockedByAnother"></textarea>
-				<div class="wmd-panel-bottom-buttons">
-					<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-					<button type="button" class="abandon-edit btn btn-danger" ng-hide="lockedByAnother" toggle-on-submit>Abandon</button>
-					<button type="button" class="go-to-page-view btn btn-default" ng-bind="isModal ? 'Hide Popup' : 'Go To Page View'" toggle-on-submit></button>
-					<span class="gray-text autosave-label" hidden></span>
-					<button type="submit" class="btn btn-primary pull-right" ng-hide="lockedByAnother" ng-bind="getSubmitButtonText()" toggle-on-submit></button>
-					<button type="button" class="save-snapshot-button btn btn-default pull-right" ng-hide="lockedByAnother" toggle-on-submit>Save Snapshot</button>
-					<div class="alert alert-danger" hidden></div>
-					<span class="loading-text" style="display:none"></span>
-					<div class="clearfix"></div>
-					<div class="submit-form-error alert alert-danger" hidden></div>
-				</div>
-			</div>
-		</div>
+						ng-readonly="lockedByAnother"
+						ng-disabled="showInsertLink"
+						flex></textarea>
 
-		<!-- Page edit options -->
-		<div class="new-page-options form-horizontal">
-			<!-- Meta-text panel -->
-			<div ng-hide="isComment || true">
-				<textarea name="metaText"
-						class="meta-text-input form-control"
-						rows="20"
-						placeholder="Meta data"
-						style="resize: none;"
-						ng-bind="page.metaText"
-						ng-readonly="lockedByAnother"></textarea>
-				<div class="meta-text-error alert alert-danger"></div>
-			</div>
-
-			<!-- Minor edit -->
-			<div class="form-group">
-				<label class="title-label control-label col-sm-2">Minor Edit</label>
-				<div class="col-sm-8">
-					<div class="checkbox">
-						<label>
-							<input type="checkbox" name="isMinorEditStr" ng-checked="page.isMinorEdit">
-						</label>
+				<!-- Footer -->
+				<div class="edit-text-footer" layout="row" layout-align="start center">
+					<!-- Lock timer -->
+					<div ng-show="lockExists">
+						<md-tooltip ng-show="page.lockedBy!='0' && page.lockedBy===userService.user.id">
+							You have locked the page.
+						</md-tooltip>
+						<md-tooltip ng-show="lockedByAnother">
+							This page is locked by another user.
+						</md-tooltip>
+						<md-icon>lock</md-icon>
+						<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>
 					</div>
-				</div>
-			</div>
-		</div>
-	</form>
-	<!-- /Main form -->
-
-	<!-- Right half with the preview -->
-	<div class="preview-half" ng-class="{'half': !useVerticalView}">
-		<div ng-class="{'panel': useVerticalView, 'panel-default': useVerticalView}">
-			<div class="page-title" ng-class="{'panel-heading': useVerticalView}">
-				<span class="page-title-text" ng-bind="page.title"></span>
-				<span class="gray-text" ng-show="useVerticalView">(Preview)<span>
-			</div>
-			<div ng-class="{'panel-body': useVerticalView}">
-				<div id="wmd-preview{{page.pageId}}" class="wmd-preview pagedown"></div>
-				<div class="wmd-preview pagedown"></div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Right half with the diff -->
-	<div class="diff-half half">
-		<div class="page-title">
-			<a href="#"
-				title="Recompute the diff"
-				class="refresh-diff btn btn-default glyphicon glyphicon-refresh pull-right"></a>
-			<a href="#"
-				title="Go back to the preview"
-				class="hide-diff btn btn-default glyphicon glyphicon-list-alt pull-right"></a>
-			<span class="edit-num-text gray-text"></span>
-			<span class="page-title-text"></span>
-		</div>
-		<div class="edit-diff">
-		</div>
-	</div>
-
-	<div class="clearfix"></div>
-
-	<!-- Page info options form -->
-	<form class="page-info-form form-horizontal" ng-class="{'half': !useVerticalView}">
-		<h1>Page Options</h1>
-	
-		<!-- Page type -->
-		<div class="form-group" ng-show="!page.wasPublished && !fixedPageType">
-			<label class="title-label control-label col-sm-2">Page Type</label>
-			<div class="col-sm-4">
-				<select ng-model="page.type" required="string"
-						name="type" class="type-select form-control"
-						ng-options="type as label for (type,label) in pageTypes">
-				</select>
-			</div>
-			<div class="type-help col-sm-6">
-				<p class="type-help-wiki help-block" ng-show="page.type=='wiki'">
-					Standard wiki page.
-				</p>
-				<p class="type-help-lens help-block" ng-show="page.type=='lens'">
-					A lens page is used to present the same material as another page but with a different emphasis.
-				</p>
-			</div>
-		</div>
-	
-		<!-- Edit group id -->
-		<div class="form-group">
-			<label class="title-label control-label col-sm-2">
-				Edit Group
-				<span class="dashed-underline"
-						title="Only members of the selected group will be able to edit this page.">(?)</span>
-			</label>
-			<div class="col-sm-4">
-				<select ng-model="page.editGroupId"
-						name="editGroupId" class="group-select type-select form-control"
-						ng-options="type as label for (type,label) in groupOptions">
-				</select>
-			</div>
-		</div>
-	
-		<!-- Show/hide vote -->
-		<div class="form-group" ng-show="page.lockedVoteType != '' && !isQuestion && !isComment">
-			<label class="title-label control-label col-sm-2">Show Vote</label>
-			<div class="col-sm-8">
-				<div class="checkbox">
-					<label>
-						<input type="checkbox" name="hasVoteStr" ng-checked="page.hasVote">
-					</label>
-				</div>
-			</div>
-		</div>
-	
-		<!-- Vote type -->
-		<div class="form-group" ng-show="page.lockedVoteType == '' && !isQuestion && !isComment">
-			<label class="title-label control-label col-sm-2">Vote Type</label>
-			<div class="col-sm-4">
-				<select ng-model="page.voteType"
-						name="voteType" class="type-select form-control"
-						ng-options="type as label for (type,label) in voteTypes">
-				</select>
-			</div>
-		</div>
-	
-		<!-- Karma edit lock -->
-		<div class="karma-lock-form-group form-group"
-				ng-show="userService.user.maxKarmaLock > 0 && page.type != 'blog' && !isComment">
-			<label class="title-label control-label col-sm-2">Edit Karma Lock
-				<span title="Editing this page will require a minimum amount of karma." class="dashed-underline">(?)</span>
-			</label>
-			<div class="col-sm-4">
-				<div class="karma-lock-slider" ng-model="page.editKarmaLock" max="{{userService.user.maxKarmaLock}}"></div>
-			</div>
-		</div>
-	
-		<!-- Alias -->
-		<div class="alias-form-group form-group" ng-show="!isAnswer && !isComment && !isGroup">
-			<label class="control-label col-sm-2">Alias</label>
-			<div class="col-sm-4">
-				<label class="control-label" ng-show="page.seeGroupId != '0'">
-					{{pageService.pageMap[page.seeGroupId].alias}}.
-				</label>
-				<div class="input-group">
-					<input type="text"
-							name="alias"
-							placeholder='Optional alias, e.g. "HumanHealth"'
-							class="form-control"
-							autocomplete="off"
-							ng-model="page.alias">
-				</div>
-			</div>
-		</div>
-	
-		<!-- Sort children option -->
-		<div class="form-group" ng-show="!isSecondary">
-			<label class="title-label control-label col-sm-2">Sort Children</label>
-			<div class="col-sm-4">
-				<select ng-model="page.sortChildrenBy"
-						name="sortChildrenBy" class="sort-children-select form-control"
-						ng-options="type as label for (type,label) in sortTypes">
-				</select>
-			</div>
-		</div>
-
-		<div class="col-sm-6">
-			<!-- Form buttons -->
-			<img src="/static/images/loading.gif" class="loading-indicator" toggle-on-submit/>
-			<button type="submit" class="btn btn-primary pull-right" ng-hide="lockedByAnother" toggle-on-submit>Update</button>
-			<div class="clearfix"></div>
-			<div class="submit-form-error alert alert-danger" hidden></div>
-			<span class="submit-form-success alert alert-success" hidden>Saved!</span>
-		</div>
-	</form>
-	<!-- /Page info options form -->
-
-	<div class="clearfix"></div>
-
-	<!-- Relationships -->
-	<div class="new-page-options form-horizontal" ng-class="{'half': !useVerticalView}">
-		<h1 ng-show="!isComment"> Relationships </h1>
-
-		<!-- Parents -->
-		<div class="form-group" ng-show="!isComment">
-			<label class="control-label col-sm-2">Parents</label>
-			<div class="col-sm-4">
-				<div class="input-group">
-					<input type="text" class="tag-input form-control" placeholder="Enter a new parent">
-					<button type="button"
-							class="child-parent-option btn btn-default btn-xs"
-							ng-show="isModal && !isQuestion && !isLens"
-							title="Make this page a sibling of the primary page.">
-						Make this page a sibling.
-					</button>
-				</div>
-			</div>
-			<div class="col-sm-6 parent-container">
-				<a href="#" class="tag template label label-default" data-toggle="tooltip" title=""></a>
-			</div>
-		</div>
-	
-		<!-- Tags -->
-		<!--<div class="form-group" ng-show="!isComment">
-			<label class="control-label col-sm-2">Tags</label>
-			<div class="col-sm-4">
-				<div class="input-group">
-					<input type="text" class="tag-input form-control" placeholder="Enter a new tag">
-				</div>
-			</div>
-			<div class="col-sm-6 parent-container">
-				<a href="#" class="tag template label label-default" data-toggle="tooltip" title=""></a>
-			</div>
-		</div>-->
-	
-		<!-- Requirements -->
-		<!--<div class="form-group" ng-show="!isComment">
-			<label class="control-label col-sm-2">Requirements</label>
-			<div class="col-sm-4">
-				<div class="input-group">
-					<input type="text" class="requirement-input form-control" placeholder="Enter a new requirement">
-				</div>
-			</div>
-			<div class="col-sm-6 requirement-container">
-				<a href="#" class="tag template label label-default" data-toggle="tooltip" title=""></a>
-			</div>
-		</div>-->
 		
+					<div flex></div>
+		
+					<div ng-show="!isPublishing && isAutosaving">
+						Autosaving...
+					</div>
+					<div ng-show="isPublishing">
+						Publishing...
+					</div>
+					<md-button class="md-warn" ng-disable="isPublishing">
+						Discard
+					</md-button>
+					<md-button ng-disable="isPublishing">
+						Snapshot
+					</md-button>
+					<md-button class="md-primary" ng-disable="isPublishing">
+						Publish
+					</md-button>
+				</div>
+			</md-tab>
+
+			<!-- (2) Settings tab -->
+			<md-tab label="Settings">
+				<md-tab-body>
+					<div layout="column" class="full-height">
+						<!-- Page type -->
+						<div layout="row">
+							<md-input-container flex>
+								<label>Page type</label>
+								<md-select ng-model="page.type" required="true">
+									<md-option ng-repeat="(key,value) in pageTypes" value="{{key}}">
+										{{value}}
+									</md-option>
+								</md-select>
+							</md-input-container>
+							<div flex>
+								<span ng-show="page.type === 'wiki'">
+									Standard wiki page.
+								</span>
+								<span ng-show="page.type === 'lens'">
+									A lens page is used to present the same material as another page but with a different emphasis.
+								</span>
+							</div>
+						</div>
+					
+						<!-- Edit group id -->
+						<div layout="row">
+							<md-input-container flex>
+								<label>Edit group</label>
+								<md-select ng-model="page.editGroupId">
+									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}">
+										{{value}}
+									</md-option>
+								</md-select>
+							</md-input-container>
+							<div flex>
+								A lens page is used to present the same material as another page but with a different emphasis.
+							</div>
+						</div>
+					
+						<!-- Show/hide vote -->
+						<div layout="row" ng-show="page.lockedVoteType != '' && isWiki">
+							<md-switch ng-model="page.hasVote" aria-label="Switch 1">
+								Show the {{page.lockedVoteType}} voting bar
+						  </md-switch>
+						</div>
+					
+						<!-- Vote type -->
+						<div layout="row" ng-show="page.lockedVoteType == '' && !isQuestion && !isComment">
+							<md-input-container flex>
+								<label>Voting</label>
+								<md-select ng-model="page.voteType">
+									<md-option ng-repeat="(key,value) in voteTypes" value="{{key}}">
+										{{value}}
+									</md-option>
+								</md-select>
+							</md-input-container>
+							<div flex>
+								<!-- TODO: helpful notes -->
+							</div>
+						</div>
+					
+						<!-- Karma edit lock -->
+						<div layout="row" ng-show="userService.user.maxKarmaLock > 0 && !isComment">
+							<div flex>
+								<label>Edit karma lock</label>
+								<md-slider md-discrete ng-model="page.editKarmaLock"
+										step="10" min="0" max="{{userService.user.maxKarmaLock}}">
+								</md-slider>
+							</div>
+							<div flex>
+								Editing this page will require a this amount of karma
+							</div>
+						</div>
+					
+						<!-- Alias -->
+						<div layout="row" ng-show="!isAnswer && !isComment && !isGroup">
+							<div layout="column" flex>
+								<md-input-container>
+									<label>Alias</label>
+									<input ng-model="page.alias" md-maxlength="50">
+								</md-input-container>
+							</div>
+							<div flex>
+								<div>Unique name for this page, e.g. "HumanHealth".</div>
+								<div ng-show="page.seeGroupId != '0'">
+									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
+									because it's part of the private domain.
+								</div>
+							</div>
+						</div>
+					
+						<!-- Sort children option -->
+						<div layout="row" ng-show="!isSecondary">
+							<md-input-container flex>
+								<label>Sort children</label>
+								<md-select ng-model="page.sortChildrenBy">
+									<md-option ng-repeat="(key,value) in sortTypes" value="{{key}}">
+										{{value}}
+									</md-option>
+								</md-select>
+							</md-input-container>
+							<div flex>
+								How to sort the children of this page
+								<!-- TODO: helpful notes about specific types -->
+							</div>
+						</div>
+
+						<div flex></div>
+
+						<!-- Footer -->
+						<div layout="column">
+							<md-button class="md-raised md-primary">
+								Save
+							</md-button>
+						</div>
+					</div>
+				</md-tab-body>
+			</md-tab>
+
+			<!-- (3) Changelog tab -->
+			<md-tab label="Changelog">
+				<md-tab-body>
+					<arb-changelog page-id="{{page.pageId}}"><arb-changelog>
+				</md-tab-body>
+			</md-tab>
+
+			<!-- (4) Relationships tab -->
+			<md-tab label="Relationships">
+				<md-tab-body>
+					<div layout="column">
+						<!-- Parents -->
+						<arb-relationships page-id="{{page.pageId}}"
+								type="parent"
+								force-edit-mode="true"></arb-relationships>
+						<!-- Tags -->
+						<arb-relationships page-id="{{page.pageId}}"
+								type="tag"
+								force-edit-mode="true"></arb-relationships>
+						<!-- Requirements -->
+						<arb-relationships page-id="{{page.pageId}}"
+								type="requirement"
+								force-edit-mode="true"></arb-relationships>
+					</div>
+				</md-tab-body>
+			</md-tab>
+		</md-tabs>
 	</div>
-	<!-- /Relationships -->
+
+	<div class="wmd-preview-separator"></div>
+
+	<!-- Preview (right half) -->
+	<div class="full-height" layout="column" flex="50" ng-if="showPreview">
+		<md-content flex>
+			<h2 class="md-display-2" ng-bind="page.title"></h2>
+			<div id="wmd-preview{{page.pageId}}"></div>
+		</md-content>
+		<div>
+			SOME MESSAGES
+			<md-button>A</md-button>
+		</div>
+	</div>
 </div>

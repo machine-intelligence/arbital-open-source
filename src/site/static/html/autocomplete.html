@@ -1,0 +1,22 @@
+<md-autocomplete md-selected-item="searchItem"
+		md-search-text="searchText"
+		md-items="result in getSearchResults(searchText)"
+		md-item-text="searchText"
+		md-selected-item-change="searchResultSelected(result)"
+		md-menu-class="autocomplete-custom-template"
+		md-min-length="1"
+		md-delay="300"
+		md-autofocus="autofocus"
+		placeholder="{{placeholder}}">
+	<md-item-template>
+		<div layout="row">
+			<arb-likes page-id="{{result.label}}"></arb-likes>
+			<!--<arb-page-title page-id="{{result.label}}" show-clickbait="true"></arb-page-title>-->
+			<!-- There is a bug with using custom directives inside the autocomplete -->
+			{{result.title}}
+		</div>
+	</md-item-template>
+	<md-not-found>
+		No matches found.
+	</md-not-found>
+</md-autocomplete>

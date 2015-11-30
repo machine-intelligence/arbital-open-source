@@ -1,0 +1,40 @@
+<md-fab-speed-dial md-open="isOpen"
+		md-direction="up"
+		ng-mouseenter="isOpen = true"
+		ng-mouseleave="isOpen = false"
+		ng-click="newPage()"
+		class="md-scale md-fab-bottom-right"
+		ng-hide="hide">
+	<md-fab-trigger>
+		<md-button class="md-fab">
+			<md-icon>note_add</md-icon>
+			<md-tooltip md-direction="left">New page</md-tooltip>
+		</md-button>
+	</md-fab-trigger>
+	<md-fab-actions>
+		<md-button class="md-fab md-raised md-mini" ng-click="newSibling()">
+			<md-icon>people</md-icon>
+			<md-tooltip md-direction="left">Sibling page</md-tooltip>
+		</md-button>
+		<md-button class="md-fab md-raised md-mini" ng-click="newChild()">
+			<md-icon>child_care</md-icon>
+			<md-tooltip md-direction="left">Child page</md-tooltip>
+		</md-button>
+		<md-button class="md-fab md-raised md-mini" ng-click="newLens()">
+			<md-icon>lens</md-icon>
+			<md-tooltip md-direction="left">Lens page</md-tooltip>
+		</md-button>
+		<md-button class="md-fab md-raised md-mini" ng-click="newComment()">
+			<md-icon>comment</md-icon>
+			<md-tooltip md-direction="left">Comment</md-tooltip>
+		</md-button>
+		<md-button class="md-fab md-raised md-mini" ng-click="newQuestion()">
+			<md-icon>question_answer</md-icon>
+			<md-tooltip md-direction="left">Question</md-tooltip>
+		</md-button>
+		<md-button class="md-fab md-raised md-mini" ng-click="newAnswer()">
+			<md-icon>question_answer</md-icon>
+			<md-tooltip md-direction="left">Answer</md-tooltip>
+		</md-button>
+	</md-fab-actions>
+</md-fab-speed-dial>

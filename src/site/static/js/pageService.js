@@ -184,8 +184,6 @@ app.service("pageService", function($http, $location, userService){
 	
 	// Massage page's variables to be easier to deal with.
 	var setUpPage = function(page, pageMap) {
-		if (page.children == null) page.children = [];
-		if (page.parents == null) page.parents = [];
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
 		}
@@ -316,8 +314,8 @@ app.service("pageService", function($http, $location, userService){
 	// Sort the given page's children.
 	this.sortChildren = function(page) {
 		var sortFunc = this.getChildSortFunc(page.sortChildrenBy);
-		page.children.sort(function(aChild, bChild) {
-			return sortFunc(aChild.childId, bChild.childId);
+		page.childIds.sort(function(aChildId, bChildId) {
+			return sortFunc(aChildId, bChildId);
 		});
 	};
 

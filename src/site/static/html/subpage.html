@@ -2,29 +2,42 @@
 		class="md-whiteframe-1dp"
 		ng-mouseenter="hovering = true"
 		ng-mouseleave="hovering = false">
-	<div layout="row" layout-align="start center">
-		<md-icon ng-show="page.type === 'comment'">comment</md-icon>
-		<md-icon ng-show="page.type === 'question'">question_answer</md-icon>
+	<!-- Comment header -->
+	<div layout="row" layout-align="start center" ng-if="isComment">
+		<md-icon>comment</md-icon>
 
-		<div ng-bind="userService.getFullName(page.creatorId)"></div>
+		<!-- User name -->
+		<arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
+		<span class="blue-dot" ng-show="page.isNewPage()"></span>
 
+		<!-- Collapse button -->
 		<div layout="column" flex>
-			<md-button ng-click="isCollapsed = !isCollapsed"
+			<md-button ng-click="collapseToggle"
 					ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
 				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
 				<md-icon ng-show="isCollapsed">expand_more</md-icon>
 			</md-button>
 		</div>
+
+		<!-- RHS icons -->
 		<md-button class="md-icon-button"
 				ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
 				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
 			<md-icon>create</md-icon>
 		</md-button>
 		<md-button class="md-icon-button"
-				ng-click="linkClicked()"
+				ng-href="{{myUrl}}"
 				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
 			<md-icon>link</md-icon>
 		</md-button>
+	</div>
+
+		<!-- Question header -->
+	<div layout="row" layout-align="start center" ng-if="isQuestion">
+		<md-icon>question_answer</md-icon>
+		<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
+		<ng-pluralize count="page.answerCount"
+				when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
 	</div>
 
 	<!-- Collapsable body -->
@@ -37,9 +50,13 @@
 			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
 			<md-button ng-hide="parentSubpageId">
 				<md-icon>reply</md-icon>
-				Reply
+				<span ng-show="isComment">Reply</span>
 			</md-button>
 			<span ng-bind="page.createdAt | relativeDateTime"></span>
+			<span ng-show="isQuestion && page.commentIds.length > 0">
+				<md-icon>comment</md-icon>
+				<span ng-bind="page.commentIds.length"></span>
+			</span>
 		</div>
 
 		<div layout="row" ng-show="page.subpageIds.length > 0">
@@ -53,9 +70,11 @@
 								parent-subpage-id="{{page.pageId}}"></arb-subpage>
 					</div>
 				</div>
+
+				<!-- Reply to thread button -->
 				<md-button>
 					<md-icon>reply</md-icon>
-					Reply
+					<span ng-show="isComment">New Reply</span>
 				</md-button>
 			</div>
 		</div>

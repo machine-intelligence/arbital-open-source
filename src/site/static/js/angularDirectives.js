@@ -44,7 +44,42 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
-			arbMarkdown.init(false, scope.pageId, scope.page.summary, element.find(".intrasite-popover-body"), pageService, userService);
+			
+			// Fix to prevent errors when we go to another page while popover is loading.
+			// TODO: abort all http requests when switching to another page
+			var isDestroyed = false;
+			scope.$on("$destroy", function() {
+				isDestroyed = true;
+			});
+
+			// Add the primary page as the first lens.
+			if (scope.page.lensIds.indexOf(scope.page.pageId) < 0) {
+				scope.page.lensIds.unshift(scope.page.pageId);
+			}
+
+			// Check if a lens is loaded
+			scope.isLoaded = function(lensId) {
+				return pageService.pageMap[lensId].summary.length > 0;
+			};
+
+			// Called when a tab is selected
+			scope.tabSelect = function(lensId) {
+				if (scope.isLoaded(lensId)) return;
+				// Fetch page data from the server.
+				pageService.loadIntrasitePopover(lensId, {
+					success: function() {
+						if (isDestroyed) return;
+						var lens = pageService.pageMap[lensId];
+						if (!lens.summary) {
+							lens.summary = " "; // to avoid trying to load it again
+						}
+						// Page's lensIds got resent, so need to fix this again
+						if (scope.page.lensIds.indexOf(scope.page.pageId) < 0) {
+							scope.page.lensIds.unshift(scope.page.pageId);
+						}
+					},
+				});
+			};
 		},
 	};
 });
@@ -61,6 +96,8 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			isLink: "@",
 			// Whether or not to show the clickbait
 			showClickbait: "@",
+			// Whether or not to show the type of the page icon
+			showType: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
@@ -308,8 +345,10 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 			scope.newVoteValue = undefined;
 			scope.voteMouseMove = function(event, leave) {
 				scope.newVoteValue = scope.offsetToValue(event.pageX);
-				scope.selectedVoteBucket = leave ? undefined :
-					scope.voteBuckets[scope.typeHelper.getBucketIndex(scope.newVoteValue)];
+				scope.selectedVoteBucket = scope.voteBuckets[scope.typeHelper.getBucketIndex(scope.newVoteValue)];
+				if (leave && scope.selectedVoteBucket.votes.length <= 0) {
+					scope.selectedVoteBucket = undefined;
+				}
 				scope.isHovering = !leave;
 			};
 			scope.voteMouseClick = function(event, leave) {
@@ -321,6 +360,64 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 			scope.deleteMyVote = function() {
 				scope.userVoteValue = undefined;
 				postNewVote();
+			};
+		},
+	};
+});
+
+// composeFab is the FAB button in the bottom right corner used for creating new pages
+app.directive("arbComposeFab", function($location, pageService, userService) {
+	return {
+		templateUrl: "/static/html/composeFab.html",
+		scope: {
+		},
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+
+			$scope.$on("$locationChangeSuccess", function () {
+				$scope.hide = $location.path().indexOf("/edit") === 0;
+			});
+			$scope.hide = $location.path().indexOf("/edit") === 0;
+
+			$scope.newPage = function() {
+				$location.url("/edit");
+			}
+
+			$scope.newSibling = function() {
+				var parentIds = pageService.primaryPage.parentIds.join(",");
+				$location.url("/edit?newParentId=" + parentIds);
+			}
+
+			$scope.newChild = function() {
+				$location.url("/edit?newParentId=" + pageService.primaryPage.pageId);
+			}
+		},
+	};
+});
+
+// autocomplete searches for relevant pages as you do the search
+app.directive("arbAutocomplete", function($q, pageService, autocompleteService) {
+	return {
+		templateUrl: "/static/html/autocomplete.html",
+		scope: {
+			autofocus: "@",
+			placeholder: "@",
+			onSelect: "&",
+		},
+		controller: function($scope) {
+			$scope.getSearchResults = function(text) {
+				if (!text) return [];
+				var deferred = $q.defer();
+				autocompleteService.performSearch({term: text}, function(results) {
+					deferred.resolve(results);
+				});
+        return deferred.promise;
+			};
+
+			$scope.searchResultSelected = function(result) {
+				$scope.onSelect({result: result});
+				$scope.searchText = "";
 			};
 		},
 	};

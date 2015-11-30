@@ -1,0 +1,45 @@
+<md-list>
+	<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
+		<div layout="column">
+			<div>
+				<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
+				</span>
+				<span ng-show="changeLog.auxPageId != '0'">
+					<a class="intrasite-link"
+							page-id="{{changeLog.auxPageId}}"
+							ng-href="{{pageService.getPageUrl(changeLog.auxPageId)}}"
+							ng-bind="changeLog.type"></a>
+				</span>
+				<span ng-show="changeLog.edit != 0">(edit #{{changeLog.edit}})</span>
+				by
+
+				<span ng-show="userService.user.id === changeLog.userId">you</span>
+				<span ng-show="userService.user.id !== changeLog.userId">
+					<arb-user-name user-id="{{changeLog.userId}}"></arb-user-name>
+				</span>
+
+				<span ng-bind="changeLog.createdAt | relativeDateTime"></span>
+			</div>
+
+			<!-- Extra functionality for new edits -->
+			<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit"
+					layout="row" layout-align="start center">
+				<md-button class="md-warn"
+						ng-click="revertToEdit(changeLog.edit)"
+						ng-show="changeLog.type === 'newEdit'">
+					<md-tooltip>Revert to this edit</md-tooltip>
+					Revert
+				</md-button>
+				<md-button ng-href="{{pageSevice.getEditPageUrl(page.pageId) + '?edit=' + changeLog.edit}}"
+						class="md-warn">
+					<md-tooltip>Load this edit in the editor</md-tooltip>
+					Load Edit
+				</md-button>
+				<md-button ng-click="doDiff(changeLog.edit)">
+					<md-tooltip>Diff with this edit</md-tooltip>
+					Diff
+				</md-button>
+			</div>
+		</div>
+	</md-list-item>
+</md-list>

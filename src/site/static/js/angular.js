@@ -1,10 +1,12 @@
 "use strict";
 
 // Set up angular module.
-var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute", "RecursionHelper"]);
+var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute", "ngMessages", "RecursionHelper"]);
 app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider, $mdIconProvider){
 	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
-		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg");
+		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
+		.icon("link_variant", "static/icons/link-variant.svg")
+		.icon("format_header_pound", "static/icons/format-header-pound.svg");
 
 	$locationProvider.html5Mode(true);
 
@@ -54,7 +56,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 });
 
 // ArbitalCtrl is used across all pages.
-app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $compile, userService, pageService) {
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $compile, $mdDialog, userService, pageService, popoverService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -73,90 +75,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		$timeout(refreshAutoupdates, 30000);
 	};
 	refreshAutoupdates();
-
-	// Process lens tab clicks
-	$("body").on("click", ".intrasite-lens-tab", function(event) {
-		var $tab = $(event.currentTarget);
-		var lensId = $tab.attr("data-target");
-		lensId = lensId.substring(lensId.indexOf("-") + 1);
-		var lensPage = pageService.pageMap[lensId];
-		if (!lensPage) return;
-		if (lensPage.summary.length > 0) {
-			var page = pageService.pageMap[lensId];
-			var lensElement = $("#lens-" + page.pageId);
-			lensElement.empty().append('<div class="markdown-text"></div>');
-			arbMarkdown.init(false, page.pageId, page.summary, lensElement, pageService, userService);
-		}
-		return true;
-	});
-
-	// Check when user hovers over intrasite links, and show a popover.
-	$("body").on("mouseenter", ".intrasite-link", function(event) {
-		var $target = $(event.currentTarget);
-		if ($target.hasClass("red-link")) return;
-		// Don't allow recursive hover in popovers.
-		if ($target.closest(".popover-content").length > 0) return;
-
-		// Popover's title.
-		var getTitleHtml = function(pageId) {
-			return "<arb-likes-page-title is-search-result='true' page-id='" + pageId + "'></arb-likes-page-title>";
-		};
-		// Create options for the popover.
-		var options = {
-			html : true,
-			placement: "bottom",
-			trigger: "manual",
-			delay: { "hide": 100 },
-			title: function() {
-				var pageId = $target.attr("page-id");
-				var page = pageService.pageMap[pageId];
-				if (page && page.title) {
-					return getTitleHtml(pageId);
-				}
-				return "Loading...";
-			},
-			content: function() {
-				var $link = $target;
-				var setPopoverContent = function(page) {
-					$timeout(function() {
-						var $popover = $("#" + $link.attr("aria-describedby"));
-						$popover.find(".popover-title").html(getTitleHtml(page.pageId));
-						$compile($popover)($scope);
-					});
-					var contentHtml = "<arb-intrasite-popover page-id='" + page.pageId + "'></arb-intrasite-popover>";
-					return contentHtml;
-				};
-
-				// Check if we already have this page cached.
-				var pageAlias = $link.attr("page-id");
-				var page = pageService.pageMap[pageAlias];
-				if (page && page.summary) {
-					return setPopoverContent(page);
-				}
-
-				// Fetch page data from the server.
-				pageService.loadIntrasitePopover(pageAlias, {
-					success: function() {
-						var page = pageService.pageMap[pageAlias];
-						if (!page.summary) {
-							page.summary = " "; // to avoid trying to load it again
-						}
-						var contentHtml = setPopoverContent(page);
-						var $popover = $("#" + $link.attr("aria-describedby"));
-						$popover.find(".popover-content").html(contentHtml);
-					},
-				});
-				return "<img src='/static/images/loading.gif' class='loading-indicator' style='display:block'/>";
-			}
-		};
-		// Check if this is the first time we hovered.
-		var firstTime = $target.attr("first-time");
-		if (!firstTime) {
-			createHoverablePopover($target, options, {uniqueName: "intrasite-link"});
-			$target.attr("first-time", false).trigger("mouseenter");
-		}
-		return false;
-	});
 
 	// Returns a function we can use as success handler for POST requests for dynamic data.
 	// callback - returns {
@@ -288,9 +206,8 @@ app.controller("ExplorePageController", function ($scope, $routeParams, $http, $
 		$scope.rootPages = {};
 		$scope.rootPages[rootPage.pageId] = rootPage;
 		$scope.childPages = {};
-		var length = rootPage.children ? rootPage.children.length : 0;
-		for (var n = 0; n < length; n++) {
-			var childId = rootPage.children[n].childId;
+		for (var n = 0; n < rootPage.childIds.length ; n++) {
+			var childId = rootPage.childIds[n];
 			$scope.childPages[childId] = pageService.pageMap[childId];
 		}
 
@@ -331,6 +248,9 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 app.controller("EditPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
 	var pageId = $routeParams.alias;
 
+	// Need to call /default/ in case we are creating a new page
+	// TODO: don't do that call if we are going to load an edit / send that data
+	// when we cann /newPage/
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (+pageId) {
@@ -360,7 +280,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 					return {
 						title: "Edit " + (page.title ? page.title : "New Page"),
 						element: $compile("<arb-edit-page page-id='" + pageId +
-							"' done-fn='doneFn(result)'></arb-edit-page>")($scope),
+							"' done-fn='doneFn(result)' show-preview='true'></arb-edit-page>")($scope),
 					};
 				}),
 				error: $scope.getErrorFunc("loadEdit"),
