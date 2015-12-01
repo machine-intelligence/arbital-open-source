@@ -12,7 +12,17 @@ $composeFabZ: 200;
 	}
 }
 
-// Move dynamic-view down to account for the toolbar
+// Used when we use display: table
+.edit-page-table-layout {
+	display: table;
+	width: 100%;
+
+	.edit-page-row {
+		display: table-row;
+	}
+}
+
+// Hack to allow us to use 100% height inside dynamic-view
 #dynamic-view {
 	position: relative;
 	top: -64px;
@@ -185,16 +195,6 @@ arb-compose-fab {
 	}
 }
 
-$edit-text-header-height: 38px;
-.edit-text-header {
-	height: $edit-text-header-height;
-}
-
-$edit-text-footer-height: 48px;
-.edit-text-footer {
-	height: $edit-text-footer-height;
-}
-
 // Contains all markdown buttons
 .wmd-button-bar {
 	border-bottom: 2px solid silver;
@@ -216,7 +216,7 @@ $edit-text-footer-height: 48px;
 // Textarea for editing markdown
 .wmd-input {
 	width: 100%;
-	height: calc(100% - #{$edit-text-header-height} - #{$edit-text-footer-height});
+	height: 100%;
 	resize: none;
 	border: none;
 	padding: 0;

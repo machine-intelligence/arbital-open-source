@@ -26,140 +26,152 @@
 
 			<!-- (1) Text tab -->
 			<md-tab label="Text">
-				<!-- Input we show when entering a new link -->
-				<div class="edit-text-header" ng-show="showInsertLink">
-					<arb-autocomplete class="insert-autocomplete"
-							placeholder="Search for a page to link"
-							on-select="insertLinkSelect(result)"></arb-autocomplete>
-				</div>
+				<!-- We have to use table layout here, so that the textarea can expand to fill
+					the available height. This is the only workable solution I was about to find. -->
+				<div class="full-height edit-page-table-layout">
+					<!-- Input we show when entering a new link -->
+					<div class="edit-page-row" ng-show="showInsertLink">
+						<arb-autocomplete class="insert-autocomplete"
+								placeholder="Search for a page to link"
+								on-select="insertLinkSelect(result)"></arb-autocomplete>
+					</div>
 
-				<!-- Markdown toolbar -->
-				<div id="wmd-button-bar{{page.pageId}}" class="edit-text-header wmd-button-bar"
-						layout="row"
-						flex
-						ng-hide="hideMarkdownToolbar || showInsertLink">
-					<md-button class="wmd-bold-button">
-						<md-icon>format_bold</md-icon>
-						<md-tooltip>**Bold** | Ctrl+B</md-tooltip>
-					</md-button>
-					<md-button class="wmd-italic-button">
-						<md-icon>format_italic</md-icon>
-						<md-tooltip>**Italics** | Ctrl+I</md-tooltip>
-					</md-button>
-					<div class="separator"></div>
-					<md-button class="wmd-link-button">
-						<md-icon>insert_link</md-icon>
-						<md-tooltip>[hyper](link) | Ctrl+L</md-tooltip>
-					</md-button>
-					<md-button class="wmd-intralink-button">
-						<md-icon md-svg-icon="link_variant"></md-icon>
-						<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
-					</md-button>
-					<!--<md-button class="wmd-new-page-button">
-						<md-icon>note_add</md-icon>
-						<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
-					</md-button>-->
-					<div class="separator"></div>
-					<md-button class="wmd-quote-button">
-						<md-icon>format_quote</md-icon>
-						<md-tooltip>&gt; Blockquote | Ctrl+Q</md-tooltip>
-					</md-button>
-					<md-button class="wmd-code-button">
-						<md-icon>format_clear</md-icon>
-						<md-tooltip>`Escape` | Ctrl+K</md-tooltip>
-					</md-button>
-					<md-button class="wmd-image-button">
-						<md-icon>insert_photo</md-icon>
-						<md-tooltip>![image](url) | Ctrl+G</md-tooltip>
-					</md-button>
-					<div class="separator"></div>
-					<md-button class="wmd-olist-button">
-						<md-icon>format_list_numbered</md-icon>
-						<md-tooltip>1. Numbered list | Ctrl+O</md-tooltip>
-					</md-button>
-					<md-button class="wmd-ulist-button">
-						<md-icon>format_list_bulleted</md-icon>
-						<md-tooltip>* Bullet list | Ctrl+U</md-tooltip>
-					</md-button>
-					<md-button class="wmd-heading-button">
-						<md-icon md-svg-icon="format_header_pound"></md-icon>
-						<md-tooltip># Heading | Ctrl+H</md-tooltip>
-					</md-button>
-					<md-button class="wmd-hr-button">
-						<md-icon>remove</md-icon>
-						<md-tooltip>--- Line | Ctrl+E</md-tooltip>
-					</md-button>
-					<div class="separator"></div>
-					<md-button class="wmd-undo-button">
-						<md-icon>undo</md-icon>
-						<md-tooltip>Undo | Ctrl+Z</md-tooltip>
-					</md-button>
-					<md-button class="wmd-redo-button">
-						<md-icon>redo</md-icon>
-						<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
-					</md-button>
-					<div flex></div>
-					<md-button class="wmd-help-button">
-						<md-icon>help</md-icon>
-						<md-tooltip>Markdown editing help</md-tooltip>
-					</md-button>
-					<!--<div class="separator"></div>
-					<md-button ng-click="hideMarkdownToolbar=true">
-						<md-icon>close</md-icon>
-						<md-tooltip>Close this toolbar</md-tooltip>
-					</md-button>-->
-				</div>
-				<textarea name="text"
-						class="wmd-input"
-						id="wmd-input{{page.pageId}}"
-						placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
-						ng-model="page.text"
-						ng-readonly="lockedByAnother"
-						ng-disabled="showInsertLink"></textarea>
+					<!-- Markdown toolbar -->
+					<div class="edit-page-row">
+						<div id="wmd-button-bar{{page.pageId}}"
+								class="wmd-button-bar"
+							 	layout="row"
+								flex
+								ng-hide="hideMarkdownToolbar || showInsertLink">
+							<md-button class="wmd-bold-button">
+								<md-icon>format_bold</md-icon>
+								<md-tooltip>**Bold** | Ctrl+B</md-tooltip>
+							</md-button>
+							<md-button class="wmd-italic-button">
+								<md-icon>format_italic</md-icon>
+								<md-tooltip>**Italics** | Ctrl+I</md-tooltip>
+							</md-button>
+							<div class="separator"></div>
+							<md-button class="wmd-link-button">
+								<md-icon>insert_link</md-icon>
+								<md-tooltip>[hyper](link) | Ctrl+L</md-tooltip>
+							</md-button>
+							<md-button class="wmd-intralink-button">
+								<md-icon md-svg-icon="link_variant"></md-icon>
+								<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
+							</md-button>
+							<!--<md-button class="wmd-new-page-button">
+								<md-icon>note_add</md-icon>
+								<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
+							</md-button>-->
+							<div class="separator"></div>
+							<md-button class="wmd-quote-button">
+								<md-icon>format_quote</md-icon>
+								<md-tooltip>&gt; Blockquote | Ctrl+Q</md-tooltip>
+							</md-button>
+							<md-button class="wmd-code-button">
+								<md-icon>format_clear</md-icon>
+								<md-tooltip>`Escape` | Ctrl+K</md-tooltip>
+							</md-button>
+							<md-button class="wmd-image-button">
+								<md-icon>insert_photo</md-icon>
+								<md-tooltip>![image](url) | Ctrl+G</md-tooltip>
+							</md-button>
+							<div class="separator"></div>
+							<md-button class="wmd-olist-button">
+								<md-icon>format_list_numbered</md-icon>
+								<md-tooltip>1. Numbered list | Ctrl+O</md-tooltip>
+							</md-button>
+							<md-button class="wmd-ulist-button">
+								<md-icon>format_list_bulleted</md-icon>
+								<md-tooltip>* Bullet list | Ctrl+U</md-tooltip>
+							</md-button>
+							<md-button class="wmd-heading-button">
+								<md-icon md-svg-icon="format_header_pound"></md-icon>
+								<md-tooltip># Heading | Ctrl+H</md-tooltip>
+							</md-button>
+							<md-button class="wmd-hr-button">
+								<md-icon>remove</md-icon>
+								<md-tooltip>--- Line | Ctrl+E</md-tooltip>
+							</md-button>
+							<div class="separator"></div>
+							<md-button class="wmd-undo-button">
+								<md-icon>undo</md-icon>
+								<md-tooltip>Undo | Ctrl+Z</md-tooltip>
+							</md-button>
+							<md-button class="wmd-redo-button">
+								<md-icon>redo</md-icon>
+								<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
+							</md-button>
+							<div flex></div>
+							<md-button class="wmd-help-button">
+								<md-icon>help</md-icon>
+								<md-tooltip>Markdown editing help</md-tooltip>
+							</md-button>
+							<!--<div class="separator"></div>
+							<md-button ng-click="hideMarkdownToolbar=true">
+								<md-icon>close</md-icon>
+								<md-tooltip>Close this toolbar</md-tooltip>
+							</md-button>-->
+						</div>
+					</div>
 
-				<!-- Footer -->
-				<div class="edit-text-footer" layout="row" layout-align="start center">
-					<!-- Lock timer -->
-					<div ng-show="lockExists">
-						<md-tooltip ng-show="page.lockedBy!='0' && page.lockedBy===userService.user.id">
-							You have locked the page.
-						</md-tooltip>
-						<md-tooltip ng-show="lockedByAnother">
-							This page is locked by another user.
-						</md-tooltip>
-						<md-icon>lock</md-icon>
-						<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTime"></span>
+					<!-- Textarea for editing the page's text -->
+					<div class="full-height edit-page-row">
+						<textarea name="text"
+								class="wmd-input"
+								id="wmd-input{{page.pageId}}"
+								placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
+								ng-model="page.text"
+								ng-disabled="showInsertLink"></textarea>
 					</div>
-		
-					<div flex></div>
-		
-					<div ng-show="autosaving">
-						Autosaving...
+
+					<!-- Footer -->
+					<div class="edit-page-row">
+						<div layout="row" layout-align="start center">
+							<!-- Lock timer -->
+							<div ng-show="lockExists">
+								<md-tooltip ng-show="page.lockedBy!='0' && page.lockedBy===userService.user.id">
+									You have locked the page.
+								</md-tooltip>
+								<md-tooltip ng-show="lockedByAnother">
+									This page is locked by another user.
+								</md-tooltip>
+								<md-icon>lock</md-icon>
+								<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTimeNoSuffix"></span>
+							</div>
+			
+							<div flex></div>
+			
+							<div ng-show="autosaving">
+								Autosaving...
+							</div>
+							<div ng-show="successfulAutosave">
+								Autosaved
+							</div>
+							<div class="md-warn" ng-bind="autosaveError">
+							</div>
+							<div ng-show="snapshotting">
+								Saving a snapshot...
+							</div>
+							<div ng-show="publishing">
+								Publishing...
+							</div>
+							<md-button class="md-warn"
+									ng-click="discardPage()"
+									ng-disable="publishing || snapshotting">
+								Discard
+							</md-button>
+							<md-button ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
+								Snapshot
+							</md-button>
+							<md-button class="md-primary"
+									ng-click="publishPage()"
+									ng-disable="publishing || snapshotting">
+								Publish
+							</md-button>
+						</div>
 					</div>
-					<div ng-show="successfulAutosave">
-						Autosaved
-					</div>
-					<div class="md-warn" ng-bind="autosaveError">
-					</div>
-					<div ng-show="snapshotting">
-						Saving a snapshot...
-					</div>
-					<div ng-show="publishing">
-						Publishing...
-					</div>
-					<md-button class="md-warn"
-							ng-click="discardPage()"
-							ng-disable="publishing || snapshotting">
-						Discard
-					</md-button>
-					<md-button ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
-						Snapshot
-					</md-button>
-					<md-button class="md-primary"
-							ng-click="publishPage()"
-							ng-disable="publishing || snapshotting">
-						Publish
-					</md-button>
 				</div>
 			</md-tab>
 
@@ -318,11 +330,95 @@
 		<md-content class="preview-area" flex>
 			<h2 class="md-display-2" ng-bind="page.title"></h2>
 			<div id="wmd-preview{{page.pageId}}"></div>
-			<div class="messages-overlay"></div>
 		</md-content>
-		<div>
-			RELATED PAGES
-			<md-button>A</md-button>
-		</div>
+
+		<!-- Messages -->
+		<md-list>
+			<md-list-item ng-repeat="(key,value) in messages">
+				<!-- Dismiss button -->
+				<md-button class="md-icon-button md-raised"
+						ng-class="{'md-warn': value.type === 'error', 'md-primary': value.type === 'info'}"
+						ng-click="deleteMessage(key)"
+						ng-hide="value.permanent">
+					<md-icon>close</md-icon>
+				</md-button>
+				<div ng-class="{'md-warn': value.type === 'error', 'md-primary': value.type === 'info'}" ng-bind="value.text"></div>
+			</md-list-item>
+		</md-list>
+		<md-list>
+			<div ng-switch="page.getEditLevel()" ng-show="page.wasPublished">
+				<md-list-item ng-switch-when="admin" class="md-warn">
+					<md-button class="md-icon-button md-warn md-raised" ng-click="hideMessage($event)">
+						<md-icon>close</md-icon>
+					</md-button>
+					Enforcing admin priviledges.
+				</md-list-item>
+				<md-list-item ng-switch-when="comment" class="md-warn">
+					Can't edit a comment you didn't create.
+				</md-list-item>
+				<md-list-item ng-switch-when="" hide></md-list-item>
+				<md-list-item ng-switch-default class="md-warn">
+					You don't have enough karma to edit this page. Required: {{page.getEditLevel()}}.
+				</md-list-item>
+			</div>
+			<!-- Show a warning if you've loaded an edit that's not currently live. -->
+			<md-list-item ng-show="page.edit !== page.currentEditNum && !page.isAutosave && !page.isSnapshot">
+				<div class="md-warn">
+					<md-button class="md-icon-button md-warn md-raised" ng-click="hideMessage($event)">
+						<md-icon>close</md-icon>
+					</md-button>
+					Currently looking at a non-live edit.
+					<a ng-href="{{pageService.getPageEditUrl(page.pageId)}}?edit={{page.currentEditNum}}">
+						Switch to editing the live version.
+					</a>
+				</div>
+			</md-list-item>
+			<!-- Check permissions -->
+			<md-list-item class="md-warn" ng-hide="isMemberOfGroup">
+				You need to be part of {{pageService.pageMap[page.editGroupId].title}} group to edit this page.
+			</md-list-item>
+			<!-- Friendly warnings / info alerts -->
+			<md-list-item ng-show="page.wasPublished && (page.isAutosave || page.isSnapshot)">
+				<md-button class="md-icon-button md-warn md-raised" ng-click="hideMessage($event)">
+					<md-icon>close</md-icon>
+				</md-button>
+				<div ng-show="page.isAutosave" class="md-warn">
+					Restored autosave which was last updated
+					<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
+					<md-button href="#" class="md-warn">Discard my autosave and edit the live version</a>
+				</div>
+				<div ng-show="page.isSnapshot" class="md-warn">
+					Restored snapshot which was last updated
+					<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
+					<a ng-href="{{pageService.getEditPageUrl(page.pageId)}}?edit={{page.currentEditNum}}">Switch to editing the live version.</a>
+				</div>
+			</md-list-item>
+		</md-list>
+
+		<!-- Related pages -->
+		<md-list>
+			<md-list-item layout="row"
+					layout-align="start center"
+					ng-init="similarPage = similarPages[0]"
+					ng-if="similarPages.length > 0">
+				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
+				<arb-page-title page-id="{{similarPage.pageId}}" show-clickbait="true"></arb-page-title>
+				<div flex></div>
+				<md-button ng-click="toggleSimilarPages(true)"
+						ng-show="!forceExpandSimilarPages && !expandSimilarPages && similarPages.length > 1">
+					<md-icon>expand_more</md-icon>
+					Show {{similarPages.length - 1}} more
+				</md-button>
+				<md-button ng-click="toggleSimilarPages(false)"
+						ng-show="!forceExpandSimilarPages && expandSimilarPages">
+					<md-icon>expand_less</md-icon>
+					Hide
+				</md-button>
+			</md-list-item>
+			<md-list-item ng-repeat="(index,similarPage) in similarPages" ng-if="index > 0 && expandSimilarPages">
+				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
+				<arb-page-title page-id="{{similarPage.pageId}}" show-clickbait="true"></arb-page-title>
+			</md-list-item>
+		</md-list>
 	</div>
 </div>

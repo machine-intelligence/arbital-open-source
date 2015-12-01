@@ -3,6 +3,12 @@
   .full-height [md-tabs-template] {
     height: 100%; }
 
+.edit-page-table-layout {
+  display: table;
+  width: 100%; }
+  .edit-page-table-layout .edit-page-row {
+    display: table-row; }
+
 #dynamic-view {
   position: relative;
   top: -64px;
@@ -106,12 +112,6 @@ arb-compose-fab {
 .hide-tabs md-tabs-wrapper {
   display: none; }
 
-.edit-text-header {
-  height: 38px; }
-
-.edit-text-footer {
-  height: 48px; }
-
 .wmd-button-bar {
   border-bottom: 2px solid silver; }
   .wmd-button-bar button {
@@ -126,7 +126,7 @@ arb-compose-fab {
 
 .wmd-input {
   width: 100%;
-  height: calc(100% - 38px - 48px);
+  height: 100%;
   resize: none;
   border: none;
   padding: 0; }

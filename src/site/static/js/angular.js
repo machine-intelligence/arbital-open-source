@@ -141,6 +141,11 @@ app.filter("relativeDateTime", function() {
 		return moment.utc(input).fromNow();
 	};
 });
+app.filter("relativeDateTimeNoSuffix", function() {
+	return function(input) {
+		return moment.utc(input).fromNow(true);
+	};
+});
 
 
 app.controller("IndexPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
@@ -270,17 +275,18 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 			
 					// Called when the user is done editing the page.
 					$scope.doneFn = function(result) {
-						if (pageService.primaryPage.wasPublished || !result.abandon) {
-							$location.path(pageService.primaryPage.url());
-						} else {
+						console.log(result);
+						var page = pageService.editMap[result.pageId];
+						if (!page.wasPublished && result.discard) {
 							$location.path("/edit/");
+						} else {
+							$location.path(pageService.getPageUrl(page.pageId));
 						}
-						$scope.$apply();
 					};
 					return {
 						title: "Edit " + (page.title ? page.title : "New Page"),
-						element: $compile("<arb-edit-page page-id='" + pageId +
-							"' done-fn='doneFn(result)' show-preview='true'></arb-edit-page>")($scope),
+						element: $compile("<div arb-edit-page class='full-height' page-id='" + pageId +
+							"' done-fn='doneFn(result)' show-preview='true'></div>")($scope),
 					};
 				}),
 				error: $scope.getErrorFunc("loadEdit"),

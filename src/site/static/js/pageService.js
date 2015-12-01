@@ -460,18 +460,18 @@ app.service("pageService", function($http, $location, userService){
 		);
 	};
 
-	// Abandon the page with the given id.
-	this.abandonPage = function(pageId, success, error) {
+	// Discard the page with the given id.
+	this.discardPage = function(pageId, success, error) {
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/abandonPage/", data: JSON.stringify(data)}).
+		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)}).
 			success(function(data, status){
-				console.log("Successfully abandoned " + pageId);
+				console.log("Successfully discarded " + pageId);
 				if(success) success(data, status);
 			})
 			.error(function(data, status){
-				console.log("Error abandoning " + pageId + ":"); console.log(data); console.log(status);
+				console.log("Error discarding " + pageId + ":"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}
 		);

@@ -111,27 +111,6 @@ app.directive("arbPageTitle", function(pageService, userService) {
 	};
 });
 
-// likesPageTitle displays likes span followed by page's title span.
-app.directive("arbLikesPageTitle", function(pageService, userService) {
-	return {
-		templateUrl: "/static/html/likesPageTitle.html",
-		scope: {
-			pageId: "@",
-			showClickbait: "@",
-			showRedLinkCount: "@",
-			showQuickEditLink: "@",
-			showCreatedAt: "@",
-			isSearchResult: "@",
-			isSupersized: "@",
-		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
-		},
-	};
-});
-
 // confirmPopover displays a confirmation popover, with a custom message,
 // with callbacks for confirm and cancel, which get passed pageId
 app.directive("arbConfirmPopover", function(pageService, userService) {
