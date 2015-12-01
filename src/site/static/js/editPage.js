@@ -457,7 +457,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 		$topParent.find(".wmd-input").textcomplete([
 
 			{
-				match: /\[([A-Za-z0-9.]+)$/,
+				match: /\[([A-Za-z0-9_.]+)$/,
 				search: function (term, callback) {
 					autocompleteService.parentsSource({term: term}, callback);
 				},
@@ -472,7 +472,7 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 				cache: true,
 			},
 			{
-				match: /\[(@[A-Za-z0-9.]+)$/,
+				match: /\[(@[A-Za-z0-9_.]+)$/,
 				search: function (term, callback) {
 					autocompleteService.userSource({term: term}, callback);
 				},

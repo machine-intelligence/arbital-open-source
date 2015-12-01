@@ -67,13 +67,13 @@ const (
 	PageLockDuration      = 30 * 60 // in seconds
 
 	// String that can be used inside a regexp to match an a page alias or id
-	AliasRegexpStr          = "[A-Za-z0-9]+\\.?[A-Za-z0-9]*"
-	SubdomainAliasRegexpStr = "[A-Za-z0-9]*"
+	AliasRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
+	SubdomainAliasRegexpStr = "[A-Za-z0-9_]*"
 )
 
 var (
-	// Regexp that strictly matches an alias
-	StrictAliasRegexp = regexp.MustCompile("^[0-9A-Za-z]*[A-Za-z][0-9A-Za-z]*$")
+	// Regexp that strictly matches an alias, and not a page id
+	StrictAliasRegexp = regexp.MustCompile("^[0-9A-Za-z_]*[A-Za-z_][0-9A-Za-z_]*$")
 )
 
 type Vote struct {

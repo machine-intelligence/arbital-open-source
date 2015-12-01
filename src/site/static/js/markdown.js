@@ -2,7 +2,7 @@
 
 var notEscaped = "(^|\\\\`|\\\\\\[| |>|\n)";
 var noParen = "(?=$|[^(])";
-var aliasMatch = "([A-Za-z0-9]+\\.?[A-Za-z0-9]*)";
+var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
 // [vote: alias]
 var voteEmbedRegexp = new RegExp(notEscaped + 
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
@@ -30,7 +30,7 @@ var arbMarkdown = arbMarkdown || function() {
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
-		var aliasRegexp = new RegExp("[A-Za-z0-9_-]+", "");
+		var aliasRegexp = new RegExp("[A-Za-z0-9_]+", "");
 
 		// Process [todo:text] spans.
 		var todoSpanRegexp = new RegExp(notEscaped + 
