@@ -17,11 +17,23 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			$scope.page = pageService.editMap[$scope.pageId];
 			$scope.selectedTab = ($scope.page.wasPublished || $scope.page.title.length > 0) ? 1 : 0;
 			$scope.fullView = false; // $scope.fullView
+			$scope.revealAfterRender = false;
 
 			// Select correct tab
 			if ($location.search().tab) {
 				$scope.selectedTab = $location.search().tab;
 			}
+
+			// Set up markdown
+			$timeout(function() {
+				var $wmdPreview = $("#wmd-preview" + $scope.page.pageId);
+				// Initialize pagedown
+				markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
+					$timeout(function() {
+						markdownService.processLinks($wmdPreview, refreshFunc);
+					});
+				});
+			});
 
 			// Called when user selects a page from insert link input
 			$scope.insertLinkSelect = function(result) {
@@ -34,17 +46,11 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				});
 			};
 
-			// Set up markdown
-			$timeout(function() {
-				var $wmdPreview = $("#wmd-preview" + $scope.page.pageId);
-				// Initialize pagedown
-				markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
-					console.log("callback");
-					$timeout(function() {
-						markdownService.processLinks($wmdPreview, refreshFunc);
-					});
-				});
-			});
+			// Toggle in and out of preview when not in fullView
+			$scope.inPreview = false;
+			$scope.togglePreview = function(show) {
+				$scope.inPreview = show;
+			};
 
 			// Setup all the settings
 			$scope.isWiki = $scope.page.type === "wiki";
@@ -411,6 +417,10 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 						if(callback) callback(data);
 					});
 				};
+
+				$timeout(function() {
+					scope.revealAfterRender = true;
+				});
 			});
 		},
 	};

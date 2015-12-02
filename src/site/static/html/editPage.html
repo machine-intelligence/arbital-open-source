@@ -1,7 +1,14 @@
-<div class="full-height" layout="{{fullView ? 'row' : 'column'}}">
+<div class="full-height"
+		ng-class="{'edit-page-table-layout': !fullView && !inPreview && !otherDiff, 'layout-row': fullView}"
+		ng-show="revealAfterRender">
 	<!-- Main edit column (left half) -->
-	<div class="full-height" layout="column" flex="{{fullView ? 50 : 'grow'}}">
-		<md-tabs md-selected="selectedTab"
+	<div class="full-height"
+			ng-class="{'edit-page-row': !fullView && !inPreview && !otherDiff}"
+			layout="column"
+			flex="{{fullView ? 50 : 'none'}}"
+			ng-hide="inPreview || (!fullView && otherDiff)">
+		<md-tabs ng-class="{'edit-page-cell': !fullView}"
+				md-selected="selectedTab"
 				md-stretch-tabs="always"
 				md-border-bottom
 				flex>
@@ -160,14 +167,25 @@
 							<md-button class="md-warn"
 									ng-click="discardPage()"
 									ng-disable="publishing || snapshotting">
+								<md-tooltip>Discard your autosave</md-tooltip>
 								Discard
 							</md-button>
 							<md-button ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
+								<md-tooltip>Save a snapshot</md-tooltip>
 								Snapshot
 							</md-button>
 							<md-button class="md-primary"
+									ng-click="togglePreview(true)"
+									ng-disable="publishing || snapshotting"
+									ng-show="!fullView && !inPreview">
+								<md-tooltip>Preview the page before publishing</md-tooltip>
+								Preview
+							</md-button>
+							<md-button class="md-primary"
 									ng-click="publishPage()"
-									ng-disable="publishing || snapshotting">
+									ng-disable="publishing || snapshotting"
+									ng-show="fullView || inPreview">
+								<md-tooltip>Make this version live</md-tooltip>
 								Publish
 							</md-button>
 						</div>
@@ -185,9 +203,7 @@
 							<md-input-container flex>
 								<label>Page type</label>
 								<md-select ng-model="page.type" required="true">
-									<md-option ng-repeat="(key,value) in pageTypes" value="{{key}}">
-										{{value}}
-									</md-option>
+									<md-option ng-repeat="(key,value) in pageTypes" value="{{key}}" ng-bind="value"></md-option>
 								</md-select>
 							</md-input-container>
 							<div flex>
@@ -205,9 +221,7 @@
 							<md-input-container flex>
 								<label>Edit group</label>
 								<md-select ng-model="page.editGroupId">
-									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}">
-										{{value}}
-									</md-option>
+									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
 								</md-select>
 							</md-input-container>
 							<div flex>
@@ -383,12 +397,26 @@
 	<div class="wmd-preview-separator" ng-show="!fullView"></div>
 
 	<!-- Right half -->
-	<div ng-class="{'full-height': fullView}" layout="column" flex="{{fullView ? 50 : 'none'}}">
+	<div ng-class="{'full-height': fullView || inPreview || otherDiff, 'edit-page-row': !fullView && !inPreview && !otherDiff}"
+			layout="column"
+			flex="{{fullView ? 50 : 'none'}}">
 		<!-- Live preview -->
-		<md-content class="preview-area" flex ng-hide="!fullView || otherDiff">
+		<md-content class="preview-area" flex ng-class="{'edit-page-cell': !fullView && !inPreview && !otherDiff}" ng-hide="(!fullView && !inPreview) || otherDiff">
 			<h2 class="md-display-2" ng-bind="page.title"></h2>
 			<div id="wmd-preview{{page.pageId}}"></div>
 		</md-content>
+
+		<!-- Buttons shown in preview -->
+		<div class="diff-buttons" layout="row" layout-align="end center" ng-show="inPreview">
+			<md-button class="md-icon-button md-raised" ng-click="togglePreview(false)">
+				<md-icon>arrow_back</md-icon>
+				<md-tooltip>Go back to editing</md-tooltip>
+			</md-button>
+			<md-button class="md-raised md-primary" ng-click="publishPage()">
+				Publish
+				<md-tooltip>Make this version live</md-tooltip>
+			</md-button>
+		</div>
 
 		<!-- Diff between edits -->
 		<div class="diff-buttons" layout="row" ng-show="otherDiff">
@@ -460,7 +488,7 @@
 				<div ng-show="page.isAutosave" class="md-warn">
 					Restored autosave which was last updated
 					<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-					<md-button href="#" class="md-warn">Discard my autosave and edit the live version</a>
+					<md-button href="#" class="md-warn">Discard my autosave and edit the live version</md-button>
 				</div>
 				<div ng-show="page.isSnapshot" class="md-warn">
 					Restored snapshot which was last updated

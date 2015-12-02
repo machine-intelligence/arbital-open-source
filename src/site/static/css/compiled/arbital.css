@@ -1,3 +1,6 @@
+body {
+  overflow-x: hidden; }
+
 .full-height {
   height: 100%; }
   .full-height [md-tabs-template] {
@@ -8,6 +11,8 @@
   width: 100%; }
   .edit-page-table-layout .edit-page-row {
     display: table-row; }
+  .edit-page-table-layout .edit-page-cell {
+    display: table-cell; }
 
 #dynamic-view {
   position: relative;

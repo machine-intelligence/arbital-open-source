@@ -349,6 +349,7 @@ app.service("pageService", function($http, $location, userService){
 	// Load the page with the given pageAlias.
 	// options {
 	//	 url: url to call
+	//	 silentFail: don't print error if failed
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -375,7 +376,9 @@ app.service("pageService", function($http, $location, userService){
 				}
 				if(options.success) options.success();
 			}).error(function(data, status){
-				console.log("Error loading page:"); console.log(data); console.log(status);
+				if (!options.silentFail) {
+					console.log("Error loading page:"); console.log(data); console.log(status);
+				}
 				if(options.error) options.error(data, status);
 			}
 		);

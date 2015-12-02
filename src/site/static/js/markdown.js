@@ -174,9 +174,12 @@ app.service("markdownService", function($location, pageService){
 				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
 				$element.addClass("red-link");
 				if (refreshFunc) {
-					pageService.loadTitle(pageAlias, {success: function() {
-						refreshFunc();
-					}});
+					pageService.loadTitle(pageAlias, {
+						silentFail: true,
+						success: function() {
+							refreshFunc();
+						}
+					});
 				}
 			}
 		});
