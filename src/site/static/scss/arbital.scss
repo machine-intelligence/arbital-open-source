@@ -23,10 +23,11 @@ $composeFabZ: 200;
 }
 
 // Hack to allow us to use 100% height inside dynamic-view
+$toolbar-height: 64px;
 #dynamic-view {
 	position: relative;
-	top: -64px;
-	padding-top: 64px;
+	top: -$toolbar-height;
+	padding-top: $toolbar-height;
 	box-sizing: border-box;
 }
 
@@ -195,6 +196,25 @@ arb-compose-fab {
 	}
 }
 
+// Container for buttons that appear when we diff two edits
+.diff-buttons {
+	position: absolute;
+	right: 0;
+	top: $toolbar-height;
+	margin: 20px;
+	z-index: 3;
+};
+
+// Section that shows the diff between two edits
+.diff-section {
+	del {
+		color: red;
+	}
+	ins {
+		color: green;
+	};
+};
+
 // Contains all markdown buttons
 .wmd-button-bar {
 	border-bottom: 2px solid silver;
@@ -219,6 +239,7 @@ arb-compose-fab {
 	height: 100%;
 	resize: none;
 	border: none;
+	outline: none;
 	padding: 0;
 }
 

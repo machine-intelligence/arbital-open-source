@@ -14,25 +14,6 @@ app.directive("arbUserName", function(userService) {
 	};
 });
 
-// newLinkModal directive is used for storing a modal that creates new links.
-app.directive("arbNewLinkModal", function(autocompleteService) {
-	return {
-		templateUrl: "/static/html/newLinkModal.html",
-		scope: {
-		},
-		link: function(scope, element, attrs) {
-			var $input = element.find(".new-link-input");
-			// Set up autocomplete
-			/*autocompleteService.setupParentsAutocomplete($input, function(event, ui) {
-				element.find(".modal-content").submit();
-				return true;
-			});*/
-			// Set up search for new link modal
-			//autocompleteService.setAutocompleteRendering($input, scope);
-		},
-	};
-});
-
 // intrasitePopover containts the popover body html.
 app.directive("arbIntrasitePopover", function(pageService, userService) {
 	return {

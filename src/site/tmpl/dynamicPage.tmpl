@@ -4,13 +4,15 @@
 <html lang="en" ng-app="arbital">
 <head>
 	<title>Arbital</title>
+	<!-- Setting base href for ngRoute -->
 	<base href="/">
-	<meta name="fragment" content="!"/>
 
 	{{template "style"}}
 	{{template "scripts"}}
 
 	<!-- General scripts -->
+	<script src="/static/js/util.js"></script>
+	<script src="/static/js/mathjax.js"></script>
 	<script src="/static/js/angular.js"></script>
 	<script src="/static/js/pageService.js"></script>
 	<script src="/static/js/userService.js"></script>
@@ -39,26 +41,9 @@
 
 <body ng-controller="ArbitalCtrl">
 	<!-- ======= Collection of common popover templates ======= -->
-
-	<!-- This modal is for inserting new links. -->
-	<arb-new-link-modal></arb-new-link-modal>
 	
 	<!-- This modal is for asking a new question. -->
 	<arb-edit-page-modal></arb-edit-page-modal>
-	
-	<!-- This div is used to create embedded page divs. -->
-	<div id="embedded-page-template" class="embedded-page" hidden>
-		<div>
-			<h2>
-				<a href="#" class="hide-embedded-page glyphicon glyphicon-triangle-bottom"></a>&nbsp;
-				<a href="#" class="embedded-page-title">JS inserts title here</a>
-			</h2>
-		</div>
-		<div class="embedded-page-body">
-			<div class="embedded-vote-container"></div>
-			<div class="embedded-page-text">JS inserts page text here</div>
-		</div>
-	</div>
 	
 	<!-- This div is used to create icons to toggle inline comments. -->
 	<div class="toggle-inline-comment-div template">
@@ -68,15 +53,15 @@
 		</a>
 	</div>
 
-	<!-- Global info messages -->
-	<div class="global-error alert alert-danger" hidden></div>
-
 	<!-- Compose fab -->
 	<arb-compose-fab></arb-compose-fab>
 	
 	<!-- All the content -->
 	<div class="full-height">
 		<arb-toolbar></arb-toolbar>
+
+		<!-- Global info messages -->
+		<div class="global-error md-warn" hidden></div>
 	
 		<!-- We append dynamic content to this div. -->
 		<div id="dynamic-view" class="full-height" ng-view></div>

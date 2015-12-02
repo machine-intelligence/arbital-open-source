@@ -383,13 +383,22 @@ app.service("pageService", function($http, $location, userService){
 
 	// Get data to display a popover for the page with the given alias.
 	this.loadIntrasitePopover = function(pageAlias, options) {
+		options = options || {};
 		options.url = "/json/intrasitePopover/";
 		loadPage(pageAlias, options);
 	};
 
 	// Get data to display a lens.
 	this.loadLens = function(pageAlias, options) {
+		options = options || {};
 		options.url = "/json/lens/";
+		loadPage(pageAlias, options);
+	};
+
+	// Get data to display page's title
+	this.loadTitle = function(pageAlias, options) {
+		options = options || {};
+		options.url = "/json/title/";
 		loadPage(pageAlias, options);
 	};
 	

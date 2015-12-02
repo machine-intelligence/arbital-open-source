@@ -1,20 +1,13 @@
 "use strict";
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("arbEditPage", function($location, $timeout, $interval, $http, pageService, userService, autocompleteService, markdownFactory) {
+app.directive("arbEditPage", function($location, $timeout, $interval, $http, pageService, userService, autocompleteService, markdownService) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
 			pageId: "@",
-			showPreview: "@",
-			isModal: "@",
-			// Page this page will "belong" to (e.g. answer belongs to a question,
-			// comment belongs to the page it's on)
-			primaryPageId: "@",
-			// Context, test, and offset are set for editing inline comments
-			context: "@",
-			text: "@",
-			offset: "@",
+			// If true, we'll show the preview on the right half of the screen
+			useFullView: "@",
 			// Called when the user is done with the edit.
 			doneFn: "&",
 		},
@@ -23,6 +16,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			$scope.pageService = pageService;
 			$scope.page = pageService.editMap[$scope.pageId];
 			$scope.selectedTab = ($scope.page.wasPublished || $scope.page.title.length > 0) ? 1 : 0;
+			$scope.fullView = false; // $scope.fullView
 
 			// Select correct tab
 			if ($location.search().tab) {
@@ -40,10 +34,16 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				});
 			};
 
-			// Wait until the DOM is created
+			// Set up markdown
 			$timeout(function() {
+				var $wmdPreview = $("#wmd-preview" + $scope.page.pageId);
 				// Initialize pagedown
-				new markdownFactory($scope.page.pageId);
+				markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
+					console.log("callback");
+					$timeout(function() {
+						markdownService.processLinks($wmdPreview, refreshFunc);
+					});
+				});
 			});
 
 			// Setup all the settings
@@ -61,8 +61,10 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				$scope.pageTypes = {answer: "Answer"};
 			} else if($scope.isComment) {
 				$scope.pageTypes = {comment: "Comment"};
-			} else {
-				$scope.pageTypes = {wiki: "Wiki Page", lens: "Lens Page"};
+			} else if($scope.isWiki) {
+				$scope.pageTypes = {wiki: "Wiki Page"};
+			} else if($scope.isLens) {
+				$scope.pageTypes = {lens: "Lens Page"};
 			}
 
 			// Set up group names.
@@ -133,6 +135,21 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				}
 				return whole;
 			});
+
+			// User reverts to an edit
+			$scope.revertToEdit = function(editNum) {
+				var data = {
+					pageId: $scope.page.pageId,
+					editNum: editNum,
+				};
+				$http({method: "POST", url: "/revertPage/", data: JSON.stringify(data)})
+				.success(function(data) {
+					$location.path(pageService.getPageUrl($scope.page.pageId));
+				})
+				.error(function(data) {
+					$scope.addMessage("revert", "Error reverting: " + data, "error");
+				});
+			};
 
 			// =========== Error, warning, and info management system ==============
 			$scope.messages = {};
@@ -209,7 +226,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 					if (error) {
 						$scope.addMessage("publish", "Publishing failed: " + error, "error");
 					} else {
-						$scope.doneFn({pageId: $scope.page.pageId});
+						$scope.doneFn({result: {pageId: $scope.page.pageId}});
 					}
 				});
 			};
@@ -238,6 +255,21 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				pageService.discardPage($scope.page.pageId, cont, cont);
 			};
 
+			// Process Delete button click.
+			$scope.deleting = false;
+			$scope.toggleDeleteConfirm = function(show) {
+				$scope.deleting = show;
+			};
+			$scope.deletePage = function() {
+				pageService.deletePage($scope.page.pageId, function() {
+					if ($scope.doneFn) {
+						$scope.doneFn({result: {pageId: $scope.page.pageId, discard: true}});
+					}
+				}, function(data) {
+					$scope.addMessage("delete", "Error deleting page: " + data, "error");
+				});
+			};
+
 			// Set up autosaving.
 			$scope.successfulAutosave = false;
 			var autosaveFunc = function() {
@@ -258,6 +290,16 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				// Autosave just in case.
 				savePage(true, false, function() {});
 			});
+
+			$scope.saveSettingsClick = function() {
+				$scope.savePageInfo(function(error) {
+					if (error) {
+						$scope.addMessage("pageInfo", "Error saving settings: " + error, "error");
+					} else {
+						$scope.addMessage("pageInfo", "Settings saved!", "info");
+					}
+				});
+			};
 
 			// =========== Find similar pages ==============
 			var shouldFindSimilar = false;
@@ -290,6 +332,36 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			$scope.$on("$destroy", function() {
 				$interval.cancel(similarInterval);
 			});
+
+			// =========== Show diff between edits ==============
+			// otherDiff stores the edit we load for diffing.
+			$scope.otherDiff = undefined;
+			$scope.diffHtml = undefined;
+			// Refresh the diff edit text.
+			$scope.refreshDiff = function() {
+				var dmp = new diff_match_patch();
+				var diffs = dmp.diff_main($scope.otherDiff.text, $scope.page.text);
+				dmp.diff_cleanupSemantic(diffs);
+				$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, "");
+			}
+			// Process click event for diffing edits.
+			$scope.showDiff = function(editNum) {
+				// Load the edit from the server.
+				pageService.loadEdit({
+					pageAlias: $scope.page.pageId,
+					specificEdit: editNum,
+					skipProcessDataStep: true,
+					success: function(data, status) {
+						$scope.otherDiff = data[$scope.page.pageId];
+						$scope.refreshDiff();
+						$scope.selectedTab = 1;
+					},
+				});
+			};
+			$scope.hideDiff = function() {
+				$scope.otherDiff = undefined;
+				$scope.diffHtml = undefined;
+			};
 		},
 		link: function(scope, element, attrs) {
 			$timeout(function() {
@@ -316,22 +388,30 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 						element.find(".insert-autocomplete").find("input").focus();
 					}); });
 				});
-			});
-		},
-	};
-});
 
-// Directive for showing page's change log.
-app.directive("arbChangelog", function(pageService, userService) {
-	return {
-		templateUrl: "/static/html/changelog.html",
-		scope: {
-			pageId: "@",
-		},
-		link: function(scope, element, attrs) {
-			scope.userService = userService;
-			scope.pageService = pageService;
-			scope.page = pageService.editMap[scope.pageId];
+				// Save the page info.
+				// callback is called with a potential error message when the server replies
+				scope.savePageInfo = function(callback){
+					var data = {
+						pageId: scope.page.pageId,
+						type: scope.page.type,
+						editGroupId: scope.page.editGroupId,
+						hasVote: scope.page.hasVote,
+						voteType: scope.page.voteType,
+						editKarmaLock: scope.page.editKarmaLock,
+						alias: scope.page.alias,
+						sortChildrenBy: scope.page.sortChildrenBy,
+					};
+					$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
+					.success(function(data) {
+						if(callback) callback();
+					})
+					.error(function(data) {
+						console.log(data);
+						if(callback) callback(data);
+					});
+				};
+			});
 		},
 	};
 });

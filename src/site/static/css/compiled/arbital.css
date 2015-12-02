@@ -112,6 +112,18 @@ arb-compose-fab {
 .hide-tabs md-tabs-wrapper {
   display: none; }
 
+.diff-buttons {
+  position: absolute;
+  right: 0;
+  top: 64px;
+  margin: 20px;
+  z-index: 3; }
+
+.diff-section del {
+  color: red; }
+.diff-section ins {
+  color: green; }
+
 .wmd-button-bar {
   border-bottom: 2px solid silver; }
   .wmd-button-bar button {
@@ -129,6 +141,7 @@ arb-compose-fab {
   height: 100%;
   resize: none;
   border: none;
+  outline: none;
   padding: 0; }
 
 .wmd-preview-separator {

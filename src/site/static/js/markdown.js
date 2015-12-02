@@ -24,18 +24,18 @@ var urlLinkRegexp = new RegExp(notEscaped +
 var atAliasRegexp = new RegExp(notEscaped + 
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");
 
-// markdownFactory provides a constructor you can use to create a markdown converter,
+// markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.factory("markdownFactory", function(pageService){
+app.service("markdownService", function($location, pageService){
 	// Pass in a pageId to create an editor for that page
-	return function(pageId) {
-		var host = window.location.host;
-		this.converter = Markdown.getSanitizingConverter();
+	var createConverter = function(pageId, postConversionCallback) {
+		var host = $location.host();
+		var converter = Markdown.getSanitizingConverter();
 
 		// Process [todo:text] spans.
 		var todoSpanRegexp = new RegExp(notEscaped + 
 				"\\[todo: ?([^\\]]+?)\\]" + noParen, "g");
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(todoSpanRegexp, function (whole, prefix, alias) {
 				return prefix;
 			});
@@ -44,14 +44,14 @@ app.factory("markdownFactory", function(pageService){
 		// Process [comment:text] spans.
 		var commentSpanRegexp = new RegExp(notEscaped + 
 				"\\[comment: ?([^\\]]+?)\\]" + noParen, "g");
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(commentSpanRegexp, function (whole, prefix, alias) {
 				return prefix;
 			});
 		});
 
 		// Process [vote:alias] spans.
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(voteEmbedRegexp, function (whole, prefix, alias) {
 				return prefix + "[Embedded " + alias + " vote. ](http://" + host + "/pages/" + alias + "/?embedVote=1)";
 			});
@@ -60,21 +60,21 @@ app.factory("markdownFactory", function(pageService){
 		// Convert [ text] spans into links.
 		var spaceTextRegexp = new RegExp(notEscaped + 
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
 				return prefix + "[" + text + "](" + "0" + ")";
 			});
 		});
 
 		// Convert [alias/url text] spans into links.
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
 				return prefix + "[" + text + "](" + alias + ")";
 			});
 		});
 
 		// Convert [alias] spans into links.
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
@@ -87,7 +87,7 @@ app.factory("markdownFactory", function(pageService){
 		});
 
 		// Convert [@alias] spans into links.
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
@@ -101,7 +101,7 @@ app.factory("markdownFactory", function(pageService){
 	
 		// Convert [Text](Alias) spans into links.
 		var aliasRegexp = new RegExp(aliasMatch, "");
-		this.converter.hooks.chain("preSpanGamut", function (text) {
+		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(complexLinkRegexp, function (whole, prefix, text, alias) {
 				if (alias.match(aliasRegexp)) {
 					var url = "http://" + host + "/pages/" + alias;
@@ -112,25 +112,87 @@ app.factory("markdownFactory", function(pageService){
 			});
 		});
 
+
 		if (pageId) {
 			// Setup the editor stuff.
-			this.editor = new Markdown.Editor(this.converter, pageId, {
+			var editor = new Markdown.Editor(converter, pageId, {
 				handler: function(){
 					window.open("http://math.stackexchange.com/editing-help", "_blank");
 				},
 			});
 		}
 		
-		InitMathjax(this.converter);
+		InitMathjax(converter);
 
-		if (this.editor) {
-			this.editor.run();
+		if (editor) {
+			editor.run();
+
+			converter.hooks.chain("postConversion", function (text) {
+				if (postConversionCallback) {
+					postConversionCallback(function() {
+						editor.refreshPreview();
+					});
+				}
+				return text;
+			});
 		}
+		return converter;
+	};
+
+	// Process all the links in the give element.
+	// If refreshFunc is set, fetch page's we don't have yet, and call that function
+	// when one of them is loaded.
+	this.processLinks = function($pageText, refreshFunc) {
+		// Setup attributes for links that are within our domain.
+		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+			$location.host() + // match the url host part
+			"\/pages\/" + aliasMatch + // [1] capture page alias
+			"\/?" + // optional ending /
+			"(.*)"); // optional other stuff
+		$pageText.find("a").each(function(index, element) {
+			var $element = $(element);
+			var parts = $element.attr("href").match(re);
+			if (parts === null) return;
+			var pageAlias = parts[1];
+	
+			if ($element.hasClass("intrasite-link")) {
+				return;
+			}
+			$element.addClass("intrasite-link").attr("page-id", pageAlias);
+			// Check if we are embedding a vote
+			if (parts[2].indexOf("embedVote") > 0) {
+				$element.attr("embed-vote-id", pageAlias);
+			} else if (pageAlias in pageService.pageMap) {
+				if (pageService.pageMap[pageAlias].isDeleted()) {
+					// Link to a deleted page.
+					$element.addClass("red-link");
+				} else {
+					// Normal healthy link!
+				}
+			} else {
+				// Mark as red link
+				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+				$element.addClass("red-link");
+				if (refreshFunc) {
+					pageService.loadTitle(pageAlias, {success: function() {
+						refreshFunc();
+					}});
+				}
+			}
+		});
+	};
+
+	this.createConverter = function() {
+		return createConverter();
+	};
+
+	this.createEditConverter = function(pageId, postConversionCallback) {
+		return createConverter(pageId, postConversionCallback);
 	};
 });
 
 // Directive for rendering markdown text.
-app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdownFactory) {
+app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdownService) {
 	return {
 		template: "<div class='markdown-text'></div>",
 		scope: {
@@ -139,49 +201,18 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 		},
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];
-			var markdown = new markdownFactory();
+			var converter = markdownService.createConverter();
 			var host = window.location.host;
 
 			// Convert page text to html.
-			var html = markdown.converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
+			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
 			var $pageText = element.find(".markdown-text");
 			$pageText.html(html);
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
 		
-			// Setup attributes for links that are within our domain.
-			var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
-				host + // match the url host part
-				"\/pages\/" + aliasMatch + // [1] capture page alias
-				"\/?" + // optional ending /
-				"(.*)"); // optional other stuff
-			$pageText.find("a").each(function(index, element) {
-				var $element = $(element);
-				var parts = $element.attr("href").match(re);
-				if (parts === null) return;
-				var pageAlias = parts[1];
-	
-				if ($element.hasClass("intrasite-link")) {
-					return;
-				}
-				$element.addClass("intrasite-link").attr("page-id", pageAlias);
-				// Check if we are embedding a vote
-				if (parts[2].indexOf("embedVote") > 0) {
-					$element.attr("embed-vote-id", pageAlias);
-				} else if (pageAlias in pageService.pageMap) {
-					if (pageService.pageMap[pageAlias].isDeleted()) {
-						// Link to a deleted page.
-						$element.addClass("red-link");
-					} else {
-						// Normal healthy link!
-					}
-				} else {
-					// Mark as red link
-					$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
-					$element.addClass("red-link");
-				}
-			});
+			markdownService.processLinks($pageText);
 		},
 	};
 });

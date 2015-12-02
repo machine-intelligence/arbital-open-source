@@ -1,7 +1,7 @@
 "use strict";
 
 // Set up angular module.
-var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute", "ngMessages", "RecursionHelper"]);
+var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute", "ngMessages", "ngSanitize", "RecursionHelper"]);
 app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider, $mdIconProvider){
 	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
 		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
@@ -28,7 +28,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/edit/:alias?", {
+	.when("/edit/:alias?/:edit?", {
 		template: "",
 		controller: "EditPageController",
 		reloadOnSearch: false,
@@ -262,7 +262,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 			// Load the last edit
 			pageService.loadEdit({
 				pageAlias: pageId,
-				specificEdit: $location.search().edit,
+				specificEdit: $routeParams.edit ? +$routeParams.edit : 0,
 				success: $scope.getSuccessFunc(function() {
 					var page = pageService.editMap[pageId];
 					if ($location.search().alias) {
@@ -286,7 +286,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 					return {
 						title: "Edit " + (page.title ? page.title : "New Page"),
 						element: $compile("<div arb-edit-page class='full-height' page-id='" + pageId +
-							"' done-fn='doneFn(result)' show-preview='true'></div>")($scope),
+							"' done-fn='doneFn(result)' use-full-view='true'></div>")($scope),
 					};
 				}),
 				error: $scope.getErrorFunc("loadEdit"),

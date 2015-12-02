@@ -1,6 +1,6 @@
-<div class="full-height" layout="row">
+<div class="full-height" layout="{{fullView ? 'row' : 'column'}}">
 	<!-- Main edit column (left half) -->
-	<div class="full-height" layout="column" flex="50">
+	<div class="full-height" layout="column" flex="{{fullView ? 50 : 'grow'}}">
 		<md-tabs md-selected="selectedTab"
 				md-stretch-tabs="always"
 				md-border-bottom
@@ -179,6 +179,7 @@
 			<md-tab label="Settings">
 				<md-tab-body>
 					<div layout="column" class="full-height">
+						<div>These settings have to be saved independently of publishing the page.</div>
 						<!-- Page type -->
 						<div layout="row">
 							<md-input-container flex>
@@ -190,10 +191,10 @@
 								</md-select>
 							</md-input-container>
 							<div flex>
-								<span ng-show="page.type === 'wiki'">
+								<span ng-show="isWiki">
 									Standard wiki page.
 								</span>
-								<span ng-show="page.type === 'lens'">
+								<span ng-show="isLens">
 									A lens page is used to present the same material as another page but with a different emphasis.
 								</span>
 							</div>
@@ -210,7 +211,7 @@
 								</md-select>
 							</md-input-container>
 							<div flex>
-								A lens page is used to present the same material as another page but with a different emphasis.
+								Group that can edit this page. If not set, anyone can edit it.
 							</div>
 						</div>
 					
@@ -282,11 +283,20 @@
 							</div>
 						</div>
 
+						<!-- Delete page -->
+						<div layout="row" layout-align="start center">
+							<md-button class="md-warn md-raised" ng-click="toggleDeleteConfirm(true)">Delete page</md-button>
+							<div ng-show="deleting">
+								Are you sure?
+								<a href="#" ng-click="deletePage()">yes</a> / <a href="#" ng-click="toggleDeleteConfirm(false)">no</a>
+							</div>
+						</div>
+
 						<div flex></div>
 
 						<!-- Footer -->
 						<div layout="column">
-							<md-button class="md-raised md-primary">
+							<md-button class="md-raised md-primary" ng-click="saveSettingsClick()">
 								Save
 							</md-button>
 						</div>
@@ -317,23 +327,88 @@
 			<!-- (4) Changelog tab -->
 			<md-tab label="Changelog">
 				<md-tab-body>
-					<arb-changelog page-id="{{page.pageId}}"><arb-changelog>
+					<md-list>
+						<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
+							<div layout="column">
+								<div>
+									<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
+									</span>
+									<span ng-show="changeLog.auxPageId != '0'">
+										<a class="intrasite-link"
+												page-id="{{changeLog.auxPageId}}"
+												ng-href="{{pageService.getPageUrl(changeLog.auxPageId)}}"
+												ng-bind="changeLog.type"></a>
+									</span>
+									<span ng-show="changeLog.edit != 0">(edit #{{changeLog.edit}})</span>
+									by
+					
+									<span ng-show="userService.user.id === changeLog.userId">you</span>
+									<span ng-show="userService.user.id !== changeLog.userId">
+										<arb-user-name user-id="{{changeLog.userId}}"></arb-user-name>
+									</span>
+					
+									<span ng-bind="changeLog.createdAt | relativeDateTime"></span>
+								</div>
+					
+								<!-- Extra functionality for new edits -->
+								<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit"
+										layout="row" layout-align="start center">
+									<md-button class="md-warn md-raised"
+											ng-click="revertToEdit(changeLog.edit)"
+											ng-show="changeLog.type === 'newEdit' && changeLog.edit !== page.currentEditNum">
+										<md-tooltip>Revert to this edit</md-tooltip>
+										Revert
+									</md-button>
+									<md-button ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + changeLog.edit}}"
+											class="md-warn md-raised">
+										<md-tooltip>Load this edit in the editor</md-tooltip>
+										Load Edit
+									</md-button>
+									<md-button class="md-raised" ng-click="showDiff(changeLog.edit)">
+										<md-tooltip>Diff with this edit</md-tooltip>
+										Diff
+									</md-button>
+								</div>
+								<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit">
+									Currently loaded
+								</div>
+							</div>
+						</md-list-item>
+					</md-list>
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
 	</div>
 
-	<div class="wmd-preview-separator"></div>
+	<div class="wmd-preview-separator" ng-show="!fullView"></div>
 
-	<!-- Preview (right half) -->
-	<div class="full-height" layout="column" flex="50" ng-if="showPreview">
-		<md-content class="preview-area" flex>
+	<!-- Right half -->
+	<div ng-class="{'full-height': fullView}" layout="column" flex="{{fullView ? 50 : 'none'}}">
+		<!-- Live preview -->
+		<md-content class="preview-area" flex ng-hide="!fullView || otherDiff">
 			<h2 class="md-display-2" ng-bind="page.title"></h2>
 			<div id="wmd-preview{{page.pageId}}"></div>
 		</md-content>
 
+		<!-- Diff between edits -->
+		<div class="diff-buttons" layout="row" ng-show="otherDiff">
+			<md-button class="md-icon-button md-raised" ng-click="refreshDiff()">
+				<md-icon>refresh</md-icon>
+				<md-tooltip>Recompute the diff</md-tooltip>
+			</md-button>
+			<md-button class="md-icon-button md-raised" ng-click="hideDiff()">
+				<md-icon>arrow_back</md-icon>
+				<md-tooltip>Go back to live preview</md-tooltip>
+			</md-button>
+		</div>
+		<md-content flex ng-if="otherDiff">
+			<h2 class="md-display-2" ng-bind="'(#' + otherDiff.edit + ') ' + otherDiff.title"></h2>
+			<h3 class="md-display-3" ng-bind="otherDiff.clickbait"></h3>
+			<div class="diff-section" ng-bind-html="diffHtml"></div>
+		</md-content>
+
 		<!-- Messages -->
-		<md-list>
+		<md-list ng-hide="otherDiff">
 			<md-list-item ng-repeat="(key,value) in messages">
 				<!-- Dismiss button -->
 				<md-button class="md-icon-button md-raised"
@@ -345,7 +420,7 @@
 				<div ng-class="{'md-warn': value.type === 'error', 'md-primary': value.type === 'info'}" ng-bind="value.text"></div>
 			</md-list-item>
 		</md-list>
-		<md-list>
+		<md-list ng-hide="otherDiff">
 			<div ng-switch="page.getEditLevel()" ng-show="page.wasPublished">
 				<md-list-item ng-switch-when="admin" class="md-warn">
 					<md-button class="md-icon-button md-warn md-raised" ng-click="hideMessage($event)">
@@ -368,7 +443,7 @@
 						<md-icon>close</md-icon>
 					</md-button>
 					Currently looking at a non-live edit.
-					<a ng-href="{{pageService.getPageEditUrl(page.pageId)}}?edit={{page.currentEditNum}}">
+					<a ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + page.currentEditNum}}">
 						Switch to editing the live version.
 					</a>
 				</div>
@@ -390,13 +465,18 @@
 				<div ng-show="page.isSnapshot" class="md-warn">
 					Restored snapshot which was last updated
 					<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-					<a ng-href="{{pageService.getEditPageUrl(page.pageId)}}?edit={{page.currentEditNum}}">Switch to editing the live version.</a>
+					<a ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + page.currentEditNum}}">
+						Switch to editing the live version.
+					</a>
 				</div>
 			</md-list-item>
 		</md-list>
 
 		<!-- Related pages -->
-		<md-list>
+		<md-list ng-hide="otherDiff">
+			<md-subheader class="md-no-sticky" ng-show="similarPages.length > 0">
+				Similar {{isQuestion ? "questions" : "pages"}}
+			</md-subheader>
 			<md-list-item layout="row"
 					layout-align="start center"
 					ng-init="similarPage = similarPages[0]"
