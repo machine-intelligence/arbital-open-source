@@ -16,25 +16,6 @@ app.directive("arbUserName", function(userService) {
 	};
 });
 
-// newLinkModal directive is used for storing a modal that creates new links.
-app.directive("arbNewLinkModal", function(autocompleteService) {
-	return {
-		templateUrl: "/static/html/newLinkModal.html",
-		scope: {
-		},
-		link: function(scope, element, attrs) {
-			var $input = element.find(".new-link-input");
-			// Set up autocomplete
-			/*autocompleteService.setupParentsAutocomplete($input, function(event, ui) {
-				element.find(".modal-content").submit();
-				return true;
-			});*/
-			// Set up search for new link modal
-			//autocompleteService.setAutocompleteRendering($input, scope);
-		},
-	};
-});
-
 // intrasitePopover contains the popover body html.
 app.directive("arbIntrasitePopover", function(pageService, userService) {
 	return {
@@ -131,27 +112,6 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			if (scope.customPageTitle) {
 				scope.pageTitle = scope.customPageTitle;
 			}
-		},
-	};
-});
-
-// likesPageTitle displays likes span followed by page's title span.
-app.directive("arbLikesPageTitle", function(pageService, userService) {
-	return {
-		templateUrl: "/static/html/likesPageTitle.html",
-		scope: {
-			pageId: "@",
-			showClickbait: "@",
-			showRedLinkCount: "@",
-			showQuickEditLink: "@",
-			showCreatedAt: "@",
-			isSearchResult: "@",
-			isSupersized: "@",
-		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
 		},
 	};
 });

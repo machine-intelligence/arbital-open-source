@@ -349,6 +349,7 @@ app.service("pageService", function($http, $location, userService){
 	// Load the page with the given pageAlias.
 	// options {
 	//	 url: url to call
+	//	 silentFail: don't print error if failed
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -375,7 +376,9 @@ app.service("pageService", function($http, $location, userService){
 				}
 				if(options.success) options.success();
 			}).error(function(data, status){
-				console.log("Error loading page:"); console.log(data); console.log(status);
+				if (!options.silentFail) {
+					console.log("Error loading page:"); console.log(data); console.log(status);
+				}
 				if(options.error) options.error(data, status);
 			}
 		);
@@ -383,13 +386,22 @@ app.service("pageService", function($http, $location, userService){
 
 	// Get data to display a popover for the page with the given alias.
 	this.loadIntrasitePopover = function(pageAlias, options) {
+		options = options || {};
 		options.url = "/json/intrasitePopover/";
 		loadPage(pageAlias, options);
 	};
 
 	// Get data to display a lens.
 	this.loadLens = function(pageAlias, options) {
+		options = options || {};
 		options.url = "/json/lens/";
+		loadPage(pageAlias, options);
+	};
+
+	// Get data to display page's title
+	this.loadTitle = function(pageAlias, options) {
+		options = options || {};
+		options.url = "/json/title/";
 		loadPage(pageAlias, options);
 	};
 	
@@ -460,18 +472,18 @@ app.service("pageService", function($http, $location, userService){
 		);
 	};
 
-	// Abandon the page with the given id.
-	this.abandonPage = function(pageId, success, error) {
+	// Discard the page with the given id.
+	this.discardPage = function(pageId, success, error) {
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/abandonPage/", data: JSON.stringify(data)}).
+		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)}).
 			success(function(data, status){
-				console.log("Successfully abandoned " + pageId);
+				console.log("Successfully discarded " + pageId);
 				if(success) success(data, status);
 			})
 			.error(function(data, status){
-				console.log("Error abandoning " + pageId + ":"); console.log(data); console.log(status);
+				console.log("Error discarding " + pageId + ":"); console.log(data); console.log(status);
 				if(error) error(data, status);
 			}
 		);

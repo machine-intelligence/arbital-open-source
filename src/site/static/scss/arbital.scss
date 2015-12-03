@@ -2,6 +2,10 @@
 $popoverZ: 100;
 $composeFabZ: 200;
 
+body {
+	overflow-x: hidden;
+}
+
 // Set height to 100%
 .full-height {
 	height: 100%;
@@ -12,11 +16,26 @@ $composeFabZ: 200;
 	}
 }
 
-// Move dynamic-view down to account for the toolbar
+// Used when we use display: table
+.edit-page-table-layout {
+	display: table;
+	width: 100%;
+
+	.edit-page-row {
+		display: table-row;
+	}
+
+	.edit-page-cell {
+		display: table-cell;
+	}
+}
+
+// Hack to allow us to use 100% height inside dynamic-view
+$toolbar-height: 64px;
 #dynamic-view {
 	position: relative;
-	top: -64px;
-	padding-top: 64px;
+	top: -$toolbar-height;
+	padding-top: $toolbar-height;
 	box-sizing: border-box;
 }
 
@@ -192,15 +211,24 @@ arb-compose-fab {
 	}
 }
 
-$edit-text-header-height: 38px;
-.edit-text-header {
-	height: $edit-text-header-height;
-}
+// Container for buttons that appear when we diff two edits
+.diff-buttons {
+	position: absolute;
+	right: 0;
+	top: $toolbar-height;
+	margin: 20px;
+	z-index: 3;
+};
 
-$edit-text-footer-height: 48px;
-.edit-text-footer {
-	height: $edit-text-footer-height;
-}
+// Section that shows the diff between two edits
+.diff-section {
+	del {
+		color: red;
+	}
+	ins {
+		color: green;
+	};
+};
 
 // Contains all markdown buttons
 .wmd-button-bar {
@@ -223,9 +251,10 @@ $edit-text-footer-height: 48px;
 // Textarea for editing markdown
 .wmd-input {
 	width: 100%;
-	height: calc(100% - #{$edit-text-header-height} - #{$edit-text-footer-height});
+	height: 100%;
 	resize: none;
 	border: none;
+	outline: none;
 	padding: 0;
 }
 

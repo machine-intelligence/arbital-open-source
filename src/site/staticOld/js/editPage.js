@@ -178,66 +178,8 @@ var EditPage = function(page, pageService, userService, autocompleteService, opt
 
 	// Process click event to revert the page to a certain edit
 	$("body").on("click", ".edit-node-revert-to-edit", function(event) {
-		var $target = $(event.target);
-		var data = {
-			pageId: pageId,
-			editNum: +$target.attr("edit-num"),
-		};
-		$.ajax({
-			type: "POST",
-			url: "/revertPage/",
-			data: JSON.stringify(data),
-		})
-		.done(function(r) {
-			window.location.href = page.url();
-		});
 	});
 
-	// diffPage stores the edit we load for diffing.
-	var diffPage;
-	// Refresh the diff edit text.
-	var refreshDiff = function() {
-		var dmp = new diff_match_patch();
-		var diffs = dmp.diff_main(diffPage.text, $("#wmd-input" + pageId).val());
-		dmp.diff_cleanupSemantic(diffs);
-		var html = dmp.diff_prettyHtml(diffs);
-		$topParent.find(".edit-diff").html(html);
-	}
-	// Show/hide the diff edit.
-	var showDiff = function(show) {
-		var $diffHalf = $topParent.find(".diff-half");
-		if (show) {
-			$diffHalf.css("display", "inline-block");
-		} else {
-			$diffHalf.hide();
-		}
-		$topParent.find(".preview-half").toggle(!show);
-	}
-	// Process click event for diffing edits.
-	$("body").on("click", ".edit-node-diff-edit", function(event) {
-		// Load the edit from the server.
-		pageService.loadEdit({
-			pageAlias: pageId,
-			specificEdit: $(event.target).attr("edit-num"),
-			skipProcessDataStep: true,
-			success: function(data, status) {
-				diffPage = data[pageId];
-				refreshDiff();
-				showDiff(true);
-				var $diffHalf = $topParent.find(".diff-half");
-				$diffHalf.find(".edit-num-text").text("(#" + diffPage.edit + ")");
-				$diffHalf.find(".page-title-text").text(diffPage.title);
-			},
-		});
-	});
-	// Process click event for diffing edits.
-	$topParent.on("click", ".refresh-diff", function(event) {
-		refreshDiff();
-	});
-	// Process click event for hiding diff.
-	$topParent.on("click", ".hide-diff", function(event) {
-		showDiff(false);
-	});
 
 	// Start initializes things that have to be killed when this editPage stops existing.
 	this.autosaveInterval = null;

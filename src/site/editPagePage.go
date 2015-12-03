@@ -11,8 +11,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// These pages serve the edit page, but vary slightly in the parameters they take in the url.
-var newPagePage = newPage(editPageRenderer, dynamicTmpls)
 var editPagePage = newPage(editPageRenderer, dynamicTmpls)
 
 // editPageRenderer renders the page page.

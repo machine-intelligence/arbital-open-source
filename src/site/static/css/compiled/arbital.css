@@ -1,7 +1,18 @@
+body {
+  overflow-x: hidden; }
+
 .full-height {
   height: 100%; }
   .full-height [md-tabs-template] {
     height: 100%; }
+
+.edit-page-table-layout {
+  display: table;
+  width: 100%; }
+  .edit-page-table-layout .edit-page-row {
+    display: table-row; }
+  .edit-page-table-layout .edit-page-cell {
+    display: table-cell; }
 
 #dynamic-view {
   position: relative;
@@ -111,11 +122,17 @@ arb-compose-fab {
 .hide-tabs md-tabs-wrapper {
   display: none; }
 
-.edit-text-header {
-  height: 38px; }
+.diff-buttons {
+  position: absolute;
+  right: 0;
+  top: 64px;
+  margin: 20px;
+  z-index: 3; }
 
-.edit-text-footer {
-  height: 48px; }
+.diff-section del {
+  color: red; }
+.diff-section ins {
+  color: green; }
 
 .wmd-button-bar {
   border-bottom: 2px solid silver; }
@@ -131,9 +148,10 @@ arb-compose-fab {
 
 .wmd-input {
   width: 100%;
-  height: calc(100% - 38px - 48px);
+  height: 100%;
   resize: none;
   border: none;
+  outline: none;
   padding: 0; }
 
 .wmd-preview-separator {
