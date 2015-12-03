@@ -7,7 +7,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 		scope: {
 			pageId: "@",
 			// If true, we'll show the preview on the right half of the screen
-			useFullView: "@",
+			useFullView: "=",
 			// Called when the user is done with the edit.
 			doneFn: "&",
 		},
@@ -16,8 +16,14 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			$scope.pageService = pageService;
 			$scope.page = pageService.editMap[$scope.pageId];
 			$scope.selectedTab = ($scope.page.wasPublished || $scope.page.title.length > 0) ? 1 : 0;
-			$scope.fullView = false; // $scope.fullView
+			$scope.fullView = $scope.useFullView;
 			$scope.revealAfterRender = false;
+
+			// Return true if we should be using a table layout (so we can stack right
+			// and left columns vertically)
+			$scope.useTableLayout = function() {
+				return !$scope.fullView && !$scope.inPreview && !$scope.otherDiff;
+			};
 
 			// Select correct tab
 			if ($location.search().tab) {
@@ -413,7 +419,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 						if(callback) callback();
 					})
 					.error(function(data) {
-						console.log(data);
+						console.error("Error /editPageInfo/ :"); console.error(data);
 						if(callback) callback(data);
 					});
 				};

@@ -317,3 +317,17 @@ func GetDeleteLevel(p *Page, u *user.User) string {
 	}
 	return ""
 }
+
+// CorrectPageType converts the page type to lowercase and checks that it's
+// an actual page type we support.
+func CorrectPageType(pageType string) (string, error) {
+	pageType = strings.ToLower(pageType)
+	if pageType != WikiPageType &&
+		pageType != LensPageType &&
+		pageType != QuestionPageType &&
+		pageType != AnswerPageType &&
+		pageType != CommentPageType {
+		return pageType, fmt.Errorf("Invalid page type: %s", pageType)
+	}
+	return pageType, nil
+}

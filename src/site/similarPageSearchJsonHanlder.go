@@ -76,9 +76,9 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"term": { "type": "`+escapedPageType+`" }
+								"term": { "type": "%[4]s" }
 							}, {
-								"terms": { "seeGroupId": [%[4]s] }
+								"terms": { "seeGroupId": [%[5]s] }
 							}
 						]
 					}
@@ -86,6 +86,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, escapedTitle, escapedClickbait, escapedText, strings.Join(groupIds, ","))
+	}`, escapedTitle, escapedClickbait, escapedText, escapedPageType, strings.Join(groupIds, ","))
 	return searchJsonInternalHandler(params, jsonStr)
 }

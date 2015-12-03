@@ -10,20 +10,20 @@ import (
 	"zanaduu3/src/pages"
 )
 
-// editJsonData contains parameters passed in via the request.
-type editJsonData struct {
-	PageAlias      string
-	SpecificEdit   int
-	EditLimit      int
-	CreatedAtLimit string
-}
-
 var editHandler = siteHandler{
 	URI:         "/json/edit/",
 	HandlerFunc: editJsonHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
+}
+
+// editJsonData contains parameters passed in via the request.
+type editJsonData struct {
+	PageAlias      string
+	SpecificEdit   int
+	EditLimit      int
+	CreatedAtLimit string
 }
 
 // editJsonHandler handles the request.

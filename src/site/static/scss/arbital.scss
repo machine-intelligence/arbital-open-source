@@ -4,6 +4,9 @@ $composeFabZ: 200;
 
 body {
 	overflow-x: hidden;
+	&.autocomplete-body-fix {
+		height: initial;
+	}
 }
 
 // Set height to 100%
@@ -15,6 +18,18 @@ body {
 		height: 100%;
 	}
 }
+
+// Container for the new/edit comment; embedded in the discussion section
+.edit-comment-embed {
+	.wmd-input {
+		height: 50vh;
+	}
+}
+
+// Container for the new answer edit
+.new-answer-div {
+	height: 70vh;
+};
 
 // Used when we use display: table
 .edit-page-table-layout {
@@ -168,6 +183,11 @@ md-tooltip .md-content {
 	font-weight: bold;
 }
 
+md-list {
+	// Remove top/bottom padding
+	padding: 0;
+}
+
 // Style all md-icons to have size proportionate to the font size
 /*md-icon.material-icons {
 	width: 1em;
@@ -180,6 +200,10 @@ md-tooltip .md-content {
 // Helper for coloring broken links
 .red-link {
 	color: #c70a0a;
+}
+
+arb-likes {
+	white-space: nowrap;
 }
 
 // Intrasite popover
@@ -201,6 +225,9 @@ arb-compose-fab {
 .hide-tabs {
 	md-tabs-wrapper {
 		display: none;
+	}
+	md-tabs-content-wrapper {
+		top: 0px;
 	}
 }
 

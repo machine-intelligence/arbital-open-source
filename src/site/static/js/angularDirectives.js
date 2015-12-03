@@ -79,12 +79,17 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			showClickbait: "@",
 			// Whether or not to show the type of the page icon
 			showType: "@",
+			// If set, we'll pull the page from the edit map
+			useEditMap: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
 			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+			scope.page = (scope.useEditMap ? pageService.editMap : pageService.pageMap)[scope.pageId];
 			scope.pageTitle = scope.page.title;
+			if (scope.page.type === "comment") {
+				scope.pageTitle = "*Comment*";
+			}
 			if (scope.customPageTitle) {
 				scope.pageTitle = scope.customPageTitle;
 			}
@@ -334,24 +339,62 @@ app.directive("arbComposeFab", function($location, pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.pageUrl = "/edit/";
+			$scope.questionUrl = "/edit/?type=question";
+
+			// Compute what the urls should be on the compose buttons, and which ones
+			// should be visible.
+			var computeUrls = function() {
+				$scope.siblingUrl = undefined;
+				$scope.childUrl = undefined;
+				$scope.lensUrl = undefined;
+				$scope.showNewComment = false;
+				$scope.showNewAnswer = false;
+				if (pageService.primaryPage) {
+					var type = pageService.primaryPage.type;
+					if (type === "question") {
+						$scope.showNewAnswer = true;
+					} else if (type === "wiki") {
+						$scope.showNewComment = true;
+						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
+						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
+						if (pageService.primaryPage.parentIds.length > 0) {
+							$scope.siblingUrl = "/edit?newParentId=" + pageService.primaryPage.parentIds.join(",");
+						}
+					}
+				}
+			};
+			computeUrls();
+			$scope.$watch(function() { return pageService.primaryPage; }, function() {
+				computeUrls();
+			});
+
+			// New comment button is clicked
+			$scope.newComment = function() {
+				$("html, body").animate({
+					scrollTop: $(".new-comment-button").offset().top,
+		    }, {
+					duration: 1000,
+					complete: function() {
+						$(".new-comment-button").click();
+					}
+				});
+			};
+
+			// New answer button is clicked
+			$scope.newAnswer = function() {
+				$("html, body").animate({
+					scrollTop: $("#your-answer").offset().top,
+		    }, 1000);
+			};
 
 			$scope.$on("$locationChangeSuccess", function () {
 				$scope.hide = $location.path().indexOf("/edit") === 0;
+				// BLAH!
+				$("body").toggleClass("autocompleteBodyFix", !$scope.hide);
 			});
 			$scope.hide = $location.path().indexOf("/edit") === 0;
-
-			$scope.newPage = function() {
-				$location.url("/edit");
-			}
-
-			$scope.newSibling = function() {
-				var parentIds = pageService.primaryPage.parentIds.join(",");
-				$location.url("/edit?newParentId=" + parentIds);
-			}
-
-			$scope.newChild = function() {
-				$location.url("/edit?newParentId=" + pageService.primaryPage.pageId);
-			}
+			$("body").toggleClass("autocomplete-body-fix", !$scope.hide);
 		},
 	};
 });

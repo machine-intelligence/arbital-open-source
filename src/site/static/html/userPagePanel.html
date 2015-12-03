@@ -1,0 +1,44 @@
+<div class="user-page-panel md-whiteframe-1dp" layout="column">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<span>
+				<md-icon ng-show="isPublic">
+					<md-tooltip>This is visible to everyone</md-tooltip>
+					public
+				</md-icon>
+			</span>
+			<span>
+				<md-icon ng-show="!isPublic">
+					<md-tooltip>This is visible only to you</md-tooltip>
+					lock
+				</md-icon>
+			</span>
+			<span ng-bind="panelTitle"></span>
+		</div>
+	</md-toolbar>
+	<md-list>
+		<md-list-item ng-repeat="pageId in pageIds">
+			<div ng-init="page=getPage(pageId)" layout="row" layout-align="start center" layout-fill>
+				<arb-likes page-id="{{pageId}}" ng-if="!hideLikes"></arb-likes>
+				<md-button ng-href="{{pageService.getEditPageUrl(pageId)}}" class="md-icon-button" ng-show="showQuickEdit">
+					<md-icon>create</md-icon>
+				</md-button>
+				<arb-page-title page-id="{{pageId}}"
+						is-link="true"
+						show-clickbait="true"
+						use-edit-map="{{useEditMap}}"
+						flex="100"></arb-page-title>
+				<div class="md-warn" style="white-space: nowrap" ng-show="showRedLinkCount">
+					<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
+					<span ng-bind="page.todoCount"></span>
+					+ <span ng-bind="page.redLinkCount"></span> |&nbsp;
+				</div>
+				<div style="white-space: nowrap">
+					last edited <span ng-bind="page.createdAt | relativeDateTime"></span>
+				</div>
+			</div>
+			<md-divider ng-if="!$last"></md-divider>
+		</md-list-item>
+	</md-list>
+	<span ng-show="pageIds.length <= 0">Nothing here yet</span>
+</div>

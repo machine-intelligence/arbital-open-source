@@ -250,7 +250,7 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 });
 
 
-app.controller("EditPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("EditPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var pageId = $routeParams.alias;
 
 	// Need to call /default/ in case we are creating a new page
@@ -268,14 +268,13 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 					if ($location.search().alias) {
 						// Set page's alias
 						page.alias = $location.search().alias;
-						$location.search("alias", undefined);
+						$location.replace().search("alias", undefined);
 					}
 
 					pageService.setPrimaryPage(page);
 			
 					// Called when the user is done editing the page.
 					$scope.doneFn = function(result) {
-						console.log(result);
 						var page = pageService.editMap[result.pageId];
 						if (!page.wasPublished && result.discard) {
 							$location.path("/edit/");
@@ -292,43 +291,16 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 				error: $scope.getErrorFunc("loadEdit"),
 			});
 		} else {
+			var type = $location.search().type;
+			$location.replace().search("type", undefined);
+			var newParentIdString = $location.search().newParentId;
+			$location.replace().search("newParentId", undefined);
 			// Create a new page to edit
 			pageService.getNewPage({
+				type: type,
+				parentIds: newParentIdString ? newParentIdString.split(",") : [],
 				success: function(newPageId) {
-					// Check if we need to add parents to this new page
-					var newParentIdString = $location.search().newParentId;
-					$location.search("newParentId", undefined);
-					var unfinishedCallbackCount = 0;
-					var readyToRedirect = false;
-					if (newParentIdString) {
-						// Add the parents, and then wait for the server to reply
-						var newParentIdList = newParentIdString.split(",");
-						for (var key in newParentIdList) {
-							var newParentId = newParentIdList[key];
-							if (newParentId) {
-								unfinishedCallbackCount++;
-								// Add a parent for this new page
-								pageService.newPagePair({
-									parentId: newParentId,
-									childId: newPageId,
-									type: "parent",
-								}, function() {
-									unfinishedCallbackCount--;
-									if (unfinishedCallbackCount <= 0 && readyToRedirect) {
-										$location.replace().path(pageService.getEditPageUrl(newPageId));
-									}
-								});
-							}
-						}
-						readyToRedirect = true;
-						setTimeout(function() {
-							if (unfinishedCallbackCount > 0) {
-								$location.replace().path(pageService.getEditPageUrl(newPageId));
-							}
-						}, 1000);
-					} else {
-						$location.replace().path(pageService.getEditPageUrl(newPageId));
-					}
+					$location.replace().path(pageService.getEditPageUrl(newPageId));
 				},
 			});
 		}
@@ -339,7 +311,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 	.error($scope.getErrorFunc("Edit Page"));
 });
 
-app.controller("UserPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("UserPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var userId = $routeParams.id;
 	if (!userId) {
 		userId = userService.user.id;
@@ -353,13 +325,13 @@ app.controller("UserPageController", function ($scope, $routeParams, $route, $ht
 		$scope.userPageIdsMap = data.result;
 		return {
 			title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-			element: $compile("<arb-user-page ids-map='userPageIdsMap'></arb-user-page>")($scope),
+			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='userPageIdsMap'></arb-user-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("User"));
 });
 
-app.controller("UpdatesPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("UpdatesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var postData = { };
 	// Get the explore data
 	$http({method: "POST", url: "/json/updates/", data: JSON.stringify(postData)})
@@ -373,7 +345,7 @@ app.controller("UpdatesPageController", function ($scope, $routeParams, $route, 
 	.error($scope.getErrorFunc("Updates"));
 });
 
-app.controller("GroupsPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("GroupsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/groups/"})
 	.success($scope.getSuccessFunc(function(data){
 		return {
@@ -384,11 +356,11 @@ app.controller("GroupsPageController", function ($scope, $routeParams, $route, $
 	.error($scope.getErrorFunc("Groups"));
 });
 
-app.controller("SignupPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("SignupPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (!userService.user || userService.user.id === "0") {
-			window.location.href = "/login/?continueUrl=" + encodeURIComponent($location.search().continueUrl);
+			$location.path("/login/?continueUrl=" + encodeURIComponent($location.search().continueUrl));
 			return {};
 		}
 		return {
@@ -399,7 +371,7 @@ app.controller("SignupPageController", function ($scope, $routeParams, $route, $
 	.error($scope.getErrorFunc("Signup"));
 });
 
-app.controller("SettingsPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 		$http({method: "POST", url: "/json/default/"})
 		.success($scope.getSuccessFunc(function(data){
 			return {

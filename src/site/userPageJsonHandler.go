@@ -58,19 +58,28 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("error while loading recently created page ids", err)
 	}
 
+	// Load recently created by me comment ids.
+	rows = db.NewStatement(`
+		SELECT p.pageId
+		FROM pages AS p
+		JOIN pageInfos AS pi
+		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
+		WHERE p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
+		ORDER BY pi.createdAt DESC
+		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
+	returnData.ResultMap["recentlyCreatedCommentIds"], err =
+		core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+	if err != nil {
+		return pages.HandlerErrorFail("error while loading recently created page ids", err)
+	}
+
 	// Load recently edited by me page ids.
 	rows = db.NewStatement(`
 		SELECT p.pageId
-		FROM (
-			SELECT pageId,max(edit) AS maxEdit,min(edit) AS minEdit,
-				max(createdAt) AS createdAt
-			FROM pages
-			WHERE creatorId=? AND NOT isAutosave
-			GROUP BY 1
-		) AS p
+		FROM pages AS p
 		JOIN pageInfos AS pi
-		ON (p.pageId=pi.pageId)
-		WHERE p.maxEdit>p.minEdit AND pi.seeGroupId=? AND pi.type!=?
+		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
+		WHERE p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
@@ -135,21 +144,22 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// Load recently edited by me comment ids
+	// Load top pages by me
 	rows = db.NewStatement(`
-		SELECT p.pageId
-		FROM (
-			SELECT pageId,createdAt
-			FROM pages
-			WHERE creatorId=? AND isCurrentEdit
-			GROUP BY pageId
-		) AS p
-		JOIN pageInfos AS pi
-		ON (p.pageId=pi.pageId)
-		WHERE pi.seeGroupId=? AND pi.type=?
-		ORDER BY p.createdAt DESC
-		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
-	returnData.ResultMap["recentlyEditedCommentIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
+		SELECT pi.pageId
+		FROM pageInfos AS pi
+		JOIN (
+			/* Get the last like per page for each user */
+			SELECT pageId,userId,value
+			FROM likes
+			GROUP BY 1,2
+		) AS l
+		ON (pi.pageId=l.pageId)
+		WHERE pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
+		GROUP BY 1
+		ORDER BY SUM(l.value) DESC
+		LIMIT ?`).Query(params.PrivateGroupId, data.UserId, core.CommentPageType, indexPanelLimit)
+	returnData.ResultMap["topPagesIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading recently edited by me page ids", err)
 	}

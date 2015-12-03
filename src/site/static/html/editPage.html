@@ -1,19 +1,18 @@
 <div class="full-height"
-		ng-class="{'edit-page-table-layout': !fullView && !inPreview && !otherDiff, 'layout-row': fullView}"
+		ng-class="{'edit-page-table-layout': useTableLayout(), 'layout-row': fullView}"
 		ng-show="revealAfterRender">
 	<!-- Main edit column (left half) -->
 	<div class="full-height"
-			ng-class="{'edit-page-row': !fullView && !inPreview && !otherDiff}"
+			ng-class="{'edit-page-row': useTableLayout()}"
 			layout="column"
 			flex="{{fullView ? 50 : 'none'}}"
 			ng-hide="inPreview || (!fullView && otherDiff)">
-		<md-tabs ng-class="{'edit-page-cell': !fullView}"
+		<md-tabs ng-class="{'edit-page-cell': !fullView, 'hide-tabs': isComment || isAnswer}"
 				md-selected="selectedTab"
 				md-stretch-tabs="always"
-				md-border-bottom
 				flex>
 			<!-- (0) Title tab -->
-			<md-tab label="Title">
+			<md-tab label="Title" ng-disabled="isComment || isAnswer">
 				<md-tab-body>
 					<div layout="column">
 					<md-input-container>
@@ -25,7 +24,7 @@
 						<input ng-model="page.clickbait" md-maxlength="200">
 					</md-input-container>
 					<div>
-						You need to publish the page to save these changes.
+						You need to publish the page for these fields to show up live.
 					</div>
 				</div>
 				</md-tab-body>
@@ -112,7 +111,7 @@
 							</md-button>
 							<div flex></div>
 							<md-button class="wmd-help-button">
-								<md-icon>help</md-icon>
+								<md-icon>live_help</md-icon>
 								<md-tooltip>Markdown editing help</md-tooltip>
 							</md-button>
 							<!--<div class="separator"></div>
@@ -164,24 +163,24 @@
 							<div ng-show="publishing">
 								Publishing...
 							</div>
-							<md-button class="md-warn"
+							<md-button class="md-warn md-raised"
 									ng-click="discardPage()"
 									ng-disable="publishing || snapshotting">
 								<md-tooltip>Discard your autosave</md-tooltip>
 								Discard
 							</md-button>
-							<md-button ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
+							<md-button class="md-raised" ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
 								<md-tooltip>Save a snapshot</md-tooltip>
 								Snapshot
 							</md-button>
-							<md-button class="md-primary"
+							<md-button class="md-primary md-raised"
 									ng-click="togglePreview(true)"
 									ng-disable="publishing || snapshotting"
 									ng-show="!fullView && !inPreview">
 								<md-tooltip>Preview the page before publishing</md-tooltip>
 								Preview
 							</md-button>
-							<md-button class="md-primary"
+							<md-button class="md-primary md-raised"
 									ng-click="publishPage()"
 									ng-disable="publishing || snapshotting"
 									ng-show="fullView || inPreview">
@@ -194,7 +193,7 @@
 			</md-tab>
 
 			<!-- (2) Settings tab -->
-			<md-tab label="Settings">
+			<md-tab label="Settings" ng-disabled="!(isWiki || isLens)">
 				<md-tab-body>
 					<div layout="column" class="full-height">
 						<div>These settings have to be saved independently of publishing the page.</div>
@@ -319,7 +318,7 @@
 			</md-tab>
 
 			<!-- (3) Relationships tab -->
-			<md-tab label="Relationships">
+			<md-tab label="Relationships" ng-disabled="!(isWiki || isQuestion)">
 				<md-tab-body>
 					<div layout="column">
 						<!-- Parents -->
@@ -339,7 +338,7 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog">
+			<md-tab label="Changelog" ng-disabled="!(isWiki || isLens || isGroup)">
 				<md-tab-body>
 					<md-list>
 						<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
@@ -397,17 +396,17 @@
 	<div class="wmd-preview-separator" ng-show="!fullView"></div>
 
 	<!-- Right half -->
-	<div ng-class="{'full-height': fullView || inPreview || otherDiff, 'edit-page-row': !fullView && !inPreview && !otherDiff}"
+	<div ng-class="{'full-height': !useTableLayout(), 'edit-page-row': useTableLayout()}"
 			layout="column"
 			flex="{{fullView ? 50 : 'none'}}">
 		<!-- Live preview -->
-		<md-content class="preview-area" flex ng-class="{'edit-page-cell': !fullView && !inPreview && !otherDiff}" ng-hide="(!fullView && !inPreview) || otherDiff">
+		<md-content class="preview-area" flex ng-class="{'edit-page-cell': useTableLayout()}" ng-hide="(!fullView && !inPreview) || otherDiff">
 			<h2 class="md-display-2" ng-bind="page.title"></h2>
 			<div id="wmd-preview{{page.pageId}}"></div>
 		</md-content>
 
 		<!-- Buttons shown in preview -->
-		<div class="diff-buttons" layout="row" layout-align="end center" ng-show="inPreview">
+		<div class="diff-buttons" ng-style="{position: isComment ? 'initial' : 'absolute'}" layout="row" layout-align="end center" ng-show="inPreview">
 			<md-button class="md-icon-button md-raised" ng-click="togglePreview(false)">
 				<md-icon>arrow_back</md-icon>
 				<md-tooltip>Go back to editing</md-tooltip>
@@ -420,7 +419,7 @@
 
 		<!-- Diff between edits -->
 		<div class="diff-buttons" layout="row" ng-show="otherDiff">
-			<md-button class="md-icon-button md-raised" ng-click="refreshDiff()">
+			<md-button class="md-icon-button md-raised" ng-click="refreshDiff()" ng-show="fullView">
 				<md-icon>refresh</md-icon>
 				<md-tooltip>Recompute the diff</md-tooltip>
 			</md-button>
@@ -510,7 +509,7 @@
 					ng-init="similarPage = similarPages[0]"
 					ng-if="similarPages.length > 0">
 				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
-				<arb-page-title page-id="{{similarPage.pageId}}" show-clickbait="true"></arb-page-title>
+				<arb-page-title page-id="{{similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
 				<div flex></div>
 				<md-button ng-click="toggleSimilarPages(true)"
 						ng-show="!forceExpandSimilarPages && !expandSimilarPages && similarPages.length > 1">

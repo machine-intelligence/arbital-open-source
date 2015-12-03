@@ -1,13 +1,24 @@
 <!-- Discussion section for some page -->
-<div layout="column" ng-show="page.subpageIds.length > 0">
+<div layout="column">
 	<h2>Discussion</h2>
 
 	<div ng-repeat="subpageId in page.subpageIds">
-		<arb-subpage lens-id="{{page.pageId}}" page-id="{{subpageId}}"></arb-subpage>
+		<arb-subpage lens-id="{{page.pageId}}"
+				page-id="{{subpageId}}"
+				new-comment-fn="newComment(options)"
+				load-comment-edit-fn="loadCommentEdit(options)"
+				new-subpage-created-fn="newSubpageCreated(result)"></arb-subpage>
 	</div>
 
-	<md-button>
-		<md-icon>reply</md-icon>
+	<!-- New comment editor -->
+	<md-button class="new-comment-button" ng-click="newCommentClick()" ng-hide="newCommentId">
+		<md-icon>comment</md-icon>
 		New Comment
 	</md-button>
+	<div arb-edit-page
+			class="edit-comment-embed"
+			use-full-view="false"
+			page-id="{{newCommentId}}"
+			done-fn="newCommentDone(result)"
+			ng-if="newCommentId"></div>
 </div>

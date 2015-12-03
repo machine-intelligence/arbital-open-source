@@ -1,77 +1,62 @@
-<div class="filter-body-div">
+<div layout="column">
 	<!-- User header -->
-	<h3>
-		<arb-user-name user-id="{{authorId}}"></arb-user-name>
-	</h3>
-
-	<!-- Panels -->
-	<div class="panel panel-default" ng-hide="idsMap.recentlyCreatedIds.length <= 0">
-	  <div class="panel-heading">
-			Recently Created Pages
-		</div>
-	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{{pageId}}"
-					show-red-link-count="true"
-					show-quick-edit-link="true"
-					show-created-at="true"
-					ng-repeat="pageId in idsMap.recentlyCreatedIds"></arb-likes-page-title>
-	  </div>
+	<div layout="row" layout-align="center center">
+		<h3>
+			<arb-user-name user-id="{{userId}}"></arb-user-name>
+			<span>(last seen <span ng-bind="TODO"></span>)</span>
+		</h3>
 	</div>
 
-	<div class="panel panel-default" ng-hide="idsMap.recentlyEditedIds.length <= 0">
-	  <div class="panel-heading">
-			Recently Edited Pages
-		</div>
-	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{{pageId}}"
-					show-red-link-count="true"
-					show-quick-edit-link="true"
-					show-created-at="true"
-					ng-repeat="pageId in idsMap.recentlyEditedIds"></arb-likes-page-title>
-	  </div>
+	<!-- Public row -->
+	<div layout="row">
+		<div flex="5"></div>
+		<arb-user-page-panel panel-title="Recently created pages"
+				is-public="true"
+				show-red-link-count="{{userId === userService.user.id}}"
+				page-ids="idsMap.recentlyCreatedIds"
+				flex="40"></arb-user-page-panel>
+		<div flex="10"></div>
+		<arb-user-page-panel panel-title="Recently created comments"
+				is-public="true"
+				page-ids="idsMap.recentlyCreatedCommentIds"
+				flex="40"></arb-user-page-panel>
+		<div flex="5"></div>
 	</div>
 
-	<div class="panel panel-default" ng-hide="idsMap.pagesWithDraftIds.length <= 0">
-	  <div class="panel-heading">
-			Pages With Drafts
-		</div>
-	  <div class="panel-body">
-			<ul class="list-unstyled">
-				<li ng-repeat="pageId in idsMap.pagesWithDraftIds"
-						ng-init="page=pageService.editMap[pageId]">
-					<a ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
-							page-id="{{page.pageId}}"
-							class="intrasite-link"
-							ng-class="{'red-link': !page.wasPublished}"
-							style="display: table-cell"
-							ng-bind="page.title"></a>
-					<span class="created-span gray-text" ng-bind="page.createdAt | relativeDateTime"></span>
-				</li>
-			</ul>
-	  </div>
+	<!-- Public row -->
+	<div layout="row">
+		<div flex="5"></div>
+		<arb-user-page-panel panel-title="Top pages"
+				is-public="true"
+				page-ids="idsMap.topPagesIds"
+				flex="40"></arb-user-page-panel>
+		<div flex="10"></div>
+		<arb-user-page-panel panel-title="Recently edited"
+				is-public="true"
+				show-red-link-count="{{userId === userService.user.id}}"
+				show-quick-edit-link="true"
+				page-ids="idsMap.recentlyEditedIds"
+				flex="40"></arb-user-page-panel>
+		<div flex="5"></div>
 	</div>
 
-	<div class="panel panel-default" ng-hide="idsMap.mostTodosIds.length <= 0">
-	  <div class="panel-heading">
-			Pages With Most TODOs
-		</div>
-	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{{pageId}}"
-					show-red-link-count="true"
-					show-quick-edit-link="true"
-					show-created-at="true"
-					ng-repeat="pageId in idsMap.mostTodosIds"></arb-likes-page-title>
-	  </div>
-	</div>
-
-	<div class="panel panel-default" ng-hide="idsMap.recentlyEditedCommentIds.length <= 0">
-	  <div class="panel-heading">
-			Recently Edited Comments
-		</div>
-	  <div class="panel-body">
-	    <arb-likes-page-title page-id="{{pageId}}"
-					show-created-at="true"
-					ng-repeat="pageId in idsMap.recentlyEditedCommentIds"></arb-likes-page-title>
-	  </div>
+	<!-- Private row -->
+	<div layout="row" ng-if="userId === userService.user.id">
+		<div flex="5"></div>
+		<arb-user-page-panel panel-title="Pages with drafts"
+				is-public="false"
+				use-edit-map="true"
+				hide-likes="true"
+				show-quick-edit="true"
+				page-ids="idsMap.pagesWithDraftIds"
+				flex="40"></arb-user-page-panel>
+		<div flex="10"></div>
+		<arb-user-page-panel panel-title="Pages with most TODOs"
+				is-public="false"
+				show-red-link-count="true"
+				show-quick-edit-link="true"
+				page-ids="idsMap.mostTodosIds"
+				flex="40"></arb-user-page-panel>
+		<div flex="5"></div>
 	</div>
 </div>

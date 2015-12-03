@@ -1,4 +1,4 @@
-<!-- Template for the toolbar -->
+<!-- Top toolbar appearing on every page -->
 <md-toolbar>
 	<div class="md-toolbar-tools">
 		<a ng-href="{{pageService.getDomainUrl()}}">Arbital</a>
@@ -46,6 +46,7 @@
 	</div>
 </md-toolbar>
 
+<!-- Right sidenav slide out; only if the user is logged in -->
 <md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right">
 	<md-toolbar>
 		<h1 class="md-toolbar-tools">
@@ -56,31 +57,27 @@
 			</md-button>
 		</h1>
 	</md-toolbar>
-	<md-content>
-			<!-- List of groups -->
-			<md-subheader ng-show="userService.user.groupIds.length > 0">
-				My Groups
-			</md-subheader>
-			<div ng-repeat="groupId in userService.user.groupIds"
-				ng-init="groupAlias=pageService.pageMap[groupId].alias">
-				<a ng-href="{{pageService.getDomainUrl(groupAlias)}}" ng-bind="groupAlias"></a>
-			</div>
-			<md-divider></md-divider>
+	<md-content layout="column">
+		<!-- List of groups -->
+		<md-subheader ng-show="userService.user.groupIds.length > 0">
+			My Groups
+		</md-subheader>
+		<div ng-repeat="groupId in userService.user.groupIds"
+			ng-init="groupAlias=pageService.pageMap[groupId].alias">
+			<md-button ng-href="{{pageService.getDomainUrl(groupAlias)}}" ng-bind="groupAlias"></md-button>
+		</div>
+		<md-divider></md-divider>
 
-			<div>
-				<a ng-href="{{userService.getUserUrl(userService.user.id)}}">My Profile</a>
-			</div>
-			<div>
-				<a ng-href="/groups">My Groups</a>
-			</div>
-			<div>
-				<a ng-href="/settings">My Settings</a>
-			</div>
-			<md-divider></md-divider>
+		<!-- Other buttons -->
+		<md-button ng-href="{{userService.getUserUrl(userService.user.id)}}" ng-click="toggleRightMenu()">
+			My Profile
+		</md-button>
+		<md-button ng-href="/groups" ng-click="toggleRightMenu()">My Groups</md-button>
+		<md-button ng-href="/settings" ng-click="toggleRightMenu()">My Settings</md-button>
+		<md-divider></md-divider>
 
-			<md-button ng-href="/logout/?continueUrl={{currentUrl}}"
-					id="logout"
-					target="_self">Log Out</md-button>
-		</form>
+		<md-button ng-href="/logout/?continueUrl={{currentUrl}}"
+				id="logout"
+				target="_self">Log Out</md-button>
 	</md-content>
 </md-sidenav>

@@ -10,20 +10,25 @@
 		</div>
 	</div>
 
-	<!-- New Answer for a question page -->
-	<!--<div ng-show="page.type === 'question'">
-		<h1>Find Existing Answer</h1>
-		<input id="find-answer-search"
-				type="text"
-				class="form-control"
-				placeholder="Find existing answer"
-				ng-model="findAnswerTerm">
-		<div id="found-answers"></div>
-	</div>-->
-
 	<!-- Create an answer -->
-	<div ng-show="page.type === 'question'">
+	<div id="your-answer" ng-show="page.type === 'question'">
 		<h1>Your Answer</h1>
+
+		<div arb-edit-page
+				class="new-answer-div"
+				use-full-view="true"
+				page-id="{{newAnswerId}}"
+				done-fn="answerDone(result)"
+				ng-if="newAnswerId"></div>
+
+		<!-- New Answer for a question page -->
+		<!--
+			<h2>Or add an existing answer</h2>
+			<input type="text"
+					class="form-control"
+					placeholder="Find existing answer"
+					ng-model="findAnswerTerm">
+		-->
 	</div>
 	
 	<div layout="row" layout-margin>
