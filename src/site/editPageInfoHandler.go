@@ -4,7 +4,6 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -67,7 +66,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Error checking.
-	data.Type = strings.ToLower(data.Type)
 	// Check the page isn't locked by someone else
 	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
 		return pages.HandlerBadRequestFail("Can't change locked page", nil)
@@ -86,12 +84,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
-	if data.Type != core.WikiPageType &&
-		data.Type != core.LensPageType &&
-		data.Type != core.QuestionPageType &&
-		data.Type != core.AnswerPageType &&
-		data.Type != core.CommentPageType {
-		return pages.HandlerBadRequestFail("Invalid page type.", nil)
+	data.Type, err = core.CorrectPageType(data.Type)
+	if err != nil {
+		return pages.HandlerBadRequestFail(err.Error(), nil)
 	}
 	if data.SortChildrenBy != core.LikesChildSortingOption &&
 		data.SortChildrenBy != core.RecentFirstChildSortingOption &&

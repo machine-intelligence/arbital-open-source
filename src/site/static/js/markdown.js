@@ -26,10 +26,11 @@ var atAliasRegexp = new RegExp(notEscaped +
 
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.service("markdownService", function($location, pageService){
+app.service("markdownService", function(pageService){
 	// Pass in a pageId to create an editor for that page
 	var createConverter = function(pageId, postConversionCallback) {
-		var host = $location.host();
+		// NOTE: not using $location, because we need port number
+		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
 		// Process [todo:text] spans.
@@ -144,8 +145,9 @@ app.service("markdownService", function($location, pageService){
 	// when one of them is loaded.
 	this.processLinks = function($pageText, refreshFunc) {
 		// Setup attributes for page links that are within our domain.
+		// NOTE: not using $location, because we need port number
 		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
-			$location.host() + // match the url host part
+			window.location.host + // match the url host part
 			"\/pages\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
@@ -238,7 +240,6 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 		link: function(scope, element, attrs) {
 			scope.page = pageService.pageMap[scope.pageId];
 			var converter = markdownService.createConverter();
-			var host = window.location.host;
 
 			// Convert page text to html.
 			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);

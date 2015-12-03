@@ -12,7 +12,7 @@
 
 		<!-- Collapse button -->
 		<div layout="column" flex>
-			<md-button ng-click="collapseToggle"
+			<md-button ng-click="collapseToggle()"
 					ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
 				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
 				<md-icon ng-show="isCollapsed">expand_more</md-icon>
@@ -20,9 +20,11 @@
 		</div>
 
 		<!-- RHS icons -->
-		<md-button class="md-icon-button"
-				ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
-				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
+		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
+				class="md-icon-button"
+				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}"
+				ng-disabled="editing"
+				ng-click="editSubpage($event)">
 			<md-icon>create</md-icon>
 		</md-button>
 		<md-button class="md-icon-button"
@@ -32,9 +34,9 @@
 		</md-button>
 	</div>
 
-		<!-- Question header -->
+	<!-- Question header -->
 	<div layout="row" layout-align="start center" ng-if="isQuestion">
-		<md-icon>question_answer</md-icon>
+		<md-icon>help</md-icon>
 		<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
 		<ng-pluralize count="page.answerCount"
 				when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
@@ -42,15 +44,24 @@
 
 	<!-- Collapsable body -->
 	<div layout="column" ng-hide="isCollapsed">
-		<arb-markdown page-id="{{page.pageId}}"></arb-markdown>
+		<arb-markdown page-id="{{page.pageId}}" ng-if="!editing"></arb-markdown>
+		<!-- Edit this subpage -->
+		<div arb-edit-page
+				class="edit-comment-embed"
+				use-full-view="false"
+				page-id="{{page.pageId}}"
+				done-fn="editDone(result)"
+				ng-if="editing"></div>
 
 		<!-- Footer -->
-		<div>
+		<div ng-hide="editing">
 			<arb-likes page-id="{{page.pageId}}" is-button="true"></arb-likes>
 			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
-			<md-button ng-hide="parentSubpageId">
+			<md-button ng-click="newReply()"
+					ng-disabled="newReplyId"
+					ng-hide="parentSubpageId || page.subpageIds.length > 0">
 				<md-icon>reply</md-icon>
-				<span ng-show="isComment">Reply</span>
+				Reply
 			</md-button>
 			<span ng-bind="page.createdAt | relativeDateTime"></span>
 			<span ng-show="isQuestion && page.commentIds.length > 0">
@@ -59,7 +70,8 @@
 			</span>
 		</div>
 
-		<div layout="row" ng-show="page.subpageIds.length > 0">
+		<!-- Indented reply section -->
+		<div layout="row">
 			<div flex="10"></div>
 			<div flex="90" layout="column">
 				<!-- Replies -->
@@ -67,15 +79,26 @@
 					<div ng-repeat="subpageId in page.subpageIds">
 						<arb-subpage lens-id="{{lensId}}"
 								page-id="{{subpageId}}"
-								parent-subpage-id="{{page.pageId}}"></arb-subpage>
+								parent-subpage-id="{{page.pageId}}"
+								new-comment-fn="newCommentFn2(options)"
+								load-comment-edit-fn="loadCommentEditFn2(options)"
+								new-subpage-created-fn="newSubpageCreatedFn2(result)"></arb-subpage>
 					</div>
 				</div>
 
 				<!-- Reply to thread button -->
-				<md-button>
+				<md-button ng-click="newReply()" ng-show="!newReplyId && page.subpageIds.length > 0">
 					<md-icon>reply</md-icon>
-					<span ng-show="isComment">New Reply</span>
+					New Reply
 				</md-button>
+
+				<!-- Write a new reply -->
+				<div arb-edit-page
+						class="edit-comment-embed"
+						use-full-view="false"
+						page-id="{{newReplyId}}"
+						done-fn="newReplyDone(result)"
+						ng-if="newReplyId"></div>
 			</div>
 		</div>
 	</div>

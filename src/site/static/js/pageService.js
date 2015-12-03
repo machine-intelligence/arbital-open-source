@@ -131,6 +131,9 @@ app.service("pageService", function($http, $location, userService){
 
 	// These functions will be added to each page object.
 	var pageFuncs = {
+		likeScore: function() {
+			return this.likeCount + this.myLikeValue;
+		},
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
 			if (userService.user.id === "0") return false;
@@ -256,19 +259,20 @@ app.service("pageService", function($http, $location, userService){
 		}
 		parent.isLoadingChildren = true;
 		console.log("Issuing POST request to /json/children/?parentId=" + parent.pageId);
-		$http({method: "POST", url: "/json/children/", data: JSON.stringify({parentId: parent.pageId})}).
-			success(function(data, status){
-				parent.isLoadingChildren = false;
-				parent.hasLoadedChildren = true;
-				userService.processServerData(data);
-				that.processServerData(data);
-				parent.loadChildrenData = data["pages"];
-				success(data["pages"], status);
-			}).error(function(data, status){
-				parent.isLoadingChildren = false;
-				console.log("Error loading children:"); console.log(data); console.log(status);
-				error(data, status);
-			});
+		$http({method: "POST", url: "/json/children/", data: JSON.stringify({parentId: parent.pageId})})
+		.success(function(data, status){
+			parent.isLoadingChildren = false;
+			parent.hasLoadedChildren = true;
+			userService.processServerData(data);
+			that.processServerData(data);
+			parent.loadChildrenData = data["pages"];
+			success(data["pages"], status);
+		})
+		.error(function(data, status){
+			parent.isLoadingChildren = false;
+			console.log("Error loading children:"); console.log(data); console.log(status);
+			error(data, status);
+		});
 	};
 
 	// Return function for sorting children ids.
@@ -303,9 +307,9 @@ app.service("pageService", function($http, $location, userService){
 				console.log(page);
 			}
 			return function(aId, bId) {
-				var diff = pageMap[bId].likeCount - pageMap[aId].likeCount;
+				var diff = pageMap[bId].likeScore() - pageMap[aId].likeScore();
 				if (diff === 0) {
-					return pageMap[aId].title.localeCompare(pageMap[bId].title);
+					return pageMap[bId].createdAt > pageMap[aId].createdAt;
 				}
 				return diff;
 			};
@@ -331,19 +335,20 @@ app.service("pageService", function($http, $location, userService){
 		}
 		child.isLoadingParents = true;
 		console.log("Issuing POST request to /json/parents/?childId=" + child.pageId);
-		$http({method: "POST", url: "/json/parents/", data: JSON.stringify({childId: child.pageId})}).
-			success(function(data, status){
-				child.isLoadingParents = false;
-				child.hasLoadedParents = true;
-				userService.processServerData(data);
-				that.processServerData(data);
-				child.loadParentsData = data["pages"];
-				success(data["pages"], status);
-			}).error(function(data, status){
-				child.isLoadingParents = false;
-				console.log("Error loading parents:"); console.log(data); console.log(status);
-				error(data, status);
-			});
+		$http({method: "POST", url: "/json/parents/", data: JSON.stringify({childId: child.pageId})})
+		.success(function(data, status){
+			child.isLoadingParents = false;
+			child.hasLoadedParents = true;
+			userService.processServerData(data);
+			that.processServerData(data);
+			child.loadParentsData = data["pages"];
+			success(data["pages"], status);
+		})
+		.error(function(data, status){
+			child.isLoadingParents = false;
+			console.log("Error loading parents:"); console.log(data); console.log(status);
+			error(data, status);
+		});
 	};
 
 	// Load the page with the given pageAlias.
@@ -422,38 +427,45 @@ app.service("pageService", function($http, $location, userService){
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
 		console.log("Issuing a POST request to: /json/edit/?pageAlias=" + options.pageAlias);
-		$http({method: "POST", url: "/json/edit/", data: JSON.stringify(options)}).
-			success(function(data, status){
-				console.log("JSON /json/edit/ data:"); console.dir(data);
-				if (!skipProcessDataStep) {
-					userService.processServerData(data);
-					that.processServerData(data);
-				}
-				if(success) success(data["edits"], status);
-			}).error(function(data, status){
-				console.log("Error loading page:"); console.log(data); console.log(status);
-				if(error) error(data, status);
+		$http({method: "POST", url: "/json/edit/", data: JSON.stringify(options)})
+		.success(function(data, status){
+			console.log("JSON /json/edit/ data:"); console.dir(data);
+			if (!skipProcessDataStep) {
+				userService.processServerData(data);
+				that.processServerData(data);
 			}
-		);
+			if(success) success(data["edits"], status);
+		})
+		.error(function(data, status){
+			console.log("Error loading page:"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		});
 	};
 
 	// Get a new page from the server.
 	// options {
+	//  type: type of the page to create
+	//  parentIds: optional array of parents to add to the new page
 	//	success: callback on success
+	//	error: callback on error
 	//}
 	this.getNewPage = function(options) {
-		$http({method: "POST", url: "/json/newPage/"}).
-			success(function(data, status){
-				console.log("JSON /json/newPage/ data:"); console.dir(data);
-				userService.processServerData(data);
-				that.processServerData(data);
-				var pageId = Object.keys(data["pages"])[0];
-				if(options.success) options.success(pageId);
-			}).error(function(data, status){
-				console.log("Error loading page:"); console.log(data); console.log(status);
-				if(error) error(data, status);
-			});
-	}
+		var success = options.success; delete options.success;
+		var error = options.error; delete options.error;
+
+		$http({method: "POST", url: "/json/newPage/", data: JSON.stringify(options)})
+		.success(function(data, status){
+			console.log("JSON /json/newPage/ data:"); console.dir(data);
+			userService.processServerData(data);
+			that.processServerData(data);
+			var pageId = Object.keys(data["pages"])[0];
+			if(success) success(pageId);
+		})
+		.error(function(data, status){
+			console.log("Error getting a new page:"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		});
+	};
 
 	// Delete the page with the given pageId.
 	this.deletePage = function(pageId, success, error) {
@@ -461,14 +473,14 @@ app.service("pageService", function($http, $location, userService){
 			pageId: pageId,
 		};
 		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)})
-			.success(function(data, status){
-				console.log("Successfully deleted " + pageId);
-				if(success) success(data, status);
-			})
-			.error(function(data, status){
-				console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
-				if(error) error(data, status);
-			}
+		.success(function(data, status){
+			console.log("Successfully deleted " + pageId);
+			if(success) success(data, status);
+		})
+		.error(function(data, status){
+			console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		}
 		);
 	};
 
@@ -477,15 +489,15 @@ app.service("pageService", function($http, $location, userService){
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)}).
-			success(function(data, status){
-				console.log("Successfully discarded " + pageId);
-				if(success) success(data, status);
-			})
-			.error(function(data, status){
-				console.log("Error discarding " + pageId + ":"); console.log(data); console.log(status);
-				if(error) error(data, status);
-			}
+		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)})
+		.success(function(data, status){
+			console.log("Successfully discarded " + pageId);
+			if(success) success(data, status);
+		})
+		.error(function(data, status){
+			console.log("Error discarding " + pageId + ":"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		}
 		);
 	};
 
@@ -514,29 +526,29 @@ app.service("pageService", function($http, $location, userService){
 	// }
 	this.newPagePair = function(options, success) {
 		$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(options)})
-			.success(function(data, status){
-				if(success) success();
-			})
-			.error(function(data, status){
-				console.log("Error creating new page pair:"); console.log(data); console.log(status);
-			});
+		.success(function(data, status){
+			if(success) success();
+		})
+		.error(function(data, status){
+			console.log("Error creating new page pair:"); console.log(data); console.log(status);
+		});
 	};
 	// Note: you also need to specify the type of the relationship here, sinc we
 	// don't want to accidentally delete the wrong type.
 	this.deletePagePair = function(options) {
 		$http({method: "POST", url: "/deletePagePair/", data: JSON.stringify(options)})
-			.error(function(data, status){
-				console.log("Error deleting a page pair:"); console.log(data); console.log(status);
-			});
+		.error(function(data, status){
+			console.log("Error deleting a page pair:"); console.log(data); console.log(status);
+		});
 	};
 
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
-	this.showPublic = function(pageId) {
+	this.showPublic = function(pageId, useEditMap) {
 		/*if (this.privateGroupId !== undefined) {
 			return this.privateGroupId !== this.pageMap[pageId].seeGroupId;
 		}*/
-		var page = this.pageMap[pageId];
+		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
@@ -545,8 +557,8 @@ app.service("pageService", function($http, $location, userService){
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId === "0";
 	};
 	// Return true iff we should show that this page belongs to a group.
-	this.showLockedGroup = function(pageId) {
-		var page = this.pageMap[pageId];
+	this.showLockedGroup = function(pageId, useEditMap) {
+		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
 			console.error("Couldn't find pageId: " + pageId);
 			return false;

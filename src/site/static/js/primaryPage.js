@@ -10,6 +10,38 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.page = pageService.primaryPage;
+			scope.page.answerIds.sort(pageService.getChildSortFunc("likes"));
+
+			// Create the edit section for a new answer
+			var createNewAnswer = function() {
+				scope.newAnswerId = undefined;
+				pageService.getNewPage({
+					type: "answer",
+					parentIds: [scope.page.pageId],
+					success: function(newAnswerId) {
+						pageService.loadEdit({
+							pageAlias: newAnswerId,
+							success: function() {
+								scope.newAnswerId = newAnswerId;
+							},
+							error: function(error) {
+								// TODO
+							},
+						});
+					},
+				});
+			};
+			createNewAnswer();
+
+			// Called when the user is done editing the new answer
+			scope.answerDone = function(result) {
+				if (result.discard) {
+					createNewAnswer();
+				} else {
+					window.location.href = pageService.getPageUrl(scope.page.pageId) + "#subpage-" + scope.newAnswerId;
+					window.location.reload();
+				}
+			};
 		},
 	};
 });

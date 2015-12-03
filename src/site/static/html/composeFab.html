@@ -2,38 +2,37 @@
 		md-direction="up"
 		ng-mouseenter="isOpen = true"
 		ng-mouseleave="isOpen = false"
-		ng-click="newPage()"
 		class="md-scale md-fab-bottom-right"
 		ng-hide="hide">
 	<md-fab-trigger>
-		<md-button class="md-fab">
+		<md-button ng-href="{{pageUrl}}" class="md-fab">
 			<md-icon>note_add</md-icon>
 			<md-tooltip md-direction="left">New page</md-tooltip>
 		</md-button>
 	</md-fab-trigger>
 	<md-fab-actions>
-		<md-button class="md-fab md-raised md-mini" ng-click="newSibling()">
+		<md-button ng-href="{{siblingUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="siblingUrl">
 			<md-icon>people</md-icon>
 			<md-tooltip md-direction="left">Sibling page</md-tooltip>
 		</md-button>
-		<md-button class="md-fab md-raised md-mini" ng-click="newChild()">
+		<md-button ng-href="{{childUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="childUrl">
 			<md-icon>child_care</md-icon>
 			<md-tooltip md-direction="left">Child page</md-tooltip>
 		</md-button>
-		<md-button class="md-fab md-raised md-mini" ng-click="newLens()">
+		<md-button ng-href="{{lensUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="lensUrl">
 			<md-icon>lens</md-icon>
 			<md-tooltip md-direction="left">Lens page</md-tooltip>
 		</md-button>
-		<md-button class="md-fab md-raised md-mini" ng-click="newComment()">
+		<md-button ng-click="newComment()" class="md-fab md-raised md-mini md-accent" ng-show="showNewComment">
 			<md-icon>comment</md-icon>
 			<md-tooltip md-direction="left">Comment</md-tooltip>
 		</md-button>
-		<md-button class="md-fab md-raised md-mini" ng-click="newQuestion()">
-			<md-icon>question_answer</md-icon>
+		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="questionUrl">
+			<md-icon>help</md-icon>
 			<md-tooltip md-direction="left">Question</md-tooltip>
 		</md-button>
-		<md-button class="md-fab md-raised md-mini" ng-click="newAnswer()">
-			<md-icon>question_answer</md-icon>
+		<md-button ng-click="newAnswer()" class="md-fab md-raised md-mini md-accent" ng-show="showNewAnswer">
+			<md-icon>font_download</md-icon>
 			<md-tooltip md-direction="left">Answer</md-tooltip>
 		</md-button>
 	</md-fab-actions>

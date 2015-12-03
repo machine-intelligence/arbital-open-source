@@ -925,7 +925,6 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 		} else if options.Type == QuestionPageType {
 			parent.QuestionIds = append(parent.QuestionIds, fmt.Sprintf("%d", newPage.PageId))
 		} else if options.Type == WikiPageType && options.PagePairType == ParentPagePairType {
-			newPage.ParentIds = append(newPage.ParentIds, fmt.Sprintf("%d", parentId))
 			parent.ChildIds = append(parent.ChildIds, fmt.Sprintf("%d", childId))
 			parent.HasChildren = true
 			if parent.LoadOptions.HasGrandChildren {
@@ -1052,7 +1051,6 @@ func LoadParentIds(db *database.DB, pageMap map[int64]*Page, options *LoadParent
 		childPage := pageMap[childId]
 
 		if options.PagePairType == ParentPagePairType {
-			newPage.ChildIds = append(newPage.ChildIds, fmt.Sprintf("%d", childId))
 			childPage.ParentIds = append(childPage.ParentIds, fmt.Sprintf("%d", parentId))
 			childPage.HasParents = true
 			newPages[newPage.PageId] = newPage
