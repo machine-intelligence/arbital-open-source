@@ -150,7 +150,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
 		
-			// Setup attributes for links that are within our domain.
+			// Setup attributes for page links that are within our domain.
 			var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 				host + // match the url host part
 				"\/pages\/" + aliasMatch + // [1] capture page alias
@@ -182,6 +182,40 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 					$element.addClass("red-link");
 				}
 			});
+
+			// Setup attributes for user links that are within our domain.
+			var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+				host + // match the url host part
+				"\/user\/" + aliasMatch + // [1] capture user alias
+				"\/?" + // optional ending /
+				"(.*)"); // optional other stuff
+			$pageText.find("a").each(function(index, element) {
+				var $element = $(element);
+				var parts = $element.attr("href").match(re);
+				if (parts === null) return;
+				var userAlias = parts[1];
+	
+				if ($element.hasClass("user-link")) {
+					return;
+				}
+				$element.addClass("user-link").attr("user-id", userAlias);
+
+				// Do we want red links for invalid users?
+/*
+				if (userAlias in userService.userMap) {
+					if (userService.userMap[userAlias].isDeleted()) {
+						// Link to a deleted user.
+						$element.addClass("red-link");
+					} else {
+						// Normal healthy link!
+					}
+				} else {
+					// Mark as red link
+					$element.addClass("red-link");
+				}
+*/
+			});
+
 		},
 	};
 });

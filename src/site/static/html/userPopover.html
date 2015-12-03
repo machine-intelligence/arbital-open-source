@@ -1,0 +1,12 @@
+<div class="user-popover md-whiteframe-8dp"
+		layout="column">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<arb-user-name user-id="{{userId}}" no-popover="true"></arb-user-name>
+		</div>
+	</md-toolbar>
+
+	<arb-subscribe-user user-id="{{userId}}"></arb-subscribe-user>
+
+	Last Online: {{user.lastWebsiteVisit}}
+</div>

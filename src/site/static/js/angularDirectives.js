@@ -6,6 +6,8 @@ app.directive("arbUserName", function(userService) {
 		templateUrl: "/static/html/userName.html",
 		scope: {
 			userId: "@",
+			// True if we don't want the link to generate a new user popover
+			noPopover: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
@@ -33,7 +35,7 @@ app.directive("arbNewLinkModal", function(autocompleteService) {
 	};
 });
 
-// intrasitePopover containts the popover body html.
+// intrasitePopover contains the popover body html.
 app.directive("arbIntrasitePopover", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/intrasitePopover.html",
@@ -80,6 +82,28 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 					},
 				});
 			};
+		},
+	};
+});
+
+// userPopover contains the popover body html.
+app.directive("arbUserPopover", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/userPopover.html",
+		scope: {
+			userId: "@",
+		},
+		link: function(scope, element, attrs) {
+			scope.pageService = pageService;
+			scope.userService = userService;
+			scope.user = userService.userMap[scope.userId];
+			
+			// Fix to prevent errors when we go to another page while popover is loading.
+			// TODO: abort all http requests when switching to another page
+			var isDestroyed = false;
+			scope.$on("$destroy", function() {
+				isDestroyed = true;
+			});
 		},
 	};
 });
@@ -219,6 +243,37 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 					pageId: scope.page.pageId,
 				};
 				var url = scope.page.isSubscribed ? "/newSubscription/" : "/deleteSubscription/";
+				$http({method: "POST", url: url, data: JSON.stringify(data)})
+				.error(function(data, status){
+					console.error("Error changing a subscription:"); console.log(data); console.log(status);
+				});
+			};
+		},
+	};
+});
+
+// subscribe directive displays the button for subscribing to a user.
+app.directive("arbSubscribeUser", function($http, pageService, userService) {
+	return {
+		templateUrl: "/static/html/subscribeUser.html",
+		scope: {
+			userId: "@",
+			// If true, the button is not an icon button, but is a normal button with a label
+			isStretched: "@",
+		},
+		link: function(scope, element, attrs) {
+			scope.userService = userService;
+			scope.user = userService.userMap[scope.userId];
+			scope.isSubscribed = scope.user.isSubscribed;
+
+			// User clicked on the subscribe button
+			scope.subscribeClick = function() {
+				scope.isSubscribed = !scope.isSubscribed;
+				userService.userMap[scope.userId].isSubscribed = scope.isSubscribed;
+				var data = {
+					pageId: scope.userId,
+				};
+				var url = scope.isSubscribed ? "/newSubscription/" : "/deleteSubscription/";
 				$http({method: "POST", url: url, data: JSON.stringify(data)})
 				.error(function(data, status){
 					console.error("Error changing a subscription:"); console.log(data); console.log(status);

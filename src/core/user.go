@@ -26,9 +26,12 @@ const (
 
 // User has information about a user from the users table.
 type User struct {
-	Id        int64  `json:"id,string"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	Id               int64  `json:"id,string"`
+	FirstName        string `json:"firstName"`
+	LastName         string `json:"lastName"`
+	LastWebsiteVisit string `json:"lastWebsiteVisit"`
+	// True if the currently logged in user is subscribed to this user
+	IsSubscribed bool `json:"isSubscribed"`
 }
 
 // FullName returns user's first and last name.
@@ -51,7 +54,7 @@ func IdsListFromUserMap(userMap map[int64]*User) []interface{} {
 }
 
 // LoadUsers loads user information (like name) for each user in the given map.
-func LoadUsers(db *database.DB, userMap map[int64]*User) error {
+func LoadUsers(db *database.DB, userMap map[int64]*User, userId int64) error {
 	if len(userMap) <= 0 {
 		return nil
 	}
@@ -59,13 +62,26 @@ func LoadUsers(db *database.DB, userMap map[int64]*User) error {
 	for id, _ := range userMap {
 		userIds = append(userIds, id)
 	}
+
+	// This is awkward, but the query needs the current userId as a parameter, so add it to userIds
+	userIds = append(userIds, userId)
+
 	rows := db.NewStatement(`
-		SELECT id,firstName,lastName
-		FROM users
-		WHERE id IN ` + database.InArgsPlaceholder(len(userMap))).Query(userIds...)
+			SELECT u.id,u.firstName,u.lastName,u.lastWebsiteVisit,!ISNULL(s.userId)
+		FROM (
+			SELECT *
+			FROM users
+			WHERE id IN ` + database.InArgsPlaceholder(len(userMap)) + `
+		) AS u LEFT JOIN (
+			SELECT *
+			FROM subscriptions
+			WHERE userId=?
+		) AS s
+		ON (u.id=s.toId)`).Query(userIds...)
+
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var u User
-		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName)
+		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName, &u.LastWebsiteVisit, &u.IsSubscribed)
 		if err != nil {
 			return fmt.Errorf("failed to scan for user: %v", err)
 		}

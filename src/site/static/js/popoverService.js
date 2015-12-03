@@ -10,11 +10,18 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 
 	var mousePageX, mousePageY;
 
+	// Should this be an enum?
+	var linkTypeIntrasite = "intrasite";
+	var linkTypeUser = "user";
+
 	var $targetCandidate,
+		targetCandidateLinkType,
 		createPromise;
 
 	var $popoverElement,
 		$currentTarget,
+		// Currently unused, stores the link type of the currently active popover
+		currentTargetLinkType,
 		removePromise,
 		anchorHovering,
 		popoverHovering;
@@ -28,6 +35,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		createPromise = undefined;
 		$popoverElement = undefined;
 		$currentTarget = undefined;
+		currentTargetLinkType = undefined;
 		removePromise = undefined;
 		anchorHovering = false;
 		popoverHovering = false;
@@ -56,8 +64,14 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		removePopover();
 
 		// Create the popover
-		$popoverElement = $compile("<arb-intrasite-popover page-id='" + $target.attr("page-id") +
-			"'></arb-intrasite-popover>")($rootScope);
+		if (targetCandidateLinkType == linkTypeIntrasite) {
+			$popoverElement = $compile("<arb-intrasite-popover page-id='" + $target.attr("page-id") +
+				"'></arb-intrasite-popover>")($rootScope);
+		}
+		else if (targetCandidateLinkType == linkTypeUser) {
+			$popoverElement = $compile("<arb-user-popover user-id='" + $target.attr("user-id") +
+				"'></arb-user-popover>")($rootScope);
+		}
 		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
 		var top = $target.offset().top + parseInt($target.css("font-size"));
 		$popoverElement.offset({left: left, top: top});
@@ -73,10 +87,19 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		$("#dynamic-view").append($popoverElement);
 
 		$currentTarget = $target;
+		currentTargetLinkType = targetCandidateLinkType;
 		anchorHovering = true;
 	};
 
 	$("body").on("mouseenter", ".intrasite-link", function(event) {
+		mouseEnterPopoverLink(event, linkTypeIntrasite);
+	});
+
+	$("body").on("mouseenter", ".user-link", function(event) {
+		mouseEnterPopoverLink(event, linkTypeUser);
+	});
+
+	var mouseEnterPopoverLink = function(event, linkType) {
 		var $target = $(event.currentTarget);
 		if ($target.hasClass("red-link")) return;
 		// Don't allow recursive hover in popovers.
@@ -91,19 +114,37 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		if (!$targetCandidate) {
 			createPromise = $timeout(createPopover, showDelay, true, event);
 			$targetCandidate = $target;
+			targetCandidateLinkType = linkType;
 		} else if ($target[0] != $targetCandidate[0]) {
 			$timeout.cancel(createPromise);
 			createPromise = $timeout(createPopover, showDelay, true, event);
 			$targetCandidate = $target;
+			targetCandidateLinkType = linkType;
 		}
-	});
+	};
 
 	$("body").on("mousemove", ".intrasite-link", function(event) {
-		mousePageX = event.pageX;
-		mousePageY = event.pageY;
+		mouseMovePopoverLink(event, linkTypeIntrasite);
 	});
 
+	$("body").on("mousemove", ".user-link", function(event) {
+		mouseMovePopoverLink(event, linkTypeUser);
+	});
+
+	var mouseMovePopoverLink = function(event, linkType) {
+		mousePageX = event.pageX;
+		mousePageY = event.pageY;
+	};
+
 	$("body").on("mouseleave", ".intrasite-link", function(event) {
+		mouseLeavePopoverLink(event, linkTypeIntrasite);
+	});
+
+	$("body").on("mouseleave", ".user-link", function(event) {
+		mouseLeavePopoverLink(event, linkTypeUser);
+	});
+
+	var mouseLeavePopoverLink = function(event, linkType) {
 		var $target = $(event.currentTarget);
 		if ($currentTarget && $target[0] == $currentTarget[0]) {
 			// Leaving the element we created a popover for
@@ -114,9 +155,10 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		if ($targetCandidate && $target[0] == $targetCandidate[0]){
 			// Leaving the element we hovered over for a bit
 			$targetCandidate = undefined;
+			targetCandidateLinkType = undefined;
 			$timeout.cancel(createPromise);
 		}
-	});
+	};
 
 	$rootScope.$on("$locationChangeStart", function(event) {
 		$timeout.cancel(createPromise);

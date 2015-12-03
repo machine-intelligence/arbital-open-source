@@ -97,6 +97,11 @@ arb-intrasite-popover {
   z-index: 100;
   background-color: white; }
 
+arb-user-popover {
+  position: absolute;
+  z-index: 100;
+  background-color: white; }
+
 arb-compose-fab {
   position: fixed;
   right: 0;
