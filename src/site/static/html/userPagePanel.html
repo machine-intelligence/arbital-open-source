@@ -2,13 +2,13 @@
 	<md-toolbar>
 		<div class="md-toolbar-tools">
 			<span>
-				<md-icon ng-show="isPublic">
+				<md-icon ng-show="isPublic === 'yes'">
 					<md-tooltip>This is visible to everyone</md-tooltip>
 					public
 				</md-icon>
 			</span>
 			<span>
-				<md-icon ng-show="!isPublic">
+				<md-icon ng-show="isPublic === 'no'">
 					<md-tooltip>This is visible only to you</md-tooltip>
 					lock
 				</md-icon>
@@ -30,11 +30,21 @@
 						flex="100"></arb-page-title>
 				<div class="md-warn" style="white-space: nowrap" ng-show="showRedLinkCount">
 					<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
-					<span ng-bind="page.todoCount"></span>
-					+ <span ng-bind="page.redLinkCount"></span> |&nbsp;
+					<span ng-bind="page.todoCount"></span> + <span ng-bind="page.redLinkCount"></span>
 				</div>
-				<div style="white-space: nowrap">
-					last edited <span ng-bind="page.createdAt | relativeDateTime"></span>
+				<div style="white-space: nowrap" ng-show="showLastEdit">
+					<span class="separator" ng-show="showRedLinkCount"></span>
+					edited <span ng-bind="page.createdAt | relativeDateTime"></span>
+				</div>
+				<div style="white-space: nowrap" ng-show="page.type === 'question'">
+					<span class="separator" ng-show="showRedLinkCount || showLastEdit"></span>
+					<md-icon>font_download</md-icon>
+					<span ng-bind="page.commentCount"></span>
+				</div>
+				<div style="white-space: nowrap" ng-show="showCommentCount && page.type !== 'question'">
+					<span class="separator" ng-show="showRedLinkCount || showLastEdit"></span>
+					<md-icon>comment</md-icon>
+					<span ng-bind="page.commentCount"></span>
 				</div>
 			</div>
 			<md-divider ng-if="!$last"></md-divider>

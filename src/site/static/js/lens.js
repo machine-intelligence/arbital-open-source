@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive to show a lens' content
-app.directive("arbLens", function($compile, $location, $timeout, pageService, userService, autocompleteService) {
+app.directive("arbLens", function($compile, $location, $timeout, $interval, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/lens.html",
 		scope: {
@@ -25,7 +25,7 @@ app.directive("arbLens", function($compile, $location, $timeout, pageService, us
 		},
 		link: function(scope, element, attrs) {
 			// Process all embedded votes.
-			window.setTimeout(function() {
+			$timeout(function() {
 				element.find("[embed-vote-id]").each(function(index) {
 					var $link = $(this);
 					var pageAlias = $link.attr("embed-vote-id");

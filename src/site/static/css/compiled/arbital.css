@@ -8,6 +8,11 @@ body {
   .full-height [md-tabs-template] {
     height: 100%; }
 
+.reveal-after-render-parent {
+  visibility: hidden !important; }
+  .reveal-after-render-parent .reveal-after-render {
+    visibility: hidden !important; }
+
 .edit-comment-embed .wmd-input {
   height: 50vh; }
 
@@ -104,6 +109,23 @@ md-tooltip .md-content {
 md-list {
   padding: 0; }
 
+.md-button {
+  margin: 0; }
+
+.md-subheader {
+  background-color: silver; }
+  .md-subheader.md-primary {
+    background-color: lightblue; }
+  .md-subheader.md-accent {
+    background-color: pink; }
+  .md-subheader.md-warn {
+    background-color: orange; }
+  .md-subheader .md-subheader-inner {
+    padding: 4px; }
+
+.md-toolbar-tools a {
+  white-space: nowrap; }
+
 /*md-icon.material-icons {
 	width: 1em;
 	height: 1em;
@@ -115,7 +137,8 @@ md-list {
   color: #c70a0a; }
 
 arb-likes {
-  white-space: nowrap; }
+  white-space: nowrap;
+  margin: 0 10px 0 0; }
 
 arb-intrasite-popover {
   position: absolute;
@@ -152,10 +175,11 @@ arb-compose-fab {
     min-width: 24px;
     margin: 0px 5px;
     padding: 0; }
-  .wmd-button-bar .separator {
-    margin: 10px 10px;
-    width: 1px;
-    background-color: silver; }
+
+.separator {
+  margin: 10px 10px;
+  padding: 0 1px 0 0;
+  background-color: silver; }
 
 .wmd-input {
   width: 100%;
@@ -167,5 +191,8 @@ arb-compose-fab {
 
 .wmd-preview-separator {
   width: 20px; }
+
+.selected-subpage {
+  border: blue 1px solid; }
 
 /*# sourceMappingURL=arbital.css.map */

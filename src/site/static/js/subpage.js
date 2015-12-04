@@ -31,6 +31,11 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, pageService
 				$scope.myUrl = pageService.getPageUrl($scope.page.pageId);
 			}
 
+			// Check if this comment is selected via URL hash
+			$scope.isSelected = function() {
+				return $location.hash() === "subpage-" + $scope.page.pageId;
+			};
+
 			// Gah! Stupid! TODO: move these to pageServie
 			$scope.newCommentFn2 = function(options) {
 				return $scope.newCommentFn({options: options});

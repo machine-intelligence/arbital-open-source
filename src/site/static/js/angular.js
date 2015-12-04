@@ -56,7 +56,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 });
 
 // ArbitalCtrl is used across all pages.
-app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $compile, $mdDialog, userService, pageService, popoverService) {
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -110,6 +110,25 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 				document.title = "Error - Arbital";
 			}
 			if (result.element) {
+				// Only show the element after it and all the children have been fully compiled and linked
+				result.element.addClass("reveal-after-render-parent");
+				$("#loading-bar").show();
+				var revealInterval = $interval(function() {
+					var hiddenChildren = result.element.find(".reveal-after-render");
+					if (hiddenChildren.length > 0) {
+						hiddenChildren.each(function() {
+							if ($(this).children().length > 0) {
+								$(this).removeClass("reveal-after-render");
+							}
+						});
+						return;
+					}
+					$interval.cancel(revealInterval);
+					result.element.removeClass("reveal-after-render-parent");
+					$("#loading-bar").hide();
+					$anchorScroll();
+				}, 50);
+
 				$("[ng-view]").append(result.element);
 			}
 			if (result.title) {
@@ -121,7 +140,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	// Returns a function we can use as error handler for POST requests for dynamic data.
 	$scope.getErrorFunc = function(urlPageType) {
 		return function(data, status){
-			console.log("Error /json/" + urlPageType + "/:"); console.log(data); console.log(status);
+			console.error("Error /json/" + urlPageType + "/:"); console.log(data); console.log(status);
 			$(".global-error").text(data).show();
 			document.title = "Error - Arbital";
 		};
@@ -182,9 +201,11 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 	$http({method: "POST", url: "/json/domainPage/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
 		$scope.indexPageIdsMap = data.result;
+		var groupId = pageService.pageMap[pageService.domainAlias].pageId;
 		return {
-			title: pageService.pageMap[pageService.domainAlias].title,
-			element: $compile("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+			title: pageService.pageMap[groupId].title,
+			element: $compile("<arb-group-index group-id='" + groupId +
+				"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("domainPage"));
@@ -284,7 +305,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 					};
 					return {
 						title: "Edit " + (page.title ? page.title : "New Page"),
-						element: $compile("<div arb-edit-page class='full-height' page-id='" + pageId +
+						element: $compile("<div arb-edit-page class='full-height page-id='" + pageId +
 							"' done-fn='doneFn(result)' use-full-view='true'></div>")($scope),
 					};
 				}),

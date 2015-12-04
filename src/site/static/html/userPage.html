@@ -11,13 +11,14 @@
 	<div layout="row">
 		<div flex="5"></div>
 		<arb-user-page-panel panel-title="Recently created pages"
-				is-public="true"
+				is-public="yes"
+				show-last-edit="true"
 				show-red-link-count="{{userId === userService.user.id}}"
 				page-ids="idsMap.recentlyCreatedIds"
 				flex="40"></arb-user-page-panel>
 		<div flex="10"></div>
 		<arb-user-page-panel panel-title="Recently created comments"
-				is-public="true"
+				is-public="yes"
 				page-ids="idsMap.recentlyCreatedCommentIds"
 				flex="40"></arb-user-page-panel>
 		<div flex="5"></div>
@@ -27,12 +28,12 @@
 	<div layout="row">
 		<div flex="5"></div>
 		<arb-user-page-panel panel-title="Top pages"
-				is-public="true"
+				is-public="yes"
 				page-ids="idsMap.topPagesIds"
 				flex="40"></arb-user-page-panel>
 		<div flex="10"></div>
 		<arb-user-page-panel panel-title="Recently edited"
-				is-public="true"
+				is-public="yes"
 				show-red-link-count="{{userId === userService.user.id}}"
 				show-quick-edit-link="true"
 				page-ids="idsMap.recentlyEditedIds"
@@ -44,7 +45,8 @@
 	<div layout="row" ng-if="userId === userService.user.id">
 		<div flex="5"></div>
 		<arb-user-page-panel panel-title="Pages with drafts"
-				is-public="false"
+				is-public="no"
+				show-last-edit="true"
 				use-edit-map="true"
 				hide-likes="true"
 				show-quick-edit="true"
@@ -52,7 +54,8 @@
 				flex="40"></arb-user-page-panel>
 		<div flex="10"></div>
 		<arb-user-page-panel panel-title="Pages with most TODOs"
-				is-public="false"
+				is-public="no"
+				show-last-edit="true"
 				show-red-link-count="true"
 				show-quick-edit-link="true"
 				page-ids="idsMap.mostTodosIds"

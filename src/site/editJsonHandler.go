@@ -14,7 +14,8 @@ var editHandler = siteHandler{
 	URI:         "/json/edit/",
 	HandlerFunc: editJsonHandler,
 	Options: pages.PageOptions{
-		RequireLogin: true,
+		RequireLogin:    true,
+		LoadUpdateCount: true,
 	},
 }
 

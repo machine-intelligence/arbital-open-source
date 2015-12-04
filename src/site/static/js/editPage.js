@@ -17,7 +17,6 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			$scope.page = pageService.editMap[$scope.pageId];
 			$scope.selectedTab = ($scope.page.wasPublished || $scope.page.title.length > 0) ? 1 : 0;
 			$scope.fullView = $scope.useFullView;
-			$scope.revealAfterRender = false;
 
 			// Return true if we should be using a table layout (so we can stack right
 			// and left columns vertically)
@@ -423,10 +422,6 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 						if(callback) callback(data);
 					});
 				};
-
-				$timeout(function() {
-					scope.revealAfterRender = true;
-				});
 			});
 		},
 	};

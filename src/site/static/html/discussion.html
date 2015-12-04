@@ -3,7 +3,8 @@
 	<h2>Discussion</h2>
 
 	<div ng-repeat="subpageId in page.subpageIds">
-		<arb-subpage lens-id="{{page.pageId}}"
+		<arb-subpage class="reveal-after-render"
+				lens-id="{{page.pageId}}"
 				page-id="{{subpageId}}"
 				new-comment-fn="newComment(options)"
 				load-comment-edit-fn="loadCommentEdit(options)"

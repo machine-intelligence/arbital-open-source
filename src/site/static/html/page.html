@@ -1,6 +1,9 @@
-<div layout="row" layout-margin>
+<div id="subpage-{{page.pageId}}" layout="row" layout-margin>
 	<!-- Primary column -->
-	<div class="md-whiteframe-1dp" layout="column" flex="70">
+	<div class="md-whiteframe-1dp"
+			ng-class="{'selected-subpage': isSelected()}"
+			layout="column"
+			flex="70">
 		<!-- Parents -->
 		<div>
 			<span ng-repeat="(index, parentId) in page.parentIds">
@@ -31,7 +34,6 @@
 		<!-- Lens tabs -->
 		<md-tabs md-dynamic-height
 				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
-				ng-style="{'min-height': tabsMinHeight}"
 				md-selected="selectedLensIndex">
 			<md-tab ng-repeat="lensId in page.lensIds"
 					md-on-select="tabSelect(lensId)">
@@ -41,13 +43,13 @@
 					<md-icon>done</md-icon>
 				</md-tab-label>
 				<md-tab-body>
-					<div ng-style="{'min-height': tabsMinHeight}"
+					<div ng-style="{'min-height': 500}"
 							layout="column"
 							layout-align="center center"
 							ng-if="!isLoaded(lensId)">
 						<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 					</div>
-					<arb-lens page-id="{{lensId}}" ng-if="isLoaded(lensId)"></arb-lens>
+					<arb-lens class="reveal-after-render" page-id="{{lensId}}" ng-if="isLoaded(lensId)"></arb-lens>
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>

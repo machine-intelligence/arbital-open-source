@@ -20,7 +20,7 @@
 		<span flex="10"></span>
 
 		<!-- Updates -->
-		<md-button class="md-icon-button" ng-show="userService.user.isLoggedIn">
+		<md-button href="/updates/" class="md-icon-button" ng-show="userService.user.isLoggedIn">
 			<md-icon ng-show="userService.user.updateCount <= 0">notifications_none</md-icon>
 			<md-icon ng-show="userService.user.updateCount > 0">notifications</md-icon>
 			<span ng-bind="userService.user.updateCount" ng-show="userService.user.updateCount > 0"></span>
@@ -45,6 +45,7 @@
     </md-button>
 	</div>
 </md-toolbar>
+<md-progress-linear id="loading-bar" md-mode="indeterminate" hide></md-progress-linear>
 
 <!-- Right sidenav slide out; only if the user is logged in -->
 <md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right">

@@ -19,6 +19,15 @@ body {
 	}
 }
 
+// Use this class to reveal the element after it and the children are linked
+.reveal-after-render-parent {
+	visibility: hidden !important;
+
+	.reveal-after-render {
+		visibility: hidden !important;
+	}
+}
+
 // Container for the new/edit comment; embedded in the discussion section
 .edit-comment-embed {
 	.wmd-input {
@@ -188,6 +197,33 @@ md-list {
 	padding: 0;
 }
 
+.md-button {
+	margin: 0;
+};
+
+.md-subheader {
+	background-color: silver;
+
+	&.md-primary {
+		background-color: lightblue;
+	}
+	&.md-accent {
+		background-color: pink;
+	}
+	&.md-warn {
+		background-color: orange;
+	}
+
+	.md-subheader-inner {
+		padding: 4px;
+	}
+}
+
+.md-toolbar-tools a {
+	// Prevent links from wrapping inside toolbars
+	white-space: nowrap;
+}
+
 // Style all md-icons to have size proportionate to the font size
 /*md-icon.material-icons {
 	width: 1em;
@@ -204,6 +240,7 @@ md-list {
 
 arb-likes {
 	white-space: nowrap;
+	margin: 0 10px 0 0;
 }
 
 // Intrasite popover
@@ -261,12 +298,12 @@ arb-compose-fab {
 		padding: 0;
 	}
 
+}
 	.separator {
 		margin: 10px 10px;
-		width: 1px;
+		padding: 0 1px 0 0;
 		background-color: silver;
 	}
-}
 
 // Textarea for editing markdown
 .wmd-input {
@@ -281,4 +318,9 @@ arb-compose-fab {
 // Div for the preview separator
 .wmd-preview-separator {
 	width: 20px;
+}
+
+// Highlight subpages when they are selected
+.selected-subpage {
+	border: blue 1px solid;
 }

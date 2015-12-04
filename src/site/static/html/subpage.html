@@ -1,5 +1,7 @@
-<div layout="column"
+<div id="subpage-{{page.pageId}}"
+		layout="column"
 		class="md-whiteframe-1dp"
+		ng-class="{'selected-subpage': isSelected()}"
 		ng-mouseenter="hovering = true"
 		ng-mouseleave="hovering = false">
 	<!-- Comment header -->

@@ -22,10 +22,14 @@ app.directive("arbUserPagePanel", function(pageService, userService) {
 		scope: {
 			pageIds: "=",
 			panelTitle: "@",
+			// Whether to show a public/private icon, pass in "yes"/"no" respectively.
 			isPublic: "@",
 			hideLikes: "@",
+			showLastEdit: "@",
 			showQuickEdit: "@",
 			showRedLinkCount: "@",
+			showCommentCount: "@",
+			// If set, we'll pull the page from the editMap instead of pageMap
 			useEditMap: "@",
 		},
 		link: function(scope, element, attrs) {

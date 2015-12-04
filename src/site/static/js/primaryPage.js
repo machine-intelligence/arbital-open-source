@@ -42,6 +42,20 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 					window.location.reload();
 				}
 			};
+
+			// Called when the user selects an answer to suggest
+			scope.suggestedAnswer = function(result) {
+				if (!result) return;
+				var data = {
+					parentId: scope.page.pageId,
+					childId: result.label,
+					type: "parent",
+				};
+				pageService.newPagePair(data, function() {
+					window.location.href = pageService.getPageUrl(scope.page.pageId) + "#subpage-" + result.label;
+					window.location.reload();
+				});
+			};
 		},
 	};
 });

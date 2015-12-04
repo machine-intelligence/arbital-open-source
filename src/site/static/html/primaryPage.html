@@ -1,34 +1,31 @@
 <div layout="column">
 	<!-- The primary page -->
-	<arb-page page-id="{{pageService.primaryPage.pageId}}"></arb-page>
+	<arb-page class="reveal-after-render" page-id="{{pageService.primaryPage.pageId}}"></arb-page>
 
 	<!-- Answers for a question page -->
 	<div ng-show="page.type === 'question'">
 		<h1>Answers ({{page.answerIds.length}})</h1>
 		<div ng-repeat="answerId in page.answerIds">
-			<arb-page page-id="{{answerId}}"></arb-page>
+			<arb-page class="reveal-after-render" page-id="{{answerId}}"></arb-page>
 		</div>
 	</div>
 
 	<!-- Create an answer -->
 	<div id="your-answer" ng-show="page.type === 'question'">
-		<h1>Your Answer</h1>
+		<h2>Suggest an answer</h2>
+		<arb-autocomplete placeholder="Find existing answers..."
+				page-type="answer"
+				on-select="suggestedAnswer(result)"></arb-autocomplete>
 
+		<h2>Or write a new one</h2>
+
+		<!-- New Answer for a question page -->
 		<div arb-edit-page
-				class="new-answer-div"
+				class="new-answer-div reveal-after-render"
 				use-full-view="true"
 				page-id="{{newAnswerId}}"
 				done-fn="answerDone(result)"
 				ng-if="newAnswerId"></div>
-
-		<!-- New Answer for a question page -->
-		<!--
-			<h2>Or add an existing answer</h2>
-			<input type="text"
-					class="form-control"
-					placeholder="Find existing answer"
-					ng-model="findAnswerTerm">
-		-->
 	</div>
 	
 	<div layout="row" layout-margin>

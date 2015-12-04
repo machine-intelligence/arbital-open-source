@@ -148,7 +148,7 @@ app.directive("arbLikes", function($http, pageService, userService) {
 
 			// User clicked on the like button
 			scope.likeClick = function() {
-				scope.page.myLikeValue = 1 - scope.page.myLikeValue;
+				scope.page.myLikeValue = Math.min(1, 1 - scope.page.myLikeValue);
 
 				var data = {
 					pageId: scope.page.pageId,
@@ -233,7 +233,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 					label4: "Approve",
 					label5: "Strongly\nApprove",
 					toString: function(value) {
-						return (value > 0 ? "+" : "") + (value / 10).toFixed(1);
+						return "";
 					},
 					bucketCount: 9,
 					min: -50,
@@ -406,13 +406,15 @@ app.directive("arbAutocomplete", function($q, pageService, autocompleteService) 
 		scope: {
 			autofocus: "@",
 			placeholder: "@",
+			// If set, the search will be constrained to this page type
+			pageType: "@",
 			onSelect: "&",
 		},
 		controller: function($scope) {
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
 				var deferred = $q.defer();
-				autocompleteService.performSearch({term: text}, function(results) {
+				autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
 					deferred.resolve(results);
 				});
         return deferred.promise;

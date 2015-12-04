@@ -12,6 +12,9 @@ import (
 var groupsHandler = siteHandler{
 	URI:         "/json/groups/",
 	HandlerFunc: groupsJsonHandler,
+	Options: pages.PageOptions{
+		LoadUpdateCount: true,
+	},
 }
 
 func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {

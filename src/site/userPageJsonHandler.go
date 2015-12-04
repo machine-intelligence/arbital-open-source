@@ -13,6 +13,9 @@ import (
 var userPageHandler = siteHandler{
 	URI:         "/json/userPage/",
 	HandlerFunc: userPageJsonHandler,
+	Options: pages.PageOptions{
+		LoadUpdateCount: true,
+	},
 }
 
 type userPageJsonData struct {

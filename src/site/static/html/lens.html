@@ -1,11 +1,12 @@
 <div layout="column">
 	<!-- Requirements -->
-	<arb-relationships page-id="{{page.pageId}}"
+	<arb-relationships class="reveal-after-render"
+			page-id="{{page.pageId}}"
 			type="requirement"
 			custom-title="This version relies on:"></arb-relationships>
 
 	<!-- Page's text. Populated by markdown. -->
-	<arb-markdown page-id="{{page.pageId}}"></arb-markdown>
+	<arb-markdown class="reveal-after-render" page-id="{{page.pageId}}"></arb-markdown>
 
 	<!-- Mastery container -->
 	<div>
@@ -23,5 +24,5 @@
 		</md-button>
 	</div>
 
-	<arb-discussion page-id="{{page.pageId}}"></arb-discussion>
+	<arb-discussion class="reveal-after-render" page-id="{{page.pageId}}"></arb-discussion>
 </div>

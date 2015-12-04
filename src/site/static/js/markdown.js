@@ -199,7 +199,7 @@ app.service("markdownService", function(pageService){
 // Directive for rendering markdown text.
 app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdownService) {
 	return {
-		template: "<div class='markdown-text'></div>",
+		template: "<div class='markdown-text reveal-after-render'></div>",
 		scope: {
 			pageId: "@",
 			useSummary: "@",
@@ -217,6 +217,11 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			}, 100);
 		
 			markdownService.processLinks($pageText);
+
+			// Remove the class manually in case the text is empty
+			$timeout(function() {
+				element.children().removeClass("reveal-after-render");
+			});
 		},
 	};
 });

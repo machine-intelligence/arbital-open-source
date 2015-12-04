@@ -18,6 +18,9 @@ type primaryPageJsonData struct {
 var primaryPageHandler = siteHandler{
 	URI:         "/json/primaryPage/",
 	HandlerFunc: primaryPageJsonHandler,
+	Options: pages.PageOptions{
+		LoadUpdateCount: true,
+	},
 }
 
 // primaryPageJsonHandler handles the request.

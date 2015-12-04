@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for showing a standard Arbital page.
-app.directive("arbPage", function ($location, $compile, $timeout, pageService, userService) {
+app.directive("arbPage", function ($location, $compile, $timeout, $interval, pageService, userService) {
 	return {
 		templateUrl: "/static/html/page.html",
 		scope: {
@@ -23,9 +23,9 @@ app.directive("arbPage", function ($location, $compile, $timeout, pageService, u
 				scope.selectedLens = pageService.pageMap[$location.search().lens];
 			}
 			scope.selectedLensIndex = scope.page.lensIds.indexOf(scope.selectedLens.pageId);
+			scope.originalLensId = scope.selectedLens.pageId;
 
 			// Manage switching between lenses, including loading the necessary data.
-			scope.tabsMinHeight = 500; // hack to make the tabs body not collapse when transitioning
 			var switchToLens = function(lensId) {
 				if (lensId === scope.page.pageId) {
 					$location.search("lens", undefined);
@@ -33,9 +33,6 @@ app.directive("arbPage", function ($location, $compile, $timeout, pageService, u
 					$location.search("lens", lensId);
 				}
 				scope.selectedLens = pageService.pageMap[lensId];
-				$timeout(function() {
-					scope.tabsMinHeight = 0;
-				}, 1000);
 			};
 			scope.tabSelect = function(lensId) {
 				if (scope.isLoaded(lensId)) {
@@ -43,7 +40,6 @@ app.directive("arbPage", function ($location, $compile, $timeout, pageService, u
 						switchToLens(lensId);
 					});
 				} else {
-					scope.tabsMinHeight = 500;
 					pageService.loadLens(lensId, {
 						success: function(data, status) {
 							switchToLens(lensId);
@@ -53,6 +49,11 @@ app.directive("arbPage", function ($location, $compile, $timeout, pageService, u
 			};
 			scope.isLoaded = function(lensId) {
 				return pageService.pageMap[lensId].text.length > 0;
+			};
+
+			// Check if this comment is selected via URL hash
+			scope.isSelected = function() {
+				return $location.hash() === "subpage-" + scope.page.pageId;
 			};
 
 			// Set up Page JS Controller.
