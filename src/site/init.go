@@ -76,7 +76,6 @@ func init() {
 	s.HandleFunc(groupsHandler.URI, handlerWrapper(groupsHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")
 	s.HandleFunc(intrasitePopoverHandler.URI, handlerWrapper(intrasitePopoverHandler)).Methods("POST")
-	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(lensHandler.URI, handlerWrapper(lensHandler)).Methods("POST")
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
@@ -88,6 +87,7 @@ func init() {
 	s.HandleFunc(titleHandler.URI, handlerWrapper(titleHandler)).Methods("POST")
 	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
 	s.HandleFunc(userPageHandler.URI, handlerWrapper(userPageHandler)).Methods("POST")
+	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")
 
 	// POST handlers (API)

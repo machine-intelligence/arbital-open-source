@@ -72,33 +72,27 @@ app.directive("arbUserPopover", function(pageService, userService) {
 		scope: {
 			userId: "@",
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.user = userService.userMap[scope.userId];
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.user = userService.userMap[$scope.userId];
 			
 			// Fix to prevent errors when we go to another page while popover is loading.
 			// TODO: abort all http requests when switching to another page
 			var isDestroyed = false;
-			scope.$on("$destroy", function() {
+			$scope.$on("$destroy", function() {
 				isDestroyed = true;
 			});
 
 			// Check if the data is loaded
-			scope.isLoaded = function() {
-				if (!userService.userMap.hasOwnProperty(scope.userId)) {
+			$scope.isLoaded = function() {
+				if (!($scope.userId in userService.userMap)) {
 					return false;
 				}
-				return userService.userMap[scope.userId].firstName.length > 0;
+				return userService.userMap[$scope.userId].firstName.length > 0;
 			};
 
-			pageService.loadUserPopover(scope.userId, {
-				success: function() {
-//debugger;
-					var test = userService.userMap.hasOwnProperty(scope.userId);
-					if (isDestroyed) return;
-				},
-			});
+			pageService.loadUserPopover($scope.userId);
 		},
 	};
 });
@@ -182,27 +176,27 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			if (!$scope.isUser) {
-				$scope.page = pageService.pageMap[$scope.pageId];
-				$scope.isSubscribed = $scope.page.isSubscribed;
-			} else {
-				$scope.user = userService.userMap[$scope.pageId];
-				$scope.isSubscribed = $scope.user.isSubscribed;
-			}
+
+			// Check if the data is loaded
+			$scope.isSubscribed = function() {
+				if (!$scope.isUser) {
+					return pageService.pageMap[$scope.pageId].isSubscribed;
+				} else {
+					return userService.userMap[$scope.pageId].isSubscribed;
+				}
+			};
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
 				if (!$scope.isUser) {
-					$scope.isSubscribed = !$scope.isSubscribed;
-					pageService.pageMap[$scope.pageId].isSubscribed = $scope.isSubscribed;
+					pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
 				} else {
-					$scope.isSubscribed = !$scope.isSubscribed;
-					userService.userMap[$scope.pageId].isSubscribed = $scope.isSubscribed;
+					userService.userMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
 				}
 				var data = {
 					pageId: $scope.pageId,
 				};
-				var url = $scope.isSubscribed ? "/newSubscription/" : "/deleteSubscription/";
+				var url = $scope.isSubscribed() ? "/newSubscription/" : "/deleteSubscription/";
 				$http({method: "POST", url: url, data: JSON.stringify(data)})
 				.error(function(data, status){
 					console.error("Error changing a subscription:"); console.log(data); console.log(status);

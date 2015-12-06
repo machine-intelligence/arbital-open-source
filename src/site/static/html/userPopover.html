@@ -7,9 +7,10 @@
 
 	<div ng-if="isLoaded()">
 		<arb-markdown page-id="{{userId}}" use-summary="true"></arb-markdown>
-		<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
-		<br/>
-		<span>Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span></span>
+		<div layout="row" layout-align="space-between center" ng-if="isLoaded()">
+			<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
+			<span>Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span></span>
+		</div>
 	</div>
 
 	<!-- Loading spinner -->

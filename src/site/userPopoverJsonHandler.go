@@ -41,10 +41,5 @@ func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 		pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	db.C.Debugf("in userPopoverJsonHandler")
-	db.C.Debugf("data.UserId: %v", data.UserId)
-	db.C.Debugf("returnData.UserMap: %v", returnData.UserMap)
-	db.C.Debugf("returnData.UserMap[data.UserId]: %v", returnData.UserMap[data.UserId])
-
 	return pages.StatusOK(returnData.toJson())
 }

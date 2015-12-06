@@ -29,7 +29,6 @@ app.service("userService", function(){
 
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
-debugger;
 		if (data.resetEverything) {
 			that.userMap = {};
 		}

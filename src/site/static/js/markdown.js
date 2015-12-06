@@ -143,83 +143,62 @@ app.service("markdownService", function(pageService, userService){
 	this.processLinks = function($pageText, refreshFunc) {
 		// Setup attributes for page links that are within our domain.
 		// NOTE: not using $location, because we need port number
-		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
 			"\/pages\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
-		$pageText.find("a").each(function(index, element) {
-			var $element = $(element);
-			var parts = $element.attr("href").match(re);
-			if (parts === null) return;
-			var pageAlias = parts[1];
-	
-			if ($element.hasClass("intrasite-link")) {
-				return;
-			}
-			$element.addClass("intrasite-link").attr("page-id", pageAlias);
-			// Check if we are embedding a vote
-			if (parts[2].indexOf("embedVote") > 0) {
-				$element.attr("embed-vote-id", pageAlias);
-			} else if (pageAlias in pageService.pageMap) {
-				if (pageService.pageMap[pageAlias].isDeleted()) {
-					// Link to a deleted page.
-					$element.addClass("red-link");
-				} else {
-					// Normal healthy link!
-				}
-			} else {
-				// Mark as red link
-				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
-				$element.addClass("red-link");
-				if (refreshFunc) {
-					pageService.loadTitle(pageAlias, {
-						silentFail: true,
-						success: function() {
-							refreshFunc();
-						}
-					});
-				}
-			}
-		});
-debugger;
 
 		// Setup attributes for user links that are within our domain.
-		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+		var userRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
 			"\/user\/" + aliasMatch + // [1] capture user alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
+
 		$pageText.find("a").each(function(index, element) {
-debugger;
-			userService.userMap;
 			var $element = $(element);
-			var parts = $element.attr("href").match(re);
-			if (parts === null) return;
-			var userAlias = parts[1];
-	
-			if ($element.hasClass("user-link")) {
-				return;
-			}
-			$element.addClass("user-link").attr("user-id", userAlias);
-
-			// Bug: the link is red, and links to the edit page, before this code is reached
-/*
-			// show red links for invalid users
-			if (userAlias in userService.userMap) {
-				if (userService.userMap[userAlias].isDeleted()) {
-					// Link to a deleted user.
-					$element.addClass("red-link");
-				} else {
-					// Normal healthy link!
+			var parts = $element.attr("href").match(pageRe);
+			if (parts !== null)	{
+				var pageAlias = parts[1];
+				
+				if (!$element.hasClass("intrasite-link")) {
+					$element.addClass("intrasite-link").attr("page-id", pageAlias);
+					// Check if we are embedding a vote
+					if (parts[2].indexOf("embedVote") > 0) {
+						$element.attr("embed-vote-id", pageAlias);
+					} else if (pageAlias in pageService.pageMap) {
+						if (pageService.pageMap[pageAlias].isDeleted()) {
+							// Link to a deleted page.
+							$element.addClass("red-link");
+						} else {
+							// Normal healthy link!
+						}
+					} else {
+						// Mark as red link
+						$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+						$element.addClass("red-link");
+						if (refreshFunc) {
+							pageService.loadTitle(pageAlias, {
+								silentFail: true,
+								success: function() {
+									refreshFunc();
+								}
+							});
+						}
+					}
 				}
-			} else {
-				// Mark as red link
-				$element.addClass("red-link");
 			}
-*/
-		});
 
+			parts = $element.attr("href").match(userRe);
+			if (parts !== null) {
+				var userAlias = parts[1];
+				
+				if (!$element.hasClass("user-link")) {
+					$element.addClass("user-link").attr("user-id", userAlias);
+				}
+			}
+		});
 	};
 
 	this.createConverter = function() {

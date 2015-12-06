@@ -61,27 +61,20 @@ func LoadUsers(db *database.DB, userMap map[int64]*User, userId int64) error {
 	userIds := make([]interface{}, 0, len(userMap))
 	for id, _ := range userMap {
 		userIds = append(userIds, id)
-		db.C.Debugf("userId: %v", id)
 	}
 
-	fullQuery := database.NewQuery(`
-			SELECT u.id,u.firstName,u.lastName,u.lastWebsiteVisit,!ISNULL(s.userId)
+	rows := database.NewQuery(`
+		SELECT u.id,u.firstName,u.lastName,u.lastWebsiteVisit,!ISNULL(s.userId)
 		FROM (
 			SELECT *
 			FROM users
 			WHERE id IN `).AddArgsGroup(userIds).Add(`
-		) AS u LEFT JOIN (
+		) AS u
+		LEFT JOIN (
 			SELECT *
 			FROM subscriptions WHERE userId=?`, userId).Add(`
 		) AS s
-		ON (u.id=s.toId)`).ToStatement(db)
-
-	db.C.Debugf("query: %v", fullQuery)
-	db.C.Debugf("userIds: %v", userIds)
-	db.C.Debugf("userId: %v", userId)
-
-	rows := fullQuery.Query()
-
+		ON (u.id=s.toId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var u User
 		err := rows.Scan(&u.Id, &u.FirstName, &u.LastName, &u.LastWebsiteVisit, &u.IsSubscribed)
