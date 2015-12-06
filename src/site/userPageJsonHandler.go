@@ -98,7 +98,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM pages AS p
 			JOIN pageInfos AS pi
 			ON (p.pageId = pi.pageId)
-			WHERE p.creatorId=? AND pi.type!=? AND p.edit>pi.currentEdit AND pi.seeGroupId=?
+			WHERE p.creatorId=? AND pi.type!=? AND p.edit>pi.currentEdit AND pi.seeGroupId=? AND (p.text!="" OR p.title!="")
 			GROUP BY p.pageId
 			ORDER BY p.createdAt DESC
 			LIMIT ?`).Query(data.UserId, core.CommentPageType, params.PrivateGroupId, indexPanelLimit)

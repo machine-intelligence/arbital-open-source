@@ -109,8 +109,19 @@ md-tooltip .md-content {
 md-list {
   padding: 0; }
 
+md-dialog {
+  width: 90vw;
+  height: 90vh; }
+  md-dialog md-dialog-content {
+    position: relative;
+    top: -64px;
+    padding-top: 64px;
+    margin-bottom: -64px;
+    box-sizing: border-box;
+    height: 100%; }
+
 .md-button {
-  margin: 0; }
+  margin: 3px; }
 
 .md-subheader {
   background-color: silver; }
@@ -175,6 +186,11 @@ arb-compose-fab {
     min-width: 24px;
     margin: 0px 5px;
     padding: 0; }
+  .wmd-button-bar a {
+    width: 24px;
+    min-width: 24px;
+    margin: 0px 5px;
+    padding: 0; }
 
 .separator {
   margin: 10px 10px;
@@ -194,5 +210,17 @@ arb-compose-fab {
 
 .selected-subpage {
   border: blue 1px solid; }
+
+.inline-comment-icon {
+  position: absolute;
+  z-index: 1; }
+
+.inline-comment-text {
+  background-color: lightblue; }
+
+.inline-comment-container {
+  margin: 20px;
+  max-height: 70vh;
+  overflow-y: auto; }
 
 /*# sourceMappingURL=arbital.css.map */

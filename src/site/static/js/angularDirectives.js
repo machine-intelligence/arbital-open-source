@@ -7,9 +7,9 @@ app.directive("arbUserName", function(userService) {
 		scope: {
 			userId: "@",
 		},
-		link: function(scope, element, attrs) {
-			scope.userService = userService;
-			scope.user = userService.userMap[scope.userId];
+		controller: function($scope) {
+			$scope.userService = userService;
+			$scope.user = userService.userMap[$scope.userId];
 		},
 	};
 });
@@ -21,31 +21,31 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 		scope: {
 			pageId: "@",
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
 			
 			// Fix to prevent errors when we go to another page while popover is loading.
 			// TODO: abort all http requests when switching to another page
 			var isDestroyed = false;
-			scope.$on("$destroy", function() {
+			$scope.$on("$destroy", function() {
 				isDestroyed = true;
 			});
 
 			// Add the primary page as the first lens.
-			if (scope.page.lensIds.indexOf(scope.page.pageId) < 0) {
-				scope.page.lensIds.unshift(scope.page.pageId);
+			if ($scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
+				$scope.page.lensIds.unshift($scope.page.pageId);
 			}
 
 			// Check if a lens is loaded
-			scope.isLoaded = function(lensId) {
+			$scope.isLoaded = function(lensId) {
 				return pageService.pageMap[lensId].summary.length > 0;
 			};
 
 			// Called when a tab is selected
-			scope.tabSelect = function(lensId) {
-				if (scope.isLoaded(lensId)) return;
+			$scope.tabSelect = function(lensId) {
+				if ($scope.isLoaded(lensId)) return;
 				// Fetch page data from the server.
 				pageService.loadIntrasitePopover(lensId, {
 					success: function() {
@@ -55,8 +55,8 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 							lens.summary = " "; // to avoid trying to load it again
 						}
 						// Page's lensIds got resent, so need to fix this again
-						if (scope.page.lensIds.indexOf(scope.page.pageId) < 0) {
-							scope.page.lensIds.unshift(scope.page.pageId);
+						if ($scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
+							$scope.page.lensIds.unshift($scope.page.pageId);
 						}
 					},
 				});
@@ -82,50 +82,17 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			// If set, we'll pull the page from the edit map
 			useEditMap: "@",
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = (scope.useEditMap ? pageService.editMap : pageService.pageMap)[scope.pageId];
-			scope.pageTitle = scope.page.title;
-			if (scope.page.type === "comment") {
-				scope.pageTitle = "*Comment*";
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.page = ($scope.useEditMap ? pageService.editMap : pageService.pageMap)[$scope.pageId];
+			$scope.pageTitle = $scope.page.title;
+			if ($scope.page.type === "comment") {
+				$scope.pageTitle = "*Comment*";
 			}
-			if (scope.customPageTitle) {
-				scope.pageTitle = scope.customPageTitle;
+			if ($scope.customPageTitle) {
+				$scope.pageTitle = $scope.customPageTitle;
 			}
-		},
-	};
-});
-
-// confirmPopover displays a confirmation popover, with a custom message,
-// with callbacks for confirm and cancel, which get passed pageId
-app.directive("arbConfirmPopover", function(pageService, userService) {
-	return {
-		templateUrl: "/static/html/confirmPopover.html",
-		scope: {
-			message: "@",
-			pageId: "@",
-			xPos: "@",
-			yPos: "@",
-			// The callbacks will close the popover if the return value is not true
-			confirmFn: "&",
-			// The cancel callback is optional.  If there is no cancel callback, the popover will simply close
-			// If this is not set, then angular will use an empty function, that returns "undefined"
-			cancelFn: "&",
-		},
-		link: function(scope, element, attrs) {
-			element.find(".confirm-popover-button").on("click", function(event) {
-				var result = scope.confirmFn({returnedPageId: scope.pageId});
-				if (!result) {
-					element.remove();
-				}
-			});
-			element.find(".cancel-popover-button").on("click", function(event) {
-				var result = scope.cancelFn({returnedPageId: scope.pageId});
-				if (!result) {
-					element.remove();
-				}
-			});
 		},
 	};
 });
@@ -141,18 +108,18 @@ app.directive("arbLikes", function($http, pageService, userService) {
 			// Whether or not we show likes as a button or a span
 			isButton: "@",
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// User clicked on the like button
-			scope.likeClick = function() {
-				scope.page.myLikeValue = Math.min(1, 1 - scope.page.myLikeValue);
+			$scope.likeClick = function() {
+				$scope.page.myLikeValue = Math.min(1, 1 - $scope.page.myLikeValue);
 
 				var data = {
-					pageId: scope.page.pageId,
-					value: scope.page.myLikeValue,
+					pageId: $scope.page.pageId,
+					value: $scope.page.myLikeValue,
 				};
 				$http({method: "POST", url: "/newLike/", data: JSON.stringify(data)})
 				.error(function(data, status){
@@ -172,159 +139,22 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 			// If true, the button is not an icon button, but is a normal button with a label
 			isStretched: "@",
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// User clicked on the subscribe button
-			scope.subscribeClick = function() {
-				scope.page.isSubscribed = !scope.page.isSubscribed;
+			$scope.subscribeClick = function() {
+				$scope.page.isSubscribed = !$scope.page.isSubscribed;
 				var data = {
-					pageId: scope.page.pageId,
+					pageId: $scope.page.pageId,
 				};
-				var url = scope.page.isSubscribed ? "/newSubscription/" : "/deleteSubscription/";
+				var url = $scope.page.isSubscribed ? "/newSubscription/" : "/deleteSubscription/";
 				$http({method: "POST", url: url, data: JSON.stringify(data)})
 				.error(function(data, status){
 					console.error("Error changing a subscription:"); console.log(data); console.log(status);
 				});
-			};
-		},
-	};
-});
-
-// Directive for showing a vote bar.
-app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, userService) {
-	return {
-		templateUrl: "/static/html/voteBar.html",
-		scope: {
-			pageId: "@",
-			isPopoverVote: "@",
-		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
-			var userId = userService.user.id;
-
-			// Value of the current user's vote
-			scope.userVoteValue = undefined;
-			var typeHelpers = {
-				probability: {
-					headerLabel: "What's the probability of this claim being true?",
-					label1: "0%",
-					label2: "25%",
-					label3: "50%",
-					label4: "75%",
-					label5: "100%",
-					toString: function(value) { return value + "%"; },
-					bucketCount: 10,
-					min: 0,
-					max: 100,
-					makeValid: function(value) { return Math.max(1, Math.min(99, Math.round(value))); },
-					getFlex: function(n) { return 10; },
-					getBucketIndex: function(value) { return Math.floor(value / 10); },
-				},
-				approval: {
-					headerLabel: "What's the approval rating of this proposal?",
-					label1: "Strongly\nDisapprove",
-					label2: "Disapprove",
-					label3: "Neutral",
-					label4: "Approve",
-					label5: "Strongly\nApprove",
-					toString: function(value) {
-						return "";
-					},
-					bucketCount: 9,
-					min: -50,
-					max: 50,
-					makeValid: function(value) { return Math.max(-50, Math.min(50, Math.round(value))); },
-					getFlex: function(n) { return n == 4 ? 20 : 10; },
-					getBucketIndex: function(value) {
-						value = (value < 0 ? value + 1 : value - 1) / 10;
-						value = value < 0 ? Math.ceil(value) : Math.floor(value);
-						return value + 4;
-					},
-				},
-			};
-			scope.isProbability = scope.page.voteType === "probability";
-			scope.isApproval = scope.page.voteType === "approval";
-			scope.typeHelper = typeHelpers[scope.page.voteType];
-
-			// Create vote buckets
-			scope.voteBuckets = [];
-			for (var n = 0; n < scope.typeHelper.bucketCount; n++) {
-				scope.voteBuckets.push({normValue: 0, flex: scope.typeHelper.getFlex(n), votes: []});
-			}
-			// Fill buckets.
-			for(var i = 0; i < scope.page.votes.length; i++) {
-				var vote = scope.page.votes[i];
-				var bucket = scope.voteBuckets[scope.typeHelper.getBucketIndex(vote.value)];
-				if (vote.userId === userService.user.id) {
-					scope.userVoteValue = vote.value;
-				} else {
-					bucket.votes.push({userId: vote.userId, value: vote.value, createdAt: vote.createdAt});
-				}
-			}
-			// Normalize values and sort votes.
-			for (var n = 0; n < scope.typeHelper.bucketCount; n++) {
-				scope.voteBuckets[n].normValue = scope.voteBuckets[n].votes.length / scope.page.votes.length;
-				scope.voteBuckets[n].votes.sort(function(a, b) {
-					if (a.value === b.value) {
-						return a.createdAt < b.createdAt;
-					}
-					return a.value - b.value;
-				});
-			}
-
-			// Send a new probability vote value to the server.
-			var postNewVote = function() {
-				var data = {
-					pageId: scope.page.pageId,
-					value: scope.userVoteValue || 0.0,
-				};
-				$http({method: "POST", url: "/newVote/", data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error changing a vote:"); console.log(data); console.log(status);
-				});
-			}
-
-			var $voteBarBody = element.find(".vote-bar-body");
-			// Bucket the user is hovering over
-			scope.selectedVoteBucket = undefined;
-			// Convert mouseX position to selected value on the bar.
-			scope.offsetToValue = function(pageX) {
-				var range = scope.typeHelper.max - scope.typeHelper.min;
-				var value = ((pageX - $voteBarBody.offset().left) * range) / $voteBarBody.width() + scope.typeHelper.min;
-				return scope.typeHelper.makeValid(value);
-			};
-			// Convert given value to 0-100% offset for the bar.
-			scope.valueToOffset = function(value) {
-				var range = scope.typeHelper.max - scope.typeHelper.min;
-				value = ((value - scope.typeHelper.min) * 100) / range;
-				return value + "%";
-			};
-
-			// Hande mouse events
-			scope.isHovering = false;
-			scope.newVoteValue = undefined;
-			scope.voteMouseMove = function(event, leave) {
-				scope.newVoteValue = scope.offsetToValue(event.pageX);
-				scope.selectedVoteBucket = scope.voteBuckets[scope.typeHelper.getBucketIndex(scope.newVoteValue)];
-				if (leave && scope.selectedVoteBucket.votes.length <= 0) {
-					scope.selectedVoteBucket = undefined;
-				}
-				scope.isHovering = !leave;
-			};
-			scope.voteMouseClick = function(event, leave) {
-				scope.userVoteValue = scope.offsetToValue(event.pageX);
-				postNewVote();
-			};
-
-			// Process deleting user's vote
-			scope.deleteMyVote = function() {
-				scope.userVoteValue = undefined;
-				postNewVote();
 			};
 		},
 	};
@@ -390,8 +220,9 @@ app.directive("arbComposeFab", function($location, pageService, userService) {
 
 			$scope.$on("$locationChangeSuccess", function () {
 				$scope.hide = $location.path().indexOf("/edit") === 0;
-				// BLAH!
-				$("body").toggleClass("autocompleteBodyFix", !$scope.hide);
+				// NOTE: there is a bug where autocomplete dropdown inside an embedded
+				// comment edit totally messes up the scrolling. This is the workaround.
+				$("body").toggleClass("autocomplete-body-fix", !$scope.hide);
 			});
 			$scope.hide = $location.path().indexOf("/edit") === 0;
 			$("body").toggleClass("autocomplete-body-fix", !$scope.hide);
@@ -428,3 +259,79 @@ app.directive("arbAutocomplete", function($q, pageService, autocompleteService) 
 	};
 });
 
+// confirmButton is a button that ask for a confirmation when you press it
+app.directive("arbConfirmButton", function() {
+	return {
+		templateUrl: "/static/html/confirmButton.html",
+		scope: {
+			buttonText: "@",
+			buttonBeforeConfirm: "@",
+			disabled: "=",
+			confirmed: "&",
+		},
+		controller: function($scope) {
+			$scope.confirming = false;
+			$scope.buttonFlexOrder = $scope.buttonBeforeConfirm ? -1 : 1;
+
+			$scope.toggleConfirming = function(confirming) {
+				$scope.confirming = confirming;
+			};
+		},
+	};
+});
+
+// Directive for the User page panel
+app.directive("arbPageList", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/pageList.html",
+		scope: {
+			pageIds: "=",
+			panelTitle: "@",
+			// Whether to show a public/private icon, pass in "yes"/"no" respectively.
+			isPublic: "@",
+			hideLikes: "@",
+			showLastEdit: "@",
+			showQuickEdit: "@",
+			showRedLinkCount: "@",
+			showCommentCount: "@",
+			// If set, we'll pull the page from the editMap instead of pageMap
+			useEditMap: "@",
+		},
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+
+			$scope.getPage = function(pageId) {
+				if ($scope.useEditMap) {
+					return pageService.editMap[pageId];
+				} 
+				return pageService.pageMap[pageId];
+			};
+		},
+	};
+});
+
+// Directive for checking if the user meets the necessary permissions
+app.directive("arbUserCheck", function($compile, $mdToast, pageService, userService) {
+	return {
+		restrict: "A",
+		controller: function($scope) {
+			$scope.showUserCheckToast = function(message) {
+				$mdToast.show($mdToast.simple().textContent(message));
+			};
+		},
+		compile: function compile(element, attrs) {
+			var check = attrs.arbUserCheck;
+			var failMessage = "";
+			if (userService.user.id === "0") {
+				failMessage = "Login required";
+			} else if (check === "cool") {
+				failMessage = "You have a limited account";
+			}
+			if (failMessage) {
+				element.prepend(angular.element("<md-tooltip>" + failMessage + "</md-tooltip>"));
+				attrs.ngClick = "showUserCheckToast('" + failMessage + "')";
+			}
+		},
+	};
+});

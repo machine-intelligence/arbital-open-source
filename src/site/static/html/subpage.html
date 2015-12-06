@@ -3,7 +3,8 @@
 		class="md-whiteframe-1dp"
 		ng-class="{'selected-subpage': isSelected()}"
 		ng-mouseenter="hovering = true"
-		ng-mouseleave="hovering = false">
+		ng-mouseleave="hovering = false"
+		ng-if="!isDeleted">
 	<!-- Comment header -->
 	<div layout="row" layout-align="start center" ng-if="isComment">
 		<md-icon>comment</md-icon>
@@ -22,6 +23,12 @@
 		</div>
 
 		<!-- RHS icons -->
+		<arb-confirm-button
+				confirmed="deleteSubpage()"
+				show-icon="true"
+				disabled="editing"
+				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}"
+				ng-if="page.creatorId === userService.user.id && isComment"></arb-confirm-button>
 		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
 				class="md-icon-button"
 				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}"
@@ -50,7 +57,7 @@
 		<!-- Edit this subpage -->
 		<div arb-edit-page
 				class="edit-comment-embed"
-				use-full-view="false"
+				is-embedded="true"
 				page-id="{{page.pageId}}"
 				done-fn="editDone(result)"
 				ng-if="editing"></div>
@@ -61,6 +68,7 @@
 			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
 			<md-button ng-click="newReply()"
 					ng-disabled="newReplyId"
+					arb-user-check="cool"
 					ng-hide="parentSubpageId || page.subpageIds.length > 0">
 				<md-icon>reply</md-icon>
 				Reply
@@ -81,15 +89,12 @@
 					<div ng-repeat="subpageId in page.subpageIds">
 						<arb-subpage lens-id="{{lensId}}"
 								page-id="{{subpageId}}"
-								parent-subpage-id="{{page.pageId}}"
-								new-comment-fn="newCommentFn2(options)"
-								load-comment-edit-fn="loadCommentEditFn2(options)"
-								new-subpage-created-fn="newSubpageCreatedFn2(result)"></arb-subpage>
+								parent-subpage-id="{{page.pageId}}"></arb-subpage>
 					</div>
 				</div>
 
 				<!-- Reply to thread button -->
-				<md-button ng-click="newReply()" ng-show="!newReplyId && page.subpageIds.length > 0">
+				<md-button ng-click="newReply()" arb-user-check="cool" ng-show="!newReplyId && page.subpageIds.length > 0">
 					<md-icon>reply</md-icon>
 					New Reply
 				</md-button>
@@ -97,7 +102,7 @@
 				<!-- Write a new reply -->
 				<div arb-edit-page
 						class="edit-comment-embed"
-						use-full-view="false"
+						is-embedded="true"
 						page-id="{{newReplyId}}"
 						done-fn="newReplyDone(result)"
 						ng-if="newReplyId"></div>

@@ -11,8 +11,8 @@
 		placeholder="{{placeholder}}">
 	<md-item-template>
 		<div layout="row">
-			<arb-likes page-id="{{result.label}}"></arb-likes>
-			<!--<arb-page-title page-id="{{result.label}}" show-clickbait="true"></arb-page-title>-->
+			<arb-likes page-id="{{result.pageId}}"></arb-likes>
+			<!--<arb-page-title page-id="{{result.pageId}}" show-clickbait="true"></arb-page-title>-->
 			<!-- There is a bug with using custom directives inside the autocomplete -->
 			{{result.title}}
 		</div>

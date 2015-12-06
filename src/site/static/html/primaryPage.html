@@ -22,7 +22,6 @@
 		<!-- New Answer for a question page -->
 		<div arb-edit-page
 				class="new-answer-div reveal-after-render"
-				use-full-view="true"
 				page-id="{{newAnswerId}}"
 				done-fn="answerDone(result)"
 				ng-if="newAnswerId"></div>
@@ -60,5 +59,5 @@
 		</div>
 	</div>
 
-	<arb-footer></arb-footer>
+	<div ng-include="'/static/html/footer.html'"></div>
 </div>

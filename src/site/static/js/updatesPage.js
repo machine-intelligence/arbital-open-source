@@ -7,9 +7,9 @@ app.directive("arbUpdates", function($compile, $location, $rootScope, pageServic
 		scope: {
 			updateGroups: "=",
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
 		},
 	};
 });

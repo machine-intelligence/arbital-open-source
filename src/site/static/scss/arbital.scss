@@ -1,4 +1,5 @@
 // All the z-indices we use
+$inlineCommentIconZ: 1;
 $popoverZ: 100;
 $composeFabZ: 200;
 
@@ -197,8 +198,23 @@ md-list {
 	padding: 0;
 }
 
+md-dialog {
+	width: 90vw;
+	height: 90vh;
+
+	// Hack to allow us to use 100% height inside the dialog
+	md-dialog-content {
+		position: relative;
+		top: -$toolbar-height;
+		padding-top: $toolbar-height;
+		margin-bottom: -$toolbar-height;
+		box-sizing: border-box;
+		height: 100%;
+	}
+}
+
 .md-button {
-	margin: 0;
+	margin: 3px;
 };
 
 .md-subheader {
@@ -291,19 +307,28 @@ arb-compose-fab {
 .wmd-button-bar {
 	border-bottom: 2px solid silver;
 
-	button {
+	@mixin small-button {
 		width: 24px;
 		min-width: 24px;
 		margin: 0px 5px;
 		padding: 0;
 	}
 
-}
-	.separator {
-		margin: 10px 10px;
-		padding: 0 1px 0 0;
-		background-color: silver;
+	button {
+		@include small-button;
 	}
+
+	a {
+		@include small-button;
+	}
+}
+
+// Small vertical separator
+.separator {
+	margin: 10px 10px;
+	padding: 0 1px 0 0;
+	background-color: silver;
+}
 
 // Textarea for editing markdown
 .wmd-input {
@@ -323,4 +348,22 @@ arb-compose-fab {
 // Highlight subpages when they are selected
 .selected-subpage {
 	border: blue 1px solid;
+}
+
+// Icon shown on the RHS corresponding to an inline comment
+.inline-comment-icon {
+	position: absolute;
+	z-index: $inlineCommentIconZ;
+}
+
+// Anchor text for an inline comment
+.inline-comment-text {
+	background-color: lightblue;
+}
+
+// Div containing the inline comment thread
+.inline-comment-container {
+	margin: 20px;
+	max-height: 70vh;
+	overflow-y: auto;
 }

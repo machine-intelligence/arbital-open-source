@@ -8,10 +8,10 @@ app.directive("arbGroupIndex", function(pageService, userService) {
 			groupId: "@",
 			idsMap: "=",
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
-			scope.group = pageService.pageMap[scope.groupId];
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.group = pageService.pageMap[$scope.groupId];
 		},
 	};
 });

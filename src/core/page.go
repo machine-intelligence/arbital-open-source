@@ -595,20 +595,6 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	whereClause := database.NewQuery("p.isCurrentEdit")
 	if options.LoadSpecificEdit > 0 {
 		whereClause = database.NewQuery("p.edit=?", options.LoadSpecificEdit)
-	} else if options.LoadNonliveEdit {
-		whereClause = database.NewQuery(`
-			p.edit=(
-				SELECT MAX(edit)
-				FROM pages
-				WHERE pageId=? AND (creatorId=? OR NOT (isSnapshot OR isAutosave))
-			)`, pageId, userId)
-	} else if options.LoadEditWithLimit > 0 {
-		whereClause = database.NewQuery(`
-			p.edit=(
-				SELECT max(edit)
-				FROM pages
-				WHERE pageId=? AND edit<? AND NOT isSnapshot AND NOT isAutosave
-			)`, pageId, options.LoadEditWithLimit)
 	} else if options.CreatedAtLimit != "" {
 		whereClause = database.NewQuery(`
 			p.edit=(
@@ -616,6 +602,20 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 				FROM pages
 				WHERE pageId=? AND createdAt<? AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.CreatedAtLimit)
+	} else if options.LoadEditWithLimit > 0 {
+		whereClause = database.NewQuery(`
+			p.edit=(
+				SELECT max(edit)
+				FROM pages
+				WHERE pageId=? AND edit<? AND NOT isSnapshot AND NOT isAutosave
+			)`, pageId, options.LoadEditWithLimit)
+	} else if options.LoadNonliveEdit {
+		whereClause = database.NewQuery(`
+			p.edit=(
+				SELECT MAX(edit)
+				FROM pages
+				WHERE pageId=? AND (creatorId=? OR NOT (isSnapshot OR isAutosave))
+			)`, pageId, userId)
 	}
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,pi.type,p.title,p.clickbait,p.text,p.metaText,

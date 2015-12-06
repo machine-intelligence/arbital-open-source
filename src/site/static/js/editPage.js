@@ -1,13 +1,16 @@
 "use strict";
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("arbEditPage", function($location, $timeout, $interval, $http, pageService, userService, autocompleteService, markdownService) {
+app.directive("arbEditPage", function($location, $timeout, $interval, $http, $mdDialog, pageService, userService, autocompleteService, markdownService) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
 			pageId: "@",
-			// If true, we'll show the preview on the right half of the screen
-			useFullView: "=",
+			// Whether or not this edit page is embedded in some column, and show be
+			// sized accordingly
+			isEmbedded: "=",
+			// True iff this is embedded inside a dialog
+			insideDialog: "=",
 			// Called when the user is done with the edit.
 			doneFn: "&",
 		},
@@ -15,8 +18,8 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			$scope.userService = userService;
 			$scope.pageService = pageService;
 			$scope.page = pageService.editMap[$scope.pageId];
-			$scope.selectedTab = ($scope.page.wasPublished || $scope.page.title.length > 0) ? 1 : 0;
-			$scope.fullView = $scope.useFullView;
+			$scope.fullView = !$scope.isEmbedded;
+			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + "/" + $scope.page.currentEditNum;
 
 			// Return true if we should be using a table layout (so we can stack right
 			// and left columns vertically)
@@ -25,6 +28,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			};
 
 			// Select correct tab
+			$scope.selectedTab = ($scope.page.wasPublished || $scope.page.title.length > 0) ? 1 : 0;
 			if ($location.search().tab) {
 				$scope.selectedTab = $location.search().tab;
 			}
@@ -46,7 +50,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				var result = result;
 				$scope.showInsertLink = false;
 				$timeout(function() {
-					$scope.insertLinkCallback(result.alias);
+					$scope.insertLinkCallback(result ? result.alias : undefined);
 					$scope.insertLinkCallback = undefined;
 				});
 			};
@@ -64,6 +68,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			$scope.isComment = $scope.page.type === "comment";
 			$scope.isLens = $scope.page.type === "lens";
 			$scope.isGroup = $scope.page.type === "group" || $scope.page.type === "domain";
+			$scope.forceExpandSimilarPagesCount = $scope.isQuestion ? 5 : 0;
 
 			// Set up page types.
 			if ($scope.isQuestion) {
@@ -237,7 +242,10 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 					if (error) {
 						$scope.addMessage("publish", "Publishing failed: " + error, "error");
 					} else {
-						$scope.doneFn({result: {pageId: $scope.page.pageId}});
+						$scope.doneFn({result: {
+							pageId: $scope.page.pageId,
+							alias: $scope.page.alias
+						}});
 					}
 				});
 			};
@@ -257,24 +265,30 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 			};
 
 			// Process Discard button click.
-			$scope.discardPage = function() {
+			$scope.discardPage = function(continueEditing) {
 				var cont = function() {
-					if ($scope.doneFn) {
-						$scope.doneFn({result: {pageId: $scope.page.pageId, discard: true}});
+					if (continueEditing) {
+						window.location.href = $scope.liveEditUrl;
+					} else if ($scope.doneFn) {
+						$scope.doneFn({result: {
+							pageId: $scope.page.pageId,
+							alias: $scope.page.alias,
+							discard: true,
+						}});
 					}
 				};
 				pageService.discardPage($scope.page.pageId, cont, cont);
 			};
 
 			// Process Delete button click.
-			$scope.deleting = false;
-			$scope.toggleDeleteConfirm = function(show) {
-				$scope.deleting = show;
-			};
 			$scope.deletePage = function() {
 				pageService.deletePage($scope.page.pageId, function() {
 					if ($scope.doneFn) {
-						$scope.doneFn({result: {pageId: $scope.page.pageId, discard: true}});
+						$scope.doneFn({result: {
+							pageId: $scope.page.pageId,
+							alias: $scope.page.alias,
+							discard: true,
+						}});
 					}
 				}, function(data) {
 					$scope.addMessage("delete", "Error deleting page: " + data, "error");
@@ -373,6 +387,29 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 				$scope.otherDiff = undefined;
 				$scope.diffHtml = undefined;
 			};
+
+			// Save the page info.
+			// callback is called with a potential error message when the server replies
+			$scope.savePageInfo = function(callback){
+				var data = {
+					pageId: $scope.page.pageId,
+					type: $scope.page.type,
+					editGroupId: $scope.page.editGroupId,
+					hasVote: $scope.page.hasVote,
+					voteType: $scope.page.voteType,
+					editKarmaLock: $scope.page.editKarmaLock,
+					alias: $scope.page.alias,
+					sortChildrenBy: $scope.page.sortChildrenBy,
+				};
+				$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
+				.success(function(data) {
+					if(callback) callback();
+				})
+				.error(function(data) {
+					console.error("Error /editPageInfo/ :"); console.error(data);
+					if(callback) callback(data);
+				});
+			};
 		},
 		link: function(scope, element, attrs) {
 			$timeout(function() {
@@ -391,6 +428,7 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 
 				// Listen to events from Markdown.Editor
 				var $markdownToolbar = element.find(".wmd-button-bar");
+				// Show autocomplete for inserting an intrasite link
 				$markdownToolbar.on("showInsertLink", function(event, callback) {
 					scope.showInsertLink = true;
 					scope.insertLinkCallback = callback;
@@ -400,28 +438,37 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, pag
 					}); });
 				});
 
-				// Save the page info.
-				// callback is called with a potential error message when the server replies
-				scope.savePageInfo = function(callback){
-					var data = {
-						pageId: scope.page.pageId,
-						type: scope.page.type,
-						editGroupId: scope.page.editGroupId,
-						hasVote: scope.page.hasVote,
-						voteType: scope.page.voteType,
-						editKarmaLock: scope.page.editKarmaLock,
-						alias: scope.page.alias,
-						sortChildrenBy: scope.page.sortChildrenBy,
-					};
-					$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
-					.success(function(data) {
-						if(callback) callback();
+				// Create a dialog for (resuming) editing a new page
+				var resumePageId = undefined;
+				$markdownToolbar.on("showNewPageDialog", function(event, callback, newPageType) {
+					var parentIds = [];
+					if (newPageType === "child") {
+						parentIds = [scope.page.pageId];
+					} else if (newPageType === "sibling") {
+						parentIds = scope.page.parentIds;
+					}
+					$mdDialog.show({
+						templateUrl: "/static/html/editPageDialog.html",
+						controller: "EditPageDialogController",
+						autoWrap: false,
+						targetEvent: event,
+						locals: {
+							resumePageId: resumePageId,
+							parentIds: parentIds,
+						},
 					})
-					.error(function(data) {
-						console.error("Error /editPageInfo/ :"); console.error(data);
-						if(callback) callback(data);
+					.then(function(result) {
+						resumePageId = undefined;
+						if (result.hidden) {
+							resumePageId = result.pageId;
+						} else if (result.discard) {
+							callback(undefined);
+						} else {
+							callback(result.alias);
+						}
 					});
-				};
+					return false;
+				});
 			});
 		},
 	};

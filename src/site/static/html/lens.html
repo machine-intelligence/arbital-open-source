@@ -3,10 +3,31 @@
 	<arb-relationships class="reveal-after-render"
 			page-id="{{page.pageId}}"
 			type="requirement"
-			custom-title="This version relies on:"></arb-relationships>
+			is-lens-requirements="true"></arb-relationships>
 
 	<!-- Page's text. Populated by markdown. -->
-	<arb-markdown class="reveal-after-render" page-id="{{page.pageId}}"></arb-markdown>
+	<arb-markdown class="lens-text"
+			page-id="{{page.pageId}}"
+			ng-hide="showingDiff"></arb-markdown>
+	<md-content ng-if="showingDiff">
+		<div class="diff-section" ng-bind-html="diffHtml"></div>
+	</md-content>
+
+	<!-- Inline comments -->
+	<div class="inline-comments-div">
+		<div class="inline-comment-icon"
+				ng-style="getInlineCommentIconStyle(commentId)"
+				ng-mouseenter="inlineCommentIconMouseover(commentId, true)"
+				ng-mouseleave="inlineCommentIconMouseover(commentId, false)"
+				ng-repeat="(commentId,comment) in inlineComments">
+			<md-button class="md-icon-button"
+					ng-class="{'md-primary': isInlineCommentIconSelected(commentId)}"
+					ng-click="toggleInlineComment(commentId)">
+				<md-icon>comment</md-icon>
+				<span ng-bind="'+' + comment.likeScore()" ng-show="comment.likeScore() > 0"></span>
+			</md-button>
+		</div>
+	</div>
 
 	<!-- Mastery container -->
 	<div>

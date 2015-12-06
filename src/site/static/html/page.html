@@ -5,7 +5,8 @@
 			layout="column"
 			flex="70">
 		<!-- Parents -->
-		<div>
+		<div ng-show="page.parentIds.length > 0">
+			<span>Parents:</span>
 			<span ng-repeat="(index, parentId) in page.parentIds">
 				<span ng-show="index > 0">,</span>
 				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
@@ -21,7 +22,8 @@
 		</h1>
 
 		<!-- Tags -->
-		<div>
+		<div ng-show="page.taggedAsIds.length > 0">
+			<span>Tagged as:</span>
 			<span ng-repeat="(index, tagId) in page.taggedAsIds">
 				<span ng-show="index > 0">,</span>
 				<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
@@ -40,7 +42,8 @@
 				<md-tab-label>
 					<arb-page-title page-id="{{lensId}}"
 							custom-page-title="{{lensId === page.pageId ? 'Primary' : ''}}"></arb-page-title>
-					<md-icon>done</md-icon>
+					<md-icon ng-show="hasMastery(lensId)">assignment_turned_in</md-icon>
+					<md-icon ng-show="!hasMastery(lensId)">assignment_late</md-icon>
 				</md-tab-label>
 				<md-tab-body>
 					<div ng-style="{'min-height': 500}"
@@ -66,7 +69,7 @@
 		<arb-subscribe page-id="{{selectedLens.pageId}}" is-stretched="true"></arb-subscribe>
 
 		<!-- Edit -->
-		<md-button ng-href="{{pageService.getEditPageUrl(selectedLens.pageId)}}">
+		<md-button ng-href="{{pageService.getEditPageUrl(selectedLens.pageId)}}" arb-user-check="cool">
 			<md-icon>create</md-icon>
 			<span>Edit</span>
 		</md-button>
@@ -80,10 +83,15 @@
 		</md-button>
 
 		<!-- Show diff -->
-		<!--<md-button>
+		<md-button arb-user-check="cool" ng-click="toggleDiff()">
 			<md-icon>compare_arrows</md-icon>
-			<span>Show diff</span>
-		</md-button>-->
+			<span ng-hide="showingDiff">Show diff</span>
+			<span ng-show="showingDiff">Hide diff</span>
+			<span class="blue-dot" ng-show="page.isUpdatedPage()"></span>
+			<md-tooltip ng-show="page.isUpdatedPage()">
+				This page has been updated since the last time you saw it
+			</md-tooltip>
+		</md-button>
 
 		<!-- Prev/Next -->
 		<div layout="row" ng-hide="page.nextPageId === '0' && page.prevPageId === '0'">

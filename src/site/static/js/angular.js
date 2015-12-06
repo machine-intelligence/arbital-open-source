@@ -1,7 +1,9 @@
 "use strict";
 
 // Set up angular module.
-var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute", "ngMessages", "ngSanitize", "RecursionHelper"]);
+var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute",
+		"ngMessages", "ngSanitize", "RecursionHelper"]);
+
 app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider, $mdIconProvider){
 	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
 		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
@@ -18,10 +20,6 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 	.when("/domains/:alias", {
 		template: "",
 		controller: "DomainPageController",
-	})
-	.when("/explore/:alias?", {
-		template: "",
-		controller: "ExplorePageController",
 	})
 	.when("/pages/:alias", {
 		template: "",
@@ -104,6 +102,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 			}
 
 			// Get the results from page-specific callback
+			$(".global-error").hide();
 			var result = callback(data);
 			if (result.error) {
 				$(".global-error").text(result.error).show();
@@ -124,9 +123,12 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 						return;
 					}
 					$interval.cancel(revealInterval);
-					result.element.removeClass("reveal-after-render-parent");
-					$("#loading-bar").hide();
-					$anchorScroll();
+					// Do short timeout to prevent some rendering bugs that occur on edit page
+					$timeout(function() {
+						result.element.removeClass("reveal-after-render-parent");
+						$("#loading-bar").hide();
+						$anchorScroll();
+					}, 50);
 				}, 50);
 
 				$("[ng-view]").append(result.element);
@@ -211,42 +213,6 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 	.error($scope.getErrorFunc("domainPage"));
 });
 
-app.controller("ExplorePageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
-	var postData = {
-		groupAlias: $scope.subdomain ? $scope.subdomain : $routeParams.alias,
-	};
-	// Get the explore data
-	$http({method: "POST", url: "/json/explore/", data: JSON.stringify(postData)})
-	.success($scope.getSuccessFunc(function(data){
-		// Decide on the domain alias
-		var title;
-		if ($scope.subdomain) {
-			title = pageService.pageMap[pageService.privateGroupId].title + " - Explore";
-		} else {
-			pageService.domainAlias = postData.groupAlias;
-			title = pageService.pageMap[pageService.domainAlias].title + " - Explore";
-		}
-
-		// Compute root and children maps
-		var rootPage = pageService.pageMap[data.result.rootPageId];
-		$scope.rootPages = {};
-		$scope.rootPages[rootPage.pageId] = rootPage;
-		$scope.childPages = {};
-		for (var n = 0; n < rootPage.childIds.length ; n++) {
-			var childId = rootPage.childIds[n];
-			$scope.childPages[childId] = pageService.pageMap[childId];
-		}
-
-		return {
-			title: title,
-			element: $compile("<arb-page-tree init-map='rootPages' additional-map='childPages'" +
-				"supersize-roots='true'></arb-page-tree>")($scope),
-		};
-	}))
-	.error($scope.getErrorFunc("explore"));
-});
-
-
 app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
 	// Get the primary page data
 	var postData = {
@@ -261,7 +227,7 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
-		pageService.setPrimaryPage(page);
+		pageService.primaryPage = page;
 		return {
 			title: page.title,
 			element: $compile("<arb-primary-page></arb-primary-page>")($scope),
@@ -275,8 +241,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 	var pageId = $routeParams.alias;
 
 	// Need to call /default/ in case we are creating a new page
-	// TODO: don't do that call if we are going to load an edit / send that data
-	// when we cann /newPage/
+	// TODO(alexei): have /newPage/ return /default/ data long with /edit/ data
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (+pageId) {
@@ -292,7 +257,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 						$location.replace().search("alias", undefined);
 					}
 
-					pageService.setPrimaryPage(page);
+					pageService.primaryPage = page;
 			
 					// Called when the user is done editing the page.
 					$scope.doneFn = function(result) {
@@ -305,8 +270,8 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 					};
 					return {
 						title: "Edit " + (page.title ? page.title : "New Page"),
-						element: $compile("<div arb-edit-page class='full-height page-id='" + pageId +
-							"' done-fn='doneFn(result)' use-full-view='true'></div>")($scope),
+						element: $compile("<div arb-edit-page class='full-height' page-id='" + pageId +
+							"' done-fn='doneFn(result)'></div>")($scope),
 					};
 				}),
 				error: $scope.getErrorFunc("loadEdit"),
@@ -381,7 +346,7 @@ app.controller("SignupPageController", function ($scope, $routeParams, $http, $c
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (!userService.user || userService.user.id === "0") {
-			$location.path("/login/?continueUrl=" + encodeURIComponent($location.search().continueUrl));
+			window.location.href = "/login/?continueUrl=" + encodeURIComponent($location.search().continueUrl);
 			return {};
 		}
 		return {

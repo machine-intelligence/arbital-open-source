@@ -6,19 +6,19 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 		templateUrl: "/static/html/groupsPage.html",
 		scope: {
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
 
 			// Populate the groupMap with the groups the user belongs to
-			scope.groupMap = {};
-			for (var n = 0; n < scope.userService.user.groupIds.length; n++) {
-				var groupId = scope.userService.user.groupIds[n];
-				scope.groupMap[groupId] = pageService.pageMap[groupId];
+			$scope.groupMap = {};
+			for (var n = 0; n < $scope.userService.user.groupIds.length; n++) {
+				var groupId = $scope.userService.user.groupIds[n];
+				$scope.groupMap[groupId] = pageService.pageMap[groupId];
 			}
 
 			// Process removing user from a group.
-			scope.removeFromGroup = function(groupId, userId) {
+			$scope.removeFromGroup = function(groupId, userId) {
 				var data = {
 					userId: userId,
 					groupId: groupId,
@@ -29,12 +29,12 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 				});
 
 				// Adjust data
-				delete scope.groupMap[data.groupId].members[data.userId];
+				delete $scope.groupMap[data.groupId].members[data.userId];
 			};
 
 			// Process updating a member's permissions
-			scope.updateMemberPermissions = function(groupId, userId) {
-				var member = scope.groupMap[groupId].members[userId];
+			$scope.updateMemberPermissions = function(groupId, userId) {
+				var member = $scope.groupMap[groupId].members[userId];
 				if (member.canAdmin) {
 					member.canAddMembers = true;
 				}
@@ -51,7 +51,7 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			};
 
 			// Process new member form submission.
-			scope.newMemberFormSubmit = function(event, groupId, userId) {
+			$scope.newMemberFormSubmit = function(event, groupId, userId) {
 				var data = {
 					groupId: groupId,
 					userId: userId,
@@ -62,10 +62,10 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			};
 		
 			// Process new group form submission.
-			scope.newGroupFormSubmit = function(event) {
+			$scope.newGroupFormSubmit = function(event) {
 				var data = {
-					name: scope.newGroupName,
-					alias: scope.newGroupAlias,
+					name: $scope.newGroupName,
+					alias: $scope.newGroupAlias,
 				};
 				submitForm($(event.currentTarget), "/newGroup/", data, function(r) {
 					location.reload();

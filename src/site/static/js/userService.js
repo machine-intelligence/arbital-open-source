@@ -12,7 +12,7 @@ app.service("userService", function(){
 
 	// Check if we can let this user do stuff.
 	this.userIsCool = function() {
-		return this.user.karma >= 200;
+		return this.user && this.user.karma >= 200;
 	};
 
 	// Return url to the user page.

@@ -65,10 +65,19 @@
 								<md-icon md-svg-icon="link_variant"></md-icon>
 								<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
 							</md-button>
-							<!--<md-button class="wmd-new-page-button">
+							<div class="separator" ng-hide="insideDiaog"></div>
+							<md-button class="wmd-new-page-button" ng-hide="insideDialog">
 								<md-icon>note_add</md-icon>
 								<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
-							</md-button>-->
+							</md-button>
+							<md-button class="wmd-new-child-button" ng-hide="insideDialog">
+								<md-icon>child_care</md-icon>
+								<md-tooltip>[New child link] | Ctrl+Shift+P</md-tooltip>
+							</md-button>
+							<md-button class="wmd-new-sibling-button" ng-hide="insideDialog">
+								<md-icon>people</md-icon>
+								<md-tooltip>[New sibling link]</md-tooltip>
+							</md-button>
 							<div class="separator"></div>
 							<md-button class="wmd-quote-button">
 								<md-icon>format_quote</md-icon>
@@ -109,15 +118,20 @@
 								<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
 							</md-button>
 							<div flex></div>
-							<md-button class="wmd-help-button">
+							<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}" ng-show="isEmbedded && !insideDialog">
+								<md-icon>open_in_new</md-icon>
+								<md-tooltip>Go to full-windowed edit page</md-tooltip>
+							</md-button>
+							<div class="separator" ng-show="isEmbedded && !insideDialog"></div>
+							<md-button href="http://math.stackexchange.com/editing-help" target="_blank">
 								<md-icon>live_help</md-icon>
 								<md-tooltip>Markdown editing help</md-tooltip>
 							</md-button>
-							<!--<div class="separator"></div>
+							<div class="separator"></div>
 							<md-button ng-click="hideMarkdownToolbar=true">
 								<md-icon>close</md-icon>
 								<md-tooltip>Close this toolbar</md-tooltip>
-							</md-button>-->
+							</md-button>
 						</div>
 					</div>
 
@@ -162,12 +176,9 @@
 							<div ng-show="publishing">
 								Publishing...
 							</div>
-							<md-button class="md-warn md-raised"
-									ng-click="discardPage()"
-									ng-disable="publishing || snapshotting">
-								<md-tooltip>Discard your autosave</md-tooltip>
-								Discard
-							</md-button>
+							<arb-confirm-button button-text="Discard"
+									confirmed="discardPage()"
+									disabled="publishing || snapshotting"></arb-confirm-button>
 							<md-button class="md-raised" ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
 								<md-tooltip>Save a snapshot</md-tooltip>
 								Snapshot
@@ -196,6 +207,50 @@
 				<md-tab-body>
 					<div layout="column" class="full-height">
 						<div>These settings have to be saved independently of publishing the page.</div>
+					
+						<!-- Alias -->
+						<div layout="row" ng-show="!isAnswer && !isComment && !isGroup">
+							<div layout="column" flex>
+								<md-input-container>
+									<label>Alias</label>
+									<input ng-model="page.alias" md-maxlength="50">
+								</md-input-container>
+							</div>
+							<div flex>
+								<div>Unique name for this page, e.g. "HumanHealth".</div>
+								<div ng-show="page.seeGroupId != '0'">
+									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
+									because it's part of the private domain.
+								</div>
+							</div>
+						</div>
+					
+						<!-- Edit group id -->
+						<div layout="row">
+							<md-input-container flex>
+								<label>Edit group</label>
+								<md-select ng-model="page.editGroupId">
+									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
+								</md-select>
+							</md-input-container>
+							<div flex>
+								Group that can edit this page. If not set, anyone can edit it.
+							</div>
+						</div>
+					
+						<!-- Karma edit lock -->
+						<div layout="row" ng-show="userService.user.maxKarmaLock > 0 && !isComment">
+							<div flex>
+								<label>Edit karma lock</label>
+								<md-slider md-discrete ng-model="page.editKarmaLock"
+										step="10" min="0" max="{{userService.user.maxKarmaLock}}">
+								</md-slider>
+							</div>
+							<div flex>
+								Editing this page will require a this amount of karma
+							</div>
+						</div>
+
 						<!-- Page type -->
 						<div layout="row">
 							<md-input-container flex>
@@ -211,19 +266,6 @@
 								<span ng-show="isLens">
 									A lens page is used to present the same material as another page but with a different emphasis.
 								</span>
-							</div>
-						</div>
-					
-						<!-- Edit group id -->
-						<div layout="row">
-							<md-input-container flex>
-								<label>Edit group</label>
-								<md-select ng-model="page.editGroupId">
-									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
-								</md-select>
-							</md-input-container>
-							<div flex>
-								Group that can edit this page. If not set, anyone can edit it.
 							</div>
 						</div>
 					
@@ -249,36 +291,6 @@
 							</div>
 						</div>
 					
-						<!-- Karma edit lock -->
-						<div layout="row" ng-show="userService.user.maxKarmaLock > 0 && !isComment">
-							<div flex>
-								<label>Edit karma lock</label>
-								<md-slider md-discrete ng-model="page.editKarmaLock"
-										step="10" min="0" max="{{userService.user.maxKarmaLock}}">
-								</md-slider>
-							</div>
-							<div flex>
-								Editing this page will require a this amount of karma
-							</div>
-						</div>
-					
-						<!-- Alias -->
-						<div layout="row" ng-show="!isAnswer && !isComment && !isGroup">
-							<div layout="column" flex>
-								<md-input-container>
-									<label>Alias</label>
-									<input ng-model="page.alias" md-maxlength="50">
-								</md-input-container>
-							</div>
-							<div flex>
-								<div>Unique name for this page, e.g. "HumanHealth".</div>
-								<div ng-show="page.seeGroupId != '0'">
-									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
-									because it's part of the private domain.
-								</div>
-							</div>
-						</div>
-					
 						<!-- Sort children option -->
 						<div layout="row" ng-show="!isSecondary">
 							<md-input-container flex>
@@ -296,13 +308,9 @@
 						</div>
 
 						<!-- Delete page -->
-						<div layout="row" layout-align="start center">
-							<md-button class="md-warn md-raised" ng-click="toggleDeleteConfirm(true)">Delete page</md-button>
-							<div ng-show="deleting">
-								Are you sure?
-								<a href="#" ng-click="deletePage()">yes</a> / <a href="#" ng-click="toggleDeleteConfirm(false)">no</a>
-							</div>
-						</div>
+						<arb-confirm-button button-text="Delete page"
+								button-before-confirm="true"
+								confirmed="deletePage()"></arb-confirm-button>
 
 						<div flex></div>
 
@@ -317,27 +325,30 @@
 			</md-tab>
 
 			<!-- (3) Relationships tab -->
-			<md-tab label="Relationships" ng-disabled="!(isWiki || isQuestion)">
+			<md-tab label="Relationships" ng-disabled="isComment">
 				<md-tab-body>
 					<div layout="column">
 						<!-- Parents -->
 						<arb-relationships page-id="{{page.pageId}}"
 								type="parent"
-								force-edit-mode="true"></arb-relationships>
+								force-edit-mode="true"
+								readonly="!(isWiki)"></arb-relationships>
 						<!-- Tags -->
 						<arb-relationships page-id="{{page.pageId}}"
 								type="tag"
-								force-edit-mode="true"></arb-relationships>
+								force-edit-mode="true"
+								readonly="!(isWiki || isQuestion)"></arb-relationships>
 						<!-- Requirements -->
 						<arb-relationships page-id="{{page.pageId}}"
 								type="requirement"
-								force-edit-mode="true"></arb-relationships>
+								force-edit-mode="true"
+								readonly="!(isWiki || isLens)"></arb-relationships>
 					</div>
 				</md-tab-body>
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog" ng-disabled="!(isWiki || isLens || isGroup)">
+			<md-tab label="Changelog" ng-disabled="isComment || isAnswer">
 				<md-tab-body>
 					<md-list>
 						<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
@@ -392,7 +403,7 @@
 		</md-tabs>
 	</div>
 
-	<div class="wmd-preview-separator" ng-show="!fullView"></div>
+	<!--<div class="wmd-preview-separator" ng-show="fullView"></div>-->
 
 	<!-- Right half -->
 	<div ng-class="{'full-height': !useTableLayout(), 'edit-page-row': useTableLayout()}"
@@ -448,7 +459,7 @@
 		</md-list>
 		<md-list ng-hide="otherDiff">
 			<div ng-switch="page.getEditLevel()" ng-show="page.wasPublished">
-				<md-list-item ng-switch-when="admin" class="md-warn">
+				<md-list-item ng-switch-when="admin" class="md-warn" layout="row" layout-align="start center">
 					<md-button class="md-icon-button md-warn md-raised" ng-click="hideMessage($event)">
 						<md-icon>close</md-icon>
 					</md-button>
@@ -464,12 +475,12 @@
 			</div>
 			<!-- Show a warning if you've loaded an edit that's not currently live. -->
 			<md-list-item ng-show="page.edit !== page.currentEditNum && !page.isAutosave && !page.isSnapshot">
-				<div class="md-warn">
+				<div class="md-warn" layout="row" layout-align="start center">
 					<md-button class="md-icon-button md-warn md-raised" ng-click="hideMessage($event)">
 						<md-icon>close</md-icon>
 					</md-button>
 					Currently looking at a non-live edit.
-					<a ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + page.currentEditNum}}">
+					<a ng-href="{{liveEditUrl}}">
 						Switch to editing the live version.
 					</a>
 				</div>
@@ -479,19 +490,19 @@
 				You need to be part of {{pageService.pageMap[page.editGroupId].title}} group to edit this page.
 			</md-list-item>
 			<!-- Friendly warnings / info alerts -->
-			<md-list-item ng-show="page.wasPublished && (page.isAutosave || page.isSnapshot)">
+			<md-list-item ng-show="page.wasPublished && (page.isAutosave || page.isSnapshot)" layout="row" layout-align="start center">
 				<md-button class="md-icon-button md-warn md-raised" ng-click="hideMessage($event)">
 					<md-icon>close</md-icon>
 				</md-button>
-				<div ng-show="page.isAutosave" class="md-warn">
-					Restored autosave which was last updated
+				<div ng-show="page.isAutosave" class="md-warn" layout="row" layout-align="start center">
+					Restored autosave which was last updated&nbsp;
 					<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-					<md-button href="#" class="md-warn">Discard my autosave and edit the live version</md-button>
+					<a href="#" class="md-warn" ng-click="discardPage(true)">Discard my autosave and edit the live version</a>
 				</div>
-				<div ng-show="page.isSnapshot" class="md-warn">
-					Restored snapshot which was last updated
+				<div ng-show="page.isSnapshot" class="md-warn" layout="row" layout-align="start center">
+					Restored snapshot which was last updated&nbsp;
 					<span class="autoupdate" ng-bind="pageService.primaryPage.createdAt | relativeDateTime"></span>.
-					<a ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + page.currentEditNum}}">
+					<a ng-href="{{liveEditUrl}}">
 						Switch to editing the live version.
 					</a>
 				</div>
@@ -521,7 +532,8 @@
 					Hide
 				</md-button>
 			</md-list-item>
-			<md-list-item ng-repeat="(index,similarPage) in similarPages" ng-if="index > 0 && expandSimilarPages">
+			<md-list-item ng-repeat="(index,similarPage) in similarPages"
+					ng-if="index > 0 && (expandSimilarPages || index < forceExpandSimilarPagesCount)">
 				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
 				<arb-page-title page-id="{{similarPage.pageId}}" show-clickbait="true"></arb-page-title>
 			</md-list-item>
