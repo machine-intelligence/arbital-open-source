@@ -26,7 +26,7 @@ var atAliasRegexp = new RegExp(notEscaped +
 
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.service("markdownService", function(pageService){
+app.service("markdownService", function(pageService, userService){
 	// Pass in a pageId to create an editor for that page
 	var createConverter = function(pageId, postConversionCallback) {
 		// NOTE: not using $location, because we need port number
@@ -95,6 +95,7 @@ app.service("markdownService", function(pageService){
 					var url = "http://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
+					var url = "http://" + host + "/user/" + alias + "/";
 					return prefix + "[" + alias + "](" + alias + ")";
 				}
 			});
@@ -185,14 +186,17 @@ app.service("markdownService", function(pageService){
 				}
 			}
 		});
+debugger;
 
 		// Setup attributes for user links that are within our domain.
 		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
-			$location.host() + // match the url host part
+			window.location.host + // match the url host part
 			"\/user\/" + aliasMatch + // [1] capture user alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 		$pageText.find("a").each(function(index, element) {
+debugger;
+			userService.userMap;
 			var $element = $(element);
 			var parts = $element.attr("href").match(re);
 			if (parts === null) return;
@@ -203,8 +207,9 @@ app.service("markdownService", function(pageService){
 			}
 			$element.addClass("user-link").attr("user-id", userAlias);
 
-			// Do we want red links for invalid users?
+			// Bug: the link is red, and links to the edit page, before this code is reached
 /*
+			// show red links for invalid users
 			if (userAlias in userService.userMap) {
 				if (userService.userMap[userAlias].isDeleted()) {
 					// Link to a deleted user.
@@ -218,6 +223,7 @@ app.service("markdownService", function(pageService){
 			}
 */
 		});
+
 	};
 
 	this.createConverter = function() {

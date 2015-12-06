@@ -75,6 +75,9 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData.EditMap[pageId] = p
 	delete(returnData.PageMap, pageId)
 
+	db.C.Debugf("in editJsonHandler line 78")
+	db.C.Debugf("returnData.UserMap: %v", returnData.UserMap)
+
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
@@ -82,6 +85,9 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
+
+	db.C.Debugf("in editJsonHandler line 86")
+	db.C.Debugf("returnData.UserMap: %v", returnData.UserMap)
 
 	// We need to copy some data from the loaded live version to the edit
 	livePage := returnData.PageMap[pageId]
@@ -110,6 +116,9 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 			p.LockedUntil = hashmap["lockedUntil"].(string)
 		}
 	}
+
+	db.C.Debugf("in editJsonHandler line 114")
+	db.C.Debugf("returnData.UserMap: %v", returnData.UserMap)
 
 	return pages.StatusOK(returnData.toJson())
 }

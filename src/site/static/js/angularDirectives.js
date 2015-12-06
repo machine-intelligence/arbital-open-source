@@ -6,8 +6,6 @@ app.directive("arbUserName", function(userService) {
 		templateUrl: "/static/html/userName.html",
 		scope: {
 			userId: "@",
-			// True if we don't want the link to generate a new user popover
-			noPopover: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.userService = userService;
@@ -84,6 +82,22 @@ app.directive("arbUserPopover", function(pageService, userService) {
 			var isDestroyed = false;
 			scope.$on("$destroy", function() {
 				isDestroyed = true;
+			});
+
+			// Check if the data is loaded
+			scope.isLoaded = function() {
+				if (!userService.userMap.hasOwnProperty(scope.userId)) {
+					return false;
+				}
+				return userService.userMap[scope.userId].firstName.length > 0;
+			};
+
+			pageService.loadUserPopover(scope.userId, {
+				success: function() {
+//debugger;
+					var test = userService.userMap.hasOwnProperty(scope.userId);
+					if (isDestroyed) return;
+				},
 			});
 		},
 	};
@@ -193,50 +207,34 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 		templateUrl: "/static/html/subscribe.html",
 		scope: {
 			pageId: "@",
+			// If true, subscribe to a user, not a page
+			isUser: "@",
 			// If true, the button is not an icon button, but is a normal button with a label
 			isStretched: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
 			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+			if (!scope.isUser) {
+				scope.page = pageService.pageMap[scope.pageId];
+				scope.isSubscribed = scope.page.isSubscribed;
+			} else {
+				scope.user = userService.userMap[scope.pageId];
+				scope.isSubscribed = scope.user.isSubscribed;
+			}
 
 			// User clicked on the subscribe button
 			scope.subscribeClick = function() {
-				scope.page.isSubscribed = !scope.page.isSubscribed;
+				if (!scope.isUser) {
+					scope.isSubscribed = !scope.isSubscribed;
+					pageService.pageMap[scope.pageId].isSubscribed = scope.isSubscribed;
+				} else {
+debugger;
+					scope.isSubscribed = !scope.isSubscribed;
+					userService.userMap[scope.pageId].isSubscribed = scope.isSubscribed;
+				}
 				var data = {
-					pageId: scope.page.pageId,
-				};
-				var url = scope.page.isSubscribed ? "/newSubscription/" : "/deleteSubscription/";
-				$http({method: "POST", url: url, data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error changing a subscription:"); console.log(data); console.log(status);
-				});
-			};
-		},
-	};
-});
-
-// subscribe directive displays the button for subscribing to a user.
-app.directive("arbSubscribeUser", function($http, pageService, userService) {
-	return {
-		templateUrl: "/static/html/subscribeUser.html",
-		scope: {
-			userId: "@",
-			// If true, the button is not an icon button, but is a normal button with a label
-			isStretched: "@",
-		},
-		link: function(scope, element, attrs) {
-			scope.userService = userService;
-			scope.user = userService.userMap[scope.userId];
-			scope.isSubscribed = scope.user.isSubscribed;
-
-			// User clicked on the subscribe button
-			scope.subscribeClick = function() {
-				scope.isSubscribed = !scope.isSubscribed;
-				userService.userMap[scope.userId].isSubscribed = scope.isSubscribed;
-				var data = {
-					pageId: scope.userId,
+					pageId: scope.pageId,
 				};
 				var url = scope.isSubscribed ? "/newSubscription/" : "/deleteSubscription/";
 				$http({method: "POST", url: url, data: JSON.stringify(data)})

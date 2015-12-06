@@ -10,7 +10,6 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 
 	var mousePageX, mousePageY;
 
-	// Should this be an enum?
 	var linkTypeIntrasite = "intrasite";
 	var linkTypeUser = "user";
 
@@ -20,8 +19,6 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 
 	var $popoverElement,
 		$currentTarget,
-		// Currently unused, stores the link type of the currently active popover
-		currentTargetLinkType,
 		removePromise,
 		anchorHovering,
 		popoverHovering;
@@ -35,7 +32,6 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		createPromise = undefined;
 		$popoverElement = undefined;
 		$currentTarget = undefined;
-		currentTargetLinkType = undefined;
 		removePromise = undefined;
 		anchorHovering = false;
 		popoverHovering = false;
@@ -67,8 +63,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		if (targetCandidateLinkType == linkTypeIntrasite) {
 			$popoverElement = $compile("<arb-intrasite-popover page-id='" + $target.attr("page-id") +
 				"'></arb-intrasite-popover>")($rootScope);
-		}
-		else if (targetCandidateLinkType == linkTypeUser) {
+		} else if (targetCandidateLinkType == linkTypeUser) {
 			$popoverElement = $compile("<arb-user-popover user-id='" + $target.attr("user-id") +
 				"'></arb-user-popover>")($rootScope);
 		}
@@ -87,7 +82,6 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		$("#dynamic-view").append($popoverElement);
 
 		$currentTarget = $target;
-		currentTargetLinkType = targetCandidateLinkType;
 		anchorHovering = true;
 	};
 
@@ -104,6 +98,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		if ($target.hasClass("red-link")) return;
 		// Don't allow recursive hover in popovers.
 		if ($target.closest("arb-intrasite-popover").length > 0) return;
+		if ($target.closest("arb-user-popover").length > 0) return;
 		if ($currentTarget && $target[0] == $currentTarget[0]) {
 			// Hovering over the element we already created a popover for
 			anchorHovering = true;
@@ -124,27 +119,27 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 	};
 
 	$("body").on("mousemove", ".intrasite-link", function(event) {
-		mouseMovePopoverLink(event, linkTypeIntrasite);
+		mouseMovePopoverLink(event);
 	});
 
 	$("body").on("mousemove", ".user-link", function(event) {
-		mouseMovePopoverLink(event, linkTypeUser);
+		mouseMovePopoverLink(event);
 	});
 
-	var mouseMovePopoverLink = function(event, linkType) {
+	var mouseMovePopoverLink = function(event) {
 		mousePageX = event.pageX;
 		mousePageY = event.pageY;
 	};
 
 	$("body").on("mouseleave", ".intrasite-link", function(event) {
-		mouseLeavePopoverLink(event, linkTypeIntrasite);
+		mouseLeavePopoverLink(event);
 	});
 
 	$("body").on("mouseleave", ".user-link", function(event) {
-		mouseLeavePopoverLink(event, linkTypeUser);
+		mouseLeavePopoverLink(event);
 	});
 
-	var mouseLeavePopoverLink = function(event, linkType) {
+	var mouseLeavePopoverLink = function(event) {
 		var $target = $(event.currentTarget);
 		if ($currentTarget && $target[0] == $currentTarget[0]) {
 			// Leaving the element we created a popover for

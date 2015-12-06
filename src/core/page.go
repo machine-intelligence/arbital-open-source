@@ -440,9 +440,14 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	for _, p := range pageMap {
 		if p.LoadOptions.Text || p.LoadOptions.Summary {
 			userMap[p.CreatorId] = &User{Id: p.CreatorId}
+			db.C.Debugf("adding page creator id: %v", p.CreatorId)
+			db.C.Debugf("p.LoadOptions.Text: %v", p.LoadOptions.Text)
+			db.C.Debugf("p.LoadOptions.Summary: %v", p.LoadOptions.Summary)
+			db.C.Debugf("p.PageId: %v", p.PageId)
 		}
 		if p.LockedBy != 0 {
 			userMap[p.LockedBy] = &User{Id: p.LockedBy}
+			db.C.Debugf("adding locked by id: %v", p.LockedBy)
 		}
 	}
 	err = LoadUsers(db, userMap, u.Id)
