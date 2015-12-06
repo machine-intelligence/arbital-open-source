@@ -89,10 +89,22 @@ app.directive("arbUserPopover", function(pageService, userService) {
 				if (!($scope.userId in userService.userMap)) {
 					return false;
 				}
-				return userService.userMap[$scope.userId].firstName.length > 0;
+				if (!($scope.userId in pageService.pageMap)) {
+					return false;
+				}
+				return pageService.pageMap[$scope.userId].summary.length > 0;
 			};
 
-			pageService.loadUserPopover($scope.userId);
+			if (!$scope.isLoaded()) {
+				pageService.loadUserPopover($scope.userId, {
+					success: function() {
+						var userPage = pageService.pageMap[$scope.userId];
+						if (userPage && userPage.summary.length == 0) {
+							userPage.summary = " "; // to prevent from loading again
+						}
+					},
+				});
+			}
 		},
 	};
 });
