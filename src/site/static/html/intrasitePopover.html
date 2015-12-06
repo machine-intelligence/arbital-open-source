@@ -23,7 +23,7 @@
 					<arb-markdown page-id="{{lensId}}" use-summary="true"></arb-markdown>
 
 					<!-- Footer -->
-					<div layout="row" ng-if="isLoaded(lensId)">
+					<div layout="row" layout-align="start center" ng-if="isLoaded(lensId)">
 						<arb-likes page-id="{{lensId}}" is-button="true"></arb-likes>
 						<arb-subscribe page-id="{{lensId}}" ng-hide="parentSubpageId"></arb-subscribe>
 						<div ng-show="page.commentCount">
@@ -35,8 +35,8 @@
 							{{page.textLength}} characters
 						</div>
 						<div ng-show="page.type === 'question'">
-							<ng-pluralize count="page.answerCount"
-									when="{'0': 'No answers', 'one': 'One answer', 'other': '{} answers'}"></ng-pluralize>
+							<md-icon>font_download</md-icon>
+							<span ng-bind="page.answerCount"></span>
 						</div>
 					</div>
 				</div>

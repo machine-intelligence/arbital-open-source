@@ -1,16 +1,13 @@
 "use strict";
 
 // Directive for showing a subpage.
-app.directive("arbSubpage", function ($compile, $timeout, $location, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, pageService, userService, autocompleteService, RecursionHelper) {
 	return {
 		templateUrl: "/static/html/subpage.html",
 		scope: {
 			pageId: "@",  // id of this subpage
 			lensId: "@",  // id of the lens this subpage belongs to
 			parentSubpageId: "@",  // id of the parent subpage, if there is one
-			newCommentFn: "&",
-			loadCommentEditFn: "&",
-			newSubpageCreatedFn: "&",
 		},
 		controller: function ($scope) {
 			$scope.pageService = pageService;
@@ -31,15 +28,9 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, pageService
 				$scope.myUrl = pageService.getPageUrl($scope.page.pageId);
 			}
 
-			// Gah! Stupid! TODO: move these to pageServie
-			$scope.newCommentFn2 = function(options) {
-				return $scope.newCommentFn({options: options});
-			};
-			$scope.loadCommentEditFn2 = function(options) {
-				return $scope.loadCommentEditFn({options: options});
-			};
-			$scope.newSubpageCreatedFn2 = function(result) {
-				return $scope.newSubpageCreatedFn({result: result});
+			// Check if this comment is selected via URL hash
+			$scope.isSelected = function() {
+				return $location.hash() === "subpage-" + $scope.page.pageId;
 			};
 
 			// Called when the user collapses/expands this subpage
@@ -66,6 +57,21 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, pageService
 				if (!result.discard) {
 					$scope.newSubpageCreatedFn({result: result});
 				}
+			};
+
+			// Called when the user wants to delete the subpage
+			$scope.deleteSubpage = function() {
+				pageService.deletePage($scope.page.pageId, function() {
+					$scope.isDeleted = true;
+					$mdToast.show(
+						$mdToast.simple()
+						.textContent("Comment deleted")
+						.position("top right")
+						.hideDelay(3000)
+					);
+				}, function(data) {
+					$scope.addMessage("delete", "Error deleting page: " + data, "error");
+				});
 			};
 
 			// Called to create a new reply

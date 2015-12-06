@@ -1,11 +1,14 @@
-<div layout="column" ng-show="showPanel">
+<div ng-mouseenter="hovering=true" ng-mouseleave="hovering=false" layout="column" ng-show="showPanel">
 	<!-- Header -->
 	<div layout="row">
 		<!-- Title -->
-		<h3 flex ng-bind="title"></h3>
+		<h3 flex>
+			<md-icon ng-show="isLensRequirements">assignment</md-icon>
+			<span ng-bind="title"></span>
+		</h3>
 
 		<!-- Edit button -->
-		<md-button class="md-icon-button" ng-click="inEditModeToggle()" ng-hide="forceEditMode">
+		<md-button class="md-icon-button" ng-click="inEditModeToggle()" ng-hide="forceEditMode || !hovering">
 			<md-icon>create</md-icon>
 		</md-button>
 	</div>
@@ -20,14 +23,14 @@
 				ng-click="toggleRequirement(otherPageId)"
 				ng-show="!inEditMode"
 				ng-if="isRequirementType">
-			<md-icon ng-show="hasMastery(otherPageId)">done_all</md-icon>
-			<md-icon ng-hide="hasMastery(otherPageId)">done</md-icon>
+			<md-icon ng-show="hasMastery(otherPageId)">done</md-icon>
+			<md-icon ng-hide="hasMastery(otherPageId)">add_cicle_outline</md-icon>
 		</md-button>
 
 		<!-- Delete button -->
 		<md-button class="md-icon-button"
 				ng-click="deleteRelationship(otherPageId)"
-				ng-show="inEditMode">
+				ng-show="inEditMode && !readonly">
 			<md-icon>delete</md-icon>
 		</md-button>
 
@@ -38,5 +41,5 @@
 	<!-- Add requirements -->
 	<arb-autocomplete placeholder="Add a {{type}}"
 			on-select="searchResultSelected(result)"
-			ng-show="inEditMode"><arb-autocomplete>
+			ng-show="inEditMode && !readonly"><arb-autocomplete>
 </div>

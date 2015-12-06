@@ -1015,54 +1015,13 @@
 	//	  It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
 	//	  was chosen).
 	// isIntraLink: Set to true if the input is for page aliases.
-	ui.prompt = function (title, helpText, callback, isIntraLink) {
-		var $buttonBar = $(util.panels.buttonBar);
-		$buttonBar.trigger("showInsertLink", callback);
-		return;
-
-		var $modal = $("#new-link-modal");
-		var $input = $modal.find(".new-link-input");
-		$modal.modal();
-		$modal.find(".modal-title").text(title);
-
-		// Set up input
-		$input.val("").attr("placeholder", helpText);
-		if ($input.autocomplete("instance")) {
-			if (isIntraLink) {
-				$input.autocomplete("enable");
-			} else {
-				$input.autocomplete("disable");
-			}
+	ui.prompt = function (title, helpText, callback, pageId, newPageType) {
+		var $buttonBar = $("#wmd-button-bar" + pageId);
+		if (newPageType) {
+			$buttonBar.trigger("showNewPageDialog", [callback, newPageType]);
+		} else {
+			$buttonBar.trigger("showInsertLink", callback);
 		}
-
-		var isCancel = true;
-		$modal.on("hidden.bs.modal", function (e) {
-		  $modal.off("hidden.bs.modal");
-		  $modal.off("shown.bs.modal");
-		  $modal.find(".modal-content").off("submit");
-		  var text = $input.val();
-		  if (isCancel) {
-			  text = null;
-		  } else if (!isIntraLink){
-			  // Fixes common pasting errors.
-			  text = text.replace(/^http:\/\/(https?|ftp):\/\//, "$1://");
-			  if (!/^(?:https?|ftp):\/\//.test(text)) {
-				  text = 'http://' + text;
-			  }
-		  }
-			// If there is still a visible modal, we have to add "modal-open" to it so
-			// that it scrolls instead of the background.
-			$(".modal:visible").length && $(document.body).addClass("modal-open");
-		  callback(text);
-		});
-		$modal.on("shown.bs.modal", function (e) {
-			$input.focus();
-		});
-		$modal.find(".modal-content").on("submit", function(e) {
-			isCancel = false;
-			$modal.modal("hide");
-			return false;
-		});
 	};
 
 	function UIManager(postfix, panels, undoManager, previewManager, commandManager, helpOptions, getString) {
@@ -1278,9 +1237,15 @@
 			buttons.intralink = makeButton("wmd-intralink-button", getString("intralink"), "-60px", bindCommand(function (chunk, postProcessing) {
 				return this.doIntraLink(chunk, postProcessing);
 			}));
-			/*buttons.newPage = makeButton("wmd-new-page-button", getString("newpage"), "-60px", bindCommand(function (chunk, postProcessing) {
-				return this.doNewPage(chunk, postProcessing);
-			}));*/
+			buttons.newPage = makeButton("wmd-new-page-button", getString("newpage"), "-60px", bindCommand(function (chunk, postProcessing) {
+				return this.doNewPage(chunk, postProcessing, "wiki");
+			}));
+			buttons.newChild = makeButton("wmd-new-child-button", getString("newpage"), "-60px", bindCommand(function (chunk, postProcessing) {
+				return this.doNewPage(chunk, postProcessing, "child");
+			}));
+			buttons.newSibling = makeButton("wmd-new-sibling-button", getString("newpage"), "-60px", bindCommand(function (chunk, postProcessing) {
+				return this.doNewPage(chunk, postProcessing, "sibling");
+			}));
 			buttons.quote = makeButton("wmd-quote-button", getString("quote"), "-80px", bindCommand("doBlockquote"));
 			buttons.code = makeButton("wmd-code-button", getString("code"), "-100px", bindCommand("doCode"));
 			buttons.image = makeButton("wmd-image-button", getString("image"), "-120px", bindCommand(function (chunk, postProcessing) {
@@ -1668,12 +1633,13 @@
 				postProcessing();
 			};
 
-			ui.prompt(this.getString("intralinkdialogtitle"), this.getString("intralinkdialog"), linkEnteredCallback, true);
+			ui.prompt(this.getString("intralinkdialogtitle"), this.getString("intralinkdialog"), linkEnteredCallback, this.pageId);
 			return true;
 		}
 	};
 
-	commandProto.doNewPage = function (chunk, postProcessing) {
+	commandProto.doNewPage = function (chunk, postProcessing, newPageType) {
+		console.log("CLICK " + newPageType);
 		chunk.trimWhitespace();
 		chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
 
@@ -1694,26 +1660,22 @@
 			var that = this;
 			// The function to be executed when you create a new page and publish it.
 			// Adds a link to the newly created page.
-			var pageCreatedCallback = function (result) {
-				if (!result.abandon && !result.hidden && result.alias) {
+			var pageCreatedCallback = function (alias) {
+				if (alias) {
 					// Same regex as in other link functions.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
 					chunk.startTag = "[";
-					chunk.endTag = "](" + result.alias + ")";
+					chunk.endTag = "](" + alias + ")";
 
 					if (!chunk.selection) {
 						chunk.endTag = "]";
-						chunk.selection = result.alias;
+						chunk.selection = alias;
 					}
 				}
 				postProcessing();
 			};
 
-			$(document).trigger("new-page-modal-event", {
-				modalKey: this.pageId,
-				parentPageId: this.pageId,
-				callback: pageCreatedCallback,
-			});
+			ui.prompt("", "", pageCreatedCallback, this.pageId, newPageType);
 			return true;
 		}
 	};

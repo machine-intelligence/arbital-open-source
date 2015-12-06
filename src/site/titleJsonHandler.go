@@ -32,16 +32,18 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
+	returnData := newHandlerData(false)
 	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
 	if !ok {
-		return pages.HandlerErrorFail("Couldn't find page", err)
+		// Don't fail because sometimes the editor calls this with bad aliases, but
+		// we don't want to generated messages on the FE
+		return pages.StatusOK(returnData.toJson())
 	}
 
 	// Load data
-	returnData := newHandlerData(false)
 	core.AddPageIdToMap(pageId, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {

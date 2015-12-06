@@ -1,8 +1,12 @@
-<div layout="row" layout-margin>
+<div id="subpage-{{page.pageId}}" layout="row" layout-margin>
 	<!-- Primary column -->
-	<div class="md-whiteframe-1dp" layout="column" flex="70">
+	<div class="md-whiteframe-1dp"
+			ng-class="{'selected-subpage': isSelected()}"
+			layout="column"
+			flex="70">
 		<!-- Parents -->
-		<div>
+		<div ng-show="page.parentIds.length > 0">
+			<span>Parents:</span>
 			<span ng-repeat="(index, parentId) in page.parentIds">
 				<span ng-show="index > 0">,</span>
 				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
@@ -18,7 +22,8 @@
 		</h1>
 
 		<!-- Tags -->
-		<div>
+		<div ng-show="page.taggedAsIds.length > 0">
+			<span>Tagged as:</span>
 			<span ng-repeat="(index, tagId) in page.taggedAsIds">
 				<span ng-show="index > 0">,</span>
 				<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
@@ -31,23 +36,23 @@
 		<!-- Lens tabs -->
 		<md-tabs md-dynamic-height
 				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
-				ng-style="{'min-height': tabsMinHeight}"
 				md-selected="selectedLensIndex">
 			<md-tab ng-repeat="lensId in page.lensIds"
 					md-on-select="tabSelect(lensId)">
 				<md-tab-label>
 					<arb-page-title page-id="{{lensId}}"
 							custom-page-title="{{lensId === page.pageId ? 'Primary' : ''}}"></arb-page-title>
-					<md-icon>done</md-icon>
+					<md-icon ng-show="hasMastery(lensId)">assignment_turned_in</md-icon>
+					<md-icon ng-show="!hasMastery(lensId)">assignment_late</md-icon>
 				</md-tab-label>
 				<md-tab-body>
-					<div ng-style="{'min-height': tabsMinHeight}"
+					<div ng-style="{'min-height': 500}"
 							layout="column"
 							layout-align="center center"
 							ng-if="!isLoaded(lensId)">
 						<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 					</div>
-					<arb-lens page-id="{{lensId}}" ng-if="isLoaded(lensId)"></arb-lens>
+					<arb-lens class="reveal-after-render" page-id="{{lensId}}" ng-if="isLoaded(lensId)"></arb-lens>
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
@@ -64,7 +69,7 @@
 		<arb-subscribe page-id="{{selectedLens.pageId}}" is-stretched="true"></arb-subscribe>
 
 		<!-- Edit -->
-		<md-button ng-href="{{pageService.getEditPageUrl(selectedLens.pageId)}}">
+		<md-button ng-href="{{pageService.getEditPageUrl(selectedLens.pageId)}}" arb-user-check="cool">
 			<md-icon>create</md-icon>
 			<span>Edit</span>
 		</md-button>
@@ -78,10 +83,15 @@
 		</md-button>
 
 		<!-- Show diff -->
-		<!--<md-button>
+		<md-button arb-user-check="cool" ng-click="toggleDiff()">
 			<md-icon>compare_arrows</md-icon>
-			<span>Show diff</span>
-		</md-button>-->
+			<span ng-hide="showingDiff">Show diff</span>
+			<span ng-show="showingDiff">Hide diff</span>
+			<span class="blue-dot" ng-show="page.isUpdatedPage()"></span>
+			<md-tooltip ng-show="page.isUpdatedPage()">
+				This page has been updated since the last time you saw it
+			</md-tooltip>
+		</md-button>
 
 		<!-- Prev/Next -->
 		<div layout="row" ng-hide="page.nextPageId === '0' && page.prevPageId === '0'">

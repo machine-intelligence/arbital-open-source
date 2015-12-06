@@ -51,20 +51,8 @@ app.service("pageService", function($http, $location, userService){
 	// Id of the private group we are in. (Corresponds to the subdomain).
 	this.privateGroupId = "0";
 
-	// Primary page is the one that's displayed front and center.
+	// Primary page is the one with its id in the url
 	this.primaryPage = undefined;
-	// TODO: use $watch instead of this
-	// List of callbacks to notify when primary page changes.
-	this.primaryPageCallbacks = [];
-	// Set the primary page, triggering the callbacks.
-	this.setPrimaryPage = function(newPrimaryPage) {
-		var oldPrimaryPage = this.primaryPage;
-		this.primaryPage = newPrimaryPage;
-		for (var n = 0; n < this.primaryPageCallbacks.length; n++) {
-			this.primaryPageCallbacks[n](oldPrimaryPage);
-		}
-		$("body").attr("last-visit", moment.utc(this.primaryPage.lastVisit).format("YYYY-MM-DD HH:mm:ss"));
-	};
 	
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
@@ -247,34 +235,6 @@ app.service("pageService", function($http, $location, userService){
 		delete this.editMap[pageId];
 	};
 
-	// Load children for the given page. Success/error callbacks are called only
-	// if request was actually made to the server.
-	this.loadChildren = function(parent, success, error) {
-		var that = this;
-		if (parent.hasLoadedChildren) {
-			success(parent.loadChildrenData, 200);
-			return;
-		} else if (parent.isLoadingChildren) {
-			return;
-		}
-		parent.isLoadingChildren = true;
-		console.log("Issuing POST request to /json/children/?parentId=" + parent.pageId);
-		$http({method: "POST", url: "/json/children/", data: JSON.stringify({parentId: parent.pageId})})
-		.success(function(data, status){
-			parent.isLoadingChildren = false;
-			parent.hasLoadedChildren = true;
-			userService.processServerData(data);
-			that.processServerData(data);
-			parent.loadChildrenData = data["pages"];
-			success(data["pages"], status);
-		})
-		.error(function(data, status){
-			parent.isLoadingChildren = false;
-			console.log("Error loading children:"); console.log(data); console.log(status);
-			error(data, status);
-		});
-	};
-
 	// Return function for sorting children ids.
 	this.getChildSortFunc = function(sortChildrenBy) {
 		var pageMap = this.pageMap;
@@ -323,34 +283,6 @@ app.service("pageService", function($http, $location, userService){
 		});
 	};
 
-	// Load parents for the given page. Success/error callbacks are called only
-	// if request was actually made to the server.
-	this.loadParents = function(child, success, error) {
-		var that = this;
-		if (child.hasLoadedParents) {
-			success(child.loadParentsData, 200);
-			return;
-		} else if (child.isLoadingParents) {
-			return;
-		}
-		child.isLoadingParents = true;
-		console.log("Issuing POST request to /json/parents/?childId=" + child.pageId);
-		$http({method: "POST", url: "/json/parents/", data: JSON.stringify({childId: child.pageId})})
-		.success(function(data, status){
-			child.isLoadingParents = false;
-			child.hasLoadedParents = true;
-			userService.processServerData(data);
-			that.processServerData(data);
-			child.loadParentsData = data["pages"];
-			success(data["pages"], status);
-		})
-		.error(function(data, status){
-			child.isLoadingParents = false;
-			console.log("Error loading parents:"); console.log(data); console.log(status);
-			error(data, status);
-		});
-	};
-
 	// Load the page with the given pageAlias.
 	// options {
 	//	 url: url to call
@@ -371,7 +303,9 @@ app.service("pageService", function($http, $location, userService){
 		console.log("Issuing a POST request to: " + options.url + "?pageAlias=" + pageAlias);
 		$http({method: "POST", url: options.url, data: JSON.stringify({pageAlias: pageAlias})}).
 			success(function(data, status){
-				console.log("JSON " + options.url + " data:"); console.dir(data);
+				if (!options.silentFail) {
+					console.log("JSON " + options.url + " data:"); console.dir(data);
+				}
 				userService.processServerData(data);
 				that.processServerData(data);
 				var pageData = data["pages"];

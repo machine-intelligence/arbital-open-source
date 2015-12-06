@@ -3,21 +3,22 @@
 	<h2>Discussion</h2>
 
 	<div ng-repeat="subpageId in page.subpageIds">
-		<arb-subpage lens-id="{{page.pageId}}"
-				page-id="{{subpageId}}"
-				new-comment-fn="newComment(options)"
-				load-comment-edit-fn="loadCommentEdit(options)"
-				new-subpage-created-fn="newSubpageCreated(result)"></arb-subpage>
+		<arb-subpage class="reveal-after-render"
+				lens-id="{{page.pageId}}"
+				page-id="{{subpageId}}"></arb-subpage>
 	</div>
 
 	<!-- New comment editor -->
-	<md-button class="new-comment-button" ng-click="newCommentClick()" ng-hide="newCommentId">
+	<md-button class="new-comment-button"
+			ng-click="newCommentClick()"
+			arb-user-check="cool"
+			ng-hide="newCommentId">
 		<md-icon>comment</md-icon>
 		New Comment
 	</md-button>
 	<div arb-edit-page
 			class="edit-comment-embed"
-			use-full-view="false"
+			is-embedded="true"
 			page-id="{{newCommentId}}"
 			done-fn="newCommentDone(result)"
 			ng-if="newCommentId"></div>

@@ -74,7 +74,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Add parents
-	params.C.Debugf("========================= %+v", data.ParentIds)
 	for _, parentIdStr := range data.ParentIds {
 		parentId, err := strconv.ParseInt(parentIdStr, 10, 64)
 		if err != nil {

@@ -6,6 +6,7 @@
 	</md-toolbar>
 
 	<div ng-if="isLoaded()">
+		<arb-markdown page-id="{{userId}}" use-summary="true"></arb-markdown>
 		<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
 		<br/>
 		<span>Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span></span>

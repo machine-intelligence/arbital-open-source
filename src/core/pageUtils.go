@@ -246,7 +246,7 @@ func GetPageQuickLockedUntilTime() string {
 
 // ExtractSummary extracts the summary text from a page text.
 func ExtractSummary(text string) string {
-	re := regexp.MustCompile("(?ms)^ {0,3}Summary ?: *\n?(.+?)(\n$|\\z)")
+	re := regexp.MustCompile("(?ms)^\\[summary: (.+?)\\](\n$|\\z)")
 	submatches := re.FindStringSubmatch(text)
 	if len(submatches) > 0 {
 		return strings.TrimSpace(submatches[1])

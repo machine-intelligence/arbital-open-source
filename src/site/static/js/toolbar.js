@@ -6,48 +6,27 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 		templateUrl: "/static/html/toolbar.html",
 		scope: {
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
 
 			// Keep the current url updated
-			scope.currentUrl = encodeURIComponent($location.absUrl());
+			$scope.currentUrl = encodeURIComponent($location.absUrl());
 			$rootScope.$on("$routeChangeSuccess", function() {
-				scope.currentUrl = encodeURIComponent($location.absUrl());
+				$scope.currentUrl = encodeURIComponent($location.absUrl());
 			});
 
 			// Called when a search result is selected
-			scope.searchResultSelected = function(result) {
+			$scope.searchResultSelected = function(result) {
 				if (result) {
-					window.location.href = pageService.getPageUrl(result.label);
+					window.location.href = pageService.getPageUrl(result.pageId);
 				}
 			}
 
 			// Open RHS menu
-			scope.toggleRightMenu = function() {
+			$scope.toggleRightMenu = function() {
 		    $mdSidenav("right").toggle();
 		  };
-
-			// Handle logging out
-			$("#logout").click(function() {
-				$.removeCookie("zanaduu", {path: "/"});
-			});
-
-			$("#newPageButton").click(function() {
-				window.location.href = "/edit";
-			});
-
-			$("#newSibling").click(function() {
-				var parentString = pageService.primaryPage.parentIds.join(",");
-				window.location.href = "/edit?newParentId=" + parentString;
-			});
 		},
-	};
-});
-
-// footer directive displays the page's footer
-app.directive("arbFooter", function() {
-	return {
-		templateUrl: "/static/html/footer.html",
 	};
 });

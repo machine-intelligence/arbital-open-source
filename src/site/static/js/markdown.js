@@ -117,11 +117,7 @@ app.service("markdownService", function(pageService, userService){
 
 		if (pageId) {
 			// Setup the editor stuff.
-			var editor = new Markdown.Editor(converter, pageId, {
-				handler: function(){
-					window.open("http://math.stackexchange.com/editing-help", "_blank");
-				},
-			});
+			var editor = new Markdown.Editor(converter, pageId);
 		}
 		
 		InitMathjax(converter);
@@ -238,24 +234,31 @@ debugger;
 // Directive for rendering markdown text.
 app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdownService) {
 	return {
-		template: "<div class='markdown-text'></div>",
 		scope: {
 			pageId: "@",
 			useSummary: "@",
 		},
+		controller: function($scope) {
+			$scope.page = pageService.pageMap[$scope.pageId];
+		},
 		link: function(scope, element, attrs) {
-			scope.page = pageService.pageMap[scope.pageId];
+			element.addClass("markdown-text reveal-after-render");
 			var converter = markdownService.createConverter();
 
 			// Convert page text to html.
 			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
-			var $pageText = element.find(".markdown-text");
+			var $pageText = element;
 			$pageText.html(html);
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
 		
 			markdownService.processLinks($pageText);
+
+			// Remove the class manually in case the text is empty
+			$timeout(function() {
+				element.removeClass("reveal-after-render");
+			});
 		},
 	};
 });

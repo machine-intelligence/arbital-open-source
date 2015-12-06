@@ -18,8 +18,7 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		for (var n = 0; n < hits.length; n++) {
 			var source = hits[n]._source;
 			resultList.push({
-				value: source.alias,
-				label: source.pageId,
+				pageId: source.pageId,
 				alias: source.alias,
 				title: source.title,
 				clickbait: source.clickbait,

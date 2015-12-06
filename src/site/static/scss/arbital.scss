@@ -1,4 +1,5 @@
 // All the z-indices we use
+$inlineCommentIconZ: 1;
 $popoverZ: 100;
 $composeFabZ: 200;
 
@@ -16,6 +17,15 @@ body {
 	// For md-tabs, also propagate the height change
 	[md-tabs-template] {
 		height: 100%;
+	}
+}
+
+// Use this class to reveal the element after it and the children are linked
+.reveal-after-render-parent {
+	visibility: hidden !important;
+
+	.reveal-after-render {
+		visibility: hidden !important;
 	}
 }
 
@@ -188,6 +198,48 @@ md-list {
 	padding: 0;
 }
 
+md-dialog {
+	width: 90vw;
+	height: 90vh;
+
+	// Hack to allow us to use 100% height inside the dialog
+	md-dialog-content {
+		position: relative;
+		top: -$toolbar-height;
+		padding-top: $toolbar-height;
+		margin-bottom: -$toolbar-height;
+		box-sizing: border-box;
+		height: 100%;
+	}
+}
+
+.md-button {
+	margin: 3px;
+};
+
+.md-subheader {
+	background-color: silver;
+
+	&.md-primary {
+		background-color: lightblue;
+	}
+	&.md-accent {
+		background-color: pink;
+	}
+	&.md-warn {
+		background-color: orange;
+	}
+
+	.md-subheader-inner {
+		padding: 4px;
+	}
+}
+
+.md-toolbar-tools a {
+	// Prevent links from wrapping inside toolbars
+	white-space: nowrap;
+}
+
 // Style all md-icons to have size proportionate to the font size
 /*md-icon.material-icons {
 	width: 1em;
@@ -204,6 +256,7 @@ md-list {
 
 arb-likes {
 	white-space: nowrap;
+	margin: 0 10px 0 0;
 }
 
 // Intrasite popover
@@ -261,18 +314,27 @@ arb-compose-fab {
 .wmd-button-bar {
 	border-bottom: 2px solid silver;
 
-	button {
+	@mixin small-button {
 		width: 24px;
 		min-width: 24px;
 		margin: 0px 5px;
 		padding: 0;
 	}
 
-	.separator {
-		margin: 10px 10px;
-		width: 1px;
-		background-color: silver;
+	button {
+		@include small-button;
 	}
+
+	a {
+		@include small-button;
+	}
+}
+
+// Small vertical separator
+.separator {
+	margin: 10px 10px;
+	padding: 0 1px 0 0;
+	background-color: silver;
 }
 
 // Textarea for editing markdown
@@ -288,4 +350,27 @@ arb-compose-fab {
 // Div for the preview separator
 .wmd-preview-separator {
 	width: 20px;
+}
+
+// Highlight subpages when they are selected
+.selected-subpage {
+	border: blue 1px solid;
+}
+
+// Icon shown on the RHS corresponding to an inline comment
+.inline-comment-icon {
+	position: absolute;
+	z-index: $inlineCommentIconZ;
+}
+
+// Anchor text for an inline comment
+.inline-comment-text {
+	background-color: lightblue;
+}
+
+// Div containing the inline comment thread
+.inline-comment-container {
+	margin: 20px;
+	max-height: 70vh;
+	overflow-y: auto;
 }

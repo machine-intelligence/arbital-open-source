@@ -1,14 +1,15 @@
 "use strict";
 
 // Directive for showing the parents, children, tags, or requirements.
-app.directive("arbRelationships", function($q, $timeout, $http, pageService, userService, autocompleteService) {
+app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/relationships.html",
 		scope: {
 			pageId: "@",
 			type: "@",
-			customTitle: "@",
+			isLensRequirements: "@",
 			forceEditMode: "@",
+			readonly: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -36,8 +37,8 @@ app.directive("arbRelationships", function($q, $timeout, $http, pageService, use
 				$scope.title = "Requirements";
 				$scope.idsSource = $scope.page.requirementIds;
 			}
-			if ($scope.customTitle) {
-				$scope.title = $scope.customTitle;
+			if ($scope.isLensRequirements) {
+				$scope.title = "This version relies on:";
 			}
 
 			// Compute if we should show the panel
@@ -80,14 +81,11 @@ app.directive("arbRelationships", function($q, $timeout, $http, pageService, use
 			$scope.searchResultSelected = function(result) {
 				if (!result) return;
 				var data = {
-					parentId: result.label,
+					parentId: result.pageId,
 					childId: $scope.page.pageId,
 					type: $scope.type,
 				};
-				$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error creating a " + $scope.type + ":"); console.log(data); console.log(status);
-				});
+				pageService.newPagePair(data);
 
 				if ($scope.isRequirementType) {
 					pageService.masteryMap[data.parentId] = {pageId: data.parentId, isMet: true, isManuallySet: true};
