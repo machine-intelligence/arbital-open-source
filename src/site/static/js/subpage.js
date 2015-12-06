@@ -41,12 +41,12 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 			// Called when the user wants to edit the subpage
 			$scope.editSubpage = function(event) {
 				if (!event.ctrlKey) {
-					$scope.loadCommentEditFn({options: {
-						commentId: $scope.page.pageId,
+					pageService.loadEdit({
+						pageAlias: $scope.page.pageId,
 						success: function() {
 							$scope.editing = true;
 						},
-					}});
+					});
 					event.preventDefault();
 				}
 			};
@@ -55,7 +55,7 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 			$scope.editDone = function(result) {
 				$scope.editing = false;
 				if (!result.discard) {
-					$scope.newSubpageCreatedFn({result: result});
+					pageService.newCommentCreated(result.pageId);
 				}
 			};
 
@@ -76,24 +76,48 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 
 			// Called to create a new reply
 			$scope.newReply = function() {
-				$scope.newCommentFn({options: {
+				pageService.newComment({
+					parentPageId: $scope.lensId,
 					replyToId: $scope.page.pageId,
 					success: function(newCommentId) {
 						$scope.newReplyId = newCommentId;
 					},
-				}});
+				});
 			};
 
 			// Called when the user is done with the new reply
 			$scope.newReplyDone = function(result) {
 				$scope.newReplyId = undefined;
 				if (!result.discard) {
-					$scope.newSubpageCreatedFn({result: result});
+					pageService.newCommentCreated(result.pageId);
 				}
 			};
 		},
 		compile: function(element) {
 			return RecursionHelper.compile(element);
 		}
+	};
+});
+
+// Directive for container holding an inline comment
+app.directive("arbInlineComment", function ($compile, $timeout, $location, $mdToast, pageService, userService, autocompleteService, RecursionHelper) {
+	return {
+		templateUrl: "/static/html/inlineComment.html",
+		scope: {
+			commentId: "@",
+			lensId: "@",  // id of the lens this comment belongs to
+		},
+		controller: function ($scope) {
+			$scope.isExpanded = false;
+			$scope.toggleExpand = function() {
+				$scope.isExpanded = !$scope.isExpanded;
+			};
+		},
+		link: function(scope, element, attrs) {
+			var content = element.find(".inline-subpage");
+			scope.showExpandButton = function() {
+				return content.get(0).scrollHeight > content.height();
+			};
+		},
 	};
 });

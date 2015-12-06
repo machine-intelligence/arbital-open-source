@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive to show a lens' content
-app.directive("arbLens", function($compile, $location, $timeout, $interval, $anchorScroll, pageService, userService, autocompleteService) {
+app.directive("arbLens", function($compile, $location, $timeout, $interval, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/lens.html",
 		scope: {
@@ -148,23 +148,92 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $anc
 				var params = scope.inlineComments[commentId];
 				params.mouseover = mouseover;
 				if (params.visible) return;
-				params.anchorNode.toggleClass("inline-comment-text", mouseover);
+				params.anchorNode.toggleClass("inline-comment-highlight-hover", mouseover);
 			};
 
 			// Hide/show the inline comment
+			var closeInlineComment = function(commentId) {
+				var params = scope.inlineComments[commentId];
+				if (!params.container) return;
+				params.container.remove();
+				params.container = undefined;
+				params.anchorNode.toggleClass("inline-comment-highlight-hover", params.mouseover);
+				params.visible = false;
+			};
 			scope.toggleInlineComment = function(commentId) {
 				var params = scope.inlineComments[commentId];
 				params.visible = !params.visible;
 				if (params.visible) {
-					params.container = $compile($("<div arb-subpage" +
-						" class='inline-comment-container md-whiteframe-4dp' lens-id='" + scope.page.pageId +
-						"' page-id='" + commentId + "'></div>"))(scope);
+					// Close other inline comments
+					for (var id in scope.inlineComments) {
+						if (id !== commentId) {
+							closeInlineComment(id);
+						}
+					}
+
+					// Create the container
+					params.container = $compile($("<arb-inline-comment" +
+						" lens-id='" + scope.page.pageId +
+						"' comment-id='" + commentId + "'></arb-inline-comment>"))(scope);
 					$(params.paragraphNode).after(params.container);
-					$location.hash("subpage-" + commentId);
 				} else {
-					params.container.remove();
-					params.container = undefined;
-					params.anchorNode.toggleClass("inline-comment-text", params.mouseover);
+					closeInlineComment(commentId);
+				}
+			};
+
+			// Process creating new inline comments
+			var $inlineCommentEditPage = undefined;
+			var newInlineCommentButtonTop = 0;
+			scope.showNewInlineCommentButton = false;
+			$markdown.on("mouseup", function(event) {
+				if ($inlineCommentEditPage) return;
+				// Do setTimeout, because otherwise there is a bug when you double click to
+				// select a word/paragraph, then click again and the selection var is still
+				// the same (not cleared).
+				$timeout(function(){
+					//console.log(processSelectedParagraphText());
+					scope.showNewInlineCommentButton = !!processSelectedParagraphText();
+					if (scope.showNewInlineCommentButton) {
+						newInlineCommentButtonTop = event.pageY;
+					}
+				});
+			});
+			scope.getNewInlineCommentButtonStyle = function() {
+				return {
+					"left": $markdown.position().left + $markdown.width(),
+					"top": newInlineCommentButtonTop,
+				};
+			};
+
+			// Create a new inline comment
+			scope.newInlineComment = function() {
+				var selection = getSelectedParagraphText();
+				if (!selection) return;
+				pageService.newComment({
+					parentPageId: scope.page.pageId,
+					success: function(newCommentId) {
+						var comment = pageService.editMap[newCommentId];
+						comment.anchorContext = selection.context;
+						comment.anchorText = selection.text;
+						comment.anchorOffset = selection.offset;
+						console.log(comment);
+						$inlineCommentEditPage = $compile($("<div arb-edit-page class='edit-comment-embed'" +
+							" is-embedded='true' page-id='" + newCommentId +
+							"' done-fn='newInlineCommentDone(result)'></div>"))(scope);
+						$(selection.paragraphNode).after($inlineCommentEditPage);
+						scope.showNewInlineCommentButton = false;
+					},
+				});
+			};
+
+			// Called when the user is done with the new inline comment
+			scope.newInlineCommentDone = function(result) {
+				if (!result.discard) {
+					pageService.newCommentCreated(result.pageId);
+				} else {
+					$inlineCommentEditPage.remove();
+					$inlineCommentEditPage = undefined;
+					$markdown.find(".inline-comment-highlight").removeClass("inline-comment-highlight");
 				}
 			};
 
@@ -190,4 +259,3 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $anc
 		},
 	};
 });
-

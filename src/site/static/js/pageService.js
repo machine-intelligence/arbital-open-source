@@ -500,4 +500,39 @@ app.service("pageService", function($http, $location, userService){
 		if (!this.primaryPage) return page.seeGroupId !== "0";
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId !== "0";
 	};
+
+	// Create a new comment; optionally it's a reply to the given commentId
+	// options: {
+	//  parentPageId: id of the parent page
+	//	replyToId: (optional) comment id this will be a reply to
+	//	success: callback
+	// }
+	this.newComment = function(options) {
+		var parentIds = [options.parentPageId];
+		if (options.replyToId) {
+			parentIds.push(options.replyToId);
+		}
+		// Create new comment
+		this.getNewPage({
+			type: "comment",
+			parentIds: parentIds,
+			success: function(newCommentId) {
+				that.loadEdit({
+					pageAlias: newCommentId,
+					success: function() {
+						if (options.success) {
+							options.success(newCommentId);
+						}
+					},
+				});
+			},
+		});
+	};
+
+	// Called when the user created a new comment.
+	this.newCommentCreated = function(commentId) {
+		// TODO: dynamically add the comment
+		window.location.href = this.getPageUrl(this.primaryPage.pageId) + "#subpage-" + commentId;
+		window.location.reload();
+	};
 });

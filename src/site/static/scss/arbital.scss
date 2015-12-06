@@ -214,8 +214,7 @@ md-dialog {
 }
 
 .md-button {
-	margin: 3px;
-};
+}
 
 .md-subheader {
 	background-color: silver;
@@ -357,13 +356,29 @@ arb-compose-fab {
 }
 
 // Anchor text for an inline comment
-.inline-comment-text {
+.inline-comment-highlight {
+	background-color: lightblue;
+}
+
+// Anchor text for an inline comment
+.inline-comment-highlight-hover {
 	background-color: lightblue;
 }
 
 // Div containing the inline comment thread
 .inline-comment-container {
 	margin: 20px;
-	max-height: 70vh;
-	overflow-y: auto;
+
+	// Expand button
+	.expand {
+		height: 20px;
+	}
+
+	// Added to constrain the height of the subpage
+	&.constrained {
+		arb-subpage {
+			max-height: calc(70vh - 20px);
+			overflow-y: auto;
+		}
+	}
 }

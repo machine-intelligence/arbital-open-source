@@ -15,6 +15,12 @@
 
 	<!-- Inline comments -->
 	<div class="inline-comments-div">
+		<md-button class="inline-comment-icon md-icon-button"
+				ng-style="getNewInlineCommentButtonStyle()"
+				ng-click="newInlineComment()"
+				ng-show="showNewInlineCommentButton">
+			<md-icon md-svg-icon="comment_plus_outline"></md-icon>
+		</md-button>
 		<div class="inline-comment-icon"
 				ng-style="getInlineCommentIconStyle(commentId)"
 				ng-mouseenter="inlineCommentIconMouseover(commentId, true)"

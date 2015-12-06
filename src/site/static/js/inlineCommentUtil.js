@@ -1,3 +1,8 @@
+// Just a wrapper to get node's class name, but convert undefined into "".
+var getNodeClassName = function(node) {
+	return node.className || "";
+}
+
 // Return the parent node that's just under markdown-text and contains the given node.
 var getParagraphNode = function(node) {
 	var paragraphNode = node.parentNode;
@@ -60,7 +65,7 @@ var getSelectedParagraphText = function() {
 // Return {context: paragraph text, text: selected text} object or null based
 // on the given selection.
 var getParagraphText = function(paragraphNode, selection) {
-	var result = {text: "", context: "", offset: 0};
+	var result = {text: "", context: "", offset: 0, paragraphNode: paragraphNode};
 	// Whether the nodes we are visiting right now are inside the selection
 	var insideText = false;
 	// Store ranges we want to highlight.

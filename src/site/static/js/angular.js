@@ -8,6 +8,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
 		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
 		.icon("link_variant", "static/icons/link-variant.svg")
+		.icon("comment_plus_outline", "static/icons/comment-plus-outline.svg")
 		.icon("format_header_pound", "static/icons/format-header-pound.svg");
 
 	$locationProvider.html5Mode(true);

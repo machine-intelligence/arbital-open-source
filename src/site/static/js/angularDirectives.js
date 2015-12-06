@@ -326,7 +326,9 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 			if (userService.user.id === "0") {
 				failMessage = "Login required";
 			} else if (check === "cool") {
-				failMessage = "You have a limited account";
+				if (!userService.userIsCool()) {
+					failMessage = "You have a limited account";
+				}
 			}
 			if (failMessage) {
 				element.prepend(angular.element("<md-tooltip>" + failMessage + "</md-tooltip>"));
