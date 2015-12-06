@@ -10,7 +10,11 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 
 	var mousePageX, mousePageY;
 
+	var linkTypeIntrasite = "intrasite";
+	var linkTypeUser = "user";
+
 	var $targetCandidate,
+		targetCandidateLinkType,
 		createPromise;
 
 	var $popoverElement,
@@ -56,8 +60,13 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		removePopover();
 
 		// Create the popover
-		$popoverElement = $compile("<arb-intrasite-popover page-id='" + $target.attr("page-id") +
-			"'></arb-intrasite-popover>")($rootScope);
+		if (targetCandidateLinkType == linkTypeIntrasite) {
+			$popoverElement = $compile("<arb-intrasite-popover page-id='" + $target.attr("page-id") +
+				"'></arb-intrasite-popover>")($rootScope);
+		} else if (targetCandidateLinkType == linkTypeUser) {
+			$popoverElement = $compile("<arb-user-popover user-id='" + $target.attr("user-id") +
+				"'></arb-user-popover>")($rootScope);
+		}
 		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
 		var top = $target.offset().top + parseInt($target.css("font-size"));
 		$popoverElement.offset({left: left, top: top});
@@ -77,10 +86,19 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 	};
 
 	$("body").on("mouseenter", ".intrasite-link", function(event) {
+		mouseEnterPopoverLink(event, linkTypeIntrasite);
+	});
+
+	$("body").on("mouseenter", ".user-link", function(event) {
+		mouseEnterPopoverLink(event, linkTypeUser);
+	});
+
+	var mouseEnterPopoverLink = function(event, linkType) {
 		var $target = $(event.currentTarget);
 		if ($target.hasClass("red-link")) return;
 		// Don't allow recursive hover in popovers.
 		if ($target.closest("arb-intrasite-popover").length > 0) return;
+		if ($target.closest("arb-user-popover").length > 0) return;
 		if ($currentTarget && $target[0] == $currentTarget[0]) {
 			// Hovering over the element we already created a popover for
 			anchorHovering = true;
@@ -91,19 +109,37 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		if (!$targetCandidate) {
 			createPromise = $timeout(createPopover, showDelay, true, event);
 			$targetCandidate = $target;
+			targetCandidateLinkType = linkType;
 		} else if ($target[0] != $targetCandidate[0]) {
 			$timeout.cancel(createPromise);
 			createPromise = $timeout(createPopover, showDelay, true, event);
 			$targetCandidate = $target;
+			targetCandidateLinkType = linkType;
 		}
-	});
+	};
 
 	$("body").on("mousemove", ".intrasite-link", function(event) {
-		mousePageX = event.pageX;
-		mousePageY = event.pageY;
+		mouseMovePopoverLink(event);
 	});
 
+	$("body").on("mousemove", ".user-link", function(event) {
+		mouseMovePopoverLink(event);
+	});
+
+	var mouseMovePopoverLink = function(event) {
+		mousePageX = event.pageX;
+		mousePageY = event.pageY;
+	};
+
 	$("body").on("mouseleave", ".intrasite-link", function(event) {
+		mouseLeavePopoverLink(event);
+	});
+
+	$("body").on("mouseleave", ".user-link", function(event) {
+		mouseLeavePopoverLink(event);
+	});
+
+	var mouseLeavePopoverLink = function(event) {
 		var $target = $(event.currentTarget);
 		if ($currentTarget && $target[0] == $currentTarget[0]) {
 			// Leaving the element we created a popover for
@@ -114,9 +150,10 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		if ($targetCandidate && $target[0] == $targetCandidate[0]){
 			// Leaving the element we hovered over for a bit
 			$targetCandidate = undefined;
+			targetCandidateLinkType = undefined;
 			$timeout.cancel(createPromise);
 		}
-	});
+	};
 
 	$rootScope.$on("$locationChangeStart", function(event) {
 		$timeout.cancel(createPromise);

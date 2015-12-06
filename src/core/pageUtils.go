@@ -70,6 +70,21 @@ func AddPageToMap(pageId int64, pageMap map[int64]*Page, loadOptions *PageLoadOp
 	return p
 }
 
+// AddUserToMap adds a new user with the given user id to the map if it's not
+// in the map already.
+// Returns the new/existing user.
+func AddUserToMap(userId int64, userMap map[int64]*User) *User {
+	if userId <= 0 {
+		return nil
+	}
+	if u, ok := userMap[userId]; ok {
+		return u
+	}
+	u := &User{Id: userId}
+	userMap[userId] = u
+	return u
+}
+
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
 func PageIdsStringFromMap(pageMap map[int64]*Page) string {
 	var buffer bytes.Buffer

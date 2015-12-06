@@ -102,6 +102,7 @@ var (
 		Lenses:        true,
 		Links:         true,
 		Votes:         true,
+		IsSubscribed:  true,
 		SubpageCounts: true,
 		Summary:       true,
 	}).Add(TitlePlusLoadOptions)

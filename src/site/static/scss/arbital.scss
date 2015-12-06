@@ -265,6 +265,13 @@ arb-intrasite-popover {
 	background-color: white;
 }
 
+// User popover
+arb-user-popover {
+	position: absolute;
+	z-index: $popoverZ;
+	background-color: white;
+}
+
 // Compose fab that appears in the bottom right corner
 arb-compose-fab {
 	position: fixed;

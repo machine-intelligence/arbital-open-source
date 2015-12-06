@@ -445,7 +445,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 			userMap[p.LockedBy] = &User{Id: p.LockedBy}
 		}
 	}
-	err = LoadUsers(db, userMap)
+	err = LoadUsers(db, userMap, u.Id)
 	if err != nil {
 		return fmt.Errorf("LoadUsers failed: %v", err)
 	}

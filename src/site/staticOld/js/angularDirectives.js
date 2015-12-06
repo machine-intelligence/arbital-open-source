@@ -33,7 +33,7 @@ app.directive("arbNewLinkModal", function(autocompleteService) {
 	};
 });
 
-// intrasitePopover containts the popover body html.
+// intrasitePopover contains the popover body html.
 app.directive("arbIntrasitePopover", function(pageService, userService) {
 	return {
 		templateUrl: "/static/html/intrasitePopover.html",

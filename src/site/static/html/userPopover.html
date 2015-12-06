@@ -1,0 +1,21 @@
+<div class="user-popover md-whiteframe-8dp" layout="column">
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<arb-user-name user-id="{{userId}}" ng-if="isLoaded()"></arb-user-name>
+		</div>
+	</md-toolbar>
+
+	<div ng-if="isLoaded()">
+		<arb-markdown page-id="{{userId}}" use-summary="true"></arb-markdown>
+		<div layout="row" layout-align="space-between center" ng-if="isLoaded()">
+			<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
+			<span>Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span></span>
+		</div>
+	</div>
+
+	<!-- Loading spinner -->
+	<div ng-if="!isLoaded()">
+		<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+	</div>
+
+</div>

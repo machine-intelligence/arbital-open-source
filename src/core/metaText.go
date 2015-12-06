@@ -5,7 +5,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// MetaText is structure containting the parsed data from the page's meta text.
+// MetaText is structure containing the parsed data from the page's meta text.
 type MetaText map[string]interface{}
 
 // ParseMetaText parses the give meta text and returns a new MetaText object.

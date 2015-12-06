@@ -330,6 +330,30 @@ app.service("pageService", function($http, $location, userService){
 		loadPage(pageAlias, options);
 	};
 
+	// Get data to display a popover for the user with the given alias.
+	// options {
+	//	 url: url to call
+	//   success: callback on success
+	//   error: callback on error
+	// }
+	this.loadUserPopover = function(userId, options) {
+		options = options || {};
+		var success = options.success; delete options.success;
+		var error = options.error; delete options.error;
+
+		console.log("Issuing POST request to /json/userPopover/?userId=" + userId);
+		$http({method: "POST", url: "/json/userPopover/", data: JSON.stringify({userId: userId})})
+		.success(function(data, status){
+			userService.processServerData(data);
+			that.processServerData(data);
+			if (success) success(data, status);
+		})
+		.error(function(data, status){
+			console.error("Error loading user popover:"); console.log(data); console.log(status);
+			if (error) error(data, status);
+		});
+	};
+
 	// Get data to display a lens.
 	this.loadLens = function(pageAlias, options) {
 		options = options || {};

@@ -1,5 +1,5 @@
 <md-button arb-user-check ng-click="subscribeClick()">
-	<md-icon ng-show="page.isSubscribed">visibility</md-icon>
-	<md-icon ng-show="!page.isSubscribed">visibility_off</md-icon>
+	<md-icon ng-show="isSubscribed()">visibility</md-icon>
+	<md-icon ng-show="!isSubscribed()">visibility_off</md-icon>
 	<span>Subscribe</span>
 </md-button>

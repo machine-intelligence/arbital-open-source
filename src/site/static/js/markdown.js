@@ -26,7 +26,7 @@ var atAliasRegexp = new RegExp(notEscaped +
 
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.service("markdownService", function(pageService){
+app.service("markdownService", function(pageService, userService){
 	// Pass in a pageId to create an editor for that page
 	var createConverter = function(pageId, postConversionCallback) {
 		// NOTE: not using $location, because we need port number
@@ -95,6 +95,7 @@ app.service("markdownService", function(pageService){
 					var url = "http://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
+					var url = "http://" + host + "/user/" + alias + "/";
 					return prefix + "[" + alias + "](" + alias + ")";
 				}
 			});
@@ -140,44 +141,61 @@ app.service("markdownService", function(pageService){
 	// If refreshFunc is set, fetch page's we don't have yet, and call that function
 	// when one of them is loaded.
 	this.processLinks = function($pageText, refreshFunc) {
-		// Setup attributes for links that are within our domain.
+		// Setup attributes for page links that are within our domain.
 		// NOTE: not using $location, because we need port number
-		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
 			"\/pages\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
+
+		// Setup attributes for user links that are within our domain.
+		var userRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+			window.location.host + // match the url host part
+			"\/user\/" + aliasMatch + // [1] capture user alias
+			"\/?" + // optional ending /
+			"(.*)"); // optional other stuff
+
 		$pageText.find("a").each(function(index, element) {
 			var $element = $(element);
-			var parts = $element.attr("href").match(re);
-			if (parts === null) return;
-			var pageAlias = parts[1];
-	
-			if ($element.hasClass("intrasite-link")) {
-				return;
-			}
-			$element.addClass("intrasite-link").attr("page-id", pageAlias);
-			// Check if we are embedding a vote
-			if (parts[2].indexOf("embedVote") > 0) {
-				$element.attr("embed-vote-id", pageAlias);
-			} else if (pageAlias in pageService.pageMap) {
-				if (pageService.pageMap[pageAlias].isDeleted()) {
-					// Link to a deleted page.
-					$element.addClass("red-link");
-				} else {
-					// Normal healthy link!
-				}
-			} else {
-				// Mark as red link
-				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
-				$element.addClass("red-link");
-				if (refreshFunc) {
-					pageService.loadTitle(pageAlias, {
-						silentFail: true,
-						success: function() {
-							refreshFunc();
+			var parts = $element.attr("href").match(pageRe);
+			if (parts !== null)	{
+				var pageAlias = parts[1];
+				
+				if (!$element.hasClass("intrasite-link")) {
+					$element.addClass("intrasite-link").attr("page-id", pageAlias);
+					// Check if we are embedding a vote
+					if (parts[2].indexOf("embedVote") > 0) {
+						$element.attr("embed-vote-id", pageAlias);
+					} else if (pageAlias in pageService.pageMap) {
+						if (pageService.pageMap[pageAlias].isDeleted()) {
+							// Link to a deleted page.
+							$element.addClass("red-link");
+						} else {
+							// Normal healthy link!
 						}
-					});
+					} else {
+						// Mark as red link
+						$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+						$element.addClass("red-link");
+						if (refreshFunc) {
+							pageService.loadTitle(pageAlias, {
+								silentFail: true,
+								success: function() {
+									refreshFunc();
+								}
+							});
+						}
+					}
+				}
+			}
+
+			parts = $element.attr("href").match(userRe);
+			if (parts !== null) {
+				var userAlias = parts[1];
+				
+				if (!$element.hasClass("user-link")) {
+					$element.addClass("user-link").attr("user-id", userAlias);
 				}
 			}
 		});
