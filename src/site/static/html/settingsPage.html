@@ -1,33 +1,37 @@
-<div class="md-whiteframe-1dp" layout="column">
-	<md-toolbar>
-		<div class="md-toolbar-tools">
-			Email settings
-		</div>
-	</md-toolbar>
-	<form ng-submit="submitForm($event)" layout="column">
-		<!-- Email frequency -->
-		<md-input-container>
-			<label>
-				Email frequency (how frequently the update emails will be sent)
-			</label>
-			<md-select ng-model="userService.user.emailFrequency">
-				<md-option ng-repeat="(type,label) in frequencyTypes" value="{{type}}">
-					{{label}}
-				</md-option>
-			</md-select>
-		</md-input-container>
-
-		<!-- Email threshold -->
-		<md-input-container>
-			<label>
-				Email threshold (the minimum number of new updates required before an update email will be sent)
-			</label>
-			<input name="emailThreshold" ng-model="userService.user.emailThreshold">
-		</md-input-container>
-
-		<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
-		<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Submit</md-button>
-		<div class="submit-form-error md-warn" hidden></div>
-		<div ng-show="submitted">Submitted!</div>
-	</form>
+<div class="capped-body-width">
+	<div class="md-whiteframe-1dp" layout="column" layout-margin>
+		<md-toolbar class="md-hue-1" layout-fill>
+			<div class="md-toolbar-tools">
+				Email settings
+			</div>
+		</md-toolbar>
+		<form ng-submit="submitForm($event)" layout="column" layout-fill layout-padding>
+			<!-- Email frequency -->
+			<md-input-container>
+				<label>
+					Email frequency
+				</label>
+				<md-select ng-model="userService.user.emailFrequency">
+					<md-option ng-repeat="(type,label) in frequencyTypes" value="{{type}}">
+						{{label}}
+					</md-option>
+				</md-select>
+				<span class="md-caption">How frequently the update emails will be sent</span>
+			</md-input-container>
+	
+			<!-- Email threshold -->
+			<md-input-container>
+				<label>
+					Email threshold 
+				</label>
+				<input name="emailThreshold" ng-model="userService.user.emailThreshold">
+				<span class="md-caption">The minimum number of new updates required before an update email will be sent</span>
+			</md-input-container>
+	
+			<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
+			<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Submit</md-button>
+			<div class="submit-form-error md-warn" hidden></div>
+			<div ng-show="submitted">Submitted!</div>
+		</form>
+	</div>
 </div>

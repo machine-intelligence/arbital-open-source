@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for showing a standard Arbital page.
-app.directive("arbPage", function ($location, $compile, $timeout, $interval, pageService, userService) {
+app.directive("arbPage", function ($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: "/static/html/page.html",
 		scope: {
@@ -13,6 +13,8 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, pag
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
 			$scope.questionIds = $scope.page.questionIds || [];
+			$scope.isTinyScreen = !$mdMedia("gt-sm");
+			$scope.isSingleColumn = !$mdMedia("gt-md");
 
 			// Add the primary page as the first lens.
 			$scope.page.lensIds.unshift($scope.page.pageId);

@@ -6,14 +6,14 @@
 			is-lens-requirements="true"></arb-relationships>
 
 	<!-- Page's text. Populated by markdown. -->
-	<arb-markdown class="lens-text"
+	<arb-markdown class="md-whiteframe-1dp lens-text"
 			page-id="{{page.pageId}}"
 			ng-hide="showingDiff"></arb-markdown>
-	<md-content ng-if="showingDiff">
+	<div class="md-whiteframe-1dp" ng-if="showingDiff">
 		<div class="diff-section" ng-bind-html="diffHtml"></div>
-	</md-content>
+	</div>
 
-	<!-- Inline comments -->
+	<!-- Inline comments container (but the buttons are positioned absolutely) -->
 	<div class="inline-comments-div">
 		<md-button class="inline-comment-icon md-icon-button"
 				ng-style="getNewInlineCommentButtonStyle()"
@@ -36,20 +36,17 @@
 	</div>
 
 	<!-- Mastery container -->
-	<div>
-		<md-button ng-click="toggleMastery()">
-			<span ng-show="mastery.has">
-				<md-icon>done_all</md-icon>
-				<span ng-show="mastery.isManuallySet">You marked this requirement as fulfilled</span>
-				<span ng-hide="mastery.isManuallySet">This requirement is fulfilled</span>
-			</span>
-			<span ng-hide="mastery.has">
-				<md-icon>done</md-icon>
-				<span ng-show="mastery.isManuallySet">You marked this requirement unfulfilled</span>
-				<span ng-hide="mastery.isManuallySet">Click to fulfill the requirement</span>
-			</span>
-		</md-button>
-	</div>
+	<md-button class="md-primary md-raised" ng-click="toggleMastery()">
+		<span ng-show="mastery.has">
+			<span ng-show="mastery.isManuallySet">You marked this requirement as fulfilled</span>
+			<span ng-hide="mastery.isManuallySet">This requirement is fulfilled</span>
+			<md-icon>done</md-icon>
+		</span>
+		<span ng-hide="mastery.has">
+			<span ng-show="mastery.isManuallySet">You marked this requirement unfulfilled</span>
+			<span ng-hide="mastery.isManuallySet">Click to fulfill the requirement</span>
+		</span>
+	</md-button>
 
 	<arb-discussion class="reveal-after-render" page-id="{{page.pageId}}"></arb-discussion>
 </div>

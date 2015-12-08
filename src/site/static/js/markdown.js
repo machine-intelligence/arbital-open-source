@@ -199,6 +199,10 @@ app.service("markdownService", function(pageService, userService){
 				}
 			}
 		});
+
+		$pageText.find("h1").addClass("md-display-2");
+		$pageText.find("h2").addClass("md-display-1");
+		$pageText.find("h3").addClass("md-headline");
 	};
 
 	this.createConverter = function() {
@@ -222,22 +226,21 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 		},
 		link: function(scope, element, attrs) {
 			element.addClass("markdown-text reveal-after-render");
-			var converter = markdownService.createConverter();
+
+			// Remove the class manually in case the text is empty
+			$timeout(function() {
+				element.removeClass("reveal-after-render");
+			});
 
 			// Convert page text to html.
+			var converter = markdownService.createConverter();
 			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
 			var $pageText = element;
 			$pageText.html(html);
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
-		
 			markdownService.processLinks($pageText);
-
-			// Remove the class manually in case the text is empty
-			$timeout(function() {
-				element.removeClass("reveal-after-render");
-			});
 		},
 	};
 });

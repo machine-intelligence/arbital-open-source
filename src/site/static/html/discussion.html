@@ -1,6 +1,6 @@
 <!-- Discussion section for some page -->
 <div layout="column">
-	<h2>Discussion</h2>
+	<h1 class="md-display-3">Discussion</h1>
 
 	<div ng-repeat="subpageId in page.subpageIds">
 		<arb-subpage class="reveal-after-render"
@@ -9,7 +9,7 @@
 	</div>
 
 	<!-- New comment editor -->
-	<md-button class="new-comment-button"
+	<md-button class="new-comment-button md-primary md-raised"
 			ng-click="newCommentClick()"
 			arb-user-check="cool"
 			ng-hide="newCommentId">

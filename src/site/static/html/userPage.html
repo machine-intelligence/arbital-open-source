@@ -1,49 +1,46 @@
-<div layout="column">
+<div layout="column" class="capped-body-width">
+
 	<!-- User header -->
 	<div layout="row" layout-align="center center">
-		<h3>
+		<h2>
 			<arb-user-name user-id="{{userId}}"></arb-user-name>
-			<span>(last seen <span ng-bind="TODO"></span>)</span>
-		</h3>
+			<span class="md-caption">
+				(last seen <span ng-bind="userService.userMap[userId].lastWebsiteVisit | relativeDateTime"></span>)
+			</span>
+		</h2>
 	</div>
 
 	<!-- Public row -->
-	<div layout="row">
-		<div flex="5"></div>
+	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<arb-page-list panel-title="Recently created pages"
 				is-public="yes"
 				show-last-edit="true"
 				show-red-link-count="{{userId === userService.user.id}}"
 				page-ids="idsMap.recentlyCreatedIds"
 				flex="40"></arb-page-list>
-		<div flex="10"></div>
 		<arb-page-list panel-title="Recently created comments"
 				is-public="yes"
 				page-ids="idsMap.recentlyCreatedCommentIds"
 				flex="40"></arb-page-list>
-		<div flex="5"></div>
 	</div>
 
 	<!-- Public row -->
-	<div layout="row">
-		<div flex="5"></div>
+	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<arb-page-list panel-title="Top pages"
 				is-public="yes"
 				page-ids="idsMap.topPagesIds"
 				flex="40"></arb-page-list>
-		<div flex="10"></div>
 		<arb-page-list panel-title="Recently edited"
 				is-public="yes"
+				show-last-edit="true"
 				show-red-link-count="{{userId === userService.user.id}}"
 				show-quick-edit-link="true"
 				page-ids="idsMap.recentlyEditedIds"
 				flex="40"></arb-page-list>
-		<div flex="5"></div>
 	</div>
 
 	<!-- Private row -->
-	<div layout="row" ng-if="userId === userService.user.id">
-		<div flex="5"></div>
+	<div layout="column" layout-gt-md="row" layout-margin layout-fill ng-if="userId === userService.user.id">
 		<arb-page-list panel-title="Pages with drafts"
 				is-public="no"
 				show-last-edit="true"
@@ -52,7 +49,6 @@
 				show-quick-edit="true"
 				page-ids="idsMap.pagesWithDraftIds"
 				flex="40"></arb-page-list>
-		<div flex="10"></div>
 		<arb-page-list panel-title="Pages with most TODOs"
 				is-public="no"
 				show-last-edit="true"
@@ -60,6 +56,5 @@
 				show-quick-edit-link="true"
 				page-ids="idsMap.mostTodosIds"
 				flex="40"></arb-page-list>
-		<div flex="5"></div>
 	</div>
 </div>

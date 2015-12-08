@@ -148,9 +148,9 @@ app.directive("arbLikes", function($http, pageService, userService) {
 		scope: {
 			pageId: "@",
 			// If true, the button is not an icon button, but is a normal button
-			isStretched: "@",
+			isStretched: "=",
 			// Whether or not we show likes as a button or a span
-			isButton: "@",
+			isButton: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -181,9 +181,9 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 		scope: {
 			pageId: "@",
 			// If true, subscribe to a user, not a page
-			isUser: "@",
+			isUser: "=",
 			// If true, the button is not an icon button, but is a normal button with a label
-			isStretched: "@",
+			isStretched: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -219,7 +219,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive("arbComposeFab", function($location, pageService, userService) {
+app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: "/static/html/composeFab.html",
 		scope: {
@@ -229,6 +229,20 @@ app.directive("arbComposeFab", function($location, pageService, userService) {
 			$scope.userService = userService;
 			$scope.pageUrl = "/edit/";
 			$scope.questionUrl = "/edit/?type=question";
+			$scope.isSmallScreen = !$mdMedia("gt-sm");
+
+			// Show/hide tooltips when the fab is toggled
+			if ($scope.isSmallScreen) {
+				$scope.$watch("isOpen", function(isOpen) {
+					if (isOpen) {
+						$timeout(function() {
+							$scope.showTooltips = $scope.isOpen;
+						}, 100);
+					} else {
+						$scope.showTooltips = $scope.isOpen;
+					}
+				});
+			}
 
 			// Compute what the urls should be on the compose buttons, and which ones
 			// should be visible.

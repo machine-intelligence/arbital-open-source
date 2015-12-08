@@ -172,12 +172,12 @@ app.filter("relativeDateTimeNoSuffix", function() {
 
 app.controller("IndexPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
 	if ($scope.subdomain) {
-		// Get the private group index page data
-		$http({method: "POST", url: "/json/privateIndex/"})
+		// Get the private domain index page data
+		$http({method: "POST", url: "/json/domainPage/", data: JSON.stringify({})})
 		.success($scope.getSuccessFunc(function(data){
 			$scope.indexPageIdsMap = data.result;
 			return {
-				title: pageService.pageMap[$scope.subdomain].title + " - Private Group",
+				title: pageService.pageMap[$scope.subdomain].title + " - Private Domain",
 				element: $compile("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>")($scope),
 			};
 		}))
@@ -271,8 +271,8 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 					};
 					return {
 						title: "Edit " + (page.title ? page.title : "New Page"),
-						element: $compile("<div arb-edit-page class='full-height' page-id='" + pageId +
-							"' done-fn='doneFn(result)'></div>")($scope),
+						element: $compile("<arb-edit-page class='full-height' page-id='" + pageId +
+							"' done-fn='doneFn(result)' layout='column' flex></arb-edit-page>")($scope),
 					};
 				}),
 				error: $scope.getErrorFunc("loadEdit"),

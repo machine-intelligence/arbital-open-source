@@ -1,37 +1,25 @@
-<div layout="column">
-	<!-- Header -->
-	<div layout="column">
-		<h1 ng-bind="group.title"></h1>
-		<arb-markdown page-id="{{groupId}}" use-summary="true"></arb-markdown>
-	</div>
-
+<div layout="column" class="capped-body-width">
 	<!-- First row -->
-	<div layout="row">
-		<div flex="5"></div>
+	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<arb-page-list panel-title="New"
 				show-last-edit="true"
 				page-ids="idsMap.recentlyCreatedIds"
-				flex="40"></arb-page-list>
-		<div flex="10"></div>
+				flex></arb-page-list>
 		<arb-page-list panel-title="Hot"
 				show-last-edit="true"
 				show-comment-count="true"
 				page-ids="idsMap.hotIds"
-				flex="40"></arb-page-list>
-		<div flex="5"></div>
+				flex></arb-page-list>
 	</div>
 
 	<!-- Second row -->
-	<div layout="row">
-		<div flex="5"></div>
+	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<arb-page-list panel-title="Top"
 				page-ids="idsMap.mostLikedIds"
-				flex="40"></arb-page-list>
-		<div flex="10"></div>
+				flex></arb-page-list>
 		<arb-page-list panel-title="Controversial"
 				show-comment-count="true"
 				page-ids="idsMap.mostControversialIds"
-				flex="40"></arb-page-list>
-		<div flex="5"></div>
+				flex></arb-page-list>
 	</div>
 </div>

@@ -1,138 +1,136 @@
-<div layout="column">
-	<div class="md-whiteframe-1dp" style="margin: 20px 0" ng-repeat="(index,group) in updateGroups">
-
-		<!-- Panel header -->
-		<md-subheader class="colored-subheader" ng-class="{'md-primary': group.key.isNew}">
-			<!-- Header when grouping by page -->
-			<div layout="row" layout-align="start center" ng-if="group.key.groupByPageId !== '0'">
-				<arb-page-title is-link="true" page-id="{{group.key.groupByPageId}}" flex></arb-page-title>
-				<arb-subscribe page-id="{{group.key.groupByPageId}}"
-						is-button="true"
-						ng-hide="parentSubpageId"></arb-subscribe>
-			</div>
-
-			<!-- Header when grouping by user -->
-			<div layout="row" layout-align="start center" ng-if="group.key.groupByUserId !== '0'">
-				<arb-user-name user-id="{{group.key.groupByUserId}}" flex></arb-user-name>
-				<arb-subscribe user-id="{{group.key.groupByUserId}}"
-						is-button="true"
-						ng-hide="parentSubpageId"></arb-subscribe>
-			</div>
-		</md-subheader>
-
-		<!-- Panel body -->
-		<div layout="column">
-			<div ng-repeat="(index,update) in group.updates">
-				<div ng-style="{'background-color': update.isVisited ? 'white' : 'lightblue'}"
-						ng-switch="update.type">
-					
-					<div ng-switch-when="topLevelComment">
-						<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
-						wrote a
-						<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
-								page-id="{{update.goToPageId}}"
-								class="intrasite-link">new comment</a>
-					</div>
+<div class="capped-body-width">
+	<div layout="column" layout-margin>
+		<div class="md-whiteframe-1dp" ng-repeat="(index,group) in updateGroups">
 	
-					<div ng-switch-when="reply">
-						<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
-						wrote a
-						<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
-								page-id="{{update.goToPageId}}"
-								class="intrasite-link">new comment reply</a>
-					</div>
+			<!-- Panel header -->
+			<md-subheader ng-class="{'md-accent': group.key.isNew}">
+				<!-- Header when grouping by page -->
+				<div layout="row" layout-align="start center" ng-if="group.key.groupByPageId !== '0'">
+					<arb-page-title is-link="true" page-id="{{group.key.groupByPageId}}" flex></arb-page-title>
+					<arb-subscribe page-id="{{group.key.groupByPageId}}" ng-hide="parentSubpageId"></arb-subscribe>
+				</div>
 	
-					<div ng-switch-when="pageEdit">
-						This page has been edited
-						<span ng-show="update.repeated==1">
-							by <arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
-						</span>
-						<span ng-show="update.repeated>1">
-							{{update.repeated}} times
-						</span>
-					</div>
+				<!-- Header when grouping by user -->
+				<div layout="row" layout-align="start center" ng-if="group.key.groupByUserId !== '0'">
+					<arb-user-name user-id="{{group.key.groupByUserId}}" flex></arb-user-name>
+					<arb-subscribe user-id="{{group.key.groupByUserId}}" ng-hide="parentSubpageId"></arb-subscribe>
+				</div>
+			</md-subheader>
 	
-					<div ng-switch-when="newPageByUser">
-						Created a new page:
-						<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-					</div>
-	
-					<div ng-switch-when="newParent">
-						New parent page:
-						<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-					</div>
-	
-					<div ng-switch-when="newChild">
-						New child page:
-						<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-					</div>
-	
-					<div ng-switch-when="newRequirement">
-						New requirement:
-						<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-					</div>
-	
-					<div ng-switch-when="newRequiredBy">
-						This page is now a requirement for
-						<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-					</div>
-	
-					<div ng-switch-when="newTag">
-						New tag:
-						<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-					</div>
-	
-					<div ng-switch-when="newTaggedBy">
-						This page now tags
-						<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-					</div>
-	
-					<div ng-switch-when="commentEdit">
-						<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
-						edited a
-						<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
-								page-id="{{update.goToPageId}}"
-								class="intrasite-link">comment</a>
-					</div>
-	
-					<div ng-switch-when="atMention">
-						<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
-						mentioned you in a
-						<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
-								page-id="{{update.goToPageId}}"
-								class="intrasite-link">comment</a>
-					</div>
-	
-					<div ng-switch-when="addedToGroup">
-						<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
-						added you to
-						<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
-								page-id="{{update.goToPageId}}"
-								class="intrasite-link">
-							the {{pageService.pageMap[update.goToPageId].title}} group
-						</a>
-					</div>
-	
-					<div ng-switch-when="removedFromGroup">
-						<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
-						removed you from
-						<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
-								page-id="{{update.goToPageId}}"
-								class="intrasite-link">
-							the {{pageService.pageMap[update.goToPageId].title}} group
-						</a>
-					</div>
-	
-					<div ng-switch-default class="md-warn">
-						Unknown update type: {{update.type}}
+			<!-- Panel body -->
+			<div layout="column" layout-padding>
+				<div ng-class="{'unseen-update': !update.isVisited}"
+						ng-repeat="(index,update) in group.updates">
+					<div ng-switch="update.type">
+						
+						<div ng-switch-when="topLevelComment">
+							<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							wrote a
+							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
+									page-id="{{update.goToPageId}}"
+									class="intrasite-link">new comment</a>
+						</div>
+		
+						<div ng-switch-when="reply">
+							<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							wrote a
+							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
+									page-id="{{update.goToPageId}}"
+									class="intrasite-link">new comment reply</a>
+						</div>
+		
+						<div ng-switch-when="pageEdit">
+							This page has been edited
+							<span ng-show="update.repeated==1">
+								by <arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							</span>
+							<span ng-show="update.repeated>1">
+								{{update.repeated}} times
+							</span>
+						</div>
+		
+						<div ng-switch-when="newPageByUser">
+							Created a new page:
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+						</div>
+		
+						<div ng-switch-when="newParent">
+							New parent page:
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+						</div>
+		
+						<div ng-switch-when="newChild">
+							New child page:
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+						</div>
+		
+						<div ng-switch-when="newRequirement">
+							New requirement:
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+						</div>
+		
+						<div ng-switch-when="newRequiredBy">
+							This page is now a requirement for
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+						</div>
+		
+						<div ng-switch-when="newTag">
+							New tag:
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+						</div>
+		
+						<div ng-switch-when="newTaggedBy">
+							This page now tags
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+						</div>
+		
+						<div ng-switch-when="commentEdit">
+							<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							edited a
+							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
+									page-id="{{update.goToPageId}}"
+									class="intrasite-link">comment</a>
+						</div>
+		
+						<div ng-switch-when="atMention">
+							<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							mentioned you in a
+							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
+									page-id="{{update.goToPageId}}"
+									class="intrasite-link">comment</a>
+						</div>
+		
+						<div ng-switch-when="addedToGroup">
+							<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							added you to
+							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
+									page-id="{{update.goToPageId}}"
+									class="intrasite-link">
+								the {{pageService.pageMap[update.goToPageId].title}} group
+							</a>
+						</div>
+		
+						<div ng-switch-when="removedFromGroup">
+							<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							removed you from
+							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
+									page-id="{{update.goToPageId}}"
+									class="intrasite-link">
+								the {{pageService.pageMap[update.goToPageId].title}} group
+							</a>
+						</div>
+		
+						<div ng-switch-default class="md-warn">
+							Unknown update type: {{update.type}}
+						</div>
 					</div>
 				</div>
-			</div>
-		</div><!--panel-body-->
-
+			</div><!--panel-body-->
+	
+		</div>
+	
+		<p ng-show="updateGroups.length == 0">
+			No new updates
+		</p>
 	</div>
-
-	<p ng-show="updateGroups.length == 0">
-		No new updates
-	</p>
 </div>

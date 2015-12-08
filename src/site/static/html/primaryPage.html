@@ -1,6 +1,6 @@
 <div layout="column">
 	<!-- The primary page -->
-	<arb-page class="reveal-after-render" page-id="{{pageService.primaryPage.pageId}}"></arb-page>
+	<div arb-page class="reveal-after-render" page-id="{{pageService.primaryPage.pageId}}"></div>
 
 	<!-- Answers for a question page -->
 	<div ng-show="page.type === 'question'">
@@ -27,36 +27,15 @@
 				ng-if="newAnswerId"></div>
 	</div>
 	
-	<div layout="row" layout-margin>
-		<!-- Children -->
-		<div class="md-whiteframe-1dp" layout="column" flex ng-hide="page.childIds.length <= 0">
-			<h2>Children</h2>
-			<md-list>
-				<md-list-item class="md-2-line" ng-repeat="childId in page.childIds">
-					<arb-likes page-id="{{childId}}"></arb-likes>
-					<div class="md-list-item-text" layout="column">
-						<arb-page-title page-id="{{childId}}"
-								is-link="true"
-								show-clickbait="true"></arb-page-title>
-					</div>
-				</md-list-item>
-			</md-list>
-		</div>
-
-		<!-- Related -->
-		<div class="md-whiteframe-1dp" layout="column" flex ng-hide="page.relatedIds.length <= 0">
-			<h2>Related</h2>
-			<md-list>
-				<md-list-item class="md-2-line" ng-repeat="relatedId in page.relatedIds">
-					<arb-likes page-id="{{relatedId}}"></arb-likes>
-					<div class="md-list-item-text" layout="column">
-						<arb-page-title page-id="{{relatedId}}"
-								is-link="true"
-								show-clickbait="true"></arb-page-title>
-					</div>
-				</md-list-item>
-			</md-list>
-		</div>
+	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
+		<arb-page-list panel-title="Children"
+				page-ids="page.childIds"
+				flex="40"
+				ng-show="page.childIds.length > 0"></arb-page-list>
+		<arb-page-list panel-title="Related"
+				page-ids="page.relatedIds"
+				flex="40"
+				ng-show="page.relatedIds.length > 0"></arb-page-list>
 	</div>
 
 	<div ng-include="'/static/html/footer.html'"></div>

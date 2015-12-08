@@ -1,17 +1,18 @@
-<div id="subpage-{{page.pageId}}" layout="row" layout-margin>
+<div id="subpage-{{page.pageId}}" layout="{{isSingleColumn ? 'column' : 'row'}}">
 	<!-- Primary column -->
-	<div class="md-whiteframe-1dp"
+	<div class="page-capped-body-width"
 			ng-class="{'selected-subpage': isSelected()}"
 			layout="column"
-			flex="70">
+			flex-order="1"
+			flex>
 		<!-- Parents -->
-		<div ng-show="page.parentIds.length > 0">
+		<p flex-order="{{isTinyScreen ? 1 : 0}}" ng-show="page.parentIds.length > 0">
 			<span>Parents:</span>
 			<span ng-repeat="(index, parentId) in page.parentIds">
 				<span ng-show="index > 0">,</span>
 				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
 			</span>
-		</div>
+		</p>
 
 		<!-- Hash anchor -->
 		<a id="page-{{page.pageId}}"></a>
@@ -22,19 +23,20 @@
 		</h1>
 
 		<!-- Tags -->
-		<div ng-show="page.taggedAsIds.length > 0">
+		<p flex-order="{{isTinyScreen ? 1 : 0}}" ng-show="page.taggedAsIds.length > 0">
 			<span>Tagged as:</span>
 			<span ng-repeat="(index, tagId) in page.taggedAsIds">
 				<span ng-show="index > 0">,</span>
 				<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
 			</span>
-		</div>
+		</p>
 
 		<!-- Voting container -->
 		<arb-vote-bar page-id="{{page.pageId}}" ng-if="page.hasVote"></arb-vote-bar>
 
 		<!-- Lens tabs -->
 		<md-tabs md-dynamic-height
+				class="md-primary md-hue-2"
 				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
 				md-selected="selectedLensIndex">
 			<md-tab ng-repeat="lensId in page.lensIds"
@@ -58,41 +60,52 @@
 		</md-tabs>
 	</div>
 
-	<div flex="15"></div>
-
-	<!-- RHS page menu -->
-	<div class="md-whiteframe-1dp" layout="column" flex="15">
+	<!-- RHS page menu for full screen -->
+	<div class="md-whiteframe-1dp"
+			layout="{{isSingleColumn ? 'row' : 'column'}}"
+			layout-align="{{isSingleColumn ? 'space-around center' : 'start center'}}"
+			flex-order="{{isSingleColumn ? 0 : 2}}">
 		<!-- Like -->
-		<arb-likes page-id="{{selectedLens.pageId}}" is-stretched="true" is-button="true"></arb-likes>
-
+		<arb-likes page-id="{{selectedLens.pageId}}"
+				is-stretched="!isTinyScreen"
+				is-button="true"></arb-likes>
+		
 		<!-- Subscribe -->
-		<arb-subscribe page-id="{{selectedLens.pageId}}" is-stretched="true"></arb-subscribe>
-
+		<arb-subscribe page-id="{{selectedLens.pageId}}"
+				is-stretched="!isTinyScreen"></arb-subscribe>
+		
 		<!-- Edit -->
-		<md-button ng-href="{{pageService.getEditPageUrl(selectedLens.pageId)}}" arb-user-check="cool">
+		<md-button ng-href="{{pageService.getEditPageUrl(selectedLens.pageId)}}"
+				ng-class="{'md-icon-button': isTinyScreen}"
+				arb-user-check="cool">
 			<md-icon>create</md-icon>
-			<span>Edit</span>
+			<span ng-hide="isTinyScreen">Edit</span>
+			<span class="accent-dot" ng-show="selectedLens.hasDraft"></span>
+			<md-tooltip ng-show="selectedLens.hasDraft">
+				You have an unpublished draft for this page
+			</md-tooltip>
 		</md-button>
-		<div ng-show="selectedLens.hasDraft">You have an unpublished draft for this page</div>
-
+		
 		<!-- Link -->
 		<md-button ng-href="#page-{{page.pageId}}"
 				ng-show="page.type == 'answer'">
 			<md-icon>link</md-icon>
-			<span>Link</span>
+			<span ng-hide="isTinyScreen">Link</span>
 		</md-button>
-
+		
 		<!-- Show diff -->
-		<md-button arb-user-check="cool" ng-click="toggleDiff()">
+		<md-button ng-class="{'md-icon-button': isTinyScreen}"
+				arb-user-check="cool"
+				ng-click="toggleDiff()">
 			<md-icon>compare_arrows</md-icon>
-			<span ng-hide="showingDiff">Show diff</span>
-			<span ng-show="showingDiff">Hide diff</span>
-			<span class="blue-dot" ng-show="page.isUpdatedPage()"></span>
+			<span ng-hide="showingDiff || isTinyScreen">Show diff</span>
+			<span ng-show="showingDiff && !isTinyScreen">Hide diff</span>
+			<span class="primary-dot" ng-show="page.isUpdatedPage()"></span>
 			<md-tooltip ng-show="page.isUpdatedPage()">
 				This page has been updated since the last time you saw it
 			</md-tooltip>
 		</md-button>
-
+		
 		<!-- Prev/Next -->
 		<div layout="row" ng-hide="page.nextPageId === '0' && page.prevPageId === '0'">
 			<md-button ng-href="{{pageService.getPageUrl(page.prevPageId)}}"

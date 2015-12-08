@@ -1,19 +1,18 @@
-<div class="full-height"
-		ng-class="{'edit-page-table-layout': useTableLayout(), 'layout-row': fullView}">
+<div ng-class="{'full-height': inPreview}"
+		layout="{{fullView ? 'row' : 'column'}}"
+		flex>
 	<!-- Main edit column (left half) -->
-	<div class="full-height"
-			ng-class="{'edit-page-row': useTableLayout()}"
-			layout="column"
-			flex="{{fullView ? 50 : 'none'}}"
+	<div layout="column"
+			flex="{{fullView ? '50' : '100'}}"
 			ng-hide="inPreview || (!fullView && otherDiff)">
-		<md-tabs ng-class="{'edit-page-cell': !fullView, 'hide-tabs': isComment || isAnswer}"
+		<md-tabs ng-class="{'hide-tabs': isComment || isAnswer}"
 				md-selected="selectedTab"
 				md-stretch-tabs="always"
+				layout="column"
 				flex>
 			<!-- (0) Title tab -->
 			<md-tab label="Title" ng-disabled="isComment || isAnswer">
-				<md-tab-body>
-					<div layout="column">
+				<div layout="column" flex>
 					<md-input-container>
 						<label>Title</label>
 						<input ng-model="page.title" md-maxlength="100">
@@ -26,397 +25,381 @@
 						You need to publish the page for these fields to show up live.
 					</div>
 				</div>
-				</md-tab-body>
 			</md-tab>
 
 			<!-- (1) Text tab -->
 			<md-tab label="Text">
-				<!-- We have to use table layout here, so that the textarea can expand to fill
-					the available height. This is the only workable solution I was about to find. -->
-				<div class="full-height edit-page-table-layout">
+				<div layout="column" flex>
 					<!-- Input we show when entering a new link -->
-					<div class="edit-page-row" ng-show="showInsertLink">
-						<arb-autocomplete class="insert-autocomplete"
-								placeholder="Search for a page to link"
-								on-select="insertLinkSelect(result)"></arb-autocomplete>
-					</div>
+					<arb-autocomplete class="insert-autocomplete"
+							placeholder="Search for a page to link"
+							on-select="insertLinkSelect(result)"
+							ng-show="showInsertLink"></arb-autocomplete>
 
 					<!-- Markdown toolbar -->
-					<div class="edit-page-row">
-						<div id="wmd-button-bar{{page.pageId}}"
-								class="wmd-button-bar"
-							 	layout="row"
-								flex
-								ng-hide="hideMarkdownToolbar || showInsertLink">
-							<md-button class="wmd-bold-button">
-								<md-icon>format_bold</md-icon>
-								<md-tooltip>**Bold** | Ctrl+B</md-tooltip>
-							</md-button>
-							<md-button class="wmd-italic-button">
-								<md-icon>format_italic</md-icon>
-								<md-tooltip>**Italics** | Ctrl+I</md-tooltip>
-							</md-button>
-							<div class="separator"></div>
-							<md-button class="wmd-link-button">
-								<md-icon>insert_link</md-icon>
-								<md-tooltip>[hyper](link) | Ctrl+L</md-tooltip>
-							</md-button>
-							<md-button class="wmd-intralink-button">
-								<md-icon md-svg-icon="link_variant"></md-icon>
-								<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
-							</md-button>
-							<div class="separator" ng-hide="insideDiaog"></div>
-							<md-button class="wmd-new-page-button" ng-hide="insideDialog">
-								<md-icon>note_add</md-icon>
-								<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
-							</md-button>
-							<md-button class="wmd-new-child-button" ng-hide="insideDialog">
-								<md-icon>child_care</md-icon>
-								<md-tooltip>[New child link] | Ctrl+Shift+P</md-tooltip>
-							</md-button>
-							<md-button class="wmd-new-sibling-button" ng-hide="insideDialog">
-								<md-icon>people</md-icon>
-								<md-tooltip>[New sibling link]</md-tooltip>
-							</md-button>
-							<div class="separator"></div>
-							<md-button class="wmd-quote-button">
-								<md-icon>format_quote</md-icon>
-								<md-tooltip>&gt; Blockquote | Ctrl+Q</md-tooltip>
-							</md-button>
-							<md-button class="wmd-code-button">
-								<md-icon>format_clear</md-icon>
-								<md-tooltip>`Escape` | Ctrl+K</md-tooltip>
-							</md-button>
-							<md-button class="wmd-image-button">
-								<md-icon>insert_photo</md-icon>
-								<md-tooltip>![image](url) | Ctrl+G</md-tooltip>
-							</md-button>
-							<div class="separator"></div>
-							<md-button class="wmd-olist-button">
-								<md-icon>format_list_numbered</md-icon>
-								<md-tooltip>1. Numbered list | Ctrl+O</md-tooltip>
-							</md-button>
-							<md-button class="wmd-ulist-button">
-								<md-icon>format_list_bulleted</md-icon>
-								<md-tooltip>* Bullet list | Ctrl+U</md-tooltip>
-							</md-button>
-							<md-button class="wmd-heading-button">
-								<md-icon md-svg-icon="format_header_pound"></md-icon>
-								<md-tooltip># Heading | Ctrl+H</md-tooltip>
-							</md-button>
-							<md-button class="wmd-hr-button">
-								<md-icon>remove</md-icon>
-								<md-tooltip>--- Line | Ctrl+E</md-tooltip>
-							</md-button>
-							<div class="separator"></div>
-							<md-button class="wmd-undo-button">
-								<md-icon>undo</md-icon>
-								<md-tooltip>Undo | Ctrl+Z</md-tooltip>
-							</md-button>
-							<md-button class="wmd-redo-button">
-								<md-icon>redo</md-icon>
-								<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
-							</md-button>
-							<div flex></div>
-							<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}" ng-show="isEmbedded && !insideDialog">
-								<md-icon>open_in_new</md-icon>
-								<md-tooltip>Go to full-windowed edit page</md-tooltip>
-							</md-button>
-							<div class="separator" ng-show="isEmbedded && !insideDialog"></div>
-							<md-button href="http://math.stackexchange.com/editing-help" target="_blank">
-								<md-icon>live_help</md-icon>
-								<md-tooltip>Markdown editing help</md-tooltip>
-							</md-button>
-							<div class="separator"></div>
-							<md-button ng-click="hideMarkdownToolbar=true">
-								<md-icon>close</md-icon>
-								<md-tooltip>Close this toolbar</md-tooltip>
-							</md-button>
-						</div>
+					<div id="wmd-button-bar{{page.pageId}}"
+							class="wmd-button-bar"
+						 	layout="row"
+							ng-hide="hideMarkdownToolbar || showInsertLink">
+						<md-button class="wmd-bold-button">
+							<md-icon>format_bold</md-icon>
+							<md-tooltip>**Bold** | Ctrl+B</md-tooltip>
+						</md-button>
+						<md-button class="wmd-italic-button">
+							<md-icon>format_italic</md-icon>
+							<md-tooltip>**Italics** | Ctrl+I</md-tooltip>
+						</md-button>
+						<div class="separator"></div>
+						<md-button class="wmd-link-button">
+							<md-icon>insert_link</md-icon>
+							<md-tooltip>[hyper](link) | Ctrl+L</md-tooltip>
+						</md-button>
+						<md-button class="wmd-intralink-button">
+							<md-icon md-svg-icon="link_variant"></md-icon>
+							<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
+						</md-button>
+						<div class="separator" ng-hide="insideDiaog"></div>
+						<md-button class="wmd-new-page-button" ng-hide="insideDialog">
+							<md-icon>note_add</md-icon>
+							<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
+						</md-button>
+						<md-button class="wmd-new-child-button" ng-hide="insideDialog">
+							<md-icon>child_care</md-icon>
+							<md-tooltip>[New child link] | Ctrl+Shift+P</md-tooltip>
+						</md-button>
+						<md-button class="wmd-new-sibling-button" ng-hide="insideDialog">
+							<md-icon>people</md-icon>
+							<md-tooltip>[New sibling link]</md-tooltip>
+						</md-button>
+						<div class="separator"></div>
+						<md-button class="wmd-quote-button">
+							<md-icon>format_quote</md-icon>
+							<md-tooltip>&gt; Blockquote | Ctrl+Q</md-tooltip>
+						</md-button>
+						<md-button class="wmd-code-button">
+							<md-icon>format_clear</md-icon>
+							<md-tooltip>`Escape` | Ctrl+K</md-tooltip>
+						</md-button>
+						<md-button class="wmd-image-button">
+							<md-icon>insert_photo</md-icon>
+							<md-tooltip>![image](url) | Ctrl+G</md-tooltip>
+						</md-button>
+						<div class="separator"></div>
+						<md-button class="wmd-olist-button">
+							<md-icon>format_list_numbered</md-icon>
+							<md-tooltip>1. Numbered list | Ctrl+O</md-tooltip>
+						</md-button>
+						<md-button class="wmd-ulist-button">
+							<md-icon>format_list_bulleted</md-icon>
+							<md-tooltip>* Bullet list | Ctrl+U</md-tooltip>
+						</md-button>
+						<md-button class="wmd-heading-button">
+							<md-icon md-svg-icon="format_header_pound"></md-icon>
+							<md-tooltip># Heading | Ctrl+H</md-tooltip>
+						</md-button>
+						<md-button class="wmd-hr-button">
+							<md-icon>remove</md-icon>
+							<md-tooltip>--- Line | Ctrl+E</md-tooltip>
+						</md-button>
+						<div class="separator"></div>
+						<md-button class="wmd-undo-button">
+							<md-icon>undo</md-icon>
+							<md-tooltip>Undo | Ctrl+Z</md-tooltip>
+						</md-button>
+						<md-button class="wmd-redo-button">
+							<md-icon>redo</md-icon>
+							<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
+						</md-button>
+						<div flex></div>
+						<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}" ng-show="isEmbedded && !insideDialog">
+							<md-icon>open_in_new</md-icon>
+							<md-tooltip>Go to full-windowed edit page</md-tooltip>
+						</md-button>
+						<div class="separator" ng-show="isEmbedded && !insideDialog"></div>
+						<md-button href="http://math.stackexchange.com/editing-help" target="_blank">
+							<md-icon>live_help</md-icon>
+							<md-tooltip>Markdown editing help</md-tooltip>
+						</md-button>
+						<div class="separator"></div>
+						<md-button ng-click="hideMarkdownToolbar=true">
+							<md-icon>close</md-icon>
+							<md-tooltip>Close this toolbar</md-tooltip>
+						</md-button>
 					</div>
 
 					<!-- Textarea for editing the page's text -->
-					<div class="full-height edit-page-row">
-						<textarea name="text"
-								class="wmd-input"
-								id="wmd-input{{page.pageId}}"
-								placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
-								ng-model="page.text"
-								ng-disabled="showInsertLink"></textarea>
-					</div>
+					<textarea class="wmd-input"
+							id="wmd-input{{page.pageId}}"
+							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
+							ng-model="page.text"
+							flex
+							ng-disabled="showInsertLink"></textarea>
 
 					<!-- Footer -->
-					<div class="edit-page-row">
-						<div layout="row" layout-align="start center">
-							<!-- Lock timer -->
-							<div ng-show="lockExists">
-								<md-tooltip ng-show="page.lockedBy!='0' && page.lockedBy===userService.user.id">
-									You have locked the page.
-								</md-tooltip>
-								<md-tooltip ng-show="lockedByAnother">
-									This page is locked by another user.
-								</md-tooltip>
-								<md-icon>lock</md-icon>
-								<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTimeNoSuffix"></span>
-							</div>
-			
-							<div flex></div>
-			
-							<div ng-show="autosaving">
-								Autosaving...
-							</div>
-							<div ng-show="successfulAutosave">
-								Autosaved
-							</div>
-							<div class="md-warn" ng-bind="autosaveError">
-							</div>
-							<div ng-show="snapshotting">
-								Saving a snapshot...
-							</div>
-							<div ng-show="publishing">
-								Publishing...
-							</div>
-							<arb-confirm-button button-text="Discard"
-									confirmed="discardPage()"
-									disabled="publishing || snapshotting"></arb-confirm-button>
-							<md-button class="md-raised" ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
-								<md-tooltip>Save a snapshot</md-tooltip>
-								Snapshot
-							</md-button>
-							<md-button class="md-primary md-raised"
-									ng-click="togglePreview(true)"
-									ng-disable="publishing || snapshotting"
-									ng-show="!fullView && !inPreview">
-								<md-tooltip>Preview the page before publishing</md-tooltip>
-								Preview
-							</md-button>
-							<md-button class="md-primary md-raised"
-									ng-click="publishPage()"
-									ng-disable="publishing || snapshotting"
-									ng-show="fullView || inPreview">
-								<md-tooltip>Make this version live</md-tooltip>
-								Publish
-							</md-button>
+					<div layout="row" layout-align="start center">
+						<!-- Lock timer -->
+						<div ng-show="lockExists">
+							<md-tooltip ng-show="page.lockedBy != '0' && page.lockedBy === userService.user.id">
+								You have locked the page.
+							</md-tooltip>
+							<md-tooltip ng-show="lockedByAnother">
+								This page is locked by another user.
+							</md-tooltip>
+							<md-icon>lock</md-icon>
+							<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTimeNoSuffix"></span>
 						</div>
+		
+						<div flex></div>
+		
+						<div ng-show="autosaving">
+							Autosaving...
+						</div>
+						<div ng-show="successfulAutosave">
+							Autosaved
+						</div>
+						<div class="md-warn" ng-bind="autosaveError">
+						</div>
+						<div ng-show="snapshotting">
+							Saving a snapshot...
+						</div>
+						<div ng-show="publishing">
+							Publishing...
+						</div>
+						<arb-confirm-button button-text="Discard"
+								confirmed="discardPage()"
+								disabled="publishing || snapshotting"></arb-confirm-button>
+						<md-button class="md-raised" ng-click="snapshotPage()" ng-disable="publishing || snapshotting">
+							<md-tooltip>Save a snapshot</md-tooltip>
+							Snapshot
+						</md-button>
+						<md-button class="md-primary md-raised"
+								ng-click="togglePreview(true)"
+								ng-disable="publishing || snapshotting"
+								ng-show="!fullView && !inPreview">
+							<md-tooltip>Preview the page before publishing</md-tooltip>
+							Preview
+						</md-button>
+						<md-button class="md-primary md-raised"
+								ng-click="publishPage()"
+								ng-disable="publishing || snapshotting"
+								ng-show="fullView || inPreview">
+							<md-tooltip>Make this version live</md-tooltip>
+							Publish
+						</md-button>
 					</div>
 				</div>
 			</md-tab>
 
 			<!-- (2) Settings tab -->
 			<md-tab label="Settings" ng-disabled="!(isWiki || isLens)">
-				<md-tab-body>
-					<div layout="column" class="full-height">
-						<div>These settings have to be saved independently of publishing the page.</div>
-					
-						<!-- Alias -->
-						<div layout="row" ng-show="!isAnswer && !isComment && !isGroup">
-							<div layout="column" flex>
-								<md-input-container>
-									<label>Alias</label>
-									<input ng-model="page.alias" md-maxlength="50">
-								</md-input-container>
-							</div>
-							<div flex>
-								<div>Unique name for this page, e.g. "HumanHealth".</div>
-								<div ng-show="page.seeGroupId != '0'">
-									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
-									because it's part of the private domain.
-								</div>
-							</div>
-						</div>
-					
-						<!-- Edit group id -->
-						<div layout="row">
-							<md-input-container flex>
-								<label>Edit group</label>
-								<md-select ng-model="page.editGroupId">
-									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
-								</md-select>
+				<div layout="column" flex>
+					<div>These settings have to be saved independently of publishing the page.</div>
+				
+					<!-- Alias -->
+					<div layout="row" ng-show="!isAnswer && !isComment && !isGroup">
+						<div layout="column" flex>
+							<md-input-container>
+								<label>Alias</label>
+								<input ng-model="page.alias" md-maxlength="50">
 							</md-input-container>
-							<div flex>
-								Group that can edit this page. If not set, anyone can edit it.
-							</div>
 						</div>
-					
-						<!-- Karma edit lock -->
-						<div layout="row" ng-show="userService.user.maxKarmaLock > 0 && !isComment">
-							<div flex>
-								<label>Edit karma lock</label>
-								<md-slider md-discrete ng-model="page.editKarmaLock"
-										step="10" min="0" max="{{userService.user.maxKarmaLock}}">
-								</md-slider>
+						<div flex>
+							<div>Unique name for this page, e.g. "HumanHealth".</div>
+							<div ng-show="page.seeGroupId != '0'">
+								This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
+								because it's part of the private domain.
 							</div>
-							<div flex>
-								Editing this page will require a this amount of karma
-							</div>
-						</div>
-
-						<!-- Page type -->
-						<div layout="row">
-							<md-input-container flex>
-								<label>Page type</label>
-								<md-select ng-model="page.type" required="true">
-									<md-option ng-repeat="(key,value) in pageTypes" value="{{key}}" ng-bind="value"></md-option>
-								</md-select>
-							</md-input-container>
-							<div flex>
-								<span ng-show="isWiki">
-									Standard wiki page.
-								</span>
-								<span ng-show="isLens">
-									A lens page is used to present the same material as another page but with a different emphasis.
-								</span>
-							</div>
-						</div>
-					
-						<!-- Show/hide vote -->
-						<div layout="row" ng-show="page.lockedVoteType != '' && isWiki">
-							<md-switch ng-model="page.hasVote" aria-label="Switch 1">
-								Show the {{page.lockedVoteType}} voting bar
-						  </md-switch>
-						</div>
-					
-						<!-- Vote type -->
-						<div layout="row" ng-show="page.lockedVoteType == '' && !isQuestion && !isComment">
-							<md-input-container flex>
-								<label>Voting</label>
-								<md-select ng-model="page.voteType">
-									<md-option ng-repeat="(key,value) in voteTypes" value="{{key}}">
-										{{value}}
-									</md-option>
-								</md-select>
-							</md-input-container>
-							<div flex>
-								<!-- TODO: helpful notes -->
-							</div>
-						</div>
-					
-						<!-- Sort children option -->
-						<div layout="row" ng-show="!isSecondary">
-							<md-input-container flex>
-								<label>Sort children</label>
-								<md-select ng-model="page.sortChildrenBy">
-									<md-option ng-repeat="(key,value) in sortTypes" value="{{key}}">
-										{{value}}
-									</md-option>
-								</md-select>
-							</md-input-container>
-							<div flex>
-								How to sort the children of this page
-								<!-- TODO: helpful notes about specific types -->
-							</div>
-						</div>
-
-						<!-- Delete page -->
-						<arb-confirm-button button-text="Delete page"
-								button-before-confirm="true"
-								confirmed="deletePage()"></arb-confirm-button>
-
-						<div flex></div>
-
-						<!-- Footer -->
-						<div layout="column">
-							<md-button class="md-raised md-primary" ng-click="saveSettingsClick()">
-								Save
-							</md-button>
 						</div>
 					</div>
-				</md-tab-body>
+				
+					<!-- Edit group id -->
+					<div layout="row">
+						<md-input-container flex>
+							<label>Edit group</label>
+							<md-select ng-model="page.editGroupId">
+								<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
+							</md-select>
+						</md-input-container>
+						<div flex>
+							Group that can edit this page. If not set, anyone can edit it.
+						</div>
+					</div>
+				
+					<!-- Karma edit lock -->
+					<div layout="row" ng-show="userService.user.maxKarmaLock > 0 && !isComment">
+						<div flex>
+							<label>Edit karma lock</label>
+							<md-slider md-discrete ng-model="page.editKarmaLock"
+									step="10" min="0" max="{{userService.user.maxKarmaLock}}">
+							</md-slider>
+						</div>
+						<div flex>
+							Editing this page will require a this amount of karma
+						</div>
+					</div>
+
+					<!-- Page type -->
+					<div layout="row">
+						<md-input-container flex>
+							<label>Page type</label>
+							<md-select ng-model="page.type" required="true">
+								<md-option ng-repeat="(key,value) in pageTypes" value="{{key}}" ng-bind="value"></md-option>
+							</md-select>
+						</md-input-container>
+						<div flex>
+							<span ng-show="isWiki">
+								Standard wiki page.
+							</span>
+							<span ng-show="isLens">
+								A lens page is used to present the same material as another page but with a different emphasis.
+							</span>
+						</div>
+					</div>
+				
+					<!-- Show/hide vote -->
+					<div layout="row" ng-show="page.lockedVoteType != '' && isWiki">
+						<md-switch ng-model="page.hasVote" aria-label="Switch 1">
+							Show the {{page.lockedVoteType}} voting bar
+					  </md-switch>
+					</div>
+				
+					<!-- Vote type -->
+					<div layout="row" ng-show="page.lockedVoteType == '' && !isQuestion && !isComment">
+						<md-input-container flex>
+							<label>Voting</label>
+							<md-select ng-model="page.voteType">
+								<md-option ng-repeat="(key,value) in voteTypes" value="{{key}}">
+									{{value}}
+								</md-option>
+							</md-select>
+						</md-input-container>
+						<div flex>
+							<!-- TODO: helpful notes -->
+						</div>
+					</div>
+				
+					<!-- Sort children option -->
+					<div layout="row" ng-show="!isSecondary">
+						<md-input-container flex>
+							<label>Sort children</label>
+							<md-select ng-model="page.sortChildrenBy">
+								<md-option ng-repeat="(key,value) in sortTypes" value="{{key}}">
+									{{value}}
+								</md-option>
+							</md-select>
+						</md-input-container>
+						<div flex>
+							How to sort the children of this page
+							<!-- TODO: helpful notes about specific types -->
+						</div>
+					</div>
+
+					<!-- Delete page -->
+					<arb-confirm-button button-text="Delete page"
+							button-before-confirm="true"
+							confirmed="deletePage()"></arb-confirm-button>
+
+					<div flex></div>
+
+					<!-- Footer -->
+					<div layout="column">
+						<md-button class="md-raised md-primary" ng-click="saveSettingsClick()">
+							Save
+						</md-button>
+					</div>
+				</div>
 			</md-tab>
 
 			<!-- (3) Relationships tab -->
 			<md-tab label="Relationships" ng-disabled="isComment">
-				<md-tab-body>
-					<div layout="column">
-						<!-- Parents -->
-						<arb-relationships page-id="{{page.pageId}}"
-								type="parent"
-								force-edit-mode="true"
-								readonly="!(isWiki)"></arb-relationships>
-						<!-- Tags -->
-						<arb-relationships page-id="{{page.pageId}}"
-								type="tag"
-								force-edit-mode="true"
-								readonly="!(isWiki || isQuestion)"></arb-relationships>
-						<!-- Requirements -->
-						<arb-relationships page-id="{{page.pageId}}"
-								type="requirement"
-								force-edit-mode="true"
-								readonly="!(isWiki || isLens)"></arb-relationships>
-					</div>
-				</md-tab-body>
+				<div layout="column" flex>
+					<!-- Parents -->
+					<arb-relationships page-id="{{page.pageId}}"
+							type="parent"
+							force-edit-mode="true"
+							readonly="!(isWiki)"></arb-relationships>
+					<!-- Tags -->
+					<arb-relationships page-id="{{page.pageId}}"
+							type="tag"
+							force-edit-mode="true"
+							readonly="!(isWiki || isQuestion)"></arb-relationships>
+					<!-- Requirements -->
+					<arb-relationships page-id="{{page.pageId}}"
+							type="requirement"
+							force-edit-mode="true"
+							readonly="!(isWiki || isLens)"></arb-relationships>
+				</div>
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
 			<md-tab label="Changelog" ng-disabled="isComment || isAnswer">
-				<md-tab-body>
-					<md-list>
-						<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
-							<div layout="column">
-								<div>
-									<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
-									</span>
-									<span ng-show="changeLog.auxPageId != '0'">
-										<a class="intrasite-link"
-												page-id="{{changeLog.auxPageId}}"
-												ng-href="{{pageService.getPageUrl(changeLog.auxPageId)}}"
-												ng-bind="changeLog.type"></a>
-									</span>
-									<span ng-show="changeLog.edit != 0">(edit #{{changeLog.edit}})</span>
-									by
-					
-									<span ng-show="userService.user.id === changeLog.userId">you</span>
-									<span ng-show="userService.user.id !== changeLog.userId">
-										<arb-user-name user-id="{{changeLog.userId}}"></arb-user-name>
-									</span>
-					
-									<span ng-bind="changeLog.createdAt | relativeDateTime"></span>
-								</div>
-					
-								<!-- Extra functionality for new edits -->
-								<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit"
-										layout="row" layout-align="start center">
-									<md-button class="md-warn md-raised"
-											ng-click="revertToEdit(changeLog.edit)"
-											ng-show="changeLog.type === 'newEdit' && changeLog.edit !== page.currentEditNum">
-										<md-tooltip>Revert to this edit</md-tooltip>
-										Revert
-									</md-button>
-									<md-button ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + changeLog.edit}}"
-											class="md-warn md-raised">
-										<md-tooltip>Load this edit in the editor</md-tooltip>
-										Load Edit
-									</md-button>
-									<md-button class="md-raised" ng-click="showDiff(changeLog.edit)">
-										<md-tooltip>Diff with this edit</md-tooltip>
-										Diff
-									</md-button>
-								</div>
-								<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit">
-									Currently loaded
-								</div>
+				<md-list flex>
+					<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
+						<div layout="column">
+							<div>
+								<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
+								</span>
+								<span ng-show="changeLog.auxPageId != '0'">
+									<a class="intrasite-link"
+											page-id="{{changeLog.auxPageId}}"
+											ng-href="{{pageService.getPageUrl(changeLog.auxPageId)}}"
+											ng-bind="changeLog.type"></a>
+								</span>
+								<span ng-show="changeLog.edit != 0">(edit #{{changeLog.edit}})</span>
+								by
+				
+								<span ng-show="userService.user.id === changeLog.userId">you</span>
+								<span ng-show="userService.user.id !== changeLog.userId">
+									<arb-user-name user-id="{{changeLog.userId}}"></arb-user-name>
+								</span>
+				
+								<span ng-bind="changeLog.createdAt | relativeDateTime"></span>
 							</div>
-						</md-list-item>
-					</md-list>
-				</md-tab-body>
+				
+							<!-- Extra functionality for new edits -->
+							<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit"
+									layout="row" layout-align="start center">
+								<md-button class="md-warn md-raised"
+										ng-click="revertToEdit(changeLog.edit)"
+										ng-show="changeLog.type === 'newEdit' && changeLog.edit !== page.currentEditNum">
+									<md-tooltip>Revert to this edit</md-tooltip>
+									Revert
+								</md-button>
+								<md-button ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + changeLog.edit}}"
+										class="md-warn md-raised">
+									<md-tooltip>Load this edit in the editor</md-tooltip>
+									Load Edit
+								</md-button>
+								<md-button class="md-raised" ng-click="showDiff(changeLog.edit)">
+									<md-tooltip>Diff with this edit</md-tooltip>
+									Diff
+								</md-button>
+							</div>
+							<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit">
+								Currently loaded
+							</div>
+						</div>
+						<md-divider ng-if="!$last"></md-divider>
+					</md-list-item>
+				</md-list>
 			</md-tab>
 		</md-tabs>
 	</div>
 
-	<!--<div class="wmd-preview-separator" ng-show="fullView"></div>-->
-
 	<!-- Right half -->
-	<div ng-class="{'full-height': !useTableLayout(), 'edit-page-row': useTableLayout()}"
-			layout="column"
-			flex="{{fullView ? 50 : 'none'}}">
+	<div layout="column" flex="{{fullView ? '50' : inPreview ? '100' : 'none'}}">
 		<!-- Live preview -->
-		<md-content class="preview-area" flex ng-class="{'edit-page-cell': useTableLayout()}" ng-hide="(!fullView && !inPreview) || otherDiff">
+		<md-content class="preview-area" layout="column" flex ng-hide="(!fullView && !inPreview) || otherDiff">
 			<h2 class="md-display-2" ng-bind="page.title"></h2>
 			<div id="wmd-preview{{page.pageId}}"></div>
 		</md-content>
 
 		<!-- Buttons shown in preview -->
-		<div class="diff-buttons" ng-style="{position: isComment ? 'initial' : 'absolute'}" layout="row" layout-align="end center" ng-show="inPreview">
+		<div class="diff-buttons"
+				ng-style="{position: isComment ? 'initial' : 'absolute'}"
+				layout="row"
+				layout-align="end center"
+				ng-show="inPreview">
 			<md-button class="md-icon-button md-raised" ng-click="togglePreview(false)">
 				<md-icon>arrow_back</md-icon>
 				<md-tooltip>Go back to editing</md-tooltip>
@@ -438,10 +421,10 @@
 				<md-tooltip>Go back to live preview</md-tooltip>
 			</md-button>
 		</div>
-		<md-content flex ng-if="otherDiff">
+		<md-content layout="column" flex ng-if="otherDiff">
 			<h2 class="md-display-2" ng-bind="'(#' + otherDiff.edit + ') ' + otherDiff.title"></h2>
 			<h3 class="md-display-3" ng-bind="otherDiff.clickbait"></h3>
-			<div class="diff-section" ng-bind-html="diffHtml"></div>
+			<div class="diff-section" flex ng-bind-html="diffHtml"></div>
 		</md-content>
 
 		<!-- Messages -->
@@ -540,3 +523,6 @@
 		</md-list>
 	</div>
 </div>
+<md-button style="position: fixed; left:0; top:50px; z-index:1000" ng-click="fullView=!fullView">
+	TOGGLE
+</md-button>

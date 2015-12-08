@@ -1,42 +1,42 @@
-<!-- Welcome message -->
-<div class="md-whiteframe-1dp">
-	<h1>What is Arbital?</h1>
-	<p>
+<div class="capped-body-width">
+	<!-- Welcome message -->
+	<h1 layout-margin>What is Arbital?</h1>
+	<div layout-margin layout-padding class="md-whiteframe-1dp">
 		Welcome! Arbital is a collaborative platform for researchers and amateurs. Here you can gather, analyze, evalute, and present various research and information.
 		<span ng-show="userService.user.id === '0'">Please <a href="/signup/">sign up</a> to be able to like, subscribe, comment, and create pages.</span>
 		<a href="/3560540392275264633" class="intrasite-link" page-id="3560540392275264633">(Read more)</a>
-	</p>
-</div>
-
-<!-- Domains -->
-<h1>Arbital domains</h1>
-<div layout="row">
-	<div ng-repeat="domain in featuredDomains" layout="row" flex>
-		<div flex="5"></div>
-
+	</div>
+	<br>
+	<br>
+	
+	<!-- Domains -->
+	<h1 layout-margin>Arbital domains</h1>
+	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<!-- Domain -->
-		<div class="md-whiteframe-1dp" layout="column" flex="90">
-			<md-toolbar>
+		<div class="pages-list md-whiteframe-1dp"
+				ng-repeat="domain in featuredDomains"
+				layout="column"
+				flex>
+			<md-toolbar class="md-hue-1" layout-fill>
 				<div class="md-toolbar-tools">
 					<a ng-href="/domains/{{pageService.pageMap[domain.domainId].alias}}"
 						ng-bind="pageService.pageMap[domain.domainId].title"></a>
 				</div>
 			</md-toolbar>
-			<div ng-bind="pageService.pageMap[domain.domainId].clickbait"></div>
-			<div>Top pages</div>
+			<md-subheader ng-bind="pageService.pageMap[domain.domainId].clickbait">
+			</md-subheader>
 			<md-list>
 				<md-list-item ng-repeat="childId in domain.childIds">
-					<div layout="row" layout="start-center" layout-fill>
+					<div layout="row">
 						<arb-likes page-id="{{childId}}"></arb-likes>
 						<arb-page-title page-id="{{childId}}"
 								is-link="true"
 								show-clickbait="true"
 								flex="100"></arb-page-title>
 					</div>
+					<md-divider ng-if="!$last"></md-divider>
 				</md-list-item>
 			</md-list>
 		</div>
-
-		<div flex="5"></div>
 	</div>
 </div>

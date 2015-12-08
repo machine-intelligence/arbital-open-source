@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -38,18 +39,27 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 
-	// Get actual domain id
-	domainAlias := data.DomainAlias
-	domainId, ok, err := core.LoadAliasToPageId(db, domainAlias)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't convert alias", err)
-	}
-	if !ok {
-		return pages.HandlerErrorFail(fmt.Sprintf("Couldn't find the domain: %s", domainAlias), nil)
-	}
-
 	returnData := newHandlerData(true)
 	returnData.User = u
+
+	// Get constraint
+	var constraintPart *database.QueryPart
+	if data.DomainAlias != "" {
+		domainId, ok, err := core.LoadAliasToPageId(db, data.DomainAlias)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't convert alias", err)
+		}
+		if !ok {
+			return pages.HandlerErrorFail(fmt.Sprintf("Couldn't find the domain: %s", data.DomainAlias), nil)
+		}
+		core.AddPageToMap(domainId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		constraintPart = database.NewQuery("AND pd.domainId=?", domainId)
+	} else {
+		if params.PrivateGroupId <= 0 {
+			return pages.HandlerBadRequestFail("Need domain alias or need to be in a private domain", err)
+		}
+		constraintPart = database.NewQuery("AND pi.seeGroupId=?", params.PrivateGroupId)
+	}
 
 	// Load additional info for all pages
 	pageOptions := (&core.PageLoadOptions{
@@ -57,23 +67,23 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}).Add(core.TitlePlusLoadOptions)
 
 	// Load recently created page ids.
-	rows := db.NewStatement(`
+	rows := database.NewQuery(`
 		SELECT p.pageId
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
 		JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
-		WHERE p.isCurrentEdit AND pd.domainId=? AND pi.type!=?
+		WHERE p.isCurrentEdit AND pi.type!=?`, core.CommentPageType).AddPart(constraintPart).Add(`
 		ORDER BY pi.createdAt DESC
-		LIMIT ?`).Query(domainId, core.CommentPageType, indexPanelLimit)
+		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading recently created page ids", err)
 	}
 
 	// Load most liked page ids.
-	rows = db.NewStatement(`
+	rows = database.NewQuery(`
 		SELECT l2.pageId
 		FROM (
 			SELECT *
@@ -86,17 +96,19 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		) AS l2
 		JOIN pageDomainPairs AS pd
 		ON (l2.pageId=pd.pageId)
-		WHERE pd.domainId=?
+		JOIN pageInfos AS pi
+		ON (l2.pageId=pi.pageId)
+		WHERE TRUE`).AddPart(constraintPart).Add(`
 		GROUP BY l2.pageId
 		ORDER BY SUM(value) DESC
-		LIMIT ?`).Query(domainId, indexPanelLimit)
+		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading most liked page ids", err)
 	}
 
 	// Load hot page ids (recent comments + edits).
-	rows = db.NewStatement(`
+	rows = database.NewQuery(`
 		SELECT p.pageId
 		FROM (
 			/* Count recent edits */
@@ -110,17 +122,18 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			FROM pageInfos AS pi
 			JOIN pagePairs AS pp
 			ON (pi.pageId=pp.childId)
-			WHERE pp.type=? AND pi.type=? AND DATEDIFF(now(),pi.createdAt) <= 7
+			WHERE DATEDIFF(now(),pi.createdAt) <= 7 AND pp.type=?`, core.ParentPagePairType).Add(`
+				AND pi.type=?`, core.CommentPageType).Add(`
 			GROUP by 1
 		) AS p
 		JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE pd.domainId=? AND pi.type!=?
+		WHERE pi.type!=?`, core.CommentPageType).AddPart(constraintPart).Add(`
 		GROUP BY 1
 		ORDER BY SUM(tally) DESC
-		LIMIT ?`).Query(core.ParentPagePairType, core.CommentPageType, domainId, core.CommentPageType, indexPanelLimit)
+		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["hotIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading recently edited page ids", err)
@@ -128,7 +141,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load most controversial page ids.
 	// TODO: make sure the page still has voting turned on
-	rows = db.NewStatement(`
+	rows = database.NewQuery(`
 		SELECT pd.pageId
 		FROM (
 			SELECT *
@@ -143,17 +156,16 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		ON (v2.pageId=pd.pageId)
 		JOIN pageInfos AS pi
 		ON (pd.pageId=pi.pageId)
-		WHERE pd.domainId=? AND pi.currentEdit>0 AND pi.seeGroupId=?
+		WHERE pi.currentEdit > 0`).AddPart(constraintPart).Add(`
 		GROUP BY pd.pageId
 		ORDER BY VAR_POP(v2.value) DESC
-		LIMIT ?`).Query(domainId, params.PrivateGroupId, indexPanelLimit)
+		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading most controversial page ids", err)
 	}
 
 	// Load pages.
-	core.AddPageToMap(domainId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)

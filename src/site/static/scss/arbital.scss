@@ -1,23 +1,131 @@
 // All the z-indices we use
 $inlineCommentIconZ: 1;
-$popoverZ: 100;
-$composeFabZ: 200;
+$popoverZ: 60;
+$composeFabZ: 50;
 
 body {
 	overflow-x: hidden;
+	background-color: rgb(233, 234, 237);
+
 	&.autocomplete-body-fix {
 		height: initial;
 	}
 }
 
+// Page and section titles
+.md-display-3 {
+	font-size: 2.5rem;
+	line-height: 3rem;
+	font-weight: 400;
+	margin: 0.5rem 0;
+}
+
+// Markdown header 1
+.md-display-2 {
+	font-size: 2rem;
+	line-height: 2.2rem;
+	font-weight: 800;
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+
+// Markdown header 2
+.md-display-1 {
+	font-size: 1.5rem;
+	line-height: 1.7rem;
+	font-weight: 400;
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+
+// Markdown header 3
+.md-headline {
+	font-size: 1.3rem;
+	line-height: 1.5rem;
+	font-weight: 800;
+	margin-top: 1.5rem;
+	margin-bottom: 0.5rem;
+}
+
+// Used for helpful, non-important info text
+.md-caption {
+	color: darkgray;
+}
+
+.md-subheader {
+	background-color: silver;
+	padding: 4px 16px;
+	margin-bottom: 6px;
+
+	&.md-primary {
+		background-color: lightblue;
+	}
+	&.md-accent {
+		background-color: pink;
+	}
+	&.md-warn {
+		background-color: orange;
+	}
+
+	.md-subheader-inner {
+		padding: 0;
+	}
+}
+
+arb-markdown {
+
+	p {
+		margin-top: 0;
+	}
+
+	ul {
+		padding-left: 1.5em;
+	}
+}
+
+// Cap the width of some pages, so they look nicer
+.capped-body-width {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+
+	arb-index > & {
+		max-width: 1100px;
+	}
+	arb-group-index > & {
+		max-width: 1100px;
+	}
+	arb-user-page > & {
+		max-width: 1100px;
+	}
+	arb-signup > & {
+		max-width: 560px;
+	}
+	arb-updates > & {
+		max-width: 560px;
+	}
+	arb-groups-page > & {
+		max-width: 900px;
+	}
+	arb-settings-page > & {
+		max-width: 560px;
+	}
+}
+.page-capped-body-width {
+	max-width: 960px;
+}
+
+arb-discussion {
+	margin-top: 20px;
+}
+
+.md-whiteframe-1dp {
+	background-color: white;
+}
+
 // Set height to 100%
 .full-height {
 	height: 100%;
-
-	// For md-tabs, also propagate the height change
-	[md-tabs-template] {
-		height: 100%;
-	}
 }
 
 // Use this class to reveal the element after it and the children are linked
@@ -41,20 +149,6 @@ body {
 	height: 70vh;
 };
 
-// Used when we use display: table
-.edit-page-table-layout {
-	display: table;
-	width: 100%;
-
-	.edit-page-row {
-		display: table-row;
-	}
-
-	.edit-page-cell {
-		display: table-cell;
-	}
-}
-
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
 #dynamic-view {
@@ -64,15 +158,29 @@ $toolbar-height: 64px;
 	box-sizing: border-box;
 }
 
+// Added to updates that the user hasn't seen yet
+.unseen-update {
+	background-color: lightblue;
+}
+
 // Used to style the dot we display when a page hasn't been visited / was updated
-.blue-dot {
+@mixin dot($color) {
 	position: relative;
 	top: -0.4em;
 	display: inline-block;
-	background-color: blue;
+	background-color: $color;
 	width: 0.4em;
 	height: 0.4em;
 	border-radius: 50%;
+}
+.primary-dot {
+	@include dot(blue);
+}
+.accent-dot {
+	@include dot(red);
+}
+.warn-dot {
+	@include dot(orange);
 }
 
 .autocomplete-custom-template li {
@@ -194,8 +302,9 @@ md-tooltip .md-content {
 }
 
 md-list {
-	// Remove top/bottom padding
-	padding: 0;
+	// Remove padding, so that when the list is empty, it doesn't take up space
+	padding-top: 0;
+	padding-bottom: 0;
 }
 
 md-dialog {
@@ -213,30 +322,36 @@ md-dialog {
 	}
 }
 
-.md-button {
+.md-button:not(.md-fab) {
+	// Remove all margins from buttons so we can easier have them fill areas we need
+	margin: 0;
+
+	&.md-icon-button {
+		// Sometimes we have an icon AND a number following it inside the button, but
+		// still want to keep it small; so we need to show the overflow.
+		overflow: visible;
+	}
 }
 
-.md-subheader {
-	background-color: silver;
+md-list-item {
+	min-height: 0;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
 
-	&.md-primary {
+.md-toolbar-tools {
+	a {
+		// Prevent links from wrapping inside toolbars
+		white-space: nowrap;
+	}
+
+	arb-autocomplete {
+		max-width: 70%;
+	}
+
+	md-autocomplete {
 		background-color: lightblue;
 	}
-	&.md-accent {
-		background-color: pink;
-	}
-	&.md-warn {
-		background-color: orange;
-	}
-
-	.md-subheader-inner {
-		padding: 4px;
-	}
-}
-
-.md-toolbar-tools a {
-	// Prevent links from wrapping inside toolbars
-	white-space: nowrap;
 }
 
 // Style all md-icons to have size proportionate to the font size
@@ -247,6 +362,11 @@ md-dialog {
 	min-width: 24px;
 	min-height: 24px;
 }*/
+md-icon {
+	&.on {
+		color: blue;
+	}
+}
 
 // Helper for coloring broken links
 .red-link {
@@ -256,6 +376,13 @@ md-dialog {
 arb-likes {
 	white-space: nowrap;
 	margin: 0 10px 0 0;
+
+	// Number of likes
+	.like-icon {
+		position: relative;
+		top: -5px;
+		margin-right: 2px;
+	}
 }
 
 // Intrasite popover
@@ -287,6 +414,29 @@ arb-compose-fab {
 	}
 	md-tabs-content-wrapper {
 		top: 0px;
+	}
+}
+
+// When applying layout-column and flex to md-tabs, we want to propagate these
+// all the way down to the tab content
+md-tabs.layout-column.flex {
+	@mixin layout-column-flex {
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+	}
+
+	md-tabs-content-wrapper {
+		@include layout-column-flex;
+	}
+	md-tab-content {
+		@include layout-column-flex;
+	}
+	md-tab-content > div {
+		@include layout-column-flex;
 	}
 }
 
@@ -346,11 +496,6 @@ arb-compose-fab {
 	padding: 0;
 }
 
-// Div for the preview separator
-.wmd-preview-separator {
-	width: 20px;
-}
-
 // Highlight subpages when they are selected
 .selected-subpage {
 	border: blue 1px solid;
@@ -388,4 +533,9 @@ arb-compose-fab {
 			overflow-y: auto;
 		}
 	}
+}
+
+// Container with a list of pages
+.pages-list {
+	margin-bottom: 20px;
 }

@@ -47,10 +47,6 @@ var submitForm = function($form, url, data, success, error) {
 		$form.find("[toggle-on-submit]").toggle();
 	}
 
-	if (!("__formSerialized" in data)) {
-		serializeFormData($form, data);
-	}
-
 	console.log("Submitting form to " + url + ":"); console.log(data);
 	$.ajax({
 		type: "POST",

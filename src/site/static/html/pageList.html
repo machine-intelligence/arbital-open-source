@@ -1,5 +1,5 @@
 <div class="user-page-panel md-whiteframe-1dp" layout="column">
-	<md-toolbar>
+	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
 			<span>
 				<md-icon ng-show="isPublic === 'yes'">
@@ -13,42 +13,63 @@
 					lock
 				</md-icon>
 			</span>
-			<span ng-bind="panelTitle"></span>
+			<span ng-bind="panelTitle" flex></span>
 		</div>
 	</md-toolbar>
 	<md-list>
 		<md-list-item ng-repeat="pageId in pageIds">
-			<div ng-init="page=getPage(pageId)" layout="row" layout-align="start center" layout-fill>
-				<arb-likes page-id="{{pageId}}" ng-if="!hideLikes"></arb-likes>
-				<md-button ng-href="{{pageService.getEditPageUrl(pageId)}}" class="md-icon-button" ng-show="showQuickEdit">
-					<md-icon>create</md-icon>
-				</md-button>
-				<arb-page-title page-id="{{pageId}}"
-						is-link="true"
-						show-clickbait="true"
-						use-edit-map="{{useEditMap}}"
-						flex="100"></arb-page-title>
-				<div class="md-warn" style="white-space: nowrap" ng-show="showRedLinkCount">
-					<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
-					<span ng-bind="page.todoCount"></span> + <span ng-bind="page.redLinkCount"></span>
+			<div ng-init="page=getPage(pageId)"
+					layout="column"
+					layout-gt-sm="row"
+					layout-align-gt-sm="start center"
+					layout-margin
+					layout-fill>
+				<!-- First row -->
+				<div layout="row" layout-align="start center" flex>
+					<arb-likes page-id="{{pageId}}" ng-if="!hideLikes"></arb-likes>
+					<arb-page-title page-id="{{pageId}}"
+							is-link="true"
+							show-clickbait="true"
+							use-edit-map="{{useEditMap}}"
+							flex></arb-page-title>
 				</div>
-				<div style="white-space: nowrap" ng-show="showLastEdit">
-					<span class="separator" ng-show="showRedLinkCount"></span>
-					edited <span ng-bind="page.createdAt | relativeDateTime"></span>
-				</div>
-				<div style="white-space: nowrap" ng-show="page.type === 'question'">
-					<span class="separator" ng-show="showRedLinkCount || showLastEdit"></span>
-					<md-icon>font_download</md-icon>
-					<span ng-bind="page.commentCount"></span>
-				</div>
-				<div style="white-space: nowrap" ng-show="showCommentCount && page.type !== 'question'">
-					<span class="separator" ng-show="showRedLinkCount || showLastEdit"></span>
-					<md-icon>comment</md-icon>
-					<span ng-bind="page.commentCount"></span>
+				<!-- Second row -->
+				<div class="md-caption" layout="row" layout-align="start center">
+					<md-button ng-href="{{pageService.getEditPageUrl(pageId)}}"
+							class="md-icon-button"
+							ng-show="showQuickEdit">
+						<md-icon>create</md-icon>
+					</md-button>
+					<div class="md-warn" style="white-space: nowrap" ng-show="showRedLinkCount">
+						<span class="separator" ng-show="showQuickEdit"></span>
+						<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
+						<span ng-show="page.todoCount > 0 || page.redLinkCount > 0">
+							<span ng-bind="page.todoCount"></span> + <span ng-bind="page.redLinkCount"></span>
+						</span>
+						<span ng-hide="page.todoCount > 0 || page.redLinkCount > 0">
+							No TODOs
+						</span>
+					</div>
+					<div style="white-space: nowrap" ng-show="showLastEdit">
+						<span class="separator" ng-show="showQuickEdit || showRedLinkCount"></span>
+						edited <span ng-bind="page.createdAt | relativeDateTime"></span>
+					</div>
+					<div style="white-space: nowrap" ng-show="page.type === 'question'">
+						<span class="separator" ng-show="showQuickEdit || showRedLinkCount || showLastEdit"></span>
+						<md-icon>font_download</md-icon>
+						<span ng-bind="page.commentCount"></span>
+					</div>
+					<div style="white-space: nowrap" ng-show="showCommentCount && page.type !== 'question'">
+						<span class="separator" ng-show="showQuickEdit || showRedLinkCount || showLastEdit"></span>
+						<md-icon>comment</md-icon>
+						<span ng-bind="page.commentCount"></span>
+					</div>
 				</div>
 			</div>
 			<md-divider ng-if="!$last"></md-divider>
 		</md-list-item>
 	</md-list>
-	<span ng-show="pageIds.length <= 0">Nothing here yet</span>
+	<span class="md-caption" ng-show="pageIds.length <= 0" layout-padding>
+		Nothing here
+	</span>
 </div>

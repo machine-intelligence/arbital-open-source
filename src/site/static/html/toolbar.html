@@ -1,26 +1,25 @@
 <!-- Top toolbar appearing on every page -->
 <md-toolbar>
 	<div class="md-toolbar-tools">
-		<a ng-href="{{pageService.getDomainUrl()}}">Arbital</a>
-
-		<span flex="5"></span>
+		<a ng-href="{{pageService.getDomainUrl()}}">a</a>
 
 		<a ng-href="/"
+				layout-margin
 				ng-bind="pageService.pageMap[pageService.privateGroupId].title"
 				ng-show="pageService.privateGroupId"></a>
 
-		<span flex="5"></span>
-
 		<!-- Search -->
+		<span flex></span>
 		<arb-autocomplete autofocus="true"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
-				flex="80"></arb-autocomplete>
-
-		<span flex="10"></span>
+				flex="grow"></arb-autocomplete>
+		<span flex></span>
 
 		<!-- Updates -->
-		<md-button href="/updates/" class="md-icon-button" ng-show="userService.user.isLoggedIn">
+		<md-button href="/updates/"
+				ng-class="{'md-icon-button': userService.user.updateCount <= 0}"
+				ng-show="userService.user.isLoggedIn">
 			<md-icon ng-show="userService.user.updateCount <= 0">notifications_none</md-icon>
 			<md-icon ng-show="userService.user.updateCount > 0">notifications</md-icon>
 			<span ng-bind="userService.user.updateCount" ng-show="userService.user.updateCount > 0"></span>
@@ -50,8 +49,8 @@
 <!-- Right sidenav slide out; only if the user is logged in -->
 <md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right">
 	<md-toolbar>
-		<h1 class="md-toolbar-tools">
-			{{userService.user.email}}
+		<h1 class="md-toolbar-tools" layout-align="space-between center">
+			<span ng-bind="userService.user.email"></span>
 			<md-button class="md-icon-button"
 					ng-click="toggleRightMenu()">
 				<md-icon>arrow_forward</md-icon>
@@ -63,13 +62,18 @@
 		<md-subheader ng-show="userService.user.groupIds.length > 0">
 			My Groups
 		</md-subheader>
-		<div ng-repeat="groupId in userService.user.groupIds"
-			ng-init="groupAlias=pageService.pageMap[groupId].alias">
-			<md-button ng-href="{{pageService.getDomainUrl(groupAlias)}}" ng-bind="groupAlias"></md-button>
+		<div layout="column" layout-align="start center">
+			<div ng-repeat="groupId in userService.user.groupIds">
+				<md-button ng-href="{{pageService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
+						ng-bind="pageService.pageMap[groupId].title"></md-button>
+			</div>
 		</div>
 		<md-divider></md-divider>
 
 		<!-- Other buttons -->
+		<md-subheader>
+			My Account
+		</md-subheader>
 		<md-button ng-href="{{userService.getUserUrl(userService.user.id)}}" ng-click="toggleRightMenu()">
 			My Profile
 		</md-button>

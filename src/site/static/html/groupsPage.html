@@ -1,75 +1,88 @@
-<div class="md-whiteframe-1dp"
-		layout="column"
-		ng-repeat="(groupId,group) in groupMap"
-		ng-init="userCanAddMembers = group.members[userService.user.id].canAddMembers; userCanAdmin = group.members[userService.user.id].canAdmin">
-	<md-toolbar>
-		<div class="md-toolbar-tools">
-			<arb-page-title page-id="{{groupId}}" is-link="true"><arb-page-title>
+<div class="capped-body-width">
+	<div class="md-whiteframe-1dp"
+			layout="column"
+			layout-margin
+			ng-repeat="(groupId,group) in groupMap"
+			ng-init="userCanAddMembers = group.members[userService.user.id].canAddMembers; userCanAdmin = group.members[userService.user.id].canAdmin">
+		<md-toolbar class="md-hue-1" layout-fill>
+			<div class="md-toolbar-tools">
+				<arb-page-title page-id="{{groupId}}" is-link="true"><arb-page-title>
+			</div>
+		</md-toolbar>
+	
+		<!-- Members table -->
+		<!-- Header row -->
+		<div layout="row" layout-margin>
+			<h3 flex>Member name</h3>
+			<h3 flex>Can add members</h3>
+			<h3 flex>Is group admin</h3>
+			<h3 flex>Remove</h3>
 		</div>
-	</md-toolbar>
-
-	<!-- Members table -->
-	<!-- Header row -->
-	<div class="md-title" layout="row">
-		<div flex>Member name</div>
-		<div flex>Can add members</div>
-		<div flex>Is group admin</div>
-	</div>
-	<!-- Member rows -->
-	<div layout="row" layout-align="start center" ng-repeat="(memberId,member) in group.members">
-		<div flex>
-			<md-button class="md-icon-button md-warn md-raised"
-					ng-click="removeFromGroup(groupId, memberId)"
-					ng-show="userCanAddMembers && !(member.canAdmin && !userCanAdmin)">
-				<md-icon>delete</md-icon>
-			</md-button>
-			<arb-user-name user-id="{{memberId}}"></arb-user-name>
+		<md-divider></md-divider>
+		<!-- Member rows -->
+		<div layout="row"
+				layout-align="start center"
+				layout-margin
+				ng-repeat="(memberId,member) in group.members">
+			<div flex>
+				<arb-user-name user-id="{{memberId}}"></arb-user-name>
+			</div>
+			<div flex>
+				<md-checkbox ng-model="member.canAddMembers"
+						ng-change="updateMemberPermissions(groupId, memberId)"
+						ng-disabled="!userCanAddMembers || member.canAdmin"></md-checkbox>
+			</div>
+			<div flex>
+				<md-checkbox ng-model="member.canAdmin"
+						ng-change="updateMemberPermissions(groupId, memberId)"
+						ng-disabled="!userCanAdmin"></md-checkbox>
+			</div>
+			<div flex>
+				<md-button class="md-icon-button md-warn md-raised"
+						ng-click="removeFromGroup(groupId, memberId)"
+						ng-show="userCanAddMembers && !(member.canAdmin && !userCanAdmin)">
+					<md-icon>delete</md-icon>
+				</md-button>
+			</div>
 		</div>
-		<div flex>
-			<md-checkbox ng-model="member.canAddMembers"
-					ng-change="updateMemberPermissions(groupId, memberId)"
-					ng-disabled="!userCanAddMembers || member.canAdmin"></md-checkbox>
-		</div>
-		<div flex>
-			<md-checkbox ng-model="member.canAdmin"
-					ng-change="updateMemberPermissions(groupId, memberId)"
-					ng-disabled="!userCanAdmin"></md-checkbox>
+		
+		<!-- New Member form -->
+		<div ng-show="userCanAddMembers">
+			<form layout="row"
+					layout-align="start center"
+					layout-margin
+					ng-submit="newMemberFormSubmit($event, groupId, newMemberId)">
+				<span><md-icon>person_add</md-icon></span>
+				<md-input-container>
+					<label>New member id</label>
+					<input name="userId" ng-model="newMemberId">
+				</md-input-container>
+				<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
+				<md-button type="submit" toggle-on-submit>Add member</md-button>
+				<div class="submit-form-error md-warn" hidden></div>
+			</form>
 		</div>
 	</div>
 	
-	<!-- New Member form -->
-	<div ng-show="userCanAddMembers">
-		<form ng-submit="newMemberFormSubmit($event, groupId, newMemberId)">
-			<md-icon>person_add</md-icon>
+	<!-- Create new group -->
+	<div class="md-whiteframe-1dp" layout-margin ng-show="userService.user.isAdmin">
+		<md-toolbar class="md-hue-1" layout-fill>
+			<div class="md-toolbar-tools">
+				New group
+			</div>
+		</md-toolbar>
+		<form ng-submit="newGroupFormSubmit($event)">
 			<md-input-container>
-				<label>New member id</label>
-				<input name="userId" ng-model="newMemberId">
+				<label>Group name</label>
+				<input name="name" ng-model="newGroupName">
+			</md-input-container>
+			<md-input-container>
+				<label>Group alias</label>
+				<input name="alias" ng-model="newGroupAlias">
 			</md-input-container>
 			<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
-			<md-button type="submit" toggle-on-submit>Add member</md-button>
+			<md-button type="submit" toggle-on-submit>Create group</md-button>
 			<div class="submit-form-error md-warn" hidden></div>
 		</form>
 	</div>
-</div>
-
-<!-- Create new group -->
-<div class="md-whiteframe-1dp" ng-show="userService.user.isAdmin">
-	<md-toolbar>
-		<div class="md-toolbar-tools">
-			New group
-		</div>
-	</md-toolbar>
-	<form ng-submit="newGroupFormSubmit($event)">
-		<md-input-container>
-			<label>Group name</label>
-			<input name="name" ng-model="newGroupName">
-		</md-input-container>
-		<md-input-container>
-			<label>Group alias</label>
-			<input name="alias" ng-model="newGroupAlias">
-		</md-input-container>
-		<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
-		<md-button type="submit" toggle-on-submit>Create group</md-button>
-		<div class="submit-form-error md-warn" hidden></div>
-	</form>
 </div>
