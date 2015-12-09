@@ -469,6 +469,60 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, $md
 					});
 					return false;
 				});
+				var focusDefaultTabElement = function() {
+					var activeTab = scope.selectedTab;
+					var defaultTabItem = element.find("[default-tab-item|=" + activeTab + "]");
+					switch (activeTab) {
+						case 0:
+							if (0 in defaultTabItem) defaultTabItem[0].focus();
+							break;
+						case 1:
+							if (0 in defaultTabItem) defaultTabItem[0].focus();
+							break;
+						case 2:
+							if (0 in defaultTabItem) defaultTabItem[0].focus();
+							break;
+						case 3:
+							var searchElement = element.find("[aria-label|=\"Add a parent\"]");
+							if (0 in searchElement) searchElement[0].focus();
+							break;
+						case 4:
+							var searchElement = element.find("[class|=\"intrasite-link ng-binding\"]");
+							if (0 in searchElement) searchElement[0].focus();
+							break;
+					}
+				}
+				var changeTabAutomatically = function(activeTab) {
+					if (activeTab < 0) activeTab = 4;
+					if (activeTab >= 5) activeTab = 0;
+					scope.selectedTab = activeTab;
+				}
+				var changeTabManually = function(activeTab) {
+					var tabList = element.find("md-tab-item");
+					if (activeTab < 0) activeTab = tabList.length - 1;
+					if (activeTab >= tabList.length) activeTab = 0;
+					if (activeTab in tabList) tabList[activeTab].click();
+					if (activeTab in tabList) tabList[activeTab].focus();
+				}
+				if (0 in element) element[0].addEventListener("keydown", function(event) {
+					// Ctrl + left
+					if (event.ctrlKey && event.keyCode == 37) {
+						//changeTabAutomatically(scope.selectedTab - 1);
+						changeTabManually(scope.selectedTab - 1);
+						setTimeout(focusDefaultTabElement, 1000);
+					}
+					// Ctrl + right
+					if (event.ctrlKey && event.keyCode == 39) {
+						//changeTabAutomatically(scope.selectedTab + 1);
+						changeTabManually(scope.selectedTab + 1);
+						setTimeout(focusDefaultTabElement, 1000);
+					}
+					// Ctrl + down
+					if (event.ctrlKey && event.keyCode == 40) {
+						focusDefaultTabElement();
+					}
+				}, true);
+				setTimeout(focusDefaultTabElement, 1000);
 			});
 		},
 	};

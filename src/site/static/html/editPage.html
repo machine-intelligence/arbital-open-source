@@ -15,7 +15,7 @@
 				<div layout="column" flex>
 					<md-input-container>
 						<label>Title</label>
-						<input ng-model="page.title" md-maxlength="100">
+						<input ng-model="page.title" md-maxlength="100" default-tab-item="0">
 					</md-input-container>
 					<md-input-container>
 						<label>Clickbait</label>
@@ -133,7 +133,7 @@
 							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 							ng-model="page.text"
 							flex
-							ng-disabled="showInsertLink"></textarea>
+							ng-disabled="showInsertLink" default-tab-item="1"></textarea>
 
 					<!-- Footer -->
 					<div layout="row" layout-align="start center">
@@ -200,7 +200,7 @@
 						<div layout="column" flex>
 							<md-input-container>
 								<label>Alias</label>
-								<input ng-model="page.alias" md-maxlength="50">
+								<input ng-model="page.alias" md-maxlength="50" default-tab-item="2">
 							</md-input-container>
 						</div>
 						<div flex>
