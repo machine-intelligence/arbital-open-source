@@ -444,6 +444,30 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					if(callback) callback(data);
 				});
 			};
+			$scope.focusDefaultTabElement = function() {
+				var activeTab = $scope.selectedTab;
+				var defaultTabItem = $("[default-tab-item|=" + activeTab + "]");
+				if (0 in defaultTabItem) defaultTabItem[0].focus();
+			}
+			$scope.changeTabAutomatically = function(activeTab) {
+				if (activeTab < 0) activeTab = 4;
+				if (activeTab >= 5) activeTab = 0;
+				$scope.selectedTab = activeTab;
+				var tabList = $("md-tab-item");
+				if (activeTab in tabList) tabList[activeTab].focus();
+			}
+			$scope.handleKeyPress = function(event) {
+				// Ctrl + up
+				if (event.ctrlKey && event.keyCode == 38) {
+					$scope.changeTabAutomatically($scope.selectedTab - 1);
+					setTimeout($scope.focusDefaultTabElement, 1000);
+				}
+				// Ctrl + down
+				if (event.ctrlKey && event.keyCode == 40) {
+					$scope.changeTabAutomatically($scope.selectedTab + 1);
+					setTimeout($scope.focusDefaultTabElement, 1000);
+				}
+			}
 		},
 		link: function(scope, element, attrs) {
 			$timeout(function() {
