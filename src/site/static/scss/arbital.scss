@@ -146,8 +146,8 @@ div.md-warn, md-list-item.md-warn {
 }
 
 .md-subheader {
-	background-color: silver;
-	padding: 4px 16px;
+	background-color: $primary-hue-2;
+	padding: 8px 16px;
 	margin-bottom: 6px;
 
 	&.md-primary {

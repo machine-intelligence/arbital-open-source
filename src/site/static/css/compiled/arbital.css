@@ -95,8 +95,8 @@ div.md-warn, md-list-item.md-warn {
   font-weight: 700; }
 
 .md-subheader {
-  background-color: silver;
-  padding: 4px 16px;
+  background-color: #455A64;
+  padding: 8px 16px;
   margin-bottom: 6px; }
   .md-subheader.md-primary {
     background-color: lightblue; }

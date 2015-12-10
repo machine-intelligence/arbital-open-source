@@ -1,12 +1,12 @@
 <!-- Top toolbar appearing on every page -->
-<md-toolbar ng-class="{'md-tall': isTinyScreen}">
+<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== '0'}">
 	<div class="md-toolbar-tools">
 		<a ng-href="{{pageService.getDomainUrl()}}">a</a>
 
 		<a ng-href="/"
 				layout-margin
 				ng-bind="pageService.pageMap[pageService.privateGroupId].title"
-				ng-show="pageService.privateGroupId"></a>
+				ng-show="pageService.privateGroupId !== '0'"></a>
 
 		<!-- Search -->
 		<span flex></span>

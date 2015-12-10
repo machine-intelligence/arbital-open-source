@@ -17,15 +17,15 @@
 		</div>
 	</md-toolbar>
 	<md-list>
-		<md-list-item ng-repeat="pageId in pageIds">
+		<md-list-item class="no-margins" ng-repeat="pageId in pageIds">
 			<div ng-init="page=getPage(pageId)"
 					layout="column"
 					layout-gt-sm="row"
 					layout-align-gt-sm="start center"
-					layout-margin
+					layout-padding
 					layout-fill>
 				<!-- First row -->
-				<div layout="row" layout-align="start start" layout-fill flex flex-gt-sm="none">
+				<div layout="row" layout-align="start start" flex>
 					<arb-likes page-id="{{pageId}}" ng-if="!hideLikes"></arb-likes>
 					<arb-page-title page-id="{{pageId}}"
 							is-link="true"
@@ -34,7 +34,7 @@
 							flex></arb-page-title>
 				</div>
 				<!-- Second row -->
-				<div class="md-caption" layout="row" layout-fill layout-margin layout-align="start center">
+				<div class="md-caption" layout="row" layout-align="start center">
 					<md-button ng-href="{{pageService.getEditPageUrl(pageId)}}"
 							class="md-icon-button"
 							ng-show="showQuickEdit">

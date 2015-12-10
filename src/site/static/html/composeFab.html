@@ -16,27 +16,27 @@
 		</md-button>
 		<md-button ng-href="{{siblingUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="siblingUrl">
 			<md-icon>people</md-icon>
-			<md-tooltip md-visible="showTooltips" md-direction="left">Sibling page</md-tooltip>
+			<md-tooltip md-visible="showTooltips && siblingUrl" md-direction="left">Sibling page</md-tooltip>
 		</md-button>
 		<md-button ng-href="{{childUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="childUrl">
 			<md-icon>child_care</md-icon>
-			<md-tooltip md-visible="showTooltips" md-direction="left">Child page</md-tooltip>
+			<md-tooltip md-visible="showTooltips && childUrl" md-direction="left">Child page</md-tooltip>
 		</md-button>
 		<md-button ng-href="{{lensUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="lensUrl">
 			<md-icon>lens</md-icon>
-			<md-tooltip md-visible="showTooltips" md-direction="left">Lens page</md-tooltip>
+			<md-tooltip md-visible="showTooltips && lensUrl" md-direction="left">Lens page</md-tooltip>
 		</md-button>
 		<md-button ng-click="newComment()" class="md-fab md-raised md-mini md-accent" ng-show="showNewComment">
 			<md-icon>comment</md-icon>
-			<md-tooltip md-visible="showTooltips" md-direction="left">Comment</md-tooltip>
+			<md-tooltip md-visible="showTooltips && showNewComment" md-direction="left">Comment</md-tooltip>
 		</md-button>
 		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="questionUrl">
 			<md-icon>help</md-icon>
-			<md-tooltip md-visible="showTooltips" md-direction="left">Question</md-tooltip>
+			<md-tooltip md-visible="showTooltips && questionUrl" md-direction="left">Question</md-tooltip>
 		</md-button>
 		<md-button ng-click="newAnswer()" class="md-fab md-raised md-mini md-accent" ng-show="showNewAnswer">
 			<md-icon>font_download</md-icon>
-			<md-tooltip md-visible="showTooltips" md-direction="left">Answer</md-tooltip>
+			<md-tooltip md-visible="showTooltips && showNewAnswer" md-direction="left">Answer</md-tooltip>
 		</md-button>
 	</md-fab-actions>
 </md-fab-speed-dial>
