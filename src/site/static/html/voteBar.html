@@ -1,6 +1,6 @@
-<div class="vote-bar md-whiteframe-1dp" layout="column" layout-margin>
+<div class="vote-bar md-whiteframe-1dp" layout="column" layout-margin layout-fill>
 	<!-- Header -->
-	<div layout="row">
+	<div class="md-caption" layout="row">
 		<span flex ng-bind="typeHelper.headerLabel"></span>
 		<span>
 			<ng-pluralize count="page.votes.length"
@@ -31,7 +31,7 @@
 						ng-style="{left: valueToOffset(newVoteValue)}"
 						ng-show="isHovering">
 					<div class="new-vote-knob md-whiteframe-4dp"></div>
-					<div class="new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
+					<div class="md-body-2 new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
 				</div>
 			</div>
 
@@ -74,7 +74,7 @@
 		</div>
 		<!--<md-button ng-click="deleteMyVote()"
 				ng-show="userVoteValue">
-			Delete my {{typeHelper.toString(userVoteValue)}} vote
+			Delete your {{typeHelper.toString(userVoteValue)}} vote
 		</md-button>-->
 	</div>
 </div>

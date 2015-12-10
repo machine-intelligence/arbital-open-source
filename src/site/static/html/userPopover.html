@@ -5,11 +5,15 @@
 		</div>
 	</md-toolbar>
 
-	<div ng-if="isLoaded()">
-		<arb-markdown page-id="{{userId}}" use-summary="true"></arb-markdown>
-		<div layout="row" layout-align="space-between center" ng-if="isLoaded()">
+	<div class="full-height" layout="column" ng-if="isLoaded()">
+		<md-content layout="column" layout-padding flex>
+			<arb-markdown page-id="{{userId}}" use-summary="true"></arb-markdown>
+		</md-content>
+		<div class="comment-footer" layout="row" layout-align="space-between center" ng-if="isLoaded()">
 			<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
-			<span>Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span></span>
+			<span class="md-caption">
+				Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span>
+			</span>
 		</div>
 	</div>
 

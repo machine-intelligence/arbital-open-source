@@ -8,8 +8,7 @@
 	<arb-vote-bar page-id="{{page.pageId}}" ng-if="page.hasVote && isLoaded(page.pageId)"></arb-vote-bar> 
 	
 	<!-- Lens tabs -->
-	<md-tabs md-dynamic-height
-			ng-class="{'hide-tabs': page.lensIds.length <= 1}">
+	<md-tabs class="full-height" ng-class="{'hide-tabs': page.lensIds.length <= 1}">
 		<md-tab ng-repeat="lensId in page.lensIds"
 				md-on-select="tabSelect(lensId)">
 			<md-tab-label>
@@ -19,22 +18,27 @@
 			</md-tab-label>
 			<md-tab-body>
 				<!-- Lens body -->
-				<div ng-if="isLoaded(lensId)">
-					<arb-markdown page-id="{{lensId}}" use-summary="true"></arb-markdown>
+				<div class="full-height" layout="column" ng-if="isLoaded(lensId)">
+					<md-content layout="column" layout-padding flex>
+						<arb-markdown class="popover-text-container"
+								page-id="{{lensId}}"
+								use-summary="true"
+								></arb-markdown>
+					</md-content>
 
 					<!-- Footer -->
-					<div layout="row" layout-align="start center" ng-if="isLoaded(lensId)">
+					<div class="comment-footer" layout="row" layout-align="start center" ng-if="isLoaded(lensId)">
 						<arb-likes page-id="{{lensId}}" is-button="true"></arb-likes>
 						<arb-subscribe page-id="{{lensId}}" ng-hide="parentSubpageId"></arb-subscribe>
-						<div ng-show="page.commentCount">
+						<div layout="row" layout-align="start center" ng-show="page.commentCount">
 							<md-icon>comment</md-icon>
 							<span ng-bind="page.commentCount"></span>
 						</div>
 						<div flex></div>
-						<div ng-show="page.type !== 'question'">
+						<div class="md-caption" ng-show="page.type !== 'question'">
 							{{page.textLength}} characters
 						</div>
-						<div ng-show="page.type === 'question'">
+						<div layout="row" layout-align="start center" ng-show="page.type === 'question'">
 							<md-icon>font_download</md-icon>
 							<span ng-bind="page.answerCount"></span>
 						</div>

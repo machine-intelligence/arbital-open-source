@@ -68,7 +68,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 				"'></arb-user-popover>")($rootScope);
 		}
 		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
-		var top = $target.offset().top + parseInt($target.css("font-size"));
+		var top = mousePageY + parseInt($target.css("font-size"));
 		$popoverElement.offset({left: left, top: top});
 		$popoverElement.width(popoverWidth);
 		$popoverElement.on("mouseenter", function(event) {

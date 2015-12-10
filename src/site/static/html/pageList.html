@@ -25,7 +25,7 @@
 					layout-margin
 					layout-fill>
 				<!-- First row -->
-				<div layout="row" layout-align="start center" flex>
+				<div layout="row" layout-align="start start" layout-fill flex flex-gt-sm="none">
 					<arb-likes page-id="{{pageId}}" ng-if="!hideLikes"></arb-likes>
 					<arb-page-title page-id="{{pageId}}"
 							is-link="true"
@@ -34,13 +34,13 @@
 							flex></arb-page-title>
 				</div>
 				<!-- Second row -->
-				<div class="md-caption" layout="row" layout-align="start center">
+				<div class="md-caption" layout="row" layout-fill layout-margin layout-align="start center">
 					<md-button ng-href="{{pageService.getEditPageUrl(pageId)}}"
 							class="md-icon-button"
 							ng-show="showQuickEdit">
 						<md-icon>create</md-icon>
 					</md-button>
-					<div class="md-warn" style="white-space: nowrap" ng-show="showRedLinkCount">
+					<div style="white-space: nowrap" ng-show="showRedLinkCount">
 						<span class="separator" ng-show="showQuickEdit"></span>
 						<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
 						<span ng-show="page.todoCount > 0 || page.redLinkCount > 0">

@@ -4,7 +4,65 @@
 var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute",
 		"ngMessages", "ngSanitize", "RecursionHelper"]);
 
-app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider, $mdIconProvider){
+app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemingProvider){
+	// Convert "rgb(#,#,#)" color to "#hex"
+	var rgb2hex = function(rgb) {
+		rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+		function hex(x) {
+			return ("0" + parseInt(x).toString(16)).slice(-2);
+		}
+		return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+	}
+	// Create themes, by getting the colors from our css files
+	$mdThemingProvider.definePalette("arb-primary-theme", $mdThemingProvider.extendPalette("blue-grey", {
+		"500": rgb2hex($("#primary-color").css("border-top-color")),
+		"300": rgb2hex($("#primary-color").css("border-right-color")),
+		"800": rgb2hex($("#primary-color").css("border-bottom-color")),
+		"A100": rgb2hex($("#primary-color").css("border-left-color")),
+		"contrastDefaultColor": "light",
+		"contrastDarkColors": ["50", "100", "200", "300", "400", "A100"],
+		"contrastLightColors": undefined,
+	}));
+	$mdThemingProvider.definePalette("arb-accent-theme", $mdThemingProvider.extendPalette("deep-orange", {
+		"A200": rgb2hex($("#accent-color").css("border-top-color")),
+		"A100": rgb2hex($("#accent-color").css("border-right-color")),
+		"A400": rgb2hex($("#accent-color").css("border-bottom-color")),
+		"A700": rgb2hex($("#accent-color").css("border-left-color")),
+		"contrastDefaultColor": "light",
+		"contrastDarkColors": ["50", "100", "200", "300", "400", "A100"],
+		"contrastLightColors": undefined,
+	}));
+	$mdThemingProvider.definePalette("arb-warn-theme", $mdThemingProvider.extendPalette("red", {
+		"500": rgb2hex($("#warn-color").css("border-top-color")),
+		"300": rgb2hex($("#warn-color").css("border-right-color")),
+		"800": rgb2hex($("#warn-color").css("border-bottom-color")),
+		"A100": rgb2hex($("#warn-color").css("border-left-color")),
+		"contrastDefaultColor": "light",
+		"contrastDarkColors": ["50", "100", "200", "300", "400", "A100"],
+		"contrastLightColors": undefined,
+	}));
+	// Set the theme
+	$mdThemingProvider.theme("default")
+	.primaryPalette("arb-primary-theme", {
+		"default": "500",
+		"hue-1": "300",
+		"hue-2": "800",
+		"hue-3": "A100",
+	})
+	.accentPalette("arb-accent-theme", {
+		"default": "A200",
+		"hue-1": "A100",
+		"hue-2": "A400",
+		"hue-3": "A700",
+	})
+	.warnPalette("arb-warn-theme", {
+		"default": "500",
+		"hue-1": "300",
+		"hue-2": "800",
+		"hue-3": "A100",
+	});
+
+	// Set up custom icons
 	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
 		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
 		.icon("link_variant", "static/icons/link-variant.svg")
@@ -13,6 +71,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 
 	$locationProvider.html5Mode(true);
 
+	// Set up mapping from URL path to specific controllers
 	$routeProvider
 	.when("/", {
 		template: "",

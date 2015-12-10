@@ -3,12 +3,89 @@ $inlineCommentIconZ: 1;
 $popoverZ: 60;
 $composeFabZ: 50;
 
+// Colors that are the same as we set for mdThemingProvider
+$primary-color: #607D8B;
+$primary-hue-1: #CFD8DC;
+$primary-hue-2: #455A64;
+$primary-hue-3: #263238;
+$accent-color: #FF5722;
+$accent-hue-1: lighten($accent-color, 40%);
+$accent-hue-2: darken($accent-color, 20%);
+$accent-hue-3: darken($accent-color, 50%);
+$warn-color: #F44336;
+$warn-hue-1: lighten($warn-color, 20%);
+$warn-hue-2: darken($warn-color, 20%);
+$warn-hue-3: darken($warn-color, 50%);
+
+#primary-color {
+	border-color: pink;
+	border-top-color: $primary-color;
+	border-right-color: $primary-hue-1;
+	border-bottom-color: $primary-hue-2;
+	border-left-color: $primary-hue-3;
+}
+
+#accent-color {
+	border-color: pink;
+	border-top-color: $accent-color;
+	border-right-color: $accent-hue-1;
+	border-bottom-color: $accent-hue-2;
+	border-left-color: $accent-hue-3;
+}
+
+#warn-color {
+	border-color: pink;
+	border-top-color: $warn-color;
+	border-right-color: $warn-hue-1;
+	border-bottom-color: $warn-hue-2;
+	border-left-color: $warn-hue-3;
+}
+
 body {
 	overflow-x: hidden;
-	background-color: rgb(233, 234, 237);
+	background-color: rgb(200, 200, 200);
+}
 
-	&.autocomplete-body-fix {
-		height: initial;
+md-content {
+	background-color: initial;
+}
+
+div.md-primary, md-list-item.md-primary {
+	background-color: $primary-color;
+	&.md-hue-1 {
+		background-color: $primary-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $primary-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $primary-hue-3;
+	}
+}
+
+div.md-accent, md-list-item.md-accent {
+	background-color: $accent-color;
+	&.md-hue-1 {
+		background-color: $accent-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $accent-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $accent-hue-3;
+	}
+}
+
+div.md-warn, md-list-item.md-warn {
+	background-color: $warn-color;
+	&.md-hue-1 {
+		background-color: $warn-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $warn-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $warn-hue-3;
 	}
 }
 
@@ -18,13 +95,19 @@ body {
 	line-height: 3rem;
 	font-weight: 400;
 	margin: 0.5rem 0;
+
+	md-icon {
+		font-size: 2.5rem;
+		width: 2.5rem;
+		height: 2.5rem;
+	}
 }
 
 // Markdown header 1
 .md-display-2 {
 	font-size: 2rem;
 	line-height: 2.2rem;
-	font-weight: 800;
+	font-weight: 700;
 	margin-top: 2rem;
 	margin-bottom: 0.75rem;
 }
@@ -33,7 +116,7 @@ body {
 .md-display-1 {
 	font-size: 1.5rem;
 	line-height: 1.7rem;
-	font-weight: 400;
+	font-weight: 300;
 	margin-top: 2rem;
 	margin-bottom: 0.75rem;
 }
@@ -42,14 +125,24 @@ body {
 .md-headline {
 	font-size: 1.3rem;
 	line-height: 1.5rem;
-	font-weight: 800;
+	font-weight: 700;
 	margin-top: 1.5rem;
 	margin-bottom: 0.5rem;
 }
 
+.md-subhead {
+	font-weight: 700;
+}
+
 // Used for helpful, non-important info text
 .md-caption {
+	font-size: 12px;
 	color: darkgray;
+}
+
+// Slightly bolder normal font
+.md-body-2 {
+	font-weight: 700;
 }
 
 .md-subheader {
@@ -72,14 +165,27 @@ body {
 	}
 }
 
-arb-markdown {
+md-ink-bar {
+	height: 5px;
+}
 
+arb-markdown, [arb-markdown] {
 	p {
 		margin-top: 0;
 	}
 
 	ul {
 		padding-left: 1.5em;
+	}
+
+	blockquote {
+		border-left: lightgray 7px solid;
+		padding-left: 10px;
+		margin-left: 2px;
+	}
+
+	& > :last-child {
+		margin-bottom: 0;
 	}
 }
 
@@ -110,9 +216,9 @@ arb-markdown {
 	arb-settings-page > & {
 		max-width: 560px;
 	}
-}
-.page-capped-body-width {
-	max-width: 960px;
+	arb-primary-page > & {
+		max-width: 1100px;
+	}
 }
 
 arb-discussion {
@@ -120,12 +226,23 @@ arb-discussion {
 }
 
 .md-whiteframe-1dp {
-	background-color: white;
+	background-color: whitesmoke;
+}
+.md-whiteframe-2dp {
+	background-color: whitesmoke;
 }
 
 // Set height to 100%
 .full-height {
 	height: 100%;
+}
+md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
+	height: 100%;
+}
+
+// Allow vertical scrolling for this content
+.scrollable-content {
+	overflow-y: auto;
 }
 
 // Use this class to reveal the element after it and the children are linked
@@ -151,16 +268,16 @@ arb-discussion {
 
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
-#dynamic-view {
+/*#dynamic-view {
 	position: relative;
 	top: -$toolbar-height;
 	padding-top: $toolbar-height;
 	box-sizing: border-box;
-}
+}*/
 
 // Added to updates that the user hasn't seen yet
 .unseen-update {
-	background-color: lightblue;
+	background-color: $primary-hue-1;
 }
 
 // Used to style the dot we display when a page hasn't been visited / was updated
@@ -174,21 +291,23 @@ $toolbar-height: 64px;
 	border-radius: 50%;
 }
 .primary-dot {
-	@include dot(blue);
+	@include dot($primary-color);
 }
 .accent-dot {
-	@include dot(red);
+	@include dot($accent-color);
 }
 .warn-dot {
-	@include dot(orange);
+	@include dot($warn-color);
 }
 
+// Element inside an autocomplete dropdown list
 .autocomplete-custom-template li {
-	//border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid silver;
+	padding-top: 10px;
+	padding-bottom: 5px;
 	height: auto;
-	//padding-top: 8px;
-	padding-bottom: 8px;
-	//white-space: normal;
+	white-space: normal;
+	line-height: 20px;
 }
 
 // Voting bar
@@ -205,13 +324,12 @@ $toolbar-height: 64px;
 		// Vote bucket background, which we change based on the vote count
 		.vote-bucket {
 			background-color: black;
-			opacity: 0.0;
-
+			opacity: 0;
 		}
 
 		// Added when the div is hovered over
 		&.selected {
-			border: 1px solid red;
+			border: 1px solid $accent-color;
 		}
 	}
 
@@ -231,7 +349,7 @@ $toolbar-height: 64px;
 			position: relative;
 			// Move left by $my-vote-width because my-vote-knob pushes this know to the right
 			left: -$my-vote-width / 2.0 - $my-vote-width;
-			background-color: red;
+			background-color: $accent-color;
 			width: $my-vote-width;
 			height: $vote-bar-height + $vote-bar-margin;
 		}
@@ -313,12 +431,12 @@ md-dialog {
 
 	// Hack to allow us to use 100% height inside the dialog
 	md-dialog-content {
-		position: relative;
-		top: -$toolbar-height;
-		padding-top: $toolbar-height;
-		margin-bottom: -$toolbar-height;
-		box-sizing: border-box;
 		height: 100%;
+		// Need layout-column
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		flex-direction: column;
 	}
 }
 
@@ -333,7 +451,7 @@ md-dialog {
 	}
 }
 
-md-list-item {
+md-list-item:not(.no-margins) {
 	min-height: 0;
 	margin-top: 10px;
 	margin-bottom: 10px;
@@ -345,12 +463,12 @@ md-list-item {
 		white-space: nowrap;
 	}
 
-	arb-autocomplete {
+	&:not(.md-toolbar-tools-bottom) arb-autocomplete {
 		max-width: 70%;
 	}
 
 	md-autocomplete {
-		background-color: lightblue;
+		background-color: $primary-hue-2;
 	}
 }
 
@@ -364,39 +482,112 @@ md-list-item {
 }*/
 md-icon {
 	&.on {
-		color: blue;
+		color: $accent-color;
 	}
 }
 
 // Helper for coloring broken links
 .red-link {
-	color: #c70a0a;
+	color: $warn-color;
 }
 
 arb-likes {
 	white-space: nowrap;
 	margin: 0 10px 0 0;
 
-	// Number of likes
+	// The thumbs icon
 	.like-icon {
-		position: relative;
-		top: -5px;
+		//position: relative;
+		//top: -5px;
 		margin-right: 2px;
 	}
+
+	// Number of likes
+	.like-count {
+		position: relative;
+		//top: 5px;
+	}
+}
+
+// Used to align button's text to the right
+.lens-menu-div {
+	.md-button {
+		text-align: right;
+	}
+	arb-likes {
+		margin-right: 0;
+	}
+}
+
+@media (min-width: 600px) {
+	$lens-padding: 50px;
+	.lens-text-container {
+		padding: 5px $lens-padding;
+		font-size: 18px;
+		line-height: 22px;
+	}
+	.comment-text-container {
+		padding: 5px 10px;
+		font-size: 16px;
+		line-height: 20px;
+	}
+	.requirements-container {
+		padding: 5px $lens-padding;
+		box-sizing: border-box
+	}
+}
+@media (min-width: 960px) {
+	$lens-padding: 90px;
+	.lens-text-container {
+		padding: 15px $lens-padding;
+		font-size: 18px;
+		line-height: 26px;
+	}
+	.comment-text-container {
+		padding: 5px 15px;
+		font-size: 17px;
+		line-height: 22px;
+	}
+	.requirements-container {
+		padding: 5px $lens-padding;
+		box-sizing: border-box
+	}
+}
+@media (min-width: 1100px) {
+	$lens-padding: 100px;
+	.lens-text-container {
+		padding: 20px $lens-padding;
+		font-size: 18px;
+		line-height: 30px;
+	}
+	.comment-text-container {
+		padding: 5px 20px;
+		font-size: 18px;
+		line-height: 24px;
+	}
+	.requirements-container {
+		padding: 5px $lens-padding;
+		box-sizing: border-box
+	}
+}
+// Text inside a popover
+.popover-text-container {
+	font-size: 18px;
+	line-height: 24px;
 }
 
 // Intrasite popover
 arb-intrasite-popover {
 	position: absolute;
 	z-index: $popoverZ;
-	background-color: white;
+	background-color: whitesmoke;
 }
 
 // User popover
 arb-user-popover {
 	position: absolute;
 	z-index: $popoverZ;
-	background-color: white;
+	background-color: whitesmoke;
 }
 
 // Compose fab that appears in the bottom right corner
@@ -414,6 +605,12 @@ arb-compose-fab {
 	}
 	md-tabs-content-wrapper {
 		top: 0px;
+	}
+}
+
+md-tabs-wrapper {
+	a {
+		color: inherit;
 	}
 }
 
@@ -440,14 +637,10 @@ md-tabs.layout-column.flex {
 	}
 }
 
-// Container for buttons that appear when we diff two edits
-.diff-buttons {
-	position: absolute;
-	right: 0;
-	top: $toolbar-height;
-	margin: 20px;
-	z-index: 3;
-};
+// Color the active tab
+.md-tab.md-active {
+	background-color: $primary-hue-3;
+}
 
 // Section that shows the diff between two edits
 .diff-section {
@@ -459,23 +652,19 @@ md-tabs.layout-column.flex {
 	};
 };
 
+// Border for the RHS preview half on the edit page
+.edit-page-rhs-border {
+	border-left: $primary-hue-2 5px solid;
+}
+
 // Contains all markdown buttons
 .wmd-button-bar {
-	border-bottom: 2px solid silver;
-
-	@mixin small-button {
+	border-bottom: silver 1px solid;
+	.md-button {
 		width: 24px;
 		min-width: 24px;
 		margin: 0px 5px;
 		padding: 0;
-	}
-
-	button {
-		@include small-button;
-	}
-
-	a {
-		@include small-button;
 	}
 }
 
@@ -488,17 +677,48 @@ md-tabs.layout-column.flex {
 
 // Textarea for editing markdown
 .wmd-input {
-	width: 100%;
 	height: 100%;
 	resize: none;
 	border: none;
 	outline: none;
-	padding: 0;
+	padding: 5px 15px;
+	background-color: whitesmoke;
+}
+
+// Where the preview for the editor goes
+.preview-area {
+	padding: 0 15px;
+	background-color: lightgrey;
+}
+
+// Contents of editors tabs (but not the tab with the textarea)
+.editor-tab {
+	padding: 10px 20px 0px 20px;
 }
 
 // Highlight subpages when they are selected
-.selected-subpage {
-	border: blue 1px solid;
+.selected-subpage > .comment-header {
+	background-color: $accent-hue-1;
+	border-bottom: $accent-color 1px solid;
+}
+
+[arb-subpage] + [arb-subpage] {
+	margin-top: 20px;
+}
+
+// Header/footer sections for a comment
+.comment-header {
+	background-color: $primary-hue-1;
+	padding: 0 5px;
+	border-bottom: silver 1px solid;
+}
+.comment-footer {
+	padding: 0 5px;
+}
+
+// LHS menu with lens actions
+.lens-menu-div {
+	position: absolute;
 }
 
 // Icon shown on the RHS corresponding to an inline comment
@@ -509,12 +729,12 @@ md-tabs.layout-column.flex {
 
 // Anchor text for an inline comment
 .inline-comment-highlight {
-	background-color: lightblue;
+	background-color: $primary-hue-1;
 }
 
 // Anchor text for an inline comment
 .inline-comment-highlight-hover {
-	background-color: lightblue;
+	background-color: $primary-hue-1;
 }
 
 // Div containing the inline comment thread

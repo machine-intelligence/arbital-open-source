@@ -11,10 +11,12 @@
 	<md-dialog-content>
 		<div arb-edit-page
 				class="full-height"
+				layout="column"
 				page-id="{{pageId}}"
 				is-embedded="true"
 				inside-dialog="true"
 				done-fn="doneFn(result)"
-				ng-if="pageId"></div>
+				ng-if="pageId"
+				flex></div>
 	</md-dialog-content>
 </md-dialog>

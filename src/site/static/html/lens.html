@@ -1,21 +1,107 @@
 <div layout="column">
+	<!-- Lens menu -->
+	<div class="md-primary md-hue-1 md-whiteframe-1dp"
+			ng-class="{'lens-menu-div': isFloatingLhs}"
+			ng-style="getLensMenuDivStyle()"
+			layout="{{isFloatingLhs ? 'column' : 'row'}}"
+			layout-align="{{isFloatingLhs ? 'start end' : 'space-around center'}}"
+			layout-margin
+			layout-fill>
+		<!-- Like -->
+		<arb-likes class="no-right-margin"
+				page-id="{{page.pageId}}"
+				is-stretched="!isTinyScreen"
+				is-button="true"></arb-likes>
+		
+		<!-- Subscribe -->
+		<arb-subscribe page-id="{{page.pageId}}"
+				is-stretched="!isTinyScreen"></arb-subscribe>
+		
+		<!-- Edit -->
+		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
+				ng-class="{'md-icon-button': isTinyScreen}"
+				arb-user-check="cool">
+			<md-icon>create</md-icon>
+			<span ng-hide="isTinyScreen">Edit</span>
+			<span class="accent-dot" ng-show="page.hasDraft"></span>
+			<md-tooltip ng-show="page.hasDraft">
+				You have an unpublished draft for this page
+			</md-tooltip>
+		</md-button>
+		
+		<!-- Link -->
+		<md-button ng-href="#page-{{page.pageId}}"
+				ng-show="page.type == 'answer'">
+			<md-icon>link</md-icon>
+			<span ng-hide="isTinyScreen">Link</span>
+		</md-button>
+		
+		<!-- Show diff -->
+		<md-button ng-class="{'md-icon-button': isTinyScreen}"
+				arb-user-check="cool"
+				ng-click="toggleDiff()">
+			<md-icon>compare_arrows</md-icon>
+			<span ng-hide="showingDiff || isTinyScreen">Show diff</span>
+			<span ng-show="showingDiff && !isTinyScreen">Hide diff</span>
+			<span class="primary-dot" ng-show="page.isUpdatedPage()"></span>
+			<md-tooltip ng-show="page.isUpdatedPage()">
+				This page has been updated since the last time you saw it
+			</md-tooltip>
+		</md-button>
+		
+		<!-- Prev/Next -->
+		<div layout="row" ng-if="lensParentPage && (lensParentPage.nextPageId !== '0' || lensParentPage.prevPageId !== '0')">
+			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.prevPageId)}}"
+					ng-disabled="lensParentPage.prevPageId === '0'">
+				<md-tooltip ng-show="lensParentPage.prevPageId === '0'">No previous page</md-tooltip>
+				<md-icon>chevron_left</md-icon>
+				<span>Prev</span>
+			</md-button>
+			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.nextPageId)}}"
+					ng-disabled="lensParentPage.nextPageId === '0'">
+				<md-tooltip ng-show="lensParentPage.nextPageId === '0'">No next page</md-tooltip>
+				<span>Next</span>
+				<md-icon>chevron_right</md-icon>
+			</md-button>
+		</div>
+	</div>
+
 	<!-- Requirements -->
-	<arb-relationships class="reveal-after-render"
+	<arb-relationships class="requirements-container md-whiteframe-1dp reveal-after-render"
 			page-id="{{page.pageId}}"
 			type="requirement"
-			is-lens-requirements="true"></arb-relationships>
+			is-lens-requirements="true"
+			layout-margin
+			layout-fill></arb-relationships>
 
 	<!-- Page's text. Populated by markdown. -->
-	<arb-markdown class="md-whiteframe-1dp lens-text"
-			page-id="{{page.pageId}}"
-			ng-hide="showingDiff"></arb-markdown>
-	<div class="md-whiteframe-1dp" ng-if="showingDiff">
-		<div class="diff-section" ng-bind-html="diffHtml"></div>
+	<div class="lens-text-container md-whiteframe-1dp" layout="column" layout-margin layout-fill>
+		<arb-markdown class="lens-text"
+				page-id="{{page.pageId}}"
+				ng-hide="showingDiff"></arb-markdown>
+		<div ng-if="showingDiff">
+			<div class="diff-section" ng-bind-html="diffHtml"></div>
+		</div>
+
+		<!-- Mastery container -->
+		<div> <!-- Need this div to receive the margin from the parent -->
+			<md-button class="md-primary md-raised" layout-fill ng-click="toggleMastery()">
+				<span ng-show="mastery.has">
+					<span ng-show="mastery.isManuallySet">You marked this requirement as fulfilled</span>
+					<span ng-hide="mastery.isManuallySet">This requirement is fulfilled</span>
+					<md-icon>done</md-icon>
+				</span>
+				<span ng-hide="mastery.has">
+					<span ng-show="mastery.isManuallySet">You marked this requirement unfulfilled</span>
+					<span ng-hide="mastery.isManuallySet">Click to fulfill the requirement</span>
+				</span>
+			</md-button>
+		</div>
 	</div>
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->
 	<div class="inline-comments-div">
-		<md-button class="inline-comment-icon md-icon-button"
+		<md-button class="inline-comment-icon md-icon-button md-accent md-raised"
 				ng-style="getNewInlineCommentButtonStyle()"
 				ng-click="newInlineComment()"
 				ng-show="showNewInlineCommentButton">
@@ -26,7 +112,7 @@
 				ng-mouseenter="inlineCommentIconMouseover(commentId, true)"
 				ng-mouseleave="inlineCommentIconMouseover(commentId, false)"
 				ng-repeat="(commentId,comment) in inlineComments">
-			<md-button class="md-icon-button"
+			<md-button class="md-icon-button md-raised"
 					ng-class="{'md-primary': isInlineCommentIconSelected(commentId)}"
 					ng-click="toggleInlineComment(commentId)">
 				<md-icon>comment</md-icon>
@@ -34,19 +120,6 @@
 			</md-button>
 		</div>
 	</div>
-
-	<!-- Mastery container -->
-	<md-button class="md-primary md-raised" ng-click="toggleMastery()">
-		<span ng-show="mastery.has">
-			<span ng-show="mastery.isManuallySet">You marked this requirement as fulfilled</span>
-			<span ng-hide="mastery.isManuallySet">This requirement is fulfilled</span>
-			<md-icon>done</md-icon>
-		</span>
-		<span ng-hide="mastery.has">
-			<span ng-show="mastery.isManuallySet">You marked this requirement unfulfilled</span>
-			<span ng-hide="mastery.isManuallySet">Click to fulfill the requirement</span>
-		</span>
-	</md-button>
 
 	<arb-discussion class="reveal-after-render" page-id="{{page.pageId}}"></arb-discussion>
 </div>

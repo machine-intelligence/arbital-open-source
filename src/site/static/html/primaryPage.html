@@ -1,4 +1,4 @@
-<div layout="column">
+<div class="capped-body-width" layout="column">
 	<!-- The primary page -->
 	<div arb-page class="reveal-after-render" page-id="{{pageService.primaryPage.pageId}}"></div>
 
@@ -22,7 +22,9 @@
 		<!-- New Answer for a question page -->
 		<div arb-edit-page
 				class="new-answer-div reveal-after-render"
+				layout="column"
 				page-id="{{newAnswerId}}"
+				is-embedded="true"
 				done-fn="answerDone(result)"
 				ng-if="newAnswerId"></div>
 	</div>
