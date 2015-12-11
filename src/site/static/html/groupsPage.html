@@ -24,19 +24,13 @@
 				layout-align="start center"
 				layout-margin
 				ng-repeat="(memberId,member) in group.members">
-			<div flex>
-				<arb-user-name user-id="{{memberId}}"></arb-user-name>
-			</div>
-			<div flex>
-				<md-checkbox ng-model="member.canAddMembers"
-						ng-change="updateMemberPermissions(groupId, memberId)"
-						ng-disabled="!userCanAddMembers || member.canAdmin"></md-checkbox>
-			</div>
-			<div flex>
-				<md-checkbox ng-model="member.canAdmin"
-						ng-change="updateMemberPermissions(groupId, memberId)"
-						ng-disabled="!userCanAdmin"></md-checkbox>
-			</div>
+				<arb-user-name user-id="{{memberId}}" flex></arb-user-name>
+			<md-checkbox ng-model="member.canAddMembers"
+					ng-change="updateMemberPermissions(groupId, memberId)"
+					ng-disabled="!userCanAddMembers || member.canAdmin" flex></md-checkbox>
+			<md-checkbox ng-model="member.canAdmin"
+					ng-change="updateMemberPermissions(groupId, memberId)"
+					ng-disabled="!userCanAdmin" flex></md-checkbox>
 			<div flex>
 				<md-button class="md-icon-button md-warn md-raised"
 						ng-click="removeFromGroup(groupId, memberId)"

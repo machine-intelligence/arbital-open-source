@@ -2,7 +2,9 @@
 	<!-- Header -->
 	<div layout="row" layout-align="start center">
 		<!-- Title -->
-		<span class="md-subhead" flex>
+		<span class="md-subhead"
+				ng-class="{'md-warn': isLensRequirements}"
+				flex>
 			<md-icon ng-show="isLensRequirements">assignment</md-icon>
 			<span ng-bind="title"></span>
 		</span>
@@ -10,7 +12,7 @@
 		<!-- Edit button -->
 		<md-button class="md-icon-button"
 				ng-click="inEditModeToggle()"
-				ng-style="{visibility: (forceEditMode || hovering) ? 'visible' : 'hidden'}">
+				ng-style="{visibility: (!forceEditMode && hovering) ? 'visible' : 'hidden'}">
 			<md-icon>create</md-icon>
 		</md-button>
 	</div>

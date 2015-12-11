@@ -6,26 +6,30 @@
 		</div>
 	</md-toolbar>
 
-	<div arb-subpage class="reveal-after-render"
-			lens-id="{{page.pageId}}"
-			page-id="{{subpageId}}"
-			ng-repeat="subpageId in page.subpageIds"></div>
-	<div class="md-whiteframe-1dp" ng-show="page.subpageIds.length <= 0" layout-padding>
-		No comments yet
+	<div class="requirements-container">
+		<div arb-subpage class="reveal-after-render"
+				lens-id="{{page.pageId}}"
+				page-id="{{subpageId}}"
+				ng-repeat="subpageId in page.subpageIds"></div>
+		<div class="md-whiteframe-1dp" ng-show="page.subpageIds.length <= 0" layout-padding>
+			No comments yet
+		</div>
+	
+		<!-- New comment editor -->
+		<div layout="column">
+			<md-button class="new-comment-button md-primary md-raised"
+					ng-click="newCommentClick()"
+					arb-user-check="cool"
+					ng-hide="newCommentId">
+				<md-icon>comment</md-icon>
+				New Comment
+			</md-button>
+			<div arb-edit-page
+					class="edit-comment-embed"
+					is-embedded="true"
+					page-id="{{newCommentId}}"
+					done-fn="newCommentDone(result)"
+					ng-if="newCommentId"></div>
+		</div>
 	</div>
-
-	<!-- New comment editor -->
-	<md-button class="new-comment-button md-primary md-raised"
-			ng-click="newCommentClick()"
-			arb-user-check="cool"
-			ng-hide="newCommentId">
-		<md-icon>comment</md-icon>
-		New Comment
-	</md-button>
-	<div arb-edit-page
-			class="edit-comment-embed"
-			is-embedded="true"
-			page-id="{{newCommentId}}"
-			done-fn="newCommentDone(result)"
-			ng-if="newCommentId"></div>
 </div>

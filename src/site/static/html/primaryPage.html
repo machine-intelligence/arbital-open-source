@@ -4,7 +4,7 @@
 
 	<!-- Answers for a question page -->
 	<div ng-show="page.type === 'question'">
-		<h1>Answers ({{page.answerIds.length}})</h1>
+		<h1 class="md-display-3">Answers ({{page.answerIds.length}})</h1>
 		<div ng-repeat="answerId in page.answerIds">
 			<arb-page class="reveal-after-render" page-id="{{answerId}}"></arb-page>
 		</div>
@@ -12,12 +12,12 @@
 
 	<!-- Create an answer -->
 	<div id="your-answer" ng-show="page.type === 'question'">
-		<h2>Suggest an answer</h2>
+		<h2 class="md-display-1">Suggest an answer</h2>
 		<arb-autocomplete placeholder="Find existing answers..."
 				page-type="answer"
 				on-select="suggestedAnswer(result)"></arb-autocomplete>
 
-		<h2>Or write a new one</h2>
+		<h2 class="md-display-1">Or write a new one</h2>
 
 		<!-- New Answer for a question page -->
 		<div arb-edit-page

@@ -68,11 +68,11 @@
 								<md-icon>note_add</md-icon>
 								<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
 							</md-button>
-							<md-button class="wmd-new-child-button" ng-hide="insideDialog">
+							<md-button class="wmd-new-child-button" ng-hide="insideDialog || !isWiki">
 								<md-icon>child_care</md-icon>
 								<md-tooltip>[New child link] | Ctrl+Shift+P</md-tooltip>
 							</md-button>
-							<md-button class="wmd-new-sibling-button" ng-hide="insideDialog">
+							<md-button class="wmd-new-sibling-button" ng-hide="insideDialog || !isWiki">
 								<md-icon>people</md-icon>
 								<md-tooltip>[New sibling link]</md-tooltip>
 							</md-button>
@@ -131,7 +131,7 @@
 						<div class="separator"></div>
 						<md-button ng-click="hideMarkdownToolbar=true">
 							<md-icon>close</md-icon>
-							<md-tooltip>Close this toolbar</md-tooltip>
+							<md-tooltip>Hide this toolbar</md-tooltip>
 						</md-button>
 					</div>
 
@@ -144,7 +144,7 @@
 							ng-disabled="showInsertLink" default-tab-item="1"></textarea>
 
 					<!-- Footer -->
-					<div class="md-primary md-hue-2" layout="row" layout-align="start center">
+					<div class="md-primary md-hue-2" layout="row" layout-align="start center" layout-margin layout-fill>
 						<!-- Lock timer -->
 						<div ng-show="lockExists">
 							<md-tooltip ng-show="page.lockedBy != '0' && page.lockedBy === userService.user.id">
@@ -176,26 +176,30 @@
 						<arb-confirm-button button-text="Discard"
 								confirmed="discardPage()"
 								disabled="publishing || snapshotting"></arb-confirm-button>
-						<md-button class="md-primary md-hue-1 md-raised"
-								ng-click="snapshotPage()"
-								ng-disable="publishing || snapshotting">
-							<md-tooltip>Save a snapshot</md-tooltip>
-							Snapshot
-						</md-button>
-						<md-button class="md-primary md-raised"
-								ng-click="togglePreview(true)"
-								ng-disable="publishing || snapshotting"
-								ng-show="!fullView && !inPreview">
-							<md-tooltip>Preview the page before publishing</md-tooltip>
-							Preview
-						</md-button>
-						<md-button class="md-primary md-raised"
-								ng-click="publishPage()"
-								ng-disable="publishing || snapshotting"
-								ng-show="fullView || inPreview">
-							<md-tooltip>Make this version live</md-tooltip>
-							Publish
-						</md-button>
+						<div>
+							<md-button class="md-primary md-hue-1 md-raised"
+									ng-click="snapshotPage()"
+									ng-disable="publishing || snapshotting">
+								<md-tooltip>Save a snapshot</md-tooltip>
+								Snapshot
+							</md-button>
+						</div>
+						<div ng-show="!fullView && !inPreview">
+							<md-button class="md-primary md-raised"
+									ng-click="togglePreview(true)"
+									ng-disable="publishing || snapshotting">
+								<md-tooltip>Preview the page before publishing</md-tooltip>
+								Preview
+							</md-button>
+						</div>
+						<div ng-show="fullView || inPreview">
+							<md-button class="md-primary md-raised"
+									ng-click="publishPage()"
+									ng-disable="publishing || snapshotting">
+								<md-tooltip>Make this version live</md-tooltip>
+								Publish
+							</md-button>
+						</div>
 					</div>
 				</div>
 			</md-tab>
@@ -204,8 +208,6 @@
 			<md-tab label="Settings" ng-disabled="!(isWiki || isLens)">
 				<div layout="column" flex>
 					<md-content class="editor-tab" layout="column" flex>
-						<div class="md-caption">These settings have to be saved independently of publishing the page</div>
-					
 						<!-- Alias -->
 						<div layout="row" layout-ng-show="!isAnswer && !isComment && !isGroup">
 							<div layout="column" flex>
@@ -410,14 +412,18 @@
 				layout="row"
 				layout-align="space-between center"
 				ng-show="inPreview">
-			<md-button class="md-raised" ng-click="togglePreview(false)">
-				<md-icon>arrow_back</md-icon>
-				<md-tooltip>Go back to editing</md-tooltip>
-			</md-button>
-			<md-button class="md-raised md-primary" ng-click="publishPage()">
-				Publish
-				<md-tooltip>Make this version live</md-tooltip>
-			</md-button>
+			<div layout-margin>
+				<md-button class="md-raised" ng-click="togglePreview(false)">
+					<md-icon>arrow_back</md-icon>
+					<md-tooltip>Go back to editing</md-tooltip>
+				</md-button>
+			</div>
+			<div layout-margin>
+				<md-button class="md-raised md-primary" ng-click="publishPage()">
+					Publish
+					<md-tooltip>Make this version live</md-tooltip>
+				</md-button>
+			</div>
 		</div>
 
 		<!-- Diff between edits -->
@@ -440,7 +446,7 @@
 		<!-- Messages -->
 		<md-list ng-hide="otherDiff">
 			<md-list-item class="no-margins"
-					ng-class="{error: 'md-warn', warning: 'md-warn md-hue-1', info: 'md-primary md-hue-1'}[value.type]"
+					ng-class="{error: 'md-warn md-body-2', warning: 'md-warn md-hue-1', info: 'md-primary md-hue-1'}[value.type]"
 					ng-repeat="(key,value) in messages">
 				<!-- Dismiss button -->
 				<md-button class="md-icon-button"

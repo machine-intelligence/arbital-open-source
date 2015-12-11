@@ -20,26 +20,24 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		"800": rgb2hex($("#primary-color").css("border-bottom-color")),
 		"A100": rgb2hex($("#primary-color").css("border-left-color")),
 		"contrastDefaultColor": "light",
-		"contrastDarkColors": ["50", "100", "200", "300", "400", "A100"],
+		"contrastDarkColors": ["300"],
 		"contrastLightColors": undefined,
 	}));
-	$mdThemingProvider.definePalette("arb-accent-theme", $mdThemingProvider.extendPalette("deep-orange", {
+	$mdThemingProvider.definePalette("arb-accent-theme", $mdThemingProvider.extendPalette("teal", {
 		"A200": rgb2hex($("#accent-color").css("border-top-color")),
 		"A100": rgb2hex($("#accent-color").css("border-right-color")),
 		"A400": rgb2hex($("#accent-color").css("border-bottom-color")),
 		"A700": rgb2hex($("#accent-color").css("border-left-color")),
-		"contrastDefaultColor": "light",
-		"contrastDarkColors": ["50", "100", "200", "300", "400", "A100"],
-		"contrastLightColors": undefined,
+		"contrastDefaultColor": "dark",
+		"contrastLightColors": [],
 	}));
-	$mdThemingProvider.definePalette("arb-warn-theme", $mdThemingProvider.extendPalette("red", {
+	$mdThemingProvider.definePalette("arb-warn-theme", $mdThemingProvider.extendPalette("orange", {
 		"500": rgb2hex($("#warn-color").css("border-top-color")),
 		"300": rgb2hex($("#warn-color").css("border-right-color")),
 		"800": rgb2hex($("#warn-color").css("border-bottom-color")),
 		"A100": rgb2hex($("#warn-color").css("border-left-color")),
-		"contrastDefaultColor": "light",
-		"contrastDarkColors": ["50", "100", "200", "300", "400", "A100"],
-		"contrastLightColors": undefined,
+		"contrastDefaultColor": "dark",
+		"contrastLightColors": [],
 	}));
 	// Set the theme
 	$mdThemingProvider.theme("default")
@@ -193,6 +191,9 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 
 				$("[ng-view]").append(result.element);
 			}
+
+			$("body").toggleClass("body-fix", !result.removeBodyFix);
+
 			if (result.title) {
 				document.title = result.title + " - Arbital";
 			}
@@ -329,6 +330,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 						}
 					};
 					return {
+						removeBodyFix: true,
 						title: "Edit " + (page.title ? page.title : "New Page"),
 						element: $compile("<arb-edit-page class='full-height' page-id='" + pageId +
 							"' done-fn='doneFn(result)' layout='column' flex></arb-edit-page>")($scope),

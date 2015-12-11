@@ -1,5 +1,5 @@
 // EditPageDialogController is used for editing a page in an mdDialog
-app.controller("EditPageDialogController", function ($scope, $mdDialog, userService, pageService, parentIds, resumePageId) {
+app.controller("EditPageDialogController", function ($scope, $mdDialog, $timeout, userService, pageService, parentIds, resumePageId) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -38,4 +38,11 @@ app.controller("EditPageDialogController", function ($scope, $mdDialog, userServ
 	$scope.hide = function() {
 		$mdDialog.hide({hidden: true, pageId: $scope.pageId});
 	};
+
+	$timeout(function() {
+		// We need this class in the beginning to make sure dialog appears in the
+		// correct position; but then we need to remove it, otherwise the body
+		// is not visible.
+		$("body").removeClass("md-dialog-is-showing");
+	});
 });

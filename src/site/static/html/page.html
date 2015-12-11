@@ -22,7 +22,8 @@
 		<a id="page-{{page.pageId}}"></a>
 
 		<!-- Page title -->
-		<h1 class="md-display-3" ng-class="{'center-text': isTinyScreen}" layout-padding>
+		<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen}"
+				layout-padding>
 			<arb-page-title page-id="{{page.pageId}}"
 					show-type="true"
 					custom-page-title="getPageTitle()"></arb-page-title>

@@ -4,21 +4,21 @@ $popoverZ: 60;
 $composeFabZ: 50;
 
 // Colors that are the same as we set for mdThemingProvider
-$primary-color: #607D8B;
-$primary-hue-1: #CFD8DC;
-$primary-hue-2: #455A64;
-$primary-hue-3: #263238;
-$accent-color: #FF5722;
-$accent-hue-1: lighten($accent-color, 40%);
-$accent-hue-2: darken($accent-color, 20%);
-$accent-hue-3: darken($accent-color, 50%);
-$warn-color: #F44336;
-$warn-hue-1: lighten($warn-color, 20%);
-$warn-hue-2: darken($warn-color, 20%);
-$warn-hue-3: darken($warn-color, 50%);
+//http://www.google.com/design/spec/style/color.html#color-color-palette
+$primary-color: #607D8B; // blue-grey (500)
+$primary-hue-1: #CFD8DC; // 100
+$primary-hue-2: #455A64; // 700
+$primary-hue-3: #263238; // 900
+$accent-color: #00BFA5; // teal (A700)
+$accent-hue-1: #A7FFEB; // A100
+$accent-hue-2: #1DE9B6; // A400
+$accent-hue-3: #64FFDA; // A200
+$warn-color: #FF6D00; // orange (A700)
+$warn-hue-1: #FFD180; // A100
+$warn-hue-2: #FF9100; // A400
+$warn-hue-3: #FFAB00; // amber (A700)
 
 #primary-color {
-	border-color: pink;
 	border-top-color: $primary-color;
 	border-right-color: $primary-hue-1;
 	border-bottom-color: $primary-hue-2;
@@ -26,7 +26,6 @@ $warn-hue-3: darken($warn-color, 50%);
 }
 
 #accent-color {
-	border-color: pink;
 	border-top-color: $accent-color;
 	border-right-color: $accent-hue-1;
 	border-bottom-color: $accent-hue-2;
@@ -34,7 +33,6 @@ $warn-hue-3: darken($warn-color, 50%);
 }
 
 #warn-color {
-	border-color: pink;
 	border-top-color: $warn-color;
 	border-right-color: $warn-hue-1;
 	border-bottom-color: $warn-hue-2;
@@ -43,7 +41,13 @@ $warn-hue-3: darken($warn-color, 50%);
 
 body {
 	overflow-x: hidden;
-	background-color: rgb(200, 200, 200);
+	background-color: whitesmoke;
+}
+
+// Fix we need to apply to the body for most pages (where content just scrolls down)
+// Edit page is the notable exception
+.body-fix {
+	height: auto;
 }
 
 md-content {
@@ -89,8 +93,15 @@ div.md-warn, md-list-item.md-warn {
 	}
 }
 
+span.md-warn {
+	& > span, & > md-icon {
+		color: $warn-color;
+	}
+}
+
 // Page and section titles
 .md-display-3 {
+	font-family: "Roboto Slab";
 	font-size: 2.5rem;
 	line-height: 3rem;
 	font-weight: 400;
@@ -105,6 +116,7 @@ div.md-warn, md-list-item.md-warn {
 
 // Markdown header 1
 .md-display-2 {
+	font-family: "Roboto Slab";
 	font-size: 2rem;
 	line-height: 2.2rem;
 	font-weight: 700;
@@ -128,6 +140,7 @@ div.md-warn, md-list-item.md-warn {
 	font-weight: 700;
 	margin-top: 1.5rem;
 	margin-bottom: 0.5rem;
+	color: $primary-color;
 }
 
 .md-subhead {
@@ -146,27 +159,23 @@ div.md-warn, md-list-item.md-warn {
 }
 
 .md-subheader {
-	background-color: $primary-hue-2;
+	background-color: whitesmoke;
 	padding: 8px 16px;
 	margin-bottom: 6px;
 
 	&.md-primary {
-		background-color: lightblue;
+		background-color: $primary-color;
 	}
 	&.md-accent {
-		background-color: pink;
+		background-color: $accent-color;
 	}
 	&.md-warn {
-		background-color: orange;
+		background-color: $warn-color;
 	}
 
 	.md-subheader-inner {
 		padding: 0;
 	}
-}
-
-md-ink-bar {
-	height: 5px;
 }
 
 arb-markdown, [arb-markdown] {
@@ -226,10 +235,10 @@ arb-discussion {
 }
 
 .md-whiteframe-1dp {
-	background-color: whitesmoke;
+	background-color: white;
 }
 .md-whiteframe-2dp {
-	background-color: whitesmoke;
+	background-color: white;
 }
 
 // Set height to 100%
@@ -238,11 +247,6 @@ arb-discussion {
 }
 md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	height: 100%;
-}
-
-// Allow vertical scrolling for this content
-.scrollable-content {
-	overflow-y: auto;
 }
 
 // Use this class to reveal the element after it and the children are linked
@@ -258,12 +262,16 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .edit-comment-embed {
 	.wmd-input {
 		height: 50vh;
+		background-color: white;
 	}
 }
 
 // Container for the new answer edit
 .new-answer-div {
 	height: 70vh;
+	.wmd-input {
+		background-color: white;
+	}
 };
 
 // Hack to allow us to use 100% height inside dynamic-view
@@ -316,6 +324,10 @@ $toolbar-height: 64px;
 	$vote-bar-margin: $vote-bar-height * 1.5;
 	$my-vote-width: 10px;
 
+	.vote-bar-label {
+		margin: 10px;
+	}
+
 	// This is one of the 10 buckets we show for voting
 	.vote-bucket-div {
 		border: 1px solid black;
@@ -349,7 +361,7 @@ $toolbar-height: 64px;
 			position: relative;
 			// Move left by $my-vote-width because my-vote-knob pushes this know to the right
 			left: -$my-vote-width / 2.0 - $my-vote-width;
-			background-color: $accent-color;
+			background-color: $accent-hue-2;
 			width: $my-vote-width;
 			height: $vote-bar-height + $vote-bar-margin;
 		}
@@ -376,7 +388,7 @@ $toolbar-height: 64px;
 		.my-vote-knob {
 			position: relative;
 			left: -$my-vote-width / 2.0;
-			background-color: black;
+			background-color: $accent-color;
 			width: $my-vote-width;
 			height: $vote-bar-height + $vote-bar-margin;
 		}
@@ -409,6 +421,18 @@ a {
 	}
 	&:active {
 		color: lighten($color, 20%);
+	}
+
+	// Helper for coloring broken links
+	&.red-link {
+		$color: #cc0000;
+		color: $color;
+		&:hover {
+			color: darken($color, 20%);
+		}
+		&:active {
+			color: lighten($color, 20%);
+		}
 	}
 }
 
@@ -469,6 +493,9 @@ md-list-item:not(.no-margins) {
 
 	md-autocomplete {
 		background-color: $primary-hue-2;
+		input {
+			color: white;
+		}
 	}
 }
 
@@ -484,11 +511,6 @@ md-icon {
 	&.on {
 		color: $accent-color;
 	}
-}
-
-// Helper for coloring broken links
-.red-link {
-	color: $warn-color;
 }
 
 arb-likes {
@@ -533,7 +555,7 @@ arb-likes {
 	}
 	.requirements-container {
 		padding: 5px $lens-padding;
-		box-sizing: border-box
+		box-sizing: border-box;
 	}
 }
 @media (min-width: 960px) {
@@ -550,7 +572,7 @@ arb-likes {
 	}
 	.requirements-container {
 		padding: 5px $lens-padding;
-		box-sizing: border-box
+		box-sizing: border-box;
 	}
 }
 @media (min-width: 1100px) {
@@ -567,13 +589,17 @@ arb-likes {
 	}
 	.requirements-container {
 		padding: 5px $lens-padding;
-		box-sizing: border-box
+		box-sizing: border-box;
 	}
 }
 // Text inside a popover
 .popover-text-container {
 	font-size: 18px;
 	line-height: 24px;
+}
+
+.popover-min-height {
+	//min-height: 40vh;
 }
 
 // Intrasite popover
@@ -661,10 +687,10 @@ md-tabs.layout-column.flex {
 .wmd-button-bar {
 	border-bottom: silver 1px solid;
 	.md-button {
-		width: 24px;
-		min-width: 24px;
-		margin: 0px 5px;
-		padding: 0;
+		width: 34px;
+		min-width: 34px;
+		margin: 0;
+		padding: 0 5px;
 	}
 }
 
@@ -688,7 +714,7 @@ md-tabs.layout-column.flex {
 // Where the preview for the editor goes
 .preview-area {
 	padding: 0 15px;
-	background-color: lightgrey;
+	background-color: white;
 }
 
 // Contents of editors tabs (but not the tab with the textarea)

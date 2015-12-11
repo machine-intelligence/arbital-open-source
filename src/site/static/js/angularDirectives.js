@@ -40,7 +40,9 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 
 			// Check if a lens is loaded
 			$scope.isLoaded = function(lensId) {
-				return pageService.pageMap[lensId].summary.length > 0;
+				var lens = pageService.pageMap[lensId];
+				if (!lens) return false;
+				return lens.summary.length > 0;
 			};
 
 			// Called when a tab is selected
@@ -61,6 +63,11 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 					},
 				});
 			};
+		},
+		link: function(scope, element, attrs) {
+			$(element).scroll(function(event) {
+				console.log(element);
+			});
 		},
 	};
 });

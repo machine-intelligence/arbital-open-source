@@ -16,7 +16,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 			scope.userVoteValue = undefined;
 			var typeHelpers = {
 				probability: {
-					headerLabel: "What's the probability of this claim being true?",
+					headerLabel: "Probability of this claim being true",
 					label1: "0%",
 					label2: "25%",
 					label3: "50%",
@@ -31,7 +31,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 					getBucketIndex: function(value) { return Math.floor(value / 10); },
 				},
 				approval: {
-					headerLabel: "What's the approval rating of this proposal?",
+					headerLabel: "Approval ratings",
 					label1: "Strongly\nDisapprove",
 					label2: "Disapprove",
 					label3: "Neutral",

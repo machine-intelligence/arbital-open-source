@@ -34,7 +34,8 @@
 				class="md-icon-button"
 				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
 				ng-disabled="editing"
-				ng-click="editSubpage($event)">
+				ng-click="editSubpage($event)"
+				ng-show="page.editGroupId === userService.user.id">
 			<md-icon>create</md-icon>
 		</md-button>
 		<md-button class="md-icon-button"
@@ -61,6 +62,7 @@
 				is-embedded="true"
 				page-id="{{page.pageId}}"
 				done-fn="editDone(result)"
+				layout-fill
 				ng-if="editing"></div>
 
 		<!-- Footer -->
