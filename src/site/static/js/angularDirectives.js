@@ -15,7 +15,7 @@ app.directive("arbUserName", function(userService) {
 });
 
 // intrasitePopover contains the popover body html.
-app.directive("arbIntrasitePopover", function(pageService, userService) {
+app.directive("arbIntrasitePopover", function($timeout, pageService, userService) {
 	return {
 		templateUrl: "/static/html/intrasitePopover.html",
 		scope: {
@@ -25,13 +25,6 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
-			
-			// Fix to prevent errors when we go to another page while popover is loading.
-			// TODO: abort all http requests when switching to another page
-			var isDestroyed = false;
-			$scope.$on("$destroy", function() {
-				isDestroyed = true;
-			});
 
 			// Add the primary page as the first lens.
 			if ($scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
@@ -44,10 +37,18 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 				if (!lens) return false;
 				return lens.summary.length > 0;
 			};
+		},
+		link: function(scope, element, attrs) {
+			// Fix to prevent errors when we go to another page while popover is loading.
+			// TODO: abort all http requests when switching to another page
+			var isDestroyed = false;
+			scope.$on("$destroy", function() {
+				isDestroyed = true;
+			});
 
 			// Called when a tab is selected
-			$scope.tabSelect = function(lensId) {
-				if ($scope.isLoaded(lensId)) return;
+			scope.tabSelect = function(lensId) {
+				if (scope.isLoaded(lensId)) return;
 				// Fetch page data from the server.
 				pageService.loadIntrasitePopover(lensId, {
 					success: function() {
@@ -56,18 +57,19 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 						if (!lens.summary) {
 							lens.summary = " "; // to avoid trying to load it again
 						}
+						// Hack: we need to fix the md-tabs height, because it takes way too long
+						// to adjust by itself.
+						$timeout(function() {
+							var $el = element.find(".popover-tab-body");
+							$el.closest("md-tabs").height($el.children().height());
+						});
 						// Page's lensIds got resent, so need to fix this again
-						if ($scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
-							$scope.page.lensIds.unshift($scope.page.pageId);
+						if (scope.page.lensIds.indexOf(scope.page.pageId) < 0) {
+							scope.page.lensIds.unshift(scope.page.pageId);
 						}
 					},
 				});
 			};
-		},
-		link: function(scope, element, attrs) {
-			$(element).scroll(function(event) {
-				console.log(element);
-			});
 		},
 	};
 });

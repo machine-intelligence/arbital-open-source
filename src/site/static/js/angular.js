@@ -248,6 +248,7 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 		.success($scope.getSuccessFunc(function(data){
 			$scope.featuredDomains = data.result.featuredDomains;
 			return {
+				title: "",
 				element: $compile("<arb-index featured-domains='featuredDomains'></arb-index>")($scope),
 			};
 		}))

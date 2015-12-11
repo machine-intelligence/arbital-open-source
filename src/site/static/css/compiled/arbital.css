@@ -388,6 +388,9 @@ arb-likes {
   font-size: 18px;
   line-height: 24px; }
 
+.popover-min-height {
+  height: 30vh; }
+
 arb-intrasite-popover {
   position: absolute;
   z-index: 60;
