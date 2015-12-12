@@ -1,16 +1,22 @@
 "use strict";
 
 // Directive to show a lens' content
-app.directive("arbLens", function($compile, $location, $timeout, $interval, pageService, userService, autocompleteService) {
+app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdMedia, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/lens.html",
 		scope: {
 			pageId: "@",
+			lensParentId: "@",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
+			if ($scope.lensParentId) {
+				$scope.lensParentPage = pageService.pageMap[$scope.lensParentId];
+			}
+			$scope.isTinyScreen = !$mdMedia("gt-sm");
+			$scope.isFloatingLhs = false; //$mdMedia("gt-lg");
 
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
 			if (!$scope.mastery) {
@@ -23,11 +29,10 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, page
 				$scope.mastery = pageService.masteryMap[$scope.pageId];
 			};
 
-			// Called from the page when the user shows/hides the diff
+			// Process click on showing the page diff button.
 			$scope.showingDiff = false;
 			$scope.diffHtml = undefined;
-			$scope.$on("toggleDiff", function(e, lensId) {
-				if (lensId !== $scope.page.pageId) return;
+			$scope.toggleDiff = function() {
 				$scope.showingDiff = !$scope.showingDiff;
 				if (!$scope.showingDiff) return;
 				if ($scope.diffHtml) return;
@@ -48,12 +53,35 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, page
 						$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, "");
 					},
 				});
-			});
+			};
 		},
 		link: function(scope, element, attrs) {
+			// Detach some elements and append them to the body, since they will appear
+			// outside of the lens's div, and otherwise would be masked
+			var $inlineCommentsDiv = element.find(".inline-comments-div");
+			var $newInlineCommentButton = $inlineCommentsDiv.find(".inline-comment-icon");
+			$inlineCommentsDiv.appendTo($("body"));
+			var $lensMenuDiv = element.find(".lens-menu-div");
+			if (scope.isFloatingLhs) {
+				$lensMenuDiv.appendTo($("body"));
+			}
+			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia("gt-lg") ? 0.5 : 1.1);
+			scope.$on("$destroy", function() {
+				$inlineCommentsDiv.remove();
+			});
+
+			// Get the position for the LHS lens menu div
+			scope.getLensMenuDivStyle = function() {
+				if (!scope.isFloatingLhs) return {};
+				return {
+					"left": $markdownContainer.offset().left - $lensMenuDiv.width(),
+					"top": $markdownContainer.offset().top,
+					"visibility": element.closest(".reveal-after-render-parent").length > 0 ? "hidden" : "visible",
+				};
+			};
 
 			// =========================== Inline comments ===========================
-			element.find(".inline-comments-div").appendTo($("body"));
+			var $markdownContainer = element.find(".lens-text-container");
 			var $markdown = element.find(".lens-text");
 			scope.inlineComments = {};
 			var dmp = new diff_match_patch();
@@ -73,6 +101,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, page
 
 			// Process all inline comments
 			for (var n = 0; n < scope.page.commentIds.length; n++) {
+				if (scope.isTinyScreen) break;
 				var comment = pageService.pageMap[scope.page.commentIds[n]];
 				if (!comment.anchorContext || !comment.anchorText) continue;
 
@@ -131,9 +160,13 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, page
 			// Get the style of an inline comment icon
 			scope.getInlineCommentIconStyle = function(commentId) {
 				var params = scope.inlineComments[commentId];
+				console.log($markdownContainer.offset().left);
+				console.log($markdownContainer.width());
+				console.log(inlineIconShiftLeft);
 				return {
-					"left": $markdown.position().left + $markdown.width(),
-					"top": params.anchorNode.offset().top,
+					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+					"top": params.anchorNode.offset().top - $newInlineCommentButton.height() / 2,
+					"visibility": element.closest(".reveal-after-render-parent").length > 0 ? "hidden" : "visible",
 				};
 			};
 
@@ -187,11 +220,10 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, page
 			scope.showNewInlineCommentButton = false;
 			$markdown.on("mouseup", function(event) {
 				if ($inlineCommentEditPage) return;
-				// Do setTimeout, because otherwise there is a bug when you double click to
+				// Do $timeout, because otherwise there is a bug when you double click to
 				// select a word/paragraph, then click again and the selection var is still
 				// the same (not cleared).
 				$timeout(function(){
-					//console.log(processSelectedParagraphText());
 					scope.showNewInlineCommentButton = !!processSelectedParagraphText();
 					if (scope.showNewInlineCommentButton) {
 						newInlineCommentButtonTop = event.pageY;
@@ -200,8 +232,8 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, page
 			});
 			scope.getNewInlineCommentButtonStyle = function() {
 				return {
-					"left": $markdown.position().left + $markdown.width(),
-					"top": newInlineCommentButtonTop,
+					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+					"top": newInlineCommentButtonTop - $newInlineCommentButton.height() / 2,
 				};
 			};
 

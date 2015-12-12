@@ -15,7 +15,7 @@ app.directive("arbUserName", function(userService) {
 });
 
 // intrasitePopover contains the popover body html.
-app.directive("arbIntrasitePopover", function(pageService, userService) {
+app.directive("arbIntrasitePopover", function($timeout, pageService, userService) {
 	return {
 		templateUrl: "/static/html/intrasitePopover.html",
 		scope: {
@@ -25,13 +25,6 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
-			
-			// Fix to prevent errors when we go to another page while popover is loading.
-			// TODO: abort all http requests when switching to another page
-			var isDestroyed = false;
-			$scope.$on("$destroy", function() {
-				isDestroyed = true;
-			});
 
 			// Add the primary page as the first lens.
 			if ($scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
@@ -40,12 +33,22 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 
 			// Check if a lens is loaded
 			$scope.isLoaded = function(lensId) {
-				return pageService.pageMap[lensId].summary.length > 0;
+				var lens = pageService.pageMap[lensId];
+				if (!lens) return false;
+				return lens.summary.length > 0;
 			};
+		},
+		link: function(scope, element, attrs) {
+			// Fix to prevent errors when we go to another page while popover is loading.
+			// TODO: abort all http requests when switching to another page
+			var isDestroyed = false;
+			scope.$on("$destroy", function() {
+				isDestroyed = true;
+			});
 
 			// Called when a tab is selected
-			$scope.tabSelect = function(lensId) {
-				if ($scope.isLoaded(lensId)) return;
+			scope.tabSelect = function(lensId) {
+				if (scope.isLoaded(lensId)) return;
 				// Fetch page data from the server.
 				pageService.loadIntrasitePopover(lensId, {
 					success: function() {
@@ -54,9 +57,15 @@ app.directive("arbIntrasitePopover", function(pageService, userService) {
 						if (!lens.summary) {
 							lens.summary = " "; // to avoid trying to load it again
 						}
+						// Hack: we need to fix the md-tabs height, because it takes way too long
+						// to adjust by itself.
+						$timeout(function() {
+							var $el = element.find(".popover-tab-body");
+							$el.closest("md-tabs").height($el.children().height());
+						});
 						// Page's lensIds got resent, so need to fix this again
-						if ($scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
-							$scope.page.lensIds.unshift($scope.page.pageId);
+						if (scope.page.lensIds.indexOf(scope.page.pageId) < 0) {
+							scope.page.lensIds.unshift(scope.page.pageId);
 						}
 					},
 				});
@@ -116,7 +125,7 @@ app.directive("arbPageTitle", function(pageService, userService) {
 		scope: {
 			pageId: "@",
 			// Options override for the page's title
-			customPageTitle: "@",
+			customPageTitle: "=",
 			// Whether to display the title as a link or a span
 			isLink: "@",
 			// Whether or not to show the clickbait
@@ -130,13 +139,16 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = ($scope.useEditMap ? pageService.editMap : pageService.pageMap)[$scope.pageId];
-			$scope.pageTitle = $scope.page.title;
-			if ($scope.page.type === "comment") {
-				$scope.pageTitle = "*Comment*";
-			}
-			if ($scope.customPageTitle) {
-				$scope.pageTitle = $scope.customPageTitle;
-			}
+
+			$scope.getTitle = function() {
+				if ($scope.customPageTitle) {
+					return $scope.customPageTitle;
+				}
+				if ($scope.page.type === "comment") {
+					return "*Comment*";
+				}
+				return $scope.page.title;
+			};
 		},
 	};
 });
@@ -292,12 +304,8 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 
 			$scope.$on("$locationChangeSuccess", function () {
 				$scope.hide = $location.path().indexOf("/edit") === 0;
-				// NOTE: there is a bug where autocomplete dropdown inside an embedded
-				// comment edit totally messes up the scrolling. This is the workaround.
-				$("body").toggleClass("autocomplete-body-fix", !$scope.hide);
 			});
 			$scope.hide = $location.path().indexOf("/edit") === 0;
-			$("body").toggleClass("autocomplete-body-fix", !$scope.hide);
 		},
 	};
 });
@@ -307,7 +315,7 @@ app.directive("arbAutocomplete", function($q, pageService, autocompleteService) 
 	return {
 		templateUrl: "/static/html/autocomplete.html",
 		scope: {
-			autofocus: "@",
+			doAutofocus: "@",
 			placeholder: "@",
 			// If set, the search will be constrained to this page type
 			pageType: "@",

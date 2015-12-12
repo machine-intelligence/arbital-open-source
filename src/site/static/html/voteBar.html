@@ -1,6 +1,6 @@
-<div class="vote-bar md-whiteframe-1dp" layout="column" layout-margin>
+<div class="lens-text-container vote-bar md-whiteframe-1dp" layout="column" layout-margin layout-fill>
 	<!-- Header -->
-	<div layout="row">
+	<div class="md-caption" layout="row">
 		<span flex ng-bind="typeHelper.headerLabel"></span>
 		<span>
 			<ng-pluralize count="page.votes.length"
@@ -11,7 +11,7 @@
 	<!-- Body -->
 	<div layout="row">
 		<div layout="row" layout-align="end center">
-			<div class="pre" ng-bind="typeHelper.label1"></div>
+			<div class="vote-bar-label" ng-bind="typeHelper.label1"></div>
 		</div>
 		<div class="vote-bar-body"
 				ng-mouseleave="voteMouseMove($event, true)"
@@ -31,7 +31,7 @@
 						ng-style="{left: valueToOffset(newVoteValue)}"
 						ng-show="isHovering">
 					<div class="new-vote-knob md-whiteframe-4dp"></div>
-					<div class="new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
+					<div class="md-body-2 new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
 				</div>
 			</div>
 
@@ -50,16 +50,16 @@
 			<!-- Bottom margin -->
 			<div class="vote-bar-margin" layout="row" layout-align="start center" flex>
 				<div flex></div>
-				<div class="pre center-text" flex="15" ng-bind="typeHelper.label2"></div>
+				<div class="vote-bar-label center-text" flex="15" ng-bind="typeHelper.label2"></div>
 				<div flex></div>
-				<div class="pre center-text" flex="15" ng-bind="typeHelper.label3"></div>
+				<div class="vote-bar-label center-text" flex="15" ng-bind="typeHelper.label3"></div>
 				<div flex></div>
-				<div class="pre center-text" flex="15" ng-bind="typeHelper.label4"></div>
+				<div class="vote-bar-label center-text" flex="15" ng-bind="typeHelper.label4"></div>
 				<div flex></div>
 			</div>
 		</div>
 		<div layout="row" layout-align="start center">
-			<div class="pre" ng-bind="typeHelper.label5"></div>
+			<div class="vote-bar-label" ng-bind="typeHelper.label5"></div>
 		</div>
 	</div>
 
@@ -74,7 +74,7 @@
 		</div>
 		<!--<md-button ng-click="deleteMyVote()"
 				ng-show="userVoteValue">
-			Delete my {{typeHelper.toString(userVoteValue)}} vote
+			Delete your {{typeHelper.toString(userVoteValue)}} vote
 		</md-button>-->
 	</div>
 </div>

@@ -55,6 +55,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 			ON pi.pageId=pp.parentId
 			WHERE pi.currentEdit>0 AND pp.childId=?`, pageId).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
+				AND pp.type=?`, core.ParentPagePairType).Add(`
 			LIMIT 1`).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&parentId)
 		if err != nil {

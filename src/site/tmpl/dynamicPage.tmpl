@@ -43,31 +43,25 @@
 </head>
 
 <body ng-controller="ArbitalCtrl">
+	<!-- These divs exist for us to get colors from css into mdThemingProvider -->
+	<div id="primary-color"></div>
+	<div id="accent-color"></div>
+	<div id="warn-color"></div>
+
 	<!-- ======= Collection of common popover templates ======= -->
 	
-	<!-- This modal is for asking a new question. -->
-	<arb-edit-page-modal></arb-edit-page-modal>
-	
-	<!-- This div is used to create icons to toggle inline comments. -->
-	<div class="toggle-inline-comment-div template">
-		<a href="#" class="inline-comment">
-			<span class="inline-comment-icon glyphicon glyphicon-comment"></span>
-			<span class="inline-comment-count"><span>
-		</a>
-	</div>
-
 	<!-- Compose fab -->
 	<arb-compose-fab></arb-compose-fab>
 	
 	<!-- All the content -->
-	<div class="full-height">
+	<div id="content-div" class="full-height" layout="column">
 		<arb-toolbar></arb-toolbar>
 
 		<!-- Global info messages -->
 		<div class="global-error md-warn" hidden></div>
 	
 		<!-- We append dynamic content to this div. -->
-		<div id="dynamic-view" class="full-height" layout="column" ng-view></div>
+		<div id="dynamic-view" class="full-height" layout="column" flex ng-view></div>
 	</div>
 </body>
 </html>

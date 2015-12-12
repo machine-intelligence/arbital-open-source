@@ -1,13 +1,14 @@
 <div id="subpage-{{page.pageId}}"
 		layout="column"
-		class="md-whiteframe-1dp"
+		class="md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-mouseenter="hovering = true"
-		ng-mouseleave="hovering = false"
+		ng-mouseenter="hoverToggle(true)"
+		ng-mouseleave="hoverToggle(false)"
 		ng-if="!isDeleted">
 	<!-- Comment header -->
-	<div layout="row" layout-align="start center" ng-if="isComment">
-		<md-icon>comment</md-icon>
+	<div class="comment-header" layout="row" layout-align="start center" ng-if="isComment">
+		<md-icon ng-hide="parentSubpageId">comment</md-icon>
+		<span class="separator" ng-hide="parentSubpageId"></span>
 
 		<!-- User name -->
 		<arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
@@ -16,7 +17,7 @@
 		<!-- Collapse button -->
 		<div layout="column" flex>
 			<md-button ng-click="collapseToggle()"
-					ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
+					ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}">
 				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
 				<md-icon ng-show="isCollapsed">expand_more</md-icon>
 			</md-button>
@@ -27,18 +28,19 @@
 				confirmed="deleteSubpage()"
 				show-icon="true"
 				disabled="editing"
-				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}"
+				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
 				ng-if="page.creatorId === userService.user.id && isComment"></arb-confirm-button>
 		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
 				class="md-icon-button"
-				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}"
+				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
 				ng-disabled="editing"
-				ng-click="editSubpage($event)">
+				ng-click="editSubpage($event)"
+				ng-show="page.editGroupId === userService.user.id">
 			<md-icon>create</md-icon>
 		</md-button>
 		<md-button class="md-icon-button"
 				ng-href="{{myUrl}}"
-				ng-style="{'visibility': hovering ? 'visible' : 'hidden'}">
+				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}">
 			<md-icon>link</md-icon>
 		</md-button>
 	</div>
@@ -52,18 +54,19 @@
 	</div>
 
 	<!-- Collapsable body -->
-	<div layout="column" ng-hide="isCollapsed">
-		<arb-markdown page-id="{{page.pageId}}" ng-if="!editing"></arb-markdown>
+	<div layout="column" ng-hide="isCollapsed" layout-margin layout-fill>
+		<arb-markdown class="comment-text-container" page-id="{{page.pageId}}" ng-if="!editing"></arb-markdown>
 		<!-- Edit this subpage -->
 		<div arb-edit-page
 				class="edit-comment-embed"
 				is-embedded="true"
 				page-id="{{page.pageId}}"
 				done-fn="editDone(result)"
+				layout-fill
 				ng-if="editing"></div>
 
 		<!-- Footer -->
-		<div ng-hide="editing">
+		<div class="comment-footer" layout="row" layout-align="start center" layout-fill ng-hide="editing">
 			<arb-likes page-id="{{page.pageId}}" is-button="true"></arb-likes>
 			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
 			<md-button ng-click="newReply()"
@@ -73,25 +76,23 @@
 				<md-icon>reply</md-icon>
 				Reply
 			</md-button>
-			<span ng-bind="page.createdAt | relativeDateTime"></span>
 			<span ng-show="isQuestion && page.commentIds.length > 0">
 				<md-icon>comment</md-icon>
 				<span ng-bind="page.commentIds.length"></span>
 			</span>
+			<span flex></span>
+			<span class="md-caption" ng-bind="page.createdAt | relativeDateTime"></span>
 		</div>
 
 		<!-- Indented reply section -->
-		<div layout="row">
+		<div layout="row" layout-fill>
 			<div flex="10"></div>
 			<div flex="90" layout="column">
 				<!-- Replies -->
-				<div class="md-whiteframe-1dp">
-					<div ng-repeat="subpageId in page.subpageIds">
-						<arb-subpage lens-id="{{lensId}}"
-								page-id="{{subpageId}}"
-								parent-subpage-id="{{page.pageId}}"></arb-subpage>
-					</div>
-				</div>
+				<div arb-subpage lens-id="{{lensId}}"
+						page-id="{{subpageId}}"
+						parent-subpage-id="{{page.pageId}}"
+						ng-repeat="subpageId in page.subpageIds"></div>
 
 				<!-- Reply to thread button -->
 				<md-button ng-click="newReply()" arb-user-check="cool" ng-show="!newReplyId && page.subpageIds.length > 0">

@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("arbEditPage", function($location, $timeout, $interval, $http, $mdDialog, pageService, userService, autocompleteService, markdownService) {
+app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, pageService, userService, autocompleteService, markdownService) {
 	return {
 		templateUrl: "/static/html/editPage.html",
 		scope: {
@@ -18,7 +18,10 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, $md
 			$scope.userService = userService;
 			$scope.pageService = pageService;
 			$scope.page = pageService.editMap[$scope.pageId];
-			$scope.fullView = !$scope.isEmbedded;
+			$scope.fullView = !$scope.isEmbedded && $mdMedia("gt-lg");
+			$scope.gtSmallScreen = $mdMedia("gt-sm");
+			$scope.gtMediumScreen = $mdMedia("gt-md");
+			$scope.gtLargeScreen = $mdMedia("gt-lg");
 			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + "/" + $scope.page.currentEditNum;
 
 			// Return true if we should be using a table layout (so we can stack right
@@ -113,7 +116,6 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, $md
 
 			$scope.lockExists = $scope.page.lockedBy != "0" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== userService.user.id;
-			$scope.isMemberOfGroup = $scope.page.editGroupId === '0' || ($scope.page.editGroupId in $scope.groupOptions);
 
 			// Convert all links with pageIds to alias links.
 			$scope.page.text = $scope.page.text.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
@@ -181,6 +183,37 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, $md
 			$scope.hideMessage = function(event) {
 				$(event.currentTarget).closest("md-list-item").hide();
 			};
+
+			// Check if the user can edit this page
+			if ($scope.page.wasPublished) {
+				var editLevel = $scope.page.getEditLevel();
+				if (editLevel === "admin") {
+					$scope.addMessage("editLevel", "Enforcing admin priviledges", "warning");
+				} else if (editLevel === "comment") {
+					$scope.addMessage("editLevel", "Can't edit a comment you didn't create", "error", true);
+				} else if (editLevel === "") {
+				} else {
+					$scope.addMessage("editLevel", "You don't have enough karma to edit this page. Required: " +
+						$scope.page.getEditLevel(), "error", true);
+				}
+			}
+			// Check group permissions
+			if ($scope.page.editGroupId !== "0" && !($scope.page.editGroupId in $scope.groupOptions)) {
+				$scope.addMessage("editGroup", "You need to be part of " +
+					pageService.pageMap[$scope.page.editGroupId].title + " group to edit this page", "error", true);
+			}
+			// Check if you've loaded an edit that's not currently live
+			if ($scope.page.edit !== $scope.page.currentEditNum && !$scope.page.isAutosave && !$scope.page.isSnapshot) {
+				$scope.addMessage("nonLiveEdit", "Currently looking at a non-live edit", "warning");
+			}
+			if ($scope.page.wasPublished && $scope.page.isAutosave) {
+				$scope.addMessage("nonLiveEdit", "Restored an autosave which was last updated " +
+					$filter("relativeDateTime")(pageService.primaryPage.createdAt), "warning");
+			}
+			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
+				$scope.addMessage("nonLiveEdit", "Restored a snapshot which was last updated " +
+					$filter("relativeDateTime")(pageService.primaryPage.createdAt), "warning");
+			}
 
 			// =========== Autosaving / snapshotting / publishing stuff ==============
 			$scope.autosaving = false;
@@ -347,9 +380,10 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, $md
 					pageType: $scope.page.type,
 				};
 				autocompleteService.findSimilarPages(data, function(data){
+					console.log(data);
 					$scope.similarPages.length = 0;
 					for (var n = 0; n < data.length; n++) {
-						var pageId = data[n].label;
+						var pageId = data[n].pageId;
 						if (pageId === $scope.page.pageId) continue;
 						$scope.similarPages.push({pageId: pageId, score: data[n].score});
 					}
@@ -412,27 +446,35 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, $md
 					if(callback) callback(data);
 				});
 			};
+
+			// Focus on the default element in the tab
 			$scope.focusDefaultTabElement = function() {
 				var activeTab = $scope.selectedTab;
 				var defaultTabItem = $("[default-tab-item|=" + activeTab + "]");
-				if (0 in defaultTabItem) defaultTabItem[0].focus();
+				if (0 in defaultTabItem) {
+					defaultTabItem[0].focus();
+				}
 			}
-			$scope.changeTabAutomatically = function(activeTab) {
+
+			// Change selected tab manually
+			$scope.changeTab = function(activeTab) {
 				if (activeTab < 0) activeTab = 4;
 				if (activeTab >= 5) activeTab = 0;
 				$scope.selectedTab = activeTab;
 				var tabList = $("md-tab-item");
-				if (activeTab in tabList) tabList[activeTab].focus();
-			}
-			$scope.handleKeyPress = function(event) {
-				// Ctrl + up
-				if (event.ctrlKey && event.keyCode == 38) {
-					$scope.changeTabAutomatically($scope.selectedTab - 1);
-					setTimeout($scope.focusDefaultTabElement, 1000);
+				if (activeTab in tabList) {
+					tabList[activeTab].focus();
 				}
-				// Ctrl + down
-				if (event.ctrlKey && event.keyCode == 40) {
-					$scope.changeTabAutomatically($scope.selectedTab + 1);
+			}
+
+			$scope.handleKeyPress = function(event) {
+				if (event.ctrlKey && event.keyCode == 38) {
+					// Ctrl + up
+					$scope.changeTab($scope.selectedTab - 1);
+					setTimeout($scope.focusDefaultTabElement, 1000);
+				} else if (event.ctrlKey && event.keyCode == 40) {
+					// Ctrl + down
+					$scope.changeTab($scope.selectedTab + 1);
 					setTimeout($scope.focusDefaultTabElement, 1000);
 				}
 			}

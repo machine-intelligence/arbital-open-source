@@ -1,14 +1,18 @@
 <div ng-mouseenter="hovering=true" ng-mouseleave="hovering=false" layout="column" ng-show="showPanel">
 	<!-- Header -->
-	<div layout="row">
+	<div layout="row" layout-align="start center">
 		<!-- Title -->
-		<h3 flex>
+		<span class="md-subhead"
+				ng-class="{'md-warn': isLensRequirements}"
+				flex>
 			<md-icon ng-show="isLensRequirements">assignment</md-icon>
 			<span ng-bind="title"></span>
-		</h3>
+		</span>
 
 		<!-- Edit button -->
-		<md-button class="md-icon-button" ng-click="inEditModeToggle()" ng-hide="forceEditMode || !hovering">
+		<md-button class="md-icon-button"
+				ng-click="inEditModeToggle()"
+				ng-style="{visibility: (!forceEditMode && hovering) ? 'visible' : 'hidden'}">
 			<md-icon>create</md-icon>
 		</md-button>
 	</div>

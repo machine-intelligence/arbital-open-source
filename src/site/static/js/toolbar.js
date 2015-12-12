@@ -1,7 +1,7 @@
 "use strict";
 
 // toolbar directive displays the toolbar at the top of each page
-app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $rootScope, $timeout, $q, pageService, userService, autocompleteService) {
+app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $rootScope, $timeout, $q, $mdMedia, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/toolbar.html",
 		scope: {
@@ -9,6 +9,8 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.isTinyScreen = !$mdMedia("gt-sm");
+			$scope.isTouchScreen = $mdMedia("gt-lg");
 
 			// Keep the current url updated
 			$scope.currentUrl = encodeURIComponent($location.absUrl());

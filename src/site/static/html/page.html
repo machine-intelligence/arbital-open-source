@@ -1,35 +1,47 @@
 <div id="subpage-{{page.pageId}}" layout="{{isSingleColumn ? 'column' : 'row'}}">
 	<!-- Primary column -->
-	<div class="page-capped-body-width"
-			ng-class="{'selected-subpage': isSelected()}"
+	<div ng-class="{'selected-subpage': isSelected()}"
 			layout="column"
 			flex-order="1"
 			flex>
 		<!-- Parents -->
-		<p flex-order="{{isTinyScreen ? 1 : 0}}" ng-show="page.parentIds.length > 0">
-			<span>Parents:</span>
-			<span ng-repeat="(index, parentId) in page.parentIds">
-				<span ng-show="index > 0">,</span>
-				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
-			</span>
-		</p>
+		<div flex-order="{{isTinyScreen ? 1 : 0}}"
+				layout-margin
+				layout-fill
+				ng-show="page.parentIds.length > 0">
+			<div>
+				<span>Parents:</span>
+				<span ng-repeat="(index, parentId) in page.parentIds">
+					<span ng-show="index > 0">,</span>
+					<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
+				</span>
+			</div>
+		</div>
 
 		<!-- Hash anchor -->
 		<a id="page-{{page.pageId}}"></a>
 
 		<!-- Page title -->
-		<h1 class="md-display-3">
-			<arb-page-title page-id="{{page.pageId}}" show-type="true"></arb-page-title>
+		<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen}"
+				layout-padding>
+			<arb-page-title page-id="{{page.pageId}}"
+					show-type="true"
+					custom-page-title="getPageTitle()"></arb-page-title>
 		</h1>
 
 		<!-- Tags -->
-		<p flex-order="{{isTinyScreen ? 1 : 0}}" ng-show="page.taggedAsIds.length > 0">
-			<span>Tagged as:</span>
-			<span ng-repeat="(index, tagId) in page.taggedAsIds">
-				<span ng-show="index > 0">,</span>
-				<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
-			</span>
-		</p>
+		<div flex-order="{{isTinyScreen ? 1 : 0}}"
+				layout-margin
+				layout-fill
+				ng-show="page.taggedAsIds.length > 0">
+			<div>
+				<span>Tagged as:</span>
+				<span ng-repeat="(index, tagId) in page.taggedAsIds">
+					<span ng-show="index > 0">,</span>
+					<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
+				</span>
+			</div>
+		</div>
 
 		<!-- Voting container -->
 		<arb-vote-bar page-id="{{page.pageId}}" ng-if="page.hasVote"></arb-vote-bar>
@@ -38,12 +50,13 @@
 		<md-tabs md-dynamic-height
 				class="md-primary md-hue-2"
 				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
+				ng-click="tabsClicked($event)"
 				md-selected="selectedLensIndex">
 			<md-tab ng-repeat="lensId in page.lensIds"
 					md-on-select="tabSelect(lensId)">
 				<md-tab-label>
 					<arb-page-title page-id="{{lensId}}"
-							custom-page-title="{{lensId === page.pageId ? 'Primary' : ''}}"></arb-page-title>
+							custom-page-title="lensId === page.pageId ? 'Primary' : ''"></arb-page-title>
 					<md-icon ng-show="hasMastery(lensId)">assignment_turned_in</md-icon>
 					<md-icon ng-show="!hasMastery(lensId)">assignment_late</md-icon>
 				</md-tab-label>
@@ -54,72 +67,12 @@
 							ng-if="!isLoaded(lensId)">
 						<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 					</div>
-					<arb-lens class="reveal-after-render" page-id="{{lensId}}" ng-if="isLoaded(lensId)"></arb-lens>
+					<arb-lens class="reveal-after-render"
+							page-id="{{lensId}}"
+							lens-parent-id="{{page.pageId}}"
+							ng-if="isLoaded(lensId)"></arb-lens>
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
-	</div>
-
-	<!-- RHS page menu for full screen -->
-	<div class="md-whiteframe-1dp"
-			layout="{{isSingleColumn ? 'row' : 'column'}}"
-			layout-align="{{isSingleColumn ? 'space-around center' : 'start center'}}"
-			flex-order="{{isSingleColumn ? 0 : 2}}">
-		<!-- Like -->
-		<arb-likes page-id="{{selectedLens.pageId}}"
-				is-stretched="!isTinyScreen"
-				is-button="true"></arb-likes>
-		
-		<!-- Subscribe -->
-		<arb-subscribe page-id="{{selectedLens.pageId}}"
-				is-stretched="!isTinyScreen"></arb-subscribe>
-		
-		<!-- Edit -->
-		<md-button ng-href="{{pageService.getEditPageUrl(selectedLens.pageId)}}"
-				ng-class="{'md-icon-button': isTinyScreen}"
-				arb-user-check="cool">
-			<md-icon>create</md-icon>
-			<span ng-hide="isTinyScreen">Edit</span>
-			<span class="accent-dot" ng-show="selectedLens.hasDraft"></span>
-			<md-tooltip ng-show="selectedLens.hasDraft">
-				You have an unpublished draft for this page
-			</md-tooltip>
-		</md-button>
-		
-		<!-- Link -->
-		<md-button ng-href="#page-{{page.pageId}}"
-				ng-show="page.type == 'answer'">
-			<md-icon>link</md-icon>
-			<span ng-hide="isTinyScreen">Link</span>
-		</md-button>
-		
-		<!-- Show diff -->
-		<md-button ng-class="{'md-icon-button': isTinyScreen}"
-				arb-user-check="cool"
-				ng-click="toggleDiff()">
-			<md-icon>compare_arrows</md-icon>
-			<span ng-hide="showingDiff || isTinyScreen">Show diff</span>
-			<span ng-show="showingDiff && !isTinyScreen">Hide diff</span>
-			<span class="primary-dot" ng-show="page.isUpdatedPage()"></span>
-			<md-tooltip ng-show="page.isUpdatedPage()">
-				This page has been updated since the last time you saw it
-			</md-tooltip>
-		</md-button>
-		
-		<!-- Prev/Next -->
-		<div layout="row" ng-hide="page.nextPageId === '0' && page.prevPageId === '0'">
-			<md-button ng-href="{{pageService.getPageUrl(page.prevPageId)}}"
-					ng-disabled="page.prevPageId === '0'">
-				<md-tooltip ng-show="page.prevPageId === '0'">No previous page</md-tooltip>
-				<md-icon>chevron_left</md-icon>
-				<span>Prev</span>
-			</md-button>
-			<md-button ng-href="{{pageService.getPageUrl(page.nextPageId)}}"
-					ng-disabled="page.nextPageId === '0'">
-				<md-tooltip ng-show="page.nextPageId === '0'">No next page</md-tooltip>
-				<span>Next</span>
-				<md-icon>chevron_right</md-icon>
-			</md-button>
-		</div>
 	</div>
 </div>

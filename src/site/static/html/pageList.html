@@ -17,15 +17,15 @@
 		</div>
 	</md-toolbar>
 	<md-list>
-		<md-list-item ng-repeat="pageId in pageIds">
+		<md-list-item class="no-margins" ng-repeat="pageId in pageIds">
 			<div ng-init="page=getPage(pageId)"
 					layout="column"
 					layout-gt-sm="row"
 					layout-align-gt-sm="start center"
-					layout-margin
+					layout-padding
 					layout-fill>
 				<!-- First row -->
-				<div layout="row" layout-align="start center" flex>
+				<div layout="row" layout-align="start start" flex>
 					<arb-likes page-id="{{pageId}}" ng-if="!hideLikes"></arb-likes>
 					<arb-page-title page-id="{{pageId}}"
 							is-link="true"
@@ -40,7 +40,7 @@
 							ng-show="showQuickEdit">
 						<md-icon>create</md-icon>
 					</md-button>
-					<div class="md-warn" style="white-space: nowrap" ng-show="showRedLinkCount">
+					<div style="white-space: nowrap" ng-show="showRedLinkCount">
 						<span class="separator" ng-show="showQuickEdit"></span>
 						<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
 						<span ng-show="page.todoCount > 0 || page.redLinkCount > 0">

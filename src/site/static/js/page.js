@@ -26,6 +26,13 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			}
 			$scope.selectedLensIndex = $scope.page.lensIds.indexOf($scope.selectedLens.pageId);
 			$scope.originalLensId = $scope.selectedLens.pageId;
+			$scope.getPageTitle = function() {
+				var pageTitle = $scope.page.title;
+				if ($scope.selectedLensIndex <= 0) {
+					return pageTitle;
+				}
+				return pageTitle + ": " + $scope.selectedLens.title;
+			}
 
 			// Manage switching between lenses, including loading the necessary data.
 			var switchToLens = function(lensId) {
@@ -53,6 +60,19 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				return pageService.pageMap[lensId].text.length > 0;
 			};
 
+			// Called when there is a click inside the tabs
+			var currentSelectedLensIndex = -1;
+			$scope.tabsClicked = function($event) {
+				// Check if there was a CTRL+click on a tab
+				if (!$event.ctrlKey) return;
+				var $target = $(event.target);
+				var $tab = $target.closest("md-tab-item");
+				if ($tab.length != 1) return;
+				var tabIndex = $tab.index();
+				var lensId = $scope.page.lensIds[tabIndex];
+				window.open(pageService.getPageUrl(lensId), "_blank");
+			};
+
 			// Check if this comment is selected via URL hash
 			$scope.isSelected = function() {
 				return $location.hash() === "subpage-" + $scope.page.pageId;
@@ -67,13 +87,6 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 					}
 				}
 				return true;
-			};
-
-			// Process click on showing the page diff button.
-			$scope.showingDiff = false;
-			$scope.toggleDiff = function() {
-				$scope.showingDiff = !$scope.showingDiff;
-				$scope.$broadcast("toggleDiff", $scope.page.pageId);
 			};
 		},
 	};

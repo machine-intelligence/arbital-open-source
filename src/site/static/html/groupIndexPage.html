@@ -1,4 +1,13 @@
 <div layout="column" class="capped-body-width">
+	<!-- Welcome message -->
+	<h1 layout-margin ng-bind="group.title"></h1>
+	<div layout-margin layout-padding class="md-whiteframe-1dp">
+		<arb-markdown page-id="{{group.pageId}}"
+				use-summary="true"></arb-markdown>
+	</div>
+	<br>
+	<br>
+
 	<!-- First row -->
 	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<arb-page-list panel-title="New"

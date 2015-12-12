@@ -933,6 +933,8 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 			if parent.LoadOptions.RedLinkCountForChildren {
 				newPage.LoadOptions.RedLinkCount = true
 			}
+		} else if options.Type == WikiPageType && options.PagePairType == TagPagePairType {
+			parent.RelatedIds = append(parent.RelatedIds, fmt.Sprintf("%d", childId))
 		}
 		return nil
 	})

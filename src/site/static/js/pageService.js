@@ -85,8 +85,8 @@ app.service("pageService", function($http, $location, userService){
 
 	// Returns the url for the given page.
 	this.getPageUrl = function(pageId){
-		var url = "/pages/" + pageId;
 		var page = that.pageMap[pageId];
+		var url = "/pages/" + pageId;
 		if (page) {
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
