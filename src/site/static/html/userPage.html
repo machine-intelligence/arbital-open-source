@@ -14,12 +14,13 @@
 	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<arb-page-list panel-title="Recently created pages"
 				is-public="yes"
-				show-last-edit="true"
+				show-created-at="true"
 				show-red-link-count="{{userId === userService.user.id}}"
 				page-ids="idsMap.recentlyCreatedIds"
 				flex="40"></arb-page-list>
 		<arb-page-list panel-title="Recently created comments"
 				is-public="yes"
+				show-created-at="true"
 				page-ids="idsMap.recentlyCreatedCommentIds"
 				flex="40"></arb-page-list>
 	</div>

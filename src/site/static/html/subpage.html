@@ -8,11 +8,11 @@
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center" ng-if="isComment">
 		<md-icon ng-hide="parentSubpageId">comment</md-icon>
+		<span class="accent-dot" ng-show="page.isNewPage()"></span>
 		<span class="separator" ng-hide="parentSubpageId"></span>
 
 		<!-- User name -->
 		<arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
-		<span class="primary-dot" ng-show="page.isNewPage()"></span>
 
 		<!-- Collapse button -->
 		<div layout="column" flex>
@@ -35,7 +35,7 @@
 				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
 				ng-disabled="editing"
 				ng-click="editSubpage($event)"
-				ng-show="page.editGroupId === userService.user.id">
+				ng-show="page.creatorId === userService.user.id">
 			<md-icon>create</md-icon>
 		</md-button>
 		<md-button class="md-icon-button"
@@ -46,8 +46,16 @@
 	</div>
 
 	<!-- Question header -->
-	<div layout="row" layout-align="start center" ng-if="isQuestion">
+	<div class="comment-header"
+			layout="row"
+			layout-align="start center"
+			layout-margin
+			layout-fill
+			ng-if="isQuestion">
 		<md-icon>help</md-icon>
+		<span class="accent-dot" ng-show="page.isNewPage()"></span>
+		<span class="separator" ng-hide="parentSubpageId"></span>
+
 		<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
 		<ng-pluralize count="page.answerCount"
 				when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
@@ -55,7 +63,7 @@
 
 	<!-- Collapsable body -->
 	<div layout="column" ng-hide="isCollapsed" layout-margin layout-fill>
-		<arb-markdown class="comment-text-container" page-id="{{page.pageId}}" ng-if="!editing"></arb-markdown>
+		<arb-markdown class="comment-text-container" page-id="{{page.pageId}}" ng-if="!editing && !isQuestion"></arb-markdown>
 		<!-- Edit this subpage -->
 		<div arb-edit-page
 				class="edit-comment-embed"
@@ -66,13 +74,13 @@
 				ng-if="editing"></div>
 
 		<!-- Footer -->
-		<div class="comment-footer" layout="row" layout-align="start center" layout-fill ng-hide="editing">
+		<div class="comment-footer" layout="row" layout-align="start center" ng-hide="editing">
 			<arb-likes page-id="{{page.pageId}}" is-button="true"></arb-likes>
 			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
 			<md-button ng-click="newReply()"
 					ng-disabled="newReplyId"
 					arb-user-check="cool"
-					ng-hide="parentSubpageId || page.subpageIds.length > 0">
+					ng-hide="isQuestion || parentSubpageId || page.subpageIds.length > 0">
 				<md-icon>reply</md-icon>
 				Reply
 			</md-button>

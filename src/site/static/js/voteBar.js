@@ -4,7 +4,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 		templateUrl: "/static/html/voteBar.html",
 		scope: {
 			pageId: "@",
-			isPopoverVote: "@",
+			isEmbedded: "@",
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
@@ -41,14 +41,16 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 						return "";
 					},
 					bucketCount: 9,
-					min: -50,
-					max: 50,
-					makeValid: function(value) { return Math.max(-50, Math.min(50, Math.round(value))); },
+					min: 0,
+					max: 100,
+					makeValid: function(value) { return Math.max(0, Math.min(100, Math.round(value))); },
 					getFlex: function(n) { return n == 4 ? 20 : 10; },
 					getBucketIndex: function(value) {
-						value = (value < 0 ? value + 1 : value - 1) / 10;
-						value = value < 0 ? Math.ceil(value) : Math.floor(value);
-						return value + 4;
+						if (value <= 0) return 0;
+						if (value >= 100) return 8;
+						if (value <= 40) return Math.floor((value - 1) / 10);
+						if (value >= 60) return Math.floor(value / 10) - 1;
+						return 4;
 					},
 				},
 			};

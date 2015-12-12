@@ -2,7 +2,6 @@
 	<!-- Welcome message -->
 	<h1 layout-margin>What is Arbital?</h1>
 	<div layout-margin layout-padding class="md-whiteframe-1dp">
-		Welcome! Arbital is a collaborative platform for researchers and amateurs. Here you can gather, analyze, evalute, and present various research and information.
 		<span ng-show="userService.user.id === '0'">Please <a href="/signup/">sign up</a> to be able to like, subscribe, comment, and create pages.</span>
 		<a href="/3560540392275264633" class="intrasite-link" page-id="3560540392275264633">(Read more)</a>
 	</div>
@@ -17,7 +16,7 @@
 				ng-repeat="domain in featuredDomains"
 				layout="column"
 				flex>
-			<md-toolbar class="md-hue-1" layout-fill>
+			<md-toolbar class="md-hue-1">
 				<div class="md-toolbar-tools">
 					<a ng-href="/domains/{{pageService.pageMap[domain.domainId].alias}}"
 						ng-bind="pageService.pageMap[domain.domainId].title"></a>

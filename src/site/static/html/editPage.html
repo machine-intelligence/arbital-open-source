@@ -144,7 +144,7 @@
 							ng-disabled="showInsertLink" default-tab-item="1"></textarea>
 
 					<!-- Footer -->
-					<div class="md-primary md-hue-2" layout="row" layout-align="start center" layout-margin layout-fill>
+					<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 						<!-- Lock timer -->
 						<div ng-show="lockExists">
 							<md-tooltip ng-show="page.lockedBy != '0' && page.lockedBy === userService.user.id">
@@ -328,7 +328,7 @@
 					<arb-relationships page-id="{{page.pageId}}"
 							type="parent"
 							force-edit-mode="true"
-							readonly="!(isWiki)"></arb-relationships>
+							readonly="!(isWiki || isQuestion)"></arb-relationships>
 					<!-- Tags -->
 					<arb-relationships page-id="{{page.pageId}}"
 							type="tag"

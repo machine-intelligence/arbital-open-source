@@ -7,8 +7,8 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 		scope: {
 			pageId: "@",
 			type: "@",
-			isLensRequirements: "@",
-			forceEditMode: "@",
+			isLensRequirements: "=",
+			forceEditMode: "=",
 			readonly: "=",
 		},
 		controller: function($scope) {
@@ -44,18 +44,26 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 			// Compute if we should show the panel
 			$scope.showPanel = $scope.forceEditMode;
 
+			// Check if the user has the given mastery.
+			$scope.hasMastery = function(requirementId) {
+				return pageService.masteryMap[requirementId].has;
+			}
+
+			// Check if the user meets all requirements
+			$scope.meetsAllRequirements = function() {
+				for (var n = 0; n < $scope.page.requirementIds.length; n++) {
+					if (!$scope.hasMastery($scope.page.requirementIds[n])) {
+						return false;
+					}
+				}
+				return true;
+			};
+
 			// Do some custom stuff for requirements
 			if ($scope.isRequirementType) {
-				// Check if the user has the given mastery.
-				$scope.hasMastery = function(requirementId) {
-					return pageService.masteryMap[requirementId].has;
-				}
-
 				// Don't show the panel if the user has met all the requirements
-				if (!$scope.foceEditMode) {
-					for (var n = 0; n < $scope.page.requirementIds.length; n++) {
-						$scope.showPanel |= !$scope.hasMastery($scope.page.requirementIds[n]);
-					}
+				if (!$scope.forceEditMode) {
+					$scope.showPanel = !$scope.meetsAllRequirements();
 				}
 	
 				// Sort requirements

@@ -66,6 +66,7 @@
 			</div>
 		</md-toolbar>
 		<form ng-submit="newGroupFormSubmit($event)">
+			<div layout="row" layout-align="start center">
 			<md-input-container>
 				<label>Group name</label>
 				<input name="name" ng-model="newGroupName">
@@ -77,6 +78,7 @@
 			<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 			<md-button type="submit" toggle-on-submit>Create group</md-button>
 			<div class="submit-form-error md-warn" hidden></div>
+		</div>
 		</form>
 	</div>
 </div>

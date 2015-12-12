@@ -30,7 +30,7 @@
 		</md-button>
 		
 		<!-- Link -->
-		<md-button ng-href="#page-{{page.pageId}}"
+		<md-button ng-href="{{pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId}}"
 				ng-show="page.type == 'answer'">
 			<md-icon>link</md-icon>
 			<span ng-hide="isTinyScreen">Link</span>
@@ -43,7 +43,7 @@
 			<md-icon>compare_arrows</md-icon>
 			<span ng-hide="showingDiff || isTinyScreen">Show diff</span>
 			<span ng-show="showingDiff && !isTinyScreen">Hide diff</span>
-			<span class="primary-dot" ng-show="page.isUpdatedPage()"></span>
+			<span class="accent-dot" ng-show="page.isUpdatedPage()"></span>
 			<md-tooltip ng-show="page.isUpdatedPage()">
 				This page has been updated since the last time you saw it
 			</md-tooltip>

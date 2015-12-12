@@ -31,6 +31,7 @@
 	
 	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
 		<arb-page-list panel-title="Children"
+				show-created-at="page.sortChildrenBy === 'recentFirst' || page.sortChildrenBy === 'oldestFirst'"
 				page-ids="page.childIds"
 				flex="40"
 				ng-show="page.childIds.length > 0"></arb-page-list>

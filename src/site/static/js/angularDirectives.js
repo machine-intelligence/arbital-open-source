@@ -27,7 +27,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// Add the primary page as the first lens.
-			if ($scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
+			if ($scope.page && $scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
 				$scope.page.lensIds.unshift($scope.page.pageId);
 			}
 
@@ -240,25 +240,23 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.pageUrl = "/edit/";
-			$scope.questionUrl = "/edit/?type=question";
 			$scope.isSmallScreen = !$mdMedia("gt-sm");
 
-			// Show/hide tooltips when the fab is toggled
-			if ($scope.isSmallScreen) {
-				$scope.$watch("isOpen", function(isOpen) {
-					if (isOpen) {
-						$timeout(function() {
-							$scope.showTooltips = $scope.isOpen;
-						}, 100);
-					} else {
-						$scope.showTooltips = $scope.isOpen;
-					}
-				});
-			}
+			var isTouchDevice = "ontouchstart" in window // works in most browsers
+					|| (navigator.MaxTouchPoints > 0)
+					|| (navigator.msMaxTouchPoints > 0)
+					|| "onmsgesturechange" in window; // works on ie10
+
+			$scope.isOpen = false;
+			$scope.toggle = function(show, hovering) {
+				if (isTouchDevice) return;
+				$scope.isOpen = show;
+			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
 			// should be visible.
 			var computeUrls = function() {
+				$scope.questionUrl = "/edit/?type=question";
 				$scope.siblingUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
@@ -270,6 +268,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 						$scope.showNewAnswer = true;
 					} else if (type === "wiki") {
 						$scope.showNewComment = true;
+						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
 						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
 						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
 						if (pageService.primaryPage.parentIds.length > 0) {
@@ -371,6 +370,7 @@ app.directive("arbPageList", function(pageService, userService) {
 			isPublic: "@",
 			hideLikes: "@",
 			showLastEdit: "@",
+			showCreatedAt: "@",
 			showQuickEdit: "@",
 			showRedLinkCount: "@",
 			showCommentCount: "@",

@@ -1,4 +1,8 @@
-<div class="lens-text-container vote-bar md-whiteframe-1dp" layout="column" layout-margin layout-fill>
+<div class="vote-bar md-whiteframe-1dp"
+		ng-class="{'lens-text-container': !isEmbedded}"
+		layout="column"
+		layout-margin
+		layout-fill>
 	<!-- Header -->
 	<div class="md-caption" layout="row">
 		<span flex ng-bind="typeHelper.headerLabel"></span>

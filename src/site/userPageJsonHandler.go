@@ -152,15 +152,18 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		SELECT pi.pageId
 		FROM pageInfos AS pi
 		JOIN (
-			/* Get the last like per page for each user */
-			SELECT pageId,userId,value
-			FROM likes
-			GROUP BY 1,2
-		) AS l
-		ON (pi.pageId=l.pageId)
+			SELECT *
+			FROM (
+				SELECT *
+				FROM likes
+				ORDER BY id DESC
+			) AS l1
+			GROUP BY userId,pageId
+		) AS l2
+		ON (pi.pageId=l2.pageId)
 		WHERE pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
 		GROUP BY 1
-		ORDER BY SUM(l.value) DESC
+		ORDER BY SUM(l2.value) DESC
 		LIMIT ?`).Query(params.PrivateGroupId, data.UserId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["topPagesIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {

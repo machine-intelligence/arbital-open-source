@@ -10,6 +10,8 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.primaryPage;
+			$scope.page.childIds.sort(pageService.getChildSortFunc($scope.page.sortChildrenBy));
+			$scope.page.relatedIds.sort(pageService.getChildSortFunc("likes"));
 			$scope.page.answerIds.sort(pageService.getChildSortFunc("likes"));
 
 			// Create the edit section for a new answer
