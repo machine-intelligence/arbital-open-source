@@ -37,8 +37,10 @@ app.directive("arbEditPage", function($location, $timeout, $interval, $http, $md
 			$timeout(function() {
 				var $wmdPreview = $("#wmd-preview" + $scope.page.pageId);
 				// Initialize pagedown
+//debugger;
 				markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
 					$timeout(function() {
+//debugger;
 						markdownService.processLinks($wmdPreview, refreshFunc);
 					});
 				});

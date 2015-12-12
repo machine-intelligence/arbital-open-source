@@ -87,16 +87,19 @@ app.service("markdownService", function(pageService, userService){
 			});
 		});
 
+//debugger;
 		// Convert [@alias] spans into links.
 		converter.hooks.chain("preSpanGamut", function (text) {
+//debugger;
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
+//debugger;
 				var page = pageService.pageMap[alias];
 				if (page) {
 					var url = "http://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
 					var url = "http://" + host + "/user/" + alias + "/";
-					return prefix + "[" + alias + "](" + alias + ")";
+					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
 		});
@@ -104,7 +107,9 @@ app.service("markdownService", function(pageService, userService){
 		// Convert [Text](Alias) spans into links.
 		var aliasRegexp = new RegExp(aliasMatch, "");
 		converter.hooks.chain("preSpanGamut", function (text) {
+//debugger;
 			return text.replace(complexLinkRegexp, function (whole, prefix, text, alias) {
+//debugger;
 				if (alias.match(aliasRegexp)) {
 					var url = "http://" + host + "/pages/" + alias;
 					return prefix + "[" + text + "](" + url + ")";
@@ -157,6 +162,7 @@ app.service("markdownService", function(pageService, userService){
 			"(.*)"); // optional other stuff
 
 		$pageText.find("a").each(function(index, element) {
+//debugger;
 			var $element = $(element);
 			var parts = $element.attr("href").match(pageRe);
 			if (parts !== null)	{
@@ -196,6 +202,21 @@ app.service("markdownService", function(pageService, userService){
 				
 				if (!$element.hasClass("user-link")) {
 					$element.addClass("user-link").attr("user-id", userAlias);
+					if (userAlias in pageService.pageMap) {
+					} else {
+						// Mark as red link
+						//$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+						$element.addClass("red-link");
+						if (refreshFunc) {
+							pageService.loadTitle(userAlias, {
+								//silentFail: true,
+								success: function() {
+//debugger;
+									refreshFunc();
+								}
+							});
+						}
+					}
 				}
 			}
 		});
@@ -233,6 +254,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			});
 
 			// Convert page text to html.
+//debugger;
 			var converter = markdownService.createConverter();
 			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
 			var $pageText = element;
@@ -240,6 +262,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
+//debugger;
 			markdownService.processLinks($pageText);
 		},
 	};
