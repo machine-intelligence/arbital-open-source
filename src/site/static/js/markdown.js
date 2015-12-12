@@ -27,6 +27,9 @@ var atAliasRegexp = new RegExp(notEscaped +
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
 app.service("markdownService", function(pageService, userService){
+	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
+	var failedPageAliases = {};
+
 	// Pass in a pageId to create an editor for that page
 	var createConverter = function(pageId, postConversionCallback) {
 		// NOTE: not using $location, because we need port number
@@ -184,11 +187,26 @@ app.service("markdownService", function(pageService, userService){
 						// Mark as red link
 						$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
 						$element.addClass("red-link");
-						if (refreshFunc) {
+						if (refreshFunc && !(pageAlias in failedPageAliases) ) {
 							pageService.loadTitle(pageAlias, {
 								silentFail: true,
 								success: function() {
-									refreshFunc();
+debugger;
+pageAlias;
+pageService.pageMap;
+									// Don't call refreshFunc unless loadTitle successfully loaded something
+									// That would cause an infinite loop
+									if (pageAlias in pageService.pageMap) {
+										refreshFunc();
+									} else {
+										failedPageAliases[pageAlias] = true;
+									}
+								},
+								error: function() {
+debugger;
+pageAlias;
+pageService.pageMap;
+									//refreshFunc();
 								}
 							});
 						}
@@ -205,14 +223,28 @@ app.service("markdownService", function(pageService, userService){
 					if (userAlias in pageService.pageMap) {
 					} else {
 						// Mark as red link
-						//$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+						//$element.attr("href", $element.attr("href").replace(/user/, "invalid"));
 						$element.addClass("red-link");
-						if (refreshFunc) {
+						if (refreshFunc && !(userAlias in failedPageAliases) ) {
 							pageService.loadTitle(userAlias, {
-								//silentFail: true,
+								silentFail: true,
 								success: function() {
-//debugger;
-									refreshFunc();
+debugger;
+userAlias;
+pageService.pageMap;
+									// Don't call refreshFunc unless loadTitle successfully loaded something
+									// That would cause an infinite loop
+									if (userAlias in pageService.pageMap) {
+										refreshFunc();
+									} else {
+										failedPageAliases[userAlias] = true;
+									}
+								},
+								error: function() {
+debugger;
+userAlias;
+pageService.pageMap;
+									//refreshFunc();
 								}
 							});
 						}
@@ -231,6 +263,7 @@ app.service("markdownService", function(pageService, userService){
 	};
 
 	this.createEditConverter = function(pageId, postConversionCallback) {
+		failedPageAliases = {};
 		return createConverter(pageId, postConversionCallback);
 	};
 });
