@@ -1353,8 +1353,6 @@ func LoadSubscriptions(db *database.DB, currentUserId int64, pageMap map[int64]*
 
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.
 func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]int64, error) {
-	db.C.Debugf("in LoadAliasToPageIdMap")
-	db.C.Debugf("aliases: %v", aliases)
 	aliasToIdMap := make(map[string]int64)
 
 	strictAliases := make([]string, 0)
@@ -1391,8 +1389,6 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]int64, 
 
 // LoadAliasToPageId converts the given page alias to page id.
 func LoadAliasToPageId(db *database.DB, alias string) (int64, bool, error) {
-	db.C.Debugf("in LoadAliasToPageId")
-	db.C.Debugf("alias: %v", alias)
 	aliasToIdMap, err := LoadAliasToPageIdMap(db, []string{alias})
 	if err != nil {
 		return 0, false, err

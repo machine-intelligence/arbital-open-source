@@ -90,12 +90,9 @@ app.service("markdownService", function(pageService, userService){
 			});
 		});
 
-//debugger;
 		// Convert [@alias] spans into links.
 		converter.hooks.chain("preSpanGamut", function (text) {
-//debugger;
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
-//debugger;
 				var page = pageService.pageMap[alias];
 				if (page) {
 					var url = "http://" + host + "/user/" + page.pageId + "/";
@@ -110,9 +107,7 @@ app.service("markdownService", function(pageService, userService){
 		// Convert [Text](Alias) spans into links.
 		var aliasRegexp = new RegExp(aliasMatch, "");
 		converter.hooks.chain("preSpanGamut", function (text) {
-//debugger;
 			return text.replace(complexLinkRegexp, function (whole, prefix, text, alias) {
-//debugger;
 				if (alias.match(aliasRegexp)) {
 					var url = "http://" + host + "/pages/" + alias;
 					return prefix + "[" + text + "](" + url + ")";
@@ -165,7 +160,6 @@ app.service("markdownService", function(pageService, userService){
 			"(.*)"); // optional other stuff
 
 		$pageText.find("a").each(function(index, element) {
-//debugger;
 			var $element = $(element);
 			var parts = $element.attr("href").match(pageRe);
 			if (parts !== null)	{
@@ -191,22 +185,11 @@ app.service("markdownService", function(pageService, userService){
 							pageService.loadTitle(pageAlias, {
 								silentFail: true,
 								success: function() {
-debugger;
-pageAlias;
-pageService.pageMap;
-									// Don't call refreshFunc unless loadTitle successfully loaded something
-									// That would cause an infinite loop
 									if (pageAlias in pageService.pageMap) {
 										refreshFunc();
 									} else {
 										failedPageAliases[pageAlias] = true;
 									}
-								},
-								error: function() {
-debugger;
-pageAlias;
-pageService.pageMap;
-									//refreshFunc();
 								}
 							});
 						}
@@ -223,28 +206,16 @@ pageService.pageMap;
 					if (userAlias in pageService.pageMap) {
 					} else {
 						// Mark as red link
-						//$element.attr("href", $element.attr("href").replace(/user/, "invalid"));
 						$element.addClass("red-link");
 						if (refreshFunc && !(userAlias in failedPageAliases) ) {
 							pageService.loadTitle(userAlias, {
 								silentFail: true,
 								success: function() {
-debugger;
-userAlias;
-pageService.pageMap;
-									// Don't call refreshFunc unless loadTitle successfully loaded something
-									// That would cause an infinite loop
 									if (userAlias in pageService.pageMap) {
 										refreshFunc();
 									} else {
 										failedPageAliases[userAlias] = true;
 									}
-								},
-								error: function() {
-debugger;
-userAlias;
-pageService.pageMap;
-									//refreshFunc();
 								}
 							});
 						}
@@ -287,7 +258,6 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			});
 
 			// Convert page text to html.
-//debugger;
 			var converter = markdownService.createConverter();
 			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
 			var $pageText = element;
@@ -295,7 +265,6 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
-//debugger;
 			markdownService.processLinks($pageText);
 		},
 	};
