@@ -1,4 +1,4 @@
-// abandonPageHandler.go handles requests for abandoning a page. This means
+// discardPageHandler.go handles requests for discarding a page. This means
 // deleting all autosaves which were created by the user.
 package site
 
@@ -9,27 +9,27 @@ import (
 	"zanaduu3/src/pages"
 )
 
-// abandonPageData is the data received from the request.
-type abandonPageData struct {
+// discardPageData is the data received from the request.
+type discardPageData struct {
 	PageId int64 `json:",string"`
 }
 
-var abandonPageHandler = siteHandler{
-	URI:         "/abandonPage/",
-	HandlerFunc: abandonPageHandlerFunc,
+var discardPageHandler = siteHandler{
+	URI:         "/discardPage/",
+	HandlerFunc: discardPageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 		MinKarma:     200,
 	},
 }
 
-// abandonPageHandlerFunc handles requests for deleting a page.
-func abandonPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
+// discardPageHandlerFunc handles requests for deleting a page.
+func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
 	decoder := json.NewDecoder(params.R.Body)
-	var data abandonPageData
+	var data discardPageData
 	err := decoder.Decode(&data)
 	if err != nil || data.PageId == 0 {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
@@ -40,7 +40,7 @@ func abandonPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		DELETE FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave`)
 	if _, err = statement.Exec(data.PageId, u.Id); err != nil {
-		return pages.HandlerErrorFail("Couldn't abandon a page", err)
+		return pages.HandlerErrorFail("Couldn't discard a page", err)
 	}
 
 	// Update pageInfos

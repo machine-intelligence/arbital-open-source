@@ -10,13 +10,15 @@ import (
 
 type featuredDomain struct {
 	DomainId string   `json:"domainId"`
-	ImageUrl string   `json:"imageUrl"`
 	ChildIds []string `json:"childIds"`
 }
 
 var indexHandler = siteHandler{
 	URI:         "/json/index/",
 	HandlerFunc: indexJsonHandler,
+	Options: pages.PageOptions{
+		LoadUpdateCount: true,
+	},
 }
 
 func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
@@ -31,7 +33,6 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	featuredDomains = append(featuredDomains,
 		&featuredDomain{
 			DomainId: "8639103000879599414",
-			ImageUrl: "/static/images/vatIndexLogo.png",
 			ChildIds: []string{
 				"8639103000879599414", // VAT
 				"4213693741839491939", // List: value alignment subjects
@@ -43,7 +44,6 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			},
 		}, &featuredDomain{
 			DomainId: "3560540392275264633",
-			ImageUrl: "/static/images/arbitalIndexLogo.png",
 			ChildIds: []string{
 				"3560540392275264633", // What is Arbital
 				"5092144177314150382", // Arbital features

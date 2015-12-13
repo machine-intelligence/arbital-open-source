@@ -30,10 +30,6 @@ var newPagePairHandler = siteHandler{
 
 // newPagePairHandlerFunc handles requests for adding a new tag.
 func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	c := params.C
-	db := params.DB
-	u := params.U
-
 	decoder := json.NewDecoder(params.R.Body)
 	var data newPagePairData
 	err := decoder.Decode(&data)
@@ -41,18 +37,26 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 
+	return newPagePairHandlerInternal(params, &data)
+}
+
+func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairData) *pages.Result {
+	c := params.C
+	db := params.DB
+	u := params.U
+
 	// Error checking
 	if data.ParentId <= 0 || data.ChildId <= 0 {
-		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", err)
+		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", nil)
 	}
 	if data.ParentId == data.ChildId {
-		return pages.HandlerBadRequestFail("ParentId equals ChildId", err)
+		return pages.HandlerBadRequestFail("ParentId equals ChildId", nil)
 	}
 	data.Type = strings.ToLower(data.Type)
 	if data.Type != core.ParentPagePairType &&
 		data.Type != core.TagPagePairType &&
 		data.Type != core.RequirementPagePairType {
-		return pages.HandlerBadRequestFail("Incorrect type", err)
+		return pages.HandlerBadRequestFail("Incorrect type", nil)
 	}
 
 	// Load existing connections
@@ -62,7 +66,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		FROM pagePairs
 		WHERE parentId=? and childId=?
 		`, data.ParentId, data.ChildId).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pairType string
 		err := rows.Scan(&pairType)
 		if err != nil {
@@ -167,7 +171,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewParentUpdateType
 		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequiredByUpdateType
+			task.UpdateType = core.NewRequirementUpdateType
 		} else if data.Type == core.TagPagePairType {
 			task.UpdateType = core.NewTagUpdateType
 		}
@@ -184,7 +188,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewChildUpdateType
 		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequirementUpdateType
+			task.UpdateType = core.NewRequiredByUpdateType
 		} else if data.Type == core.TagPagePairType {
 			task.UpdateType = core.NewTaggedByUpdateType
 		}

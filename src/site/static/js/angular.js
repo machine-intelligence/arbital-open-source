@@ -1,10 +1,75 @@
 "use strict";
 
 // Set up angular module.
-var app = angular.module("arbital", ["ngResource", "ui.bootstrap", "RecursionHelper", "ngRoute"]);
-app.config(function($interpolateProvider, $locationProvider, $provide, $routeProvider){
+var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute",
+		"ngMessages", "ngSanitize", "RecursionHelper"]);
+
+app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemingProvider){
+	// Convert "rgb(#,#,#)" color to "#hex"
+	var rgb2hex = function(rgb) {
+		rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+		function hex(x) {
+			return ("0" + parseInt(x).toString(16)).slice(-2);
+		}
+		return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+	}
+	// Create themes, by getting the colors from our css files
+	$mdThemingProvider.definePalette("arb-primary-theme", $mdThemingProvider.extendPalette("blue-grey", {
+		"500": rgb2hex($("#primary-color").css("border-top-color")),
+		"300": rgb2hex($("#primary-color").css("border-right-color")),
+		"800": rgb2hex($("#primary-color").css("border-bottom-color")),
+		"A100": rgb2hex($("#primary-color").css("border-left-color")),
+		"contrastDefaultColor": "light",
+		"contrastDarkColors": ["300"],
+		"contrastLightColors": undefined,
+	}));
+	$mdThemingProvider.definePalette("arb-accent-theme", $mdThemingProvider.extendPalette("teal", {
+		"A200": rgb2hex($("#accent-color").css("border-top-color")),
+		"A100": rgb2hex($("#accent-color").css("border-right-color")),
+		"A400": rgb2hex($("#accent-color").css("border-bottom-color")),
+		"A700": rgb2hex($("#accent-color").css("border-left-color")),
+		"contrastDefaultColor": "dark",
+		"contrastLightColors": [],
+	}));
+	$mdThemingProvider.definePalette("arb-warn-theme", $mdThemingProvider.extendPalette("orange", {
+		"500": rgb2hex($("#warn-color").css("border-top-color")),
+		"300": rgb2hex($("#warn-color").css("border-right-color")),
+		"800": rgb2hex($("#warn-color").css("border-bottom-color")),
+		"A100": rgb2hex($("#warn-color").css("border-left-color")),
+		"contrastDefaultColor": "dark",
+		"contrastLightColors": [],
+	}));
+	// Set the theme
+	$mdThemingProvider.theme("default")
+	.primaryPalette("arb-primary-theme", {
+		"default": "500",
+		"hue-1": "300",
+		"hue-2": "800",
+		"hue-3": "A100",
+	})
+	.accentPalette("arb-accent-theme", {
+		"default": "A200",
+		"hue-1": "A100",
+		"hue-2": "A400",
+		"hue-3": "A700",
+	})
+	.warnPalette("arb-warn-theme", {
+		"default": "500",
+		"hue-1": "300",
+		"hue-2": "800",
+		"hue-3": "A100",
+	});
+
+	// Set up custom icons
+	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
+		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
+		.icon("link_variant", "static/icons/link-variant.svg")
+		.icon("comment_plus_outline", "static/icons/comment-plus-outline.svg")
+		.icon("format_header_pound", "static/icons/format-header-pound.svg");
+
 	$locationProvider.html5Mode(true);
 
+	// Set up mapping from URL path to specific controllers
 	$routeProvider
 	.when("/", {
 		template: "",
@@ -14,15 +79,12 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 		template: "",
 		controller: "DomainPageController",
 	})
-	.when("/explore/:alias?", {
-		template: "",
-		controller: "ExplorePageController",
-	})
 	.when("/pages/:alias", {
 		template: "",
 		controller: "PrimaryPageController",
+		reloadOnSearch: false,
 	})
-	.when("/edit/:alias?", {
+	.when("/edit/:alias?/:edit?", {
 		template: "",
 		controller: "EditPageController",
 		reloadOnSearch: false,
@@ -50,7 +112,7 @@ app.config(function($interpolateProvider, $locationProvider, $provide, $routePro
 });
 
 // ArbitalCtrl is used across all pages.
-app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $compile, userService, pageService) {
+app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 
@@ -69,90 +131,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 		$timeout(refreshAutoupdates, 30000);
 	};
 	refreshAutoupdates();
-
-	// Process lens tab clicks
-	$("body").on("click", ".intrasite-lens-tab", function(event) {
-		var $tab = $(event.currentTarget);
-		var lensId = $tab.attr("data-target");
-		lensId = lensId.substring(lensId.indexOf("-") + 1);
-		var lensPage = pageService.pageMap[lensId];
-		if (!lensPage) return;
-		if (lensPage.summary.length > 0) {
-			var page = pageService.pageMap[lensId];
-			var lensElement = $("#lens-" + page.pageId);
-			lensElement.empty().append('<div class="markdown-text"></div>');
-			arbMarkdown.init(false, page.pageId, page.summary, lensElement, pageService, userService);
-		}
-		return true;
-	});
-
-	// Check when user hovers over intrasite links, and show a popover.
-	$("body").on("mouseenter", ".intrasite-link", function(event) {
-		var $target = $(event.currentTarget);
-		if ($target.hasClass("red-link")) return;
-		// Don't allow recursive hover in popovers.
-		if ($target.closest(".popover-content").length > 0) return;
-
-		// Popover's title.
-		var getTitleHtml = function(pageId) {
-			return "<arb-likes-page-title is-search-result='true' page-id='" + pageId + "'></arb-likes-page-title>";
-		};
-		// Create options for the popover.
-		var options = {
-			html : true,
-			placement: "bottom",
-			trigger: "manual",
-			delay: { "hide": 100 },
-			title: function() {
-				var pageId = $target.attr("page-id");
-				var page = pageService.pageMap[pageId];
-				if (page && page.title) {
-					return getTitleHtml(pageId);
-				}
-				return "Loading...";
-			},
-			content: function() {
-				var $link = $target;
-				var setPopoverContent = function(page) {
-					$timeout(function() {
-						var $popover = $("#" + $link.attr("aria-describedby"));
-						$popover.find(".popover-title").html(getTitleHtml(page.pageId));
-						$compile($popover)($scope);
-					});
-					var contentHtml = "<arb-intrasite-popover page-id='" + page.pageId + "'></arb-intrasite-popover>";
-					return contentHtml;
-				};
-
-				// Check if we already have this page cached.
-				var pageAlias = $link.attr("page-id");
-				var page = pageService.pageMap[pageAlias];
-				if (page && page.summary) {
-					return setPopoverContent(page);
-				}
-
-				// Fetch page data from the server.
-				pageService.loadIntrasitePopover(pageAlias, {
-					success: function() {
-						var page = pageService.pageMap[pageAlias];
-						if (!page.summary) {
-							page.summary = " "; // to avoid trying to load it again
-						}
-						var contentHtml = setPopoverContent(page);
-						var $popover = $("#" + $link.attr("aria-describedby"));
-						$popover.find(".popover-content").html(contentHtml);
-					},
-				});
-				return "<img src='/static/images/loading.gif' class='loading-indicator' style='display:block'/>";
-			}
-		};
-		// Check if this is the first time we hovered.
-		var firstTime = $target.attr("first-time");
-		if (!firstTime) {
-			createHoverablePopover($target, options, {uniqueName: "intrasite-link"});
-			$target.attr("first-time", false).trigger("mouseenter");
-		}
-		return false;
-	});
 
 	// Returns a function we can use as success handler for POST requests for dynamic data.
 	// callback - returns {
@@ -182,14 +160,40 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 			}
 
 			// Get the results from page-specific callback
+			$(".global-error").hide();
 			var result = callback(data);
 			if (result.error) {
 				$(".global-error").text(result.error).show();
 				document.title = "Error - Arbital";
 			}
 			if (result.element) {
+				// Only show the element after it and all the children have been fully compiled and linked
+				result.element.addClass("reveal-after-render-parent");
+				$("#loading-bar").show();
+				var revealInterval = $interval(function() {
+					var hiddenChildren = result.element.find(".reveal-after-render");
+					if (hiddenChildren.length > 0) {
+						hiddenChildren.each(function() {
+							if ($(this).children().length > 0) {
+								$(this).removeClass("reveal-after-render");
+							}
+						});
+						return;
+					}
+					$interval.cancel(revealInterval);
+					// Do short timeout to prevent some rendering bugs that occur on edit page
+					$timeout(function() {
+						result.element.removeClass("reveal-after-render-parent");
+						$("#loading-bar").hide();
+						$anchorScroll();
+					}, 50);
+				}, 50);
+
 				$("[ng-view]").append(result.element);
 			}
+
+			$("body").toggleClass("body-fix", !result.removeBodyFix);
+
 			if (result.title) {
 				document.title = result.title + " - Arbital";
 			}
@@ -199,7 +203,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $http, $com
 	// Returns a function we can use as error handler for POST requests for dynamic data.
 	$scope.getErrorFunc = function(urlPageType) {
 		return function(data, status){
-			console.log("Error /json/" + urlPageType + "/:"); console.log(data); console.log(status);
+			console.error("Error /json/" + urlPageType + "/:"); console.log(data); console.log(status);
 			$(".global-error").text(data).show();
 			document.title = "Error - Arbital";
 		};
@@ -219,16 +223,21 @@ app.filter("relativeDateTime", function() {
 		return moment.utc(input).fromNow();
 	};
 });
+app.filter("relativeDateTimeNoSuffix", function() {
+	return function(input) {
+		return moment.utc(input).fromNow(true);
+	};
+});
 
 
 app.controller("IndexPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
 	if ($scope.subdomain) {
-		// Get the private group index page data
-		$http({method: "POST", url: "/json/privateIndex/"})
+		// Get the private domain index page data
+		$http({method: "POST", url: "/json/domainPage/", data: JSON.stringify({})})
 		.success($scope.getSuccessFunc(function(data){
 			$scope.indexPageIdsMap = data.result;
 			return {
-				title: pageService.pageMap[$scope.subdomain].title + " - Private Group",
+				title: pageService.pageMap[$scope.subdomain].title + " - Private Domain",
 				element: $compile("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>")($scope),
 			};
 		}))
@@ -239,6 +248,7 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 		.success($scope.getSuccessFunc(function(data){
 			$scope.featuredDomains = data.result.featuredDomains;
 			return {
+				title: "",
 				element: $compile("<arb-index featured-domains='featuredDomains'></arb-index>")($scope),
 			};
 		}))
@@ -255,50 +265,15 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 	$http({method: "POST", url: "/json/domainPage/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
 		$scope.indexPageIdsMap = data.result;
+		var groupId = pageService.pageMap[pageService.domainAlias].pageId;
 		return {
-			title: pageService.pageMap[pageService.domainAlias].title,
-			element: $compile("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+			title: pageService.pageMap[groupId].title,
+			element: $compile("<arb-group-index group-id='" + groupId +
+				"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("domainPage"));
 });
-
-app.controller("ExplorePageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
-	var postData = {
-		groupAlias: $scope.subdomain ? $scope.subdomain : $routeParams.alias,
-	};
-	// Get the explore data
-	$http({method: "POST", url: "/json/explore/", data: JSON.stringify(postData)})
-	.success($scope.getSuccessFunc(function(data){
-		// Decide on the domain alias
-		var title;
-		if ($scope.subdomain) {
-			title = pageService.pageMap[pageService.privateGroupId].title + " - Explore";
-		} else {
-			pageService.domainAlias = postData.groupAlias;
-			title = pageService.pageMap[pageService.domainAlias].title + " - Explore";
-		}
-
-		// Compute root and children maps
-		var rootPage = pageService.pageMap[data.result.rootPageId];
-		$scope.rootPages = {};
-		$scope.rootPages[rootPage.pageId] = rootPage;
-		$scope.childPages = {};
-		var length = rootPage.children ? rootPage.children.length : 0;
-		for (var n = 0; n < length; n++) {
-			var childId = rootPage.children[n].childId;
-			$scope.childPages[childId] = pageService.pageMap[childId];
-		}
-
-		return {
-			title: title,
-			element: $compile("<arb-page-tree init-map='rootPages' additional-map='childPages'" +
-				"supersize-roots='true'></arb-page-tree>")($scope),
-		};
-	}))
-	.error($scope.getErrorFunc("explore"));
-});
-
 
 app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
 	// Get the primary page data
@@ -314,7 +289,7 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
-		pageService.setPrimaryPage(page);
+		pageService.primaryPage = page;
 		return {
 			title: page.title,
 			element: $compile("<arb-primary-page></arb-primary-page>")($scope),
@@ -324,81 +299,57 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 });
 
 
-app.controller("EditPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("EditPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var pageId = $routeParams.alias;
 
+	// Need to call /default/ in case we are creating a new page
+	// TODO(alexei): have /newPage/ return /default/ data long with /edit/ data
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (+pageId) {
 			// Load the last edit
 			pageService.loadEdit({
 				pageAlias: pageId,
-				specificEdit: $location.search().edit,
+				specificEdit: $routeParams.edit ? +$routeParams.edit : 0,
 				success: $scope.getSuccessFunc(function() {
 					var page = pageService.editMap[pageId];
 					if ($location.search().alias) {
 						// Set page's alias
 						page.alias = $location.search().alias;
-						$location.search("alias", undefined);
+						$location.replace().search("alias", undefined);
 					}
 
-					pageService.setPrimaryPage(page);
+					pageService.primaryPage = page;
 			
 					// Called when the user is done editing the page.
 					$scope.doneFn = function(result) {
-						if (pageService.primaryPage.wasPublished || !result.abandon) {
-							$location.path(pageService.primaryPage.url());
-						} else {
+						var page = pageService.editMap[result.pageId];
+						if (!page.wasPublished && result.discard) {
 							$location.path("/edit/");
+						} else {
+							$location.path(pageService.getPageUrl(page.pageId));
 						}
-						$scope.$apply();
 					};
 					return {
+						removeBodyFix: true,
 						title: "Edit " + (page.title ? page.title : "New Page"),
-						element: $compile("<arb-edit-page page-id='" + pageId +
-							"' done-fn='doneFn(result)'></arb-edit-page>")($scope),
+						element: $compile("<arb-edit-page class='full-height' page-id='" + pageId +
+							"' done-fn='doneFn(result)' layout='column'></arb-edit-page>")($scope),
 					};
 				}),
 				error: $scope.getErrorFunc("loadEdit"),
 			});
 		} else {
+			var type = $location.search().type;
+			$location.replace().search("type", undefined);
+			var newParentIdString = $location.search().newParentId;
+			$location.replace().search("newParentId", undefined);
 			// Create a new page to edit
 			pageService.getNewPage({
+				type: type,
+				parentIds: newParentIdString ? newParentIdString.split(",") : [],
 				success: function(newPageId) {
-					// Check if we need to add parents to this new page
-					var newParentIdString = $location.search().newParentId;
-					$location.search("newParentId", undefined);
-					var unfinishedCallbackCount = 0;
-					var readyToRedirect = false;
-					if (newParentIdString) {
-						// Add the parents, and then wait for the server to reply
-						var newParentIdList = newParentIdString.split(",");
-						for (var key in newParentIdList) {
-							var newParentId = newParentIdList[key];
-							if (newParentId) {
-								unfinishedCallbackCount++;
-								// Add a parent for this new page
-								pageService.newPagePair({
-									parentId: newParentId,
-									childId: newPageId,
-									type: "parent",
-								}, function() {
-									unfinishedCallbackCount--;
-									if (unfinishedCallbackCount <= 0 && readyToRedirect) {
-										$location.replace().path(pageService.getEditPageUrl(newPageId));
-									}
-								});
-							}
-						}
-						readyToRedirect = true;
-						setTimeout(function() {
-							if (unfinishedCallbackCount > 0) {
-								$location.replace().path(pageService.getEditPageUrl(newPageId));
-							}
-						}, 1000);
-					} else {
-						$location.replace().path(pageService.getEditPageUrl(newPageId));
-					}
+					$location.replace().path(pageService.getEditPageUrl(newPageId));
 				},
 			});
 		}
@@ -409,7 +360,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $route, $ht
 	.error($scope.getErrorFunc("Edit Page"));
 });
 
-app.controller("UserPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("UserPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var userId = $routeParams.id;
 	if (!userId) {
 		userId = userService.user.id;
@@ -423,13 +374,13 @@ app.controller("UserPageController", function ($scope, $routeParams, $route, $ht
 		$scope.userPageIdsMap = data.result;
 		return {
 			title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-			element: $compile("<arb-user-page ids-map='userPageIdsMap'></arb-user-page>")($scope),
+			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='userPageIdsMap'></arb-user-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("User"));
 });
 
-app.controller("UpdatesPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("UpdatesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var postData = { };
 	// Get the explore data
 	$http({method: "POST", url: "/json/updates/", data: JSON.stringify(postData)})
@@ -443,7 +394,7 @@ app.controller("UpdatesPageController", function ($scope, $routeParams, $route, 
 	.error($scope.getErrorFunc("Updates"));
 });
 
-app.controller("GroupsPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("GroupsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/groups/"})
 	.success($scope.getSuccessFunc(function(data){
 		return {
@@ -454,7 +405,7 @@ app.controller("GroupsPageController", function ($scope, $routeParams, $route, $
 	.error($scope.getErrorFunc("Groups"));
 });
 
-app.controller("SignupPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("SignupPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (!userService.user || userService.user.id === "0") {
@@ -469,7 +420,7 @@ app.controller("SignupPageController", function ($scope, $routeParams, $route, $
 	.error($scope.getErrorFunc("Signup"));
 });
 
-app.controller("SettingsPageController", function ($scope, $routeParams, $route, $http, $compile, $location, pageService, userService) {
+app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 		$http({method: "POST", url: "/json/default/"})
 		.success($scope.getSuccessFunc(function(data){
 			return {

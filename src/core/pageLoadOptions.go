@@ -18,7 +18,8 @@ type PageLoadOptions struct {
 
 	// Load options for titlePlus pages
 	Children                bool
-	HasGrandChildren        bool // whether or not each child has children of its own
+	HasGrandChildren        bool
+	SubpageCounts           bool
 	RedLinkCountForChildren bool
 	Parents                 bool
 	Tags                    bool
@@ -56,19 +57,18 @@ type PageLoadOptions struct {
 var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
-		Answers:          true,
-		Questions:        true,
-		Children:         true,
-		HasGrandChildren: true,
-		Parents:          true,
-		Tags:             true,
-		Related:          true,
-		Lenses:           true,
-		Requirements:     true,
-		Domains:          true,
-		ChildDraftId:     true,
-		Mastery:          true,
-		NextPrevIds:      true,
+		Answers:      true,
+		Questions:    true,
+		Children:     true,
+		Parents:      true,
+		Tags:         true,
+		Related:      true,
+		Lenses:       true,
+		Requirements: true,
+		Domains:      true,
+		ChildDraftId: true,
+		Mastery:      true,
+		NextPrevIds:  true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
@@ -82,10 +82,11 @@ var (
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
-		Questions:    true,
-		Requirements: true,
-		ChildDraftId: true,
-		Mastery:      true,
+		Questions:     true,
+		SubpageCounts: true,
+		Requirements:  true,
+		ChildDraftId:  true,
+		Mastery:       true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment or answer)
 	SubpageLoadOptions = (&PageLoadOptions{
@@ -98,10 +99,12 @@ var (
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info for an intrasite link popover
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{
-		Lenses:  true,
-		Links:   true,
-		Votes:   true,
-		Summary: true,
+		Lenses:        true,
+		Links:         true,
+		Votes:         true,
+		IsSubscribed:  true,
+		SubpageCounts: true,
+		Summary:       true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info about a lens
 	LensInfoLoadOptions = (&PageLoadOptions{

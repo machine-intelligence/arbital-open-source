@@ -1,115 +1,76 @@
-<div class="page-body-div" ng-show="page.isDeleted()">
-	<div class="alert alert-danger">This page has been deleted.
-		<span class="admin" ng-show="userService.user.isAdmin">
-			By <arb-user-name user-id="{{page.creatorId}}"></arb-user-name>.
-		</span>
-	</div>
-</div>
-<div class="page-body-div" ng-hide="page.isDeleted()">
-	<!-- Left column -->
-	<div class="like-column pull-left">
-		<!-- Likes / dislikes and approval voting -->
-		<div class="page-like-div pull-right" my-like="{{page.myLikeValue}}">
-			<div class="pull-right">
-				<span class="like-count" ng-bind="page.likeCount"></span>
-				<a href="#"
-				   class="like-link glyphicon glyphicon-thumbs-up"
-					 ng-class="{'on': page.myLikeValue >= 1}"
-					 title="This is a high quality page"></a>
-			</div>
-			<div class="clearfix"></div>
-			<div class="pull-right">
-				<span class="dislike-count" ng-bind="page.dislikeCount"></span>
-				<a href="#"
-					 class="dislike-link glyphicon glyphicon-thumbs-down"
-					 ng-class="{'on': page.myLikeValue <= -1}"
-					 title="This is a low quality page"></a>
+<div id="subpage-{{page.pageId}}" layout="{{isSingleColumn ? 'column' : 'row'}}">
+	<!-- Primary column -->
+	<div ng-class="{'selected-subpage': isSelected()}"
+			layout="column"
+			flex-order="1"
+			flex>
+		<!-- Parents -->
+		<div flex-order="{{isTinyScreen ? 1 : 0}}"
+				layout-margin
+				ng-show="page.parentIds.length > 0">
+			<div>
+				<span>Parents:</span>
+				<span ng-repeat="(index, parentId) in page.parentIds">
+					<span ng-show="index > 0">,</span>
+					<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
+				</span>
 			</div>
 		</div>
-		<div class="clearfix"></div>
 
-		<!-- Page icons like subscribe, edit, and delete. -->
-		<div class="page-glyphs pull-right">
-			<a href="#"
-					page-id="{{page.pageId}}"
-					class="subscribe-to-page-link glyphicon glyphicon-eye-open"
-					ng-class="{'on': page.isSubscribed}"
-					title="Subscribe to receive updates when this page changes or gets new comments"></a>
-			<a ng-href="#page-{{page.pageId}}"
-					class="page-anchor-link glyphicon glyphicon-link"
-					title="Link to this answer"
-					ng-show="page.type == 'answer'"></a>
-			<a ng-href="{{page.editUrl()}}"
-					class="edit-page-link glyphicon glyphicon-pencil"
-					ng-class="{'admin': page.getEditLevel() == 'admin', 'has-draft': page.hasDraft}"
-					title="{{page.hasDraft ? 'You have an unpublished draft for this page' : 'Edit this page'}}"
-					ng-show="page.getEditLevel() == '' || page.getEditLevel() == 'admin'"></a>
-			<a href="#"
-					class="delete-page-link glyphicon glyphicon-remove"
-					ng-class="{'admin': page.getDeleteLevel() == 'admin'}"
-					title="Delete this page"
-					ng-show="page.getDeleteLevel() == '' || page.getDeleteLevel() == 'admin'"></a>
-		</div>
-		<div class="clearfix"></div>
-
-		<!-- Alert to check if the user really wants to delete a page. -->
-		<div class="alert alert-danger fade in" id="delete-page-alert" hidden>
-			<p>Are you sure you want to delete this page?</p>
-			<button type="button" class="delete-page-confirm btn btn-danger">Delete</button>
-			<button type="button" class="delete-page-cancel btn btn-default">Cancel</button></br>
-		</div>
-	</div>
-
-	<!-- Main page column -->
-	<div class="text-column">
+		<!-- Hash anchor -->
 		<a id="page-{{page.pageId}}"></a>
-		<arb-page-title page-id="{{page.pageId}}" class="page-title"></arb-page-title>
-		<div class="author-text" ng-show="page.type == 'blog'">by <arb-user-name user-id="{{page.creatorId}}"></arb-user-name></div>
+
+		<!-- Page title -->
+		<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen}"
+				layout-padding>
+			<arb-page-title page-id="{{page.pageId}}"
+					show-type="true"
+					custom-page-title="getPageTitle()"></arb-page-title>
+		</h1>
+
+		<!-- Tags -->
+		<div flex-order="{{isTinyScreen ? 1 : 0}}"
+				layout-margin
+				ng-show="page.taggedAsIds.length > 0">
+			<div>
+				<span>Tagged as:</span>
+				<span ng-repeat="(index, tagId) in page.taggedAsIds">
+					<span ng-show="index > 0">,</span>
+					<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
+				</span>
+			</div>
+		</div>
 
 		<!-- Voting container -->
-		<arb-vote-bar page-id="{{page.pageId}}" ng-show="page.hasVote"></arb-vote-bar>
+		<arb-vote-bar page-id="{{page.pageId}}" ng-if="page.hasVote"></arb-vote-bar>
 
-		<!-- Main page text. Populated by markdown. -->
-		<div class="page-text markdown-text"></div>
-
-		<!-- Requirements -->
-		<arb-requirements-panel page-id="{{page.pageId}}"></arb-requirements-panel>
-
-		<!-- Mastery container -->
-		<div class="mastery-div">
-			<button class="discard-mastery btn btn-success" title="Click to discard this mastery" ng-show="mastery.has">
-				<span ng-show="mastery.isManuallySet">You have this mastery (manual).</span>
-				<span ng-hide="mastery.isManuallySet">You have this mastery.</span>
-			</button>
-			<button class="claim-mastery btn btn-info" title="Click to claim this mastery" ng-hide="mastery.has">
-				<span ng-show="mastery.isManuallySet">You don't have this mastery (manual).</span>
-				<span ng-hide="mastery.isManuallySet">Click to claim this mastery.</span>
-			</button>
-		</div>
-	</div>
-
-	<div class="clearfix"></div>
-
-	<!-- Comments row -->
-	<div class="comments-row">
-		<div class="like-column pull-left">
-			&nbsp;
-		</div>
-		<div class="text-column">
-			<!-- Questions -->
-			<div ng-show="questionIds.length > 0">
-				<b id="comments-label">Questions:</b>
-				<div>
-					<arb-likes-page-title page-id="{{pageId}}" ng-repeat="pageId in questionIds"></arb-likes-page-title>
-				</div>
-				<br>
-			</div>
-
-			<!-- Comments -->
-			<b id="comments-label">Comments:</b>
-			<div class="comments">
-				<arb-new-comment primary-page-id="{{page.pageId}}"></arb-new-comment>
-			</div>
-		</div>
+		<!-- Lens tabs -->
+		<md-tabs md-dynamic-height
+				class="md-primary md-hue-2"
+				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
+				ng-click="tabsClicked($event)"
+				md-selected="selectedLensIndex">
+			<md-tab ng-repeat="lensId in page.lensIds"
+					md-on-select="tabSelect(lensId)">
+				<md-tab-label>
+					<arb-page-title page-id="{{lensId}}"
+							custom-page-title="lensId === page.pageId ? 'Primary' : ''"></arb-page-title>
+					<md-icon ng-show="hasMastery(lensId)">assignment_turned_in</md-icon>
+					<md-icon ng-show="!hasMastery(lensId)">assignment_late</md-icon>
+				</md-tab-label>
+				<md-tab-body>
+					<div ng-style="{'min-height': 500}"
+							layout="column"
+							layout-align="center center"
+							ng-if="!isLoaded(lensId)">
+						<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+					</div>
+					<arb-lens class="reveal-after-render"
+							page-id="{{lensId}}"
+							lens-parent-id="{{page.pageId}}"
+							ng-if="isLoaded(lensId)"></arb-lens>
+				</md-tab-body>
+			</md-tab>
+		</md-tabs>
 	</div>
 </div>

@@ -1,0 +1,6 @@
+<md-button arb-user-check
+		ng-class="{'md-icon-button': !isStretched}"
+		ng-click="subscribeClick()">
+	<md-icon ng-class="{on: isSubscribed()}">visibility</md-icon>
+	<span ng-show="isStretched">Subscribe</span>
+</md-button>

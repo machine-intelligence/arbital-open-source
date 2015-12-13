@@ -62,6 +62,7 @@ type PageOptions struct {
 	SkipLoadingUser bool
 	RequireLogin    bool
 	MinKarma        int
+	LoadUpdateCount bool
 }
 
 // Add creates a new page.

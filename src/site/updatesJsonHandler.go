@@ -10,7 +10,8 @@ var updatesHandler = siteHandler{
 	URI:         "/json/updates/",
 	HandlerFunc: updatesJsonHandler,
 	Options: pages.PageOptions{
-		RequireLogin: true,
+		RequireLogin:    true,
+		LoadUpdateCount: true,
 	},
 }
 

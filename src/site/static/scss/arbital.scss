@@ -1,0 +1,826 @@
+// All the z-indices we use
+$inlineCommentIconZ: 1;
+$popoverZ: 60;
+$composeFabZ: 50;
+
+// Colors that are the same as we set for mdThemingProvider
+//http://www.google.com/design/spec/style/color.html#color-color-palette
+$primary-color: #607D8B; // blue-grey (500)
+$primary-hue-1: #CFD8DC; // 100
+$primary-hue-2: #455A64; // 700
+$primary-hue-3: #263238; // 900
+$accent-color: #00BFA5; // teal (A700)
+$accent-hue-1: #A7FFEB; // A100
+$accent-hue-2: #1DE9B6; // A400
+$accent-hue-3: #64FFDA; // A200
+$warn-color: #FF6D00; // orange (A700)
+$warn-hue-1: #FFD180; // A100
+$warn-hue-2: #FF9100; // A400
+$warn-hue-3: #FFAB00; // amber (A700)
+
+#primary-color {
+	border-top-color: $primary-color;
+	border-right-color: $primary-hue-1;
+	border-bottom-color: $primary-hue-2;
+	border-left-color: $primary-hue-3;
+}
+
+#accent-color {
+	border-top-color: $accent-color;
+	border-right-color: $accent-hue-1;
+	border-bottom-color: $accent-hue-2;
+	border-left-color: $accent-hue-3;
+}
+
+#warn-color {
+	border-top-color: $warn-color;
+	border-right-color: $warn-hue-1;
+	border-bottom-color: $warn-hue-2;
+	border-left-color: $warn-hue-3;
+}
+
+body {
+	overflow-x: hidden;
+	background-color: whitesmoke;
+}
+
+// Fix we need to apply to the body for most pages (where content just scrolls down)
+// Edit page is the notable exception
+.body-fix {
+	height: auto;
+}
+
+md-content {
+	background-color: initial;
+}
+
+// WTF? This is probably a bug with NgMaterial
+.md-select-menu-container {
+	background-color: white;
+}
+
+div.md-primary, md-list-item.md-primary {
+	background-color: $primary-color;
+	&.md-hue-1 {
+		background-color: $primary-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $primary-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $primary-hue-3;
+	}
+}
+
+div.md-accent, md-list-item.md-accent {
+	background-color: $accent-color;
+	&.md-hue-1 {
+		background-color: $accent-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $accent-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $accent-hue-3;
+	}
+}
+
+div.md-warn, md-list-item.md-warn {
+	background-color: $warn-color;
+	&.md-hue-1 {
+		background-color: $warn-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $warn-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $warn-hue-3;
+	}
+}
+
+span.md-warn {
+	& > span, & > md-icon {
+		color: $warn-color;
+	}
+}
+
+// Page and section titles
+.md-display-3 {
+	font-family: "Roboto Slab";
+	font-size: 2.5rem;
+	line-height: 3rem;
+	font-weight: 400;
+	margin: 0.5rem 0;
+
+	md-icon {
+		font-size: 2.5rem;
+		width: 2.5rem;
+		height: 2.5rem;
+	}
+}
+
+// Markdown header 1
+.md-display-2 {
+	font-family: "Roboto Slab";
+	font-size: 2rem;
+	line-height: 2.2rem;
+	font-weight: 700;
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+
+// Markdown header 2
+.md-display-1 {
+	font-size: 1.5rem;
+	line-height: 1.7rem;
+	font-weight: 300;
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+
+// Markdown header 3
+.md-headline {
+	font-size: 1.3rem;
+	line-height: 1.5rem;
+	font-weight: 700;
+	margin-top: 1.5rem;
+	margin-bottom: 0.5rem;
+	color: $primary-color;
+}
+
+.md-subhead {
+	font-weight: 700;
+}
+
+// Used for helpful, non-important info text
+.md-caption {
+	font-size: 12px;
+	color: darkgray;
+}
+
+// Slightly bolder normal font
+.md-body-2 {
+	font-weight: 700;
+}
+
+.md-subheader {
+	background-color: whitesmoke;
+	padding: 8px 16px;
+	margin-bottom: 6px;
+
+	&.md-primary {
+		background-color: $primary-color;
+	}
+	&.md-accent {
+		background-color: $accent-color;
+	}
+	&.md-warn {
+		background-color: $warn-color;
+	}
+
+	.md-subheader-inner {
+		padding: 0;
+	}
+}
+
+arb-markdown, [arb-markdown], .preview-area {
+	p {
+		margin-top: 0;
+	}
+
+	ul {
+		padding-left: 1.5em;
+	}
+
+	blockquote {
+		border-left: lightgray 7px solid;
+		padding-left: 10px;
+		margin-left: 2px;
+		p {
+			padding: 10px 0;
+		}
+	}
+
+	& > :last-child {
+		margin-bottom: 0;
+	}
+}
+
+// Cap the width of some pages, so they look nicer
+.capped-body-width {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+
+	arb-index > & {
+		max-width: 1100px;
+	}
+	arb-group-index > & {
+		max-width: 1100px;
+	}
+	arb-user-page > & {
+		max-width: 1100px;
+	}
+	arb-signup > & {
+		max-width: 560px;
+	}
+	arb-updates > & {
+		max-width: 560px;
+	}
+	arb-groups-page > & {
+		max-width: 900px;
+	}
+	arb-settings-page > & {
+		max-width: 560px;
+	}
+	arb-primary-page > & {
+		max-width: 1100px;
+	}
+}
+
+arb-discussion {
+	margin-top: 20px;
+}
+
+.md-whiteframe-1dp {
+	background-color: white;
+}
+.md-whiteframe-2dp {
+	background-color: white;
+}
+
+// Set height to 100%
+.full-height {
+	height: 100%;
+}
+md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
+	height: 100%;
+}
+
+// Use this class to reveal the element after it and the children are linked
+.reveal-after-render-parent {
+	visibility: hidden !important;
+
+	.reveal-after-render {
+		visibility: hidden !important;
+	}
+
+	// Have to hide the knob, otherwise it appears before we reveal the page
+	.my-vote-knob {
+		visibility: hidden !important;
+	}
+}
+
+// Container for the new/edit comment; embedded in the discussion section
+.edit-comment-embed {
+	.wmd-input {
+		height: 50vh;
+		background-color: white;
+		-webkit-flex: none;
+		-ms-flex: none;
+		flex: none;
+	}
+}
+
+// Container for the new comment in a discussion
+.new-comment-edit-page {
+	margin-top: 20px;
+}
+
+// Container for the new answer edit
+.new-answer-div {
+	height: 70vh;
+	.wmd-input {
+		background-color: white;
+	}
+};
+
+// Hack to allow us to use 100% height inside dynamic-view
+$toolbar-height: 64px;
+/*#dynamic-view {
+	position: relative;
+	top: -$toolbar-height;
+	padding-top: $toolbar-height;
+	box-sizing: border-box;
+}*/
+
+// Added to updates that the user hasn't seen yet
+.unseen-update {
+	background-color: $primary-hue-1;
+}
+
+// Used to style the dot we display when a page hasn't been visited / was updated
+@mixin dot($color) {
+	position: relative;
+	top: -0.4em;
+	display: inline-block;
+	background-color: $color;
+	width: 0.4em;
+	height: 0.4em;
+	border-radius: 50%;
+}
+.primary-dot {
+	@include dot($primary-color);
+}
+.accent-dot {
+	@include dot($accent-color);
+}
+.warn-dot {
+	@include dot($warn-color);
+}
+
+// Element inside an autocomplete dropdown list
+.autocomplete-custom-template li {
+	border-bottom: 1px solid silver;
+	padding-top: 10px;
+	padding-bottom: 5px;
+	height: auto;
+	white-space: normal;
+	line-height: 20px;
+}
+
+// Voting bar
+.vote-bar {
+	$vote-bar-height: 18px;
+	$vote-bar-margin: $vote-bar-height * 1.5;
+	$my-vote-width: 10px;
+
+	.vote-bar-label {
+		margin: 10px;
+		white-space: pre;
+		line-height: normal;
+	}
+
+	// This is one of the 10 buckets we show for voting
+	.vote-bucket-div {
+		border: 1px solid black;
+		height: $vote-bar-height;
+
+		// Vote bucket background, which we change based on the vote count
+		.vote-bucket {
+			background-color: black;
+			opacity: 0;
+		}
+
+		// Added when the div is hovered over
+		&.selected {
+			border: 1px solid $accent-color;
+		}
+	}
+
+	// This is the space surrounding the vote bar on top and bottom
+	.vote-bar-margin {
+		height: $vote-bar-margin;
+		max-height: $vote-bar-margin;
+	}
+	
+	// This is the div we show when the user is hovering over the bar to vote
+	.new-vote-div {
+		position: relative;
+		top: $vote-bar-margin / 2.0;
+		z-index: 2;
+
+		// This is the actual knob we show visually
+		.new-vote-knob {
+			position: relative;
+			// Move left by $my-vote-width because my-vote-knob pushes this know to the right
+			left: -$my-vote-width / 2.0 - $my-vote-width;
+			background-color: $accent-hue-2;
+			width: $my-vote-width;
+			height: $vote-bar-height + $vote-bar-margin;
+		}
+
+		// This is the actual knob we show visually
+		.new-vote-knob-hor {
+			position: relative;
+			// Move left by $my-vote-width because my-vote-knob pushes this know to the right
+			left: -$my-vote-width * 2.5 - 0.5 * $my-vote-width;
+			top: -2.0 * $vote-bar-height - $vote-bar-margin;
+			width: $my-vote-width * 5;
+			height: $vote-bar-height;
+			text-align: center;
+		}
+	}
+	
+	// This is the bar we show where the user's vote is
+	.my-vote-div {
+		position: relative;
+		top: $vote-bar-margin / 2.0;
+		z-index: 1;
+
+		// This is the actual knob we show visually
+		.my-vote-knob {
+			position: relative;
+			left: -$my-vote-width / 2.0;
+			background-color: $accent-color;
+			width: $my-vote-width;
+			height: $vote-bar-height + $vote-bar-margin;
+		}
+	}
+}
+
+// Div containing the entire voting bar
+.vote-bar-body:focus {
+	// Prevent outline appearing when the user clicks to vote
+	outline: none;
+}
+
+// Helper used to center text horizontally
+.center-text {
+	text-align: center;
+}
+
+// Helper to preserve whitespace
+.pre {
+	white-space: pre;
+}
+
+// Style all the links
+a {
+	$color: #0000cc;
+	text-decoration: none;
+	outline: none;
+	color: $color;
+	&:hover {
+		color: darken($color, 20%);
+	}
+	&:active {
+		color: lighten($color, 20%);
+	}
+
+	// Helper for coloring broken links
+	&.red-link {
+		$color: #cc0000;
+		color: $color;
+		&:hover {
+			color: darken($color, 20%);
+		}
+		&:active {
+			color: lighten($color, 20%);
+		}
+	}
+}
+
+// Tooltips that show up when you hover over things
+md-tooltip .md-content {
+	background-color: rgba(0,0,0,0.9);
+	font-size: 12px;
+	font-weight: bold;
+}
+
+md-list {
+	// Remove padding, so that when the list is empty, it doesn't take up space
+	padding-top: 0;
+	padding-bottom: 0;
+}
+
+md-dialog {
+	width: 90vw;
+	height: 90vh;
+
+	// Hack to allow us to use 100% height inside the dialog
+	md-dialog-content {
+		height: 100%;
+		// Need layout-column
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		flex-direction: column;
+	}
+}
+
+.md-button:not(.md-fab) {
+	// Remove all margins from buttons so we can easier have them fill areas we need
+	margin: 0;
+
+	&.md-icon-button {
+		// Sometimes we have an icon AND a number following it inside the button, but
+		// still want to keep it small; so we need to show the overflow.
+		overflow: visible;
+	}
+}
+
+md-list-item:not(.no-margins) {
+	min-height: 0;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.md-toolbar-tools {
+	a {
+		// Prevent links from wrapping inside toolbars
+		white-space: nowrap;
+	}
+
+	&:not(.md-toolbar-tools-bottom) arb-autocomplete {
+		max-width: 70%;
+	}
+
+	md-autocomplete {
+		background-color: $primary-hue-2;
+		input {
+			color: white;
+		}
+	}
+}
+
+// Style all md-icons to have size proportionate to the font size
+/*md-icon.material-icons {
+	width: 1em;
+	height: 1em;
+	font-size: max(1em, 24px);
+	min-width: 24px;
+	min-height: 24px;
+}*/
+md-icon {
+	&.on {
+		color: $accent-color;
+	}
+}
+
+arb-likes {
+	white-space: nowrap;
+	margin: 0 10px 0 0;
+
+	// The thumbs icon
+	.like-icon {
+		//position: relative;
+		//top: -5px;
+		margin-right: 2px;
+	}
+
+	// Number of likes
+	.like-count {
+		position: relative;
+		//top: 5px;
+	}
+}
+
+// Used to align button's text to the right
+.lens-menu-div {
+	.md-button {
+		text-align: right;
+	}
+	arb-likes {
+		margin-right: 0;
+	}
+}
+
+@media (min-width: 600px) {
+	$lens-padding: 50px;
+	.lens-text-container {
+		padding: 5px $lens-padding;
+		font-size: 18px;
+		line-height: 22px;
+	}
+	.comment-text-container {
+		padding: 5px 10px;
+		font-size: 16px;
+		line-height: 20px;
+	}
+	.requirements-container {
+		padding: 5px $lens-padding;
+		box-sizing: border-box;
+	}
+}
+@media (min-width: 960px) {
+	$lens-padding: 90px;
+	.lens-text-container {
+		padding: 15px $lens-padding;
+		font-size: 18px;
+		line-height: 26px;
+	}
+	.comment-text-container {
+		padding: 5px 15px;
+		font-size: 17px;
+		line-height: 22px;
+	}
+	.requirements-container {
+		padding: 5px $lens-padding;
+		box-sizing: border-box;
+	}
+}
+@media (min-width: 1100px) {
+	$lens-padding: 100px;
+	.lens-text-container {
+		padding: 20px $lens-padding;
+		font-size: 18px;
+		line-height: 30px;
+	}
+	.comment-text-container {
+		padding: 5px 20px;
+		font-size: 18px;
+		line-height: 24px;
+	}
+	.requirements-container {
+		padding: 5px $lens-padding;
+		box-sizing: border-box;
+	}
+}
+// Text inside a popover
+.popover-text-container {
+	font-size: 18px;
+	line-height: 24px;
+}
+
+// Intrasite popover
+arb-intrasite-popover {
+	position: absolute;
+	z-index: $popoverZ;
+	background-color: whitesmoke;
+}
+
+// User popover
+arb-user-popover {
+	position: absolute;
+	z-index: $popoverZ;
+	background-color: whitesmoke;
+}
+
+// Compose fab that appears in the bottom right corner
+arb-compose-fab {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	z-index: $composeFabZ;
+}
+
+// Helper class for hiding the tabs (used when we only have one)
+.hide-tabs {
+	md-tabs-wrapper {
+		display: none;
+	}
+	md-tabs-content-wrapper {
+		top: 0px;
+	}
+}
+
+md-tabs {
+	outline: none;
+}
+
+md-tabs-wrapper {
+	a {
+		color: inherit;
+	}
+}
+
+// When applying layout-column and flex to md-tabs, we want to propagate these
+// all the way down to the tab content
+md-tabs.layout-column.flex {
+	@mixin layout-column-flex {
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+	}
+
+	md-tabs-content-wrapper {
+		@include layout-column-flex;
+	}
+	md-tab-content {
+		@include layout-column-flex;
+	}
+	md-tab-content > div {
+		@include layout-column-flex;
+	}
+}
+
+// Color the active tab
+.md-tab.md-active {
+	background-color: $primary-hue-3;
+}
+
+// Section that shows the diff between two edits
+.diff-section {
+	del {
+		color: red;
+	}
+	ins {
+		color: green;
+	};
+};
+
+// Border for the RHS preview half on the edit page
+.edit-page-rhs-border {
+	border-left: $primary-hue-2 5px solid;
+}
+
+.edit-page-footer {
+	margin: 0;
+}
+
+// Contains all markdown buttons
+.wmd-button-bar {
+	border-bottom: silver 1px solid;
+
+	.md-button {
+		width: 25px;
+		min-width: 25px;
+		margin: 0;
+		padding: 0 0px;
+	}
+
+	@media (min-width: 1500px) {
+		.md-button {
+			width: 34px;
+			min-width: 34px;
+			margin: 0;
+			padding: 0 5px;
+		}
+	}
+}
+
+// Small vertical separator
+.separator {
+	margin: 10px 10px;
+	padding: 0 1px 0 0;
+	background-color: silver;
+}
+
+// Textarea for editing markdown
+.wmd-input {
+	height: 100%;
+	resize: none;
+	border: none;
+	outline: none;
+	padding: 5px 15px;
+	background-color: whitesmoke;
+}
+
+// Where the preview for the editor goes
+.preview-area {
+	padding: 0 15px;
+	background-color: white;
+}
+
+// Contents of editors tabs (but not the tab with the textarea)
+.editor-tab {
+	padding: 10px 20px 0px 20px;
+}
+
+// Highlight subpages when they are selected
+.selected-subpage > .comment-header {
+	background-color: $accent-hue-1;
+	border-bottom: $accent-color 1px solid;
+}
+
+[arb-subpage] + [arb-subpage] {
+	margin-top: 20px;
+}
+
+// Header/footer sections for a comment
+.comment-header {
+	background-color: $primary-hue-1;
+	padding: 0 5px;
+	border-bottom: silver 1px solid;
+}
+.comment-footer {
+	padding: 0 5px;
+}
+
+// LHS menu with lens actions
+.lens-menu-div {
+	position: absolute;
+}
+
+// Icon shown on the RHS corresponding to an inline comment
+.inline-comment-icon {
+	position: absolute;
+	z-index: $inlineCommentIconZ;
+}
+
+// Anchor text for an inline comment
+.inline-comment-highlight {
+	background-color: $primary-hue-1;
+}
+
+// Anchor text for an inline comment
+.inline-comment-highlight-hover {
+	background-color: $primary-hue-1;
+}
+
+// Div containing the inline comment thread
+.inline-comment-container {
+	margin: 20px;
+
+	// Expand button
+	.expand {
+		height: 20px;
+	}
+
+	// Added to constrain the height of the subpage
+	&.constrained {
+		arb-subpage {
+			max-height: calc(70vh - 20px);
+			overflow-y: auto;
+		}
+	}
+}
+
+// Container with a list of pages
+.pages-list {
+	margin-bottom: 20px;
+}

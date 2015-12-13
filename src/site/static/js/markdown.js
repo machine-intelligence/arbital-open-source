@@ -1,6 +1,6 @@
 "use strict";
 
-var notEscaped = "(^|\\\\`|\\\\\\[| |>|\n)";
+var notEscaped = "(^|\\\\`|\\\\\\[| |\\(|>|\n)";
 var noParen = "(?=$|[^(])";
 var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
 // [vote: alias]
@@ -24,13 +24,14 @@ var urlLinkRegexp = new RegExp(notEscaped +
 var atAliasRegexp = new RegExp(notEscaped + 
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");
 
-var arbMarkdown = arbMarkdown || function() {
-	// Set up markdown editor and conversion.
-	function init(inEditMode, pageId, pageText, $topParent, pageService, userService, autocompleteService) {
+// markdownService provides a constructor you can use to create a markdown converter,
+// either for converting markdown to text or editing.
+app.service("markdownService", function(pageService, userService){
+	// Pass in a pageId to create an editor for that page
+	var createConverter = function(pageId, postConversionCallback) {
+		// NOTE: not using $location, because we need port number
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
-
-		var aliasRegexp = new RegExp("[A-Za-z0-9_]+", "");
 
 		// Process [todo:text] spans.
 		var todoSpanRegexp = new RegExp(notEscaped + 
@@ -94,12 +95,14 @@ var arbMarkdown = arbMarkdown || function() {
 					var url = "http://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
+					var url = "http://" + host + "/user/" + alias + "/";
 					return prefix + "[" + alias + "](" + alias + ")";
 				}
 			});
 		});
 	
 		// Convert [Text](Alias) spans into links.
+		var aliasRegexp = new RegExp(aliasMatch, "");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(complexLinkRegexp, function (whole, prefix, text, alias) {
 				if (alias.match(aliasRegexp)) {
@@ -110,60 +113,134 @@ var arbMarkdown = arbMarkdown || function() {
 				}
 			});
 		});
-	
-		if (inEditMode) {
+
+
+		if (pageId) {
 			// Setup the editor stuff.
-			var editor = new Markdown.Editor(converter, pageId, {
-				handler: function(){
-					window.open("http://math.stackexchange.com/editing-help", "_blank");
-				},
-			});
-			InitMathjax(converter, editor, pageId);
-			editor.run();
-			return;
+			var editor = new Markdown.Editor(converter, pageId);
 		}
+		
 		InitMathjax(converter);
-	
-		// Convert page text to html.
-		var html = converter.makeHtml(pageText);
-		var $pageText = $topParent.find(".markdown-text")
-		$pageText.html(html);
-		window.setTimeout(function() {
-			MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
-		}, 100);
-	
-		// Setup attributes for links that are within our domain.
-		var re = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
-			host + // match the url host part
+
+		if (editor) {
+			editor.run();
+
+			converter.hooks.chain("postConversion", function (text) {
+				if (postConversionCallback) {
+					postConversionCallback(function() {
+						editor.refreshPreview();
+					});
+				}
+				return text;
+			});
+		}
+		return converter;
+	};
+
+	// Process all the links in the give element.
+	// If refreshFunc is set, fetch page's we don't have yet, and call that function
+	// when one of them is loaded.
+	this.processLinks = function($pageText, refreshFunc) {
+		// Setup attributes for page links that are within our domain.
+		// NOTE: not using $location, because we need port number
+		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+			window.location.host + // match the url host part
 			"\/pages\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
+
+		// Setup attributes for user links that are within our domain.
+		var userRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
+			window.location.host + // match the url host part
+			"\/user\/" + aliasMatch + // [1] capture user alias
+			"\/?" + // optional ending /
+			"(.*)"); // optional other stuff
+
 		$pageText.find("a").each(function(index, element) {
 			var $element = $(element);
-			var parts = $element.attr("href").match(re);
-			if (parts === null) return;
-			var pageAlias = parts[1];
-
-			if ($element.hasClass("intrasite-link")) {
-				return;
-			}
-			$element.addClass("intrasite-link").attr("page-id", pageAlias);
-			// Check if we are embedding a vote
-			if (parts[2].indexOf("embedVote") > 0) {
-				$element.attr("embed-vote-id", pageAlias);
-			} else if (pageAlias in pageService.pageMap) {
-				if (pageService.pageMap[pageAlias].isDeleted()) {
-					// Link to a deleted page.
-					$element.addClass("red-link");
-				} else {
-					// Normal healthy link!
+			var parts = $element.attr("href").match(pageRe);
+			if (parts !== null)	{
+				var pageAlias = parts[1];
+				
+				if (!$element.hasClass("intrasite-link")) {
+					$element.addClass("intrasite-link").attr("page-id", pageAlias);
+					// Check if we are embedding a vote
+					if (parts[2].indexOf("embedVote") > 0) {
+						$element.attr("embed-vote-id", pageAlias);
+					} else if (pageAlias in pageService.pageMap) {
+						if (pageService.pageMap[pageAlias].isDeleted()) {
+							// Link to a deleted page.
+							$element.addClass("red-link");
+						} else {
+							// Normal healthy link!
+						}
+					} else {
+						// Mark as red link
+						$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+						$element.addClass("red-link");
+						if (refreshFunc) {
+							pageService.loadTitle(pageAlias, {
+								silentFail: true,
+								success: function() {
+									refreshFunc();
+								}
+							});
+						}
+					}
 				}
-			} else {
-				// Mark as red link
-				$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
-				$element.addClass("red-link");
+			}
+
+			parts = $element.attr("href").match(userRe);
+			if (parts !== null) {
+				var userAlias = parts[1];
+				
+				if (!$element.hasClass("user-link")) {
+					$element.addClass("user-link").attr("user-id", userAlias);
+				}
 			}
 		});
+
+		$pageText.find("h1").addClass("md-display-2");
+		$pageText.find("h2").addClass("md-display-1");
+		$pageText.find("h3").addClass("md-headline");
 	};
-	return {init: init};
-}();
+
+	this.createConverter = function() {
+		return createConverter();
+	};
+
+	this.createEditConverter = function(pageId, postConversionCallback) {
+		return createConverter(pageId, postConversionCallback);
+	};
+});
+
+// Directive for rendering markdown text.
+app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdownService) {
+	return {
+		scope: {
+			pageId: "@",
+			useSummary: "@",
+		},
+		controller: function($scope) {
+			$scope.page = pageService.pageMap[$scope.pageId];
+		},
+		link: function(scope, element, attrs) {
+			element.addClass("markdown-text reveal-after-render");
+
+			// Remove the class manually in case the text is empty
+			$timeout(function() {
+				element.removeClass("reveal-after-render");
+			});
+
+			// Convert page text to html.
+			var converter = markdownService.createConverter();
+			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
+			var $pageText = element;
+			$pageText.html(html);
+			window.setTimeout(function() {
+				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
+			}, 100);
+			markdownService.processLinks($pageText);
+		},
+	};
+});

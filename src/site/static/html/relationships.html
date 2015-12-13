@@ -1,0 +1,49 @@
+<div ng-mouseenter="hovering=true" ng-mouseleave="hovering=false" layout="column" ng-show="showPanel">
+	<!-- Header -->
+	<div layout="row" layout-align="start center">
+		<!-- Title -->
+		<span class="md-subhead"
+				ng-class="{'md-warn': isLensRequirements && !meetsAllRequirements()}"
+				flex>
+			<md-icon ng-show="isLensRequirements">assignment</md-icon>
+			<span ng-bind="title"></span>
+		</span>
+
+		<!-- Edit button -->
+		<md-button class="md-icon-button"
+				ng-click="inEditModeToggle()"
+				ng-style="{visibility: (!forceEditMode && hovering) ? 'visible' : 'hidden'}">
+			<md-icon>create</md-icon>
+		</md-button>
+	</div>
+
+	<!-- List of relationships -->
+	<div layout="row"
+			layout-align="start center"
+			ng-repeat="otherPageId in idsSource">
+
+		<!-- Mark as done button -->
+		<md-button class="md-icon-button"
+				ng-click="toggleRequirement(otherPageId)"
+				ng-show="!inEditMode"
+				ng-if="isRequirementType">
+			<md-icon ng-show="hasMastery(otherPageId)">done</md-icon>
+			<md-icon ng-hide="hasMastery(otherPageId)">add_cicle_outline</md-icon>
+		</md-button>
+
+		<!-- Delete button -->
+		<md-button class="md-icon-button"
+				ng-click="deleteRelationship(otherPageId)"
+				ng-show="inEditMode && !readonly">
+			<md-icon>delete</md-icon>
+		</md-button>
+
+		<!-- Relationship page title -->
+		<arb-page-title page-id="{{otherPageId}}" is-link="true"></arb-page-title>
+	</div>
+
+	<!-- Add requirements -->
+	<arb-autocomplete placeholder="Add a {{type}}"
+			on-select="searchResultSelected(result)"
+			ng-show="inEditMode && !readonly"><arb-autocomplete>
+</div>

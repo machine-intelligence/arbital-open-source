@@ -1,0 +1,120 @@
+<div id="subpage-{{page.pageId}}"
+		layout="column"
+		class="md-whiteframe-2dp"
+		ng-class="{'selected-subpage': isSelected()}"
+		ng-mouseenter="hoverToggle(true)"
+		ng-mouseleave="hoverToggle(false)"
+		ng-if="!isDeleted">
+	<!-- Comment header -->
+	<div class="comment-header" layout="row" layout-align="start center" ng-if="isComment">
+		<md-icon ng-hide="parentSubpageId">comment</md-icon>
+		<span class="accent-dot" ng-show="page.isNewPage()"></span>
+		<span class="separator" ng-hide="parentSubpageId"></span>
+
+		<!-- User name -->
+		<arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
+
+		<!-- Collapse button -->
+		<div layout="column" flex>
+			<md-button ng-click="collapseToggle()"
+					ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}">
+				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
+				<md-icon ng-show="isCollapsed">expand_more</md-icon>
+			</md-button>
+		</div>
+
+		<!-- RHS icons -->
+		<arb-confirm-button
+				confirmed="deleteSubpage()"
+				show-icon="true"
+				disabled="editing"
+				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
+				ng-if="page.creatorId === userService.user.id && isComment"></arb-confirm-button>
+		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
+				class="md-icon-button"
+				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
+				ng-disabled="editing"
+				ng-click="editSubpage($event)"
+				ng-show="page.creatorId === userService.user.id">
+			<md-icon>create</md-icon>
+		</md-button>
+		<md-button class="md-icon-button"
+				ng-href="{{myUrl}}"
+				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}">
+			<md-icon>link</md-icon>
+		</md-button>
+	</div>
+
+	<!-- Question header -->
+	<div class="comment-header"
+			layout="row"
+			layout-align="start center"
+			layout-margin
+			layout-fill
+			ng-if="isQuestion">
+		<md-icon>help</md-icon>
+		<span class="accent-dot" ng-show="page.isNewPage()"></span>
+		<span class="separator" ng-hide="parentSubpageId"></span>
+
+		<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
+		<ng-pluralize count="page.answerCount"
+				when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
+	</div>
+
+	<!-- Collapsable body -->
+	<div layout="column" ng-hide="isCollapsed" layout-margin layout-fill>
+		<arb-markdown class="comment-text-container" page-id="{{page.pageId}}" ng-if="!editing && !isQuestion"></arb-markdown>
+		<!-- Edit this subpage -->
+		<div arb-edit-page
+				class="edit-comment-embed"
+				is-embedded="true"
+				page-id="{{page.pageId}}"
+				done-fn="editDone(result)"
+				ng-if="editing"></div>
+
+		<!-- Footer -->
+		<div class="comment-footer" layout="row" layout-align="start center" ng-hide="editing">
+			<arb-likes page-id="{{page.pageId}}" is-button="true"></arb-likes>
+			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
+			<md-button ng-click="newReply()"
+					ng-disabled="newReplyId"
+					arb-user-check="cool"
+					ng-hide="isQuestion || parentSubpageId || page.subpageIds.length > 0">
+				<md-icon>reply</md-icon>
+				Reply
+			</md-button>
+			<span ng-show="isQuestion && page.commentIds.length > 0">
+				<md-icon>comment</md-icon>
+				<span ng-bind="page.commentIds.length"></span>
+			</span>
+			<span flex></span>
+			<span class="md-caption" ng-bind="page.createdAt | relativeDateTime"></span>
+		</div>
+
+		<!-- Indented reply section -->
+		<div layout="row" layout-fill>
+			<div flex="10"></div>
+			<div flex="90" layout="column">
+				<!-- Replies -->
+				<div arb-subpage lens-id="{{lensId}}"
+						page-id="{{subpageId}}"
+						parent-subpage-id="{{page.pageId}}"
+						ng-repeat="subpageId in page.subpageIds"></div>
+
+				<!-- Reply to thread button -->
+				<md-button ng-click="newReply()" arb-user-check="cool" ng-show="!newReplyId && page.subpageIds.length > 0">
+					<md-icon>reply</md-icon>
+					New Reply
+				</md-button>
+
+				<!-- Write a new reply -->
+				<div arb-edit-page
+						class="new-comment-edit-page edit-comment-embed"
+						is-embedded="true"
+						page-id="{{newReplyId}}"
+						done-fn="newReplyDone(result)"
+						ng-if="newReplyId"></div>
+			</div>
+		</div>
+	</div>
+</div>

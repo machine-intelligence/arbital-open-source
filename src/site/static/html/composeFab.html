@@ -1,0 +1,43 @@
+<md-fab-speed-dial md-open="isOpen"
+		md-direction="up"
+		class="md-scale md-fab-bottom-right"
+		ng-mouseenter="toggle(true, true)"
+		ng-mouseleave="toggle(false, true)"
+		ng-hide="hide || !userService.userIsCool()">
+	<md-fab-trigger>
+		<md-button class="md-fab">
+			<md-icon>create</md-icon>
+			<md-tooltip md-direction="left">New</md-tooltip>
+		</md-button>
+	</md-fab-trigger>
+	<md-fab-actions>
+		<md-button href="/edit/" class="md-fab md-raised md-mini md-accent">
+			<md-icon>note_add</md-icon>
+			<md-tooltip md-direction="left">New page</md-tooltip>
+		</md-button>
+		<md-button ng-href="{{siblingUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="siblingUrl">
+			<md-icon>people</md-icon>
+			<md-tooltip md-direction="left">Sibling page</md-tooltip>
+		</md-button>
+		<md-button ng-href="{{childUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="childUrl">
+			<md-icon>child_care</md-icon>
+			<md-tooltip md-direction="left">Child page</md-tooltip>
+		</md-button>
+		<md-button ng-href="{{lensUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="lensUrl">
+			<md-icon>lens</md-icon>
+			<md-tooltip md-direction="left">Lens page</md-tooltip>
+		</md-button>
+		<md-button ng-click="newComment()" class="md-fab md-raised md-mini md-accent" ng-show="showNewComment">
+			<md-icon>comment</md-icon>
+			<md-tooltip md-direction="left">Comment</md-tooltip>
+		</md-button>
+		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="questionUrl">
+			<md-icon>help</md-icon>
+			<md-tooltip md-direction="left">Question</md-tooltip>
+		</md-button>
+		<md-button ng-click="newAnswer()" class="md-fab md-raised md-mini md-accent" ng-show="showNewAnswer">
+			<md-icon>font_download</md-icon>
+			<md-tooltip md-direction="left">Answer</md-tooltip>
+		</md-button>
+	</md-fab-actions>
+</md-fab-speed-dial>

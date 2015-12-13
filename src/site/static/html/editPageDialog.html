@@ -1,0 +1,22 @@
+<md-dialog ng-cloak>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>New page</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="hide()">
+				<md-icon>close</md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	<md-dialog-content>
+		<div arb-edit-page
+				class="full-height"
+				layout="column"
+				page-id="{{pageId}}"
+				is-embedded="true"
+				inside-dialog="true"
+				done-fn="doneFn(result)"
+				ng-if="pageId"
+				flex></div>
+	</md-dialog-content>
+</md-dialog>

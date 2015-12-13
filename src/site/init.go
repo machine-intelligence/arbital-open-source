@@ -48,8 +48,10 @@ func init() {
 	s.HandleFunc("/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/domains/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/edit/", pageHandlerWrapper(&newPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/edit/", pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr),
+		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}/{edit:[0-9]+}", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/explore/{domain:%s}", core.AliasRegexpStr),
@@ -79,15 +81,16 @@ func init() {
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
-	s.HandleFunc(privateIndexHandler.URI, handlerWrapper(privateIndexHandler)).Methods("POST")
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
+	s.HandleFunc(titleHandler.URI, handlerWrapper(titleHandler)).Methods("POST")
 	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
 	s.HandleFunc(userPageHandler.URI, handlerWrapper(userPageHandler)).Methods("POST")
+	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")
 
 	// POST handlers (API)
-	s.HandleFunc(abandonPageHandler.URI, handlerWrapper(abandonPageHandler)).Methods("POST")
+	s.HandleFunc(discardPageHandler.URI, handlerWrapper(discardPageHandler)).Methods("POST")
 	s.HandleFunc(deleteMemberHandler.URI, handlerWrapper(deleteMemberHandler)).Methods("POST")
 	s.HandleFunc(deletePageHandler.URI, handlerWrapper(deletePageHandler)).Methods("POST")
 	s.HandleFunc(deletePagePairHandler.URI, handlerWrapper(deletePagePairHandler)).Methods("POST")

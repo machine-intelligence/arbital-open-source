@@ -131,7 +131,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if !data.IsAutosave {
-		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
+		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType && oldPage.Type != core.AnswerPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
 		}
 		if data.AnchorContext == "" && data.AnchorText != "" {
@@ -396,8 +396,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Do some stuff for a new parent/child.
 		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType {
 			// Generate updates for users who are subscribed to the parent pages.
-			for _, pp := range primaryPage.Parents {
-				parentId := pp.ParentId
+			for _, parentIdStr := range primaryPage.ParentIds {
+				parentId, _ := strconv.ParseInt(parentIdStr, 10, 64)
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.UpdateType = core.NewChildUpdateType
@@ -410,8 +410,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 
 			// Generate updates for users who are subscribed to the child pages.
-			for _, pp := range primaryPage.Children {
-				childId := pp.ChildId
+			for _, childIdStr := range primaryPage.ChildIds {
+				childId, _ := strconv.ParseInt(childIdStr, 10, 64)
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.UpdateType = core.NewParentUpdateType

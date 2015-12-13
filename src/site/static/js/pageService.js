@@ -23,39 +23,36 @@ app.service("pageService", function($http, $location, userService){
 		}
 		mastery.has = has;
 		mastery.isManuallySet = true;
-		scope.$apply();
 
 		// Send POST request.
 		var data = {
 			masteryId: masteryId,
 			has: has,
 		};
-		$.ajax({
-			type: "POST",
-			url: "/updateMastery/",
-			data: JSON.stringify(data),
-		}).fail(function(r) {
-			console.log("Failed to claim mastery:"); console.log(r);
+		$http({method: "POST", url: "/updateMastery/", data: JSON.stringify(data)})
+		.error(function(data, status){
+			console.error("Failed to change mastery:"); console.log(data); console.log(status);
 		});
+	};
+
+	this.addMasteryToMap = function(newMastery) {
+		var oldMastery = this.masteryMap[newMastery.pageId];
+		if (newMastery === oldMastery) return;
+		if (oldMastery === undefined) {
+			this.masteryMap[newMastery.pageId] = newMastery;
+			return;
+		}
+		// Merge each variable.
+		for (var k in oldMastery) {
+			oldMastery[k] = smartMerge(oldMastery[k], newMastery[k]);
+		}
 	};
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
 	this.privateGroupId = "0";
 
-	// Primary page is the one that's displayed front and center.
+	// Primary page is the one with its id in the url
 	this.primaryPage = undefined;
-	// TODO: use $watch instead of this
-	// List of callbacks to notify when primary page changes.
-	this.primaryPageCallbacks = [];
-	// Set the primary page, triggering the callbacks.
-	this.setPrimaryPage = function(newPrimaryPage) {
-		var oldPrimaryPage = this.primaryPage;
-		this.primaryPage = newPrimaryPage;
-		for (var n = 0; n < this.primaryPageCallbacks.length; n++) {
-			this.primaryPageCallbacks[n](oldPrimaryPage);
-		}
-		$("body").attr("last-visit", moment.utc(this.primaryPage.lastVisit).format("YYYY-MM-DD HH:mm:ss"));
-	};
 	
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
@@ -64,7 +61,11 @@ app.service("pageService", function($http, $location, userService){
 			this.editMap = {};
 			this.masteryMap = {};
 		}
-		$.extend(this.masteryMap, data["masteries"]);
+
+		var masteryData = data["masteries"];
+		for (var id in masteryData) {
+			this.addMasteryToMap(masteryData[id]);
+		}
 
 		var pageData = data["pages"];
 		for (var id in pageData) {
@@ -84,8 +85,8 @@ app.service("pageService", function($http, $location, userService){
 
 	// Returns the url for the given page.
 	this.getPageUrl = function(pageId){
-		var url = "/pages/" + pageId;
 		var page = that.pageMap[pageId];
+		var url = "/pages/" + pageId;
 		if (page) {
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
@@ -118,6 +119,9 @@ app.service("pageService", function($http, $location, userService){
 
 	// These functions will be added to each page object.
 	var pageFuncs = {
+		likeScore: function() {
+			return this.likeCount + this.myLikeValue;
+		},
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
 			if (userService.user.id === "0") return false;
@@ -171,8 +175,6 @@ app.service("pageService", function($http, $location, userService){
 	
 	// Massage page's variables to be easier to deal with.
 	var setUpPage = function(page, pageMap) {
-		if (page.children == null) page.children = [];
-		if (page.parents == null) page.parents = [];
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
 		}
@@ -184,7 +186,7 @@ app.service("pageService", function($http, $location, userService){
 	};
 	// Add the given page to the global pageMap. If the page with the same id
 	// already exists, we do a clever merge.
-	var isPageValueTruthy = function(v) {
+	var isValueTruthy = function(v) {
 		// "0" is falsy
 		if (v === "0") {
 			return false;
@@ -199,6 +201,12 @@ app.service("pageService", function($http, $location, userService){
 		}
 		return !!v;
 	};
+	var smartMerge = function(oldV, newV) {
+		if (!isValueTruthy(newV)) {
+			return oldV;
+		}
+		return newV;
+	};
 	this.addPageToMap = function(newPage) {
 		var oldPage = this.pageMap[newPage.pageId];
 		if (newPage === oldPage) return;
@@ -208,18 +216,7 @@ app.service("pageService", function($http, $location, userService){
 		}
 		// Merge each variable.
 		for (var k in oldPage) {
-			var oldV = isPageValueTruthy(oldPage[k]);
-			var newV = isPageValueTruthy(newPage[k]);
-			if (!newV) {
-				// No new value.
-				continue;
-			}
-			if (!oldV) {
-				// No old value, so use the new one.
-				oldPage[k] = newPage[k];
-			}
-			// Both new and old values are legit. Overwrite with new.
-			oldPage[k] = newPage[k];
+			oldPage[k] = smartMerge(oldPage[k], newPage[k]);
 		}
 	};
 
@@ -236,33 +233,6 @@ app.service("pageService", function($http, $location, userService){
 	// Remove page with the given pageId from the global editMap;
 	this.removePageFromEditMap = function(pageId) {
 		delete this.editMap[pageId];
-	};
-
-	// Load children for the given page. Success/error callbacks are called only
-	// if request was actually made to the server.
-	this.loadChildren = function(parent, success, error) {
-		var that = this;
-		if (parent.hasLoadedChildren) {
-			success(parent.loadChildrenData, 200);
-			return;
-		} else if (parent.isLoadingChildren) {
-			return;
-		}
-		parent.isLoadingChildren = true;
-		console.log("Issuing POST request to /json/children/?parentId=" + parent.pageId);
-		$http({method: "POST", url: "/json/children/", data: JSON.stringify({parentId: parent.pageId})}).
-			success(function(data, status){
-				parent.isLoadingChildren = false;
-				parent.hasLoadedChildren = true;
-				userService.processServerData(data);
-				that.processServerData(data);
-				parent.loadChildrenData = data["pages"];
-				success(data["pages"], status);
-			}).error(function(data, status){
-				parent.isLoadingChildren = false;
-				console.log("Error loading children:"); console.log(data); console.log(status);
-				error(data, status);
-			});
 	};
 
 	// Return function for sorting children ids.
@@ -297,9 +267,9 @@ app.service("pageService", function($http, $location, userService){
 				console.log(page);
 			}
 			return function(aId, bId) {
-				var diff = pageMap[bId].likeCount - pageMap[aId].likeCount;
+				var diff = pageMap[bId].likeScore() - pageMap[aId].likeScore();
 				if (diff === 0) {
-					return pageMap[aId].title.localeCompare(pageMap[bId].title);
+					return pageMap[bId].createdAt > pageMap[aId].createdAt;
 				}
 				return diff;
 			};
@@ -308,41 +278,15 @@ app.service("pageService", function($http, $location, userService){
 	// Sort the given page's children.
 	this.sortChildren = function(page) {
 		var sortFunc = this.getChildSortFunc(page.sortChildrenBy);
-		page.children.sort(function(aChild, bChild) {
-			return sortFunc(aChild.childId, bChild.childId);
+		page.childIds.sort(function(aChildId, bChildId) {
+			return sortFunc(aChildId, bChildId);
 		});
-	};
-
-	// Load parents for the given page. Success/error callbacks are called only
-	// if request was actually made to the server.
-	this.loadParents = function(child, success, error) {
-		var that = this;
-		if (child.hasLoadedParents) {
-			success(child.loadParentsData, 200);
-			return;
-		} else if (child.isLoadingParents) {
-			return;
-		}
-		child.isLoadingParents = true;
-		console.log("Issuing POST request to /json/parents/?childId=" + child.pageId);
-		$http({method: "POST", url: "/json/parents/", data: JSON.stringify({childId: child.pageId})}).
-			success(function(data, status){
-				child.isLoadingParents = false;
-				child.hasLoadedParents = true;
-				userService.processServerData(data);
-				that.processServerData(data);
-				child.loadParentsData = data["pages"];
-				success(data["pages"], status);
-			}).error(function(data, status){
-				child.isLoadingParents = false;
-				console.log("Error loading parents:"); console.log(data); console.log(status);
-				error(data, status);
-			});
 	};
 
 	// Load the page with the given pageAlias.
 	// options {
 	//	 url: url to call
+	//	 silentFail: don't print error if failed
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -359,7 +303,9 @@ app.service("pageService", function($http, $location, userService){
 		console.log("Issuing a POST request to: " + options.url + "?pageAlias=" + pageAlias);
 		$http({method: "POST", url: options.url, data: JSON.stringify({pageAlias: pageAlias})}).
 			success(function(data, status){
-				console.log("JSON " + options.url + " data:"); console.dir(data);
+				if (!options.silentFail) {
+					console.log("JSON " + options.url + " data:"); console.dir(data);
+				}
 				userService.processServerData(data);
 				that.processServerData(data);
 				var pageData = data["pages"];
@@ -369,7 +315,9 @@ app.service("pageService", function($http, $location, userService){
 				}
 				if(options.success) options.success();
 			}).error(function(data, status){
-				console.log("Error loading page:"); console.log(data); console.log(status);
+				if (!options.silentFail) {
+					console.log("Error loading page:"); console.log(data); console.log(status);
+				}
 				if(options.error) options.error(data, status);
 			}
 		);
@@ -377,13 +325,46 @@ app.service("pageService", function($http, $location, userService){
 
 	// Get data to display a popover for the page with the given alias.
 	this.loadIntrasitePopover = function(pageAlias, options) {
+		options = options || {};
 		options.url = "/json/intrasitePopover/";
 		loadPage(pageAlias, options);
 	};
 
+	// Get data to display a popover for the user with the given alias.
+	// options {
+	//	 url: url to call
+	//   success: callback on success
+	//   error: callback on error
+	// }
+	this.loadUserPopover = function(userId, options) {
+		options = options || {};
+		var success = options.success; delete options.success;
+		var error = options.error; delete options.error;
+
+		console.log("Issuing POST request to /json/userPopover/?userId=" + userId);
+		$http({method: "POST", url: "/json/userPopover/", data: JSON.stringify({userId: userId})})
+		.success(function(data, status){
+			userService.processServerData(data);
+			that.processServerData(data);
+			if (success) success(data, status);
+		})
+		.error(function(data, status){
+			console.error("Error loading user popover:"); console.log(data); console.log(status);
+			if (error) error(data, status);
+		});
+	};
+
 	// Get data to display a lens.
 	this.loadLens = function(pageAlias, options) {
+		options = options || {};
 		options.url = "/json/lens/";
+		loadPage(pageAlias, options);
+	};
+
+	// Get data to display page's title
+	this.loadTitle = function(pageAlias, options) {
+		options = options || {};
+		options.url = "/json/title/";
 		loadPage(pageAlias, options);
 	};
 	
@@ -404,38 +385,45 @@ app.service("pageService", function($http, $location, userService){
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
 		console.log("Issuing a POST request to: /json/edit/?pageAlias=" + options.pageAlias);
-		$http({method: "POST", url: "/json/edit/", data: JSON.stringify(options)}).
-			success(function(data, status){
-				console.log("JSON /json/edit/ data:"); console.dir(data);
-				if (!skipProcessDataStep) {
-					userService.processServerData(data);
-					that.processServerData(data);
-				}
-				if(success) success(data["edits"], status);
-			}).error(function(data, status){
-				console.log("Error loading page:"); console.log(data); console.log(status);
-				if(error) error(data, status);
+		$http({method: "POST", url: "/json/edit/", data: JSON.stringify(options)})
+		.success(function(data, status){
+			console.log("JSON /json/edit/ data:"); console.dir(data);
+			if (!skipProcessDataStep) {
+				userService.processServerData(data);
+				that.processServerData(data);
 			}
-		);
+			if(success) success(data["edits"], status);
+		})
+		.error(function(data, status){
+			console.log("Error loading page:"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		});
 	};
 
 	// Get a new page from the server.
 	// options {
+	//  type: type of the page to create
+	//  parentIds: optional array of parents to add to the new page
 	//	success: callback on success
+	//	error: callback on error
 	//}
 	this.getNewPage = function(options) {
-		$http({method: "POST", url: "/json/newPage/"}).
-			success(function(data, status){
-				console.log("JSON /json/newPage/ data:"); console.dir(data);
-				userService.processServerData(data);
-				that.processServerData(data);
-				var pageId = Object.keys(data["pages"])[0];
-				if(options.success) options.success(pageId);
-			}).error(function(data, status){
-				console.log("Error loading page:"); console.log(data); console.log(status);
-				if(error) error(data, status);
-			});
-	}
+		var success = options.success; delete options.success;
+		var error = options.error; delete options.error;
+
+		$http({method: "POST", url: "/json/newPage/", data: JSON.stringify(options)})
+		.success(function(data, status){
+			console.log("JSON /json/newPage/ data:"); console.dir(data);
+			userService.processServerData(data);
+			that.processServerData(data);
+			var pageId = Object.keys(data["pages"])[0];
+			if(success) success(pageId);
+		})
+		.error(function(data, status){
+			console.log("Error getting a new page:"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		});
+	};
 
 	// Delete the page with the given pageId.
 	this.deletePage = function(pageId, success, error) {
@@ -443,31 +431,31 @@ app.service("pageService", function($http, $location, userService){
 			pageId: pageId,
 		};
 		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)})
-			.success(function(data, status){
-				console.log("Successfully deleted " + pageId);
-				if(success) success(data, status);
-			})
-			.error(function(data, status){
-				console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
-				if(error) error(data, status);
-			}
+		.success(function(data, status){
+			console.log("Successfully deleted " + pageId);
+			if(success) success(data, status);
+		})
+		.error(function(data, status){
+			console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		}
 		);
 	};
 
-	// Abandon the page with the given id.
-	this.abandonPage = function(pageId, success, error) {
+	// Discard the page with the given id.
+	this.discardPage = function(pageId, success, error) {
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/abandonPage/", data: JSON.stringify(data)}).
-			success(function(data, status){
-				console.log("Successfully abandoned " + pageId);
-				if(success) success(data, status);
-			})
-			.error(function(data, status){
-				console.log("Error abandoning " + pageId + ":"); console.log(data); console.log(status);
-				if(error) error(data, status);
-			}
+		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)})
+		.success(function(data, status){
+			console.log("Successfully discarded " + pageId);
+			if(success) success(data, status);
+		})
+		.error(function(data, status){
+			console.log("Error discarding " + pageId + ":"); console.log(data); console.log(status);
+			if(error) error(data, status);
+		}
 		);
 	};
 
@@ -496,29 +484,29 @@ app.service("pageService", function($http, $location, userService){
 	// }
 	this.newPagePair = function(options, success) {
 		$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(options)})
-			.success(function(data, status){
-				if(success) success();
-			})
-			.error(function(data, status){
-				console.log("Error creating new page pair:"); console.log(data); console.log(status);
-			});
+		.success(function(data, status){
+			if(success) success();
+		})
+		.error(function(data, status){
+			console.log("Error creating new page pair:"); console.log(data); console.log(status);
+		});
 	};
 	// Note: you also need to specify the type of the relationship here, sinc we
 	// don't want to accidentally delete the wrong type.
 	this.deletePagePair = function(options) {
 		$http({method: "POST", url: "/deletePagePair/", data: JSON.stringify(options)})
-			.error(function(data, status){
-				console.log("Error deleting a page pair:"); console.log(data); console.log(status);
-			});
+		.error(function(data, status){
+			console.log("Error deleting a page pair:"); console.log(data); console.log(status);
+		});
 	};
 
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
-	this.showPublic = function(pageId) {
+	this.showPublic = function(pageId, useEditMap) {
 		/*if (this.privateGroupId !== undefined) {
 			return this.privateGroupId !== this.pageMap[pageId].seeGroupId;
 		}*/
-		var page = this.pageMap[pageId];
+		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
@@ -527,13 +515,48 @@ app.service("pageService", function($http, $location, userService){
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId === "0";
 	};
 	// Return true iff we should show that this page belongs to a group.
-	this.showLockedGroup = function(pageId) {
-		var page = this.pageMap[pageId];
+	this.showLockedGroup = function(pageId, useEditMap) {
+		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
 		if (!this.primaryPage) return page.seeGroupId !== "0";
 		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId !== "0";
+	};
+
+	// Create a new comment; optionally it's a reply to the given commentId
+	// options: {
+	//  parentPageId: id of the parent page
+	//	replyToId: (optional) comment id this will be a reply to
+	//	success: callback
+	// }
+	this.newComment = function(options) {
+		var parentIds = [options.parentPageId];
+		if (options.replyToId) {
+			parentIds.push(options.replyToId);
+		}
+		// Create new comment
+		this.getNewPage({
+			type: "comment",
+			parentIds: parentIds,
+			success: function(newCommentId) {
+				that.loadEdit({
+					pageAlias: newCommentId,
+					success: function() {
+						if (options.success) {
+							options.success(newCommentId);
+						}
+					},
+				});
+			},
+		});
+	};
+
+	// Called when the user created a new comment.
+	this.newCommentCreated = function(commentId) {
+		// TODO: dynamically add the comment
+		window.location.href = this.getPageUrl(this.primaryPage.pageId) + "#subpage-" + commentId;
+		window.location.reload();
 	};
 });

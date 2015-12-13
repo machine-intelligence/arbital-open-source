@@ -32,8 +32,8 @@ func NewPage(pageId int64) *Page {
 	p.RequirementIds = make([]string, 0)
 	p.DomainIds = make([]string, 0)
 	p.ChangeLogs = make([]*ChangeLog, 0)
-	p.Children = make([]*PagePair, 0)
-	p.Parents = make([]*PagePair, 0)
+	p.ChildIds = make([]string, 0)
+	p.ParentIds = make([]string, 0)
 	p.Members = make(map[string]*Member)
 	return p
 }
@@ -68,6 +68,21 @@ func AddPageToMap(pageId int64, pageMap map[int64]*Page, loadOptions *PageLoadOp
 	p.LoadOptions = *loadOptions
 	pageMap[pageId] = p
 	return p
+}
+
+// AddUserToMap adds a new user with the given user id to the map if it's not
+// in the map already.
+// Returns the new/existing user.
+func AddUserToMap(userId int64, userMap map[int64]*User) *User {
+	if userId <= 0 {
+		return nil
+	}
+	if u, ok := userMap[userId]; ok {
+		return u
+	}
+	u := &User{Id: userId}
+	userMap[userId] = u
+	return u
 }
 
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
@@ -231,7 +246,7 @@ func GetPageQuickLockedUntilTime() string {
 
 // ExtractSummary extracts the summary text from a page text.
 func ExtractSummary(text string) string {
-	re := regexp.MustCompile("(?ms)^ {0,3}Summary ?: *\n?(.+?)(\n$|\\z)")
+	re := regexp.MustCompile("(?ms)^\\[summary: (.+?)\\](\n$|\\z)")
 	submatches := re.FindStringSubmatch(text)
 	if len(submatches) > 0 {
 		return strings.TrimSpace(submatches[1])
@@ -316,4 +331,18 @@ func GetDeleteLevel(p *Page, u *user.User) string {
 		return fmt.Sprintf("%d", karmaReq)
 	}
 	return ""
+}
+
+// CorrectPageType converts the page type to lowercase and checks that it's
+// an actual page type we support.
+func CorrectPageType(pageType string) (string, error) {
+	pageType = strings.ToLower(pageType)
+	if pageType != WikiPageType &&
+		pageType != LensPageType &&
+		pageType != QuestionPageType &&
+		pageType != AnswerPageType &&
+		pageType != CommentPageType {
+		return pageType, fmt.Errorf("Invalid page type: %s", pageType)
+	}
+	return pageType, nil
 }

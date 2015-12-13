@@ -6,85 +6,71 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 		templateUrl: "/static/html/groupsPage.html",
 		scope: {
 		},
-		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
-			scope.userService = userService;
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
 
 			// Populate the groupMap with the groups the user belongs to
-			scope.groupMap = {};
-			for (var pageId in pageService.pageMap) {
-				if (!+pageId) continue; // don't process aliases
-				var page = pageService.pageMap[pageId];
-				if (page.type === "group" || page.type === "domain") {
-					scope.groupMap[pageId] = page;
-				}
+			$scope.groupMap = {};
+			for (var n = 0; n < $scope.userService.user.groupIds.length; n++) {
+				var groupId = $scope.userService.user.groupIds[n];
+				$scope.groupMap[groupId] = pageService.pageMap[groupId];
 			}
 
 			// Process removing user from a group.
-			element.on("click", ".remove-from-group", function(event) {
-				var $target = $(event.target);
+			$scope.removeFromGroup = function(groupId, userId) {
 				var data = {
-					userId: $target.closest("[member-id]").attr("member-id"),
-					groupId: $target.closest("[group-id]").attr("group-id"),
+					userId: userId,
+					groupId: groupId,
 				};
 				$http({method: "POST", url: "/deleteMember/", data: JSON.stringify(data)})
-					.error(function(data, status){
-						console.log("Error deleting user:"); console.log(data); console.log(status);
-					});
+				.error(function(data, status){
+					console.error("Error deleting user:"); console.log(data); console.log(status);
+				});
 
 				// Adjust data
-				delete scope.groupMap[data.groupId].members[data.userId];
-			});
+				delete $scope.groupMap[data.groupId].members[data.userId];
+			};
 
 			// Process updating a member's permissions
-			var updateMemberPermission = function($target, data) {
-				data.userId = $target.closest("[member-id]").attr("member-id");
-				data.groupId = $target.closest("[group-id]").attr("group-id");
-				var member = scope.groupMap[data.groupId].members[data.userId];
-				if (!("canAddMembers" in data)) data.canAddMembers = member.canAddMembers;
-				if (!("canAdmin" in data)) data.canAdmin = member.canAdmin;
+			$scope.updateMemberPermissions = function(groupId, userId) {
+				var member = $scope.groupMap[groupId].members[userId];
+				if (member.canAdmin) {
+					member.canAddMembers = true;
+				}
+				var data = {
+					userId : userId,
+					groupId: groupId,
+					canAddMembers: member.canAddMembers,
+					canAdmin: member.canAdmin,
+				};
 				$http({method: "POST", url: "/updateMember/", data: JSON.stringify(data)})
-					.error(function(data, status){
-						console.log("Error updatig member:"); console.log(data); console.log(status);
-					});
+				.error(function(data, status){
+					console.error("Error updating member:"); console.log(data); console.log(status);
+				});
 			};
-			element.on("click", ".set-can-add-members", function(event) {
-				var $target = $(event.target);
-				updateMemberPermission($target, {
-					canAddMembers: $target.is(":checked"),
-				});
-			});
-			element.on("click", ".set-can-admin", function(event) {
-				var $target = $(event.target);
-				updateMemberPermission($target, {
-					canAdmin: $target.is(":checked"),
-				});
-			});
 
 			// Process new member form submission.
-			element.on("submit", ".new-member-form", function(event) {
-				var $target = $(event.target);
+			$scope.newMemberFormSubmit = function(event, groupId, userId) {
 				var data = {
-					groupId: $target.attr("group-id"),
+					groupId: groupId,
+					userId: userId,
 				};
-				submitForm($target, "/newMember/", data, function(r) {
+				submitForm($(event.currentTarget), "/newMember/", data, function(r) {
 					location.reload();
 				});
-				return false;
-			});
+			};
 		
 			// Process new group form submission.
-			var $form = $("#new-group-form");
-			$form.on("submit", function(event) {
+			$scope.newGroupFormSubmit = function(event) {
 				var data = {
-					name: $form.attr("name"),
-					alias: $form.attr("alias"),
+					name: $scope.newGroupName,
+					alias: $scope.newGroupAlias,
 				};
-				submitForm($form, "/newGroup/", data, function(r) {
+				submitForm($(event.currentTarget), "/newGroup/", data, function(r) {
 					location.reload();
 				});
-				return false;
-			});
+			};
 		},
 	};
 });

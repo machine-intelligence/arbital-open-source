@@ -2,7 +2,10 @@
 package site
 
 import (
+	"encoding/json"
+	"fmt"
 	"math/rand"
+	"strconv"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -18,11 +21,29 @@ var newPageHandler = siteHandler{
 	},
 }
 
+// newPageJsonData contains parameters passed in via the request.
+type newPageJsonData struct {
+	Type      string
+	ParentIds []string
+}
+
 // newPageJsonHandler handles the request.
 func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 	returnData := newHandlerData(false)
+
+	// Decode data
+	var data newPageJsonData
+	err := json.NewDecoder(params.R.Body).Decode(&data)
+	if err != nil {
+		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+	}
+
+	data.Type, err = core.CorrectPageType(data.Type)
+	if err != nil {
+		data.Type = core.WikiPageType
+	}
 
 	pageId := rand.Int63()
 	// Update pageInfos
@@ -30,7 +51,7 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	hashmap["pageId"] = pageId
 	hashmap["alias"] = pageId
 	hashmap["sortChildrenBy"] = core.LikesChildSortingOption
-	hashmap["type"] = core.WikiPageType
+	hashmap["type"] = data.Type
 	hashmap["maxEdit"] = 1
 	hashmap["seeGroupId"] = params.PrivateGroupId
 	hashmap["lockedBy"] = u.Id
@@ -50,6 +71,23 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	statement = db.NewInsertStatement("pages", hashmap)
 	if _, err := statement.Exec(); err != nil {
 		return pages.HandlerErrorFail("Couldn't update pages", err)
+	}
+
+	// Add parents
+	for _, parentIdStr := range data.ParentIds {
+		parentId, err := strconv.ParseInt(parentIdStr, 10, 64)
+		if err != nil {
+			return pages.HandlerErrorFail(fmt.Sprintf("Invalid parent id: %s", parentId), nil)
+		}
+		handlerData := newPagePairData{
+			ParentId: parentId,
+			ChildId:  pageId,
+			Type:     core.ParentPagePairType,
+		}
+		result := newPagePairHandlerInternal(params, &handlerData)
+		if result.Message != "" {
+			return result
+		}
 	}
 
 	core.AddPageIdToMap(pageId, returnData.PageMap)
