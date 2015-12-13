@@ -27,6 +27,9 @@ var atAliasRegexp = new RegExp(notEscaped +
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
 app.service("markdownService", function(pageService, userService){
+	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
+	var failedPageAliases = {};
+
 	// Pass in a pageId to create an editor for that page
 	var createConverter = function(pageId, postConversionCallback) {
 		// NOTE: not using $location, because we need port number
@@ -104,7 +107,7 @@ app.service("markdownService", function(pageService, userService){
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
 					var url = "http://" + host + "/user/" + alias + "/";
-					return prefix + "[" + alias + "](" + alias + ")";
+					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
 		});
@@ -186,11 +189,15 @@ app.service("markdownService", function(pageService, userService){
 						// Mark as red link
 						$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
 						$element.addClass("red-link");
-						if (refreshFunc) {
+						if (refreshFunc && !(pageAlias in failedPageAliases) ) {
 							pageService.loadTitle(pageAlias, {
 								silentFail: true,
 								success: function() {
-									refreshFunc();
+									if (pageAlias in pageService.pageMap) {
+										refreshFunc();
+									} else {
+										failedPageAliases[pageAlias] = true;
+									}
 								}
 							});
 						}
@@ -204,6 +211,23 @@ app.service("markdownService", function(pageService, userService){
 				
 				if (!$element.hasClass("user-link")) {
 					$element.addClass("user-link").attr("user-id", userAlias);
+					if (userAlias in pageService.pageMap) {
+					} else {
+						// Mark as red link
+						$element.addClass("red-link");
+						if (refreshFunc && !(userAlias in failedPageAliases) ) {
+							pageService.loadTitle(userAlias, {
+								silentFail: true,
+								success: function() {
+									if (userAlias in pageService.pageMap) {
+										refreshFunc();
+									} else {
+										failedPageAliases[userAlias] = true;
+									}
+								}
+							});
+						}
+					}
 				}
 			}
 		});
@@ -218,6 +242,7 @@ app.service("markdownService", function(pageService, userService){
 	};
 
 	this.createEditConverter = function(pageId, postConversionCallback) {
+		failedPageAliases = {};
 		return createConverter(pageId, postConversionCallback);
 	};
 });
