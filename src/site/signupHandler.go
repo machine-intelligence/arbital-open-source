@@ -65,7 +65,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	emailThreshold := user.DefaultEmailThreshold
 
 	// Prevent alias collision
-	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
+	aliasBase := fmt.Sprintf("%s_%s", data.FirstName, data.LastName)
 	alias := aliasBase
 	suffix := 2
 	for ; ; suffix++ {

@@ -26,6 +26,9 @@ body {
 md-content {
   background-color: initial; }
 
+.md-select-menu-container {
+  background-color: white; }
+
 div.md-primary, md-list-item.md-primary {
   background-color: #607D8B; }
   div.md-primary.md-hue-1, md-list-item.md-primary.md-hue-1 {
@@ -113,15 +116,17 @@ span.md-warn > span, span.md-warn > md-icon {
   .md-subheader .md-subheader-inner {
     padding: 0; }
 
-arb-markdown p, [arb-markdown] p {
+arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0; }
-arb-markdown ul, [arb-markdown] ul {
+arb-markdown ul, [arb-markdown] ul, .preview-area ul {
   padding-left: 1.5em; }
-arb-markdown blockquote, [arb-markdown] blockquote {
+arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
   border-left: lightgray 7px solid;
   padding-left: 10px;
   margin-left: 2px; }
-arb-markdown > :last-child, [arb-markdown] > :last-child {
+  arb-markdown blockquote p, [arb-markdown] blockquote p, .preview-area blockquote p {
+    padding: 10px 0; }
+arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
   margin-bottom: 0; }
 
 .capped-body-width {
@@ -164,10 +169,18 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   visibility: hidden !important; }
   .reveal-after-render-parent .reveal-after-render {
     visibility: hidden !important; }
+  .reveal-after-render-parent .my-vote-knob {
+    visibility: hidden !important; }
 
 .edit-comment-embed .wmd-input {
   height: 50vh;
-  background-color: white; }
+  background-color: white;
+  -webkit-flex: none;
+  -ms-flex: none;
+  flex: none; }
+
+.new-comment-edit-page {
+  margin-top: 20px; }
 
 .new-answer-div {
   height: 70vh; }
@@ -219,7 +232,9 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   line-height: 20px; }
 
 .vote-bar .vote-bar-label {
-  margin: 10px; }
+  margin: 10px;
+  white-space: pre;
+  line-height: normal; }
 .vote-bar .vote-bucket-div {
   border: 1px solid black;
   height: 18px; }
@@ -229,7 +244,8 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   .vote-bar .vote-bucket-div.selected {
     border: 1px solid #00BFA5; }
 .vote-bar .vote-bar-margin {
-  height: 27px; }
+  height: 27px;
+  max-height: 27px; }
 .vote-bar .new-vote-div {
   position: relative;
   top: 13.5px;
@@ -269,6 +285,7 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 
 a {
   text-decoration: none;
+  outline: none;
   color: #0000cc; }
   a:hover {
     color: #000066; }
@@ -388,9 +405,6 @@ arb-likes {
   font-size: 18px;
   line-height: 24px; }
 
-.popover-min-height {
-  height: 30vh; }
-
 arb-intrasite-popover {
   position: absolute;
   z-index: 60;
@@ -411,6 +425,9 @@ arb-compose-fab {
   display: none; }
 .hide-tabs md-tabs-content-wrapper {
   top: 0px; }
+
+md-tabs {
+  outline: none; }
 
 md-tabs-wrapper a {
   color: inherit; }
@@ -448,13 +465,22 @@ md-tabs.layout-column.flex md-tab-content > div {
 .edit-page-rhs-border {
   border-left: #455A64 5px solid; }
 
+.edit-page-footer {
+  margin: 0; }
+
 .wmd-button-bar {
   border-bottom: silver 1px solid; }
   .wmd-button-bar .md-button {
-    width: 34px;
-    min-width: 34px;
+    width: 25px;
+    min-width: 25px;
     margin: 0;
-    padding: 0 5px; }
+    padding: 0 0px; }
+  @media (min-width: 1500px) {
+    .wmd-button-bar .md-button {
+      width: 34px;
+      min-width: 34px;
+      margin: 0;
+      padding: 0 5px; } }
 
 .separator {
   margin: 10px 10px;

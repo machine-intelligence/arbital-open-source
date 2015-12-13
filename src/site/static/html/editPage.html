@@ -1,8 +1,7 @@
-<div class="md-whiteframe-1dp"
-		ng-class="{'full-height': inPreview}"
+<div class="full-height md-whiteframe-1dp"
 		ng-keyup="handleKeyPress($event)"
 		layout="{{fullView ? 'row' : 'column'}}"
-		flex>
+		>
 	<!-- Main edit column (left half) -->
 	<div layout="column"
 			flex="{{fullView ? '50' : '100'}}"
@@ -91,24 +90,24 @@
 								<md-icon>insert_photo</md-icon>
 								<md-tooltip>![image](url) | Ctrl+G</md-tooltip>
 							</md-button>
-							<div class="separator"></div>
-							<md-button class="wmd-olist-button">
-								<md-icon>format_list_numbered</md-icon>
-								<md-tooltip>1. Numbered list | Ctrl+O</md-tooltip>
-							</md-button>
-							<md-button class="wmd-ulist-button">
-								<md-icon>format_list_bulleted</md-icon>
-								<md-tooltip>* Bullet list | Ctrl+U</md-tooltip>
-							</md-button>
-							<md-button class="wmd-heading-button">
-								<md-icon md-svg-icon="format_header_pound"></md-icon>
-								<md-tooltip># Heading | Ctrl+H</md-tooltip>
-							</md-button>
-							<md-button class="wmd-hr-button" ng-show="gtMediumScreen">
-								<md-icon>remove</md-icon>
-								<md-tooltip>--- Line | Ctrl+E</md-tooltip>
-							</md-button>
 						</div>
+						<div class="separator"></div>
+						<md-button class="wmd-olist-button">
+							<md-icon>format_list_numbered</md-icon>
+							<md-tooltip>1. Numbered list | Ctrl+O</md-tooltip>
+						</md-button>
+						<md-button class="wmd-ulist-button">
+							<md-icon>format_list_bulleted</md-icon>
+							<md-tooltip>* Bullet list | Ctrl+U</md-tooltip>
+						</md-button>
+						<md-button class="wmd-heading-button">
+							<md-icon md-svg-icon="format_header_pound"></md-icon>
+							<md-tooltip># Heading | Ctrl+H</md-tooltip>
+						</md-button>
+						<md-button class="wmd-hr-button" ng-show="gtMediumScreen">
+							<md-icon>remove</md-icon>
+							<md-tooltip>--- Line | Ctrl+E</md-tooltip>
+						</md-button>
 						<div class="separator"></div>
 						<md-button class="wmd-undo-button">
 							<md-icon>undo</md-icon>
@@ -144,35 +143,49 @@
 							ng-disabled="showInsertLink" default-tab-item="1"></textarea>
 
 					<!-- Footer -->
-					<div class="md-primary md-hue-2" layout="row" layout-align="start center" layout-margin layout-fill>
+					<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
+						<!-- Go back button -->
+						<div ng-hide="isEmbedded">
+							<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}">
+								<md-icon>arrow_back</md-icon>
+								Back
+								<md-tooltip>
+									Go to live view
+								</md-tooltip>
+							</md-button>
+						</div>
+
 						<!-- Lock timer -->
-						<div ng-show="lockExists">
+						<div ng-show="lockExists && gtSmallScreen">
 							<md-tooltip ng-show="page.lockedBy != '0' && page.lockedBy === userService.user.id">
-								You have locked the page.
+								You have locked the page
 							</md-tooltip>
 							<md-tooltip ng-show="lockedByAnother">
-								This page is locked by another user.
+								This page is locked by another user
 							</md-tooltip>
 							<md-icon>lock</md-icon>
-							<span class="autoupdate" ng-bind="pageService.primaryPage.lockedUntil | relativeDateTimeNoSuffix"></span>
+							<span class="autoupdate"
+									ng-bind="pageService.primaryPage.lockedUntil | relativeDateTimeNoSuffix"></span>
 						</div>
+						<div flex ng-show="gtSmallScreen"></div>
 		
-						<div flex></div>
-		
-						<div ng-show="autosaving">
-							Autosaving...
+						<div layout="row" layout-align="end center" flex ng-hide="!gtSmallScreen">
+							<div ng-show="autosaving">
+								Autosaving...
+							</div>
+							<div ng-show="successfulAutosave">
+								Autosaved
+							</div>
+							<div class="md-warn" ng-bind="autosaveError">
+							</div>
+							<div ng-show="snapshotting">
+								Saving a snapshot...
+							</div>
+							<div ng-show="publishing">
+								Publishing...
+							</div>
 						</div>
-						<div ng-show="successfulAutosave">
-							Autosaved
-						</div>
-						<div class="md-warn" ng-bind="autosaveError">
-						</div>
-						<div ng-show="snapshotting">
-							Saving a snapshot...
-						</div>
-						<div ng-show="publishing">
-							Publishing...
-						</div>
+
 						<arb-confirm-button button-text="Discard"
 								confirmed="discardPage()"
 								disabled="publishing || snapshotting"></arb-confirm-button>
@@ -328,7 +341,7 @@
 					<arb-relationships page-id="{{page.pageId}}"
 							type="parent"
 							force-edit-mode="true"
-							readonly="!(isWiki)"></arb-relationships>
+							readonly="!(isWiki || isQuestion)"></arb-relationships>
 					<!-- Tags -->
 					<arb-relationships page-id="{{page.pageId}}"
 							type="tag"

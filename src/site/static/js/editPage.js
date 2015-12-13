@@ -107,7 +107,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// Set up vote types.
 			$scope.voteTypes = {
-				"": "",
+				"": "-",
 				probability: "Probability",
 				approval: "Approval",
 			};
@@ -270,16 +270,18 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			// Called when user clicks Publish button
 			$scope.publishPage = function() {
 				$scope.publishing = true;
-				savePage(false, false, function(error) {
-					$scope.publishing = false;
-					if (error) {
-						$scope.addMessage("publish", "Publishing failed: " + error, "error");
-					} else {
-						$scope.doneFn({result: {
-							pageId: $scope.page.pageId,
-							alias: $scope.page.alias
-						}});
-					}
+				$scope.savePageInfo(function(error) {
+					savePage(false, false, function(error) {
+						$scope.publishing = false;
+						if (error) {
+							$scope.addMessage("publish", "Publishing failed: " + error, "error");
+						} else {
+							$scope.doneFn({result: {
+								pageId: $scope.page.pageId,
+								alias: $scope.page.alias
+							}});
+						}
+					});
 				});
 			};
 
@@ -368,7 +370,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			};
 			$scope.similarPages = [];
 			var findSimilarFunc = function() {
-				if (!shouldFindSimilar) return;
+				if (!shouldFindSimilar || $scope.isComment) return;
 				shouldFindSimilar = false;
 				var data = {
 					title: $scope.page.title,
@@ -378,7 +380,6 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					pageType: $scope.page.type,
 				};
 				autocompleteService.findSimilarPages(data, function(data){
-					console.log(data);
 					$scope.similarPages.length = 0;
 					for (var n = 0; n < data.length; n++) {
 						var pageId = data[n].pageId;
@@ -486,9 +487,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					var percentage = this.scrollTop / (this.scrollHeight - this.offsetHeight);
 					other.scrollTop = Math.round(percentage * (other.scrollHeight - other.offsetHeight));
 					// Firefox workaround. Rebinding without delay isn't enough.
-					//setTimeout(function() {
+					setTimeout(function() {
 						$other.on("scroll", syncScroll);
-					//}, 10);
+					}, 10);
 				};
 				$divs.on("scroll", syncScroll);
 

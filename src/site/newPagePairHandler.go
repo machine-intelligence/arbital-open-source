@@ -171,7 +171,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewParentUpdateType
 		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequiredByUpdateType
+			task.UpdateType = core.NewRequirementUpdateType
 		} else if data.Type == core.TagPagePairType {
 			task.UpdateType = core.NewTagUpdateType
 		}
@@ -188,7 +188,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewChildUpdateType
 		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequirementUpdateType
+			task.UpdateType = core.NewRequiredByUpdateType
 		} else if data.Type == core.TagPagePairType {
 			task.UpdateType = core.NewTaggedByUpdateType
 		}

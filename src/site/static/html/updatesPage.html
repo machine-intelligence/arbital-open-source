@@ -3,7 +3,7 @@
 		<div class="md-whiteframe-1dp" ng-repeat="(index,group) in updateGroups">
 	
 			<!-- Panel header -->
-			<md-subheader ng-class="{'md-accent': group.key.isNew}">
+			<md-subheader ng-class="{'md-accent md-hue-1': group.key.isNew}">
 				<!-- Header when grouping by page -->
 				<div layout="row" layout-align="start center" ng-if="group.key.groupByPageId !== '0'">
 					<arb-page-title is-link="true" page-id="{{group.key.groupByPageId}}" flex></arb-page-title>
@@ -13,7 +13,7 @@
 				<!-- Header when grouping by user -->
 				<div layout="row" layout-align="start center" ng-if="group.key.groupByUserId !== '0'">
 					<arb-user-name user-id="{{group.key.groupByUserId}}" flex></arb-user-name>
-					<arb-subscribe user-id="{{group.key.groupByUserId}}" ng-hide="parentSubpageId"></arb-subscribe>
+					<arb-subscribe page-id="{{group.key.groupByUserId}}" is-user="true" ng-hide="parentSubpageId"></arb-subscribe>
 				</div>
 			</md-subheader>
 	
@@ -29,6 +29,7 @@
 							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
 									page-id="{{update.goToPageId}}"
 									class="intrasite-link">new comment</a>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="reply">
@@ -37,6 +38,7 @@
 							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
 									page-id="{{update.goToPageId}}"
 									class="intrasite-link">new comment reply</a>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="pageEdit">
@@ -47,41 +49,60 @@
 							<span ng-show="update.repeated>1">
 								{{update.repeated}} times
 							</span>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
+						</div>
+		
+						<div ng-switch-when="pageInfoEdit">
+							This page's meta data has been edited
+							<span ng-show="update.repeated==1">
+								by <arb-user-name user-id="{{update.byUserId}}"></arb-user-name>
+							</span>
+							<span ng-show="update.repeated>1">
+								{{update.repeated}} times
+							</span>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="newPageByUser">
 							Created a new page:
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="newParent">
 							New parent page:
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="newChild">
 							New child page:
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="newRequirement">
 							New requirement:
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="newRequiredBy">
 							This page is now a requirement for
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="newTag">
 							New tag:
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="newTaggedBy">
 							This page now tags
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="commentEdit">
@@ -90,6 +111,7 @@
 							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
 									page-id="{{update.goToPageId}}"
 									class="intrasite-link">comment</a>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="atMention">
@@ -98,6 +120,7 @@
 							<a ng-href="{{pageService.getPageUrl(update.goToPageId)}}"
 									page-id="{{update.goToPageId}}"
 									class="intrasite-link">comment</a>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="addedToGroup">
@@ -108,6 +131,7 @@
 									class="intrasite-link">
 								the {{pageService.pageMap[update.goToPageId].title}} group
 							</a>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-when="removedFromGroup">
@@ -118,6 +142,7 @@
 									class="intrasite-link">
 								the {{pageService.pageMap[update.goToPageId].title}} group
 							</a>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
 						<div ng-switch-default class="md-warn">

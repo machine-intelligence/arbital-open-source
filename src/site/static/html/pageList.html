@@ -41,7 +41,7 @@
 						<md-icon>create</md-icon>
 					</md-button>
 					<div style="white-space: nowrap" ng-show="showRedLinkCount">
-						<span class="separator" ng-show="showQuickEdit"></span>
+						<span class="separator"></span>
 						<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
 						<span ng-show="page.todoCount > 0 || page.redLinkCount > 0">
 							<span ng-bind="page.todoCount"></span> + <span ng-bind="page.redLinkCount"></span>
@@ -51,16 +51,20 @@
 						</span>
 					</div>
 					<div style="white-space: nowrap" ng-show="showLastEdit">
-						<span class="separator" ng-show="showQuickEdit || showRedLinkCount"></span>
+						<span class="separator"></span>
 						edited <span ng-bind="page.createdAt | relativeDateTime"></span>
 					</div>
+					<div style="white-space: nowrap" ng-show="showCreatedAt">
+						<span class="separator"></span>
+						created <span ng-bind="page.originalCreatedAt | relativeDateTime"></span>
+					</div>
 					<div style="white-space: nowrap" ng-show="page.type === 'question'">
-						<span class="separator" ng-show="showQuickEdit || showRedLinkCount || showLastEdit"></span>
+						<span class="separator"></span>
 						<md-icon>font_download</md-icon>
 						<span ng-bind="page.commentCount"></span>
 					</div>
 					<div style="white-space: nowrap" ng-show="showCommentCount && page.type !== 'question'">
-						<span class="separator" ng-show="showQuickEdit || showRedLinkCount || showLastEdit"></span>
+						<span class="separator"></span>
 						<md-icon>comment</md-icon>
 						<span ng-bind="page.commentCount"></span>
 					</div>

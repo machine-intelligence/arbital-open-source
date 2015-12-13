@@ -34,8 +34,8 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil || task.PageId <= 0 {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if task.Value < 0 || task.Value >= 100 {
-		return pages.HandlerBadRequestFail("Value has to be [0, 100)", nil)
+	if task.Value < 0 || task.Value > 100 {
+		return pages.HandlerBadRequestFail("Value has to be [0, 100]", nil)
 	}
 
 	// Get the last vote.

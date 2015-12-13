@@ -3,7 +3,7 @@
 	<div layout="row" layout-align="start center">
 		<!-- Title -->
 		<span class="md-subhead"
-				ng-class="{'md-warn': isLensRequirements}"
+				ng-class="{'md-warn': isLensRequirements && !meetsAllRequirements()}"
 				flex>
 			<md-icon ng-show="isLensRequirements">assignment</md-icon>
 			<span ng-bind="title"></span>

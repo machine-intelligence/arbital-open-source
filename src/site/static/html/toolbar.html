@@ -1,5 +1,6 @@
 <!-- Top toolbar appearing on every page -->
-<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== '0'}">
+<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== '0'}"
+		ng-hide="hide">
 	<div class="md-toolbar-tools">
 		<a ng-href="{{pageService.getDomainUrl()}}">a</a>
 

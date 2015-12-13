@@ -1046,7 +1046,8 @@
 				var keyCode = key.charCode || key.keyCode;
 				var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
-				if (keyCode == 186) { // ;
+				// 186 in Chrome, 59 in Firefox
+				if (keyCode == 186 || keyCode == 59) { // ;
 				  doClick(buttons.intralink);
 				  return;
 				}
@@ -1525,7 +1526,7 @@
 			// The function to be executed when you enter a link and press OK or Cancel.
 			// Marks up the link and adds the ref.
 			var linkEnteredCallback = function (link) {
-				if (link !== null) {
+				if (link) {
 					// (						  $1
 					//	 [^\\]				  anything that's not a backslash
 					//	 (?:\\\\)*			  an even number (this includes zero) of backslashes
@@ -1602,7 +1603,7 @@
 			// Marks up the link and adds the ref.
 			var linkEnteredCallback = function (link) {
 
-				if (link !== null) {
+				if (link) {
 					// (						  $1
 					//	 [^\\]				  anything that's not a backslash
 					//	 (?:\\\\)*			  an even number (this includes zero) of backslashes
@@ -1639,7 +1640,6 @@
 	};
 
 	commandProto.doNewPage = function (chunk, postProcessing, newPageType) {
-		console.log("CLICK " + newPageType);
 		chunk.trimWhitespace();
 		chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
 

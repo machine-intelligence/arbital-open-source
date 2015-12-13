@@ -64,7 +64,8 @@ type UpdateEntry struct {
 	SubscribedToId int64  `json:"subscribedToId,string"`
 	GoToPageId     int64  `json:"goToPageId,string"`
 	// True if the user has gone to the GoToPage
-	IsVisited bool `json:"isVisited"`
+	IsVisited bool   `json:"isVisited"`
+	CreatedAt string `json:"createdAt"`
 }
 
 // UpdateGroup is a collection of updates groupped by the context page.
@@ -186,6 +187,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[int64]*Page) []*Up
 				Repeated:       1,
 				SubscribedToId: row.SubscribedToId,
 				GoToPageId:     row.GoToPageId,
+				CreatedAt:      row.CreatedAt,
 				IsVisited:      pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
 			}
 			group.Updates = append(group.Updates, entry)

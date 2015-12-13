@@ -1,11 +1,14 @@
 <div class="intrasite-popover md-whiteframe-8dp" layout="column">
 	<md-toolbar>
 		<div class="md-toolbar-tools">
-			<arb-page-title page-id="{{page.pageId}}"></arb-page-title> 
+			<arb-page-title page-id="{{page.pageId}}" ng-if="page"></arb-page-title> 
+			<span ng-if="!page">Not found</span> 
 		</div>
 	</md-toolbar>
 
-	<arb-vote-bar page-id="{{page.pageId}}" ng-if="page.hasVote && isLoaded(page.pageId)"></arb-vote-bar> 
+	<arb-vote-bar page-id="{{page.pageId}}"
+			is-embedded="true"
+			ng-if="page.hasVote && isLoaded(page.pageId)"></arb-vote-bar> 
 	
 	<!-- Lens tabs -->
 	<md-tabs ng-class="{'hide-tabs': page.lensIds.length <= 1}"

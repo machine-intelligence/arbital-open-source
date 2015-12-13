@@ -2,7 +2,7 @@
 
 var notEscaped = "(^|\\\\`|\\\\\\[| |\\(|>|\n)";
 var noParen = "(?=$|[^(])";
-var aliasMatch = "([A-Za-z0-9]+\\.?[A-Za-z0-9]*)";
+var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
 // [vote: alias]
 var voteEmbedRegexp = new RegExp(notEscaped + 
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
@@ -40,7 +40,7 @@ app.service("markdownService", function(pageService, userService){
 		var todoSpanRegexp = new RegExp(notEscaped + 
 				"\\[todo: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(todoSpanRegexp, function (whole, prefix, alias) {
+			return text.replace(todoSpanRegexp, function (whole, prefix, text) {
 				return prefix;
 			});
 		});
@@ -49,8 +49,16 @@ app.service("markdownService", function(pageService, userService){
 		var commentSpanRegexp = new RegExp(notEscaped + 
 				"\\[comment: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(commentSpanRegexp, function (whole, prefix, alias) {
+			return text.replace(commentSpanRegexp, function (whole, prefix, text) {
 				return prefix;
+			});
+		});
+
+		// Process [summary:markdown] spans.
+		var summarySpanRegexp = new RegExp("^\\[summary: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(summarySpanRegexp, function (whole, summary) {
+				return runBlockGamut("---\n\n**Summary:** " + summary + "\n\n---");
 			});
 		});
 

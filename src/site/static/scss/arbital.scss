@@ -54,6 +54,11 @@ md-content {
 	background-color: initial;
 }
 
+// WTF? This is probably a bug with NgMaterial
+.md-select-menu-container {
+	background-color: white;
+}
+
 div.md-primary, md-list-item.md-primary {
 	background-color: $primary-color;
 	&.md-hue-1 {
@@ -178,7 +183,7 @@ span.md-warn {
 	}
 }
 
-arb-markdown, [arb-markdown] {
+arb-markdown, [arb-markdown], .preview-area {
 	p {
 		margin-top: 0;
 	}
@@ -191,6 +196,9 @@ arb-markdown, [arb-markdown] {
 		border-left: lightgray 7px solid;
 		padding-left: 10px;
 		margin-left: 2px;
+		p {
+			padding: 10px 0;
+		}
 	}
 
 	& > :last-child {
@@ -256,6 +264,11 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	.reveal-after-render {
 		visibility: hidden !important;
 	}
+
+	// Have to hide the knob, otherwise it appears before we reveal the page
+	.my-vote-knob {
+		visibility: hidden !important;
+	}
 }
 
 // Container for the new/edit comment; embedded in the discussion section
@@ -263,7 +276,15 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	.wmd-input {
 		height: 50vh;
 		background-color: white;
+		-webkit-flex: none;
+		-ms-flex: none;
+		flex: none;
 	}
+}
+
+// Container for the new comment in a discussion
+.new-comment-edit-page {
+	margin-top: 20px;
 }
 
 // Container for the new answer edit
@@ -326,6 +347,8 @@ $toolbar-height: 64px;
 
 	.vote-bar-label {
 		margin: 10px;
+		white-space: pre;
+		line-height: normal;
 	}
 
 	// This is one of the 10 buckets we show for voting
@@ -348,6 +371,7 @@ $toolbar-height: 64px;
 	// This is the space surrounding the vote bar on top and bottom
 	.vote-bar-margin {
 		height: $vote-bar-margin;
+		max-height: $vote-bar-margin;
 	}
 	
 	// This is the div we show when the user is hovering over the bar to vote
@@ -415,6 +439,7 @@ $toolbar-height: 64px;
 a {
 	$color: #0000cc;
 	text-decoration: none;
+	outline: none;
 	color: $color;
 	&:hover {
 		color: darken($color, 20%);
@@ -630,6 +655,10 @@ arb-compose-fab {
 	}
 }
 
+md-tabs {
+	outline: none;
+}
+
 md-tabs-wrapper {
 	a {
 		color: inherit;
@@ -679,14 +708,28 @@ md-tabs.layout-column.flex {
 	border-left: $primary-hue-2 5px solid;
 }
 
+.edit-page-footer {
+	margin: 0;
+}
+
 // Contains all markdown buttons
 .wmd-button-bar {
 	border-bottom: silver 1px solid;
+
 	.md-button {
-		width: 34px;
-		min-width: 34px;
+		width: 25px;
+		min-width: 25px;
 		margin: 0;
-		padding: 0 5px;
+		padding: 0 0px;
+	}
+
+	@media (min-width: 1500px) {
+		.md-button {
+			width: 34px;
+			min-width: 34px;
+			margin: 0;
+			padding: 0 5px;
+		}
 	}
 }
 

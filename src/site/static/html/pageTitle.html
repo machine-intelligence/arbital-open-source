@@ -18,6 +18,8 @@
 		ng-if="isLink"></a>
 <span ng-bind="getTitle()"
 		ng-if="!isLink"></span>
-<span class="primary-dot" ng-show="page.isNewPage() && !useEditMap"></span>
+<span class="accent-dot" ng-show="page.isNewPage() && !useEditMap">
+	<md-tooltip>You've never seen this page</md-tooltip>
+</span>
 <div class="md-caption" ng-bind="page.clickbait" ng-show="showClickbait">
 </div>

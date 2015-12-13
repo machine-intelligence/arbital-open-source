@@ -334,7 +334,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 						removeBodyFix: true,
 						title: "Edit " + (page.title ? page.title : "New Page"),
 						element: $compile("<arb-edit-page class='full-height' page-id='" + pageId +
-							"' done-fn='doneFn(result)' layout='column' flex></arb-edit-page>")($scope),
+							"' done-fn='doneFn(result)' layout='column'></arb-edit-page>")($scope),
 					};
 				}),
 				error: $scope.getErrorFunc("loadEdit"),
