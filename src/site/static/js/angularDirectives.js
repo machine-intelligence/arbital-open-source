@@ -53,6 +53,9 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				pageService.loadIntrasitePopover(lensId, {
 					success: function() {
 						if (isDestroyed) return;
+						if (!scope.page) {
+							scope.page = pageService.pageMap[scope.pageId];
+						}
 						var lens = pageService.pageMap[lensId];
 						if (!lens.summary) {
 							lens.summary = " "; // to avoid trying to load it again
@@ -70,6 +73,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 					},
 				});
 			};
+			scope.tabSelect(scope.pageId);
 		},
 	};
 });
