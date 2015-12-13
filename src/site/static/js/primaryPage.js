@@ -21,15 +21,7 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 					type: "answer",
 					parentIds: [$scope.page.pageId],
 					success: function(newAnswerId) {
-						pageService.loadEdit({
-							pageAlias: newAnswerId,
-							success: function() {
-								$scope.newAnswerId = newAnswerId;
-							},
-							error: function(error) {
-								// TODO
-							},
-						});
+						$scope.newAnswerId = newAnswerId;
 					},
 				});
 			};

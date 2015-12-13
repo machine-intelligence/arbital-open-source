@@ -29,15 +29,18 @@ type editJsonData struct {
 
 // editJsonHandler handles the request.
 func editJsonHandler(params *pages.HandlerParams) *pages.Result {
-	db := params.DB
-	u := params.U
-
 	// Decode data
 	var data editJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
+	return editJsonInternalHandler(params, &data)
+}
+
+func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *pages.Result {
+	db := params.DB
+	u := params.U
 
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)

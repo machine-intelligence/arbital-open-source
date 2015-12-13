@@ -16,13 +16,13 @@ app.controller("EditPageDialogController", function ($scope, $mdDialog, $timeout
 		});
 	};
 
-	// Create new comment
+	// Create new page
 	if (!resumePageId) {
 		pageService.getNewPage({
 			type: "wiki",
-			parentIds: parentIds, // injected from the caller
+			parentIds: parentIds,
 			success: function(newPageId) {
-				$scope.loadPageEdit(newPageId);
+				$scope.pageId = newPageId;
 			},
 		});
 	} else {

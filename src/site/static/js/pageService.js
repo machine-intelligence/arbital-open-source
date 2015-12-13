@@ -416,7 +416,7 @@ app.service("pageService", function($http, $location, userService){
 			console.log("JSON /json/newPage/ data:"); console.dir(data);
 			userService.processServerData(data);
 			that.processServerData(data);
-			var pageId = Object.keys(data["pages"])[0];
+			var pageId = Object.keys(data["edits"])[0];
 			if(success) success(pageId);
 		})
 		.error(function(data, status){
@@ -541,14 +541,9 @@ app.service("pageService", function($http, $location, userService){
 			type: "comment",
 			parentIds: parentIds,
 			success: function(newCommentId) {
-				that.loadEdit({
-					pageAlias: newCommentId,
-					success: function() {
-						if (options.success) {
-							options.success(newCommentId);
-						}
-					},
-				});
+				if (options.success) {
+					options.success(newCommentId);
+				}
 			},
 		});
 	};

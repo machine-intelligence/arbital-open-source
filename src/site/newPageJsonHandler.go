@@ -31,7 +31,6 @@ type newPageJsonData struct {
 func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-	returnData := newHandlerData(false)
 
 	// Decode data
 	var data newPageJsonData
@@ -90,6 +89,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	core.AddPageIdToMap(pageId, returnData.PageMap)
-	return pages.StatusOK(returnData.toJson())
+	editData := &editJsonData{PageAlias: fmt.Sprintf("%d", pageId)}
+	return editJsonInternalHandler(params, editData)
 }
