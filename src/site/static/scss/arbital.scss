@@ -276,6 +276,9 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	.wmd-input {
 		height: 50vh;
 		background-color: white;
+		-webkit-flex: none;
+		-ms-flex: none;
+		flex: none;
 	}
 }
 

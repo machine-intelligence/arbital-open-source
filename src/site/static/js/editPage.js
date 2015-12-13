@@ -487,9 +487,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					var percentage = this.scrollTop / (this.scrollHeight - this.offsetHeight);
 					other.scrollTop = Math.round(percentage * (other.scrollHeight - other.offsetHeight));
 					// Firefox workaround. Rebinding without delay isn't enough.
-					//setTimeout(function() {
+					setTimeout(function() {
 						$other.on("scroll", syncScroll);
-					//}, 10);
+					}, 10);
 				};
 				$divs.on("scroll", syncScroll);
 
