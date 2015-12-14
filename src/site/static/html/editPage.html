@@ -228,7 +228,7 @@
 								</md-input-container>
 							</div>
 							<div class="md-caption" layout-margin flex>
-								<div>Unique name for this page, e.g. "HumanHealth"</div>
+								<div>Unique name for this page, e.g. "human_health"</div>
 								<div ng-show="page.seeGroupId != '0'">
 									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
 									because it's part of the private domain
@@ -258,7 +258,7 @@
 								</md-slider>
 							</div>
 							<div class="md-caption" layout-margin flex>
-								Editing this page will require a this amount of karma
+								Editing this page will require <span ng-bind="page.editKarmaLock"></span> karma
 							</div>
 						</div>
 	
@@ -414,7 +414,7 @@
 			flex="{{fullView ? '50' : inPreview ? '' : 'none'}}">
 		<!-- Live preview -->
 		<md-content class="preview-area" layout="column" flex ng-hide="(!fullView && !inPreview) || otherDiff">
-			<h2 class="md-display-2" ng-bind="page.title"></h2>
+			<div class="md-display-3" ng-bind="page.title"></div>
 			<div id="wmd-preview{{page.pageId}}"></div>
 		</md-content>
 
