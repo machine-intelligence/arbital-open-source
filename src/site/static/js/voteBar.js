@@ -4,7 +4,8 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 		templateUrl: "/static/html/voteBar.html",
 		scope: {
 			pageId: "@",
-			isEmbedded: "@",
+			isEmbedded: "=",
+			showMetaInfo: "=",
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;

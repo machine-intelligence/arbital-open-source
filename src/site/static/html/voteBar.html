@@ -1,9 +1,10 @@
-<div class="vote-bar md-whiteframe-1dp"
+<div class="vote-bar md-whiteframe-2dp"
 		ng-class="{'lens-text-container': !isEmbedded}"
 		layout="column"
 		layout-margin
 		layout-fill>
 	<!-- Header -->
+	<arb-page-title page-id="{{page.pageId}}" is-link="true" ng-if="showMetaInfo"></arb-page-title> 
 	<div class="md-caption" layout="row">
 		<span flex ng-bind="typeHelper.headerLabel"></span>
 		<span>
@@ -81,5 +82,9 @@
 			Delete your {{typeHelper.toString(userVoteValue)}} vote
 		</md-button>-->
 	</div>
+
+	<arb-markdown page-id="{{pageId}}"
+			use-summary="true"
+			ng-if="showMetaInfo"></arb-markdown>
 </div>
 

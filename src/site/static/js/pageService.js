@@ -88,6 +88,26 @@ app.service("pageService", function($http, $location, userService){
 		var page = that.pageMap[pageId];
 		var url = "/pages/" + pageId;
 		if (page) {
+			// Check page's type to see if we need a special url
+			if (page.isLens()) {
+				for (var n = 0; n < page.parentIds.length; n++) {
+					var parent = this.pageMap[page.parentIds[n]];
+					if (parent) {
+						url = "/pages/" + parent.pageId + "?lens=" + pageId + "#" + $location.hash();
+						break;
+					}
+				}
+			} else if (page.isComment() || page.isAnswer()) {
+				for (var n = 0; n < page.parentIds.length; n++) {
+					var parent = this.pageMap[page.parentIds[n]];
+					if (parent && (
+								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
+								(page.isAnswer() && parent.isQuestion()))) {
+						url = "/pages/" + parent.pageId + "#subpage-" + pageId;
+						break;
+					}
+				}
+			}
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
 				if (page.seeGroupId !== "0") {
@@ -133,6 +153,27 @@ app.service("pageService", function($http, $location, userService){
 			if (userService.user.id === "0") return false;
 			return this.creatorId != userService.user.id &&
 				this.lastVisit !== "" && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
+		},
+		isWiki: function() {
+			return this.type === "wiki";
+		},
+		isLens: function() {
+			return this.type === "lens";
+		},
+		isQuestion: function() {
+			return this.type === "question";
+		},
+		isAnswer: function() {
+			return this.type === "answer";
+		},
+		isComment: function() {
+			return this.type === "comment";
+		},
+		isGroup: function() {
+			return this.type === "group";
+		},
+		isDomain: function() {
+			return this.type === "domain";
 		},
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.

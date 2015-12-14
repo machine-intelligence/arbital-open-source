@@ -17,13 +17,22 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 			// Create the edit section for a new answer
 			var createNewAnswer = function() {
 				$scope.newAnswerId = undefined;
-				pageService.getNewPage({
-					type: "answer",
-					parentIds: [$scope.page.pageId],
-					success: function(newAnswerId) {
-						$scope.newAnswerId = newAnswerId;
-					},
-				});
+				if ($scope.page.childDraftId === "0") {
+					pageService.getNewPage({
+						type: "answer",
+						parentIds: [$scope.page.pageId],
+						success: function(newAnswerId) {
+							$scope.newAnswerId = newAnswerId;
+						},
+					});
+				} else {
+					pageService.loadEdit({
+						pageAlias: $scope.page.childDraftId,
+						success: function() {
+							$scope.newAnswerId = $scope.page.childDraftId;
+						},
+					});
+				}
 			};
 			if ($scope.page.type === "question") {
 				createNewAnswer();

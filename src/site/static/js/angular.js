@@ -275,7 +275,7 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 	.error($scope.getErrorFunc("domainPage"));
 });
 
-app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
+app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
 		pageAlias: $routeParams.alias,
@@ -287,6 +287,11 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 			return {
 				title: "Not Found",
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
+			};
+		}
+		if (page.isLens() || page.isComment() || page.isAnswer()) {
+			$location.replace().url(pageService.getPageUrl(page.pageId));
+			return {
 			};
 		}
 		pageService.primaryPage = page;

@@ -45,39 +45,6 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't get page info", err)
 	}
 
-	// Redirect certain types of pages to the corresponding primary page
-	if pageType == core.LensPageType || pageType == core.CommentPageType {
-		var parentId int64
-		row := database.NewQuery(`
-			SELECT pp.parentId
-			FROM pageInfos AS pi
-			JOIN pagePairs AS pp
-			ON pi.pageId=pp.parentId
-			WHERE pi.currentEdit>0 AND pp.childId=?`, pageId).Add(`
-				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND pp.type=?`, core.ParentPagePairType).Add(`
-			LIMIT 1`).ToStatement(db).QueryRow()
-		exists, err := row.Scan(&parentId)
-		if err != nil {
-			return pages.Fail("Couldn't get parent", err)
-		}
-		if exists {
-			// Need to redirect
-			if pageType == core.LensPageType {
-				// Redirect lens pages to the parent page.
-				pageUrl := core.GetPageUrl(parentId)
-				return pages.RedirectWith(fmt.Sprintf("%s?lens=%d", pageUrl, pageId))
-			} else if pageType == core.CommentPageType {
-				// Redirect comment pages to the primary page.
-				// Note: we are actually redirecting blindly to a parent, which for replies
-				// could be the parent comment. For now that's okay, since we just do another
-				// redirect then.
-				pageUrl := core.GetPageUrl(parentId)
-				return pages.RedirectWith(fmt.Sprintf("%s#subpage-%d", pageUrl, pageId))
-			}
-		}
-	}
-
 	// Check if a subdomain redirect is necessary.
 	if exists && seeGroupId != params.PrivateGroupId {
 		subdomain := ""
