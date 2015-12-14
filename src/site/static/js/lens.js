@@ -160,9 +160,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			// Get the style of an inline comment icon
 			scope.getInlineCommentIconStyle = function(commentId) {
 				var params = scope.inlineComments[commentId];
-				console.log($markdownContainer.offset().left);
-				console.log($markdownContainer.width());
-				console.log(inlineIconShiftLeft);
 				return {
 					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 					"top": params.anchorNode.offset().top - $newInlineCommentButton.height() / 2,
@@ -248,7 +245,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 						comment.anchorContext = selection.context;
 						comment.anchorText = selection.text;
 						comment.anchorOffset = selection.offset;
-						console.log(comment);
 						$inlineCommentEditPage = $compile($("<div arb-edit-page class='edit-comment-embed'" +
 							" is-embedded='true' page-id='" + newCommentId +
 							"' done-fn='newInlineCommentDone(result)'></div>"))(scope);
