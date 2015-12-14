@@ -30,7 +30,6 @@ app.service("autocompleteService", function($http, $compile, pageService){
 		return resultList;
 	};
 
-
 	// Do a normal search with the given options.
 	// options = {
 	//	term: string to search for

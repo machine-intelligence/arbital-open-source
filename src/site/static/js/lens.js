@@ -7,6 +7,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 		scope: {
 			pageId: "@",
 			lensParentId: "@",
+			selectedLens: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -54,6 +55,12 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					},
 				});
 			};
+
+			// Check if this lens is actually visible
+			$scope.lensIsVisible = true;
+			$scope.$on("lensTabChanged", function(event, lensId){
+				$scope.lensIsVisible = $scope.pageId == lensId;
+			});
 		},
 		link: function(scope, element, attrs) {
 			// Detach some elements and append them to the body, since they will appear

@@ -42,6 +42,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 					$location.search("lens", lensId);
 				}
 				$scope.selectedLens = pageService.pageMap[lensId];
+				$scope.$broadcast("lensTabChanged", lensId);
 			};
 			$scope.tabSelect = function(lensId) {
 				if ($scope.isLoaded(lensId)) {

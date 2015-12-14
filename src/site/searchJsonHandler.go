@@ -79,6 +79,11 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 				},
 				"filter": {
 					"bool": {
+						"must_not": [
+							{
+								"terms": { "type": ["comment"] }
+							}
+						],
 						"must": [`+optionalTermFilter+`
 							{
 								"terms": { "seeGroupId": [%[2]s] }
