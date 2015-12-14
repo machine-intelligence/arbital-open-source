@@ -339,7 +339,11 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				savePage(true, false, function(error) {
 					$scope.autosaving = false;
 					$scope.successfulAutosave = !error;
-					$scope.autosaveError = error;
+					if (error) {
+						$scope.addMessage("autosave", "Autosave error: " + error, "error", true);
+					} else {
+						$scope.deleteMessage("autosave");
+					}
 				}, function() {
 					$scope.autosaving = false;
 				});
