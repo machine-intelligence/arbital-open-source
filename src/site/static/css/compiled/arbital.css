@@ -70,7 +70,7 @@ span.md-warn > span, span.md-warn > md-icon {
     width: 2.5rem;
     height: 2.5rem; }
 
-.md-display-2, .preview-area h1 {
+.md-display-2, .preview-area h1, arb-markdown h1 {
   font-family: "Roboto Slab";
   font-size: 2rem;
   line-height: 2.2rem;
@@ -78,14 +78,14 @@ span.md-warn > span, span.md-warn > md-icon {
   margin-top: 2rem;
   margin-bottom: 0.75rem; }
 
-.md-display-1, .preview-area h2 {
+.md-display-1, .preview-area h2, arb-markdown h2 {
   font-size: 1.5rem;
   line-height: 1.7rem;
   font-weight: 300;
   margin-top: 2rem;
   margin-bottom: 0.75rem; }
 
-.md-headline, .preview-area h3 {
+.md-headline, .preview-area h3, arb-markdown h3 {
   font-size: 1.3rem;
   line-height: 1.5rem;
   font-weight: 700;
