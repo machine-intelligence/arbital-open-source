@@ -58,7 +58,11 @@ app.service("markdownService", function(pageService, userService){
 		var summarySpanRegexp = new RegExp("^\\[summary: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(summarySpanRegexp, function (whole, summary) {
-				return runBlockGamut("---\n\n**Summary:** " + summary + "\n\n---");
+				if (pageId) {
+					return runBlockGamut("---\n\n**Summary:** " + summary + "\n\n---");
+				} else {
+					return runBlockGamut("");
+				}
 			});
 		});
 
@@ -231,10 +235,6 @@ app.service("markdownService", function(pageService, userService){
 				}
 			}
 		});
-
-		$pageText.find("h1").addClass("md-display-2");
-		$pageText.find("h2").addClass("md-display-1");
-		$pageText.find("h3").addClass("md-headline");
 	};
 
 	this.createConverter = function() {

@@ -85,16 +85,15 @@
 
 		<!-- Mastery container -->
 		<div> <!-- Need this div to receive the margin from the parent -->
-			<md-button class="md-primary md-raised"
-					layout-fill
-					arb-user-check="cool"
+			<md-button class="md-accent" arb-user-check="cool"
 					ng-click="toggleMastery()">
 				<span ng-show="mastery.has">
+					<md-icon>done</md-icon>
 					<span ng-show="mastery.isManuallySet">You marked this requirement as fulfilled</span>
 					<span ng-hide="mastery.isManuallySet">This requirement is fulfilled</span>
-					<md-icon>done</md-icon>
 				</span>
 				<span ng-hide="mastery.has">
+					<md-icon>add_circle_outline</md-icon>
 					<span ng-show="mastery.isManuallySet">You marked this requirement unfulfilled</span>
 					<span ng-hide="mastery.isManuallySet">Click to fulfill the requirement</span>
 				</span>
