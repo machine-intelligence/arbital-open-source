@@ -53,7 +53,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
+		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
@@ -67,7 +67,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
+		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedCommentIds"], err =
@@ -82,7 +82,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
+		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
 		ORDER BY p.createdAt DESC
 		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
@@ -137,7 +137,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			) AS l
 			LEFT JOIN pageInfos AS pi
 			ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
-			WHERE pi.seeGroupId=? AND pi.type!=?
+			WHERE pi.currentEdit>0 AND pi.seeGroupId=? AND pi.type!=?
 			GROUP BY 1
 			ORDER BY (SUM(ISNULL(pi.pageId)) + MAX(l.parentTodoCount)) DESC
 			LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
@@ -161,7 +161,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			GROUP BY userId,pageId
 		) AS l2
 		ON (pi.pageId=l2.pageId)
-		WHERE pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
+		WHERE pi.currentEdit>0 AND pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
 		GROUP BY 1
 		ORDER BY SUM(l2.value) DESC
 		LIMIT ?`).Query(params.PrivateGroupId, data.UserId, core.CommentPageType, indexPanelLimit)

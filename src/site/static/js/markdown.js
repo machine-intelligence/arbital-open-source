@@ -1,6 +1,6 @@
 "use strict";
 
-var notEscaped = "(^|\\\\`|\\\\\\[| |\\(|>|\n)";
+var notEscaped = "(^|\\\\`|\\\\\\[|[ *(>\n])";
 var noParen = "(?=$|[^(])";
 var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
 // [vote: alias]
@@ -133,11 +133,7 @@ app.service("markdownService", function(pageService, userService){
 		if (pageId) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId);
-		}
-		
-		InitMathjax(converter);
-
-		if (editor) {
+			InitMathjax(converter, editor, pageId);
 			editor.run();
 
 			converter.hooks.chain("postConversion", function (text) {
@@ -148,7 +144,10 @@ app.service("markdownService", function(pageService, userService){
 				}
 				return text;
 			});
+		} else {
+			InitMathjax(converter);
 		}
+
 		return converter;
 	};
 

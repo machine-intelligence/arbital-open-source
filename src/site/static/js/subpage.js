@@ -128,7 +128,7 @@ app.directive("arbInlineComment", function ($compile, $timeout, $location, $mdTo
 		link: function(scope, element, attrs) {
 			var content = element.find(".inline-subpage");
 			scope.showExpandButton = function() {
-				return content.get(0).scrollHeight > content.height();
+				return content.get(0).scrollHeight > content.height() && !scope.isExpanded;
 			};
 		},
 	};

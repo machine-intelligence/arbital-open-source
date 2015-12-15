@@ -148,8 +148,11 @@ app.directive("arbPageTitle", function(pageService, userService) {
 				if ($scope.customPageTitle) {
 					return $scope.customPageTitle;
 				}
-				if ($scope.page.type === "comment") {
+				if ($scope.page.isComment()) {
 					return "*Comment*";
+				}
+				if ($scope.page.isAnswer() && !$scope.page.title) {
+					return "*Answer*";
 				}
 				return $scope.page.title;
 			};
@@ -248,8 +251,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 
 			var isTouchDevice = "ontouchstart" in window // works in most browsers
 					|| (navigator.MaxTouchPoints > 0)
-					|| (navigator.msMaxTouchPoints > 0)
-					|| "onmsgesturechange" in window; // works on ie10
+					|| (navigator.msMaxTouchPoints > 0);
 
 			$scope.isOpen = false;
 			$scope.toggle = function(show, hovering) {
@@ -261,12 +263,14 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 			// should be visible.
 			var computeUrls = function() {
 				$scope.questionUrl = "/edit/?type=question";
+				$scope.editPageUrl = undefined;
 				$scope.siblingUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
 				$scope.showNewComment = false;
 				$scope.showNewAnswer = false;
 				if (pageService.primaryPage) {
+					$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
 					var type = pageService.primaryPage.type;
 					if (type === "question") {
 						$scope.showNewAnswer = true;

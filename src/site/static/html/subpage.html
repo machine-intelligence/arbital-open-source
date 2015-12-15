@@ -1,6 +1,6 @@
 <div id="subpage-{{page.pageId}}"
 		layout="column"
-		class="md-whiteframe-2dp"
+		class="full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
 		ng-mouseenter="hoverToggle(true)"
 		ng-mouseleave="hoverToggle(false)"
@@ -49,8 +49,6 @@
 	<div class="comment-header"
 			layout="row"
 			layout-align="start center"
-			layout-margin
-			layout-fill
 			ng-if="isQuestion">
 		<md-icon>help</md-icon>
 		<span class="accent-dot" ng-show="page.isNewPage()"></span>
@@ -62,7 +60,7 @@
 	</div>
 
 	<!-- Collapsable body -->
-	<div layout="column" ng-hide="isCollapsed" layout-margin layout-fill>
+	<div layout="column" ng-hide="isCollapsed" layout-margin>
 		<arb-markdown class="comment-text-container" page-id="{{page.pageId}}" ng-if="!editing && !isQuestion"></arb-markdown>
 		<!-- Edit this subpage -->
 		<div arb-edit-page
@@ -74,7 +72,7 @@
 
 		<!-- Footer -->
 		<div class="comment-footer" layout="row" layout-align="start center" ng-hide="editing">
-			<arb-likes page-id="{{page.pageId}}" is-button="true"></arb-likes>
+			<arb-likes page-id="{{page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
 			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
 			<md-button ng-click="newReply()"
 					ng-disabled="newReplyId"
@@ -92,7 +90,7 @@
 		</div>
 
 		<!-- Indented reply section -->
-		<div layout="row" layout-fill>
+		<div layout="row">
 			<div flex="10"></div>
 			<div flex="90" layout="column">
 				<!-- Replies -->

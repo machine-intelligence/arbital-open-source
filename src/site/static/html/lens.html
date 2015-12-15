@@ -4,9 +4,7 @@
 			ng-class="{'lens-menu-div': isFloatingLhs}"
 			ng-style="getLensMenuDivStyle()"
 			layout="{{isFloatingLhs ? 'column' : 'row'}}"
-			layout-align="{{isFloatingLhs ? 'start end' : 'space-around center'}}"
-			layout-margin
-			layout-fill>
+			layout-align="{{isFloatingLhs ? 'start end' : 'space-around center'}}">
 		<!-- Like -->
 		<arb-likes class="no-right-margin"
 				page-id="{{page.pageId}}"
@@ -70,12 +68,10 @@
 	<arb-relationships class="requirements-container md-whiteframe-1dp reveal-after-render"
 			page-id="{{page.pageId}}"
 			type="requirement"
-			is-lens-requirements="true"
-			layout-margin
-			layout-fill></arb-relationships>
+			is-lens-requirements="true"></arb-relationships>
 
 	<!-- Page's text. Populated by markdown. -->
-	<div class="lens-text-container md-whiteframe-1dp" layout="column" layout-margin layout-fill>
+	<div class="lens-text-container md-whiteframe-1dp" layout="column">
 		<arb-markdown class="lens-text"
 				page-id="{{page.pageId}}"
 				ng-hide="showingDiff"></arb-markdown>

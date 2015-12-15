@@ -6,11 +6,15 @@
 		ng-hide="hide || !userService.userIsCool()">
 	<md-fab-trigger>
 		<md-button class="md-fab">
-			<md-icon>note_add</md-icon>
+			<md-icon>create</md-icon>
 			<md-tooltip md-direction="left">New</md-tooltip>
 		</md-button>
 	</md-fab-trigger>
 	<md-fab-actions>
+	<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="editPageUrl">
+			<md-icon>create</md-icon>
+			<md-tooltip md-direction="left">Edit this page</md-tooltip>
+		</md-button>
 		<md-button href="/edit/" class="md-fab md-raised md-mini md-accent">
 			<md-icon>note_add</md-icon>
 			<md-tooltip md-direction="left">New page</md-tooltip>

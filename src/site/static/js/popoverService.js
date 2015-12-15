@@ -4,9 +4,9 @@
 app.service("popoverService", function($rootScope, $compile, $timeout, pageService, userService){
 	var that = this;
 
-	const showDelay = 400, hideDelay = 300; // milliseconds
-	const popoverWidth = 600; // pixels
-	const awayFromEdge = 20; // min distance from edge of the screen in pixels
+	var showDelay = 400, hideDelay = 300; // milliseconds
+	var popoverWidth = 600; // pixels
+	var awayFromEdge = 20; // min distance from edge of the screen in pixels
 
 	var mousePageX, mousePageY;
 

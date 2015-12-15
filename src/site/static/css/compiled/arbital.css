@@ -159,6 +159,9 @@ arb-discussion {
 .md-whiteframe-2dp {
   background-color: white; }
 
+.full-width {
+  width: 100%; }
+
 .full-height {
   height: 100%; }
 
@@ -334,7 +337,8 @@ md-list-item:not(.no-margins) {
 .md-toolbar-tools md-autocomplete {
   background-color: #455A64; }
   .md-toolbar-tools md-autocomplete input {
-    color: white; }
+    color: white;
+    line-height: normal; }
 
 /*md-icon.material-icons {
 	width: 1em;
@@ -350,9 +354,8 @@ arb-likes {
   white-space: nowrap;
   margin: 0 10px 0 0; }
   arb-likes .like-icon {
+    min-width: 24px;
     margin-right: 2px; }
-  arb-likes .like-count {
-    position: relative; }
 
 .lens-menu-div .md-button {
   text-align: right; }

@@ -249,7 +249,9 @@ arb-discussion {
 	background-color: white;
 }
 
-// Set height to 100%
+.full-width {
+	width: 100%;
+}
 .full-height {
 	height: 100%;
 }
@@ -520,6 +522,8 @@ md-list-item:not(.no-margins) {
 		background-color: $primary-hue-2;
 		input {
 			color: white;
+			// Change line-height, otherwise the caret looks oversized in Safari
+			line-height: normal;
 		}
 	}
 }
@@ -544,15 +548,13 @@ arb-likes {
 
 	// The thumbs icon
 	.like-icon {
-		//position: relative;
-		//top: -5px;
+		// Set width manually, otherwise Safari has it smaller
+		min-width: 24px;
 		margin-right: 2px;
 	}
 
 	// Number of likes
 	.like-count {
-		position: relative;
-		//top: 5px;
 	}
 }
 
