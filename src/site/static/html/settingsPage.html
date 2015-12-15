@@ -24,7 +24,7 @@
 				<label>
 					Email threshold 
 				</label>
-				<input name="emailThreshold" ng-model="userService.user.emailThreshold">
+				<input type="number" min="0" name="emailThreshold" ng-model="userService.user.emailThreshold">
 				<span class="md-caption">The minimum number of new updates required before an update email will be sent</span>
 			</md-input-container>
 	
