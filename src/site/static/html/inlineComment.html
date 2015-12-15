@@ -2,7 +2,7 @@
 		ng-class="{constrained: !isExpanded}"
 		layout="column">
 	<arb-subpage class="inline-subpage" lens-id="{{lensId}}" page-id="{{commentId}}"></arb-subpage>
-	<md-button class="md-primary md-hue-2 expand" ng-click="toggleExpand()" ng-show="showExpandButton()">
+	<md-button class="md-raised expand" ng-click="toggleExpand()" ng-show="showExpandButton()">
 		<md-icon ng-show="isExpanded">expand_less</md-icon>
 		<md-icon ng-hide="isExpanded">expand_more</md-icon>
 	</md-button>

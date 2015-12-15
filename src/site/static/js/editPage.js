@@ -18,10 +18,10 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			$scope.userService = userService;
 			$scope.pageService = pageService;
 			$scope.page = pageService.editMap[$scope.pageId];
-			$scope.fullView = !$scope.isEmbedded && $mdMedia("gt-lg");
+			$scope.fullView = !$scope.isEmbedded && $mdMedia("gt-md");
+			$scope.gtXSmallScreen = $mdMedia("gt-xs");
 			$scope.gtSmallScreen = $mdMedia("gt-sm");
 			$scope.gtMediumScreen = $mdMedia("gt-md");
-			$scope.gtLargeScreen = $mdMedia("gt-lg");
 			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + "/" + $scope.page.currentEditNum;
 
 			// Return true if we should be using a table layout (so we can stack right

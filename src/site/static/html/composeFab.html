@@ -10,8 +10,9 @@
 			<md-tooltip md-direction="left">New</md-tooltip>
 		</md-button>
 	</md-fab-trigger>
-	<md-fab-actions>
-	<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="editPageUrl">
+	<!-- TODO(alexei): remove ng-show constraint when the bug with dots appearing is fixed -->
+	<md-fab-actions ng-show="isOpen">
+		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="editPageUrl">
 			<md-icon>create</md-icon>
 			<md-tooltip md-direction="left">Edit this page</md-tooltip>
 		</md-button>

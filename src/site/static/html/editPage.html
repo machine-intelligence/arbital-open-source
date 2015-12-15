@@ -1,15 +1,14 @@
 <div class="full-height md-whiteframe-1dp"
-		ng-keyup="handleKeyPress($event)"
-		layout="{{fullView ? 'row' : 'column'}}"
-		>
+		ng-class="{'layout-row': fullView, 'layout-column': !fullView}"
+		ng-keyup="handleKeyPress($event)">
 	<!-- Main edit column (left half) -->
 	<div layout="column"
-			flex="{{fullView ? '50' : '100'}}"
+			flex="{{fullView ? '50' : undefined}}"
 			ng-hide="inPreview || (!fullView && otherDiff)">
 		<md-tabs ng-class="{'hide-tabs': isComment || isAnswer}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
-				md-stretch-tabs="{{gtSmallScreen ? 'always' : 'never'}}"
+				md-stretch-tabs="{{gtXSmallScreen ? 'always' : 'never'}}"
 				layout="column"
 				flex>
 			<!-- (0) Title tab -->
@@ -61,7 +60,7 @@
 							<md-icon md-svg-icon="link_variant"></md-icon>
 							<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
 						</md-button>
-						<div layout="row" ng-show="gtMediumScreen">
+						<div layout="row" ng-show="gtSmallScreen">
 							<div class="separator" ng-hide="insideDiaog"></div>
 							<md-button class="wmd-new-page-button" ng-hide="insideDialog">
 								<md-icon>note_add</md-icon>
@@ -76,7 +75,7 @@
 								<md-tooltip>[New sibling link]</md-tooltip>
 							</md-button>
 						</div>
-						<div layout="row" ng-show="gtSmallScreen">
+						<div layout="row" ng-show="gtXSmallScreen">
 							<div class="separator"></div>
 							<md-button class="wmd-quote-button">
 								<md-icon>format_quote</md-icon>
@@ -104,7 +103,7 @@
 							<md-icon md-svg-icon="format_header_pound"></md-icon>
 							<md-tooltip># Heading | Ctrl+H</md-tooltip>
 						</md-button>
-						<md-button class="wmd-hr-button" ng-show="gtMediumScreen">
+						<md-button class="wmd-hr-button" ng-show="gtSmallScreen">
 							<md-icon>remove</md-icon>
 							<md-tooltip>--- Line | Ctrl+E</md-tooltip>
 						</md-button>
@@ -156,7 +155,7 @@
 						</div>
 
 						<!-- Lock timer -->
-						<div ng-show="lockExists && gtSmallScreen">
+						<div ng-show="lockExists && gtXSmallScreen">
 							<md-tooltip ng-show="page.lockedBy != '0' && page.lockedBy === userService.user.id">
 								You have locked the page
 							</md-tooltip>
@@ -167,9 +166,9 @@
 							<span class="autoupdate"
 									ng-bind="page.lockedUntil | relativeDateTimeNoSuffix"></span>
 						</div>
-						<div flex ng-show="gtSmallScreen"></div>
+						<div class="no-margins" flex></div>
 		
-						<div layout="row" layout-align="end center" flex ng-hide="!gtSmallScreen">
+						<div layout="row" layout-align="end center" flex ng-hide="!gtXSmallScreen">
 							<div ng-show="autosaving">
 								Autosaving...
 							</div>
@@ -218,7 +217,7 @@
 			<!-- (2) Settings tab -->
 			<md-tab label="Settings" ng-disabled="!(isWiki || isLens)">
 				<div layout="column" flex>
-					<md-content class="editor-tab" layout="column" flex>
+					<md-content class="editor-tab" flex>
 						<!-- Alias -->
 						<div layout="row" layout-ng-show="!isAnswer && !isComment && !isGroup">
 							<div layout="column" flex>
@@ -334,7 +333,7 @@
 
 			<!-- (3) Relationships tab -->
 			<md-tab label="Relationships" ng-disabled="isComment">
-				<div class="editor-tab" layout="column" flex>
+				<div class="editor-tab" flex>
 					<!-- Parents -->
 					<arb-relationships page-id="{{page.pageId}}"
 							type="parent"
@@ -413,7 +412,7 @@
 			layout="column"
 			flex="{{fullView ? '50' : inPreview ? '' : 'none'}}">
 		<!-- Live preview -->
-		<md-content class="preview-area" layout="column" flex ng-hide="(!fullView && !inPreview) || otherDiff">
+		<md-content class="preview-area" flex ng-hide="(!fullView && !inPreview) || otherDiff">
 			<div class="md-display-3" ng-bind="page.title"></div>
 			<div id="wmd-preview{{page.pageId}}"></div>
 		</md-content>

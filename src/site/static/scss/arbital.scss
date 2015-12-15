@@ -259,6 +259,10 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	height: 100%;
 }
 
+.no-margins {
+	margin: 0 !important;
+}
+
 // Use this class to reveal the element after it and the children are linked
 .reveal-after-render-parent {
 	visibility: hidden !important;
