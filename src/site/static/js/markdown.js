@@ -54,12 +54,12 @@ app.service("markdownService", function(pageService, userService){
 			});
 		});
 
-		// Process [summary:markdown] spans.
-		var summarySpanRegexp = new RegExp("^\\[summary: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		// Process [summary(optional):markdown] spans.
+		var summarySpanRegexp = new RegExp("^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
-			return text.replace(summarySpanRegexp, function (whole, summary) {
+			return text.replace(summarySpanRegexp, function (whole, summaryName, summary) {
 				if (pageId) {
-					return runBlockGamut("---\n\n**Summary:** " + summary + "\n\n---");
+					return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
 				} else {
 					return runBlockGamut("");
 				}

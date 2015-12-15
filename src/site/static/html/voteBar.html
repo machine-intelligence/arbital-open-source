@@ -72,7 +72,7 @@
 	<div layout="row">
 		<div flex>
 			<div ng-repeat="vote in selectedVoteBucket.votes">
-				<span ng-bind="userService.getFullName(vote.userId)"></span>:
+				<arb-user-name user-id="{{vote.userId}}"></arb-user-name>:
 				<span ng-bind="typeHelper.toString(vote.value)"></span> 
 				<span ng-bind="vote.createdAt | relativeDateTime"></span>
 			</div>
