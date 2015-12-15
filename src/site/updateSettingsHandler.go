@@ -10,7 +10,7 @@ import (
 // updateSettingsData contains data given to us in the request.
 type updateSettingsData struct {
 	EmailFrequency string
-	EmailThreshold string
+	EmailThreshold int
 }
 
 var updateSettingsHandler = siteHandler{
@@ -32,10 +32,10 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.EmailFrequency == "" || data.EmailThreshold == "" {
+	if data.EmailFrequency == "" {
 		return pages.HandlerBadRequestFail("Email Frequency and Email Threshold have to be set", nil)
 	}
-	if data.EmailThreshold <= "0" {
+	if data.EmailThreshold <= 0 {
 		return pages.HandlerBadRequestFail("Email Threshold has to be greater than 0", nil)
 	}
 
