@@ -71,12 +71,12 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		left = Math.min(left, $("body").width() - popoverWidth - awayFromEdge);
 		var top = mousePageY + parseInt($target.css("font-size"));
 		$popoverElement.offset({left: left, top: top})
-		.css("position", "absolute");
-		.width(popoverWidth);
+		.css("position", "absolute")
+		.width(popoverWidth)
 		.on("mouseenter", function(event) {
 			popoverHovering = true;
 			updateTimeout();
-		});
+		})
 		.on("mouseleave", function(event) {
 			popoverHovering = false;
 			updateTimeout();
