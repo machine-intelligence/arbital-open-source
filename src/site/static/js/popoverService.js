@@ -71,7 +71,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		left = Math.min(left, $("body").width() - popoverWidth - awayFromEdge);
 		var top = mousePageY + parseInt($target.css("font-size"));
 		$popoverElement.offset({left: left, top: top})
-		.css("position", "absolute")
+		.css("position", "")
 		.width(popoverWidth)
 		.on("mouseenter", function(event) {
 			popoverHovering = true;

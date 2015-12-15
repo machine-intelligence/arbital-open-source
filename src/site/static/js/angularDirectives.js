@@ -248,8 +248,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 
 			var isTouchDevice = "ontouchstart" in window // works in most browsers
 					|| (navigator.MaxTouchPoints > 0)
-					|| (navigator.msMaxTouchPoints > 0)
-					|| "onmsgesturechange" in window; // works on ie10
+					|| (navigator.msMaxTouchPoints > 0);
 
 			$scope.isOpen = false;
 			$scope.toggle = function(show, hovering) {
