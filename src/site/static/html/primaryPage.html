@@ -29,12 +29,13 @@
 				ng-if="newAnswerId"></div>
 	</div>
 	
-	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
+	<div layout="column" layout-gt-md="row">
 		<arb-page-list panel-title="Children"
 				show-created-at="page.sortChildrenBy === 'recentFirst' || page.sortChildrenBy === 'oldestFirst'"
 				page-ids="page.childIds"
 				flex="40"
 				ng-show="page.childIds.length > 0"></arb-page-list>
+		<div class="arb-page-list-spacer" show-gt-md></div>
 		<arb-page-list panel-title="Related"
 				page-ids="page.relatedIds"
 				flex="40"

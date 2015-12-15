@@ -365,6 +365,29 @@ arb-likes {
 .lens-menu-div arb-likes {
   margin-right: 0; }
 
+arb-page-list {
+  margin: 1% 0; }
+
+.arb-page-list-spacer {
+  min-width: 4vw; }
+
+.lens-menu {
+  padding: 5px 0; }
+
+@media (max-width: 599px) {
+  .lens-text-container {
+    padding: 5px 5px;
+    font-size: 16px;
+    line-height: 20px; }
+
+  .comment-text-container {
+    padding: 5px 5px;
+    font-size: 16px;
+    line-height: 18px; }
+
+  .requirements-container {
+    padding: 5px 5px;
+    box-sizing: border-box; } }
 @media (min-width: 600px) {
   .lens-text-container {
     padding: 5px 50px;

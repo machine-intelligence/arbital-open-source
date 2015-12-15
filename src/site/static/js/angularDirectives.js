@@ -322,7 +322,7 @@ app.directive("arbAutocomplete", function($q, pageService, autocompleteService) 
 	return {
 		templateUrl: "/static/html/autocomplete.html",
 		scope: {
-			doAutofocus: "@",
+			doAutofocus: "=",
 			placeholder: "@",
 			// If set, the search will be constrained to this page type
 			pageType: "@",

@@ -16,7 +16,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			if ($scope.lensParentId) {
 				$scope.lensParentPage = pageService.pageMap[$scope.lensParentId];
 			}
-			$scope.isTinyScreen = !$mdMedia("gt-sm");
+			$scope.isTinyScreen = !$mdMedia("gt-xs");
 			$scope.isFloatingLhs = false; //$mdMedia("gt-lg");
 
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
@@ -72,7 +72,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			if (scope.isFloatingLhs) {
 				$lensMenuDiv.appendTo($("body"));
 			}
-			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia("gt-lg") ? 0.5 : 1.1);
+			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia("gt-md") ? 0.5 : 1.1);
 			scope.$on("$destroy", function() {
 				$inlineCommentsDiv.remove();
 			});

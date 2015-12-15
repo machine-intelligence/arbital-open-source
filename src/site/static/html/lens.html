@@ -1,6 +1,6 @@
 <div layout="column">
 	<!-- Lens menu -->
-	<div class="md-primary md-hue-1 md-whiteframe-1dp"
+	<div class="lens-menu md-primary md-hue-1 md-whiteframe-1dp"
 			ng-class="{'lens-menu-div': isFloatingLhs}"
 			ng-style="getLensMenuDivStyle()"
 			layout="{{isFloatingLhs ? 'column' : 'row'}}"
@@ -8,7 +8,7 @@
 		<!-- Like -->
 		<arb-likes class="no-right-margin"
 				page-id="{{page.pageId}}"
-				is-stretched="!isTinyScreen"
+				is-stretched="true"
 				is-button="true"></arb-likes>
 		
 		<!-- Subscribe -->
