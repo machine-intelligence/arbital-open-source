@@ -159,6 +159,8 @@ type Page struct {
 	LockedUntil string `json:"lockedUntil"`
 	NextPageId  int64  `json:"nextPageId,string"`
 	PrevPageId  int64  `json:"prevPageId,string"`
+	// Whether or not the page is used as a requirement
+	UsedAsMastery bool `json:"usedAsMastery"`
 
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
@@ -399,6 +401,13 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	err = LoadRedLinkCount(db, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadRedLinkCount failed: %v", err)
+	}
+
+	// Load whether the page is used as a requirement
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UsedAsMastery })
+	err = LoadUsedAsMastery(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadUsedAsMastery failed: %v", err)
 	}
 
 	// Add other pages we'll need
@@ -809,6 +818,32 @@ func LoadRedLinkCount(db *database.DB, pageMap map[int64]*Page) error {
 	}
 
 	return nil
+}
+
+// LoadUsedAsMastery loads if the page is ever used as mastery/requirement.
+func LoadUsedAsMastery(db *database.DB, pageMap map[int64]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIdsList := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT parentId,count(*)
+		FROM pagePairs
+		WHERE type=?`, RequirementPagePairType).Add(`
+			AND parentId IN`).AddArgsGroup(pageIdsList).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var parentId int64
+		var count int
+		err := rows.Scan(&parentId, &count)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		pageMap[parentId].UsedAsMastery = count > 0
+		return nil
+	})
+	return err
 }
 
 // LoadLinks loads the links for the given pages, and adds them to the pageMap.

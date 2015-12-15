@@ -343,6 +343,9 @@ md-list-item:not(.no-margins) {
     color: white;
     line-height: normal; }
 
+.md-input::-ms-clear {
+  display: none; }
+
 /*md-icon.material-icons {
 	width: 1em;
 	height: 1em;

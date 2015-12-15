@@ -36,14 +36,15 @@ type PageLoadOptions struct {
 	ChangeLogs bool
 
 	// Options for what data to load for the page itself
-	ChildDraftId bool
-	HasDraft     bool
-	Likes        bool
-	Votes        bool
-	LastVisit    bool
-	IsSubscribed bool
-	RedLinkCount bool
-	Mastery      bool
+	ChildDraftId  bool
+	HasDraft      bool
+	Likes         bool
+	Votes         bool
+	LastVisit     bool
+	IsSubscribed  bool
+	RedLinkCount  bool
+	Mastery       bool
+	UsedAsMastery bool
 
 	// Options for what fields to load from pages table
 	Text    bool
@@ -57,18 +58,19 @@ type PageLoadOptions struct {
 var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
-		Answers:      true,
-		Questions:    true,
-		Children:     true,
-		Parents:      true,
-		Tags:         true,
-		Related:      true,
-		Lenses:       true,
-		Requirements: true,
-		Domains:      true,
-		ChildDraftId: true,
-		Mastery:      true,
-		NextPrevIds:  true,
+		Answers:       true,
+		Questions:     true,
+		Children:      true,
+		Parents:       true,
+		Tags:          true,
+		Related:       true,
+		Lenses:        true,
+		Requirements:  true,
+		Domains:       true,
+		ChildDraftId:  true,
+		Mastery:       true,
+		UsedAsMastery: true,
+		NextPrevIds:   true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
@@ -87,6 +89,7 @@ var (
 		Requirements:  true,
 		ChildDraftId:  true,
 		Mastery:       true,
+		UsedAsMastery: true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment or answer)
 	SubpageLoadOptions = (&PageLoadOptions{

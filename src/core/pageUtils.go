@@ -341,7 +341,9 @@ func CorrectPageType(pageType string) (string, error) {
 		pageType != LensPageType &&
 		pageType != QuestionPageType &&
 		pageType != AnswerPageType &&
-		pageType != CommentPageType {
+		pageType != CommentPageType &&
+		pageType != GroupPageType &&
+		pageType != DomainPageType {
 		return pageType, fmt.Errorf("Invalid page type: %s", pageType)
 	}
 	return pageType, nil

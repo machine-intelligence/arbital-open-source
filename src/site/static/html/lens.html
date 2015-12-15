@@ -80,7 +80,7 @@
 		</div>
 
 		<!-- Mastery container -->
-		<div> <!-- Need this div to receive the margin from the parent -->
+		<div ng-show="page.usedAsMastery"> <!-- Need this div to receive the margin from the parent -->
 			<md-button arb-user-check="cool"
 					ng-click="toggleMastery()">
 				<span ng-show="mastery.has">

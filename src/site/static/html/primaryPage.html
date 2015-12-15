@@ -1,4 +1,4 @@
-<div class="capped-body-width" layout="column">
+<div class="capped-body-width">
 	<!-- The primary page -->
 	<div arb-page class="reveal-after-render" page-id="{{pageService.primaryPage.pageId}}"></div>
 
@@ -33,12 +33,12 @@
 		<arb-page-list panel-title="Children"
 				show-created-at="page.sortChildrenBy === 'recentFirst' || page.sortChildrenBy === 'oldestFirst'"
 				page-ids="page.childIds"
-				flex="40"
+				flex
 				ng-show="page.childIds.length > 0"></arb-page-list>
 		<div class="arb-page-list-spacer" show-gt-md></div>
 		<arb-page-list panel-title="Related"
 				page-ids="page.relatedIds"
-				flex="40"
+				flex
 				ng-show="page.relatedIds.length > 0"></arb-page-list>
 	</div>
 

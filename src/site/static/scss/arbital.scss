@@ -532,6 +532,11 @@ md-list-item:not(.no-margins) {
 	}
 }
 
+// Remove "X" button on IE
+.md-input::-ms-clear {
+  display: none;
+}
+
 // Style all md-icons to have size proportionate to the font size
 /*md-icon.material-icons {
 	width: 1em;
