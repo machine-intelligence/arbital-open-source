@@ -26,10 +26,10 @@ var processSelectedParagraphText = function() {
 	if (!getParagraphNode(selection.startContainer)) {
 		return null;
 	}
-	var yOffset = $(selection.startContainer.parentElement).offset().top;
+	var yOffset = $(selection.startContainer.parentNode).offset().top;
 	if (getParagraphNode(selection.endContainer)) {
 		// Middle between start and end.
-		yOffset = (yOffset + $(selection.endContainer.parentElement).offset().top) / 2;
+		yOffset = (yOffset + $(selection.endContainer.parentNode).offset().top) / 2;
 	}
 	return yOffset;
 };
