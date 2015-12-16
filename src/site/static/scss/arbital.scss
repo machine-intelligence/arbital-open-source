@@ -549,6 +549,10 @@ md-icon {
 	&.on {
 		color: $accent-color;
 	}
+
+	&.off {
+		color: gray;
+	}
 }
 
 arb-likes {

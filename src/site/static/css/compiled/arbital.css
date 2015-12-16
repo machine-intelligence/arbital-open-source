@@ -355,6 +355,8 @@ md-list-item:not(.no-margins) {
 }*/
 md-icon.on {
   color: #00BFA5; }
+md-icon.off {
+  color: gray; }
 
 arb-likes {
   white-space: nowrap;

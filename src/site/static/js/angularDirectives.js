@@ -318,7 +318,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 });
 
 // autocomplete searches for relevant pages as you do the search
-app.directive("arbAutocomplete", function($q, pageService, autocompleteService) {
+app.directive("arbAutocomplete", function($timeout, $q, pageService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/autocomplete.html",
 		scope: {
@@ -327,6 +327,7 @@ app.directive("arbAutocomplete", function($q, pageService, autocompleteService) 
 			// If set, the search will be constrained to this page type
 			pageType: "@",
 			onSelect: "&",
+			onBlur: "&",
 		},
 		controller: function($scope) {
 			$scope.getSearchResults = function(text) {
@@ -342,6 +343,13 @@ app.directive("arbAutocomplete", function($q, pageService, autocompleteService) 
 				$scope.onSelect({result: result});
 				$scope.searchText = "";
 			};
+		},
+		link: function(scope, element, attrs) {
+			$timeout(function() {
+				$(element).find("input").blur(function() {
+					if (scope.onBlur) scope.onBlur();
+				});
+			});
 		},
 	};
 });

@@ -134,8 +134,6 @@ app.service("markdownService", function(pageService, userService){
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId);
 			InitMathjax(converter, editor, pageId);
-			editor.run();
-
 			converter.hooks.chain("postConversion", function (text) {
 				if (postConversionCallback) {
 					postConversionCallback(function() {
@@ -144,6 +142,8 @@ app.service("markdownService", function(pageService, userService){
 				}
 				return text;
 			});
+
+			editor.run();
 		} else {
 			InitMathjax(converter);
 		}

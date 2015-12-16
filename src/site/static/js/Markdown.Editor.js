@@ -1623,8 +1623,8 @@
 					// would mean a zero-width match at the start. Since zero-width matches advance the string position,
 					// the first bracket could then not act as the "not a backslash" for the second.
 					chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
-					chunk.startTag = "[";
-					chunk.endTag = "](" + link + ")";
+					chunk.startTag = "[" + link + " ";
+					chunk.endTag = "]";
 
 					if (!chunk.selection) {
 						chunk.endTag = "]";
