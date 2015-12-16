@@ -35,7 +35,7 @@
 				page-ids="page.childIds"
 				flex
 				ng-show="page.childIds.length > 0"></arb-page-list>
-		<div class="arb-page-list-spacer" show-gt-md></div>
+		<div class="arb-page-list-spacer" show-gt-md ng-show="page.childIds.length > 0 && page.relatedIds.length > 0"></div>
 		<arb-page-list panel-title="Related"
 				page-ids="page.relatedIds"
 				flex

@@ -16,7 +16,7 @@ import (
 type editPageInfoData struct {
 	PageId         int64 `json:",string"`
 	Type           string
-	HasVoteStr     string
+	HasVote        bool
 	VoteType       string
 	EditGroupId    int64 `json:",string"`
 	EditKarmaLock  int
@@ -114,7 +114,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Can't change certain parameters after the page has been published.
 	var hasVote bool
 	if oldPage.WasPublished && oldPage.VoteType != "" {
-		hasVote = data.HasVoteStr == "on"
+		hasVote = data.HasVote
 		data.VoteType = oldPage.VoteType
 	} else {
 		hasVote = data.VoteType != ""
