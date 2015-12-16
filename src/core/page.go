@@ -621,9 +621,11 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	} else if options.LoadNonliveEdit {
 		whereClause = database.NewQuery(`
 			p.edit=(
-				SELECT MAX(edit)
+				SELECT edit
 				FROM pages
 				WHERE pageId=? AND (creatorId=? OR NOT (isSnapshot OR isAutosave))
+				ORDER BY createdAt DESC
+				LIMIT 1
 			)`, pageId, userId)
 	}
 	statement := database.NewQuery(`
