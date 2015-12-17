@@ -37,19 +37,22 @@
 		
 							<!-- Footer -->
 							<div class="comment-footer" layout="row" layout-align="start center" ng-if="isLoaded(lensId)">
-								<arb-likes page-id="{{lensId}}" is-button="true"></arb-likes>
+								<arb-likes page-id="{{lensId}}" is-button="true" is-stretched="true"></arb-likes>
 								<arb-subscribe page-id="{{lensId}}" ng-hide="parentSubpageId"></arb-subscribe>
+								<div flex></div>
 								<div layout="row" layout-align="start center" ng-show="page.commentCount">
+									<span class="separator"></span>
 									<md-icon>comment</md-icon>
 									<span ng-bind="page.commentCount"></span>
 								</div>
-								<div flex></div>
-								<div class="md-caption" ng-show="page.type !== 'question'">
-									{{page.textLength}} characters
-								</div>
 								<div layout="row" layout-align="start center" ng-show="page.type === 'question'">
+									<span class="separator"></span>
 									<md-icon>font_download</md-icon>
 									<span ng-bind="page.answerCount"></span>
+								</div>
+								<div class="md-caption" ng-show="page.type !== 'question'">
+									<span class="separator"></span>
+									{{page.textLength}} characters
 								</div>
 							</div>
 						</div>

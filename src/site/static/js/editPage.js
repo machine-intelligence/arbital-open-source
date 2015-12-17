@@ -55,6 +55,11 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				$timeout(function() {
 					$scope.insertLinkCallback(result ? result.alias : undefined);
 					$scope.insertLinkCallback = undefined;
+					if (result) {
+						// For some reason angular doesn't propagate the change through the
+						// model to page.text, so this is a workaround.
+						prevEditPageData = undefined;
+					}
 				});
 			};
 

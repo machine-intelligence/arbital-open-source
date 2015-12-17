@@ -337,7 +337,6 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, autocomplet
 			// If set, the search will be constrained to this page type
 			pageType: "@",
 			onSelect: "&",
-			onBlur: "&",
 		},
 		controller: function($scope) {
 			$scope.getSearchResults = function(text) {
@@ -351,15 +350,8 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, autocomplet
 
 			$scope.searchResultSelected = function(result) {
 				$scope.onSelect({result: result});
-				$scope.searchText = "";
+				$scope.searchText = ""; // this triggers this function
 			};
-		},
-		link: function(scope, element, attrs) {
-			$timeout(function() {
-				$(element).find("input").blur(function() {
-					if (scope.onBlur) scope.onBlur();
-				});
-			});
 		},
 	};
 });
@@ -423,7 +415,8 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 		restrict: "A",
 		controller: function($scope) {
 			$scope.showUserCheckToast = function(message) {
-				$mdToast.show($mdToast.simple().textContent(message));
+				// TODO: restore when we figure out the bug
+				//$mdToast.show($mdToast.simple().textContent(message));
 			};
 		},
 		compile: function compile(element, attrs) {

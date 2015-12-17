@@ -22,7 +22,7 @@
 			<md-icon>create</md-icon>
 			<span ng-hide="isTinyScreen">Edit</span>
 			<span class="warn-dot" ng-show="page.hasDraft"></span>
-			<md-tooltip ng-show="page.hasDraft">
+			<md-tooltip ng-if="page.hasDraft">
 				You have an unpublished draft for this page
 			</md-tooltip>
 		</md-button>
@@ -42,7 +42,7 @@
 			<span ng-hide="showingDiff || isTinyScreen">Show diff</span>
 			<span ng-show="showingDiff && !isTinyScreen">Hide diff</span>
 			<span class="accent-dot" ng-show="page.isUpdatedPage()"></span>
-			<md-tooltip ng-show="page.isUpdatedPage()">
+			<md-tooltip ng-if="page.isUpdatedPage()">
 				This page has been updated since the last time you saw it
 			</md-tooltip>
 		</md-button>
@@ -102,6 +102,7 @@
 		<md-button class="inline-comment-icon md-icon-button md-accent md-raised"
 				ng-style="getNewInlineCommentButtonStyle()"
 				ng-click="newInlineComment()"
+				arb-user-check="cool"
 				ng-show="showNewInlineCommentButton">
 			<md-icon md-svg-icon="comment_plus_outline"></md-icon>
 		</md-button>

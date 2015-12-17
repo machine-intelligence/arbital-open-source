@@ -307,7 +307,7 @@ a {
     a.red-link:active {
       color: #ff3333; }
   a.red-todo-text {
-    background-color: #ffcccc; }
+    background-color: #ffdddd; }
 
 md-tooltip .md-content {
   background-color: rgba(0, 0, 0, 0.9);
@@ -345,8 +345,10 @@ md-list-item:not(.no-margins) {
 .md-toolbar-tools md-autocomplete {
   background-color: #455A64; }
   .md-toolbar-tools md-autocomplete input {
-    color: white;
-    line-height: normal; }
+    color: white; }
+
+md-autocomplete input {
+  line-height: normal; }
 
 .md-input::-ms-clear {
   display: none; }

@@ -473,7 +473,7 @@ a {
 
 	// Helper for coloring [ red text] links.
 	&.red-todo-text {
-		background-color: #ffcccc;
+		background-color: #ffdddd;
 	};
 }
 
@@ -536,9 +536,14 @@ md-list-item:not(.no-margins) {
 		background-color: $primary-hue-2;
 		input {
 			color: white;
-			// Change line-height, otherwise the caret looks oversized in Safari
-			line-height: normal;
 		}
+	}
+}
+
+md-autocomplete {
+	input {
+		// Change line-height, otherwise the caret looks oversized in Safari
+		line-height: normal;
 	}
 }
 

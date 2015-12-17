@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive to show a lens' content
-app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdMedia, pageService, userService, autocompleteService) {
+app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: "/static/html/lens.html",
 		scope: {
