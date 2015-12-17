@@ -1627,7 +1627,7 @@
 					chunk.endTag = "]";
 
 					if (!chunk.selection) {
-						chunk.endTag = "]";
+						chunk.startTag = "[";
 						chunk.selection = link;
 					}
 				}
