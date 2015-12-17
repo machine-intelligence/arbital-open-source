@@ -1,5 +1,8 @@
 <div class="intrasite-popover">
-	<div class="md-whiteframe-8dp" layout="column">
+	<div class="top-triangle-track" ng-show="::direction === 'down'">
+		<div class="triangle-up" ng-style="::getArrowStyle()"></div>
+	</div>
+	<div class="popover-body md-whiteframe-8dp">
 		<md-toolbar>
 			<div class="md-toolbar-tools">
 				<arb-page-title page-id="{{page.pageId}}" ng-if="page"></arb-page-title> 
@@ -62,5 +65,8 @@
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
+	</div>
+	<div class="bottom-triangle-track" ng-show="::direction === 'up'">
+		<div class="triangle-down" ng-style="::getArrowStyle()"></div>
 	</div>
 </div>

@@ -192,6 +192,9 @@ app.service("markdownService", function(pageService, userService){
 						// Mark as red link
 						$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
 						$element.addClass("red-link");
+						if (refreshFunc && pageAlias === "0") {
+							$element.addClass("red-todo-text");
+						}
 						if (refreshFunc && !(pageAlias in failedPageAliases) ) {
 							pageService.loadTitle(pageAlias, {
 								silentFail: true,

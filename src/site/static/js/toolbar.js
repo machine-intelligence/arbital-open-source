@@ -9,7 +9,7 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.isTinyScreen = !$mdMedia("gt-sm");
+			$scope.isTinyScreen = !$mdMedia("gt-xs");
 			$scope.doAutofocus = !("ontouchstart" in window // works in most browsers
 					|| (navigator.MaxTouchPoints > 0)
 					|| (navigator.msMaxTouchPoints > 0));

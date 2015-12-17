@@ -20,11 +20,16 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 		templateUrl: "/static/html/intrasitePopover.html",
 		scope: {
 			pageId: "@",
+			direction: "@",
+			arrowOffset: "@",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.getArrowStyle = function() {
+				return {"left": +$scope.arrowOffset};
+			};
 
 			// Add the primary page as the first lens.
 			if ($scope.page && $scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
@@ -84,11 +89,16 @@ app.directive("arbUserPopover", function(pageService, userService) {
 		templateUrl: "/static/html/userPopover.html",
 		scope: {
 			userId: "@",
+			direction: "@",
+			arrowOffset: "@",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.user = userService.userMap[$scope.userId];
+			$scope.getArrowStyle = function() {
+				return {"left": +$scope.arrowOffset};
+			};
 			
 			// Fix to prevent errors when we go to another page while popover is loading.
 			// TODO: abort all http requests when switching to another page

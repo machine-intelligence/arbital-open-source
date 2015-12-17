@@ -345,6 +345,11 @@ $toolbar-height: 64px;
 	line-height: 20px;
 }
 
+// Fixing the issue with the dropdown autocomplete sometimes being too small.
+.md-virtual-repeat-container.md-autocomplete-suggestions-container {
+	min-height: 30vh;
+}
+
 // Voting bar
 .vote-bar {
 	$vote-bar-height: 18px;
@@ -465,6 +470,11 @@ a {
 			color: lighten($color, 20%);
 		}
 	}
+
+	// Helper for coloring [ red text] links.
+	&.red-todo-text {
+		background-color: #ffcccc;
+	};
 }
 
 // Tooltips that show up when you hover over things
@@ -672,14 +682,45 @@ arb-page-list {
 arb-intrasite-popover {
 	position: absolute;
 	z-index: $popoverZ;
-	background-color: whitesmoke;
 }
 
 // User popover
 arb-user-popover {
 	position: absolute;
 	z-index: $popoverZ;
+}
+
+.popover-body {
 	background-color: whitesmoke;
+}
+
+$triangle-size: 15px;
+.top-triangle-track {
+	position: relative;
+	left: -12px;
+
+	.triangle-up {
+		position: relative;
+		width: 0; 
+		height: 0; 
+		border-left: $triangle-size solid transparent;
+		border-right: $triangle-size solid transparent;
+		border-bottom: $triangle-size solid $primary-color;
+	}
+}
+
+.bottom-triangle-track {
+	position: relative;
+	left: -12px;
+
+	.triangle-down {
+		position: relative;
+		width: 0; 
+		height: 0; 
+		border-left: $triangle-size solid transparent;
+		border-right: $triangle-size solid transparent;
+		border-top: $triangle-size solid whitesmoke;
+	}
 }
 
 // Compose fab that appears in the bottom right corner

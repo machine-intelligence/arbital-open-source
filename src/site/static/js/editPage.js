@@ -162,7 +162,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				};
 				$http({method: "POST", url: "/revertPage/", data: JSON.stringify(data)})
 				.success(function(data) {
-					$location.path(pageService.getPageUrl($scope.page.pageId));
+					$location.url(pageService.getPageUrl($scope.page.pageId));
 				})
 				.error(function(data) {
 					$scope.addMessage("revert", "Error reverting: " + data, "error");

@@ -237,6 +237,9 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   white-space: normal;
   line-height: 20px; }
 
+.md-virtual-repeat-container.md-autocomplete-suggestions-container {
+  min-height: 30vh; }
+
 .vote-bar .vote-bar-label {
   margin: 10px;
   white-space: pre;
@@ -303,6 +306,8 @@ a {
       color: #660000; }
     a.red-link:active {
       color: #ff3333; }
+  a.red-todo-text {
+    background-color: #ffcccc; }
 
 md-tooltip .md-content {
   background-color: rgba(0, 0, 0, 0.9);
@@ -441,13 +446,36 @@ arb-page-list {
 
 arb-intrasite-popover {
   position: absolute;
-  z-index: 60;
-  background-color: whitesmoke; }
+  z-index: 60; }
 
 arb-user-popover {
   position: absolute;
-  z-index: 60;
+  z-index: 60; }
+
+.popover-body {
   background-color: whitesmoke; }
+
+.top-triangle-track {
+  position: relative;
+  left: -12px; }
+  .top-triangle-track .triangle-up {
+    position: relative;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 15px solid #607D8B; }
+
+.bottom-triangle-track {
+  position: relative;
+  left: -12px; }
+  .bottom-triangle-track .triangle-down {
+    position: relative;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 15px solid whitesmoke; }
 
 arb-compose-fab {
   position: fixed;

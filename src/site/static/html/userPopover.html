@@ -1,25 +1,33 @@
-<div class="user-popover md-whiteframe-8dp">
-	<md-toolbar>
-		<div class="md-toolbar-tools">
-			<arb-user-name user-id="{{userId}}" ng-if="isLoaded()"></arb-user-name>
-		</div>
-	</md-toolbar>
-
-	<div class="full-height" layout="column" ng-if="isLoaded()">
-		<md-content layout="column" layout-padding>
-			<arb-markdown page-id="{{userId}}" use-summary="true"></arb-markdown>
-		</md-content>
-		<div class="comment-footer" layout="row" layout-align="space-between center" ng-if="isLoaded()">
-			<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
-			<span class="md-caption">
-				Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span>
-			</span>
-		</div>
+<div class="user-popover">
+	<div class="top-triangle-track" ng-show="::direction === 'down'">
+		<div class="triangle-up" ng-style="::getArrowStyle()"></div>
 	</div>
-
-	<!-- Loading spinner -->
-	<div ng-if="!isLoaded()">
-		<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+	<div class="popover-body md-whiteframe-8dp">
+		<md-toolbar>
+			<div class="md-toolbar-tools">
+				<arb-user-name user-id="{{userId}}" ng-if="isLoaded()"></arb-user-name>
+			</div>
+		</md-toolbar>
+	
+		<div class="full-height" layout="column" ng-if="isLoaded()">
+			<md-content layout="column" layout-padding>
+				<arb-markdown page-id="{{userId}}" use-summary="true"></arb-markdown>
+			</md-content>
+			<div class="comment-footer" layout="row" layout-align="space-between center" ng-if="isLoaded()">
+				<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
+				<span class="md-caption">
+					Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span>
+				</span>
+			</div>
+		</div>
+	
+		<!-- Loading spinner -->
+		<div ng-if="!isLoaded()">
+			<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+		</div>
+	
 	</div>
-
+	<div class="bottom-triangle-track" ng-show="::direction === 'up'">
+		<div class="triangle-down" ng-style="::getArrowStyle()"></div>
+	</div>
 </div>

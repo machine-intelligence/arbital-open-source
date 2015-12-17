@@ -59,19 +59,35 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		// Delete old popover
 		removePopover();
 
+		// If mouse is in the top part of the screen, show popover down, otherwise up.
+		var mouseInTopPart = ((mousePageY - $("body").scrollTop()) / $(window).height()) <= 0.4;
+		var direction = mouseInTopPart ? "down" : "up";
+
+		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
+		left = Math.min(left, $("body").width() - popoverWidth - awayFromEdge);
+		var arrowOffset = mousePageX - left;
+
 		// Create the popover
 		if (targetCandidateLinkType == linkTypeIntrasite) {
 			$popoverElement = $compile("<arb-intrasite-popover page-id='" + $target.attr("page-id") +
+				"' direction='" + direction + "' arrow-offset='" + arrowOffset +
 				"'></arb-intrasite-popover>")($rootScope);
 		} else if (targetCandidateLinkType == linkTypeUser) {
 			$popoverElement = $compile("<arb-user-popover user-id='" + $target.attr("user-id") +
+				"' direction='" + direction + "' arrow-offset='" + arrowOffset +
 				"'></arb-user-popover>")($rootScope);
 		}
-		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
-		left = Math.min(left, $("body").width() - popoverWidth - awayFromEdge);
-		var top = mousePageY + parseInt($target.css("font-size"));
-		$popoverElement.offset({left: left, top: top})
-		.css("position", "")
+
+		// Set popover properties
+		if (mouseInTopPart) {
+			var top = mousePageY + parseInt($target.css("font-size"));
+			$popoverElement.css("top", top);
+		} else {
+			var top = mousePageY - parseInt($target.css("font-size"));
+			$popoverElement.css("bottom", $("body").height() - top);
+		}
+		$popoverElement.css("left", left)
+		.css("position", "") // IE fix, because it sets position to "relative"
 		.width(popoverWidth)
 		.on("mouseenter", function(event) {
 			popoverHovering = true;
@@ -81,8 +97,8 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 			popoverHovering = false;
 			updateTimeout();
 		});
-		$("#dynamic-view").append($popoverElement);
 
+		$("body").append($popoverElement);
 		$currentTarget = $target;
 		anchorHovering = true;
 	};

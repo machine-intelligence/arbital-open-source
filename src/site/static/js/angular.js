@@ -112,6 +112,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 });
 
 // ArbitalCtrl is used across all pages.
+// NOTE: we need to include popoverService, so that it can initialize itself
 app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
@@ -332,7 +333,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 						if (!page.wasPublished && result.discard) {
 							$location.path("/edit/");
 						} else {
-							$location.path(pageService.getPageUrl(page.pageId));
+							$location.url(pageService.getPageUrl(page.pageId));
 						}
 					};
 					return {
