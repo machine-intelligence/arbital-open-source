@@ -61,7 +61,8 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	});
 
 	// Set up custom icons
-	$mdIconProvider.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
+	$mdIconProvider.icon("arbital_logo", "static/icons/arbital-logo.svg", 100)
+		.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
 		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
 		.icon("link_variant", "static/icons/link-variant.svg")
 		.icon("comment_plus_outline", "static/icons/comment-plus-outline.svg")

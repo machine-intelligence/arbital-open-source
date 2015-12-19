@@ -338,6 +338,19 @@ md-list-item:not(.no-margins) {
   margin-top: 10px;
   margin-bottom: 10px; }
 
+.md-toolbar-tools .arbital-logo {
+  position: relative;
+  top: -1px;
+  width: 48px;
+  height: 48px;
+  margin: 10px 15px 0 0; }
+.md-toolbar-tools .arbital-logo-image {
+  position: relative;
+  left: -10px;
+  top: -2px;
+  width: 70px;
+  height: 70px;
+  margin: 10px 10px 0 0; }
 .md-toolbar-tools a {
   white-space: nowrap; }
 .md-toolbar-tools:not(.md-toolbar-tools-bottom) arb-autocomplete {

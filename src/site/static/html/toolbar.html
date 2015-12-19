@@ -2,7 +2,10 @@
 <md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== '0'}"
 		ng-hide="hide">
 	<div class="md-toolbar-tools">
-		<a ng-href="{{pageService.getDomainUrl()}}">a</a>
+		<a ng-href="{{pageService.getDomainUrl()}}">
+			<!--<md-icon md-svg-icon="arbital_logo" class="arbital-logo"></md-icon>-->
+			<img src="/static/images/arbital-logo-120.png" class="arbital-logo-image"></img>
+		</a>
 
 		<a ng-href="/"
 				layout-margin
