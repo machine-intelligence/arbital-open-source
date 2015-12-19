@@ -253,15 +253,12 @@ func ExtractSummaries(pageId int64, text string) (map[string]string, []interface
 
 	submatches := re.FindAllStringSubmatch(text, -1)
 	for _, submatch := range submatches {
-		name := defaultSummary
-		text := ""
-		if len(submatch) >= 3 {
-			name = submatch[1]
-			text = submatch[2]
-		} else {
-			text = submatch[1]
+		name := strings.Trim(submatch[1], "()")
+		text := submatch[2]
+		if name == "" {
+			name = defaultSummary
 		}
-		summaries[strings.Trim(name, "()")] = strings.TrimSpace(text)
+		summaries[name] = strings.TrimSpace(text)
 	}
 	if _, ok := summaries[defaultSummary]; !ok {
 		// If no summaries, just extract the first line.

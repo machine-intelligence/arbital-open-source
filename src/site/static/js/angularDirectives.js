@@ -53,24 +53,32 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				return 3;
 			};
 
-			// Fetch page summaries from the server.
-			pageService.loadIntrasitePopover(scope.pageId, {
-				success: function() {
-					if (isDestroyed) return;
-					for (var name in scope.page.summaries) {
-						scope.summaries.push({name: name, text: scope.page.summaries[name]});
-					}
-					scope.summaries.sort(function(a, b) {
-						return nameToTabIndex(a.name) > nameToTabIndex(b.name);
-					});
-					// Hack: we need to fix the md-tabs height, because it takes way too long
-					// to adjust by itself.
-					$timeout(function() {
-						var $el = element.find(".popover-tab-body");
-						$el.closest("md-tabs").height($el.children().height());
-					});
-				},
-			});
+			// Convert page's summaries into our local array
+			var processPageSummaries = function() {
+				for (var name in scope.page.summaries) {
+					scope.summaries.push({name: name, text: scope.page.summaries[name]});
+				}
+				scope.summaries.sort(function(a, b) {
+					return nameToTabIndex(a.name) > nameToTabIndex(b.name);
+				});
+			};
+
+			processPageSummaries();
+			if (scope.summaries.length <= 0) {
+				// Fetch page summaries from the server.
+				pageService.loadIntrasitePopover(scope.pageId, {
+					success: function() {
+						if (isDestroyed) return;
+						processPageSummaries();
+						// Hack: we need to fix the md-tabs height, because it takes way too long
+						// to adjust by itself.
+						$timeout(function() {
+							var $el = element.find(".popover-tab-body");
+							$el.closest("md-tabs").height($el.children().height());
+						});
+					},
+				});
+			}
 		},
 	};
 });

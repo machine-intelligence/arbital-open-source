@@ -73,7 +73,7 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 		hashmap["edit"] = edit
 		hashmap["text"] = text
 		hashmap["todoCount"] = core.ExtractTodoCount(text)
-		statement := tx.NewInsertTxStatement("pages", hashmap, "text", "summary", "todoCount")
+		statement := tx.NewInsertTxStatement("pages", hashmap, "text", "todoCount")
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't update pages table", err
 		}
