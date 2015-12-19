@@ -254,7 +254,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 	return {
 		scope: {
 			pageId: "@",
-			useSummary: "@",
+			summaryName: "@",
 		},
 		controller: function($scope) {
 			$scope.page = pageService.pageMap[$scope.pageId];
@@ -269,7 +269,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 
 			// Convert page text to html.
 			var converter = markdownService.createConverter();
-			var html = converter.makeHtml(scope.useSummary ? scope.page.summary : scope.page.text);
+			var html = converter.makeHtml(scope.summaryName ? scope.page.summaries[scope.summaryName] : scope.page.text);
 			var $pageText = element;
 			$pageText.html(html);
 			window.setTimeout(function() {

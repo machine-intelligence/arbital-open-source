@@ -736,6 +736,13 @@ arb-compose-fab {
 	z-index: $composeFabZ;
 }
 
+// Make the fab icon bigger
+.fab-icon {
+	width: 30px;
+	height: 30px;
+	font-size: 30px;
+}
+
 // Helper class for hiding the tabs (used when we only have one)
 .hide-tabs {
 	md-tabs-wrapper {

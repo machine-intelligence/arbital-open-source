@@ -67,16 +67,31 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		// Update page summary
+		// Update pages table
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
 		hashmap["edit"] = edit
 		hashmap["text"] = text
-		hashmap["summary"] = core.ExtractSummary(text)
 		hashmap["todoCount"] = core.ExtractTodoCount(text)
 		statement := tx.NewInsertTxStatement("pages", hashmap, "text", "summary", "todoCount")
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't update pages table", err
+		}
+
+		// Delete old page summaries
+		statement = database.NewQuery(`
+			DELETE FROM pageSummaries WHERE pageId=?`, pageId).ToTxStatement(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't delete existing page summaries", err
+		}
+
+		// Add new page summaries
+		_, summaryValues := core.ExtractSummaries(pageId, text)
+		statement = tx.NewTxStatement(`
+			INSERT INTO pageSummaries (pageId,name,text)
+			VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3))
+		if _, err := statement.Exec(summaryValues...); err != nil {
+			return "Couldn't insert page summaries", err
 		}
 
 		// Update page links table

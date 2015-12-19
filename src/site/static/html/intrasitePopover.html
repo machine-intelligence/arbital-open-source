@@ -12,62 +12,53 @@
 	
 		<arb-vote-bar page-id="{{page.pageId}}"
 				is-embedded="true"
-				ng-if="page.hasVote && isLoaded(page.pageId)"></arb-vote-bar> 
+				ng-if="page.hasVote && isLoaded()"></arb-vote-bar> 
 		
 		<!-- Lens tabs -->
-		<md-tabs ng-class="{'hide-tabs': page.lensIds.length <= 1}"
-				md-dynamic-height>
-			<md-tab ng-repeat="lensId in page.lensIds"
-					md-on-select="tabSelect(lensId)">
-				<md-tab-label>
-					<arb-page-title page-id="{{lensId}}"
-							custom-page-title="lensId === page.pageId ? 'Primary' : ''"></arb-page-title>
-					<md-icon>done</md-icon>
-				</md-tab-label>
+		<md-tabs class="md-primary md-hue-2"
+				ng-class="{'hide-tabs': summaries.length <= 1}"
+				md-dynamic-height
+				ng-if="isLoaded()">
+			<md-tab ng-repeat="summary in summaries" label="{{summary.name}}">
 				<md-tab-body>
 					<div class="popover-tab-body" layout="column">
-						<!-- Lens body -->
-						<div layout="column" ng-if="isLoaded(lensId)">
-							<md-content layout="column" layout-padding>
-								<arb-markdown class="popover-text-container"
-										page-id="{{lensId}}"
-										use-summary="true"
-										></arb-markdown>
-							</md-content>
-		
-							<!-- Footer -->
-							<div class="comment-footer" layout="row" layout-align="start center" ng-if="isLoaded(lensId)">
-								<arb-likes page-id="{{lensId}}" is-button="true" is-stretched="true"></arb-likes>
-								<arb-subscribe page-id="{{lensId}}" ng-hide="parentSubpageId"></arb-subscribe>
-								<div flex></div>
-								<div layout="row" layout-align="start center" ng-show="page.commentCount">
-									<span class="separator"></span>
-									<md-icon>comment</md-icon>
-									<span ng-bind="page.commentCount"></span>
-								</div>
-								<div layout="row" layout-align="start center" ng-show="page.type === 'question'">
-									<span class="separator"></span>
-									<md-icon>font_download</md-icon>
-									<span ng-bind="page.answerCount"></span>
-								</div>
-								<div class="md-caption" ng-show="page.type !== 'question'">
-									<span class="separator"></span>
-									{{page.textLength}} characters
-								</div>
-							</div>
-						</div>
-		
-						<!-- Loading spinner -->
-						<div layout="column"
-								layout-align="center center"
-								layout-fill
-								ng-if="!isLoaded(lensId)">
-							<md-progress-circular md-mode="indeterminate"></md-progress-circular>
-						</div>
+						<md-content layout="column" layout-padding>
+							<arb-markdown class="popover-text-container"
+									page-id="{{pageId}}"
+									summary-name="{{summary.name}}"></arb-markdown>
+						</md-content>
 					</div>
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
+	
+		<!-- Footer -->
+		<div class="comment-footer" layout="row" layout-align="start center" ng-if="isLoaded()">
+			<arb-likes page-id="{{pageId}}" is-button="true" is-stretched="true"></arb-likes>
+			<arb-subscribe page-id="{{pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
+			<div flex></div>
+			<div layout="row" layout-align="start center" ng-show="page.commentCount">
+				<span class="separator"></span>
+				<md-icon>comment</md-icon>
+				<span ng-bind="page.commentCount"></span>
+			</div>
+			<div layout="row" layout-align="start center" ng-show="page.type === 'question'">
+				<span class="separator"></span>
+				<md-icon>font_download</md-icon>
+				<span ng-bind="page.answerCount"></span>
+			</div>
+			<div class="md-caption" ng-show="page.type !== 'question'">
+				<span class="separator"></span>
+				{{page.textLength}} characters
+			</div>
+		</div>
+		
+		<!-- Loading spinner -->
+		<div layout="column"
+				layout-align="center center"
+				ng-if="!isLoaded()">
+			<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+		</div>
 	</div>
 	<div class="bottom-triangle-track" ng-show="::direction === 'up'">
 		<div class="triangle-down" ng-style="::getArrowStyle()"></div>

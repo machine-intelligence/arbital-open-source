@@ -28,8 +28,6 @@ CREATE TABLE pages (
 	/* Meta-text for the page. This contains meta-data like clickbait, summary,
 		masteries, etc... */
 	metaText MEDIUMTEXT NOT NULL,
-	/* Summary of the page. */
-	summary TEXT NOT NULL,
 	/* Number of TODOs in this page. */
 	todoCount INT NOT NULL,
 

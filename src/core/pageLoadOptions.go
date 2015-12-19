@@ -47,8 +47,8 @@ type PageLoadOptions struct {
 	UsedAsMastery bool
 
 	// Options for what fields to load from pages table
-	Text    bool
-	Summary bool
+	Text      bool
+	Summaries bool
 
 	// Options for what data to load after the page's data has been loaded
 	NextPrevIds bool
@@ -107,7 +107,7 @@ var (
 		Votes:         true,
 		IsSubscribed:  true,
 		SubpageCounts: true,
-		Summary:       true,
+		Summaries:     true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info about a lens
 	LensInfoLoadOptions = (&PageLoadOptions{

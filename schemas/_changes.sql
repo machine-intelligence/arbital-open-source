@@ -18,3 +18,4 @@ update pageInfos as pi join pages as p on (pi.pageId=p.pageId and p.isCurrentEdi
 alter table pages drop column `alias`,drop column `type`,drop column sortChildrenBy,drop column hasVote,drop column voteType,drop column seeGroupId,drop column editGroupId,drop column editKarmaLock;
 update subscriptions set toPageId=toUserId where toPageId=0; alter table subscriptions drop column toUserId; alter table subscriptions change column toPageId toId bigint not null;
 update updates set subscribedToPageId=subscribedToUserId where subscribedToPageId=0; alter table updates drop column subscribedToUserId; alter table updates change column subscribedToPageId subscribedToId bigint not null;
+alter table pages drop column summary;

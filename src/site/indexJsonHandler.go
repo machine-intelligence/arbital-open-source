@@ -46,6 +46,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			DomainId: "3560540392275264633",
 			ChildIds: []string{
 				"3560540392275264633", // What is Arbital
+				"8138584842800103864", // Arbital blog
 				"5092144177314150382", // Arbital features
 				"8992241719442104138", // Parents and children
 				"5933317145970853046", // Editing

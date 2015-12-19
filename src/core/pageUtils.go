@@ -23,6 +23,7 @@ const (
 func NewPage(pageId int64) *Page {
 	p := &Page{corePageData: corePageData{PageId: pageId}}
 	p.Votes = make([]*Vote, 0)
+	p.Summaries = make(map[string]string)
 	p.AnswerIds = make([]string, 0)
 	p.CommentIds = make([]string, 0)
 	p.QuestionIds = make([]string, 0)
@@ -244,17 +245,37 @@ func GetPageQuickLockedUntilTime() string {
 	return time.Now().UTC().Add(PageQuickLockDuration * time.Second).Format(database.TimeLayout)
 }
 
-// ExtractSummary extracts the summary text from a page text.
-func ExtractSummary(text string) string {
-	re := regexp.MustCompile("(?ms)^\\[summary: ?([\\s\\S]+?)\\] *(\\z|\n\\z|\n\n)")
-	submatches := re.FindStringSubmatch(text)
-	if len(submatches) > 0 {
-		return strings.TrimSpace(submatches[1])
+// ExtractSummaries extracts the summaries from the given page text.
+func ExtractSummaries(pageId int64, text string) (map[string]string, []interface{}) {
+	const defaultSummary = "Summary"
+	re := regexp.MustCompile("(?ms)^\\[summary(\\([^)]+\\))?: ?([\\s\\S]+?)\\] *(\\z|\n\\z|\n\n)")
+	summaries := make(map[string]string)
+
+	submatches := re.FindAllStringSubmatch(text, -1)
+	for _, submatch := range submatches {
+		name := defaultSummary
+		text := ""
+		if len(submatch) >= 3 {
+			name = submatch[1]
+			text = submatch[2]
+		} else {
+			text = submatch[1]
+		}
+		summaries[strings.Trim(name, "()")] = strings.TrimSpace(text)
 	}
-	// If no summary paragraph, just extract the first line.
-	re = regexp.MustCompile("^(.*)")
-	submatches = re.FindStringSubmatch(text)
-	return strings.TrimSpace(submatches[1])
+	if _, ok := summaries[defaultSummary]; !ok {
+		// If no summaries, just extract the first line.
+		re = regexp.MustCompile("^(.*)")
+		submatch := re.FindStringSubmatch(text)
+		summaries[defaultSummary] = strings.TrimSpace(submatch[1])
+	}
+
+	// Compute values for doing INSERT
+	summaryValues := make([]interface{}, 0)
+	for name, text := range summaries {
+		summaryValues = append(summaryValues, pageId, name, text)
+	}
+	return summaries, summaryValues
 }
 
 // ExtractTodoCount extracts the number of todos from a page text.

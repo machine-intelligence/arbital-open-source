@@ -114,7 +114,6 @@ type corePageData struct {
 	// The following data is filled on demand.
 	Text     string `json:"text"`
 	MetaText string `json:"metaText"`
-	Summary  string `json:"summary"`
 }
 
 type Page struct {
@@ -164,6 +163,7 @@ type Page struct {
 
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
+	Summaries map[string]string `json:"summaries"`
 
 	// Subpages.
 	AnswerIds      []string `json:"answerIds"`
@@ -419,6 +419,12 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	if err != nil {
 		return fmt.Errorf("LoadPages failed: %v", err)
 	}
+	// Load summaries
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Summaries })
+	err = LoadSummaries(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadSummaries failed: %v", err)
+	}
 
 	// Load prev/next ids
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool {
@@ -447,7 +453,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	// Load all the users
 	userMap[u.Id] = &User{Id: u.Id}
 	for _, p := range pageMap {
-		if p.LoadOptions.Text || p.LoadOptions.Summary {
+		if p.LoadOptions.Text || p.LoadOptions.Summaries {
 			userMap[p.CreatorId] = &User{Id: p.CreatorId}
 		}
 		if p.LockedBy != 0 {
@@ -496,22 +502,17 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 
 	// Compute pages for which to load text / summary
 	textIds := make([]interface{}, 0)
-	summaryIds := make([]interface{}, 0)
 	for _, p := range pageMap {
 		if p.LoadOptions.Text {
 			textIds = append(textIds, p.PageId)
 		}
-		if p.LoadOptions.Summary {
-			summaryIds = append(summaryIds, p.PageId)
-		}
 	}
 	textSelect := database.NewQuery(`IF(p.pageId IN`).AddIdsGroup(textIds).Add(`,p.text,"") AS text`)
-	summarySelect := database.NewQuery(`IF(p.pageId IN`).AddIdsGroup(summaryIds).Add(`,p.summary,"") AS summary`)
 
 	// Load the page data
 	rows := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
-			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,`).AddPart(summarySelect).Add(`,
+			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset
@@ -526,7 +527,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
-			&p.VoteType, &p.Summary, &p.Alias, &p.OriginalCreatedAt, &p.SortChildrenBy,
+			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
@@ -541,6 +542,30 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 			delete(pageMap, p.PageId)
 		}
 	}
+	return err
+}
+
+// LoadSummaries loads summaries for the given pages.
+func LoadSummaries(db *database.DB, pageMap map[int64]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT pageId,name,text
+		FROM pageSummaries
+		WHERE pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId int64
+		var name, text string
+		err := rows.Scan(&pageId, &name, &text)
+		if err != nil {
+			return fmt.Errorf("failed to scan a page: %v", err)
+		}
+		pageMap[pageId].Summaries[name] = text
+		return nil
+	})
 	return err
 }
 
@@ -630,7 +655,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	}
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,pi.type,p.title,p.clickbait,p.text,p.metaText,
-			p.summary,pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
+			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
@@ -643,7 +668,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 			(pi.seeGroupId=0 OR pi.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.Type, &p.Title, &p.Clickbait,
-		&p.Text, &p.MetaText, &p.Summary, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
+		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,

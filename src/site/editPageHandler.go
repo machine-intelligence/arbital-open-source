@@ -246,7 +246,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["clickbait"] = data.Clickbait
 		hashmap["text"] = data.Text
 		hashmap["metaText"] = data.MetaText
-		hashmap["summary"] = core.ExtractSummary(data.Text)
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 		hashmap["isCurrentEdit"] = isCurrentEdit
 		hashmap["isMinorEdit"] = isMinorEdit
@@ -259,6 +258,24 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		statement := tx.NewInsertTxStatement("pages", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't insert a new page", err
+		}
+
+		// Update summaries
+		if isCurrentEdit {
+			// Delete old page summaries
+			statement = database.NewQuery(`
+				DELETE FROM pageSummaries WHERE pageId=?`, data.PageId).ToTxStatement(tx)
+			if _, err := statement.Exec(); err != nil {
+				return "Couldn't delete existing page summaries", err
+			}
+
+			_, summaryValues := core.ExtractSummaries(data.PageId, data.Text)
+			statement = tx.NewTxStatement(`
+				INSERT INTO pageSummaries (pageId,name,text)
+				VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3))
+			if _, err := statement.Exec(summaryValues...); err != nil {
+				return "Couldn't insert page summaries", err
+			}
 		}
 
 		// Update pageInfos

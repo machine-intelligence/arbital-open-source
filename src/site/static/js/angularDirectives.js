@@ -27,20 +27,14 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.summaries = [];
 			$scope.getArrowStyle = function() {
 				return {"left": +$scope.arrowOffset};
 			};
 
-			// Add the primary page as the first lens.
-			if ($scope.page && $scope.page.lensIds.indexOf($scope.page.pageId) < 0) {
-				$scope.page.lensIds.unshift($scope.page.pageId);
-			}
-
-			// Check if a lens is loaded
-			$scope.isLoaded = function(lensId) {
-				var lens = pageService.pageMap[lensId];
-				if (!lens) return false;
-				return lens.summary.length > 0;
+			// Check if summaries are loaded
+			$scope.isLoaded = function() {
+				return $scope.summaries.length > 0;
 			};
 		},
 		link: function(scope, element, attrs) {
@@ -51,34 +45,32 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				isDestroyed = true;
 			});
 
-			// Called when a tab is selected
-			scope.tabSelect = function(lensId) {
-				if (scope.isLoaded(lensId)) return;
-				// Fetch page data from the server.
-				pageService.loadIntrasitePopover(lensId, {
-					success: function() {
-						if (isDestroyed) return;
-						if (!scope.page) {
-							scope.page = pageService.pageMap[scope.pageId];
-						}
-						var lens = pageService.pageMap[lensId];
-						if (!lens.summary) {
-							lens.summary = " "; // to avoid trying to load it again
-						}
-						// Hack: we need to fix the md-tabs height, because it takes way too long
-						// to adjust by itself.
-						$timeout(function() {
-							var $el = element.find(".popover-tab-body");
-							$el.closest("md-tabs").height($el.children().height());
-						});
-						// Page's lensIds got resent, so need to fix this again
-						if (scope.page.lensIds.indexOf(scope.page.pageId) < 0) {
-							scope.page.lensIds.unshift(scope.page.pageId);
-						}
-					},
-				});
+			// Convert the name of the tab into an index for sorting.
+			var nameToTabIndex = function(name) {
+				if (name === "Brief") return 0;
+				if (name === "Summary") return 1;
+				if (name === "Technical") return 2;
+				return 3;
 			};
-			scope.tabSelect(scope.pageId);
+
+			// Fetch page summaries from the server.
+			pageService.loadIntrasitePopover(scope.pageId, {
+				success: function() {
+					if (isDestroyed) return;
+					for (var name in scope.page.summaries) {
+						scope.summaries.push({name: name, text: scope.page.summaries[name]});
+					}
+					scope.summaries.sort(function(a, b) {
+						return nameToTabIndex(a.name) > nameToTabIndex(b.name);
+					});
+					// Hack: we need to fix the md-tabs height, because it takes way too long
+					// to adjust by itself.
+					$timeout(function() {
+						var $el = element.find(".popover-tab-body");
+						$el.closest("md-tabs").height($el.children().height());
+					});
+				},
+			});
 		},
 	};
 });
@@ -273,19 +265,15 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 			// should be visible.
 			var computeUrls = function() {
 				$scope.questionUrl = "/edit/?type=question";
-				$scope.editPageUrl = undefined;
 				$scope.siblingUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
-				$scope.showNewComment = false;
 				$scope.showNewAnswer = false;
 				if (pageService.primaryPage) {
-					$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
 					var type = pageService.primaryPage.type;
 					if (type === "question") {
 						$scope.showNewAnswer = true;
 					} else if (type === "wiki") {
-						$scope.showNewComment = true;
 						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
 						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
 						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
@@ -299,18 +287,6 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 			$scope.$watch(function() { return pageService.primaryPage; }, function() {
 				computeUrls();
 			});
-
-			// New comment button is clicked
-			$scope.newComment = function() {
-				$("html, body").animate({
-					scrollTop: $(".new-comment-button").offset().top,
-		    }, {
-					duration: 1000,
-					complete: function() {
-						$(".new-comment-button").click();
-					}
-				});
-			};
 
 			// New answer button is clicked
 			$scope.newAnswer = function() {
