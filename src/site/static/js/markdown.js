@@ -3,6 +3,8 @@
 var notEscaped = "(^|\\\\`|\\\\\\[|[^A-Za-z0-9_`[])";
 var noParen = "(?=$|[^(])";
 var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
+var pageUrlMatch = "(http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch;
+var anyUrlMatch = "(https?://[^ \\]\\)]+)";
 // [vote: alias]
 var voteEmbedRegexp = new RegExp(notEscaped + 
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
@@ -16,10 +18,13 @@ var simpleLinkRegexp = new RegExp(notEscaped +
 var complexLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
 		"\\(" + aliasMatch + "\\)", "g"); // match (Alias)
+var anyLinkRegexp = new RegExp(notEscaped + 
+		"\\[([^\\]]+?)\\]" + // match [Text]
+		"\\(([^ \\]]+?)\\)", "g"); // match (Alias)
 // [text](url)
 var urlLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
-		"\\((http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch + "\\)", "g"); // match (Url)
+		"\\(" + pageUrlMatch + "\\)", "g"); // match (Url)
 // [@alias]
 var atAliasRegexp = new RegExp(notEscaped + 
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");
@@ -115,16 +120,36 @@ app.service("markdownService", function(pageService, userService){
 				}
 			});
 		});
-	
+/*	
 		// Convert [Text](Alias) spans into links.
-		var aliasRegexp = new RegExp(aliasMatch, "");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(complexLinkRegexp, function (whole, prefix, text, alias) {
-				if (alias.match(aliasRegexp)) {
-					var url = "http://" + host + "/pages/" + alias;
+				var matches = alias.match(aliasMatch);
+				if (matches) {
+					var url = "http://" + host + "/pages/" + matches[0];
 					return prefix + "[" + text + "](" + url + ")";
 				} else {
 					return prefix + "[" + text + "](" + alias + ")";
+				}
+			});
+		});
+*/	
+		// Convert [Text](Alias) spans into links
+		// while leaving [Text](url) spans as they are
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(anyLinkRegexp, function (whole, prefix, text, alias) {
+				var matches = alias.match(anyUrlMatch);
+				if (matches) {
+					var url = matches[0];
+					return prefix + "[" + text + "](" + url + ")";
+				}
+				matches = alias.match(aliasMatch);
+				if (matches) {
+					var url = "http://" + host + "/pages/" + matches[0];
+					return prefix + "[" + text + "](" + url + ")";
+				} else {
+					var url = "http://" + host + "/pages/invalid_link";
+					return prefix + "[" + text + "](" + url + ")";
 				}
 			});
 		});
