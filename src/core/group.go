@@ -70,11 +70,18 @@ func LoadDomainIds(db *database.DB, u *user.User, page *Page, pageMap map[int64]
 
 // newInternalGroup creates a new group. For internal use only.
 func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, title, alias, clickbait string, isPersonalGroup bool) (string, error) {
+	userGroupStr := "group"
+	if isPersonalGroup {
+		userGroupStr = "user"
+	}
+	url := GetEditPageFullUrl("", groupId)
+	text := fmt.Sprintf("Automatically generated page for \"%s\" %s. Click [here to edit](%s).", title, userGroupStr, url)
 	// Create new group for the user.
 	hashmap := make(database.InsertMap)
 	hashmap["pageId"] = groupId
 	hashmap["edit"] = 1
 	hashmap["title"] = title
+	hashmap["text"] = text
 	hashmap["clickbait"] = clickbait
 	hashmap["creatorId"] = userId
 	hashmap["createdAt"] = database.Now()
@@ -101,6 +108,16 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 		return "Couldn't create a new page", err
 	}
 
+	// Add a summary for the page
+	hashmap = make(database.InsertMap)
+	hashmap["pageId"] = groupId
+	hashmap["name"] = "Summary"
+	hashmap["text"] = text
+	statement = tx.NewInsertTxStatement("pageSummaries", hashmap)
+	if _, err := statement.Exec(); err != nil {
+		return "Couldn't create a new page summary", err
+	}
+
 	// Add user to the group.
 	if groupType == GroupPageType {
 		hashmap = make(database.InsertMap)
@@ -123,7 +140,7 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 		Type:      groupType,
 		Title:     title,
 		Clickbait: clickbait,
-		Text:      "",
+		Text:      text,
 		Alias:     alias,
 		CreatorId: userId,
 	}

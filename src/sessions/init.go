@@ -29,7 +29,7 @@ func GetDomain() string {
 }
 
 func GetMuxDomain() string {
-	address := "192.168.1.245"
+	address := "10.0.1.10"
 	if Live {
 		address = config.XC.Site.Live.Address
 	}

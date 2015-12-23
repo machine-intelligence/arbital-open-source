@@ -134,6 +134,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType && oldPage.Type != core.AnswerPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
 		}
+		if len(data.Text) <= 0 {
+			return pages.HandlerBadRequestFail("Need text", nil)
+		}
 		if data.AnchorContext == "" && data.AnchorText != "" {
 			return pages.HandlerBadRequestFail("Anchor context isn't set", nil)
 		}
