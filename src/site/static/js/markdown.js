@@ -18,9 +18,6 @@ var simpleLinkRegexp = new RegExp(notEscaped +
 var complexLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
 		"\\(" + aliasMatch + "\\)", "g"); // match (Alias)
-var anyLinkRegexp = new RegExp(notEscaped + 
-		"\\[([^\\]]+?)\\]" + // match [Text]
-		"\\(([^ \\]]+?)\\)", "g"); // match (Alias)
 // [text](url)
 var urlLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
@@ -90,7 +87,18 @@ app.service("markdownService", function(pageService, userService){
 		// Convert [alias/url text] spans into links.
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
-				return prefix + "[" + text + "](" + alias + ")";
+				var matches = alias.match(anyUrlMatch);
+				if (matches) {
+					var url = matches[0];
+					return prefix + "[" + text + "](" + url + ")";
+				}
+				matches = alias.match(aliasMatch);
+				if (matches && matches[0] == alias) {
+					var url = "http://" + host + "/pages/" + matches[0];
+					return prefix + "[" + text + "](" + url + ")";
+				} else {
+					return whole;
+				}
 			});
 		});
 
@@ -102,7 +110,8 @@ app.service("markdownService", function(pageService, userService){
 					var url = "http://" + host + "/pages/" + page.pageId;
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
-					return prefix + "[" + alias + "](" + alias + ")";
+					var url = "http://" + host + "/pages/" + alias;
+					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
 		});
@@ -120,40 +129,6 @@ app.service("markdownService", function(pageService, userService){
 				}
 			});
 		});
-/*	
-		// Convert [Text](Alias) spans into links.
-		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(complexLinkRegexp, function (whole, prefix, text, alias) {
-				var matches = alias.match(aliasMatch);
-				if (matches) {
-					var url = "http://" + host + "/pages/" + matches[0];
-					return prefix + "[" + text + "](" + url + ")";
-				} else {
-					return prefix + "[" + text + "](" + alias + ")";
-				}
-			});
-		});
-*/	
-		// Convert [Text](Alias) spans into links
-		// while leaving [Text](url) spans as they are
-		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(anyLinkRegexp, function (whole, prefix, text, alias) {
-				var matches = alias.match(anyUrlMatch);
-				if (matches) {
-					var url = matches[0];
-					return prefix + "[" + text + "](" + url + ")";
-				}
-				matches = alias.match(aliasMatch);
-				if (matches) {
-					var url = "http://" + host + "/pages/" + matches[0];
-					return prefix + "[" + text + "](" + url + ")";
-				} else {
-					var url = "http://" + host + "/pages/invalid_link";
-					return prefix + "[" + text + "](" + url + ")";
-				}
-			});
-		});
-
 
 		if (pageId) {
 			// Setup the editor stuff.
