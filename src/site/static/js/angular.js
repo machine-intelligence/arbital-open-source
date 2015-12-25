@@ -240,7 +240,8 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 			$scope.indexPageIdsMap = data.result;
 			return {
 				title: pageService.pageMap[$scope.subdomain].title + " - Private Domain",
-				element: $compile("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+				element: $compile("<arb-group-index group-id='" + data.result.domainId +
+					"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
 			};
 		}))
 		.error($scope.getErrorFunc("privateIndex"));
