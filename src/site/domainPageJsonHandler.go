@@ -59,7 +59,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if params.PrivateGroupId <= 0 {
 			return pages.HandlerBadRequestFail("Need domain alias or need to be in a private domain", err)
 		}
-		params.C.Debugf("==================== %v", params.PrivateGroupId)
+		core.AddPageToMap(params.PrivateGroupId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 		constraintPart = database.NewQuery("AND pi.seeGroupId=?", params.PrivateGroupId)
 		returnData.ResultMap["domainId"] = fmt.Sprintf("%d", params.PrivateGroupId)
 	}
