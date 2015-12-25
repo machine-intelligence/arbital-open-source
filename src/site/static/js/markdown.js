@@ -133,7 +133,7 @@ app.service("markdownService", function(pageService, userService){
 		if (pageId) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId);
-			InitMathjax(converter, editor, pageId);
+			//InitMathjax(converter, editor, pageId);
 			converter.hooks.chain("postConversion", function (text) {
 				if (postConversionCallback) {
 					postConversionCallback(function() {
