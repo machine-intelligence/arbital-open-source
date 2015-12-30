@@ -121,6 +121,7 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 
 			// Convert page's summaries into our local array
 			var processPageSummaries = function() {
+				if (!scope.page || !scope.page.summaries) return;
 				for (var name in scope.page.summaries) {
 					scope.summaries.push({name: name, text: scope.page.summaries[name]});
 				}
@@ -395,6 +396,7 @@ app.directive("arbPageList", function(pageService, userService) {
 			showQuickEdit: "@",
 			showRedLinkCount: "@",
 			showCommentCount: "@",
+			showTextLength: "@",
 			// If set, we'll pull the page from the editMap instead of pageMap
 			useEditMap: "@",
 		},

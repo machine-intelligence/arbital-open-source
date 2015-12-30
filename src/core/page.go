@@ -91,7 +91,7 @@ type corePageData struct {
 	Type              string `json:"type"`
 	Title             string `json:"title"`
 	Clickbait         string `json:"clickbait"`
-	TextLength        int    `json:"textLength"`
+	TextLength        int    `json:"textLength"` // number of characters
 	Alias             string `json:"alias"`
 	SortChildrenBy    string `json:"sortChildrenBy"`
 	HasVote           bool   `json:"hasVote"`
