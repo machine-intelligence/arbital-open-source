@@ -292,6 +292,13 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .pre {
   white-space: pre; }
 
+md-toolbar a, md-toolbar a[page-id] {
+  color: white; }
+  md-toolbar a:hover, md-toolbar a[page-id]:hover {
+    color: #E0F2F1; }
+  md-toolbar a:active, md-toolbar a[page-id]:active {
+    color: #004D40; }
+
 a {
   text-decoration: none;
   outline: none;
@@ -314,13 +321,6 @@ a {
         color: #B71C1C; }
     a[page-id].red-todo-text {
       background-color: #ffdddd; }
-
-md-toolbar a {
-  color: white; }
-  md-toolbar a:hover {
-    color: #E0F2F1; }
-  md-toolbar a:active {
-    color: #004D40; }
 
 md-tooltip .md-content {
   background-color: rgba(0, 0, 0, 0.9);

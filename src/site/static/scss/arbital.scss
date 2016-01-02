@@ -446,6 +446,17 @@ $toolbar-height: 64px;
 	white-space: pre;
 }
 
+// Inside toolbars, color the link differently
+md-toolbar a, md-toolbar a[page-id] {
+	color: white;
+	&:hover {
+		color: $primary-hue-1;
+	}
+	&:active {
+		color: $primary-hue-3;
+	}
+}
+
 // Style all the links
 a {
 	$color: #0000cc;
@@ -485,17 +496,6 @@ a {
 		&.red-todo-text {
 			background-color: #ffdddd;
 		};
-	}
-}
-
-// Inside toolbars, color the link differently
-md-toolbar a {
-	color: white;
-	&:hover {
-		color: $primary-hue-1;
-	}
-	&:active {
-		color: $primary-hue-3;
 	}
 }
 
