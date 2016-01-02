@@ -145,7 +145,7 @@ span.md-warn {
 	font-weight: 700;
 	margin-top: 1.5rem;
 	margin-bottom: 0.5rem;
-	color: $primary-color;
+	color: #555555;
 }
 
 .md-subhead {
@@ -485,6 +485,17 @@ a {
 		&.red-todo-text {
 			background-color: #ffdddd;
 		};
+	}
+}
+
+// Inside toolbars, color the link differently
+md-toolbar a {
+	color: white;
+	&:hover {
+		color: $primary-hue-1;
+	}
+	&:active {
+		color: $primary-hue-3;
 	}
 }
 

@@ -91,7 +91,7 @@ span.md-warn > span, span.md-warn > md-icon {
   font-weight: 700;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
-  color: #009688; }
+  color: #555555; }
 
 .md-subhead {
   font-weight: 700; }
@@ -314,6 +314,13 @@ a {
         color: #B71C1C; }
     a[page-id].red-todo-text {
       background-color: #ffdddd; }
+
+md-toolbar a {
+  color: white; }
+  md-toolbar a:hover {
+    color: #E0F2F1; }
+  md-toolbar a:active {
+    color: #004D40; }
 
 md-tooltip .md-content {
   background-color: rgba(0, 0, 0, 0.9);
