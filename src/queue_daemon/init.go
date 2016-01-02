@@ -101,12 +101,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	err := tasks.EnqueueWithName(c, &tickTask, "tick", "tick")
 	if err != nil {
 		c.Debugf("TickTask enqueue error: %v", err)
-	}
+	}*/
 	var emailUpdatesTask tasks.EmailUpdatesTask
-	err = tasks.EnqueueWithName(c, &emailUpdatesTask, "emailUpdates", "emailUpdates")
+	err := tasks.EnqueueWithName(c, &emailUpdatesTask, "emailUpdates", "emailUpdates")
 	if err != nil {
 		c.Debugf("EmailUpdatesTask enqueue error: %v", err)
-	}*/
+	}
 
 	for true {
 		if err := processTask(c); err != nil {
