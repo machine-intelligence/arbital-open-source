@@ -5,18 +5,18 @@ $composeFabZ: 50;
 
 // Colors that are the same as we set for mdThemingProvider
 //http://www.google.com/design/spec/style/color.html#color-color-palette
-$primary-color: #607D8B; // blue-grey (500)
-$primary-hue-1: #CFD8DC; // 100
-$primary-hue-2: #455A64; // 700
-$primary-hue-3: #263238; // 900
-$accent-color: #00BFA5; // teal (A700)
-$accent-hue-1: #A7FFEB; // A100
-$accent-hue-2: #1DE9B6; // A400
-$accent-hue-3: #64FFDA; // A200
-$warn-color: #FF6D00; // orange (A700)
-$warn-hue-1: #FFD180; // A100
-$warn-hue-2: #FF9100; // A400
-$warn-hue-3: #FFAB00; // amber (A700)
+$primary-color: #009688; // teal (500)
+$primary-hue-1: #E0F2F1; // 100
+$primary-hue-2: #00796B; // 700
+$primary-hue-3: #004D40; // 900
+$accent-color: #FF5722; // deep-orange (500)
+$accent-hue-1: #FFCCBC; // 100
+$accent-hue-2: #E64A19; // 700
+$accent-hue-3: #BF360C; // 900
+$warn-color: #F44336; // red (500)
+$warn-hue-1: #FFCDD2; // 100
+$warn-hue-2: #D32F2F; // 700
+$warn-hue-3: #B71C1C; // 900
 
 #primary-color {
 	border-top-color: $primary-color;
@@ -396,7 +396,7 @@ $toolbar-height: 64px;
 			position: relative;
 			// Move left by $my-vote-width because my-vote-knob pushes this know to the right
 			left: -$my-vote-width / 2.0 - $my-vote-width;
-			background-color: $accent-hue-2;
+			background-color: $accent-hue-3;
 			width: $my-vote-width;
 			height: $vote-bar-height + $vote-bar-margin;
 		}
@@ -451,6 +451,7 @@ a {
 	$color: #0000cc;
 	text-decoration: none;
 	outline: none;
+
 	color: $color;
 	&:hover {
 		color: darken($color, 20%);
@@ -459,22 +460,32 @@ a {
 		color: lighten($color, 20%);
 	}
 
-	// Helper for coloring broken links
-	&.red-link {
-		$color: #cc0000;
-		color: $color;
+	// Style intrasite links
+	&[page-id] {
+		color: $primary-color;
 		&:hover {
-			color: darken($color, 20%);
+			color: $primary-hue-2;
 		}
 		&:active {
-			color: lighten($color, 20%);
+			color: $primary-hue-3;
 		}
+	
+		// Helper for coloring broken links
+		&.red-link {
+			color: $warn-color;
+			&:hover {
+				color: $warn-hue-2;
+			}
+			&:active {
+				color: $warn-hue-3;
+			}
+		}
+	
+		// Helper for coloring [ red text] links.
+		&.red-todo-text {
+			background-color: #ffdddd;
+		};
 	}
-
-	// Helper for coloring [ red text] links.
-	&.red-todo-text {
-		background-color: #ffdddd;
-	};
 }
 
 // Tooltips that show up when you hover over things
@@ -542,6 +553,12 @@ md-list-item:not(.no-margins) {
 
 	md-autocomplete {
 		background-color: $primary-hue-2;
+
+		md-autocomplete-wrap {
+			// Remove the shadow since this autocomplete is inside a toolbar
+			box-shadow: none;
+		}
+
 		input {
 			color: white;
 		}
@@ -561,16 +578,9 @@ md-autocomplete {
 }
 
 // Style all md-icons to have size proportionate to the font size
-/*md-icon.material-icons {
-	width: 1em;
-	height: 1em;
-	font-size: max(1em, 24px);
-	min-width: 24px;
-	min-height: 24px;
-}*/
 md-icon {
 	&.on {
-		color: $accent-color;
+		color: $primary-color;
 	}
 
 	&.off {

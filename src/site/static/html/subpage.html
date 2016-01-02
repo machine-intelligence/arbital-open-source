@@ -8,7 +8,7 @@
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center" ng-if="isComment">
 		<md-icon ng-hide="parentSubpageId">comment</md-icon>
-		<span class="accent-dot" ng-show="page.isNewPage()"></span>
+		<span class="primary-dot" ng-show="page.isNewPage()"></span>
 		<span class="separator" ng-hide="parentSubpageId"></span>
 
 		<!-- User name -->
@@ -51,7 +51,7 @@
 			layout-align="start center"
 			ng-if="isQuestion">
 		<md-icon>help</md-icon>
-		<span class="accent-dot" ng-show="page.isNewPage()"></span>
+		<span class="primary-dot" ng-show="page.isNewPage()"></span>
 		<span class="separator" ng-hide="parentSubpageId"></span>
 
 		<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
