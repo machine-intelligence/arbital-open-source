@@ -3,7 +3,7 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Arbital Updates</title>
+<title>Arbital updates</title>
 <style type="text/css">
   body {padding: 0px; min-width: 100%!important;}
   img {height: auto;}
@@ -55,11 +55,11 @@
     <![endif]-->     
       <table bgcolor="#ffffff" class="content" align="center" cellpadding="0" cellspacing="0" border="0" style="width: 100%;max-width: 600px;">
         <tr>
-          <td bgcolor="#ccccff" class="header" style="padding: 30px 30px 10px 30px;">
-            <table width="70" align="left" border="0" cellpadding="0" cellspacing="0">  
+          <td bgcolor="#00bfa5" class="header" style="padding: 0px 10px 10px 10px;">
+            <table width="120" align="left" border="0" cellpadding="0" cellspacing="0">  
               <tr>
-                <td height="70" style="padding: 0 20px 20px 0;">
-                  <img class="fix" src="http://arbital.com/static/images/emailLogo.png" width="70" height="70" border="0" alt="" style="height: auto;">
+                <td height="120">
+                  <img class="fix" src="http://localhost:8012/static/images/arbital-icon-120.png" width="120" height="120" border="0" alt="" style="height: auto;">
                 </td>
               </tr>
             </table>
@@ -73,7 +73,7 @@
                 <td height="70">
                   <table width="100%" border="0" cellspacing="0" cellpadding="0">
                     <tr>
-                      <td class="h1" style="padding: 0 0 0 3px;color: #153643;font-family: sans-serif;font-size: 33px;line-height: 38px;font-weight: bold;">
+                      <td class="h1" style="padding: 30px 0 0 3px;color: #153643;font-family: sans-serif;font-size: 33px;line-height: 38px;font-weight: bold;">
                         ARBITAL
                       </td>
                     </tr>
@@ -112,43 +112,57 @@
                   </tr><tr>
 										<td>
 											{{range .Updates}}
-												<div class="update-entry" style="margin: 5px 0px;">
+												<div class="update-entry" style="margin: 5px 0px 5px 15px;">
 													{{if eq .Type "topLevelComment"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment</a>.
+														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "reply"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>.
+														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "pageEdit"}}
 														This page has been edited
 														{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>{{end}}
-														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}.
+														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newPageByUser"}}
 														Created a new page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newParent"}}
 														New parent page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newChild"}}
 														New child page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newRequirement"}}
 														New requirement: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newRequiredBy"}}
 														This page is now a requirement for: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newTag"}}
 														New tag: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newTaggedBy"}}
 														This page now tags: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "commentEdit"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> edited a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>.
+														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "atMention"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> mentioned you in a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>.
+														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "addedToGroup"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> added you to
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>.
+														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "removedFromGroup"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> removed you from
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>.
+														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{end}}
 												</div>
 											{{end}}
@@ -225,8 +239,8 @@
             <table width="100%" border="0" cellspacing="0" cellpadding="0">
               <tr>
                 <td align="center" class="footercopy" style="font-family: sans-serif;font-size: 14px;color: #ffffff;">
-                  &reg; Omniment Inc 2015<br>
-									Questions? Comments? We would love to hear from you. <a href="mailto:alexei.andreev@gmail.com" style="text-decoration: underline;color: #ffffff;"><u>Email us!</u></a>
+									<a href="http://arbital.com">Arbital</a> | <a href="http://arbital.com/settings">Email settings</a><br>
+									We would love to hear from you: <a href="mailto:alexei@arbital.com" style="text-decoration: underline;color: #ffffff;"><u>Email us</u></a>.
                   <!--<a href="#" class="unsubscribe"><font color="#ffffff">Unsubscribe</font></a> 
                   <span class="hide">from this newsletter instantly</span>-->
                 </td>
