@@ -82,9 +82,9 @@ func (task *SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 		// Create mail message
 		subject := fmt.Sprintf("%d new updates on Arbital", emailData.UpdateCount)
 		msg := &mail.Message{
-			Sender:   "Arbital <updates@arbital.com>",
-			To:       []string{emailData.UpdateEmailAddress},
-			Bcc:      []string{"alexei@arbital.com"},
+			Sender: "Arbital <alexei@arbital.com>",
+			To:     []string{emailData.UpdateEmailAddress},
+			//Bcc:      []string{"alexei@arbital.com"},
 			Subject:  subject,
 			HTMLBody: emailData.UpdateEmailText,
 		}
