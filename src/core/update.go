@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"time"
 
 	"appengine/urlfetch"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/user"
+
+	"github.com/dustin/go-humanize"
 )
 
 const (
@@ -268,6 +271,14 @@ func LoadUpdateEmail(db *database.DB, userId int64) (resultData *UpdateData, ret
 		},
 		"GetPageTitle": func(pageId int64) string {
 			return pageMap[pageId].Title
+		},
+		"RelativeDateTime": func(date string) string {
+			t, err := time.Parse(database.TimeLayout, date)
+			if err != nil {
+				c.Errorf("Couldn't parse %s: %v", date, err)
+				return ""
+			}
+			return humanize.Time(t)
 		},
 	}
 

@@ -42,35 +42,12 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 		WHERE id=?`)
 	statement.Exec(u.Id)
 
-	// mark all updates as new, for testing
+	// Mark all updates as new and not emailed, for testing
 	statement = db.NewStatement(`
 		UPDATE updates
-		SET newCount=1
+		SET newCount=1,emailed=0
 		WHERE userId=?`)
 	statement.Exec(u.Id)
-
-	// mark all updates as not emailed, for testing
-	statement = db.NewStatement(`
-		UPDATE updates
-		SET emailed=0
-		WHERE userId=?`)
-	statement.Exec(u.Id)
-
-	/*
-		// If we wanted to try something more advanced,
-		// then we could set a limit of how many entries are marked as needing to be emailed
-		statement := db.NewStatement(`
-		UPDATE updates SET newCount=1,emailed=0
-		WHERE userId IN (
-			SELECT userId FROM (
-				SELECT userId FROM updates
-				WHERE userId=?
-				ORDER BY createdAt DESC
-				LIMIT 5, 5
-			) tmp
-		)`)
-		statement.Exec(u.Id)
-	*/
 
 	emailData, err := core.LoadUpdateEmail(db, u.Id)
 	if err != nil {

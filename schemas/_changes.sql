@@ -19,3 +19,5 @@ alter table pages drop column `alias`,drop column `type`,drop column sortChildre
 update subscriptions set toPageId=toUserId where toPageId=0; alter table subscriptions drop column toUserId; alter table subscriptions change column toPageId toId bigint not null;
 update updates set subscribedToPageId=subscribedToUserId where subscribedToPageId=0; alter table updates drop column subscribedToUserId; alter table updates change column subscribedToPageId subscribedToId bigint not null;
 alter table pages drop column summary;
+update pages set text=concat('Automatically generated page for "', title, '" user. Click [here to edit](http://arbital.com/edit/', pageId, ').') where length(text)<3 and isCurrentEdit and pageId in (select pageId from pageInfos where type="group" and pageId<150);
+update pages set text=concat('Automatically generated page for "', title, '" group. Click [here to edit](http://arbital.com/edit/', pageId, ').') where length(text)=0 and isCurrentEdit and pageId in (select pageId from pageInfos where type="group");

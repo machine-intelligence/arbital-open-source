@@ -22,10 +22,10 @@
 
 		<!-- Updates -->
 		<md-button href="/updates/"
-				ng-class="{'md-icon-button': userService.user.updateCount <= 0, 'md-accent': userService.user.updateCount > 0}"
+				ng-class="{'md-icon-button': userService.user.updateCount <= 0}"
 				ng-show="userService.user.isLoggedIn">
 			<md-icon ng-show="userService.user.updateCount <= 0">notifications_none</md-icon>
-			<md-icon ng-show="userService.user.updateCount > 0">notifications</md-icon>
+			<md-icon class="md-accent md-hue-3" ng-show="userService.user.updateCount > 0">notifications</md-icon>
 			<span ng-bind="userService.user.updateCount" ng-show="userService.user.updateCount > 0"></span>
 		</md-button>
 

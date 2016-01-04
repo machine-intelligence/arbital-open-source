@@ -6,12 +6,16 @@
 		ng-hide="hide || !userService.userIsCool()">
 	<md-fab-trigger>
 		<md-button class="md-fab">
-			<md-icon class="fab-icon">note_add</md-icon>
-			<md-tooltip md-direction="left">New</md-tooltip>
+			<md-icon class="fab-icon">add</md-icon>
+			<md-tooltip md-direction="left">Quick menu</md-tooltip>
 		</md-button>
 	</md-fab-trigger>
 	<!-- TODO(alexei): remove ng-show constraint when the bug with dots appearing is fixed -->
 	<md-fab-actions ng-show="isOpen">
+		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="editPageUrl">
+			<md-icon>create</md-icon>
+			<md-tooltip md-direction="left">Edit page</md-tooltip>
+		</md-button>
 		<md-button href="/edit/" class="md-fab md-raised md-mini md-accent">
 			<md-icon>note_add</md-icon>
 			<md-tooltip md-direction="left">New page</md-tooltip>

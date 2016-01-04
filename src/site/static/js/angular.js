@@ -14,16 +14,15 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
 	}
 	// Create themes, by getting the colors from our css files
-	$mdThemingProvider.definePalette("arb-primary-theme", $mdThemingProvider.extendPalette("blue-grey", {
+	$mdThemingProvider.definePalette("arb-primary-theme", $mdThemingProvider.extendPalette("teal", {
 		"500": rgb2hex($("#primary-color").css("border-top-color")),
 		"300": rgb2hex($("#primary-color").css("border-right-color")),
 		"800": rgb2hex($("#primary-color").css("border-bottom-color")),
 		"A100": rgb2hex($("#primary-color").css("border-left-color")),
 		"contrastDefaultColor": "light",
 		"contrastDarkColors": ["300"],
-		"contrastLightColors": undefined,
 	}));
-	$mdThemingProvider.definePalette("arb-accent-theme", $mdThemingProvider.extendPalette("teal", {
+	$mdThemingProvider.definePalette("arb-accent-theme", $mdThemingProvider.extendPalette("deep-orange", {
 		"A200": rgb2hex($("#accent-color").css("border-top-color")),
 		"A100": rgb2hex($("#accent-color").css("border-right-color")),
 		"A400": rgb2hex($("#accent-color").css("border-bottom-color")),
@@ -31,13 +30,13 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		"contrastDefaultColor": "dark",
 		"contrastLightColors": [],
 	}));
-	$mdThemingProvider.definePalette("arb-warn-theme", $mdThemingProvider.extendPalette("orange", {
+	$mdThemingProvider.definePalette("arb-warn-theme", $mdThemingProvider.extendPalette("red", {
 		"500": rgb2hex($("#warn-color").css("border-top-color")),
 		"300": rgb2hex($("#warn-color").css("border-right-color")),
 		"800": rgb2hex($("#warn-color").css("border-bottom-color")),
 		"A100": rgb2hex($("#warn-color").css("border-left-color")),
-		"contrastDefaultColor": "dark",
-		"contrastLightColors": [],
+		"contrastDefaultColor": "light",
+		"contrastDarkColors": ["300"],
 	}));
 	// Set the theme
 	$mdThemingProvider.theme("default")
@@ -240,7 +239,8 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 			$scope.indexPageIdsMap = data.result;
 			return {
 				title: pageService.pageMap[$scope.subdomain].title + " - Private Domain",
-				element: $compile("<arb-group-index ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+				element: $compile("<arb-group-index group-id='" + data.result.domainId +
+					"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
 			};
 		}))
 		.error($scope.getErrorFunc("privateIndex"));

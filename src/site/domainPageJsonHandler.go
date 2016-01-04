@@ -54,11 +54,14 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 		core.AddPageToMap(domainId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 		constraintPart = database.NewQuery("AND pd.domainId=?", domainId)
+		returnData.ResultMap["domainId"] = fmt.Sprintf("%d", domainId)
 	} else {
 		if params.PrivateGroupId <= 0 {
 			return pages.HandlerBadRequestFail("Need domain alias or need to be in a private domain", err)
 		}
+		core.AddPageToMap(params.PrivateGroupId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 		constraintPart = database.NewQuery("AND pi.seeGroupId=?", params.PrivateGroupId)
+		returnData.ResultMap["domainId"] = fmt.Sprintf("%d", params.PrivateGroupId)
 	}
 
 	// Load additional info for all pages
@@ -72,7 +75,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
-		JOIN pageDomainPairs AS pd
+		LEFT JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
 		WHERE p.isCurrentEdit AND pi.type!=?`, core.CommentPageType).AddPart(constraintPart).Add(`
 		ORDER BY pi.createdAt DESC
@@ -94,7 +97,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			) AS l1
 			GROUP BY userId,pageId
 		) AS l2
-		JOIN pageDomainPairs AS pd
+		LEFT JOIN pageDomainPairs AS pd
 		ON (l2.pageId=pd.pageId)
 		JOIN pageInfos AS pi
 		ON (l2.pageId=pi.pageId)
@@ -126,7 +129,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 				AND pi.type=?`, core.CommentPageType).Add(`
 			GROUP by 1
 		) AS p
-		JOIN pageDomainPairs AS pd
+		LEFT JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
@@ -152,7 +155,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			) AS v1
 			GROUP BY userId,pageId
 		) AS v2
-		JOIN pageDomainPairs AS pd
+		LEFT JOIN pageDomainPairs AS pd
 		ON (v2.pageId=pd.pageId)
 		JOIN pageInfos AS pi
 		ON (pd.pageId=pi.pageId)

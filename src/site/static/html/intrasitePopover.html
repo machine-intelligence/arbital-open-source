@@ -5,7 +5,7 @@
 	<div class="popover-body md-whiteframe-8dp">
 		<md-toolbar>
 			<div class="md-toolbar-tools">
-				<arb-page-title page-id="{{page.pageId}}" ng-if="page"></arb-page-title> 
+				<arb-page-title page-id="{{page.pageId}}" is-link="true" ng-if="page"></arb-page-title> 
 				<span ng-if="!page">Not found</span> 
 			</div>
 		</md-toolbar>
@@ -35,7 +35,7 @@
 		<!-- Footer -->
 		<div class="comment-footer" layout="row" layout-align="start center" ng-if="isLoaded()">
 			<arb-likes page-id="{{pageId}}" is-button="true" is-stretched="true"></arb-likes>
-			<arb-subscribe page-id="{{pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
+			<arb-subscribe page-id="{{pageId}}"></arb-subscribe>
 			<div flex></div>
 			<div layout="row" layout-align="start center" ng-show="page.commentCount">
 				<span class="separator"></span>

@@ -17,8 +17,10 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 			$scope.isQuestion = $scope.page.type === "question";
 			if ($scope.isComment) {
 				$scope.page.subpageIds = $scope.page.commentIds;
+				$scope.page.subpageIds.sort(pageService.getChildSortFunc("oldestFirst"));
 			} else if ($scope.isQuestion) {
 				$scope.page.subpageIds = $scope.page.answerIds;
+				$scope.page.subpageIds.sort(pageService.getChildSortFunc("likes"));
 			}
 			$scope.isCollapsed = false;
 

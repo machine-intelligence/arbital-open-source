@@ -84,7 +84,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 });
 
 // userPopover contains the popover body html.
-app.directive("arbUserPopover", function(pageService, userService) {
+app.directive("arbUserPopover", function($timeout, pageService, userService) {
 	return {
 		templateUrl: "/static/html/userPopover.html",
 		scope: {
@@ -96,35 +96,51 @@ app.directive("arbUserPopover", function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.user = userService.userMap[$scope.userId];
+			$scope.page = pageService.pageMap[$scope.userId];
+			$scope.summaries = [];
+
 			$scope.getArrowStyle = function() {
 				return {"left": +$scope.arrowOffset};
 			};
-			
-			// Fix to prevent errors when we go to another page while popover is loading.
-			// TODO: abort all http requests when switching to another page
-			var isDestroyed = false;
-			$scope.$on("$destroy", function() {
-				isDestroyed = true;
-			});
 
 			// Check if the data is loaded
 			$scope.isLoaded = function() {
-				if (!($scope.userId in userService.userMap)) {
-					return false;
+				if ($scope.user) {
+					return $scope.summaries.length > 0;
 				}
-				if (!($scope.userId in pageService.pageMap)) {
-					return false;
+				return false;
+			};
+		},
+		link: function(scope, element, attrs) {
+			// Fix to prevent errors when we go to another page while popover is loading.
+			// TODO: abort all http requests when switching to another page
+			var isDestroyed = false;
+			scope.$on("$destroy", function() {
+				isDestroyed = true;
+			});
+
+			// Convert page's summaries into our local array
+			var processPageSummaries = function() {
+				if (!scope.page || !scope.page.summaries) return;
+				for (var name in scope.page.summaries) {
+					scope.summaries.push({name: name, text: scope.page.summaries[name]});
 				}
-				return pageService.pageMap[$scope.userId].summary.length > 0;
 			};
 
-			if (!$scope.isLoaded()) {
-				pageService.loadUserPopover($scope.userId, {
+			processPageSummaries();
+			if (!scope.isLoaded()) {
+				pageService.loadUserPopover(scope.userId, {
 					success: function() {
-						var userPage = pageService.pageMap[$scope.userId];
-						if (userPage && userPage.summary.length == 0) {
-							userPage.summary = " "; // to prevent from loading again
-						}
+						if (isDestroyed) return;
+						scope.user = userService.userMap[scope.userId];
+						scope.page = pageService.pageMap[scope.userId];
+						processPageSummaries();
+						// Hack: we need to fix the md-tabs height, because it takes way too long
+						// to adjust by itself.
+						$timeout(function() {
+							var $el = element.find(".popover-tab-body");
+							$el.closest("md-tabs").height($el.children().height());
+						});
 					},
 				});
 			}
@@ -273,6 +289,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 			// should be visible.
 			var computeUrls = function() {
 				$scope.questionUrl = "/edit/?type=question";
+				$scope.editPageUrl = undefined;
 				$scope.siblingUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
@@ -289,10 +306,13 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 							$scope.siblingUrl = "/edit?newParentId=" + pageService.primaryPage.parentIds.join(",");
 						}
 					}
+					$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
 				}
 			};
 			computeUrls();
-			$scope.$watch(function() { return pageService.primaryPage; }, function() {
+			$scope.$watch(function() {
+				return pageService.primaryPage;
+			}, function() {
 				computeUrls();
 			});
 
@@ -376,6 +396,7 @@ app.directive("arbPageList", function(pageService, userService) {
 			showQuickEdit: "@",
 			showRedLinkCount: "@",
 			showCommentCount: "@",
+			showTextLength: "@",
 			// If set, we'll pull the page from the editMap instead of pageMap
 			useEditMap: "@",
 		},

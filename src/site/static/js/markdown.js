@@ -133,7 +133,7 @@ app.service("markdownService", function(pageService, userService){
 		if (pageId) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId);
-			InitMathjax(converter, editor, pageId);
+			//InitMathjax(converter, editor, pageId);
 			converter.hooks.chain("postConversion", function (text) {
 				if (postConversionCallback) {
 					postConversionCallback(function() {
@@ -269,7 +269,18 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 
 			// Convert page text to html.
 			var converter = markdownService.createConverter();
-			var html = converter.makeHtml(scope.summaryName ? scope.page.summaries[scope.summaryName] : scope.page.text);
+			var html = scope.page.text;
+			if (scope.summaryName) {
+				html = scope.page.summaries[scope.summaryName] || scope.page.summaries["Summary"];
+				if (!html) {
+					// Take the first one.
+					for (var key in scope.page.summaries) {
+						html = scope.page.summaries[key];
+						break;
+					}
+				}
+			}
+			var html = converter.makeHtml(html);
 			var $pageText = element;
 			$pageText.html(html);
 			window.setTimeout(function() {

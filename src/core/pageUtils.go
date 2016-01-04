@@ -306,6 +306,15 @@ func GetEditPageUrl(pageId int64) string {
 	return fmt.Sprintf("/edit/%d", pageId)
 }
 
+// GetEditPageFullUrl returns the full url for editing the given page.
+func GetEditPageFullUrl(subdomain string, pageId int64) string {
+	if len(subdomain) > 0 {
+		subdomain += "."
+	}
+	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
+	return fmt.Sprintf("http://%s%s/edit/%d", subdomain, domain, pageId)
+}
+
 // GetNewPageUrl returns the domain relative url for creating a page with a set alias.
 func GetNewPageUrl(alias string) string {
 	if alias != "" {
