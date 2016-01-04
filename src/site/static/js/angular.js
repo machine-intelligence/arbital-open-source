@@ -28,7 +28,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		"A400": rgb2hex($("#accent-color").css("border-bottom-color")),
 		"A700": rgb2hex($("#accent-color").css("border-left-color")),
 		"contrastDefaultColor": "dark",
-		"contrastLightColors": ["A700"],
+		"contrastLightColors": [],
 	}));
 	$mdThemingProvider.definePalette("arb-warn-theme", $mdThemingProvider.extendPalette("red", {
 		"500": rgb2hex($("#warn-color").css("border-top-color")),
