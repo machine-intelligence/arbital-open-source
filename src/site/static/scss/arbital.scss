@@ -12,7 +12,7 @@ $primary-hue-3: #004D40; // 900
 $accent-color: #FF5722; // deep-orange (500)
 $accent-hue-1: #FFCCBC; // 100
 $accent-hue-2: #E64A19; // 700
-$accent-hue-3: #FF6E40; // A200
+$accent-hue-3: #F16700; // custom (opposite to teal500)
 $warn-color: #F44336; // red (500)
 $warn-hue-1: #FFCDD2; // 100
 $warn-hue-2: #D32F2F; // 700
@@ -95,6 +95,12 @@ div.md-warn, md-list-item.md-warn {
 	}
 	&.md-hue-3 {
 		background-color: $warn-hue-3;
+	}
+}
+
+span.md-accent {
+	& > span, & > md-icon {
+		color: $accent-color;
 	}
 }
 
@@ -238,7 +244,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
-arb-discussion {
+.discussion-container {
 	margin-top: 20px;
 }
 
@@ -275,6 +281,11 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	.my-vote-knob {
 		visibility: hidden !important;
 	}
+}
+
+// Container for a list of tags/parents
+.page-list-span {
+	margin: 15px 0;
 }
 
 // Container for the new/edit comment; embedded in the discussion section
@@ -641,7 +652,7 @@ arb-page-list {
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {
-		padding: 5px $lens-padding;
+		padding: 10px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 20px;
 	}
@@ -658,7 +669,7 @@ arb-page-list {
 @media (min-width: 600px) {
 	$lens-padding: 50px;
 	.lens-text-container {
-		padding: 5px $lens-padding;
+		padding: 10px $lens-padding 20px;
 		font-size: 18px;
 		line-height: 22px;
 	}
@@ -675,7 +686,7 @@ arb-page-list {
 @media (min-width: 960px) {
 	$lens-padding: 90px;
 	.lens-text-container {
-		padding: 15px $lens-padding;
+		padding: 30px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
 	}
@@ -692,7 +703,7 @@ arb-page-list {
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
-		padding: 20px $lens-padding;
+		padding: 40px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
 	}
@@ -755,6 +766,11 @@ $triangle-size: 15px;
 		border-right: $triangle-size solid transparent;
 		border-top: $triangle-size solid whitesmoke;
 	}
+}
+
+// Added to the page title when it's show on the home page / group home page
+.simple-embed-page-title {
+	margin: 1rem 0;
 }
 
 // Compose fab that appears in the bottom right corner

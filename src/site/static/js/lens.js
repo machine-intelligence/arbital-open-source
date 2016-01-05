@@ -8,6 +8,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			pageId: "@",
 			lensParentId: "@",
 			selectedLens: "=",
+			isSimpleEmbed: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -63,6 +64,8 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			});
 		},
 		link: function(scope, element, attrs) {
+			if (scope.isSimpleEmbed) return;
+
 			// Detach some elements and append them to the body, since they will appear
 			// outside of the lens's div, and otherwise would be masked
 			var $inlineCommentsDiv = element.find(".inline-comments-div");

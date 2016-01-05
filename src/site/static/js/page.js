@@ -6,6 +6,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 		templateUrl: "/static/html/page.html",
 		scope: {
 			pageId: "@",
+			isSimpleEmbed: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -34,29 +35,6 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				return pageTitle + ": " + $scope.selectedLens.title;
 			}
 
-			// Manage switching between lenses, including loading the necessary data.
-			var switchToLens = function(lensId) {
-				if (lensId === $scope.page.pageId) {
-					$location.search("lens", undefined);
-				} else {
-					$location.search("lens", lensId);
-				}
-				$scope.selectedLens = pageService.pageMap[lensId];
-				$scope.$broadcast("lensTabChanged", lensId);
-			};
-			$scope.tabSelect = function(lensId) {
-				if ($scope.isLoaded(lensId)) {
-					$timeout(function() {
-						switchToLens(lensId);
-					});
-				} else {
-					pageService.loadLens(lensId, {
-						success: function(data, status) {
-							switchToLens(lensId);
-						},
-					});
-				}
-			};
 			$scope.isLoaded = function(lensId) {
 				return pageService.pageMap[lensId].text.length > 0;
 			};
@@ -88,6 +66,37 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 					}
 				}
 				return true;
+			};
+		},
+		link: function(scope, element, attrs) {
+			// Manage switching between lenses, including loading the necessary data.
+			var switchToLens = function(lensId) {
+				if (lensId === scope.page.pageId) {
+					$location.search("lens", undefined);
+				} else {
+					$location.search("lens", lensId);
+				}
+				scope.selectedLens = pageService.pageMap[lensId];
+				scope.$broadcast("lensTabChanged", lensId);
+				if (!scope.isSimpleEmbed) {
+					var $container = element.find(".discussion-container");
+					var $el = $compile("<arb-discussion class='reveal-after-render' page-id='" + lensId +
+						"'></arb-discussion>")(scope);
+					$container.empty().append($el);
+				}
+			};
+			scope.tabSelect = function(lensId) {
+				if (scope.isLoaded(lensId)) {
+					$timeout(function() {
+						switchToLens(lensId);
+					});
+				} else {
+					pageService.loadLens(lensId, {
+						success: function(data, status) {
+							switchToLens(lensId);
+						},
+					});
+				}
 			};
 		},
 	};

@@ -5,40 +5,35 @@
 			flex-order="1"
 			flex>
 		<!-- Parents -->
-		<div flex-order="{{isTinyScreen ? 1 : 0}}"
-				layout-margin
-				ng-show="page.parentIds.length > 0">
-			<div>
-				<span>Parents:</span>
-				<span ng-repeat="(index, parentId) in page.parentIds">
-					<span ng-show="index > 0">,</span>
-					<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
-				</span>
-			</div>
+		<div class="page-list-span"
+				flex-order="{{isTinyScreen ? 1 : 0}}"
+				ng-if="page.parentIds.length > 0 && !isSimpleEmbed">
+			<span>Parents:</span>
+			<span ng-repeat="(index, parentId) in page.parentIds">
+				<span ng-show="index > 0">,</span>
+				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
+			</span>
 		</div>
 
 		<!-- Hash anchor -->
 		<a id="page-{{page.pageId}}"></a>
 
 		<!-- Page title -->
-		<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen}"
-				layout-padding>
+		<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen, 'requirements-container simple-embed-page-title': isSimpleEmbed}">
 			<arb-page-title page-id="{{page.pageId}}"
 					show-type="true"
 					custom-page-title="getPageTitle()"></arb-page-title>
 		</h1>
 
 		<!-- Tags -->
-		<div flex-order="{{isTinyScreen ? 1 : 0}}"
-				layout-margin
-				ng-show="page.taggedAsIds.length > 0">
-			<div>
-				<span>Tagged as:</span>
-				<span ng-repeat="(index, tagId) in page.taggedAsIds">
-					<span ng-show="index > 0">,</span>
-					<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
-				</span>
-			</div>
+		<div class="page-list-span"
+				flex-order="{{isTinyScreen ? 1 : 0}}"
+				ng-if="page.taggedAsIds.length > 0 && !isSimpleEmbed">
+			<span>Tagged as:</span>
+			<span ng-repeat="(index, tagId) in page.taggedAsIds">
+				<span ng-show="index > 0">,</span>
+				<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
+			</span>
 		</div>
 
 		<!-- Voting container -->
@@ -46,7 +41,7 @@
 
 		<!-- Lens tabs -->
 		<md-tabs md-dynamic-height
-				class="md-primary md-hue-2"
+				class="md-whiteframe-1dp md-primary md-hue-2"
 				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
 				ng-click="tabsClicked($event)"
 				md-selected="selectedLensIndex">
@@ -68,9 +63,14 @@
 					<arb-lens class="reveal-after-render"
 							page-id="{{lensId}}"
 							lens-parent-id="{{page.pageId}}"
+							is-simple-embed="isSimpleEmbed"
 							ng-if="isLoaded(lensId)"></arb-lens>
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
+
+		<div class="discussion-container">
+			<!-- arb-discussion is inserted here dynamically -->
+		</div>
 	</div>
 </div>

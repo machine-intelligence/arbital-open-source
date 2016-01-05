@@ -1,10 +1,6 @@
 <div layout="column" class="capped-body-width">
-	<!-- Welcome message -->
-	<h1 layout-margin ng-bind="group.title"></h1>
-	<div layout-margin layout-padding class="md-whiteframe-1dp">
-		<arb-markdown page-id="{{group.pageId}}"
-				summary-name="Group"></arb-markdown>
-	</div>
+	<!-- Summary pulled from the corresponding group page -->
+	<arb-page class="reveal-after-render" page-id="{{group.pageId}}" is-simple-embed="true"></arb-page>
 	<br>
 	<br>
 

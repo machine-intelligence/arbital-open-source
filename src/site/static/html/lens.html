@@ -1,10 +1,11 @@
 <div layout="column">
 	<!-- Lens menu -->
-	<div class="lens-menu md-primary md-hue-1 md-whiteframe-1dp"
+	<div class="lens-menu md-primary md-hue-1"
 			ng-class="{'lens-menu-div': isFloatingLhs}"
 			ng-style="getLensMenuDivStyle()"
 			layout="{{isFloatingLhs ? 'column' : 'row'}}"
-			layout-align="{{isFloatingLhs ? 'start end' : 'space-around center'}}">
+			layout-align="{{isFloatingLhs ? 'start end' : 'space-around center'}}"
+			ng-if="!isSimpleEmbed">
 		<!-- Like -->
 		<arb-likes class="no-right-margin"
 				page-id="{{page.pageId}}"
@@ -65,13 +66,14 @@
 	</div>
 
 	<!-- Requirements -->
-	<arb-relationships class="requirements-container md-whiteframe-1dp reveal-after-render"
+	<arb-relationships class="requirements-container reveal-after-render"
 			page-id="{{page.pageId}}"
 			type="requirement"
-			is-lens-requirements="true"></arb-relationships>
+			is-lens-requirements="true"
+			ng-if="!isSimpleEmbed"></arb-relationships>
 
 	<!-- Page's text. Populated by markdown. -->
-	<div class="lens-text-container md-whiteframe-1dp" layout="column">
+	<div class="lens-text-container">
 		<arb-markdown class="lens-text"
 				page-id="{{page.pageId}}"
 				ng-hide="showingDiff"></arb-markdown>
@@ -80,25 +82,24 @@
 		</div>
 
 		<!-- Mastery container -->
-		<div ng-show="page.usedAsMastery"> <!-- Need this div to receive the margin from the parent -->
-			<md-button arb-user-check="cool"
-					ng-click="toggleMastery()">
-				<span ng-show="mastery.has">
-					<md-icon class="md-accent">done</md-icon>
-					<span ng-show="mastery.isManuallySet">You marked this requisite fulfilled</span>
-					<span ng-hide="mastery.isManuallySet">This requisite is fulfilled</span>
-				</span>
-				<span ng-hide="mastery.has">
-					<md-icon class="md-accent">add</md-icon>
-					<span ng-show="mastery.isManuallySet">You marked this requisite unfulfilled</span>
-					<span ng-hide="mastery.isManuallySet">I understand this page!</span>
-				</span>
-			</md-button>
-		</div>
+		<md-button arb-user-check="cool"
+				ng-click="toggleMastery()"
+				ng-show="page.usedAsMastery">
+			<span ng-show="mastery.has">
+				<md-icon class="md-accent">done</md-icon>
+				<span ng-show="mastery.isManuallySet">You marked this requisite fulfilled</span>
+				<span ng-hide="mastery.isManuallySet">This requisite is fulfilled</span>
+			</span>
+			<span ng-hide="mastery.has">
+				<md-icon class="md-accent">add</md-icon>
+				<span ng-show="mastery.isManuallySet">You marked this requisite unfulfilled</span>
+				<span ng-hide="mastery.isManuallySet">I understand this page!</span>
+			</span>
+		</md-button>
 	</div>
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->
-	<div class="inline-comments-div" ng-show="lensIsVisible">
+	<div class="inline-comments-div" ng-show="lensIsVisible" ng-if="!isSimpleEmbed">
 		<md-button class="inline-comment-icon md-icon-button md-accent md-raised"
 				ng-style="getNewInlineCommentButtonStyle()"
 				ng-click="newInlineComment()"
@@ -119,6 +120,4 @@
 			</md-button>
 		</div>
 	</div>
-
-	<arb-discussion class="reveal-after-render" page-id="{{page.pageId}}"></arb-discussion>
 </div>

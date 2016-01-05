@@ -65,6 +65,8 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
 		}
 	}
+	// Display this page fully
+	core.AddPageToMap(3440973961008233681, returnData.PageMap, core.PrimaryPageLoadOptions)
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)

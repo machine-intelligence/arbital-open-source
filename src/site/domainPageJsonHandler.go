@@ -52,14 +52,14 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if !ok {
 			return pages.HandlerErrorFail(fmt.Sprintf("Couldn't find the domain: %s", data.DomainAlias), nil)
 		}
-		core.AddPageToMap(domainId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		core.AddPageToMap(domainId, returnData.PageMap, core.PrimaryPageLoadOptions)
 		constraintPart = database.NewQuery("AND pd.domainId=?", domainId)
 		returnData.ResultMap["domainId"] = fmt.Sprintf("%d", domainId)
 	} else {
 		if params.PrivateGroupId <= 0 {
 			return pages.HandlerBadRequestFail("Need domain alias or need to be in a private domain", err)
 		}
-		core.AddPageToMap(params.PrivateGroupId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
+		core.AddPageToMap(params.PrivateGroupId, returnData.PageMap, core.PrimaryPageLoadOptions)
 		constraintPart = database.NewQuery("AND pi.seeGroupId=?", params.PrivateGroupId)
 		returnData.ResultMap["domainId"] = fmt.Sprintf("%d", params.PrivateGroupId)
 	}
