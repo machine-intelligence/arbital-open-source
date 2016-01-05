@@ -1,10 +1,9 @@
 <div layout="column">
 	<!-- Lens menu -->
 	<div class="lens-menu md-primary md-hue-1"
-			ng-class="{'lens-menu-div': isFloatingLhs}"
 			ng-style="getLensMenuDivStyle()"
-			layout="{{isFloatingLhs ? 'column' : 'row'}}"
-			layout-align="{{isFloatingLhs ? 'start end' : 'space-around center'}}"
+			layout="row"
+			layout-align="space-around start"
 			ng-if="!isSimpleEmbed">
 		<!-- Like -->
 		<arb-likes class="no-right-margin"
@@ -14,19 +13,21 @@
 		
 		<!-- Subscribe -->
 		<arb-subscribe page-id="{{page.pageId}}"
-				is-stretched="!isTinyScreen"></arb-subscribe>
+				is-stretched="!isTinyScreen"
+				show-subscriber-count="true"></arb-subscribe>
 		
 		<!-- Edit -->
-		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
-				ng-class="{'md-icon-button': isTinyScreen}"
-				arb-user-check="cool">
-			<md-icon>create</md-icon>
-			<span ng-hide="isTinyScreen">Edit</span>
-			<span class="warn-dot" ng-show="page.hasDraft"></span>
-			<md-tooltip ng-if="page.hasDraft">
-				You have an unpublished draft for this page
-			</md-tooltip>
-		</md-button>
+		<div layout="column" layout-align="start center">
+			<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
+					ng-class="{'md-icon-button': isTinyScreen}"
+					arb-user-check="cool">
+				<md-icon>create</md-icon>
+				<span ng-hide="isTinyScreen">Edit</span>
+			</md-button>
+			<span class="md-accent md-caption" ng-if="page.hasDraft">
+				Unpublished draft
+			</span>
+		</div>
 		
 		<!-- Link -->
 		<md-button ng-href="{{pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId}}"

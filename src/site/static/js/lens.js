@@ -18,7 +18,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				$scope.lensParentPage = pageService.pageMap[$scope.lensParentId];
 			}
 			$scope.isTinyScreen = !$mdMedia("gt-xs");
-			$scope.isFloatingLhs = false; //$mdMedia("gt-lg");
 
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
 			if (!$scope.mastery) {
@@ -72,23 +71,10 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			var $newInlineCommentButton = $inlineCommentsDiv.find(".inline-comment-icon");
 			$inlineCommentsDiv.appendTo($("body"));
 			var $lensMenuDiv = element.find(".lens-menu-div");
-			if (scope.isFloatingLhs) {
-				$lensMenuDiv.appendTo($("body"));
-			}
 			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia("gt-md") ? 0.5 : 1.1);
 			scope.$on("$destroy", function() {
 				$inlineCommentsDiv.remove();
 			});
-
-			// Get the position for the LHS lens menu div
-			scope.getLensMenuDivStyle = function() {
-				if (!scope.isFloatingLhs) return {};
-				return {
-					"left": $markdownContainer.offset().left - $lensMenuDiv.width(),
-					"top": $markdownContainer.offset().top,
-					"visibility": element.closest(".reveal-after-render-parent").length > 0 ? "hidden" : "visible",
-				};
-			};
 
 			// =========================== Inline comments ===========================
 			var $markdownContainer = element.find(".lens-text-container");

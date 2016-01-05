@@ -30,18 +30,6 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 				$scope.myUrl = pageService.getPageUrl($scope.page.pageId);
 			}
 
-			var isTouchDevice = "ontouchstart" in window // works in most browsers
-					|| (navigator.MaxTouchPoints > 0)
-					|| (navigator.msMaxTouchPoints > 0)
-					|| "onmsgesturechange" in window; // works on ie10
-
-			$scope.showRhsIcons = function() {
-				return $scope.hovering || isTouchDevice;
-			};
-			$scope.hoverToggle = function(hovering) {
-				$scope.hovering = hovering;
-			};
-
 			// Check if this comment is selected via URL hash
 			$scope.isSelected = function() {
 				return $location.hash() === "subpage-" + $scope.page.pageId;

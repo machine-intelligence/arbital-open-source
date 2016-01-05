@@ -99,12 +99,14 @@ div.md-warn, md-list-item.md-warn {
 }
 
 span.md-accent {
+	color: $accent-color;
 	& > span, & > md-icon {
 		color: $accent-color;
 	}
 }
 
 span.md-warn {
+	color: $warn-color;
 	& > span, & > md-icon {
 		color: $warn-color;
 	}
@@ -623,16 +625,6 @@ arb-likes {
 
 	// Number of likes
 	.like-count {
-	}
-}
-
-// Used to align button's text to the right
-.lens-menu-div {
-	.md-button {
-		text-align: right;
-	}
-	arb-likes {
-		margin-right: 0;
 	}
 }
 

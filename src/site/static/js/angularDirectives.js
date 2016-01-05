@@ -229,6 +229,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 			isUser: "=",
 			// If true, the button is not an icon button, but is a normal button with a label
 			isStretched: "=",
+			showSubscriberCount: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;

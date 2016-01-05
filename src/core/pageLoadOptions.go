@@ -36,15 +36,16 @@ type PageLoadOptions struct {
 	ChangeLogs bool
 
 	// Options for what data to load for the page itself
-	ChildDraftId  bool
-	HasDraft      bool
-	Likes         bool
-	Votes         bool
-	LastVisit     bool
-	IsSubscribed  bool
-	RedLinkCount  bool
-	Mastery       bool
-	UsedAsMastery bool
+	ChildDraftId    bool
+	HasDraft        bool
+	Likes           bool
+	Votes           bool
+	LastVisit       bool
+	IsSubscribed    bool
+	SubscriberCount bool
+	RedLinkCount    bool
+	Mastery         bool
+	UsedAsMastery   bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -93,12 +94,13 @@ var (
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment or answer)
 	SubpageLoadOptions = (&PageLoadOptions{
-		Comments:     true,
-		Links:        true,
-		HasDraft:     true,
-		Votes:        true,
-		IsSubscribed: true,
-		Text:         true,
+		Comments:        true,
+		Links:           true,
+		HasDraft:        true,
+		Votes:           true,
+		SubscriberCount: true,
+		IsSubscribed:    true,
+		Text:            true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info for an intrasite link popover
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{

@@ -56,11 +56,15 @@ div.md-warn, md-list-item.md-warn {
   div.md-warn.md-hue-3, md-list-item.md-warn.md-hue-3 {
     background-color: #B71C1C; }
 
-span.md-accent > span, span.md-accent > md-icon {
+span.md-accent {
   color: #FF5722; }
+  span.md-accent > span, span.md-accent > md-icon {
+    color: #FF5722; }
 
-span.md-warn > span, span.md-warn > md-icon {
+span.md-warn {
   color: #F44336; }
+  span.md-warn > span, span.md-warn > md-icon {
+    color: #F44336; }
 
 .md-display-3 {
   font-family: "Roboto Slab";
@@ -391,11 +395,6 @@ arb-likes {
   arb-likes .like-icon {
     min-width: 24px;
     margin-right: 2px; }
-
-.lens-menu-div .md-button {
-  text-align: right; }
-.lens-menu-div arb-likes {
-  margin-right: 0; }
 
 arb-page-list {
   margin: 1% 0; }

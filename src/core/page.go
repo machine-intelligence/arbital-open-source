@@ -123,10 +123,11 @@ type Page struct {
 
 	// === Auxillary data. ===
 	// For some pages we load additional data.
-	IsSubscribed bool `json:"isSubscribed"`
-	LikeCount    int  `json:"likeCount"`
-	DislikeCount int  `json:"dislikeCount"`
-	MyLikeValue  int  `json:"myLikeValue"`
+	IsSubscribed    bool `json:"isSubscribed"`
+	SubscriberCount int  `json:"subscriberCount"`
+	LikeCount       int  `json:"likeCount"`
+	DislikeCount    int  `json:"dislikeCount"`
+	MyLikeValue     int  `json:"myLikeValue"`
 	// Computed from LikeCount and DislikeCount
 	LikeScore int `json:"likeScore"`
 	// Last time the user visited this page.
@@ -387,6 +388,13 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	err = LoadSubscriptions(db, u.Id, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSubscriptions failed: %v", err)
+	}
+
+	// Load subscriber count
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SubscriberCount })
+	err = LoadSubscriberCount(db, u.Id, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadSubscriberCount failed: %v", err)
 	}
 
 	// Load subpage counts
@@ -1408,6 +1416,30 @@ func LoadSubscriptions(db *database.DB, currentUserId int64, pageMap map[int64]*
 			return fmt.Errorf("failed to scan for a subscription: %v", err)
 		}
 		pageMap[toPageId].IsSubscribed = true
+		return nil
+	})
+	return err
+}
+
+// LoadSubscriberCount loads number of subscribers the page has.
+func LoadSubscriberCount(db *database.DB, currentUserId int64, pageMap map[int64]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+	rows := database.NewQuery(`
+		SELECT toId,count(*)
+		FROM subscriptions
+		WHERE userId!=?`, currentUserId).Add(`AND toId IN`).AddArgsGroup(pageIds).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var toPageId int64
+		var count int
+		err := rows.Scan(&toPageId, &count)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a subscription: %v", err)
+		}
+		pageMap[toPageId].SubscriberCount = count
 		return nil
 	})
 	return err

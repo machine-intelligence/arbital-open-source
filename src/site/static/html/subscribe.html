@@ -1,6 +1,15 @@
-<md-button arb-user-check
-		ng-class="{'md-icon-button': !isStretched}"
-		ng-click="subscribeClick()">
-	<md-icon ng-class="{on: isSubscribed()}">visibility</md-icon>
-	<span ng-show="isStretched">Subscribe</span>
-</md-button>
+<div layout="column" layout-align="start center">
+	<md-button arb-user-check
+			ng-class="{'md-icon-button': !isStretched}"
+			ng-click="subscribeClick()">
+		<md-icon ng-class="{on: isSubscribed()}">visibility</md-icon>
+		<span ng-show="isStretched">Subscribe</span>
+	</md-button>
+	<div class="md-caption" ng-if="showSubscriberCount">
+		<ng-pluralize count="page.subscriberCount + (isSubscribed() ? 1 : 0)" when="{
+				'0': 'No subscribers',
+				'one': '1 subscriber',
+				'other': '{} subscribers'}">
+		</ng-pluralize>
+	</div>
+</div>
