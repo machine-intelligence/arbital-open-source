@@ -12,7 +12,7 @@ $primary-hue-3: #004D40; // 900
 $accent-color: #FF5722; // deep-orange (500)
 $accent-hue-1: #FFCCBC; // 100
 $accent-hue-2: #E64A19; // 700
-$accent-hue-3: #FF6E40; // A200
+$accent-hue-3: #F16700; // custom (opposite to teal500)
 $warn-color: #F44336; // red (500)
 $warn-hue-1: #FFCDD2; // 100
 $warn-hue-2: #D32F2F; // 700
@@ -98,7 +98,15 @@ div.md-warn, md-list-item.md-warn {
 	}
 }
 
+span.md-accent {
+	color: $accent-color;
+	& > span, & > md-icon {
+		color: $accent-color;
+	}
+}
+
 span.md-warn {
+	color: $warn-color;
 	& > span, & > md-icon {
 		color: $warn-color;
 	}
@@ -221,6 +229,9 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-user-page > & {
 		max-width: 1100px;
 	}
+	arb-dashboard-page > & {
+		max-width: 1100px;
+	}
 	arb-signup > & {
 		max-width: 560px;
 	}
@@ -238,7 +249,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
-arb-discussion {
+.discussion-container {
 	margin-top: 20px;
 }
 
@@ -277,15 +288,14 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	}
 }
 
+// Container for a list of tags/parents
+.page-list-span {
+	margin: 15px 0;
+}
+
 // Container for the new/edit comment; embedded in the discussion section
 .edit-comment-embed {
-	.wmd-input {
-		height: 50vh;
-		background-color: white;
-		-webkit-flex: none;
-		-ms-flex: none;
-		flex: none;
-	}
+	height: 50vh;
 }
 
 // Container for the new comment in a discussion
@@ -303,12 +313,13 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
-/*#dynamic-view {
-	position: relative;
+#dynamic-view {
+	/* position: relative;
 	top: -$toolbar-height;
 	padding-top: $toolbar-height;
-	box-sizing: border-box;
-}*/
+	box-sizing: border-box;*/
+	margin-bottom: 100px;
+}
 
 // Added to updates that the user hasn't seen yet
 .unseen-update {
@@ -499,6 +510,12 @@ a {
 	}
 }
 
+#footer {
+	font-size: 12px;
+	opacity: 0.5;
+	margin-top: 12px;
+}
+
 // Tooltips that show up when you hover over things
 md-tooltip .md-content {
 	background-color: rgba(0,0,0,0.9);
@@ -615,22 +632,8 @@ arb-likes {
 	}
 }
 
-// Used to align button's text to the right
-.lens-menu-div {
-	.md-button {
-		text-align: right;
-	}
-	arb-likes {
-		margin-right: 0;
-	}
-}
-
-arb-page-list {
-	margin: 1% 0;
-}
-
-.arb-page-list-spacer {
-	min-width: 4vw;
+[arb-page-list] {
+	margin-bottom: 4vw;
 }
 
 // Menu for a lens (with like, subscribe, edit, etc. buttons)
@@ -641,7 +644,7 @@ arb-page-list {
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {
-		padding: 5px $lens-padding;
+		padding: 10px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 20px;
 	}
@@ -658,7 +661,7 @@ arb-page-list {
 @media (min-width: 600px) {
 	$lens-padding: 50px;
 	.lens-text-container {
-		padding: 5px $lens-padding;
+		padding: 10px $lens-padding 20px;
 		font-size: 18px;
 		line-height: 22px;
 	}
@@ -675,7 +678,7 @@ arb-page-list {
 @media (min-width: 960px) {
 	$lens-padding: 90px;
 	.lens-text-container {
-		padding: 15px $lens-padding;
+		padding: 30px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
 	}
@@ -692,7 +695,7 @@ arb-page-list {
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
-		padding: 20px $lens-padding;
+		padding: 40px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
 	}
@@ -755,6 +758,11 @@ $triangle-size: 15px;
 		border-right: $triangle-size solid transparent;
 		border-top: $triangle-size solid whitesmoke;
 	}
+}
+
+// Added to the page title when it's show on the home page / group home page
+.simple-embed-page-title {
+	margin: 1rem 0;
 }
 
 // Compose fab that appears in the bottom right corner

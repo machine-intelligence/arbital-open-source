@@ -1,53 +1,12 @@
 <div class="capped-body-width">
-	<!-- Welcome message -->
-	<h1 layout-margin>What is Arbital?</h1>
-	<div class="md-whiteframe-1dp" layout-padding>
-		<div>
-			<p>
-				<h3 class="md-headline">Fixing online discussion</h3>
-			</p>
-	
-			<p>
-				Have you ever wondered <b>why Wikipedia can't systematize good explanations?</b>  One reason is that every reader comes in with a different level of background knowledge and needs a different explanation, and Wikipedia pages don't have alternative <a href="/pages/1407630090992422901" class="intrasite-link" page-id="1407630090992422901">tabs</a>.
-			</p>
-	
-			<p>
-				Have you ever wondered <b>why Wikipedia doesn't try to record large debates?</b>  One reason is that Wikipedia relies mostly on name lookups to steer everyone interested in the same issue into the same page, and it hasn't solved the problem of steering people to particular details of a complicated argument.
-			</p>
-	
-			<p>
-				Have you ever wondered <b>why Reddit communities that start out with high standards go downhill?</b>  One reason is that Reddit only allows a choice between upvoting, downvoting, and doing nothing; and the most upvotes are dispensed by the people with the lowest standards for upvoting.
-			</p>
-	
-			<p>
-				<h3 class="md-headline">Solving deep problems to improve the quality of online communities</h3>
-			</p>
-	
-			<p>
-			Arbital is a new startup devoted to tackling the hard problems and deep structures that underpin the horrific state of online discussion.  We all dream of a world where we only need to argue once about whether Vitamin D3 is a better nutritional supplement than Vitamin D2, and everytime anyone on Earth raises a question that's already been answered, we just link to that question's location in the central repository, and see at a glance <a href="/pages/8676677094741262267" class="intrasite-link" page-id="8676677094741262267">the distribution</a> of expert opinions.  But creating that world isn't as simple as just trying to create "Wikipedia for arguments".  It requires <a href="/pages/5092144177314150382" class="intrasite-link" page-id="5092144177314150382">new technology</a> for authors and readers.
-			</p>
-	
-			<p>
-				<h3 class="md-headline">Welcome to Arbital</h3>
-			</p>
-	
-			<p>
-				The site you see before you is an alpha version, with only a few features implemented and those still under development.  Discussion topics are restricted, and editing and commenting are only open to selected invitees.  
-				<span ng-show="userService.user.id === '0'">(<a href="/signup/">Sign up</a> to interact with the website.)</span>
-				Even so, if you've been linked here, go ahead and <a href="/pages/3560540392275264633" class="intrasite-link" page-id="3560540392275264633">check it out</a>!
-			</p>
-	
-			<p>
-				Are you a superprogrammer who wants to solve hard problems and fix online discussion?  Do you understand the vision behind Arbital and have interest to work on it as a product designer?  Are you interested in getting involved with Arbital some other way?  <a href="mailto:alexei@arbital.com">Talk to us</a>.
-			</p>
-		</div>
-	</div>
+	<!-- What is Arbital? page -->
+	<arb-page class="reveal-after-render" page-id="3440973961008233681" is-simple-embed="true"></arb-page>
 	<br>
 	<br>
 	
 	<!-- Domains -->
-	<h1 layout-margin>Arbital domains</h1>
-	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
+	<h1 layout-margin>Popular domains</h1>
+	<div layout="column">
 		<!-- Domain -->
 		<div class="pages-list md-whiteframe-1dp"
 				ng-repeat="domain in featuredDomains"
@@ -56,7 +15,7 @@
 			<md-toolbar class="md-hue-2">
 				<div class="md-toolbar-tools">
 					<a ng-href="/domains/{{pageService.pageMap[domain.domainId].alias}}"
-						ng-bind="pageService.pageMap[domain.domainId].title"></a>
+						ng-bind="pageService.pageMap[domain.domainId].title + ' domain'"></a>
 				</div>
 			</md-toolbar>
 			<md-subheader ng-bind="pageService.pageMap[domain.domainId].clickbait">

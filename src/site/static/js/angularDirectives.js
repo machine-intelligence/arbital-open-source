@@ -229,6 +229,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 			isUser: "=",
 			// If true, the button is not an icon button, but is a normal button with a label
 			isStretched: "=",
+			showSubscriberCount: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -290,7 +291,6 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 			var computeUrls = function() {
 				$scope.questionUrl = "/edit/?type=question";
 				$scope.editPageUrl = undefined;
-				$scope.siblingUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
 				$scope.showNewAnswer = false;
@@ -302,9 +302,6 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
 						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
 						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
-						if (pageService.primaryPage.parentIds.length > 0) {
-							$scope.siblingUrl = "/edit?newParentId=" + pageService.primaryPage.parentIds.join(",");
-						}
 					}
 					$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
 				}
@@ -388,8 +385,6 @@ app.directive("arbPageList", function(pageService, userService) {
 		scope: {
 			pageIds: "=",
 			panelTitle: "@",
-			// Whether to show a public/private icon, pass in "yes"/"no" respectively.
-			isPublic: "@",
 			hideLikes: "@",
 			showLastEdit: "@",
 			showCreatedAt: "@",

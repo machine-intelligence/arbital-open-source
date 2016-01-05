@@ -1,0 +1,34 @@
+<div layout="column" class="capped-body-width">
+
+	<!-- Header -->
+	<div layout="row" layout-align="center center">
+		<h2>
+			Your dashboard
+		</h2>
+	</div>
+
+	<div arb-page-list panel-title="Recently created and edited pages"
+			show-created-at="true"
+			show-last-edit="true"
+			show-red-link-count="true"
+			show-text-length="true"
+			show-quick-edit-link="true"
+			page-ids="idsMap.recentlyEditedIds"></div>
+	<div arb-page-list panel-title="Recently created comments"
+			show-created-at="true"
+			page-ids="idsMap.recentlyCreatedCommentIds"></div>
+	<div arb-page-list panel-title="Pages with most TODOs"
+			is-public="no"
+			show-last-edit="true"
+			show-red-link-count="true"
+			show-text-length="true"
+			show-quick-edit-link="true"
+			page-ids="idsMap.mostTodosIds"></div>
+	<div arb-page-list panel-title="Pages with drafts"
+			is-public="no"
+			show-last-edit="true"
+			use-edit-map="true"
+			hide-likes="true"
+			show-quick-edit="true"
+			page-ids="idsMap.pagesWithDraftIds"></div>
+</div>

@@ -8,7 +8,7 @@
   border-top-color: #FF5722;
   border-right-color: #FFCCBC;
   border-bottom-color: #E64A19;
-  border-left-color: #FF6E40; }
+  border-left-color: #F16700; }
 
 #warn-color {
   border-top-color: #F44336;
@@ -45,7 +45,7 @@ div.md-accent, md-list-item.md-accent {
   div.md-accent.md-hue-2, md-list-item.md-accent.md-hue-2 {
     background-color: #E64A19; }
   div.md-accent.md-hue-3, md-list-item.md-accent.md-hue-3 {
-    background-color: #FF6E40; }
+    background-color: #F16700; }
 
 div.md-warn, md-list-item.md-warn {
   background-color: #F44336; }
@@ -56,8 +56,15 @@ div.md-warn, md-list-item.md-warn {
   div.md-warn.md-hue-3, md-list-item.md-warn.md-hue-3 {
     background-color: #B71C1C; }
 
-span.md-warn > span, span.md-warn > md-icon {
+span.md-accent {
+  color: #FF5722; }
+  span.md-accent > span, span.md-accent > md-icon {
+    color: #FF5722; }
+
+span.md-warn {
   color: #F44336; }
+  span.md-warn > span, span.md-warn > md-icon {
+    color: #F44336; }
 
 .md-display-3 {
   font-family: "Roboto Slab";
@@ -139,6 +146,8 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 1100px; }
   arb-user-page > .capped-body-width {
     max-width: 1100px; }
+  arb-dashboard-page > .capped-body-width {
+    max-width: 1100px; }
   arb-signup > .capped-body-width {
     max-width: 560px; }
   arb-updates > .capped-body-width {
@@ -150,7 +159,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-primary-page > .capped-body-width {
     max-width: 1100px; }
 
-arb-discussion {
+.discussion-container {
   margin-top: 20px; }
 
 .md-whiteframe-1dp {
@@ -178,12 +187,11 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   .reveal-after-render-parent .my-vote-knob {
     visibility: hidden !important; }
 
-.edit-comment-embed .wmd-input {
-  height: 50vh;
-  background-color: white;
-  -webkit-flex: none;
-  -ms-flex: none;
-  flex: none; }
+.page-list-span {
+  margin: 15px 0; }
+
+.edit-comment-embed {
+  height: 50vh; }
 
 .new-comment-edit-page {
   margin-top: 20px; }
@@ -193,12 +201,13 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   .new-answer-div .wmd-input {
     background-color: white; }
 
-/*#dynamic-view {
-	position: relative;
-	top: -$toolbar-height;
-	padding-top: $toolbar-height;
-	box-sizing: border-box;
-}*/
+#dynamic-view {
+  /* position: relative;
+  top: -$toolbar-height;
+  padding-top: $toolbar-height;
+  box-sizing: border-box;*/
+  margin-bottom: 100px; }
+
 .unseen-update {
   background-color: #E0F2F1; }
 
@@ -262,7 +271,7 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   .vote-bar .new-vote-div .new-vote-knob {
     position: relative;
     left: -15px;
-    background-color: #FF6E40;
+    background-color: #F16700;
     width: 10px;
     height: 45px; }
   .vote-bar .new-vote-div .new-vote-knob-hor {
@@ -321,6 +330,11 @@ a {
         color: #B71C1C; }
     a[page-id].red-todo-text {
       background-color: #ffdddd; }
+
+#footer {
+  font-size: 12px;
+  opacity: 0.5;
+  margin-top: 12px; }
 
 md-tooltip .md-content {
   background-color: rgba(0, 0, 0, 0.9);
@@ -386,23 +400,15 @@ arb-likes {
     min-width: 24px;
     margin-right: 2px; }
 
-.lens-menu-div .md-button {
-  text-align: right; }
-.lens-menu-div arb-likes {
-  margin-right: 0; }
-
-arb-page-list {
-  margin: 1% 0; }
-
-.arb-page-list-spacer {
-  min-width: 4vw; }
+[arb-page-list] {
+  margin-bottom: 4vw; }
 
 .lens-menu {
   padding: 5px 0; }
 
 @media (max-width: 599px) {
   .lens-text-container {
-    padding: 5px 5px;
+    padding: 10px 5px 20px;
     font-size: 16px;
     line-height: 20px; }
 
@@ -416,7 +422,7 @@ arb-page-list {
     box-sizing: border-box; } }
 @media (min-width: 600px) {
   .lens-text-container {
-    padding: 5px 50px;
+    padding: 10px 50px 20px;
     font-size: 18px;
     line-height: 22px; }
 
@@ -430,7 +436,7 @@ arb-page-list {
     box-sizing: border-box; } }
 @media (min-width: 960px) {
   .lens-text-container {
-    padding: 15px 90px;
+    padding: 30px 90px 60px;
     font-size: 18px;
     line-height: 26px; }
 
@@ -444,7 +450,7 @@ arb-page-list {
     box-sizing: border-box; } }
 @media (min-width: 1100px) {
   .lens-text-container {
-    padding: 20px 100px;
+    padding: 40px 100px 80px;
     font-size: 18px;
     line-height: 30px; }
 
@@ -492,6 +498,9 @@ arb-user-popover {
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
     border-top: 15px solid whitesmoke; }
+
+.simple-embed-page-title {
+  margin: 1rem 0; }
 
 arb-compose-fab {
   position: fixed;

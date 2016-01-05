@@ -93,6 +93,10 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "UserPageController",
 	})
+	.when("/dashboard/", {
+		template: "",
+		controller: "DashboardPageController",
+	})
 	.when("/updates/", {
 		template: "",
 		controller: "UpdatesPageController",
@@ -221,7 +225,11 @@ app.filter("simpleDateTime", function() {
 // relativeDateTime converts date&time into a relative string, e.g. "5 days ago"
 app.filter("relativeDateTime", function() {
 	return function(input) {
-		return moment.utc(input).fromNow();
+		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
+			return moment.utc(input).fromNow();
+		} else {
+			return moment.utc(input).format("MMM Do, YYYY [at] LT");
+		}
 	};
 });
 app.filter("relativeDateTimeNoSuffix", function() {
@@ -382,6 +390,20 @@ app.controller("UserPageController", function ($scope, $routeParams, $http, $com
 		return {
 			title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
 			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='userPageIdsMap'></arb-user-page>")($scope),
+		};
+	}))
+	.error($scope.getErrorFunc("User"));
+});
+
+app.controller("DashboardPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	var postData = { };
+	// Get the data
+	$http({method: "POST", url: "/json/dashboardPage/", data: JSON.stringify(postData)})
+	.success($scope.getSuccessFunc(function(data){
+		$scope.dashboardPageIdsMap = data.result;
+		return {
+			title: "Your dashboard",
+			element: $compile("<arb-dashboard-page ids-map='dashboardPageIdsMap'></arb-dashboard-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("User"));

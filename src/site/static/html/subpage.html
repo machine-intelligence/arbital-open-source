@@ -2,8 +2,6 @@
 		layout="column"
 		class="full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-mouseenter="hoverToggle(true)"
-		ng-mouseleave="hoverToggle(false)"
 		ng-if="!isDeleted">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center" ng-if="isComment">
@@ -16,8 +14,7 @@
 
 		<!-- Collapse button -->
 		<div layout="column" flex>
-			<md-button ng-click="collapseToggle()"
-					ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}">
+			<md-button ng-click="collapseToggle()">
 				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
 				<md-icon ng-show="isCollapsed">expand_more</md-icon>
 			</md-button>
@@ -28,19 +25,15 @@
 				confirmed="deleteSubpage()"
 				show-icon="true"
 				disabled="editing"
-				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
 				ng-if="page.creatorId === userService.user.id && isComment"></arb-confirm-button>
 		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
 				class="md-icon-button"
-				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}"
 				ng-disabled="editing"
 				ng-click="editSubpage($event)"
 				ng-show="page.creatorId === userService.user.id">
 			<md-icon>create</md-icon>
 		</md-button>
-		<md-button class="md-icon-button"
-				ng-href="{{myUrl}}"
-				ng-style="{'visibility': showRhsIcons() ? 'visible' : 'hidden'}">
+		<md-button class="md-icon-button" ng-href="{{myUrl}}">
 			<md-icon>link</md-icon>
 		</md-button>
 	</div>
@@ -71,9 +64,9 @@
 				ng-if="editing"></div>
 
 		<!-- Footer -->
-		<div class="comment-footer" layout="row" layout-align="start center" ng-hide="editing">
+		<div class="comment-footer" layout="row" layout-align="start start" ng-hide="editing">
 			<arb-likes page-id="{{page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
-			<arb-subscribe page-id="{{page.pageId}}" ng-hide="parentSubpageId"></arb-subscribe>
+			<arb-subscribe page-id="{{page.pageId}}" show-subscriber-count="true" ng-hide="parentSubpageId"></arb-subscribe>
 			<md-button ng-click="newReply()"
 					ng-disabled="newReplyId"
 					arb-user-check="cool"

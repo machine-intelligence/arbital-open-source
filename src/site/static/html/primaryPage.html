@@ -29,18 +29,13 @@
 				ng-if="newAnswerId"></div>
 	</div>
 	
-	<div layout="column" layout-gt-md="row">
-		<arb-page-list panel-title="Children"
-				show-created-at="page.sortChildrenBy === 'recentFirst' || page.sortChildrenBy === 'oldestFirst'"
-				page-ids="page.childIds"
-				flex
-				ng-show="page.childIds.length > 0"></arb-page-list>
-		<div class="arb-page-list-spacer" show-gt-md ng-show="page.childIds.length > 0 && page.relatedIds.length > 0"></div>
-		<arb-page-list panel-title="Related"
-				page-ids="page.relatedIds"
-				flex
-				ng-show="page.relatedIds.length > 0"></arb-page-list>
-	</div>
+	<div arb-page-list panel-title="Children"
+			show-created-at="page.sortChildrenBy === 'recentFirst' || page.sortChildrenBy === 'oldestFirst'"
+			page-ids="page.childIds"
+			ng-show="page.childIds.length > 0"></div>
+	<div arb-page-list panel-title="Related"
+			page-ids="page.relatedIds"
+			ng-show="page.relatedIds.length > 0"></div>
 
 	<div ng-include="'/static/html/footer.html'"></div>
 </div>

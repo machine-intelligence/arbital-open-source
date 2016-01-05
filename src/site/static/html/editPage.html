@@ -103,19 +103,21 @@
 							<md-icon md-svg-icon="format_header_pound"></md-icon>
 							<md-tooltip># Heading | Ctrl+H</md-tooltip>
 						</md-button>
-						<md-button class="wmd-hr-button" ng-show="gtSmallScreen">
-							<md-icon>remove</md-icon>
-							<md-tooltip>--- Line | Ctrl+E</md-tooltip>
-						</md-button>
-						<div class="separator"></div>
-						<md-button class="wmd-undo-button">
-							<md-icon>undo</md-icon>
-							<md-tooltip>Undo | Ctrl+Z</md-tooltip>
-						</md-button>
-						<md-button class="wmd-redo-button">
-							<md-icon>redo</md-icon>
-							<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
-						</md-button>
+						<div layout="row" ng-show="gtXSmallScreen">
+							<md-button class="wmd-hr-button" ng-show="gtSmallScreen">
+								<md-icon>remove</md-icon>
+								<md-tooltip>--- Line | Ctrl+E</md-tooltip>
+							</md-button>
+							<div class="separator"></div>
+							<md-button class="wmd-undo-button">
+								<md-icon>undo</md-icon>
+								<md-tooltip>Undo | Ctrl+Z</md-tooltip>
+							</md-button>
+							<md-button class="wmd-redo-button">
+								<md-icon>redo</md-icon>
+								<md-tooltip>Redo | Ctrl+Shift+Z</md-tooltip>
+							</md-button>
+						</div>
 						<div flex></div>
 						<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}" ng-show="isEmbedded && !insideDialog">
 							<md-icon>open_in_new</md-icon>
