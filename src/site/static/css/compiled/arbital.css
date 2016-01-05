@@ -146,6 +146,8 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 1100px; }
   arb-user-page > .capped-body-width {
     max-width: 1100px; }
+  arb-dashboard-page > .capped-body-width {
+    max-width: 1100px; }
   arb-signup > .capped-body-width {
     max-width: 560px; }
   arb-updates > .capped-body-width {
@@ -199,12 +201,13 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   .new-answer-div .wmd-input {
     background-color: white; }
 
-/*#dynamic-view {
-	position: relative;
-	top: -$toolbar-height;
-	padding-top: $toolbar-height;
-	box-sizing: border-box;
-}*/
+#dynamic-view {
+  /* position: relative;
+  top: -$toolbar-height;
+  padding-top: $toolbar-height;
+  box-sizing: border-box;*/
+  margin-bottom: 100px; }
+
 .unseen-update {
   background-color: #E0F2F1; }
 
@@ -328,6 +331,11 @@ a {
     a[page-id].red-todo-text {
       background-color: #ffdddd; }
 
+#footer {
+  font-size: 12px;
+  opacity: 0.5;
+  margin-top: 12px; }
+
 md-tooltip .md-content {
   background-color: rgba(0, 0, 0, 0.9);
   font-size: 12px;
@@ -392,11 +400,8 @@ arb-likes {
     min-width: 24px;
     margin-right: 2px; }
 
-arb-page-list {
-  margin: 1% 0; }
-
-.arb-page-list-spacer {
-  min-width: 4vw; }
+[arb-page-list] {
+  margin-bottom: 4vw; }
 
 .lens-menu {
   padding: 5px 0; }

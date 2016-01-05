@@ -1,18 +1,6 @@
 <div class="user-page-panel md-whiteframe-1dp" layout="column">
 	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
-			<span>
-				<md-icon ng-show="isPublic === 'yes'">
-					<md-tooltip>This is visible to everyone</md-tooltip>
-					public
-				</md-icon>
-			</span>
-			<span>
-				<md-icon ng-show="isPublic === 'no'">
-					<md-tooltip>This is visible only to you</md-tooltip>
-					lock
-				</md-icon>
-			</span>
 			<span ng-bind="panelTitle" flex></span>
 		</div>
 	</md-toolbar>

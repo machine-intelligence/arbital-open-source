@@ -229,6 +229,9 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-user-page > & {
 		max-width: 1100px;
 	}
+	arb-dashboard-page > & {
+		max-width: 1100px;
+	}
 	arb-signup > & {
 		max-width: 560px;
 	}
@@ -310,12 +313,13 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
-/*#dynamic-view {
-	position: relative;
+#dynamic-view {
+	/* position: relative;
 	top: -$toolbar-height;
 	padding-top: $toolbar-height;
-	box-sizing: border-box;
-}*/
+	box-sizing: border-box;*/
+	margin-bottom: 100px;
+}
 
 // Added to updates that the user hasn't seen yet
 .unseen-update {
@@ -506,6 +510,12 @@ a {
 	}
 }
 
+#footer {
+	font-size: 12px;
+	opacity: 0.5;
+	margin-top: 12px;
+}
+
 // Tooltips that show up when you hover over things
 md-tooltip .md-content {
 	background-color: rgba(0,0,0,0.9);
@@ -622,12 +632,8 @@ arb-likes {
 	}
 }
 
-arb-page-list {
-	margin: 1% 0;
-}
-
-.arb-page-list-spacer {
-	min-width: 4vw;
+[arb-page-list] {
+	margin-bottom: 4vw;
 }
 
 // Menu for a lens (with like, subscribe, edit, etc. buttons)

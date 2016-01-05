@@ -4,28 +4,21 @@
 	<br>
 	<br>
 
-	<!-- First row -->
-	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
-		<arb-page-list panel-title="New"
-				show-created-at="true"
-				show-text-length="true"
-				page-ids="idsMap.recentlyCreatedIds"
-				flex></arb-page-list>
-		<arb-page-list panel-title="Hot"
-				show-last-edit="true"
-				show-comment-count="true"
-				page-ids="idsMap.hotIds"
-				flex></arb-page-list>
-	</div>
-
-	<!-- Second row -->
-	<div layout="column" layout-gt-md="row" layout-margin layout-fill>
-		<arb-page-list panel-title="Top"
-				page-ids="idsMap.mostLikedIds"
-				flex></arb-page-list>
-		<arb-page-list panel-title="Controversial"
-				show-comment-count="true"
-				page-ids="idsMap.mostControversialIds"
-				flex></arb-page-list>
-	</div>
+	<div arb-page-list panel-title="New"
+			show-created-at="true"
+			show-text-length="true"
+			page-ids="idsMap.recentlyCreatedIds"></div>
+	<div arb-page-list panel-title="Hot"
+			show-last-edit="true"
+			show-comment-count="true"
+			show-text-length="true"
+			page-ids="idsMap.hotIds"></div>
+	<div arb-page-list panel-title="Top"
+			show-created-at="true"
+			show-text-length="true"
+			page-ids="idsMap.mostLikedIds"></div>
+	<div arb-page-list panel-title="Controversial"
+			show-comment-count="true"
+			show-text-length="true"
+			page-ids="idsMap.mostControversialIds"></div>
 </div>
