@@ -221,7 +221,11 @@ app.filter("simpleDateTime", function() {
 // relativeDateTime converts date&time into a relative string, e.g. "5 days ago"
 app.filter("relativeDateTime", function() {
 	return function(input) {
-		return moment.utc(input).fromNow();
+		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
+			return moment.utc(input).fromNow();
+		} else {
+			return moment.utc(input).format("MMM Do, YYYY [at] LT");
+		}
 	};
 });
 app.filter("relativeDateTimeNoSuffix", function() {

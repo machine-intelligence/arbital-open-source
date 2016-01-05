@@ -188,12 +188,8 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .page-list-span {
   margin: 15px 0; }
 
-.edit-comment-embed .wmd-input {
-  height: 50vh;
-  background-color: white;
-  -webkit-flex: none;
-  -ms-flex: none;
-  flex: none; }
+.edit-comment-embed {
+  height: 50vh; }
 
 .new-comment-edit-page {
   margin-top: 20px; }

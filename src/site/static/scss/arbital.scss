@@ -292,13 +292,7 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 
 // Container for the new/edit comment; embedded in the discussion section
 .edit-comment-embed {
-	.wmd-input {
-		height: 50vh;
-		background-color: white;
-		-webkit-flex: none;
-		-ms-flex: none;
-		flex: none;
-	}
+	height: 50vh;
 }
 
 // Container for the new comment in a discussion
