@@ -360,16 +360,6 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				savePage(true, false, function() {});
 			});
 
-			$scope.saveSettingsClick = function() {
-				$scope.savePageInfo(function(error) {
-					if (error) {
-						$scope.addMessage("pageInfo", "Error saving settings: " + error, "error");
-					} else {
-						$scope.addMessage("pageInfo", "Settings saved!", "info");
-					}
-				});
-			};
-
 			// =========== Find similar pages ==============
 			var shouldFindSimilar = false;
 			$scope.forceExpandSimilarPages = $scope.isQuestion;

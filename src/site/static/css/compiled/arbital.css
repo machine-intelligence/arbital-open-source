@@ -205,8 +205,7 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   /* position: relative;
   top: -$toolbar-height;
   padding-top: $toolbar-height;
-  box-sizing: border-box;*/
-  margin-bottom: 100px; }
+  box-sizing: border-box;*/ }
 
 .unseen-update {
   background-color: #E0F2F1; }
@@ -549,9 +548,10 @@ md-tabs.layout-column.flex md-tab-content > div {
 .md-tab.md-active {
   background-color: #004D40; }
 
-.diff-section del {
+del {
   color: red; }
-.diff-section ins {
+
+ins {
   color: green; }
 
 .edit-page-rhs-border {

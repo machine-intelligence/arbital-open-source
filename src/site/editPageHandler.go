@@ -228,6 +228,22 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	isMinorEdit := data.IsMinorEditStr == "on"
 
+	// Check if something is actually different from live edit
+	if isCurrentEdit && oldPage.WasPublished {
+		if data.Title == oldPage.Title &&
+			data.Clickbait == oldPage.Clickbait &&
+			data.Text == oldPage.Text &&
+			data.MetaText == oldPage.MetaText &&
+			data.AnchorContext == oldPage.AnchorContext &&
+			data.AnchorText == oldPage.AnchorText &&
+			data.AnchorOffset == oldPage.AnchorOffset {
+
+			returnData := newHandlerData(false)
+			returnData.ResultMap["aliasWarnings"] = aliasWarningList
+			return pages.StatusOK(returnData.toJson())
+		}
+	}
+
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		if isCurrentEdit {
