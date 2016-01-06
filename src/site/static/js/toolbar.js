@@ -5,6 +5,7 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 	return {
 		templateUrl: "/static/html/toolbar.html",
 		scope: {
+			loadingBarValue: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;

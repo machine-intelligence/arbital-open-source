@@ -259,7 +259,7 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
     background-color: black;
     opacity: 0; }
   .vote-bar .vote-bucket-div.selected {
-    border: 1px solid #FF5722; }
+    border: #FF5722 1px solid; }
 .vote-bar .vote-bar-margin {
   height: 27px;
   max-height: 27px; }
@@ -600,7 +600,7 @@ ins {
 
 .selected-subpage > .comment-header {
   background-color: #FFCCBC;
-  border-bottom: #FF5722 1px solid; }
+  border: #FF5722 1px solid; }
 
 [arb-subpage] + [arb-subpage] {
   margin-top: 20px; }

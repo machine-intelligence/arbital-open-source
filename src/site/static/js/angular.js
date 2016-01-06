@@ -120,6 +120,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
+	$scope.loadingBarValue = 0;
 
 	// Get subdomain if any
 	$scope.subdomain = undefined;
@@ -174,8 +175,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 			if (result.element) {
 				// Only show the element after it and all the children have been fully compiled and linked
 				result.element.addClass("reveal-after-render-parent");
-				$("#loading-bar").show();
+				var $loadingBar = $("#loading-bar");
+				$loadingBar.show();
+				$scope.loadingBarValue = 0;
+				var startTime = (new Date()).getTime();
 				var revealInterval = $interval(function() {
+					var timePassed = ((new Date()).getTime() - startTime) / 1000;
+					$scope.loadingBarValue = Math.min(100, timePassed * 30);
 					var hiddenChildren = result.element.find(".reveal-after-render");
 					if (hiddenChildren.length > 0) {
 						hiddenChildren.each(function() {
@@ -189,7 +195,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 					// Do short timeout to prevent some rendering bugs that occur on edit page
 					$timeout(function() {
 						result.element.removeClass("reveal-after-render-parent");
-						$("#loading-bar").hide();
+						$loadingBar.hide();
 						$anchorScroll();
 					}, 50);
 				}, 50);

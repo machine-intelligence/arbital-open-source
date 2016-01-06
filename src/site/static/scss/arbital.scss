@@ -385,7 +385,7 @@ $toolbar-height: 64px;
 
 		// Added when the div is hovered over
 		&.selected {
-			border: 1px solid $accent-color;
+			border: $accent-color 1px solid;
 		}
 	}
 
@@ -903,7 +903,7 @@ ins {
 // Highlight subpages when they are selected
 .selected-subpage > .comment-header {
 	background-color: $accent-hue-1;
-	border-bottom: $accent-color 1px solid;
+	border: $accent-color 1px solid;
 }
 
 [arb-subpage] + [arb-subpage] {
