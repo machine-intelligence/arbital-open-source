@@ -271,7 +271,8 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 							var pageId = pageService.pageMap[pageAlias].pageId;
 							var divId = "embed-vote-" + pageId;
 							var $embedDiv = $compile("<div id='" + divId +
-								"' arb-vote-bar page-id='" + pageId + "' is-embedded='true' show-meta-info='true'></div>")(scope);
+								"' class='md-whiteframe-2dp' arb-vote-bar page-id='" + pageId +
+								"' is-embedded='true' show-meta-info='true'></div>")(scope);
 							$link.replaceWith($embedDiv);
 						},
 						error: function(data, status) {

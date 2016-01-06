@@ -162,6 +162,9 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
 .discussion-container {
   margin-top: 20px; }
 
+.white-background {
+  background-color: white; }
+
 .md-whiteframe-1dp {
   background-color: white; }
 
@@ -249,23 +252,29 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   min-height: 30vh; }
 
 .vote-bar .vote-bar-label {
-  margin: 10px;
+  margin: 10px 0px;
   white-space: pre;
   line-height: normal; }
+.vote-bar .vote-bucket-container {
+  min-height: 30px; }
 .vote-bar .vote-bucket-div {
   border: 1px solid black;
   height: 18px; }
   .vote-bar .vote-bucket-div .vote-bucket {
-    background-color: black;
-    opacity: 0; }
+    opacity: 0;
+    background-color: black; }
   .vote-bar .vote-bucket-div.selected {
-    border: #FF5722 1px solid; }
+    height: 24px; }
+    .vote-bar .vote-bucket-div.selected .vote-bucket {
+      background-color: #009688; }
+.vote-bar .vote-bucket-div:not(.selected) + .vote-bucket-div:not(.selected) {
+  border-left: none; }
 .vote-bar .vote-bar-margin {
   height: 27px;
   max-height: 27px; }
 .vote-bar .new-vote-div {
   position: relative;
-  top: 13.5px;
+  top: 19.5px;
   z-index: 2; }
   .vote-bar .new-vote-div .new-vote-knob {
     position: relative;
@@ -282,7 +291,7 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
     text-align: center; }
 .vote-bar .my-vote-div {
   position: relative;
-  top: 13.5px;
+  top: 19.5px;
   z-index: 1; }
   .vote-bar .my-vote-div .my-vote-knob {
     position: relative;
@@ -294,8 +303,14 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .vote-bar-body:focus {
   outline: none; }
 
+.left-text {
+  text-align: left; }
+
 .center-text {
   text-align: center; }
+
+.right-text {
+  text-align: right; }
 
 .pre {
   white-space: pre; }

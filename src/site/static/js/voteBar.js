@@ -17,7 +17,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 			scope.userVoteValue = undefined;
 			var typeHelpers = {
 				probability: {
-					headerLabel: "Probability of this claim being true",
+					headerLabel: "Probability this claim is true",
 					label1: "0%",
 					label2: "25%",
 					label3: "50%",
