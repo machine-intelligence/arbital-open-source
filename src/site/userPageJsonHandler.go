@@ -112,6 +112,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
+	core.AddPageToMap(data.UserId, returnData.PageMap, core.PrimaryPageLoadOptions)
 	returnData.UserMap[data.UserId] = &core.User{Id: data.UserId}
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {

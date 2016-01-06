@@ -457,18 +457,18 @@ $toolbar-height: 64px;
 }
 
 // Inside toolbars, color the link differently
-md-toolbar a, md-toolbar a[page-id] {
+md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
 	color: white;
 	&:hover {
 		color: $primary-hue-1;
 	}
 	&:active {
-		color: $primary-hue-3;
+		color: darken($primary-hue-1, 20%);
 	}
 }
 
 // Style all the links
-a {
+a:not(.md-button) {
 	$color: #0000cc;
 	text-decoration: none;
 	outline: none;
@@ -482,7 +482,7 @@ a {
 	}
 
 	// Style intrasite links
-	&[page-id] {
+	&[page-id], &[user-id] {
 		color: $primary-color;
 		&:hover {
 			color: $primary-hue-2;
@@ -822,9 +822,15 @@ md-tabs.layout-column.flex {
 	}
 }
 
+md-tab-content {
+	background-color: white;
+}
+
 // Color the active tab
-.md-tab.md-active {
-	background-color: $primary-hue-3;
+.md-tab {
+	&.md-active {
+		background-color: $primary-hue-3;
+	}
 }
 
 // Show deletes and inserts
@@ -846,6 +852,7 @@ ins {
 
 // Contains all markdown buttons
 .wmd-button-bar {
+	background-color: white;
 	border-bottom: silver 1px solid;
 
 	.md-button {

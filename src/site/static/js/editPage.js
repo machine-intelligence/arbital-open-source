@@ -23,6 +23,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			$scope.gtSmallScreen = $mdMedia("gt-sm");
 			$scope.gtMediumScreen = $mdMedia("gt-md");
 			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + "/" + $scope.page.currentEditNum;
+			$scope.isPageDirty = $scope.page.isAutosave;
 
 			// Return true if we should be using a table layout (so we can stack right
 			// and left columns vertically)
@@ -262,6 +263,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 							// Refresh the lock
 							$scope.page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
 						}
+						$scope.isPageDirty = isAutosave;
 						callback();
 					})
 					.error(function(data) {

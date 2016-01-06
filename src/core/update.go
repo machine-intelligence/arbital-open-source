@@ -75,7 +75,7 @@ type UpdateEntry struct {
 type UpdateGroup struct {
 	Key *UpdateGroupKey `json:"key"`
 	// The date of the most recent update
-	MostRecentDate string         `json:"mostRecentUpdate"`
+	MostRecentDate string         `json:"mostRecentDate"`
 	Updates        []*UpdateEntry `json:"updates"`
 }
 
@@ -163,7 +163,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[int64]*Page) []*Up
 			}
 			groupMap[key] = group
 			groups = append(groups, group)
-		} else if group.MostRecentDate > row.CreatedAt {
+		} else if group.MostRecentDate < row.CreatedAt {
 			group.MostRecentDate = row.CreatedAt
 		}
 

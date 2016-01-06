@@ -8,7 +8,7 @@
 
 		<a ng-href="/"
 				layout-margin
-				ng-bind="pageService.pageMap[pageService.privateGroupId].title"
+				ng-bind="pageService.pageMap[pageService.privateGroupId].title | shorten: 30"
 				ng-show="pageService.privateGroupId !== '0'"></a>
 
 		<!-- Search -->
@@ -75,7 +75,7 @@
 		<div layout="column" layout-align="start center">
 			<div ng-repeat="groupId in userService.user.groupIds">
 				<md-button ng-href="{{pageService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
-						ng-bind="pageService.pageMap[groupId].title"></md-button>
+						ng-bind="pageService.pageMap[groupId].title | shorten: 30"></md-button>
 			</div>
 		</div>
 		<md-divider></md-divider>

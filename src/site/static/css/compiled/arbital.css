@@ -300,34 +300,34 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .pre {
   white-space: pre; }
 
-md-toolbar a, md-toolbar a[page-id] {
+md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
   color: white; }
-  md-toolbar a:hover, md-toolbar a[page-id]:hover {
+  md-toolbar a:not(.md-button):hover, md-toolbar a[page-id]:not(.md-button):hover, md-toolbar a[user-id]:not(.md-button):hover {
     color: #E0F2F1; }
-  md-toolbar a:active, md-toolbar a[page-id]:active {
-    color: #004D40; }
+  md-toolbar a:not(.md-button):active, md-toolbar a[page-id]:not(.md-button):active, md-toolbar a[user-id]:not(.md-button):active {
+    color: #98d4d1; }
 
-a {
+a:not(.md-button) {
   text-decoration: none;
   outline: none;
   color: #0000cc; }
-  a:hover {
+  a:not(.md-button):hover {
     color: #000066; }
-  a:active {
+  a:not(.md-button):active {
     color: #3333ff; }
-  a[page-id] {
+  a:not(.md-button)[page-id], a:not(.md-button)[user-id] {
     color: #009688; }
-    a[page-id]:hover {
+    a:not(.md-button)[page-id]:hover, a:not(.md-button)[user-id]:hover {
       color: #00796B; }
-    a[page-id]:active {
+    a:not(.md-button)[page-id]:active, a:not(.md-button)[user-id]:active {
       color: #004D40; }
-    a[page-id].red-link {
+    a:not(.md-button)[page-id].red-link, a:not(.md-button)[user-id].red-link {
       color: #F44336; }
-      a[page-id].red-link:hover {
+      a:not(.md-button)[page-id].red-link:hover, a:not(.md-button)[user-id].red-link:hover {
         color: #D32F2F; }
-      a[page-id].red-link:active {
+      a:not(.md-button)[page-id].red-link:active, a:not(.md-button)[user-id].red-link:active {
         color: #B71C1C; }
-    a[page-id].red-todo-text {
+    a:not(.md-button)[page-id].red-todo-text, a:not(.md-button)[user-id].red-todo-text {
       background-color: #ffdddd; }
 
 #footer {
@@ -545,6 +545,9 @@ md-tabs.layout-column.flex md-tab-content > div {
   -ms-flex: 1;
   flex: 1; }
 
+md-tab-content {
+  background-color: white; }
+
 .md-tab.md-active {
   background-color: #004D40; }
 
@@ -561,6 +564,7 @@ ins {
   margin: 0; }
 
 .wmd-button-bar {
+  background-color: white;
   border-bottom: silver 1px solid; }
   .wmd-button-bar .md-button {
     width: 25px;

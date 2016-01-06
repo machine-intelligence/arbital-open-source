@@ -238,6 +238,27 @@ app.filter("relativeDateTimeNoSuffix", function() {
 	};
 });
 
+// numSuffix filter converts a number string to a 2 digit number with a suffix, e.g. K, M, G
+app.filter("numSuffix", function() {
+	return function(input) {
+		var num = +input;
+		if (num >= 100000) return (Math.round(num / 100000) / 10) + "M";
+		if (num >= 100) return (Math.round(num / 100) / 10) + "K";
+		return input;
+	};
+});
+
+// shorten filter shortens a string to the given number of characters
+app.filter("shorten", function() {
+	return function(input, charCount) {
+		if (!input || input.length <= charCount) return input;
+		var s = input.substring(0, charCount);
+		var lastSpaceIndex = s.lastIndexOf(" ");
+		if (lastSpaceIndex < 0) return s + "...";
+		return input.substring(0, lastSpaceIndex) + "...";
+	};
+});
+
 
 app.controller("IndexPageController", function ($scope, $routeParams, $http, $compile, pageService, userService) {
 	if ($scope.subdomain) {

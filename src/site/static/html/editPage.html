@@ -2,7 +2,8 @@
 		ng-class="{'layout-row': fullView, 'layout-column': !fullView}"
 		ng-keyup="handleKeyPress($event)">
 	<!-- Main edit column (left half) -->
-	<div layout="column"
+	<div class="md-primary"
+			layout="column"
 			flex="{{fullView ? '50' : undefined}}"
 			ng-hide="inPreview || (!fullView && otherDiff)">
 		<md-tabs ng-class="{'hide-tabs': isComment || isAnswer}"
@@ -329,8 +330,8 @@
 		<!-- Footer -->
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
-			<div ng-hide="isEmbedded">
-				<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}">
+			<div layout="column" ng-hide="isEmbedded">
+				<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}" class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
 					Back
 					<md-tooltip>
@@ -359,7 +360,7 @@
 			<arb-confirm-button button-text="Discard"
 					confirmed="discardPage()"
 					disabled="publishing || snapshotting"
-					ng-show="selectedTab == 0 || selectedTab == 1"></arb-confirm-button>
+					ng-hide="selectedTab == 2 || !isPageDirty"></arb-confirm-button>
 			<div ng-show="selectedTab == 0 || selectedTab == 1">
 				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="snapshotPage()"
