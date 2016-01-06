@@ -318,7 +318,6 @@ $toolbar-height: 64px;
 	top: -$toolbar-height;
 	padding-top: $toolbar-height;
 	box-sizing: border-box;*/
-	margin-bottom: 100px;
 }
 
 // Added to updates that the user hasn't seen yet
@@ -828,15 +827,13 @@ md-tabs.layout-column.flex {
 	background-color: $primary-hue-3;
 }
 
-// Section that shows the diff between two edits
-.diff-section {
-	del {
-		color: red;
-	}
-	ins {
-		color: green;
-	};
-};
+// Show deletes and inserts
+del {
+	color: red;
+}
+ins {
+	color: green;
+}
 
 // Border for the RHS preview half on the edit page
 .edit-page-rhs-border {

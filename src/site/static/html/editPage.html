@@ -137,81 +137,31 @@
 							ng-model="page.text" autofocus
 							flex
 							ng-disabled="showInsertLink" default-tab-item="1"></textarea>
-
-					<!-- Footer -->
-					<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
-						<!-- Go back button -->
-						<div ng-hide="isEmbedded">
-							<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}">
-								<md-icon>arrow_back</md-icon>
-								Back
-								<md-tooltip>
-									Go to live view
-								</md-tooltip>
-							</md-button>
-						</div>
-
-						<!-- Lock timer -->
-						<div ng-show="lockExists && gtXSmallScreen">
-							<md-tooltip ng-show="page.lockedBy != '0' && page.lockedBy === userService.user.id">
-								You have locked the page
-							</md-tooltip>
-							<md-tooltip ng-show="lockedByAnother">
-								This page is locked by another user
-							</md-tooltip>
-							<md-icon>lock</md-icon>
-							<span class="autoupdate"
-									ng-bind="page.lockedUntil | relativeDateTimeNoSuffix"></span>
-						</div>
-						<div class="no-margins" flex></div>
-		
-						<div layout="row" layout-align="end center" flex ng-hide="!gtXSmallScreen">
-							<div ng-show="autosaving">
-								Autosaving...
-							</div>
-							<div ng-show="successfulAutosave">
-								Autosaved
-							</div>
-							<div ng-show="snapshotting">
-								Saving a snapshot...
-							</div>
-							<div ng-show="publishing">
-								Publishing...
-							</div>
-						</div>
-
-						<arb-confirm-button button-text="Discard"
-								confirmed="discardPage()"
-								disabled="publishing || snapshotting"></arb-confirm-button>
-						<div>
-							<md-button class="md-primary md-hue-1 md-raised"
-									ng-click="snapshotPage()"
-									ng-disable="publishing || snapshotting">
-								<md-tooltip>Save a snapshot</md-tooltip>
-								Snapshot
-							</md-button>
-						</div>
-						<div ng-show="!fullView && !inPreview">
-							<md-button class="md-primary md-raised"
-									ng-click="togglePreview(true)"
-									ng-disable="publishing || snapshotting">
-								<md-tooltip>Preview the page before publishing</md-tooltip>
-								Preview
-							</md-button>
-						</div>
-						<div ng-show="fullView || inPreview">
-							<md-button class="md-primary md-raised"
-									ng-click="publishPage()"
-									ng-disable="publishing || snapshotting">
-								<md-tooltip>Make this version live</md-tooltip>
-								Publish
-							</md-button>
-						</div>
-					</div>
 				</div>
 			</md-tab>
 
-			<!-- (2) Settings tab -->
+			<!-- (2) Relationships tab -->
+			<md-tab label="Relationships" ng-disabled="isComment">
+				<div class="editor-tab" flex>
+					<!-- Parents -->
+					<arb-relationships page-id="{{page.pageId}}"
+							type="parent"
+							force-edit-mode="true"
+							readonly="!(isWiki || isQuestion)"></arb-relationships>
+					<!-- Tags -->
+					<arb-relationships page-id="{{page.pageId}}"
+							type="tag"
+							force-edit-mode="true"
+							readonly="!(isWiki || isQuestion)"></arb-relationships>
+					<!-- Requirements -->
+					<arb-relationships page-id="{{page.pageId}}"
+							type="requirement"
+							force-edit-mode="true"
+							readonly="!(isWiki || isLens)"></arb-relationships>
+				</div>
+			</md-tab>
+
+			<!-- (3) Settings tab -->
 			<md-tab label="Settings" ng-disabled="!(isWiki || isLens)">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
@@ -318,34 +268,7 @@
 						<arb-confirm-button button-text="Delete page"
 								button-before-confirm="true"
 								confirmed="deletePage()"></arb-confirm-button>
-						<br>
-						<br>
 					</md-content>
-					<!-- Footer -->
-					<md-button class="md-raised md-primary" ng-click="saveSettingsClick()">
-						Save
-					</md-button>
-				</div>
-			</md-tab>
-
-			<!-- (3) Relationships tab -->
-			<md-tab label="Relationships" ng-disabled="isComment">
-				<div class="editor-tab" flex>
-					<!-- Parents -->
-					<arb-relationships page-id="{{page.pageId}}"
-							type="parent"
-							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></arb-relationships>
-					<!-- Tags -->
-					<arb-relationships page-id="{{page.pageId}}"
-							type="tag"
-							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></arb-relationships>
-					<!-- Requirements -->
-					<arb-relationships page-id="{{page.pageId}}"
-							type="requirement"
-							force-edit-mode="true"
-							readonly="!(isWiki || isLens)"></arb-relationships>
 				</div>
 			</md-tab>
 
@@ -402,12 +325,72 @@
 				</md-list>
 			</md-tab>
 		</md-tabs>
+
+		<!-- Footer -->
+		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
+			<!-- Go back button -->
+			<div ng-hide="isEmbedded">
+				<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}">
+					<md-icon>arrow_back</md-icon>
+					Back
+					<md-tooltip>
+						Go to live view
+					</md-tooltip>
+				</md-button>
+			</div>
+			<div class="no-margins" flex></div>
+
+			<div layout="row" layout-align="end center" flex ng-hide="!gtXSmallScreen">
+				<div ng-show="autosaving">
+					Autosaving...
+				</div>
+				<div ng-show="successfulAutosave">
+					Autosaved
+				</div>
+				<div ng-show="snapshotting">
+					Saving a snapshot...
+				</div>
+				<div ng-show="publishing">
+					Publishing...
+				</div>
+				<div ng-show="selectedTab == 2">All changes saved automatically</div>
+			</div>
+
+			<arb-confirm-button button-text="Discard"
+					confirmed="discardPage()"
+					disabled="publishing || snapshotting"
+					ng-show="selectedTab == 0 || selectedTab == 1"></arb-confirm-button>
+			<div ng-show="selectedTab == 0 || selectedTab == 1">
+				<md-button class="md-primary md-hue-1 md-raised"
+						ng-click="snapshotPage()"
+						ng-disable="publishing || snapshotting">
+					<md-tooltip>Save a snapshot of the text</md-tooltip>
+					Snapshot
+				</md-button>
+			</div>
+			<div ng-show="!fullView && !inPreview && (selectedTab != 2)">
+				<md-button class="md-primary md-raised"
+						ng-click="togglePreview(true)"
+						ng-disable="publishing || snapshotting">
+					<md-tooltip>Preview the page before publishing</md-tooltip>
+					Preview
+				</md-button>
+			</div>
+			<div ng-show="(fullView || inPreview) && (selectedTab != 2)">
+				<md-button class="md-primary md-raised"
+						ng-click="publishPage()"
+						ng-disable="publishing || snapshotting">
+					<md-tooltip>Make this version live</md-tooltip>
+					Publish
+				</md-button>
+			</div>
+		</div>
 	</div>
 
 	<!-- Right half -->
 	<div ng-class="{'edit-page-rhs-border': fullView}"
 			layout="column"
-			flex="{{fullView ? '50' : inPreview ? '' : 'none'}}">
+			flex="{{fullView ? '50' : (inPreview || otherDiff) ? '' : 'none'}}">
 		<!-- Live preview -->
 		<md-content class="preview-area" flex ng-hide="(!fullView && !inPreview) || otherDiff">
 			<div class="md-display-3" ng-bind="page.title"></div>
@@ -434,21 +417,30 @@
 		</div>
 
 		<!-- Diff between edits -->
-		<div class="diff-buttons" layout="row" ng-show="otherDiff">
-			<md-button class="md-icon-button md-raised" ng-click="refreshDiff()" ng-show="fullView">
-				<md-icon>refresh</md-icon>
-				<md-tooltip>Recompute the diff</md-tooltip>
-			</md-button>
-			<md-button class="md-icon-button md-raised" ng-click="hideDiff()">
-				<md-icon>arrow_back</md-icon>
-				<md-tooltip>Go back to live preview</md-tooltip>
-			</md-button>
-		</div>
-		<md-content layout="column" flex ng-if="otherDiff">
-			<h2 class="md-display-2" ng-bind="'(#' + otherDiff.edit + ') ' + otherDiff.title"></h2>
-			<h3 class="md-display-3" ng-bind="otherDiff.clickbait"></h3>
-			<div class="diff-section" flex ng-bind-html="diffHtml"></div>
+		<md-content flex ng-if="otherDiff">
+			<h2 class="md-display-3" ng-bind="'(#' + otherDiff.edit + ') ' + otherDiff.title"></h2>
+			<h3 class="md-display-1" ng-bind="'Clickbait: ' + otherDiff.clickbait"></h3>
+			<div ng-bind-html="diffHtml"></div>
 		</md-content>
+		<div class="md-primary md-hue-2"
+				layout="row"
+				layout-align="space-between center"
+				ng-show="otherDiff">
+			<div layout-margin>
+				<md-button ng-click="hideDiff()">
+					<md-icon>arrow_back</md-icon>
+					<md-tooltip>Go back to live preview</md-tooltip>
+					Back to live preview
+				</md-button>
+			</div>
+			<div flex></div>
+			<div layout-margin>
+				<md-button class="md-raised" ng-click="refreshDiff()" ng-show="fullView">
+					<md-tooltip>Recompute the diff</md-tooltip>
+					Recompute
+				</md-button>
+			</div>
+		</div>
 
 		<!-- Messages -->
 		<md-list ng-hide="otherDiff">

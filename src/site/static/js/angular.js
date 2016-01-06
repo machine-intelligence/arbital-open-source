@@ -218,7 +218,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 // simpleDateTime filter converts our typical date&time string into local time.
 app.filter("simpleDateTime", function() {
 	return function(input) {
-		return moment.utc(input).format("LT, l");
+		return moment.utc(input).local().format("LT, l");
 	};
 });
 
@@ -228,7 +228,7 @@ app.filter("relativeDateTime", function() {
 		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
 			return moment.utc(input).fromNow();
 		} else {
-			return moment.utc(input).format("MMM Do, YYYY [at] LT");
+			return moment.utc(input).local().format("MMM Do, YYYY [at] LT");
 		}
 	};
 });
