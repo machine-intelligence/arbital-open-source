@@ -1,6 +1,6 @@
 "use strict";
 
-var notEscaped = "(^|\\\\`|\\\\\\[|[^A-Za-z0-9_`[])";
+var notEscaped = "(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))";
 var noParen = "(?=$|[^(])";
 var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
 var pageUrlMatch = "(http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch;
@@ -11,7 +11,7 @@ var voteEmbedRegexp = new RegExp(notEscaped +
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
 // [alias/url text] 
 var forwardLinkRegexp = new RegExp(notEscaped + 
-		"\\[([^ \\]]+?) ([^\\]]+?)\\]" + noParen, "g");
+		"\\[([^ \\]]+?) (?![^\\]]*?\\\\\\])([^\\]]+?)\\]" + noParen, "g");
 // [alias]
 var simpleLinkRegexp = new RegExp(notEscaped + 
 		"\\[" + aliasMatch + "\\]" + noParen, "g");
