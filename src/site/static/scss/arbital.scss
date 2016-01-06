@@ -253,6 +253,9 @@ arb-markdown, [arb-markdown], .preview-area {
 	margin-top: 20px;
 }
 
+.white-background {
+	background-color: white;
+}
 .md-whiteframe-1dp {
 	background-color: white;
 }
@@ -363,13 +366,20 @@ $toolbar-height: 64px;
 // Voting bar
 .vote-bar {
 	$vote-bar-height: 18px;
+	$vote-bar-selected-height: 24px;
+	$vote-bucket-container-height: 30px;
 	$vote-bar-margin: $vote-bar-height * 1.5;
 	$my-vote-width: 10px;
 
 	.vote-bar-label {
-		margin: 10px;
+		margin: 10px 0px;
 		white-space: pre;
 		line-height: normal;
+	}
+
+	// Contains all vote-bucket-divs
+	.vote-bucket-container {
+		min-height: $vote-bucket-container-height;
 	}
 
 	// This is one of the 10 buckets we show for voting
@@ -379,15 +389,26 @@ $toolbar-height: 64px;
 
 		// Vote bucket background, which we change based on the vote count
 		.vote-bucket {
-			background-color: black;
 			opacity: 0;
+			background-color: black;
 		}
 
 		// Added when the div is hovered over
 		&.selected {
-			border: 1px solid $accent-color;
+			//border: $accent-hue-3 1px solid;
+			height: $vote-bar-selected-height;
+
+			.vote-bucket {
+				background-color: $primary-color;
+			}
 		}
 	}
+
+	// Don't double up on borders when the neighbor will have one
+	.vote-bucket-div:not(.selected) + .vote-bucket-div:not(.selected) {
+		border-left: none;
+	}
+
 
 	// This is the space surrounding the vote bar on top and bottom
 	.vote-bar-margin {
@@ -398,7 +419,7 @@ $toolbar-height: 64px;
 	// This is the div we show when the user is hovering over the bar to vote
 	.new-vote-div {
 		position: relative;
-		top: $vote-bar-margin / 2.0;
+		top: $vote-bar-margin - ($vote-bar-height + $vote-bar-margin - $vote-bucket-container-height)/ 2.0;
 		z-index: 2;
 
 		// This is the actual knob we show visually
@@ -426,7 +447,7 @@ $toolbar-height: 64px;
 	// This is the bar we show where the user's vote is
 	.my-vote-div {
 		position: relative;
-		top: $vote-bar-margin / 2.0;
+		top: $vote-bar-margin - ($vote-bar-height + $vote-bar-margin - $vote-bucket-container-height)/ 2.0;
 		z-index: 1;
 
 		// This is the actual knob we show visually
@@ -446,9 +467,15 @@ $toolbar-height: 64px;
 	outline: none;
 }
 
-// Helper used to center text horizontally
+// Helpers used to align text horizontally
+.left-text {
+	text-align: left;
+}
 .center-text {
 	text-align: center;
+}
+.right-text {
+	text-align: right;
 }
 
 // Helper to preserve whitespace
@@ -457,18 +484,18 @@ $toolbar-height: 64px;
 }
 
 // Inside toolbars, color the link differently
-md-toolbar a, md-toolbar a[page-id] {
+md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
 	color: white;
 	&:hover {
 		color: $primary-hue-1;
 	}
 	&:active {
-		color: $primary-hue-3;
+		color: darken($primary-hue-1, 20%);
 	}
 }
 
 // Style all the links
-a {
+a:not(.md-button) {
 	$color: #0000cc;
 	text-decoration: none;
 	outline: none;
@@ -482,7 +509,7 @@ a {
 	}
 
 	// Style intrasite links
-	&[page-id] {
+	&[page-id], &[user-id] {
 		color: $primary-color;
 		&:hover {
 			color: $primary-hue-2;
@@ -822,9 +849,15 @@ md-tabs.layout-column.flex {
 	}
 }
 
+md-tab-content {
+	background-color: white;
+}
+
 // Color the active tab
-.md-tab.md-active {
-	background-color: $primary-hue-3;
+.md-tab {
+	&.md-active {
+		background-color: $primary-hue-3;
+	}
 }
 
 // Show deletes and inserts
@@ -846,6 +879,7 @@ ins {
 
 // Contains all markdown buttons
 .wmd-button-bar {
+	background-color: white;
 	border-bottom: silver 1px solid;
 
 	.md-button {
@@ -896,7 +930,7 @@ ins {
 // Highlight subpages when they are selected
 .selected-subpage > .comment-header {
 	background-color: $accent-hue-1;
-	border-bottom: $accent-color 1px solid;
+	border: $accent-color 1px solid;
 }
 
 [arb-subpage] + [arb-subpage] {

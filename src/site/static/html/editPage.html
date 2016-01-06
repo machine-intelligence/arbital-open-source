@@ -2,7 +2,8 @@
 		ng-class="{'layout-row': fullView, 'layout-column': !fullView}"
 		ng-keyup="handleKeyPress($event)">
 	<!-- Main edit column (left half) -->
-	<div layout="column"
+	<div class="md-primary"
+			layout="column"
 			flex="{{fullView ? '50' : undefined}}"
 			ng-hide="inPreview || (!fullView && otherDiff)">
 		<md-tabs ng-class="{'hide-tabs': isComment || isAnswer}"
@@ -120,7 +121,7 @@
 						</div>
 						<div flex></div>
 						<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}" ng-show="isEmbedded && !insideDialog">
-							<md-icon>open_in_new</md-icon>
+							<md-icon>fullscreen</md-icon>
 							<md-tooltip>Go to full-windowed edit page</md-tooltip>
 						</md-button>
 						<div class="separator" ng-show="isEmbedded && !insideDialog"></div>
@@ -329,8 +330,8 @@
 		<!-- Footer -->
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
-			<div ng-hide="isEmbedded">
-				<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}">
+			<div layout="column" ng-hide="isEmbedded">
+				<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}" class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
 					Back
 					<md-tooltip>
@@ -359,12 +360,12 @@
 			<arb-confirm-button button-text="Discard"
 					confirmed="discardPage()"
 					disabled="publishing || snapshotting"
-					ng-show="selectedTab == 0 || selectedTab == 1"></arb-confirm-button>
+					ng-hide="selectedTab == 2 || !isPageDirty"></arb-confirm-button>
 			<div ng-show="selectedTab == 0 || selectedTab == 1">
 				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="snapshotPage()"
 						ng-disable="publishing || snapshotting">
-					<md-tooltip>Save a snapshot of the text</md-tooltip>
+					<md-tooltip>Save this text for later</md-tooltip>
 					Snapshot
 				</md-button>
 			</div>

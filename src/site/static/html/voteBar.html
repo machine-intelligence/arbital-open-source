@@ -1,4 +1,4 @@
-<div class="vote-bar md-whiteframe-2dp"
+<div class="vote-bar"
 		ng-class="{'lens-text-container': !isEmbedded}"
 		layout="column"
 		layout-margin
@@ -15,9 +15,6 @@
 
 	<!-- Body -->
 	<div layout="row">
-		<div layout="row" layout-align="end center">
-			<div class="vote-bar-label" ng-bind="typeHelper.label1"></div>
-		</div>
 		<div class="vote-bar-body"
 				ng-mouseleave="voteMouseMove($event, true)"
 				ng-mousemove="voteMouseMove($event, false)"
@@ -41,8 +38,8 @@
 			</div>
 
 			<!-- Buckets -->
-			<div class="md-whiteframe-1dp" layout="row" flex>
-				<div class="vote-bucket-div"
+			<div class="vote-bucket-container" layout="row" layout-align="start center" flex>
+				<div class="vote-bucket-div md-whiteframe-1dp"
 						ng-repeat="bucket in voteBuckets"
 						ng-class="{selected: bucket === selectedVoteBucket}"
 						flex="{{bucket.flex}}">
@@ -53,18 +50,17 @@
 			</div>
 
 			<!-- Bottom margin -->
-			<div class="vote-bar-margin" layout="row" layout-align="start center" flex>
-				<div flex></div>
-				<div class="vote-bar-label center-text" flex="15" ng-bind="typeHelper.label2"></div>
-				<div flex></div>
-				<div class="vote-bar-label center-text" flex="15" ng-bind="typeHelper.label3"></div>
-				<div flex></div>
-				<div class="vote-bar-label center-text" flex="15" ng-bind="typeHelper.label4"></div>
-				<div flex></div>
+			<div layout="row" layout-align="start start" flex>
+				<div class="vote-bar-label left-text" flex="10" ng-bind="typeHelper.label1"></div>
+				<div flex="10"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label2"></div>
+				<div flex="15"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label3"></div>
+				<div flex="15"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label4"></div>
+				<div flex="10"></div>
+				<div class="vote-bar-label right-text" flex="10" ng-bind="typeHelper.label5"></div>
 			</div>
-		</div>
-		<div layout="row" layout-align="start center">
-			<div class="vote-bar-label" ng-bind="typeHelper.label5"></div>
 		</div>
 	</div>
 
@@ -87,4 +83,3 @@
 			summary-name="Vote"
 			ng-if="showMetaInfo"></arb-markdown>
 </div>
-

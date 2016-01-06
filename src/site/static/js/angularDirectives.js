@@ -234,6 +234,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// Check if the data is loaded
 			$scope.isSubscribed = function() {

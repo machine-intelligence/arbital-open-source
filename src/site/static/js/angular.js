@@ -120,6 +120,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService) {
 	$scope.pageService = pageService;
 	$scope.userService = userService;
+	$scope.loadingBarValue = 0;
 
 	// Get subdomain if any
 	$scope.subdomain = undefined;
@@ -174,8 +175,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 			if (result.element) {
 				// Only show the element after it and all the children have been fully compiled and linked
 				result.element.addClass("reveal-after-render-parent");
-				$("#loading-bar").show();
+				var $loadingBar = $("#loading-bar");
+				$loadingBar.show();
+				$scope.loadingBarValue = 0;
+				var startTime = (new Date()).getTime();
 				var revealInterval = $interval(function() {
+					var timePassed = ((new Date()).getTime() - startTime) / 1000;
+					$scope.loadingBarValue = Math.min(100, timePassed * 30);
 					var hiddenChildren = result.element.find(".reveal-after-render");
 					if (hiddenChildren.length > 0) {
 						hiddenChildren.each(function() {
@@ -189,7 +195,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 					// Do short timeout to prevent some rendering bugs that occur on edit page
 					$timeout(function() {
 						result.element.removeClass("reveal-after-render-parent");
-						$("#loading-bar").hide();
+						$loadingBar.hide();
 						$anchorScroll();
 					}, 50);
 				}, 50);
@@ -235,6 +241,27 @@ app.filter("relativeDateTime", function() {
 app.filter("relativeDateTimeNoSuffix", function() {
 	return function(input) {
 		return moment.utc(input).fromNow(true);
+	};
+});
+
+// numSuffix filter converts a number string to a 2 digit number with a suffix, e.g. K, M, G
+app.filter("numSuffix", function() {
+	return function(input) {
+		var num = +input;
+		if (num >= 100000) return (Math.round(num / 100000) / 10) + "M";
+		if (num >= 100) return (Math.round(num / 100) / 10) + "K";
+		return input;
+	};
+});
+
+// shorten filter shortens a string to the given number of characters
+app.filter("shorten", function() {
+	return function(input, charCount) {
+		if (!input || input.length <= charCount) return input;
+		var s = input.substring(0, charCount);
+		var lastSpaceIndex = s.lastIndexOf(" ");
+		if (lastSpaceIndex < 0) return s + "...";
+		return input.substring(0, lastSpaceIndex) + "...";
 	};
 });
 

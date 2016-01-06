@@ -88,13 +88,11 @@
 				ng-show="page.usedAsMastery">
 			<span ng-show="mastery.has">
 				<md-icon class="md-accent">done</md-icon>
-				<span ng-show="mastery.isManuallySet">You marked this requisite fulfilled</span>
-				<span ng-hide="mastery.isManuallySet">This requisite is fulfilled</span>
+				This requisite is fulfilled
 			</span>
 			<span ng-hide="mastery.has">
 				<md-icon class="md-accent">add</md-icon>
-				<span ng-show="mastery.isManuallySet">You marked this requisite unfulfilled</span>
-				<span ng-hide="mastery.isManuallySet">I understand this page!</span>
+				I understand this page!
 			</span>
 		</md-button>
 	</div>

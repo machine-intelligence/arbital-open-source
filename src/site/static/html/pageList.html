@@ -40,7 +40,7 @@
 					</div>
 					<div style="white-space: nowrap" ng-show="showTextLength">
 						<span class="separator"></span>
-						<span ng-bind="page.textLength + ' characters'"></span>
+						<span ng-bind="page.textLength | numSuffix"></span> characters
 					</div>
 					<div style="white-space: nowrap" ng-show="showLastEdit">
 						<span class="separator"></span>

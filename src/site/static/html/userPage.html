@@ -1,14 +1,8 @@
 <div layout="column" class="capped-body-width">
-
-	<!-- User header -->
-	<div layout="row" layout-align="center center">
-		<h2>
-			<arb-user-name user-id="{{userId}}"></arb-user-name>
-			<span class="md-caption">
-				(last seen <span ng-bind="userService.userMap[userId].lastWebsiteVisit | relativeDateTime"></span>)
-			</span>
-		</h2>
-	</div>
+	<!-- User page -->
+	<arb-page class="reveal-after-render" page-id="{{userId}}"></arb-page>
+	<br>
+	<br>
 
 	<div arb-page-list panel-title="Recently created comments"
 			show-created-at="true"

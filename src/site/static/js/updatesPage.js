@@ -12,10 +12,11 @@ app.directive("arbUpdates", function($compile, $location, $rootScope, pageServic
 			$scope.userService = userService;
 
 			$scope.updateGroups.sort(function(a, b) {
-				if (a.key.isNew !== b.key.isNew) {
+				if (b.key.isNew !== a.key.isNew) {
 					return (b.key.isNew ? 1 : 0) - (a.key.isNew ? 1 : 0);
 				}
-				return b.mostRecentDate < a.mostRecentDate;
+				if (b.mostRecentDate === a.mostRecentDate) return 0;
+				return b.mostRecentDate < a.mostRecentDate ? -1 : 1;
 			});
 		},
 	};

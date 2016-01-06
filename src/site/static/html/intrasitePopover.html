@@ -10,9 +10,10 @@
 			</div>
 		</md-toolbar>
 	
-		<arb-vote-bar page-id="{{page.pageId}}"
+		<div arb-vote-bar class="white-background md-padding"
+				page-id="{{page.pageId}}"
 				is-embedded="true"
-				ng-if="page.hasVote && isLoaded()"></arb-vote-bar> 
+				ng-if="page.hasVote && isLoaded()"></div>
 		
 		<!-- Lens tabs -->
 		<md-tabs class="md-primary md-hue-2"
