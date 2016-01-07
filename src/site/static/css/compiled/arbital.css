@@ -135,8 +135,6 @@ arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
     padding: 10px 0; }
 arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
   margin-bottom: 0; }
-arb-markdown hr + hr, [arb-markdown] hr + hr, .preview-area hr + hr {
-  display: none; }
 
 .capped-body-width {
   display: block;
@@ -363,7 +361,8 @@ md-list {
 
 md-dialog {
   width: 90vw;
-  height: 90vh; }
+  height: 90vh;
+  background-color: #00796B; }
   md-dialog md-dialog-content {
     height: 100%;
     display: -webkit-flex;
@@ -520,7 +519,7 @@ arb-user-popover {
 
 .private-group-icon {
   position: absolute;
-  top: 42px;
+  bottom: 4px;
   left: 42px;
   z-index: 50;
   color: black; }

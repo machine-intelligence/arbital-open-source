@@ -79,6 +79,10 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	returnData.EditMap[pageId] = p
 	delete(returnData.PageMap, pageId)
 
+	// Load parents, tags, and requirement pages (to display in Relationship tab)
+	core.AddPageToMap(8992241719442104138, returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap(7648631253816709800, returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap(2771631271061525489, returnData.PageMap, core.TitlePlusLoadOptions)
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)

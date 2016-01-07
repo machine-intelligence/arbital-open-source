@@ -558,6 +558,7 @@ md-list {
 md-dialog {
 	width: 90vw;
 	height: 90vh;
+	background-color: $primary-hue-2; // otherwise we get slightly white corners
 
 	// Hack to allow us to use 100% height inside the dialog
 	md-dialog-content {
@@ -793,7 +794,7 @@ $triangle-size: 15px;
 
 .private-group-icon {
 	position: absolute;
-	top: 42px;
+	bottom: 4px;
 	left: 42px;
 	z-index: $composeFabZ;
 	color: black;

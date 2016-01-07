@@ -6,7 +6,19 @@
 				ng-class="{'md-accent': isLensRequirements && !meetsAllRequirements()}"
 				flex>
 			<md-icon ng-show="isLensRequirements">assignment</md-icon>
-			<span ng-bind="title"></span>
+			<span ng-bind="title" ng-if="!forceEditMode"></span>
+			<arb-page-title page-id="8992241719442104138"
+					is-link="true"
+					custom-page-title="'Parents'"
+					ng-if="forceEditMode && isParentType"></arb-page-title>
+			<arb-page-title page-id="7648631253816709800"
+					is-link="true"
+					custom-page-title="'Tags'"
+					ng-if="forceEditMode && isTagType"></arb-page-title>
+			<arb-page-title page-id="2771631271061525489"
+					is-link="true"
+					custom-page-title="'Requirements'"
+					ng-if="forceEditMode && isRequirementType"></arb-page-title>
 		</span>
 
 		<!-- Edit button -->
