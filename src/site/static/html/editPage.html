@@ -23,9 +23,6 @@
 						<label>Clickbait</label>
 						<input ng-model="page.clickbait" md-maxlength="200">
 					</md-input-container>
-					<div class="md-caption">
-						You need to publish the page for these fields to show up live.
-					</div>
 				</div>
 			</md-tab>
 
@@ -275,6 +272,7 @@
 
 			<!-- (4) Changelog tab -->
 			<md-tab label="Changelog" ng-disabled="isComment || isAnswer">
+				<div class="md-caption" layout-padding ng-show="page.changeLogs.length <= 0">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
 						<div layout="column">
@@ -396,6 +394,9 @@
 		<md-content class="preview-area" flex ng-hide="(!fullView && !inPreview) || otherDiff">
 			<div class="md-display-3" ng-bind="page.title"></div>
 			<div id="wmd-preview{{page.pageId}}"></div>
+			<div class="md-caption" ng-show="page.title === '' && page.text === ''">
+				<div class="md-display-3">Live preview</div>
+			</div>
 		</md-content>
 
 		<!-- Buttons shown in preview -->

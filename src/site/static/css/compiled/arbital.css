@@ -135,6 +135,8 @@ arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
     padding: 10px 0; }
 arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
   margin-bottom: 0; }
+arb-markdown hr + hr, [arb-markdown] hr + hr, .preview-area hr + hr {
+  display: none; }
 
 .capped-body-width {
   display: block;
@@ -515,6 +517,13 @@ arb-user-popover {
 
 .simple-embed-page-title {
   margin: 1rem 0; }
+
+.private-group-icon {
+  position: absolute;
+  top: 42px;
+  left: 42px;
+  z-index: 50;
+  color: black; }
 
 arb-compose-fab {
   position: fixed;

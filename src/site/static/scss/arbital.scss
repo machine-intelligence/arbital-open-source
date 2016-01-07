@@ -791,6 +791,14 @@ $triangle-size: 15px;
 	margin: 1rem 0;
 }
 
+.private-group-icon {
+	position: absolute;
+	top: 42px;
+	left: 42px;
+	z-index: $composeFabZ;
+	color: black;
+}
+
 // Compose fab that appears in the bottom right corner
 arb-compose-fab {
 	position: fixed;

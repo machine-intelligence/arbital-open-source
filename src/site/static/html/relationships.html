@@ -27,8 +27,8 @@
 				ng-click="toggleRequirement(otherPageId)"
 				ng-show="!inEditMode"
 				ng-if="isRequirementType">
-			<md-icon ng-show="hasMastery(otherPageId)">done</md-icon>
-			<md-icon ng-hide="hasMastery(otherPageId)">add</md-icon>
+			<md-icon ng-show="hasMastery(otherPageId)">check_box</md-icon>
+			<md-icon ng-hide="hasMastery(otherPageId)">check_box_outline_blank</md-icon>
 		</md-button>
 
 		<!-- Delete button -->
@@ -45,5 +45,8 @@
 	<!-- Add requirements -->
 	<arb-autocomplete placeholder="Add a {{type}}"
 			on-select="searchResultSelected(result)"
-			ng-show="inEditMode && !readonly"><arb-autocomplete>
+			ng-show="inEditMode && !readonly"></arb-autocomplete>
+	<div class="md-caption" ng-if="readonly">
+		You can't edit this field for this page.
+	</div>
 </div>

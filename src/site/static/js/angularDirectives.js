@@ -299,7 +299,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 					var type = pageService.primaryPage.type;
 					if (type === "question") {
 						$scope.showNewAnswer = true;
-					} else if (type === "wiki") {
+					} else if (type === "wiki" || type === "group" || type === "domain") {
 						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
 						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
 						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
@@ -386,15 +386,15 @@ app.directive("arbPageList", function(pageService, userService) {
 		scope: {
 			pageIds: "=",
 			panelTitle: "@",
-			hideLikes: "@",
-			showLastEdit: "@",
-			showCreatedAt: "@",
-			showQuickEdit: "@",
-			showRedLinkCount: "@",
-			showCommentCount: "@",
-			showTextLength: "@",
+			hideLikes: "=",
+			showLastEdit: "=",
+			showCreatedAt: "=",
+			showQuickEdit: "=",
+			showRedLinkCount: "=",
+			showCommentCount: "=",
+			showTextLength: "=",
 			// If set, we'll pull the page from the editMap instead of pageMap
-			useEditMap: "@",
+			useEditMap: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
