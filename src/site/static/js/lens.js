@@ -61,6 +61,15 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			$scope.$on("lensTabChanged", function(event, lensId){
 				$scope.lensIsVisible = $scope.pageId == lensId;
 			});
+
+			// Listen for shortcut keys
+			$(document).keyup(function(event) {
+				if (!$scope.lensIsVisible) return true;
+				if (!event.ctrlKey || !event.altKey) return true;
+				$scope.$apply(function() {
+					if (event.keyCode == 77) $scope.newInlineComment(); // M
+				});
+			});
 		},
 		link: function(scope, element, attrs) {
 			if (scope.isSimpleEmbed) return;
@@ -232,6 +241,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Create a new inline comment
 			scope.newInlineComment = function() {
+				if (!scope.showNewInlineCommentButton) return;
 				var selection = getSelectedParagraphText();
 				if (!selection) return;
 				pageService.newComment({

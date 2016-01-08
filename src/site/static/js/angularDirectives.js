@@ -335,6 +335,20 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 				$scope.hide = $location.path().indexOf("/edit") === 0;
 			});
 			$scope.hide = $location.path().indexOf("/edit") === 0;
+
+			// Listen for shortcut keys
+			$(document).keyup(function(event) {
+				if (!event.ctrlKey || !event.altKey) return true;
+				$scope.$apply(function() {
+					if (event.keyCode == 80) $location.url("/edit/"); // P
+					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
+					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
+					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
+					else if (event.keyCode == 81 && $scope.questionUrl) $location.url($scope.questionUrl); // Q
+					else if (event.keyCode == 65 && $scope.showNewAnswer) $scope.newAnswer(); // A
+					else if (event.keyCode == 75) $scope.newFeedback(event); // K
+				});
+			});
 		},
 	};
 });
