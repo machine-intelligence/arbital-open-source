@@ -354,7 +354,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 });
 
 // autocomplete searches for relevant pages as you do the search
-app.directive("arbAutocomplete", function($timeout, $q, pageService, autocompleteService) {
+app.directive("arbAutocomplete", function($timeout, $q, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/autocomplete.html",
 		scope: {
@@ -365,6 +365,9 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, autocomplet
 			onSelect: "&",
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
 				var deferred = $q.defer();

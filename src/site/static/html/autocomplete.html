@@ -16,15 +16,15 @@
 			<!-- There is a bug with using custom directives inside the autocomplete -->
 			<div layout="column">
 				<div layout="row" layout-align="start center">
-					<md-icon ng-show="pageService.showLockedGroup(result.page.pageId)">
+					<md-icon class="no-margins" ng-show="pageService.showPrivate(result.page.pageId)">
 						<md-tooltip>This page belongs to {{pageService.pageMap[page.seeGroupId].title}} group</md-tooltip>
 						lock
 					</md-icon>
-					<md-icon ng-show="pageService.showPublic(result.page.pageId)">
+					<md-icon class="no-margins" ng-show="pageService.showPublic(result.page.pageId)">
 						<md-tooltip>This page is public</md-tooltip>
 						public
 					</md-icon>
-					<md-icon ng-show="result.page.type === 'question'">
+					<md-icon class="no-margins" ng-show="result.page.isQuestion()">
 						<md-tooltip>This is a question page</md-tooltip>
 						help
 					</md-icon>

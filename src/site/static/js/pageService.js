@@ -544,26 +544,22 @@ app.service("pageService", function($http, $location, userService){
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId, useEditMap) {
-		/*if (this.privateGroupId !== undefined) {
-			return this.privateGroupId !== this.pageMap[pageId].seeGroupId;
-		}*/
 		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
-		if (!this.primaryPage) return false;
-		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId === "0";
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId === "0";
 	};
 	// Return true iff we should show that this page belongs to a group.
-	this.showLockedGroup = function(pageId, useEditMap) {
+	this.showPrivate = function(pageId, useEditMap) {
 		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
-		if (!this.primaryPage) return page.seeGroupId !== "0";
-		return this.primaryPage.seeGroupId !== page.seeGroupId && page.seeGroupId !== "0";
+		console.log(this.privateGroupId);
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== "0";
 	};
 
 	// Create a new comment; optionally it's a reply to the given commentId

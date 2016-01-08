@@ -1,5 +1,5 @@
 <!-- Display page's title with potential additional meta info. -->
-<md-icon ng-show="pageService.showLockedGroup(page.pageId, useEditMap)">
+<md-icon ng-show="pageService.showPrivate(page.pageId, useEditMap)">
 	<md-tooltip>This page belongs to {{pageService.pageMap[page.seeGroupId].title}} group</md-tooltip>
 	lock
 </md-icon>
