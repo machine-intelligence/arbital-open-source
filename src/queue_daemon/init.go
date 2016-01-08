@@ -48,6 +48,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.EmailUpdatesTask{}
 	} else if leasedTask.Tag == "sendOneEmail" {
 		task = &tasks.SendOneEmailTask{}
+	} else if leasedTask.Tag == "sendFeedbackEmail" {
+		task = &tasks.SendFeedbackEmailTask{}
 	} else if leasedTask.Tag == "propagateDomain" {
 		task = &tasks.PropagateDomainTask{}
 	} else if leasedTask.Tag == "updateMetadata" {

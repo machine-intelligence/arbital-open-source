@@ -266,7 +266,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageService, userService) {
+app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog, pageService, userService) {
 	return {
 		templateUrl: "/static/html/composeFab.html",
 		scope: {
@@ -319,6 +319,16 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 				$("html, body").animate({
 					scrollTop: $("#your-answer").offset().top,
 		    }, 1000);
+			};
+
+			// New feedback button is clicked
+			$scope.newFeedback = function(event) {
+				$mdDialog.show({
+					templateUrl: "/static/html/feedbackDialog.html",
+					controller: "FeedbackDialogController",
+					autoWrap: false,
+					targetEvent: event,
+				});
 			};
 
 			$scope.$on("$locationChangeSuccess", function () {

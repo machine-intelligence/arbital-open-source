@@ -36,6 +36,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			if ($location.search().tab) {
 				$scope.selectedTab = $location.search().tab;
 			}
+			if ($scope.page.isComment()) {
+				$scope.selectedTab = 1;
+			}
 
 			// Set up markdown
 			$timeout(function() {

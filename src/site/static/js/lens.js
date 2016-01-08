@@ -68,7 +68,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			// Detach some elements and append them to the body, since they will appear
 			// outside of the lens's div, and otherwise would be masked
 			var $inlineCommentsDiv = element.find(".inline-comments-div");
-			console.log($inlineCommentsDiv);
 			var $newInlineCommentButton = $inlineCommentsDiv.find(".inline-comment-icon");
 			$inlineCommentsDiv.appendTo($("body"));
 			var $lensMenuDiv = element.find(".lens-menu-div");
@@ -225,8 +224,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				});
 			});
 			scope.getNewInlineCommentButtonStyle = function() {
-				console.log($markdownContainer.offset().left);
-				console.log($markdownContainer.outerWidth());
 				return {
 					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 					"top": newInlineCommentButtonTop - $newInlineCommentButton.height() / 2,

@@ -105,7 +105,8 @@ span.md-warn {
 
 .md-caption {
   font-size: 12px;
-  color: darkgray; }
+  color: darkgray;
+  line-height: normal; }
 
 .md-body-2 {
   font-weight: 700; }
@@ -359,11 +360,11 @@ md-list {
   padding-top: 0;
   padding-bottom: 0; }
 
-md-dialog {
+.edit-page-dialog {
   width: 90vw;
   height: 90vh;
   background-color: #00796B; }
-  md-dialog md-dialog-content {
+  .edit-page-dialog md-dialog-content {
     height: 100%;
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -374,6 +375,10 @@ md-dialog {
   margin: 0; }
   .md-button:not(.md-fab).md-icon-button {
     overflow: visible; }
+
+.feedback-textarea {
+  width: 40vw;
+  height: 50vh; }
 
 md-list-item:not(.no-margins) {
   min-height: 0;
@@ -608,11 +613,13 @@ ins {
 
 .wmd-input {
   height: 100%;
-  resize: none;
   border: none;
   outline: none;
   padding: 5px 15px;
   background-color: whitesmoke; }
+
+textarea {
+  resize: none; }
 
 .preview-area {
   padding: 0 15px;

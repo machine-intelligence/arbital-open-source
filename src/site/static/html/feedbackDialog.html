@@ -1,0 +1,22 @@
+<md-dialog ng-cloak>
+	<md-toolbar>
+		<div class="md-toolbar-tools">
+			<h2>Feedback</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="hide()">
+				<md-icon>close</md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+	<md-dialog-content>
+		<div layout="column">
+			<textarea class="feedback-textarea"
+					placeholder="Thank you for your feedback!"
+					ng-model="text"
+					autofocus></textarea>
+			<md-button class="md-primary md-raised" ng-click="submitFn()">
+				Submit
+			</md-button>
+		</div>
+	</md-dialog-content>
+</md-dialog>

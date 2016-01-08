@@ -164,6 +164,7 @@ span.md-warn {
 .md-caption {
 	font-size: 12px;
 	color: darkgray;
+	line-height: normal;
 }
 
 // Slightly bolder normal font
@@ -555,7 +556,7 @@ md-list {
 	padding-bottom: 0;
 }
 
-md-dialog {
+.edit-page-dialog {
 	width: 90vw;
 	height: 90vh;
 	background-color: $primary-hue-2; // otherwise we get slightly white corners
@@ -580,6 +581,11 @@ md-dialog {
 		// still want to keep it small; so we need to show the overflow.
 		overflow: visible;
 	}
+}
+
+.feedback-textarea {
+	width: 40vw;
+	height: 50vh;
 }
 
 md-list-item:not(.no-margins) {
@@ -918,11 +924,14 @@ ins {
 // Textarea for editing markdown
 .wmd-input {
 	height: 100%;
-	resize: none;
 	border: none;
 	outline: none;
 	padding: 5px 15px;
 	background-color: whitesmoke;
+}
+
+textarea {
+	resize: none;
 }
 
 // Where the preview for the editor goes
