@@ -14,15 +14,23 @@
 				flex>
 			<!-- (0) Title tab -->
 			<md-tab label="Title" ng-disabled="isComment || isAnswer">
-				<div class="editor-tab" layout="column" flex>
-					<md-input-container>
-						<label>Title</label>
-						<input ng-model="page.title" md-maxlength="100" autofocus default-tab-item="0">
-					</md-input-container>
-					<md-input-container>
-						<label>Clickbait</label>
-						<input ng-model="page.clickbait" md-maxlength="200">
-					</md-input-container>
+				<div layout="column" flex>
+					<div class="editor-tab" layout="column">
+						<md-input-container>
+							<label>Title</label>
+							<input ng-model="page.title" md-maxlength="100" autofocus default-tab-item="0">
+						</md-input-container>
+						<md-input-container>
+							<label>Clickbait</label>
+							<input ng-model="page.clickbait" md-maxlength="200">
+						</md-input-container>
+						<md-input-container>
+							<label>Alias</label>
+							<input ng-model="page.alias" md-maxlength="50">
+						</md-input-container>
+					</div>
+					<!-- Related pages -->
+					<ng-include src="'/static/html/editPageSimilarList.html'" flex ng-if="!isQuestion"></ng-include>
 				</div>
 			</md-tab>
 
@@ -325,6 +333,11 @@
 			</md-tab>
 		</md-tabs>
 
+		<!-- Related pages -->
+		<ng-include class="white-background"
+				src="'/static/html/editPageSimilarList.html'"
+				ng-if="isQuestion && !fullView"></ng-include>
+
 		<!-- Footer -->
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
@@ -368,14 +381,14 @@
 				</md-button>
 			</div>
 			<div ng-show="!fullView && !inPreview && (selectedTab != 2)">
-				<md-button class="md-primary md-raised"
+				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="togglePreview(true)"
 						ng-disable="publishing || snapshotting">
 					<md-tooltip>Preview the page before publishing</md-tooltip>
 					Preview
 				</md-button>
 			</div>
-			<div ng-show="(fullView || inPreview) && (selectedTab != 2)">
+			<div ng-show="selectedTab != 2">
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
 						ng-disable="publishing || snapshotting">
@@ -405,8 +418,9 @@
 				layout-align="space-between center"
 				ng-show="inPreview">
 			<div layout-margin>
-				<md-button class="md-raised" ng-click="togglePreview(false)">
+				<md-button class="md-primary md-hue-1 md-raised" ng-click="togglePreview(false)">
 					<md-icon>arrow_back</md-icon>
+					Editing
 					<md-tooltip>Go back to editing</md-tooltip>
 				</md-button>
 			</div>
@@ -429,7 +443,7 @@
 				layout-align="space-between center"
 				ng-show="otherDiff">
 			<div layout-margin>
-				<md-button ng-click="hideDiff()">
+				<md-button class="md-primary md-hue-1" ng-click="hideDiff()">
 					<md-icon>arrow_back</md-icon>
 					<md-tooltip>Go back to live preview</md-tooltip>
 					Back to live preview
@@ -460,33 +474,6 @@
 		</md-list>
 
 		<!-- Related pages -->
-		<md-list ng-hide="otherDiff">
-			<md-subheader class="md-no-sticky" ng-show="similarPages.length > 0">
-				Similar {{isQuestion ? "questions" : "pages"}}
-			</md-subheader>
-			<md-list-item class="md-no-proxy"
-					ng-init="similarPage = similarPages[0]"
-					ng-if="similarPages.length > 0">
-				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
-				<arb-page-title page-id="{{similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
-				<div flex></div>
-				<md-button ng-click="toggleSimilarPages(true)"
-						ng-show="!forceExpandSimilarPages && !expandSimilarPages && similarPages.length > 1">
-					<md-icon>expand_more</md-icon>
-					Show {{similarPages.length - 1}} more
-				</md-button>
-				<md-button ng-click="toggleSimilarPages(false)"
-						ng-show="!forceExpandSimilarPages && expandSimilarPages">
-					<md-icon>expand_less</md-icon>
-					Hide
-				</md-button>
-			</md-list-item>
-			<md-list-item layout="row"
-					ng-repeat="(index,similarPage) in similarPages"
-					ng-if="index > 0 && (expandSimilarPages || index < forceExpandSimilarPagesCount)">
-				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
-				<arb-page-title page-id="{{similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
-			</md-list-item>
-		</md-list>
+		<ng-include src="'/static/html/editPageSimilarList.html'" ng-if="isQuestion && fullView"></ng-include>
 	</div>
 </div>

@@ -74,13 +74,13 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			};
 
 			// Setup all the settings
-			$scope.isWiki = $scope.page.type === "wiki";
-			$scope.isQuestion = $scope.page.type === "question";
-			$scope.isAnswer = $scope.page.type === "answer";
-			$scope.isComment = $scope.page.type === "comment";
-			$scope.isLens = $scope.page.type === "lens";
-			$scope.isGroup = $scope.page.type === "group" || $scope.page.type === "domain";
-			$scope.forceExpandSimilarPagesCount = $scope.isQuestion ? 5 : 0;
+			$scope.isWiki = $scope.page.isWiki();
+			$scope.isQuestion = $scope.page.isQuestion();
+			$scope.isAnswer = $scope.page.isAnswer();
+			$scope.isComment = $scope.page.isComment();
+			$scope.isLens = $scope.page.isLens();
+			$scope.isGroup = $scope.page.isGroup() || $scope.page.isDomain();
+			$scope.forceExpandSimilarPagesCount = $scope.isQuestion ? 5 : 10;
 
 			// Set up page types.
 			if ($scope.isQuestion) {
@@ -367,14 +367,16 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// =========== Find similar pages ==============
 			var shouldFindSimilar = false;
-			$scope.forceExpandSimilarPages = $scope.isQuestion;
-			$scope.expandSimilarPages = $scope.forceExpandSimilarPages;
+			$scope.expandSimilarPages = false;
 			$scope.toggleSimilarPages = function(show) {
 				$scope.expandSimilarPages = show;
 			};
 			$scope.similarPages = [];
 			var findSimilarFunc = function() {
+				if ($scope.page.wasPublished) return;
 				if (!shouldFindSimilar || $scope.isComment) return;
+				// Don't search, if we don't have the first tab selected
+				if (!$scope.isQuestion && $scope.selectedTab != 0) return;
 				shouldFindSimilar = false;
 				var data = {
 					title: $scope.page.title,
@@ -392,7 +394,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					}
 				});
 			};
-			var similarInterval = $interval(findSimilarFunc, 10000);
+			var similarInterval = $interval(findSimilarFunc, $scope.isQuestion ? 10000 : 3000);
 			$scope.$on("$destroy", function() {
 				$interval.cancel(similarInterval);
 			});

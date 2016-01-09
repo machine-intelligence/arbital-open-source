@@ -172,6 +172,9 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
 .md-whiteframe-2dp {
   background-color: white; }
 
+.black-font {
+  color: black; }
+
 .full-width {
   width: 100%; }
 

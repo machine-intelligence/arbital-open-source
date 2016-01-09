@@ -1,0 +1,29 @@
+<!-- This file is meant to be included only from editPage.html -->
+<md-list ng-if="!page.wasPublished">
+	<md-subheader class="md-primary md-hue-1 md-no-sticky" ng-show="similarPages.length > 0">
+		<span class="black-font" ng-bind="'Similar ' + (isQuestion ? 'questions' : 'pages')"></span>
+	</md-subheader>
+	<md-list-item class="md-no-proxy"
+			ng-init="similarPage = similarPages[0]"
+			ng-if="similarPages.length > 0">
+		<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
+		<arb-page-title page-id="{{similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
+		<div flex></div>
+		<md-button ng-click="toggleSimilarPages(true)"
+				ng-show="isQuestion && !expandSimilarPages && similarPages.length > forceExpandSimilarPagesCount">
+			<md-icon>expand_more</md-icon>
+			Show {{similarPages.length - forceExpandSimilarPagesCount}} more
+		</md-button>
+		<md-button ng-click="toggleSimilarPages(false)"
+				ng-show="isQuestion && expandSimilarPages">
+			<md-icon>expand_less</md-icon>
+			Hide
+		</md-button>
+	</md-list-item>
+	<md-list-item layout="row"
+			ng-repeat="(index,similarPage) in similarPages"
+			ng-if="index > 0 && (expandSimilarPages || index < forceExpandSimilarPagesCount)">
+		<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
+		<arb-page-title page-id="{{similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
+	</md-list-item>
+</md-list>
