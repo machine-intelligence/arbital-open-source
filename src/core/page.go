@@ -473,6 +473,24 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 		return fmt.Errorf("LoadUsers failed: %v", err)
 	}
 
+	// Computed which pages count as visited.
+	visitedValues := make([]interface{}, 0)
+	for id, p := range pageMap {
+		if p.Text != "" {
+			visitedValues = append(visitedValues, u.Id, id, database.Now())
+		}
+	}
+
+	// Add a visit to pages for which we loaded text.
+	if len(visitedValues) > 0 {
+		statement := db.NewStatement(`
+			INSERT INTO visits (userId, pageId, createdAt)
+			VALUES ` + database.ArgsPlaceholder(len(visitedValues), 3))
+		if _, err = statement.Exec(visitedValues...); err != nil {
+			return fmt.Errorf("Couldn't update visits", err)
+		}
+	}
+
 	return nil
 }
 

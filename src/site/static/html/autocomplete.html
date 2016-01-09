@@ -30,6 +30,7 @@
 					</md-icon>
 					<span>{{result.page.title}}</span>
 					<span class="primary-dot" ng-show="result.page.isNewPage()"></span>
+					<span ng-if="userService.user.isAdmin">&nbsp;&lt;{{result.score}}&gt;</span>
 				</div>
 				<span class="md-caption">{{result.page.clickbait}}</span>
 			</div>

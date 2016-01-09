@@ -558,7 +558,6 @@ app.service("pageService", function($http, $location, userService){
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
-		console.log(this.privateGroupId);
 		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== "0";
 	};
 

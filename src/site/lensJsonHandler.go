@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -47,16 +46,6 @@ func lensJsonHandler(params *pages.HandlerParams) *pages.Result {
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		pages.HandlerErrorFail("Pipeline error", err)
-	}
-
-	if returnData.PageMap[pageId].Text != "" {
-		// Add a visit to pages for which we loaded text.
-		statement := db.NewStatement(`
-		INSERT INTO visits (userId, pageId, createdAt)
-		VALUES (?,?,?)`)
-		if _, err = statement.Exec(u.Id, pageId, database.Now()); err != nil {
-			return pages.HandlerErrorFail("Couldn't update visits", err)
-		}
 	}
 
 	return pages.StatusOK(returnData.toJson())

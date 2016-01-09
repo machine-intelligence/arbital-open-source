@@ -7,7 +7,7 @@
 	<md-fab-trigger>
 		<md-button class="md-fab">
 			<md-icon class="fab-icon">add</md-icon>
-			<md-tooltip md-direction="left">Quick menu</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">Quick menu</md-tooltip>
 		</md-button>
 		<md-icon class="private-group-icon" ng-show="pageService.privateGroupId !== '0'">
 			lock
@@ -17,31 +17,31 @@
 	<md-fab-actions ng-show="isOpen">
 		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="editPageUrl">
 			<md-icon>create</md-icon>
-			<md-tooltip md-direction="left">Edit this page (ALT+CTRL+E)</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">Edit this page (ALT+CTRL+E)</md-tooltip>
 		</md-button>
 		<md-button href="/edit/" class="md-fab md-raised md-mini md-accent">
 			<md-icon>note_add</md-icon>
-			<md-tooltip md-direction="left">New page (ALT+CTRL+P)</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">New page (ALT+CTRL+P)</md-tooltip>
 		</md-button>
 		<md-button ng-href="{{childUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="childUrl">
 			<md-icon>child_care</md-icon>
-			<md-tooltip md-direction="left">New child page (ALT+CTRL+C)</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">New child page (ALT+CTRL+C)</md-tooltip>
 		</md-button>
 		<md-button ng-href="{{lensUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="lensUrl">
 			<md-icon>lens</md-icon>
-			<md-tooltip md-direction="left">New lens page (ALT+CTRL+N)</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">New lens page (ALT+CTRL+N)</md-tooltip>
 		</md-button>
 		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="questionUrl">
 			<md-icon>help</md-icon>
-			<md-tooltip md-direction="left">New question (ALT+CTRL+Q)</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">New question (ALT+CTRL+Q)</md-tooltip>
 		</md-button>
 		<md-button ng-click="newAnswer()" class="md-fab md-raised md-mini md-accent" ng-show="showNewAnswer">
 			<md-icon>font_download</md-icon>
-			<md-tooltip md-direction="left">New answer (ALT+CTRL+A)</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">New answer (ALT+CTRL+A)</md-tooltip>
 		</md-button>
 		<md-button ng-click="newFeedback($event)" class="md-fab md-raised md-mini md-accent">
 			<md-icon>feedback</md-icon>
-			<md-tooltip md-direction="left">Leave feedback (ALT+CTRL+K)</md-tooltip>
+			<md-tooltip md-autohide="true" md-direction="left">Leave feedback (ALT+CTRL+K)</md-tooltip>
 		</md-button>
 	</md-fab-actions>
 </md-fab-speed-dial>
