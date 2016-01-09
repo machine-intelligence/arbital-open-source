@@ -586,8 +586,20 @@ app.service("pageService", function($http, $location, userService){
 
 	// Called when the user created a new comment.
 	this.newCommentCreated = function(commentId) {
-		// TODO: dynamically add the comment
-		window.location.href = this.getPageUrl(this.primaryPage.pageId) + "#subpage-" + commentId;
-		window.location.reload();
+		var comment = this.editMap[commentId];
+		comment.originalCreatedAt = moment().format("YYYY-MM-DD HH:mm:ss");
+		this.addPageToMap(comment);
+
+		// Find the parent comment, or fall back on the parent page
+		var parent = undefined;
+		for (var n = 0; n < comment.parentIds.length; n++) {
+			var p = this.pageMap[comment.parentIds[n]];
+			if (!parent || p.isComment()) {
+				parent = p;
+			}
+		}
+
+		parent.commentIds.push(commentId);
+		$location.hash("subpage-" + commentId);
 	};
 });

@@ -392,7 +392,8 @@
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
 						ng-disable="publishing || snapshotting">
-					<md-tooltip>Make this version live</md-tooltip>
+					<!-- Don't show for comments, because when inline comment gets created the tooltip remains -->
+					<md-tooltip ng-if="!isComment">Make this version live</md-tooltip>
 					Publish
 				</md-button>
 			</div>

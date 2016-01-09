@@ -104,11 +104,11 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				});
 			};
 
-			// Process all inline comments
-			for (var n = 0; n < scope.page.commentIds.length; n++) {
-				if (scope.isTinyScreen) break;
-				var comment = pageService.pageMap[scope.page.commentIds[n]];
-				if (!comment.anchorContext || !comment.anchorText) continue;
+			// Process an inline comment
+			var processInlineComment = function(commentId) {
+				if (scope.isTinyScreen) return;
+				var comment = pageService.pageMap[commentId];
+				if (!comment.anchorContext || !comment.anchorText) return;
 
 				// Find the best paragraph
 				var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
@@ -127,7 +127,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				}
 
 				// Check if it's a close enough match
-				if (bestScore > comment.anchorContext.length / 2) continue;
+				if (bestScore > comment.anchorContext.length / 2) return;
 
 				// Find offset into the best paragraph
 				var anchorLength;
@@ -160,6 +160,11 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					paragraphNode: bestParagraphNode,
 					anchorNode: $("." + highlightClass),
 				};
+			};
+
+			// Process all inline comments
+			for (var n = 0; n < scope.page.commentIds.length; n++) {
+				processInlineComment(scope.page.commentIds[n]);
 			}
 
 			// Get the style of an inline comment icon
@@ -262,12 +267,12 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Called when the user is done with the new inline comment
 			scope.newInlineCommentDone = function(result) {
+				$inlineCommentEditPage.remove();
+				$inlineCommentEditPage = undefined;
+				$markdown.find(".inline-comment-highlight").removeClass("inline-comment-highlight");
 				if (!result.discard) {
 					pageService.newCommentCreated(result.pageId);
-				} else {
-					$inlineCommentEditPage.remove();
-					$inlineCommentEditPage = undefined;
-					$markdown.find(".inline-comment-highlight").removeClass("inline-comment-highlight");
+					processInlineComment(result.pageId);
 				}
 			};
 

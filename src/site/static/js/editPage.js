@@ -487,7 +487,8 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 		link: function(scope, element, attrs) {
 			$timeout(function() {
 				// Synchronize scrolling between the textarea and the preview.
-				var $divs = element.find(".wmd-input").add(element.find(".preview-area"));
+				var $wmdInput = element.find(".wmd-input");
+				var $divs = $wmdInput.add(element.find(".preview-area"));
 				var syncScroll = function(event) {
 					var $other = $divs.not(this).off("scroll"), other = $other.get(0);
 					var percentage = this.scrollTop / (this.scrollHeight - this.offsetHeight);
@@ -498,6 +499,14 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					}, 10);
 				};
 				$divs.on("scroll", syncScroll);
+
+				if (scope.isComment) {
+					// Scroll to show the entire edit page element and focus on the input.
+					$("html, body").animate({
+						scrollTop: Math.max($("body").scrollTop(), element.offset().top + element.height() - $(window).height() + 80),
+					}, 1000);
+					$wmdInput.focus();
+				}
 
 				// Listen to events from Markdown.Editor
 				var $markdownToolbar = element.find(".wmd-button-bar");
