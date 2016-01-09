@@ -302,6 +302,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["pageId"] = data.PageId
 		if !oldPage.WasPublished && isCurrentEdit {
 			hashmap["createdAt"] = database.Now()
+			hashmap["createdBy"] = u.Id
 		}
 		hashmap["maxEdit"] = oldPage.MaxEditEver
 		if oldPage.MaxEditEver < newEditNum {

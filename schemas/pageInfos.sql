@@ -10,6 +10,8 @@ CREATE TABLE pageInfos (
 	maxEdit INT NOT NULL,
 	/* When this page was originally created. */
 	createdAt DATETIME NOT NULL,
+	/* Id of the user who created the page. FK into users. */
+	createdBy BIGINT NOT NULL,
 
 	/* Alias name of the page. */
 	alias VARCHAR(64) NOT NULL,

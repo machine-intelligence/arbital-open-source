@@ -47,11 +47,9 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load recently created by me page ids.
 	rows := db.NewStatement(`
-		SELECT p.pageId
-		FROM pages AS p
-		JOIN pageInfos AS pi
-		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
+		SELECT pi.pageId
+		FROM pageInfos AS pi
+		WHERE pi.currentEdit>0 AND pi.createdBy=? AND pi.seeGroupId=? AND pi.type!=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
@@ -79,9 +77,10 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		SELECT p.pageId
 		FROM pages AS p
 		JOIN pageInfos AS pi
-		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
+		ON (p.pageId=pi.pageId)
 		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
-		ORDER BY p.createdAt DESC
+		GROUP BY 1
+		ORDER BY MAX(p.createdAt) DESC
 		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
