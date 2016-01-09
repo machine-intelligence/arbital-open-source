@@ -75,11 +75,13 @@ func newInternalGroup(tx *database.Tx, groupType string, groupId, userId int64, 
 		userGroupStr = "user"
 	}
 	url := GetEditPageFullUrl("", groupId)
+	// NOTE: the tabbing/spacing is really important here since it gets preserved.
+	// If we have 4 spaces, in Markdown that will start a code block.
 	text := fmt.Sprintf(`
-		[summary: Nothing here yet.]
+[summary: Nothing here yet.]
 
-		Automatically generated page for "%s" %s.
-		If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
+Automatically generated page for "%s" %s.
+If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	// Create new group for the user.
 	hashmap := make(database.InsertMap)
 	hashmap["pageId"] = groupId
