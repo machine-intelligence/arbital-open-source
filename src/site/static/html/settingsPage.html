@@ -2,7 +2,7 @@
 	<div class="md-whiteframe-1dp" layout="column">
 		<md-toolbar class="md-hue-1">
 			<div class="md-toolbar-tools">
-				Email settings
+				Settings
 			</div>
 		</md-toolbar>
 		<form ng-submit="submitForm($event)" layout="column" layout-padding>
@@ -38,6 +38,15 @@
 					You will receive a {{userService.user.emailFrequency}} email when you have more than {{userService.user.emailThreshold}} unread updates.
 				</span>
 			</div>
+
+			<md-subheader>
+				Performance
+			</md-subheader>
+
+			<!-- Ignore MathJax -->
+			<md-checkbox ng-model="userService.user.ignoreMathjax">
+				Ignore MathJax in live preview
+			</md-checkbox>
 	
 			<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 			<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Submit</md-button>

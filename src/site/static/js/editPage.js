@@ -498,7 +498,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						$other.on("scroll", syncScroll);
 					}, 10);
 				};
-				$divs.on("scroll", syncScroll);
+				if (scope.fullView) {
+					$divs.on("scroll", syncScroll);
+				}
 
 				if (scope.isComment) {
 					// Scroll to show the entire edit page element and focus on the input.

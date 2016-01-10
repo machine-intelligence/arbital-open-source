@@ -20,10 +20,12 @@ CREATE TABLE users (
 	inviteCode VARCHAR(16) NOT NULL,
 	/* Date of the last updates email. */
 	updateEmailSentAt DATETIME NOT NULL,
-	/* how frequently to send update emails. */
+	/* How frequently to send update emails. */
 	emailFrequency VARCHAR(16) NOT NULL,
-	/* how many updates before sending an update email. */
+	/* How many updates before sending an update email. */
 	emailThreshold INT(11) NOT NULL,
+	/* If true, don't do a live preview of MathJax. */
+	ignoreMathjax BOOL NOT NULL,
 	UNIQUE (email),
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

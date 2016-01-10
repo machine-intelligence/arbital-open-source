@@ -23,3 +23,4 @@ update pages set text=concat('Automatically generated page for "', title, '" use
 update pages set text=concat('Automatically generated page for "', title, '" group. Click [here to edit](http://arbital.com/edit/', pageId, ').') where length(text)=0 and isCurrentEdit and pageId in (select pageId from pageInfos where type="group");
 alter table pageInfos add column createdBy bigint not null;
 update pageInfos as pi set createdBy=(select p.creatorId from pages as p where p.pageId=pi.pageId AND NOT p.isSnapshot AND NOT p.isAutosave order by p.edit limit 1);
+alter table users add column ignoreMathjax bool not null;
