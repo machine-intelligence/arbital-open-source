@@ -99,6 +99,7 @@ type corePageData struct {
 	CreatorId         int64  `json:"creatorId,string"`
 	CreatedAt         string `json:"createdAt"`
 	OriginalCreatedAt string `json:"originalCreatedAt"`
+	OriginalCreatedBy string `json:"originalCreatedBy"`
 	EditKarmaLock     int    `json:"editKarmaLock"`
 	SeeGroupId        int64  `json:"seeGroupId,string"`
 	EditGroupId       int64  `json:"editGroupId,string"`
@@ -165,6 +166,8 @@ type Page struct {
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
 	Summaries map[string]string `json:"summaries"`
+	// Ids of the users who edited this page. Ordered by how much they contributed.
+	CreatorIds []string `json:"creatorIds"`
 
 	// Subpages.
 	AnswerIds      []string `json:"answerIds"`
@@ -418,6 +421,13 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 		return fmt.Errorf("LoadUsedAsMastery failed: %v", err)
 	}
 
+	// Load pages' creator's ids
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Creators })
+	err = LoadCreatorIds(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadCreatorIds failed: %v", err)
+	}
+
 	// Add other pages we'll need
 	AddUserGroupIdsToPageMap(u, pageMap)
 
@@ -539,7 +549,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 	rows := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
-			pi.alias,pi.createdAt,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
+			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
@@ -553,7 +563,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
-			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.SortChildrenBy,
+			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
@@ -683,7 +693,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 		SELECT p.pageId,p.edit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
-			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
+			pi.createdBy,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType
@@ -696,7 +706,8 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
-		&p.EditGroupId, &p.OriginalCreatedAt, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.IsAutosave, &p.IsSnapshot,
+		&p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.CurrentEditNum, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
 	if err != nil {
@@ -891,9 +902,36 @@ func LoadUsedAsMastery(db *database.DB, pageMap map[int64]*Page) error {
 		var count int
 		err := rows.Scan(&parentId, &count)
 		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
+			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		pageMap[parentId].UsedAsMastery = count > 0
+		return nil
+	})
+	return err
+}
+
+// LoadCreatorIds loads creator ids for the pages
+func LoadCreatorIds(db *database.DB, pageMap map[int64]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIdsList := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT pageId,creatorId,COUNT(*)
+		FROM pages
+		WHERE pageId IN`).AddArgsGroup(pageIdsList).Add(`
+			AND NOT isAutosave AND NOT isSnapshot AND NOT isMinorEdit
+		GROUP BY 1,2
+		ORDER BY 3 DESC`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, creatorId int64
+		var count int
+		err := rows.Scan(&pageId, &creatorId, &count)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		pageMap[pageId].CreatorIds = append(pageMap[pageId].CreatorIds, fmt.Sprintf("%d", creatorId))
 		return nil
 	})
 	return err

@@ -124,6 +124,9 @@ span.md-warn {
   .md-subheader .md-subheader-inner {
     padding: 0; }
 
+.bold {
+  font-weight: bold; }
+
 arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0; }
 arb-markdown ul, [arb-markdown] ul, .preview-area ul {

@@ -46,6 +46,7 @@ type PageLoadOptions struct {
 	RedLinkCount    bool
 	Mastery         bool
 	UsedAsMastery   bool
+	Creators        bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -71,6 +72,7 @@ var (
 		ChildDraftId:  true,
 		Mastery:       true,
 		UsedAsMastery: true,
+		Creators:      true,
 		NextPrevIds:   true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
@@ -90,6 +92,7 @@ var (
 		Requirements:  true,
 		ChildDraftId:  true,
 		Mastery:       true,
+		Creators:      true,
 		UsedAsMastery: true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment or answer)

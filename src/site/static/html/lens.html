@@ -82,6 +82,18 @@
 			<div class="diff-section" ng-bind-html="diffHtml"></div>
 		</div>
 
+		<!-- Authors -->
+		<div class="md-caption page-list-span" ng-if="page.creatorIds.length > 0 && !isSimpleEmbed">
+			<br>
+			<ng-pluralize count="page.creatorIds.length"
+					when="{'one': 'Author:', 'other': 'Authors:'}"></ng-pluralize>
+			<span ng-repeat="(index, creatorId) in page.creatorIds">
+				<span ng-show="index > 0">,</span>
+				<arb-user-name ng-class="{bold: creatorId === page.originalCreatedBy}"
+						user-id="{{creatorId}}"></arb-user-name>
+			</span>
+		</div>
+
 		<!-- Mastery container -->
 		<md-button arb-user-check="cool"
 				ng-click="toggleMastery()"
