@@ -694,8 +694,9 @@ arb-likes {
 		font-size: 16px;
 		line-height: 18px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
 }
@@ -711,8 +712,9 @@ arb-likes {
 		font-size: 16px;
 		line-height: 20px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
 }
@@ -728,8 +730,9 @@ arb-likes {
 		font-size: 17px;
 		line-height: 22px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
 }
@@ -745,10 +748,15 @@ arb-likes {
 		font-size: 18px;
 		line-height: 24px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+}
+.requirements-container {
+	padding-top: 5px;
+	padding-bottom: 5px;
 }
 // Text inside a popover
 .popover-text-container {

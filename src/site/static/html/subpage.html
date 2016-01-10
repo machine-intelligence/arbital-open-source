@@ -6,11 +6,11 @@
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center" ng-if="isComment">
 		<md-icon ng-hide="parentSubpageId">comment</md-icon>
-		<span class="primary-dot" ng-show="page.isNewPage()"></span>
 		<span class="separator" ng-hide="parentSubpageId"></span>
 
 		<!-- User name -->
 		<arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
+		<span class="primary-dot" ng-show="page.isNewPage()"></span>
 
 		<!-- Collapse button -->
 		<div layout="column" flex>
@@ -42,14 +42,15 @@
 	<div class="comment-header"
 			layout="row"
 			layout-align="start center"
+			layout-padding
 			ng-if="isQuestion">
-		<md-icon>help</md-icon>
-		<span class="primary-dot" ng-show="page.isNewPage()"></span>
-		<span class="separator" ng-hide="parentSubpageId"></span>
-
-		<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
-		<ng-pluralize count="page.answerCount"
-				when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
+		<div>
+			<md-icon>help</md-icon>
+			<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
+			<span class="primary-dot" ng-show="page.isNewPage()"></span>
+			<ng-pluralize count="page.answerCount"
+					when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
+		</div>
 	</div>
 
 	<!-- Collapsable body -->

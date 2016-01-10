@@ -443,8 +443,9 @@ arb-likes {
     font-size: 16px;
     line-height: 18px; }
 
-  .requirements-container {
-    padding: 5px 5px;
+  .dynamic-hor-padding {
+    padding-left: 5px;
+    padding-right: 5px;
     box-sizing: border-box; } }
 @media (min-width: 600px) {
   .lens-text-container {
@@ -457,8 +458,9 @@ arb-likes {
     font-size: 16px;
     line-height: 20px; }
 
-  .requirements-container {
-    padding: 5px 50px;
+  .dynamic-hor-padding {
+    padding-left: 50px;
+    padding-right: 50px;
     box-sizing: border-box; } }
 @media (min-width: 960px) {
   .lens-text-container {
@@ -471,8 +473,9 @@ arb-likes {
     font-size: 17px;
     line-height: 22px; }
 
-  .requirements-container {
-    padding: 5px 90px;
+  .dynamic-hor-padding {
+    padding-left: 90px;
+    padding-right: 90px;
     box-sizing: border-box; } }
 @media (min-width: 1100px) {
   .lens-text-container {
@@ -485,9 +488,14 @@ arb-likes {
     font-size: 18px;
     line-height: 24px; }
 
-  .requirements-container {
-    padding: 5px 100px;
+  .dynamic-hor-padding {
+    padding-left: 100px;
+    padding-right: 100px;
     box-sizing: border-box; } }
+.requirements-container {
+  padding-top: 5px;
+  padding-bottom: 5px; }
+
 .popover-text-container {
   font-size: 18px;
   line-height: 24px; }
