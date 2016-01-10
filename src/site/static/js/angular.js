@@ -78,6 +78,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/domains/:alias", {
 		template: "",
 		controller: "DomainPageController",
+		reloadOnSearch: false,
 	})
 	.when("/pages/:alias", {
 		template: "",
@@ -92,6 +93,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/user/:id?", {
 		template: "",
 		controller: "UserPageController",
+		reloadOnSearch: false,
 	})
 	.when("/dashboard/", {
 		template: "",

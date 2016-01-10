@@ -304,12 +304,17 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
 						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
 					}
-					$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
+					if ($location.search().lens) {
+						$scope.editPageUrl = pageService.getEditPageUrl($location.search().lens);
+					} else {
+						$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
+					}
 				}
 			};
 			computeUrls();
 			$scope.$watch(function() {
-				return pageService.primaryPage;
+				// Note: can't use an object, so we just hack together a string
+				return (pageService.primaryPage ? pageService.primaryPage.pageId : "none") + $location.absUrl();
 			}, function() {
 				computeUrls();
 			});
