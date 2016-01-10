@@ -435,6 +435,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				var data = {
 					pageId: $scope.page.pageId,
 					type: $scope.page.type,
+					seeGroupId: $scope.page.seeGroupId,
 					editGroupId: $scope.page.editGroupId,
 					hasVote: $scope.page.hasVote,
 					voteType: $scope.page.voteType,

@@ -18,6 +18,7 @@ type editPageInfoData struct {
 	Type           string
 	HasVote        bool
 	VoteType       string
+	SeeGroupId     int64 `json:",string"`
 	EditGroupId    int64 `json:",string"`
 	EditKarmaLock  int
 	Alias          string // if empty, leave the current one
@@ -59,22 +60,16 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		oldPage = &core.Page{}
 	}
 
-	// Set the see-group
-	var seeGroupId int64
-	if params.PrivateGroupId > 0 {
-		seeGroupId = params.PrivateGroupId
-	}
-
 	// Error checking.
 	// Check the page isn't locked by someone else
 	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
 		return pages.HandlerBadRequestFail("Can't change locked page", nil)
 	}
 	// Check the group settings
-	if oldPage.SeeGroupId != seeGroupId && oldPage.WasPublished {
+	if oldPage.SeeGroupId != data.SeeGroupId && oldPage.WasPublished {
 		return pages.HandlerBadRequestFail("Editing this page in incorrect private group", nil)
 	}
-	if seeGroupId > 0 && !u.IsMemberOfGroup(seeGroupId) {
+	if data.SeeGroupId > 0 && !u.IsMemberOfGroup(data.SeeGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
 	}
 	if oldPage.SeeGroupId > 0 && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
@@ -141,13 +136,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if seeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
-			tempPageMap := map[int64]*core.Page{seeGroupId: core.NewPage(seeGroupId)}
+		if data.SeeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+			tempPageMap := map[int64]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the see group", err)
 			}
-			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[seeGroupId].Alias, data.Alias)
+			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupId].Alias, data.Alias)
 		}
 
 		// Check if another page is already using the alias
@@ -175,7 +170,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["voteType"] = data.VoteType
 		hashmap["editKarmaLock"] = data.EditKarmaLock
 		hashmap["type"] = data.Type
-		hashmap["seeGroupId"] = seeGroupId
+		hashmap["seeGroupId"] = data.SeeGroupId
 		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		statement := tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
@@ -251,7 +246,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			Clickbait:  oldPage.Clickbait,
 			Text:       oldPage.Text,
 			Alias:      data.Alias,
-			SeeGroupId: seeGroupId,
+			SeeGroupId: data.SeeGroupId,
 			CreatorId:  u.Id,
 		}
 		err = elastic.AddPageToIndex(c, doc)

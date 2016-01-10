@@ -188,6 +188,19 @@
 							</div>
 						</div>
 					
+						<!-- See group id -->
+						<div layout="row" ng-if="!page.wasPublished">
+							<md-input-container flex>
+								<label>See group</label>
+								<md-select ng-model="page.seeGroupId">
+									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
+								</md-select>
+							</md-input-container>
+							<div class="md-caption" layout-margin flex>
+								Group that can see this page. If not set, anyone can see it
+							</div>
+						</div>
+					
 						<!-- Edit group id -->
 						<div layout="row">
 							<md-input-container flex>
