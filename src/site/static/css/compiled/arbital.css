@@ -128,7 +128,8 @@ span.md-warn {
   font-weight: bold; }
 
 arb-markdown p, [arb-markdown] p, .preview-area p {
-  margin-top: 0; }
+  margin-top: 0;
+  overflow-x: auto; }
 arb-markdown ul, [arb-markdown] ul, .preview-area ul {
   padding-left: 1.5em; }
 arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
