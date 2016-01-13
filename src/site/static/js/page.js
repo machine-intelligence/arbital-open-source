@@ -19,13 +19,19 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 
 			// Add the primary page as the first lens.
 			$scope.page.lensIds.unshift($scope.page.pageId);
+			$scope.page.lensIds.sort(function(a, b) {
+				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
+			});
 
 			// Determine which lens is selected
-			$scope.selectedLens = $scope.page;
-			if ($location.search().lens) {
-				$scope.selectedLens = pageService.pageMap[$location.search().lens];
-			}
-			$scope.selectedLensIndex = $scope.page.lensIds.indexOf($scope.selectedLens.pageId);
+			var computeSelectedLens = function() {
+				$scope.selectedLens = $scope.page;
+				if ($location.search().lens) {
+					$scope.selectedLens = pageService.pageMap[$location.search().lens];
+				}
+				$scope.selectedLensIndex = $scope.page.lensIds.indexOf($scope.selectedLens.pageId);
+			};
+			computeSelectedLens();
 			$scope.originalLensId = $scope.selectedLens.pageId;
 			$scope.getPageTitle = function() {
 				var pageTitle = $scope.page.title;
@@ -34,6 +40,13 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				}
 				return pageTitle + ": " + $scope.selectedLens.title;
 			}
+
+			// Monitor URL to see if we need to switch lenses
+			$scope.$watch(function() {
+				return $location.absUrl();
+			}, function() {
+				computeSelectedLens();
+			});
 
 			$scope.isLoaded = function(lensId) {
 				return pageService.pageMap[lensId].text.length > 0;

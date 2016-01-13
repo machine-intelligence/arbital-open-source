@@ -223,6 +223,7 @@ app.service("pageService", function($http, $location, userService){
 		if (pageMap && page.pageId !== page.alias) {
 			pageMap[page.alias] = page;
 		}
+
 		return page;
 	};
 	// Add the given page to the global pageMap. If the page with the same id

@@ -1,6 +1,6 @@
 "use strict";
 
-// Directive for showing the parents, children, tags, or requirements.
+// Directive for editing the parents, tags, requirements, or subjects.
 app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "/static/html/relationships.html",
@@ -8,23 +8,19 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 			pageId: "@",
 			type: "@",
 			isLensRequirements: "=",
-			forceEditMode: "=",
 			readonly: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			if ($scope.forceEditMode) {
-				$scope.page = pageService.editMap[$scope.pageId];
-			} else {
-				$scope.page = pageService.pageMap[$scope.pageId];
-			}
+			$scope.page = pageService.editMap[$scope.pageId];
 			$scope.inEditMode = $scope.forceEditMode;
 
 			// Helper variables
 			$scope.isParentType = $scope.type === "parent";
 			$scope.isTagType = $scope.type === "tag";
 			$scope.isRequirementType = $scope.type === "requirement";
+			$scope.isSubjectType = $scope.type === "subject";
 
 			// Compute various variables based on the type
 			if ($scope.isParentType) {
@@ -36,6 +32,9 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 			} else if ($scope.isRequirementType) {
 				$scope.title = "Requirements";
 				$scope.idsSource = $scope.page.requirementIds;
+			} else if ($scope.isSubjectType) {
+				$scope.title = "Subjects";
+				$scope.idsSource = $scope.page.subjectIds;
 			}
 			if ($scope.isLensRequirements) {
 				$scope.title = "This version relies on:";
@@ -70,12 +69,9 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 				$scope.page.requirementIds.sort(function(a, b) {
 					return ($scope.hasMastery(a) ? 1 : 0) - ($scope.hasMastery(b) ? 1 : 0);
 				});
+			} else if ($scope.isSubjectType) {
+				$scope.showPanel = true;
 			}
-
-			// Toggle edit mode.
-			$scope.inEditModeToggle = function() {
-				$scope.inEditMode = !$scope.inEditMode;
-			};
 
 			// Set up search
 			$scope.getSearchResults = function(text) {

@@ -79,10 +79,11 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	returnData.EditMap[pageId] = p
 	delete(returnData.PageMap, pageId)
 
-	// Load parents, tags, and requirement pages (to display in Relationship tab)
+	// Load parents, tags, requirement, and lens pages (to display in Relationship tab)
 	core.AddPageToMap(8992241719442104138, returnData.PageMap, core.TitlePlusLoadOptions)
 	core.AddPageToMap(7648631253816709800, returnData.PageMap, core.TitlePlusLoadOptions)
 	core.AddPageToMap(2771631271061525489, returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap(1407630090992422901, returnData.PageMap, core.TitlePlusLoadOptions)
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
@@ -92,11 +93,14 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 
 	// We need to copy some data from the loaded live version to the edit
+	// NOTE: AAAAARGH! This is such an ugly workaround
 	livePage := returnData.PageMap[pageId]
+	p.LensIds = livePage.LensIds
 	p.ChildIds = livePage.ChildIds
 	p.ParentIds = livePage.ParentIds
 	p.TaggedAsIds = livePage.TaggedAsIds
 	p.RequirementIds = livePage.RequirementIds
+	p.SubjectIds = livePage.SubjectIds
 	p.ChangeLogs = livePage.ChangeLogs
 	livePage.ChangeLogs = []*core.ChangeLog{}
 

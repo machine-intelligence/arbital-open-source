@@ -150,20 +150,52 @@
 			<md-tab label="Relationships" ng-disabled="isComment">
 				<div class="editor-tab" flex>
 					<!-- Parents -->
-					<arb-relationships page-id="{{page.pageId}}"
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
 							type="parent"
 							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></arb-relationships>
+							readonly="!(isWiki || isQuestion)"></div>
 					<!-- Tags -->
-					<arb-relationships page-id="{{page.pageId}}"
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
 							type="tag"
 							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></arb-relationships>
+							readonly="!(isWiki || isQuestion)"></div>
 					<!-- Requirements -->
-					<arb-relationships page-id="{{page.pageId}}"
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
 							type="requirement"
 							force-edit-mode="true"
-							readonly="!(isWiki || isLens)"></arb-relationships>
+							readonly="!(isWiki || isLens)"></div>
+					<!-- Teaches -->
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
+							type="subject"
+							force-edit-mode="true"
+							readonly="!(isWiki || isLens)"></div>
+					<!-- Lens ordering -->
+					<div class="edit-relationship-div" ng-if="!isLens">
+						<div class="md-subhead">
+							<arb-page-title page-id="2771631271061525489"
+									is-link="true"
+									custom-page-title="'Lens order'"></arb-page-title>
+							<div class="md-caption">
+								Sorted from most simple to most technical.
+							</div>
+						</div>
+						<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
+
+						<!-- List of lenses -->
+						<div data-as-sortable="lensSortListeners" data-ng-model="page.lensIds">
+							<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
+								<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
+									<md-icon>reorder</md-icon>
+									<span>#{{pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
+									<arb-page-title page-id="{{lensId}}" is-link="true"></arb-page-title>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</md-tab>
 

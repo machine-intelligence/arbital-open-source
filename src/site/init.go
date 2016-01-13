@@ -87,6 +87,7 @@ func init() {
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
 	s.HandleFunc(titleHandler.URI, handlerWrapper(titleHandler)).Methods("POST")
 	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
+	s.HandleFunc(updateLensOrderHandler.URI, handlerWrapper(updateLensOrderHandler)).Methods("POST")
 	s.HandleFunc(userPageHandler.URI, handlerWrapper(userPageHandler)).Methods("POST")
 	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")

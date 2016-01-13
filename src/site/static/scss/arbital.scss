@@ -1,3 +1,5 @@
+@import "ng-sortable.scss";
+
 // All the z-indices we use
 $inlineCommentIconZ: 1;
 $popoverZ: 60;
@@ -201,6 +203,7 @@ arb-markdown, [arb-markdown], .preview-area {
 		margin-top: 0;
 		// Allow scrollbars when paragraphs (sometimes caused by long MathJax equations) don't fit on the screen
 		overflow-x: auto;
+		overflow-y: hidden;
 	}
 
 	ul {
@@ -756,10 +759,19 @@ arb-likes {
 		box-sizing: border-box;
 	}
 }
+
+// Container for requirements
 .requirements-container {
 	padding-top: 5px;
 	padding-bottom: 5px;
+	border-bottom: silver 1px solid;
 }
+
+// Container for the list of page's authors
+.author-list {
+	text-align: right;
+}
+
 // Text inside a popover
 .popover-text-container {
 	font-size: 18px;
@@ -908,6 +920,11 @@ ins {
 
 .edit-page-footer {
 	margin: 0;
+}
+
+// Container for a editing a specific type of relationships
+.edit-relationship-div {
+	margin-bottom: 20px;
 }
 
 // Contains all markdown buttons

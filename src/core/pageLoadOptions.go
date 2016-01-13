@@ -26,6 +26,7 @@ type PageLoadOptions struct {
 	Related                 bool
 	Lenses                  bool
 	Requirements            bool
+	Subjects                bool
 
 	// Load options for basic pages
 	Links   bool
@@ -68,6 +69,7 @@ var (
 		Related:       true,
 		Lenses:        true,
 		Requirements:  true,
+		Subjects:      true,
 		Domains:       true,
 		ChildDraftId:  true,
 		Mastery:       true,
@@ -80,7 +82,9 @@ var (
 		Children:     true,
 		Parents:      true,
 		Tags:         true,
+		Lenses:       true,
 		Requirements: true,
+		Subjects:     true,
 		ChangeLogs:   true,
 		Links:        true,
 		Text:         true,
@@ -90,6 +94,7 @@ var (
 		Questions:     true,
 		SubpageCounts: true,
 		Requirements:  true,
+		Subjects:      true,
 		ChildDraftId:  true,
 		Mastery:       true,
 		Creators:      true,
@@ -107,7 +112,6 @@ var (
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info for an intrasite link popover
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{
-		Lenses:        true,
 		Links:         true,
 		Votes:         true,
 		IsSubscribed:  true,

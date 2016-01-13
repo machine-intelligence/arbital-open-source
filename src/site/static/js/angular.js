@@ -2,7 +2,7 @@
 
 // Set up angular module.
 var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute",
-		"ngMessages", "ngSanitize", "RecursionHelper"]);
+		"ngMessages", "ngSanitize", "RecursionHelper", "as.sortable"]);
 
 app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemingProvider){
 	// Convert "rgb(#,#,#)" color to "#hex"

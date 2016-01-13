@@ -67,11 +67,38 @@
 	</div>
 
 	<!-- Requirements -->
-	<arb-relationships class="requirements-container dynamic-hor-padding reveal-after-render"
-			page-id="{{page.pageId}}"
-			type="requirement"
-			is-lens-requirements="true"
-			ng-if="!isSimpleEmbed"></arb-relationships>
+	<div class="requirements-container dynamic-hor-padding"
+			ng-if="!isSimpleEmbed && showRequirementsPanel">
+		<!-- Lens suggestion -->
+		<p ng-if="simplerLens">
+			There is a
+			<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}">simpler lens</a>
+			<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
+			<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
+				that relies on requisites you already have.
+			</span>
+			<span ng-if="simplerLens.requirementIds.length > 0 && !meetsAllRequirements(simplerLens.pageId)">
+				that relies on:
+				<span ng-repeat="(index, reqId) in simplerLens.requirementIds">
+					<span ng-show="index > 0">,</span>
+					<arb-page-title page-id="{{reqId}}" is-link="true"></arb-page-title>
+				</span>
+			</span>
+		</p>
+
+		<span class="md-subhead" ng-class="{'md-accent': !meetsAllRequirements()}">
+			<md-icon>assignment</md-icon>
+			This version relies on:
+		</span>
+		<div arb-mastery-list
+				ids-source="page.requirementIds"></div>
+
+		<!-- Mark as done button -->
+		<md-button ng-click="toggleRequirements()"
+				ng-bind="meetsAllRequirements() ? 'Nevermind, I don\'t know these' : 'I already know these'"
+				ng-if="page.requirementIds.length > 1">
+		</md-button>
+	</div>
 
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
@@ -83,7 +110,7 @@
 		</div>
 
 		<!-- Authors -->
-		<div class="md-caption page-list-span" ng-if="page.creatorIds.length > 0 && !isSimpleEmbed">
+		<div class="author-list md-caption page-list-span" ng-if="page.creatorIds.length > 0 && !isSimpleEmbed">
 			<br>
 			<ng-pluralize count="page.creatorIds.length"
 					when="{'one': 'Author:', 'other': 'Authors:'}"></ng-pluralize>
@@ -92,6 +119,21 @@
 				<arb-user-name ng-class="{bold: creatorId === page.originalCreatedBy}"
 						user-id="{{creatorId}}"></arb-user-name>
 			</span>
+		</div>
+
+		<!-- Subjects taught -->
+		<div ng-if="!isSimpleEmbed && page.subjectIds.length > 0">
+			<span class="md-subhead">
+				<md-icon>assignment</md-icon>
+				This page explained:
+			</span>
+			<div arb-mastery-list ids-source="page.subjectIds"></div>
+
+			<!-- Mark as done button -->
+			<md-button ng-click="toggleSubjects()"
+					ng-bind="knowsAllSubjects() ? 'Nevermind, I didn\'t understand these' : 'I understood these'"
+					ng-if="page.subjectIds.length > 1">
+			</md-button>
 		</div>
 
 		<!-- Mastery container -->

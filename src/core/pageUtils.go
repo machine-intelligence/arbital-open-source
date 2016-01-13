@@ -24,6 +24,7 @@ func NewPage(pageId int64) *Page {
 	p := &Page{corePageData: corePageData{PageId: pageId}}
 	p.Votes = make([]*Vote, 0)
 	p.Summaries = make(map[string]string)
+	p.CreatorIds = make([]string, 0)
 	p.AnswerIds = make([]string, 0)
 	p.CommentIds = make([]string, 0)
 	p.QuestionIds = make([]string, 0)
@@ -31,6 +32,7 @@ func NewPage(pageId int64) *Page {
 	p.TaggedAsIds = make([]string, 0)
 	p.RelatedIds = make([]string, 0)
 	p.RequirementIds = make([]string, 0)
+	p.SubjectIds = make([]string, 0)
 	p.DomainIds = make([]string, 0)
 	p.ChangeLogs = make([]*ChangeLog, 0)
 	p.ChildIds = make([]string, 0)

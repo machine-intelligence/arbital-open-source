@@ -41,5 +41,11 @@ CREATE TABLE pageInfos (
 	lockedBy BIGINT NOT NULL,
 	/* Time until the user has this lock. */
 	lockedUntil DATETIME NOT NULL,
+
+	/* == Following variables are set for some specific pages. == */
+	/* If this page is a lens, this is its ordering index when sorting its parent's
+		lenses from most simple to most technical. */
+	lensIndex INT NOT NULL,
+
 	PRIMARY KEY(pageId)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

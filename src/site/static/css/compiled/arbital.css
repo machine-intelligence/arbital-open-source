@@ -1,3 +1,46 @@
+.as-sortable-item, .as-sortable-placeholder {
+  display: block; }
+
+.as-sortable-item {
+  -ms-touch-action: none;
+  touch-action: none; }
+
+.as-sortable-item-handle {
+  cursor: move;
+  cursor: -webkit-grab;
+  cursor: -moz-grab; }
+
+.as-sortable-drag {
+  position: absolute;
+  pointer-events: none;
+  z-index: 9999; }
+
+.as-sortable-hidden {
+  display: none !important; }
+
+.as-sortable-un-selectable {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+.as-sortable-item, .as-sortable-placeholder {
+  min-height: 20px;
+  margin: 5px 2px 10px 1px; }
+
+.as-sortable-item {
+  background-color: #ffffff; }
+
+.as-sortable-placeholder {
+  border: 1px dashed darkgrey;
+  box-sizing: border-box;
+  background-color: #dbdbdb; }
+
+.as-sortable-drag {
+  opacity: .8; }
+
 #primary-color {
   border-top-color: #009688;
   border-right-color: #E0F2F1;
@@ -129,7 +172,8 @@ span.md-warn {
 
 arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0;
-  overflow-x: auto; }
+  overflow-x: auto;
+  overflow-y: hidden; }
 arb-markdown ul, [arb-markdown] ul, .preview-area ul {
   padding-left: 1.5em; }
 arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
@@ -495,7 +539,11 @@ arb-likes {
     box-sizing: border-box; } }
 .requirements-container {
   padding-top: 5px;
-  padding-bottom: 5px; }
+  padding-bottom: 5px;
+  border-bottom: silver 1px solid; }
+
+.author-list {
+  text-align: right; }
 
 .popover-text-container {
   font-size: 18px;
@@ -605,6 +653,9 @@ ins {
 
 .edit-page-footer {
   margin: 0; }
+
+.edit-relationship-div {
+  margin-bottom: 20px; }
 
 .wmd-button-bar {
   background-color: white;

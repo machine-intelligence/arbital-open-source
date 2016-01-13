@@ -1,32 +1,31 @@
-<div ng-mouseenter="hovering=true" ng-mouseleave="hovering=false" layout="column" ng-show="showPanel">
+<div layout="column" ng-show="showPanel">
 	<!-- Header -->
 	<div layout="row" layout-align="start center">
 		<!-- Title -->
 		<span class="md-subhead"
 				ng-class="{'md-accent': isLensRequirements && !meetsAllRequirements()}"
 				flex>
-			<md-icon ng-show="isLensRequirements">assignment</md-icon>
-			<span ng-bind="title" ng-if="!forceEditMode"></span>
 			<arb-page-title page-id="8992241719442104138"
 					is-link="true"
 					custom-page-title="'Parents'"
-					ng-if="forceEditMode && isParentType"></arb-page-title>
+					ng-if="isParentType"></arb-page-title>
 			<arb-page-title page-id="7648631253816709800"
 					is-link="true"
 					custom-page-title="'Tags'"
-					ng-if="forceEditMode && isTagType"></arb-page-title>
+					ng-if="isTagType"></arb-page-title>
 			<arb-page-title page-id="2771631271061525489"
 					is-link="true"
 					custom-page-title="'Requirements'"
-					ng-if="forceEditMode && isRequirementType"></arb-page-title>
+					ng-if="isRequirementType"></arb-page-title>
+			<arb-page-title page-id="2771631271061525489"
+					is-link="true"
+					custom-page-title="'Subjects'"
+					ng-if="isSubjectType"></arb-page-title>
 		</span>
+	</div>
 
-		<!-- Edit button -->
-		<md-button class="md-icon-button"
-				ng-click="inEditModeToggle()"
-				ng-style="{visibility: (!forceEditMode && hovering) ? 'visible' : 'hidden'}">
-			<md-icon>create</md-icon>
-		</md-button>
+	<div class="md-caption" ng-if="readonly">
+		You can't edit this field for this type of page.
 	</div>
 
 	<!-- List of relationships -->
@@ -34,19 +33,10 @@
 			layout-align="start center"
 			ng-repeat="otherPageId in idsSource">
 
-		<!-- Mark as done button -->
-		<md-button class="md-icon-button"
-				ng-click="toggleRequirement(otherPageId)"
-				ng-show="!inEditMode"
-				ng-if="isRequirementType">
-			<md-icon ng-show="hasMastery(otherPageId)">check_box</md-icon>
-			<md-icon ng-hide="hasMastery(otherPageId)">check_box_outline_blank</md-icon>
-		</md-button>
-
 		<!-- Delete button -->
 		<md-button class="md-icon-button"
 				ng-click="deleteRelationship(otherPageId)"
-				ng-show="inEditMode && !readonly">
+				ng-show="!readonly">
 			<md-icon>delete</md-icon>
 		</md-button>
 
@@ -54,11 +44,8 @@
 		<arb-page-title page-id="{{otherPageId}}" is-link="true"></arb-page-title>
 	</div>
 
-	<!-- Add requirements -->
+	<!-- Add a relationship -->
 	<arb-autocomplete placeholder="Add a {{type}}"
 			on-select="searchResultSelected(result)"
-			ng-show="inEditMode && !readonly"></arb-autocomplete>
-	<div class="md-caption" ng-if="readonly">
-		You can't edit this field for this page.
-	</div>
+			ng-show="!readonly"></arb-autocomplete>
 </div>

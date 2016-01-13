@@ -143,8 +143,8 @@ var InitMathjax = (function () {
       preview = document.getElementById("wmd-preview"+wmdId);
     }
     HUB.Config({
-      "HTML-CSS": {EqnChunk: 10, EqnChunkFactor: 1}, // reduce chunk for more frequent updates
-             SVG: {EqnChunk: 10, EqnChunkFactor: 1},
+      "HTML-CSS": {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}}, // reduce chunk for more frequent updates
+             SVG: {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}},
          tex2jax: {
             inlineMath: [ [inlineDelim, inlineDelim] ],
             displayMath: [ [blockDelim, blockDelim] ],

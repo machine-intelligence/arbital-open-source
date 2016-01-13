@@ -67,6 +67,26 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				});
 			};
 
+			// Lens sort listeners (using ng-sortable library)
+			$scope.page.lensIds.unshift($scope.page.pageId);
+			$scope.page.lensIds.sort(function(a, b) {
+				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
+			});
+			$scope.lensSortListeners = {
+				orderChanged: function(event) {
+					var data = {pageId: $scope.page.pageId, orderMap: {}};
+					for (var n = 0; n < $scope.page.lensIds.length; n++) {
+						var pageId = $scope.page.lensIds[n];
+						pageService.pageMap[pageId].lensIndex = n;
+						data.orderMap[pageId] = n;
+					}
+					$http({method: "POST", url: "/updateLensOrder/", data: JSON.stringify(data)})
+					.error(function(data) {
+						$scope.addMessage("lensOrder", "Error updating lens order: " + data, "error");
+					});
+				},
+			};
+
 			// Toggle in and out of preview when not in fullView
 			$scope.inPreview = false;
 			$scope.togglePreview = function(show) {
