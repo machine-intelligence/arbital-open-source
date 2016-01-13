@@ -127,7 +127,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			};
 
 			// Compute simpler lens id if necessary
-			$scope.showRequirementsPanel = true;
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;
 				var primaryPage = pageService.pageMap[$scope.lensParentId];
