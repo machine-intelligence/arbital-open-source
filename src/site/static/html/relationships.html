@@ -1,27 +1,22 @@
-<div layout="column" ng-show="showPanel">
-	<!-- Header -->
-	<div layout="row" layout-align="start center">
-		<!-- Title -->
-		<span class="md-subhead"
-				ng-class="{'md-accent': isLensRequirements && !meetsAllRequirements()}"
-				flex>
-			<arb-page-title page-id="8992241719442104138"
-					is-link="true"
-					custom-page-title="'Parents'"
-					ng-if="isParentType"></arb-page-title>
-			<arb-page-title page-id="7648631253816709800"
-					is-link="true"
-					custom-page-title="'Tags'"
-					ng-if="isTagType"></arb-page-title>
-			<arb-page-title page-id="2771631271061525489"
-					is-link="true"
-					custom-page-title="'Requirements'"
-					ng-if="isRequirementType"></arb-page-title>
-			<arb-page-title page-id="2771631271061525489"
-					is-link="true"
-					custom-page-title="'Subjects'"
-					ng-if="isSubjectType"></arb-page-title>
-		</span>
+<div layout="column">
+	<!-- Title -->
+	<div class="md-subhead" >
+		<arb-page-title page-id="8992241719442104138"
+				is-link="true"
+				custom-page-title="'Parents'"
+				ng-if="isParentType"></arb-page-title>
+		<arb-page-title page-id="7648631253816709800"
+				is-link="true"
+				custom-page-title="'Tags'"
+				ng-if="isTagType"></arb-page-title>
+		<arb-page-title page-id="2771631271061525489"
+				is-link="true"
+				custom-page-title="'Requirements'"
+				ng-if="isRequirementType"></arb-page-title>
+		<arb-page-title page-id="2771631271061525489"
+				is-link="true"
+				custom-page-title="'Subjects'"
+				ng-if="isSubjectType"></arb-page-title>
 	</div>
 
 	<div class="md-caption" ng-if="readonly">

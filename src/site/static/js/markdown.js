@@ -36,6 +36,38 @@ app.service("markdownService", function(pageService, userService){
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
+		// Process [summary(optional):markdown] spans.
+		var summaryBlockRegexp = new RegExp("^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(summaryBlockRegexp, function (whole, summaryName, summary) {
+				if (pageId) {
+					return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
+				} else {
+					return runBlockGamut("");
+				}
+			});
+		});
+
+		// Process [multiple-choice: text
+		// a: text
+		// needs:
+		// has:
+		// ] blocks.
+		var mcBlockRegexp = new RegExp("^\\[multiple-choice: ?([\\s\\S]+?)" +
+				"(?:" +
+				"([a-z]:) ?([\\s\\S]+?)|" + // choice, e.g. "a: Carrots"
+				"(knows:) ?(?:" + aliasMatch + ",? ?)|" +
+				"(wants:) ?(?:" + aliasMatch + ",? ?)" +
+				")?" +
+				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(mcBlockRegexp, function (whole) {
+				console.log(arguments);
+				return runBlockGamut(whole);
+				//return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
+			});
+		});
+
 		// Process [todo:text] spans.
 		var todoSpanRegexp = new RegExp(notEscaped + 
 				"\\[todo: ?([^\\]]+?)\\]" + noParen, "g");
@@ -51,18 +83,6 @@ app.service("markdownService", function(pageService, userService){
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(commentSpanRegexp, function (whole, prefix, text) {
 				return prefix;
-			});
-		});
-
-		// Process [summary(optional):markdown] spans.
-		var summarySpanRegexp = new RegExp("^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
-		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
-			return text.replace(summarySpanRegexp, function (whole, summaryName, summary) {
-				if (pageId) {
-					return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
-				} else {
-					return runBlockGamut("");
-				}
 			});
 		});
 

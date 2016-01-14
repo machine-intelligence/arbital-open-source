@@ -7,14 +7,12 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 		scope: {
 			pageId: "@",
 			type: "@",
-			isLensRequirements: "=",
 			readonly: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.editMap[$scope.pageId];
-			$scope.inEditMode = $scope.forceEditMode;
 
 			// Helper variables
 			$scope.isParentType = $scope.type === "parent";
@@ -40,39 +38,6 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 				$scope.title = "This version relies on:";
 			}
 
-			// Compute if we should show the panel
-			$scope.showPanel = $scope.forceEditMode;
-
-			// Check if the user has the given mastery.
-			$scope.hasMastery = function(requirementId) {
-				return pageService.masteryMap[requirementId].has;
-			}
-
-			// Check if the user meets all requirements
-			$scope.meetsAllRequirements = function() {
-				for (var n = 0; n < $scope.page.requirementIds.length; n++) {
-					if (!$scope.hasMastery($scope.page.requirementIds[n])) {
-						return false;
-					}
-				}
-				return true;
-			};
-
-			// Do some custom stuff for requirements
-			if ($scope.isRequirementType) {
-				// Don't show the panel if the user has met all the requirements
-				if (!$scope.forceEditMode) {
-					$scope.showPanel = !$scope.meetsAllRequirements();
-				}
-	
-				// Sort requirements
-				$scope.page.requirementIds.sort(function(a, b) {
-					return ($scope.hasMastery(a) ? 1 : 0) - ($scope.hasMastery(b) ? 1 : 0);
-				});
-			} else if ($scope.isSubjectType) {
-				$scope.showPanel = true;
-			}
-
 			// Set up search
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
@@ -90,12 +55,8 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 					type: $scope.type,
 				};
 				pageService.newPagePair(data);
-
-				if ($scope.isRequirementType) {
-					pageService.masteryMap[data.parentId] = {pageId: data.parentId, isMet: true, isManuallySet: true};
-				}
 				$scope.idsSource.push(data.parentId);
-			}
+			};
 
 			// Process deleting a relationship
 			$scope.deleteRelationship = function(otherPageId) {
@@ -106,11 +67,6 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 				};
 				pageService.deletePagePair(options);
 				$scope.idsSource.splice($scope.idsSource.indexOf(options.parentId), 1);
-			};
-
-			// Toggle whether or not the user meets a requirement
-			$scope.toggleRequirement = function(requirementId) {
-				pageService.updateMastery($scope, requirementId, !$scope.hasMastery(requirementId));
 			};
 		},
 	};
