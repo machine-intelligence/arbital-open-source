@@ -370,6 +370,10 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 						}
 					});
 				});
+
+				element.find("[arb-multiple-choice]").each(function(index) {
+					$compile($(this))(scope);
+				});
 			});
 		},
 	};

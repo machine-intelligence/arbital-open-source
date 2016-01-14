@@ -5,6 +5,21 @@ RegExp.escape = function(s) {
     return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 };
 
+// Extend jQuery with a function to change element's type
+(function($) {
+	$.fn.changeElementType = function(newType) {
+		var attrs = {};
+		
+		$.each(this[0].attributes, function(idx, attr) {
+			attrs[attr.nodeName] = attr.nodeValue;
+		});
+		
+		this.replaceWith(function() {
+			return $("<" + newType + "/>", attrs).append($(this).contents());
+		});
+	};
+})(jQuery);
+
 // Turn a callback function into a cleverly throttled version.
 // Callback parameter should return true if the lock is to be set.
 // Basically, we want:

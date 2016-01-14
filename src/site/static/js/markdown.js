@@ -2,7 +2,8 @@
 
 var notEscaped = "(^|\\\\`|\\\\\\[|[^A-Za-z0-9_`[])";
 var noParen = "(?=$|[^(])";
-var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
+var nakedAliasMatch = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*";
+var aliasMatch = "(" + nakedAliasMatch + ")";
 // [vote: alias]
 var voteEmbedRegexp = new RegExp(notEscaped + 
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
@@ -50,21 +51,84 @@ app.service("markdownService", function(pageService, userService){
 
 		// Process [multiple-choice: text
 		// a: text
-		// needs:
-		// has:
+		// knows: alias1,alias2...
+		// wants: alias1,alias2...
 		// ] blocks.
-		var mcBlockRegexp = new RegExp("^\\[multiple-choice: ?([\\s\\S]+?)" +
-				"(?:" +
-				"([a-z]:) ?([\\s\\S]+?)|" + // choice, e.g. "a: Carrots"
-				"(knows:) ?(?:" + aliasMatch + ",? ?)|" +
-				"(wants:) ?(?:" + aliasMatch + ",? ?)" +
-				")?" +
+		var mcBlockRegexp = new RegExp("^\\[multiple-choice: ?([^\n]+?)\n" +
+				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(b: ?[^\n]+?\n)" + // choice, e.g. "b: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(c: ?[^\n]+?\n)?" + // choice, e.g. "c: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(d: ?[^\n]+?\n)?" + // choice, e.g. "d: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(e: ?[^\n]+?\n)?" + // choice, e.g. "e: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function (whole) {
-				console.log(arguments);
-				return runBlockGamut(whole);
-				//return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
+				var result = [];
+				var answers = {};
+				var currentAnswer;
+				if (pageId) {
+					result.push("---\n\n**Multiple-choice:** ");
+				}
+				// Process captured groups
+				for (var n = 1; n < arguments.length; n++) {
+					var arg = arguments[n];
+					if (+arg) break;
+					if (!arg) continue;
+					if (n == 1) { // question text
+						result.push("[" + arg + "](http://" + host + "/pages/0?embedMC=1)\n\n");
+					} else {
+						// Match answer line
+						var match = arg.match(/^([a-e]): ?([\s\S]+?)\n$/);
+						if (match) {
+							currentAnswer = match[1];
+							answers[currentAnswer] = {text: match[2], knows: [], wants: []};
+							continue;
+						}
+
+						// Match knows line
+						match = arg.match(/^knows: ?([\s\S]+?)\n$/);
+						if (match) {
+							answers[currentAnswer].knows = match[1].split(",");
+							continue;
+						}
+
+						// Match wants line
+						match = arg.match(/^wants: ?([\s\S]+?)\n$/);
+						if (match) {
+							answers[currentAnswer].wants = match[1].split(",");
+							continue;
+						}
+					}
+				}
+				// Convert answers to links
+				for (var key in answers) {
+					var answer = answers[key];
+					var url = "http://" + host + "/answer?q=" + key;
+					for (var i = 0; i < answer.knows.length; i++) {
+						url += "&knows=" + answer.knows[i];
+					}
+					for (var i = 0; i < answer.wants.length; i++) {
+						url += "&wants=" + answer.wants[i];
+					}
+					if (pageId) {
+						result.push("- ");
+					}
+					result.push("[" + answer.text + "](" + url + ")  \n");
+				}
+				if (pageId) {
+					result.push("\n---");
+				}
+				return runBlockGamut(result.join(""));
 			});
 		});
 
@@ -202,7 +266,9 @@ app.service("markdownService", function(pageService, userService){
 					$element.addClass("intrasite-link").attr("page-id", pageAlias);
 					// Check if we are embedding a vote
 					if (parts[2].indexOf("embedVote") > 0) {
-						$element.attr("embed-vote-id", pageAlias);
+						$element.attr("embed-vote-id", pageAlias).addClass("red-link");
+					} else if (parts[2].indexOf("embedMC") > 0) {
+						$element.attr("arb-multiple-choice", pageAlias).addClass("red-link");
 					} else if (pageAlias in pageService.pageMap) {
 						if (pageService.pageMap[pageAlias].isDeleted()) {
 							// Link to a deleted page.
