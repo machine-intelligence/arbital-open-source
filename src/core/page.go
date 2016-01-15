@@ -450,7 +450,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load pages' creator's ids
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Creators })
-	err = LoadCreatorIds(db, filteredPageMap)
+	err = LoadCreatorIds(db, filteredPageMap, userMap)
 	if err != nil {
 		return fmt.Errorf("LoadCreatorIds failed: %v", err)
 	}
@@ -962,7 +962,7 @@ func LoadUsedAsMastery(db *database.DB, pageMap map[int64]*Page) error {
 }
 
 // LoadCreatorIds loads creator ids for the pages
-func LoadCreatorIds(db *database.DB, pageMap map[int64]*Page) error {
+func LoadCreatorIds(db *database.DB, pageMap map[int64]*Page, userMap map[int64]*User) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -983,6 +983,7 @@ func LoadCreatorIds(db *database.DB, pageMap map[int64]*Page) error {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		pageMap[pageId].CreatorIds = append(pageMap[pageId].CreatorIds, fmt.Sprintf("%d", creatorId))
+		userMap[creatorId] = &User{Id: creatorId}
 		return nil
 	})
 	return err
