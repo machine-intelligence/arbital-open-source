@@ -218,10 +218,10 @@ type ChangeLog struct {
 
 // Mastery is a page you should have mastered before you can understand another page.
 type Mastery struct {
-	PageId        int64  `json:"pageId,string"`
-	Has           bool   `json:"has"`
-	UpdatedAt     string `json:"updatedAt"`
-	IsManuallySet bool   `json:"isManuallySet"`
+	PageId    int64  `json:"pageId,string"`
+	Has       bool   `json:"has"`
+	Wants     bool   `json:"wants"`
+	UpdatedAt string `json:"updatedAt"`
 }
 
 // LoadDataOption is used to set some simple loading options for loading functions
@@ -541,12 +541,12 @@ func LoadMasteries(db *database.DB, userId int64, masteryMap map[int64]*Mastery)
 		masteryIds = append(masteryIds, id)
 	}
 	rows := database.NewQuery(`
-		SELECT masteryId,updatedAt,has,isManuallySet
+		SELECT masteryId,updatedAt,has,wants
 		FROM userMasteryPairs
 		WHERE userId=?`, userId).Add(`AND masteryId IN`).AddArgsGroup(masteryIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var mastery Mastery
-		err := rows.Scan(&mastery.PageId, &mastery.UpdatedAt, &mastery.Has, &mastery.IsManuallySet)
+		err := rows.Scan(&mastery.PageId, &mastery.UpdatedAt, &mastery.Has, &mastery.Wants)
 		if err != nil {
 			return fmt.Errorf("failed to scan for mastery: %v", err)
 		}

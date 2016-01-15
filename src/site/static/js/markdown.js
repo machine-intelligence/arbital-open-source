@@ -27,7 +27,7 @@ var atAliasRegexp = new RegExp(notEscaped +
 
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.service("markdownService", function(pageService, userService){
+app.service("markdownService", function($compile, $timeout, pageService, userService){
 	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
 	var failedPageAliases = {};
 
@@ -51,8 +51,8 @@ app.service("markdownService", function(pageService, userService){
 
 		// Process [multiple-choice: text
 		// a: text
-		// knows: alias1,alias2...
-		// wants: alias1,alias2...
+		// knows: [alias1],[alias2]...
+		// wants: [alias1],[alias2]...
 		// ] blocks.
 		var mcBlockRegexp = new RegExp("^\\[multiple-choice: ?([^\n]+?)\n" +
 				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
@@ -75,12 +75,12 @@ app.service("markdownService", function(pageService, userService){
 			return text.replace(mcBlockRegexp, function (whole) {
 				var result = [];
 				if (pageId) {
-					result.push("---\n\n**Multiple-choice:** ");
+					//result.push("---\n\n**Multiple-choice:** ");
 				}
 				// Process captured groups
 				for (var n = 1; n < arguments.length; n++) {
 					var arg = arguments[n];
-					if (+arg) break;
+					if (+arg) break; // there are extra arguments that we don't need, starting with some number
 					if (!arg) continue;
 					if (n == 1) { // question text
 						result.push(arg + "\n\n");
@@ -91,34 +91,11 @@ app.service("markdownService", function(pageService, userService){
 							result.push("- " + match[2] + "\n");
 							continue;
 						}
-
-						// Match knows line
-						match = arg.match(/^knows: ?([\s\S]+?)\n$/);
-						if (match) {
-							var knows = match[1].split(",");
-							result.push(" - knows: ");
-							for (var i = 0; i < knows.length; i++) {
-								result.push(" [" + knows[i] + "],");
-							}
-							result.push("\n");
-							continue;
-						}
-
-						// Match wants line
-						match = arg.match(/^wants: ?([\s\S]+?)\n$/);
-						if (match) {
-							var wants = match[1].split(",");
-							result.push(" - wants: ");
-							for (var i = 0; i < wants.length; i++) {
-								result.push(" [" + wants[i] + "],");
-							}
-							result.push("\n");
-							continue;
-						}
+						result.push(" - " + arg);
 					}
 				}
 				if (pageId) {
-					result.push("\n---");
+					//result.push("\n---");
 				}
 				return "<arb-multiple-choice>" + runBlockGamut(result.join("")) + "\n\n</arb-multiple-choice>";
 			});
@@ -232,7 +209,7 @@ app.service("markdownService", function(pageService, userService){
 	// Process all the links in the give element.
 	// If refreshFunc is set, fetch page's we don't have yet, and call that function
 	// when one of them is loaded.
-	this.processLinks = function($pageText, refreshFunc) {
+	this.processLinks = function(scope, $pageText, refreshFunc) {
 		// Setup attributes for page links that are within our domain.
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
@@ -315,6 +292,13 @@ app.service("markdownService", function(pageService, userService){
 				}
 			}
 		});
+
+		var mcIndex = 0;
+		$pageText.find("arb-multiple-choice").each(function(index) {
+			$(this).attr("index", mcIndex);
+			mcIndex++;
+			$compile($(this))(scope);
+		});
 	};
 
 	this.createConverter = function() {
@@ -364,7 +348,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
-			markdownService.processLinks($pageText);
+			markdownService.processLinks(scope, $pageText);
 		},
 	};
 });

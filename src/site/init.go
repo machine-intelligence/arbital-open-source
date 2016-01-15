@@ -109,7 +109,7 @@ func init() {
 	s.HandleFunc(revertPageHandler.URI, handlerWrapper(revertPageHandler)).Methods("POST")
 	s.HandleFunc(feedbackHandler.URI, handlerWrapper(feedbackHandler)).Methods("POST")
 	s.HandleFunc(signupHandler.URI, handlerWrapper(signupHandler)).Methods("POST")
-	s.HandleFunc(updateMasteryHandler.URI, handlerWrapper(updateMasteryHandler)).Methods("POST")
+	s.HandleFunc(updateMasteriesHandler.URI, handlerWrapper(updateMasteriesHandler)).Methods("POST")
 	s.HandleFunc(updateMemberHandler.URI, handlerWrapper(updateMemberHandler)).Methods("POST")
 	s.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")
 

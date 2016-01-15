@@ -35,7 +35,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			$scope.originalLensId = $scope.selectedLens.pageId;
 			$scope.getPageTitle = function() {
 				var pageTitle = $scope.page.title;
-				if ($scope.selectedLensIndex <= 0) {
+				if ($scope.selectedLens.pageId === $scope.page.pageId) {
 					return pageTitle;
 				}
 				return pageTitle + ": " + $scope.selectedLens.title;

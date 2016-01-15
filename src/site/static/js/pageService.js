@@ -14,24 +14,46 @@ app.service("pageService", function($http, $location, userService){
 	// All loaded masteries.
 	this.masteryMap = {};
 
-	// Update whether on not the user has a mastery.
-	this.updateMastery = function(scope, masteryId, has) {
-		var mastery = that.masteryMap[masteryId];
-		if (!mastery) {
-			mastery = {pageId: masteryId};
-			that.masteryMap[masteryId] = mastery;
+	// Update whether on not the user has certain masteries.
+	// NOTE: removal will happen before adding
+	this.updateMasteries = function(addMasteries, delMasteries, wantsMasteries) {
+		for (var n = 0; n < delMasteries.length; n++) {
+			var masteryId = delMasteries[n];
+			var mastery = this.masteryMap[masteryId];
+			if (!mastery) continue;
+			mastery.has = false;
+			mastery.wants = false;
 		}
-		mastery.has = has;
-		mastery.isManuallySet = true;
+		for (var n = 0; n < wantsMasteries.length; n++) {
+			var masteryId = wantsMasteries[n];
+			var mastery = this.masteryMap[masteryId];
+			if (!mastery) {
+				mastery = {pageId: masteryId};
+				this.masteryMap[masteryId] = mastery;
+			}
+			mastery.has = false;
+			mastery.wants = true;
+		}
+		for (var n = 0; n < addMasteries.length; n++) {
+			var masteryId = addMasteries[n];
+			var mastery = this.masteryMap[masteryId];
+			if (!mastery) {
+				mastery = {pageId: masteryId};
+				this.masteryMap[masteryId] = mastery;
+			}
+			mastery.has = true;
+			mastery.wants = false;
+		}
 
 		// Send POST request.
 		var data = {
-			masteryId: masteryId,
-			has: has,
+			removeMasteries: delMasteries,
+			wantsMasteries: wantsMasteries,
+			addMasteries: addMasteries,
 		};
-		$http({method: "POST", url: "/updateMastery/", data: JSON.stringify(data)})
+		$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
 		.error(function(data, status){
-			console.error("Failed to change mastery:"); console.log(data); console.log(status);
+			console.error("Failed to change masteries:"); console.log(data); console.log(status);
 		});
 	};
 
@@ -602,5 +624,19 @@ app.service("pageService", function($http, $location, userService){
 
 		parent.commentIds.push(commentId);
 		$location.hash("subpage-" + commentId);
+	};
+
+	// =========== Questionnaire helpers ====================
+	// Map questionIndex -> {answer: 'a', knows: [ids], wants: [ids]}
+	this.answers = {};
+	this.setQuestionAnswer = function(qIndex, answer, aKnows, aWants) {
+		// Compute which masteries to remove
+		var removeMasteries = [];
+		if (qIndex in this.answers) {
+			var answer = this.answers[qIndex];
+			removeMasteries = answer.knows.concat(answer.wants);
+		}
+		this.answers[qIndex] = {answer: answer, knows: aKnows, wants: aWants};
+		this.updateMasteries(aKnows, removeMasteries, aWants);
 	};
 });

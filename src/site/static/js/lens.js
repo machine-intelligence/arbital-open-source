@@ -100,23 +100,19 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Toggle all requirements
 			$scope.toggleRequirements = function() {
-				var meetsAllReqs = $scope.meetsAllRequirements();
-				for (var n = 0; n < $scope.page.requirementIds.length; n++) {
-					var masteryId = $scope.page.requirementIds[n];
-					if ($scope.hasMastery(masteryId) === meetsAllReqs) {
-						pageService.updateMastery($scope, masteryId, !meetsAllReqs);
-					}
+				if ($scope.meetsAllRequirements()) {
+					pageService.updateMasteries([], $scope.page.requirementIds, []);
+				} else {
+					pageService.updateMasteries($scope.page.requirementIds, [], []);
 				}
 			};
 
 			// Toggle all subjects
 			$scope.toggleSubjects = function() {
-				var meetsAllSubjects = $scope.knowsAllSubjects();
-				for (var n = 0; n < $scope.page.subjectIds.length; n++) {
-					var masteryId = $scope.page.subjectIds[n];
-					if ($scope.hasMastery(masteryId) === meetsAllSubjects) {
-						pageService.updateMastery($scope, masteryId, !meetsAllSubjects);
-					}
+				if ($scope.knowsAllSubjects()) {
+					pageService.updateMasteries([], $scope.page.subjectIds, []);
+				} else {
+					pageService.updateMasteries($scope.page.subjectIds, [], []);
 				}
 			};
 
@@ -365,12 +361,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					});
 				});
 
-				var mcIndex = 0;
-				element.find("arb-multiple-choice").each(function(index) {
-					$(this).attr("index", mcIndex);
-					mcIndex++;
-					$compile($(this))(scope);
-				});
 			});
 		},
 	};
