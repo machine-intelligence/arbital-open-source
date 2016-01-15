@@ -137,6 +137,7 @@ type Page struct {
 	MyLikeValue     int  `json:"myLikeValue"`
 	// Computed from LikeCount and DislikeCount
 	LikeScore int `json:"likeScore"`
+	ViewCount int `json:"viewCount"`
 	// Last time the user visited this page.
 	LastVisit string `json:"lastVisit"`
 	// True iff the user has a work-in-progress draft for this page
@@ -389,6 +390,13 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 	err = LoadLikes(db, u.Id, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadLikes failed: %v", err)
+	}
+
+	// Load views
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ViewCount })
+	err = LoadViewCounts(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadViewCounts failed: %v", err)
 	}
 
 	// Load votes
@@ -828,6 +836,30 @@ func LoadLikes(db *database.DB, currentUserId int64, pageMap map[int64]*Page) er
 			}
 			page.DislikeCount++
 		}
+		return nil
+	})
+	return err
+}
+
+// LoadViewCounts loads view counts for the pages
+func LoadViewCounts(db *database.DB, pageMap map[int64]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+	rows := db.NewStatement(`
+		SELECT pageId,sum(1)
+		FROM visits
+		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
+		GROUP BY 1`).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId int64
+		var count int
+		err := rows.Scan(&pageId, &count)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a like: %v", err)
+		}
+		pageMap[pageId].ViewCount = count
 		return nil
 	})
 	return err

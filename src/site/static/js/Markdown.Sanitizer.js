@@ -20,7 +20,7 @@
     }
 
     // (tags that can be opened/closed) | (tags that stand alone)
-    var basic_tag_whitelist = /^(<\/?(b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|i|kbd|li|ol(?: start="\d+")?|p|pre|s|sup|sub|strong|strike|ul)>|<(br|hr)\s?\/?>)$/i;
+    var basic_tag_whitelist = /^(<\/?(arb-multiple-choice|b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|i|kbd|li|ol(?: start="\d+")?|p|pre|s|sup|sub|strong|strike|ul)>|<(br|hr)\s?\/?>)$/i;
     // <a href="url..." optional title>|</a>
     var a_white = /^(<a\shref="((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)*[\]$]+"(\stitle="[^"<>]+")?\s?>|<\/a>)$/i;
 
@@ -58,7 +58,7 @@
             return html;
 
         var tagname, tag;
-        var ignoredtags = "<p><img><br><li><hr>";
+        var ignoredtags = "<arb-multiple-choice><p><img><br><li><hr>";
         var match;
         var tagpaired = [];
         var tagremove = [];
@@ -66,7 +66,7 @@
 
         // loop through matched tags in forward order
         for (var ctag = 0; ctag < tagcount; ctag++) {
-            tagname = tags[ctag].replace(/<\/?(\w+).*/, "$1");
+            tagname = tags[ctag].replace(/<\/?([A-Za-z-]+).*/, "$1");
             // skip any already paired tags
             // and skip tags in our ignore list; assume they're self-closed
             if (tagpaired[ctag] || ignoredtags.search("<" + tagname + ">") > -1)

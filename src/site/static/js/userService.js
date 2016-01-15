@@ -36,5 +36,46 @@ app.service("userService", function(){
 			that.user = data.user;
 		}
 		$.extend(that.userMap, data["users"]);
-	}
+	};
+
+	// =========== Questionnaire helpers ====================
+	// Map questionIndex -> {answer: 'a', knows: [ids], wants: [ids]}
+	this.answers = {};
+	this.setQuestionAnswer = function(qIndex, answer, aKnows, aWants) {
+		// Compute existing knows and wants
+		var knows = [], wants = [];
+		for (var i in this.answers) {
+			knows = knows.concat(this.answers[i].knows);
+			wants = wants.concat(this.answers[i].wants);
+		};
+		this.answers[qIndex] = {answer: answer, knows: aKnows, wants: aWants};
+		// Compute updated knows and wants
+		var newKnows = [], newWants = [];
+		for (var a in this.answers) {
+			newKnows = newKnows.concat(this.answers[a].knows);
+			newWants = newWants.concat(this.answers[a].wants);
+		};
+		// Compute the diff and update the BE
+		for (var n = 0; n < newKnows.length; n++) {
+			if (knows.indexOf(newKnows[n]) < 0) {
+				//added know
+			}
+		}
+		for (var n = 0; n < newWants.length; n++) {
+			if (knows.indexOf(newWants[n]) < 0) {
+				//added want
+			}
+		}
+		for (var n = 0; n < knows.length; n++) {
+			if (newKnows.indexOf(knows[n]) < 0) {
+				//removed know
+			}
+		}
+		for (var n = 0; n < wants.length; n++) {
+			if (newWants.indexOf(wants[n]) < 0) {
+				//removed want
+			}
+		}
+		// Update the answers on the BE?
+	};
 });

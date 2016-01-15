@@ -6,10 +6,19 @@
 			layout-align="space-around start"
 			ng-if="!isSimpleEmbed">
 		<!-- Like -->
-		<arb-likes class="no-right-margin"
-				page-id="{{page.pageId}}"
-				is-stretched="true"
-				is-button="true"></arb-likes>
+		<div layout="column" layout-align="start center">
+			<arb-likes class="no-right-margin"
+					page-id="{{page.pageId}}"
+					is-stretched="true"
+					is-button="true"></arb-likes>
+			<ng-pluralize class="md-caption"
+					count="page.viewCount" when="{
+						'0': 'No views',
+						'one': '1 view',
+						'other': '{} views'}"
+					ng-if="!isTinyScreen">
+			</ng-pluralize>
+		</div>
 		
 		<!-- Subscribe -->
 		<arb-subscribe page-id="{{page.pageId}}"
@@ -135,20 +144,6 @@
 					ng-if="page.subjectIds.length > 1">
 			</md-button>
 		</div>
-
-		<!-- Mastery container -->
-		<md-button arb-user-check="cool"
-				ng-click="toggleMastery()"
-				ng-show="page.usedAsMastery">
-			<span ng-show="mastery.has">
-				<md-icon class="md-accent">check_box</md-icon>
-				This requisite is fulfilled
-			</span>
-			<span ng-hide="mastery.has">
-				<md-icon class="md-accent">check_box_outline_blank</md-icon>
-				I understand this page!
-			</span>
-		</md-button>
 	</div>
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->

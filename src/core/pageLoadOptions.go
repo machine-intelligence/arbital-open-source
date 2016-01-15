@@ -40,6 +40,7 @@ type PageLoadOptions struct {
 	ChildDraftId    bool
 	HasDraft        bool
 	Likes           bool
+	ViewCount       bool
 	Votes           bool
 	LastVisit       bool
 	IsSubscribed    bool
@@ -72,6 +73,7 @@ var (
 		Subjects:      true,
 		Domains:       true,
 		ChildDraftId:  true,
+		ViewCount:     true,
 		Mastery:       true,
 		UsedAsMastery: true,
 		Creators:      true,
@@ -96,6 +98,7 @@ var (
 		Requirements:  true,
 		Subjects:      true,
 		ChildDraftId:  true,
+		ViewCount:     true,
 		Mastery:       true,
 		Creators:      true,
 		UsedAsMastery: true,

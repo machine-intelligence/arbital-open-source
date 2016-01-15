@@ -14,9 +14,11 @@ RegExp.escape = function(s) {
 			attrs[attr.nodeName] = attr.nodeValue;
 		});
 		
+		var $newElement = $("<" + newType + "/>", attrs);
 		this.replaceWith(function() {
-			return $("<" + newType + "/>", attrs).append($(this).contents());
+			return $newElement.append($(this).contents());
 		});
+		return $newElement;
 	};
 })(jQuery);
 

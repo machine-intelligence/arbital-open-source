@@ -24,12 +24,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				$scope.mastery = {has: false};
 			}
 
-			// Process mastery events.
-			$scope.toggleMastery = function() {
-				pageService.updateMastery($scope, $scope.page.pageId, !$scope.mastery.has);
-				$scope.mastery = pageService.masteryMap[$scope.pageId];
-			};
-
 			// Process click on showing the page diff button.
 			$scope.showingDiff = false;
 			$scope.diffHtml = undefined;
@@ -371,7 +365,10 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					});
 				});
 
-				element.find("[arb-multiple-choice]").each(function(index) {
+				var mcIndex = 0;
+				element.find("arb-multiple-choice").each(function(index) {
+					$(this).attr("index", mcIndex);
+					mcIndex++;
 					$compile($(this))(scope);
 				});
 			});

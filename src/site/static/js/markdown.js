@@ -74,8 +74,6 @@ app.service("markdownService", function(pageService, userService){
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function (whole) {
 				var result = [];
-				var answers = {};
-				var currentAnswer;
 				if (pageId) {
 					result.push("---\n\n**Multiple-choice:** ");
 				}
@@ -85,50 +83,44 @@ app.service("markdownService", function(pageService, userService){
 					if (+arg) break;
 					if (!arg) continue;
 					if (n == 1) { // question text
-						result.push("[" + arg + "](http://" + host + "/pages/0?embedMC=1)\n\n");
+						result.push(arg + "\n\n");
 					} else {
 						// Match answer line
 						var match = arg.match(/^([a-e]): ?([\s\S]+?)\n$/);
 						if (match) {
-							currentAnswer = match[1];
-							answers[currentAnswer] = {text: match[2], knows: [], wants: []};
+							result.push("- " + match[2] + "\n");
 							continue;
 						}
 
 						// Match knows line
 						match = arg.match(/^knows: ?([\s\S]+?)\n$/);
 						if (match) {
-							answers[currentAnswer].knows = match[1].split(",");
+							var knows = match[1].split(",");
+							result.push(" - knows: ");
+							for (var i = 0; i < knows.length; i++) {
+								result.push(" [" + knows[i] + "],");
+							}
+							result.push("\n");
 							continue;
 						}
 
 						// Match wants line
 						match = arg.match(/^wants: ?([\s\S]+?)\n$/);
 						if (match) {
-							answers[currentAnswer].wants = match[1].split(",");
+							var wants = match[1].split(",");
+							result.push(" - wants: ");
+							for (var i = 0; i < wants.length; i++) {
+								result.push(" [" + wants[i] + "],");
+							}
+							result.push("\n");
 							continue;
 						}
 					}
 				}
-				// Convert answers to links
-				for (var key in answers) {
-					var answer = answers[key];
-					var url = "http://" + host + "/answer?q=" + key;
-					for (var i = 0; i < answer.knows.length; i++) {
-						url += "&knows=" + answer.knows[i];
-					}
-					for (var i = 0; i < answer.wants.length; i++) {
-						url += "&wants=" + answer.wants[i];
-					}
-					if (pageId) {
-						result.push("- ");
-					}
-					result.push("[" + answer.text + "](" + url + ")  \n");
-				}
 				if (pageId) {
 					result.push("\n---");
 				}
-				return runBlockGamut(result.join(""));
+				return "<arb-multiple-choice>" + runBlockGamut(result.join("")) + "\n\n</arb-multiple-choice>";
 			});
 		});
 
@@ -267,8 +259,6 @@ app.service("markdownService", function(pageService, userService){
 					// Check if we are embedding a vote
 					if (parts[2].indexOf("embedVote") > 0) {
 						$element.attr("embed-vote-id", pageAlias).addClass("red-link");
-					} else if (parts[2].indexOf("embedMC") > 0) {
-						$element.attr("arb-multiple-choice", pageAlias).addClass("red-link");
 					} else if (pageAlias in pageService.pageMap) {
 						if (pageService.pageMap[pageAlias].isDeleted()) {
 							// Link to a deleted page.

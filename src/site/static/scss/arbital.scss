@@ -1043,3 +1043,20 @@ textarea {
 .pages-list {
 	margin-bottom: 20px;
 }
+
+// Container for multiple choice questions
+arb-multiple-choice {
+	display: block;
+
+	p {
+		margin-bottom: 0;
+	}
+
+	md-radio-group {
+		display: block;
+		margin-left: 10px;
+		margin-top: 0;
+		border-left: $primary-hue-1 3px solid;
+		padding-left: 10px;
+	}
+}

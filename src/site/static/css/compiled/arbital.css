@@ -733,4 +733,15 @@ textarea {
 .pages-list {
   margin-bottom: 20px; }
 
+arb-multiple-choice {
+  display: block; }
+  arb-multiple-choice p {
+    margin-bottom: 0; }
+  arb-multiple-choice md-radio-group {
+    display: block;
+    margin-left: 10px;
+    margin-top: 0;
+    border-left: #E0F2F1 3px solid;
+    padding-left: 10px; }
+
 /*# sourceMappingURL=arbital.css.map */
