@@ -11,13 +11,7 @@
 					page-id="{{page.pageId}}"
 					is-stretched="true"
 					is-button="true"></arb-likes>
-			<ng-pluralize class="md-caption"
-					count="page.viewCount" when="{
-						'0': 'No views',
-						'one': '1 view',
-						'other': '{} views'}"
-					ng-if="!isTinyScreen">
-			</ng-pluralize>
+			<span class="md-caption" ng-bind="'Seen by ' + page.viewCount" ng-if="!isTinyScreen"></span>
 		</div>
 		
 		<!-- Subscribe -->

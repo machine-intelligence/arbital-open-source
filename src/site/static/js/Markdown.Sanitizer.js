@@ -66,7 +66,7 @@
 
         // loop through matched tags in forward order
         for (var ctag = 0; ctag < tagcount; ctag++) {
-            tagname = tags[ctag].replace(/<\/?([A-Za-z-]+).*/, "$1");
+            tagname = tags[ctag].replace(/<\/?([A-Za-z0-9-]+).*/, "$1");
             // skip any already paired tags
             // and skip tags in our ignore list; assume they're self-closed
             if (tagpaired[ctag] || ignoredtags.search("<" + tagname + ">") > -1)

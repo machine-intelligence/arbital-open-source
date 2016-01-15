@@ -848,7 +848,7 @@ func LoadViewCounts(db *database.DB, pageMap map[int64]*Page) error {
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := db.NewStatement(`
-		SELECT pageId,sum(1)
+		SELECT pageId,count(distinct userId)
 		FROM visits
 		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
 		GROUP BY 1`).Query(pageIds...)
