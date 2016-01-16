@@ -626,6 +626,18 @@ app.service("pageService", function($http, $location, userService){
 		$location.hash("subpage-" + commentId);
 	};
 
+	// Check if the user has a mastery
+	this.hasMastery = function(masteryId) {
+		if (!(masteryId in this.masteryMap)) return false;
+		return this.masteryMap[masteryId].has;
+	};
+
+	// Check if the user wants the given mastery
+	this.wantsMastery = function(masteryId) {
+		if (!(masteryId in this.masteryMap)) return false;
+		return this.masteryMap[masteryId].wants;
+	};
+
 	// =========== Questionnaire helpers ====================
 	// Map questionIndex -> {answer: 'a', knows: [ids], wants: [ids]}
 	this.answers = {};

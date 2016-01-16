@@ -6,15 +6,15 @@
 
 		<!-- Mark as done button -->
 		<md-button class="md-icon-button" ng-click="toggleRequirement(masteryId)">
-			<md-icon ng-show="hasMastery(masteryId)">
+			<md-icon ng-show="pageService.hasMastery(masteryId)">
 				check_box
 				<md-tooltip>I know this</md-tooltip>
 			</md-icon>
-			<md-icon ng-show="!hasMastery(masteryId) && wantsMastery(masteryId)">
+			<md-icon ng-show="!pageService.hasMastery(masteryId) && pageService.wantsMastery(masteryId)">
 				bookmark
 				<md-tooltip>I want to learn this</md-tooltip>
 			</md-icon>
-			<md-icon ng-show="!hasMastery(masteryId) && !wantsMastery(masteryId)">
+			<md-icon ng-show="!pageService.hasMastery(masteryId) && !pageService.wantsMastery(masteryId)">
 				check_box_outline_blank
 				<md-tooltip>I don't know this</md-tooltip>
 			</md-icon>

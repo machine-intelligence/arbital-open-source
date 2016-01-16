@@ -70,11 +70,11 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				return $location.hash() === "subpage-" + $scope.page.pageId;
 			};
 
-			// Check if the user has all the masteries for the given lens
-			$scope.hasMastery = function(lensId) {
+			// Check if the user has all the requisites for the given lens
+			$scope.hasAllReqs = function(lensId) {
 				var reqs = pageService.pageMap[lensId].requirementIds;
 				for (var n = 0; n < reqs.length; n++) {
-					if (!pageService.masteryMap[reqs[n]].has) {
+					if (!pageService.hasMastery(reqs[n])) {
 						return false;
 					}
 				}

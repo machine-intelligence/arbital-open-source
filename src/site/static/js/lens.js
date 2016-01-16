@@ -67,11 +67,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// ============ Masteries ====================
 
-			// Check if the user has the given mastery.
-			$scope.hasMastery = function(masteryId) {
-				return pageService.masteryMap[masteryId].has;
-			};
-
 			// Check if the user meets all requirements
 			$scope.meetsAllRequirements = function(pageId) {
 				var page = $scope.page;
@@ -79,7 +74,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					page = pageService.pageMap[pageId];
 				}
 				for (var n = 0; n < page.requirementIds.length; n++) {
-					if (!$scope.hasMastery(page.requirementIds[n])) {
+					if (!pageService.hasMastery(page.requirementIds[n])) {
 						return false;
 					}
 				}
@@ -90,7 +85,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			// Check if the user knows all the subjects
 			$scope.knowsAllSubjects = function() {
 				for (var n = 0; n < $scope.page.subjectIds.length; n++) {
-					if (!$scope.hasMastery($scope.page.subjectIds[n])) {
+					if (!pageService.hasMastery($scope.page.subjectIds[n])) {
 						return false;
 					}
 				}

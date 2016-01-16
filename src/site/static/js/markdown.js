@@ -37,7 +37,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
-		// Process [summary(optional):markdown] spans.
+		// Process [summary(optional):markdown] blocks.
 		var summaryBlockRegexp = new RegExp("^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(summaryBlockRegexp, function (whole, summaryName, summary) {
@@ -46,6 +46,24 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				} else {
 					return runBlockGamut("");
 				}
+			});
+		});
+
+		// Process [has-requisite(alias):markdown] blocks.
+		var hasReqBlockRegexp = new RegExp("^\\[(!?)has-requisite\\(([0-9]+)\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(hasReqBlockRegexp, function (whole, not, alias, markdown) {
+				var block = runBlockGamut(markdown);
+				return "<p ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + alias + "\")'>" + block.substr(3);
+			});
+		});
+
+		// Process [wants-requisite(alias):markdown] blocks.
+		var wantsReqBlockRegexp = new RegExp("^\\[(!?)wants-requisite\\(([0-9]+)\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(wantsReqBlockRegexp, function (whole, not, alias, markdown) {
+				var block = runBlockGamut(markdown);
+				return "<p ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + alias + "\")'>" + block.substr(3);
 			});
 		});
 
@@ -72,7 +90,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"(wants: ?[^\n]+?\n)?" +
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
-			return text.replace(mcBlockRegexp, function (whole) {
+			return text.replace(mcBlockRegexp, function () {
 				var result = [];
 				if (pageId) {
 					//result.push("---\n\n**Multiple-choice:** ");
@@ -293,10 +311,11 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			}
 		});
 
-		var mcIndex = 0;
 		$pageText.find("arb-multiple-choice").each(function(index) {
-			$(this).attr("index", mcIndex);
-			mcIndex++;
+			$(this).attr("index", index);
+			$compile($(this))(scope);
+		});
+		$pageText.find("p[ng-show]").each(function(index) {
 			$compile($(this))(scope);
 		});
 	};
@@ -319,6 +338,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			summaryName: "@",
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
 			$scope.page = pageService.pageMap[$scope.pageId];
 		},
 		link: function(scope, element, attrs) {

@@ -50,8 +50,8 @@
 				<md-tab-label>
 					<arb-page-title page-id="{{lensId}}"
 							custom-page-title="lensId === page.pageId ? 'Primary' : ''"></arb-page-title>
-					<md-icon ng-show="hasMastery(lensId)">assignment_turned_in</md-icon>
-					<md-icon ng-show="!hasMastery(lensId)">assignment_late</md-icon>
+					<md-icon ng-show="hasAllReqs(lensId)">assignment_turned_in</md-icon>
+					<md-icon ng-show="!hasAllReqs(lensId)">assignment_late</md-icon>
 				</md-tab-label>
 				<md-tab-body>
 					<div ng-style="{'min-height': 500}"
