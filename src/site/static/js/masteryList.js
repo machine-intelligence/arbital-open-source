@@ -15,6 +15,11 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
+			// Filter non-existing page ids out
+			$scope.idsSource = $scope.idsSource.filter(function(pageId) {
+				return (pageId in pageService.pageMap) && !pageService.pageMap[pageId].isDeleted();
+			});
+
 			// Sort requirements
 			$scope.idsSource.sort(function(a, b) {
 				var hasA = pageService.hasMastery(a);

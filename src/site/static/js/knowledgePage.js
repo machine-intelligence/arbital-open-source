@@ -9,6 +9,7 @@ app.directive("arbKnowledgePage", function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+
 			$scope.masteryList = [];
 			for (var id in pageService.masteryMap) {
 				$scope.masteryList.push(id);
