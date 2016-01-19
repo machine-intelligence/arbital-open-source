@@ -91,6 +91,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
+		core.AddPageToMap(pageId, returnData.PageMap, pageOptions)
 		pagesWithDraftIds = append(pagesWithDraftIds, fmt.Sprintf("%d", pageId))
 		page := core.AddPageIdToMap(pageId, returnData.EditMap)
 		if title == "" {
