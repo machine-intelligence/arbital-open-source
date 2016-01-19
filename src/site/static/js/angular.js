@@ -111,6 +111,10 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "SignupPageController",
 	})
+	.when("/knowledge/", {
+		template: "",
+		controller: "KnowledgePageController",
+	})
 	.when("/settings/", {
 		template: "",
 		controller: "SettingsPageController",
@@ -476,6 +480,17 @@ app.controller("SignupPageController", function ($scope, $routeParams, $http, $c
 		};
 	}))
 	.error($scope.getErrorFunc("Signup"));
+});
+
+app.controller("KnowledgePageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+		$http({method: "POST", url: "/json/knowledge/"})
+		.success($scope.getSuccessFunc(function(data){
+			return {
+				title: "Knowledge",
+				element: $compile("<arb-knowledge-page></arb-knowledge-page>")($scope),
+			};
+		}))
+		.error($scope.getErrorFunc("Knowledge"));
 });
 
 app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {

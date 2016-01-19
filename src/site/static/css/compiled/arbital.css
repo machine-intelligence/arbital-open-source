@@ -205,6 +205,8 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 900px; }
   arb-settings-page > .capped-body-width {
     max-width: 560px; }
+  arb-knowledge-page > .capped-body-width {
+    max-width: 560px; }
   arb-primary-page > .capped-body-width {
     max-width: 1100px; }
 

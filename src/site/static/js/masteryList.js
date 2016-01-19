@@ -6,6 +6,10 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 		templateUrl: "/static/html/masteryList.html",
 		scope: {
 			idsSource: "=",
+			// If true, show the requisites the user has first
+			showHasFirst: "=",
+			// If true, allow the user to toggle through want states
+			allowWants: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -16,9 +20,13 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 				var hasA = pageService.hasMastery(a);
 				var hasB = pageService.hasMastery(b);
 				if (hasA !== hasB) {
-					return (hasA ? 1 : 0) - (hasB ? 1 : 0);
+					var result = (hasA ? 1 : 0) - (hasB ? 1 : 0);
+					if ($scope.showHasFirst) result = -result;
+					return result;
 				}
-				return (pageService.wantsMastery(a) ? 1 : 0) - (pageService.wantsMastery(b) ? 1 : 0);
+				var result = (pageService.wantsMastery(a) ? 1 : 0) - (pageService.wantsMastery(b) ? 1 : 0);
+				if ($scope.showHasFirst) result = -result;
+				return result;
 			});
 
 			// Toggle whether or not the user has a mastery
@@ -26,7 +34,11 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 				if (pageService.hasMastery(masteryId)) {
 					pageService.updateMasteries([], [masteryId], []);
 				} else {
-					pageService.updateMasteries([masteryId], [], []);
+					if ($scope.allowWants && !pageService.wantsMastery(masteryId)) {
+						pageService.updateMasteries([], [], [masteryId]);
+					} else {
+						pageService.updateMasteries([masteryId], [], []);
+					}
 				}
 			};
 		},
