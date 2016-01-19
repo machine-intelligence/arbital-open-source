@@ -75,7 +75,8 @@
 		<!-- Lens suggestion -->
 		<p ng-if="simplerLens">
 			There is a
-			<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}">simpler lens</a>
+			<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}"
+					ng-bind="'simpler lens, &quot;' + simplerLens.title + '&quot;, '"></a>
 			<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
 			<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
 				that relies on requisites you already have.

@@ -13,36 +13,59 @@ app.service("pageService", function($http, $location, userService){
 
 	// All loaded masteries.
 	this.masteryMap = {};
+	// When the user answers questions or does other complex reversible actions, this map
+	// allows us to store the new masteries the user acquired. That way we can allow the user
+	// to change their answers, without messing up the masteries they learned through other means.
+	// map "key" -> masteryMap
+	this.tempMasteryMaps = {};
 
 	// Update whether on not the user has certain masteries.
 	// NOTE: removal will happen before adding
-	this.updateMasteries = function(addMasteries, delMasteries, wantsMasteries) {
+	this.updateMasteries = function(addMasteries, delMasteries, wantsMasteries, tempMap) {
+		var masteryMap = tempMap || this.masteryMap;
+		var affectedMasteryIds = [];
 		for (var n = 0; n < delMasteries.length; n++) {
 			var masteryId = delMasteries[n];
-			var mastery = this.masteryMap[masteryId];
+			var mastery = masteryMap[masteryId];
 			if (!mastery) continue;
 			mastery.has = false;
 			mastery.wants = false;
+			affectedMasteryIds.push(masteryId);
 		}
 		for (var n = 0; n < wantsMasteries.length; n++) {
 			var masteryId = wantsMasteries[n];
-			var mastery = this.masteryMap[masteryId];
+			var mastery = masteryMap[masteryId];
 			if (!mastery) {
 				mastery = {pageId: masteryId};
-				this.masteryMap[masteryId] = mastery;
+				masteryMap[masteryId] = mastery;
 			}
 			mastery.has = false;
 			mastery.wants = true;
+			affectedMasteryIds.push(masteryId);
 		}
 		for (var n = 0; n < addMasteries.length; n++) {
 			var masteryId = addMasteries[n];
-			var mastery = this.masteryMap[masteryId];
+			var mastery = masteryMap[masteryId];
 			if (!mastery) {
 				mastery = {pageId: masteryId};
-				this.masteryMap[masteryId] = mastery;
+				masteryMap[masteryId] = mastery;
 			}
 			mastery.has = true;
 			mastery.wants = false;
+			affectedMasteryIds.push(masteryId);
+		}
+
+		// Recompute mastery arrays to make sure the values reflect the curent, updated state
+		addMasteries = [], delMasteries = [], wantsMasteries = [];
+		for (var n = 0; n < affectedMasteryIds.length; n++) {
+			var masteryId = affectedMasteryIds[n];
+			if (this.hasMastery(masteryId)) {
+				addMasteries.push(masteryId);
+			} else if (this.wantsMastery(masteryId)) {
+				wantsMasteries.push(masteryId);
+			} else {
+				delMasteries.push(masteryId);
+			}
 		}
 
 		// Send POST request.
@@ -82,6 +105,7 @@ app.service("pageService", function($http, $location, userService){
 			this.pageMap = {};
 			this.editMap = {};
 			this.masteryMap = {};
+			this.tempMasteryMaps = {};
 		}
 
 		var masteryData = data["masteries"];
@@ -628,14 +652,30 @@ app.service("pageService", function($http, $location, userService){
 
 	// Check if the user has a mastery
 	this.hasMastery = function(masteryId) {
-		if (!(masteryId in this.masteryMap)) return false;
-		return this.masteryMap[masteryId].has;
+		// The user "has" the mastery if ANY of the temp maps says so
+		for (var key in this.tempMasteryMaps) {
+			var masteryMap = this.tempMasteryMaps[key];
+			if (masteryId in masteryMap && masteryMap[masteryId].has) {
+				return true;
+			}
+		}
+		return (masteryId in this.masteryMap) && this.masteryMap[masteryId].has;
 	};
 
 	// Check if the user wants the given mastery
 	this.wantsMastery = function(masteryId) {
-		if (!(masteryId in this.masteryMap)) return false;
-		return this.masteryMap[masteryId].wants;
+		// The user "wants" the mastery if they don't know it already, and ANY of the
+		// temp maps says so
+		var has = false, wants = false;
+		for (var key in this.tempMasteryMaps) {
+			var masteryMap = this.tempMasteryMaps[key];
+			if (masteryId in masteryMap) {
+				has = has || masteryMap[masteryId].has;
+				wants = wants || masteryMap[masteryId].wants;
+			}
+		}
+		if (!has && wants) return true;
+		return (masteryId in this.masteryMap) && this.masteryMap[masteryId].wants;
 	};
 
 	// =========== Questionnaire helpers ====================
@@ -649,6 +689,10 @@ app.service("pageService", function($http, $location, userService){
 			removeMasteries = answer.knows.concat(answer.wants);
 		}
 		this.answers[qIndex] = {answer: answer, knows: aKnows, wants: aWants};
-		this.updateMasteries(aKnows, removeMasteries, aWants);
+
+		if (!(qIndex in this.tempMasteryMaps)) {
+			this.tempMasteryMaps[qIndex] = {};
+		}
+		this.updateMasteries(aKnows, removeMasteries, aWants, this.tempMasteryMaps[qIndex]);
 	};
 });

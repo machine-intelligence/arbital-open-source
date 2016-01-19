@@ -49,21 +49,23 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process [has-requisite(alias):markdown] blocks.
-		var hasReqBlockRegexp = new RegExp("^\\[(!?)has-requisite\\(([0-9]+)\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		// Process [knows-requisite([alias]):markdown] blocks.
+		var hasReqBlockRegexp = new RegExp("^\\[(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function (whole, not, alias, markdown) {
 				var block = runBlockGamut(markdown);
-				return "<p ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + alias + "\")'>" + block.substr(3);
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return "<p ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + block.substr(3);
 			});
 		});
 
-		// Process [wants-requisite(alias):markdown] blocks.
-		var wantsReqBlockRegexp = new RegExp("^\\[(!?)wants-requisite\\(([0-9]+)\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		// Process [wants-requisite([alias]):markdown] blocks.
+		var wantsReqBlockRegexp = new RegExp("^\\[(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function (whole, not, alias, markdown) {
 				var block = runBlockGamut(markdown);
-				return "<p ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + alias + "\")'>" + block.substr(3);
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return "<p ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + block.substr(3);
 			});
 		});
 
@@ -116,6 +118,24 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 					//result.push("\n---");
 				}
 				return "<arb-multiple-choice>" + runBlockGamut(result.join("")) + "\n\n</arb-multiple-choice>";
+			});
+		});
+
+		// Process [[knows-requisite([alias]): markdown]] spans.
+		var hasReqSpanRegexp = new RegExp(notEscaped + "\\[\\[(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\]\\]", "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(hasReqSpanRegexp, function (whole, prefix, not, alias, markdown) {
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + markdown + "</span>";
+			});
+		});
+
+		// Process [[wants-requisite([alias]): markdown]] blocks.
+		var wantsReqSpanRegexp = new RegExp(notEscaped + "\\[\\[(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\]\\]", "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(wantsReqSpanRegexp, function (whole, prefix, not, alias, markdown) {
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + markdown + "</span>";
 			});
 		});
 
@@ -315,7 +335,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			$(this).attr("index", index);
 			$compile($(this))(scope);
 		});
-		$pageText.find("p[ng-show]").each(function(index) {
+		$pageText.find("[ng-show]").each(function(index) {
 			$compile($(this))(scope);
 		});
 	};
