@@ -106,25 +106,25 @@
 						</div>
 
 						<div ng-switch-when="newSubject">
-							New "taught by":
-							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
-						</div>
-		
-						<div ng-switch-when="deleteSubject">
-							Deleted "taught by":
-							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
-							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
-						</div>
-
-						<div ng-switch-when="newTeaches">
 							New "teaches requisite":
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
 							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
 		
-						<div ng-switch-when="deleteTeaches">
+						<div ng-switch-when="deleteSubject">
 							Deleted "teaches requisite":
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
+						</div>
+
+						<div ng-switch-when="newTeaches">
+							New "taught by":
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
+						</div>
+		
+						<div ng-switch-when="deleteTeaches">
+							Deleted "taught by":
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
 							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
