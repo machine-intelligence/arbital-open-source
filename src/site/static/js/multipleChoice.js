@@ -42,9 +42,8 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 					}
 				});
 				$(this).children("ul").remove();
-				$(this).changeElementType("md-radio-button")
-					.addClass("md-primary")
-					.attr("value", answerValue);
+				$(this).changeElementType("div")
+				.prepend("<md-radio-button class='md-primary' value='" + answerValue + "'></md-radio-button>");
 				answerValue = String.fromCharCode(answerValue.charCodeAt() + 1);
 			});
 			var $ul = element.find("ng-transclude > ul")

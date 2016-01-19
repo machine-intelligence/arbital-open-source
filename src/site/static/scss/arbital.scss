@@ -1047,6 +1047,7 @@ textarea {
 // Container for multiple choice questions
 arb-multiple-choice {
 	display: block;
+	margin: 15px 0;
 
 	p {
 		margin-bottom: 0;
@@ -1058,5 +1059,9 @@ arb-multiple-choice {
 		margin-top: 0;
 		border-left: $primary-hue-1 3px solid;
 		padding-left: 10px;
+	}
+
+	md-radio-button {
+		display: inline-block;
 	}
 }

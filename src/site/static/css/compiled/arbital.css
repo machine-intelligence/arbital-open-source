@@ -734,7 +734,8 @@ textarea {
   margin-bottom: 20px; }
 
 arb-multiple-choice {
-  display: block; }
+  display: block;
+  margin: 15px 0; }
   arb-multiple-choice p {
     margin-bottom: 0; }
   arb-multiple-choice md-radio-group {
@@ -743,5 +744,7 @@ arb-multiple-choice {
     margin-top: 0;
     border-left: #E0F2F1 3px solid;
     padding-left: 10px; }
+  arb-multiple-choice md-radio-button {
+    display: inline-block; }
 
 /*# sourceMappingURL=arbital.css.map */
