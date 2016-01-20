@@ -104,6 +104,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	hashmap["type"] = groupType
 	hashmap["currentEdit"] = 1
 	hashmap["maxEdit"] = 1
+	hashmap["createdBy"] = userId
 	hashmap["createdAt"] = database.Now()
 	hashmap["sortChildrenBy"] = AlphabeticalChildSortingOption
 	if groupType == GroupPageType {
