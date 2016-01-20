@@ -38,6 +38,7 @@ func feedbackHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	var task tasks.SendFeedbackEmailTask
 	task.UserId = u.Id
+	task.UserEmail = u.Email
 	task.Text = data.Text
 	if err := tasks.Enqueue(c, &task, "sendFeedbackEmail"); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)

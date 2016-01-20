@@ -12,8 +12,9 @@ import (
 
 // SendFeedbackEmailTask is the object that's put into the daemon queue.
 type SendFeedbackEmailTask struct {
-	UserId int64
-	Text   string
+	UserId    int64
+	UserEmail string
+	Text      string
 }
 
 // Check if this task is valid, and we can safely execute it.
@@ -46,7 +47,8 @@ func (task *SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err erro
 		msg := &mail.Message{
 			Sender:  "alexei@arbital.com",
 			To:      []string{"alexei@arbital.com"},
-			Subject: fmt.Sprintf("Feedback from user %d", task.UserId),
+			Cc:      []string{task.UserEmail},
+			Subject: fmt.Sprintf("Arbital feedback (user #%d)", task.UserId),
 			Body:    task.Text,
 		}
 
