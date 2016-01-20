@@ -32,7 +32,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 	if data.UserId < 0 {
-		return pages.HandlerBadRequestFail("Need a valid parentId", err)
+		return pages.HandlerBadRequestFail("Need a valid parentId", nil)
 	} else if data.UserId == 0 {
 		data.UserId = u.Id
 	}

@@ -52,6 +52,8 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	hashmap["sortChildrenBy"] = core.LikesChildSortingOption
 	hashmap["type"] = data.Type
 	hashmap["maxEdit"] = 1
+	hashmap["createdBy"] = u.Id
+	hashmap["createdAt"] = database.Now()
 	hashmap["seeGroupId"] = params.PrivateGroupId
 	hashmap["lockedBy"] = u.Id
 	hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()

@@ -10,6 +10,8 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 			showHasFirst: "=",
 			// If true, allow the user to toggle through want states
 			allowWants: "=",
+			// If true, recursively show requirements for each mastery
+			showRequirements: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;

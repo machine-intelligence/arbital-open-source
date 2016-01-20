@@ -190,13 +190,13 @@ app.service("pageService", function($http, $location, userService){
 		},
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
-			if (userService.user.id === "0") return false;
+			if (!userService.user || userService.user.id === "0") return false;
 			return this.creatorId != userService.user.id &&
 				(this.lastVisit === "" || this.originalCreatedAt >= this.lastVisit);
 		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
-			if (userService.user.id === "0") return false;
+			if (!userService.user || userService.user.id === "0") return false;
 			return this.creatorId != userService.user.id &&
 				this.lastVisit !== "" && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
 		},

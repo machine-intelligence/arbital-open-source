@@ -1,0 +1,17 @@
+<div layout="column" class="capped-body-width">
+	<div class="user-page-panel md-whiteframe-1dp" layout="column">
+		<md-toolbar class="md-hue-2">
+			<div class="md-toolbar-tools">
+				Sequence for <arb-page-title page-id="pageId"></arb-page-title>
+			</div>
+		</md-toolbar>
+
+		<div arb-mastery-list
+			show-has-first="true"
+			allow-wants="true"
+			ids-source="masteryList"></div>
+		<span class="md-caption" ng-show="masteryList.length <= 0" layout-padding>
+			You don't have any requisites yet.
+		</span>
+	</div>
+</div>
