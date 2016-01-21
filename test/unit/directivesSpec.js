@@ -341,7 +341,6 @@ describe('directives', function() {
 		expect($aTag.attr("href")).toContain("/pages/existentAlias/?embedVote=1");
 		expect($aTag.attr("page-id")).toEqual("existentAlias");
 		expect($aTag.attr("embed-vote-id")).toEqual("existentAlias");
-		expect($aTag.attr("class")).toNotContain("red-link");
 		expect($aTag.text()).toContain("Embedded existentAlias vote.");
 
 		testPage.text = "[vote:nonexistentAlias]";
@@ -350,7 +349,6 @@ describe('directives', function() {
 		expect($aTag.attr("href")).toContain("/pages/nonexistentAlias/?embedVote=1");
 		expect($aTag.attr("page-id")).toEqual("nonexistentAlias");
 		expect($aTag.attr("embed-vote-id")).toEqual("nonexistentAlias");
-		expect($aTag.attr("class")).toNotContain("red-link");
 		expect($aTag.text()).toContain("Embedded nonexistentAlias vote.");
 
 		testPage.text = "[todo:text]";
@@ -460,7 +458,6 @@ describe('directives', function() {
 		expect($aTag.attr("href")).toContain("/pages/existentAlias/?embedVote=1");
 		expect($aTag.attr("page-id")).toEqual("existentAlias");
 		expect($aTag.attr("embed-vote-id")).toEqual("existentAlias");
-		expect($aTag.attr("class")).toNotContain("red-link");
 		expect($aTag.text()).toContain("Embedded existentAlias vote.");
 
 		testPage.text = "[vote:existentAlias\\\\]";
