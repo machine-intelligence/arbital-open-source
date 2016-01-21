@@ -265,9 +265,10 @@ app.service("pageService", function($http, $location, userService){
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
 		}
-		// Add page's alias to the map as well
+		// Add page's alias to the map as well, both lowercase and uppercase
 		if (pageMap && page.pageId !== page.alias) {
-			pageMap[page.alias] = page;
+			pageMap[page.alias.substring(0,1).toLowerCase() + page.alias.substring(1)] = page;
+			pageMap[page.alias.substring(0,1).toUpperCase() + page.alias.substring(1)] = page;
 		}
 
 		return page;
