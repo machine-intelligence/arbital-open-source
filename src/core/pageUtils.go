@@ -377,3 +377,13 @@ func CorrectPageType(pageType string) (string, error) {
 	}
 	return pageType, nil
 }
+func CorrectPagePairType(pagePairType string) (string, error) {
+	pagePairType = strings.ToLower(pagePairType)
+	if pagePairType != ParentPagePairType &&
+		pagePairType != TagPagePairType &&
+		pagePairType != RequirementPagePairType &&
+		pagePairType != SubjectPagePairType {
+		return pagePairType, fmt.Errorf("Incorrect type: %s", pagePairType)
+	}
+	return pagePairType, nil
+}

@@ -4,7 +4,6 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -52,12 +51,10 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if data.ParentId == data.ChildId && data.Type != core.SubjectPagePairType {
 		return pages.HandlerBadRequestFail("ParentId equals ChildId", nil)
 	}
-	data.Type = strings.ToLower(data.Type)
-	if data.Type != core.ParentPagePairType &&
-		data.Type != core.TagPagePairType &&
-		data.Type != core.RequirementPagePairType &&
-		data.Type != core.SubjectPagePairType {
-		return pages.HandlerBadRequestFail("Incorrect type", nil)
+	var err error
+	data.Type, err = core.CorrectPagePairType(data.Type)
+	if err != nil {
+		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 
 	// Load existing connections
@@ -67,7 +64,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		FROM pagePairs
 		WHERE parentId=? and childId=?
 		`, data.ParentId, data.ChildId).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pairType string
 		err := rows.Scan(&pairType)
 		if err != nil {
