@@ -11,6 +11,7 @@ import (
 type updateSettingsData struct {
 	EmailFrequency string
 	EmailThreshold int
+	IgnoreMathjax  bool
 }
 
 var updateSettingsHandler = siteHandler{
@@ -41,9 +42,9 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	statement := db.NewStatement(`
 		UPDATE users
-		SET emailFrequency=?,emailThreshold=?
+		SET emailFrequency=?,emailThreshold=?,ignoreMathjax=?
 		WHERE id=?`)
-	_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, u.Id)
+	_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, data.IgnoreMathjax, u.Id)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't update settings", err)
 	}

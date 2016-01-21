@@ -57,14 +57,15 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("error while loading recently created page ids", err)
 	}
 
-	// Load recently edited by me page ids
+	// Load recently created and edited by me page ids
 	rows = db.NewStatement(`
 		SELECT p.pageId
 		FROM pages AS p
 		JOIN pageInfos AS pi
-		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
+		ON (p.pageId=pi.pageId)
 		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
-		ORDER BY p.createdAt DESC
+		GROUP BY 1
+		ORDER BY MAX(p.createdAt) DESC
 		LIMIT ?`).Query(u.Id, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
@@ -90,6 +91,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
+		core.AddPageToMap(pageId, returnData.PageMap, pageOptions)
 		pagesWithDraftIds = append(pagesWithDraftIds, fmt.Sprintf("%d", pageId))
 		page := core.AddPageIdToMap(pageId, returnData.EditMap)
 		if title == "" {

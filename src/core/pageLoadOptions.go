@@ -26,6 +26,7 @@ type PageLoadOptions struct {
 	Related                 bool
 	Lenses                  bool
 	Requirements            bool
+	Subjects                bool
 
 	// Load options for basic pages
 	Links   bool
@@ -39,6 +40,7 @@ type PageLoadOptions struct {
 	ChildDraftId    bool
 	HasDraft        bool
 	Likes           bool
+	ViewCount       bool
 	Votes           bool
 	LastVisit       bool
 	IsSubscribed    bool
@@ -46,6 +48,7 @@ type PageLoadOptions struct {
 	RedLinkCount    bool
 	Mastery         bool
 	UsedAsMastery   bool
+	Creators        bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -67,10 +70,13 @@ var (
 		Related:       true,
 		Lenses:        true,
 		Requirements:  true,
+		Subjects:      true,
 		Domains:       true,
 		ChildDraftId:  true,
+		ViewCount:     true,
 		Mastery:       true,
 		UsedAsMastery: true,
+		Creators:      true,
 		NextPrevIds:   true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
@@ -78,7 +84,9 @@ var (
 		Children:     true,
 		Parents:      true,
 		Tags:         true,
+		Lenses:       true,
 		Requirements: true,
+		Subjects:     true,
 		ChangeLogs:   true,
 		Links:        true,
 		Text:         true,
@@ -88,8 +96,11 @@ var (
 		Questions:     true,
 		SubpageCounts: true,
 		Requirements:  true,
+		Subjects:      true,
 		ChildDraftId:  true,
+		ViewCount:     true,
 		Mastery:       true,
+		Creators:      true,
 		UsedAsMastery: true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment or answer)
@@ -104,7 +115,6 @@ var (
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info for an intrasite link popover
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{
-		Lenses:        true,
 		Links:         true,
 		Votes:         true,
 		IsSubscribed:  true,

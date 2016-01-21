@@ -147,6 +147,18 @@
 													{{else if eq .Type "newTaggedBy"}}
 														This page now tags: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
+													{{else if eq .Type "newSubject"}}
+														New "teaches requisite": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
+													{{else if eq .Type "deleteSubject"}}
+														Deleted "teaches requisite": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
+													{{else if eq .Type "newTeaches"}}
+														New "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
+													{{else if eq .Type "deleteTeaches"}}
+														Deleted "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "commentEdit"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> edited a
 														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>

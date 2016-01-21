@@ -24,12 +24,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				$scope.mastery = {has: false};
 			}
 
-			// Process mastery events.
-			$scope.toggleMastery = function() {
-				pageService.updateMastery($scope, $scope.page.pageId, !$scope.mastery.has);
-				$scope.mastery = pageService.masteryMap[$scope.pageId];
-			};
-
 			// Process click on showing the page diff button.
 			$scope.showingDiff = false;
 			$scope.diffHtml = undefined;
@@ -61,6 +55,81 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			$scope.$on("lensTabChanged", function(event, lensId){
 				$scope.lensIsVisible = $scope.pageId == lensId;
 			});
+
+			// Listen for shortcut keys
+			$(document).keyup(function(event) {
+				if (!$scope.lensIsVisible) return true;
+				if (!event.ctrlKey || !event.altKey) return true;
+				$scope.$apply(function() {
+					if (event.keyCode == 77) $scope.newInlineComment(); // M
+				});
+			});
+
+			// ============ Masteries ====================
+
+			// Check if the user meets all requirements
+			$scope.meetsAllRequirements = function(pageId) {
+				var page = $scope.page;
+				if (pageId) {
+					page = pageService.pageMap[pageId];
+				}
+				for (var n = 0; n < page.requirementIds.length; n++) {
+					if (!pageService.hasMastery(page.requirementIds[n])) {
+						return false;
+					}
+				}
+				return true;
+			};
+			$scope.showRequirementsPanel = !$scope.meetsAllRequirements();
+
+			// Check if the user knows all the subjects
+			$scope.knowsAllSubjects = function() {
+				for (var n = 0; n < $scope.page.subjectIds.length; n++) {
+					if (!pageService.hasMastery($scope.page.subjectIds[n])) {
+						return false;
+					}
+				}
+				return true;
+			};
+			$scope.showLearnedPanel = !$scope.knowsAllSubjects();
+
+			// Toggle all requirements
+			$scope.toggleRequirements = function() {
+				if ($scope.meetsAllRequirements()) {
+					pageService.updateMasteries([], $scope.page.requirementIds, []);
+				} else {
+					pageService.updateMasteries($scope.page.requirementIds, [], []);
+				}
+			};
+
+			// Toggle all subjects
+			$scope.toggleSubjects = function() {
+				if ($scope.knowsAllSubjects()) {
+					pageService.updateMasteries([], $scope.page.subjectIds, []);
+				} else {
+					pageService.updateMasteries($scope.page.subjectIds, [], []);
+				}
+			};
+
+			// Compute simpler lens id if necessary
+			if ($scope.showRequirementsPanel) {
+				var simplerLensId = undefined;
+				var primaryPage = pageService.pageMap[$scope.lensParentId];
+				for (var n = 0; n < primaryPage.lensIds.length; n++) {
+					var lens = pageService.pageMap[primaryPage.lensIds[n]];
+					if (lens.lensIndex < $scope.page.lensIndex && $scope.meetsAllRequirements(lens.pageId)) {
+						simplerLensId = lens.pageId;
+						break;
+					}
+				}
+				if (!simplerLensId && primaryPage.lensIds[0] !== $scope.page.pageId) {
+					// We haven't found a lens for which we've met all requirements, so just suggest the simplest lens
+					simplerLensId = primaryPage.lensIds[0];
+				}
+				if (simplerLensId) {
+					$scope.simplerLens = pageService.pageMap[simplerLensId];
+				}
+			}
 		},
 		link: function(scope, element, attrs) {
 			if (scope.isSimpleEmbed) return;
@@ -95,11 +164,11 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				});
 			};
 
-			// Process all inline comments
-			for (var n = 0; n < scope.page.commentIds.length; n++) {
-				if (scope.isTinyScreen) break;
-				var comment = pageService.pageMap[scope.page.commentIds[n]];
-				if (!comment.anchorContext || !comment.anchorText) continue;
+			// Process an inline comment
+			var processInlineComment = function(commentId) {
+				if (scope.isTinyScreen) return;
+				var comment = pageService.pageMap[commentId];
+				if (!comment.anchorContext || !comment.anchorText) return;
 
 				// Find the best paragraph
 				var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
@@ -118,7 +187,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				}
 
 				// Check if it's a close enough match
-				if (bestScore > comment.anchorContext.length / 2) continue;
+				if (bestScore > comment.anchorContext.length / 2) return;
 
 				// Find offset into the best paragraph
 				var anchorLength;
@@ -151,6 +220,11 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					paragraphNode: bestParagraphNode,
 					anchorNode: $("." + highlightClass),
 				};
+			};
+
+			// Process all inline comments
+			for (var n = 0; n < scope.page.commentIds.length; n++) {
+				processInlineComment(scope.page.commentIds[n]);
 			}
 
 			// Get the style of an inline comment icon
@@ -232,6 +306,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Create a new inline comment
 			scope.newInlineComment = function() {
+				if (!scope.showNewInlineCommentButton) return;
 				var selection = getSelectedParagraphText();
 				if (!selection) return;
 				pageService.newComment({
@@ -252,12 +327,12 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Called when the user is done with the new inline comment
 			scope.newInlineCommentDone = function(result) {
+				$inlineCommentEditPage.remove();
+				$inlineCommentEditPage = undefined;
+				$markdown.find(".inline-comment-highlight").removeClass("inline-comment-highlight");
 				if (!result.discard) {
 					pageService.newCommentCreated(result.pageId);
-				} else {
-					$inlineCommentEditPage.remove();
-					$inlineCommentEditPage = undefined;
-					$markdown.find(".inline-comment-highlight").removeClass("inline-comment-highlight");
+					processInlineComment(result.pageId);
 				}
 			};
 
@@ -280,6 +355,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 						}
 					});
 				});
+
 			});
 		},
 	};

@@ -36,6 +36,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			if ($location.search().tab) {
 				$scope.selectedTab = $location.search().tab;
 			}
+			if ($scope.page.isComment()) {
+				$scope.selectedTab = 1;
+			}
 
 			// Set up markdown
 			$timeout(function() {
@@ -43,7 +46,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				// Initialize pagedown
 				markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
 					$timeout(function() {
-						markdownService.processLinks($wmdPreview, refreshFunc);
+						markdownService.processLinks($scope, $wmdPreview, refreshFunc);
 					});
 				});
 			});
@@ -64,6 +67,26 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				});
 			};
 
+			// Lens sort listeners (using ng-sortable library)
+			$scope.page.lensIds.unshift($scope.page.pageId);
+			$scope.page.lensIds.sort(function(a, b) {
+				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
+			});
+			$scope.lensSortListeners = {
+				orderChanged: function(event) {
+					var data = {pageId: $scope.page.pageId, orderMap: {}};
+					for (var n = 0; n < $scope.page.lensIds.length; n++) {
+						var pageId = $scope.page.lensIds[n];
+						pageService.pageMap[pageId].lensIndex = n;
+						data.orderMap[pageId] = n;
+					}
+					$http({method: "POST", url: "/updateLensOrder/", data: JSON.stringify(data)})
+					.error(function(data) {
+						$scope.addMessage("lensOrder", "Error updating lens order: " + data, "error");
+					});
+				},
+			};
+
 			// Toggle in and out of preview when not in fullView
 			$scope.inPreview = false;
 			$scope.togglePreview = function(show) {
@@ -71,13 +94,13 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			};
 
 			// Setup all the settings
-			$scope.isWiki = $scope.page.type === "wiki";
-			$scope.isQuestion = $scope.page.type === "question";
-			$scope.isAnswer = $scope.page.type === "answer";
-			$scope.isComment = $scope.page.type === "comment";
-			$scope.isLens = $scope.page.type === "lens";
-			$scope.isGroup = $scope.page.type === "group" || $scope.page.type === "domain";
-			$scope.forceExpandSimilarPagesCount = $scope.isQuestion ? 5 : 0;
+			$scope.isWiki = $scope.page.isWiki();
+			$scope.isQuestion = $scope.page.isQuestion();
+			$scope.isAnswer = $scope.page.isAnswer();
+			$scope.isComment = $scope.page.isComment();
+			$scope.isLens = $scope.page.isLens();
+			$scope.isGroup = $scope.page.isGroup() || $scope.page.isDomain();
+			$scope.forceExpandSimilarPagesCount = $scope.isQuestion ? 5 : 10;
 
 			// Set up page types.
 			if ($scope.isQuestion) {
@@ -364,14 +387,16 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// =========== Find similar pages ==============
 			var shouldFindSimilar = false;
-			$scope.forceExpandSimilarPages = $scope.isQuestion;
-			$scope.expandSimilarPages = $scope.forceExpandSimilarPages;
+			$scope.expandSimilarPages = false;
 			$scope.toggleSimilarPages = function(show) {
 				$scope.expandSimilarPages = show;
 			};
 			$scope.similarPages = [];
 			var findSimilarFunc = function() {
+				if ($scope.page.wasPublished) return;
 				if (!shouldFindSimilar || $scope.isComment) return;
+				// Don't search, if we don't have the first tab selected
+				if (!$scope.isQuestion && $scope.selectedTab != 0) return;
 				shouldFindSimilar = false;
 				var data = {
 					title: $scope.page.title,
@@ -389,7 +414,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					}
 				});
 			};
-			var similarInterval = $interval(findSimilarFunc, 10000);
+			var similarInterval = $interval(findSimilarFunc, $scope.isQuestion ? 10000 : 3000);
 			$scope.$on("$destroy", function() {
 				$interval.cancel(similarInterval);
 			});
@@ -430,6 +455,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				var data = {
 					pageId: $scope.page.pageId,
 					type: $scope.page.type,
+					seeGroupId: $scope.page.seeGroupId,
 					editGroupId: $scope.page.editGroupId,
 					hasVote: $scope.page.hasVote,
 					voteType: $scope.page.voteType,
@@ -482,7 +508,8 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 		link: function(scope, element, attrs) {
 			$timeout(function() {
 				// Synchronize scrolling between the textarea and the preview.
-				var $divs = element.find(".wmd-input").add(element.find(".preview-area"));
+				var $wmdInput = element.find(".wmd-input");
+				var $divs = $wmdInput.add(element.find(".preview-area"));
 				var syncScroll = function(event) {
 					var $other = $divs.not(this).off("scroll"), other = $other.get(0);
 					var percentage = this.scrollTop / (this.scrollHeight - this.offsetHeight);
@@ -492,7 +519,17 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						$other.on("scroll", syncScroll);
 					}, 10);
 				};
-				$divs.on("scroll", syncScroll);
+				if (scope.fullView) {
+					$divs.on("scroll", syncScroll);
+				}
+
+				if (scope.isComment) {
+					// Scroll to show the entire edit page element and focus on the input.
+					$("html, body").animate({
+						scrollTop: Math.max($("body").scrollTop(), element.offset().top + element.height() - $(window).height() + 80),
+					}, 1000);
+					$wmdInput.focus();
+				}
 
 				// Listen to events from Markdown.Editor
 				var $markdownToolbar = element.find(".wmd-button-bar");

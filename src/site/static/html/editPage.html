@@ -14,18 +14,23 @@
 				flex>
 			<!-- (0) Title tab -->
 			<md-tab label="Title" ng-disabled="isComment || isAnswer">
-				<div class="editor-tab" layout="column" flex>
-					<md-input-container>
-						<label>Title</label>
-						<input ng-model="page.title" md-maxlength="100" autofocus default-tab-item="0">
-					</md-input-container>
-					<md-input-container>
-						<label>Clickbait</label>
-						<input ng-model="page.clickbait" md-maxlength="200">
-					</md-input-container>
-					<div class="md-caption">
-						You need to publish the page for these fields to show up live.
+				<div layout="column" flex>
+					<div class="editor-tab" layout="column">
+						<md-input-container>
+							<label>Title</label>
+							<input ng-model="page.title" md-maxlength="100" autofocus default-tab-item="0">
+						</md-input-container>
+						<md-input-container>
+							<label>Clickbait</label>
+							<input ng-model="page.clickbait" md-maxlength="200">
+						</md-input-container>
+						<md-input-container>
+							<label>Alias</label>
+							<input ng-model="page.alias" md-maxlength="50">
+						</md-input-container>
 					</div>
+					<!-- Related pages -->
+					<ng-include src="'/static/html/editPageSimilarList.html'" flex ng-if="!isQuestion"></ng-include>
 				</div>
 			</md-tab>
 
@@ -145,20 +150,52 @@
 			<md-tab label="Relationships" ng-disabled="isComment">
 				<div class="editor-tab" flex>
 					<!-- Parents -->
-					<arb-relationships page-id="{{page.pageId}}"
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
 							type="parent"
 							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></arb-relationships>
+							readonly="!(isWiki || isQuestion)"></div>
 					<!-- Tags -->
-					<arb-relationships page-id="{{page.pageId}}"
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
 							type="tag"
 							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></arb-relationships>
+							readonly="!(isWiki || isQuestion)"></div>
 					<!-- Requirements -->
-					<arb-relationships page-id="{{page.pageId}}"
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
 							type="requirement"
 							force-edit-mode="true"
-							readonly="!(isWiki || isLens)"></arb-relationships>
+							readonly="!(isWiki || isLens)"></div>
+					<!-- Teaches -->
+					<div arb-relationships class="edit-relationship-div"
+							page-id="{{page.pageId}}"
+							type="subject"
+							force-edit-mode="true"
+							readonly="!(isWiki || isLens)"></div>
+					<!-- Lens ordering -->
+					<div class="edit-relationship-div" ng-if="!isLens">
+						<div class="md-subhead">
+							<arb-page-title page-id="2771631271061525489"
+									is-link="true"
+									custom-page-title="'Lens order'"></arb-page-title>
+							<div class="md-caption">
+								Sorted from most simple to most technical.
+							</div>
+						</div>
+						<div class="md-caption" ng-if="page.lensIds.length <= 1">This page has no lenses.</div>
+
+						<!-- List of lenses -->
+						<div data-as-sortable="lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 1">
+							<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
+								<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
+									<md-icon>reorder</md-icon>
+									<span>#{{pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
+									<arb-page-title page-id="{{lensId}}" is-link="true"></arb-page-title>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</md-tab>
 
@@ -180,6 +217,19 @@
 									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
 									because it's part of the private domain
 								</div>
+							</div>
+						</div>
+					
+						<!-- See group id -->
+						<div layout="row" ng-if="!page.wasPublished">
+							<md-input-container flex>
+								<label>See group</label>
+								<md-select ng-model="page.seeGroupId">
+									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
+								</md-select>
+							</md-input-container>
+							<div class="md-caption" layout-margin flex>
+								Group that can see this page. If not set, anyone can see it
 							</div>
 						</div>
 					
@@ -277,6 +327,7 @@
 
 			<!-- (4) Changelog tab -->
 			<md-tab label="Changelog" ng-disabled="isComment || isAnswer">
+				<div class="md-caption" layout-padding ng-show="page.changeLogs.length <= 0">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
 						<div layout="column">
@@ -329,6 +380,11 @@
 			</md-tab>
 		</md-tabs>
 
+		<!-- Related pages -->
+		<ng-include class="white-background"
+				src="'/static/html/editPageSimilarList.html'"
+				ng-if="isQuestion && !fullView"></ng-include>
+
 		<!-- Footer -->
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
@@ -372,18 +428,19 @@
 				</md-button>
 			</div>
 			<div ng-show="!fullView && !inPreview && (selectedTab != 2)">
-				<md-button class="md-primary md-raised"
+				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="togglePreview(true)"
 						ng-disable="publishing || snapshotting">
 					<md-tooltip>Preview the page before publishing</md-tooltip>
 					Preview
 				</md-button>
 			</div>
-			<div ng-show="(fullView || inPreview) && (selectedTab != 2)">
+			<div ng-show="selectedTab != 2">
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
 						ng-disable="publishing || snapshotting">
-					<md-tooltip>Make this version live</md-tooltip>
+					<!-- Don't show for comments, because when inline comment gets created the tooltip remains -->
+					<md-tooltip ng-if="!isComment">Make this version live</md-tooltip>
 					Publish
 				</md-button>
 			</div>
@@ -398,6 +455,9 @@
 		<md-content class="preview-area" flex ng-hide="(!fullView && !inPreview) || otherDiff">
 			<div class="md-display-3" ng-bind="page.title"></div>
 			<div id="wmd-preview{{page.pageId}}"></div>
+			<div class="md-caption" ng-show="page.title === '' && page.text === ''">
+				<div class="md-display-3">Live preview</div>
+			</div>
 		</md-content>
 
 		<!-- Buttons shown in preview -->
@@ -406,8 +466,9 @@
 				layout-align="space-between center"
 				ng-show="inPreview">
 			<div layout-margin>
-				<md-button class="md-raised" ng-click="togglePreview(false)">
+				<md-button class="md-primary md-hue-1 md-raised" ng-click="togglePreview(false)">
 					<md-icon>arrow_back</md-icon>
+					Editing
 					<md-tooltip>Go back to editing</md-tooltip>
 				</md-button>
 			</div>
@@ -430,7 +491,7 @@
 				layout-align="space-between center"
 				ng-show="otherDiff">
 			<div layout-margin>
-				<md-button ng-click="hideDiff()">
+				<md-button class="md-primary md-hue-1 md-raised" ng-click="hideDiff()">
 					<md-icon>arrow_back</md-icon>
 					<md-tooltip>Go back to live preview</md-tooltip>
 					Back to live preview
@@ -439,8 +500,8 @@
 			<div flex></div>
 			<div layout-margin>
 				<md-button class="md-raised" ng-click="refreshDiff()" ng-show="fullView">
-					<md-tooltip>Recompute the diff</md-tooltip>
-					Recompute
+					<md-tooltip>Refresh the diff</md-tooltip>
+					Refresh
 				</md-button>
 			</div>
 		</div>
@@ -461,33 +522,6 @@
 		</md-list>
 
 		<!-- Related pages -->
-		<md-list ng-hide="otherDiff">
-			<md-subheader class="md-no-sticky" ng-show="similarPages.length > 0">
-				Similar {{isQuestion ? "questions" : "pages"}}
-			</md-subheader>
-			<md-list-item class="md-no-proxy"
-					ng-init="similarPage = similarPages[0]"
-					ng-if="similarPages.length > 0">
-				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
-				<arb-page-title page-id="{{similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
-				<div flex></div>
-				<md-button ng-click="toggleSimilarPages(true)"
-						ng-show="!forceExpandSimilarPages && !expandSimilarPages && similarPages.length > 1">
-					<md-icon>expand_more</md-icon>
-					Show {{similarPages.length - 1}} more
-				</md-button>
-				<md-button ng-click="toggleSimilarPages(false)"
-						ng-show="!forceExpandSimilarPages && expandSimilarPages">
-					<md-icon>expand_less</md-icon>
-					Hide
-				</md-button>
-			</md-list-item>
-			<md-list-item layout="row"
-					ng-repeat="(index,similarPage) in similarPages"
-					ng-if="index > 0 && (expandSimilarPages || index < forceExpandSimilarPagesCount)">
-				<arb-likes page-id="{{similarPage.pageId}}"></arb-likes>
-				<arb-page-title page-id="{{similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
-			</md-list-item>
-		</md-list>
+		<ng-include src="'/static/html/editPageSimilarList.html'" ng-if="isQuestion && fullView"></ng-include>
 	</div>
 </div>

@@ -104,6 +104,30 @@
 							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
 							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
 						</div>
+
+						<div ng-switch-when="newSubject">
+							New "teaches requisite":
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
+						</div>
+		
+						<div ng-switch-when="deleteSubject">
+							Deleted "teaches requisite":
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
+						</div>
+
+						<div ng-switch-when="newTeaches">
+							New "taught by":
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
+						</div>
+		
+						<div ng-switch-when="deleteTeaches">
+							Deleted "taught by":
+							<arb-page-title is-link="true" page-id="{{update.goToPageId}}"></arb-page-title>
+							(<span ng-bind="update.createdAt | relativeDateTime"></span>)
+						</div>
 		
 						<div ng-switch-when="commentEdit">
 							<arb-user-name user-id="{{update.byUserId}}"></arb-user-name>

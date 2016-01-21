@@ -23,7 +23,7 @@ app.service("userService", function(){
 	// Return a user's full name.
 	this.getFullName = function(userId) {
 		var user = this.userMap[userId];
-		if (!user) console.log(userId);
+		if (!user) console.error("User not found: " + userId);
 		return user.firstName + " " + user.lastName;
 	};
 
@@ -36,5 +36,5 @@ app.service("userService", function(){
 			that.user = data.user;
 		}
 		$.extend(that.userMap, data["users"]);
-	}
+	};
 });

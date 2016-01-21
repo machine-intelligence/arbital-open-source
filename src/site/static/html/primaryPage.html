@@ -31,9 +31,13 @@
 	
 	<div arb-page-list panel-title="Children"
 			show-created-at="page.sortChildrenBy === 'recentFirst' || page.sortChildrenBy === 'oldestFirst'"
+			show-comment-count="true"
+			show-text-length="true"
 			page-ids="page.childIds"
 			ng-show="page.childIds.length > 0"></div>
 	<div arb-page-list panel-title="Related"
+			show-comment-count="true"
+			show-text-length="true"
 			page-ids="page.relatedIds"
 			ng-show="page.relatedIds.length > 0"></div>
 

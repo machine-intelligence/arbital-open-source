@@ -2,7 +2,7 @@
 
 // Set up angular module.
 var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute",
-		"ngMessages", "ngSanitize", "RecursionHelper"]);
+		"ngMessages", "ngSanitize", "RecursionHelper", "as.sortable"]);
 
 app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemingProvider){
 	// Convert "rgb(#,#,#)" color to "#hex"
@@ -80,10 +80,16 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/domains/:alias", {
 		template: "",
 		controller: "DomainPageController",
+		reloadOnSearch: false,
 	})
 	.when("/pages/:alias", {
 		template: "",
 		controller: "PrimaryPageController",
+		reloadOnSearch: false,
+	})
+	.when("/sequences/:pageId", {
+		template: "",
+		controller: "SequenceController",
 		reloadOnSearch: false,
 	})
 	.when("/edit/:alias?/:edit?", {
@@ -94,6 +100,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/user/:id?", {
 		template: "",
 		controller: "UserPageController",
+		reloadOnSearch: false,
 	})
 	.when("/dashboard/", {
 		template: "",
@@ -110,6 +117,10 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/signup/", {
 		template: "",
 		controller: "SignupPageController",
+	})
+	.when("/knowledge/", {
+		template: "",
+		controller: "KnowledgePageController",
 	})
 	.when("/settings/", {
 		template: "",
@@ -342,6 +353,28 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 	.error($scope.getErrorFunc("primaryPage"));
 });
 
+app.controller("SequenceController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	// Get the primary page data
+	var postData = {
+		pageId: $routeParams.pageId,
+	};
+	$http({method: "POST", url: "/json/sequence/", data: JSON.stringify(postData)})
+	.success($scope.getSuccessFunc(function(data){
+		var page = pageService.pageMap[postData.pageId];
+		if (!page) {
+			return {
+				title: "Not Found",
+				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
+			};
+		}
+		$scope.sequence = data.result.sequence;
+		return {
+			title: "Sequence for " + page.title,
+			element: $compile("<arb-sequence-page sequence='sequence'></arb-sequence-page>")($scope),
+		};
+	}))
+	.error($scope.getErrorFunc("primaryPage"));
+});
 
 app.controller("EditPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var pageId = $routeParams.alias;
@@ -476,6 +509,17 @@ app.controller("SignupPageController", function ($scope, $routeParams, $http, $c
 		};
 	}))
 	.error($scope.getErrorFunc("Signup"));
+});
+
+app.controller("KnowledgePageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+		$http({method: "POST", url: "/json/knowledge/"})
+		.success($scope.getSuccessFunc(function(data){
+			return {
+				title: "Knowledge",
+				element: $compile("<arb-knowledge-page></arb-knowledge-page>")($scope),
+			};
+		}))
+		.error($scope.getErrorFunc("Knowledge"));
 });
 
 app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {

@@ -266,7 +266,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageService, userService) {
+app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog, pageService, userService) {
 	return {
 		templateUrl: "static/html/composeFab.html",
 		scope: {
@@ -299,17 +299,22 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 					var type = pageService.primaryPage.type;
 					if (type === "question") {
 						$scope.showNewAnswer = true;
-					} else if (type === "wiki") {
+					} else if (type === "wiki" || type === "group" || type === "domain") {
 						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
 						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
 						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
 					}
-					$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
+					if ($location.search().lens) {
+						$scope.editPageUrl = pageService.getEditPageUrl($location.search().lens);
+					} else {
+						$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
+					}
 				}
 			};
 			computeUrls();
 			$scope.$watch(function() {
-				return pageService.primaryPage;
+				// Note: can't use an object, so we just hack together a string
+				return (pageService.primaryPage ? pageService.primaryPage.pageId : "none") + $location.absUrl();
 			}, function() {
 				computeUrls();
 			});
@@ -321,16 +326,40 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 		    }, 1000);
 			};
 
+			// New feedback button is clicked
+			$scope.newFeedback = function(event) {
+				$mdDialog.show({
+					templateUrl: "/static/html/feedbackDialog.html",
+					controller: "FeedbackDialogController",
+					autoWrap: false,
+					targetEvent: event,
+				});
+			};
+
 			$scope.$on("$locationChangeSuccess", function () {
 				$scope.hide = $location.path().indexOf("/edit") === 0;
 			});
 			$scope.hide = $location.path().indexOf("/edit") === 0;
+
+			// Listen for shortcut keys
+			$(document).keyup(function(event) {
+				if (!event.ctrlKey || !event.altKey) return true;
+				$scope.$apply(function() {
+					if (event.keyCode == 80) $location.url("/edit/"); // P
+					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
+					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
+					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
+					else if (event.keyCode == 81 && $scope.questionUrl) $location.url($scope.questionUrl); // Q
+					else if (event.keyCode == 65 && $scope.showNewAnswer) $scope.newAnswer(); // A
+					else if (event.keyCode == 75) $scope.newFeedback(event); // K
+				});
+			});
 		},
 	};
 });
 
 // autocomplete searches for relevant pages as you do the search
-app.directive("arbAutocomplete", function($timeout, $q, pageService, autocompleteService) {
+app.directive("arbAutocomplete", function($timeout, $q, pageService, userService, autocompleteService) {
 	return {
 		templateUrl: "static/html/autocomplete.html",
 		scope: {
@@ -341,6 +370,9 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, autocomplet
 			onSelect: "&",
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
 				var deferred = $q.defer();
@@ -386,15 +418,15 @@ app.directive("arbPageList", function(pageService, userService) {
 		scope: {
 			pageIds: "=",
 			panelTitle: "@",
-			hideLikes: "@",
-			showLastEdit: "@",
-			showCreatedAt: "@",
-			showQuickEdit: "@",
-			showRedLinkCount: "@",
-			showCommentCount: "@",
-			showTextLength: "@",
+			hideLikes: "=",
+			showLastEdit: "=",
+			showCreatedAt: "=",
+			showQuickEdit: "=",
+			showRedLinkCount: "=",
+			showCommentCount: "=",
+			showTextLength: "=",
 			// If set, we'll pull the page from the editMap instead of pageMap
-			useEditMap: "@",
+			useEditMap: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -416,14 +448,14 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 		restrict: "A",
 		controller: function($scope) {
 			$scope.showUserCheckToast = function(message) {
-				// TODO: restore when we figure out the bug
+				// TODO: restore when we figure out the bug with $mdToast
 				//$mdToast.show($mdToast.simple().textContent(message));
 			};
 		},
 		compile: function compile(element, attrs) {
 			var check = attrs.arbUserCheck;
 			var failMessage = "";
-			if (userService.user.id === "0") {
+			if (!userService.user || userService.user.id === "0") {
 				failMessage = "Login required";
 			} else if (check === "cool") {
 				if (!userService.userIsCool()) {
@@ -434,6 +466,39 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 				element.prepend(angular.element("<md-tooltip>" + failMessage + "</md-tooltip>"));
 				attrs.ngClick = "showUserCheckToast('" + failMessage + "')";
 			}
+		},
+	};
+});
+
+// Directive for a button to toggle requisite state
+app.directive("arbRequisiteButton", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/requisiteButton.html",
+		scope: {
+			requisiteId: "@",
+			// If true, don't show the page title
+			hideTitle: "=",
+			// If true, allow the user to toggle into a "want" state
+			allowWants: "=",
+		},
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+
+			// Toggle whether or not the user has a mastery
+			$scope.toggleRequirement = function() {
+				if (pageService.hasMastery($scope.requisiteId)) {
+					if ($scope.allowWants) {
+						pageService.updateMasteries([], [], [$scope.requisiteId]);
+					} else {
+						pageService.updateMasteries([], [$scope.requisiteId], []);
+					}
+				} else if (pageService.wantsMastery($scope.requisiteId)) {
+					pageService.updateMasteries([], [$scope.requisiteId], []);
+				} else {
+					pageService.updateMasteries([$scope.requisiteId], [], []);
+				}
+			};
 		},
 	};
 });

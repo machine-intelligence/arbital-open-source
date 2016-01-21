@@ -4,7 +4,6 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -49,14 +48,13 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if data.ParentId <= 0 || data.ChildId <= 0 {
 		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", nil)
 	}
-	if data.ParentId == data.ChildId {
+	if data.ParentId == data.ChildId && data.Type != core.SubjectPagePairType {
 		return pages.HandlerBadRequestFail("ParentId equals ChildId", nil)
 	}
-	data.Type = strings.ToLower(data.Type)
-	if data.Type != core.ParentPagePairType &&
-		data.Type != core.TagPagePairType &&
-		data.Type != core.RequirementPagePairType {
-		return pages.HandlerBadRequestFail("Incorrect type", nil)
+	var err error
+	data.Type, err = core.CorrectPagePairType(data.Type)
+	if err != nil {
+		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 
 	// Load existing connections
@@ -66,11 +64,11 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		FROM pagePairs
 		WHERE parentId=? and childId=?
 		`, data.ParentId, data.ChildId).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pairType string
 		err := rows.Scan(&pairType)
 		if err != nil {
-			return fmt.Errorf("failed to scan pagePairs: %v", err)
+			return fmt.Errorf("Failed to scan pagePairs: %v", err)
 		}
 		existingTypes[pairType] = true
 		return nil
@@ -96,7 +94,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	// Load pages.
 	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
+		return pages.HandlerErrorFail("Error while loading pages", err)
 	}
 
 	// More error checking
@@ -107,6 +105,9 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		}
 		if data.Type == core.RequirementPagePairType && parent.SeeGroupId == 0 && child.SeeGroupId != 0 {
 			return pages.HandlerErrorFail("For a public parent, all requirements have to be public", nil)
+		}
+		if data.Type == core.SubjectPagePairType && parent.SeeGroupId == 0 && child.SeeGroupId != 0 {
+			return pages.HandlerErrorFail("For a public parent, all subjects have to be public", nil)
 		}
 		if child.Type == core.AnswerPageType && parent.Type != core.QuestionPageType {
 			return pages.HandlerErrorFail("Answer page can only be a child of a question page", nil)
@@ -139,6 +140,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			core.ParentPagePairType:      core.NewChildChangeLog,
 			core.TagPagePairType:         core.NewTagTargetChangeLog,
 			core.RequirementPagePairType: core.NewRequiredForChangeLog,
+			core.SubjectPagePairType:     core.NewTeachesChangeLog,
 		}[data.Type]
 		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
 		if _, err = statement.Exec(); err != nil {
@@ -154,6 +156,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			core.ParentPagePairType:      core.NewParentChangeLog,
 			core.TagPagePairType:         core.NewTagChangeLog,
 			core.RequirementPagePairType: core.NewRequirementChangeLog,
+			core.SubjectPagePairType:     core.NewSubjectChangeLog,
 		}[data.Type]
 		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
 		if _, err = statement.Exec(); err != nil {
@@ -170,10 +173,12 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		var task tasks.NewUpdateTask
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewParentUpdateType
-		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequirementUpdateType
 		} else if data.Type == core.TagPagePairType {
 			task.UpdateType = core.NewTagUpdateType
+		} else if data.Type == core.RequirementPagePairType {
+			task.UpdateType = core.NewRequirementUpdateType
+		} else if data.Type == core.SubjectPagePairType {
+			task.UpdateType = core.NewSubjectUpdateType
 		}
 		task.UserId = u.Id
 		task.GroupByPageId = child.PageId
@@ -187,10 +192,12 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		task.UserId = u.Id
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewChildUpdateType
-		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequiredByUpdateType
 		} else if data.Type == core.TagPagePairType {
 			task.UpdateType = core.NewTaggedByUpdateType
+		} else if data.Type == core.RequirementPagePairType {
+			task.UpdateType = core.NewRequiredByUpdateType
+		} else if data.Type == core.SubjectPagePairType {
+			task.UpdateType = core.NewTeachesUpdateType
 		}
 		task.GroupByPageId = parent.PageId
 		task.SubscribedToId = parent.PageId

@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -52,24 +51,6 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
-	}
-
-	// Computed which pages count as visited.
-	visitedValues := make([]interface{}, 0)
-	for id, p := range returnData.PageMap {
-		if p.Text != "" {
-			visitedValues = append(visitedValues, u.Id, id, database.Now())
-		}
-	}
-
-	// Add a visit to pages for which we loaded text.
-	if len(visitedValues) > 0 {
-		statement := db.NewStatement(`
-			INSERT INTO visits (userId, pageId, createdAt)
-			VALUES ` + database.ArgsPlaceholder(len(visitedValues), 3))
-		if _, err = statement.Exec(visitedValues...); err != nil {
-			return pages.HandlerErrorFail("Couldn't update visits", err)
-		}
 	}
 
 	return pages.StatusOK(returnData.toJson())

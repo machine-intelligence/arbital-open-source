@@ -4,7 +4,7 @@
 			style="margin: 15px 0"
 			ng-repeat="(groupId,group) in groupMap"
 			ng-init="userCanAddMembers = group.members[userService.user.id].canAddMembers; userCanAdmin = group.members[userService.user.id].canAdmin">
-		<md-toolbar class="md-hue-1">
+		<md-toolbar class="md-hue-2">
 			<div class="md-toolbar-tools">
 				<arb-page-title page-id="{{groupId}}" is-link="true"><arb-page-title>
 			</div>

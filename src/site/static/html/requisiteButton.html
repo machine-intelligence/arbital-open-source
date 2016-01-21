@@ -1,0 +1,15 @@
+<md-button class="md-icon-button" ng-click="toggleRequirement()">
+	<md-icon ng-show="pageService.hasMastery(requisiteId)">
+		check_box
+		<md-tooltip>I know this</md-tooltip>
+	</md-icon>
+	<md-icon ng-show="!pageService.hasMastery(requisiteId) && pageService.wantsMastery(requisiteId)">
+		bookmark
+		<md-tooltip>I want to learn this</md-tooltip>
+	</md-icon>
+	<md-icon ng-show="!pageService.hasMastery(requisiteId) && !pageService.wantsMastery(requisiteId)">
+		check_box_outline_blank
+		<md-tooltip>I don't know this</md-tooltip>
+	</md-icon>
+</md-button>
+<arb-page-title page-id="{{requisiteId}}" is-link="true" ng-if="!hideTitle"></arb-page-title>

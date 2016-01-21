@@ -68,6 +68,9 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 							},
 							{
 								"match": { "text": "%[3]s" }
+							},
+							{
+								"match": { "type": "%[4]s" }
 							}
 						]
 					}
@@ -76,8 +79,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"term": { "type": "%[4]s" }
-							}, {
 								"terms": { "seeGroupId": [%[5]s] }
 							}
 						]

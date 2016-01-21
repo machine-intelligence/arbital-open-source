@@ -3,7 +3,6 @@ package site
 
 import (
 	"encoding/json"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -43,10 +42,8 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.ParentId <= 0 || data.ChildId <= 0 {
 		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", err)
 	}
-	data.Type = strings.ToLower(data.Type)
-	if data.Type != core.ParentPagePairType &&
-		data.Type != core.TagPagePairType &&
-		data.Type != core.RequirementPagePairType {
+	data.Type, err = core.CorrectPagePairType(data.Type)
+	if err != nil {
 		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 

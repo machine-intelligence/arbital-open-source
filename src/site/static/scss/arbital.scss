@@ -1,3 +1,5 @@
+@import "ng-sortable.scss";
+
 // All the z-indices we use
 $inlineCommentIconZ: 1;
 $popoverZ: 60;
@@ -164,6 +166,7 @@ span.md-warn {
 .md-caption {
 	font-size: 12px;
 	color: darkgray;
+	line-height: normal;
 }
 
 // Slightly bolder normal font
@@ -191,9 +194,16 @@ span.md-warn {
 	}
 }
 
+.bold {
+	font-weight: bold;
+}
+
 arb-markdown, [arb-markdown], .preview-area {
 	p {
 		margin-top: 0;
+		// Allow scrollbars when paragraphs (sometimes caused by long MathJax equations) don't fit on the screen
+		overflow-x: auto;
+		overflow-y: hidden;
 	}
 
 	ul {
@@ -241,6 +251,12 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-groups-page > & {
 		max-width: 900px;
 	}
+	arb-knowledge-page > & {
+		max-width: 560px;
+	}
+	arb-sequence-page > & {
+		max-width: 560px;
+	}
 	arb-settings-page > & {
 		max-width: 560px;
 	}
@@ -261,6 +277,10 @@ arb-markdown, [arb-markdown], .preview-area {
 }
 .md-whiteframe-2dp {
 	background-color: white;
+}
+
+.black-font {
+	color: black;
 }
 
 .full-width {
@@ -555,9 +575,10 @@ md-list {
 	padding-bottom: 0;
 }
 
-md-dialog {
+.edit-page-dialog {
 	width: 90vw;
 	height: 90vh;
+	background-color: $primary-hue-2; // otherwise we get slightly white corners
 
 	// Hack to allow us to use 100% height inside the dialog
 	md-dialog-content {
@@ -579,6 +600,11 @@ md-dialog {
 		// still want to keep it small; so we need to show the overflow.
 		overflow: visible;
 	}
+}
+
+.feedback-textarea {
+	width: 40vw;
+	height: 50vh;
 }
 
 md-list-item:not(.no-margins) {
@@ -679,8 +705,9 @@ arb-likes {
 		font-size: 16px;
 		line-height: 18px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
 }
@@ -696,8 +723,9 @@ arb-likes {
 		font-size: 16px;
 		line-height: 20px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
 }
@@ -713,8 +741,9 @@ arb-likes {
 		font-size: 17px;
 		line-height: 22px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
 }
@@ -730,11 +759,25 @@ arb-likes {
 		font-size: 18px;
 		line-height: 24px;
 	}
-	.requirements-container {
-		padding: 5px $lens-padding;
+	.dynamic-hor-padding {
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
 }
+
+// Container for requirements
+.requirements-container {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	border-bottom: silver 1px solid;
+}
+
+// Container for the list of page's authors
+.author-list {
+	text-align: right;
+}
+
 // Text inside a popover
 .popover-text-container {
 	font-size: 18px;
@@ -789,6 +832,14 @@ $triangle-size: 15px;
 // Added to the page title when it's show on the home page / group home page
 .simple-embed-page-title {
 	margin: 1rem 0;
+}
+
+.private-group-icon {
+	position: absolute;
+	bottom: 4px;
+	left: 42px;
+	z-index: $composeFabZ;
+	color: black;
 }
 
 // Compose fab that appears in the bottom right corner
@@ -877,6 +928,11 @@ ins {
 	margin: 0;
 }
 
+// Container for a editing a specific type of relationships
+.edit-relationship-div {
+	margin-bottom: 20px;
+}
+
 // Contains all markdown buttons
 .wmd-button-bar {
 	background-color: white;
@@ -909,11 +965,14 @@ ins {
 // Textarea for editing markdown
 .wmd-input {
 	height: 100%;
-	resize: none;
 	border: none;
 	outline: none;
 	padding: 5px 15px;
 	background-color: whitesmoke;
+}
+
+textarea {
+	resize: none;
 }
 
 // Where the preview for the editor goes
@@ -989,4 +1048,32 @@ ins {
 // Container with a list of pages
 .pages-list {
 	margin-bottom: 20px;
+}
+
+// Container for multiple choice questions
+arb-multiple-choice {
+	display: block;
+	margin: 15px 0;
+
+	p {
+		margin-bottom: 0;
+	}
+
+	md-radio-group {
+		display: block;
+		margin-left: 10px;
+		margin-top: 0;
+		border-left: $primary-hue-1 3px solid;
+		padding-left: 10px;
+	}
+
+	md-radio-button {
+		display: inline-block;
+	}
+}
+
+.sequence-requirements {
+	margin-left: 10px;
+	border-left: $primary-hue-1 3px solid;
+	padding-left: 10px;
 }

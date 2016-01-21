@@ -1564,11 +1564,11 @@
 
 			if (isImage) {
 				if (!this.hooks.insertImageDialog(linkEnteredCallback)) {
-					linkEnteredCallback("http://google.com");
+					linkEnteredCallback("http://arbital.com/static/images/default-image-link.png");
 					//ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
 				}
 			} else {
-				linkEnteredCallback("http://google.com");
+				linkEnteredCallback("http://arbital.com");
 				//ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
 			}
 			return true;
@@ -1586,8 +1586,7 @@
 			chunk.endTag = "";
 			this.addLinkDef(chunk, null);
 
-		}
-		else {
+		} else {
 			
 			// We're moving start and end tag back into the selection, since (as we're in the else block) we're not
 			// *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the

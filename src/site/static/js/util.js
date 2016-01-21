@@ -1,5 +1,22 @@
 "use strict";
 
+// Extend jQuery with a function to change element's type
+(function($) {
+	$.fn.changeElementType = function(newType) {
+		var attrs = {};
+		
+		$.each(this[0].attributes, function(idx, attr) {
+			attrs[attr.nodeName] = attr.nodeValue;
+		});
+		
+		var $newElement = $("<" + newType + "/>", attrs);
+		this.replaceWith(function() {
+			return $newElement.append($(this).contents());
+		});
+		return $newElement;
+	};
+})(jQuery);
+
 // Turn a callback function into a cleverly throttled version.
 // Callback parameter should return true if the lock is to be set.
 // Basically, we want:

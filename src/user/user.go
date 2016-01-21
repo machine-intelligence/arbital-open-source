@@ -44,6 +44,7 @@ type User struct {
 	MaxKarmaLock   int    `json:"maxKarmaLock"`
 	EmailFrequency string `json:"emailFrequency"`
 	EmailThreshold int    `json:"emailThreshold"`
+	IgnoreMathjax  bool   `json:"ignoreMathjax"`
 
 	// Computed variables
 	IsLoggedIn  bool     `json:"isLoggedIn"`
@@ -101,11 +102,11 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 
 	var u User
 	row := db.NewStatement(`
-		SELECT id,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold
+		SELECT id,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,ignoreMathjax
 		FROM users
 		WHERE email=?`).QueryRow(appEngineUser.Email)
 	exists, err := row.Scan(&u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
-		&u.EmailFrequency, &u.EmailThreshold)
+		&u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {

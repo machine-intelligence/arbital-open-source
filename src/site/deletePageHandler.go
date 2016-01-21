@@ -115,9 +115,11 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Delete it from the elastic index
-		err = elastic.DeletePageFromIndex(params.C, data.PageId)
-		if err != nil {
-			return "failed to update index", err
+		if page.WasPublished {
+			err = elastic.DeletePageFromIndex(params.C, data.PageId)
+			if err != nil {
+				return "failed to update index", err
+			}
 		}
 		return "", nil
 	})

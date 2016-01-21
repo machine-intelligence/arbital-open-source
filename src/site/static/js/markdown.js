@@ -7,7 +7,8 @@ RegExp.escape = function(s) {
 
 var notEscaped = "(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))";
 var noParen = "(?=$|[^(])";
-var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
+var nakedAliasMatch = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*";
+var aliasMatch = "(" + nakedAliasMatch + ")";
 var pageUrlMatch = "(http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch;
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
@@ -34,7 +35,7 @@ var atAliasRegexp = new RegExp(notEscaped +
 
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.service("markdownService", function(pageService, userService){
+app.service("markdownService", function($compile, $timeout, pageService, userService){
 	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
 	var failedPageAliases = {};
 
@@ -43,6 +44,108 @@ app.service("markdownService", function(pageService, userService){
 		// NOTE: not using $location, because we need port number
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
+
+		// Process [summary(optional):markdown] blocks.
+		var summaryBlockRegexp = new RegExp("^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(summaryBlockRegexp, function (whole, summaryName, summary) {
+				if (pageId) {
+					return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
+				} else {
+					return runBlockGamut("");
+				}
+			});
+		});
+
+		// Process [knows-requisite([alias]):markdown] blocks.
+		var hasReqBlockRegexp = new RegExp("^\\[(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(hasReqBlockRegexp, function (whole, not, alias, markdown) {
+				var block = runBlockGamut(markdown);
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return "<p ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + block.substr(3);
+			});
+		});
+
+		// Process [wants-requisite([alias]):markdown] blocks.
+		var wantsReqBlockRegexp = new RegExp("^\\[(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(wantsReqBlockRegexp, function (whole, not, alias, markdown) {
+				var block = runBlockGamut(markdown);
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return "<p ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + block.substr(3);
+			});
+		});
+
+		// Process [multiple-choice: text
+		// a: text
+		// knows: [alias1],[alias2]...
+		// wants: [alias1],[alias2]...
+		// ] blocks.
+		var mcBlockRegexp = new RegExp("^\\[multiple-choice: ?([^\n]+?)\n" +
+				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(b: ?[^\n]+?\n)" + // choice, e.g. "b: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(c: ?[^\n]+?\n)?" + // choice, e.g. "c: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(d: ?[^\n]+?\n)?" + // choice, e.g. "d: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"(e: ?[^\n]+?\n)?" + // choice, e.g. "e: Carrots"
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(mcBlockRegexp, function () {
+				var result = [];
+				if (pageId) {
+					//result.push("---\n\n**Multiple-choice:** ");
+				}
+				// Process captured groups
+				for (var n = 1; n < arguments.length; n++) {
+					var arg = arguments[n];
+					if (+arg) break; // there are extra arguments that we don't need, starting with some number
+					if (!arg) continue;
+					if (n == 1) { // question text
+						result.push(arg + "\n\n");
+					} else {
+						// Match answer line
+						var match = arg.match(/^([a-e]): ?([\s\S]+?)\n$/);
+						if (match) {
+							result.push("- " + match[2] + "\n");
+							continue;
+						}
+						result.push(" - " + arg);
+					}
+				}
+				if (pageId) {
+					//result.push("\n---");
+				}
+				return "<arb-multiple-choice>" + runBlockGamut(result.join("")) + "\n\n</arb-multiple-choice>";
+			});
+		});
+
+		// Process [[knows-requisite([alias]): markdown]] spans.
+		var hasReqSpanRegexp = new RegExp(notEscaped + "\\[\\[(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\]\\]", "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(hasReqSpanRegexp, function (whole, prefix, not, alias, markdown) {
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + markdown + "</span>";
+			});
+		});
+
+		// Process [[wants-requisite([alias]): markdown]] blocks.
+		var wantsReqSpanRegexp = new RegExp(notEscaped + "\\[\\[(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\]\\]", "g");
+		converter.hooks.chain("preSpanGamut", function (text) {
+			return text.replace(wantsReqSpanRegexp, function (whole, prefix, not, alias, markdown) {
+				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + markdown + "</span>";
+			});
+		});
 
 		// Process [todo:text] spans.
 		var todoSpanRegexp = new RegExp(notEscaped + 
@@ -59,18 +162,6 @@ app.service("markdownService", function(pageService, userService){
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(commentSpanRegexp, function (whole, prefix, text) {
 				return prefix;
-			});
-		});
-
-		// Process [summary(optional):markdown] spans.
-		var summarySpanRegexp = new RegExp("^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
-		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
-			return text.replace(summarySpanRegexp, function (whole, summaryName, summary) {
-				if (pageId) {
-					return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
-				} else {
-					return runBlockGamut("");
-				}
 			});
 		});
 
@@ -145,7 +236,9 @@ app.service("markdownService", function(pageService, userService){
 		if (pageId) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId);
-			//InitMathjax(converter, editor, pageId);
+			if (!userService.user.ignoreMathjax) {
+				InitMathjax(converter, editor, pageId);
+			}
 			converter.hooks.chain("postConversion", function (text) {
 				if (postConversionCallback) {
 					postConversionCallback(function() {
@@ -166,7 +259,7 @@ app.service("markdownService", function(pageService, userService){
 	// Process all the links in the give element.
 	// If refreshFunc is set, fetch page's we don't have yet, and call that function
 	// when one of them is loaded.
-	this.processLinks = function($pageText, refreshFunc) {
+	this.processLinks = function(scope, $pageText, refreshFunc) {
 		// Setup attributes for page links that are within our domain.
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
@@ -192,7 +285,7 @@ app.service("markdownService", function(pageService, userService){
 					$element.addClass("intrasite-link").attr("page-id", pageAlias);
 					// Check if we are embedding a vote
 					if (parts[2].indexOf("embedVote") > 0) {
-						$element.attr("embed-vote-id", pageAlias);
+						$element.attr("embed-vote-id", pageAlias).addClass("red-link");
 					} else if (pageAlias in pageService.pageMap) {
 						if (pageService.pageMap[pageAlias].isDeleted()) {
 							// Link to a deleted page.
@@ -249,6 +342,14 @@ app.service("markdownService", function(pageService, userService){
 				}
 			}
 		});
+
+		$pageText.find("arb-multiple-choice").each(function(index) {
+			$(this).attr("index", index);
+			$compile($(this))(scope);
+		});
+		$pageText.find("[ng-show]").each(function(index) {
+			$compile($(this))(scope);
+		});
 	};
 
 	this.createConverter = function() {
@@ -269,6 +370,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			summaryName: "@",
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
 			$scope.page = pageService.pageMap[$scope.pageId];
 		},
 		link: function(scope, element, attrs) {
@@ -298,7 +400,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
 			}, 100);
-			markdownService.processLinks($pageText);
+			markdownService.processLinks(scope, $pageText);
 		},
 	};
 });
