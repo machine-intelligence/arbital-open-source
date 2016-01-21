@@ -125,6 +125,10 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/settings/", {
 		template: "",
 		controller: "SettingsPageController",
+	})
+	.when("/_test_/", {
+		template: "",
+		controller: "TestPageController",
 	});
 });
 
@@ -528,6 +532,22 @@ app.controller("SettingsPageController", function ($scope, $routeParams, $http, 
 			return {
 				title: "Settings",
 				element: $compile("<arb-settings-page></arb-settings-page>")($scope),
+			};
+		}))
+		.error($scope.getErrorFunc("Settings"));
+});
+
+// Temporary test
+app.controller("TestPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+		$http({method: "POST", url: "/json/default/"})
+		.success($scope.getSuccessFunc(function(data){
+			$scope.text = "hi";
+			$scope.click = function() {
+				$scope.text = $scope.text === "hi" ? "bye" : "hi";
+			};
+			return {
+				title: "Test",
+				element: $compile("<md-button class='md-raised' ng-click='click()'><md-tooltip>Tooltip</md-tooltip>{{text}}</md-button>")($scope),
 			};
 		}))
 		.error($scope.getErrorFunc("Settings"));
