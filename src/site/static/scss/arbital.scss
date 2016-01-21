@@ -251,10 +251,13 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-groups-page > & {
 		max-width: 900px;
 	}
-	arb-settings-page > & {
+	arb-knowledge-page > & {
 		max-width: 560px;
 	}
-	arb-knowledge-page > & {
+	arb-sequence-page > & {
+		max-width: 560px;
+	}
+	arb-settings-page > & {
 		max-width: 560px;
 	}
 	arb-primary-page > & {
@@ -1067,4 +1070,10 @@ arb-multiple-choice {
 	md-radio-button {
 		display: inline-block;
 	}
+}
+
+.sequence-requirements {
+	margin-left: 10px;
+	border-left: $primary-hue-1 3px solid;
+	padding-left: 10px;
 }

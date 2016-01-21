@@ -35,19 +35,6 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 				if ($scope.showHasFirst) result = -result;
 				return result;
 			});
-
-			// Toggle whether or not the user has a mastery
-			$scope.toggleRequirement = function(masteryId) {
-				if (pageService.hasMastery(masteryId)) {
-					pageService.updateMasteries([], [masteryId], []);
-				} else {
-					if ($scope.allowWants && !pageService.wantsMastery(masteryId)) {
-						pageService.updateMasteries([], [], [masteryId]);
-					} else {
-						pageService.updateMasteries([masteryId], [], []);
-					}
-				}
-			};
 		},
 	};
 });

@@ -469,3 +469,36 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 		},
 	};
 });
+
+// Directive for a button to toggle requisite state
+app.directive("arbRequisiteButton", function(pageService, userService) {
+	return {
+		templateUrl: "/static/html/requisiteButton.html",
+		scope: {
+			requisiteId: "@",
+			// If true, don't show the page title
+			hideTitle: "=",
+			// If true, allow the user to toggle into a "want" state
+			allowWants: "=",
+		},
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+
+			// Toggle whether or not the user has a mastery
+			$scope.toggleRequirement = function() {
+				if (pageService.hasMastery($scope.requisiteId)) {
+					if ($scope.allowWants) {
+						pageService.updateMasteries([], [], [$scope.requisiteId]);
+					} else {
+						pageService.updateMasteries([], [$scope.requisiteId], []);
+					}
+				} else if (pageService.wantsMastery($scope.requisiteId)) {
+					pageService.updateMasteries([], [$scope.requisiteId], []);
+				} else {
+					pageService.updateMasteries([$scope.requisiteId], [], []);
+				}
+			};
+		},
+	};
+});

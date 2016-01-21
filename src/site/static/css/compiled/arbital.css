@@ -203,9 +203,11 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 560px; }
   arb-groups-page > .capped-body-width {
     max-width: 900px; }
-  arb-settings-page > .capped-body-width {
-    max-width: 560px; }
   arb-knowledge-page > .capped-body-width {
+    max-width: 560px; }
+  arb-sequence-page > .capped-body-width {
+    max-width: 560px; }
+  arb-settings-page > .capped-body-width {
     max-width: 560px; }
   arb-primary-page > .capped-body-width {
     max-width: 1100px; }
@@ -748,5 +750,10 @@ arb-multiple-choice {
     padding-left: 10px; }
   arb-multiple-choice md-radio-button {
     display: inline-block; }
+
+.sequence-requirements {
+  margin-left: 10px;
+  border-left: #E0F2F1 3px solid;
+  padding-left: 10px; }
 
 /*# sourceMappingURL=arbital.css.map */

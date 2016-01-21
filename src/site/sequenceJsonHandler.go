@@ -20,6 +20,15 @@ type sequenceJsonData struct {
 	PageId int64 `json:",string"`
 }
 
+type sequencePart struct {
+	// I want to understand PageId
+	PageId int64 `json:"pageId,string"`
+	// To understand it, I will read TaughtById
+	TaughtById int64 `json:"taughtById,string"`
+	// To understand TaughtById, I need to meet th following Requirements
+	Requirements []*sequencePart `json:"requirements"`
+}
+
 func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
@@ -37,6 +46,7 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData := newHandlerData(true)
 	returnData.User = u
 
+	// Check if the user already has this requirement
 	hasMastery := false
 	row := database.NewQuery(`
 		SELECT ifnull(max(has),false)
@@ -46,25 +56,61 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerErrorFail("Error while checking if already knows", err)
 	}
-	childrenIds := make([]interface{}, 0)
+
+	// Track which requirements we need to process
+	requirementIds := make([]interface{}, 0)
 	if !hasMastery {
-		childrenIds = append(childrenIds, data.PageId)
+		requirementIds = append(requirementIds, data.PageId)
 	}
 
-	// Track found pages so we can detect cycles
-	requirementIds := make(map[int64]bool)
-	requirementIds[data.PageId] = true
+	// Create the sequence root
+	sequence := &sequencePart{PageId: data.PageId}
+	sequenceMap := make(map[int64]*sequencePart)
+	sequenceMap[data.PageId] = sequence
 
-	// Recursively load all requirements
-	for maxCount := 0; len(childrenIds) > 0 && maxCount < 20; maxCount++ {
+	// What to load for the pages
+	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
+	core.AddPageToMap(data.PageId, returnData.PageMap, loadOptions)
+
+	// Recursively find which pages the user has to read
+	for maxCount := 0; len(requirementIds) > 0 && maxCount < 20; maxCount++ {
+		// Track which taughtBy ids we load, so we can load requirements for them
+		taughtByIds := make([]interface{}, 0)
+
+		// Load which pages teach the requirements
 		rows := database.NewQuery(`
+			SELECT pp.parentId,pp.childId
+			FROM pagePairs AS pp
+			WHERE pp.parentId IN`).AddArgsGroup(requirementIds).Add(`
+				AND pp.type=?`, core.SubjectPagePairType).Add(`
+			GROUP BY 1`).ToStatement(db).Query()
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var parentId, childId int64
+			err := rows.Scan(&parentId, &childId)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+			sequenceMap[parentId].TaughtById = childId
+			taughtByIds = append(taughtByIds, childId)
+			core.AddPageToMap(childId, returnData.PageMap, loadOptions)
+			return nil
+		})
+		if err != nil {
+			return pages.HandlerErrorFail("Error while loading subjects", err)
+		}
+		if len(taughtByIds) <= 0 {
+			break
+		}
+
+		// Load the requirements for the subjects
+		requirementIds = make([]interface{}, 0)
+		rows = database.NewQuery(`
 			SELECT pp.parentId,pp.childId,mp.has
 			FROM pagePairs AS pp
 			LEFT JOIN userMasteryPairs AS mp
-			ON (pp.parentId=mp.masteryId)
-			WHERE mp.userId=?`, u.Id).Add(`AND pp.childId IN`).AddArgsGroup(childrenIds).Add(`
+			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, u.Id).Add(`
+			WHERE pp.childId IN`).AddArgsGroup(taughtByIds).Add(`
 				AND pp.type=?`, core.RequirementPagePairType).ToStatement(db).Query()
-		childrenIds := make([]interface{}, 0)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId, childId int64
 			var has sql.NullBool
@@ -72,13 +118,22 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			if _, ok := requirementIds[parentId]; !ok {
-				requirementIds[parentId] = true
-				if has.Valid && !has.Bool {
-					childrenIds = append(childrenIds, parentId)
+			if has.Valid && has.Bool {
+				return nil
+			}
+
+			for _, part := range sequenceMap {
+				if part.TaughtById != childId {
+					continue
 				}
-			} else {
-				params.C.Warningf("Cycle detected with %d and %d", data.PageId, parentId)
+				requirementIds = append(requirementIds, parentId)
+				requirementPart, ok := sequenceMap[parentId]
+				if !ok {
+					requirementPart = &sequencePart{PageId: parentId}
+				}
+				part.Requirements = append(part.Requirements, requirementPart)
+				sequenceMap[parentId] = requirementPart
+				core.AddPageToMap(parentId, returnData.PageMap, loadOptions)
 			}
 			return nil
 		})
@@ -87,46 +142,12 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	// Now load all the pages that teach the given requirements
-
-	/*rows := database.NewQuery(`
-		SELECT pp.parentId,pp.childId
-		FROM pagePairs AS pp
-		WHERE pp.parentId IN`).AddArgsGroup(requirementValues).Add(`
-			AND pp.type=?`, core.SubjectPagePairType).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId int64
-		err := rows.Scan(&parentId, &childId)
-		if err != nil {
-			return fmt.Errorf("Failed to scan: %v", err)
-		}
-		if _, ok := requirementIds[parentId]; !ok {
-			requirementIds[parentId] = true
-			if has.Valid && !has.Bool {
-				childrenIds = append(childrenIds, parentId)
-			}
-		} else {
-			params.C.Warningf("Cycle detected with %d and %d", data.PageId, parentId)
-		}
-		return nil
-	})
-	if err != nil {
-		return pages.HandlerErrorFail("Error while loading requirements", err)
-	}*/
-
-	// Process all the found pages
-	/*loadOptions := (&core.PageLoadOptions{
-		Requirements: true,
-	}).Add(core.TitlePlusLoadOptions)
-	for pageId, _ := range foundPageIds {
-		core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
-	}*/
-
-	// Load pages.
+	// Load pages
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
+	returnData.ResultMap["sequence"] = sequence
 	return pages.StatusOK(returnData.toJson())
 }

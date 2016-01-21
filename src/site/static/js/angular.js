@@ -365,9 +365,10 @@ app.controller("SequenceController", function ($scope, $routeParams, $http, $com
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
+		$scope.sequence = data.result.sequence;
 		return {
 			title: "Sequence for " + page.title,
-			element: $compile("<arb-sequence page-id='" + page.pageId + "'></arb-sequence>")($scope),
+			element: $compile("<arb-sequence-page sequence='sequence'></arb-sequence-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("primaryPage"));
