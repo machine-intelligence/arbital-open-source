@@ -200,7 +200,9 @@
 						<div layout="row" ng-show="userService.user.maxKarmaLock > 0 && !isComment">
 							<div flex>
 								<label>Edit karma lock</label>
-								<md-slider md-discrete ng-model="page.editKarmaLock"
+								<md-slider aria-label="Edit karma lock"
+										md-discrete
+										ng-model="page.editKarmaLock"
 										step="10" min="0" max="{{userService.user.maxKarmaLock}}">
 								</md-slider>
 							</div>

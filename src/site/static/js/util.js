@@ -1,10 +1,5 @@
 "use strict";
 
-// Used to escape regexp symbols in a string to make it safe for injecting into a regexp
-RegExp.escape = function(s) {
-    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-};
-
 // Turn a callback function into a cleverly throttled version.
 // Callback parameter should return true if the lock is to be set.
 // Basically, we want:

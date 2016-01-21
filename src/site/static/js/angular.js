@@ -7,6 +7,8 @@ var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute",
 app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemingProvider){
 	// Convert "rgb(#,#,#)" color to "#hex"
 	var rgb2hex = function(rgb) {
+		if (rgb === undefined)
+			return '#000000';
 		rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
 		function hex(x) {
 			return ("0" + parseInt(x).toString(16)).slice(-2);

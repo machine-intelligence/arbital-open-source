@@ -3,7 +3,7 @@
 // Directive for the Updates page.
 app.directive("arbUpdates", function($compile, $location, $rootScope, pageService, userService) {
 	return {
-		templateUrl: "/static/html/updatesPage.html",
+		templateUrl: "static/html/updatesPage.html",
 		scope: {
 			updateGroups: "=",
 		},

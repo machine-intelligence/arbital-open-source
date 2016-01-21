@@ -3,7 +3,7 @@
 // Directive for the actual DOM elements which allows the user to edit a page.
 app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, pageService, userService, autocompleteService, markdownService) {
 	return {
-		templateUrl: "/static/html/editPage.html",
+		templateUrl: "static/html/editPage.html",
 		scope: {
 			pageId: "@",
 			// Whether or not this edit page is embedded in some column, and show be
@@ -516,7 +516,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						parentIds = scope.page.parentIds;
 					}
 					$mdDialog.show({
-						templateUrl: "/static/html/editPageDialog.html",
+						templateUrl: "static/html/editPageDialog.html",
 						controller: "EditPageDialogController",
 						autoWrap: false,
 						targetEvent: event,

@@ -3,7 +3,7 @@
 // Directive for the Signup page.
 app.directive("arbSignup", function($location, pageService, userService) {
 	return {
-		templateUrl: "/static/html/signupPage.html",
+		templateUrl: "static/html/signupPage.html",
 		scope: {
 		},
 		controller: function($scope) {

@@ -3,7 +3,7 @@
 // Directive for the Settings page.
 app.directive("arbSettingsPage", function($timeout, $http, pageService, userService) {
 	return {
-		templateUrl: "/static/html/settingsPage.html",
+		templateUrl: "static/html/settingsPage.html",
 		scope: {
 		},
 		controller: function($scope) {

@@ -3,7 +3,7 @@
 // Directive for the Groups page.
 app.directive("arbGroupsPage", function(pageService, userService, autocompleteService, $timeout, $http) {
 	return {
-		templateUrl: "/static/html/groupsPage.html",
+		templateUrl: "static/html/groupsPage.html",
 		scope: {
 		},
 		controller: function($scope) {

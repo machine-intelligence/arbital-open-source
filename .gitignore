@@ -12,3 +12,5 @@
 *.cp
 *.swp
 .sass-cache
+/bower_components
+/node_modules

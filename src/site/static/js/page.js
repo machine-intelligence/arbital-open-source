@@ -3,7 +3,7 @@
 // Directive for showing a standard Arbital page.
 app.directive("arbPage", function ($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
-		templateUrl: "/static/html/page.html",
+		templateUrl: "static/html/page.html",
 		scope: {
 			pageId: "@",
 			isSimpleEmbed: "=",

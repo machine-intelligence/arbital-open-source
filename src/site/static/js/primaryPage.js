@@ -3,7 +3,7 @@
 // Directive for the entire primary page.
 app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageService, userService, autocompleteService) {
 	return {
-		templateUrl: "/static/html/primaryPage.html",
+		templateUrl: "static/html/primaryPage.html",
 		scope: {
 		},
 		controller: function($scope) {

@@ -1,5 +1,10 @@
 "use strict";
 
+// Used to escape regexp symbols in a string to make it safe for injecting into a regexp
+RegExp.escape = function(s) {
+  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+};
+
 var notEscaped = "(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))";
 var noParen = "(?=$|[^(])";
 var aliasMatch = "([A-Za-z0-9_]+\\.?[A-Za-z0-9_]*)";
@@ -81,7 +86,7 @@ app.service("markdownService", function(pageService, userService){
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
-				return prefix + "[" + text + "](" + "0" + ")";
+				return prefix + "[" + text + "](" + "http://" + host + "/edit" + ")";
 			});
 		});
 
@@ -95,8 +100,14 @@ app.service("markdownService", function(pageService, userService){
 				}
 				matches = alias.match(aliasMatch);
 				if (matches && matches[0] == alias) {
-					var url = "http://" + host + "/pages/" + matches[0];
-					return prefix + "[" + text + "](" + url + ")";
+					var page = pageService.pageMap[alias];
+					if (page) {
+						var url = "http://" + host + "/pages/" + page.pageId;
+						return prefix + "[" + text + "](" + url + ")";
+					} else {
+						var url = "http://" + host + "/pages/" + alias;
+						return prefix + "[" + text + "](" + url + ")";
+					}
 				} else {
 					return whole;
 				}

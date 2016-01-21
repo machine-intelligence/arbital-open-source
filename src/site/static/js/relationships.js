@@ -3,7 +3,7 @@
 // Directive for showing the parents, children, tags, or requirements.
 app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageService, userService, autocompleteService) {
 	return {
-		templateUrl: "/static/html/relationships.html",
+		templateUrl: "static/html/relationships.html",
 		scope: {
 			pageId: "@",
 			type: "@",

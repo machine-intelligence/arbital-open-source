@@ -305,7 +305,6 @@ app.service("pageService", function($http, $location, userService){
 		} else {
 			if (sortChildrenBy !== "likes") {
 				console.error("Unknown sort type: " + sortChildrenBy);
-				console.log(page);
 			}
 			return function(aId, bId) {
 				var diff = pageMap[bId].likeScore() - pageMap[aId].likeScore();

@@ -74,7 +74,8 @@
 		</md-subheader>
 		<div layout="column" layout-align="start center">
 			<div ng-repeat="groupId in userService.user.groupIds">
-				<md-button ng-href="{{pageService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
+				<md-button aria-label="Go to domain"
+						ng-href="{{pageService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
 						ng-bind="pageService.pageMap[groupId].title | shorten: 30"></md-button>
 			</div>
 		</div>

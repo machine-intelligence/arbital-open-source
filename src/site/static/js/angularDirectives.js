@@ -3,7 +3,7 @@
 // userName directive displayes a user's name.
 app.directive("arbUserName", function(userService) {
 	return {
-		templateUrl: "/static/html/userName.html",
+		templateUrl: "static/html/userName.html",
 		scope: {
 			userId: "@",
 		},
@@ -17,7 +17,7 @@ app.directive("arbUserName", function(userService) {
 // intrasitePopover contains the popover body html.
 app.directive("arbIntrasitePopover", function($timeout, pageService, userService) {
 	return {
-		templateUrl: "/static/html/intrasitePopover.html",
+		templateUrl: "static/html/intrasitePopover.html",
 		scope: {
 			pageId: "@",
 			direction: "@",
@@ -86,7 +86,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 // userPopover contains the popover body html.
 app.directive("arbUserPopover", function($timeout, pageService, userService) {
 	return {
-		templateUrl: "/static/html/userPopover.html",
+		templateUrl: "static/html/userPopover.html",
 		scope: {
 			userId: "@",
 			direction: "@",
@@ -151,7 +151,7 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 // pageTitle displays page's title with optional meta info.
 app.directive("arbPageTitle", function(pageService, userService) {
 	return {
-		templateUrl: "/static/html/pageTitle.html",
+		templateUrl: "static/html/pageTitle.html",
 		scope: {
 			pageId: "@",
 			// Options override for the page's title
@@ -189,7 +189,7 @@ app.directive("arbPageTitle", function(pageService, userService) {
 // likes displays the likes button(s) for a page.
 app.directive("arbLikes", function($http, pageService, userService) {
 	return {
-		templateUrl: "/static/html/likes.html",
+		templateUrl: "static/html/likes.html",
 		scope: {
 			pageId: "@",
 			// If true, the button is not an icon button, but is a normal button
@@ -222,7 +222,7 @@ app.directive("arbLikes", function($http, pageService, userService) {
 // subscribe directive displays the button for subscribing to a page.
 app.directive("arbSubscribe", function($http, pageService, userService) {
 	return {
-		templateUrl: "/static/html/subscribe.html",
+		templateUrl: "static/html/subscribe.html",
 		scope: {
 			pageId: "@",
 			// If true, subscribe to a user, not a page
@@ -268,7 +268,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 // composeFab is the FAB button in the bottom right corner used for creating new pages
 app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageService, userService) {
 	return {
-		templateUrl: "/static/html/composeFab.html",
+		templateUrl: "static/html/composeFab.html",
 		scope: {
 		},
 		controller: function($scope) {
@@ -332,7 +332,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, pageServi
 // autocomplete searches for relevant pages as you do the search
 app.directive("arbAutocomplete", function($timeout, $q, pageService, autocompleteService) {
 	return {
-		templateUrl: "/static/html/autocomplete.html",
+		templateUrl: "static/html/autocomplete.html",
 		scope: {
 			doAutofocus: "=",
 			placeholder: "@",
@@ -361,7 +361,7 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, autocomplet
 // confirmButton is a button that ask for a confirmation when you press it
 app.directive("arbConfirmButton", function() {
 	return {
-		templateUrl: "/static/html/confirmButton.html",
+		templateUrl: "static/html/confirmButton.html",
 		scope: {
 			buttonText: "@",
 			buttonBeforeConfirm: "@",
@@ -382,7 +382,7 @@ app.directive("arbConfirmButton", function() {
 // Directive for the User page panel
 app.directive("arbPageList", function(pageService, userService) {
 	return {
-		templateUrl: "/static/html/pageList.html",
+		templateUrl: "static/html/pageList.html",
 		scope: {
 			pageIds: "=",
 			panelTitle: "@",

@@ -99,7 +99,8 @@
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->
 	<div class="inline-comments-div" ng-show="lensIsVisible" ng-if="!isSimpleEmbed">
-		<md-button class="inline-comment-icon md-icon-button md-accent md-raised"
+		<md-button aria-label="New inline comments"
+				class="inline-comment-icon md-icon-button md-accent md-raised"
 				ng-style="getNewInlineCommentButtonStyle()"
 				ng-click="newInlineComment()"
 				arb-user-check="cool"
