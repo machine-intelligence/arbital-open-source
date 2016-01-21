@@ -44,9 +44,10 @@ type commonHandlerData struct {
 // handlerWrapper wraps our siteHandler to provide standard http handler interface.
 func handlerWrapper(h siteHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		c := sessions.NewContext(r)
+		startTime := time.Now()
 		rand.Seed(time.Now().UnixNano())
 
-		c := sessions.NewContext(r)
 		fail := func(responseCode int, message string, err error) {
 			c.Inc(fmt.Sprintf("%s-fail", r.URL.Path))
 			c.Errorf("handlerWrapper: %s: %v", message, err)
@@ -146,6 +147,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				return
 			}
 		}
+		c.Debugf("Time spent: %s", time.Since(startTime).String())
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
 	}
 }

@@ -200,9 +200,9 @@ func (statement *Stmt) Exec(args ...interface{}) (sql.Result, error) {
 	result, err := statement.stmt.Exec(args...)
 	if err != nil {
 		statement.DB.C.Inc("sql_command_fail")
-		return nil, fmt.Errorf("error while executing an sql statement:\n%v\n%v", statement, err)
+		return nil, fmt.Errorf("Error while executing an sql statement:\n%v\n%v", statement, err)
 	}
-	statement.DB.C.Debugf("Executed SQL statement: %v", statement)
+	statement.DB.C.Debugf("Executed SQL statement: %v\nwith args: %+v", statement, args)
 	return result, nil
 }
 
@@ -219,7 +219,7 @@ func (statement *Stmt) Query(args ...interface{}) *Rows {
 	rows, err := statement.stmt.Query(args...)
 	if err != nil {
 		statement.DB.C.Inc("sql_command_fail")
-		statement.DB.C.Errorf("error while querying:\n%v\n%v", statement, err)
+		statement.DB.C.Errorf("Error while querying:\n%v\n%v", statement, err)
 		return nil
 	}
 	return &Rows{rows: rows, DB: statement.DB}
@@ -268,7 +268,7 @@ func (row *Row) Scan(outArgs ...interface{}) (bool, error) {
 	err := row.row.Scan(outArgs...)
 	if err != nil && err != sql.ErrNoRows {
 		row.DB.C.Inc("sql_command_fail")
-		return false, fmt.Errorf("error while querying row: %v", err)
+		return false, fmt.Errorf("Error while querying row: %v", err)
 	}
 	return err != sql.ErrNoRows, nil
 }
