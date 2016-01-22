@@ -25,6 +25,11 @@ CREATE TABLE pageInfos (
 	 But once voting is set, it can only be turned on/off, the type cannot be
 	 changed. */
 	voteType VARCHAR(32) NOT NULL,
+	/* If true, this page is used as a requisite somewhere. */
+	isRequisite BOOL NOT NULL,
+	/* If true, this page teaches its requisites indirectly (e.g. by providing links). */
+	indirectTeacher BOOL NOT NULL,
+
 
 	/* === Permission settings === */
 	/* see: who can see the page */

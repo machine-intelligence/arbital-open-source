@@ -14,15 +14,17 @@ import (
 
 // editPageInfoData contains parameters passed in.
 type editPageInfoData struct {
-	PageId         int64 `json:",string"`
-	Type           string
-	HasVote        bool
-	VoteType       string
-	SeeGroupId     int64 `json:",string"`
-	EditGroupId    int64 `json:",string"`
-	EditKarmaLock  int
-	Alias          string // if empty, leave the current one
-	SortChildrenBy string
+	PageId          int64 `json:",string"`
+	Type            string
+	HasVote         bool
+	VoteType        string
+	SeeGroupId      int64 `json:",string"`
+	EditGroupId     int64 `json:",string"`
+	EditKarmaLock   int
+	Alias           string // if empty, leave the current one
+	SortChildrenBy  string
+	IsRequisite     bool
+	IndirectTeacher bool
 }
 
 var editPageInfoHandler = siteHandler{
@@ -172,6 +174,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["type"] = data.Type
 		hashmap["seeGroupId"] = data.SeeGroupId
 		hashmap["editGroupId"] = data.EditGroupId
+		hashmap["isRequisite"] = data.IsRequisite
+		hashmap["indirectTeacher"] = data.IndirectTeacher
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		statement := tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {

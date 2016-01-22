@@ -301,17 +301,22 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			$scope.publishPage = function() {
 				$scope.publishing = true;
 				$scope.savePageInfo(function(error) {
-					savePage(false, false, function(error) {
+					if (error) {
 						$scope.publishing = false;
-						if (error) {
-							$scope.addMessage("publish", "Publishing failed: " + error, "error");
-						} else {
-							$scope.doneFn({result: {
-								pageId: $scope.page.pageId,
-								alias: $scope.page.alias
-							}});
-						}
-					});
+						$scope.addMessage("publish", "Publishing failed: " + error, "error");
+					} else {
+						savePage(false, false, function(error) {
+							$scope.publishing = false;
+							if (error) {
+								$scope.addMessage("publish", "Publishing failed: " + error, "error");
+							} else {
+								$scope.doneFn({result: {
+									pageId: $scope.page.pageId,
+									alias: $scope.page.alias
+								}});
+							}
+						});
+					}
 				});
 			};
 
@@ -462,6 +467,8 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					editKarmaLock: $scope.page.editKarmaLock,
 					alias: $scope.page.alias,
 					sortChildrenBy: $scope.page.sortChildrenBy,
+					isRequisite: $scope.page.isRequisite,
+					indirectTeacher: $scope.page.indirectTeacher,
 				};
 				$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
 				.success(function(data) {

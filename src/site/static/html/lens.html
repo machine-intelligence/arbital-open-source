@@ -108,9 +108,9 @@
 
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
-		<!-- Author -->
+		<!-- Owner -->
 		<div class="author-list md-caption page-list-span" ng-if="page.editGroupId !== '0' && !isSimpleEmbed">
-			Author: <arb-page-title page-id="{{page.editGroupId}}" is-link="true"></arb-page-title>
+			Owner: <arb-page-title page-id="{{page.editGroupId}}" is-link="true"></arb-page-title>
 		</div>
 
 		<arb-markdown class="lens-text"
@@ -131,6 +131,17 @@
 				<span ng-show="index > 0">,</span>
 				<arb-user-name ng-class="{bold: creatorId === page.originalCreatedBy}"
 						user-id="{{creatorId}}"></arb-user-name>
+			</span>
+		</div>
+
+		<!-- This subject -->
+		<div ng-if="!isSimpleEmbed && (page.isRequisite || page.usedAsMastery)">
+			<span class="md-subhead">
+				<md-icon>assignment</md-icon>
+				<span ng-show="pageService.hasMastery(page.pageId)">Do you understand this page?</span>
+				<span ng-hide="pageService.hasMastery(page.pageId)">Do you understand this page?</span>
+				<span arb-requisite-button requisite-id="{{page.pageId}}" allow-wants="allowWants">
+				</span>
 			</span>
 		</div>
 
