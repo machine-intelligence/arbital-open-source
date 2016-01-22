@@ -18,6 +18,7 @@ app.directive("arbSettingsPage", function($timeout, $http, pageService, userServ
 				var data = {
 					emailFrequency: userService.user.emailFrequency,
 					emailThreshold: userService.user.emailThreshold,
+					inviteCode: userService.user.inviteCode,
 					ignoreMathjax: userService.user.ignoreMathjax,
 				};
 				submitForm($(event.currentTarget), "/updateSettings/", data, function(r) {

@@ -53,8 +53,8 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Process invite code and assign karma
 	inviteCode := strings.ToUpper(data.InviteCode)
 	karma := 0
-	if inviteCode == "TRUTH" {
-		karma = 200
+	if inviteCode == core.CorrectInviteCode {
+		karma = core.CorrectInviteKarma
 	}
 	if u.Karma > karma {
 		karma = u.Karma
@@ -108,6 +108,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		u.IsLoggedIn = true
 		u.EmailFrequency = emailFrequency
 		u.EmailThreshold = emailThreshold
+		u.InviteCode = inviteCode
 		err := u.Save(params.W, params.R)
 		if err != nil {
 			return "Couldn't re-save the user after adding the name", err

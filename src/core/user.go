@@ -22,6 +22,10 @@ const (
 	ChangeAliasKarmaReq        = 200
 	DeletePageKarmaReq         = 500
 	DashlessAliasKarmaReq      = 1000
+
+	// Enter the correct invite code to get karma
+	CorrectInviteCode  = "TRUTH"
+	CorrectInviteKarma = 200
 )
 
 // User has information about a user from the users table.

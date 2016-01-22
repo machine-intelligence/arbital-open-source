@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 )
 
@@ -11,6 +12,7 @@ import (
 type updateSettingsData struct {
 	EmailFrequency string
 	EmailThreshold int
+	InviteCode     string
 	IgnoreMathjax  bool
 }
 
@@ -40,11 +42,25 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Email Threshold has to be greater than 0", nil)
 	}
 
+	row := db.NewStatement(`
+		SELECT karma
+		FROM users
+		WHERE id=?`).QueryRow(u.Id)
+	_, err = row.Scan(&u.Karma)
+	if err != nil {
+		return pages.HandlerBadRequestFail("Couldn't retrieve a user", err)
+	}
+
+	if u.Karma < core.CorrectInviteKarma && data.InviteCode == core.CorrectInviteCode {
+		u.Karma = core.CorrectInviteKarma
+	}
+
 	statement := db.NewStatement(`
 		UPDATE users
-		SET emailFrequency=?,emailThreshold=?,ignoreMathjax=?
+		SET emailFrequency=?,emailThreshold=?,inviteCode=?,karma=?,ignoreMathjax=?
 		WHERE id=?`)
-	_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, data.IgnoreMathjax, u.Id)
+	_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold,
+		data.InviteCode, u.Karma, data.IgnoreMathjax, u.Id)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't update settings", err)
 	}
