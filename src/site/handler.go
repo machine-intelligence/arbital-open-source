@@ -45,7 +45,6 @@ type commonHandlerData struct {
 func handlerWrapper(h siteHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := sessions.NewContext(r)
-		startTime := time.Now()
 		rand.Seed(time.Now().UnixNano())
 
 		fail := func(responseCode int, message string, err error) {
@@ -147,7 +146,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				return
 			}
 		}
-		c.Debugf("Time spent: %s", time.Since(startTime).String())
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
 	}
 }
