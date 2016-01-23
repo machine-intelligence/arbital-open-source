@@ -3,7 +3,7 @@
 // Directive for the Knowledge page.
 app.directive("arbKnowledgePage", function(pageService, userService) {
 	return {
-		templateUrl: "/static/html/knowledgePage.html",
+		templateUrl: "static/html/knowledgePage.html",
 		scope: {
 		},
 		controller: function($scope) {

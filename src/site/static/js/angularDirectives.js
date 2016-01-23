@@ -329,7 +329,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			// New feedback button is clicked
 			$scope.newFeedback = function(event) {
 				$mdDialog.show({
-					templateUrl: "/static/html/feedbackDialog.html",
+					templateUrl: "static/html/feedbackDialog.html",
 					controller: "FeedbackDialogController",
 					autoWrap: false,
 					targetEvent: event,
@@ -473,7 +473,7 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 // Directive for a button to toggle requisite state
 app.directive("arbRequisiteButton", function(pageService, userService) {
 	return {
-		templateUrl: "/static/html/requisiteButton.html",
+		templateUrl: "static/html/requisiteButton.html",
 		scope: {
 			requisiteId: "@",
 			// If true, don't show the page title

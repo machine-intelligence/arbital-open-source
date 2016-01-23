@@ -3,7 +3,7 @@
 // Directive for the sequence page.
 app.directive("arbSequencePage", function($timeout, $http, pageService, userService) {
 	return {
-		templateUrl: "/static/html/sequencePage.html",
+		templateUrl: "static/html/sequencePage.html",
 		scope: {
 			sequence: "=",
 		},
@@ -17,7 +17,7 @@ app.directive("arbSequencePage", function($timeout, $http, pageService, userServ
 // Directive for a recursive part of a sequence.
 app.directive("arbSequencePart", function(pageService, userService, RecursionHelper) {
 	return {
-		templateUrl: "/static/html/sequencePart.html",
+		templateUrl: "static/html/sequencePart.html",
 		scope: {
 			part: "=",
 		},

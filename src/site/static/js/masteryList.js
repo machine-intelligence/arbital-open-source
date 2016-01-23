@@ -3,7 +3,7 @@
 // Directive for listing masteries and allowing the user to claim them.
 app.directive("arbMasteryList", function($timeout, $http, pageService, userService) {
 	return {
-		templateUrl: "/static/html/masteryList.html",
+		templateUrl: "static/html/masteryList.html",
 		scope: {
 			idsSource: "=",
 			// If true, show the requisites the user has first
