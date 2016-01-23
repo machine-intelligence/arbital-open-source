@@ -243,36 +243,36 @@ describe('directives', function() {
 		var elementText = "<arb-markdown class='popover-text-container' page-id='1'></arb-markdown>";
 		var testPage2 = {
 			pageId:2,
-			alias:"existentAlias",
-			title:"existentAlias"
+			alias:"existentPageAlias",
+			title:"existentPageTitle"
 		};
 		$rootScope.pageService.addPageToMap(testPage2);
 
-		testPage.text = "[existentAlias]";
+		testPage.text = "[existentPageAlias]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
 		expect($aTag.attr("page-id")).toEqual("2");
 		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("existentAlias");
+		expect($aTag.text()).toEqual("ExistentPageTitle");
 
-		testPage.text = "[nonexistentAlias]";
+		testPage.text = "[nonexistentPageAlias]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("nonexistentAlias");
+		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
 		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("nonexistentAlias");
+		expect($aTag.text()).toEqual("nonexistentPageAlias");
 
-		testPage.text = "[existentAlias description]";
+		testPage.text = "[existentPageAlias description]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
 		expect($aTag.attr("page-id")).toEqual("2");
 		expect($aTag.attr("class")).toNotContain("red-link");
 		expect($aTag.text()).toEqual("description");
 
-		testPage.text = "[nonexistentAlias description]";
+		testPage.text = "[nonexistentPageAlias description]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("nonexistentAlias");
+		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
 		expect($aTag.attr("class")).toContain("red-link");
 		expect($aTag.text()).toEqual("description");
 
@@ -319,12 +319,12 @@ describe('directives', function() {
 		expect($aTag.attr("class")).toContain("red-link");
 		expect($aTag.text()).toEqual("999");
 
-		testPage.text = "[text](existentAlias)";
+		testPage.text = "[text](existentPageAlias)";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
 		expect($pTag.text()).toEqual("text");
 
-		testPage.text = "[text](nonexistentAlias)";
+		testPage.text = "[text](nonexistentPageAlias)";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
 		expect($pTag.text()).toEqual("text");
@@ -335,21 +335,21 @@ describe('directives', function() {
 		expect($aTag.attr("href")).toEqual("http://google.com");
 		expect($aTag.text()).toEqual("text");
 
-		testPage.text = "[vote:existentAlias]";
+		testPage.text = "[vote:existentPageAlias]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/pages/existentAlias/?embedVote=1");
-		expect($aTag.attr("page-id")).toEqual("existentAlias");
-		expect($aTag.attr("embed-vote-id")).toEqual("existentAlias");
-		expect($aTag.text()).toContain("Embedded existentAlias vote.");
+		expect($aTag.attr("href")).toContain("/pages/existentPageAlias/?embedVote=1");
+		expect($aTag.attr("page-id")).toEqual("existentPageAlias");
+		expect($aTag.attr("embed-vote-id")).toEqual("existentPageAlias");
+		expect($aTag.text()).toContain("Embedded existentPageAlias vote.");
 
-		testPage.text = "[vote:nonexistentAlias]";
+		testPage.text = "[vote:nonexistentPageAlias]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/pages/nonexistentAlias/?embedVote=1");
-		expect($aTag.attr("page-id")).toEqual("nonexistentAlias");
-		expect($aTag.attr("embed-vote-id")).toEqual("nonexistentAlias");
-		expect($aTag.text()).toContain("Embedded nonexistentAlias vote.");
+		expect($aTag.attr("href")).toContain("/pages/nonexistentPageAlias/?embedVote=1");
+		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
+		expect($aTag.attr("embed-vote-id")).toEqual("nonexistentPageAlias");
+		expect($aTag.text()).toContain("Embedded nonexistentPageAlias vote.");
 
 		testPage.text = "[todo:text]";
 		var element = compileElement(elementText);
@@ -405,70 +405,70 @@ describe('directives', function() {
 		var $pTag = $(element.html());
 		expect($pTag.text()).toEqual("text");
 
-		testPage.text = "\\[existentAlias]";
+		testPage.text = "\\[existentPageAlias]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentAlias]");
+		expect($pTag.text()).toEqual("[existentPageAlias]");
 
-		testPage.text = "[existentAlias\\]";
+		testPage.text = "[existentPageAlias\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentAlias]");
+		expect($pTag.text()).toEqual("[existentPageAlias]");
 
-		testPage.text = "\\[existentAlias\\]";
+		testPage.text = "\\[existentPageAlias\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentAlias]");
+		expect($pTag.text()).toEqual("[existentPageAlias]");
 
-		testPage.text = "\\\\[existentAlias]";
+		testPage.text = "\\\\[existentPageAlias]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
 		expect($aTag.attr("page-id")).toEqual("2");
 		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("existentAlias");
+		expect($aTag.text()).toEqual("ExistentPageTitle");
 
-		testPage.text = "[existentAlias\\\\]";
+		testPage.text = "[existentPageAlias\\\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentAlias\\]");
+		expect($pTag.text()).toEqual("[existentPageAlias\\]");
 
-		testPage.text = "\\\\[existentAlias\\\\]";
+		testPage.text = "\\\\[existentPageAlias\\\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("\\[existentAlias\\]");
+		expect($pTag.text()).toEqual("\\[existentPageAlias\\]");
 
-		testPage.text = "\\[vote:existentAlias]";
+		testPage.text = "\\[vote:existentPageAlias]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[vote:existentAlias]");
+		expect($pTag.text()).toEqual("[vote:existentPageAlias]");
 
-		testPage.text = "[vote:existentAlias\\]";
+		testPage.text = "[vote:existentPageAlias\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[vote:existentAlias]");
+		expect($pTag.text()).toEqual("[vote:existentPageAlias]");
 
-		testPage.text = "\\[vote:existentAlias\\]";
+		testPage.text = "\\[vote:existentPageAlias\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[vote:existentAlias]");
+		expect($pTag.text()).toEqual("[vote:existentPageAlias]");
 
-		testPage.text = "\\\\[vote:existentAlias]";
+		testPage.text = "\\\\[vote:existentPageAlias]";
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/pages/existentAlias/?embedVote=1");
-		expect($aTag.attr("page-id")).toEqual("existentAlias");
-		expect($aTag.attr("embed-vote-id")).toEqual("existentAlias");
-		expect($aTag.text()).toContain("Embedded existentAlias vote.");
+		expect($aTag.attr("href")).toContain("/pages/existentPageAlias/?embedVote=1");
+		expect($aTag.attr("page-id")).toEqual("existentPageAlias");
+		expect($aTag.attr("embed-vote-id")).toEqual("existentPageAlias");
+		expect($aTag.text()).toContain("Embedded existentPageAlias vote.");
 
-		testPage.text = "[vote:existentAlias\\\\]";
+		testPage.text = "[vote:existentPageAlias\\\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		//expect($pTag.text()).toEqual("[vote:existentAlias\\]");
+		//expect($pTag.text()).toEqual("[vote:existentPageAlias\\]");
 
-		testPage.text = "\\\\[vote:existentAlias\\\\]";
+		testPage.text = "\\\\[vote:existentPageAlias\\\\]";
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		//expect($pTag.text()).toEqual("\\[vote:existentAlias\\]");
+		//expect($pTag.text()).toEqual("\\[vote:existentPageAlias\\]");
 
 		testPage.text = "\\[text](http://google.com)";
 		var element = compileElement(elementText);
@@ -583,6 +583,63 @@ describe('directives', function() {
 		var $aTag = $(element.html()).find("a");
 		//expect($aTag.attr("href")).toContain("/edit");
 		//expect($aTag.text()).toEqual("text\\");
+
+		testPage.text = "[ExistentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("2");
+		expect($aTag.attr("class")).toNotContain("red-link");
+		expect($aTag.text()).toEqual("ExistentPageTitle");
+
+		testPage.text = "[NonexistentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("NonexistentPageAlias");
+		expect($aTag.attr("class")).toContain("red-link");
+		expect($aTag.text()).toEqual("NonexistentPageAlias");
+
+		testPage.text = "[-ExistentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("2");
+		expect($aTag.attr("class")).toNotContain("red-link");
+		expect($aTag.text()).toEqual("existentPageTitle");
+
+		testPage.text = "[-NonexistentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("NonexistentPageAlias");
+		expect($aTag.attr("class")).toContain("red-link");
+		expect($aTag.text()).toEqual("NonexistentPageAlias");
+
+		testPage.text = "[existentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("2");
+		expect($aTag.attr("class")).toNotContain("red-link");
+		expect($aTag.text()).toEqual("ExistentPageTitle");
+
+		testPage.text = "[nonexistentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
+		expect($aTag.attr("class")).toContain("red-link");
+		expect($aTag.text()).toEqual("nonexistentPageAlias");
+
+		testPage.text = "[-existentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("2");
+		expect($aTag.attr("class")).toNotContain("red-link");
+		expect($aTag.text()).toEqual("existentPageTitle");
+
+		testPage.text = "[-nonexistentPageAlias]";
+		var element = compileElement(elementText);
+		var $aTag = $(element.html()).find("a");
+		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
+		expect($aTag.attr("class")).toContain("red-link");
+		expect($aTag.text()).toEqual("nonexistentPageAlias");
+
 	});
 });
 

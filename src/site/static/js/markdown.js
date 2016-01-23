@@ -7,7 +7,7 @@ RegExp.escape = function(s) {
 
 var notEscaped = "(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))";
 var noParen = "(?=$|[^(])";
-var nakedAliasMatch = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*";
+var nakedAliasMatch = "\\-?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*";
 var aliasMatch = "(" + nakedAliasMatch + ")";
 var pageUrlMatch = "(http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch;
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
@@ -208,13 +208,23 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// Convert [alias] spans into links.
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(simpleLinkRegexp, function (whole, prefix, alias) {
-				var page = pageService.pageMap[alias];
+				var firstAliasChar = alias.substring(0,1);
+				var trimmedAlias = alias;
+				if (firstAliasChar == "-") {
+					trimmedAlias = alias.substring(1);
+				}
+				var page = pageService.pageMap[trimmedAlias];
 				if (page) {
 					var url = "http://" + host + "/pages/" + page.pageId;
-					return prefix + "[" + page.title + "](" + url + ")";
+					// Match the page title's case to the alias's case
+					if (firstAliasChar == "-") {
+						return prefix + "[" + page.title.substring(0,1).toLowerCase() + page.title.substring(1) + "](" + url + ")";
+					} else {
+						return prefix + "[" + page.title.substring(0,1).toUpperCase() + page.title.substring(1) + "](" + url + ")";
+					}
 				} else {
-					var url = "http://" + host + "/pages/" + alias;
-					return prefix + "[" + alias + "](" + url + ")";
+					var url = "http://" + host + "/pages/" + trimmedAlias;
+					return prefix + "[" + trimmedAlias + "](" + url + ")";
 				}
 			});
 		});

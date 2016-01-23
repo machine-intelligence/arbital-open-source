@@ -121,7 +121,10 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 		submatches := exp.FindAllStringSubmatch(text, -1)
 		for _, submatch := range submatches {
 			matches[submatch[0]] = submatch
-			aliasesAndIds = append(aliasesAndIds, submatch[3])
+			lowerCaseString := strings.ToLower(submatch[3][:1]) + submatch[3][1:]
+			upperCaseString := strings.ToUpper(submatch[3][:1]) + submatch[3][1:]
+			aliasesAndIds = append(aliasesAndIds, lowerCaseString)
+			aliasesAndIds = append(aliasesAndIds, upperCaseString)
 		}
 	}
 
@@ -134,7 +137,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 		// Find directly encoded urls
 		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)(" + AliasRegexpStr + ")"),
 		// Find ids and aliases using [alias optional text] syntax.
-		regexp.MustCompile(SpacePrefix + "(\\[)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
+		regexp.MustCompile(SpacePrefix + "(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
 		regexp.MustCompile(SpacePrefix + "(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))"),
 		// Find ids and aliases using [vote: alias] syntax.
@@ -172,9 +175,16 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// Perform replacement
 	replaceAlias := func(match string) string {
 		submatch := matches[match]
-		if id, ok := aliasMap[submatch[3]]; ok {
-			// Since ReplaceAllStringFunc gives us the whole match, rather than submatch
-			// array, we have stored it earlier and can now piece it together
+
+		lowerCaseString := strings.ToLower(submatch[3][:1]) + submatch[3][1:]
+		upperCaseString := strings.ToUpper(submatch[3][:1]) + submatch[3][1:]
+
+		// Since ReplaceAllStringFunc gives us the whole match, rather than submatch
+		// array, we have stored it earlier and can now piece it together
+		if id, ok := aliasMap[lowerCaseString]; ok {
+			return submatch[1] + submatch[2] + id + strings.Join(submatch[4:], "")
+		}
+		if id, ok := aliasMap[upperCaseString]; ok {
 			return submatch[1] + submatch[2] + id + strings.Join(submatch[4:], "")
 		}
 		return match
@@ -207,7 +217,7 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 	// Find directly encoded urls
 	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/(" + AliasRegexpStr + ")"))
 	// Find ids and aliases using [alias optional text] syntax.
-	extractLinks(regexp.MustCompile("\\[(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
+	extractLinks(regexp.MustCompile("\\[\\-?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](alias) syntax.
 	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
 	// Find ids and aliases using [vote: alias] syntax.
