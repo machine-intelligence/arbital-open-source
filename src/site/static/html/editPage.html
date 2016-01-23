@@ -316,6 +316,20 @@
 								<!-- TODO: helpful notes about specific types -->
 							</div>
 						</div>
+
+						<!-- Is requisite -->
+						<div layout="row" layout-margin ng-show="isWiki">
+							<md-switch ng-model="page.isRequisite">
+								This page is used as a requisite
+						  </md-switch>
+						</div>
+					
+						<!-- Indirect teacher -->
+						<div layout="row" layout-margin ng-show="isWiki">
+							<md-switch ng-model="page.indirectTeacher">
+								This page teaches its requisites indirectly
+						  </md-switch>
+						</div>
 	
 						<!-- Delete page -->
 						<arb-confirm-button button-text="Delete page"

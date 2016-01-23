@@ -130,13 +130,15 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
-	if !data.IsAutosave {
+	if isCurrentEdit {
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType && oldPage.Type != core.AnswerPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
 		}
 		if len(data.Text) <= 0 {
 			return pages.HandlerBadRequestFail("Need text", nil)
 		}
+	}
+	if !data.IsAutosave {
 		if data.AnchorContext == "" && data.AnchorText != "" {
 			return pages.HandlerBadRequestFail("Anchor context isn't set", nil)
 		}

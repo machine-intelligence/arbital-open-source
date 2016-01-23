@@ -112,6 +112,8 @@ type corePageData struct {
 	IsSnapshot        bool   `json:"isSnapshot"`
 	IsCurrentEdit     bool   `json:"isCurrentEdit"`
 	IsMinorEdit       bool   `json:"isMinorEdit"`
+	IsRequisite       bool   `json:"isRequisite"`
+	IndirectTeacher   bool   `json:"indirectTeacher"`
 	TodoCount         int    `json:"todoCount"`
 	LensIndex         int    `json:"lensIndex"`
 	AnchorContext     string `json:"anchorContext"`
@@ -579,7 +581,8 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 		SELECT p.pageId,p.edit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
-			pi.lensIndex,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
+			pi.lensIndex,pi.isRequisite,pi.indirectTeacher,
+			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN pageInfos AS pi
@@ -593,7 +596,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[int64]*Page) error 
 			&p.PageId, &p.Edit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
-			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex,
+			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsRequisite, &p.IndirectTeacher,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -725,7 +728,7 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 			pi.createdBy,pi.lensIndex,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
-			pi.voteType
+			pi.voteType,pi.isRequisite,pi.indirectTeacher
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageId).Add(`
@@ -738,7 +741,8 @@ func LoadFullEdit(db *database.DB, pageId, userId int64, options *LoadEditOption
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
 		&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
-		&p.CurrentEditNum, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType)
+		&p.CurrentEditNum, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
+		&p.IsRequisite, &p.IndirectTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
 	} else if !exists {

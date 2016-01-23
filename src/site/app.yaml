@@ -3,7 +3,7 @@ version: 001f
 runtime: go
 api_version: go1
 manual_scaling:
-  instances: 1
+  instances: 2
 instance_class: B1
 
 handlers:
