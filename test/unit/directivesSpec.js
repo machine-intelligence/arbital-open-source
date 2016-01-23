@@ -304,6 +304,8 @@ describe('directives', function() {
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
 		expect($aTag.attr("href")).toContain("/edit");
+		expect($aTag.attr("page-id")).toEqual("0");
+		expect($aTag.attr("class")).toContain("red-link");
 		expect($aTag.text()).toEqual("text");
 
 		testPage.text = "[@1]";

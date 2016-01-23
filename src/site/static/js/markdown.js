@@ -177,7 +177,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
-				return prefix + "[" + text + "](" + "http://" + host + "/edit" + ")";
+				return prefix + "[" + text + "](" + "http://" + host + "/edit/0" + ")";
 			});
 		});
 
@@ -274,7 +274,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
-			"\/pages\/" + aliasMatch + // [1] capture page alias
+			"\/(?:pages|edit)\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
