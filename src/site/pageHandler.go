@@ -46,7 +46,9 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		// Redirect www.
 		if mux.Vars(r)["www"] != "" {
 			if sessions.Live {
-				http.Redirect(w, r, strings.Replace(r.URL.String(), "www.", "", -1), http.StatusSeeOther)
+				newUrl := strings.Replace(r.URL.String(), "www.", "", -1)
+				c.Debugf("Redirecting '%s' to '%s' because of 'www'", r.URL.String(), newUrl)
+				http.Redirect(w, r, newUrl, http.StatusSeeOther)
 			} else {
 				subdomainStr := ""
 				if mux.Vars(r)["subdomain"] != "" {
@@ -103,7 +105,9 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		// Check user state
 		if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
 			// User has created an account but hasn't gone through signup page
-			http.Redirect(w, r, fmt.Sprintf("/signup/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
+			newUrl := fmt.Sprintf("/signup/?continueUrl=%s", url.QueryEscape(r.URL.String()))
+			c.Debugf("Redirecting to signup because the user hasn't filled out account info: %s", newUrl)
+			http.Redirect(w, r, newUrl, http.StatusSeeOther)
 			return
 		}
 		// When in a subdomain, we always have to be logged in
@@ -113,6 +117,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				fail(http.StatusInternalServerError, "Couldn't redirect to login", err)
 				return
 			}
+			c.Debugf("Redirecting to login because this is a private domain: %s", loginLink)
 			http.Redirect(w, r, loginLink, http.StatusSeeOther)
 			return
 		}

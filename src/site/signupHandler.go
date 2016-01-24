@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -65,7 +64,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	emailThreshold := user.DefaultEmailThreshold
 
 	// Prevent alias collision
-	aliasBase := fmt.Sprintf("%s_%s", data.FirstName, data.LastName)
+	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
 	alias := aliasBase
 	suffix := 2
 	for ; ; suffix++ {
@@ -94,8 +93,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["lastWebsiteVisit"] = database.Now()
 		hashmap["inviteCode"] = inviteCode
 		hashmap["karma"] = karma
-		// Don't send emails to anyone yet (except Alexei and Eliezer)
-		hashmap["updateEmailSentAt"] = time.Now().UTC().Add(30000 * time.Hour).Format(database.TimeLayout)
 		hashmap["emailFrequency"] = emailFrequency
 		hashmap["emailThreshold"] = emailThreshold
 		statement := tx.NewReplaceTxStatement("users", hashmap)

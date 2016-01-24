@@ -141,7 +141,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 
 	// Get subdomain if any
 	$scope.subdomain = undefined;
-	var subdomainMatch = /^([A-Za-z0-9]+)\.(localhost|arbital\.com)\/?$/.exec($location.host());
+	var subdomainMatch = /^([A-Za-z0-9_]+)\.(localhost|arbital\.com)\/?$/.exec($location.host());
 	if (subdomainMatch) {
 		$scope.subdomain = subdomainMatch[1];
 	}
