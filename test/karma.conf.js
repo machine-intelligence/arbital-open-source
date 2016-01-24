@@ -27,6 +27,14 @@ module.exports = function(config) {
 			'../../src/**/*.html': ['ng-html2js']
 		},
 
+		ngHtml2JsPreprocessor: {
+			// setting this option will create 
+			// only a single module that contains templates
+			// from all the files, so you can load them all 
+			// with module('templates')
+			moduleName: 'templates'
+		},
+
 		// list of files / patterns to load in the browser
 		files: [
 			'../../bower_components/jquery/dist/jquery.js',
@@ -75,8 +83,8 @@ module.exports = function(config) {
 		// start these browsers
 		// available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
 		//browsers: ['Chrome', 'Firefox', 'Safari', 'IE'],
-		browsers: ['Chrome', 'Firefox'],
-		//browsers: ['PhantomJS'],
+		//browsers: ['Chrome', 'Firefox'],
+		browsers: ['PhantomJS'],
 
 		// Continuous Integration mode
 		// if true, Karma captures browsers, runs the tests and exits

@@ -164,9 +164,16 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				}
 				return whole;
 			}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
-				var page = pageService.pageMap[alias];
-				if (page) {
-					return prefix + "[" + page.alias + "]";
+				if (alias.substring(0,1) == "-") {
+					var page = pageService.pageMap[alias.substring(1)];
+					if (page) {
+						return prefix + "[-" + page.alias + "]";
+					}
+				} else {
+					var page = pageService.pageMap[alias];
+					if (page) {
+						return prefix + "[" + page.alias + "]";
+					}
 				}
 				return whole;
 			}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {

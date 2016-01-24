@@ -220,11 +220,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Standardize text
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
-	if isCurrentEdit {
-		data.Text, err = core.StandardizeLinks(db, data.Text)
-		if err != nil {
-			return pages.HandlerErrorFail("Couldn't standardize links", err)
-		}
+	data.Text, err = core.StandardizeLinks(db, data.Text)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't standardize links", err)
 	}
 	data.MetaText = strings.Replace(data.MetaText, "\r\n", "\n", -1)
 

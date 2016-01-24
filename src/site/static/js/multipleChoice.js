@@ -3,7 +3,7 @@
 // Directive for multiple choice
 app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageService, userService) {
 	return {
-		templateUrl: "/static/html/multipleChoice.html",
+		templateUrl: "static/html/multipleChoice.html",
 		transclude: true,
 		scope: {
 			index: "@",
