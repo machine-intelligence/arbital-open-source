@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for the sequence page.
-app.directive("arbSequencePage", function(pageService, userService) {
+app.directive("arbSequencePage", function($location, pageService, userService) {
 	return {
 		templateUrl: "static/html/sequencePage.html",
 		scope: {
@@ -14,35 +14,21 @@ app.directive("arbSequencePage", function(pageService, userService) {
 			// Figure out what page to start the user on
 			var getStartId = function(part) {
 				var startId = "0";
-				var found = false;
 				if (part.requirements) {
 					for (var n = 0; n < part.requirements.length; n++) {
-						startId = getStartId(part.requirements[0]);
-						if (startId !== "0" && !pageService.hasMastery(startId)) {
-							found = true;
-							break;
-						}
+						if (pageService.hasMastery(part.requirements[n].pageId)) continue;
+						startId = getStartId(part.requirements[n]);
+						if (startId !== "0") break;
 					}
 				}
-				if (!found) startId = part.taughtById;
+				if (startId === "0") startId = part.taughtById;
 				return startId;
-			}
-			var computeStartUrl = function() {
-				$scope.startId = getStartId($scope.sequence);
-				$scope.startUrl = pageService.getPageUrl($scope.startId) + "?sequence=" + $scope.sequence.pageId;
 			};
-			computeStartUrl();
 			
-			// Watch if any of the masteries change, and update the start URL.
-			$scope.$watch(function() {
-				var ids = [];
-				for (var id in pageService.masteryMap) {
-					ids.push(id);
-				}
-				return ids.join(",");
-			}, function() {
-				computeStartUrl();
-			});
+			$scope.startReading = function() {
+				var startId = getStartId($scope.sequence);
+				$location.url(pageService.getPageUrl(startId) + "?sequence=" + $scope.sequence.pageId);
+			};
 		},
 	};
 });
