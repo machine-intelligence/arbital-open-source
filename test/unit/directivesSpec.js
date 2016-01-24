@@ -213,27 +213,111 @@ describe('directives', function() {
 		return element;
 	}
 
-	function expectAddressTag(pageText, expectPageId, expectText, expectRedLink) {
+	// Perform a test, expecting an address tag as the result.
+	// Returns the address tag jQuery variable for further processing
+	// options {
+	//	 expectTextToEqual: the expected exact contents of the address tag's text
+	//	 expectTextToContain[]: an array of text that the address tag's text is expected to contain
+	//	 expectTextToNotContain[]: an array of text that the address tag's text is expected to not contain
+	//	 expectHrefToEqual: the expected exact contents of the address tag's href
+	//	 expectHrefToContain[]: an array of text that the address tag's href is expected to contain
+	//	 expectHrefToNotContain[]: an array of text that the address tag's href is expected to not contain
+	//	 expectClassToContain[]: an array of text that the address tag's class is expected to contain
+	//	 expectClassToNotContain[]: an array of text that the address tag's class is expected to not contain
+	//	 expectPageIdToEqual: the expected contents of the page-id attribute
+	//	 expectUserIdToEqual: the expected contents of the user-id attribute
+	//	 expectEmbedVoteIdToEqual: the expected contents of the embed-vote-id attribute
+	// }
+	function expectAddressTag(pageText, options) {
+		var options = options || {};
+
 		testPage.text = pageText;
 		var element = compileElement(elementText);
 		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual(expectPageId);
-		if (expectRedLink == "yes") {
-			expect($aTag.attr("class")).toContain("red-link");
+
+		if (options.expectTextToEqual) {
+			expect($aTag.text()).toEqual(options.expectTextToEqual);
 		}
-		if (expectRedLink == "no") {
-			expect($aTag.attr("class")).toNotContain("red-link");
+		if (options.expectTextToContain) {
+			for (var index in options.expectTextToContain) {
+				expect($aTag.text()).toContain(options.expectTextToContain[index]);
+			}
 		}
-		expect($aTag.text()).toEqual(expectText);
+		if (options.expectTextToNotContain) {
+			for (var index in options.expectTextToNotContain) {
+				expect($aTag.text()).toNotContain(options.expectTextToNotContain[index]);
+			}
+		}
+		if (options.expectHrefToEqual) {
+			expect($aTag.attr("href")).toEqual(options.expectHrefToEqual);
+		}
+		if (options.expectHrefToContain) {
+			for (var index in options.expectHrefToContain) {
+				expect($aTag.attr("href")).toContain(options.expectHrefToContain[index]);
+			}
+		}
+		if (options.expectHrefToNotContain) {
+			for (var index in options.expectHrefToNotContain) {
+				expect($aTag.attr("href")).toNotContain(options.expectHrefToNotContain[index]);
+			}
+		}
+		if (options.expectClassToContain) {
+			for (var index in options.expectClassToContain) {
+				expect($aTag.attr("class")).toContain(options.expectClassToContain[index]);
+			}
+		}
+		if (options.expectClassToNotContain) {
+			for (var index in options.expectClassToNotContain) {
+				expect($aTag.attr("class")).toNotContain(options.expectClassToNotContain[index]);
+			}
+		}
+		if (options.expectPageIdToEqual) {
+			expect($aTag.attr("page-id")).toEqual(options.expectPageIdToEqual);
+		}
+		if (options.expectUserIdToEqual) {
+			expect($aTag.attr("user-id")).toEqual(options.expectUserIdToEqual);
+		}
+		if (options.expectEmbedVoteIdToEqual) {
+			expect($aTag.attr("embed-vote-id")).toEqual(options.expectEmbedVoteIdToEqual);
+		}
 		return $aTag;
 	}
 
-	function expectParagraphTag(pageText, expectText) {
+	// Perform a test, expecting a paragraph tag as the result.
+	// Returns the paragraph tag jQuery variable for further processing
+	// options {
+	//	 expectTextToEqual: the expected contents of the paragraph tag's text
+	//	 expectTextToContain[]: an array of text that the paragraph tag's text is expected to contain
+	//	 expectTextToNotContain[]: an array of text that the paragraph tag's text is expected to not contain
+	// }
+	function expectParagraphTag(pageText, options) {
+		var options = options || {};
+
 		testPage.text = pageText;
 		var element = compileElement(elementText);
 		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual(expectText);
+
+		if (options.expectTextToEqual) {
+			expect($pTag.text()).toEqual(options.expectTextToEqual);
+		}
+		if (options.expectTextToContain) {
+			for (var index in options.expectTextToContain) {
+				expect($pTag.text()).toContain(options.expectTextToContain[index]);
+			}
+		}
+		if (options.expectTextToNotContain) {
+			for (var index in options.expectTextToNotContain) {
+				expect($pTag.text()).toNotContain(options.expectTextToNotContain[index]);
+			}
+		}
 		return $pTag;
+	}
+
+	// Perform a test, expecting the result to be completely empty
+	function expectEmptyElement(pageText) {
+		testPage.text = pageText;
+		var element = compileElement(elementText);
+		expect(element.text()).toEqual("");
 	}
 
 	var elementText = "<arb-markdown class='popover-text-container' page-id='1'></arb-markdown>";
@@ -245,407 +329,73 @@ describe('directives', function() {
 			title:"existentPageTitle"
 		};
 		$rootScope.pageService.addPageToMap(testPage2);
-/*
-		testPage.text = "[existentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("2");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("ExistentPageTitle");
-*/
-		expectAddressTag("[existentPageAlias]", "2", "ExistentPageTitle", "no");
 
-		testPage.text = "[nonexistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("nonexistentPageAlias");
-
-		testPage.text = "[existentPageAlias description]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("2");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("description");
-
-		testPage.text = "[nonexistentPageAlias description]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("description");
-
-/*
-		testPage.text = "[hyphenated-alias]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[hyphenated-alias]");
-*/
-		expectParagraphTag("[hyphenated-alias]", "[hyphenated-alias]");
-
-		testPage.text = "[hyphenated-alias description]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[hyphenated-alias description]");
-
-		testPage.text = "[^%@#&^!@ test]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[^%@#&^!@ test]");
-
-		testPage.text = "[http://google.com google]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("http://google.com");
-		expect($aTag.text()).toEqual("google");
-
-		testPage.text = "[ text]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/edit");
-		expect($aTag.attr("page-id")).toEqual("0");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[@1]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/user/1");
-		expect($aTag.attr("user-id")).toEqual("1");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("title");
-
-		testPage.text = "[@999]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/user/999");
-		expect($aTag.attr("user-id")).toEqual("999");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("999");
-
-		testPage.text = "[text](existentPageAlias)";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("text");
-
-		testPage.text = "[text](nonexistentPageAlias)";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("text");
-
-		testPage.text = "[text](http://google.com)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("http://google.com");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[vote:existentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/pages/existentPageAlias/?embedVote=1");
-		expect($aTag.attr("page-id")).toEqual("existentPageAlias");
-		expect($aTag.attr("embed-vote-id")).toEqual("existentPageAlias");
-		expect($aTag.text()).toContain("Embedded existentPageAlias vote.");
-
-		testPage.text = "[vote:nonexistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/pages/nonexistentPageAlias/?embedVote=1");
-		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
-		expect($aTag.attr("embed-vote-id")).toEqual("nonexistentPageAlias");
-		expect($aTag.text()).toContain("Embedded nonexistentPageAlias vote.");
-
-		testPage.text = "[todo:text]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("");
-
-		testPage.text = "[comment:text]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("");
-
-		testPage.text = "[summary(optional):markdown]";
-		var element = compileElement(elementText);
-		expect(element.text()).toEqual("");
-
-		testPage.text = "[text](http://foo.com/blah_(wikipedia)#cite-1)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("http://foo.com/blah_(wikipedia)#cite-1");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[text](http://www.example.com/wpstyle/?p=364)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("http://www.example.com/wpstyle/?p=364");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[text](https://www.example.com/foo/?bar=baz&inga=42&quux)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("https://www.example.com/foo/?bar=baz&inga=42&quux");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[text](http://userid:password@example.com:8080)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("http://userid:password@example.com:8080");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[text](http://foo.bar/?q=Test%20URL-encoded%20stuff)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("http://foo.bar/?q=Test%20URL-encoded%20stuff");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[text](http://)";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("text");
-
-		testPage.text = "[text]()";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("text");
-
-		testPage.text = "\\[existentPageAlias]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentPageAlias]");
-
-		testPage.text = "[existentPageAlias\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentPageAlias]");
-
-		testPage.text = "\\[existentPageAlias\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentPageAlias]");
-
-		testPage.text = "\\\\[existentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("2");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("ExistentPageTitle");
-
-		testPage.text = "[existentPageAlias\\\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[existentPageAlias\\]");
-
-		testPage.text = "\\\\[existentPageAlias\\\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("\\[existentPageAlias\\]");
-
-		testPage.text = "\\[vote:existentPageAlias]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[vote:existentPageAlias]");
-
-		testPage.text = "[vote:existentPageAlias\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[vote:existentPageAlias]");
-
-		testPage.text = "\\[vote:existentPageAlias\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[vote:existentPageAlias]");
-
-		testPage.text = "\\\\[vote:existentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/pages/existentPageAlias/?embedVote=1");
-		expect($aTag.attr("page-id")).toEqual("existentPageAlias");
-		expect($aTag.attr("embed-vote-id")).toEqual("existentPageAlias");
-		expect($aTag.text()).toContain("Embedded existentPageAlias vote.");
-
-		testPage.text = "[vote:existentPageAlias\\\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		//expect($pTag.text()).toEqual("[vote:existentPageAlias\\]");
-
-		testPage.text = "\\\\[vote:existentPageAlias\\\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		//expect($pTag.text()).toEqual("\\[vote:existentPageAlias\\]");
-
-		testPage.text = "\\[text](http://google.com)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toEqual("http://google.com");
-		//expect($aTag.text()).toEqual("http://google.com");
-
-		testPage.text = "[text\\](http://google.com)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toEqual("http://google.com");
-		//expect($aTag.text()).toEqual("http://google.com");
-
-		testPage.text = "[text]\\(http://google.com)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toContain("/edit/text");
-		//expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[text](http://google.com\\)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toEqual("http://google.com)");
-		//expect($aTag.text()).toEqual("http://google.com)");
-
-		testPage.text = "\\\\[text](http://google.com)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toEqual("http://google.com");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[text\\\\](http://google.com)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toEqual("http://google.com");
-		//expect($aTag.text()).toEqual("text\\");
-
-		testPage.text = "[text]\\\\(http://google.com)";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toContain("/edit/text");
-		//expect($aTag.text()).toEqual("texthttp://google.com");
-
-		testPage.text = "[text](http://google.com\\\\)";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		//expect($pTag.text()).toEqual("text");
-
-		testPage.text = "\\[@1]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[@1]");
-
-		testPage.text = "[@1\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[@1]");
-
-		testPage.text = "\\[@1\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[@1]");
-
-		testPage.text = "\\\\[@1]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/user/1");
-		expect($aTag.attr("user-id")).toEqual("1");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("title");
-
-		testPage.text = "[@1\\\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[@1\\]");
-
-		testPage.text = "\\\\[@1\\\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("\\[@1\\]");
-
-		testPage.text = "\\[ text]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[ text]");
-
-		testPage.text = "[ text\\]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toContain("/edit");
-		//expect($aTag.text()).toEqual("http://arbital.com/edit");
-
-		testPage.text = "\\[ text\\]";
-		var element = compileElement(elementText);
-		var $pTag = $(element.html());
-		expect($pTag.text()).toEqual("[ text]");
-
-		testPage.text = "\\\\[ text]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("href")).toContain("/edit");
-		expect($aTag.text()).toEqual("text");
-
-		testPage.text = "[ text\\\\]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toContain("/edit");
-		//expect($aTag.text()).toEqual("text\\");
-
-		testPage.text = "\\\\[ text\\\\]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		//expect($aTag.attr("href")).toContain("/edit");
-		//expect($aTag.text()).toEqual("text\\");
-
-		testPage.text = "[ExistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("2");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("ExistentPageTitle");
-
-		testPage.text = "[NonexistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("NonexistentPageAlias");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("NonexistentPageAlias");
-
-		testPage.text = "[-ExistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("2");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("existentPageTitle");
-
-		testPage.text = "[-NonexistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("NonexistentPageAlias");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("NonexistentPageAlias");
-
-		testPage.text = "[existentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("2");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("ExistentPageTitle");
-
-		testPage.text = "[nonexistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("nonexistentPageAlias");
-
-		testPage.text = "[-existentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("2");
-		expect($aTag.attr("class")).toNotContain("red-link");
-		expect($aTag.text()).toEqual("existentPageTitle");
-
-		testPage.text = "[-nonexistentPageAlias]";
-		var element = compileElement(elementText);
-		var $aTag = $(element.html()).find("a");
-		expect($aTag.attr("page-id")).toEqual("nonexistentPageAlias");
-		expect($aTag.attr("class")).toContain("red-link");
-		expect($aTag.text()).toEqual("nonexistentPageAlias");
-
+		expectAddressTag("[existentPageAlias]", {expectTextToEqual:"ExistentPageTitle", expectClassToNotContain:["red-link"], expectPageIdToEqual:"2"});
+		expectAddressTag("[nonexistentPageAlias]", {expectTextToEqual:"nonexistentPageAlias", expectClassToContain:["red-link"], expectPageIdToEqual:"nonexistentPageAlias"});
+		expectAddressTag("[existentPageAlias description]", {expectTextToEqual:"description", expectClassToNotContain:["red-link"], expectPageIdToEqual:"2"});
+		expectAddressTag("[nonexistentPageAlias description]", {expectTextToEqual:"description", expectClassToContain:["red-link"], expectPageIdToEqual:"nonexistentPageAlias"});
+		expectParagraphTag("[hyphenated-alias]", {expectTextToEqual:"[hyphenated-alias]"});
+		expectParagraphTag("[hyphenated-alias description]", {expectTextToEqual:"[hyphenated-alias description]"});
+		expectParagraphTag("[^%@#&^!@ test]", {expectTextToEqual:"[^%@#&^!@ test]"});
+		expectAddressTag("[http://google.com google]", {expectTextToEqual:"google", expectHrefToEqual:"http://google.com"});
+		expectAddressTag("[ text]", {expectTextToEqual:"text", expectHrefToContain:"/edit", expectClassToContain:["red-link"], expectPageIdToEqual:"0"});
+		expectAddressTag("[@1]", {expectTextToEqual:"title", expectHrefToContain:"/user/1", expectClassToNotContain:["red-link"], expectUserIdToEqual:"1"});
+		expectAddressTag("[@999]", {expectTextToEqual:"999",expectHrefToContain:["/user/999"],expectClassToContain:["red-link"],expectUserIdToEqual:"999"});
+		expectParagraphTag("[text](existentPageAlias)", {expectTextToEqual:"text"});
+		expectParagraphTag("[text](nonexistentPageAlias)", {expectTextToEqual:"text"});
+		expectAddressTag("[text](http://google.com)", {expectTextToEqual:"text",expectHrefToEqual:"http://google.com"});
+		expectAddressTag("[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/existentPageAlias/?embedVote=1"],expectPageIdToEqual:"existentPageAlias",expectEmbedVoteIdToEqual:"existentPageAlias"});
+		expectAddressTag("[vote:nonexistentPageAlias]", {expectTextToContain:["Embedded nonexistentPageAlias vote."],expectHrefToContain:["/pages/nonexistentPageAlias/?embedVote=1"],expectPageIdToEqual:"nonexistentPageAlias",expectEmbedVoteIdToEqual:"nonexistentPageAlias"});
+		expectParagraphTag("[todo:text]", {expectTextToEqual:""});
+		expectParagraphTag("[comment:text]", {expectTextToEqual:""});
+		expectEmptyElement("[summary(optional):markdown]");
+		expectAddressTag("[text](http://foo.com/blah_(wikipedia)#cite-1)", {expectTextToEqual:"text",expectHrefToEqual:"http://foo.com/blah_(wikipedia)#cite-1"});
+		expectAddressTag("[text](http://www.example.com/wpstyle/?p=364)", {expectTextToEqual:"text",expectHrefToEqual:"http://www.example.com/wpstyle/?p=364"});
+		expectAddressTag("[text](https://www.example.com/foo/?bar=baz&inga=42&quux)", {expectTextToEqual:"text",expectHrefToEqual:"https://www.example.com/foo/?bar=baz&inga=42&quux"});
+		expectAddressTag("[text](http://userid:password@example.com:8080)", {expectTextToEqual:"text",expectHrefToEqual:"http://userid:password@example.com:8080"});
+		expectAddressTag("[text](http://foo.bar/?q=Test%20URL-encoded%20stuff)", {expectTextToEqual:"text",expectHrefToEqual:"http://foo.bar/?q=Test%20URL-encoded%20stuff"});
+		expectParagraphTag("[text](http://)", {expectTextToEqual:"text"});
+		expectParagraphTag("[text]()", {expectTextToEqual:"text"});
+		expectParagraphTag("\\[existentPageAlias]", {expectTextToEqual:"[existentPageAlias]"});
+		expectParagraphTag("[existentPageAlias\\]", {expectTextToEqual:"[existentPageAlias]"});
+		expectParagraphTag("\\[existentPageAlias\\]", {expectTextToEqual:"[existentPageAlias]"});
+		expectAddressTag("\\\\[existentPageAlias]", {expectTextToEqual:"ExistentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
+		expectParagraphTag("[existentPageAlias\\\\]", {expectTextToEqual:"[existentPageAlias\\]"});
+		expectParagraphTag("\\\\[existentPageAlias\\\\]", {expectTextToEqual:"\\[existentPageAlias\\]"});
+		expectParagraphTag("\\[vote:existentPageAlias]", {expectTextToEqual:"[vote:existentPageAlias]"});
+		expectParagraphTag("[vote:existentPageAlias\\]", {expectTextToEqual:"[vote:existentPageAlias]"});
+		expectParagraphTag("\\[vote:existentPageAlias\\]", {expectTextToEqual:"[vote:existentPageAlias]"});
+		expectAddressTag("\\\\[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/existentPageAlias/?embedVote=1"],expectPageIdToEqual:"existentPageAlias",expectEmbedVoteIdToEqual:"existentPageAlias"});
+		expectParagraphTag("[vote:existentPageAlias\\\\]", {}); //expectTextToEqual:"[vote:existentPageAlias\\]"
+		expectParagraphTag("\\\\[vote:existentPageAlias\\\\]", {}); //expectTextToEqual:"\\[vote:existentPageAlias\\]"
+		expectAddressTag("\\[text](http://google.com)", {}); //expectTextToEqual:"http://google.com", expectHrefToEqual:"http://google.com"
+		expectAddressTag("[text\\](http://google.com)", {}); //expectTextToEqual:"http://google.com", expectHrefToEqual:"http://google.com"
+		expectAddressTag("[text]\\(http://google.com)", {}); //expectTextToEqual:"text", expectHrefToContain:["/edit/text"]
+		expectAddressTag("[text](http://google.com\\)", {}); //expectTextToEqual:"http://google.com)", expectHrefToEqual:"http://google.com)"
+		expectAddressTag("\\\\[text](http://google.com)", {expectTextToEqual:"text",expectHrefToEqual:"http://google.com"});
+		expectAddressTag("[text\\\\](http://google.com)", {}); //expectTextToEqual:"text\\", expectHrefToEqual:"http://google.com"
+		expectAddressTag("[text]\\\\(http://google.com)", {}); //expectTextToEqual:"texthttp://google.com", expectHrefToContain:["/edit/text"]
+		expectParagraphTag("[text](http://google.com\\\\)", {}); //expectTextToEqual:"text"
+		expectParagraphTag("\\[@1]", {expectTextToEqual:"[@1]"});
+		expectParagraphTag("[@1\\]", {expectTextToEqual:"[@1]"});
+		expectParagraphTag("\\[@1\\]", {expectTextToEqual:"[@1]"});
+		expectAddressTag("\\\\[@1]", {expectTextToEqual:"title",expectHrefToContain:["/user/1"],expectClassToNotContain:["red-link"],expectUserIdToEqual:"1"});
+		expectParagraphTag("[@1\\\\]", {expectTextToEqual:"[@1\\]"});
+		expectParagraphTag("\\\\[@1\\\\]", {expectTextToEqual:"\\[@1\\]"});
+		expectParagraphTag("\\[ text]", {expectTextToEqual:"[ text]"});
+		expectAddressTag("[ text\\]", {}); //expectTextToEqual:"http://arbital.com/edit", expectHrefToContain:["/edit"]
+		expectParagraphTag("\\[ text\\]", {expectTextToEqual:"[ text]"});
+		expectAddressTag("\\\\[ text]", {expectTextToEqual:"text",expectHrefToContain:["/edit"]});
+		expectAddressTag("[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/edit"]
+		expectAddressTag("\\\\[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/edit"]
+		expectAddressTag("[ExistentPageAlias]", {expectTextToEqual:"ExistentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
+		expectAddressTag("[NonexistentPageAlias]", {expectTextToEqual:"NonexistentPageAlias",expectClassToContain:["red-link"],expectPageIdToEqual:"NonexistentPageAlias"});
+		expectAddressTag("[-ExistentPageAlias]", {expectTextToEqual:"existentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
+		expectAddressTag("[-NonexistentPageAlias]", {expectTextToEqual:"NonexistentPageAlias",expectClassToContain:["red-link"],expectPageIdToEqual:"NonexistentPageAlias"});
+		expectAddressTag("[existentPageAlias]", {expectTextToEqual:"ExistentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
+		expectAddressTag("[nonexistentPageAlias]", {expectTextToEqual:"nonexistentPageAlias",expectClassToContain:["red-link"],expectPageIdToEqual:"nonexistentPageAlias"});
+		expectAddressTag("[-existentPageAlias]", {expectTextToEqual:"existentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
+		expectAddressTag("[-nonexistentPageAlias]", {expectTextToEqual:"nonexistentPageAlias",expectClassToContain:["red-link"],expectPageIdToEqual:"nonexistentPageAlias"});
 	});
-
 });
 
