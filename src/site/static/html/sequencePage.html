@@ -2,15 +2,20 @@
 	<div class="md-whiteframe-1dp" layout="column">
 		<md-toolbar class="md-hue-2">
 			<div class="md-toolbar-tools">
-				<md-button>
-					Bookmark
-				</md-button>
 				Sequence for&nbsp;<arb-page-title page-id="{{sequence.pageId}}" is-link="true"></arb-page-title>
 			</div>
 		</md-toolbar>
 		
 		<div layout-padding>
 			<div arb-sequence-part part="sequence"></div>
+			<div layout="column" ng-if="startId !== '0'">
+				<md-button class="md-primary md-raised" ng-href="{{startUrl}}">
+					Start reading
+				</md-button>
+			</div>
+			<div ng-if="startId === '0'">
+				Looks like there is nothing for you to read here.
+			</div>
 		</div>
 	</div>
 </div>

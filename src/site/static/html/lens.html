@@ -138,10 +138,9 @@
 		<div ng-if="!isSimpleEmbed && (page.isRequisite || page.usedAsMastery)">
 			<span class="md-subhead">
 				<md-icon>assignment</md-icon>
-				<span ng-show="pageService.hasMastery(page.pageId)">Do you understand this page?</span>
-				<span ng-hide="pageService.hasMastery(page.pageId)">Do you understand this page?</span>
-				<span arb-requisite-button requisite-id="{{page.pageId}}" allow-wants="allowWants">
-				</span>
+				Do you understand this page?
+			</span>
+			<span arb-requisite-button requisite-id="{{page.pageId}}" allow-wants="allowWants">
 			</span>
 		</div>
 
