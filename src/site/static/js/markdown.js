@@ -57,25 +57,33 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process [knows-requisite([alias]):markdown] blocks.
-		var hasReqBlockRegexp = new RegExp("^\\[(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		// Process |knows-requisite([alias]):markdown| blocks.
+		var hasReqBlockRegexp = new RegExp("^(\\|+)(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
-			return text.replace(hasReqBlockRegexp, function (whole, not, alias, markdown) {
-				var block = runBlockGamut(markdown);
+			return text.replace(hasReqBlockRegexp, function (whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return "<p ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + block.substr(3);
+				return "<div ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" +
+						runBlockGamut(markdown) + "</div>";
 			});
 		});
 
-		// Process [wants-requisite([alias]):markdown] blocks.
-		var wantsReqBlockRegexp = new RegExp("^\\[(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		// Process |wants-requisite([alias]):markdown| blocks.
+		var wantsReqBlockRegexp = new RegExp("^(\\|+)(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
-			return text.replace(wantsReqBlockRegexp, function (whole, not, alias, markdown) {
-				var block = runBlockGamut(markdown);
+			return text.replace(wantsReqBlockRegexp, function (whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return "<p ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + block.substr(3);
+				return "<div ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" +
+						runBlockGamut(markdown) + "</div>";
 			});
 		});
+
+		/*var recRegexp = new RegExp("^(:+)([\\s\\S]+?)\\1\n\n", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(recRegexp, function (whole, bars, markdown) {
+				var block = runBlockGamut(markdown);
+				return "<p>" + block + "</p>";
+			});
+		});*/
 
 		// Process [multiple-choice: text
 		// a: text
@@ -129,19 +137,19 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process [[knows-requisite([alias]): markdown]] spans.
-		var hasReqSpanRegexp = new RegExp(notEscaped + "\\[\\[(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\]\\]", "g");
+		// Process |knows-requisite([alias]): markdown| spans.
+		var hasReqSpanRegexp = new RegExp(notEscaped + "(\\|+)(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\2", "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(hasReqSpanRegexp, function (whole, prefix, not, alias, markdown) {
+			return text.replace(hasReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
 				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + markdown + "</span>";
 			});
 		});
 
-		// Process [[wants-requisite([alias]): markdown]] blocks.
-		var wantsReqSpanRegexp = new RegExp(notEscaped + "\\[\\[(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\]\\]", "g");
-		converter.hooks.chain("preSpanGamut", function (text) {
-			return text.replace(wantsReqSpanRegexp, function (whole, prefix, not, alias, markdown) {
+		// Process |wants-requisite([alias]): markdown| blocks.
+		var wantsReqSpanRegexp = new RegExp(notEscaped + "(\\|+)(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\2", "g");
+		converter.hooks.chain("preSpanGamut", function (text, run) {
+			return text.replace(wantsReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
 				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + markdown + "</span>";
 			});
@@ -355,9 +363,11 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 
 		$pageText.find("arb-multiple-choice").each(function(index) {
 			$(this).attr("index", index);
-			$compile($(this))(scope);
+			//$compile($(this))(scope);
 		});
-		$pageText.find("[ng-show]").each(function(index) {
+		// NOTE: have to compile children individually because otherwise there is a bug
+		// with intrasite popovers in preview.
+		$pageText.children().each(function(index) {
 			$compile($(this))(scope);
 		});
 	};
