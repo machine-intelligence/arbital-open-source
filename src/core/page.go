@@ -535,19 +535,10 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 // LoadMasteries loads the masteries.
 func LoadMasteries(db *database.DB, userId int64, masteryMap map[int64]*Mastery) error {
-	masteryIds := make([]interface{}, 0)
-	for id, _ := range masteryMap {
-		masteryIds = append(masteryIds, id)
-	}
-	if len(masteryIds) <= 0 {
-		// We still need to run the query to read in the user's masteries
-		// Add -1 to the list, so that the query isn't invalid
-		masteryIds = append(masteryIds, -1)
-	}
 	rows := database.NewQuery(`
 		SELECT masteryId,updatedAt,has,wants
 		FROM userMasteryPairs
-		WHERE userId=?`, userId).Add(`OR masteryId IN`).AddArgsGroup(masteryIds).ToStatement(db).Query()
+		WHERE userId=?`, userId).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var mastery Mastery
 		err := rows.Scan(&mastery.PageId, &mastery.UpdatedAt, &mastery.Has, &mastery.Wants)
