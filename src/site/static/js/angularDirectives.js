@@ -277,13 +277,9 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			$scope.pageUrl = "/edit/";
 			$scope.isSmallScreen = !$mdMedia("gt-sm");
 
-			var isTouchDevice = "ontouchstart" in window // works in most browsers
-					|| (navigator.MaxTouchPoints > 0)
-					|| (navigator.msMaxTouchPoints > 0);
-
 			$scope.isOpen = false;
 			$scope.toggle = function(show, hovering) {
-				if (isTouchDevice) return;
+				if (userService.isTouchDevice) return;
 				$scope.isOpen = show;
 			};
 

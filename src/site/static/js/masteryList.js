@@ -24,16 +24,13 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 
 			// Sort requirements
 			$scope.idsSource.sort(function(a, b) {
-				var hasA = pageService.hasMastery(a);
-				var hasB = pageService.hasMastery(b);
-				if (hasA !== hasB) {
-					var result = (hasA ? 1 : 0) - (hasB ? 1 : 0);
-					if ($scope.showHasFirst) result = -result;
-					return result;
-				}
-				var result = (pageService.wantsMastery(a) ? 1 : 0) - (pageService.wantsMastery(b) ? 1 : 0);
+				var result = (pageService.hasMastery(a) ? 1 : 0) - (pageService.hasMastery(b) ? 1 : 0);
 				if ($scope.showHasFirst) result = -result;
-				return result;
+				if (result !== 0) return result;
+				result = (pageService.wantsMastery(a) ? 1 : 0) - (pageService.wantsMastery(b) ? 1 : 0);
+				if ($scope.showHasFirst) result = -result;
+				if (result !== 0) return result;
+				return pageService.pageMap[a].title.localeCompare(pageService.pageMap[b].title);
 			});
 		},
 	};

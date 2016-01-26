@@ -22,7 +22,7 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 			};
 		},
 		link: function(scope, element, attrs) {
-			element.find("ng-transclude > p").prepend($compile("<md-icon>help_outline</md-icon>")(scope));
+			element.find("ng-transclude > p").prepend($compile("<md-icon class='question-icon'>help_outline</md-icon>")(scope));
 			var answerValue = "a";
 			// Go through all answers
 			element.find("ng-transclude > ul > li").each(function () {

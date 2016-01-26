@@ -37,4 +37,8 @@ app.service("userService", function(){
 		}
 		$.extend(that.userMap, data["users"]);
 	};
+
+	this.isTouchDevice = "ontouchstart" in window // works in most browsers
+		|| (navigator.MaxTouchPoints > 0)
+		|| (navigator.msMaxTouchPoints > 0);
 });

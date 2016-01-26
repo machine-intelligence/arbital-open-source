@@ -77,14 +77,6 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		/*var recRegexp = new RegExp("^(:+)([\\s\\S]+?)\\1\n\n", "gm");
-		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
-			return text.replace(recRegexp, function (whole, bars, markdown) {
-				var block = runBlockGamut(markdown);
-				return "<p>" + block + "</p>";
-			});
-		});*/
-
 		// Process [multiple-choice: text
 		// a: text
 		// knows: [alias1],[alias2]...

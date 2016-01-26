@@ -563,6 +563,9 @@ arb-user-popover {
   position: absolute;
   z-index: 60; }
 
+.popover-tab-body {
+  max-height: 32vh; }
+
 .popover-body {
   background-color: whitesmoke; }
 
@@ -742,6 +745,10 @@ textarea {
 arb-multiple-choice {
   display: block;
   margin: 15px 0; }
+  arb-multiple-choice .question-icon {
+    position: relative;
+    top: -1px;
+    margin-right: 5px; }
   arb-multiple-choice p {
     margin-bottom: 0; }
   arb-multiple-choice md-radio-group {
@@ -751,7 +758,8 @@ arb-multiple-choice {
     border-left: #E0F2F1 3px solid;
     padding-left: 10px; }
   arb-multiple-choice md-radio-button {
-    display: inline-block; }
+    display: inline-block;
+    margin: 0; }
 
 .sequence-requirements {
   margin-left: 10px;
