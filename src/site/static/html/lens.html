@@ -53,19 +53,33 @@
 		</md-button>
 		
 		<!-- Prev/Next -->
-		<div layout="row" ng-if="lensParentPage && (lensParentPage.nextPageId !== '0' || lensParentPage.prevPageId !== '0')">
-			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.prevPageId)}}"
+		<div layout="row"
+				layout-align="start center"
+				ng-if="lensParentPage && (lensParentPage.nextPageId !== '0' || lensParentPage.prevPageId !== '0')">
+			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.prevPageId) +
+						'?sequence=' + lensParentPage.sequenceUrl}}"
 					ng-disabled="lensParentPage.prevPageId === '0'">
 				<md-tooltip ng-show="lensParentPage.prevPageId === '0'">No previous page</md-tooltip>
 				<md-icon>chevron_left</md-icon>
 				<span>Prev</span>
 			</md-button>
-			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.nextPageId)}}"
-					ng-disabled="lensParentPage.nextPageId === '0'">
+			<md-button class="md-icon-button"
+					ng-href="/sequences/{{lensParentPage.sequenceId}}"
+					ng-if="lensParentPage.sequenceId">
+				<md-tooltip>Current sequence</md-tooltip>
+				<md-icon>book</md-icon>
+			</md-button>
+			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.nextPageId) +
+						'?sequence=' + lensParentPage.sequenceUrl}}"
+					ng-disabled="lensParentPage.nextPageId === '0'"
+					ng-if="lensParentPage.nextPageId !== '0' || !lensParentPage.sequenceUrl">
 				<md-tooltip ng-show="lensParentPage.nextPageId === '0'">No next page</md-tooltip>
 				<span>Next</span>
 				<md-icon>chevron_right</md-icon>
 			</md-button>
+			<span class="md-primary md-body-2" ng-if="lensParentPage.nextPageId === '0' && lensParentPage.sequenceUrl">
+				DONE!
+			</span>
 		</div>
 	</div>
 
@@ -136,12 +150,19 @@
 
 		<!-- This subject -->
 		<div ng-if="!isSimpleEmbed && (page.isRequisite || page.usedAsMastery)">
-			<span class="md-subhead">
-				<md-icon>assignment</md-icon>
-				Do you understand this page?
-			</span>
-			<span arb-requisite-button requisite-id="{{page.pageId}}" allow-wants="true">
-			</span>
+			<div>
+				<span class="md-subhead">
+					<md-icon>assignment</md-icon>
+					Do you understand this page?
+				</span>
+				<span arb-requisite-button requisite-id="{{page.pageId}}" allow-wants="true">
+				</span>
+			</div>
+			<div ng-show="pageService.wantsMastery(page.pageId)">
+				<md-button class="md-primary" ng-href="/sequences/{{page.pageId}}">
+					Start learning!
+				</md-button>
+			</div>
 		</div>
 
 		<!-- Subjects taught -->

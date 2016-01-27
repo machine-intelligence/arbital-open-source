@@ -8,12 +8,12 @@
 		
 		<div layout-padding>
 			<div arb-sequence-part part="sequence"></div>
-			<div layout="column" ng-if="startId !== '0'">
+			<div layout="column">
 				<md-button class="md-primary md-raised" ng-click="startReading()">
 					Start reading
 				</md-button>
 			</div>
-			<div ng-if="startId === '0'">
+			<div class="md-warn" ng-show="isSequenceEmpty">
 				Looks like there is nothing for you to read here.
 			</div>
 		</div>

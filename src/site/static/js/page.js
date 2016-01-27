@@ -65,6 +65,20 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				window.open(pageService.getPageUrl(lensId), "_blank");
 			};
 
+			// Check if the user is doing a sequence
+			$scope.page.sequenceUrl = $location.search().sequence || "";
+			if ($scope.page.sequenceUrl) {
+				var ids = $scope.page.sequenceUrl.split(",");
+				for (var n = 0; n < ids.length; n++) {
+					var id = ids[n];
+					if (id === $scope.page.pageId) {
+						$scope.page.prevPageId = n > 0 ? ids[n-1] : "0";
+						$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "0";
+					}
+				}
+				$scope.page.sequenceId = ids[ids.length - 1];
+			}
+
 			// Check if this comment is selected via URL hash
 			$scope.isSelected = function() {
 				return $location.hash() === "subpage-" + $scope.page.pageId;

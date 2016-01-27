@@ -11,23 +11,26 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
-			// Figure out what page to start the user on
-			var getStartId = function(part) {
-				var startId = "0";
+			// Figure our the order of pages through which to take the user
+			var computeSequenceIds = function(part, idsList) {
+				idsList = idsList || [];
 				if (part.requirements) {
 					for (var n = 0; n < part.requirements.length; n++) {
 						if (pageService.hasMastery(part.requirements[n].pageId)) continue;
-						startId = getStartId(part.requirements[n]);
-						if (startId !== "0") break;
+						idsList = computeSequenceIds(part.requirements[n], idsList);
 					}
 				}
-				if (startId === "0") startId = part.taughtById;
-				return startId;
+				if (part.taughtById !== "0" && idsList.indexOf(part.taughtById) < 0) {
+					idsList.push(part.taughtById);
+				}
+				return idsList;
 			};
 			
 			$scope.startReading = function() {
-				var startId = getStartId($scope.sequence);
-				$location.url(pageService.getPageUrl(startId) + "?sequence=" + $scope.sequence.pageId);
+				var sequenceIds = computeSequenceIds($scope.sequence);
+				sequenceIds.push($scope.sequence.pageId);
+				var ids = sequenceIds.join(",");
+				$location.url(pageService.getPageUrl(sequenceIds[0]) + "?sequence=" + ids);
 			};
 		},
 	};
