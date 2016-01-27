@@ -1,12 +1,4 @@
 <!-- Display page's title with potential additional meta info. -->
-<md-icon ng-show="pageService.showPrivate(page.pageId, useEditMap)">
-	<md-tooltip>This page belongs to {{pageService.pageMap[page.seeGroupId].title}} group</md-tooltip>
-	lock
-</md-icon>
-<md-icon ng-show="pageService.showPublic(page.pageId, useEditMap)">
-	<md-tooltip>This page is public</md-tooltip>
-	public
-</md-icon>
 <md-icon ng-show="showType && page.type === 'question'">
 	<md-tooltip>This is a question page</md-tooltip>
 	help

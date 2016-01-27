@@ -157,13 +157,13 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			// Options override for the page's title
 			customPageTitle: "=",
 			// Whether to display the title as a link or a span
-			isLink: "@",
+			isLink: "=",
 			// Whether or not to show the clickbait
-			showClickbait: "@",
+			showClickbait: "=",
 			// Whether or not to show the type of the page icon
-			showType: "@",
+			showType: "=",
 			// If set, we'll pull the page from the edit map
-			useEditMap: "@",
+			useEditMap: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
