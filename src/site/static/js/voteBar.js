@@ -118,15 +118,19 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 			scope.newVoteValue = undefined;
 			scope.voteMouseMove = function(event, leave) {
 				scope.newVoteValue = scope.offsetToValue(event.pageX);
-				scope.selectedVoteBucket = scope.voteBuckets[scope.typeHelper.getBucketIndex(scope.newVoteValue)];
+				if (!leave && event.pageY <= $voteBarBody.offset().top + $voteBarBody.height()) {
+					scope.selectedVoteBucket = scope.voteBuckets[scope.typeHelper.getBucketIndex(scope.newVoteValue)];
+				}
 				if (leave && scope.selectedVoteBucket.votes.length <= 0) {
 					scope.selectedVoteBucket = undefined;
 				}
 				scope.isHovering = !leave;
 			};
 			scope.voteMouseClick = function(event, leave) {
-				scope.userVoteValue = scope.offsetToValue(event.pageX);
-				postNewVote();
+				if( userService.userIsCool() ) {
+					scope.userVoteValue = scope.offsetToValue(event.pageX);
+					postNewVote();
+				}
 			};
 
 			// Process deleting user's vote
