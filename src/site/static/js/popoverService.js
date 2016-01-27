@@ -65,6 +65,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 
 		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
 		left = Math.min(left, $("body").width() - popoverWidth - awayFromEdge);
+		if (userService.isTouchDevice) left = 0;
 		var arrowOffset = mousePageX - left;
 
 		// Create the popover
@@ -88,7 +89,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		}
 		$popoverElement.css("left", left)
 		.css("position", "") // IE fix, because it sets position to "relative"
-		.width(popoverWidth)
+		.width(userService.isTouchDevice ? $("body").width() : popoverWidth)
 		.on("mouseenter", function(event) {
 			popoverHovering = true;
 			updateTimeout();
@@ -102,14 +103,6 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		$currentTarget = $target;
 		anchorHovering = true;
 	};
-
-	$("body").on("mouseenter", ".intrasite-link", function(event) {
-		mouseEnterPopoverLink(event, linkTypeIntrasite);
-	});
-
-	$("body").on("mouseenter", ".user-link", function(event) {
-		mouseEnterPopoverLink(event, linkTypeUser);
-	});
 
 	var mouseEnterPopoverLink = function(event, linkType) {
 		var $target = $(event.currentTarget);
@@ -136,12 +129,12 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		}
 	};
 
-	$("body").on("mousemove", ".intrasite-link", function(event) {
-		mouseMovePopoverLink(event);
+	$("body").on("mouseenter", ".intrasite-link", function(event) {
+		mouseEnterPopoverLink(event, linkTypeIntrasite);
 	});
 
-	$("body").on("mousemove", ".user-link", function(event) {
-		mouseMovePopoverLink(event);
+	$("body").on("mouseenter", ".user-link", function(event) {
+		mouseEnterPopoverLink(event, linkTypeUser);
 	});
 
 	var mouseMovePopoverLink = function(event) {
@@ -149,12 +142,12 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		mousePageY = event.pageY;
 	};
 
-	$("body").on("mouseleave", ".intrasite-link", function(event) {
-		mouseLeavePopoverLink(event);
+	$("body").on("mousemove", ".intrasite-link", function(event) {
+		mouseMovePopoverLink(event);
 	});
 
-	$("body").on("mouseleave", ".user-link", function(event) {
-		mouseLeavePopoverLink(event);
+	$("body").on("mousemove", ".user-link", function(event) {
+		mouseMovePopoverLink(event);
 	});
 
 	var mouseLeavePopoverLink = function(event) {
@@ -172,6 +165,53 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 			$timeout.cancel(createPromise);
 		}
 	};
+
+	$("body").on("mouseleave", ".intrasite-link", function(event) {
+		mouseLeavePopoverLink(event);
+	});
+
+	$("body").on("mouseleave", ".user-link", function(event) {
+		mouseLeavePopoverLink(event);
+	});
+
+	// On mobile, we want to intercept the click.
+	if (userService.isTouchDevice) {
+		var touchDeviceLinkClick = function(event, linkType) {
+			var $target = $(event.currentTarget);
+			if ($target.is($currentTarget)) {
+				// User clicked on a link that already has a popover up
+				return true;
+			}
+			if (!$target.is($targetCandidate)) {
+				// User clicked on a link that's most likely inside a popover
+				return true;
+			}
+			mouseMovePopoverLink(event);
+			return false;
+		};
+
+		$("body").on("click", ".intrasite-link", function(event) {
+			return touchDeviceLinkClick(event, linkTypeIntrasite);
+		});
+
+		$("body").on("click", ".user-link", function(event) {
+			return touchDeviceLinkClick(event, linkTypeUser);
+		});
+	}
+
+	// Don't allow the body to scroll when scrolling a popover tab body
+	$("body").on("mousewheel DOMMouseScroll", ".popover-tab-body", function(event) {
+		// Don't prevent body scrolling if there is no scroll bar
+		if (this.scrollHeight <= this.clientHeight) return true;
+		
+		var delta = event.wheelDelta || (event.originalEvent && event.originalEvent.wheelDelta) || -event.detail,
+			bottomOverflow = this.scrollTop + this.offsetHeight >= this.scrollHeight - 2,
+			topOverflow = this.scrollTop <= 0;
+
+		if ((delta < 0 && bottomOverflow) || (delta > 0 && topOverflow)) {
+			event.preventDefault();
+		}
+	});
 
 	$rootScope.$on("$locationChangeStart", function(event) {
 		$timeout.cancel(createPromise);

@@ -11,9 +11,7 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.isTinyScreen = !$mdMedia("gt-xs");
-			$scope.doAutofocus = !("ontouchstart" in window // works in most browsers
-					|| (navigator.MaxTouchPoints > 0)
-					|| (navigator.msMaxTouchPoints > 0));
+			$scope.doAutofocus = !userService.isTouchDevice;
 
 			// Keep the current url updated
 			$scope.currentUrl = encodeURIComponent($location.absUrl());

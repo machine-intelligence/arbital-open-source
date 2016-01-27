@@ -800,6 +800,10 @@ arb-user-popover {
 	z-index: $popoverZ;
 }
 
+.popover-tab-body {
+	max-height: 32vh;
+}
+
 .popover-body {
 	background-color: whitesmoke;
 }
@@ -1059,6 +1063,12 @@ arb-multiple-choice {
 	display: block;
 	margin: 15px 0;
 
+	.question-icon {
+		position: relative;
+		top: -1px;
+		margin-right: 5px;
+	}
+
 	p {
 		margin-bottom: 0;
 	}
@@ -1073,6 +1083,7 @@ arb-multiple-choice {
 
 	md-radio-button {
 		display: inline-block;
+		margin: 0;
 	}
 }
 
