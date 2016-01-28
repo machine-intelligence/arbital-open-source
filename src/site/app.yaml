@@ -2,9 +2,10 @@ application: zanaduu3
 version: 001f
 runtime: go
 api_version: go1
-manual_scaling:
-  instances: 2
-instance_class: B1
+automatic_scaling:
+  min_idle_instances: 2
+  max_pending_latency: 1s
+instance_class: F1
 
 handlers:
 - url: /static
