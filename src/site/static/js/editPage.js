@@ -267,7 +267,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					pageId: $scope.pageId,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
-					text: $scope.page.text,
+					text: $("#wmd-input" + $scope.pageId)[0].value,
 				};
 				if ($scope.page.anchorContext) {
 					data.anchorContext = $scope.page.anchorContext;
