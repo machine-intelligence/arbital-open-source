@@ -25,6 +25,12 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + "/" + $scope.page.currentEditNum;
 			$scope.isPageDirty = $scope.page.isAutosave;
 
+			// If the alias contains a subdomain, then remove it
+			var periodIndex = $scope.page.alias.indexOf(".");
+			if (periodIndex > 0) {
+				$scope.page.alias = $scope.page.alias.substring(periodIndex+1);
+			}
+
 			// Return true if we should be using a table layout (so we can stack right
 			// and left columns vertically)
 			$scope.useTableLayout = function() {
@@ -144,51 +150,56 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			$scope.lockExists = $scope.page.lockedBy != "0" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== userService.user.id;
 
-			// Convert all links with pageIds to alias links.
-			$scope.page.text = $scope.page.text.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
-				var page = pageService.pageMap[alias];
-				if (page) {
-					return prefix + "[" + text + "](" + page.alias + ")";
-				}
-				return whole;
-			/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
-				var page = pageService.pageMap[alias];
-				if (page) {
-					return prefix + "[vote: " + page.alias + "]";
-				}
-				return whole;*/
-			}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
-				var page = pageService.pageMap[alias];
-				if (page) {
-					return prefix + "[" + page.alias + " " + text + "]";
-				}
-				return whole;
-			}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
-				if (alias.substring(0,1) == "-") {
-					var page = pageService.pageMap[alias.substring(1)];
-					if (page) {
-						return prefix + "[-" + page.alias + "]";
-					}
-				} else {
+			$scope.convertPageIdsToAliases = function(textToConvert) {
+				// Convert all links with pageIds to alias links.
+				return textToConvert.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						return prefix + "[" + page.alias + "]";
+						return prefix + "[" + text + "](" + page.alias + ")";
 					}
-				}
-				return whole;
-			}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {
-				var page = pageService.pageMap[alias];
-				if (page) {
-					return prefix + "[" + text + "](" + url + page.alias + ")";
-				}
-				return whole;
-			}).replace(atAliasRegexp, function(whole, prefix, alias) {
-				var page = pageService.pageMap[alias];
-				if (page) {
-					return prefix + "[@" + page.alias + "]";
-				}
-				return whole;
-			});
+					return whole;
+					/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
+						var page = pageService.pageMap[alias];
+						if (page) {
+						return prefix + "[vote: " + page.alias + "]";
+						}
+						return whole;*/
+				}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
+					var page = pageService.pageMap[alias];
+					if (page) {
+						return prefix + "[" + page.alias + " " + text + "]";
+					}
+					return whole;
+				}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
+					if (alias.substring(0,1) == "-") {
+						var page = pageService.pageMap[alias.substring(1)];
+						if (page) {
+							return prefix + "[-" + page.alias + "]";
+						}
+					} else {
+						var page = pageService.pageMap[alias];
+						if (page) {
+							return prefix + "[" + page.alias + "]";
+						}
+					}
+					return whole;
+				}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {
+					var page = pageService.pageMap[alias];
+					if (page) {
+						return prefix + "[" + text + "](" + url + page.alias + ")";
+					}
+					return whole;
+				}).replace(atAliasRegexp, function(whole, prefix, alias) {
+					var page = pageService.pageMap[alias];
+					if (page) {
+						return prefix + "[@" + page.alias + "]";
+					}
+					return whole;
+				});
+				return 
+			};
+
+			$scope.page.text = $scope.convertPageIdsToAliases($scope.page.text);
 
 			// User reverts to an edit
 			$scope.revertToEdit = function(editNum) {
@@ -451,6 +462,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					skipProcessDataStep: true,
 					success: function(data, status) {
 						$scope.otherDiff = data[$scope.page.pageId];
+						$scope.otherDiff.text = $scope.convertPageIdsToAliases($scope.otherDiff.text);
 						$scope.refreshDiff();
 						$scope.selectedTab = 1;
 					},
