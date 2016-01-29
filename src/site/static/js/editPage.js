@@ -196,7 +196,6 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					}
 					return whole;
 				});
-				return 
 			};
 
 			$scope.page.text = $scope.convertPageIdsToAliases($scope.page.text);
