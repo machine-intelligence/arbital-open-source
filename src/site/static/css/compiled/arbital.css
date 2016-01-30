@@ -668,7 +668,8 @@ ins {
 
 .wmd-button-bar {
   background-color: white;
-  border-bottom: silver 1px solid; }
+  border-bottom: silver 1px solid;
+  min-height: 0; }
   .wmd-button-bar .md-button {
     width: 25px;
     min-width: 25px;

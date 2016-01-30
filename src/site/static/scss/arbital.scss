@@ -945,6 +945,7 @@ ins {
 .wmd-button-bar {
 	background-color: white;
 	border-bottom: silver 1px solid;
+	min-height: 0; // otherwise it collapses for some reason
 
 	.md-button {
 		width: 25px;
