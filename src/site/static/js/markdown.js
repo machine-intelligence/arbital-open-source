@@ -9,7 +9,7 @@ var notEscaped = "(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))";
 var noParen = "(?=$|[^(])";
 var nakedAliasMatch = "\\-?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*";
 var aliasMatch = "(" + nakedAliasMatch + ")";
-var pageUrlMatch = "(http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch;
+var pageUrlMatch = "(http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch + "(?:/" + urlTitleRegexpStr + ")?";
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
 // [vote: alias]
@@ -193,7 +193,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				if (matches && matches[0] == alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						var url = "http://" + host + "/pages/" + page.pageId;
+						var url = "http://" + host + "/pages/" + page.pageId + "/" + convertTitleToUrlFormat(page.title);
 						return prefix + "[" + text + "](" + url + ")";
 					} else {
 						var url = "http://" + host + "/pages/" + alias;
@@ -215,7 +215,8 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				}
 				var page = pageService.pageMap[trimmedAlias];
 				if (page) {
-					var url = "http://" + host + "/pages/" + page.pageId;
+					//var url = "http://" + host + pageService.getPageUrl(page.pageId);
+					var url = "http://" + host + "/pages/" + page.pageId + "/" + convertTitleToUrlFormat(page.title);
 					// Match the page title's case to the alias's case
 					if (firstAliasChar == "-") {
 						return prefix + "[" + page.title.substring(0,1).toLowerCase() + page.title.substring(1) + "](" + url + ")";

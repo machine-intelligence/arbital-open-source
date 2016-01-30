@@ -269,7 +269,7 @@ func LoadUpdateEmail(db *database.DB, userId int64) (resultData *UpdateData, ret
 			return userMap[userId].FullName()
 		},
 		"GetPageUrl": func(pageId int64) string {
-			return fmt.Sprintf("%s/pages/%d", sessions.GetDomainForTestEmail(), pageId)
+			return fmt.Sprintf("%s/pages/%d/"+ConvertTitleToUrlFormat(pageMap[pageId].Title), sessions.GetDomainForTestEmail(), pageId)
 		},
 		"GetPageTitle": func(pageId int64) string {
 			return pageMap[pageId].Title

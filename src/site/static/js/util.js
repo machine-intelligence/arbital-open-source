@@ -1,5 +1,12 @@
 "use strict";
 
+var removeFromUrlTitleRegexpStr = /[^a-z0-9\\-]/g;
+var urlTitleRegexpStr = "[a-z0-9\\-]*";
+
+var convertTitleToUrlFormat = function(title) {
+	return title.toLowerCase().replace(/ /g, "-").replace(removeFromUrlTitleRegexpStr, '');
+};
+
 // Extend jQuery with a function to change element's type
 (function($) {
 	$.fn.changeElementType = function(newType) {

@@ -134,12 +134,13 @@ app.service("pageService", function($http, $location, userService){
 		var page = that.pageMap[pageId];
 		var url = "/pages/" + pageId;
 		if (page) {
+			url = "/pages/" + pageId + "/" + convertTitleToUrlFormat(page.title);
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/pages/" + parent.pageId + "?lens=" + pageId + "#" + $location.hash();
+						url = "/pages/" + parent.pageId + "/" + convertTitleToUrlFormat(page.title) + "?lens=" + pageId + "#" + $location.hash();
 						break;
 					}
 				}
@@ -149,7 +150,7 @@ app.service("pageService", function($http, $location, userService){
 					if (parent && (
 								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
 								(page.isAnswer() && parent.isQuestion()))) {
-						url = "/pages/" + parent.pageId + "#subpage-" + pageId;
+						url = "/pages/" + parent.pageId + "/" + convertTitleToUrlFormat(page.title) + "#subpage-" + pageId;
 						break;
 					}
 				}
