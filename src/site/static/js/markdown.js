@@ -1,10 +1,5 @@
 "use strict";
 
-// Used to escape regexp symbols in a string to make it safe for injecting into a regexp
-RegExp.escape = function(s) {
-  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-};
-
 var notEscaped = "(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))";
 var noParen = "(?=$|[^(])";
 var nakedAliasMatch = "\\-?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*";
@@ -168,7 +163,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// Process [vote:alias] spans.
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(voteEmbedRegexp, function (whole, prefix, alias) {
-				return prefix + "[Embedded " + alias + " vote. ](http://" + host + "/pages/" + alias + "/?embedVote=1)";
+				return prefix + "[Embedded " + alias + " vote. ](" + pageService.getPageUrlFromAlias(alias, {includeHost:true}) + "/?embedVote=1)";
 			});
 		});
 
@@ -193,10 +188,10 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				if (matches && matches[0] == alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						var url = "http://" + host + "/pages/" + page.pageId + "/" + convertTitleToUrlFormat(page.title);
+						var url = pageService.getPageUrl(page.pageId, {includeHost:true});
 						return prefix + "[" + text + "](" + url + ")";
 					} else {
-						var url = "http://" + host + "/pages/" + alias;
+						var url = pageService.getPageUrlFromAlias(alias, {includeHost:true});
 						return prefix + "[" + text + "](" + url + ")";
 					}
 				} else {
@@ -215,8 +210,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				}
 				var page = pageService.pageMap[trimmedAlias];
 				if (page) {
-					//var url = "http://" + host + pageService.getPageUrl(page.pageId);
-					var url = "http://" + host + "/pages/" + page.pageId + "/" + convertTitleToUrlFormat(page.title);
+					var url = pageService.getPageUrl(page.pageId, {includeHost:true});
 					// Match the page title's case to the alias's case
 					if (firstAliasChar == "-") {
 						return prefix + "[" + page.title.substring(0,1).toLowerCase() + page.title.substring(1) + "](" + url + ")";
@@ -224,7 +218,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						return prefix + "[" + page.title.substring(0,1).toUpperCase() + page.title.substring(1) + "](" + url + ")";
 					}
 				} else {
-					var url = "http://" + host + "/pages/" + trimmedAlias;
+					var url = pageService.getPageUrlFromAlias(trimmedAlias, {includeHost:true});
 					return prefix + "[" + trimmedAlias + "](" + url + ")";
 				}
 			});

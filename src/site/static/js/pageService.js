@@ -130,7 +130,13 @@ app.service("pageService", function($http, $location, userService){
 	}
 
 	// Returns the url for the given page.
-	this.getPageUrl = function(pageId){
+	// options {
+	//	 includeHost: if true, include "http://" + host in the url
+	// }
+	// Track which pages we are already loading. Map url+pageAlias -> true.
+	this.getPageUrl = function(pageId, options){
+		var options = options || {};
+		var host = window.location.host;
 		var page = that.pageMap[pageId];
 		var url = "/pages/" + pageId;
 		if (page) {
@@ -156,7 +162,7 @@ app.service("pageService", function($http, $location, userService){
 				}
 			}
 			// Check if we should set the domain
-			if (page.seeGroupId != that.privateGroupId) {
+			if (page.seeGroupId && page.seeGroupId != that.privateGroupId) {
 				if (page.seeGroupId !== "0") {
 					url = that.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
 				} else {
@@ -164,8 +170,27 @@ app.service("pageService", function($http, $location, userService){
 				}
 			}
 		}
+		if (options.includeHost) {
+			url = "http://" + host + url;
+		}
 		return url;
 	};
+
+	// Returns the url for the page of the given alias.
+	// options {
+	//	 includeHost: if true, include "http://" + host in the url
+	// }
+	// Track which pages we are already loading. Map url+pageAlias -> true.
+	this.getPageUrlFromAlias = function(alias, options){
+		var options = options || {};
+		var host = window.location.host;
+		var url = "/pages/" + alias;
+		if (options.includeHost) {
+			url = "http://" + host + url;
+		}
+		return url;
+	};
+
 	this.getEditPageUrl = function(pageId){
 		return "/edit/" + pageId;
 	};

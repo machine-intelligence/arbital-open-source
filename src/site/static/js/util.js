@@ -1,5 +1,10 @@
 "use strict";
 
+// Used to escape regexp symbols in a string to make it safe for injecting into a regexp
+RegExp.escape = function(s) {
+  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+};
+
 var removeFromUrlTitleRegexpStr = /[^a-z0-9\\-]/g;
 var urlTitleRegexpStr = "[a-z0-9\\-]*";
 
