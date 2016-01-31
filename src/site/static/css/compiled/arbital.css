@@ -215,7 +215,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 1100px; }
 
 .discussion-container {
-  margin-top: 20px; }
+  margin: 20px 0; }
 
 .white-background {
   background-color: white; }

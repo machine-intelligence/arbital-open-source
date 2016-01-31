@@ -65,12 +65,13 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 			$scope.deleteSubpage = function() {
 				pageService.deletePage($scope.page.pageId, function() {
 					$scope.isDeleted = true;
-					$mdToast.show(
+					// TODO: reenable toast when we fix the bug with its positioning
+					/*$mdToast.show(
 						$mdToast.simple()
 						.textContent("Comment deleted")
 						.position("top right")
 						.hideDelay(3000)
-					);
+					);*/
 				}, function(data) {
 					$scope.addMessage("delete", "Error deleting page: " + data, "error");
 				});
