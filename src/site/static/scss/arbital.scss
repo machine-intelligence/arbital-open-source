@@ -692,6 +692,10 @@ arb-likes {
 	margin-bottom: 4vw;
 }
 
+arb-requisite-button, [arb-requisite-button] {
+	white-space: nowrap;
+}
+
 // Menu for a lens (with like, subscribe, edit, etc. buttons)
 .lens-menu {
 	padding: 5px 0;
@@ -772,9 +776,12 @@ arb-likes {
 
 // Container for requirements
 .requirements-container {
-	padding-top: 5px;
-	padding-bottom: 5px;
+	padding: 5px 10px;
 	border-bottom: silver 1px solid;
+
+	.lens-suggestion {
+		padding-top: 10px;
+	}
 }
 
 // Container for the list of page's authors

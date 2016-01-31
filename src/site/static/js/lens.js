@@ -18,6 +18,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				$scope.lensParentPage = pageService.pageMap[$scope.lensParentId];
 			}
 			$scope.isTinyScreen = !$mdMedia("gt-xs");
+			$scope.isSmallScreen = !$mdMedia("gt-sm");
 
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
 			if (!$scope.mastery) {

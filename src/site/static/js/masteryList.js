@@ -12,6 +12,8 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 			allowWants: "=",
 			// If true, recursively show requirements for each mastery
 			showRequirements: "=",
+			// If true, show the requirements on one line
+			isSpan: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
