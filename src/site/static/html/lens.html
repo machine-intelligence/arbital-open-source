@@ -1,124 +1,5 @@
 <div layout="column">
-	<!-- Lens menu -->
-	<div class="lens-menu md-primary md-hue-1"
-			ng-style="getLensMenuDivStyle()"
-			layout="row"
-			layout-align="space-around start"
-			ng-if="!isSimpleEmbed">
-		<!-- Like -->
-		<div layout="column" layout-align="start center">
-			<arb-likes class="no-right-margin"
-					page-id="{{page.pageId}}"
-					is-stretched="true"
-					is-button="true"></arb-likes>
-			<span class="md-caption" ng-bind="'Seen by ' + page.viewCount" ng-if="!isTinyScreen"></span>
-		</div>
-		
-		<!-- Subscribe -->
-		<arb-subscribe page-id="{{page.pageId}}"
-				is-stretched="!isTinyScreen"
-				show-subscriber-count="true"></arb-subscribe>
-		
-		<!-- Edit -->
-		<div layout="column" layout-align="start center">
-			<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
-					ng-class="{'md-icon-button': isTinyScreen}"
-					arb-user-check="cool">
-				<md-icon>create</md-icon>
-				<span ng-hide="isTinyScreen">Edit</span>
-			</md-button>
-			<span class="md-accent md-caption" ng-if="page.hasDraft">
-				Unpublished draft
-			</span>
-		</div>
-		
-		<!-- Link -->
-		<md-button ng-href="{{pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId}}"
-				ng-show="page.type == 'answer'">
-			<md-icon>link</md-icon>
-			<span ng-hide="isTinyScreen">Link</span>
-		</md-button>
-		
-		<!-- Show diff -->
-		<md-button ng-class="{'md-icon-button': isTinyScreen}"
-				arb-user-check="cool"
-				ng-click="toggleDiff()">
-			<md-icon>compare_arrows</md-icon>
-			<span ng-hide="showingDiff || isTinyScreen">Show diff</span>
-			<span ng-show="showingDiff && !isTinyScreen">Hide diff</span>
-			<span class="accent-dot" ng-show="page.isUpdatedPage()"></span>
-			<md-tooltip ng-if="page.isUpdatedPage()">
-				This page has been updated since the last time you saw it
-			</md-tooltip>
-		</md-button>
-		
-		<!-- Prev/Next -->
-		<div layout="row"
-				layout-align="start center"
-				ng-if="lensParentPage && (lensParentPage.nextPageId !== '0' || lensParentPage.prevPageId !== '0')">
-			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.prevPageId) +
-						'?sequence=' + lensParentPage.sequenceUrl}}"
-					ng-disabled="lensParentPage.prevPageId === '0'">
-				<md-tooltip ng-show="lensParentPage.prevPageId === '0'">No previous page</md-tooltip>
-				<md-icon>chevron_left</md-icon>
-				<span>Prev</span>
-			</md-button>
-			<md-button class="md-icon-button"
-					ng-href="/sequences/{{lensParentPage.sequenceId}}"
-					ng-if="lensParentPage.sequenceId">
-				<md-tooltip>Current sequence</md-tooltip>
-				<md-icon>book</md-icon>
-			</md-button>
-			<md-button ng-href="{{pageService.getPageUrl(lensParentPage.nextPageId) +
-						'?sequence=' + lensParentPage.sequenceUrl}}"
-					ng-disabled="lensParentPage.nextPageId === '0'"
-					ng-if="lensParentPage.nextPageId !== '0' || !lensParentPage.sequenceUrl">
-				<md-tooltip ng-show="lensParentPage.nextPageId === '0'">No next page</md-tooltip>
-				<span>Next</span>
-				<md-icon>chevron_right</md-icon>
-			</md-button>
-			<span class="md-primary md-body-2" ng-if="lensParentPage.nextPageId === '0' && lensParentPage.sequenceUrl">
-				DONE!
-			</span>
-		</div>
-	</div>
-
-	<!-- Requirements -->
-	<div class="requirements-container dynamic-hor-padding"
-			ng-if="!isSimpleEmbed && showRequirementsPanel">
-		<!-- Lens suggestion -->
-		<p ng-if="simplerLens">
-			There is a
-			<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}"
-					ng-bind="'simpler lens, &quot;' + simplerLens.title + '&quot;, '"></a>
-			<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
-			<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
-				that relies on requisites you already have.
-			</span>
-			<span ng-if="simplerLens.requirementIds.length > 0 && !meetsAllRequirements(simplerLens.pageId)">
-				that relies on:
-				<span ng-repeat="(index, reqId) in simplerLens.requirementIds">
-					<span ng-show="index > 0">,</span>
-					<arb-page-title page-id="{{reqId}}" is-link="true"></arb-page-title>
-				</span>
-			</span>
-		</p>
-
-		<span class="md-subhead" ng-class="{'md-accent': !meetsAllRequirements()}">
-			<md-icon>assignment</md-icon>
-			This version relies on:
-		</span>
-		<div arb-mastery-list
-				ids-source="page.requirementIds"></div>
-
-		<!-- Mark as done button -->
-		<md-button ng-click="toggleRequirements()"
-				ng-if="page.requirementIds.length > 1">
-			<md-icon ng-show="meetsAllRequirements()">clear</md-icon>
-			<md-icon ng-hide="meetsAllRequirements()">done_all</md-icon>
-			<span ng-bind="meetsAllRequirements() ? 'Nevermind, I don\'t know these' : 'I already know these'"></span>
-		</md-button>
-	</div>
+	<div ng-include="'static/html/lensToolbar.html'"></div>
 
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
@@ -182,6 +63,8 @@
 			</md-button>
 		</div>
 	</div>
+
+	<div ng-include="'static/html/lensToolbar.html'" ng-if="page.textLength > 1000"></div>
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->
 	<div class="inline-comments-div" ng-show="lensIsVisible && !isSimpleEmbed">

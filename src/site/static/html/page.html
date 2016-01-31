@@ -4,6 +4,16 @@
 			layout="column"
 			flex-order="1"
 			flex>
+		<!-- Hash anchor -->
+		<a id="page-{{page.pageId}}"></a>
+
+		<!-- Page title -->
+		<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}">
+			<arb-page-title page-id="{{page.pageId}}"
+					show-type="true"
+					custom-page-title="getPageTitle()"></arb-page-title>
+		</h1>
+
 		<!-- Parents -->
 		<div class="page-list-span"
 				flex-order="{{isTinyScreen ? 1 : 0}}"
@@ -14,16 +24,6 @@
 				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
-
-		<!-- Hash anchor -->
-		<a id="page-{{page.pageId}}"></a>
-
-		<!-- Page title -->
-		<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}">
-			<arb-page-title page-id="{{page.pageId}}"
-					show-type="true"
-					custom-page-title="getPageTitle()"></arb-page-title>
-		</h1>
 
 		<!-- Tags -->
 		<div class="page-list-span"
