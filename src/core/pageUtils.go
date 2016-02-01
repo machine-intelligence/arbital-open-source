@@ -135,7 +135,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// the alias, and then 0 or more groups that capture everything after
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)(" + AliasRegexpStr + ")(?:/" + UrlTitleRegexpStr + ")?"),
+		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)(" + AliasRegexpStr + ")"),
 		// Find ids and aliases using [alias optional text] syntax.
 		regexp.MustCompile(SpacePrefix + "(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
@@ -215,7 +215,7 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 		}
 	}
 	// Find directly encoded urls
-	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/(" + AliasRegexpStr + ")(?:/" + UrlTitleRegexpStr + ")?"))
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/(" + AliasRegexpStr + ")"))
 	// Find ids and aliases using [alias optional text] syntax.
 	extractLinks(regexp.MustCompile("\\[\\-?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](alias) syntax.
