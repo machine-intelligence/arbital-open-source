@@ -140,13 +140,14 @@ app.service("pageService", function($http, $location, userService){
 		var page = that.pageMap[pageId];
 		var url = "/pages/" + pageId;
 		if (page) {
-			url = "/pages/" + pageId + "/" + convertTitleToUrlFormat(page.title);
+			pageId = page.pageId;
+			url = "/pages/" + pageId + "?title=" + convertTitleToUrlFormat(page.title);
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/pages/" + parent.pageId + "/" + convertTitleToUrlFormat(page.title) + "?lens=" + pageId + "#" + $location.hash();
+						url = "/pages/" + parent.pageId + "?title=" + convertTitleToUrlFormat(page.title) + "?lens=" + pageId + "#" + $location.hash();
 						break;
 					}
 				}
@@ -156,13 +157,13 @@ app.service("pageService", function($http, $location, userService){
 					if (parent && (
 								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
 								(page.isAnswer() && parent.isQuestion()))) {
-						url = "/pages/" + parent.pageId + "/" + convertTitleToUrlFormat(page.title) + "#subpage-" + pageId;
+						url = "/pages/" + parent.pageId + "?title=" + convertTitleToUrlFormat(page.title) + "#subpage-" + pageId;
 						break;
 					}
 				}
 			}
 			// Check if we should set the domain
-			if (page.seeGroupId && page.seeGroupId != that.privateGroupId) {
+			if (page.seeGroupId != that.privateGroupId) {
 				if (page.seeGroupId !== "0") {
 					url = that.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
 				} else {
@@ -170,21 +171,6 @@ app.service("pageService", function($http, $location, userService){
 				}
 			}
 		}
-		if (options.includeHost) {
-			url = "http://" + host + url;
-		}
-		return url;
-	};
-
-	// Returns the url for the page of the given alias.
-	// options {
-	//	 includeHost: if true, include "http://" + host in the url
-	// }
-	// Track which pages we are already loading. Map url+pageAlias -> true.
-	this.getPageUrlFromAlias = function(alias, options){
-		var options = options || {};
-		var host = window.location.host;
-		var url = "/pages/" + alias;
 		if (options.includeHost) {
 			url = "http://" + host + url;
 		}
