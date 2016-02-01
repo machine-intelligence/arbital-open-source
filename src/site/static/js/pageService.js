@@ -139,6 +139,7 @@ app.service("pageService", function($http, $location, userService){
 		var host = window.location.host;
 		var page = that.pageMap[pageId];
 		var url = "/pages/" + pageId;
+		var alreadyIncludedHost = false;
 		if (page) {
 			pageId = page.pageId;
 			url = "/pages/" + pageId + "?title=" + convertTitleToUrlFormat(page.title);
@@ -169,9 +170,10 @@ app.service("pageService", function($http, $location, userService){
 				} else {
 					url = that.getDomainUrl() + url;
 				}
+				alreadyIncludedHost = true;
 			}
 		}
-		if (options.includeHost) {
+		if (options.includeHost && !alreadyIncludedHost) {
 			url = "http://" + host + url;
 		}
 		return url;
