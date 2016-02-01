@@ -673,6 +673,7 @@ app.service("pageService", function($http, $location, userService){
 		}
 
 		parent.commentIds.push(commentId);
+		parent.subpageIds.push(commentId);
 		$location.hash("subpage-" + commentId);
 	};
 
