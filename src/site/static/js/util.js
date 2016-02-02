@@ -7,7 +7,7 @@ RegExp.escape = function(s) {
 
 var removeFromUrlTitleRegexpStr = /[^a-z0-9\\-]/g;
 var urlTitleRegexpStr = "[a-z0-9\\-]*";
-var subdomainRegexpStr = "[a-z0-9]+\\.";
+var subdomainRegexpStr = "[A-Za-z0-9]+\\.";
 
 var convertTitleToUrlFormat = function(title) {
 	return title.toLowerCase().replace(/ /g, "-").replace(removeFromUrlTitleRegexpStr, '');
