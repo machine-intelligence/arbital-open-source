@@ -7,9 +7,38 @@ RegExp.escape = function(s) {
 
 var removeFromUrlTitleRegexpStr = /[^a-z0-9\\-]/g;
 var urlTitleRegexpStr = "[a-z0-9\\-]*";
+var subdomainRegexpStr = "[a-z0-9]+\\.";
 
 var convertTitleToUrlFormat = function(title) {
 	return title.toLowerCase().replace(/ /g, "-").replace(removeFromUrlTitleRegexpStr, '');
+};
+
+// Return a regex that handles all 4 possible cases for subdomains in the URL
+var getHostMatchRegex = function(host) {
+	// host can be either arbital.com or pagesubdomain.arbital.com, but we currently don't have a way to tell which from here
+	// Also, when testing locally, instead of arbital.com, the url can be either localhost:8012 or a specific IP address
+	// We want to match arbital.com and linksubdomain.arbital.com
+	// So we need one variable with the host as it is, and one variable with the host with everything up to the first . removed
+	var hostWithoutSubdomain = host;
+	var periodIndex = hostWithoutSubdomain.indexOf(".");
+	if (periodIndex > 0) {
+		hostWithoutSubdomain = hostWithoutSubdomain.substring(periodIndex+1);
+	}
+	// We will be using these variables as part of the regex, which requires escaping the . and :
+	host = host.replace(/\./g, "\\.");
+	hostWithoutSubdomain = hostWithoutSubdomain.replace(/\./g, "\\.");
+	host = host.replace(/\:/g, "\\:");
+	hostWithoutSubdomain = hostWithoutSubdomain.replace(/\:/g, "\\:");
+
+	// Now compile the regex to handle all 4 possible cases
+	var regexString = "(?:" +
+		"(?:" + host + ")|" + // arbital.com or pagesubdomain.arbital.com
+		"(?:" + hostWithoutSubdomain + ")|" + // com or arbital.com
+		"(?:" + subdomainRegexpStr + host + ")|" + // linksubdomain.arbital.com or linksubdomain.pagesubdomain.arbital.com
+		"(?:" + subdomainRegexpStr + hostWithoutSubdomain + ")" + // linksubdomain.com or linksubdomain.arbital.com
+		")";
+
+	return regexString;
 };
 
 // Extend jQuery with a function to change element's type

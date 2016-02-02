@@ -263,7 +263,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// Setup attributes for page links that are within our domain.
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
-			window.location.host + // match the url host part
+			getHostMatchRegex(window.location.host) + // match the url host part
 			"\/(?:pages|edit)\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
