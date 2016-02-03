@@ -14,11 +14,6 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 			$scope.page.relatedIds.sort(pageService.getChildSortFunc("likes"));
 			$scope.page.answerIds.sort(pageService.getChildSortFunc("likes"));
 
-			var searchPageTitle = $location.search().title;
-			if (searchPageTitle != $scope.page.title) {
-				$location.search("title", convertTitleToUrlFormat($scope.page.title));
-			}
-
 			// Create the edit section for a new answer
 			var createNewAnswer = function() {
 				$scope.newAnswerId = undefined;

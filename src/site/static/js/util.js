@@ -5,13 +5,7 @@ RegExp.escape = function(s) {
   return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 };
 
-var removeFromUrlTitleRegexpStr = /[^a-z0-9\\-]/g;
-var urlTitleRegexpStr = "[a-z0-9\\-]*";
 var subdomainRegexpStr = "[A-Za-z0-9]+\\.";
-
-var convertTitleToUrlFormat = function(title) {
-	return title.toLowerCase().replace(/ /g, "-").replace(removeFromUrlTitleRegexpStr, '');
-};
 
 // Return a regex that handles all 4 possible cases for subdomains in the URL
 var getHostMatchRegex = function(host) {
