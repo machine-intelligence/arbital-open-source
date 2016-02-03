@@ -1,15 +1,9 @@
 "use strict";
 
-// Used to escape regexp symbols in a string to make it safe for injecting into a regexp
-RegExp.escape = function(s) {
-  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-};
-
 var notEscaped = "(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))";
 var noParen = "(?=$|[^(])";
 var nakedAliasMatch = "\\-?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*";
 var aliasMatch = "(" + nakedAliasMatch + ")";
-var pageUrlMatch = "(http://" + RegExp.escape(window.location.host) + "/pages/)" + aliasMatch;
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
 // [vote: alias]
@@ -25,10 +19,6 @@ var simpleLinkRegexp = new RegExp(notEscaped +
 var complexLinkRegexp = new RegExp(notEscaped + 
 		"\\[([^\\]]+?)\\]" + // match [Text]
 		"\\(" + aliasMatch + "\\)", "g"); // match (Alias)
-// [text](url)
-var urlLinkRegexp = new RegExp(notEscaped + 
-		"\\[([^\\]]+?)\\]" + // match [Text]
-		"\\(" + pageUrlMatch + "\\)", "g"); // match (Url)
 // [@alias]
 var atAliasRegexp = new RegExp(notEscaped + 
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");
@@ -168,7 +158,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// Process [vote:alias] spans.
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(voteEmbedRegexp, function (whole, prefix, alias) {
-				return prefix + "[Embedded " + alias + " vote. ](http://" + host + "/pages/" + alias + "/?embedVote=1)";
+				return prefix + "[Embedded " + alias + " vote. ](" + pageService.getPageUrl(alias, {includeHost:true}) + "/?embedVote=1)";
 			});
 		});
 
@@ -193,10 +183,10 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				if (matches && matches[0] == alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						var url = "http://" + host + "/pages/" + page.pageId;
+						var url = pageService.getPageUrl(page.pageId, {includeHost:true});
 						return prefix + "[" + text + "](" + url + ")";
 					} else {
-						var url = "http://" + host + "/pages/" + alias;
+						var url = pageService.getPageUrl(alias, {includeHost:true});
 						return prefix + "[" + text + "](" + url + ")";
 					}
 				} else {
@@ -215,7 +205,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				}
 				var page = pageService.pageMap[trimmedAlias];
 				if (page) {
-					var url = "http://" + host + "/pages/" + page.pageId;
+					var url = pageService.getPageUrl(page.pageId, {includeHost:true});
 					// Match the page title's case to the alias's case
 					if (firstAliasChar == "-") {
 						return prefix + "[" + page.title.substring(0,1).toLowerCase() + page.title.substring(1) + "](" + url + ")";
@@ -223,7 +213,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						return prefix + "[" + page.title.substring(0,1).toUpperCase() + page.title.substring(1) + "](" + url + ")";
 					}
 				} else {
-					var url = "http://" + host + "/pages/" + trimmedAlias;
+					var url = pageService.getPageUrl(trimmedAlias, {includeHost:true});
 					return prefix + "[" + trimmedAlias + "](" + url + ")";
 				}
 			});
@@ -273,7 +263,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// Setup attributes for page links that are within our domain.
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
-			window.location.host + // match the url host part
+			getHostMatchRegex(window.location.host) + // match the url host part
 			"\/(?:pages|edit)\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff

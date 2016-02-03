@@ -326,7 +326,8 @@ describe('directives', function() {
 		var testPage2 = {
 			pageId:2,
 			alias:"existentPageAlias",
-			title:"existentPageTitle"
+			title:"existentPageTitle",
+			seeGroupId:"0"
 		};
 		$rootScope.pageService.addPageToMap(testPage2);
 

@@ -183,12 +183,6 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						}
 					}
 					return whole;
-				}).replace(urlLinkRegexp, function(whole, prefix, text, url, alias) {
-					var page = pageService.pageMap[alias];
-					if (page) {
-						return prefix + "[" + text + "](" + url + page.alias + ")";
-					}
-					return whole;
 				}).replace(atAliasRegexp, function(whole, prefix, alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {

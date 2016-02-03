@@ -397,3 +397,16 @@ func CorrectPagePairType(pagePairType string) (string, error) {
 	}
 	return pagePairType, nil
 }
+
+func ConvertTitleToUrlFormat(title string) string {
+	reg, err := regexp.Compile(RemoveFromUrlTitleRegexpStr)
+	if err != nil {
+		return ""
+	}
+
+	title = strings.ToLower(title)
+	title = strings.Replace(title, " ", "-", -1)
+	title = reg.ReplaceAllString(title, "")
+
+	return title
+}

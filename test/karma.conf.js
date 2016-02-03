@@ -53,6 +53,7 @@ module.exports = function(config) {
 			'../../bower_components/angular-resource/angular-resource.js',
 			'../../bower_components/angular-sanitize/angular-sanitize.js',
 
+			'../../src/site/static/js/util.js',
 			'../../src/site/static/**/*.js',
 			'../../src/**/*.html',
 			'../../test/unit/**/*.js'
