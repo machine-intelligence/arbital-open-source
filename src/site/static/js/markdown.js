@@ -92,9 +92,6 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function () {
 				var result = [];
-				if (pageId) {
-					//result.push("---\n\n**Multiple-choice:** ");
-				}
 				// Process captured groups
 				for (var n = 1; n < arguments.length; n++) {
 					var arg = arguments[n];
@@ -112,10 +109,22 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						result.push(" - " + arg);
 					}
 				}
-				if (pageId) {
-					//result.push("\n---");
-				}
 				return "<arb-multiple-choice>" + runBlockGamut(result.join("")) + "\n\n</arb-multiple-choice>";
+			});
+		});
+
+		// Process [checkbox: text
+		// knows: [alias1],[alias2]...
+		// wants: [alias1],[alias2]...
+		// ] blocks.
+		var checkboxBlockRegexp = new RegExp("^\\[checkbox: ?([^\n]+?)\n" +
+				"(knows: ?[^\n]+?\n)?" + 
+				"(wants: ?[^\n]+?\n)?" +
+				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(checkboxBlockRegexp, function (whole, text, knows, wants) {
+				var blockText = text + "\n\n" + (knows ? "- " + knows + "\n" : "") + (wants ? "- " + wants : "");
+				return "<arb-checkbox>" + runBlockGamut(blockText) + "\n\n</arb-checkbox>";
 			});
 		});
 
@@ -343,9 +352,12 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			}
 		});
 
-		$pageText.find("arb-multiple-choice").each(function(index) {
-			$(this).attr("index", index);
-			//$compile($(this))(scope);
+		var index = 0;
+		$pageText.find("arb-multiple-choice").each(function() {
+			$(this).attr("index", index++);
+		});
+		$pageText.find("arb-checkbox").each(function() {
+			$(this).attr("index", index++);
 		});
 		// NOTE: have to compile children individually because otherwise there is a bug
 		// with intrasite popovers in preview.
