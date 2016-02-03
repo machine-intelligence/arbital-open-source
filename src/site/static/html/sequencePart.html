@@ -5,7 +5,7 @@
 </div>
 <span class="md-warn" ng-if="part.taughtById === '0'">
 	Oops, there is no page that teaches 
-	<arb-page-title page-id="{{part.pageId}}" is-link="true"></arb-page-title>
+	<span arb-requisite-button requisite-id="{{part.pageId}}" allow-wants="true"></span>
 </span>
 <div class="sequence-requirements">
 	<div arb-sequence-part part="requirement" ng-repeat="requirement in part.requirements"></div>

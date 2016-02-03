@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -116,6 +117,35 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		errorMessage, err := core.NewUserGroup(tx, u.Id, fullName, alias)
 		if errorMessage != "" {
 			return errorMessage, err
+		}
+
+		// Process user's cookies
+		masteryMap := make(map[string]*core.Mastery)
+		// Load masteryMap from the cookie, if present
+		cookie, err := params.R.Cookie("masteryMap")
+		if err == nil {
+			jsonStr, _ := url.QueryUnescape(cookie.Value)
+			err = json.Unmarshal([]byte(jsonStr), &masteryMap)
+			if err == nil {
+				masteriesData := &updateMasteries{
+					RemoveMasteries: make([]string, 0),
+					WantsMasteries:  make([]string, 0),
+					AddMasteries:    make([]string, 0),
+				}
+				for masteryId, mastery := range masteryMap {
+					if mastery.Has {
+						masteriesData.AddMasteries = append(masteriesData.AddMasteries, masteryId)
+					} else if mastery.Wants {
+						masteriesData.WantsMasteries = append(masteriesData.WantsMasteries, masteryId)
+					} else {
+						masteriesData.RemoveMasteries = append(masteriesData.RemoveMasteries, masteryId)
+					}
+				}
+				// This is a "nice to have", so we don't check for errors
+				updateMasteriesInternalHandlerFunc(params, masteriesData)
+			} else {
+				params.C.Warningf("Couldn't unmarshal masteryMap cookie: %v", err)
+			}
 		}
 
 		// Signup for that page

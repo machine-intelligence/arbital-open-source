@@ -18,22 +18,26 @@ type updateMasteries struct {
 
 var updateMasteriesHandler = siteHandler{
 	URI:         "/updateMasteries/",
-	HandlerFunc: updateMasteriesHanlderFunc,
+	HandlerFunc: updateMasteriesHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
-func updateMasteriesHanlderFunc(params *pages.HandlerParams) *pages.Result {
-	db := params.DB
-	u := params.U
-
+func updateMasteriesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data updateMasteries
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
+
+	return updateMasteriesInternalHandlerFunc(params, &data)
+}
+
+func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updateMasteries) *pages.Result {
+	db := params.DB
+	u := params.U
 
 	allMasteries := append(append(data.AddMasteries, data.RemoveMasteries...), data.WantsMasteries...)
 	aliasMap, err := core.LoadAliasToPageIdMap(db, allMasteries)

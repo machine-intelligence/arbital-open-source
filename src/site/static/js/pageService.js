@@ -68,16 +68,46 @@ app.service("pageService", function($http, $location, userService){
 			}
 		}
 
-		// Send POST request.
-		var data = {
-			removeMasteries: delMasteries,
-			wantsMasteries: wantsMasteries,
-			addMasteries: addMasteries,
-		};
-		$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
-		.error(function(data, status){
-			console.error("Failed to change masteries:"); console.log(data); console.log(status);
-		});
+		if (userService.user.isLoggedIn) {
+			// Send POST request.
+			var data = {
+				removeMasteries: delMasteries,
+				wantsMasteries: wantsMasteries,
+				addMasteries: addMasteries,
+			};
+			$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
+			.error(function(data, status){
+				console.error("Failed to change masteries:"); console.log(data); console.log(status);
+			});
+		} else {
+			// For non-logged in users track masteries via a cookie
+			for (var n = 0; n < delMasteries.length; n++) {
+				var mastery = this.masteryMap[delMasteries[n]];
+				if (mastery) {
+					mastery.wants = false;
+					mastery.has = false;
+				}
+			}
+			for (var n = 0; n < wantsMasteries.length; n++) {
+				var mastery = this.masteryMap[wantsMasteries[n]];
+				if (!mastery) {
+					mastery = {pageId: masteryId};
+					this.masteryMap[masteryId] = mastery;
+				}
+				mastery.wants = true;
+				mastery.has = false;
+			}
+			for (var n = 0; n < addMasteries.length; n++) {
+				var mastery = this.masteryMap[addMasteries[n]];
+				if (!mastery) {
+					mastery = {pageId: masteryId};
+					this.masteryMap[masteryId] = mastery;
+				}
+				mastery.wants = false;
+				mastery.has = true;
+			}
+			Cookies.set("masteryMap", this.masteryMap, {expires: 365});
+		}
 	};
 
 	this.addMasteryToMap = function(newMastery) {
@@ -111,6 +141,16 @@ app.service("pageService", function($http, $location, userService){
 		var masteryData = data["masteries"];
 		for (var id in masteryData) {
 			this.addMasteryToMap(masteryData[id]);
+		}
+
+		if (data.resetEverything && !userService.user.isLoggedIn) {
+			// Load masteries from cookie
+			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
+			for (var id in cookieMasteryMap) {
+				this.addMasteryToMap(cookieMasteryMap[id]);
+			}
+		} else if (data.resetEverything && userService.user.isLoggedIn) {
+			Cookies.remove("masteryMap");
 		}
 
 		var pageData = data["pages"];

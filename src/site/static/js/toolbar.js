@@ -31,6 +31,9 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 		    $mdSidenav("right").toggle();
 		  };
 
+			$scope.logout = function() {
+			};
+
 			// Hide toolbar in the edit screen
 			$scope.$on("$locationChangeSuccess", function () {
 				$scope.hide = $location.path().indexOf("/edit") === 0;

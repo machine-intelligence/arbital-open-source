@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -43,18 +44,34 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Need a valid pageId", nil)
 	}
 
+	masteryMap := make(map[string]*core.Mastery)
+	// Load masteryMap from the cookie, if present
+	cookie, err := params.R.Cookie("masteryMap")
+	if err == nil {
+		jsonStr, _ := url.QueryUnescape(cookie.Value)
+		err = json.Unmarshal([]byte(jsonStr), &masteryMap)
+		if err != nil {
+			params.C.Warningf("Couldn't unmarshal masteryMap cookie: %v", err)
+		}
+	}
+
 	returnData := newHandlerData(true)
 	returnData.User = u
 
 	// Check if the user already has this requirement
 	hasMastery := false
-	row := database.NewQuery(`
+	if mastery, ok := masteryMap[fmt.Sprintf("%d", data.PageId)]; ok {
+		hasMastery = mastery.Has
+	}
+	if !hasMastery {
+		row := database.NewQuery(`
 		SELECT ifnull(max(has),false)
 		FROM userMasteryPairs
 		WHERE userId=?`, u.Id).Add(`AND masteryId=?`, data.PageId).ToStatement(db).QueryRow()
-	_, err = row.Scan(&hasMastery)
-	if err != nil {
-		return pages.HandlerErrorFail("Error while checking if already knows", err)
+		_, err = row.Scan(&hasMastery)
+		if err != nil {
+			return pages.HandlerErrorFail("Error while checking if already knows", err)
+		}
 	}
 
 	// Track which requirements we need to process
@@ -118,7 +135,11 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			if has.Valid && has.Bool {
+			hasMastery = has.Valid && has.Bool
+			if mastery, ok := masteryMap[fmt.Sprintf("%d", parentId)]; ok {
+				hasMastery = hasMastery || mastery.Has
+			}
+			if hasMastery {
 				return nil
 			}
 
