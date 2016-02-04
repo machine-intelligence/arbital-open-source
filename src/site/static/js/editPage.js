@@ -74,7 +74,6 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			};
 
 			// Lens sort listeners (using ng-sortable library)
-			$scope.page.lensIds.unshift($scope.page.pageId);
 			$scope.page.lensIds.sort(function(a, b) {
 				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
 			});

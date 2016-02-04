@@ -17,17 +17,37 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			$scope.isTinyScreen = !$mdMedia("gt-sm");
 			$scope.isSingleColumn = !$mdMedia("gt-md");
 
-			// Add the primary page as the first lens.
-			$scope.page.lensIds.unshift($scope.page.pageId);
+			// Check if the user has all the requisites for the given lens
+			$scope.hasAllReqs = function(lensId) {
+				var reqs = pageService.pageMap[lensId].requirementIds;
+				for (var n = 0; n < reqs.length; n++) {
+					if (!pageService.hasMastery(reqs[n])) {
+						return false;
+					}
+				}
+				return true;
+			};
+
+			// Sort lenses
 			$scope.page.lensIds.sort(function(a, b) {
 				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
 			});
+			$scope.page.lensIds.push($scope.page.pageId);
 
 			// Determine which lens is selected
 			var computeSelectedLens = function() {
-				$scope.selectedLens = $scope.page;
 				if ($location.search().lens) {
+					// Lens is explicitly specified in the URL
 					$scope.selectedLens = pageService.pageMap[$location.search().lens];
+				} else {
+					// Select the hardest lens for which the user has met all requirements
+					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[0]];
+					for (var n = 1; n < $scope.page.lensIds.length; n++) {
+						var lensId = $scope.page.lensIds[n];
+						if ($scope.hasAllReqs(lensId)) {
+							$scope.selectedLens = pageService.pageMap[lensId];
+						}
+					}
 				}
 				$scope.selectedLensIndex = $scope.page.lensIds.indexOf($scope.selectedLens.pageId);
 			};
@@ -83,24 +103,11 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			$scope.isSelected = function() {
 				return $location.hash() === "subpage-" + $scope.page.pageId;
 			};
-
-			// Check if the user has all the requisites for the given lens
-			$scope.hasAllReqs = function(lensId) {
-				var reqs = pageService.pageMap[lensId].requirementIds;
-				for (var n = 0; n < reqs.length; n++) {
-					if (!pageService.hasMastery(reqs[n])) {
-						return false;
-					}
-				}
-				return true;
-			};
 		},
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
 			var switchToLens = function(lensId) {
-				if (lensId === scope.page.pageId) {
-					$location.search("lens", undefined);
-				} else {
+				if (lensId !== scope.page.pageId || $location.search().lens) {
 					$location.search("lens", lensId);
 				}
 				scope.selectedLens = pageService.pageMap[lensId];
