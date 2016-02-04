@@ -15,7 +15,7 @@
 	<!-- Subscribe -->
 	<arb-subscribe page-id="{{page.pageId}}"
 			is-stretched="!isTinyScreen"
-			show-subscriber-count="true"></arb-subscribe>
+			show-subscriber-count="!isTinyScreen"></arb-subscribe>
 	
 	<!-- Edit -->
 	<div layout="column" layout-align="start center">
@@ -45,7 +45,7 @@
 		<span ng-hide="showingDiff || isTinyScreen">Show diff</span>
 		<span ng-show="showingDiff && !isTinyScreen">Hide diff</span>
 		<span class="accent-dot" ng-show="page.isUpdatedPage()"></span>
-		<md-tooltip ng-if="page.isUpdatedPage()">
+		<md-tooltip md-delay="500" ng-if="page.isUpdatedPage()">
 			This page has been updated since the last time you saw it
 		</md-tooltip>
 	</md-button>
@@ -57,21 +57,21 @@
 		<md-button ng-href="{{pageService.getPageUrl(lensParentPage.prevPageId) +
 					'?sequence=' + lensParentPage.sequenceUrl}}"
 				ng-disabled="lensParentPage.prevPageId === '0'">
-			<md-tooltip ng-show="lensParentPage.prevPageId === '0'">No previous page</md-tooltip>
+			<md-tooltip md-delay="500" ng-show="lensParentPage.prevPageId === '0'">No previous page</md-tooltip>
 			<md-icon>chevron_left</md-icon>
 			<span>Prev</span>
 		</md-button>
 		<md-button class="md-icon-button"
 				ng-href="/sequences/{{lensParentPage.sequenceId}}"
 				ng-if="lensParentPage.sequenceId">
-			<md-tooltip>Current sequence</md-tooltip>
+			<md-tooltip md-delay="500">Current sequence</md-tooltip>
 			<md-icon>book</md-icon>
 		</md-button>
 		<md-button ng-href="{{pageService.getPageUrl(lensParentPage.nextPageId) +
 					'?sequence=' + lensParentPage.sequenceUrl}}"
 				ng-disabled="lensParentPage.nextPageId === '0'"
 				ng-if="lensParentPage.nextPageId !== '0' || !lensParentPage.sequenceUrl">
-			<md-tooltip ng-show="lensParentPage.nextPageId === '0'">No next page</md-tooltip>
+			<md-tooltip md-delay="500" ng-show="lensParentPage.nextPageId === '0'">No next page</md-tooltip>
 			<span>Next</span>
 			<md-icon>chevron_right</md-icon>
 		</md-button>

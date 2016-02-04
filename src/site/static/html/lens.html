@@ -3,29 +3,30 @@
 
 	<!-- Requirements -->
 	<div class="requirements-container"
-			layout="column"
-			layout-gt-sm="row"
+			layout-gt-sm="column"
 			ng-if="!isSimpleEmbed && showRequirementsPanel">
 		<!-- Lens suggestion -->
-		<div class="lens-suggestion" ng-if="simplerLens" flex="35">
-			Don't understand this lens? Try the 
-			<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}"
-					ng-bind="'&quot;' + simplerLens.title + '&quot;'"></a> one.
-			<!--<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
-			<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
-				that relies on requisites you already have.
-			</span>
-			<span ng-if="simplerLens.requirementIds.length > 0 && !meetsAllRequirements(simplerLens.pageId)">
-				that relies on:
-				<span ng-repeat="(index, reqId) in simplerLens.requirementIds">
-					<span ng-show="index > 0">,</span>
-					<arb-page-title page-id="{{reqId}}" is-link="true"></arb-page-title>
+		<div class="lens-suggestion" flex-gt-sm="35">
+			<div ng-if="simplerLens">
+				Don't understand this lens? Try the 
+				<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}"
+						ng-bind="'&quot;' + simplerLens.title + '&quot;'"></a> one.
+				<!--<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
+				<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
+					that relies on requisites you already have.
 				</span>
-			</span>-->
+				<span ng-if="simplerLens.requirementIds.length > 0 && !meetsAllRequirements(simplerLens.pageId)">
+					that relies on:
+					<span ng-repeat="(index, reqId) in simplerLens.requirementIds">
+						<span ng-show="index > 0">,</span>
+						<arb-page-title page-id="{{reqId}}" is-link="true"></arb-page-title>
+					</span>
+				</span>-->
+			</div>
 		</div>
 	
-		<div flex="5"></div>
-		<div ng-class="{'right-text': !isSmallScreen}" flex="60">
+		<div flex-gt-sm="5"></div>
+		<div ng-class="{'right-text': !isSmallScreen}" flex-gt-sm="60">
 			<span class="md-subhead" ng-class="{'md-accent': !meetsAllRequirements()}">
 				<md-icon>assignment</md-icon>
 				This lens relies on:
