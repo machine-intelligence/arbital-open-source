@@ -48,7 +48,9 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if data.ParentId <= 0 || data.ChildId <= 0 {
 		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", nil)
 	}
-	if data.ParentId == data.ChildId && data.Type != core.SubjectPagePairType {
+	if data.ParentId == data.ChildId &&
+		data.Type != core.SubjectPagePairType &&
+		data.Type != core.RequirementPagePairType {
 		return pages.HandlerBadRequestFail("ParentId equals ChildId", nil)
 	}
 	var err error
