@@ -178,17 +178,17 @@ app.service("pageService", function($http, $location, userService){
 		var options = options || {};
 		var host = window.location.host;
 		var page = that.pageMap[pageId];
-		var url = "/pages/" + pageId;
+		var url = "/p/" + pageId;
 		var alreadyIncludedHost = false;
 		if (page) {
 			pageId = page.pageId;
-			url = "/pages/" + pageId;
+			url = "/p/" + pageId;
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/pages/" + parent.pageId + "?lens=" + pageId + "#" + $location.hash();
+						url = "/p/" + parent.pageId + "?lens=" + pageId + "#" + $location.hash();
 						break;
 					}
 				}
@@ -198,7 +198,7 @@ app.service("pageService", function($http, $location, userService){
 					if (parent && (
 								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
 								(page.isAnswer() && parent.isQuestion()))) {
-						url = "/pages/" + parent.pageId + "#subpage-" + pageId;
+						url = "/p/" + parent.pageId + "#subpage-" + pageId;
 						break;
 					}
 				}
@@ -220,7 +220,7 @@ app.service("pageService", function($http, $location, userService){
 	};
 
 	this.getEditPageUrl = function(pageId){
-		return "/edit/" + pageId;
+		return "/e/" + pageId;
 	};
 
 	// Get a domain url (with optional subdomain)

@@ -80,6 +80,8 @@ func fixText(db *database.DB, rows *database.Rows) error {
 		result = strings.Replace(result, "http://zanaduu3.appspot.com/pages/", "", -1)
 		//result = strings.Replace(result, "http://arbital.com/edit/", "", -1)
 		//result = strings.Replace(result, "http://arbital.com/pages/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/e/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/p/", "", -1)
 		db.C.Debugf("submatch: %v", submatch)
 		db.C.Debugf("result  : %v", result)
 		return result

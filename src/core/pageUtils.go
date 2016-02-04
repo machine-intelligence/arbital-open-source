@@ -135,7 +135,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// the alias, and then 0 or more groups that capture everything after
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)(" + AliasRegexpStr + ")"),
+		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/p/)(" + AliasRegexpStr + ")"),
 		// Find ids and aliases using [alias optional text] syntax.
 		regexp.MustCompile(SpacePrefix + "(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
@@ -215,7 +215,7 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 		}
 	}
 	// Find directly encoded urls
-	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/(" + AliasRegexpStr + ")"))
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/p/(" + AliasRegexpStr + ")"))
 	// Find ids and aliases using [alias optional text] syntax.
 	extractLinks(regexp.MustCompile("\\[\\-?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](alias) syntax.
@@ -301,7 +301,7 @@ func ExtractTodoCount(text string) int {
 
 // GetPageUrl returns the domain relative url for accessing the given page.
 func GetPageUrl(pageId int64) string {
-	return fmt.Sprintf("/pages/%d", pageId)
+	return fmt.Sprintf("/p/%d", pageId)
 }
 
 // GetPageFullUrl returns the full url for accessing the given page.
@@ -310,12 +310,12 @@ func GetPageFullUrl(subdomain string, pageId int64) string {
 		subdomain += "."
 	}
 	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
-	return fmt.Sprintf("http://%s%s/pages/%d", subdomain, domain, pageId)
+	return fmt.Sprintf("http://%s%s/p/%d", subdomain, domain, pageId)
 }
 
 // GetEditPageUrl returns the domain relative url for editing the given page.
 func GetEditPageUrl(pageId int64) string {
-	return fmt.Sprintf("/edit/%d", pageId)
+	return fmt.Sprintf("/e/%d", pageId)
 }
 
 // GetEditPageFullUrl returns the full url for editing the given page.
@@ -324,7 +324,7 @@ func GetEditPageFullUrl(subdomain string, pageId int64) string {
 		subdomain += "."
 	}
 	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
-	return fmt.Sprintf("http://%s%s/edit/%d", subdomain, domain, pageId)
+	return fmt.Sprintf("http://%s%s/e/%d", subdomain, domain, pageId)
 }
 
 // GetNewPageUrl returns the domain relative url for creating a page with a set alias.
@@ -332,7 +332,7 @@ func GetNewPageUrl(alias string) string {
 	if alias != "" {
 		alias = fmt.Sprintf("?alias=%s", alias)
 	}
-	return fmt.Sprintf("/edit/%s", alias)
+	return fmt.Sprintf("/e/%s", alias)
 }
 
 // GetEditLevel checks if the user can edit this page. Possible return values:

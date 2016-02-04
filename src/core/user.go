@@ -45,7 +45,7 @@ func (u *User) FullName() string {
 
 // GetUserUrl returns URL for looking at recently created pages by the given user.
 func GetUserUrl(userId int64) string {
-	return fmt.Sprintf("/user/%d", userId)
+	return fmt.Sprintf("/u/%d", userId)
 }
 
 // IdsListFromUserMap returns a list of all user ids in the map.

@@ -17,7 +17,7 @@ app.service("userService", function(){
 
 	// Return url to the user page.
 	this.getUserUrl = function(userId) {
-		return "/user/" + userId;
+		return "/u/" + userId;
 	};
 
 	// Call this to process data we received from the server.

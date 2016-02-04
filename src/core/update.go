@@ -263,13 +263,13 @@ func LoadUpdateEmail(db *database.DB, userId int64) (resultData *UpdateData, ret
 	funcMap := template.FuncMap{
 		//"UserFirstName": func() int64 { return u.Id },
 		"GetUserUrl": func(userId int64) string {
-			return fmt.Sprintf(`%s/user/%d`, sessions.GetDomainForTestEmail(), userId)
+			return fmt.Sprintf(`%s/u/%d`, sessions.GetDomainForTestEmail(), userId)
 		},
 		"GetUserName": func(userId int64) string {
 			return userMap[userId].FullName()
 		},
 		"GetPageUrl": func(pageId int64) string {
-			return fmt.Sprintf("%s/pages/%d", sessions.GetDomainForTestEmail(), pageId)
+			return fmt.Sprintf("%s/p/%d", sessions.GetDomainForTestEmail(), pageId)
 		},
 		"GetPageTitle": func(pageId int64) string {
 			return pageMap[pageId].Title
