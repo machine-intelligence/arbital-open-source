@@ -73,18 +73,21 @@ func fixText(db *database.DB, rows *database.Rows) error {
 	// Find and replace [text](id/alias) links with [id/alias text]
 
 	// First remove all instances of "http://zanaduu3.appspot.com/pages/" in the links, leaving just the pageId
+	// On the first pass, accept anything inside the parentheses, since the text we want to remove isn't a valid alias
 	exp := regexp.MustCompile("\\[([^\\]]+)\\]\\(([^\\)]+)\\)")
 	newText := exp.ReplaceAllStringFunc(text, func(submatch string) string {
 		result := submatch
 		result = strings.Replace(result, "http://zanaduu3.appspot.com/pages/", "", -1)
-		result = strings.Replace(result, "http://arbital.com/edit/", "", -1)
-		result = strings.Replace(result, "http://arbital.com/pages/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/edit/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/pages/", "", -1)
 		db.C.Debugf("submatch: %v", submatch)
 		db.C.Debugf("result  : %v", result)
 		return result
 	})
 
 	// Now convert from [text](id/alias) to [id/alias text]
+	// On this pass, only accept valid aliases inside the parentheses, to prevent changing URL links
+	exp = regexp.MustCompile("\\[([^\\]]+)\\]\\(([A-Za-z0-9_]+)\\)")
 	newText = exp.ReplaceAllString(newText, "[$2 $1]")
 
 	if newText != text {
