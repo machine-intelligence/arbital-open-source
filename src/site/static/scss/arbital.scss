@@ -926,6 +926,19 @@ md-tab-content {
 	}
 }
 
+md-tabs.page-tabs {
+	margin-top: 15px;
+
+	& > md-tabs-wrapper {
+		background-color: white !important;
+		border-bottom: $primary-hue-3 2px solid;
+
+		md-tab-item:not(.md-active) {
+			color: $primary-hue-3 !important;
+		}
+	}
+}
+
 // Show deletes and inserts
 del {
 	color: red;

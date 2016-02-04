@@ -655,6 +655,14 @@ md-tab-content {
 .md-tab.md-active {
   background-color: #004D40; }
 
+md-tabs.page-tabs {
+  margin-top: 15px; }
+  md-tabs.page-tabs > md-tabs-wrapper {
+    background-color: white !important;
+    border-bottom: #004D40 2px solid; }
+    md-tabs.page-tabs > md-tabs-wrapper md-tab-item:not(.md-active) {
+      color: #004D40 !important; }
+
 del {
   color: red; }
 
