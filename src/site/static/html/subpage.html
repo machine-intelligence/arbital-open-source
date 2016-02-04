@@ -10,7 +10,6 @@
 
 		<!-- User name -->
 		<arb-user-name user-id="{{page.creatorId}}"></arb-user-name>
-		<span class="primary-dot" ng-show="page.isNewPage()"></span>
 
 		<!-- Collapse button -->
 		<div layout="column" flex>
@@ -47,7 +46,6 @@
 		<div>
 			<md-icon>help</md-icon>
 			<arb-page-title page-id="{{page.pageId}}" is-link="true"></arb-page-title>
-			<span class="primary-dot" ng-show="page.isNewPage()"></span>
 			<ng-pluralize count="page.answerCount"
 					when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
 		</div>
