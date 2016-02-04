@@ -240,7 +240,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load answers
 	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Answers })
-	err := LoadChildIds(db, pageMap, &LoadChildIdsOptions{
+	err := LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
 		ForPages:     filteredPageMap,
 		Type:         AnswerPageType,
 		PagePairType: ParentPagePairType,
@@ -259,7 +259,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load questions
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Questions })
-	err = LoadChildIds(db, pageMap, &LoadChildIdsOptions{
+	err = LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
 		ForPages:     filteredPageMap,
 		Type:         QuestionPageType,
 		PagePairType: ParentPagePairType,
@@ -271,7 +271,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load children
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Children })
-	err = LoadChildIds(db, pageMap, &LoadChildIdsOptions{
+	err = LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
 		ForPages:     filteredPageMap,
 		Type:         WikiPageType,
 		PagePairType: ParentPagePairType,
@@ -283,7 +283,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load parents
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Parents })
-	err = LoadParentIds(db, pageMap, &LoadParentIdsOptions{
+	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
 		PagePairType: ParentPagePairType,
 		LoadOptions:  TitlePlusLoadOptions,
@@ -294,7 +294,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load tags
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Tags })
-	err = LoadParentIds(db, pageMap, &LoadParentIdsOptions{
+	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
 		PagePairType: TagPagePairType,
 		LoadOptions:  TitlePlusLoadOptions,
@@ -305,7 +305,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load related
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Related })
-	err = LoadChildIds(db, pageMap, &LoadChildIdsOptions{
+	err = LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
 		ForPages:     filteredPageMap,
 		Type:         WikiPageType,
 		PagePairType: TagPagePairType,
@@ -317,7 +317,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load available lenses
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Lenses })
-	err = LoadChildIds(db, pageMap, &LoadChildIdsOptions{
+	err = LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
 		ForPages:     filteredPageMap,
 		Type:         LensPageType,
 		PagePairType: ParentPagePairType,
@@ -329,7 +329,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load requirements
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Requirements })
-	err = LoadParentIds(db, pageMap, &LoadParentIdsOptions{
+	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
 		PagePairType: RequirementPagePairType,
 		LoadOptions:  TitlePlusLoadOptions,
@@ -341,7 +341,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[int64]*Page,
 
 	// Load subjects
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Subjects })
-	err = LoadParentIds(db, pageMap, &LoadParentIdsOptions{
+	err = LoadParentIds(db, pageMap, u, &LoadParentIdsOptions{
 		ForPages:     filteredPageMap,
 		PagePairType: SubjectPagePairType,
 		LoadOptions:  TitlePlusLoadOptions,
@@ -1068,7 +1068,7 @@ type LoadChildIdsOptions struct {
 }
 
 // LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
-func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildIdsOptions) error {
+func LoadChildIds(db *database.DB, pageMap map[int64]*Page, u *user.User, options *LoadChildIdsOptions) error {
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
@@ -1082,7 +1082,9 @@ func LoadChildIds(db *database.DB, pageMap map[int64]*Page, options *LoadChildId
 			WHERE type=?`, options.PagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pageInfos AS pi
-		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND pi.type=?)`, options.Type).ToStatement(db).Query()
+		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND pi.type=?)`, options.Type).Add(`
+		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId int64
 		var ppType string
@@ -1203,7 +1205,7 @@ type LoadParentIdsOptions struct {
 }
 
 // LoadParentIds loads the page ids for all the parents of the pages in the given pageMap.
-func LoadParentIds(db *database.DB, pageMap map[int64]*Page, options *LoadParentIdsOptions) error {
+func LoadParentIds(db *database.DB, pageMap map[int64]*Page, u *user.User, options *LoadParentIdsOptions) error {
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
@@ -1219,7 +1221,9 @@ func LoadParentIds(db *database.DB, pageMap map[int64]*Page, options *LoadParent
 			WHERE type=?`, options.PagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pageInfos AS pi
-		ON (pi.pageId=pp.parentId AND pi.currentEdit>0)`).ToStatement(db).Query()
+		ON (pi.pageId=pp.parentId AND pi.currentEdit>0)`).Add(`
+		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId int64
 		var ppType string

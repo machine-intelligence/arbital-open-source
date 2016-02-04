@@ -208,11 +208,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	pageMap := make(map[int64]*core.Page)
 	if isCurrentEdit && !oldPage.WasPublished {
 		// Load parents and children.
-		err = core.LoadParentIds(db, pageMap, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load parents", err)
 		}
-		err = core.LoadChildIds(db, pageMap, &core.LoadChildIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadChildIds(db, pageMap, u, &core.LoadChildIdsOptions{ForPages: primaryPageMap})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load children", err)
 		}

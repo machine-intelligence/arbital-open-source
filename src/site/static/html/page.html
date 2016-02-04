@@ -48,9 +48,6 @@
 			<md-tab ng-repeat="lensId in page.lensIds"
 					md-on-select="tabSelect(lensId)">
 				<md-tab-label>
-					<md-tooltip ng-if="pageService.pageMap[lensId].clickbait.length > 0">
-						{{pageService.pageMap[lensId].clickbait}}
-					</md-tooltip>
 					<arb-page-title page-id="{{lensId}}"
 							custom-page-title="lensId === page.pageId ? 'Main' : ''"></arb-page-title>
 					<md-icon ng-show="!hasAllReqs(lensId)">
