@@ -1610,10 +1610,12 @@
 				return;
 			}
 			var that = this;
+			var processed = false;
 			// The function to be executed when you enter a link and press OK or Cancel.
 			// Marks up the link and adds the ref.
 			var linkEnteredCallback = function (link) {
-
+				if (processed) return;
+				processed = true;
 				if (link) {
 					// (						  $1
 					//	 [^\\]				  anything that's not a backslash

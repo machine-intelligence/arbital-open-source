@@ -551,13 +551,24 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 				// Listen to events from Markdown.Editor
 				var $markdownToolbar = element.find(".wmd-button-bar");
+				var blurHooked = false;
 				// Show autocomplete for inserting an intrasite link
 				$markdownToolbar.on("showInsertLink", function(event, callback) {
 					scope.showInsertLink = true;
 					scope.insertLinkCallback = callback;
 					// NOTE: not sure why, but we need two timeouts here
 					$timeout(function() { $timeout(function() {
-						element.find(".insert-autocomplete").find("input").focus();
+						var $input = element.find(".insert-autocomplete").find("input").focus();
+						if (!blurHooked) {
+							blurHooked = true;
+							$input.on("blur", function(event) {
+								scope.showInsertLink = false;
+								scope.insertLinkCallback();
+								$timeout(function() { $timeout(function() {
+									$("#wmd-input" + scope.pageId).focus();
+								}); });
+							});
+						}
 					}); });
 				});
 

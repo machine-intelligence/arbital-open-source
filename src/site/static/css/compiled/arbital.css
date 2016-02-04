@@ -176,6 +176,8 @@ arb-markdown p, [arb-markdown] p, .preview-area p {
   overflow-y: hidden; }
   arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
     margin: 0; }
+arb-markdown img, [arb-markdown] img, .preview-area img {
+  max-width: 100%; }
 arb-markdown ul, [arb-markdown] ul, .preview-area ul {
   padding-left: 1.5em; }
 arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
