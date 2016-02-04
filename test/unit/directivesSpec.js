@@ -345,7 +345,7 @@ describe('directives', function() {
 		expectParagraphTag("[text](existentPageAlias)", {expectTextToEqual:"text"});
 		expectParagraphTag("[text](nonexistentPageAlias)", {expectTextToEqual:"text"});
 		expectAddressTag("[text](http://google.com)", {expectTextToEqual:"text",expectHrefToEqual:"http://google.com"});
-		expectAddressTag("[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/existentPageAlias/?embedVote=1"],expectPageIdToEqual:"existentPageAlias",expectEmbedVoteIdToEqual:"existentPageAlias"});
+		expectAddressTag("[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/2/?embedVote=1"],expectPageIdToEqual:"2",expectEmbedVoteIdToEqual:"2"});
 		expectAddressTag("[vote:nonexistentPageAlias]", {expectTextToContain:["Embedded nonexistentPageAlias vote."],expectHrefToContain:["/pages/nonexistentPageAlias/?embedVote=1"],expectPageIdToEqual:"nonexistentPageAlias",expectEmbedVoteIdToEqual:"nonexistentPageAlias"});
 		expectParagraphTag("[todo:text]", {expectTextToEqual:""});
 		expectParagraphTag("[comment:text]", {expectTextToEqual:""});
@@ -366,7 +366,7 @@ describe('directives', function() {
 		expectParagraphTag("\\[vote:existentPageAlias]", {expectTextToEqual:"[vote:existentPageAlias]"});
 		expectParagraphTag("[vote:existentPageAlias\\]", {expectTextToEqual:"[vote:existentPageAlias]"});
 		expectParagraphTag("\\[vote:existentPageAlias\\]", {expectTextToEqual:"[vote:existentPageAlias]"});
-		expectAddressTag("\\\\[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/existentPageAlias/?embedVote=1"],expectPageIdToEqual:"existentPageAlias",expectEmbedVoteIdToEqual:"existentPageAlias"});
+		expectAddressTag("\\\\[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/2/?embedVote=1"],expectPageIdToEqual:"2",expectEmbedVoteIdToEqual:"2"});
 		expectParagraphTag("[vote:existentPageAlias\\\\]", {}); //expectTextToEqual:"[vote:existentPageAlias\\]"
 		expectParagraphTag("\\\\[vote:existentPageAlias\\\\]", {}); //expectTextToEqual:"\\[vote:existentPageAlias\\]"
 		expectAddressTag("\\[text](http://google.com)", {}); //expectTextToEqual:"http://google.com", expectHrefToEqual:"http://google.com"
