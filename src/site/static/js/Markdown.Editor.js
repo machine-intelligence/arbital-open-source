@@ -1041,17 +1041,18 @@
 		util.addEvent(inputBox, keyEvent, function (key) {
 
 			// Check to see if we have a button key and, if so execute the callback.
-			if ((key.ctrlKey || key.metaKey) && !key.altKey && !key.shiftKey) {
+			if ((key.ctrlKey || key.metaKey) && !key.altKey) {
 
 				var keyCode = key.charCode || key.keyCode;
 				var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
 
-				// 186 in Chrome, 59 in Firefox
-				if (keyCode == 186 || keyCode == 59) { // ;
-				  doClick(buttons.intralink);
-				  return;
-				}
-				switch (keyCodeStr) {
+				if (!key.shiftKey) {
+					// 186 in Chrome, 59 in Firefox
+					if (keyCode == 186 || keyCode == 59) { // ;
+						doClick(buttons.intralink);
+						return;
+					}
+					switch (keyCodeStr) {
 					case "b":
 						doClick(buttons.bold);
 						break;
@@ -1089,17 +1090,28 @@
 						doClick(buttons.redo);
 						break;
 					case "z":
-						if (key.shiftKey) {
-							doClick(buttons.redo);
-						}
-						else {
-							doClick(buttons.undo);
-						}
+						doClick(buttons.undo);
 						break;
 					default:
 						return;
+					}
 				}
 
+				if (key.shiftKey) {
+					switch (keyCodeStr) {
+					case "p":
+						doClick(buttons.newChild);
+						break;
+					case "s":
+						doClick(buttons.newSibling);
+						break;
+					case "z":
+						doClick(buttons.redo);
+						break;
+					default:
+						return;
+					}
+				}
 
 				if (key.preventDefault) {
 					key.preventDefault();

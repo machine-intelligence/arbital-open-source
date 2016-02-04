@@ -48,12 +48,48 @@ func fixText(db *database.DB, rows *database.Rows) error {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
-	exp := regexp.MustCompile("(\\[[^ \\\\0-9:-\\]]+ [^\\]]*?\\])(?:[^(]|$)")
+	/*
+		// Find and replace [token1 token2] with [ token1 token2]
+		exp := regexp.MustCompile("(\\[[^ \\\\0-9:-\\]]+ [^\\]]*?\\])(?:[^(]|$)")
+		newText := exp.ReplaceAllStringFunc(text, func(submatch string) string {
+			parts := strings.Split(submatch, " ")
+			parts[0] = "[ " + strings.Split(parts[0], "[")[1]
+			return strings.Join(parts, " ")
+		})
+		if newText != text {
+			db.C.Debugf("========================== %s", text)
+			db.C.Debugf("========================== %s", newText)
+			hashmap := make(map[string]interface{})
+			hashmap["pageId"] = pageId
+			hashmap["edit"] = edit
+			hashmap["text"] = newText
+			statement := db.NewInsertStatement("pages", hashmap, "text")
+			if _, err := statement.Exec(); err != nil {
+				return fmt.Errorf("Couldn't update pages table: %v", err)
+			}
+		}
+	*/
+
+	// Find and replace [text](id/alias) links with [id/alias text]
+
+	// First remove all instances of "http://zanaduu3.appspot.com/pages/" in the links, leaving just the pageId
+	// On the first pass, accept anything inside the parentheses, since the text we want to remove isn't a valid alias
+	exp := regexp.MustCompile("\\[([^\\]]+)\\]\\(([^\\)]+)\\)")
 	newText := exp.ReplaceAllStringFunc(text, func(submatch string) string {
-		parts := strings.Split(submatch, " ")
-		parts[0] = "[ " + strings.Split(parts[0], "[")[1]
-		return strings.Join(parts, " ")
+		result := submatch
+		result = strings.Replace(result, "http://zanaduu3.appspot.com/pages/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/edit/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/pages/", "", -1)
+		db.C.Debugf("submatch: %v", submatch)
+		db.C.Debugf("result  : %v", result)
+		return result
 	})
+
+	// Now convert from [text](id/alias) to [id/alias text]
+	// On this pass, only accept valid aliases inside the parentheses, to prevent changing URL links
+	exp = regexp.MustCompile("\\[([^\\]]+)\\]\\(([A-Za-z0-9_]+)\\)")
+	newText = exp.ReplaceAllString(newText, "[$2 $1]")
+
 	if newText != text {
 		db.C.Debugf("========================== %s", text)
 		db.C.Debugf("========================== %s", newText)
@@ -66,5 +102,6 @@ func fixText(db *database.DB, rows *database.Rows) error {
 			return fmt.Errorf("Couldn't update pages table: %v", err)
 		}
 	}
+
 	return nil
 }
