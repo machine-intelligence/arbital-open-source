@@ -216,6 +216,11 @@ arb-markdown, [arb-markdown], .preview-area {
 
 	ul {
 		padding-left: 1.5em;
+
+		p {
+			// Reset overflow value, otherwise the bullet points in lists are invisible.
+			overflow: inherit;
+		}
 	}
 
 	blockquote {
@@ -926,9 +931,7 @@ md-tab-content {
 // Color the active tab
 .md-tab {
 	&.md-active {
-		background-color: $primary-hue-1;
-		border: $primary-hue-2 2px solid;
-		margin-right: -4px;
+		background-color: $primary-hue-3;
 	}
 }
 
@@ -943,6 +946,12 @@ md-tabs.page-tabs {
 			color: $primary-hue-2 !important;
 			md-icon {
 				color: $primary-hue-2 !important;
+			}
+
+			&.md-active {
+				background-color: $primary-hue-1;
+				border: $primary-hue-2 2px solid;
+				margin-right: -4px;
 			}
 		}
 	}
