@@ -178,10 +178,10 @@ arb-markdown p, [arb-markdown] p, .preview-area p {
     margin: 0; }
 arb-markdown img, [arb-markdown] img, .preview-area img {
   max-width: 100%; }
-arb-markdown ul, [arb-markdown] ul, .preview-area ul {
+arb-markdown ul, arb-markdown ol, [arb-markdown] ul, [arb-markdown] ol, .preview-area ul, .preview-area ol {
   padding-left: 1.5em; }
-  arb-markdown ul p, [arb-markdown] ul p, .preview-area ul p {
-    overflow: inherit; }
+arb-markdown li p, [arb-markdown] li p, .preview-area li p {
+  overflow: inherit; }
 arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
   border-left: lightgray 7px solid;
   padding-left: 10px;
