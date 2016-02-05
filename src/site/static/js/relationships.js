@@ -34,9 +34,6 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 				$scope.title = "Subjects";
 				$scope.idsSource = $scope.page.subjectIds;
 			}
-			if ($scope.isLensRequirements) {
-				$scope.title = "This version relies on:";
-			}
 
 			// Set up search
 			$scope.getSearchResults = function(text) {

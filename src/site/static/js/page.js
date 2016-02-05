@@ -53,13 +53,6 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			};
 			computeSelectedLens();
 			$scope.originalLensId = $scope.selectedLens.pageId;
-			$scope.getPageTitle = function() {
-				var pageTitle = $scope.page.title;
-				if ($scope.selectedLens.pageId === $scope.page.pageId) {
-					return pageTitle;
-				}
-				return pageTitle + ": " + $scope.selectedLens.title;
-			}
 
 			// Monitor URL to see if we need to switch lenses
 			$scope.$watch(function() {

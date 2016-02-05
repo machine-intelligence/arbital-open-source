@@ -3,14 +3,14 @@
 
 	<!-- Requirements -->
 	<div class="requirements-container"
-			layout-gt-sm="column"
+			layout-gt-sm="row"
 			ng-if="!isSimpleEmbed && showRequirementsPanel">
 		<!-- Lens suggestion -->
 		<div class="lens-suggestion" flex-gt-sm="35">
 			<div ng-if="simplerLens">
 				Don't understand this lens? Try the 
 				<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}"
-						ng-bind="'&quot;' + simplerLens.title + '&quot;'"></a> one.
+						ng-bind="'&quot;' + simplerLens.lensTitle() + '&quot;'"></a> one.
 				<!--<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
 				<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
 					that relies on requisites you already have.

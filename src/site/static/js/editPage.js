@@ -192,6 +192,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			};
 
 			$scope.page.text = $scope.convertPageIdsToAliases($scope.page.text);
+			if ($scope.isLens) {
+				$scope.page.title = $scope.page.lensTitle();
+			}
 
 			// User reverts to an edit
 			$scope.revertToEdit = function(editNum) {
