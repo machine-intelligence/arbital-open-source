@@ -13,7 +13,7 @@ import (
 // updateLensOrderData contains the data we get in the request
 type updateLensOrderData struct {
 	// Id of the page the lenses are for
-	PageId int64 `json:",string"`
+	PageId string `json:""`
 	// Lens id -> order index map
 	OrderMap map[string]int
 }
@@ -38,7 +38,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.PageId <= 0 {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("Page id isn't specified", err)
 	}
 	if len(data.OrderMap) <= 0 {

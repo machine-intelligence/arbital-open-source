@@ -2,6 +2,7 @@
 package site
 
 import (
+	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/user"
 )
@@ -15,7 +16,7 @@ var logoutPage = newPage(logoutRenderer, dynamicTmpls)
 func signupRenderer(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 
-	if u.Id <= 0 {
+	if !core.IsIdValid(u.Id) {
 		loginLink, err := user.GetLoginLink(params.C, params.R.FormValue("continueUrl"))
 		if err != nil {
 			pages.Fail("Couldn't get login link", err)

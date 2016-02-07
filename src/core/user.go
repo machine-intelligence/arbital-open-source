@@ -30,7 +30,7 @@ const (
 
 // User has information about a user from the users table.
 type User struct {
-	Id               int64  `json:"id,string"`
+	Id               string `json:"id"`
 	FirstName        string `json:"firstName"`
 	LastName         string `json:"lastName"`
 	LastWebsiteVisit string `json:"lastWebsiteVisit"`
@@ -44,12 +44,12 @@ func (u *User) FullName() string {
 }
 
 // GetUserUrl returns URL for looking at recently created pages by the given user.
-func GetUserUrl(userId int64) string {
-	return fmt.Sprintf("/u/%d", userId)
+func GetUserUrl(userId string) string {
+	return fmt.Sprintf("/u/%s", userId)
 }
 
 // IdsListFromUserMap returns a list of all user ids in the map.
-func IdsListFromUserMap(userMap map[int64]*User) []interface{} {
+func IdsListFromUserMap(userMap map[string]*User) []interface{} {
 	list := make([]interface{}, 0, len(userMap))
 	for id, _ := range userMap {
 		list = append(list, id)
@@ -58,7 +58,7 @@ func IdsListFromUserMap(userMap map[int64]*User) []interface{} {
 }
 
 // LoadUsers loads user information (like name) for each user in the given map.
-func LoadUsers(db *database.DB, userMap map[int64]*User, userId int64) error {
+func LoadUsers(db *database.DB, userMap map[string]*User, userId string) error {
 	if len(userMap) <= 0 {
 		return nil
 	}
@@ -92,7 +92,7 @@ func LoadUsers(db *database.DB, userMap map[int64]*User, userId int64) error {
 }
 
 // LoadUpdateCount returns the number of unseen updates the given user has.
-func LoadUpdateCount(db *database.DB, userId int64) (int, error) {
+func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 	var updateCount int
 	row := db.NewStatement(`
 		SELECT COALESCE(SUM(newCount), 0)

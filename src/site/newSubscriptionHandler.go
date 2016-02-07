@@ -4,13 +4,14 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
 // newSubscriptionData contains the data we get in the request.
 type newSubscriptionData struct {
-	PageId int64 `json:",string"`
+	PageId string `json:""`
 }
 
 var newSubscriptionHandler = siteHandler{
@@ -32,7 +33,7 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.PageId <= 0 {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("Page id has to be set", err)
 	}
 
@@ -45,7 +46,7 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.StatusOK(nil)
 }
 
-func addSubscription(tx *database.Tx, userId int64, toPageId int64) (string, error) {
+func addSubscription(tx *database.Tx, userId string, toPageId string) (string, error) {
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = userId
 	hashmap["toId"] = toPageId

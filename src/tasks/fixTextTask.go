@@ -42,7 +42,7 @@ func (task *FixTextTask) Execute(db *database.DB) (delay int, err error) {
 }
 
 func fixText(db *database.DB, rows *database.Rows) error {
-	var pageId, edit int64
+	var pageId, edit string
 	var text string
 	if err := rows.Scan(&pageId, &edit, &text); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)

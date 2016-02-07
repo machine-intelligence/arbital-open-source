@@ -6,20 +6,21 @@ import (
 
 	"appengine/mail"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
 )
 
 // SendFeedbackEmailTask is the object that's put into the daemon queue.
 type SendFeedbackEmailTask struct {
-	UserId    int64
+	UserId    string
 	UserEmail string
 	Text      string
 }
 
 // Check if this task is valid, and we can safely execute it.
 func (task *SendFeedbackEmailTask) IsValid() error {
-	if task.UserId <= 0 {
+	if !core.IsIdValid(task.UserId) {
 		return fmt.Errorf("User id has to be set")
 	}
 	if task.Text == "" {
@@ -48,7 +49,7 @@ func (task *SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err erro
 			Sender:  "alexei@arbital.com",
 			To:      []string{"alexei@arbital.com"},
 			Cc:      []string{task.UserEmail},
-			Subject: fmt.Sprintf("Arbital feedback (user #%d)", task.UserId),
+			Subject: fmt.Sprintf("Arbital feedback (user #%s)", task.UserId),
 			Body:    task.Text,
 		}
 

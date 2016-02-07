@@ -2,8 +2,6 @@
 package site
 
 import (
-	"strconv"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 )
@@ -30,6 +28,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Manually load some pages we like
 	featuredDomains := make([]*featuredDomain, 0)
+	// HARDCODED
 	featuredDomains = append(featuredDomains,
 		&featuredDomain{
 			DomainId: "8639103000879599414",
@@ -58,21 +57,28 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["featuredDomains"] = featuredDomains
 
 	for _, domain := range featuredDomains {
-		domainId, _ := strconv.ParseInt(domain.DomainId, 10, 64)
-		core.AddPageToMap(domainId, returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap(domain.DomainId, returnData.PageMap, core.TitlePlusLoadOptions)
 		for _, pageIdStr := range domain.ChildIds {
-			pageId, _ := strconv.ParseInt(pageIdStr, 10, 64)
-			core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+			core.AddPageToMap(pageIdStr, returnData.PageMap, core.TitlePlusLoadOptions)
 		}
 	}
 	// Display this page fully
-	core.AddPageToMap(3440973961008233681, returnData.PageMap, core.PrimaryPageLoadOptions)
+	// HARDCODED
+	core.AddPageToMap("3440973961008233681", returnData.PageMap, core.PrimaryPageLoadOptions)
+
+	db.C.Debugf("returnData.PageMap: %v", returnData.PageMap)
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+
+	db.C.Debugf("returnData.PageMap: %v", returnData.PageMap)
+
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
+
+	db.C.Debugf("returnData: %v", returnData)
+	db.C.Debugf("returnData.toJson(): %v", returnData.toJson())
 
 	return pages.StatusOK(returnData.toJson())
 }

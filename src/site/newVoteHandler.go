@@ -4,13 +4,14 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
 // newVoteData contains data given to us in the request.
 type newVoteData struct {
-	PageId int64 `json:",string"`
+	PageId string `json:""`
 	Value  float32
 }
 
@@ -31,7 +32,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var task newVoteData
 	err := decoder.Decode(&task)
-	if err != nil || task.PageId <= 0 {
+	if err != nil || !core.IsIdValid(task.PageId) {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if task.Value < 0 || task.Value > 100 {

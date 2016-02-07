@@ -40,34 +40,34 @@ const (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
-	Id             int64
-	UserId         int64
-	ByUserId       int64
+	Id             string
+	UserId         string
+	ByUserId       string
 	CreatedAt      string
 	Type           string
-	GroupByPageId  int64
-	GroupByUserId  int64
+	GroupByPageId  string
+	GroupByUserId  string
 	NewCount       int
-	SubscribedToId int64
-	GoToPageId     int64
+	SubscribedToId string
+	GoToPageId     string
 }
 
 // UpdateGroupKey is what we group updateEntries by
 type UpdateGroupKey struct {
-	GroupByPageId int64 `json:"groupByPageId,string"`
-	GroupByUserId int64 `json:"groupByUserId,string"`
+	GroupByPageId string `json:"groupByPageId"`
+	GroupByUserId string `json:"groupByUserId"`
 	// True if this is the first time the user is seeing this update
 	IsNew bool `json:"isNew"`
 }
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
-	UserId         int64  `json:"userId,string"`
-	ByUserId       int64  `json:"byUserId,string"`
+	UserId         string `json:"userId"`
+	ByUserId       string `json:"byUserId"`
 	Type           string `json:"type"`
 	Repeated       int    `json:"repeated"`
-	SubscribedToId int64  `json:"subscribedToId,string"`
-	GoToPageId     int64  `json:"goToPageId,string"`
+	SubscribedToId string `json:"subscribedToId"`
+	GoToPageId     string `json:"goToPageId"`
 	// True if the user has gone to the GoToPage
 	IsVisited bool   `json:"isVisited"`
 	CreatedAt string `json:"createdAt"`
@@ -92,7 +92,7 @@ type UpdateData struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, userMap map[int64]*User, forEmail bool) ([]*UpdateRow, error) {
+func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, forEmail bool) ([]*UpdateRow, error) {
 	emailFilter := ""
 	if forEmail {
 		emailFilter = "AND newCount>0 AND NOT emailed"
@@ -128,10 +128,10 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 		AddPageToMap(row.SubscribedToId, pageMap, groupLoadOptions)
 
 		userMap[row.UserId] = &User{Id: row.UserId}
-		if row.ByUserId > 0 {
+		if IsIdValid(row.ByUserId) {
 			userMap[row.ByUserId] = &User{Id: row.ByUserId}
 		}
-		if row.GroupByUserId > 0 {
+		if IsIdValid(row.GroupByUserId) {
 			userMap[row.GroupByUserId] = &User{Id: row.GroupByUserId}
 		}
 		updateRows = append(updateRows, &row)
@@ -144,7 +144,7 @@ func LoadUpdateRows(db *database.DB, userId int64, pageMap map[int64]*Page, user
 }
 
 // ConvertUpdateRowsToGroups converts a list of Rows into a list of Groups
-func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[int64]*Page) []*UpdateGroup {
+func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*UpdateGroup {
 	// Now that we have load last visit time for all pages,
 	// go through all the update rows and group them.
 	groups := make([]*UpdateGroup, 0)
@@ -202,7 +202,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[int64]*Page) []*Up
 }
 
 // LoadUpdateEmail loads the text and other data for the update email
-func LoadUpdateEmail(db *database.DB, userId int64) (resultData *UpdateData, retErr error) {
+func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, retErr error) {
 	c := db.C
 
 	resultData = &UpdateData{}
@@ -223,9 +223,9 @@ func LoadUpdateEmail(db *database.DB, userId int64) (resultData *UpdateData, ret
 	}
 
 	// Load updates and populate the maps
-	pageMap := make(map[int64]*Page)
-	userMap := make(map[int64]*User)
-	masteryMap := make(map[int64]*Mastery)
+	pageMap := make(map[string]*Page)
+	userMap := make(map[string]*User)
+	masteryMap := make(map[string]*Mastery)
 	resultData.UpdateRows, err = LoadUpdateRows(db, u.Id, pageMap, userMap, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
@@ -261,17 +261,17 @@ func LoadUpdateEmail(db *database.DB, userId int64) (resultData *UpdateData, ret
 	}
 
 	funcMap := template.FuncMap{
-		//"UserFirstName": func() int64 { return u.Id },
-		"GetUserUrl": func(userId int64) string {
-			return fmt.Sprintf(`%s/u/%d`, sessions.GetDomainForTestEmail(), userId)
+		//"UserFirstName": func() string { return u.Id },
+		"GetUserUrl": func(userId string) string {
+			return fmt.Sprintf(`%s/u/%s`, sessions.GetDomainForTestEmail(), userId)
 		},
-		"GetUserName": func(userId int64) string {
+		"GetUserName": func(userId string) string {
 			return userMap[userId].FullName()
 		},
-		"GetPageUrl": func(pageId int64) string {
-			return fmt.Sprintf("%s/p/%d", sessions.GetDomainForTestEmail(), pageId)
+		"GetPageUrl": func(pageId string) string {
+			return fmt.Sprintf("%s/p/%s", sessions.GetDomainForTestEmail(), pageId)
 		},
-		"GetPageTitle": func(pageId int64) string {
+		"GetPageTitle": func(pageId string) string {
 			return pageMap[pageId].Title
 		},
 		"RelativeDateTime": func(date string) string {

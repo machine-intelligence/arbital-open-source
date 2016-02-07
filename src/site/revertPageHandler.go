@@ -13,7 +13,7 @@ import (
 // revertPageData is the data received from the request.
 type revertPageData struct {
 	// Page to revert
-	PageId int64 `json:",string"`
+	PageId string `json:""`
 	// Edit to revert to
 	EditNum int
 }
@@ -35,7 +35,7 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data revertPageData
 	err := decoder.Decode(&data)
-	if err != nil || data.PageId == 0 {
+	if err != nil || data.PageId == "0" {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 

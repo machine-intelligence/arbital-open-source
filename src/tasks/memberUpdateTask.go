@@ -11,19 +11,19 @@ import (
 // MemberUpdateTask is the object that's put into the daemon queue.
 type MemberUpdateTask struct {
 	// User who performed the action
-	UserId     int64
+	UserId     string
 	UpdateType string
 
 	// Member is added to/removed from the given group
-	MemberId int64
-	GroupId  int64
+	MemberId string
+	GroupId  string
 }
 
 // Check if this task is valid, and we can safely execute it.
 func (task *MemberUpdateTask) IsValid() error {
-	if task.UserId <= 0 {
+	if !core.IsIdValid(task.UserId) {
 		return fmt.Errorf("UserId has to be set")
-	} else if task.MemberId <= 0 {
+	} else if !core.IsIdValid(task.MemberId) {
 		return fmt.Errorf("MemberId has to be set")
 	} else if task.UpdateType != core.AddedToGroupUpdateType &&
 		task.UpdateType != core.RemovedFromGroupUpdateType {

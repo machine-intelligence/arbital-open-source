@@ -28,11 +28,11 @@ type commonPageData struct {
 	// Logged in user
 	User *user.User
 	// Map of page id -> currently live version of the page
-	PageMap map[int64]*core.Page
+	PageMap map[string]*core.Page
 	// Map of page id -> some edit of the page
-	EditMap    map[int64]*core.Page
-	UserMap    map[int64]*core.User
-	MasteryMap map[int64]*core.Mastery
+	EditMap    map[string]*core.Page
+	UserMap    map[string]*core.User
+	MasteryMap map[string]*core.Mastery
 }
 
 // pageHandlerWrapper wraps one of our page handlers.
@@ -103,7 +103,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		params.U = u
 
 		// Check user state
-		if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
+		if core.IsIdValid(u.Id) && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
 			// User has created an account but hasn't gone through signup page
 			newUrl := fmt.Sprintf("/signup/?continueUrl=%s", url.QueryEscape(r.URL.String()))
 			c.Debugf("Redirecting to signup because the user hasn't filled out account info: %s", newUrl)
@@ -111,7 +111,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			return
 		}
 		// When in a subdomain, we always have to be logged in
-		if params.PrivateGroupId > 0 && !u.IsLoggedIn {
+		if core.IsIdValid(params.PrivateGroupId) && !u.IsLoggedIn {
 			loginLink, err := user.GetLoginLink(c, r.URL.String())
 			if err != nil {
 				fail(http.StatusInternalServerError, "Couldn't redirect to login", err)
@@ -121,7 +121,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			http.Redirect(w, r, loginLink, http.StatusSeeOther)
 			return
 		}
-		if u.Id > 0 {
+		if core.IsIdValid(u.Id) {
 			statement := db.NewStatement(`
 						UPDATE users
 						SET lastWebsiteVisit=?
@@ -137,7 +137,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 		}
 		// Check if we have access to the private group
-		if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
+		if core.IsIdValid(params.PrivateGroupId) && !u.IsMemberOfGroup(params.PrivateGroupId) {
 			fail(http.StatusForbidden, "Don't have access to this group", nil)
 			return
 		}

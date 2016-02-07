@@ -146,7 +146,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				approval: "Approval",
 			};
 
-			$scope.lockExists = $scope.page.lockedBy != "0" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
+			$scope.lockExists = $scope.page.lockedBy != "" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== userService.user.id;
 
 			$scope.convertPageIdsToAliases = function(textToConvert) {

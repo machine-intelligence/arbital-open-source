@@ -2,8 +2,6 @@
 package site
 
 import (
-	"fmt"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
@@ -29,12 +27,12 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 			// Couldn't find alias, so let's create a page with it
 			return pages.RedirectWith(core.GetNewPageUrl(pageAlias))
 		}
-		if pageAlias != fmt.Sprintf("%d", pageId) {
+		if pageAlias != pageId {
 			return pages.RedirectWith(core.GetEditPageUrl(pageId))
 		}
 
 		// Check if we need to redirect.
-		var seeGroupId int64
+		var seeGroupId string
 		row := database.NewQuery(`
 			SELECT seeGroupId
 			FROM pageInfos
@@ -47,7 +45,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		// Check if a subdomain redirect is necessary.
 		if exists && seeGroupId != params.PrivateGroupId {
 			subdomain := ""
-			if seeGroupId > 0 {
+			if core.IsIdValid(seeGroupId) {
 				row := database.NewQuery(`
 					SELECT alias
 					FROM pages

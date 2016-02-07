@@ -4,12 +4,11 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
-	"strconv"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/user"
 )
 
 var newPageHandler = siteHandler{
@@ -44,7 +43,10 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		data.Type = core.WikiPageType
 	}
 
-	pageId := rand.Int63()
+	pageId, err := user.GetNextAvailableId(db)
+	if err != nil {
+		return pages.HandlerBadRequestFail("Couldn't get next available Id", err)
+	}
 	// Update pageInfos
 	hashmap := make(map[string]interface{})
 	hashmap["pageId"] = pageId
@@ -76,12 +78,11 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Add parents
 	for _, parentIdStr := range data.ParentIds {
-		parentId, err := strconv.ParseInt(parentIdStr, 10, 64)
-		if err != nil {
-			return pages.HandlerErrorFail(fmt.Sprintf("Invalid parent id: %s", parentId), nil)
+		if !core.IsIdValid(parentIdStr) {
+			return pages.HandlerErrorFail(fmt.Sprintf("Invalid parent id: %s", parentIdStr), nil)
 		}
 		handlerData := newPagePairData{
-			ParentId: parentId,
+			ParentId: parentIdStr,
 			ChildId:  pageId,
 			Type:     core.ParentPagePairType,
 		}
@@ -91,6 +92,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	editData := &editJsonData{PageAlias: fmt.Sprintf("%d", pageId)}
+	editData := &editJsonData{PageAlias: pageId}
 	return editJsonInternalHandler(params, editData)
 }

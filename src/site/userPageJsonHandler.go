@@ -17,7 +17,7 @@ var userPageHandler = siteHandler{
 }
 
 type userPageJsonData struct {
-	UserId int64 `json:",string"`
+	UserId string `json:""`
 }
 
 // userPageJsonHandler renders the user page.
@@ -31,9 +31,9 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-	if data.UserId < 0 {
+	if !core.IsIdValid(data.UserId) {
 		return pages.HandlerBadRequestFail("Need a valid parentId", nil)
-	} else if data.UserId == 0 {
+	} else if data.UserId == "0" {
 		data.UserId = u.Id
 	}
 

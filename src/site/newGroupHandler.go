@@ -3,12 +3,12 @@ package site
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
+	"zanaduu3/src/user"
 )
 
 // newGroupData contains data given to us in the request.
@@ -17,7 +17,7 @@ type newGroupData struct {
 
 	IsDomain   bool
 	Alias      string
-	RootPageId int64 `json:",string"`
+	RootPageId string `json:""`
 }
 
 var newGroupHandler = siteHandler{
@@ -47,7 +47,10 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		groupId := rand.Int63()
+		groupId, err := user.GetNextAvailableId(db)
+		if err != nil {
+			return "Couldn't get next available Id", err
+		}
 		if data.IsDomain {
 			return core.NewDomain(tx, groupId, u.Id, data.Name, data.Alias)
 		}

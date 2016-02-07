@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"appengine/user"
 
@@ -35,7 +36,7 @@ var (
 // Note: this structure is also stored in a cookie.
 type User struct {
 	// DB variables
-	Id             int64  `json:"id,string"`
+	Id             string `json:"id"`
 	Email          string `json:"email"`
 	FirstName      string `json:"firstName"`
 	LastName       string `json:"lastName"`
@@ -65,9 +66,9 @@ func GetMaxKarmaLock(karma int) int {
 
 // IsMemberOfGroup returns true iff the user is member of the given group.
 // NOTE: we are assuming GroupIds have been loaded.
-func (user *User) IsMemberOfGroup(groupId int64) bool {
+func (user *User) IsMemberOfGroup(groupId string) bool {
 	isMember := false
-	oldGroupIdStr := fmt.Sprintf("%d", groupId)
+	oldGroupIdStr := groupId
 	for _, groupIdStr := range user.GroupIds {
 		if groupIdStr == oldGroupIdStr {
 			isMember = true
@@ -113,7 +114,14 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 	} else if !exists {
 		// Add new user
 		db.C.Debugf("User not found. Creating a new one: %s", appEngineUser.Email)
+
+		u.Id, err = GetNextAvailableId(db)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't get last insert id for new user: %v", err)
+		}
+
 		insertMap := make(database.InsertMap)
+		insertMap["id"] = u.Id
 		insertMap["email"] = appEngineUser.Email
 		insertMap["firstName"] = ""
 		insertMap["lastName"] = ""
@@ -127,13 +135,9 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 		insertMap["ignoreMathjax"] = 0
 
 		statement := db.NewInsertStatement("users", insertMap)
-		result, err := statement.Exec()
+		_, err := statement.Exec()
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't create a new user: %v", err)
-		}
-		u.Id, err = result.LastInsertId()
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't get last insert id for new user: %v", err)
 		}
 		u.Email = appEngineUser.Email
 	}
@@ -183,4 +187,91 @@ func ParseUser(rc io.ReadCloser) (*User, error) {
 
 func init() {
 	gob.Register(&User{})
+}
+
+const (
+	Base31Chars = "0123456789bcdfghjklmnpqrstvwxyz"
+	Base36Chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+)
+
+// Replace a rune at a specific index in a string
+func replaceAtIndex(in string, r rune, i int) string {
+	out := []rune(in)
+	out[i] = r
+	return string(out)
+}
+
+// Return true if the character is a vowel
+func CharIsVowel(char rune) bool {
+	switch []rune(strings.ToLower(string(char)))[0] {
+	case 'a', 'e', 'i', 'o', 'u':
+		return true
+	}
+	return false
+}
+
+// Get the next highest base36 character, without vowels
+// Returns the character, and true if it wrapped around to 0
+func GetNextBase31Char(char rune) (rune, bool, error) {
+	index := strings.Index(Base31Chars, strings.ToLower(string(char)))
+	if index < 0 {
+		return '0', false, fmt.Errorf("invalid character")
+	}
+	if index < len(Base31Chars)-1 {
+		nextChar := rune(Base31Chars[index+1])
+		return nextChar, false, nil
+	} else {
+		nextChar := rune(Base31Chars[0])
+		return nextChar, true, nil
+	}
+}
+
+// Get the next available base36 Id string that doesn't contain vowels
+func GetNextAvailableId(db *database.DB) (string, error) {
+	// Query for the highest used pageId or userId
+	var highestUsedId string
+	/*
+		row := db.NewStatement(`
+			SELECT max(pageId)
+			FROM pages
+			WHERE 1
+			`).QueryRow()
+	*/
+	row := db.NewStatement(`
+SELECT MAX( pageId ) 
+FROM (
+SELECT pageId
+FROM pages
+UNION 
+SELECT id
+FROM users
+) AS combined
+		`).QueryRow()
+	_, err := row.Scan(&highestUsedId)
+	if err != nil {
+		return "", fmt.Errorf("Couldn't load id: %v", err)
+	}
+
+	// Add 1 to the base36 value, skipping vowels
+	// Start at the last character in the Id string, carrying the 1 as many times as necessary
+	nextAvailableId := highestUsedId
+	index := len(nextAvailableId)
+	var newChar rune
+	processNextChar := true
+	for processNextChar {
+		// Increment the character at the current index in the Id string
+		newChar, processNextChar, err = GetNextBase31Char(rune(nextAvailableId[index]))
+		if err != nil {
+			return "", fmt.Errorf("Error processing id: %v", err)
+		}
+		replaceAtIndex(nextAvailableId, newChar, index)
+		index = index - 1
+		// If we need to carry the 1 all the way to the beginning, then add a 1 at the beginning of the string
+		if index < 0 {
+			nextAvailableId = "1" + nextAvailableId
+			processNextChar = false
+		}
+	}
+
+	return nextAvailableId, nil
 }

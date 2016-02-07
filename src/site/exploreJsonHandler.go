@@ -3,7 +3,6 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -31,7 +30,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual domain id
-	var domainId int64
+	var domainId string
 	if data.GroupAlias != "" {
 		var ok bool
 		var err error
@@ -42,7 +41,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if !ok {
 			return pages.Fail("Couldn't find alias", nil)
 		}
-	} else if params.PrivateGroupId > 0 {
+	} else if core.IsIdValid(params.PrivateGroupId) {
 		domainId = params.PrivateGroupId
 	} else {
 		return pages.HandlerBadRequestFail("No domain specified", nil)
@@ -50,7 +49,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	returnData := newHandlerData(true)
 	returnData.User = u
-	returnData.ResultMap["rootPageId"] = fmt.Sprintf("%d", domainId)
+	returnData.ResultMap["rootPageId"] = domainId
 
 	// Load the root page
 	loadOptions := (&core.PageLoadOptions{

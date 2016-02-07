@@ -32,7 +32,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 
-	if u.Id <= 0 {
+	if !core.IsIdValid(u.Id) {
 		return pages.HandlerForbiddenFail("Need to login", nil)
 	}
 

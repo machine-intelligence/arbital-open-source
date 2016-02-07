@@ -32,11 +32,11 @@ type commonHandlerData struct {
 	// Optional user object with the current user's data
 	User *user.User
 	// Map of page id -> currently live version of the page
-	PageMap map[int64]*core.Page
+	PageMap map[string]*core.Page
 	// Map of page id -> some edit of the page
-	EditMap    map[int64]*core.Page
-	UserMap    map[int64]*core.User
-	MasteryMap map[int64]*core.Mastery
+	EditMap    map[string]*core.Page
+	UserMap    map[string]*core.User
+	MasteryMap map[string]*core.Mastery
 	// ResultMap contains various data the specific handler returns
 	ResultMap map[string]interface{}
 }
@@ -103,7 +103,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				return
 			}
 
-			if u.Id > 0 {
+			if core.IsIdValid(u.Id) {
 				// Load the groups the user belongs to.
 				if err = core.LoadUserGroupIds(db, u); err != nil {
 					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
@@ -111,7 +111,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 				}
 			}
 			// Check if we have access to the private group
-			if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
+			if core.IsIdValid(params.PrivateGroupId) && !u.IsMemberOfGroup(params.PrivateGroupId) {
 				fail(http.StatusForbidden, "Don't have access to this group", nil)
 				return
 			}
@@ -123,7 +123,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
-		if u.Id > 0 && h.Options.LoadUpdateCount {
+		if core.IsIdValid(u.Id) && h.Options.LoadUpdateCount {
 			// Load updates count. (Loading it afterwards since it could be affected by the page)
 			u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
 			if err != nil {
@@ -154,10 +154,10 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 func newHandlerData(resetEverything bool) *commonHandlerData {
 	var data commonHandlerData
 	data.ResetEverything = resetEverything
-	data.PageMap = make(map[int64]*core.Page)
-	data.EditMap = make(map[int64]*core.Page)
-	data.UserMap = make(map[int64]*core.User)
-	data.MasteryMap = make(map[int64]*core.Mastery)
+	data.PageMap = make(map[string]*core.Page)
+	data.EditMap = make(map[string]*core.Page)
+	data.UserMap = make(map[string]*core.User)
+	data.MasteryMap = make(map[string]*core.Mastery)
 	data.ResultMap = make(map[string]interface{})
 	return &data
 }
@@ -173,47 +173,27 @@ func (data *commonHandlerData) toJson() map[string]interface{} {
 		jsonData["user"] = data.User
 	}
 
-	returnPageData := make(map[string]*core.Page)
-	for k, v := range data.PageMap {
-		returnPageData[fmt.Sprintf("%d", k)] = v
-	}
-	jsonData["pages"] = returnPageData
-
-	returnEditData := make(map[string]*core.Page)
-	for k, v := range data.EditMap {
-		returnEditData[fmt.Sprintf("%d", k)] = v
-	}
-	jsonData["edits"] = returnEditData
-
-	returnUserData := make(map[string]*core.User)
-	for k, v := range data.UserMap {
-		returnUserData[fmt.Sprintf("%d", k)] = v
-	}
-	jsonData["users"] = returnUserData
-
-	returnMasteryData := make(map[string]*core.Mastery)
-	for k, v := range data.MasteryMap {
-		returnMasteryData[fmt.Sprintf("%d", k)] = v
-	}
-	jsonData["masteries"] = returnMasteryData
-
+	jsonData["pages"] = data.PageMap
+	jsonData["edits"] = data.EditMap
+	jsonData["users"] = data.UserMap
+	jsonData["masteries"] = data.MasteryMap
 	jsonData["result"] = data.ResultMap
 	return jsonData
 }
 
 // loadSubdomain loads the id for the private group corresponding to the private group id.
-func loadSubdomain(r *http.Request, db *database.DB) (int64, error) {
+func loadSubdomain(r *http.Request, db *database.DB) (string, error) {
 	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
 	if subdomain == "" {
-		return 0, nil
+		return "0", nil
 	}
 	// Get actual page id for the group
 	privateGroupId, ok, err := core.LoadAliasToPageId(db, subdomain)
 	if err != nil {
-		return 0, fmt.Errorf("Couldn't convert subdomain to id: %v", err)
+		return "0", fmt.Errorf("Couldn't convert subdomain to id: %v", err)
 	}
 	if !ok {
-		return 0, fmt.Errorf("Couldn't find private group %s", subdomain)
+		return "0", fmt.Errorf("Couldn't find private group %s", subdomain)
 	}
 	return privateGroupId, nil
 }

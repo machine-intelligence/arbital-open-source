@@ -18,14 +18,14 @@ var sequenceHandler = siteHandler{
 }
 
 type sequenceJsonData struct {
-	PageId int64 `json:",string"`
+	PageId string `json:""`
 }
 
 type sequencePart struct {
 	// I want to understand PageId
-	PageId int64 `json:"pageId,string"`
+	PageId string `json:"pageId"`
 	// To understand it, I will read TaughtById
-	TaughtById int64 `json:"taughtById,string"`
+	TaughtById string `json:"taughtById"`
 	// To understand TaughtById, I need to meet th following Requirements
 	Requirements []*sequencePart `json:"requirements"`
 }
@@ -40,7 +40,7 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-	if data.PageId < 0 {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("Need a valid pageId", nil)
 	}
 
@@ -60,7 +60,7 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Check if the user already has this requirement
 	hasMastery := false
-	if mastery, ok := masteryMap[fmt.Sprintf("%d", data.PageId)]; ok {
+	if mastery, ok := masteryMap[data.PageId]; ok {
 		hasMastery = mastery.Has
 	}
 	if !hasMastery {
@@ -82,7 +82,7 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Create the sequence root
 	sequence := &sequencePart{PageId: data.PageId}
-	sequenceMap := make(map[int64]*sequencePart)
+	sequenceMap := make(map[string]*sequencePart)
 	sequenceMap[data.PageId] = sequence
 
 	// What to load for the pages
@@ -102,7 +102,7 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 				AND pp.type=?`, core.SubjectPagePairType).Add(`
 			GROUP BY 1`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId, childId int64
+			var parentId, childId string
 			err := rows.Scan(&parentId, &childId)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
@@ -129,14 +129,14 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 			WHERE pp.childId IN`).AddArgsGroup(taughtByIds).Add(`
 				AND pp.type=?`, core.RequirementPagePairType).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId, childId int64
+			var parentId, childId string
 			var has sql.NullBool
 			err := rows.Scan(&parentId, &childId, &has)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
 			hasMastery = has.Valid && has.Bool
-			if mastery, ok := masteryMap[fmt.Sprintf("%d", parentId)]; ok {
+			if mastery, ok := masteryMap[parentId]; ok {
 				hasMastery = hasMastery || mastery.Has
 			}
 			if hasMastery {

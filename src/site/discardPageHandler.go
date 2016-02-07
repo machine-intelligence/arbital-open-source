@@ -11,7 +11,7 @@ import (
 
 // discardPageData is the data received from the request.
 type discardPageData struct {
-	PageId int64 `json:",string"`
+	PageId string `json:""`
 }
 
 var discardPageHandler = siteHandler{
@@ -31,7 +31,7 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data discardPageData
 	err := decoder.Decode(&data)
-	if err != nil || data.PageId == 0 {
+	if err != nil || data.PageId == "0" {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 

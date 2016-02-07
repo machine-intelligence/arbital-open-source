@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
@@ -14,7 +15,7 @@ const (
 
 // newLikeData contains data given to us in the request.
 type newLikeData struct {
-	PageId int64 `json:",string"`
+	PageId string `json:""`
 	Value  int
 }
 
@@ -34,7 +35,7 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var task newLikeData
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&task)
-	if err != nil || task.PageId <= 0 {
+	if err != nil || !core.IsIdValid(task.PageId) {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 	if task.Value < -1 || task.Value > 1 {
@@ -42,7 +43,7 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check to see if we have a recent like by this user for this page.
-	var id int64
+	var id string
 	var found bool
 	row := db.NewStatement(`
 		SELECT id
