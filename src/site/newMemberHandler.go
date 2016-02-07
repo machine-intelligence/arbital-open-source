@@ -36,7 +36,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if !core.IsIdValid(data.GroupId) || !core.PageIdIsValid(data.UserId) {
+	if !core.IsIdValid(data.GroupId) || !core.IsIdValid(data.UserId) {
 		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
 	}
 

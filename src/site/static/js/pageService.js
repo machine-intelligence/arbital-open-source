@@ -124,7 +124,7 @@ app.service("pageService", function($http, $location, userService){
 	};
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
-	this.privateGroupId = "0";
+	this.privateGroupId = "";
 
 	// Primary page is the one with its id in the url
 	this.primaryPage = undefined;
@@ -205,7 +205,7 @@ app.service("pageService", function($http, $location, userService){
 			}
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
-				if (page.seeGroupId !== "0") {
+				if (page.seeGroupId !== "") {
 					url = that.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
 				} else {
 					url = that.getDomainUrl() + url;
@@ -244,13 +244,13 @@ app.service("pageService", function($http, $location, userService){
 		},
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
-			if (!userService.user || userService.user.id === "0") return false;
+			if (!userService.user || userService.user.id === "") return false;
 			return this.creatorId != userService.user.id &&
 				(this.lastVisit === "" || this.originalCreatedAt >= this.lastVisit);
 		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
-			if (!userService.user || userService.user.id === "0") return false;
+			if (!userService.user || userService.user.id === "") return false;
 			return this.creatorId != userService.user.id &&
 				this.lastVisit !== "" && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
 		},
@@ -650,7 +650,7 @@ app.service("pageService", function($http, $location, userService){
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
-		return this.privateGroupId !== page.seeGroupId && page.seeGroupId === "0";
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId === "";
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showPrivate = function(pageId, useEditMap) {
@@ -659,7 +659,7 @@ app.service("pageService", function($http, $location, userService){
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
-		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== "0";
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== "";
 	};
 
 	// Create a new comment; optionally it's a reply to the given commentId

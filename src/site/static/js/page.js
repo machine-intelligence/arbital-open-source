@@ -92,8 +92,8 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				for (var n = 0; n < ids.length; n++) {
 					var id = ids[n];
 					if (id === $scope.page.pageId) {
-						$scope.page.prevPageId = n > 0 ? ids[n-1] : "0";
-						$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "0";
+						$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
+						$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
 					}
 				}
 				$scope.page.sequenceId = ids[ids.length - 1];

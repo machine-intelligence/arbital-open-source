@@ -35,7 +35,7 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data revertPageData
 	err := decoder.Decode(&data)
-	if err != nil || data.PageId == "0" {
+	if err != nil || !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 

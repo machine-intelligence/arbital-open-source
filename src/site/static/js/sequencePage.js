@@ -20,7 +20,7 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 						idsList = computeSequenceIds(part.requirements[n], idsList);
 					}
 				}
-				if (part.taughtById !== "0" && idsList.indexOf(part.taughtById) < 0) {
+				if (part.taughtById !== "" && idsList.indexOf(part.taughtById) < 0) {
 					idsList.push(part.taughtById);
 				}
 				return idsList;

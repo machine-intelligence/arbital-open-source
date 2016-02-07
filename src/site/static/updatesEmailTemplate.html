@@ -101,7 +101,7 @@
 									<!-- Group header -->
                   <tr>
                     <td class="h1" style="padding: 0 0 0 3px;">
-											{{if ne .Key.GroupByPageId "0"}}
+											{{if ne .Key.GroupByPageId ""}}
 												<a href="{{GetPageUrl .Key.GroupByPageId}}">{{GetPageTitle .Key.GroupByPageId}}</a>
 											{{else}}
 												<a href="{{GetUserUrl .Key.GroupByUserId}}">{{GetUserName .Key.GroupByUserId}}</a>

@@ -37,7 +37,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.PageId == "0" {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("PageId isn't set", nil)
 	}
 

@@ -126,7 +126,7 @@ func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bo
 				return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
 			}
 			if flags, ok := domainMap[domainId]; ok {
-				flags.ShouldHave = seeGroupId == "0"
+				flags.ShouldHave = !core.IsIdValid(seeGroupId)
 			} else {
 				domainMap[domainId] = &domainFlags{ShouldHave: seeGroupId == "0"}
 			}

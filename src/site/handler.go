@@ -185,15 +185,15 @@ func (data *commonHandlerData) toJson() map[string]interface{} {
 func loadSubdomain(r *http.Request, db *database.DB) (string, error) {
 	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
 	if subdomain == "" {
-		return "0", nil
+		return "", nil
 	}
 	// Get actual page id for the group
 	privateGroupId, ok, err := core.LoadAliasToPageId(db, subdomain)
 	if err != nil {
-		return "0", fmt.Errorf("Couldn't convert subdomain to id: %v", err)
+		return "", fmt.Errorf("Couldn't convert subdomain to id: %v", err)
 	}
 	if !ok {
-		return "0", fmt.Errorf("Couldn't find private group %s", subdomain)
+		return "", fmt.Errorf("Couldn't find private group %s", subdomain)
 	}
 	return privateGroupId, nil
 }

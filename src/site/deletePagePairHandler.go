@@ -39,7 +39,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if !core.IsIdValid(data.ParentId) || !core.PageIdIsValid(data.ChildId) {
+	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
 		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", err)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)

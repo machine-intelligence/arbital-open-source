@@ -198,12 +198,12 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				return "", nil
 			}
 			if data.Alias != oldPage.Alias {
-				if errorMessage, err := updateChangeLog(core.NewAliasChangeLog, "0"); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewAliasChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.SortChildrenBy != oldPage.SortChildrenBy {
-				if errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, "0"); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
@@ -212,17 +212,17 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if !hasVote {
 					changeType = core.TurnOffVoteChangeLog
 				}
-				if errorMessage, err := updateChangeLog(changeType, "0"); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(changeType, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.VoteType != oldPage.VoteType {
-				if errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, "0"); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.EditKarmaLock != oldPage.EditKarmaLock {
-				if errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, "0"); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}

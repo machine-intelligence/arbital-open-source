@@ -306,7 +306,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						// Mark as red link
 						$element.attr("href", $element.attr("href").replace(/\/p\//, "/e/"));
 						$element.addClass("red-link");
-						if (refreshFunc && pageAlias === "0") {
+						if (refreshFunc && pageAlias === "") {
 							$element.addClass("red-todo-text");
 						}
 						if (refreshFunc && !(pageAlias in failedPageAliases) ) {

@@ -455,7 +455,7 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 		compile: function compile(element, attrs) {
 			var check = attrs.arbUserCheck;
 			var failMessage = "";
-			if (!userService.user || userService.user.id === "0") {
+			if (!userService.user || userService.user.id === "") {
 				failMessage = "Login required";
 			} else if (check === "cool") {
 				if (!userService.userIsCool()) {

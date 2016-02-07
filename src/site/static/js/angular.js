@@ -503,7 +503,7 @@ app.controller("GroupsPageController", function ($scope, $routeParams, $http, $c
 app.controller("SignupPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
-		if (!userService.user || userService.user.id === "0") {
+		if (!userService.user || userService.user.id === "") {
 			window.location.href = "/login/?continueUrl=" + encodeURIComponent($location.search().continueUrl);
 			return {};
 		}

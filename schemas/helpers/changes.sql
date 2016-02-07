@@ -57,3 +57,58 @@ ALTER TABLE  `visits` CHANGE  `pageId`  `pageId` VARCHAR( 32 ) NOT NULL ;
 
 ALTER TABLE  `votes` CHANGE  `userId`  `userId` VARCHAR( 32 ) NOT NULL ;
 ALTER TABLE  `votes` CHANGE  `pageId`  `pageId` VARCHAR( 32 ) NOT NULL ;
+
+
+
+
+UPDATE `pages` SET `pageId` = "" WHERE `pageId` = "0";
+UPDATE `pages` SET `creatorId` = "" WHERE `creatorId` = "0";
+UPDATE `pages` SET `privacyKey` = "" WHERE `privacyKey` = "0";
+
+UPDATE `changeLogs` SET `pageId` = "" WHERE `pageId` = "0";
+UPDATE `changeLogs` SET `auxPageId` = "" WHERE `auxPageId` = "0";
+
+UPDATE `fixedIds` SET `pageId` = "" WHERE `pageId` = "0";
+
+UPDATE `groupMembers` SET `userId` = "" WHERE `userId` = "0";
+UPDATE `groupMembers` SET `groupId` = "" WHERE `groupId` = "0";
+
+UPDATE `likes` SET `userId` = "" WHERE `userId` = "0";
+UPDATE `likes` SET `pageId` = "" WHERE `pageId` = "0";
+
+UPDATE `links` SET `parentId` = "" WHERE `parentId` = "0";
+
+UPDATE `pageDomainPairs` SET `pageId` = "" WHERE `pageId` = "0";
+UPDATE `pageDomainPairs` SET `domainId` = "" WHERE `domainId` = "0";
+
+UPDATE `pageInfos` SET `pageId` = "" WHERE `pageId` = "0";
+UPDATE `pageInfos` SET `lockedBy` = "" WHERE `lockedBy` = "0";
+UPDATE `pageInfos` SET `seeGroupId` = "" WHERE `seeGroupId` = "0";
+UPDATE `pageInfos` SET `editGroupId` = "" WHERE `editGroupId` = "0";
+UPDATE `pageInfos` SET `createdBy` = "" WHERE `createdBy` = "0";
+
+UPDATE `pagePairs` SET `parentId` = "" WHERE `parentId` = "0";
+UPDATE `pagePairs` SET `childId` = "" WHERE `childId` = "0";
+
+UPDATE `pageSummaries` SET `pageId` = "" WHERE `pageId` = "0";
+
+UPDATE `subscriptions` SET `userId` = "" WHERE `userId` = "0";
+UPDATE `subscriptions` SET `toId` = "" WHERE `toId` = "0";
+
+UPDATE `updates` SET `userId` = "" WHERE `userId` = "0";
+UPDATE `updates` SET `groupByPageId` = "" WHERE `groupByPageId` = "0";
+UPDATE `updates` SET `groupByUserId` = "" WHERE `groupByUserId` = "0";
+UPDATE `updates` SET `subscribedToId` = "" WHERE `subscribedToId` = "0";
+UPDATE `updates` SET `goToPageId` = "" WHERE `goToPageId` = "0";
+UPDATE `updates` SET `byUserId` = "" WHERE `byUserId` = "0";
+
+UPDATE `userMasteryPairs` SET `userId` = "" WHERE `userId` = "0";
+UPDATE `userMasteryPairs` SET `masteryId` = "" WHERE `masteryId` = "0";
+
+UPDATE `users` SET `id` = "" WHERE `id` = "0";
+
+UPDATE `visits` SET `userId` = "" WHERE `userId` = "0";
+UPDATE `visits` SET `pageId` = "" WHERE `pageId` = "0";
+
+UPDATE `votes` SET `userId` = "" WHERE `userId` = "0";
+UPDATE `votes` SET `pageId` = "" WHERE `pageId` = "0";

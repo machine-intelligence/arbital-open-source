@@ -44,7 +44,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
-	groupIds := append(u.GroupIds, "0")
+	groupIds := append(u.GroupIds, "")
 	escapedTerm := elastic.EscapeMatchTerm(data.Term)
 
 	optionalTermFilter := ""
