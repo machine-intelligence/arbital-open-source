@@ -344,7 +344,12 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 			};
 		}
 		if (page.isLens() || page.isComment() || page.isAnswer()) {
+			// Redirect to the primary page, but preserve all search variables
+			var search = $location.search();
 			$location.replace().url(pageService.getPageUrl(page.pageId));
+			for (var k in search) {
+				$location.search(k, search[k]);
+			}
 			return {
 			};
 		}

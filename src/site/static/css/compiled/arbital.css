@@ -271,6 +271,9 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   .new-answer-div .wmd-input {
     background-color: white; }
 
+.next-prev-nav {
+  min-height: 50px; }
+
 #dynamic-view {
   /* position: relative;
   top: -$toolbar-height;

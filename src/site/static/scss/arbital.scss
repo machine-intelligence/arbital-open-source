@@ -354,6 +354,10 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	}
 };
 
+.next-prev-nav {
+	min-height: 50px;
+}
+
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
 #dynamic-view {

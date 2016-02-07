@@ -39,6 +39,9 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				if ($location.search().lens) {
 					// Lens is explicitly specified in the URL
 					$scope.selectedLens = pageService.pageMap[$location.search().lens];
+				} else if ($location.search().sequence) {
+					// The sequence specified this page specifically
+					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
 				} else {
 					// Select the hardest lens for which the user has met all requirements
 					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[0]];
@@ -77,20 +80,6 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				var lensId = $scope.page.lensIds[tabIndex];
 				window.open(pageService.getPageUrl(lensId), "_blank");
 			};
-
-			// Check if the user is doing a sequence
-			$scope.page.sequenceUrl = $location.search().sequence || "";
-			if ($scope.page.sequenceUrl) {
-				var ids = $scope.page.sequenceUrl.split(",");
-				for (var n = 0; n < ids.length; n++) {
-					var id = ids[n];
-					if (id === $scope.page.pageId) {
-						$scope.page.prevPageId = n > 0 ? ids[n-1] : "0";
-						$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "0";
-					}
-				}
-				$scope.page.sequenceId = ids[ids.length - 1];
-			}
 
 			// Check if this comment is selected via URL hash
 			$scope.isSelected = function() {
