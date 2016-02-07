@@ -167,6 +167,9 @@ span.md-warn {
   .md-subheader .md-subheader-inner {
     padding: 0; }
 
+.submit-form-error {
+  padding: 10px; }
+
 .bold {
   font-weight: bold; }
 
@@ -204,6 +207,8 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-dashboard-page > .capped-body-width {
     max-width: 1100px; }
   arb-signup > .capped-body-width {
+    max-width: 560px; }
+  arb-login > .capped-body-width {
     max-width: 560px; }
   arb-updates > .capped-body-width {
     max-width: 560px; }
@@ -271,6 +276,10 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
   top: -$toolbar-height;
   padding-top: $toolbar-height;
   box-sizing: border-box;*/ }
+
+.sidenav-email {
+  max-width: 90%;
+  overflow-x: hidden; }
 
 .unseen-update {
   background-color: #E0F2F1; }

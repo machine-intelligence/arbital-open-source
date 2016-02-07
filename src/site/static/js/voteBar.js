@@ -127,7 +127,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 				scope.isHovering = !leave;
 			};
 			scope.voteMouseClick = function(event, leave) {
-				if( userService.user.isLoggedIn ) {
+				if (userService.user.id !== "0") {
 					scope.userVoteValue = scope.offsetToValue(event.pageX);
 					postNewVote();
 				}

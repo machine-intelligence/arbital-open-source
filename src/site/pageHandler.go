@@ -95,31 +95,18 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// Get user object
-		u, err := user.LoadUser(w, r, db)
+		u, err := user.LoadUser(r, db)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load user", err)
 			return
 		}
 		params.U = u
 
-		// Check user state
-		if u.Id > 0 && len(u.FirstName) <= 0 && r.URL.Path != "/signup/" {
-			// User has created an account but hasn't gone through signup page
-			newUrl := fmt.Sprintf("/signup/?continueUrl=%s", url.QueryEscape(r.URL.String()))
-			c.Debugf("Redirecting to signup because the user hasn't filled out account info: %s", newUrl)
-			http.Redirect(w, r, newUrl, http.StatusSeeOther)
-			return
-		}
 		// When in a subdomain, we always have to be logged in
-		if params.PrivateGroupId > 0 && !u.IsLoggedIn {
-			loginLink, err := user.GetLoginLink(c, r.URL.String())
-			if err != nil {
-				fail(http.StatusInternalServerError, "Couldn't redirect to login", err)
-				return
+		if params.PrivateGroupId > 0 && u.Id <= 0 {
+			if r.URL.Path != "/login/" {
+				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 			}
-			c.Debugf("Redirecting to login because this is a private domain: %s", loginLink)
-			http.Redirect(w, r, loginLink, http.StatusSeeOther)
-			return
 		}
 		if u.Id > 0 {
 			statement := db.NewStatement(`
@@ -137,7 +124,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 		}
 		// Check if we have access to the private group
-		if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) {
+		if params.PrivateGroupId > 0 && !u.IsMemberOfGroup(params.PrivateGroupId) && r.URL.Path != "/login/" {
 			fail(http.StatusForbidden, "Don't have access to this group", nil)
 			return
 		}

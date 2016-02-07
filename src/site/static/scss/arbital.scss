@@ -194,6 +194,10 @@ span.md-warn {
 	}
 }
 
+.submit-form-error {
+	padding: 10px;
+}
+
 .bold {
 	font-weight: bold;
 }
@@ -256,6 +260,9 @@ arb-markdown, [arb-markdown], .preview-area {
 		max-width: 1100px;
 	}
 	arb-signup > & {
+		max-width: 560px;
+	}
+	arb-login > & {
 		max-width: 560px;
 	}
 	arb-updates > & {
@@ -354,6 +361,11 @@ $toolbar-height: 64px;
 	top: -$toolbar-height;
 	padding-top: $toolbar-height;
 	box-sizing: border-box;*/
+}
+
+.sidenav-email {
+	max-width: 90%;
+	overflow-x: hidden;
 }
 
 // Added to updates that the user hasn't seen yet

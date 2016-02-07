@@ -31,7 +31,17 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 		    $mdSidenav("right").toggle();
 		  };
 
+			$scope.loginData = {};
+			$scope.loginSubmit = function(event) {
+				submitForm($(event.currentTarget), "/login/", $scope.loginData, function(r) {
+					window.location.reload();
+				}, function() {
+				});
+			};
+
 			$scope.logout = function() {
+				Cookies.remove("arbital");
+				window.location.reload();
 			};
 
 			// Hide toolbar in the edit screen

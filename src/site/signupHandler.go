@@ -11,6 +11,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/stormpath"
 	"zanaduu3/src/user"
 )
 
@@ -19,6 +20,7 @@ type signupHandlerData struct {
 	Email      string
 	FirstName  string
 	LastName   string
+	Password   string
 	InviteCode string
 }
 
@@ -32,22 +34,18 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 
-	if u.Id <= 0 {
-		return pages.HandlerForbiddenFail("Need to login", nil)
-	}
-
 	decoder := json.NewDecoder(params.R.Body)
 	var data signupHandlerData
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if len(data.Email) <= 0 || len(data.FirstName) <= 0 || len(data.LastName) <= 0 {
-		return pages.HandlerBadRequestFail("Must specify email, first and last names.", nil)
+	if len(data.Email) <= 0 || len(data.FirstName) <= 0 || len(data.LastName) <= 0 || len(data.Password) <= 0 {
+		return pages.HandlerBadRequestFail("A required field is not set.", nil)
 	}
 	nameRegexp := regexp.MustCompile("^[A-Za-z]+$")
 	if !nameRegexp.MatchString(data.FirstName) || !nameRegexp.MatchString(data.LastName) {
-		return pages.HandlerBadRequestFail("Only letter characters are allowed in the name", nil)
+		return pages.HandlerBadRequestFail("Only letter characters (A-Z) are allowed in the name", nil)
 	}
 
 	// Process invite code and assign karma
@@ -59,10 +57,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if u.Karma > karma {
 		karma = u.Karma
 	}
-
-	// Set default email settings
-	emailFrequency := user.DefaultEmailFrequency
-	emailThreshold := user.DefaultEmailThreshold
 
 	// Prevent alias collision
 	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
@@ -83,10 +77,15 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		alias = fmt.Sprintf("%s%d", aliasBase, suffix)
 	}
 
+	// Sign up the user through Stormpath
+	err = stormpath.CreateNewUser(params.C, data.FirstName, data.LastName, data.Email, data.Password)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't create a new user", err)
+	}
+
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		hashmap := make(database.InsertMap)
-		hashmap["id"] = u.Id
 		hashmap["firstName"] = data.FirstName
 		hashmap["lastName"] = data.LastName
 		hashmap["email"] = data.Email
@@ -94,27 +93,21 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["lastWebsiteVisit"] = database.Now()
 		hashmap["inviteCode"] = inviteCode
 		hashmap["karma"] = karma
-		hashmap["emailFrequency"] = emailFrequency
-		hashmap["emailThreshold"] = emailThreshold
-		statement := tx.NewReplaceTxStatement("users", hashmap)
-		if _, err := statement.Exec(); err != nil {
+		hashmap["emailFrequency"] = user.DefaultEmailFrequency
+		hashmap["emailThreshold"] = user.DefaultEmailThreshold
+		statement := tx.NewInsertTxStatement("users", hashmap)
+		result, err := statement.Exec()
+		if err != nil {
 			return "Couldn't update user's record", err
 		}
-		u.FirstName = data.FirstName
-		u.LastName = data.LastName
-		u.Karma = karma
-		u.IsLoggedIn = true
-		u.EmailFrequency = emailFrequency
-		u.EmailThreshold = emailThreshold
-		u.InviteCode = inviteCode
-		err := u.Save(params.W, params.R)
+		userId, err := result.LastInsertId()
 		if err != nil {
-			return "Couldn't re-save the user after adding the name", err
+			return "Couldn't get last insert id for new user", err
 		}
 
 		// Create new group for the user.
 		fullName := fmt.Sprintf("%s %s", data.FirstName, data.LastName)
-		errorMessage, err := core.NewUserGroup(tx, u.Id, fullName, alias)
+		errorMessage, err := core.NewUserGroup(tx, userId, fullName, alias)
 		if errorMessage != "" {
 			return errorMessage, err
 		}
@@ -149,7 +142,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Signup for that page
-		return addSubscription(tx, u.Id, u.Id)
+		return addSubscription(tx, userId, userId)
 	})
 	if errMessage != "" {
 		return pages.HandlerErrorFail(errMessage, err)

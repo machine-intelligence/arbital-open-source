@@ -68,7 +68,7 @@ app.service("pageService", function($http, $location, userService){
 			}
 		}
 
-		if (userService.user.isLoggedIn) {
+		if (userService.user.id !== "0") {
 			// Send POST request.
 			var data = {
 				removeMasteries: delMasteries,
@@ -143,13 +143,13 @@ app.service("pageService", function($http, $location, userService){
 			this.addMasteryToMap(masteryData[id]);
 		}
 
-		if (data.resetEverything && !userService.user.isLoggedIn) {
+		if (data.resetEverything && !userService.user.id !== "0") {
 			// Load masteries from cookie
 			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
 			for (var id in cookieMasteryMap) {
 				this.addMasteryToMap(cookieMasteryMap[id]);
 			}
-		} else if (data.resetEverything && userService.user.isLoggedIn) {
+		} else if (data.resetEverything && userService.user.id !== "0") {
 			Cookies.remove("masteryMap");
 		}
 

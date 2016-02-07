@@ -56,6 +56,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.UpdateMetadataTask{}
 	} else if leasedTask.Tag == "fixText" {
 		task = &tasks.FixTextTask{}
+	} else if leasedTask.Tag == "resetPasswords" {
+		task = &tasks.ResetPasswordsTask{}
 	} else {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
 	}

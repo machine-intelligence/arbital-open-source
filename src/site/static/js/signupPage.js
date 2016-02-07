@@ -9,13 +9,13 @@ app.directive("arbSignup", function($location, pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.formData = {
-				email: userService.user.email,
-			};
+			$scope.formData = {};
 
 			$scope.formSubmit = function(event) {
 				submitForm($(event.currentTarget), "/signup/", $scope.formData, function(r) {
-					window.location.href = $location.search().continueUrl;
+					$scope.$apply(function() {
+						$scope.signupSuccess = true;
+					});
 				}, function() {
 				});
 			};

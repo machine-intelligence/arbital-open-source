@@ -80,9 +80,9 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Get user object
-		var u *user.User
+		u := &user.User{}
 		if !h.Options.SkipLoadingUser {
-			u, err = user.LoadUser(w, r, db)
+			u, err = user.LoadUser(r, db)
 			if err != nil {
 				fail(http.StatusInternalServerError, "Couldn't load user", err)
 				return
@@ -90,7 +90,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			params.U = u
 
 			// Check permissions
-			if h.Options.RequireLogin && !u.IsLoggedIn {
+			if h.Options.RequireLogin && u.Id <= 0 {
 				fail(http.StatusInternalServerError, "Have to be logged in", nil)
 				return
 			}

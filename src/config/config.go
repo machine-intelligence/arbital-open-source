@@ -128,6 +128,25 @@ type Config struct {
 			Address string
 		}
 	}
+	Stormpath struct {
+		Id                         string
+		Secret                     string
+		Tenant                     string
+		AccountStoreMappings       string
+		Accounts                   string
+		ApiKeys                    string
+		AuthTokens                 string
+		CustomData                 string
+		DefaultAccountStoreMapping string
+		DefaultGroupStoreMapping   string
+		Groups                     string
+		Production                 string
+		Stage                      string
+		LoginAttempts              string
+		OAuthPolicy                string
+		PasswordResetTokens        string
+		VerificationEmails         string
+	}
 	Monitoring struct {
 		Whitelist []string
 		Sendgrid  struct {

@@ -12,25 +12,33 @@
 		<div layout="column" layout-margin>
 			<md-input-container>
 				<label>Email</label>
-				<input ng-model="formData.email" readonly>
+				<input name="email" type="email" ng-model="formData.email" required="true">
 			</md-input-container>
 			<md-input-container>
 				<label>First name</label>
-				<input ng-model="formData.firstName" required="true">
+				<input name="firstName" ng-model="formData.firstName" required="true">
 			</md-input-container>
 			<md-input-container>
 				<label>Last name</label>
-				<input ng-model="formData.lastName" required="true">
+				<input name="lastName" ng-model="formData.lastName" required="true">
+			</md-input-container>
+			<md-input-container>
+				<label>Password</label>
+				<input name="password" type="password" ng-model="formData.password" required="true">
+				<span class="md-caption">At least eight characters long, mixed case, and at least one number.</span>
 			</md-input-container>
 			<md-input-container>
 				<label>Invite code (optional)</label>
 				<input ng-model="formData.inviteCode">
-				<span class="md-caption">Without an invite code, your account will have limited functionality.</span>
+				<span name="inviteCode" class="md-caption">Without an invite code, your account will have limited functionality.</span>
 			</md-input-container>
 		</div>
 	
 		<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 		<div class="submit-form-error md-warn" hidden></div>
-		<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Sign up</md-button>
+		<md-button class="md-primary md-raised" type="submit" toggle-on-submit ng-hide="signupSuccess">Sign up</md-button>
+		<div ng-show="signupSuccess">
+			Success! You should receive an email in a few minutes. Please click the link there to verify your email address.
+		</div>
 	</form>
 </div>

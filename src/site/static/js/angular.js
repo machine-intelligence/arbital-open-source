@@ -118,6 +118,10 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "SignupPageController",
 	})
+	.when("/login/", {
+		template: "",
+		controller: "LoginPageController",
+	})
 	.when("/knowledge/", {
 		template: "",
 		controller: "KnowledgePageController",
@@ -125,10 +129,6 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/settings/", {
 		template: "",
 		controller: "SettingsPageController",
-	})
-	.when("/_test_/", {
-		template: "",
-		controller: "TestPageController",
 	});
 });
 
@@ -503,52 +503,41 @@ app.controller("GroupsPageController", function ($scope, $routeParams, $http, $c
 app.controller("SignupPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
-		if (!userService.user || userService.user.id === "0") {
-			window.location.href = "/login/?continueUrl=" + encodeURIComponent($location.search().continueUrl);
-			return {};
-		}
 		return {
 			title: "Sign Up",
 			element: $compile("<arb-signup></arb-signup>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Signup"));
+	.error($scope.getErrorFunc("Sign Up"));
+});
+
+app.controller("LoginPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	$scope.getSuccessFunc(function(data){
+		return {
+			title: "Log In",
+			element: $compile("<arb-login></arb-login>")($scope),
+		};
+	})({user: {id: "0"}});
 });
 
 app.controller("KnowledgePageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-		$http({method: "POST", url: "/json/knowledge/"})
-		.success($scope.getSuccessFunc(function(data){
-			return {
-				title: "Knowledge",
-				element: $compile("<arb-knowledge-page></arb-knowledge-page>")($scope),
-			};
-		}))
-		.error($scope.getErrorFunc("Knowledge"));
+	$http({method: "POST", url: "/json/knowledge/"})
+	.success($scope.getSuccessFunc(function(data){
+		return {
+			title: "Knowledge",
+			element: $compile("<arb-knowledge-page></arb-knowledge-page>")($scope),
+		};
+	}))
+	.error($scope.getErrorFunc("Knowledge"));
 });
 
 app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-		$http({method: "POST", url: "/json/default/"})
-		.success($scope.getSuccessFunc(function(data){
-			return {
-				title: "Settings",
-				element: $compile("<arb-settings-page></arb-settings-page>")($scope),
-			};
-		}))
-		.error($scope.getErrorFunc("Settings"));
-});
-
-// Temporary test
-app.controller("TestPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-		$http({method: "POST", url: "/json/default/"})
-		.success($scope.getSuccessFunc(function(data){
-			$scope.text = "hi";
-			$scope.click = function() {
-				$scope.text = $scope.text === "hi" ? "bye" : "hi";
-			};
-			return {
-				title: "Test",
-				element: $compile("<md-button class='md-raised' ng-click='click()'><md-tooltip>Tooltip</md-tooltip>{{text}}</md-button>")($scope),
-			};
-		}))
-		.error($scope.getErrorFunc("Settings"));
+	$http({method: "POST", url: "/json/default/"})
+	.success($scope.getSuccessFunc(function(data){
+		return {
+			title: "Settings",
+			element: $compile("<arb-settings-page></arb-settings-page>")($scope),
+		};
+	}))
+	.error($scope.getErrorFunc("Settings"));
 });
