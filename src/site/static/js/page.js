@@ -62,7 +62,12 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			$scope.$watch(function() {
 				return $location.absUrl();
 			}, function() {
-				computeSelectedLens();
+				// NOTE: this also gets called when the user clicks on a link to go to another page,
+				// but in that case we don't want to do anything.
+				// TODO: create a better workaround
+				if ($location.path().indexOf($scope.pageId) >= 0) {
+					computeSelectedLens();
+				}
 			});
 
 			$scope.isLoaded = function(lensId) {

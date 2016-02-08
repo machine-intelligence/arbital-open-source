@@ -2,12 +2,12 @@
 package tasks
 
 import (
-	"fmt"
+	//"fmt"
 	"math/rand"
 	"time"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/stormpath"
+	//"zanaduu3/src/stormpath"
 )
 
 // ResetPasswordsTask is the object that's put into the daemon queue.
@@ -37,7 +37,7 @@ func (task *ResetPasswordsTask) Execute(db *database.DB) (delay int, err error) 
 	rows := db.NewStatement(`
 		SELECT id,firstName,lastName,email
 		FROM users
-		WHERE NOT resetEmailSent AND id=115`).Query()
+		WHERE NOT resetEmailSent AND firstName!=""`).Query()
 	err = rows.Process(resetPasswordsProcessPage)
 	if err != nil {
 		c.Debugf("ERROR: %v", err)
@@ -47,7 +47,7 @@ func (task *ResetPasswordsTask) Execute(db *database.DB) (delay int, err error) 
 }
 
 func resetPasswordsProcessPage(db *database.DB, rows *database.Rows) error {
-	var id, firstName, lastName, email string
+	/*var id, firstName, lastName, email string
 	if err := rows.Scan(&id, &firstName, &lastName, &email); err != nil {
 		return fmt.Errorf("Failed to scan for page: %v", err)
 	}
@@ -68,7 +68,7 @@ func resetPasswordsProcessPage(db *database.DB, rows *database.Rows) error {
 	err = stormpath.ForgotPassword(db.C, email)
 	if err != nil {
 		return fmt.Errorf("Couldn't forget password", err)
-	}
+	}*/
 
 	return nil
 }

@@ -94,7 +94,9 @@ var submitForm = function($form, url, data, success, error) {
 		$form.find("[toggle-on-submit]").toggle();
 	}
 
-	console.log("Submitting form to " + url + ":"); console.log(data);
+	if (!("password" in data)) {
+		console.log("Submitting form to " + url + ":"); console.log(data);
+	}
 	$.ajax({
 		type: "POST",
 		url: url,
