@@ -28,11 +28,11 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				return true;
 			};
 
-			// Sort lenses
+			// Sort lenses (from most technical to least)
 			$scope.page.lensIds.sort(function(a, b) {
-				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
+				return pageService.pageMap[b].lensIndex - pageService.pageMap[a].lensIndex;
 			});
-			$scope.page.lensIds.push($scope.page.pageId);
+			$scope.page.lensIds.unshift($scope.page.pageId);
 
 			// Determine which lens is selected
 			var computeSelectedLens = function() {
@@ -44,8 +44,9 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
 				} else {
 					// Select the hardest lens for which the user has met all requirements
-					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[0]];
-					for (var n = 1; n < $scope.page.lensIds.length; n++) {
+					var lastIndex = $scope.page.lensIds.length - 1;
+					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[lastIndex]];
+					for (var n = lastIndex - 1; n >= 0; n--) {
 						var lensId = $scope.page.lensIds[n];
 						if ($scope.hasAllReqs(lensId)) {
 							$scope.selectedLens = pageService.pageMap[lensId];

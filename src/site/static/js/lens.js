@@ -116,16 +116,17 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;
 				var primaryPage = pageService.pageMap[$scope.lensParentId];
-				for (var n = 0; n < primaryPage.lensIds.length; n++) {
+				for (var n = $scope.page.lensIndex - 1; n >= 0; n--) {
 					var lens = pageService.pageMap[primaryPage.lensIds[n]];
-					if (lens.lensIndex < $scope.page.lensIndex && $scope.meetsAllRequirements(lens.pageId)) {
+					if ($scope.meetsAllRequirements(lens.pageId)) {
 						simplerLensId = lens.pageId;
 						break;
 					}
 				}
-				if (!simplerLensId && primaryPage.lensIds[0] !== $scope.page.pageId) {
+				var simplestIndex = primaryPage.lensIds.length - 1;
+				if (!simplerLensId && primaryPage.lensIds[simplestIndex] !== $scope.page.pageId) {
 					// We haven't found a lens for which we've met all requirements, so just suggest the simplest lens
-					simplerLensId = primaryPage.lensIds[0];
+					simplerLensId = primaryPage.lensIds[simplestIndex];
 				}
 				if (simplerLensId) {
 					$scope.simplerLens = pageService.pageMap[simplerLensId];

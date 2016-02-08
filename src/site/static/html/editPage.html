@@ -183,10 +183,10 @@
 								Sorted from most simple to most technical. (Main lens is always the most technical.)
 							</div>
 						</div>
-						<div class="md-caption" ng-if="page.lensIds.length <= 1">This page has no lenses.</div>
+						<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
 
 						<!-- List of lenses -->
-						<div data-as-sortable="lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 1">
+						<div data-as-sortable="lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
 							<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
 								<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
 									<md-icon>reorder</md-icon>
