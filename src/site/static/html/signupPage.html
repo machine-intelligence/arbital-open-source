@@ -8,6 +8,18 @@
 				<h3>Sign Up</h3>
 			</div>
 		</md-toolbar>
+
+		<div>
+			<md-button class="facebook-button" ng-click="signupWithFb()">
+				<md-icon md-svg-icon="facebook_box"></md-icon>
+				facebook
+			</md-button>
+			<div class="md-warn" ng-bind="socialError"></div>
+		</div>
+
+		<div>
+			--- OR ---
+		</div>
 	
 		<div layout="column" layout-margin>
 			<md-input-container>

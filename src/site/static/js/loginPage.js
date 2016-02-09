@@ -1,10 +1,12 @@
 "use strict";
 
 // Directive for the Login page.
-app.directive("arbLogin", function($location, pageService, userService) {
+app.directive("arbLogin", function($location, $http, pageService, userService) {
 	return {
 		templateUrl: "static/html/loginPage.html",
 		scope: {
+			// True if the login is embe
+			isEmbedded: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -16,6 +18,26 @@ app.directive("arbLogin", function($location, pageService, userService) {
 					window.location.href = $location.search().continueUrl || "/";
 				}, function() {
 				});
+			};
+
+			$scope.loginWithFb = function() {
+				FB.login(function(response){
+					if (response.status === "connected") {
+						var data = {
+							fbAccessToken: response.authResponse.accessToken,
+							fbUserId: response.authResponse.userID,
+						};
+						$http({method: "POST", url: "/signup/", data: JSON.stringify(data)})
+						.success(function(data, status){
+							window.location.href = $location.search().continueUrl || "/";
+						})
+						.error(function(data, status){
+							console.error("Error FB signup:"); console.log(data); console.log(status);
+						});
+					} else {
+						$scope.socialError = "Error: " + response.status;
+					}
+				}, {scope: 'public_profile,email'});
 			};
 		},
 	};

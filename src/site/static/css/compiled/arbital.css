@@ -173,6 +173,16 @@ span.md-warn {
 .bold {
   font-weight: bold; }
 
+.facebook-button {
+  background-color: #3b5998;
+  color: white; }
+  .facebook-button md-icon {
+    color: white; }
+  .facebook-button:hover {
+    background-color: #8b9dc3 !important; }
+  .facebook-button:focus {
+    background-color: #8b9dc3 !important; }
+
 arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0;
   overflow-x: auto;

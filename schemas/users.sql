@@ -10,6 +10,8 @@ CREATE TABLE users (
 	firstName VARCHAR(32) NOT NULL,
 	/* User's self-assigned last name. */
 	lastName VARCHAR(32) NOT NULL,
+	/* If the user added FB, this is their userId */
+	fbUserId VARCHAR(32) NOT NULL,
 	/* Date of the last website visit. */
 	lastWebsiteVisit DATETIME NOT NULL,
 	/* True iff the user is an admin. */

@@ -14,13 +14,11 @@ import (
 	"zanaduu3/src/sessions"
 )
 
-// Holds information about a Stormpath user
-type User struct {
+// Holds information about a Stormpath account
+type Account struct {
 	GivenName string `json:"givenName"`
 	Email     string `json:"email"`
-	Surname   string `json:"firstName"`
-	Username  string `json:"lastName"`
-	Password  string `json:"isAdmin"`
+	Surname   string `json:"surname"`
 }
 
 func getStormpathUrl() string {
@@ -51,6 +49,53 @@ func CreateNewUser(c sessions.Context, givenName, surname, email, password strin
 	}
 	return nil
 }
+
+func CreateNewFbUser(c sessions.Context, accessToken string) (*Account, error) {
+	jsonStr := fmt.Sprintf(`{
+		"providerData": {
+			"providerId": "facebook",  
+			"accessToken": "%s"
+		}
+	}`, accessToken)
+	request, err := http.NewRequest("POST", fmt.Sprintf("%s/accounts", getStormpathUrl()), bytes.NewBuffer([]byte(jsonStr)))
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't create request: %v", err)
+	}
+	request.SetBasicAuth(config.XC.Stormpath.Id, config.XC.Stormpath.Secret)
+	request.Header.Set("Accept", "application/json")
+	request.Header.Set("Content-Type", "application/json")
+
+	// Execute request
+	resp, err := sendRequest(c, request)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't execute request: %v", err)
+	}
+
+	decoder := json.NewDecoder(resp.Body)
+	var result Account
+	err = decoder.Decode(&result)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't decode json: %v", err)
+	}
+
+	return &result, nil
+}
+
+/*func GetAccountInfo(c sessions.Context, accountId string) (*Account, error) {
+	request, err := http.Get("GET", fmt.Sprintf("https://api.stormpath.com/v1/accounts/%s", accountId), bytes.NewBuffer([]byte("")))
+	if err != nil {
+		return fmt.Errorf("Couldn't create request: %v", err)
+	}
+	request.SetBasicAuth(config.XC.Stormpath.Id, config.XC.Stormpath.Secret)
+
+	// Execute request
+	resp, err := sendRequest(c, request)
+	if err != nil {
+		return fmt.Errorf("Couldn't execute request: %v", err)
+	}
+
+	return nil
+}*/
 
 func AuthenticateUser(c sessions.Context, email, password string) error {
 	value := base64.StdEncoding.EncodeToString([]byte((fmt.Sprintf("%s:%s", email, password))))

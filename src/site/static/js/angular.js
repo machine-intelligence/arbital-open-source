@@ -65,6 +65,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	$mdIconProvider.icon("arbital_logo", "static/icons/arbital-logo.svg", 40)
 		.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
 		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
+		.icon("facebook_box", "static/icons/facebook-box.svg")
 		.icon("link_variant", "static/icons/link-variant.svg")
 		.icon("comment_plus_outline", "static/icons/comment-plus-outline.svg")
 		.icon("format_header_pound", "static/icons/format-header-pound.svg");
@@ -520,7 +521,7 @@ app.controller("LoginPageController", function ($scope, $routeParams, $http, $co
 	$scope.getSuccessFunc(function(data){
 		return {
 			title: "Log In",
-			element: $compile("<arb-login></arb-login>")($scope),
+			element: $compile("<div class='md-whiteframe-1dp capped-body-width'><arb-login></arb-login></div>")($scope),
 		};
 	})({user: {id: "0"}});
 });
