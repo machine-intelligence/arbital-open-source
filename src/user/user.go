@@ -195,9 +195,14 @@ const (
 )
 
 // Replace a rune at a specific index in a string
-func replaceAtIndex(in string, r rune, i int) string {
+func replaceAtIndex(db *database.DB, in string, r rune, i int) string {
+	//	db.C.Debugf("in: %v", in)
+	//	db.C.Debugf("r: %v", r)
+	//	db.C.Debugf("i: %v", i)
 	out := []rune(in)
+	//	db.C.Debugf("out: %v", out)
 	out[i] = r
+	//	db.C.Debugf("out: %v", out)
 	return string(out)
 }
 
@@ -212,18 +217,57 @@ func CharIsVowel(char rune) bool {
 
 // Get the next highest base36 character, without vowels
 // Returns the character, and true if it wrapped around to 0
-func GetNextBase31Char(char rune) (rune, bool, error) {
+func GetNextBase31Char(db *database.DB, char rune) (rune, bool, error) {
 	index := strings.Index(Base31Chars, strings.ToLower(string(char)))
+	//db.C.Debugf("index: %v", index)
 	if index < 0 {
 		return '0', false, fmt.Errorf("invalid character")
 	}
 	if index < len(Base31Chars)-1 {
 		nextChar := rune(Base31Chars[index+1])
+		//		db.C.Debugf("nextChar: %v", nextChar)
 		return nextChar, false, nil
 	} else {
 		nextChar := rune(Base31Chars[0])
+		//		db.C.Debugf("nextChar: %v", nextChar)
 		return nextChar, true, nil
 	}
+}
+
+// Increment a base31 Id string
+func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
+	// Add 1 to the base36 value, skipping vowels
+	// Start at the last character in the Id string, carrying the 1 as many times as necessary
+	nextAvailableId := previousId
+	//	db.C.Debugf("nextAvailableId: %v", nextAvailableId)
+	index := len(nextAvailableId) - 1
+	//	db.C.Debugf("index: %v", index)
+	//	db.C.Debugf("nextAvailableId[index]: %v", nextAvailableId[index])
+	var newChar rune
+	var err error
+	processNextChar := true
+	for processNextChar {
+		// If we need to carry the 1 all the way to the beginning, then add a 1 at the beginning of the string
+		if index < 0 {
+			nextAvailableId = "1" + nextAvailableId
+			processNextChar = false
+		} else {
+			// Increment the character at the current index in the Id string
+			newChar, processNextChar, err = GetNextBase31Char(db, rune(nextAvailableId[index]))
+			//			db.C.Debugf("newChar: %v", newChar)
+			//			db.C.Debugf("processNextChar: %v", processNextChar)
+			if err != nil {
+				return "", fmt.Errorf("Error processing id: %v", err)
+			}
+			nextAvailableId = replaceAtIndex(db, nextAvailableId, newChar, index)
+			//			db.C.Debugf("nextAvailableId: %v", nextAvailableId)
+			index = index - 1
+			//			db.C.Debugf("index: %v", index)
+		}
+	}
+
+	//	db.C.Debugf("nextAvailableId: %v", nextAvailableId)
+	return nextAvailableId, nil
 }
 
 // Get the next available base36 Id string that doesn't contain vowels
@@ -252,26 +296,7 @@ FROM users
 		return "", fmt.Errorf("Couldn't load id: %v", err)
 	}
 
-	// Add 1 to the base36 value, skipping vowels
-	// Start at the last character in the Id string, carrying the 1 as many times as necessary
-	nextAvailableId := highestUsedId
-	index := len(nextAvailableId)
-	var newChar rune
-	processNextChar := true
-	for processNextChar {
-		// Increment the character at the current index in the Id string
-		newChar, processNextChar, err = GetNextBase31Char(rune(nextAvailableId[index]))
-		if err != nil {
-			return "", fmt.Errorf("Error processing id: %v", err)
-		}
-		replaceAtIndex(nextAvailableId, newChar, index)
-		index = index - 1
-		// If we need to carry the 1 all the way to the beginning, then add a 1 at the beginning of the string
-		if index < 0 {
-			nextAvailableId = "1" + nextAvailableId
-			processNextChar = false
-		}
-	}
+	nextAvailableId, err := IncrementBase31Id(db, highestUsedId)
 
-	return nextAvailableId, nil
+	return nextAvailableId, err
 }
