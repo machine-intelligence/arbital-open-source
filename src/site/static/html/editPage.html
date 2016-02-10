@@ -14,7 +14,7 @@
 				flex>
 			<!-- (0) Title tab -->
 			<md-tab label="Title" ng-disabled="isComment || isAnswer">
-				<div layout="column" flex>
+				<div flex>
 					<div class="editor-tab" layout="column">
 						<md-input-container>
 							<label>Title</label>
@@ -30,7 +30,7 @@
 						</md-input-container>
 					</div>
 					<!-- Related pages -->
-					<ng-include src="'static/html/editPageSimilarList.html'" flex ng-if="!isQuestion"></ng-include>
+					<ng-include src="'static/html/editPageSimilarList.html'" ng-if="!isQuestion"></ng-include>
 				</div>
 			</md-tab>
 
