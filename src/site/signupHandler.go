@@ -22,6 +22,10 @@ type signupHandlerData struct {
 	LastName   string
 	Password   string
 	InviteCode string
+
+	// Alternatively, signup with Facebook
+	FbAccessToken string
+	FbUserId      string
 }
 
 var signupHandler = siteHandler{
@@ -40,12 +44,54 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if len(data.Email) <= 0 || len(data.FirstName) <= 0 || len(data.LastName) <= 0 || len(data.Password) <= 0 {
+	if len(data.FbAccessToken) > 0 && len(data.FbUserId) >= 0 {
+		// Get data from FB
+		account, err := stormpath.CreateNewFbUser(params.C, data.FbAccessToken)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't create a new user", err)
+		}
+		data.Email = account.Email
+		data.FirstName = account.GivenName
+		data.LastName = account.Surname
+
+		// Set the cookie
+		err = user.SaveEmailCookie(params.W, params.R, data.Email)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't save a cookie", err)
+		}
+	} else if len(data.Email) > 0 && len(data.FirstName) > 0 && len(data.LastName) > 0 && len(data.Password) > 0 {
+		// Valid request
+	} else {
 		return pages.HandlerBadRequestFail("A required field is not set.", nil)
 	}
+
 	nameRegexp := regexp.MustCompile("^[A-Za-z]+$")
 	if !nameRegexp.MatchString(data.FirstName) || !nameRegexp.MatchString(data.LastName) {
 		return pages.HandlerBadRequestFail("Only letter characters (A-Z) are allowed in the name", nil)
+	}
+
+	// Check if this user already exists.
+	var existingFbUserId string
+	var existingId int64
+	exists, err := db.NewStatement(`
+		SELECT id,fbUserId
+		FROM users
+		WHERE email=?`).QueryRow(data.Email).Scan(&existingId, &existingFbUserId)
+	if err != nil {
+		return pages.HandlerErrorFail("Error checking for existing user", err)
+	}
+	if exists {
+		if existingFbUserId != data.FbUserId {
+			// Update user's FB id in the DB
+			hashmap := make(database.InsertMap)
+			hashmap["id"] = existingId
+			hashmap["fbUserId"] = data.FbUserId
+			statement := db.NewInsertStatement("users", hashmap, "fbUserId")
+			if _, err := statement.Exec(); err != nil {
+				return pages.HandlerErrorFail("Couldn't update user's record", err)
+			}
+		}
+		return pages.StatusOK(nil)
 	}
 
 	// Process invite code and assign karma
@@ -77,10 +123,13 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		alias = fmt.Sprintf("%s%d", aliasBase, suffix)
 	}
 
-	// Sign up the user through Stormpath
-	err = stormpath.CreateNewUser(params.C, data.FirstName, data.LastName, data.Email, data.Password)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't create a new user", err)
+	// If there is no password, then the user must have signed up through a social network
+	if len(data.Password) > 0 {
+		// Sign up the user through Stormpath
+		err = stormpath.CreateNewUser(params.C, data.FirstName, data.LastName, data.Email, data.Password)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't create a new user", err)
+		}
 	}
 
 	// Begin the transaction.
@@ -89,6 +138,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["firstName"] = data.FirstName
 		hashmap["lastName"] = data.LastName
 		hashmap["email"] = data.Email
+		hashmap["fbUserId"] = data.FbUserId
 		hashmap["createdAt"] = database.Now()
 		hashmap["lastWebsiteVisit"] = database.Now()
 		hashmap["inviteCode"] = inviteCode

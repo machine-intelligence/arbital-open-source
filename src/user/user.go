@@ -36,6 +36,7 @@ var (
 type User struct {
 	// DB variables
 	Id             int64  `json:"id,string"`
+	FbUserId       int64  `json:"fbUserId,string"`
 	Email          string `json:"email"`
 	FirstName      string `json:"firstName"`
 	LastName       string `json:"lastName"`
@@ -117,10 +118,10 @@ func loadUserFromDb(r *http.Request, db *database.DB) (*User, error) {
 
 	var u User
 	row := db.NewStatement(`
-		SELECT id,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
-	_, err = row.Scan(&u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
+	_, err = row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
 		&u.EmailFrequency, &u.EmailThreshold, &u.InviteCode, &u.IgnoreMathjax)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)

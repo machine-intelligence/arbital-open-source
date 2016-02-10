@@ -99,24 +99,14 @@
 <!-- Right sidenav slide out; only if the user is logged out -->
 <md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="!userService.user.id !== '0'">
 	<md-toolbar>
-		<h1 class="md-toolbar-tools">Log In</h1>
+		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
+			<span>Log In</span>
+			<md-button class="md-icon-button" ng-click="toggleRightMenu()">
+				<md-icon>arrow_forward</md-icon>
+			</md-button>
+		</h1>
 	</md-toolbar>
-	<md-content layout="column">
-		<form layout="column"
-				layout-margin
-				ng-submit="loginSubmit($event)">
-			<md-input-container>
-				<label>Email</label>
-				<input name="email" type="email" ng-model="loginData.email" required="true">
-			</md-input-container>
-			<md-input-container>
-				<label>Password</label>
-				<input name="password" type="password" ng-model="loginData.password" required="true">
-				<span class="md-caption">Reminder: at least eight characters long, mixed case, and at least one number.</span>
-			</md-input-container>
-			<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
-			<div class="submit-form-error md-warn" hidden></div>
-			<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Log in</md-button>
-		</form>
+	<md-content>
+		<arb-login is-embedded="true"></arb-login>
 	</md-content>
 </md-sidenav>

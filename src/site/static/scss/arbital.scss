@@ -202,6 +202,22 @@ span.md-warn {
 	font-weight: bold;
 }
 
+.facebook-button {
+	background-color: #3b5998;
+	color: white;
+
+	md-icon {
+		color: white;
+	}
+
+	&:hover {
+		background-color: #8b9dc3 !important;
+	}
+	&:focus {
+		background-color: #8b9dc3 !important;
+	}
+}
+
 arb-markdown, [arb-markdown], .preview-area {
 	p {
 		margin-top: 0;

@@ -28,15 +28,7 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 
 			// Open RHS menu
 			$scope.toggleRightMenu = function() {
-		    $mdSidenav("right").toggle();
-		  };
-
-			$scope.loginData = {};
-			$scope.loginSubmit = function(event) {
-				submitForm($(event.currentTarget), "/login/", $scope.loginData, function(r) {
-					window.location.reload();
-				}, function() {
-				});
+				$mdSidenav("right").toggle();
 			};
 
 			$scope.logout = function() {

@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for the Signup page.
-app.directive("arbSignup", function($location, pageService, userService) {
+app.directive("arbSignup", function($location, $http, pageService, userService) {
 	return {
 		templateUrl: "static/html/signupPage.html",
 		scope: {
@@ -18,6 +18,26 @@ app.directive("arbSignup", function($location, pageService, userService) {
 					});
 				}, function() {
 				});
+			};
+
+			$scope.signupWithFb = function() {
+				FB.login(function(response){
+					if (response.status === "connected") {
+						var data = {
+							fbAccessToken: response.authResponse.accessToken,
+							fbUserId: response.authResponse.userID,
+						};
+						$http({method: "POST", url: "/signup/", data: JSON.stringify(data)})
+						.success(function(data, status){
+							window.location.href = $location.search().continueUrl || "/";
+						})
+						.error(function(data, status){
+							console.error("Error FB signup:"); console.log(data); console.log(status);
+						});
+					} else {
+						$scope.socialError = "Error: " + response.status;
+					}
+				}, {scope: 'public_profile,email'});
 			};
 		},
 	};
