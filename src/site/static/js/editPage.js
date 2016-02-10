@@ -6,7 +6,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 		templateUrl: "static/html/editPage.html",
 		scope: {
 			pageId: "@",
-			// Whether or not this edit page is embedded in some column, and show be
+			// Whether or not this edit page is embedded in some column, and should be
 			// sized accordingly
 			isEmbedded: "=",
 			// True iff this is embedded inside a dialog
