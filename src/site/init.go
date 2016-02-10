@@ -123,6 +123,9 @@ func init() {
 	// Admin stuff
 	s.HandleFunc(domainsPageHandler.URI, handlerWrapper(domainsPageHandler)).Methods("POST")
 	s.HandleFunc(fixTextHandler.URI, handlerWrapper(fixTextHandler)).Methods("GET")
+	s.HandleFunc(base10ToBase36Part1Handler.URI, handlerWrapper(base10ToBase36Part1Handler)).Methods("GET")
+	s.HandleFunc(base10ToBase36Part2Handler.URI, handlerWrapper(base10ToBase36Part2Handler)).Methods("GET")
+	s.HandleFunc(base10ToBase36Part3Handler.URI, handlerWrapper(base10ToBase36Part3Handler)).Methods("GET")
 	s.HandleFunc(updateElasticIndexHandler.URI, handlerWrapper(updateElasticIndexHandler)).Methods("GET")
 	s.HandleFunc(updateMetadataHandler.URI, handlerWrapper(updateMetadataHandler)).Methods("GET")
 
