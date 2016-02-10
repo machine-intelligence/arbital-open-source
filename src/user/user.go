@@ -36,7 +36,7 @@ var (
 type User struct {
 	// DB variables
 	Id             int64  `json:"id,string"`
-	FbUserId       int64  `json:"fbUserId,string"`
+	FbUserId       string `json:"fbUserId"`
 	Email          string `json:"email"`
 	FirstName      string `json:"firstName"`
 	LastName       string `json:"lastName"`

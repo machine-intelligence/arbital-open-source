@@ -35,6 +35,11 @@ var getHostMatchRegex = function(host) {
 	return regexString;
 };
 
+// Return true if we are in the live/production environment. (False if it's staging.)
+var isLive = function() {
+	return window.location.host.indexOf("arbital.com") >= 0;
+};
+
 // Extend jQuery with a function to change element's type
 (function($) {
 	$.fn.changeElementType = function(newType) {

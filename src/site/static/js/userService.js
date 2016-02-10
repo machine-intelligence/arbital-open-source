@@ -41,4 +41,18 @@ app.service("userService", function(){
 	this.isTouchDevice = "ontouchstart" in window // works in most browsers
 		|| (navigator.MaxTouchPoints > 0)
 		|| (navigator.msMaxTouchPoints > 0);
+
+	// Sign into FB and call the callback with the response.
+	this.fbLogin = function(callback) {
+		// Apparently FB.login is not supported in Chrome in iOS
+		if (navigator.userAgent.match("CriOS")) {
+			var appId = isLive() ? "1064531780272247" : "1064555696936522";
+			window.open("https://www.facebook.com/dialog/oauth?client_id=" + appId +
+					"&redirect_uri=" + document.location.href + "&scope=email,public_profile", "", null);
+		} else {
+			FB.login(function(response){
+				callback(response);
+			}, {scope: 'public_profile,email'});
+		}
+	};
 });

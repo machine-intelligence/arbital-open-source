@@ -21,7 +21,7 @@ app.directive("arbLogin", function($location, $http, pageService, userService) {
 			};
 
 			$scope.loginWithFb = function() {
-				FB.login(function(response){
+				userService.fbLogin(function(response){
 					if (response.status === "connected") {
 						var data = {
 							fbAccessToken: response.authResponse.accessToken,
@@ -37,7 +37,7 @@ app.directive("arbLogin", function($location, $http, pageService, userService) {
 					} else {
 						$scope.socialError = "Error: " + response.status;
 					}
-				}, {scope: 'public_profile,email'});
+				});
 			};
 		},
 	};
