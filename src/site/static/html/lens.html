@@ -84,27 +84,32 @@
 				<span arb-requisite-button requisite-id="{{page.pageId}}" allow-wants="true">
 				</span>
 			</div>
-			<div ng-show="pageService.wantsMastery(page.pageId)">
-				<md-button class="md-primary" ng-href="/sequences/{{page.pageId}}">
+			<div ng-show="!pageService.hasMastery(page.pageId)">
+				<md-button class="md-primary md-raised" ng-href="/sequences/{{page.pageId}}">
 					Start learning!
 				</md-button>
 			</div>
 		</div>
 
 		<!-- Subjects taught -->
-		<div ng-if="!isSimpleEmbed && page.subjectIds.length > 0">
+		<div ng-if="!isSimpleEmbed && subjectIds.length > 0">
 			<span class="md-subhead">
 				<md-icon>assignment</md-icon>
-				Which concepts from "{{page.title}}" did you understand?
+				"{{page.title}}" taught you these concepts:
 			</span>
-			<div arb-mastery-list ids-source="page.subjectIds"></div>
+			<div arb-mastery-list ids-source="subjectIds" hide-checkboxes="!showSubjectCheckboxes"></div>
 
 			<!-- Mark as done button -->
-			<md-button ng-click="toggleSubjects()"
-					ng-if="page.subjectIds.length > 1">
+			<md-button class="md-primary md-raised"
+					ng-click="toggleSubjects()">
 				<md-icon ng-show="knowsAllSubjects()">clear</md-icon>
 				<md-icon ng-hide="knowsAllSubjects()">done_all</md-icon>
 				<span ng-bind="knowsAllSubjects() ? 'Nevermind, I didn\'t understand any' : 'I understood all of them'"></span>
+			</md-button>
+			<md-button class="md-primary"
+					ng-click="showSubjectCheckboxes = !showSubjectCheckboxes"
+					ng-hide="showSubjectCheckboxes">
+				I only understood some of them
 			</md-button>
 		</div>
 	</div>

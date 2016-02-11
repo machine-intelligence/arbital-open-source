@@ -474,6 +474,8 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 		templateUrl: "static/html/requisiteButton.html",
 		scope: {
 			requisiteId: "@",
+			// If true, don't show the checkbox
+			hideCheckbox: "=",
 			// If true, don't show the page title
 			hideTitle: "=",
 			// If true, allow the user to toggle into a "want" state
