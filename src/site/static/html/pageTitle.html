@@ -1,14 +1,14 @@
 <!-- Display page's title with potential additional meta info. -->
-<md-icon ng-show="showType && page.type === 'question'">
+<md-icon ng-if="::(showType && page.type === 'question')">
 	<md-tooltip>This is a question page</md-tooltip>
 	help
 </md-icon>
-<a ng-href="{{pageService.getPageUrl(page.pageId)}}"
+<a ng-href="{{::pageService.getPageUrl(page.pageId)}}"
 		class="intrasite-link"
-		page-id="{{page.pageId}}"
-		ng-bind="getTitle()"
-		ng-if="isLink"></a>
-<span ng-bind="getTitle()"
-		ng-if="!isLink"></span>
-<div class="md-caption" ng-bind="page.clickbait" ng-show="showClickbait">
+		page-id="{{::page.pageId}}"
+		ng-bind="::getTitle()"
+		ng-if="::isLink"></a>
+<span ng-bind="::getTitle()"
+		ng-if="::!isLink"></span>
+<div class="md-caption" ng-bind="::page.clickbait" ng-show="::showClickbait">
 </div>
