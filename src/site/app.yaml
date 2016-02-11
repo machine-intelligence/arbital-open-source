@@ -1,5 +1,5 @@
 application: zanaduu3
-version: 001f
+version: 001g
 runtime: go
 api_version: go1
 automatic_scaling:
@@ -12,8 +12,8 @@ handlers:
   static_dir: static
 
 - url: /favicon.ico
-  static_files: static/images/favicon.ico
-  upload: static/images/favicon.ico
+  static_files: static/icons/favicon.ico
+  upload: static/icons/favicon.ico
 
 - url: /.*
   script: _go_app

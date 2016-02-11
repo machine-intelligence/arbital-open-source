@@ -1,7 +1,7 @@
 "use strict";
 
 // User service.
-app.service("userService", function(){
+app.service("userService", function($http, $location){
 	var that = this;
 
 	// Logged in user.
@@ -45,14 +45,29 @@ app.service("userService", function(){
 	// Sign into FB and call the callback with the response.
 	this.fbLogin = function(callback) {
 		// Apparently FB.login is not supported in Chrome in iOS
-		if (navigator.userAgent.match("CriOS")) {
+		if (true || navigator.userAgent.match("CriOS")) {
 			var appId = isLive() ? "1064531780272247" : "1064555696936522";
-			window.open("https://www.facebook.com/dialog/oauth?client_id=" + appId +
-					"&redirect_uri=" + document.location.href + "&scope=email,public_profile", "", null);
+			var redirectUrl = encodeURIComponent(isLive() ? "http://arbital.com/" : "http://localhost:8012/");
+			window.location.href = "https://www.facebook.com/dialog/oauth?client_id=" + appId +
+					"&redirect_uri=" + redirectUrl + "&scope=email,public_profile";
 		} else {
 			FB.login(function(response){
 				callback(response);
 			}, {scope: 'public_profile,email'});
 		}
 	};
+
+	// Check if FB redirected back to use with the code
+	if ($location.search().code) {
+		var data = {
+			fbCodeToken: $location.search().code,
+		};
+		$http({method: "POST", url: "/signup/", data: JSON.stringify(data)})
+		.success(function(data, status){
+			window.location.href = $location.search().continueUrl || "/";
+		})
+		.error(function(data, status){
+			console.error("Error FB signup:"); console.log(data); console.log(status);
+		});
+	}
 });
