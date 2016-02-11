@@ -8,7 +8,7 @@
 		<a ng-href="/"
 				layout-margin
 				ng-bind="pageService.pageMap[pageService.privateGroupId].title | shorten: 30"
-				ng-show="pageService.privateGroupId !== '0'"></a>
+				ng-if="pageService.privateGroupId !== '0'"></a>
 
 		<!-- Search -->
 		<span flex></span>
@@ -22,26 +22,26 @@
 		<!-- Updates -->
 		<md-button href="/updates/"
 				ng-class="{'md-icon-button': userService.user.updateCount <= 0}"
-				ng-show="userService.user.id !== '0'">
-			<md-icon ng-show="userService.user.updateCount <= 0">notifications_none</md-icon>
-			<md-icon class="md-accent md-hue-3" ng-show="userService.user.updateCount > 0">notifications</md-icon>
-			<span ng-bind="userService.user.updateCount" ng-show="userService.user.updateCount > 0"></span>
+				ng-if="userService.user.id !== '0'">
+			<md-icon ng-if="userService.user.updateCount <= 0">notifications_none</md-icon>
+			<md-icon class="md-accent md-hue-3" ng-if="userService.user.updateCount > 0">notifications</md-icon>
+			<span ng-bind="userService.user.updateCount" ng-if="userService.user.updateCount > 0"></span>
 		</md-button>
 
 		<!-- Login/signup buttons -->
 		<md-button ng-href="/signup/?continueUrl={{currentUrl}}"
-				ng-hide="userService.user.id !== '0'">
+				ng-if="userService.user.id === '0'">
 			Sign Up
 		</md-button>
 		<md-button ng-click="toggleRightMenu()"
-				ng-hide="userService.user.id !== '0'">
+				ng-if="userService.user.id === '0'">
 			Log In
 		</md-button>
 
 		<!-- Button for RHS sidebar -->
 		<md-button class="md-icon-button"
 				ng-click="toggleRightMenu()"
-				ng-show="userService.user.id !== '0'">
+				ng-if="userService.user.id !== '0'">
 			<md-icon>menu</md-icon>
     </md-button>
 	</div>
@@ -67,7 +67,7 @@
 	</md-toolbar>
 	<md-content layout="column">
 		<!-- List of groups -->
-		<md-subheader ng-show="userService.user.groupIds.length > 0">
+		<md-subheader ng-if="userService.user.groupIds.length > 0">
 			Your Groups
 		</md-subheader>
 		<div layout="column" layout-align="start center">
@@ -96,7 +96,7 @@
 </md-sidenav>
 
 <!-- Right sidenav slide out; only if the user is logged out -->
-<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="!userService.user.id !== '0'">
+<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="userService.user.id === '0'">
 	<md-toolbar>
 		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
 			<span>Log In</span>
