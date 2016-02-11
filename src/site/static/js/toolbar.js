@@ -37,16 +37,7 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 			};
 		},
 		link: function(scope, element, attrs) {
-			// Hide toolbar in the edit screen
-			function showHideToolBar() {
-				if ($location.path().indexOf("/edit") === 0)
-					element.hide();
-				else
-					element.show();
-			}
-
-			scope.$on("$locationChangeSuccess", showHideToolBar);
-			showHideToolBar();
+			hideElementOnEditPage(scope, element, $location);
 		},
 	};
 });
