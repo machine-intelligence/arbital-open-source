@@ -21,39 +21,6 @@ type Account struct {
 	Surname   string `json:"surname"`
 }
 
-// GetAppAccessToken returns the app's access token
-/*func GetAppAcessToken(c sessions.Context) (string, error) {
-	/oauth/access_token?
-	     client_id={app-id}
-			     &amp;client_secret={app-secret}
-					     &amp;grant_type=client_credentials
-	tokenUrl := fmt.Sprintf("https://graph.facebook.com/v2.5/oauth/access_token?client_id=%s&client_secret=%s&redirect_uri=%s&code=%s", fbId, fbSecret, url.QueryEscape(redirectUrl), token)
-	request, err := http.NewRequest("GET", tokenUrl, bytes.NewBuffer([]byte("")))
-	if err != nil {
-		return fmt.Errorf("Couldn't create request: %v", err)
-	}
-
-	// Execute request
-	resp, err := sendRequest(c, request)
-	if err != nil {
-		return fmt.Errorf("Couldn't execute request: %v", err)
-	}
-	c.Debugf("=============== %+v", resp)
-
-	decoder := json.NewDecoder(resp.Body)
-	var result map[string]interface{}
-	err = decoder.Decode(&result)
-	if err != nil {
-		return fmt.Errorf("Couldn't decode json: %v", err)
-	}
-
-	c.Debugf("=============== %+v", result)
-	accessToken := result["access_token"].(string)
-	c.Debugf("=============== %+v", accessToken)
-
-	return nil
-}*/
-
 // ProcessCodeToken takes a code token returned from OAuth, and returns auth_token
 func ProcessCodeToken(c sessions.Context, token, redirectUrl string) (string, error) {
 	fbId := config.XC.Facebook.Id
@@ -73,7 +40,6 @@ func ProcessCodeToken(c sessions.Context, token, redirectUrl string) (string, er
 	if err != nil {
 		return "", fmt.Errorf("Couldn't execute request: %v", err)
 	}
-	c.Debugf("=============== %+v", resp)
 
 	decoder := json.NewDecoder(resp.Body)
 	var result map[string]interface{}
@@ -82,10 +48,7 @@ func ProcessCodeToken(c sessions.Context, token, redirectUrl string) (string, er
 		return "", fmt.Errorf("Couldn't decode json: %v", err)
 	}
 
-	c.Debugf("=============== %+v", result)
 	accessToken := result["access_token"].(string)
-	c.Debugf("=============== %+v", accessToken)
-
 	return accessToken, nil
 }
 
@@ -98,7 +61,6 @@ func ProcessAccessToken(c sessions.Context, token string) (string, error) {
 		fbSecret = config.XC.Facebook.TestSecret
 	}
 	tokenUrl := fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s", token, fbId, fbSecret)
-	c.Debugf("============= URL: %s", tokenUrl)
 	request, err := http.NewRequest("GET", tokenUrl, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return "", fmt.Errorf("Couldn't create request: %v", err)
@@ -109,7 +71,6 @@ func ProcessAccessToken(c sessions.Context, token string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Couldn't execute request: %v", err)
 	}
-	c.Debugf("=============== %+v", resp)
 
 	decoder := json.NewDecoder(resp.Body)
 	var result map[string]map[string]interface{}
@@ -118,10 +79,7 @@ func ProcessAccessToken(c sessions.Context, token string) (string, error) {
 		return "", fmt.Errorf("Couldn't decode json: %v", err)
 	}
 
-	c.Debugf("=============== %+v", result)
 	userId := result["data"]["user_id"].(string)
-	c.Debugf("=============== %+v", userId)
-
 	return userId, nil
 }
 

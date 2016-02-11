@@ -32,6 +32,7 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 			};
 
 			$scope.logout = function() {
+				Cookies.remove("masteryMap");
 				Cookies.remove("arbital");
 				window.location.reload();
 			};

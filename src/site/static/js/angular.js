@@ -123,9 +123,9 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "LoginPageController",
 	})
-	.when("/knowledge/", {
+	.when("/requisites/", {
 		template: "",
-		controller: "KnowledgePageController",
+		controller: "RequisitesPageController",
 	})
 	.when("/settings/", {
 		template: "",
@@ -526,15 +526,15 @@ app.controller("LoginPageController", function ($scope, $routeParams, $http, $co
 	})({user: {id: "0"}});
 });
 
-app.controller("KnowledgePageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-	$http({method: "POST", url: "/json/knowledge/"})
+app.controller("RequisitesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	$http({method: "POST", url: "/json/requisites/"})
 	.success($scope.getSuccessFunc(function(data){
 		return {
-			title: "Knowledge",
-			element: $compile("<arb-knowledge-page></arb-knowledge-page>")($scope),
+			title: "Requisites",
+			element: $compile("<arb-requisites-page></arb-requisites-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Knowledge"));
+	.error($scope.getErrorFunc("Requisites"));
 });
 
 app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
