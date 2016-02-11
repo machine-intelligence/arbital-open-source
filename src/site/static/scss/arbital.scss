@@ -202,6 +202,13 @@ span.md-warn {
 	font-weight: bold;
 }
 
+.float-left {
+	float: left;
+}
+.float-right {
+	float: right;
+}
+
 .facebook-button {
 	background-color: #3b5998;
 	color: white;
@@ -735,6 +742,14 @@ arb-likes {
 
 arb-requisite-button, [arb-requisite-button] {
 	white-space: nowrap;
+
+	.md-button {
+		padding: 0;
+		width: 20px;
+		height: 20px;
+		min-height: 20px;
+		margin-right: 5px;
+	}
 }
 
 // Menu for a lens (with like, subscribe, edit, etc. buttons)
@@ -1162,4 +1177,13 @@ arb-multiple-choice {
 	margin-left: 10px;
 	border-left: $primary-hue-1 3px solid;
 	padding-left: 10px;
+}
+
+arb-sequence-part, [arb-sequence-part] {
+	padding-top: 7px;
+	margin-bottom: 7px;
+
+	.which-part {
+		padding-left: 5px;
+	}
 }

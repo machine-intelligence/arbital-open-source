@@ -1,12 +1,22 @@
-<div ng-if="part.taughtById !== '0'">
-	<arb-page-title page-id="{{part.taughtById}}" is-link="true"></arb-page-title>
-	will teach you
+<div>
 	<span arb-requisite-button requisite-id="{{part.pageId}}" allow-wants="true"></span>
 </div>
-<span class="md-warn" ng-if="part.taughtById === '0'">
-	Oops, there is no page that teaches 
-	<span arb-requisite-button requisite-id="{{part.pageId}}" allow-wants="true"></span>
-</span>
-<div class="sequence-requirements">
-	<div arb-sequence-part part="requirement" ng-repeat="requirement in part.requirements"></div>
+<div ng-if="!pageService.hasMastery(part.pageId)">
+	<div class="which-part" ng-if="part.taughtById !== '0'">
+		You can learn it from
+		<arb-page-title page-id="{{part.taughtById}}" is-link="true" custom-page-title="'this page'"></arb-page-title>
+		(<span ng-bind="pageService.pageMap[part.taughtById].textLength | numSuffix"></span> characters)
+		<span ng-if="part.requirements.length > 0">
+			, which depends on:
+		</span>
+	</div>
+	<div class="which-part md-warn md-caption" ng-if="part.taughtById === '0'">
+		Unfortunately, Arbital doesn't yet have a page that teaches this.
+		<span ng-if="part.requirements.length > 0">
+			The dependencies are:
+		</span>
+	</div>
+	<div class="sequence-requirements">
+		<div arb-sequence-part part="requirement" ng-repeat="requirement in part.requirements"></div>
+	</div>
 </div>
