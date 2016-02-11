@@ -1,11 +1,11 @@
 <!-- Top toolbar appearing on every page -->
 <md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== '0'}">
 	<div class="md-toolbar-tools">
-		<a ng-href="{{pageService.getDomainUrl()}}">
+		<a ng-href="{{::pageService.getDomainUrl()}}">
 			<md-icon md-svg-icon="arbital_logo" class="arbital-logo"></md-icon>
 		</a>
 
-		<a ng-href="/"
+		<a href="/"
 				layout-margin
 				ng-bind="pageService.pageMap[pageService.privateGroupId].title | shorten: 30"
 				ng-if="pageService.privateGroupId !== '0'"></a>
