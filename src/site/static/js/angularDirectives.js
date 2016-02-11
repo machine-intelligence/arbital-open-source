@@ -377,7 +377,7 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, userService
 				autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
 					deferred.resolve(results);
 				});
-        return deferred.promise;
+				return deferred.promise;
 			};
 
 			$scope.searchResultSelected = function(result) {
