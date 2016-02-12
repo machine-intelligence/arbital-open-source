@@ -67,6 +67,9 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			});
 
 			// ============ Masteries ====================
+			
+			// Compute subject ids that the user hasn't learned yet.
+			$scope.subjectIds = $scope.page.subjectIds.filter(function(id) { return !pageService.hasMastery(id); });
 
 			// Check if the user meets all requirements
 			$scope.meetsAllRequirements = function(pageId) {
@@ -83,10 +86,14 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			};
 			$scope.showRequirementsPanel = !$scope.meetsAllRequirements();
 
+			$scope.showRequirements = function() {
+				$scope.showRequirementsPanel = true;
+			};
+
 			// Check if the user knows all the subjects
 			$scope.knowsAllSubjects = function() {
-				for (var n = 0; n < $scope.page.subjectIds.length; n++) {
-					if (!pageService.hasMastery($scope.page.subjectIds[n])) {
+				for (var n = 0; n < $scope.subjectIds.length; n++) {
+					if (!pageService.hasMastery($scope.subjectIds[n])) {
 						return false;
 					}
 				}
@@ -105,10 +112,11 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Toggle all subjects
 			$scope.toggleSubjects = function() {
+				$scope.showSubjectCheckboxes = true;
 				if ($scope.knowsAllSubjects()) {
-					pageService.updateMasteries([], $scope.page.subjectIds, []);
+					pageService.updateMasteries([], $scope.subjectIds, []);
 				} else {
-					pageService.updateMasteries($scope.page.subjectIds, [], []);
+					pageService.updateMasteries($scope.subjectIds, [], []);
 				}
 			};
 

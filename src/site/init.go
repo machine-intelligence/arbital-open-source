@@ -59,7 +59,7 @@ func init() {
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/groups/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/knowledge/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/sequences/{pageId:[0-9]+}", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
@@ -80,7 +80,7 @@ func init() {
 	s.HandleFunc(groupsHandler.URI, handlerWrapper(groupsHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")
 	s.HandleFunc(intrasitePopoverHandler.URI, handlerWrapper(intrasitePopoverHandler)).Methods("POST")
-	s.HandleFunc(knowledgeHandler.URI, handlerWrapper(knowledgeHandler)).Methods("POST")
+	s.HandleFunc(requisitesHandler.URI, handlerWrapper(requisitesHandler)).Methods("POST")
 	s.HandleFunc(lensHandler.URI, handlerWrapper(lensHandler)).Methods("POST")
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")

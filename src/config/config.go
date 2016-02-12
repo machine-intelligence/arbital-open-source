@@ -147,6 +147,12 @@ type Config struct {
 		PasswordResetTokens        string
 		VerificationEmails         string
 	}
+	Facebook struct {
+		Id         string
+		Secret     string
+		TestId     string `yaml:"testId"`
+		TestSecret string `yaml:"testSecret"`
+	}
 	Monitoring struct {
 		Whitelist []string
 		Sendgrid  struct {

@@ -1,4 +1,4 @@
-// knowledgeJsonHandler.go returns all the requisites the user knows
+// requisitesJsonHandler.go returns all the requisites the user knows
 package site
 
 import (
@@ -6,15 +6,15 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var knowledgeHandler = siteHandler{
-	URI:         "/json/knowledge/",
-	HandlerFunc: knowledgeJsonHandler,
+var requisitesHandler = siteHandler{
+	URI:         "/json/requisites/",
+	HandlerFunc: requisitesJsonHandler,
 	Options: pages.PageOptions{
 		LoadUpdateCount: true,
 	},
 }
 
-func knowledgeJsonHandler(params *pages.HandlerParams) *pages.Result {
+func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 

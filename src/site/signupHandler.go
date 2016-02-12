@@ -10,6 +10,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
+	"zanaduu3/src/facebook"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/stormpath"
 	"zanaduu3/src/user"
@@ -26,6 +27,9 @@ type signupHandlerData struct {
 	// Alternatively, signup with Facebook
 	FbAccessToken string
 	FbUserId      string
+	// Alternatively, signup with FB code token
+	FbCodeToken   string
+	FbRedirectUrl string
 }
 
 var signupHandler = siteHandler{
@@ -43,6 +47,17 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err := decoder.Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+	}
+	if len(data.FbCodeToken) > 0 && len(data.FbRedirectUrl) > 0 {
+		// Convert FB code token to access token + user id
+		data.FbAccessToken, err = facebook.ProcessCodeToken(params.C, data.FbCodeToken, data.FbRedirectUrl)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't process FB code token", err)
+		}
+		data.FbUserId, err = facebook.ProcessAccessToken(params.C, data.FbAccessToken)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't process FB token", err)
+		}
 	}
 	if len(data.FbAccessToken) > 0 && len(data.FbUserId) >= 0 {
 		// Get data from FB

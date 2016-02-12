@@ -4,8 +4,7 @@
 		layout-align="start center"
 		ng-if="page.nextPageId !== '0' || page.prevPageId !== '0'">
 
-	<md-button ng-href="{{pageService.getPageUrl(page.prevPageId) +
-				'?sequence=' + page.sequenceUrl}}"
+	<md-button ng-href="{{prevUrl}}"
 			class="md-primary"
 			ng-class="{'intrasite-link': page.prevPageId !== '0'}"
 			page-id="{{page.prevPageId}}"
@@ -20,8 +19,7 @@
 		<md-tooltip md-delay="500">Current sequence</md-tooltip>
 		<md-icon>book</md-icon>
 	</md-button>
-	<md-button ng-href="{{pageService.getPageUrl(page.nextPageId) +
-				'?sequence=' + page.sequenceUrl}}"
+	<md-button ng-href="{{nextUrl}}"
 			class="intrasite-link md-primary"
 			ng-class="{'md-raised': extraInfo}"
 			page-id="{{page.nextPageId}}"
