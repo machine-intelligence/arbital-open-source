@@ -97,6 +97,15 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			};
 			$scope.showLearnedPanel = !$scope.knowsAllSubjects();
 
+			// Toggle all requirements
+			$scope.toggleRequirements = function() {
+				if ($scope.meetsAllRequirements()) {
+					pageService.updateMasteries([], $scope.page.requirementIds, []);
+				} else {
+					pageService.updateMasteries($scope.page.requirementIds, [], []);
+				}
+			};
+
 			// Toggle all subjects
 			$scope.toggleSubjects = function() {
 				$scope.showSubjectCheckboxes = true;
