@@ -52,6 +52,11 @@
 					This page has been updated since the last time you saw it
 				</md-tooltip>
 			</span>
+			<span class="primary-dot" ng-show="page.isUpdatedPage()">
+				<md-tooltip md-delay="500" ng-if="page.isUpdatedPage()">
+					This page has been updated since the last time you saw it
+				</md-tooltip>
+			</span>
 		</md-button>
 		<md-menu-content>
 
@@ -78,6 +83,12 @@
 							This page has been updated since the last time you saw it
 						</md-tooltip>
 					</span>
+				</md-button>
+			</md-menu-item>
+
+			<md-menu-item ng-hide="showRequirementsPanel">
+				<md-button ng-click="showRequirements()">
+					Show requirements
 				</md-button>
 			</md-menu-item>
 
