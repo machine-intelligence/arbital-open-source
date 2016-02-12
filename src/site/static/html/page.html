@@ -24,7 +24,7 @@
 				ng-if="::(page.parentIds.length > 0 && !isSimpleEmbed)">
 			<span>Parents:</span>
 			<span ng-repeat="(index, parentId) in ::page.parentIds">
-				<span ng-show="index > 0">,</span>
+				<span ng-if="index > 0">,</span>
 				<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
@@ -35,7 +35,7 @@
 				ng-if="::(page.taggedAsIds.length > 0 && !isSimpleEmbed)">
 			<span>Tagged as:</span>
 			<span ng-repeat="(index, tagId) in ::page.taggedAsIds">
-				<span ng-show="index > 0">,</span>
+				<span ng-if="index > 0">,</span>
 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
@@ -55,7 +55,7 @@
 				<md-tab-label>
 					<arb-page-title page-id="{{::lensId}}"
 							custom-page-title="::(lensId === page.pageId ? 'Main' : pageService.pageMap[lensId].lensTitle())"></arb-page-title>
-					<md-icon class="md-primary" ng-show="!hasAllReqs(lensId)">
+					<md-icon class="md-primary" ng-if="!hasAllReqs(lensId)">
 						<md-tooltip>You don't have all the requisites for this lens</md-tooltip>
 						assignment_late
 					</md-icon>
