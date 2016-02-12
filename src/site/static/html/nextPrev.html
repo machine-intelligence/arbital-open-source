@@ -9,24 +9,24 @@
 			ng-class="{'intrasite-link': page.prevPageId !== '0'}"
 			page-id="{{page.prevPageId}}"
 			ng-disabled="page.prevPageId === '0'">
-		<md-tooltip md-delay="500" ng-show="page.prevPageId === '0'">No previous page</md-tooltip>
+		<md-tooltip md-delay="500" ng-if="page.prevPageId === '0'">No previous page</md-tooltip>
 		<md-icon>chevron_left</md-icon>
 		<span>Prev</span>
 	</md-button>
 	<md-button class="md-primary md-icon-button"
-			ng-href="/sequences/{{page.sequenceId}}"
-			ng-if="page.sequenceId">
+			ng-href="/sequences/{{::page.sequenceId}}"
+			ng-if="::page.sequenceId">
 		<md-tooltip md-delay="500">Current sequence</md-tooltip>
 		<md-icon>book</md-icon>
 	</md-button>
 	<md-button ng-href="{{nextUrl}}"
 			class="intrasite-link md-primary"
-			ng-class="{'md-raised': extraInfo}"
+			ng-class="::{'md-raised': extraInfo}"
 			page-id="{{page.nextPageId}}"
 			ng-disabled="page.nextPageId === '0'"
 			ng-if="page.nextPageId !== '0' || !page.sequenceUrl">
-		<md-tooltip md-delay="500" ng-show="page.nextPageId === '0'">No next page</md-tooltip>
-		<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
+		<md-tooltip md-delay="500" ng-if="page.nextPageId === '0'">No next page</md-tooltip>
+		<span ng-bind="::(extraInfo ? 'Continue reading' : 'Next')"></span>
 		<md-icon>chevron_right</md-icon>
 	</md-button>
 	<md-button ng-disabled="true" ng-if="page.nextPageId === '0' && page.sequenceUrl">
