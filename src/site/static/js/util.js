@@ -123,16 +123,4 @@ var submitForm = function($form, url, data, success, error) {
 		console.error(r);
 		if (error) error();
 	});
-};
-
-var hideElementOnEditPage = function(scope, element, location) {
-	function showHideElement() {
-		if (location.path().indexOf("/edit") === 0)
-			element.hide();
-		else
-			element.show();
-	}
-
-	scope.$on("$locationChangeSuccess", showHideElement);
-	showHideElement();
 }

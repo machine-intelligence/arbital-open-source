@@ -37,7 +37,12 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 			};
 		},
 		link: function(scope, element, attrs) {
-			hideElementOnEditPage(scope, element, $location);
+			var showHideElement = function() {
+				element.toggle(location.path().indexOf("/edit") !== 0);
+			};
+
+			scope.$on("$locationChangeSuccess", showHideElement);
+			showHideElement();
 		},
 	};
 });
