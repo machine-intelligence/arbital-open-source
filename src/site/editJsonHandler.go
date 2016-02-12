@@ -42,6 +42,8 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	db := params.DB
 	u := params.U
 
+	db.C.Debugf("editJsonInternalHandler")
+
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
 	if err != nil {
@@ -53,6 +55,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get next available Id", err)
 		}
+		db.C.Debugf("redirecting to " + core.GetEditPageUrl(newPageId) + "?alias=" + data.PageAlias)
 		return pages.RedirectWith(core.GetEditPageUrl(newPageId) + "?alias=" + data.PageAlias)
 	}
 
@@ -68,6 +71,9 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		return pages.HandlerErrorFail("Error while loading full edit", err)
 	}
 	if p == nil {
+		db.C.Debugf("pageId: %v", pageId)
+		db.C.Debugf("u.Id: %v", u.Id)
+		db.C.Debugf("options: %v", options)
 		return pages.HandlerErrorFail("Exact page not found", err)
 	}
 	if p.SeeGroupId != params.PrivateGroupId {
@@ -85,10 +91,16 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 
 	// Load parents, tags, requirement, and lens pages (to display in Relationship tab)
 	// HARDCODED
-	core.AddPageToMap("8992241719442104138", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("7648631253816709800", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("6686682198220623534", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("1407630090992422901", returnData.PageMap, core.TitlePlusLoadOptions)
+	/*
+		core.AddPageToMap("8992241719442104138", returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap("7648631253816709800", returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap("6686682198220623534", returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap("1407630090992422901", returnData.PageMap, core.TitlePlusLoadOptions)
+	*/
+	core.AddPageToMap("3y", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("18w", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("1p6", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("18y", returnData.PageMap, core.TitlePlusLoadOptions)
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
@@ -128,5 +140,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		}
 	}
 
+	db.C.Debugf("returnData: %v", returnData)
+	db.C.Debugf("returnData.toJson(): %v", returnData.toJson())
 	return pages.StatusOK(returnData.toJson())
 }

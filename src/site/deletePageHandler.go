@@ -100,6 +100,8 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["currentEdit"] = 0
 		statement = tx.NewInsertTxStatement("pageInfos", hashmap, "currentEdit")
 		if _, err = statement.Exec(); err != nil {
+			db.C.Debugf("deletePageHandler.go")
+			db.C.Debugf("hashmap: %v", hashmap)
 			return "Couldn't update pageInfos", err
 		}
 

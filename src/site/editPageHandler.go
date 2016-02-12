@@ -319,6 +319,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 		statement = tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {
+			db.C.Debugf("editPageHandler.go")
+			db.C.Debugf("hashmap: %v", hashmap)
 			return "Couldn't update pageInfos", err
 		}
 

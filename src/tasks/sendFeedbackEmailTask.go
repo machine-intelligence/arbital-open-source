@@ -21,7 +21,7 @@ type SendFeedbackEmailTask struct {
 // Check if this task is valid, and we can safely execute it.
 func (task *SendFeedbackEmailTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {
-		return fmt.Errorf("User id has to be set")
+		return fmt.Errorf("User id has to be set: %v", task.UserId)
 	}
 	if task.Text == "" {
 		return fmt.Errorf("Text has to be set")

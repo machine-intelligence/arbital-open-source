@@ -32,7 +32,7 @@ type NewUpdateTask struct {
 // Check if this task is valid, and we can safely execute it.
 func (task *NewUpdateTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {
-		return fmt.Errorf("User id has to be set")
+		return fmt.Errorf("User id has to be set: %v", task.UserId)
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
 	} else if !core.IsIdValid(task.SubscribedToId) {

@@ -115,30 +115,40 @@ func loadUserFromDb(db *database.DB) (*User, error) {
 		// Add new user
 		db.C.Debugf("User not found. Creating a new one: %s", appEngineUser.Email)
 
-		u.Id, err = GetNextAvailableId(db)
+		errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+			u.Id, err = GetNextAvailableId(db)
+			if err != nil {
+				return "", fmt.Errorf("Couldn't get last insert id for new user: %v", err)
+			}
+
+			insertMap := make(database.InsertMap)
+			insertMap["id"] = u.Id
+			insertMap["email"] = appEngineUser.Email
+			insertMap["firstName"] = ""
+			insertMap["lastName"] = ""
+			insertMap["isAdmin"] = appEngineUser.Admin
+			insertMap["createdAt"] = database.Now()
+			insertMap["lastWebsiteVisit"] = database.Now()
+			insertMap["updateEmailSentAt"] = database.Now()
+			insertMap["emailFrequency"] = DefaultEmailFrequency
+			insertMap["emailThreshold"] = DefaultEmailThreshold
+			insertMap["inviteCode"] = ""
+			insertMap["ignoreMathjax"] = 0
+
+			statement := db.NewInsertStatement("users", insertMap)
+			_, err := statement.Exec()
+			if err != nil {
+				return "", fmt.Errorf("Couldn't create a new user: %v", err)
+			}
+			return "", err
+		})
+		if errMessage != "" {
+			return nil, fmt.Errorf(errMessage)
+		}
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't get last insert id for new user: %v", err)
+			return nil, err
 		}
 
-		insertMap := make(database.InsertMap)
-		insertMap["id"] = u.Id
-		insertMap["email"] = appEngineUser.Email
-		insertMap["firstName"] = ""
-		insertMap["lastName"] = ""
-		insertMap["isAdmin"] = appEngineUser.Admin
-		insertMap["createdAt"] = database.Now()
-		insertMap["lastWebsiteVisit"] = database.Now()
-		insertMap["updateEmailSentAt"] = database.Now()
-		insertMap["emailFrequency"] = DefaultEmailFrequency
-		insertMap["emailThreshold"] = DefaultEmailThreshold
-		insertMap["inviteCode"] = ""
-		insertMap["ignoreMathjax"] = 0
-
-		statement := db.NewInsertStatement("users", insertMap)
-		_, err := statement.Exec()
-		if err != nil {
-			return nil, fmt.Errorf("Couldn't create a new user: %v", err)
-		}
 		u.Email = appEngineUser.Email
 	}
 	u.MaxKarmaLock = GetMaxKarmaLock(u.Karma)
@@ -190,8 +200,9 @@ func init() {
 }
 
 const (
-	Base31Chars = "0123456789bcdfghjklmnpqrstvwxyz"
-	Base36Chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
+	Base36Chars             = "0123456789abcdefghijklmnopqrstuvwxyz"
+	Base31CharsForFirstChar = "0123456789"
 )
 
 // Replace a rune at a specific index in a string
@@ -217,18 +228,23 @@ func CharIsVowel(char rune) bool {
 
 // Get the next highest base36 character, without vowels
 // Returns the character, and true if it wrapped around to 0
-func GetNextBase31Char(db *database.DB, char rune) (rune, bool, error) {
-	index := strings.Index(Base31Chars, strings.ToLower(string(char)))
+// Since we decided that ids must begin with a digit, only allow characters 0-9 for the first character index
+func GetNextBase31Char(db *database.DB, char rune, isFirstChar bool) (rune, bool, error) {
+	validChars := Base31Chars
+	if isFirstChar {
+		validChars = Base31CharsForFirstChar
+	}
+	index := strings.Index(validChars, strings.ToLower(string(char)))
 	//db.C.Debugf("index: %v", index)
 	if index < 0 {
 		return '0', false, fmt.Errorf("invalid character")
 	}
-	if index < len(Base31Chars)-1 {
-		nextChar := rune(Base31Chars[index+1])
+	if index < len(validChars)-1 {
+		nextChar := rune(validChars[index+1])
 		//		db.C.Debugf("nextChar: %v", nextChar)
 		return nextChar, false, nil
 	} else {
-		nextChar := rune(Base31Chars[0])
+		nextChar := rune(validChars[0])
 		//		db.C.Debugf("nextChar: %v", nextChar)
 		return nextChar, true, nil
 	}
@@ -253,7 +269,7 @@ func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
 			processNextChar = false
 		} else {
 			// Increment the character at the current index in the Id string
-			newChar, processNextChar, err = GetNextBase31Char(db, rune(nextAvailableId[index]))
+			newChar, processNextChar, err = GetNextBase31Char(db, rune(nextAvailableId[index]), index == 0)
 			//			db.C.Debugf("newChar: %v", newChar)
 			//			db.C.Debugf("processNextChar: %v", processNextChar)
 			if err != nil {
@@ -281,15 +297,39 @@ func GetNextAvailableId(db *database.DB) (string, error) {
 			WHERE 1
 			`).QueryRow()
 	*/
+	/*
+	   	row := db.NewStatement(`
+	   SELECT MAX( pageId )
+	   FROM (
+	   SELECT pageId
+	   FROM pages
+	   UNION
+	   SELECT id
+	   FROM users
+	   ) AS combined
+	   		`).QueryRow()
+	*/
+
 	row := db.NewStatement(`
-SELECT MAX( pageId ) 
+SELECT MAX(pageId)
 FROM (
 SELECT pageId
-FROM pages
+FROM pageInfos
 UNION 
 SELECT id
 FROM users
 ) AS combined
+WHERE char_length(pageId) = 
+(
+SELECT MAX(char_length(pageId))
+FROM (
+SELECT pageId
+FROM pageInfos
+UNION 
+SELECT id
+FROM users
+) AS combined2
+    )
 		`).QueryRow()
 	_, err := row.Scan(&highestUsedId)
 	if err != nil {

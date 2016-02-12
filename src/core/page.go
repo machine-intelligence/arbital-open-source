@@ -1609,15 +1609,24 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string,
 			var pageId string
 			var alias string
 			err := rows.Scan(&pageId, &alias)
+			db.C.Debugf("pageId: %v", pageId)
+			db.C.Debugf("alias: %v", alias)
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
 			aliasToIdMap[strings.ToLower(alias)] = pageId
 			aliasToIdMap[strings.ToLower(pageId)] = pageId
+			db.C.Debugf("aliasToIdMap: %v", aliasToIdMap)
 			return nil
 		})
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't convert pageId=>alias", err)
+		}
+
+		// The query only gets results for when currentEdit > 0
+		// We also want to return the pageIds even if they aren't for valid pages
+		for _, pageId := range strictPageIds {
+			aliasToIdMap[strings.ToLower(pageId)] = strings.ToLower(pageId)
 		}
 	}
 	db.C.Debugf("aliasToIdMap: %v", aliasToIdMap)

@@ -43,38 +43,53 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		data.Type = core.WikiPageType
 	}
 
-	pageId, err := user.GetNextAvailableId(db)
-	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't get next available Id", err)
-	}
-	// Update pageInfos
-	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = pageId
-	hashmap["alias"] = pageId
-	hashmap["sortChildrenBy"] = core.LikesChildSortingOption
-	hashmap["type"] = data.Type
-	hashmap["maxEdit"] = 1
-	hashmap["createdBy"] = u.Id
-	hashmap["createdAt"] = database.Now()
-	hashmap["seeGroupId"] = params.PrivateGroupId
-	hashmap["lockedBy"] = u.Id
-	hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
-	statement := db.NewInsertStatement("pageInfos", hashmap)
-	if _, err := statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update pageInfos", err)
-	}
+	pageId := ""
+	db.C.Debugf("pageId: %v", pageId)
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
-	// Update pages
-	hashmap = make(map[string]interface{})
-	hashmap["pageId"] = pageId
-	hashmap["edit"] = 1
-	hashmap["isAutosave"] = true
-	hashmap["creatorId"] = u.Id
-	hashmap["createdAt"] = database.Now()
-	statement = db.NewInsertStatement("pages", hashmap)
-	if _, err := statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update pages", err)
+		db.C.Debugf("pageId: %v", pageId)
+		pageId, err = user.GetNextAvailableId(db)
+		if err != nil {
+			return "", fmt.Errorf("Couldn't get next available Id", err)
+		}
+		db.C.Debugf("pageId: %v", pageId)
+
+		// Update pageInfos
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = pageId
+		hashmap["alias"] = pageId
+		hashmap["sortChildrenBy"] = core.LikesChildSortingOption
+		hashmap["type"] = data.Type
+		hashmap["maxEdit"] = 1
+		hashmap["createdBy"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		hashmap["seeGroupId"] = params.PrivateGroupId
+		hashmap["lockedBy"] = u.Id
+		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
+		statement := db.NewInsertStatement("pageInfos", hashmap)
+		if _, err := statement.Exec(); err != nil {
+			db.C.Debugf("newPageJsonHandler.go")
+			db.C.Debugf("hashmap: %v", hashmap)
+			return "", fmt.Errorf("Couldn't update pageInfos", err)
+		}
+
+		// Update pages
+		hashmap = make(map[string]interface{})
+		hashmap["pageId"] = pageId
+		hashmap["edit"] = 1
+		hashmap["isAutosave"] = true
+		hashmap["creatorId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		statement = db.NewInsertStatement("pages", hashmap)
+		if _, err := statement.Exec(); err != nil {
+			return "", fmt.Errorf("Couldn't update pages", err)
+		}
+		return "", err
+	})
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
+	db.C.Debugf("pageId: %v", pageId)
 
 	// Add parents
 	for _, parentIdStr := range data.ParentIds {
@@ -92,6 +107,10 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	editData := &editJsonData{PageAlias: pageId}
+	//editData := &editJsonData{PageAlias: pageId}
+	db.C.Debugf("&editJsonData{PageAlias: pageId}: %v", &editJsonData{PageAlias: pageId})
+	editData := &editJsonData{PageAlias: fmt.Sprintf("%s", pageId)}
+	db.C.Debugf("params: %v", params)
+	db.C.Debugf("editData: %v", editData)
 	return editJsonInternalHandler(params, editData)
 }

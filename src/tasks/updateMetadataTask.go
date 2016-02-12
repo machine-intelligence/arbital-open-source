@@ -126,6 +126,8 @@ func updatePageInfos(db *database.DB, rows *database.Rows) error {
 		hashmap["createdAt"] = createdAt
 		statement := tx.NewInsertTxStatement("pageInfos", hashmap, "currentEdit", "maxEdit", "createdAt")
 		if _, err := statement.Exec(); err != nil {
+			db.C.Debugf("updateMetaDataTask.go")
+			db.C.Debugf("hashmap: %v", hashmap)
 			return "Couldn't update pageInfos table", err
 		}
 		return "", nil

@@ -8,12 +8,9 @@ alter table pageInfos add column indirectTeacher BOOL NOT NULL;
 
 ALTER TABLE  `pages` CHANGE  `pageId`  `pageId` VARCHAR( 32 ) NOT NULL ;
 ALTER TABLE  `pages` CHANGE  `creatorId`  `creatorId` VARCHAR( 32 ) NOT NULL ;
-ALTER TABLE  `pages` CHANGE  `privacyKey`  `privacyKey` VARCHAR( 32 ) NOT NULL ;
 
 ALTER TABLE  `changeLogs` CHANGE  `pageId`  `pageId` VARCHAR( 32 ) NOT NULL ;
 ALTER TABLE  `changeLogs` CHANGE  `auxPageId`  `auxPageId` VARCHAR( 32 ) NOT NULL ;
-
-ALTER TABLE  `fixedIds` CHANGE  `pageId`  `pageId` VARCHAR( 32 ) NOT NULL ;
 
 ALTER TABLE  `groupMembers` CHANGE  `userId`  `userId` VARCHAR( 32 ) NOT NULL ;
 ALTER TABLE  `groupMembers` CHANGE  `groupId`  `groupId` VARCHAR( 32 ) NOT NULL ;
@@ -63,12 +60,9 @@ ALTER TABLE  `votes` CHANGE  `pageId`  `pageId` VARCHAR( 32 ) NOT NULL ;
 
 UPDATE `pages` SET `pageId` = "" WHERE `pageId` = "0";
 UPDATE `pages` SET `creatorId` = "" WHERE `creatorId` = "0";
-UPDATE `pages` SET `privacyKey` = "" WHERE `privacyKey` = "0";
 
 UPDATE `changeLogs` SET `pageId` = "" WHERE `pageId` = "0";
 UPDATE `changeLogs` SET `auxPageId` = "" WHERE `auxPageId` = "0";
-
-UPDATE `fixedIds` SET `pageId` = "" WHERE `pageId` = "0";
 
 UPDATE `groupMembers` SET `userId` = "" WHERE `userId` = "0";
 UPDATE `groupMembers` SET `groupId` = "" WHERE `groupId` = "0";
@@ -116,12 +110,9 @@ UPDATE `votes` SET `pageId` = "" WHERE `pageId` = "0";
 
 ALTER TABLE `pages` ADD `pageIdProcessed` BOOLEAN NOT NULL AFTER `pageId`;
 ALTER TABLE `pages` ADD `creatorIdProcessed` BOOLEAN NOT NULL AFTER `creatorId`;
-ALTER TABLE `pages` ADD `privacyKeyProcessed` BOOLEAN NOT NULL AFTER `privacyKey`;
 
 ALTER TABLE `changeLogs` ADD `pageIdProcessed` BOOLEAN NOT NULL AFTER `pageId`;
 ALTER TABLE `changeLogs` ADD `auxPageIdProcessed` BOOLEAN NOT NULL AFTER `auxPageId`;
-
-ALTER TABLE `fixedIds` ADD `pageIdProcessed` BOOLEAN NOT NULL AFTER `pageId`;
 
 ALTER TABLE `groupMembers` ADD `userIdProcessed` BOOLEAN NOT NULL AFTER `userId`;
 ALTER TABLE `groupMembers` ADD `groupIdProcessed` BOOLEAN NOT NULL AFTER `groupId`;
@@ -173,12 +164,9 @@ ALTER TABLE `votes` ADD `pageIdProcessed` BOOLEAN NOT NULL AFTER `pageId`;
 
 ALTER TABLE `pages` ADD `pageIdBase36` MEDIUMTEXT NOT NULL AFTER `pageId`;
 ALTER TABLE `pages` ADD `creatorIdBase36` MEDIUMTEXT NOT NULL AFTER `creatorId`;
-ALTER TABLE `pages` ADD `privacyKeyBase36` MEDIUMTEXT NOT NULL AFTER `privacyKey`;
 
 ALTER TABLE `changeLogs` ADD `pageIdBase36` MEDIUMTEXT NOT NULL AFTER `pageId`;
 ALTER TABLE `changeLogs` ADD `auxPageIdBase36` MEDIUMTEXT NOT NULL AFTER `auxPageId`;
-
-ALTER TABLE `fixedIds` ADD `pageIdBase36` MEDIUMTEXT NOT NULL AFTER `pageId`;
 
 ALTER TABLE `groupMembers` ADD `userIdBase36` MEDIUMTEXT NOT NULL AFTER `userId`;
 ALTER TABLE `groupMembers` ADD `groupIdBase36` MEDIUMTEXT NOT NULL AFTER `groupId`;
@@ -227,14 +215,65 @@ ALTER TABLE `votes` ADD `pageIdBase36` MEDIUMTEXT NOT NULL AFTER `pageId`;
 
 
 
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM pages WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT creatorId, createdAt FROM pages WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM changeLogs WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT auxPageId, createdAt FROM changeLogs WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM groupMembers WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT groupId, createdAt FROM groupMembers WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM likes WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM likes WHERE 1;
+
+INSERT INTO pagesandusers (base10id) SELECT parentId FROM links WHERE 1;
+
+INSERT INTO pagesandusers (base10id) SELECT pageId FROM pageDomainPairs WHERE 1;
+INSERT INTO pagesandusers (base10id) SELECT domainId FROM pageDomainPairs WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM pageInfos WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT lockedBy, createdAt FROM pageInfos WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT seeGroupId, createdAt FROM pageInfos WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT editGroupId, createdAt FROM pageInfos WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT createdBy, createdAt FROM pageInfos WHERE 1;
+
+INSERT INTO pagesandusers (base10id) SELECT parentId FROM pagePairs WHERE 1;
+INSERT INTO pagesandusers (base10id) SELECT childId FROM pagePairs WHERE 1;
+
+INSERT INTO pagesandusers (base10id) SELECT pageId FROM pageSummaries WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM subscriptions WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT toId, createdAt FROM subscriptions WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM updates WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByPageId, createdAt FROM updates WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByUserId, createdAt FROM updates WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT subscribedToId, createdAt FROM updates WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT goToPageId, createdAt FROM updates WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT byUserId, createdAt FROM updates WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM userMasteryPairs WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT masteryId, createdAt FROM userMasteryPairs WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT id, createdAt FROM users WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM visits WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM visits WHERE 1;
+
+INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM votes WHERE 1;
+INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM votes WHERE 1;
+
+
+
+
+
 SELECT pageId FROM pages WHERE pageIdProcessed = 0 UNION
 SELECT creatorId FROM pages WHERE creatorIdProcessed = 0 UNION
-SELECT privacyKey FROM pages WHERE privacyKeyProcessed = 0 UNION
 
 SELECT pageId FROM changeLogs WHERE pageIdProcessed = 0 UNION
 SELECT auxPageId FROM changeLogs WHERE auxPageIdProcessed = 0 UNION
-
-SELECT pageId FROM fixedIds WHERE pageIdProcessed = 0 UNION
 
 SELECT userId FROM groupMembers WHERE userIdProcessed = 0 UNION
 SELECT groupId FROM groupMembers WHERE groupIdProcessed = 0 UNION
@@ -278,4 +317,200 @@ SELECT pageId FROM visits WHERE pageIdProcessed = 0 UNION
 
 SELECT userId FROM votes WHERE userIdProcessed = 0 UNION
 SELECT pageId FROM votes WHERE pageIdProcessed = 0 ;
+
+
+
+
+
+
+
+
+
+SELECT pageId FROM pages WHERE pageIdBase36 = "" UNION
+SELECT creatorId FROM pages WHERE creatorIdBase36 = "" UNION
+
+SELECT pageId FROM changeLogs WHERE pageIdBase36 = "" UNION
+SELECT auxPageId FROM changeLogs WHERE auxPageIdBase36 = "" UNION
+
+SELECT userId FROM groupMembers WHERE userIdBase36 = "" UNION
+SELECT groupId FROM groupMembers WHERE groupIdBase36 = "" UNION
+
+SELECT userId FROM likes WHERE userIdBase36 = "" UNION
+SELECT pageId FROM likes WHERE pageIdBase36 = "" UNION
+
+SELECT parentId FROM links WHERE parentIdBase36 = "" UNION
+
+SELECT pageId FROM pageDomainPairs WHERE pageIdBase36 = "" UNION
+SELECT domainId FROM pageDomainPairs WHERE domainIdBase36 = "" UNION
+
+SELECT pageId FROM pageInfos WHERE pageIdBase36 = "" UNION
+SELECT lockedBy FROM pageInfos WHERE lockedByBase36 = "" UNION
+SELECT seeGroupId FROM pageInfos WHERE seeGroupIdBase36 = "" UNION
+SELECT editGroupId FROM pageInfos WHERE editGroupIdBase36 = "" UNION
+SELECT createdBy FROM pageInfos WHERE createdByBase36 = "" UNION
+
+SELECT parentId FROM pagePairs WHERE parentIdBase36 = "" UNION
+SELECT childId FROM pagePairs WHERE childIdBase36 = "" UNION
+
+SELECT pageId FROM pageSummaries WHERE pageIdBase36 = "" UNION
+
+SELECT userId FROM subscriptions WHERE userIdBase36 = "" UNION
+SELECT toId FROM subscriptions WHERE toIdBase36 = "" UNION
+
+SELECT userId FROM updates WHERE userIdBase36 = "" UNION
+SELECT groupByPageId FROM updates WHERE groupByPageIdBase36 = "" UNION
+SELECT groupByUserId FROM updates WHERE groupByUserIdBase36 = "" UNION
+SELECT subscribedToId FROM updates WHERE subscribedToIdBase36 = "" UNION
+SELECT goToPageId FROM updates WHERE goToPageIdBase36 = "" UNION
+SELECT byUserId FROM updates WHERE byUserIdBase36 = "" UNION
+
+SELECT userId FROM userMasteryPairs WHERE userIdBase36 = "" UNION
+SELECT masteryId FROM userMasteryPairs WHERE masteryIdBase36 = "" UNION
+
+SELECT id FROM users WHERE idBase36 = "" UNION
+
+SELECT userId FROM visits WHERE userIdBase36 = "" UNION
+SELECT pageId FROM visits WHERE pageIdBase36 = "" UNION
+
+SELECT userId FROM votes WHERE userIdBase36 = "" UNION
+SELECT pageId FROM votes WHERE pageIdBase36 = "" ;
+
+
+
+
+
+
+SELECT pageId FROM pages WHERE pageIdBase36 != pageId UNION
+SELECT creatorId FROM pages WHERE creatorIdBase36 != creatorId UNION
+
+SELECT pageId FROM changeLogs WHERE pageIdBase36 != pageId UNION
+SELECT auxPageId FROM changeLogs WHERE auxPageIdBase36 != auxPageId UNION
+
+SELECT userId FROM groupMembers WHERE userIdBase36 != userId UNION
+SELECT groupId FROM groupMembers WHERE groupIdBase36 != groupId UNION
+
+SELECT userId FROM likes WHERE userIdBase36 != userId UNION
+SELECT pageId FROM likes WHERE pageIdBase36 != pageId UNION
+
+SELECT parentId FROM links WHERE parentIdBase36 != parentId UNION
+
+SELECT pageId FROM pageDomainPairs WHERE pageIdBase36 != pageId UNION
+SELECT domainId FROM pageDomainPairs WHERE domainIdBase36 != domainId UNION
+
+SELECT pageId FROM pageInfos WHERE pageIdBase36 != pageId UNION
+SELECT lockedBy FROM pageInfos WHERE lockedByBase36 != lockedBy UNION
+SELECT seeGroupId FROM pageInfos WHERE seeGroupIdBase36 != seeGroupId UNION
+SELECT editGroupId FROM pageInfos WHERE editGroupIdBase36 != editGroupId UNION
+SELECT createdBy FROM pageInfos WHERE createdByBase36 != createdBy UNION
+
+SELECT parentId FROM pagePairs WHERE parentIdBase36 != parentId UNION
+SELECT childId FROM pagePairs WHERE childIdBase36 != childId UNION
+
+SELECT pageId FROM pageSummaries WHERE pageIdBase36 != pageId UNION
+
+SELECT userId FROM subscriptions WHERE userIdBase36 != userId UNION
+SELECT toId FROM subscriptions WHERE toIdBase36 != toId UNION
+
+SELECT userId FROM updates WHERE userIdBase36 != userId UNION
+SELECT groupByPageId FROM updates WHERE groupByPageIdBase36 != groupByPageId UNION
+SELECT groupByUserId FROM updates WHERE groupByUserIdBase36 != groupByUserId UNION
+SELECT subscribedToId FROM updates WHERE subscribedToIdBase36 != subscribedToId UNION
+SELECT goToPageId FROM updates WHERE goToPageIdBase36 != goToPageId UNION
+SELECT byUserId FROM updates WHERE byUserIdBase36 != byUserId UNION
+
+SELECT userId FROM userMasteryPairs WHERE userIdBase36 != userId UNION
+SELECT masteryId FROM userMasteryPairs WHERE masteryIdBase36 != masteryId UNION
+
+SELECT id FROM users WHERE idBase36 != id UNION
+
+SELECT userId FROM visits WHERE userIdBase36 != userId UNION
+SELECT pageId FROM visits WHERE pageIdBase36 != pageId UNION
+
+SELECT userId FROM votes WHERE userIdBase36 != userId UNION
+SELECT pageId FROM votes WHERE pageIdBase36 != pageId ;
+
+
+
+
+
+
+SELECT * FROM pages WHERE pageIdBase36 = ""
+SELECT * FROM pages WHERE creatorIdBase36 = ""
+
+SELECT * FROM changeLogs WHERE pageIdBase36 = ""
+SELECT * FROM changeLogs WHERE auxPageIdBase36 = ""
+
+SELECT * FROM groupMembers WHERE userIdBase36 = ""
+SELECT * FROM groupMembers WHERE groupIdBase36 = ""
+
+SELECT * FROM likes WHERE userIdBase36 = ""
+SELECT * FROM likes WHERE pageIdBase36 = ""
+
+SELECT * FROM links WHERE parentIdBase36 = ""
+
+SELECT * FROM pageDomainPairs WHERE pageIdBase36 = ""
+SELECT * FROM pageDomainPairs WHERE domainIdBase36 = ""
+
+SELECT * FROM pageInfos WHERE pageIdBase36 = ""
+SELECT * FROM pageInfos WHERE lockedByBase36 = ""
+SELECT * FROM pageInfos WHERE seeGroupIdBase36 = ""
+SELECT * FROM pageInfos WHERE editGroupIdBase36 = ""
+SELECT * FROM pageInfos WHERE createdByBase36 = ""
+
+SELECT * FROM pagePairs WHERE parentIdBase36 = ""
+SELECT * FROM pagePairs WHERE childIdBase36 = ""
+
+SELECT * FROM pageSummaries WHERE pageIdBase36 = ""
+
+SELECT * FROM subscriptions WHERE userIdBase36 = ""
+SELECT * FROM subscriptions WHERE toIdBase36 = ""
+
+SELECT * FROM updates WHERE userIdBase36 = ""
+SELECT * FROM updates WHERE groupByPageIdBase36 = ""
+SELECT * FROM updates WHERE groupByUserIdBase36 = ""
+SELECT * FROM updates WHERE subscribedToIdBase36 = ""
+SELECT * FROM updates WHERE goToPageIdBase36 = ""
+SELECT * FROM updates WHERE byUserIdBase36 = ""
+
+SELECT * FROM userMasteryPairs WHERE userIdBase36 = ""
+SELECT * FROM userMasteryPairs WHERE masteryIdBase36 = ""
+
+SELECT * FROM users WHERE idBase36 = ""
+
+SELECT * FROM visits WHERE userIdBase36 = ""
+SELECT * FROM visits WHERE pageIdBase36 = ""
+
+SELECT * FROM votes WHERE userIdBase36 = ""
+SELECT * FROM votes WHERE pageIdBase36 = ""
+
+
+
+
+SELECT base10id, base36id FROM base10tobase36 WHERE base10id IN (
+
+8639103000879599414,
+8639103000879599414,
+4213693741839491939,
+7722661858289734773,
+3158562585659930031,
+6820582940749120623,
+5534008569097047764,
+6053065048861201341,
+3560540392275264633,
+3560540392275264633,
+8138584842800103864,
+5092144177314150382,
+8992241719442104138,
+5933317145970853046,
+4675907493088898985,
+8676677094741262267,
+
+3440973961008233681,
+
+8992241719442104138,
+7648631253816709800,
+6686682198220623534,
+1407630090992422901
+)
+
 

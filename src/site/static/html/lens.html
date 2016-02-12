@@ -49,7 +49,7 @@
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
 		<!-- Owner -->
-		<div class="author-list md-caption page-list-span" ng-if="page.editGroupId !== '0' && !isSimpleEmbed">
+		<div class="author-list md-caption page-list-span" ng-if="page.editGroupId !== '' && !isSimpleEmbed">
 			Owner: <arb-page-title page-id="{{page.editGroupId}}" is-link="true"></arb-page-title>
 		</div>
 

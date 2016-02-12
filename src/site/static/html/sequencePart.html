@@ -1,9 +1,9 @@
-<div ng-if="part.taughtById !== '0'">
+<div ng-if="part.taughtById !== ''">
 	<arb-page-title page-id="{{part.taughtById}}" is-link="true"></arb-page-title>
 	will teach you
 	<span arb-requisite-button requisite-id="{{part.pageId}}" allow-wants="true"></span>
 </div>
-<span class="md-warn" ng-if="part.taughtById === '0'">
+<span class="md-warn" ng-if="part.taughtById === ''">
 	Oops, there is no page that teaches 
 	<span arb-requisite-button requisite-id="{{part.pageId}}" allow-wants="true"></span>
 </span>

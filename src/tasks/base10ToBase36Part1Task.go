@@ -37,12 +37,9 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 
 		doOneQuery(db, `ALTER TABLE  pages CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  pages CHANGE  creatorId  creatorId VARCHAR( 32 ) NOT NULL ;`)
-		doOneQuery(db, `ALTER TABLE  pages CHANGE  privacyKey  privacyKey VARCHAR( 32 ) NOT NULL ;`)
 
 		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  auxPageId  auxPageId VARCHAR( 32 ) NOT NULL ;`)
-
-		doOneQuery(db, `ALTER TABLE  fixedIds CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 
 		doOneQuery(db, `ALTER TABLE  groupMembers CHANGE  userId  userId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  groupMembers CHANGE  groupId  groupId VARCHAR( 32 ) NOT NULL ;`)
@@ -89,12 +86,9 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 
 		doOneQuery(db, `UPDATE pages SET pageId = "" WHERE pageId = "0";`)
 		doOneQuery(db, `UPDATE pages SET creatorId = "" WHERE creatorId = "0";`)
-		doOneQuery(db, `UPDATE pages SET privacyKey = "" WHERE privacyKey = "0";`)
 
 		doOneQuery(db, `UPDATE changeLogs SET pageId = "" WHERE pageId = "0";`)
 		doOneQuery(db, `UPDATE changeLogs SET auxPageId = "" WHERE auxPageId = "0";`)
-
-		doOneQuery(db, `UPDATE fixedIds SET pageId = "" WHERE pageId = "0";`)
 
 		doOneQuery(db, `UPDATE groupMembers SET userId = "" WHERE userId = "0";`)
 		doOneQuery(db, `UPDATE groupMembers SET groupId = "" WHERE groupId = "0";`)
@@ -141,12 +135,9 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 
 		doOneQuery(db, `ALTER TABLE pages ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE pages ADD creatorIdProcessed BOOLEAN NOT NULL AFTER creatorId;`)
-		doOneQuery(db, `ALTER TABLE pages ADD privacyKeyProcessed BOOLEAN NOT NULL AFTER privacyKey;`)
 
 		doOneQuery(db, `ALTER TABLE changeLogs ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE changeLogs ADD auxPageIdProcessed BOOLEAN NOT NULL AFTER auxPageId;`)
-
-		doOneQuery(db, `ALTER TABLE fixedIds ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 
 		doOneQuery(db, `ALTER TABLE groupMembers ADD userIdProcessed BOOLEAN NOT NULL AFTER userId;`)
 		doOneQuery(db, `ALTER TABLE groupMembers ADD groupIdProcessed BOOLEAN NOT NULL AFTER groupId;`)
@@ -193,12 +184,9 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 
 		doOneQuery(db, `ALTER TABLE pages ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE pages ADD creatorIdBase36 MEDIUMTEXT NOT NULL AFTER creatorId;`)
-		doOneQuery(db, `ALTER TABLE pages ADD privacyKeyBase36 MEDIUMTEXT NOT NULL AFTER privacyKey;`)
 
 		doOneQuery(db, `ALTER TABLE changeLogs ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE changeLogs ADD auxPageIdBase36 MEDIUMTEXT NOT NULL AFTER auxPageId;`)
-
-		doOneQuery(db, `ALTER TABLE fixedIds ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
 
 		doOneQuery(db, `ALTER TABLE groupMembers ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
 		doOneQuery(db, `ALTER TABLE groupMembers ADD groupIdBase36 MEDIUMTEXT NOT NULL AFTER groupId;`)
@@ -270,10 +258,71 @@ WHERE 1;
 
 		doOneQuery(db, `
 INSERT INTO pagesandusers (base10id, createdAt)
+SELECT pageId, createdAt
+FROM pageInfos
+WHERE 1;
+`)
+
+		doOneQuery(db, `
+INSERT INTO pagesandusers (base10id, createdAt)
 SELECT id, createdAt
 FROM users
 WHERE 1;
 `)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM pages WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT creatorId, createdAt FROM pages WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM changeLogs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT auxPageId, createdAt FROM changeLogs WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM groupMembers WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupId, createdAt FROM groupMembers WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM likes WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM likes WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT parentId, NOW() FROM links WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM pageDomainPairs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT domainId, NOW() FROM pageDomainPairs WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT lockedBy, createdAt FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT seeGroupId, createdAt FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT editGroupId, createdAt FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT createdBy, createdAt FROM pageInfos WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT parentId, NOW() FROM pagePairs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT childId, NOW() FROM pagePairs WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM pageSummaries WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM subscriptions WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT toId, createdAt FROM subscriptions WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByPageId, createdAt FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByUserId, createdAt FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT subscribedToId, createdAt FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT goToPageId, createdAt FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT byUserId, createdAt FROM updates WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM userMasteryPairs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT masteryId, createdAt FROM userMasteryPairs WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT id, createdAt FROM users WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM visits WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM visits WHERE 1;`)
+
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM votes WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM votes WHERE 1;`)
+
+		doOneQuery(db, `UPDATE pagesandusers SET createdAt = NOW() WHERE createdAt = "0000-00-00 00:00:00"`)
+		//doOneQuery(db, `UPDATE pagesandusers SET createdAt = "2222-02-22 22:22:22" WHERE createdAt = "0000-00-00 00:00:00"`)
+
+		doOneQuery(db, `DELETE FROM pagesandusers WHERE base10id=""`)
 
 		doOneQuery(db, `
 INSERT INTO base10tobase36 (base10id, createdAt)

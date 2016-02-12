@@ -176,7 +176,13 @@
 					<!-- Lens ordering -->
 					<div class="edit-relationship-div" ng-if="!isLens">
 						<div class="md-subhead">
+							<!-- HARDCODED -->
+<!--
 							<arb-page-title page-id="1407630090992422901"
+									is-link="true"
+									custom-page-title="'Lens order'"></arb-page-title>
+-->
+							<arb-page-title page-id="18y"
 									is-link="true"
 									custom-page-title="'Lens order'"></arb-page-title>
 							<div class="md-caption">
@@ -213,7 +219,7 @@
 							</div>
 							<div class="md-caption" layout-margin flex>
 								<div>Unique name for this page, e.g. "human_health"</div>
-								<div ng-show="page.seeGroupId != '0'">
+								<div ng-show="page.seeGroupId != ''">
 									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
 									because it's part of the private domain
 								</div>
@@ -346,9 +352,9 @@
 					<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
 						<div layout="column">
 							<div>
-								<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
+								<span ng-show="changeLog.auxPageId == ''" ng-bind="changeLog.type">
 								</span>
-								<span ng-show="changeLog.auxPageId != '0'">
+								<span ng-show="changeLog.auxPageId != ''">
 									<a class="intrasite-link"
 											page-id="{{changeLog.auxPageId}}"
 											ng-href="{{pageService.getPageUrl(changeLog.auxPageId)}}"

@@ -77,6 +77,33 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "IndexPageController",
 	})
+
+	.when("/domains/:alias", {
+ 		template: "",
+ 		controller: "DomainPageController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/pages/:alias", {
+ 		template: "",
+ 		controller: "PrimaryPageController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/sequences/:pageId", {
+ 		template: "",
+ 		controller: "SequenceController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/edit/:alias?/:edit?", {
+ 		template: "",
+ 		controller: "EditPageController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/user/:id?", {
+ 		template: "",
+ 		controller: "UserPageController",
+ 		reloadOnSearch: false,
+	})
+
 	.when("/d/:alias", {
 		template: "",
 		controller: "DomainPageController",
@@ -102,6 +129,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "UserPageController",
 		reloadOnSearch: false,
 	})
+
 	.when("/dashboard/", {
 		template: "",
 		controller: "DashboardPageController",

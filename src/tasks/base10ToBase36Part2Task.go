@@ -36,12 +36,9 @@ func (task *Base10ToBase36Part2Task) Execute(db *database.DB) (delay int, err er
 
 	replaceBatch(db, "pages", "pageId")
 	replaceBatch(db, "pages", "creatorId")
-	replaceBatch(db, "pages", "privacyKey")
 
 	replaceBatch(db, "changeLogs", "pageId")
 	replaceBatch(db, "changeLogs", "auxPageId")
-
-	replaceBatch(db, "fixedIds", "pageId")
 
 	replaceBatch(db, "groupMembers", "userId")
 	replaceBatch(db, "groupMembers", "groupId")
@@ -94,24 +91,34 @@ func replaceBatch(db *database.DB, newTableName string, newColumnName string) er
 	columnName = newColumnName
 
 	//rows := db.NewStatement(`SELECT ` + columnName + ` FROM ` + tableName + ` WHERE 1`).Query()
-	rows := db.NewStatement(`SELECT ` + columnName + ` FROM ` + tableName + ` WHERE ` + columnName + `Processed = 0`).Query()
+	//rows := db.NewStatement(`SELECT ` + columnName + ` FROM ` + tableName + ` WHERE ` + columnName + `Processed = 0`).Query()
+	//rows := db.NewStatement(`SELECT tn.` + columnName + `, b.base36id FROM ` + tableName + ` AS tn INNER JOIN base10tobase36 AS b ON b.base10Id=tn.` + columnName + ` WHERE tn.` + columnName + `Processed = 0 `).Query()
 
-	if err := rows.Process(replaceId); err != nil {
-		db.C.Debugf("ERROR, failed to replace batch table "+tableName+", column "+columnName+": %v", err)
-		return err
+	statement := db.NewStatement(`UPDATE ` + tableName + ` SET ` + columnName + `Processed = 1, ` + columnName + `Base36 = (SELECT base36Id from base10tobase36 WHERE base10Id = ` + tableName + `.` + columnName + `) WHERE ` + columnName + `Processed = 0`)
+	if _, err := statement.Exec(); err != nil {
+		return fmt.Errorf("Couldn't update table "+tableName+", column "+columnName+": %v", err)
 	}
+	statement.Close()
+
+	/*
+		if err := rows.Process(replaceId); err != nil {
+			db.C.Debugf("ERROR, failed to replace batch table "+tableName+", column "+columnName+": %v", err)
+			return err
+		}
+	*/
 	return nil
 }
 
+/*
 func replaceId(db *database.DB, rows *database.Rows) error {
 	var base10id string
-	if err := rows.Scan(&base10id); err != nil {
+	var base36id string
+	if err := rows.Scan(&base10id, &base36id); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
 	//db.C.Debugf("base10id: %v", base10id)
 
-	var base36id string
 	row := db.NewStatement(`SELECT base36id FROM base10tobase36 WHERE base10id=?`).QueryRow(base10id)
 	//row := db.QueryRow(`SELECT base36id FROM base10tobase36 WHERE base10id=` + base10id)
 
@@ -122,8 +129,8 @@ func replaceId(db *database.DB, rows *database.Rows) error {
 
 	//db.C.Debugf("base36id: %v", base36id)
 
-	hashmap := make(map[string]interface{})
-	hashmap[columnName] = base36id
+	//hashmap := make(map[string]interface{})
+	//hashmap[columnName] = base36id
 
 	//queryString := `UPDATE ` + tableName + ` SET ` + columnName + ` = "` + base36id + `" WHERE ` + columnName + ` = "` + base10id + `"`
 	queryString := `UPDATE ` + tableName + ` SET ` + columnName + `Base36 = "` + base36id + `", ` + columnName + `Processed = 1 WHERE ` + columnName + ` = "` + base10id + `"`
@@ -137,3 +144,4 @@ func replaceId(db *database.DB, rows *database.Rows) error {
 
 	return nil
 }
+*/
