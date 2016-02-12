@@ -80,9 +80,9 @@
 
 			<span class="md-subhead">
 				<md-icon>assignment</md-icon>
-				"{{page.title}}" taught you these concepts:
+				"{{::page.title}}" taught you these concepts:
 			</span>
-			<div arb-mastery-list ids-source="subjectIds" hide-checkboxes="!showSubjectCheckboxes"></div>
+			<div arb-mastery-list ids-source="::subjectIds" hide-checkboxes="!showSubjectCheckboxes"></div>
 
 			<!-- Mark as done button -->
 			<md-button class="md-primary md-raised"
@@ -93,7 +93,7 @@
 			</md-button>
 			<md-button class="md-primary"
 					ng-click="showSubjectCheckboxes = !showSubjectCheckboxes"
-					ng-hide="showSubjectCheckboxes">
+					ng-if="!showSubjectCheckboxes">
 				I only understood some of them
 			</md-button>
 		</div>

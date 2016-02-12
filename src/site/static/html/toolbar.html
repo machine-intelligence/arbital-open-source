@@ -8,8 +8,8 @@
 
 		<a href="/"
 				layout-margin
-				ng-bind="pageService.pageMap[pageService.privateGroupId].title | shorten: 30"
-				ng-if="pageService.privateGroupId !== '0'"></a>
+				ng-bind="(pageService.pageMap[pageService.privateGroupId].title | shorten: 30)"
+				ng-if="(pageService.privateGroupId !== '0')"></a>
 
 		<!-- Search -->
 		<span flex></span>
@@ -17,7 +17,7 @@
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
 				flex="grow"
-				ng-if="!isTinyScreen"></arb-autocomplete>
+				ng-if="::!isTinyScreen"></arb-autocomplete>
 		<span flex></span>
 
 		<!-- Updates -->
@@ -46,7 +46,7 @@
 			<md-icon>menu</md-icon>
     </md-button>
 	</div>
-	<div class="md-toolbar-tools md-toolbar-tools-bottom" ng-if="isTinyScreen">
+	<div class="md-toolbar-tools md-toolbar-tools-bottom" ng-if="::isTinyScreen">
 		<arb-autocomplete do-autofocus="doAutofocus"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
