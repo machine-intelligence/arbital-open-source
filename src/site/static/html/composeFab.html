@@ -3,7 +3,7 @@
 		class="md-scale md-fab-bottom-right"
 		ng-mouseenter="toggle(true, true)"
 		ng-mouseleave="toggle(false, true)"
-		ng-if="userService.userIsCool()">
+		ng-hide="hide || !userService.userIsCool()">
 	<md-fab-trigger>
 		<md-button class="md-fab">
 			<md-icon class="fab-icon">add</md-icon>

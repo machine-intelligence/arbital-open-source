@@ -35,14 +35,12 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 				Cookies.remove("arbital");
 				window.location.reload();
 			};
-		},
-		link: function(scope, element, attrs) {
-			var showHideElement = function() {
-				element.toggle(location.path().indexOf("/edit") !== 0);
-			};
 
-			scope.$on("$locationChangeSuccess", showHideElement);
-			showHideElement();
+			// Hide toolbar in the edit screen
+			$scope.$on("$locationChangeSuccess", function () {
+				$scope.hide = $location.path().indexOf("/edit") === 0;
+			});
+			$scope.hide = $location.path().indexOf("/edit") === 0;
 		},
 	};
 });

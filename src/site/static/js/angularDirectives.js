@@ -334,6 +334,11 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 				});
 			};
 
+			$scope.$on("$locationChangeSuccess", function () {
+				$scope.hide = $location.path().indexOf("/edit") === 0;
+			});
+			$scope.hide = $location.path().indexOf("/edit") === 0;
+
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
@@ -347,14 +352,6 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});
 			});
-		},
-		link: function(scope, element, attrs) {
-			var showHideElement = function() {
-				element.toggle(location.path().indexOf("/edit") !== 0);
-			};
-
-			scope.$on("$locationChangeSuccess", showHideElement);
-			showHideElement();
 		},
 	};
 });
