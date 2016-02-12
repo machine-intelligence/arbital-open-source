@@ -51,11 +51,12 @@ func init() {
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/d/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/e/", pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/edit/", pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}/{edit:[0-9]+}", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc("/e/", pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/e/{alias:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/e/{alias:%s}/{edit:[0-9]+}", core.AliasRegexpStr),
@@ -65,8 +66,8 @@ func init() {
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/groups/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/knowledge/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/login/", pageHandlerWrapper(&loginPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/logout/", pageHandlerWrapper(&logoutPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/p/{alias:%s}", core.AliasRegexpStr),
@@ -76,13 +77,14 @@ func init() {
 	s.HandleFunc("/sequences/{pageId:[0-9]+}", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/s/{pageId:[0-9]+}", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/signup/", pageHandlerWrapper(&signupPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/signup/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/updates/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/user/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/u/{domain:%s}", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/_test_/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/verifyEmail/", pageHandlerWrapper(&verifyEmailPage)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
 	s.HandleFunc(dashboardPageHandler.URI, handlerWrapper(dashboardPageHandler)).Methods("POST")
@@ -94,7 +96,7 @@ func init() {
 	s.HandleFunc(groupsHandler.URI, handlerWrapper(groupsHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")
 	s.HandleFunc(intrasitePopoverHandler.URI, handlerWrapper(intrasitePopoverHandler)).Methods("POST")
-	s.HandleFunc(knowledgeHandler.URI, handlerWrapper(knowledgeHandler)).Methods("POST")
+	s.HandleFunc(requisitesHandler.URI, handlerWrapper(requisitesHandler)).Methods("POST")
 	s.HandleFunc(lensHandler.URI, handlerWrapper(lensHandler)).Methods("POST")
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
@@ -118,6 +120,8 @@ func init() {
 	s.HandleFunc(deleteSubscriptionHandler.URI, handlerWrapper(deleteSubscriptionHandler)).Methods("POST")
 	s.HandleFunc(editPageHandler.URI, handlerWrapper(editPageHandler)).Methods("POST")
 	s.HandleFunc(editPageInfoHandler.URI, handlerWrapper(editPageInfoHandler)).Methods("POST")
+	s.HandleFunc(loginHandler.URI, handlerWrapper(loginHandler)).Methods("POST")
+	s.HandleFunc(logoutHandler.URI, handlerWrapper(logoutHandler)).Methods("POST")
 	s.HandleFunc(newGroupHandler.URI, handlerWrapper(newGroupHandler)).Methods("POST")
 	s.HandleFunc(newLikeHandler.URI, handlerWrapper(newLikeHandler)).Methods("POST")
 	s.HandleFunc(newMemberHandler.URI, handlerWrapper(newMemberHandler)).Methods("POST")
@@ -133,12 +137,10 @@ func init() {
 
 	// Admin stuff
 	s.HandleFunc(domainsPageHandler.URI, handlerWrapper(domainsPageHandler)).Methods("POST")
-	s.HandleFunc(fixTextHandler.URI, handlerWrapper(fixTextHandler)).Methods("GET")
 	s.HandleFunc(base10ToBase36Part1Handler.URI, handlerWrapper(base10ToBase36Part1Handler)).Methods("GET")
 	s.HandleFunc(base10ToBase36Part2Handler.URI, handlerWrapper(base10ToBase36Part2Handler)).Methods("GET")
 	s.HandleFunc(base10ToBase36Part3Handler.URI, handlerWrapper(base10ToBase36Part3Handler)).Methods("GET")
-	s.HandleFunc(updateElasticIndexHandler.URI, handlerWrapper(updateElasticIndexHandler)).Methods("GET")
-	s.HandleFunc(updateMetadataHandler.URI, handlerWrapper(updateMetadataHandler)).Methods("GET")
+	s.HandleFunc(adminTaskHandler.URI, handlerWrapper(adminTaskHandler)).Methods("GET")
 
 	// Various internal handlers
 	s.HandleFunc("/mon", reportMonitoring).Methods("POST")

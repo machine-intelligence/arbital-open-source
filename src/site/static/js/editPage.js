@@ -6,7 +6,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 		templateUrl: "static/html/editPage.html",
 		scope: {
 			pageId: "@",
-			// Whether or not this edit page is embedded in some column, and show be
+			// Whether or not this edit page is embedded in some column, and should be
 			// sized accordingly
 			isEmbedded: "=",
 			// True iff this is embedded inside a dialog
@@ -65,11 +65,6 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				$timeout(function() {
 					$scope.insertLinkCallback(result ? result.alias : undefined);
 					$scope.insertLinkCallback = undefined;
-					if (result) {
-						// For some reason angular doesn't propagate the change through the
-						// model to page.text, so this is a workaround.
-						prevEditPageData = undefined;
-					}
 				});
 			};
 
@@ -192,6 +187,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			};
 
 			$scope.page.text = $scope.convertPageIdsToAliases($scope.page.text);
+			if ($scope.isLens) {
+				$scope.page.title = $scope.page.lensTitle();
+			}
 
 			// User reverts to an edit
 			$scope.revertToEdit = function(editNum) {
@@ -559,9 +557,12 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					// NOTE: not sure why, but we need two timeouts here
 					$timeout(function() { $timeout(function() {
 						var $input = element.find(".insert-autocomplete").find("input").focus();
+						// Catch blur events as a workaround for when the user presses Enter to
+						// select a link, which doesn't trigger insertLinkSelect for some reason.
 						if (!blurHooked) {
 							blurHooked = true;
 							$input.on("blur", function(event) {
+								if (scope.showInsertLink) return;
 								scope.showInsertLink = false;
 								scope.insertLinkCallback();
 								$timeout(function() { $timeout(function() {

@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"strings"
 
-	"appengine/user"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
@@ -23,7 +24,7 @@ const (
 )
 
 var (
-	userKey = "user" // key for session storage
+	sessionKey = "arbitalSession" // key for session storage
 
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	MaxKarmaLockFraction = 0.8
@@ -37,6 +38,7 @@ var (
 type User struct {
 	// DB variables
 	Id             string `json:"id"`
+	FbUserId       string `json:"fbUserId"`
 	Email          string `json:"email"`
 	FirstName      string `json:"firstName"`
 	LastName       string `json:"lastName"`
@@ -49,9 +51,14 @@ type User struct {
 	IgnoreMathjax  bool   `json:"ignoreMathjax"`
 
 	// Computed variables
-	IsLoggedIn  bool     `json:"isLoggedIn"`
 	UpdateCount int      `json:"updateCount"`
 	GroupIds    []string `json:"groupIds"`
+}
+
+type CookieSession struct {
+	Email string
+	// Randomly generated string
+	Random string
 }
 
 func (user *User) FullName() string {
@@ -78,92 +85,51 @@ func (user *User) IsMemberOfGroup(groupId string) bool {
 	return isMember
 }
 
-// Save stores the user in the session.
-func (u *User) Save(w http.ResponseWriter, r *http.Request) error {
-	/*s, err := sessions.GetSession(r)
+// Store user's email in a cookie
+func SaveEmailCookie(w http.ResponseWriter, r *http.Request, email string) error {
+	s, err := sessions.GetSession(r)
 	if err != nil {
-		return fmt.Errorf("couldn't get session: %v", err)
+		return fmt.Errorf("Couldn't get session: %v", err)
 	}
 
-	s.Values[userKey] = u
+	rand.Seed(time.Now().UnixNano())
+	s.Values[sessionKey] = CookieSession{email, fmt.Sprintf("%d", rand.Int63())}
 	err = s.Save(r, w)
 	if err != nil {
-		return fmt.Errorf("failed to save user to session: %v", err)
-	}*/
+		return fmt.Errorf("Failed to save user to session: %v", err)
+	}
 	return nil
 }
 
 // loadUserFromDb tries to load the current user's info from the database. If
 // there is no data in the DB, but the user is logged in through AppEngine,
 // a new record is created.
-func loadUserFromDb(db *database.DB) (*User, error) {
-	appEngineUser := user.Current(db.C)
-	if appEngineUser == nil {
+func loadUserFromDb(r *http.Request, db *database.DB) (*User, error) {
+	// Load email from the cookie
+	s, err := sessions.GetSession(r)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't get session: %v", err)
+	}
+
+	var cookie *CookieSession
+	if cookieStruct, ok := s.Values[sessionKey]; !ok {
 		return nil, nil
+	} else {
+		cookie = cookieStruct.(*CookieSession)
 	}
 
 	var u User
 	row := db.NewStatement(`
-		SELECT id,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
 		FROM users
-		WHERE email=?`).QueryRow(appEngineUser.Email)
-	exists, err := row.Scan(&u.Id, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
+		WHERE email=?`).QueryRow(cookie.Email)
+	_, err = row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
 		&u.EmailFrequency, &u.EmailThreshold, &u.InviteCode, &u.IgnoreMathjax)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
-	} else if !exists {
-		// Add new user
-		db.C.Debugf("User not found. Creating a new one: %s", appEngineUser.Email)
-
-		errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-			u.Id, err = GetNextAvailableId(db)
-			if err != nil {
-				return "", fmt.Errorf("Couldn't get last insert id for new user: %v", err)
-			}
-
-			insertMap := make(database.InsertMap)
-			insertMap["id"] = u.Id
-			insertMap["email"] = appEngineUser.Email
-			insertMap["firstName"] = ""
-			insertMap["lastName"] = ""
-			insertMap["isAdmin"] = appEngineUser.Admin
-			insertMap["createdAt"] = database.Now()
-			insertMap["lastWebsiteVisit"] = database.Now()
-			insertMap["updateEmailSentAt"] = database.Now()
-			insertMap["emailFrequency"] = DefaultEmailFrequency
-			insertMap["emailThreshold"] = DefaultEmailThreshold
-			insertMap["inviteCode"] = ""
-			insertMap["ignoreMathjax"] = 0
-
-			statement := db.NewInsertStatement("users", insertMap)
-			_, err := statement.Exec()
-			if err != nil {
-				return "", fmt.Errorf("Couldn't create a new user: %v", err)
-			}
-			return "", err
-		})
-		if errMessage != "" {
-			return nil, fmt.Errorf(errMessage)
-		}
-		if err != nil {
-			return nil, err
-		}
-
-		u.Email = appEngineUser.Email
 	}
 	u.MaxKarmaLock = GetMaxKarmaLock(u.Karma)
-	u.IsLoggedIn = u.FirstName != ""
-	return &u, err
-}
-
-// GetLoginLink returns the link to log the user in
-func GetLoginLink(c sessions.Context, continueUrl string) (string, error) {
-	return user.LoginURL(c, continueUrl)
-}
-
-// GetLogoutLink returns the link to log the user out
-func GetLogoutLink(c sessions.Context, continueUrl string) (string, error) {
-	return user.LogoutURL(c, continueUrl)
+	return &u, nil
 }
 
 // LoadUser returns user object corresponding to logged in user. First, we check
@@ -171,13 +137,11 @@ func GetLogoutLink(c sessions.Context, continueUrl string) (string, error) {
 // in the database. If the user is not logged in, we return a partially filled
 // User object.
 // A user object is returned iff there is no error.
-func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *User, err error) {
-	userPtr, err = loadUserFromDb(db)
+func LoadUser(r *http.Request, db *database.DB) (userPtr *User, err error) {
+	userPtr, err = loadUserFromDb(r, db)
 	if err != nil {
 		return
-	} else if userPtr != nil {
-		userPtr.Save(w, r)
-	} else {
+	} else if userPtr == nil {
 		userPtr = &User{}
 	}
 	return
@@ -196,7 +160,8 @@ func ParseUser(rc io.ReadCloser) (*User, error) {
 }
 
 func init() {
-	gob.Register(&User{})
+	// Need to register this so it can be stored inside a cookie
+	gob.Register(&CookieSession{})
 }
 
 const (

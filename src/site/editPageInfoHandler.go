@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -127,7 +128,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Make sure alias is valid
-	if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
+	if strings.ToLower(data.Alias) == "www" {
+		return pages.HandlerBadRequestFail("Alias can't be 'www'", nil)
+	} else if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
 		data.Alias = oldPage.Alias
 	} else if data.Alias == "" {
 		data.Alias = data.PageId

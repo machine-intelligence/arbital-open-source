@@ -14,11 +14,11 @@
 				flex>
 			<!-- (0) Title tab -->
 			<md-tab label="Title" ng-disabled="isComment || isAnswer">
-				<div layout="column" flex>
+				<div flex>
 					<div class="editor-tab" layout="column">
 						<md-input-container>
 							<label>Title</label>
-							<input ng-model="page.title" md-maxlength="100" autofocus default-tab-item="0">
+							<input ng-model="page.title" md-maxlength="{{isLens ? 50 : 100}}" autofocus default-tab-item="0">
 						</md-input-container>
 						<md-input-container>
 							<label>Clickbait</label>
@@ -30,7 +30,7 @@
 						</md-input-container>
 					</div>
 					<!-- Related pages -->
-					<ng-include src="'static/html/editPageSimilarList.html'" flex ng-if="!isQuestion"></ng-include>
+					<ng-include src="'static/html/editPageSimilarList.html'" ng-if="!isQuestion"></ng-include>
 				</div>
 			</md-tab>
 
@@ -189,10 +189,10 @@
 								Sorted from most simple to most technical. (Main lens is always the most technical.)
 							</div>
 						</div>
-						<div class="md-caption" ng-if="page.lensIds.length <= 1">This page has no lenses.</div>
+						<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
 
 						<!-- List of lenses -->
-						<div data-as-sortable="lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 1">
+						<div data-as-sortable="lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
 							<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
 								<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
 									<md-icon>reorder</md-icon>

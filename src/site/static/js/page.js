@@ -28,21 +28,25 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				return true;
 			};
 
-			// Sort lenses
+			// Sort lenses (from most technical to least)
 			$scope.page.lensIds.sort(function(a, b) {
-				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
+				return pageService.pageMap[b].lensIndex - pageService.pageMap[a].lensIndex;
 			});
-			$scope.page.lensIds.push($scope.page.pageId);
+			$scope.page.lensIds.unshift($scope.page.pageId);
 
 			// Determine which lens is selected
 			var computeSelectedLens = function() {
 				if ($location.search().lens) {
 					// Lens is explicitly specified in the URL
 					$scope.selectedLens = pageService.pageMap[$location.search().lens];
+				} else if ($location.search().sequence) {
+					// The sequence specified this page specifically
+					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
 				} else {
 					// Select the hardest lens for which the user has met all requirements
-					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[0]];
-					for (var n = 1; n < $scope.page.lensIds.length; n++) {
+					var lastIndex = $scope.page.lensIds.length - 1;
+					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[lastIndex]];
+					for (var n = lastIndex - 1; n >= 0; n--) {
 						var lensId = $scope.page.lensIds[n];
 						if ($scope.hasAllReqs(lensId)) {
 							$scope.selectedLens = pageService.pageMap[lensId];
@@ -53,19 +57,17 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			};
 			computeSelectedLens();
 			$scope.originalLensId = $scope.selectedLens.pageId;
-			$scope.getPageTitle = function() {
-				var pageTitle = $scope.page.title;
-				if ($scope.selectedLens.pageId === $scope.page.pageId) {
-					return pageTitle;
-				}
-				return pageTitle + ": " + $scope.selectedLens.title;
-			}
 
 			// Monitor URL to see if we need to switch lenses
 			$scope.$watch(function() {
 				return $location.absUrl();
 			}, function() {
-				computeSelectedLens();
+				// NOTE: this also gets called when the user clicks on a link to go to another page,
+				// but in that case we don't want to do anything.
+				// TODO: create a better workaround
+				if ($location.path().indexOf($scope.pageId) >= 0) {
+					computeSelectedLens();
+				}
 			});
 
 			$scope.isLoaded = function(lensId) {
@@ -84,20 +86,6 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				var lensId = $scope.page.lensIds[tabIndex];
 				window.open(pageService.getPageUrl(lensId), "_blank");
 			};
-
-			// Check if the user is doing a sequence
-			$scope.page.sequenceUrl = $location.search().sequence || "";
-			if ($scope.page.sequenceUrl) {
-				var ids = $scope.page.sequenceUrl.split(",");
-				for (var n = 0; n < ids.length; n++) {
-					var id = ids[n];
-					if (id === $scope.page.pageId) {
-						$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
-						$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
-					}
-				}
-				$scope.page.sequenceId = ids[ids.length - 1];
-			}
 
 			// Check if this comment is selected via URL hash
 			$scope.isSelected = function() {

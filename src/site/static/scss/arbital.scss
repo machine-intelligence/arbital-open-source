@@ -194,8 +194,35 @@ span.md-warn {
 	}
 }
 
+.submit-form-error {
+	padding: 10px;
+}
+
 .bold {
 	font-weight: bold;
+}
+
+.float-left {
+	float: left;
+}
+.float-right {
+	float: right;
+}
+
+.facebook-button {
+	background-color: #3b5998;
+	color: white;
+
+	md-icon {
+		color: white;
+	}
+
+	&:hover {
+		background-color: #8b9dc3 !important;
+	}
+	&:focus {
+		background-color: #8b9dc3 !important;
+	}
 }
 
 arb-markdown, [arb-markdown], .preview-area {
@@ -214,8 +241,13 @@ arb-markdown, [arb-markdown], .preview-area {
 		max-width: 100%;
 	}
 
-	ul {
+	ul, ol {
 		padding-left: 1.5em;
+	}
+
+	li p {
+		// Reset overflow value, otherwise the bullet points in lists are invisible.
+		overflow: inherit;
 	}
 
 	blockquote {
@@ -253,13 +285,16 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-signup > & {
 		max-width: 560px;
 	}
+	arb-login > & {
+		max-width: 560px;
+	}
 	arb-updates > & {
 		max-width: 560px;
 	}
 	arb-groups-page > & {
 		max-width: 900px;
 	}
-	arb-knowledge-page > & {
+	arb-requisites-page > & {
 		max-width: 560px;
 	}
 	arb-sequence-page > & {
@@ -342,6 +377,10 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	}
 };
 
+.next-prev-nav {
+	min-height: 50px;
+}
+
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
 #dynamic-view {
@@ -349,6 +388,11 @@ $toolbar-height: 64px;
 	top: -$toolbar-height;
 	padding-top: $toolbar-height;
 	box-sizing: border-box;*/
+}
+
+.sidenav-email {
+	max-width: 90%;
+	overflow-x: hidden;
 }
 
 // Added to updates that the user hasn't seen yet
@@ -698,6 +742,14 @@ arb-likes {
 
 arb-requisite-button, [arb-requisite-button] {
 	white-space: nowrap;
+
+	.md-button {
+		padding: 0;
+		width: 20px;
+		height: 20px;
+		min-height: 20px;
+		margin-right: 5px;
+	}
 }
 
 // Menu for a lens (with like, subscribe, edit, etc. buttons)
@@ -926,9 +978,7 @@ md-tab-content {
 // Color the active tab
 .md-tab {
 	&.md-active {
-		background-color: $primary-hue-1;
-		border: $primary-hue-2 2px solid;
-		margin-right: -4px;
+		background-color: $primary-hue-3;
 	}
 }
 
@@ -943,6 +993,12 @@ md-tabs.page-tabs {
 			color: $primary-hue-2 !important;
 			md-icon {
 				color: $primary-hue-2 !important;
+			}
+
+			&.md-active {
+				background-color: $primary-hue-1;
+				border: $primary-hue-2 2px solid;
+				margin-right: -4px;
 			}
 		}
 	}
@@ -1121,4 +1177,13 @@ arb-multiple-choice {
 	margin-left: 10px;
 	border-left: $primary-hue-1 3px solid;
 	padding-left: 10px;
+}
+
+arb-sequence-part, [arb-sequence-part] {
+	padding-top: 7px;
+	margin-bottom: 7px;
+
+	.which-part {
+		padding-left: 5px;
+	}
 }

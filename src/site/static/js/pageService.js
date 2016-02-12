@@ -68,7 +68,7 @@ app.service("pageService", function($http, $location, userService){
 			}
 		}
 
-		if (userService.user.isLoggedIn) {
+		if (userService.user.id !== "") {
 			// Send POST request.
 			var data = {
 				removeMasteries: delMasteries,
@@ -143,13 +143,13 @@ app.service("pageService", function($http, $location, userService){
 			this.addMasteryToMap(masteryData[id]);
 		}
 
-		if (data.resetEverything && !userService.user.isLoggedIn) {
+		if (data.resetEverything && !userService.user.id !== "") {
 			// Load masteries from cookie
 			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
 			for (var id in cookieMasteryMap) {
 				this.addMasteryToMap(cookieMasteryMap[id]);
 			}
-		} else if (data.resetEverything && userService.user.isLoggedIn) {
+		} else if (data.resetEverything && userService.user.id !== "") {
 			Cookies.remove("masteryMap");
 		}
 
@@ -312,6 +312,11 @@ app.service("pageService", function($http, $location, userService){
 		editUrl: function() {
 			return that.getEditPageUrl(this.pageId);
 		},
+		// Return just the title to display for a lens.
+		lensTitle: function() {
+			var parts = this.title.split(":");
+			return parts[parts.length - 1];
+		},
 	};
 	
 	// Massage page's variables to be easier to deal with.
@@ -319,12 +324,11 @@ app.service("pageService", function($http, $location, userService){
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
 		}
-		// Add page's alias to the map as well, both lowercase and uppercase
+		// Add page's alias to the map as well, both with lowercase and uppercase first letter
 		if (pageMap && page.pageId !== page.alias) {
 			pageMap[page.alias.substring(0,1).toLowerCase() + page.alias.substring(1)] = page;
 			pageMap[page.alias.substring(0,1).toUpperCase() + page.alias.substring(1)] = page;
 		}
-
 		return page;
 	};
 	// Add the given page to the global pageMap. If the page with the same id

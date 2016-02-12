@@ -67,6 +67,9 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			});
 
 			// ============ Masteries ====================
+			
+			// Compute subject ids that the user hasn't learned yet.
+			$scope.subjectIds = $scope.page.subjectIds.filter(function(id) { return !pageService.hasMastery(id); });
 
 			// Check if the user meets all requirements
 			$scope.meetsAllRequirements = function(pageId) {
@@ -85,8 +88,8 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Check if the user knows all the subjects
 			$scope.knowsAllSubjects = function() {
-				for (var n = 0; n < $scope.page.subjectIds.length; n++) {
-					if (!pageService.hasMastery($scope.page.subjectIds[n])) {
+				for (var n = 0; n < $scope.subjectIds.length; n++) {
+					if (!pageService.hasMastery($scope.subjectIds[n])) {
 						return false;
 					}
 				}
@@ -94,21 +97,13 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			};
 			$scope.showLearnedPanel = !$scope.knowsAllSubjects();
 
-			// Toggle all requirements
-			$scope.toggleRequirements = function() {
-				if ($scope.meetsAllRequirements()) {
-					pageService.updateMasteries([], $scope.page.requirementIds, []);
-				} else {
-					pageService.updateMasteries($scope.page.requirementIds, [], []);
-				}
-			};
-
 			// Toggle all subjects
 			$scope.toggleSubjects = function() {
+				$scope.showSubjectCheckboxes = true;
 				if ($scope.knowsAllSubjects()) {
-					pageService.updateMasteries([], $scope.page.subjectIds, []);
+					pageService.updateMasteries([], $scope.subjectIds, []);
 				} else {
-					pageService.updateMasteries($scope.page.subjectIds, [], []);
+					pageService.updateMasteries($scope.subjectIds, [], []);
 				}
 			};
 
@@ -116,16 +111,17 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;
 				var primaryPage = pageService.pageMap[$scope.lensParentId];
-				for (var n = 0; n < primaryPage.lensIds.length; n++) {
+				for (var n = $scope.page.lensIndex - 1; n >= 0; n--) {
 					var lens = pageService.pageMap[primaryPage.lensIds[n]];
-					if (lens.lensIndex < $scope.page.lensIndex && $scope.meetsAllRequirements(lens.pageId)) {
+					if ($scope.meetsAllRequirements(lens.pageId)) {
 						simplerLensId = lens.pageId;
 						break;
 					}
 				}
-				if (!simplerLensId && primaryPage.lensIds[0] !== $scope.page.pageId) {
+				var simplestIndex = primaryPage.lensIds.length - 1;
+				if (!simplerLensId && primaryPage.lensIds[simplestIndex] !== $scope.page.pageId) {
 					// We haven't found a lens for which we've met all requirements, so just suggest the simplest lens
-					simplerLensId = primaryPage.lensIds[0];
+					simplerLensId = primaryPage.lensIds[simplestIndex];
 				}
 				if (simplerLensId) {
 					$scope.simplerLens = pageService.pageMap[simplerLensId];

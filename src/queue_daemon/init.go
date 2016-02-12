@@ -62,6 +62,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.Base10ToBase36Part2Task{}
 	} else if leasedTask.Tag == "base10ToBase36Part3" {
 		task = &tasks.Base10ToBase36Part3Task{}
+	} else if leasedTask.Tag == "resetPasswords" {
+		task = &tasks.ResetPasswordsTask{}
 	} else {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
 	}

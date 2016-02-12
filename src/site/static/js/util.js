@@ -35,6 +35,11 @@ var getHostMatchRegex = function(host) {
 	return regexString;
 };
 
+// Return true if we are in the live/production environment. (False if it's staging.)
+var isLive = function() {
+	return window.location.host.indexOf("arbital.com") >= 0;
+};
+
 // Extend jQuery with a function to change element's type
 (function($) {
 	$.fn.changeElementType = function(newType) {
@@ -94,7 +99,9 @@ var submitForm = function($form, url, data, success, error) {
 		$form.find("[toggle-on-submit]").toggle();
 	}
 
-	console.log("Submitting form to " + url + ":"); console.log(data);
+	if (!("password" in data)) {
+		console.log("Submitting form to " + url + ":"); console.log(data);
+	}
 	$.ajax({
 		type: "POST",
 		url: url,

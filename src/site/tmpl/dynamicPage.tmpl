@@ -43,13 +43,33 @@
 	<script src="/static/js/groupsPage.js"></script>
 	<script src="/static/js/userPage.js"></script>
 	<script src="/static/js/dashboardPage.js"></script>
+	<script src="/static/js/loginPage.js"></script>
 	<script src="/static/js/signupPage.js"></script>
-	<script src="/static/js/knowledgePage.js"></script>
+	<script src="/static/js/requisitesPage.js"></script>
 	<script src="/static/js/sequencePage.js"></script>
 	<script src="/static/js/settingsPage.js"></script>
 </head>
 
 <body ng-controller="ArbitalCtrl">
+	<!-- Facebook mandated script -->
+	<script>
+		window.fbAsyncInit = function() {
+			FB.init({
+				appId  : isLive() ? '1064531780272247' : '1064555696936522',
+				cookie: true,
+				xfbml  : true,
+				version: 'v2.5'
+			});
+		};
+		(function(d, s, id){
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if (d.getElementById(id)) {return;}
+			js = d.createElement(s); js.id = id;
+			js.src = "//connect.facebook.net/en_US/sdk.js";
+			fjs.parentNode.insertBefore(js, fjs);
+		}(document, 'script', 'facebook-jssdk'));
+	</script>
+
 	<!-- These divs exist for us to get colors from css into mdThemingProvider -->
 	<div id="primary-color"></div>
 	<div id="accent-color"></div>

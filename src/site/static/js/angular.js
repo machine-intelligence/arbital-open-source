@@ -65,6 +65,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	$mdIconProvider.icon("arbital_logo", "static/icons/arbital-logo.svg", 40)
 		.icon("thumb_up_outline", "static/icons/thumb-up-outline.svg")
 		.icon("thumb_down_outline", "static/icons/thumb-down-outline.svg")
+		.icon("facebook_box", "static/icons/facebook-box.svg")
 		.icon("link_variant", "static/icons/link-variant.svg")
 		.icon("comment_plus_outline", "static/icons/comment-plus-outline.svg")
 		.icon("format_header_pound", "static/icons/format-header-pound.svg");
@@ -146,17 +147,17 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "SignupPageController",
 	})
-	.when("/knowledge/", {
+	.when("/login/", {
 		template: "",
-		controller: "KnowledgePageController",
+		controller: "LoginPageController",
+	})
+	.when("/requisites/", {
+		template: "",
+		controller: "RequisitesPageController",
 	})
 	.when("/settings/", {
 		template: "",
 		controller: "SettingsPageController",
-	})
-	.when("/_test_/", {
-		template: "",
-		controller: "TestPageController",
 	});
 });
 
@@ -372,7 +373,12 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 			};
 		}
 		if (page.isLens() || page.isComment() || page.isAnswer()) {
+			// Redirect to the primary page, but preserve all search variables
+			var search = $location.search();
 			$location.replace().url(pageService.getPageUrl(page.pageId));
+			for (var k in search) {
+				$location.search(k, search[k]);
+			}
 			return {
 			};
 		}
@@ -531,52 +537,41 @@ app.controller("GroupsPageController", function ($scope, $routeParams, $http, $c
 app.controller("SignupPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
-		if (!userService.user || userService.user.id === "") {
-			window.location.href = "/login/?continueUrl=" + encodeURIComponent($location.search().continueUrl);
-			return {};
-		}
 		return {
 			title: "Sign Up",
 			element: $compile("<arb-signup></arb-signup>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Signup"));
+	.error($scope.getErrorFunc("Sign Up"));
 });
 
-app.controller("KnowledgePageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-		$http({method: "POST", url: "/json/knowledge/"})
-		.success($scope.getSuccessFunc(function(data){
-			return {
-				title: "Knowledge",
-				element: $compile("<arb-knowledge-page></arb-knowledge-page>")($scope),
-			};
-		}))
-		.error($scope.getErrorFunc("Knowledge"));
+app.controller("LoginPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	$scope.getSuccessFunc(function(data){
+		return {
+			title: "Log In",
+			element: $compile("<div class='md-whiteframe-1dp capped-body-width'><arb-login></arb-login></div>")($scope),
+		};
+	})({user: {id: ""}});
+});
+
+app.controller("RequisitesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	$http({method: "POST", url: "/json/requisites/"})
+	.success($scope.getSuccessFunc(function(data){
+		return {
+			title: "Requisites",
+			element: $compile("<arb-requisites-page></arb-requisites-page>")($scope),
+		};
+	}))
+	.error($scope.getErrorFunc("Requisites"));
 });
 
 app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-		$http({method: "POST", url: "/json/default/"})
-		.success($scope.getSuccessFunc(function(data){
-			return {
-				title: "Settings",
-				element: $compile("<arb-settings-page></arb-settings-page>")($scope),
-			};
-		}))
-		.error($scope.getErrorFunc("Settings"));
-});
-
-// Temporary test
-app.controller("TestPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-		$http({method: "POST", url: "/json/default/"})
-		.success($scope.getSuccessFunc(function(data){
-			$scope.text = "hi";
-			$scope.click = function() {
-				$scope.text = $scope.text === "hi" ? "bye" : "hi";
-			};
-			return {
-				title: "Test",
-				element: $compile("<md-button class='md-raised' ng-click='click()'><md-tooltip>Tooltip</md-tooltip>{{text}}</md-button>")($scope),
-			};
-		}))
-		.error($scope.getErrorFunc("Settings"));
+	$http({method: "POST", url: "/json/default/"})
+	.success($scope.getSuccessFunc(function(data){
+		return {
+			title: "Settings",
+			element: $compile("<arb-settings-page></arb-settings-page>")($scope),
+		};
+	}))
+	.error($scope.getErrorFunc("Settings"));
 });

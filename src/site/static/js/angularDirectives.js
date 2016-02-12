@@ -55,6 +55,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 
 			// Convert page's summaries into our local array
 			var processPageSummaries = function() {
+				if (!scope.page) return;
 				for (var name in scope.page.summaries) {
 					scope.summaries.push({name: name, text: scope.page.summaries[name]});
 				}
@@ -69,6 +70,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				pageService.loadIntrasitePopover(scope.pageId, {
 					success: function() {
 						if (isDestroyed) return;
+						scope.page = pageService.pageMap[scope.pageId];
 						processPageSummaries();
 						// Hack: we need to fix the md-tabs height, because it takes way too long
 						// to adjust by itself.
@@ -476,6 +478,8 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 		templateUrl: "static/html/requisiteButton.html",
 		scope: {
 			requisiteId: "@",
+			// If true, don't show the checkbox
+			hideCheckbox: "=",
 			// If true, don't show the page title
 			hideTitle: "=",
 			// If true, allow the user to toggle into a "want" state
@@ -499,6 +503,38 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 					pageService.updateMasteries([$scope.requisiteId], [], []);
 				}
 			};
+		},
+	};
+});
+
+// Directive for displaying next/prev buttons for a sequence.
+app.directive("arbNextPrev", function($location, pageService, userService) {
+	return {
+		templateUrl: "static/html/nextPrev.html",
+		scope: {
+			pageId: "@",
+			// If true, show extra information about the sequence
+			extraInfo: "=",
+		},
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
+
+			// Check if the user is doing a sequence
+			$scope.page.sequenceUrl = $location.search().sequence || "";
+			if ($scope.page.sequenceUrl) {
+				var currentPageId = $location.search().lens || $scope.page.pageId;
+				var ids = $scope.page.sequenceUrl.split(",");
+				for (var n = 0; n < ids.length; n++) {
+					var id = ids[n];
+					if (id === currentPageId) {
+						$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
+						$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
+					}
+				}
+				$scope.page.sequenceId = ids[ids.length - 1];
+			}
 		},
 	};
 });

@@ -6,6 +6,8 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 		templateUrl: "static/html/masteryList.html",
 		scope: {
 			idsSource: "=",
+			// If true, don't show the checkboxes
+			hideCheckboxes: "=",
 			// If true, show the requisites the user has first
 			showHasFirst: "=",
 			// If true, allow the user to toggle through want states

@@ -1,7 +1,7 @@
 "use strict";
 
 // User service.
-app.service("userService", function(){
+app.service("userService", function($http, $location){
 	var that = this;
 
 	// Logged in user.
@@ -41,4 +41,40 @@ app.service("userService", function(){
 	this.isTouchDevice = "ontouchstart" in window // works in most browsers
 		|| (navigator.MaxTouchPoints > 0)
 		|| (navigator.msMaxTouchPoints > 0);
+
+	// Sign into FB and call the callback with the response.
+	this.fbLogin = function(callback) {
+		// Apparently FB.login is not supported in Chrome in iOS
+		if (navigator.userAgent.match("CriOS")) {
+			var appId = isLive() ? "1064531780272247" : "1064555696936522";
+			var redirectUrl = encodeURIComponent($location.absUrl());
+			window.location.href = "https://www.facebook.com/dialog/oauth?client_id=" + appId +
+					"&redirect_uri=" + redirectUrl + "&scope=email,public_profile";
+		} else {
+			FB.login(function(response){
+				callback(response);
+			}, {scope: 'public_profile,email'});
+		}
+	};
+
+	// Check if FB redirected back to use with the code
+	if ($location.search().code) {
+		var data = {
+			fbCodeToken: $location.search().code,
+		};
+		$location.search("code", undefined);
+		// FB inserts this hash if there was no hash. It's a security thing. We need
+		// to remove it to get our original redirectUrl.
+		if ($location.hash() == "_=_") {
+			$location.hash("");
+		}
+		data.fbRedirectUrl = $location.absUrl();
+		$http({method: "POST", url: "/signup/", data: JSON.stringify(data)})
+		.success(function(data, status){
+			window.location.reload();
+		})
+		.error(function(data, status){
+			console.error("Error FB signup:"); console.log(data); console.log(status);
+		});
+	}
 });

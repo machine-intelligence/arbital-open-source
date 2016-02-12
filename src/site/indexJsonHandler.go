@@ -63,7 +63,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 				"30", // VAT
 				"3r", // List: value alignment subjects
 				"67", // Value alignment problem
-				"3158562585659930031", // Orthogonality theses
+				"1r", // Orthogonality theses
 				"5r", // Ontology identification problem
 				"7c", // Mindcrime
 				"5v", // Diamond maximizer

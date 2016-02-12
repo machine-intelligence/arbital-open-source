@@ -228,6 +228,29 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	data.MetaText = strings.Replace(data.MetaText, "\r\n", "\n", -1)
 
+	// Compute title
+	if oldPage.Type == core.LensPageType {
+		if strings.ContainsAny(data.Title, ":") {
+			return pages.HandlerBadRequestFail(`Lens title can't include ":" character`, nil)
+		}
+		// Load parent's title
+		parentTitle := ""
+		found, err := db.NewStatement(`
+			SELECT p.title
+			FROM pageInfos AS pi
+			JOIN pagePairs AS pp
+			ON (pi.pageId=pp.parentId)
+			JOIN pages AS p
+			ON (pi.pageId=p.pageId)
+			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND p.isCurrentEdit
+			`).QueryRow(core.ParentPagePairType, data.PageId).Scan(&parentTitle)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't load lens parent", err)
+		} else if found {
+			data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
+		}
+	}
+
 	isMinorEdit := data.IsMinorEditStr == "on"
 
 	// Check if something is actually different from live edit

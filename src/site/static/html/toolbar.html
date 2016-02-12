@@ -23,7 +23,7 @@
 		<!-- Updates -->
 		<md-button href="/updates/"
 				ng-class="{'md-icon-button': userService.user.updateCount <= 0}"
-				ng-show="userService.user.isLoggedIn">
+				ng-show="userService.user.id !== ''">
 			<md-icon ng-show="userService.user.updateCount <= 0">notifications_none</md-icon>
 			<md-icon class="md-accent md-hue-3" ng-show="userService.user.updateCount > 0">notifications</md-icon>
 			<span ng-bind="userService.user.updateCount" ng-show="userService.user.updateCount > 0"></span>
@@ -31,19 +31,18 @@
 
 		<!-- Login/signup buttons -->
 		<md-button ng-href="/signup/?continueUrl={{currentUrl}}"
-				ng-hide="userService.user.isLoggedIn">
+				ng-hide="userService.user.id !== ''">
 			Sign Up
 		</md-button>
-		<md-button ng-href="/login/?continueUrl={{currentUrl}}"
-				target="_self"
-				ng-hide="userService.user.isLoggedIn">
+		<md-button ng-click="toggleRightMenu()"
+				ng-hide="userService.user.id !== ''">
 			Log In
 		</md-button>
 
 		<!-- Button for RHS sidebar -->
 		<md-button class="md-icon-button"
 				ng-click="toggleRightMenu()"
-				ng-show="userService.user.isLoggedIn">
+				ng-show="userService.user.id !== ''">
 			<md-icon>menu</md-icon>
     </md-button>
 	</div>
@@ -57,10 +56,10 @@
 <md-progress-linear id="loading-bar" md-mode="determinate" value="{{loadingBarValue}}" hide></md-progress-linear>
 
 <!-- Right sidenav slide out; only if the user is logged in -->
-<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right">
+<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="userService.user.id !== ''">
 	<md-toolbar>
-		<h1 class="md-toolbar-tools" layout-align="space-between center">
-			<span ng-bind="userService.user.email"></span>
+		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
+			<div class="sidenav-email" ng-bind="userService.user.email"></div>
 			<md-button class="md-icon-button"
 					ng-click="toggleRightMenu()">
 				<md-icon>arrow_forward</md-icon>
@@ -89,13 +88,25 @@
 			Your Dashboard
 		</md-button>
 		<md-button ng-href="/groups" ng-click="toggleRightMenu()">Your Groups</md-button>
-		<md-button ng-href="/knowledge" ng-click="toggleRightMenu()">Your Knowledge</md-button>
+		<md-button ng-href="/requisites" ng-click="toggleRightMenu()">Your Requisites</md-button>
 		<md-button ng-href="/settings" ng-click="toggleRightMenu()">Your Settings</md-button>
 		<md-divider></md-divider>
 
-		<md-button ng-href="/logout/?continueUrl={{currentUrl}}"
-				ng-click="logout()"
-				id="logout"
-				target="_self">Log Out</md-button>
+		<md-button ng-click="logout()" id="logout">Log Out</md-button>
+	</md-content>
+</md-sidenav>
+
+<!-- Right sidenav slide out; only if the user is logged out -->
+<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="!userService.user.id !== ''">
+	<md-toolbar>
+		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
+			<span>Log In</span>
+			<md-button class="md-icon-button" ng-click="toggleRightMenu()">
+				<md-icon>arrow_forward</md-icon>
+			</md-button>
+		</h1>
+	</md-toolbar>
+	<md-content>
+		<arb-login is-embedded="true"></arb-login>
 	</md-content>
 </md-sidenav>

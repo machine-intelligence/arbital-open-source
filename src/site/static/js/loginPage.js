@@ -1,10 +1,12 @@
 "use strict";
 
-// Directive for the Signup page.
-app.directive("arbSignup", function($location, $http, pageService, userService) {
+// Directive for the Login page.
+app.directive("arbLogin", function($location, $http, pageService, userService) {
 	return {
-		templateUrl: "static/html/signupPage.html",
+		templateUrl: "static/html/loginPage.html",
 		scope: {
+			// True if the login is embe
+			isEmbedded: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -12,15 +14,13 @@ app.directive("arbSignup", function($location, $http, pageService, userService) 
 			$scope.formData = {};
 
 			$scope.formSubmit = function(event) {
-				submitForm($(event.currentTarget), "/signup/", $scope.formData, function(r) {
-					$scope.$apply(function() {
-						$scope.signupSuccess = true;
-					});
+				submitForm($(event.currentTarget), "/login/", $scope.formData, function(r) {
+					window.location.href = $location.search().continueUrl || "/";
 				}, function() {
 				});
 			};
 
-			$scope.signupWithFb = function() {
+			$scope.loginWithFb = function() {
 				userService.fbLogin(function(response){
 					if (response.status === "connected") {
 						var data = {

@@ -28,10 +28,13 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 
 			// Open RHS menu
 			$scope.toggleRightMenu = function() {
-		    $mdSidenav("right").toggle();
-		  };
+				$mdSidenav("right").toggle();
+			};
 
 			$scope.logout = function() {
+				Cookies.remove("masteryMap");
+				Cookies.remove("arbital");
+				window.location.reload();
 			};
 
 			// Hide toolbar in the edit screen

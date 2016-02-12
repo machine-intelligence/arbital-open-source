@@ -105,10 +105,10 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		if data.Type == core.ParentPagePairType && core.IsIdValid(parent.SeeGroupId) && parent.SeeGroupId != child.SeeGroupId {
 			return pages.HandlerErrorFail("SeeGroupId has to be the same for parent and child", nil)
 		}
-		if data.Type == core.RequirementPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "0" {
+		if data.Type == core.RequirementPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "" {
 			return pages.HandlerErrorFail("For a public parent, all requirements have to be public", nil)
 		}
-		if data.Type == core.SubjectPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "0" {
+		if data.Type == core.SubjectPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "" {
 			return pages.HandlerErrorFail("For a public parent, all subjects have to be public", nil)
 		}
 		if child.Type == core.AnswerPageType && parent.Type != core.QuestionPageType {
