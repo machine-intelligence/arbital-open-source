@@ -124,7 +124,9 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 		}
 		// Check if we have access to the private group
-		if core.IsIdValid(params.PrivateGroupId) && !u.IsMemberOfGroup(params.PrivateGroupId) && r.URL.Path != "/login/" {
+		if core.IsIdValid(params.PrivateGroupId) &&
+			!u.IsMemberOfGroup(params.PrivateGroupId) &&
+			r.URL.Path != "/login/" {
 			fail(http.StatusForbidden, "Don't have access to this group", nil)
 			return
 		}

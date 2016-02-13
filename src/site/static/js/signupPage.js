@@ -17,6 +17,9 @@ app.directive("arbSignup", function($location, $http, pageService, userService) 
 						$scope.signupSuccess = true;
 					});
 				}, function() {
+					$scope.$apply(function() {
+						$scope.normalError = "(Check if your password meets the requirements.)";
+					});
 				});
 			};
 

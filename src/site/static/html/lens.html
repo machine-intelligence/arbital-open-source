@@ -74,25 +74,10 @@
 			</span>
 		</div>
 
-		<!-- This subject -->
-		<div ng-if="!isSimpleEmbed && (page.isRequisite || page.usedAsMastery)">
-			<div>
-				<span class="md-subhead">
-					<md-icon>assignment</md-icon>
-					Do you understand this page?
-				</span>
-				<span arb-requisite-button requisite-id="{{page.pageId}}" allow-wants="true">
-				</span>
-			</div>
-			<div ng-show="!pageService.hasMastery(page.pageId)">
-				<md-button class="md-primary md-raised" ng-href="/s/{{page.pageId}}">
-					Start learning!
-				</md-button>
-			</div>
-		</div>
-
 		<!-- Subjects taught -->
 		<div ng-if="!isSimpleEmbed && subjectIds.length > 0">
+			<hr>
+
 			<span class="md-subhead">
 				<md-icon>assignment</md-icon>
 				"{{page.title}}" taught you these concepts:

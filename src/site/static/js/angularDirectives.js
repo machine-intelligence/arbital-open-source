@@ -480,6 +480,8 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 			hideTitle: "=",
 			// If true, allow the user to toggle into a "want" state
 			allowWants: "=",
+			// If true, clicking the checkbox won't close the menu this button is in
+			preventMenuClose: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -517,20 +519,39 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
 
-			// Check if the user is doing a sequence
-			$scope.page.sequenceUrl = $location.search().sequence || "";
-			if ($scope.page.sequenceUrl) {
-				var currentPageId = $location.search().lens || $scope.page.pageId;
-				var ids = $scope.page.sequenceUrl.split(",");
-				for (var n = 0; n < ids.length; n++) {
-					var id = ids[n];
-					if (id === currentPageId) {
-						$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
-						$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
+			// Note: because sometimes the next page in the sequence can be a lens,
+			// we need to listen to URL change and see if we should recompute which
+			// page in the sequence we are on.
+			var computeUrls = function() {
+				// Check if the user is doing a sequence
+				$scope.page.sequenceUrl = $location.search().sequence || "";
+				if ($scope.page.sequenceUrl) {
+					var currentPageId = $location.search().lens || $scope.page.pageId;
+					var ids = $scope.page.sequenceUrl.split(",");
+					for (var n = 0; n < ids.length; n++) {
+						var id = ids[n];
+						if (id === currentPageId) {
+							$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
+							$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
+						}
 					}
+					$scope.page.sequenceId = ids[ids.length - 1];
 				}
-				$scope.page.sequenceId = ids[ids.length - 1];
-			}
+
+				$scope.prevUrl = pageService.getPageUrl($scope.page.prevPageId);
+				$scope.prevUrl += $scope.prevUrl.indexOf("?") < 0 ? "?" : "&";
+				$scope.prevUrl += "sequence=" + $scope.page.sequenceUrl;
+
+				$scope.nextUrl = pageService.getPageUrl($scope.page.nextPageId);
+				$scope.nextUrl += $scope.nextUrl.indexOf("?") < 0 ? "?" : "&";
+				$scope.nextUrl += "sequence=" + $scope.page.sequenceUrl;
+			};
+			computeUrls();
+			$scope.$watch(function() {
+				return $location.absUrl();
+			}, function() {
+				computeUrls();
+			});
 		},
 	};
 });

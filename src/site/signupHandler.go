@@ -35,7 +35,9 @@ type signupHandlerData struct {
 var signupHandler = siteHandler{
 	URI:         "/signup/",
 	HandlerFunc: signupHandlerFunc,
-	Options:     pages.PageOptions{},
+	Options: pages.PageOptions{
+		SkipLoadingUser: true,
+	},
 }
 
 func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {

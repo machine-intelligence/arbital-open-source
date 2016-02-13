@@ -110,6 +110,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		// Don't allow recursive hover in popovers.
 		if ($target.closest("arb-intrasite-popover").length > 0) return;
 		if ($target.closest("arb-user-popover").length > 0) return;
+		if ($target.closest(".md-button").length > 0) return;
 		if ($currentTarget && $target[0] == $currentTarget[0]) {
 			// Hovering over the element we already created a popover for
 			anchorHovering = true;

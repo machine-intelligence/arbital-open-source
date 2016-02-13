@@ -86,6 +86,10 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			};
 			$scope.showRequirementsPanel = !$scope.meetsAllRequirements();
 
+			$scope.showRequirements = function() {
+				$scope.showRequirementsPanel = true;
+			};
+
 			// Check if the user knows all the subjects
 			$scope.knowsAllSubjects = function() {
 				for (var n = 0; n < $scope.subjectIds.length; n++) {
@@ -96,6 +100,15 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				return true;
 			};
 			$scope.showLearnedPanel = !$scope.knowsAllSubjects();
+
+			// Toggle all requirements
+			$scope.toggleRequirements = function() {
+				if ($scope.meetsAllRequirements()) {
+					pageService.updateMasteries([], $scope.page.requirementIds, []);
+				} else {
+					pageService.updateMasteries($scope.page.requirementIds, [], []);
+				}
+			};
 
 			// Toggle all subjects
 			$scope.toggleSubjects = function() {
