@@ -48,6 +48,7 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE pages SET pageId = CONCAT("zzz", pageId) WHERE 1;`)
 		doOneQuery(db, `UPDATE pages SET creatorId = CONCAT("zzz", creatorId) WHERE 1;`)
 
+		doOneQuery(db, `UPDATE changeLogs SET userId = CONCAT("zzz", userId) WHERE 1;`)
 		doOneQuery(db, `UPDATE changeLogs SET pageId = CONCAT("zzz", pageId) WHERE 1;`)
 		doOneQuery(db, `UPDATE changeLogs SET auxPageId = CONCAT("zzz", auxPageId) WHERE 1;`)
 
@@ -98,6 +99,7 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE pages SET pageId = pageIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE pages SET creatorId = creatorIdBase36 WHERE 1;`)
 
+		doOneQuery(db, `UPDATE changeLogs SET userId = userIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE changeLogs SET pageId = pageIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE changeLogs SET auxPageId = auxPageIdBase36 WHERE 1;`)
 

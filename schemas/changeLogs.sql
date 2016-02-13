@@ -3,9 +3,9 @@ CREATE TABLE changeLogs (
 	/* Unique update id. PK. */
   id BIGINT NOT NULL AUTO_INCREMENT,
 	/* The user who caused this event. FK into users. */
-  userId BIGINT NOT NULL,
+  userId VARCHAR(32) NOT NULL,
 	/* The affected page. FK into pages. */
-	pageId BIGINT NOT NULL,
+	pageId VARCHAR(32) NOT NULL,
 	/* Edit number of the affected page. Partial FK into pages. */
 	edit INT NOT NULL,
 	/* Type of update */
@@ -15,7 +15,7 @@ CREATE TABLE changeLogs (
 
 	/* This is set for various events. E.g. if a new parent is added, this will
 	be set to the parent id. */
-	auxPageId BIGINT NOT NULL,
+	auxPageId VARCHAR(32) NOT NULL,
 
   PRIMARY KEY(id)
 ) CHARACTER SET utf8 COLLATE utf8_general_ci;

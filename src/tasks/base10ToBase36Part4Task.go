@@ -31,6 +31,7 @@ func (task *Base10ToBase36Part4Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE pages DROP pageIdBase36 ;`)
 		doOneQuery(db, `ALTER TABLE pages DROP creatorIdBase36 ;`)
 
+		doOneQuery(db, `ALTER TABLE changeLogs DROP userIdBase36 ;`)
 		doOneQuery(db, `ALTER TABLE changeLogs DROP pageIdBase36 ;`)
 		doOneQuery(db, `ALTER TABLE changeLogs DROP auxPageIdBase36 ;`)
 
@@ -81,6 +82,7 @@ func (task *Base10ToBase36Part4Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE pages DROP pageIdProcessed ;`)
 		doOneQuery(db, `ALTER TABLE pages DROP creatorIdProcessed ;`)
 
+		doOneQuery(db, `ALTER TABLE changeLogs DROP userIdProcessed ;`)
 		doOneQuery(db, `ALTER TABLE changeLogs DROP pageIdProcessed ;`)
 		doOneQuery(db, `ALTER TABLE changeLogs DROP auxPageIdProcessed ;`)
 

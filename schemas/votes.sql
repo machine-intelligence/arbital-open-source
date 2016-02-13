@@ -4,9 +4,9 @@ CREATE TABLE votes (
   /* PK. Vote's unique id. */
   id BIGINT NOT NULL AUTO_INCREMENT,
 	/* Id of the user who voted. FK into users. */
-	userId BIGINT NOT NULL,
+	userId VARCHAR(32) NOT NULL,
 	/* Id of the page this vote is for. FK into pages. */
-	pageId BIGINT NOT NULL,
+	pageId VARCHAR(32) NOT NULL,
 	/* Vote value. */
 	value TINYINT NOT NULL,
   /* Date this like was created. */

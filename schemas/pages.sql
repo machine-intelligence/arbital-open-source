@@ -2,7 +2,7 @@
  Each row is one edit for a given page. */
 CREATE TABLE pages (
 	/* Id of the page the edit is for. */
-	pageId BIGINT NOT NULL,
+	pageId VARCHAR(32) NOT NULL,
 	/* The edit (version) number. Always >0. */
 	edit INT NOT NULL,
 	/* True iff this is the edit currently used to display the page. */
@@ -15,7 +15,7 @@ CREATE TABLE pages (
 	 autosave per user per page. */
 	isAutosave BOOLEAN NOT NULL,
 	/* User id of the creator of this edit. */
-	creatorId BIGINT NOT NULL,
+	creatorId VARCHAR(32) NOT NULL,
 	/* When this edit was created. */
 	createdAt DATETIME NOT NULL,
 

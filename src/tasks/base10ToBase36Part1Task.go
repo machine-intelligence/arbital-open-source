@@ -36,6 +36,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE  pages CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  pages CHANGE  creatorId  creatorId VARCHAR( 32 ) NOT NULL ;`)
 
+		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  userId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  auxPageId  auxPageId VARCHAR( 32 ) NOT NULL ;`)
 
@@ -85,6 +86,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE pages SET pageId = "" WHERE pageId = "0";`)
 		doOneQuery(db, `UPDATE pages SET creatorId = "" WHERE creatorId = "0";`)
 
+		doOneQuery(db, `UPDATE changeLogs SET userId = "" WHERE userId = "0";`)
 		doOneQuery(db, `UPDATE changeLogs SET pageId = "" WHERE pageId = "0";`)
 		doOneQuery(db, `UPDATE changeLogs SET auxPageId = "" WHERE auxPageId = "0";`)
 
@@ -134,6 +136,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE pages ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE pages ADD creatorIdProcessed BOOLEAN NOT NULL AFTER creatorId;`)
 
+		doOneQuery(db, `ALTER TABLE changeLogs ADD userIdProcessed BOOLEAN NOT NULL AFTER userId;`)
 		doOneQuery(db, `ALTER TABLE changeLogs ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE changeLogs ADD auxPageIdProcessed BOOLEAN NOT NULL AFTER auxPageId;`)
 
@@ -184,6 +187,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE pages ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE pages ADD creatorIdBase36 MEDIUMTEXT NOT NULL AFTER creatorId;`)
 
+		doOneQuery(db, `ALTER TABLE changeLogs ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
 		doOneQuery(db, `ALTER TABLE changeLogs ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE changeLogs ADD auxPageIdBase36 MEDIUMTEXT NOT NULL AFTER auxPageId;`)
 
@@ -273,6 +277,7 @@ WHERE 1;
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM pages WHERE 1;`)
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT creatorId, createdAt FROM pages WHERE 1;`)
 
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM changeLogs WHERE 1;`)
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM changeLogs WHERE 1;`)
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT auxPageId, createdAt FROM changeLogs WHERE 1;`)
 

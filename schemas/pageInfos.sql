@@ -2,7 +2,7 @@
  dependent on any specific edit number. */
 CREATE TABLE pageInfos (
 	/* Id of the page the info is for. */
-	pageId BIGINT NOT NULL,
+	pageId VARCHAR(32) NOT NULL,
 	/* Edit number currently used to display the page. 0 if this page hasn't
 		been published. */
 	currentEdit INT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE pageInfos (
 	/* When this page was originally created. */
 	createdAt DATETIME NOT NULL,
 	/* Id of the user who created the page. FK into users. */
-	createdBy BIGINT NOT NULL,
+	createdBy VARCHAR(32) NOT NULL,
 
 	/* Alias name of the page. */
 	alias VARCHAR(64) NOT NULL,
@@ -36,14 +36,14 @@ CREATE TABLE pageInfos (
 	/* act: who can perform actions on the page (e.g. vote, comment) */
 	/* edit: who can edit the page */
 	/* If set, only this group can see the page. FK into pages. */
-	seeGroupId BIGINT NOT NULL,
+	seeGroupId VARCHAR(32) NOT NULL,
 	/* If set, only this group can edit the page. FK into pages. */
-	editGroupId BIGINT NOT NULL,
+	editGroupId VARCHAR(32) NOT NULL,
 	/* Minimum amount of karma a user needs to edit this page. */
 	editKarmaLock INT NOT NULL,
 
 	/* If set, the page is locked by this user. FK into users. */
-	lockedBy BIGINT NOT NULL,
+	lockedBy VARCHAR(32) NOT NULL,
 	/* Time until the user has this lock. */
 	lockedUntil DATETIME NOT NULL,
 

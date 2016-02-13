@@ -1,7 +1,7 @@
 /* An entry for every user that has ever done anything in our system. */
 CREATE TABLE users (
 	/* PK. User's unique id. */
-	id BIGINT NOT NULL AUTO_INCREMENT,
+	id VARCHAR(32) NOT NULL,
 	/* Date this user was added to the table. */
 	createdAt DATETIME NOT NULL,
 	/* User's email. */

@@ -34,6 +34,7 @@ func (task *Base10ToBase36Part2Task) Execute(db *database.DB) (delay int, err er
 	replaceBatch(db, "pages", "pageId")
 	replaceBatch(db, "pages", "creatorId")
 
+	replaceBatch(db, "changeLogs", "userId")
 	replaceBatch(db, "changeLogs", "pageId")
 	replaceBatch(db, "changeLogs", "auxPageId")
 
