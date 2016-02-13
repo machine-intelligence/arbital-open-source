@@ -4,7 +4,6 @@
 		layout-margin
 		layout-fill>
 	<!-- Header -->
-	<arb-page-title page-id="{{page.pageId}}" is-link="true" ng-if="showMetaInfo"></arb-page-title> 
 	<div class="md-caption" layout="row">
 		<span flex ng-bind="typeHelper.headerLabel"></span>
 		<span>
@@ -78,8 +77,4 @@
 			Delete your {{typeHelper.toString(userVoteValue)}} vote
 		</md-button>-->
 	</div>
-
-	<arb-markdown page-id="{{pageId}}"
-			summary-name="Vote"
-			ng-if="showMetaInfo"></arb-markdown>
 </div>

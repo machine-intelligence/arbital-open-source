@@ -5,7 +5,6 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 		scope: {
 			pageId: "@",
 			isEmbedded: "=",
-			showMetaInfo: "=",
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
