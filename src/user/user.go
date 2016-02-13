@@ -172,13 +172,8 @@ const (
 
 // Replace a rune at a specific index in a string
 func replaceAtIndex(db *database.DB, in string, r rune, i int) string {
-	//	db.C.Debugf("in: %v", in)
-	//	db.C.Debugf("r: %v", r)
-	//	db.C.Debugf("i: %v", i)
 	out := []rune(in)
-	//	db.C.Debugf("out: %v", out)
 	out[i] = r
-	//	db.C.Debugf("out: %v", out)
 	return string(out)
 }
 
@@ -200,17 +195,14 @@ func GetNextBase31Char(db *database.DB, char rune, isFirstChar bool) (rune, bool
 		validChars = Base31CharsForFirstChar
 	}
 	index := strings.Index(validChars, strings.ToLower(string(char)))
-	//db.C.Debugf("index: %v", index)
 	if index < 0 {
 		return '0', false, fmt.Errorf("invalid character")
 	}
 	if index < len(validChars)-1 {
 		nextChar := rune(validChars[index+1])
-		//		db.C.Debugf("nextChar: %v", nextChar)
 		return nextChar, false, nil
 	} else {
 		nextChar := rune(validChars[0])
-		//		db.C.Debugf("nextChar: %v", nextChar)
 		return nextChar, true, nil
 	}
 }
@@ -220,10 +212,7 @@ func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
 	// Add 1 to the base36 value, skipping vowels
 	// Start at the last character in the Id string, carrying the 1 as many times as necessary
 	nextAvailableId := previousId
-	//	db.C.Debugf("nextAvailableId: %v", nextAvailableId)
 	index := len(nextAvailableId) - 1
-	//	db.C.Debugf("index: %v", index)
-	//	db.C.Debugf("nextAvailableId[index]: %v", nextAvailableId[index])
 	var newChar rune
 	var err error
 	processNextChar := true
@@ -235,19 +224,14 @@ func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
 		} else {
 			// Increment the character at the current index in the Id string
 			newChar, processNextChar, err = GetNextBase31Char(db, rune(nextAvailableId[index]), index == 0)
-			//			db.C.Debugf("newChar: %v", newChar)
-			//			db.C.Debugf("processNextChar: %v", processNextChar)
 			if err != nil {
 				return "", fmt.Errorf("Error processing id: %v", err)
 			}
 			nextAvailableId = replaceAtIndex(db, nextAvailableId, newChar, index)
-			//			db.C.Debugf("nextAvailableId: %v", nextAvailableId)
 			index = index - 1
-			//			db.C.Debugf("index: %v", index)
 		}
 	}
 
-	//	db.C.Debugf("nextAvailableId: %v", nextAvailableId)
 	return nextAvailableId, nil
 }
 
@@ -255,45 +239,25 @@ func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
 func GetNextAvailableId(db *database.DB) (string, error) {
 	// Query for the highest used pageId or userId
 	var highestUsedId string
-	/*
-		row := db.NewStatement(`
-			SELECT max(pageId)
-			FROM pages
-			WHERE 1
-			`).QueryRow()
-	*/
-	/*
-	   	row := db.NewStatement(`
-	   SELECT MAX( pageId )
-	   FROM (
-	   SELECT pageId
-	   FROM pages
-	   UNION
-	   SELECT id
-	   FROM users
-	   ) AS combined
-	   		`).QueryRow()
-	*/
-
 	row := db.NewStatement(`
-SELECT MAX(pageId)
-FROM (
-SELECT pageId
-FROM pageInfos
-UNION 
-SELECT id
-FROM users
-) AS combined
-WHERE char_length(pageId) = 
-(
-SELECT MAX(char_length(pageId))
-FROM (
-SELECT pageId
-FROM pageInfos
-UNION 
-SELECT id
-FROM users
-) AS combined2
+		SELECT MAX(pageId)
+		FROM (
+			SELECT pageId
+			FROM pageInfos
+			UNION 
+			SELECT id
+			FROM users
+		) AS combined
+		WHERE char_length(pageId) = 
+		(
+			SELECT MAX(char_length(pageId))
+			FROM (
+				SELECT pageId
+				FROM pageInfos
+				UNION 
+				SELECT id
+				FROM users
+			) AS combined2
     )
 		`).QueryRow()
 	_, err := row.Scan(&highestUsedId)

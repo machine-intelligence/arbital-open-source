@@ -182,8 +182,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		statement := tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {
-			db.C.Debugf("editPageInfoHandler.go")
-			db.C.Debugf("hashmap: %v", hashmap)
 			return "Couldn't update pageInfos", err
 		}
 

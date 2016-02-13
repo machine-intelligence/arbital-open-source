@@ -170,11 +170,7 @@ app.directive("arbPageTitle", function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			if ($scope.useEditMap) {
-				$scope.page = pageService.editMap[$scope.pageId];
-			} else {
-				$scope.page = pageService.pageMap[$scope.pageId];
-			}
+			$scope.page = ($scope.useEditMap ? pageService.editMap : pageService.pageMap)[$scope.pageId];
 
 			$scope.getTitle = function() {
 				if ($scope.customPageTitle) {

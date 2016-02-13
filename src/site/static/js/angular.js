@@ -421,7 +421,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 	// TODO(alexei): have /newPage/ return /default/ data long with /e/ data
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
-		if (+pageId) {
+		if (pageId.length > 0 && pageId.charAt(0) > '0' && pageId.charAt(0) <= '9') {
 			// Load the last edit
 			pageService.loadEdit({
 				pageAlias: pageId,

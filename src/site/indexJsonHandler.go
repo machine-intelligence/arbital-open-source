@@ -95,19 +95,12 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	//core.AddPageToMap("3440973961008233681", returnData.PageMap, core.PrimaryPageLoadOptions)
 	core.AddPageToMap("1m5", returnData.PageMap, core.PrimaryPageLoadOptions)
 
-	db.C.Debugf("returnData.PageMap: %v", returnData.PageMap)
-
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
-
-	db.C.Debugf("returnData.PageMap: %v", returnData.PageMap)
 
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
-
-	db.C.Debugf("returnData: %v", returnData)
-	db.C.Debugf("returnData.toJson(): %v", returnData.toJson())
 
 	return pages.StatusOK(returnData.toJson())
 }

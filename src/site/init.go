@@ -74,8 +74,8 @@ func init() {
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/p/{alias:%s}/{title:%s}", core.AliasRegexpStr, core.UrlTitleRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
-	s.HandleFunc("/sequences/{pageId:[0-9]+}", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/s/{pageId:[0-9]+}", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/sequences/{pageId:%s}", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/s/{pageId:%s}", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/signup/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/updates/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
@@ -137,9 +137,6 @@ func init() {
 
 	// Admin stuff
 	s.HandleFunc(domainsPageHandler.URI, handlerWrapper(domainsPageHandler)).Methods("POST")
-	s.HandleFunc(base10ToBase36Part1Handler.URI, handlerWrapper(base10ToBase36Part1Handler)).Methods("GET")
-	s.HandleFunc(base10ToBase36Part2Handler.URI, handlerWrapper(base10ToBase36Part2Handler)).Methods("GET")
-	s.HandleFunc(base10ToBase36Part3Handler.URI, handlerWrapper(base10ToBase36Part3Handler)).Methods("GET")
 	s.HandleFunc(adminTaskHandler.URI, handlerWrapper(adminTaskHandler)).Methods("GET")
 
 	// Various internal handlers

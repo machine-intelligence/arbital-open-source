@@ -3,8 +3,6 @@ package tasks
 
 import (
 	"fmt"
-	//"regexp"
-	//"strings"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/user"
@@ -155,6 +153,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE pageInfos ADD seeGroupIdProcessed BOOLEAN NOT NULL AFTER seeGroupId;`)
 		doOneQuery(db, `ALTER TABLE pageInfos ADD editGroupIdProcessed BOOLEAN NOT NULL AFTER editGroupId;`)
 		doOneQuery(db, `ALTER TABLE pageInfos ADD createdByProcessed BOOLEAN NOT NULL AFTER createdBy;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD aliasProcessed BOOLEAN NOT NULL AFTER alias;`)
 
 		doOneQuery(db, `ALTER TABLE pagePairs ADD parentIdProcessed BOOLEAN NOT NULL AFTER parentId;`)
 		doOneQuery(db, `ALTER TABLE pagePairs ADD childIdProcessed BOOLEAN NOT NULL AFTER childId;`)
@@ -204,6 +203,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE pageInfos ADD seeGroupIdBase36 MEDIUMTEXT NOT NULL AFTER seeGroupId;`)
 		doOneQuery(db, `ALTER TABLE pageInfos ADD editGroupIdBase36 MEDIUMTEXT NOT NULL AFTER editGroupId;`)
 		doOneQuery(db, `ALTER TABLE pageInfos ADD createdByBase36 MEDIUMTEXT NOT NULL AFTER createdBy;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD aliasBase36 MEDIUMTEXT NOT NULL AFTER alias;`)
 
 		doOneQuery(db, `ALTER TABLE pagePairs ADD parentIdBase36 MEDIUMTEXT NOT NULL AFTER parentId;`)
 		doOneQuery(db, `ALTER TABLE pagePairs ADD childIdBase36 MEDIUMTEXT NOT NULL AFTER childId;`)
@@ -320,7 +320,6 @@ WHERE 1;
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM votes WHERE 1;`)
 
 		doOneQuery(db, `UPDATE pagesandusers SET createdAt = NOW() WHERE createdAt = "0000-00-00 00:00:00"`)
-		//doOneQuery(db, `UPDATE pagesandusers SET createdAt = "2222-02-22 22:22:22" WHERE createdAt = "0000-00-00 00:00:00"`)
 
 		doOneQuery(db, `DELETE FROM pagesandusers WHERE base10id=""`)
 
@@ -360,7 +359,6 @@ AND pagesandusers.createdAt = groupedpagesandusers.minCreatedAt;
 }
 
 func doOneQuery(db *database.DB, queryString string) error {
-	//db.C.Debugf("queryString: %v", queryString)
 	statement := db.NewStatement(queryString)
 	if _, err := statement.Exec(); err != nil {
 		return fmt.Errorf("Couldn't execute query "+queryString+": %v", err)
@@ -376,14 +374,10 @@ func oneRowUpdateBase10ToBase36(db *database.DB, rows *database.Rows) error {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
-	//db.C.Debugf("lastBase36Id: %v", lastBase36Id)
-	//db.C.Debugf("base10Id: %v", base10Id)
-	//db.C.Debugf("createdAt: %v", createdAt)
 	base36Id, err := user.IncrementBase31Id(db, lastBase36Id)
 	if err != nil {
 		return fmt.Errorf("Error incrementing id: %v", err)
 	}
-	db.C.Debugf("base36Id: %v", base36Id)
 	lastBase36Id = base36Id
 
 	hashmap := make(map[string]interface{})

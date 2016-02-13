@@ -2,12 +2,13 @@
 package tasks
 
 import (
-	//"fmt"
-	//"regexp"
-	//"strings"
+	"fmt"
+	"regexp"
+	"strings"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	//"zanaduu3/src/user"
+	"zanaduu3/src/sessions"
 )
 
 // Base10ToBase36Part3Task is the object that's put into the daemon queue.
@@ -33,6 +34,17 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
+		// Scan all pages and replace the links
+		rows := db.NewStatement(`
+				SELECT pageId,edit,text
+				FROM pages
+				WHERE 1`).Query()
+
+		if err = rows.Process(updatePageTextBase10ToBase36); err != nil {
+			c.Debugf("ERROR, failed to update page text: %v", err)
+			return "", err
+		}
+
 		doOneQuery(db, `UPDATE pages SET pageId = CONCAT("zzz", pageId) WHERE 1;`)
 		doOneQuery(db, `UPDATE pages SET creatorId = CONCAT("zzz", creatorId) WHERE 1;`)
 
@@ -55,6 +67,7 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE pageInfos SET seeGroupId = CONCAT("zzz", seeGroupId) WHERE 1;`)
 		doOneQuery(db, `UPDATE pageInfos SET editGroupId = CONCAT("zzz", editGroupId) WHERE 1;`)
 		doOneQuery(db, `UPDATE pageInfos SET createdBy = CONCAT("zzz", createdBy) WHERE 1;`)
+		//doOneQuery(db, `UPDATE pageInfos SET alias = CONCAT("zzz", alias) WHERE 1;`)
 
 		doOneQuery(db, `UPDATE pagePairs SET parentId = CONCAT("zzz", parentId) WHERE 1;`)
 		doOneQuery(db, `UPDATE pagePairs SET childId = CONCAT("zzz", childId) WHERE 1;`)
@@ -104,6 +117,7 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE pageInfos SET seeGroupId = seeGroupIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE pageInfos SET editGroupId = editGroupIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE pageInfos SET createdBy = createdByBase36 WHERE 1;`)
+		doOneQuery(db, `UPDATE pageInfos SET alias = aliasBase36 WHERE 1;`)
 
 		doOneQuery(db, `UPDATE pagePairs SET parentId = parentIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE pagePairs SET childId = childIdBase36 WHERE 1;`)
@@ -130,108 +144,7 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 
 		doOneQuery(db, `UPDATE votes SET userId = userIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE votes SET pageId = pageIdBase36 WHERE 1;`)
-		/*
-			doOneQuery(db, `ALTER TABLE pages DROP pageIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE pages DROP creatorIdBase36 ;`)
 
-			doOneQuery(db, `ALTER TABLE changeLogs DROP pageIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE changeLogs DROP auxPageIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE groupMembers DROP userIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE groupMembers DROP groupIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE likes DROP userIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE likes DROP pageIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE links DROP parentIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE pageDomainPairs DROP pageIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE pageDomainPairs DROP domainIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE pageInfos DROP pageIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP lockedByBase36 ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP seeGroupIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP editGroupIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP createdByBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE pagePairs DROP parentIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE pagePairs DROP childIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE pageSummaries DROP pageIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE subscriptions DROP userIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE subscriptions DROP toIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE updates DROP userIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP groupByPageIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP groupByUserIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP subscribedToIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP goToPageIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP byUserIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE userMasteryPairs DROP userIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE userMasteryPairs DROP masteryIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE users DROP idBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE visits DROP userIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE visits DROP pageIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE votes DROP userIdBase36 ;`)
-			doOneQuery(db, `ALTER TABLE votes DROP pageIdBase36 ;`)
-
-			doOneQuery(db, `ALTER TABLE pages DROP pageIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE pages DROP creatorIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE changeLogs DROP pageIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE changeLogs DROP auxPageIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE groupMembers DROP userIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE groupMembers DROP groupIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE likes DROP userIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE likes DROP pageIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE links DROP parentIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE pageDomainPairs DROP pageIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE pageDomainPairs DROP domainIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE pageInfos DROP pageIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP lockedByProcessed ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP seeGroupIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP editGroupIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE pageInfos DROP createdByProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE pagePairs DROP parentIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE pagePairs DROP childIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE pageSummaries DROP pageIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE subscriptions DROP userIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE subscriptions DROP toIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE updates DROP userIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP groupByPageIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP groupByUserIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP subscribedToIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP goToPageIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE updates DROP byUserIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE userMasteryPairs DROP userIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE userMasteryPairs DROP masteryIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE users DROP idProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE visits DROP userIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE visits DROP pageIdProcessed ;`)
-
-			doOneQuery(db, `ALTER TABLE votes DROP userIdProcessed ;`)
-			doOneQuery(db, `ALTER TABLE votes DROP pageIdProcessed ;`)
-
-			doOneQuery(db, `DROP TABLE pagesandusers;`)
-			doOneQuery(db, `DROP TABLE base10tobase36;`)
-		*/
 		return "", nil
 	})
 	if errMessage != "" {
@@ -239,4 +152,124 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 	}
 
 	return 0, err
+}
+
+func updatePageTextBase10ToBase36(db *database.DB, rows *database.Rows) error {
+	var pageId, edit string
+	var text string
+	if err := rows.Scan(&pageId, &edit, &text); err != nil {
+		return fmt.Errorf("failed to scan a page: %v", err)
+	}
+
+	text, err := StandardizeLinksFromBase10ToBase36(db, text)
+	if err != nil {
+		return fmt.Errorf("failed to standardize links: %v", err)
+	}
+
+	// Update pages table
+	hashmap := make(map[string]interface{})
+	hashmap["pageId"] = pageId
+	hashmap["edit"] = edit
+	hashmap["text"] = text
+	statement := db.NewInsertStatement("pages", hashmap, "text")
+	if _, err := statement.Exec(); err != nil {
+		return fmt.Errorf("Couldn't update pages table: %v", err)
+	}
+
+	/*
+		// Update page links table
+		err := core.UpdatePageLinks(tx, pageId, text, sessions.GetDomain())
+		if err != nil {
+			return fmt.Errorf("Couldn't update links: %v", err)
+		}
+	*/
+
+	return nil
+}
+
+// StandardizeLinksFromBase10ToBase36 converts all base10 links into base36 links.
+func StandardizeLinksFromBase10ToBase36(db *database.DB, text string) (string, error) {
+
+	// Populate a list of all the links
+	aliasesAndIds := make([]string, 0)
+	// Track regexp matches, because ReplaceAllStringFunc doesn't support matching groups
+	matches := make(map[string][]string)
+	extractLinks := func(exp *regexp.Regexp) {
+		submatches := exp.FindAllStringSubmatch(text, -1)
+		for _, submatch := range submatches {
+			matches[submatch[0]] = submatch
+			lowerCaseString := strings.ToLower(submatch[3][:1]) + submatch[3][1:]
+			upperCaseString := strings.ToUpper(submatch[3][:1]) + submatch[3][1:]
+			aliasesAndIds = append(aliasesAndIds, lowerCaseString)
+			aliasesAndIds = append(aliasesAndIds, upperCaseString)
+		}
+	}
+
+	// NOTE: these regexps are waaaay too simplistic and don't account for the
+	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
+	// brackets / parens.
+	// NOTE: each regexp should have two groups that captures stuff that comes before
+	// the alias, and then 0 or more groups that capture everything after
+	regexps := []*regexp.Regexp{
+		// Find directly encoded urls
+		regexp.MustCompile(core.SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/p(?:ages)?/)(" + core.AliasRegexpStr + ")"),
+		// Find ids and aliases using [alias optional text] syntax.
+		regexp.MustCompile(core.SpacePrefix + "(\\[\\-?)(" + core.AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
+		// Find ids and aliases using [text](alias) syntax.
+		regexp.MustCompile(core.SpacePrefix + "(\\[[^\\]]+?\\]\\()(" + core.AliasRegexpStr + ")(\\))"),
+		// Find ids and aliases using [vote: alias] syntax.
+		regexp.MustCompile(core.SpacePrefix + "(\\[vote: ?)(" + core.AliasRegexpStr + ")(\\])"),
+		// Find ids and aliases using [@alias] syntax.
+		regexp.MustCompile(core.SpacePrefix + "(\\[@)(" + core.AliasRegexpStr + ")(\\])([^(]|$)"),
+	}
+	for _, exp := range regexps {
+		extractLinks(exp)
+	}
+
+	if len(aliasesAndIds) <= 0 {
+		return text, nil
+	}
+
+	// Populate alias -> pageId map
+	aliasMap := make(map[string]string)
+
+	rows := database.NewQuery(`
+		SELECT base36id,base10id
+		FROM base10tobase36
+		WHERE base10id IN`).AddArgsGroupStr(aliasesAndIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, alias string
+		err := rows.Scan(&pageId, &alias)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		aliasMap[alias] = pageId
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	// Perform replacement
+	replaceAlias := func(match string) string {
+		submatch := matches[match]
+
+		lowerCaseString := strings.ToLower(submatch[3][:1]) + submatch[3][1:]
+		upperCaseString := strings.ToUpper(submatch[3][:1]) + submatch[3][1:]
+
+		// Since ReplaceAllStringFunc gives us the whole match, rather than submatch
+		// array, we have stored it earlier and can now piece it together
+		if id, ok := aliasMap[lowerCaseString]; ok {
+			return submatch[1] + submatch[2] + id + strings.Join(submatch[4:], "")
+		}
+		if id, ok := aliasMap[upperCaseString]; ok {
+			return submatch[1] + submatch[2] + id + strings.Join(submatch[4:], "")
+		}
+		return match
+	}
+	for _, exp := range regexps {
+		text = exp.ReplaceAllStringFunc(text, replaceAlias)
+	}
+
+	return text, nil
 }

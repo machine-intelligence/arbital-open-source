@@ -44,15 +44,12 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	pageId := ""
-	db.C.Debugf("pageId: %v", pageId)
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
-		db.C.Debugf("pageId: %v", pageId)
 		pageId, err = user.GetNextAvailableId(db)
 		if err != nil {
 			return "", fmt.Errorf("Couldn't get next available Id", err)
 		}
-		db.C.Debugf("pageId: %v", pageId)
 
 		// Update pageInfos
 		hashmap := make(map[string]interface{})
@@ -68,8 +65,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		statement := db.NewInsertStatement("pageInfos", hashmap)
 		if _, err := statement.Exec(); err != nil {
-			db.C.Debugf("newPageJsonHandler.go")
-			db.C.Debugf("hashmap: %v", hashmap)
 			return "", fmt.Errorf("Couldn't update pageInfos", err)
 		}
 
@@ -89,7 +84,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if errMessage != "" {
 		return pages.HandlerErrorFail(errMessage, err)
 	}
-	db.C.Debugf("pageId: %v", pageId)
 
 	// Add parents
 	for _, parentIdStr := range data.ParentIds {
@@ -108,9 +102,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	//editData := &editJsonData{PageAlias: pageId}
-	db.C.Debugf("&editJsonData{PageAlias: pageId}: %v", &editJsonData{PageAlias: pageId})
 	editData := &editJsonData{PageAlias: fmt.Sprintf("%s", pageId)}
-	db.C.Debugf("params: %v", params)
-	db.C.Debugf("editData: %v", editData)
 	return editJsonInternalHandler(params, editData)
 }

@@ -1559,10 +1559,6 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string,
 	strictAliases := make([]string, 0)
 	strictPageIds := make([]string, 0)
 	for _, alias := range aliases {
-		db.C.Debugf("alias: %v", alias)
-		db.C.Debugf("alias[0]: %v", alias[0])
-		db.C.Debugf("0: %v", '0')
-		db.C.Debugf("alias[0] > 0: %v", alias[0] > '0')
 		if IsIdValid(alias) {
 			strictPageIds = append(strictPageIds, strings.ToLower(alias))
 		} else {
@@ -1570,53 +1566,37 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string,
 		}
 	}
 
-	db.C.Debugf("strictPageIds: %v", strictPageIds)
-	db.C.Debugf("strictAliases: %v", strictAliases)
-	db.C.Debugf("len(strictPageIds): %v", len(strictPageIds))
-	db.C.Debugf("len(strictAliases): %v", len(strictAliases))
-
 	var query *database.Stmt
-	//var rows *database.Rows
 
 	if len(strictPageIds) > 0 || len(strictAliases) > 0 {
 		if len(strictPageIds) <= 0 {
-			db.C.Debugf("len(strictPageIds) <= 0")
 			query = database.NewQuery(`
 			SELECT pageId,alias
 			FROM pageInfos
 			WHERE currentEdit>0 AND (alias IN`).AddArgsGroupStr(strictAliases).Add(`)`).ToStatement(db)
 		} else if len(strictAliases) <= 0 {
-			db.C.Debugf("len(strictAliases) <= 0")
 			query = database.NewQuery(`
 			SELECT pageId,alias
 			FROM pageInfos
 			WHERE currentEdit>0 AND (pageId IN`).AddArgsGroupStr(strictPageIds).Add(`)`).ToStatement(db)
 		} else {
-			db.C.Debugf("len(strictPageIds) > 0 && len(strictAliases) > 0")
 			query = database.NewQuery(`
 			SELECT pageId,alias
 			FROM pageInfos
 			WHERE currentEdit>0 AND (pageId IN`).AddArgsGroupStr(strictPageIds).Add(`OR alias IN`).AddArgsGroupStr(strictAliases).Add(`)`).ToStatement(db)
 		}
 
-		db.C.Debugf("query: %v", query)
-
 		rows := query.Query()
-
-		db.C.Debugf("rows: %v", rows)
 
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId string
 			var alias string
 			err := rows.Scan(&pageId, &alias)
-			db.C.Debugf("pageId: %v", pageId)
-			db.C.Debugf("alias: %v", alias)
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
 			aliasToIdMap[strings.ToLower(alias)] = pageId
 			aliasToIdMap[strings.ToLower(pageId)] = pageId
-			db.C.Debugf("aliasToIdMap: %v", aliasToIdMap)
 			return nil
 		})
 		if err != nil {
@@ -1629,7 +1609,6 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string,
 			aliasToIdMap[strings.ToLower(pageId)] = strings.ToLower(pageId)
 		}
 	}
-	db.C.Debugf("aliasToIdMap: %v", aliasToIdMap)
 	return aliasToIdMap, nil
 }
 
@@ -1640,10 +1619,6 @@ func LoadAliasToPageId(db *database.DB, alias string) (string, bool, error) {
 		return "", false, err
 	}
 	pageId, ok := aliasToIdMap[strings.ToLower(alias)]
-	db.C.Debugf("aliasToIdMap: %v", aliasToIdMap)
-	db.C.Debugf("alias: %v", alias)
-	db.C.Debugf("pageId: %v", pageId)
-	db.C.Debugf("ok: %v", ok)
 	return pageId, ok, nil
 }
 

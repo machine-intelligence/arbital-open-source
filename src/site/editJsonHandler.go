@@ -42,8 +42,6 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	db := params.DB
 	u := params.U
 
-	db.C.Debugf("editJsonInternalHandler")
-
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
 	if err != nil {
@@ -55,7 +53,6 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get next available Id", err)
 		}
-		db.C.Debugf("redirecting to " + core.GetEditPageUrl(newPageId) + "?alias=" + data.PageAlias)
 		return pages.RedirectWith(core.GetEditPageUrl(newPageId) + "?alias=" + data.PageAlias)
 	}
 
@@ -71,9 +68,6 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		return pages.HandlerErrorFail("Error while loading full edit", err)
 	}
 	if p == nil {
-		db.C.Debugf("pageId: %v", pageId)
-		db.C.Debugf("u.Id: %v", u.Id)
-		db.C.Debugf("options: %v", options)
 		return pages.HandlerErrorFail("Exact page not found", err)
 	}
 	if p.SeeGroupId != params.PrivateGroupId {
@@ -140,7 +134,5 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		}
 	}
 
-	db.C.Debugf("returnData: %v", returnData)
-	db.C.Debugf("returnData.toJson(): %v", returnData.toJson())
 	return pages.StatusOK(returnData.toJson())
 }
