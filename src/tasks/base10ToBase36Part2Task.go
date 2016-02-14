@@ -45,6 +45,7 @@ func (task *Base10ToBase36Part2Task) Execute(db *database.DB) (delay int, err er
 	replaceBatch(db, "likes", "pageId")
 
 	replaceBatch(db, "links", "parentId")
+	replaceBatch(db, "links", "childAlias")
 
 	replaceBatch(db, "pageDomainPairs", "pageId")
 	replaceBatch(db, "pageDomainPairs", "domainId")
@@ -82,6 +83,7 @@ func (task *Base10ToBase36Part2Task) Execute(db *database.DB) (delay int, err er
 	replaceBatch(db, "votes", "userId")
 	replaceBatch(db, "votes", "pageId")
 
+	doOneQuery(db, `UPDATE links SET childAliasBase36 = childAlias WHERE childAliasBase36 = "";`)
 	doOneQuery(db, `UPDATE pageInfos SET aliasBase36 = alias WHERE aliasBase36 = "";`)
 
 	return 0, err
@@ -91,7 +93,7 @@ func replaceBatch(db *database.DB, newTableName string, newColumnName string) er
 	tableName = newTableName
 	columnName = newColumnName
 
-	statement := db.NewStatement(`UPDATE ` + tableName + ` SET ` + columnName + `Processed = 1, ` + columnName + `Base36 = (SELECT base36Id from base10tobase36 WHERE base10Id = ` + tableName + `.` + columnName + `) WHERE ` + columnName + `Processed = 0`)
+	statement := db.NewStatement(`UPDATE ` + tableName + ` SET ` + columnName + `Processed = 1, ` + columnName + `Base10 = ` + columnName + `, ` + columnName + `Base36 = (SELECT base36Id from base10tobase36 WHERE base10Id = ` + tableName + `.` + columnName + `) WHERE ` + columnName + `Processed = 0`)
 	if _, err := statement.Exec(); err != nil {
 		return fmt.Errorf("Couldn't update table "+tableName+", column "+columnName+": %v", err)
 	}

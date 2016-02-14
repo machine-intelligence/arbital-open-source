@@ -58,26 +58,26 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	*/
 	featuredDomains = append(featuredDomains,
 		&featuredDomain{
-			DomainId: "30",
+			DomainId: "2s",
 			ChildIds: []string{
-				"30", // VAT
-				"3r", // List: value alignment subjects
-				"67", // Value alignment problem
-				"1r", // Orthogonality theses
-				"5r", // Ontology identification problem
-				"7c", // Mindcrime
-				"5v", // Diamond maximizer
+				"2s", // VAT
+				"3d", // List: value alignment subjects
+				"5q", // Value alignment problem
+				"1w", // Orthogonality theses
+				"59", // Ontology identification problem
+				"6s", // Mindcrime
+				"5d", // Diamond maximizer
 			},
 		}, &featuredDomain{
-			DomainId: "3n",
+			DomainId: "3b",
 			ChildIds: []string{
-				"3n",  // What is Arbital
-				"189", // Arbital blog
-				"15m", // Arbital features
-				"3y",  // Parents and children
-				"45",  // Editing
-				"40",  // Liking
-				"42",  // Voting
+				"3b",  // What is Arbital
+				"16p", // Arbital blog
+				"14p", // Arbital features
+				"3l",  // Parents and children
+				"3s",  // Editing
+				"3m",  // Liking
+				"3p",  // Voting
 			},
 		},
 	)
@@ -93,7 +93,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Display this page fully
 	// HARDCODED
 	//core.AddPageToMap("3440973961008233681", returnData.PageMap, core.PrimaryPageLoadOptions)
-	core.AddPageToMap("1m5", returnData.PageMap, core.PrimaryPageLoadOptions)
+	core.AddPageToMap("1k0", returnData.PageMap, core.PrimaryPageLoadOptions)
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)

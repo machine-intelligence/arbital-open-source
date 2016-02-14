@@ -91,10 +91,10 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		core.AddPageToMap("6686682198220623534", returnData.PageMap, core.TitlePlusLoadOptions)
 		core.AddPageToMap("1407630090992422901", returnData.PageMap, core.TitlePlusLoadOptions)
 	*/
-	core.AddPageToMap("3y", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("18w", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("1p6", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("18y", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("3l", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("177", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("1ln", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("179", returnData.PageMap, core.TitlePlusLoadOptions)
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)

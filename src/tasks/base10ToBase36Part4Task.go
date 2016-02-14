@@ -28,6 +28,58 @@ func (task *Base10ToBase36Part4Task) Execute(db *database.DB) (delay int, err er
 
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
+		doOneQuery(db, `ALTER TABLE pages DROP pageIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pages DROP creatorIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE changeLogs DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE changeLogs DROP pageIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE changeLogs DROP auxPageIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE groupMembers DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE groupMembers DROP groupIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE likes DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE likes DROP pageIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE links DROP parentIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE links DROP childAliasBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE pageDomainPairs DROP pageIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pageDomainPairs DROP domainIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE pageInfos DROP pageIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pageInfos DROP lockedByBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pageInfos DROP seeGroupIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pageInfos DROP editGroupIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pageInfos DROP createdByBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pageInfos DROP aliasBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE pagePairs DROP parentIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE pagePairs DROP childIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE pageSummaries DROP pageIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE subscriptions DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE subscriptions DROP toIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE updates DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE updates DROP groupByPageIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE updates DROP groupByUserIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE updates DROP subscribedToIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE updates DROP goToPageIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE updates DROP byUserIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE userMasteryPairs DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE userMasteryPairs DROP masteryIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE users DROP idBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE visits DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE visits DROP pageIdBase10 ;`)
+
+		doOneQuery(db, `ALTER TABLE votes DROP userIdBase10 ;`)
+		doOneQuery(db, `ALTER TABLE votes DROP pageIdBase10 ;`)
+
 		doOneQuery(db, `ALTER TABLE pages DROP pageIdBase36 ;`)
 		doOneQuery(db, `ALTER TABLE pages DROP creatorIdBase36 ;`)
 
@@ -42,6 +94,7 @@ func (task *Base10ToBase36Part4Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE likes DROP pageIdBase36 ;`)
 
 		doOneQuery(db, `ALTER TABLE links DROP parentIdBase36 ;`)
+		doOneQuery(db, `ALTER TABLE links DROP childAliasBase36 ;`)
 
 		doOneQuery(db, `ALTER TABLE pageDomainPairs DROP pageIdBase36 ;`)
 		doOneQuery(db, `ALTER TABLE pageDomainPairs DROP domainIdBase36 ;`)
@@ -93,6 +146,7 @@ func (task *Base10ToBase36Part4Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE likes DROP pageIdProcessed ;`)
 
 		doOneQuery(db, `ALTER TABLE links DROP parentIdProcessed ;`)
+		doOneQuery(db, `ALTER TABLE links DROP childAliasProcessed ;`)
 
 		doOneQuery(db, `ALTER TABLE pageDomainPairs DROP pageIdProcessed ;`)
 		doOneQuery(db, `ALTER TABLE pageDomainPairs DROP domainIdProcessed ;`)
@@ -131,7 +185,7 @@ func (task *Base10ToBase36Part4Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE votes DROP pageIdProcessed ;`)
 
 		doOneQuery(db, `DROP TABLE pagesandusers;`)
-		doOneQuery(db, `DROP TABLE base10tobase36;`)
+		//doOneQuery(db, `DROP TABLE base10tobase36;`)
 
 		return "", nil
 	})

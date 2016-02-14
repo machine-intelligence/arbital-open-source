@@ -45,6 +45,8 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 			return "", err
 		}
 
+		doOneQuery(db, `ALTER TABLE links DROP INDEX parentId ;`)
+
 		doOneQuery(db, `UPDATE pages SET pageId = CONCAT("zzz", pageId) WHERE 1;`)
 		doOneQuery(db, `UPDATE pages SET creatorId = CONCAT("zzz", creatorId) WHERE 1;`)
 
@@ -59,6 +61,7 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE likes SET pageId = CONCAT("zzz", pageId) WHERE 1;`)
 
 		doOneQuery(db, `UPDATE links SET parentId = CONCAT("zzz", parentId) WHERE 1;`)
+		//doOneQuery(db, `UPDATE links SET childAlias = CONCAT("zzz", childAlias) WHERE 1;`)
 
 		doOneQuery(db, `UPDATE pageDomainPairs SET pageId = CONCAT("zzz", pageId) WHERE 1;`)
 		doOneQuery(db, `UPDATE pageDomainPairs SET domainId = CONCAT("zzz", domainId) WHERE 1;`)
@@ -110,6 +113,7 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE likes SET pageId = pageIdBase36 WHERE 1;`)
 
 		doOneQuery(db, `UPDATE links SET parentId = parentIdBase36 WHERE 1;`)
+		doOneQuery(db, `UPDATE links SET childAlias = childAliasBase36 WHERE 1;`)
 
 		doOneQuery(db, `UPDATE pageDomainPairs SET pageId = pageIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE pageDomainPairs SET domainId = domainIdBase36 WHERE 1;`)
@@ -146,6 +150,8 @@ func (task *Base10ToBase36Part3Task) Execute(db *database.DB) (delay int, err er
 
 		doOneQuery(db, `UPDATE votes SET userId = userIdBase36 WHERE 1;`)
 		doOneQuery(db, `UPDATE votes SET pageId = pageIdBase36 WHERE 1;`)
+
+		doOneQuery(db, `ALTER TABLE links ADD UNIQUE (parentId , childAlias);`)
 
 		return "", nil
 	})

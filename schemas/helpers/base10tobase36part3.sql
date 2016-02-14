@@ -376,6 +376,63 @@ INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM vo
 
 
 
+
+UPDATE pages SET pageId = pageIdBase36 WHERE 1;
+UPDATE pages SET creatorId = creatorIdBase36 WHERE 1;
+
+UPDATE changeLogs SET userId = userIdBase36 WHERE 1;
+UPDATE changeLogs SET pageId = pageIdBase36 WHERE 1;
+UPDATE changeLogs SET auxPageId = auxPageIdBase36 WHERE 1;
+
+UPDATE groupMembers SET userId = userIdBase36 WHERE 1;
+UPDATE groupMembers SET groupId = groupIdBase36 WHERE 1;
+
+UPDATE likes SET userId = userIdBase36 WHERE 1;
+UPDATE likes SET pageId = pageIdBase36 WHERE 1;
+
+UPDATE links SET parentId = parentIdBase36 WHERE 1;
+UPDATE links SET childAlias = childAliasBase36 WHERE 1;
+
+UPDATE pageDomainPairs SET pageId = pageIdBase36 WHERE 1;
+UPDATE pageDomainPairs SET domainId = domainIdBase36 WHERE 1;
+
+UPDATE pageInfos SET pageId = pageIdBase36 WHERE 1;
+UPDATE pageInfos SET lockedBy = lockedByBase36 WHERE 1;
+UPDATE pageInfos SET seeGroupId = seeGroupIdBase36 WHERE 1;
+UPDATE pageInfos SET editGroupId = editGroupIdBase36 WHERE 1;
+UPDATE pageInfos SET createdBy = createdByBase36 WHERE 1;
+UPDATE pageInfos SET alias = aliasBase36 WHERE 1;
+
+UPDATE pagePairs SET parentId = parentIdBase36 WHERE 1;
+UPDATE pagePairs SET childId = childIdBase36 WHERE 1;
+
+UPDATE pageSummaries SET pageId = pageIdBase36 WHERE 1;
+
+UPDATE subscriptions SET userId = userIdBase36 WHERE 1;
+UPDATE subscriptions SET toId = toIdBase36 WHERE 1;
+
+UPDATE updates SET userId = userIdBase36 WHERE 1;
+UPDATE updates SET groupByPageId = groupByPageIdBase36 WHERE 1;
+UPDATE updates SET groupByUserId = groupByUserIdBase36 WHERE 1;
+UPDATE updates SET subscribedToId = subscribedToIdBase36 WHERE 1;
+UPDATE updates SET goToPageId = goToPageIdBase36 WHERE 1;
+UPDATE updates SET byUserId = byUserIdBase36 WHERE 1;
+
+UPDATE userMasteryPairs SET userId = userIdBase36 WHERE 1;
+UPDATE userMasteryPairs SET masteryId = masteryIdBase36 WHERE 1;
+
+UPDATE users SET id = idBase36 WHERE 1;
+
+UPDATE visits SET userId = userIdBase36 WHERE 1;
+UPDATE visits SET pageId = pageIdBase36 WHERE 1;
+
+UPDATE votes SET userId = userIdBase36 WHERE 1;
+UPDATE votes SET pageId = pageIdBase36 WHERE 1;
+
+
+
+
+
 SELECT pageId FROM pages WHERE pageIdProcessed = 0 UNION
 SELECT creatorId FROM pages WHERE creatorIdProcessed = 0 UNION
 
@@ -535,6 +592,79 @@ SELECT pageId FROM visits WHERE pageIdBase36 != pageId UNION
 
 SELECT userId FROM votes WHERE userIdBase36 != userId UNION
 SELECT pageId FROM votes WHERE pageIdBase36 != pageId ;
+
+
+
+
+
+
+
+
+SELECT pageId FROM pages WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT creatorId FROM pages WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT pageId FROM changeLogs WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT auxPageId FROM changeLogs WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT userId FROM groupMembers WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT groupId FROM groupMembers WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT userId FROM likes WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT pageId FROM likes WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT pageId FROM pageInfos WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT lockedBy FROM pageInfos WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT seeGroupId FROM pageInfos WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT editGroupId FROM pageInfos WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT createdBy FROM pageInfos WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT userId FROM subscriptions WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT toId FROM subscriptions WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT userId FROM updates WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT groupByPageId FROM updates WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT groupByUserId FROM updates WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT subscribedToId FROM updates WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT goToPageId FROM updates WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT byUserId FROM updates WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT userId FROM userMasteryPairs WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT masteryId FROM userMasteryPairs WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT id FROM users WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT userId FROM visits WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT pageId FROM visits WHERE createdAt = "2015-02-27 23:10:29" UNION
+
+SELECT userId FROM votes WHERE createdAt = "2015-02-27 23:10:29" UNION
+SELECT pageId FROM votes WHERE createdAt = "2015-02-27 23:10:29" ;
+
+
+
+
+
+SELECT * FROM pages WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM changeLogs WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM groupMembers WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM likes WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM pageInfos WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM subscriptions WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM updates WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM userMasteryPairs WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM users WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM visits WHERE createdAt = "2015-02-27 23:10:29" ;
+
+SELECT * FROM votes WHERE createdAt = "2015-02-27 23:10:29" ;
+
 
 
 

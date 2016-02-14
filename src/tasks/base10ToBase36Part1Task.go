@@ -36,7 +36,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE  pages CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  pages CHANGE  creatorId  creatorId VARCHAR( 32 ) NOT NULL ;`)
 
-		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  userId  pageId VARCHAR( 32 ) NOT NULL ;`)
+		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  userId  userId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  changeLogs CHANGE  auxPageId  auxPageId VARCHAR( 32 ) NOT NULL ;`)
 
@@ -47,6 +47,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE  likes CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 
 		doOneQuery(db, `ALTER TABLE  links CHANGE  parentId  parentId VARCHAR( 32 ) NOT NULL ;`)
+		//doOneQuery(db, `ALTER TABLE  links CHANGE  childAlias  childAlias VARCHAR( 64 ) NOT NULL ;`)
 
 		doOneQuery(db, `ALTER TABLE  pageDomainPairs CHANGE  pageId  pageId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  pageDomainPairs CHANGE  domainId  domainId VARCHAR( 32 ) NOT NULL ;`)
@@ -56,6 +57,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE  pageInfos CHANGE  seeGroupId  seeGroupId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  pageInfos CHANGE  editGroupId  editGroupId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  pageInfos CHANGE  createdBy  createdBy VARCHAR( 32 ) NOT NULL ;`)
+		//doOneQuery(db, `ALTER TABLE  pageInfos CHANGE  alias  alias VARCHAR( 64 ) NOT NULL ;`)
 
 		doOneQuery(db, `ALTER TABLE  pagePairs CHANGE  parentId  parentId VARCHAR( 32 ) NOT NULL ;`)
 		doOneQuery(db, `ALTER TABLE  pagePairs CHANGE  childId  childId VARCHAR( 32 ) NOT NULL ;`)
@@ -97,6 +99,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE likes SET pageId = "" WHERE pageId = "0";`)
 
 		doOneQuery(db, `UPDATE links SET parentId = "" WHERE parentId = "0";`)
+		//doOneQuery(db, `UPDATE links SET childAlias = "" WHERE childAlias = "0";`)
 
 		doOneQuery(db, `UPDATE pageDomainPairs SET pageId = "" WHERE pageId = "0";`)
 		doOneQuery(db, `UPDATE pageDomainPairs SET domainId = "" WHERE domainId = "0";`)
@@ -106,6 +109,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `UPDATE pageInfos SET seeGroupId = "" WHERE seeGroupId = "0";`)
 		doOneQuery(db, `UPDATE pageInfos SET editGroupId = "" WHERE editGroupId = "0";`)
 		doOneQuery(db, `UPDATE pageInfos SET createdBy = "" WHERE createdBy = "0";`)
+		//doOneQuery(db, `UPDATE pageInfos SET alias = "" WHERE alias = "0";`)
 
 		doOneQuery(db, `UPDATE pagePairs SET parentId = "" WHERE parentId = "0";`)
 		doOneQuery(db, `UPDATE pagePairs SET childId = "" WHERE childId = "0";`)
@@ -147,6 +151,7 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE likes ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 
 		doOneQuery(db, `ALTER TABLE links ADD parentIdProcessed BOOLEAN NOT NULL AFTER parentId;`)
+		doOneQuery(db, `ALTER TABLE links ADD childAliasProcessed BOOLEAN NOT NULL AFTER childAlias;`)
 
 		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD domainIdProcessed BOOLEAN NOT NULL AFTER domainId;`)
@@ -184,56 +189,109 @@ func (task *Base10ToBase36Part1Task) Execute(db *database.DB) (delay int, err er
 		doOneQuery(db, `ALTER TABLE votes ADD userIdProcessed BOOLEAN NOT NULL AFTER userId;`)
 		doOneQuery(db, `ALTER TABLE votes ADD pageIdProcessed BOOLEAN NOT NULL AFTER pageId;`)
 
-		doOneQuery(db, `ALTER TABLE pages ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
-		doOneQuery(db, `ALTER TABLE pages ADD creatorIdBase36 MEDIUMTEXT NOT NULL AFTER creatorId;`)
+		doOneQuery(db, `ALTER TABLE pages ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE pages ADD creatorIdBase36 VARCHAR( 32 ) NOT NULL AFTER creatorId;`)
 
-		doOneQuery(db, `ALTER TABLE changeLogs ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE changeLogs ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
-		doOneQuery(db, `ALTER TABLE changeLogs ADD auxPageIdBase36 MEDIUMTEXT NOT NULL AFTER auxPageId;`)
+		doOneQuery(db, `ALTER TABLE changeLogs ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE changeLogs ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE changeLogs ADD auxPageIdBase36 VARCHAR( 32 ) NOT NULL AFTER auxPageId;`)
 
-		doOneQuery(db, `ALTER TABLE groupMembers ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE groupMembers ADD groupIdBase36 MEDIUMTEXT NOT NULL AFTER groupId;`)
+		doOneQuery(db, `ALTER TABLE groupMembers ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE groupMembers ADD groupIdBase36 VARCHAR( 32 ) NOT NULL AFTER groupId;`)
 
-		doOneQuery(db, `ALTER TABLE likes ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE likes ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE likes ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE likes ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
 
-		doOneQuery(db, `ALTER TABLE links ADD parentIdBase36 MEDIUMTEXT NOT NULL AFTER parentId;`)
+		doOneQuery(db, `ALTER TABLE links ADD parentIdBase36 VARCHAR( 32 ) NOT NULL AFTER parentId;`)
+		doOneQuery(db, `ALTER TABLE links ADD childAliasBase36 VARCHAR( 64 ) NOT NULL AFTER childAlias;`)
 
-		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
-		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD domainIdBase36 MEDIUMTEXT NOT NULL AFTER domainId;`)
+		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD domainIdBase36 VARCHAR( 32 ) NOT NULL AFTER domainId;`)
 
-		doOneQuery(db, `ALTER TABLE pageInfos ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
-		doOneQuery(db, `ALTER TABLE pageInfos ADD lockedByBase36 MEDIUMTEXT NOT NULL AFTER lockedBy;`)
-		doOneQuery(db, `ALTER TABLE pageInfos ADD seeGroupIdBase36 MEDIUMTEXT NOT NULL AFTER seeGroupId;`)
-		doOneQuery(db, `ALTER TABLE pageInfos ADD editGroupIdBase36 MEDIUMTEXT NOT NULL AFTER editGroupId;`)
-		doOneQuery(db, `ALTER TABLE pageInfos ADD createdByBase36 MEDIUMTEXT NOT NULL AFTER createdBy;`)
-		doOneQuery(db, `ALTER TABLE pageInfos ADD aliasBase36 MEDIUMTEXT NOT NULL AFTER alias;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD lockedByBase36 VARCHAR( 32 ) NOT NULL AFTER lockedBy;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD seeGroupIdBase36 VARCHAR( 32 ) NOT NULL AFTER seeGroupId;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD editGroupIdBase36 VARCHAR( 32 ) NOT NULL AFTER editGroupId;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD createdByBase36 VARCHAR( 32 ) NOT NULL AFTER createdBy;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD aliasBase36 VARCHAR( 64 ) NOT NULL AFTER alias;`)
 
-		doOneQuery(db, `ALTER TABLE pagePairs ADD parentIdBase36 MEDIUMTEXT NOT NULL AFTER parentId;`)
-		doOneQuery(db, `ALTER TABLE pagePairs ADD childIdBase36 MEDIUMTEXT NOT NULL AFTER childId;`)
+		doOneQuery(db, `ALTER TABLE pagePairs ADD parentIdBase36 VARCHAR( 32 ) NOT NULL AFTER parentId;`)
+		doOneQuery(db, `ALTER TABLE pagePairs ADD childIdBase36 VARCHAR( 32 ) NOT NULL AFTER childId;`)
 
-		doOneQuery(db, `ALTER TABLE pageSummaries ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE pageSummaries ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
 
-		doOneQuery(db, `ALTER TABLE subscriptions ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE subscriptions ADD toIdBase36 MEDIUMTEXT NOT NULL AFTER toId;`)
+		doOneQuery(db, `ALTER TABLE subscriptions ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE subscriptions ADD toIdBase36 VARCHAR( 32 ) NOT NULL AFTER toId;`)
 
-		doOneQuery(db, `ALTER TABLE updates ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE updates ADD groupByPageIdBase36 MEDIUMTEXT NOT NULL AFTER groupByPageId;`)
-		doOneQuery(db, `ALTER TABLE updates ADD groupByUserIdBase36 MEDIUMTEXT NOT NULL AFTER groupByUserId;`)
-		doOneQuery(db, `ALTER TABLE updates ADD subscribedToIdBase36 MEDIUMTEXT NOT NULL AFTER subscribedToId;`)
-		doOneQuery(db, `ALTER TABLE updates ADD goToPageIdBase36 MEDIUMTEXT NOT NULL AFTER goToPageId;`)
-		doOneQuery(db, `ALTER TABLE updates ADD byUserIdBase36 MEDIUMTEXT NOT NULL AFTER byUserId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD groupByPageIdBase36 VARCHAR( 32 ) NOT NULL AFTER groupByPageId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD groupByUserIdBase36 VARCHAR( 32 ) NOT NULL AFTER groupByUserId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD subscribedToIdBase36 VARCHAR( 32 ) NOT NULL AFTER subscribedToId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD goToPageIdBase36 VARCHAR( 32 ) NOT NULL AFTER goToPageId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD byUserIdBase36 VARCHAR( 32 ) NOT NULL AFTER byUserId;`)
 
-		doOneQuery(db, `ALTER TABLE userMasteryPairs ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE userMasteryPairs ADD masteryIdBase36 MEDIUMTEXT NOT NULL AFTER masteryId;`)
+		doOneQuery(db, `ALTER TABLE userMasteryPairs ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE userMasteryPairs ADD masteryIdBase36 VARCHAR( 32 ) NOT NULL AFTER masteryId;`)
 
-		doOneQuery(db, `ALTER TABLE users ADD idBase36 MEDIUMTEXT NOT NULL AFTER id;`)
+		doOneQuery(db, `ALTER TABLE users ADD idBase36 VARCHAR( 32 ) NOT NULL AFTER id;`)
 
-		doOneQuery(db, `ALTER TABLE visits ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE visits ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE visits ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE visits ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
 
-		doOneQuery(db, `ALTER TABLE votes ADD userIdBase36 MEDIUMTEXT NOT NULL AFTER userId;`)
-		doOneQuery(db, `ALTER TABLE votes ADD pageIdBase36 MEDIUMTEXT NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE votes ADD userIdBase36 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE votes ADD pageIdBase36 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+
+		doOneQuery(db, `ALTER TABLE pages ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE pages ADD creatorIdBase10 VARCHAR( 32 ) NOT NULL AFTER creatorId;`)
+
+		doOneQuery(db, `ALTER TABLE changeLogs ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE changeLogs ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE changeLogs ADD auxPageIdBase10 VARCHAR( 32 ) NOT NULL AFTER auxPageId;`)
+
+		doOneQuery(db, `ALTER TABLE groupMembers ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE groupMembers ADD groupIdBase10 VARCHAR( 32 ) NOT NULL AFTER groupId;`)
+
+		doOneQuery(db, `ALTER TABLE likes ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE likes ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+
+		doOneQuery(db, `ALTER TABLE links ADD parentIdBase10 VARCHAR( 32 ) NOT NULL AFTER parentId;`)
+		doOneQuery(db, `ALTER TABLE links ADD childAliasBase10 VARCHAR( 64 ) NOT NULL AFTER childAlias;`)
+
+		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE pageDomainPairs ADD domainIdBase10 VARCHAR( 32 ) NOT NULL AFTER domainId;`)
+
+		doOneQuery(db, `ALTER TABLE pageInfos ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD lockedByBase10 VARCHAR( 32 ) NOT NULL AFTER lockedBy;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD seeGroupIdBase10 VARCHAR( 32 ) NOT NULL AFTER seeGroupId;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD editGroupIdBase10 VARCHAR( 32 ) NOT NULL AFTER editGroupId;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD createdByBase10 VARCHAR( 32 ) NOT NULL AFTER createdBy;`)
+		doOneQuery(db, `ALTER TABLE pageInfos ADD aliasBase10 VARCHAR( 64 ) NOT NULL AFTER alias;`)
+
+		doOneQuery(db, `ALTER TABLE pagePairs ADD parentIdBase10 VARCHAR( 32 ) NOT NULL AFTER parentId;`)
+		doOneQuery(db, `ALTER TABLE pagePairs ADD childIdBase10 VARCHAR( 32 ) NOT NULL AFTER childId;`)
+
+		doOneQuery(db, `ALTER TABLE pageSummaries ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+
+		doOneQuery(db, `ALTER TABLE subscriptions ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE subscriptions ADD toIdBase10 VARCHAR( 32 ) NOT NULL AFTER toId;`)
+
+		doOneQuery(db, `ALTER TABLE updates ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD groupByPageIdBase10 VARCHAR( 32 ) NOT NULL AFTER groupByPageId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD groupByUserIdBase10 VARCHAR( 32 ) NOT NULL AFTER groupByUserId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD subscribedToIdBase10 VARCHAR( 32 ) NOT NULL AFTER subscribedToId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD goToPageIdBase10 VARCHAR( 32 ) NOT NULL AFTER goToPageId;`)
+		doOneQuery(db, `ALTER TABLE updates ADD byUserIdBase10 VARCHAR( 32 ) NOT NULL AFTER byUserId;`)
+
+		doOneQuery(db, `ALTER TABLE userMasteryPairs ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE userMasteryPairs ADD masteryIdBase10 VARCHAR( 32 ) NOT NULL AFTER masteryId;`)
+
+		doOneQuery(db, `ALTER TABLE users ADD idBase10 VARCHAR( 32 ) NOT NULL AFTER id;`)
+
+		doOneQuery(db, `ALTER TABLE visits ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE visits ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
+
+		doOneQuery(db, `ALTER TABLE votes ADD userIdBase10 VARCHAR( 32 ) NOT NULL AFTER userId;`)
+		doOneQuery(db, `ALTER TABLE votes ADD pageIdBase10 VARCHAR( 32 ) NOT NULL AFTER pageId;`)
 
 		doOneQuery(db, `DROP TABLE pagesandusers;`)
 		doOneQuery(db, `DROP TABLE base10tobase36;`)
@@ -277,52 +335,54 @@ WHERE 1;
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM pages WHERE 1;`)
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT creatorId, createdAt FROM pages WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM changeLogs WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM changeLogs WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT auxPageId, createdAt FROM changeLogs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM changeLogs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM changeLogs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT auxPageId, NOW() FROM changeLogs WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM groupMembers WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupId, createdAt FROM groupMembers WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM groupMembers WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupId, NOW() FROM groupMembers WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM likes WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM likes WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM likes WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM likes WHERE 1;`)
 
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT parentId, NOW() FROM links WHERE 1;`)
+		//doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT childAlias, NOW() FROM links WHERE 1;`)
 
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM pageDomainPairs WHERE 1;`)
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT domainId, NOW() FROM pageDomainPairs WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM pageInfos WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT lockedBy, createdAt FROM pageInfos WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT seeGroupId, createdAt FROM pageInfos WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT editGroupId, createdAt FROM pageInfos WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT createdBy, createdAt FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT lockedBy, NOW() FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT seeGroupId, NOW() FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT editGroupId, NOW() FROM pageInfos WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT createdBy, NOW() FROM pageInfos WHERE 1;`)
+		//doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT alias, NOW() FROM pageInfos WHERE 1;`)
 
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT parentId, NOW() FROM pagePairs WHERE 1;`)
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT childId, NOW() FROM pagePairs WHERE 1;`)
 
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM pageSummaries WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM subscriptions WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT toId, createdAt FROM subscriptions WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM subscriptions WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT toId, NOW() FROM subscriptions WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM updates WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByPageId, createdAt FROM updates WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByUserId, createdAt FROM updates WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT subscribedToId, createdAt FROM updates WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT goToPageId, createdAt FROM updates WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT byUserId, createdAt FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByPageId, NOW() FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT groupByUserId, NOW() FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT subscribedToId, NOW() FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT goToPageId, NOW() FROM updates WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT byUserId, NOW() FROM updates WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM userMasteryPairs WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT masteryId, createdAt FROM userMasteryPairs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM userMasteryPairs WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT masteryId, NOW() FROM userMasteryPairs WHERE 1;`)
 
 		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT id, createdAt FROM users WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM visits WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM visits WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM visits WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM visits WHERE 1;`)
 
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, createdAt FROM votes WHERE 1;`)
-		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, createdAt FROM votes WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT userId, NOW() FROM votes WHERE 1;`)
+		doOneQuery(db, `INSERT INTO pagesandusers (base10id, createdAt) SELECT pageId, NOW() FROM votes WHERE 1;`)
 
 		doOneQuery(db, `UPDATE pagesandusers SET createdAt = NOW() WHERE createdAt = "0000-00-00 00:00:00"`)
 
