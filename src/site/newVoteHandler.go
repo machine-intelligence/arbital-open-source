@@ -11,7 +11,7 @@ import (
 
 // newVoteData contains data given to us in the request.
 type newVoteData struct {
-	PageId string `json:""`
+	PageId string
 	Value  float32
 }
 

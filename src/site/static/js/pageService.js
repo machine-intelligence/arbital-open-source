@@ -188,7 +188,7 @@ app.service("pageService", function($http, $location, userService){
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/p/" + parent.pageId + "?lens=" + pageId;
+						url = "/p/" + parent.pageId + "?l=" + pageId;
 						if ($location.hash()) {
 							url += "#" + $location.hash();
 						}

@@ -18,7 +18,7 @@ import (
 
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
-	PageId         string `json:""`
+	PageId         string
 	Title          string
 	Clickbait      string
 	Text           string
@@ -79,7 +79,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	var MyLastAutosaveEdit sql.NullInt64
+	var myLastAutosaveEdit sql.NullInt64
 
 	// Load additional info
 	row := db.NewStatement(`
@@ -87,7 +87,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave
 		`).QueryRow(data.PageId, u.Id)
-	_, err = row.Scan(&MyLastAutosaveEdit)
+	_, err = row.Scan(&myLastAutosaveEdit)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load additional page info", err)
 	}
@@ -95,9 +95,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
 	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
 	newEditNum := oldPage.MaxEditEver + 1
-	if MyLastAutosaveEdit.Valid {
+	if myLastAutosaveEdit.Valid {
 		// ... unless we can just replace a existing autosave.
-		newEditNum = int(MyLastAutosaveEdit.Int64)
+		newEditNum = int(myLastAutosaveEdit.Int64)
 	}
 	if data.RevertToEdit > 0 {
 		// ... or unless we are reverting an edit

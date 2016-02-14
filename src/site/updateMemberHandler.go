@@ -10,8 +10,8 @@ import (
 
 // updateMemberData contains data given to us in the request.
 type updateMemberData struct {
-	GroupId       string `json:""`
-	UserId        string `json:""`
+	GroupId       string
+	UserId        string
 	CanAddMembers bool
 	CanAdmin      bool
 }

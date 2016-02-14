@@ -439,7 +439,7 @@ func oneRowUpdateBase10ToBase36(db *database.DB, rows *database.Rows) error {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
 
-	base36Id, err := user.IncrementBase31Id(db, lastBase36Id)
+	base36Id, err := user.IncrementBase31Id(db.C, lastBase36Id)
 	if err != nil {
 		return fmt.Errorf("Error incrementing id: %v", err)
 	}

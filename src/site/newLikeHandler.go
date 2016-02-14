@@ -15,7 +15,7 @@ const (
 
 // newLikeData contains data given to us in the request.
 type newLikeData struct {
-	PageId string `json:""`
+	PageId string
 	Value  int
 }
 

@@ -302,8 +302,8 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 						$scope.lensUrl = "/e/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
 						$scope.childUrl = "/e/?newParentId=" + pageService.primaryPage.pageId;
 					}
-					if ($location.search().lens) {
-						$scope.editPageUrl = pageService.getEditPageUrl($location.search().lens);
+					if ($location.search().l) {
+						$scope.editPageUrl = pageService.getEditPageUrl($location.search().l);
 					} else {
 						$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
 					}
@@ -526,7 +526,7 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 				// Check if the user is doing a sequence
 				$scope.page.sequenceUrl = $location.search().sequence || "";
 				if ($scope.page.sequenceUrl) {
-					var currentPageId = $location.search().lens || $scope.page.pageId;
+					var currentPageId = $location.search().l || $scope.page.pageId;
 					var ids = $scope.page.sequenceUrl.split(",");
 					for (var n = 0; n < ids.length; n++) {
 						var id = ids[n];

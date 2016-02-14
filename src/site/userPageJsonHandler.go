@@ -17,7 +17,7 @@ var userPageHandler = siteHandler{
 }
 
 type userPageJsonData struct {
-	UserId string `json:""`
+	UserId string
 }
 
 // userPageJsonHandler renders the user page.

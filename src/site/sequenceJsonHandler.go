@@ -18,7 +18,7 @@ var sequenceHandler = siteHandler{
 }
 
 type sequenceJsonData struct {
-	PageId string `json:""`
+	PageId string
 }
 
 type sequencePart struct {

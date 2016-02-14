@@ -12,8 +12,8 @@ import (
 
 // deletePagePairData contains the data we receive in the request.
 type deletePagePairData struct {
-	ParentId string `json:""`
-	ChildId  string `json:""`
+	ParentId string
+	ChildId  string
 	Type     string
 }
 

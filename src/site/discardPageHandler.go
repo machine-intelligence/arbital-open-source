@@ -12,7 +12,7 @@ import (
 
 // discardPageData is the data received from the request.
 type discardPageData struct {
-	PageId string `json:""`
+	PageId string
 }
 
 var discardPageHandler = siteHandler{

@@ -148,7 +148,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
-		userId, err := user.GetNextAvailableId(db)
+		userId, err := user.GetNextAvailableId(tx)
 		if err != nil {
 			return "", fmt.Errorf("Couldn't get last insert id for new user: %v", err)
 		}

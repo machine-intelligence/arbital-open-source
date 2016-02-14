@@ -15,12 +15,12 @@ import (
 
 // editPageInfoData contains parameters passed in.
 type editPageInfoData struct {
-	PageId          string `json:""`
+	PageId          string
 	Type            string
 	HasVote         bool
 	VoteType        string
-	SeeGroupId      string `json:""`
-	EditGroupId     string `json:""`
+	SeeGroupId      string
+	EditGroupId     string
 	EditKarmaLock   int
 	Alias           string // if empty, leave the current one
 	SortChildrenBy  string

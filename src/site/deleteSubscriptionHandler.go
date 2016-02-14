@@ -11,7 +11,7 @@ import (
 
 // deleteSubscriptionData contains the data we receive in the request.
 type deleteSubscriptionData struct {
-	PageId string `json:""`
+	PageId string
 }
 
 var deleteSubscriptionHandler = siteHandler{

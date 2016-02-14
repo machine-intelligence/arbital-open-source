@@ -11,8 +11,8 @@ import (
 
 // deleteMemberData contains data given to us in the request.
 type deleteMemberData struct {
-	GroupId string `json:""`
-	UserId  string `json:""`
+	GroupId string
+	UserId  string
 }
 
 var deleteMemberHandler = siteHandler{

@@ -49,7 +49,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 	if !ok {
 		// No alias found. Assume user is trying to create a new page with an alias.
-		newPageId, err := user.GetNextAvailableId(db)
+		newPageId, err := user.GetNextAvailableIdInNewTransaction(db)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get next available Id", err)
 		}

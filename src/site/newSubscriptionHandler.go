@@ -11,7 +11,7 @@ import (
 
 // newSubscriptionData contains the data we get in the request.
 type newSubscriptionData struct {
-	PageId string `json:""`
+	PageId string
 }
 
 var newSubscriptionHandler = siteHandler{

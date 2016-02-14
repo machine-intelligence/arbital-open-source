@@ -17,7 +17,7 @@ type newGroupData struct {
 
 	IsDomain   bool
 	Alias      string
-	RootPageId string `json:""`
+	RootPageId string
 }
 
 var newGroupHandler = siteHandler{
@@ -47,7 +47,7 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		groupId, err := user.GetNextAvailableId(db)
+		groupId, err := user.GetNextAvailableId(tx)
 		if err != nil {
 			return "Couldn't get next available Id", err
 		}

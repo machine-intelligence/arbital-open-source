@@ -13,7 +13,7 @@ import (
 // revertPageData is the data received from the request.
 type revertPageData struct {
 	// Page to revert
-	PageId string `json:""`
+	PageId string
 	// Edit to revert to
 	EditNum int
 }

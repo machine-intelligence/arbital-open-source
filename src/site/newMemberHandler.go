@@ -12,8 +12,8 @@ import (
 
 // newMemberData contains data given to us in the request.
 type newMemberData struct {
-	GroupId string `json:""`
-	UserId  string `json:""`
+	GroupId string
+	UserId  string
 }
 
 var newMemberHandler = siteHandler{

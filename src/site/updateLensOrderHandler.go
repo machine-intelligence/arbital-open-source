@@ -13,7 +13,7 @@ import (
 // updateLensOrderData contains the data we get in the request
 type updateLensOrderData struct {
 	// Id of the page the lenses are for
-	PageId string `json:""`
+	PageId string
 	// Lens id -> order index map
 	OrderMap map[string]int
 }

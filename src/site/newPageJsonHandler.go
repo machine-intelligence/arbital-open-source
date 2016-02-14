@@ -46,7 +46,7 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	pageId := ""
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
-		pageId, err = user.GetNextAvailableId(db)
+		pageId, err = user.GetNextAvailableId(tx)
 		if err != nil {
 			return "", fmt.Errorf("Couldn't get next available Id", err)
 		}
@@ -101,7 +101,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	//editData := &editJsonData{PageAlias: pageId}
-	editData := &editJsonData{PageAlias: fmt.Sprintf("%s", pageId)}
+	editData := &editJsonData{PageAlias: pageId}
 	return editJsonInternalHandler(params, editData)
 }

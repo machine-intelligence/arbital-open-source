@@ -10,7 +10,7 @@ import (
 
 // parentsJsonData contains parameters passed in via the request.
 type parentsJsonData struct {
-	ChildId string `json:""`
+	ChildId string
 }
 
 var parentsHandler = siteHandler{

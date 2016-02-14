@@ -14,7 +14,7 @@ import (
 
 // deletePageData is the data received from the request.
 type deletePageData struct {
-	PageId string `json:""`
+	PageId string
 }
 
 var deletePageHandler = siteHandler{

@@ -166,30 +166,20 @@ func init() {
 
 const (
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
-	Base36Chars             = "0123456789abcdefghijklmnopqrstuvwxyz"
 	Base31CharsForFirstChar = "0123456789"
 )
 
 // Replace a rune at a specific index in a string
-func replaceAtIndex(db *database.DB, in string, r rune, i int) string {
+func replaceAtIndex(in string, r rune, i int) string {
 	out := []rune(in)
 	out[i] = r
 	return string(out)
 }
 
-// Return true if the character is a vowel
-func CharIsVowel(char rune) bool {
-	switch []rune(strings.ToLower(string(char)))[0] {
-	case 'a', 'e', 'i', 'o', 'u':
-		return true
-	}
-	return false
-}
-
 // Get the next highest base36 character, without vowels
 // Returns the character, and true if it wrapped around to 0
 // Since we decided that ids must begin with a digit, only allow characters 0-9 for the first character index
-func GetNextBase31Char(db *database.DB, char rune, isFirstChar bool) (rune, bool, error) {
+func GetNextBase31Char(c sessions.Context, char rune, isFirstChar bool) (rune, bool, error) {
 	validChars := Base31Chars
 	if isFirstChar {
 		validChars = Base31CharsForFirstChar
@@ -208,7 +198,7 @@ func GetNextBase31Char(db *database.DB, char rune, isFirstChar bool) (rune, bool
 }
 
 // Increment a base31 Id string
-func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
+func IncrementBase31Id(c sessions.Context, previousId string) (string, error) {
 	// Add 1 to the base36 value, skipping vowels
 	// Start at the last character in the Id string, carrying the 1 as many times as necessary
 	nextAvailableId := previousId
@@ -223,11 +213,11 @@ func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
 			processNextChar = false
 		} else {
 			// Increment the character at the current index in the Id string
-			newChar, processNextChar, err = GetNextBase31Char(db, rune(nextAvailableId[index]), index == 0)
+			newChar, processNextChar, err = GetNextBase31Char(c, rune(nextAvailableId[index]), index == 0)
 			if err != nil {
 				return "", fmt.Errorf("Error processing id: %v", err)
 			}
-			nextAvailableId = replaceAtIndex(db, nextAvailableId, newChar, index)
+			nextAvailableId = replaceAtIndex(nextAvailableId, newChar, index)
 			index = index - 1
 		}
 	}
@@ -235,11 +225,18 @@ func IncrementBase31Id(db *database.DB, previousId string) (string, error) {
 	return nextAvailableId, nil
 }
 
+// Call GetNextAvailableId in a new transaction
+func GetNextAvailableIdInNewTransaction(db *database.DB) (string, error) {
+	return db.Transaction(func(tx *database.Tx) (string, error) {
+		return GetNextAvailableId(tx)
+	})
+}
+
 // Get the next available base36 Id string that doesn't contain vowels
-func GetNextAvailableId(db *database.DB) (string, error) {
+func GetNextAvailableId(tx *database.Tx) (string, error) {
 	// Query for the highest used pageId or userId
 	var highestUsedId string
-	row := db.NewStatement(`
+	row := tx.NewTxStatement(`
 		SELECT MAX(pageId)
 		FROM (
 			SELECT pageId
@@ -265,7 +262,7 @@ func GetNextAvailableId(db *database.DB) (string, error) {
 		return "", fmt.Errorf("Couldn't load id: %v", err)
 	}
 
-	nextAvailableId, err := IncrementBase31Id(db, highestUsedId)
+	nextAvailableId, err := IncrementBase31Id(tx.DB.C, highestUsedId)
 
 	return nextAvailableId, err
 }

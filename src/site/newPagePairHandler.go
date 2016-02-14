@@ -13,8 +13,8 @@ import (
 
 // newPagePairData contains the data we get in the request.
 type newPagePairData struct {
-	ParentId string `json:""`
-	ChildId  string `json:""`
+	ParentId string
+	ChildId  string
 	Type     string
 }
 
