@@ -41,7 +41,6 @@ var signupHandler = siteHandler{
 }
 
 func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	u := params.U
 	db := params.DB
 
 	decoder := json.NewDecoder(params.R.Body)
@@ -116,9 +115,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	karma := 0
 	if inviteCode == core.CorrectInviteCode {
 		karma = core.CorrectInviteKarma
-	}
-	if u.Karma > karma {
-		karma = u.Karma
 	}
 
 	// Prevent alias collision
