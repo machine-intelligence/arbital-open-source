@@ -19,15 +19,17 @@
 
 	<!-- Discussion -->
 	<div layout="column" layout-align="start center" flex="20">
-		<md-button ng-href="#discussion-{{page.pageId}}">
+		<md-button ng-href="#discussion-{{page.pageId}}"
+				ng-class="{'md-icon-button': isTinyScreen}">
 			<md-icon>comment</md-icon>
-			Discussion
+			<span ng-if="!isTinyScreen">Discussion</span>
 		</md-button>
 		<ng-pluralize class="md-caption"
 				count="page.commentIds.length" when="{
 					'0': 'No comments',
 					'one': '1 comment',
-					'other': '{} comments'}">
+					'other': '{} comments'}"
+				ng-if="!isTinyScreen">
 		</ng-pluralize>
 	</div>
 
@@ -39,6 +41,11 @@
 			<md-icon>create</md-icon>
 			<span ng-hide="isTinyScreen">Edit</span>
 		</md-button>
+		<span class="accent-dot" ng-show="page.hasDraft && isTinyScreen">
+			<md-tooltip md-delay="500" ng-if="page.hasDraft">
+				You have an unpublished draft
+			</md-tooltip>
+		</span>
 		<span class="md-accent md-caption" ng-if="page.hasDraft">
 			Unpublished draft
 		</span>
@@ -73,11 +80,6 @@
 				<md-button arb-user-check="cool" ng-click="toggleDiff()">
 					<md-icon>compare_arrows</md-icon>
 					<span ng-bind="showingDiff ? 'Hide changes' : 'View changes'"></span>
-					<span class="accent-dot" ng-show="page.hasDraft">
-						<md-tooltip md-delay="500" ng-if="page.hasDraft">
-							You have an unpublished draft
-						</md-tooltip>
-					</span>
 					<span class="primary-dot" ng-show="page.isUpdatedPage()">
 						<md-tooltip md-delay="500" ng-if="page.isUpdatedPage()">
 							This page has been updated since the last time you saw it
