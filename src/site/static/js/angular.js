@@ -86,7 +86,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
  	})
 	.when("/pages/:alias", {
  		template: "",
- 		controller: "PrimaryPageController",
+ 		controller: "RedirectToPrimaryPageController",
  		reloadOnSearch: false,
  	})
 	.when("/sequences/:pageId", {
@@ -110,7 +110,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "DomainPageController",
 		reloadOnSearch: false,
 	})
-	.when("/p/:alias/:title?", {
+	.when("/p/:alias", {
 		template: "",
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
@@ -356,6 +356,32 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 		};
 	}))
 	.error($scope.getErrorFunc("domainPage"));
+});
+
+app.controller("RedirectToPrimaryPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	// Get the primary page data
+	var postData = {
+		pageAlias: $routeParams.alias,
+	};
+	$http({method: "POST", url: "/json/redirectToPrimaryPage/", data: JSON.stringify(postData)})
+	.success($scope.getSuccessFunc(function(data){
+		var pageId = data;
+		if (!pageId) {
+			return {
+				title: "Not Found",
+				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
+			};
+		}
+		// Redirect to the primary page, but preserve all search variables
+		var search = $location.search();
+		$location.replace().url(pageService.getPageUrl(pageId));
+		for (var k in search) {
+			$location.search(k, search[k]);
+		}
+		return {
+		};
+	}))
+	.error($scope.getErrorFunc("redirectToPrimaryPage"));
 });
 
 app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {

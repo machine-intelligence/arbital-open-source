@@ -1612,6 +1612,36 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string,
 	return aliasToIdMap, nil
 }
 
+// LoadOldAliasToPageId converts the given old (base 10) page alias to page id.
+func LoadOldAliasToPageId(db *database.DB, alias string) (string, bool, error) {
+	aliasToUse := alias
+
+	rows := database.NewQuery(`
+		SELECT base10id,base36id
+		FROM base10tobase36
+		WHERE base10id=?`, alias).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var base10Id string
+		var base36Id string
+		err := rows.Scan(&base10Id, &base36Id)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		aliasToUse = base36Id
+		return nil
+	})
+	if err != nil {
+		return "", false, fmt.Errorf("Couldn't convert base10Id=>base36Id", err)
+	}
+
+	pageId, ok, err := LoadAliasToPageId(db, aliasToUse)
+	if err != nil {
+		return "", false, fmt.Errorf("Couldn't convert alias", err)
+	}
+
+	return pageId, ok, nil
+}
+
 // LoadAliasToPageId converts the given page alias to page id.
 func LoadAliasToPageId(db *database.DB, alias string) (string, bool, error) {
 	aliasToIdMap, err := LoadAliasToPageIdMap(db, []string{alias})
@@ -1632,7 +1662,7 @@ func LoadAliasAndPageId(db *database.DB, alias string) (string, string, bool, er
 	// return the matching alias->pageId entry, but not the matching pageId->pageId entry
 	for nextAlias, nextPageId := range aliasToIdMap {
 		if (nextAlias == strings.ToLower(alias) || nextPageId == strings.ToLower(alias)) && nextAlias != nextPageId {
-			return nextAlias, nextPageId, false, err
+			return nextAlias, nextPageId, true, err
 		}
 	}
 
