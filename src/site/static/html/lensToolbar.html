@@ -3,7 +3,7 @@
 		layout="row"
 		ng-if="!isSimpleEmbed">
 	<!-- Like -->
-	<div layout="column" layout-align="start center" flex="20">
+	<div layout="column" layout-align="start center" flex="25">
 		<arb-likes class="no-right-margin"
 				page-id="{{page.pageId}}"
 				is-stretched="true"
@@ -15,10 +15,10 @@
 	<arb-subscribe page-id="{{page.pageId}}"
 			is-stretched="!isTinyScreen"
 			show-subscriber-count="!isTinyScreen"
-			flex="20"></arb-subscribe>
+			flex="25"></arb-subscribe>
 
 	<!-- Discussion -->
-	<div layout="column" layout-align="start center" flex="20">
+	<div layout="column" layout-align="start center" flex="25">
 		<md-button ng-href="#discussion-{{page.pageId}}"
 				ng-class="{'md-icon-button': isTinyScreen}">
 			<md-icon>comment</md-icon>
@@ -34,7 +34,7 @@
 	</div>
 
 	<!-- Edit -->
-	<div layout="column" layout-align="start center" flex="20">
+	<div layout="column" layout-align="start center" flex="25">
 		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
 				ng-class="{'md-icon-button': isTinyScreen}"
 				arb-user-check="cool">
@@ -52,7 +52,7 @@
 	</div>
 	
 	<!-- Link -->
-	<div flex="20">
+	<div>
 		<md-button ng-href="{{pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId}}"
 				ng-show="page.type == 'answer'">
 			<md-icon>link</md-icon>

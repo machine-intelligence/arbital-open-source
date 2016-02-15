@@ -51,15 +51,15 @@
 
 			<!-- Bottom margin -->
 			<div layout="row" layout-align="start start" flex>
-				<div class="vote-bar-label left-text" flex="10" ng-bind="typeHelper.label1"></div>
+				<div class="vote-bar-label left-text" flex="{{isTinyScreen ? 20 : 10}}" ng-bind="typeHelper.label1"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label2"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label2" ng-if="!isTinyScreen"></div>
 				<div flex="15"></div>
 				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label3"></div>
 				<div flex="15"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label4"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label4" ng-if="!isTinyScreen"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label right-text" flex="10" ng-bind="typeHelper.label5"></div>
+				<div class="vote-bar-label right-text" flex="{{isTinyScreen ? 20 : 10}}" ng-bind="typeHelper.label5"></div>
 			</div>
 		</div>
 	</div>
