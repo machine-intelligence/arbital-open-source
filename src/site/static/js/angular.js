@@ -71,7 +71,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		.icon("format_header_pound", "static/icons/format-header-pound.svg");
 
 	$locationProvider.html5Mode(true);
-
+/*
 	// Set up mapping from URL path to specific controllers
 	$routeProvider
 	.when("/", {
@@ -159,6 +159,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "SettingsPageController",
 	});
+*/
 });
 
 // ArbitalCtrl is used across all pages.

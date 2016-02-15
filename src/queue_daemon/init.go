@@ -44,8 +44,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.AtMentionUpdateTask{}
 	} else if leasedTask.Tag == "memberUpdate" {
 		task = &tasks.MemberUpdateTask{}
-	} else if leasedTask.Tag == "emailUpdates" {
-		task = &tasks.EmailUpdatesTask{}
+		//	} else if leasedTask.Tag == "emailUpdates" {
+		//		task = &tasks.EmailUpdatesTask{}
 	} else if leasedTask.Tag == "sendOneEmail" {
 		task = &tasks.SendOneEmailTask{}
 	} else if leasedTask.Tag == "sendFeedbackEmail" {

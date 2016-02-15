@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	sessionKey = "arbitalSession" // key for session storage
+	sessionKey = "arbitalSession2" // key for session storage
 
 	// Highest karma lock a user can create is equal to their karma * this constant.
 	MaxKarmaLockFraction = 0.8

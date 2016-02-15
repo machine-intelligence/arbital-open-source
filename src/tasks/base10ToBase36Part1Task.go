@@ -388,6 +388,12 @@ WHERE 1;
 
 		doOneQuery(db, `DELETE FROM pagesandusers WHERE base10id=""`)
 
+		doOneQuery(db, `UPDATE pagesandusers SET createdAt = "0000-00-00 00:00:01" WHERE base10id = "1"`)  // Alexei
+		doOneQuery(db, `UPDATE pagesandusers SET createdAt = "0000-00-00 00:00:02" WHERE base10id = "9"`)  // Eliezer
+		doOneQuery(db, `UPDATE pagesandusers SET createdAt = "0000-00-00 00:00:03" WHERE base10id = "3"`)  // Paul
+		doOneQuery(db, `UPDATE pagesandusers SET createdAt = "0000-00-00 00:00:04" WHERE base10id = "62"`) // Robert
+		doOneQuery(db, `UPDATE pagesandusers SET createdAt = "0000-00-00 00:00:05" WHERE base10id = "92"`) // Eric
+
 		doOneQuery(db, `
 INSERT INTO base10tobase36 (base10id, createdAt)
 SELECT DISTINCT pagesandusers.base10id, pagesandusers.createdAt
