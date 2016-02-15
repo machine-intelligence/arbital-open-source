@@ -1,24 +1,24 @@
 <div class="full-height md-whiteframe-1dp"
-		ng-class="{'layout-row': fullView, 'layout-column': !fullView}"
+		ng-class="::{'layout-row': fullView, 'layout-column': !fullView}"
 		ng-keyup="handleKeyPress($event)">
 	<!-- Main edit column (left half) -->
 	<div class="md-primary"
 			layout="column"
-			flex="{{fullView ? '50' : undefined}}"
+			flex="::{{fullView ? '50' : undefined}}"
 			ng-hide="inPreview || (!fullView && otherDiff)">
-		<md-tabs ng-class="{'hide-tabs': isComment || isAnswer}"
+		<md-tabs ng-class="::{'hide-tabs': isComment || isAnswer}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
-				md-stretch-tabs="{{gtXSmallScreen ? 'always' : 'never'}}"
+				md-stretch-tabs="::{{gtXSmallScreen ? 'always' : 'never'}}"
 				layout="column"
 				flex>
 			<!-- (0) Title tab -->
-			<md-tab label="Title" ng-disabled="isComment || isAnswer">
+			<md-tab label="Title" ng-disabled="::(isComment || isAnswer)">
 				<div flex>
 					<div class="editor-tab" layout="column">
 						<md-input-container>
 							<label>Title</label>
-							<input ng-model="page.title" md-maxlength="{{isLens ? 50 : 100}}" autofocus default-tab-item="0">
+							<input ng-model="page.title" md-maxlength="::{{isLens ? 50 : 100}}" autofocus default-tab-item="0">
 						</md-input-container>
 						<md-input-container>
 							<label>Clickbait</label>
@@ -30,7 +30,7 @@
 						</md-input-container>
 					</div>
 					<!-- Related pages -->
-					<ng-include src="'static/html/editPageSimilarList.html'" ng-if="!isQuestion"></ng-include>
+					<ng-include src="'static/html/editPageSimilarList.html'" ng-if="::!isQuestion"></ng-include>
 				</div>
 			</md-tab>
 
@@ -44,7 +44,7 @@
 							ng-show="showInsertLink"></arb-autocomplete>
 
 					<!-- Markdown toolbar -->
-					<div id="wmd-button-bar{{page.pageId}}"
+					<div id="wmd-button-bar{{::page.pageId}}"
 							class="wmd-button-bar"
 						 	layout="row"
 							layout-align="start center"
@@ -66,22 +66,22 @@
 							<md-icon md-svg-icon="link_variant"></md-icon>
 							<md-tooltip>[Intrasite link] | Ctrl+;</md-tooltip>
 						</md-button>
-						<div layout="row" ng-show="gtSmallScreen">
-							<div class="separator" ng-hide="insideDiaog"></div>
-							<md-button class="wmd-new-page-button" ng-hide="insideDialog">
+						<div layout="row" ng-show="::gtSmallScreen">
+							<div class="separator" ng-hide="::insideDialog"></div>
+							<md-button class="wmd-new-page-button" ng-hide="::insideDialog">
 								<md-icon>note_add</md-icon>
 								<md-tooltip>[New page link] | Ctrl+P</md-tooltip>
 							</md-button>
-							<md-button class="wmd-new-child-button" ng-hide="insideDialog || !isWiki">
+							<md-button class="wmd-new-child-button" ng-hide="::(insideDialog || !isWiki)">
 								<md-icon>child_care</md-icon>
 								<md-tooltip>[New child link] | Ctrl+Shift+P</md-tooltip>
 							</md-button>
-							<md-button class="wmd-new-sibling-button" ng-hide="insideDialog || !isWiki">
+							<md-button class="wmd-new-sibling-button" ng-hide="::(insideDialog || !isWiki)">
 								<md-icon>people</md-icon>
 								<md-tooltip>[New sibling link] | Ctrl+Shift+S</md-tooltip>
 							</md-button>
 						</div>
-						<div layout="row" ng-show="gtXSmallScreen">
+						<div layout="row" ng-show="::gtXSmallScreen">
 							<div class="separator"></div>
 							<md-button class="wmd-quote-button">
 								<md-icon>format_quote</md-icon>
@@ -109,8 +109,8 @@
 							<md-icon md-svg-icon="format_header_pound"></md-icon>
 							<md-tooltip># Heading | Ctrl+H</md-tooltip>
 						</md-button>
-						<div layout="row" ng-show="gtXSmallScreen">
-							<md-button class="wmd-hr-button" ng-show="gtSmallScreen">
+						<div layout="row" ng-show="::gtXSmallScreen">
+							<md-button class="wmd-hr-button" ng-show="::gtSmallScreen">
 								<md-icon>remove</md-icon>
 								<md-tooltip>--- Line | Ctrl+E</md-tooltip>
 							</md-button>
@@ -125,11 +125,11 @@
 							</md-button>
 						</div>
 						<div flex></div>
-						<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}" ng-show="isEmbedded && !insideDialog">
+						<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}" ng-show="::(isEmbedded && !insideDialog)">
 							<md-icon>fullscreen</md-icon>
 							<md-tooltip>Go to full-windowed edit page</md-tooltip>
 						</md-button>
-						<div class="separator" ng-show="isEmbedded && !insideDialog"></div>
+						<div class="separator" ng-show="::(isEmbedded && !insideDialog)"></div>
 						<md-button href="http://math.stackexchange.com/editing-help" target="_blank">
 							<md-icon>live_help</md-icon>
 							<md-tooltip>Markdown editing help</md-tooltip>
@@ -138,7 +138,7 @@
 
 					<!-- Textarea for editing the page's text -->
 					<textarea class="wmd-input"
-							id="wmd-input{{page.pageId}}"
+							id="wmd-input{{::page.pageId}}"
 							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 							ng-model="page.text" autofocus
 							flex
@@ -147,34 +147,34 @@
 			</md-tab>
 
 			<!-- (2) Relationships tab -->
-			<md-tab label="Relationships" ng-disabled="isComment">
+			<md-tab label="Relationships" ng-disabled="::isComment">
 				<div class="editor-tab" flex>
 					<!-- Parents -->
 					<div arb-relationships class="edit-relationship-div"
-							page-id="{{page.pageId}}"
+							page-id="{{::page.pageId}}"
 							type="parent"
 							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></div>
+							readonly="::!(isWiki || isQuestion)"></div>
 					<!-- Tags -->
 					<div arb-relationships class="edit-relationship-div"
-							page-id="{{page.pageId}}"
+							page-id="{{::page.pageId}}"
 							type="tag"
 							force-edit-mode="true"
-							readonly="!(isWiki || isQuestion)"></div>
+							readonly="::!(isWiki || isQuestion)"></div>
 					<!-- Requirements -->
 					<div arb-relationships class="edit-relationship-div"
-							page-id="{{page.pageId}}"
+							page-id="{{::page.pageId}}"
 							type="requirement"
 							force-edit-mode="true"
-							readonly="!(isWiki || isLens)"></div>
+							readonly="::!(isWiki || isLens)"></div>
 					<!-- Teaches -->
 					<div arb-relationships class="edit-relationship-div"
-							page-id="{{page.pageId}}"
+							page-id="{{::page.pageId}}"
 							type="subject"
 							force-edit-mode="true"
-							readonly="!(isWiki || isLens)"></div>
+							readonly="::!(isWiki || isLens)"></div>
 					<!-- Lens ordering -->
-					<div class="edit-relationship-div" ng-if="!isLens">
+					<div class="edit-relationship-div" ng-if="::!isLens">
 						<div class="md-subhead">
 							<arb-page-title page-id="1407630090992422901"
 									is-link="true"
@@ -186,12 +186,12 @@
 						<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
 
 						<!-- List of lenses -->
-						<div data-as-sortable="lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
+						<div data-as-sortable="::lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
 							<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
 								<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
 									<md-icon>reorder</md-icon>
 									<span>#{{pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
-									<arb-page-title page-id="{{lensId}}" is-link="true"></arb-page-title>
+									<arb-page-title page-id="{{::lensId}}" is-link="true"></arb-page-title>
 								</div>
 							</div>
 						</div>
@@ -200,11 +200,11 @@
 			</md-tab>
 
 			<!-- (3) Settings tab -->
-			<md-tab label="Settings" ng-disabled="!(isWiki || isLens)">
+			<md-tab label="Settings" ng-disabled="::!(isWiki || isLens)">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<!-- Alias -->
-						<div layout="row" layout-ng-show="!isAnswer && !isComment && !isGroup">
+						<div layout="row" ng-show="::(!isAnswer && !isComment && !isGroup)">
 							<div layout="column" flex>
 								<md-input-container>
 									<label>Alias</label>
@@ -221,11 +221,11 @@
 						</div>
 					
 						<!-- See group id -->
-						<div layout="row" ng-if="!page.wasPublished">
+						<div layout="row" ng-if="::!page.wasPublished">
 							<md-input-container flex>
 								<label>See group</label>
 								<md-select ng-model="page.seeGroupId">
-									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
+									<md-option ng-repeat="(key,value) in ::groupOptions" value="{{key}}" ng-bind="value"></md-option>
 								</md-select>
 							</md-input-container>
 							<div class="md-caption" layout-margin flex>
@@ -238,7 +238,7 @@
 							<md-input-container flex>
 								<label>Edit group</label>
 								<md-select ng-model="page.editGroupId">
-									<md-option ng-repeat="(key,value) in groupOptions" value="{{key}}" ng-bind="value"></md-option>
+									<md-option ng-repeat="(key,value) in ::groupOptions" value="{{key}}" ng-bind="value"></md-option>
 								</md-select>
 							</md-input-container>
 							<div class="md-caption" layout-margin flex>
@@ -247,13 +247,13 @@
 						</div>
 					
 						<!-- Karma edit lock -->
-						<div layout="row" ng-show="userService.user.maxKarmaLock > 0 && !isComment">
+						<div layout="row" ng-show="::(userService.user.maxKarmaLock > 0 && !isComment)">
 							<div flex>
 								<label>Edit karma lock</label>
 								<md-slider aria-label="Edit karma lock"
 										md-discrete
 										ng-model="page.editKarmaLock"
-										step="10" min="0" max="{{userService.user.maxKarmaLock}}">
+										step="10" min="0" max="{{::userService.user.maxKarmaLock}}">
 								</md-slider>
 							</div>
 							<div class="md-caption" layout-margin flex>
@@ -266,32 +266,32 @@
 							<md-input-container flex>
 								<label>Page type</label>
 								<md-select ng-model="page.type" required="true">
-									<md-option ng-repeat="(key,value) in pageTypes" value="{{key}}" ng-bind="value"></md-option>
+									<md-option ng-repeat="(key,value) in ::pageTypes" value="{{key}}" ng-bind="value"></md-option>
 								</md-select>
 							</md-input-container>
 							<div class="md-caption" layout-margin flex>
-								<span ng-show="isWiki">
+								<span ng-show="::isWiki">
 									Standard wiki page
 								</span>
-								<span ng-show="isLens">
+								<span ng-show="::isLens">
 									A lens page is used to present the same material as another page but with a different emphasis
 								</span>
 							</div>
 						</div>
 					
 						<!-- Show/hide vote -->
-						<div layout="row" layout-margin ng-show="page.lockedVoteType != '' && isWiki">
+						<div layout="row" layout-margin ng-show="::(page.lockedVoteType != '' && isWiki)">
 							<md-switch ng-model="page.hasVote">
-								Show the {{page.lockedVoteType}} voting bar
+								Show the {{::page.lockedVoteType}} voting bar
 						  </md-switch>
 						</div>
 					
 						<!-- Vote type -->
-						<div layout="row" ng-show="page.lockedVoteType == '' && !isQuestion && !isComment">
+						<div layout="row" ng-show="::(page.lockedVoteType == '' && !isQuestion && !isComment)">
 							<md-input-container flex>
 								<label>Voting</label>
 								<md-select ng-model="page.voteType">
-									<md-option ng-repeat="(key,value) in voteTypes" value="{{key}}">
+									<md-option ng-repeat="(key,value) in ::voteTypes" value="{{key}}">
 										{{value}}
 									</md-option>
 								</md-select>
@@ -302,11 +302,11 @@
 						</div>
 					
 						<!-- Sort children option -->
-						<div layout="row" layout-align="start center" ng-show="!isSecondary">
+						<div layout="row" layout-align="start center" ng-show="::!isSecondary">
 							<md-input-container flex>
 								<label>Sort children</label>
 								<md-select ng-model="page.sortChildrenBy">
-									<md-option ng-repeat="(key,value) in sortTypes" value="{{key}}">
+									<md-option ng-repeat="(key,value) in ::sortTypes" value="{{key}}">
 										{{value}}
 									</md-option>
 								</md-select>
@@ -318,14 +318,14 @@
 						</div>
 
 						<!-- Is requisite -->
-						<div layout="row" layout-margin ng-show="isWiki">
+						<div layout="row" layout-margin ng-show="::isWiki">
 							<md-switch ng-model="page.isRequisite">
 								This page is used as a requisite
 						  </md-switch>
 						</div>
 					
 						<!-- Indirect teacher -->
-						<div layout="row" layout-margin ng-show="isWiki">
+						<div layout="row" layout-margin ng-show="::isWiki">
 							<md-switch ng-model="page.indirectTeacher">
 								This page teaches its requisites indirectly
 						  </md-switch>
@@ -340,41 +340,41 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog" ng-disabled="isComment || isAnswer">
-				<div class="md-caption" layout-padding ng-show="page.changeLogs.length <= 0">No changes yet</div>
+			<md-tab label="Changelog" ng-disabled="::(isComment || isAnswer)">
+				<div class="md-caption" layout-padding ng-show="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
-					<md-list-item ng-repeat="(index,changeLog) in page.changeLogs">
+					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">
 						<div layout="column">
 							<div>
-								<span ng-show="changeLog.auxPageId == '0'" ng-bind="changeLog.type">
+								<span ng-show="::(changeLog.auxPageId == '0')" ng-bind="::changeLog.type">
 								</span>
-								<span ng-show="changeLog.auxPageId != '0'">
+								<span ng-show="::(changeLog.auxPageId != '0')">
 									<a class="intrasite-link"
-											page-id="{{changeLog.auxPageId}}"
-											ng-href="{{pageService.getPageUrl(changeLog.auxPageId)}}"
-											ng-bind="changeLog.type"></a>
+											page-id="{{::changeLog.auxPageId}}"
+											ng-href="{{::pageService.getPageUrl(changeLog.auxPageId)}}"
+											ng-bind="::changeLog.type"></a>
 								</span>
-								<span ng-show="changeLog.edit != 0">(edit #{{changeLog.edit}})</span>
+								<span ng-show="::(changeLog.edit != 0)">(edit #{{::changeLog.edit}})</span>
 								by
 				
-								<span ng-show="userService.user.id === changeLog.userId">you</span>
-								<span ng-show="userService.user.id !== changeLog.userId">
-									<arb-user-name user-id="{{changeLog.userId}}"></arb-user-name>
+								<span ng-show="::(userService.user.id === changeLog.userId)">you</span>
+								<span ng-show="::(userService.user.id !== changeLog.userId)">
+									<arb-user-name user-id="{{::changeLog.userId}}"></arb-user-name>
 								</span>
 				
-								<span ng-bind="changeLog.createdAt | relativeDateTime"></span>
+								<span ng-bind="::(changeLog.createdAt | relativeDateTime)"></span>
 							</div>
 				
 							<!-- Extra functionality for new edits -->
-							<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit"
+							<div ng-show="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit)"
 									layout="row" layout-align="start center">
 								<md-button class="md-warn"
 										ng-click="revertToEdit(changeLog.edit)"
-										ng-show="changeLog.type === 'newEdit' && changeLog.edit !== page.currentEditNum">
+										ng-show="::(changeLog.type === 'newEdit' && changeLog.edit !== page.currentEditNum)">
 									<md-tooltip>Revert to this edit</md-tooltip>
 									Revert
 								</md-button>
-								<md-button ng-href="{{pageService.getEditPageUrl(page.pageId) + '/' + changeLog.edit}}"
+								<md-button ng-href="{{::(pageService.getEditPageUrl(page.pageId) + '/' + changeLog.edit)}}"
 										class="md-warn">
 									<md-tooltip>Load this edit in the editor</md-tooltip>
 									Load Edit
@@ -384,11 +384,11 @@
 									Diff
 								</md-button>
 							</div>
-							<div ng-show="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit">
+							<div ng-show="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit)">
 								Currently loaded
 							</div>
 						</div>
-						<md-divider ng-if="!$last"></md-divider>
+						<md-divider ng-if="::!$last"></md-divider>
 					</md-list-item>
 				</md-list>
 			</md-tab>
@@ -397,13 +397,13 @@
 		<!-- Related pages -->
 		<ng-include class="white-background"
 				src="'static/html/editPageSimilarList.html'"
-				ng-if="isQuestion && !fullView"></ng-include>
+				ng-if="::(isQuestion && !fullView)"></ng-include>
 
 		<!-- Footer -->
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
-			<div layout="column" ng-hide="isEmbedded">
-				<md-button ng-href="{{pageService.getPageUrl(page.pageId)}}" class="md-primary md-hue-1 md-raised">
+			<div layout="column" ng-hide="::isEmbedded">
+				<md-button ng-href="{{::pageService.getPageUrl(page.pageId)}}" class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
 					Back
 					<md-tooltip>
@@ -413,7 +413,7 @@
 			</div>
 			<div class="no-margins" flex></div>
 
-			<div layout="row" layout-align="end center" flex ng-hide="!gtXSmallScreen">
+			<div layout="row" layout-align="end center" flex ng-hide="::!gtXSmallScreen">
 				<div ng-show="autosaving">
 					Autosaving...
 				</div>
@@ -454,7 +454,7 @@
 						ng-click="publishPage()"
 						ng-disable="publishing || snapshotting">
 					<!-- Don't show for comments, because when inline comment gets created the tooltip remains -->
-					<md-tooltip ng-if="!isComment">Make this version live</md-tooltip>
+					<md-tooltip ng-if="::!isComment">Make this version live</md-tooltip>
 					Publish
 				</md-button>
 			</div>
@@ -462,13 +462,13 @@
 	</div>
 
 	<!-- Right half -->
-	<div ng-class="{'edit-page-rhs-border': fullView}"
+	<div ng-class="::{'edit-page-rhs-border': fullView}"
 			layout="column"
 			flex="{{fullView ? '50' : (inPreview || otherDiff) ? '' : 'none'}}">
 		<!-- Live preview -->
 		<md-content class="preview-area" flex ng-hide="(!fullView && !inPreview) || otherDiff">
 			<div class="md-display-3" ng-bind="page.title"></div>
-			<div id="wmd-preview{{page.pageId}}"></div>
+			<div id="wmd-preview{{::page.pageId}}"></div>
 			<div class="md-caption" ng-show="page.title === '' && page.text === ''">
 				<div class="md-display-3">Live preview</div>
 			</div>
@@ -513,7 +513,7 @@
 			</div>
 			<div flex></div>
 			<div layout-margin>
-				<md-button class="md-raised" ng-click="refreshDiff()" ng-show="fullView">
+				<md-button class="md-raised" ng-click="refreshDiff()" ng-show="::fullView">
 					<md-tooltip>Refresh the diff</md-tooltip>
 					Refresh
 				</md-button>
@@ -523,19 +523,19 @@
 		<!-- Messages -->
 		<md-list ng-hide="otherDiff">
 			<md-list-item class="no-margins"
-					ng-class="{error: 'md-warn md-body-2', warning: 'md-warn md-hue-1', info: 'md-primary md-hue-1'}[value.type]"
+					ng-class="::({error: 'md-warn md-body-2', warning: 'md-warn md-hue-1', info: 'md-primary md-hue-1'}[value.type])"
 					ng-repeat="(key,value) in messages">
 				<!-- Dismiss button -->
 				<md-button class="md-icon-button"
 						ng-click="deleteMessage(key)"
-						ng-hide="value.permanent">
+						ng-hide="::value.permanent">
 					<md-icon>close</md-icon>
 				</md-button>
-				<div ng-bind="value.text"></div>
+				<div ng-bind="::value.text"></div>
 			</md-list-item>
 		</md-list>
 
 		<!-- Related pages -->
-		<ng-include src="'static/html/editPageSimilarList.html'" ng-if="isQuestion && fullView"></ng-include>
+		<ng-include src="'static/html/editPageSimilarList.html'" ng-if="::(isQuestion && fullView)"></ng-include>
 	</div>
 </div>
