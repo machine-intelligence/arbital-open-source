@@ -1,18 +1,18 @@
-<div layout="column" ng-if="!isSpan">
+<div layout="column" ng-if="::!isSpan">
 	<!-- List of masteries -->
 	<div arb-requisite-button
-			requisite-id="{{masteryId}}"
-			allow-wants="allowWants"
+			requisite-id="{{::masteryId}}"
+			allow-wants="::allowWants"
 			hide-checkbox="hideCheckboxes"
-			ng-repeat="masteryId in idsSource">
+			ng-repeat="masteryId in ::idsSource">
 	</div>
 </div>
 
-<span ng-if="isSpan">
+<span ng-if="::isSpan">
 	<!-- List of masteries -->
-	<span ng-repeat="(index,masteryId) in idsSource">
-		<span ng-show="index > 0">,</span>
-		<span arb-requisite-button requisite-id="{{masteryId}}" allow-wants="allowWants">
+	<span ng-repeat="(index,masteryId) in ::idsSource">
+		<span ng-show="::(index > 0)">,</span>
+		<span arb-requisite-button requisite-id="{{::masteryId}}" allow-wants="::allowWants">
 		</span>
 	</span>
 </span>
