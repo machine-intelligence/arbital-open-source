@@ -29,55 +29,28 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Manually load some pages we like
 	featuredDomains := make([]*featuredDomain, 0)
 	// HARDCODED
-	/*
-		featuredDomains = append(featuredDomains,
-			&featuredDomain{
-				DomainId: "8639103000879599414",
-				ChildIds: []string{
-					"8639103000879599414", // VAT
-					"4213693741839491939", // List: value alignment subjects
-					"7722661858289734773", // Value alignment problem
-					"3158562585659930031", // Orthogonality theses
-					"6820582940749120623", // Ontology identification problem
-					"5534008569097047764", // Mindcrime
-					"6053065048861201341", // Diamond maximizer
-				},
-			}, &featuredDomain{
-				DomainId: "3560540392275264633",
-				ChildIds: []string{
-					"3560540392275264633", // What is Arbital
-					"8138584842800103864", // Arbital blog
-					"5092144177314150382", // Arbital features
-					"8992241719442104138", // Parents and children
-					"5933317145970853046", // Editing
-					"4675907493088898985", // Liking
-					"8676677094741262267", // Voting
-				},
-			},
-		)
-	*/
 	featuredDomains = append(featuredDomains,
 		&featuredDomain{
-			DomainId: "2s",
+			DomainId: "2v",
 			ChildIds: []string{
-				"2s", // VAT
-				"3d", // List: value alignment subjects
-				"5q", // Value alignment problem
-				"1w", // Orthogonality theses
-				"59", // Ontology identification problem
-				"6s", // Mindcrime
-				"5d", // Diamond maximizer
+				"2v", // VAT
+				"3g", // List: value alignment subjects
+				"5s", // Value alignment problem
+				"1y", // Orthogonality theses
+				"5c", // Ontology identification problem
+				"6v", // Mindcrime
+				"5g", // Diamond maximizer
 			},
 		}, &featuredDomain{
-			DomainId: "3b",
+			DomainId: "3d",
 			ChildIds: []string{
-				"3b",  // What is Arbital
-				"16p", // Arbital blog
-				"14p", // Arbital features
-				"3l",  // Parents and children
-				"3s",  // Editing
-				"3m",  // Liking
-				"3p",  // Voting
+				"3d",  // What is Arbital
+				"16q", // Arbital blog
+				"14q", // Arbital features
+				"3n",  // Parents and children
+				"3v",  // Editing
+				"3p",  // Liking
+				"3r",  // Voting
 			},
 		},
 	)
@@ -92,7 +65,6 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	// Display this page fully
 	// HARDCODED
-	//core.AddPageToMap("3440973961008233681", returnData.PageMap, core.PrimaryPageLoadOptions)
 	core.AddPageToMap("1k0", returnData.PageMap, core.PrimaryPageLoadOptions)
 
 	// Load pages.

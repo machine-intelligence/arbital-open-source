@@ -436,6 +436,7 @@ UPDATE votes SET pageId = pageIdBase36 WHERE 1;
 SELECT pageId FROM pages WHERE pageIdProcessed = 0 UNION
 SELECT creatorId FROM pages WHERE creatorIdProcessed = 0 UNION
 
+SELECT userId FROM changeLogs WHERE userIdProcessed = 0 UNION
 SELECT pageId FROM changeLogs WHERE pageIdProcessed = 0 UNION
 SELECT auxPageId FROM changeLogs WHERE auxPageIdProcessed = 0 UNION
 
@@ -446,6 +447,7 @@ SELECT userId FROM likes WHERE userIdProcessed = 0 UNION
 SELECT pageId FROM likes WHERE pageIdProcessed = 0 UNION
 
 SELECT parentId FROM links WHERE parentIdProcessed = 0 UNION
+SELECT childAlias FROM links WHERE childAliasProcessed = 0 UNION
 
 SELECT pageId FROM pageDomainPairs WHERE pageIdProcessed = 0 UNION
 SELECT domainId FROM pageDomainPairs WHERE domainIdProcessed = 0 UNION
@@ -455,6 +457,7 @@ SELECT lockedBy FROM pageInfos WHERE lockedByProcessed = 0 UNION
 SELECT seeGroupId FROM pageInfos WHERE seeGroupIdProcessed = 0 UNION
 SELECT editGroupId FROM pageInfos WHERE editGroupIdProcessed = 0 UNION
 SELECT createdBy FROM pageInfos WHERE createdByProcessed = 0 UNION
+SELECT alias FROM pageInfos WHERE aliasProcessed = 0 UNION
 
 SELECT parentId FROM pagePairs WHERE parentIdProcessed = 0 UNION
 SELECT childId FROM pagePairs WHERE childIdProcessed = 0 UNION
@@ -592,6 +595,65 @@ SELECT pageId FROM visits WHERE pageIdBase36 != pageId UNION
 
 SELECT userId FROM votes WHERE userIdBase36 != userId UNION
 SELECT pageId FROM votes WHERE pageIdBase36 != pageId ;
+
+
+
+
+
+
+
+
+SELECT pageId, createdAt, pageIdBase10, pageIdBase36 FROM pages WHERE pageIdBase36 != pageId UNION
+SELECT creatorId, createdAt, creatorIdBase10, creatorIdBase36 FROM pages WHERE creatorIdBase36 != creatorId UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM changeLogs WHERE userIdBase36 != userId UNION
+SELECT pageId, createdAt, pageIdBase10, pageIdBase36 FROM changeLogs WHERE pageIdBase36 != pageId UNION
+SELECT auxPageId, createdAt, auxPageIdBase10, auxPageIdBase36 FROM changeLogs WHERE auxPageIdBase36 != auxPageId UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM groupMembers WHERE userIdBase36 != userId UNION
+SELECT groupId, createdAt, groupIdBase10, groupIdBase36 FROM groupMembers WHERE groupIdBase36 != groupId UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM likes WHERE userIdBase36 != userId UNION
+SELECT pageId, createdAt, pageIdBase10, pageIdBase36 FROM likes WHERE pageIdBase36 != pageId UNION
+
+SELECT parentId, parentIdBase10, parentIdBase36 FROM links WHERE parentIdBase36 != parentId UNION
+SELECT childAlias, childAliasBase10, childAliasBase36 FROM links WHERE childAliasBase36 != childAlias UNION
+
+SELECT pageId, pageIdBase10, pageIdBase36 FROM pageDomainPairs WHERE pageIdBase36 != pageId UNION
+SELECT domainId, domainIdBase10, domainIdBase36 FROM pageDomainPairs WHERE domainIdBase36 != domainId UNION
+
+SELECT pageId, createdAt, pageIdBase10, pageIdBase36 FROM pageInfos WHERE pageIdBase36 != pageId UNION
+SELECT lockedBy, createdAt, lockedByBase10, lockedByBase36 FROM pageInfos WHERE lockedByBase36 != lockedBy UNION
+SELECT seeGroupId, createdAt, seeGroupIdBase10, seeGroupIdBase36 FROM pageInfos WHERE seeGroupIdBase36 != seeGroupId UNION
+SELECT editGroupId, createdAt, editGroupIdBase10, editGroupIdBase36 FROM pageInfos WHERE editGroupIdBase36 != editGroupId UNION
+SELECT createdBy, createdAt, createdByBase10, createdByBase36 FROM pageInfos WHERE createdByBase36 != createdBy UNION
+SELECT alias, createdAt, aliasBase10, aliasBase36 FROM pageInfos WHERE aliasBase36 != alias UNION
+
+SELECT parentId, parentIdBase10, parentIdBase36 FROM pagePairs WHERE parentIdBase36 != parentId UNION
+SELECT childId, childIdBase10, childIdBase36 FROM pagePairs WHERE childIdBase36 != childId UNION
+
+SELECT pageId, pageIdBase10, pageIdBase36 FROM pageSummaries WHERE pageIdBase36 != pageId UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM subscriptions WHERE userIdBase36 != userId UNION
+SELECT toId, createdAt, toIdBase10, toIdBase36 FROM subscriptions WHERE toIdBase36 != toId UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM updates WHERE userIdBase36 != userId UNION
+SELECT groupByPageId, createdAt, groupByPageIdBase10, groupByPageIdBase36 FROM updates WHERE groupByPageIdBase36 != groupByPageId UNION
+SELECT groupByUserId, createdAt, groupByUserIdBase10, groupByUserIdBase36 FROM updates WHERE groupByUserIdBase36 != groupByUserId UNION
+SELECT subscribedToId, createdAt, subscribedToIdBase10, subscribedToIdBase36 FROM updates WHERE subscribedToIdBase36 != subscribedToId UNION
+SELECT goToPageId, createdAt, goToPageIdBase10, goToPageIdBase36 FROM updates WHERE goToPageIdBase36 != goToPageId UNION
+SELECT byUserId, createdAt, byUserIdBase10, byUserIdBase36 FROM updates WHERE byUserIdBase36 != byUserId UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM userMasteryPairs WHERE userIdBase36 != userId UNION
+SELECT masteryId, createdAt, masteryIdBase10, masteryIdBase36 FROM userMasteryPairs WHERE masteryIdBase36 != masteryId UNION
+
+SELECT id, createdAt, idBase10, idBase36 FROM users WHERE idBase36 != id UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM visits WHERE userIdBase36 != userId UNION
+SELECT pageId, createdAt, pageIdBase10, pageIdBase36 FROM visits WHERE pageIdBase36 != pageId UNION
+
+SELECT userId, createdAt, userIdBase10, userIdBase36 FROM votes WHERE userIdBase36 != userId UNION
+SELECT pageId, createdAt, pageIdBase10, pageIdBase36 FROM votes WHERE pageIdBase36 != pageId ;
 
 
 
