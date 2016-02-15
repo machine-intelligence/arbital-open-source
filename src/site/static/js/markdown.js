@@ -76,18 +76,23 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(b: ?[^\n]+?\n)" + // choice, e.g. "b: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(c: ?[^\n]+?\n)?" + // choice, e.g. "c: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(d: ?[^\n]+?\n)?" + // choice, e.g. "d: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(e: ?[^\n]+?\n)?" + // choice, e.g. "e: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function () {
@@ -352,11 +357,8 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			}
 		});
 
-		var index = 0;
-		$pageText.find("arb-multiple-choice").each(function() {
-			$(this).attr("index", index++);
-		});
-		$pageText.find("arb-checkbox").each(function() {
+		var index = 1; // start with 1, because masteryMap is at 0 (see pageService.js)
+		$pageText.find("arb-multiple-choice,arb-checkbox").each(function() {
 			$(this).attr("index", index++);
 		});
 		// NOTE: have to compile children individually because otherwise there is a bug

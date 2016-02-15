@@ -491,14 +491,14 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 			$scope.toggleRequirement = function() {
 				if (pageService.hasMastery($scope.requisiteId)) {
 					if ($scope.allowWants) {
-						pageService.updateMasteries([], [], [$scope.requisiteId]);
+						pageService.updateMasteryMap({wants: [$scope.requisiteId]});
 					} else {
-						pageService.updateMasteries([], [$scope.requisiteId], []);
+						pageService.updateMasteryMap({delete: [$scope.requisiteId]});
 					}
 				} else if (pageService.wantsMastery($scope.requisiteId)) {
-					pageService.updateMasteries([], [$scope.requisiteId], []);
+					pageService.updateMasteryMap({delete: [$scope.requisiteId]});
 				} else {
-					pageService.updateMasteries([$scope.requisiteId], [], []);
+					pageService.updateMasteryMap({knows: [$scope.requisiteId]});
 				}
 			};
 		},

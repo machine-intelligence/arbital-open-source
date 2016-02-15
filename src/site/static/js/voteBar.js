@@ -1,5 +1,5 @@
 // Directive for showing a vote bar.
-app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, userService) {
+app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: "static/html/voteBar.html",
 		scope: {
@@ -11,6 +11,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, pageService, use
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
+			scope.isTinyScreen = !$mdMedia("gt-xs");
 			var userId = userService.user.id;
 
 			// Value of the current user's vote

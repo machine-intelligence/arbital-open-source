@@ -14,11 +14,12 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 			$scope.choice = "";
 			$scope.knows = {};
 			$scope.wants = {};
+			$scope.forgets = {};
 
 			// Called when a user makes a choice
 			$scope.choiceChanged = function() {
-				pageService.setQuestionAnswer($scope.index, $scope.choice,
-						$scope.knows[$scope.choice], $scope.wants[$scope.choice]);
+				pageService.setQuestionAnswer($scope.index,
+						$scope.knows[$scope.choice], $scope.wants[$scope.choice], $scope.forgets[$scope.choice]);
 			};
 		},
 		link: function(scope, element, attrs) {
@@ -29,6 +30,7 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 				// For each answer, extract "knows" and "wants"
 				scope.knows[answerValue] = [];
 				scope.wants[answerValue] = [];
+				scope.forgets[answerValue] = [];
 				$(this).find("ul > li").each(function() {
 					var text = $(this).text();
 					if (text.startsWith("knows:")) {
@@ -38,6 +40,10 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 					} else if (text.startsWith("wants:")) {
 						$(this).children("a").each(function() {
 							scope.wants[answerValue].push($(this).attr("page-id"));
+						});
+					} else if (text.startsWith("forgets:")) {
+						$(this).children("a").each(function() {
+							scope.forgets[answerValue].push($(this).attr("page-id"));
 						});
 					}
 				});

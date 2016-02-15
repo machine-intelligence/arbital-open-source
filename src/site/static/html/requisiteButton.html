@@ -6,13 +6,14 @@
 		check_box
 		<md-tooltip>You know this</md-tooltip>
 	</md-icon>
-	<md-icon ng-show="!pageService.hasMastery(requisiteId) && pageService.wantsMastery(requisiteId)">
+	<md-icon ng-show="pageService.wantsMastery(requisiteId)">
 		bookmark
 		<md-tooltip>You want to learn this</md-tooltip>
 	</md-icon>
-	<md-icon ng-show="!pageService.hasMastery(requisiteId) && !pageService.wantsMastery(requisiteId)">
+	<md-icon ng-show="pageService.nullMastery(requisiteId)">
 		check_box_outline_blank
 		<md-tooltip>You don't know this</md-tooltip>
 	</md-icon>
 </md-button>
+<span ng-show="hideCheckbox">&bull;</span>
 <arb-page-title page-id="{{requisiteId}}" is-link="true" ng-if="!hideTitle"></arb-page-title>
