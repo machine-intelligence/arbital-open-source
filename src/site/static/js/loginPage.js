@@ -29,7 +29,11 @@ app.directive("arbLogin", function($location, $http, pageService, userService) {
 						};
 						$http({method: "POST", url: "/signup/", data: JSON.stringify(data)})
 						.success(function(data, status){
-							window.location.href = $location.search().continueUrl || "/";
+							var defaultPath = $location.path();
+							if (defaultPath.indexOf("/login/") >= 0 || defaultPath.indexOf("/signup/") >= 0) {
+								defaultPath = "/";
+							}
+							window.location.href = $location.search().continueUrl || defaultPath;
 						})
 						.error(function(data, status){
 							console.error("Error FB signup:"); console.log(data); console.log(status);

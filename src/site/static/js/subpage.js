@@ -25,7 +25,17 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 			$scope.isCollapsed = false;
 
 			if ($scope.isComment) {
-				$scope.myUrl = pageService.getPageUrl($scope.lensId) + "#subpage-" + $scope.page.pageId;
+				var url = pageService.getPageUrl($scope.lensId);
+				var hashIndex = url.indexOf("#");
+				if (hashIndex > 0) {
+					url = url.slice(0, hashIndex);
+				}
+				if (url.indexOf("?") < 0) {
+					// We have to set the lens explicitly, so we don't get automatically 
+					// redirected to an easier lens or something.
+					url += "?lens=" + $scope.lensId;
+				}
+				$scope.myUrl = url + "#subpage-" + $scope.page.pageId;
 			} else {
 				$scope.myUrl = pageService.getPageUrl($scope.page.pageId);
 			}

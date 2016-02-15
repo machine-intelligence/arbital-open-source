@@ -15,8 +15,12 @@ app.directive("arbSignup", function($location, $http, pageService, userService) 
 				submitForm($(event.currentTarget), "/signup/", $scope.formData, function(r) {
 					$scope.$apply(function() {
 						$scope.signupSuccess = true;
+						$scope.normalError = undefined;
 					});
 				}, function() {
+					$scope.$apply(function() {
+						$scope.normalError = "(Check if your password meets the requirements.)";
+					});
 				});
 			};
 
