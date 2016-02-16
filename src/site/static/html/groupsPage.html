@@ -2,11 +2,11 @@
 	<div class="md-whiteframe-1dp"
 			layout="column"
 			style="margin: 15px 0"
-			ng-repeat="(groupId,group) in groupMap"
+			ng-repeat="(groupId,group) in ::groupMap"
 			ng-init="userCanAddMembers = group.members[userService.user.id].canAddMembers; userCanAdmin = group.members[userService.user.id].canAdmin">
 		<md-toolbar class="md-hue-2">
 			<div class="md-toolbar-tools">
-				<arb-page-title page-id="{{groupId}}" is-link="true"><arb-page-title>
+				<arb-page-title page-id="{{::groupId}}" is-link="true"><arb-page-title>
 			</div>
 		</md-toolbar>
 	
@@ -24,24 +24,24 @@
 				layout-align="start center"
 				layout-margin
 				ng-repeat="(memberId,member) in group.members">
-				<arb-user-name user-id="{{memberId}}" flex></arb-user-name>
+				<arb-user-name user-id="{{::memberId}}" flex></arb-user-name>
 			<md-checkbox ng-model="member.canAddMembers"
 					ng-change="updateMemberPermissions(groupId, memberId)"
 					ng-disabled="!userCanAddMembers || member.canAdmin" flex></md-checkbox>
 			<md-checkbox ng-model="member.canAdmin"
 					ng-change="updateMemberPermissions(groupId, memberId)"
-					ng-disabled="!userCanAdmin" flex></md-checkbox>
+					ng-disabled="::!userCanAdmin" flex></md-checkbox>
 			<div flex>
 				<md-button class="md-icon-button md-warn md-raised"
 						ng-click="removeFromGroup(groupId, memberId)"
-						ng-show="userCanAddMembers && !(member.canAdmin && !userCanAdmin)">
+						ng-if="userCanAddMembers && !(member.canAdmin && !userCanAdmin)">
 					<md-icon>delete</md-icon>
 				</md-button>
 			</div>
 		</div>
 		
 		<!-- New Member form -->
-		<div ng-show="userCanAddMembers">
+		<div ng-if="::userCanAddMembers">
 			<form layout="row"
 					layout-align="start center"
 					layout-margin
@@ -59,7 +59,7 @@
 	</div>
 	
 	<!-- Create new group -->
-	<div class="md-whiteframe-1dp" layout-margin ng-show="userService.user.isAdmin">
+	<div class="md-whiteframe-1dp" layout-margin ng-if="::userService.user.isAdmin">
 		<md-toolbar class="md-hue-1" layout-fill>
 			<div class="md-toolbar-tools">
 				New group

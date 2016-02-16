@@ -8,18 +8,18 @@
 		
 		<div layout-padding>
 			<div>
-				To learn about <arb-page-title page-id="{{sequence.pageId}}" is-link="true"></arb-page-title>, we suggest you acquire the following requisites:
+				To learn about <arb-page-title page-id="{{::sequence.pageId}}" is-link="true"></arb-page-title>, we suggest you acquire the following requisites:
 			</div>
-			<div arb-sequence-part part="sequence"></div>
-			<div layout="column" ng-if="!pageService.hasMastery(sequence.pageId)">
+			<div arb-sequence-part part="::sequence"></div>
+			<div layout="column" ng-if="::!pageService.hasMastery(sequence.pageId)">
 				<md-button class="md-primary md-raised" ng-click="startReading()">
 					Start reading
 				</md-button>
 			</div>
-			<div ng-if="pageService.hasMastery(sequence.pageId)">
+			<div ng-if="::pageService.hasMastery(sequence.pageId)">
 				Looks like you are done.
 			</div>
-			<div class="md-warn" ng-show="isSequenceEmpty">
+			<div class="md-warn" ng-if="::isSequenceEmpty">
 				Looks like there is nothing for you to read here.
 			</div>
 		</div>
