@@ -764,21 +764,33 @@ app.service("pageService", function($http, $location, userService){
 		}
 		for (var n = 0; n < delKnows.length; n++) {
 			var masteryId = delKnows[n];
-			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: false, delHas: true};
+			if (masteryId in masteryMap) {
+				masteryMap[masteryId].delHas = true;
+			} else {
+				masteryMap[masteryId] = {pageId: masteryId, has: false, wants: false, delHas: true};
+			}
 			if (affectedMasteryIds.indexOf(masteryId) < 0) {
 				affectedMasteryIds.push(masteryId);
 			}
 		}
 		for (var n = 0; n < wants.length; n++) {
 			var masteryId = wants[n];
-			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: true};
+			if (masteryId in masteryMap) {
+				masteryMap[masteryId].wants = true;
+			} else {
+				masteryMap[masteryId] = {pageId: masteryId, has: false, wants: true};
+			}
 			if (affectedMasteryIds.indexOf(masteryId) < 0) {
 				affectedMasteryIds.push(masteryId);
 			}
 		}
 		for (var n = 0; n < knows.length; n++) {
 			var masteryId = knows[n];
-			masteryMap[masteryId] = {pageId: masteryId, has: true, wants: false};
+			if (masteryId in masteryMap) {
+				masteryMap[masteryId].has = true;
+			} else {
+				masteryMap[masteryId] = {pageId: masteryId, has: true, wants: false};
+			}
 			if (affectedMasteryIds.indexOf(masteryId) < 0) {
 				affectedMasteryIds.push(masteryId);
 			}
