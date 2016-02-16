@@ -33,9 +33,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			};
 
 			// Check if summaries are loaded
-			$scope.isLoaded = function() {
-				return $scope.summaries.length > 0;
-			};
+			$scope.isLoaded = undefined;
 		},
 		link: function(scope, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
@@ -62,6 +60,9 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				scope.summaries.sort(function(a, b) {
 					return nameToTabIndex(a.name) > nameToTabIndex(b.name);
 				});
+				if (scope.summaries.length > 0) {
+					scope.isLoaded = true;
+				}
 			};
 
 			processPageSummaries();
