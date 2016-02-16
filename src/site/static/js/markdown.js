@@ -76,23 +76,28 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(b: ?[^\n]+?\n)" + // choice, e.g. "b: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(c: ?[^\n]+?\n)?" + // choice, e.g. "c: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(d: ?[^\n]+?\n)?" + // choice, e.g. "d: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(e: ?[^\n]+?\n)?" + // choice, e.g. "e: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function () {

@@ -315,7 +315,7 @@ app.service("pageService", function($http, $location, userService){
 		// Return just the title to display for a lens.
 		lensTitle: function() {
 			var parts = this.title.split(":");
-			return parts[parts.length - 1];
+			return parts[parts.length - 1].trim();
 		},
 	};
 	
@@ -716,7 +716,8 @@ app.service("pageService", function($http, $location, userService){
 			if (masteryMap && masteryId in masteryMap) {
 				var mastery = masteryMap[masteryId];
 				if (!mastery.has && !mastery.wants) {
-					has = false;
+					if (mastery.delHas) has = false;
+					if (mastery.delWants) wants = false;
 				} else if (mastery.wants) {
 					wants = true;
 				} else if (mastery.has) {
@@ -746,7 +747,7 @@ app.service("pageService", function($http, $location, userService){
 
 	// =========== Questionnaire helpers ====================
 	// Map questionIndex -> {knows: [ids], wants: [ids], forgets: [ids]}
-	this.setQuestionAnswer = function(qIndex, aKnows, aWants, aForgets) {
+	this.setQuestionAnswer = function(qIndex, knows, wants, delKnows, delWants) {
 		if (qIndex <= 0) {
 			return console.error("qIndex has to be > 0");
 		}
@@ -754,22 +755,29 @@ app.service("pageService", function($http, $location, userService){
 		var affectedMasteryIds = (qIndex in this.masteryMapList) ? Object.keys(this.masteryMapList[qIndex]) : [];
 		// Compute new mastery map
 		var masteryMap = {};
-		for (var n = 0; n < aForgets.length; n++) {
-			var masteryId = aForgets[n];
-			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: false};
+		for (var n = 0; n < delWants.length; n++) {
+			var masteryId = delWants[n];
+			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: false, delWants: true};
 			if (affectedMasteryIds.indexOf(masteryId) < 0) {
 				affectedMasteryIds.push(masteryId);
 			}
 		}
-		for (var n = 0; n < aWants.length; n++) {
-			var masteryId = aWants[n];
+		for (var n = 0; n < delKnows.length; n++) {
+			var masteryId = delKnows[n];
+			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: false, delHas: true};
+			if (affectedMasteryIds.indexOf(masteryId) < 0) {
+				affectedMasteryIds.push(masteryId);
+			}
+		}
+		for (var n = 0; n < wants.length; n++) {
+			var masteryId = wants[n];
 			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: true};
 			if (affectedMasteryIds.indexOf(masteryId) < 0) {
 				affectedMasteryIds.push(masteryId);
 			}
 		}
-		for (var n = 0; n < aKnows.length; n++) {
-			var masteryId = aKnows[n];
+		for (var n = 0; n < knows.length; n++) {
+			var masteryId = knows[n];
 			masteryMap[masteryId] = {pageId: masteryId, has: true, wants: false};
 			if (affectedMasteryIds.indexOf(masteryId) < 0) {
 				affectedMasteryIds.push(masteryId);
