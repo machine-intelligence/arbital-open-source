@@ -73,7 +73,6 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	$locationProvider.html5Mode(true);
 	// Set up mapping from URL path to specific controllers
 	$routeProvider
-/*
 	.when("/", {
 		template: "",
 		controller: "IndexPageController",
@@ -143,7 +142,6 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "GroupsPageController",
 	})
-*/
 	.when("/signup/", {
 		template: "",
 		controller: "SignupPageController",
@@ -152,7 +150,6 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "LoginPageController",
 	})
-/*
 	.when("/requisites/", {
 		template: "",
 		controller: "RequisitesPageController",
@@ -160,9 +157,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/settings/", {
 		template: "",
 		controller: "SettingsPageController",
-	})
-*/
-	;
+	});
 });
 
 // ArbitalCtrl is used across all pages.

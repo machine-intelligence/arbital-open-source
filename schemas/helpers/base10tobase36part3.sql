@@ -603,6 +603,65 @@ SELECT pageId FROM votes WHERE pageIdBase36 != pageId ;
 
 
 
+SELECT pageId, pageIdBase10, pageIdBase36 FROM pages WHERE pageIdBase36 != pageId UNION
+SELECT creatorId, creatorIdBase10, creatorIdBase36 FROM pages WHERE creatorIdBase36 != creatorId UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM changeLogs WHERE userIdBase36 != userId UNION
+SELECT pageId, pageIdBase10, pageIdBase36 FROM changeLogs WHERE pageIdBase36 != pageId UNION
+SELECT auxPageId, auxPageIdBase10, auxPageIdBase36 FROM changeLogs WHERE auxPageIdBase36 != auxPageId UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM groupMembers WHERE userIdBase36 != userId UNION
+SELECT groupId, groupIdBase10, groupIdBase36 FROM groupMembers WHERE groupIdBase36 != groupId UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM likes WHERE userIdBase36 != userId UNION
+SELECT pageId, pageIdBase10, pageIdBase36 FROM likes WHERE pageIdBase36 != pageId UNION
+
+SELECT parentId, parentIdBase10, parentIdBase36 FROM links WHERE parentIdBase36 != parentId UNION
+SELECT childAlias, childAliasBase10, childAliasBase36 FROM links WHERE childAliasBase36 != childAlias UNION
+
+SELECT pageId, pageIdBase10, pageIdBase36 FROM pageDomainPairs WHERE pageIdBase36 != pageId UNION
+SELECT domainId, domainIdBase10, domainIdBase36 FROM pageDomainPairs WHERE domainIdBase36 != domainId UNION
+
+SELECT pageId, pageIdBase10, pageIdBase36 FROM pageInfos WHERE pageIdBase36 != pageId UNION
+SELECT lockedBy, lockedByBase10, lockedByBase36 FROM pageInfos WHERE lockedByBase36 != lockedBy UNION
+SELECT seeGroupId, seeGroupIdBase10, seeGroupIdBase36 FROM pageInfos WHERE seeGroupIdBase36 != seeGroupId UNION
+SELECT editGroupId, editGroupIdBase10, editGroupIdBase36 FROM pageInfos WHERE editGroupIdBase36 != editGroupId UNION
+SELECT createdBy, createdByBase10, createdByBase36 FROM pageInfos WHERE createdByBase36 != createdBy UNION
+SELECT alias, aliasBase10, aliasBase36 FROM pageInfos WHERE aliasBase36 != alias UNION
+
+SELECT parentId, parentIdBase10, parentIdBase36 FROM pagePairs WHERE parentIdBase36 != parentId UNION
+SELECT childId, childIdBase10, childIdBase36 FROM pagePairs WHERE childIdBase36 != childId UNION
+
+SELECT pageId, pageIdBase10, pageIdBase36 FROM pageSummaries WHERE pageIdBase36 != pageId UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM subscriptions WHERE userIdBase36 != userId UNION
+SELECT toId, toIdBase10, toIdBase36 FROM subscriptions WHERE toIdBase36 != toId UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM updates WHERE userIdBase36 != userId UNION
+SELECT groupByPageId, groupByPageIdBase10, groupByPageIdBase36 FROM updates WHERE groupByPageIdBase36 != groupByPageId UNION
+SELECT groupByUserId, groupByUserIdBase10, groupByUserIdBase36 FROM updates WHERE groupByUserIdBase36 != groupByUserId UNION
+SELECT subscribedToId, subscribedToIdBase10, subscribedToIdBase36 FROM updates WHERE subscribedToIdBase36 != subscribedToId UNION
+SELECT goToPageId, goToPageIdBase10, goToPageIdBase36 FROM updates WHERE goToPageIdBase36 != goToPageId UNION
+SELECT byUserId, byUserIdBase10, byUserIdBase36 FROM updates WHERE byUserIdBase36 != byUserId UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM userMasteryPairs WHERE userIdBase36 != userId UNION
+SELECT masteryId, masteryIdBase10, masteryIdBase36 FROM userMasteryPairs WHERE masteryIdBase36 != masteryId UNION
+
+SELECT id, idBase10, idBase36 FROM users WHERE idBase36 != id UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM visits WHERE userIdBase36 != userId UNION
+SELECT pageId, pageIdBase10, pageIdBase36 FROM visits WHERE pageIdBase36 != pageId UNION
+
+SELECT userId, userIdBase10, userIdBase36 FROM votes WHERE userIdBase36 != userId UNION
+SELECT pageId, pageIdBase10, pageIdBase36 FROM votes WHERE pageIdBase36 != pageId ;
+
+
+
+
+
+
+
+
 SELECT pageId, createdAt, pageIdBase10, pageIdBase36 FROM pages WHERE pageIdBase36 != pageId UNION
 SELECT creatorId, createdAt, creatorIdBase10, creatorIdBase36 FROM pages WHERE creatorIdBase36 != creatorId UNION
 
@@ -811,6 +870,5 @@ SELECT base10id, base36id FROM base10tobase36 WHERE base10id IN (
 6686682198220623534,
 1407630090992422901
 )
-
 
 
