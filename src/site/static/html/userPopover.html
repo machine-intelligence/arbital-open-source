@@ -5,26 +5,26 @@
 	<div class="popover-body md-whiteframe-8dp">
 		<md-toolbar>
 			<div class="md-toolbar-tools">
-				<arb-user-name user-id="{{userId}}" is-link="true" ng-if="isLoaded()"></arb-user-name>
+				<arb-user-name user-id="{{::userId}}" is-link="true" ng-if="::isLoaded"></arb-user-name>
 			</div>
 		</md-toolbar>
 	
-		<arb-vote-bar page-id="{{userId}}"
+		<arb-vote-bar page-id="{{::userId}}"
 				is-embedded="true"
-				ng-if="page.hasVote && isLoaded()"></arb-vote-bar> 
+				ng-if="::(page.hasVote && isLoaded)"></arb-vote-bar>
 		
 		<!-- Lens tabs -->
 		<md-tabs class="md-primary md-hue-2"
-				ng-class="{'hide-tabs': summaries.length <= 1}"
+				ng-class="::{'hide-tabs': summaries.length <= 1}"
 				md-dynamic-height
-				ng-if="isLoaded()">
-			<md-tab ng-repeat="summary in summaries" label="{{summary.name}}">
+				ng-if="::isLoaded">
+			<md-tab ng-repeat="summary in ::summaries" label="{{::summary.name}}">
 				<md-tab-body>
 					<div layout="column">
 						<md-content class="popover-tab-body" layout="column" layout-padding>
 							<arb-markdown class="popover-text-container"
-									page-id="{{userId}}"
-									summary-name="{{summary.name}}"></arb-markdown>
+									page-id="{{::userId}}"
+									summary-name="{{::summary.name}}"></arb-markdown>
 						</md-content>
 					</div>
 				</md-tab-body>
@@ -32,34 +32,34 @@
 		</md-tabs>
 	
 		<!-- Footer -->
-		<div class="comment-footer" layout="row" layout-align="start center" ng-if="isLoaded()">
-			<arb-likes page-id="{{userId}}" is-button="true" is-stretched="true"></arb-likes>
-			<arb-subscribe page-id="{{userId}}" is-user="true"></arb-subscribe>
+		<div class="comment-footer" layout="row" layout-align="start center" ng-if="::isLoaded">
+			<arb-likes page-id="{{::userId}}" is-button="true" is-stretched="true"></arb-likes>
+			<arb-subscribe page-id="{{::userId}}" is-user="true"></arb-subscribe>
 			<div flex></div>
-			<div layout="row" layout-align="start center" ng-show="page.commentCount">
+			<div layout="row" layout-align="start center" ng-show="::page.commentCount">
 				<span class="separator"></span>
 				<md-icon>comment</md-icon>
-				<span ng-bind="page.commentCount"></span>
+				<span ng-bind="::page.commentCount"></span>
 			</div>
-			<div layout="row" layout-align="start center" ng-show="page.type === 'question'">
+			<div layout="row" layout-align="start center" ng-show="::(page.type === 'question')">
 				<span class="separator"></span>
 				<md-icon>font_download</md-icon>
-				<span ng-bind="page.answerCount"></span>
+				<span ng-bind="::page.answerCount"></span>
 			</div>
-			<div class="md-caption" ng-show="page.type !== 'question'">
+			<div class="md-caption" ng-show="::(page.type !== 'question')">
 				<span class="separator"></span>
 				{{page.textLength}} characters
 			</div>
 			<span class="md-caption">
 				<span class="separator"></span>
-				Last Online: <span ng-bind="user.lastWebsiteVisit | relativeDateTime"></span>
+				Last Online: <span ng-bind="::(user.lastWebsiteVisit | relativeDateTime)"></span>
 			</span>
 		</div>
 		
 		<!-- Loading spinner -->
 		<div layout="column"
 				layout-align="center center"
-				ng-if="!isLoaded()">
+				ng-hide="::isLoaded">
 			<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 		</div>
 	

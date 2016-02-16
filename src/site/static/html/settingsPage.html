@@ -12,14 +12,14 @@
 					Email frequency
 				</label>
 				<md-select ng-model="userService.user.emailFrequency">
-					<md-option ng-repeat="(type,label) in frequencyTypes" value="{{type}}">
-						{{label}}
+					<md-option ng-repeat="(type,label) in ::frequencyTypes" value="{{::type}}">
+						{{::label}}
 					</md-option>
 				</md-select>
 			</md-input-container>
 	
 			<!-- Email threshold -->
-			<md-input-container ng-show="userService.user.emailFrequency === 'daily' ||
+			<md-input-container ng-if="userService.user.emailFrequency === 'daily' ||
 					userService.user.emailFrequency === 'weekly'">
 				<label>
 					Email threshold 
@@ -63,7 +63,7 @@
 			<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 			<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Submit</md-button>
 			<div class="submit-form-error md-warn" hidden></div>
-			<div ng-show="submitted">Submitted!</div>
+			<div ng-if="submitted">Submitted!</div>
 		</form>
 	</div>
 </div>

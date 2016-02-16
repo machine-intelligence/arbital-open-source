@@ -32,7 +32,10 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				return {"left": +$scope.arrowOffset};
 			};
 
-			// Check if summaries are loaded
+			// We will check this to see if summaries are loaded.
+			// Note that one-time binding takes effect after an object is set to something
+			// other than undefined for the first time. So '::isLoaded' is safe, but '::!isLoaded'
+			// is not safe (since it will be evaluated to true before isLoaded is set).
 			$scope.isLoaded = undefined;
 		},
 		link: function(scope, element, attrs) {
@@ -66,7 +69,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			};
 
 			processPageSummaries();
-			if (scope.summaries.length <= 0) {
+			if (scope.isLoaded) {
 				// Fetch page summaries from the server.
 				pageService.loadIntrasitePopover(scope.pageId, {
 					success: function() {
@@ -106,13 +109,11 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 				return {"left": +$scope.arrowOffset};
 			};
 
-			// Check if the data is loaded
-			$scope.isLoaded = function() {
-				if ($scope.user) {
-					return $scope.summaries.length > 0;
-				}
-				return false;
-			};
+			// We will check this to see if summaries are loaded.
+			// Note that one-time binding takes effect after an object is set to something
+			// other than undefined for the first time. So '::isLoaded' is safe, but '::!isLoaded'
+			// is not safe (since it will be evaluated to true before isLoaded is set).
+			$scope.isLoaded = undefined;
 		},
 		link: function(scope, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
@@ -128,10 +129,13 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 				for (var name in scope.page.summaries) {
 					scope.summaries.push({name: name, text: scope.page.summaries[name]});
 				}
+				if (scope.summaries.length > 0) {
+					scope.isLoaded = true;
+				}
 			};
 
 			processPageSummaries();
-			if (!scope.isLoaded()) {
+			if (!scope.isLoaded) {
 				pageService.loadUserPopover(scope.userId, {
 					success: function() {
 						if (isDestroyed) return;
