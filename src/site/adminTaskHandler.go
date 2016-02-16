@@ -57,6 +57,11 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err := tasks.Enqueue(params.C, &task, "base10ToBase36Part4"); err != nil {
 			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
 		}
+	} else if task == "base10ToBase36Part5" {
+		var task tasks.Base10ToBase36Part5Task
+		if err := tasks.Enqueue(params.C, &task, "base10ToBase36Part5"); err != nil {
+			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+		}
 	} else {
 		return pages.HandlerErrorFail("Unknown ?task var", nil)
 	}

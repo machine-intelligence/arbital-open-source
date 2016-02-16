@@ -64,6 +64,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.Base10ToBase36Part3Task{}
 	} else if leasedTask.Tag == "base10ToBase36Part4" {
 		task = &tasks.Base10ToBase36Part4Task{}
+	} else if leasedTask.Tag == "base10ToBase36Part5" {
+		task = &tasks.Base10ToBase36Part5Task{}
 	} else if leasedTask.Tag == "resetPasswords" {
 		task = &tasks.ResetPasswordsTask{}
 	} else {
