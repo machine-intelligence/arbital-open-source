@@ -2,9 +2,9 @@
 CREATE TABLE pagePairs (
 	id BIGINT NOT NULL AUTO_INCREMENT,
 	/* Parent page id. FK into pages. */
-  parentId BIGINT NOT NULL,
+  parentId VARCHAR(32) NOT NULL,
 	/* Child page id. Part of the FK into pages. */
-  childId BIGINT NOT NULL,
+  childId VARCHAR(32) NOT NULL,
 	/* Type of the relationship. 
 		parent: parentId is a parent of childId
 		tag: parentId is a tag of childId

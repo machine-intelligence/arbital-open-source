@@ -1,4 +1,4 @@
-// signupPage.go serves the signup page.
+// signupHandler.go serves the signup page.
 package site
 
 import (
@@ -88,7 +88,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Check if this user already exists.
 	var existingFbUserId string
-	var existingId int64
+	var existingId string
 	exists, err := db.NewStatement(`
 		SELECT id,fbUserId
 		FROM users
@@ -147,7 +147,14 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+
+		userId, err := user.GetNextAvailableId(tx)
+		if err != nil {
+			return "", fmt.Errorf("Couldn't get last insert id for new user: %v", err)
+		}
+
 		hashmap := make(database.InsertMap)
+		hashmap["id"] = userId
 		hashmap["firstName"] = data.FirstName
 		hashmap["lastName"] = data.LastName
 		hashmap["email"] = data.Email
@@ -159,13 +166,9 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["emailFrequency"] = user.DefaultEmailFrequency
 		hashmap["emailThreshold"] = user.DefaultEmailThreshold
 		statement := tx.NewInsertTxStatement("users", hashmap)
-		result, err := statement.Exec()
+		_, err = statement.Exec()
 		if err != nil {
 			return "Couldn't update user's record", err
-		}
-		userId, err := result.LastInsertId()
-		if err != nil {
-			return "Couldn't get last insert id for new user", err
 		}
 
 		// Create new group for the user.

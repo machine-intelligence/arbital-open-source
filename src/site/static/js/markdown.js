@@ -76,18 +76,23 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(b: ?[^\n]+?\n)" + // choice, e.g. "b: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(c: ?[^\n]+?\n)?" + // choice, e.g. "c: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(d: ?[^\n]+?\n)?" + // choice, e.g. "d: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"(e: ?[^\n]+?\n)?" + // choice, e.g. "e: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
+				"(forgets: ?[^\n]+?\n)?" + 
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function () {
@@ -176,7 +181,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
-				return prefix + "[" + text + "](" + "http://" + host + "/edit/0" + ")";
+				return prefix + "[" + text + "](" + "http://" + host + "/e/0" + ")";
 			});
 		});
 
@@ -233,10 +238,10 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
-					var url = "http://" + host + "/user/" + page.pageId + "/";
+					var url = "http://" + host + "/u/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
-					var url = "http://" + host + "/user/" + alias + "/";
+					var url = "http://" + host + "/u/" + alias + "/";
 					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
@@ -273,14 +278,14 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			getHostMatchRegex(window.location.host) + // match the url host part
-			"\/(?:pages|edit)\/" + aliasMatch + // [1] capture page alias
+			"\/(?:p|e)\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
 		// Setup attributes for user links that are within our domain.
 		var userRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
-			"\/user\/" + aliasMatch + // [1] capture user alias
+			"\/u\/" + aliasMatch + // [1] capture user alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
@@ -304,9 +309,9 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						}
 					} else {
 						// Mark as red link
-						$element.attr("href", $element.attr("href").replace(/pages/, "edit"));
+						$element.attr("href", $element.attr("href").replace(/\/p\//, "/e/"));
 						$element.addClass("red-link");
-						if (refreshFunc && pageAlias === "0") {
+						if (refreshFunc && pageAlias === "") {
 							$element.addClass("red-todo-text");
 						}
 						if (refreshFunc && !(pageAlias in failedPageAliases) ) {
@@ -352,11 +357,8 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			}
 		});
 
-		var index = 0;
-		$pageText.find("arb-multiple-choice").each(function() {
-			$(this).attr("index", index++);
-		});
-		$pageText.find("arb-checkbox").each(function() {
+		var index = 1; // start with 1, because masteryMap is at 0 (see pageService.js)
+		$pageText.find("arb-multiple-choice,arb-checkbox").each(function() {
 			$(this).attr("index", index++);
 		});
 		// NOTE: have to compile children individually because otherwise there is a bug

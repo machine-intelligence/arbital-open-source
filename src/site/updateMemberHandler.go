@@ -4,13 +4,14 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 )
 
 // updateMemberData contains data given to us in the request.
 type updateMemberData struct {
-	GroupId       int64 `json:",string"`
-	UserId        int64 `json:",string"`
+	GroupId       string
+	UserId        string
 	CanAddMembers bool
 	CanAdmin      bool
 }
@@ -33,7 +34,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.GroupId <= 0 || data.UserId <= 0 {
+	if !core.IsIdValid(data.GroupId) || !core.IsIdValid(data.UserId) {
 		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
 	}
 

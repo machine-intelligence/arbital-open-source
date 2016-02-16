@@ -38,7 +38,7 @@ type HandlerParams struct {
 	C              sessions.Context
 	DB             *database.DB
 	U              *user.User
-	PrivateGroupId int64
+	PrivateGroupId string
 }
 
 // Renderer is a function to render a page result. Returns:

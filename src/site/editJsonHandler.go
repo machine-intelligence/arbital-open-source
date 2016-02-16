@@ -3,11 +3,11 @@ package site
 
 import (
 	"encoding/json"
-	"math/rand"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/user"
 )
 
 var editHandler = siteHandler{
@@ -49,7 +49,11 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 	if !ok {
 		// No alias found. Assume user is trying to create a new page with an alias.
-		return pages.RedirectWith(core.GetEditPageUrl(rand.Int63()) + "?alias=" + data.PageAlias)
+		newPageId, err := user.GetNextAvailableIdInNewTransaction(db)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't get next available Id", err)
+		}
+		return pages.RedirectWith(core.GetEditPageUrl(newPageId) + "?alias=" + data.PageAlias)
 	}
 
 	// Load full edit for one page.
@@ -67,7 +71,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		return pages.HandlerErrorFail("Exact page not found", err)
 	}
 	if p.SeeGroupId != params.PrivateGroupId {
-		if p.SeeGroupId > 0 {
+		if core.IsIdValid(p.SeeGroupId) {
 			return pages.HandlerBadRequestFail("Trying to edit a private page. Go to the corresponding group", err)
 		} else {
 			return pages.HandlerBadRequestFail("Trying to edit a public page. Go to arbital.com", err)
@@ -80,10 +84,11 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	delete(returnData.PageMap, pageId)
 
 	// Load parents, tags, requirement, and lens pages (to display in Relationship tab)
-	core.AddPageToMap(8992241719442104138, returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap(7648631253816709800, returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap(6686682198220623534, returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap(1407630090992422901, returnData.PageMap, core.TitlePlusLoadOptions)
+	// HARDCODED
+	core.AddPageToMap("3n", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("178", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("1ln", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("17b", returnData.PageMap, core.TitlePlusLoadOptions)
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
@@ -105,9 +110,9 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	livePage.ChangeLogs = []*core.ChangeLog{}
 
 	// Grab the lock to this page, but only if we have the right group permissions
-	if p.SeeGroupId <= 0 || u.IsMemberOfGroup(p.SeeGroupId) {
+	if !core.IsIdValid(p.SeeGroupId) || u.IsMemberOfGroup(p.SeeGroupId) {
 		now := database.Now()
-		if p.LockedBy <= 0 || p.LockedUntil < now {
+		if p.LockedBy == "" || p.LockedUntil < now {
 			hashmap := make(map[string]interface{})
 			hashmap["pageId"] = pageId
 			hashmap["createdAt"] = database.Now()
@@ -118,7 +123,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 			if _, err = statement.Exec(); err != nil {
 				return pages.Fail("Couldn't add a lock: %v", err)
 			}
-			p.LockedBy = hashmap["lockedBy"].(int64)
+			p.LockedBy = hashmap["lockedBy"].(string)
 			p.LockedUntil = hashmap["lockedUntil"].(string)
 		}
 	}

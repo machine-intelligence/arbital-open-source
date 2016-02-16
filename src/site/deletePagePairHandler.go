@@ -12,8 +12,8 @@ import (
 
 // deletePagePairData contains the data we receive in the request.
 type deletePagePairData struct {
-	ParentId int64 `json:",string"`
-	ChildId  int64 `json:",string"`
+	ParentId string
+	ChildId  string
 	Type     string
 }
 
@@ -39,7 +39,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.ParentId <= 0 || data.ChildId <= 0 {
+	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
 		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", err)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)
@@ -48,7 +48,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the pages
-	pageMap := make(map[int64]*core.Page)
+	pageMap := make(map[string]*core.Page)
 	parent := core.AddPageIdToMap(data.ParentId, pageMap)
 	child := core.AddPageIdToMap(data.ChildId, pageMap)
 
@@ -78,7 +78,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 }
 
 // deletePagePair deletes the parent-child pagePair of the given type.
-func deletePagePair(tx *database.Tx, userId, parentId, childId int64, pairType string) (string, error) {
+func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType string) (string, error) {
 	// Delete the pair
 	query := tx.NewTxStatement(`
 			DELETE FROM pagePairs

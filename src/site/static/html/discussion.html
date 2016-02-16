@@ -15,14 +15,14 @@
 		<div class="md-whiteframe-1dp" ng-if="page.subpageIds.length <= 0" layout-padding>
 			No comments yet
 		</div>
-	
+
 		<!-- New comment editor -->
 		<div>
-			<md-button class="new-comment-button"
+			<md-button class="new-comment-button md-primary"
 					ng-click="newCommentClick()"
 					arb-user-check="cool"
 					ng-if="!newCommentId">
-				<md-icon class="md-accent md-raised">comment</md-icon>
+				<md-icon class="md-raised">comment</md-icon>
 				New Comment
 			</md-button>
 			<div arb-edit-page

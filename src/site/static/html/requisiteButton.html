@@ -6,11 +6,11 @@
 		check_box
 		<md-tooltip>You know this</md-tooltip>
 	</md-icon>
-	<md-icon ng-if="!pageService.hasMastery(requisiteId) && pageService.wantsMastery(requisiteId)">
+	<md-icon ng-if="pageService.wantsMastery(requisiteId)">
 		bookmark
 		<md-tooltip>You want to learn this</md-tooltip>
 	</md-icon>
-	<md-icon ng-if="!pageService.hasMastery(requisiteId) && !pageService.wantsMastery(requisiteId)">
+	<md-icon ng-if="pageService.nullMastery(requisiteId)">
 		check_box_outline_blank
 		<md-tooltip>You don't know this</md-tooltip>
 	</md-icon>

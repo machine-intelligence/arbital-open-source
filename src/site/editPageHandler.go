@@ -2,10 +2,10 @@
 package site
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"zanaduu3/src/core"
@@ -18,7 +18,7 @@ import (
 
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
-	PageId         int64 `json:",string"`
+	PageId         string
 	Title          string
 	Clickbait      string
 	Text           string
@@ -62,7 +62,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	u := params.U
 	aliasWarningList := make([]string, 0)
 
-	if data.PageId <= 0 {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("No pageId specified", nil)
 	}
 
@@ -79,13 +79,15 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
+	var myLastAutosaveEdit sql.NullInt64
+
 	// Load additional info
 	row := db.NewStatement(`
 		SELECT max(edit)
 		FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave
 		`).QueryRow(data.PageId, u.Id)
-	_, err = row.Scan(&oldPage.MyLastAutosaveEdit)
+	_, err = row.Scan(&myLastAutosaveEdit)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load additional page info", err)
 	}
@@ -93,9 +95,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
 	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
 	newEditNum := oldPage.MaxEditEver + 1
-	if oldPage.MyLastAutosaveEdit.Valid {
+	if myLastAutosaveEdit.Valid {
 		// ... unless we can just replace a existing autosave.
-		newEditNum = int(oldPage.MyLastAutosaveEdit.Int64)
+		newEditNum = int(myLastAutosaveEdit.Int64)
 	}
 	if data.RevertToEdit > 0 {
 		// ... or unless we are reverting an edit
@@ -103,8 +105,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Set the see-group
-	var seeGroupId int64
-	if params.PrivateGroupId > 0 {
+	var seeGroupId string
+	if core.IsIdValid(params.PrivateGroupId) {
 		seeGroupId = params.PrivateGroupId
 	}
 
@@ -120,13 +122,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if oldPage.SeeGroupId != seeGroupId && newEditNum != 1 {
 		return pages.HandlerBadRequestFail("Editing this page in incorrect private group", nil)
 	}
-	if seeGroupId > 0 && !u.IsMemberOfGroup(seeGroupId) {
+	if core.IsIdValid(seeGroupId) && !u.IsMemberOfGroup(seeGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
 	}
-	if oldPage.SeeGroupId > 0 && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
+	if core.IsIdValid(oldPage.SeeGroupId) && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
 	}
-	if oldPage.EditGroupId > 0 && !u.IsMemberOfGroup(oldPage.EditGroupId) {
+	if core.IsIdValid(oldPage.EditGroupId) && !u.IsMemberOfGroup(oldPage.EditGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
@@ -165,8 +167,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Load parents for comments
-	var commentParentId int64
-	var commentPrimaryPageId int64
+	var commentParentId string
+	var commentPrimaryPageId string
 	if isCurrentEdit && oldPage.Type == core.CommentPageType {
 		rows := db.NewStatement(`
 			SELECT pi.pageId,pi.type
@@ -176,19 +178,19 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0
 			`).Query(core.ParentPagePairType, data.PageId)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId int64
+			var parentId string
 			var pageType string
 			err := rows.Scan(&parentId, &pageType)
 			if err != nil {
 				return fmt.Errorf("failed to scan: %v", err)
 			}
 			if pageType == core.CommentPageType {
-				if commentParentId > 0 {
+				if core.IsIdValid(commentParentId) {
 					db.C.Errorf("Can't have more than one comment parent")
 				}
 				commentParentId = parentId
 			} else {
-				if commentPrimaryPageId > 0 {
+				if core.IsIdValid(commentPrimaryPageId) {
 					db.C.Errorf("Can't have more than one non-comment parent for a comment")
 				}
 				commentPrimaryPageId = parentId
@@ -198,14 +200,14 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load comment's parents", err)
 		}
-		if commentPrimaryPageId <= 0 {
+		if !core.IsIdValid(commentPrimaryPageId) {
 			db.C.Errorf("Comment pages need at least one normal page parent")
 		}
 	}
 
-	primaryPageMap := make(map[int64]*core.Page)
+	primaryPageMap := make(map[string]*core.Page)
 	primaryPage := core.AddPageIdToMap(data.PageId, primaryPageMap)
-	pageMap := make(map[int64]*core.Page)
+	pageMap := make(map[string]*core.Page)
 	if isCurrentEdit && !oldPage.WasPublished {
 		// Load parents and children.
 		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
@@ -371,7 +373,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			hashmap = make(map[string]interface{})
 			hashmap["userId"] = u.Id
 			hashmap["toId"] = data.PageId
-			if oldPage.Type == core.CommentPageType && commentParentId > 0 {
+			if oldPage.Type == core.CommentPageType && core.IsIdValid(commentParentId) {
 				hashmap["toId"] = commentParentId // subscribe to the parent comment
 			}
 			hashmap["createdAt"] = database.Now()
@@ -457,12 +459,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType {
 			// Generate updates for users who are subscribed to the parent pages.
 			for _, parentIdStr := range primaryPage.ParentIds {
-				parentId, _ := strconv.ParseInt(parentIdStr, 10, 64)
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.UpdateType = core.NewChildUpdateType
-				task.GroupByPageId = parentId
-				task.SubscribedToId = parentId
+				task.GroupByPageId = parentIdStr
+				task.SubscribedToId = parentIdStr
 				task.GoToPageId = data.PageId
 				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
@@ -471,12 +472,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 			// Generate updates for users who are subscribed to the child pages.
 			for _, childIdStr := range primaryPage.ChildIds {
-				childId, _ := strconv.ParseInt(childIdStr, 10, 64)
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.UpdateType = core.NewParentUpdateType
-				task.GroupByPageId = childId
-				task.SubscribedToId = childId
+				task.GroupByPageId = childIdStr
+				task.SubscribedToId = childIdStr
 				task.GoToPageId = data.PageId
 				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
@@ -492,7 +492,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UserId = u.Id
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
-				if commentParentId > 0 {
+				if core.IsIdValid(commentParentId) {
 					// This is a new reply
 					task.UpdateType = core.ReplyUpdateType
 					task.SubscribedToId = commentParentId
@@ -513,7 +513,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			for _, submatch := range submatches {
 				var task tasks.AtMentionUpdateTask
 				task.UserId = u.Id
-				task.MentionedUserId, _ = strconv.ParseInt(submatch[1], 10, 64)
+				task.MentionedUserId = submatch[1]
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
 				if err := tasks.Enqueue(c, &task, "atMentionUpdate"); err != nil {

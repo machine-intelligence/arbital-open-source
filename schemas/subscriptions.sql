@@ -1,9 +1,9 @@
 /* This table contains all the subscriptions. */
 CREATE TABLE subscriptions (
 	/* User id of the subscriber. FK into users. */
-  userId BIGINT NOT NULL,
+  userId VARCHAR(32) NOT NULL,
 	/* Id of the thing (user, page, etc...) the user is subscribed to. FK into pages. */
-  toId BIGINT NOT NULL,
+  toId VARCHAR(32) NOT NULL,
 	/* When this subscription was created. */
   createdAt DATETIME NOT NULL,
   PRIMARY KEY(userId, toId)

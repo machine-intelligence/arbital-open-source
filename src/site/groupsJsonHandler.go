@@ -35,7 +35,7 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		ON (p.pageId=m.groupId)
 		WHERE p.pageId IN`).AddArgsGroupStr(u.GroupIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var groupId int64
+		var groupId string
 		var m core.Member
 		err := rows.Scan(&groupId, &m.UserId, &m.CanAddMembers, &m.CanAdmin)
 		if err != nil {
@@ -49,7 +49,7 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Add member
-		curGroup.Members[fmt.Sprintf("%d", m.UserId)] = &m
+		curGroup.Members[m.UserId] = &m
 		returnData.UserMap[m.UserId] = &core.User{Id: m.UserId}
 		return nil
 	})

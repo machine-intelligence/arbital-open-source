@@ -14,7 +14,7 @@ import (
 
 // deletePageData is the data received from the request.
 type deletePageData struct {
-	PageId int64 `json:",string"`
+	PageId string
 }
 
 var deletePageHandler = siteHandler{
@@ -37,12 +37,12 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.PageId == 0 {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("PageId isn't set", nil)
 	}
 
 	// Load the page
-	pageMap := make(map[int64]*core.Page)
+	pageMap := make(map[string]*core.Page)
 	page := core.AddPageIdToMap(data.PageId, pageMap)
 	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
@@ -70,7 +70,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			FROM pagePairs
 			WHERE parentId=? OR childId=?`, data.PageId, data.PageId).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId, childId int64
+			var parentId, childId string
 			var pairType string
 			err := rows.Scan(&parentId, &childId, &pairType)
 			if err != nil {

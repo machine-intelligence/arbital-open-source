@@ -117,7 +117,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// Set up group names.
 			var groupIds = userService.user.groupIds;
-			$scope.groupOptions = {"0": "-"};
+			$scope.groupOptions = {"": "-"};
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
@@ -141,7 +141,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				approval: "Approval",
 			};
 
-			$scope.lockExists = $scope.page.lockedBy != "0" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
+			$scope.lockExists = $scope.page.lockedBy != "" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== userService.user.id;
 
 			$scope.convertPageIdsToAliases = function(textToConvert) {
@@ -233,7 +233,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				}
 			}
 			// Check group permissions
-			if ($scope.page.editGroupId !== "0" && !($scope.page.editGroupId in $scope.groupOptions)) {
+			if ($scope.page.editGroupId !== "" && !($scope.page.editGroupId in $scope.groupOptions)) {
 				$scope.addMessage("editGroup", "You need to be part of " +
 					pageService.pageMap[$scope.page.editGroupId].title + " group to edit this page", "error", true);
 			}

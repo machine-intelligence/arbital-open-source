@@ -3,7 +3,7 @@
 		layout="row"
 		ng-if="::!isSimpleEmbed">
 	<!-- Like -->
-	<div layout="column" layout-align="start center" flex="20">
+	<div layout="column" layout-align="start center" flex="25">
 		<arb-likes class="no-right-margin"
 				page-id="{{::page.pageId}}"
 				is-stretched="true"
@@ -15,37 +15,44 @@
 	<arb-subscribe page-id="{{::page.pageId}}"
 			is-stretched="::!isTinyScreen"
 			show-subscriber-count="::!isTinyScreen"
-			flex="20"></arb-subscribe>
+			flex="25"></arb-subscribe>
 
 	<!-- Discussion -->
-	<div layout="column" layout-align="start center" flex="20">
-		<md-button ng-href="#discussion-{{::page.pageId}}">
+	<div layout="column" layout-align="start center" flex="25">
+		<md-button ng-href="#discussion-{{::page.pageId}}"
+				ng-class="::{'md-icon-button': isTinyScreen}">
 			<md-icon>comment</md-icon>
-			Discussion
+			<span ng-if="::!isTinyScreen">Discussion</span>
 		</md-button>
 		<ng-pluralize class="md-caption"
 				count="page.commentIds.length" when="{
 					'0': 'No comments',
 					'one': '1 comment',
-					'other': '{} comments'}">
+					'other': '{} comments'}"
+				ng-if="::!isTinyScreen">
 		</ng-pluralize>
 	</div>
 
 	<!-- Edit -->
-	<div layout="column" layout-align="start center" flex="20">
+	<div layout="column" layout-align="start center" flex="25">
 		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
 				ng-class="::{'md-icon-button': isTinyScreen}"
 				arb-user-check="cool">
 			<md-icon>create</md-icon>
 			<span ng-if="::!isTinyScreen">Edit</span>
 		</md-button>
+		<span class="accent-dot" ng-if="::(page.hasDraft && isTinyScreen)">
+			<md-tooltip md-delay="500">
+				You have an unpublished draft
+			</md-tooltip>
+		</span>
 		<span class="md-accent md-caption" ng-if="::page.hasDraft">
 			Unpublished draft
 		</span>
 	</div>
 	
 	<!-- Link -->
-	<div flex="20">
+	<div>
 		<md-button ng-href="{{::(pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId)}}"
 				ng-if="::(page.type == 'answer')">
 			<md-icon>link</md-icon>
@@ -61,7 +68,7 @@
 		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="More page actions">
 			<md-icon>more_vert</md-icon>
 			<span class="primary-dot" ng-if="::page.isUpdatedPage()">
-				<md-tooltip md-delay="500" ng-if="::page.isUpdatedPage()">
+				<md-tooltip md-delay="500">
 					This page has been updated since the last time you saw it
 				</md-tooltip>
 			</span>
@@ -73,13 +80,8 @@
 				<md-button arb-user-check="cool" ng-click="toggleDiff()">
 					<md-icon>compare_arrows</md-icon>
 					<span ng-bind="showingDiff ? 'Hide changes' : 'View changes'"></span>
-					<span class="accent-dot" ng-if="::page.hasDraft">
-						<md-tooltip md-delay="500" ng-if="::page.hasDraft">
-							You have an unpublished draft
-						</md-tooltip>
-					</span>
 					<span class="primary-dot" ng-if="::page.isUpdatedPage()">
-						<md-tooltip md-delay="500" ng-if="::page.isUpdatedPage()">
+						<md-tooltip md-delay="500">
 							This page has been updated since the last time you saw it
 						</md-tooltip>
 					</span>

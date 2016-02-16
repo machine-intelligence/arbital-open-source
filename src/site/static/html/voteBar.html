@@ -30,7 +30,7 @@
 				<!-- Know to show where the user will vote -->
 				<div class="new-vote-div"
 						ng-style="{left: valueToOffset(newVoteValue)}"
-						ng-if="isHovering && userService.user.id !== '0'">
+						ng-if="isHovering && userService.user.id !== ''">
 					<div class="new-vote-knob md-whiteframe-4dp"></div>
 					<div class="md-body-2 new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
 				</div>
@@ -50,15 +50,15 @@
 
 			<!-- Bottom margin -->
 			<div layout="row" layout-align="start start" flex>
-				<div class="vote-bar-label left-text" flex="10" ng-bind="::typeHelper.label1"></div>
+				<div class="vote-bar-label left-text" flex="{{::(isTinyScreen ? 20 : 10)}}" ng-bind="::typeHelper.label1"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label2"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label2" ng-if="::!isTinyScreen"></div>
 				<div flex="15"></div>
 				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label3"></div>
 				<div flex="15"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label4"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label4" ng-if="::!isTinyScreen"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label right-text" flex="10" ng-bind="::typeHelper.label5"></div>
+				<div class="vote-bar-label right-text" flex="{{::(isTinyScreen ? 20 : 10)}}" ng-bind="::typeHelper.label5"></div>
 			</div>
 		</div>
 	</div>

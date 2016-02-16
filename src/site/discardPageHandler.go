@@ -5,13 +5,14 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
 // discardPageData is the data received from the request.
 type discardPageData struct {
-	PageId int64 `json:",string"`
+	PageId string
 }
 
 var discardPageHandler = siteHandler{
@@ -31,7 +32,7 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	var data discardPageData
 	err := decoder.Decode(&data)
-	if err != nil || data.PageId == 0 {
+	if err != nil || !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 

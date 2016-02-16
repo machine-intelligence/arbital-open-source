@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"zanaduu3/src/database"
+	//"zanaduu3/src/user"
 )
 
 // FixTextTask is the object that's put into the daemon queue.
@@ -31,23 +32,23 @@ func (task *FixTextTask) Execute(db *database.DB) (delay int, err error) {
 	defer c.Debugf("==== FIX TEXT COMPLETED ====")
 
 	rows := db.NewStatement(`
-		SELECT pageId,edit,text
-		FROM pages
-		WHERE isCurrentEdit`).Query()
+			SELECT pageId,edit,text
+			FROM pages
+			WHERE isCurrentEdit`).Query()
 	if err = rows.Process(fixText); err != nil {
 		c.Debugf("ERROR, failed to fix text: %v", err)
 		return 0, err
 	}
+
 	return 0, err
 }
 
 func fixText(db *database.DB, rows *database.Rows) error {
-	var pageId, edit int64
+	var pageId, edit string
 	var text string
 	if err := rows.Scan(&pageId, &edit, &text); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
 	}
-
 	/*
 		// Find and replace [token1 token2] with [ token1 token2]
 		exp := regexp.MustCompile("(\\[[^ \\\\0-9:-\\]]+ [^\\]]*?\\])(?:[^(]|$)")
@@ -80,6 +81,8 @@ func fixText(db *database.DB, rows *database.Rows) error {
 		result = strings.Replace(result, "http://zanaduu3.appspot.com/pages/", "", -1)
 		//result = strings.Replace(result, "http://arbital.com/edit/", "", -1)
 		//result = strings.Replace(result, "http://arbital.com/pages/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/e/", "", -1)
+		//result = strings.Replace(result, "http://arbital.com/p/", "", -1)
 		db.C.Debugf("submatch: %v", submatch)
 		db.C.Debugf("result  : %v", result)
 		return result

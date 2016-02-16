@@ -148,8 +148,8 @@ func (o *PageLoadOptions) Add(with *PageLoadOptions) *PageLoadOptions {
 }
 
 // filterPageMap filters the given page map based on the given predicate.
-func filterPageMap(pageMap map[int64]*Page, filter func(*Page) bool) map[int64]*Page {
-	filteredMap := make(map[int64]*Page)
+func filterPageMap(pageMap map[string]*Page, filter func(*Page) bool) map[string]*Page {
+	filteredMap := make(map[string]*Page)
 	for id, p := range pageMap {
 		if filter(p) {
 			filteredMap[id] = p

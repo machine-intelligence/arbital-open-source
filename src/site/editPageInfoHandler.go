@@ -15,12 +15,12 @@ import (
 
 // editPageInfoData contains parameters passed in.
 type editPageInfoData struct {
-	PageId          int64 `json:",string"`
+	PageId          string
 	Type            string
 	HasVote         bool
 	VoteType        string
-	SeeGroupId      int64 `json:",string"`
-	EditGroupId     int64 `json:",string"`
+	SeeGroupId      string
+	EditGroupId     string
 	EditKarmaLock   int
 	Alias           string // if empty, leave the current one
 	SortChildrenBy  string
@@ -51,7 +51,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
 
-	if data.PageId <= 0 {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("No pageId specified", nil)
 	}
 
@@ -72,13 +72,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if oldPage.SeeGroupId != data.SeeGroupId && oldPage.WasPublished {
 		return pages.HandlerBadRequestFail("Editing this page in incorrect private group", nil)
 	}
-	if data.SeeGroupId > 0 && !u.IsMemberOfGroup(data.SeeGroupId) {
+	if core.IsIdValid(data.SeeGroupId) && !u.IsMemberOfGroup(data.SeeGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
 	}
-	if oldPage.SeeGroupId > 0 && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
+	if core.IsIdValid(oldPage.SeeGroupId) && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
 	}
-	if oldPage.EditGroupId > 0 && !u.IsMemberOfGroup(oldPage.EditGroupId) {
+	if core.IsIdValid(oldPage.EditGroupId) && !u.IsMemberOfGroup(oldPage.EditGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
@@ -133,16 +133,16 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
 		data.Alias = oldPage.Alias
 	} else if data.Alias == "" {
-		data.Alias = fmt.Sprintf("%d", data.PageId)
-	} else if data.Alias != fmt.Sprintf("%d", data.PageId) {
+		data.Alias = data.PageId
+	} else if data.Alias != data.PageId {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
 			return pages.HandlerErrorFail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
 		}
 
 		// Prefix alias with the group alias, if appropriate
-		if data.SeeGroupId > 0 && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
-			tempPageMap := map[int64]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
+		if core.IsIdValid(data.SeeGroupId) && data.Type != core.GroupPageType && data.Type != core.DomainPageType {
+			tempPageMap := map[string]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
 				return pages.HandlerErrorFail("Couldn't load the see group", err)
@@ -151,7 +151,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Check if another page is already using the alias
-		var existingPageId int64
+		var existingPageId string
 		row := db.NewStatement(`
 			SELECT pageId
 			FROM pageInfos
@@ -160,7 +160,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return pages.HandlerErrorFail("Failed on looking for conflicting alias", err)
 		} else if exists {
-			return pages.HandlerErrorFail(fmt.Sprintf("Alias '%s' is already in use by: %d", data.Alias, existingPageId), nil)
+			return pages.HandlerErrorFail(fmt.Sprintf("Alias '%s' is already in use by: %s", data.Alias, existingPageId), nil)
 		}
 	}
 
@@ -187,7 +187,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		if oldPage.WasPublished {
-			updateChangeLog := func(changeType string, auxPageId int64) (string, error) {
+			updateChangeLog := func(changeType string, auxPageId string) (string, error) {
 				hashmap = make(database.InsertMap)
 				hashmap["pageId"] = data.PageId
 				hashmap["userId"] = u.Id
@@ -201,12 +201,12 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				return "", nil
 			}
 			if data.Alias != oldPage.Alias {
-				if errorMessage, err := updateChangeLog(core.NewAliasChangeLog, 0); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewAliasChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.SortChildrenBy != oldPage.SortChildrenBy {
-				if errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, 0); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
@@ -215,17 +215,17 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if !hasVote {
 					changeType = core.TurnOffVoteChangeLog
 				}
-				if errorMessage, err := updateChangeLog(changeType, 0); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(changeType, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.VoteType != oldPage.VoteType {
-				if errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, 0); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.EditKarmaLock != oldPage.EditKarmaLock {
-				if errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, 0); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, ""); errorMessage != "" {
 					return errorMessage, err
 				}
 			}

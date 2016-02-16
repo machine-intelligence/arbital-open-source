@@ -54,7 +54,7 @@ func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) 
 }
 
 func updateMetadata(db *database.DB, rows *database.Rows) error {
-	var pageId, edit int64
+	var pageId, edit string
 	var text string
 	if err := rows.Scan(&pageId, &edit, &text); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)
@@ -109,7 +109,8 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 }
 
 func updatePageInfos(db *database.DB, rows *database.Rows) error {
-	var pageId, currentEdit, maxEdit int64
+	var pageId string
+	var currentEdit, maxEdit int64
 	var createdAt string
 	if err := rows.Scan(&pageId, &currentEdit, &maxEdit, &createdAt); err != nil {
 		return fmt.Errorf("failed to scan a page: %v", err)

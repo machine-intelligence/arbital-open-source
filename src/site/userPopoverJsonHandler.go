@@ -10,7 +10,7 @@ import (
 
 // userPopoverJsonData contains parameters passed in via the request.
 type userPopoverJsonData struct {
-	UserId int64 `json:",string"`
+	UserId string
 }
 
 var userPopoverHandler = siteHandler{

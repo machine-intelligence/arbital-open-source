@@ -14,62 +14,78 @@ app.service("pageService", function($http, $location, userService){
 	// All loaded masteries.
 	this.masteryMap = {};
 	// When the user answers questions or does other complex reversible actions, this map
-	// allows us to store the new masteries the user acquired. That way we can allow the user
+	// allows us to store the new masteries the user acquired/lost. That way we can allow the user
 	// to change their answers, without messing up the masteries they learned through other means.
-	// map "key" -> masteryMap
-	this.tempMasteryMaps = {};
+	// sorted array: [map "key" -> masteryMap]
+	// Array is sorted by the order in which the questions appear in the text.
+	this.masteryMapList = [this.masteryMap];
 
-	// Update whether on not the user has certain masteries.
-	// NOTE: removal will happen before adding
-	this.updateMasteries = function(addMasteries, delMasteries, wantsMasteries, tempMap) {
-		var masteryMap = tempMap || this.masteryMap;
+	// Update the masteryMap. Execution happens in the order options are listed.
+	// options = {
+	//		delete: set these masteries to "doesn't know"
+	//		wants: set these masteries to "wants"
+	//		knows: set these masteries to "knows"
+	//		skipPush: if set, don't push the changes to the server
+	// }
+	this.updateMasteryMap = function(options) {
 		var affectedMasteryIds = [];
-		for (var n = 0; n < delMasteries.length; n++) {
-			var masteryId = delMasteries[n];
-			var mastery = masteryMap[masteryId];
-			if (!mastery) continue;
-			mastery.has = false;
-			mastery.wants = false;
-			affectedMasteryIds.push(masteryId);
-		}
-		for (var n = 0; n < wantsMasteries.length; n++) {
-			var masteryId = wantsMasteries[n];
-			var mastery = masteryMap[masteryId];
-			if (!mastery) {
-				mastery = {pageId: masteryId};
-				masteryMap[masteryId] = mastery;
+		if (options.delete) {
+			for (var n = 0; n < options.delete.length; n++) {
+				var masteryId = options.delete[n];
+				var mastery = this.masteryMap[masteryId];
+				if (!mastery) continue;
+				mastery.has = false;
+				mastery.wants = false;
+				affectedMasteryIds.push(masteryId);
 			}
-			mastery.has = false;
-			mastery.wants = true;
-			affectedMasteryIds.push(masteryId);
 		}
-		for (var n = 0; n < addMasteries.length; n++) {
-			var masteryId = addMasteries[n];
-			var mastery = masteryMap[masteryId];
-			if (!mastery) {
-				mastery = {pageId: masteryId};
-				masteryMap[masteryId] = mastery;
+		if (options.wants) {
+			for (var n = 0; n < options.wants.length; n++) {
+				var masteryId = options.wants[n];
+				var mastery = this.masteryMap[masteryId];
+				if (!mastery) {
+					mastery = {pageId: masteryId};
+					this.masteryMap[masteryId] = mastery;
+				}
+				mastery.has = false;
+				mastery.wants = true;
+				affectedMasteryIds.push(masteryId);
 			}
-			mastery.has = true;
-			mastery.wants = false;
-			affectedMasteryIds.push(masteryId);
 		}
+		if (options.knows) {
+			for (var n = 0; n < options.knows.length; n++) {
+				var masteryId = options.knows[n];
+				var mastery = this.masteryMap[masteryId];
+				if (!mastery) {
+					mastery = {pageId: masteryId};
+					this.masteryMap[masteryId] = mastery;
+				}
+				mastery.has = true;
+				mastery.wants = false;
+				affectedMasteryIds.push(masteryId);
+			}
+		}
+		if (!options.skipPush) {
+			this.pushMasteriesToServer(affectedMasteryIds);
+		}
+	};
 
-		// Recompute mastery arrays to make sure the values reflect the curent, updated state
-		addMasteries = [], delMasteries = [], wantsMasteries = [];
+	// Compute the status of the given masteries and update the server
+	this.pushMasteriesToServer = function(affectedMasteryIds) {
+		var addMasteries = [], delMasteries = [], wantsMasteries = [];
 		for (var n = 0; n < affectedMasteryIds.length; n++) {
 			var masteryId = affectedMasteryIds[n];
-			if (this.hasMastery(masteryId)) {
+			var masteryStatus = this.getMasteryStatus(masteryId);
+			if (masteryStatus === "has") {
 				addMasteries.push(masteryId);
-			} else if (this.wantsMastery(masteryId)) {
+			} else if (masteryStatus === "wants") {
 				wantsMasteries.push(masteryId);
 			} else {
 				delMasteries.push(masteryId);
 			}
 		}
 
-		if (userService.user.id !== "0") {
-			// Send POST request.
+		if (userService.user.id !== "") {
 			var data = {
 				removeMasteries: delMasteries,
 				wantsMasteries: wantsMasteries,
@@ -80,36 +96,17 @@ app.service("pageService", function($http, $location, userService){
 				console.error("Failed to change masteries:"); console.log(data); console.log(status);
 			});
 		} else {
-			// For non-logged in users track masteries via a cookie
-			for (var n = 0; n < delMasteries.length; n++) {
-				var mastery = this.masteryMap[delMasteries[n]];
-				if (mastery) {
-					mastery.wants = false;
-					mastery.has = false;
-				}
-			}
-			for (var n = 0; n < wantsMasteries.length; n++) {
-				var mastery = this.masteryMap[wantsMasteries[n]];
-				if (!mastery) {
-					mastery = {pageId: masteryId};
-					this.masteryMap[masteryId] = mastery;
-				}
-				mastery.wants = true;
-				mastery.has = false;
-			}
-			for (var n = 0; n < addMasteries.length; n++) {
-				var mastery = this.masteryMap[addMasteries[n]];
-				if (!mastery) {
-					mastery = {pageId: masteryId};
-					this.masteryMap[masteryId] = mastery;
-				}
-				mastery.wants = false;
-				mastery.has = true;
-			}
+			this.updateMasteryMap({
+				delete: delMasteries,
+				wants: wantsMasteries,
+				knows: addMasteries,
+				skipPush: true,
+			});
 			Cookies.set("masteryMap", this.masteryMap, {expires: 365});
 		}
 	};
 
+	// Use our smart merge technique to add the new mastery to existing mastery map.
 	this.addMasteryToMap = function(newMastery) {
 		var oldMastery = this.masteryMap[newMastery.pageId];
 		if (newMastery === oldMastery) return;
@@ -124,7 +121,7 @@ app.service("pageService", function($http, $location, userService){
 	};
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
-	this.privateGroupId = "0";
+	this.privateGroupId = "";
 
 	// Primary page is the one with its id in the url
 	this.primaryPage = undefined;
@@ -135,7 +132,7 @@ app.service("pageService", function($http, $location, userService){
 			this.pageMap = {};
 			this.editMap = {};
 			this.masteryMap = {};
-			this.tempMasteryMaps = {};
+			this.masteryMapList = [this.masteryMap];
 		}
 
 		var masteryData = data["masteries"];
@@ -143,13 +140,13 @@ app.service("pageService", function($http, $location, userService){
 			this.addMasteryToMap(masteryData[id]);
 		}
 
-		if (data.resetEverything && !userService.user.id !== "0") {
+		if (data.resetEverything && !userService.user.id !== "") {
 			// Load masteries from cookie
 			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
 			for (var id in cookieMasteryMap) {
 				this.addMasteryToMap(cookieMasteryMap[id]);
 			}
-		} else if (data.resetEverything && userService.user.id !== "0") {
+		} else if (data.resetEverything && userService.user.id !== "") {
 			Cookies.remove("masteryMap");
 		}
 
@@ -178,17 +175,17 @@ app.service("pageService", function($http, $location, userService){
 		var options = options || {};
 		var host = window.location.host;
 		var page = that.pageMap[pageId];
-		var url = "/pages/" + pageId;
+		var url = "/p/" + pageId;
 		var alreadyIncludedHost = false;
 		if (page) {
 			pageId = page.pageId;
-			url = "/pages/" + pageId;
+			url = "/p/" + pageId;
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/pages/" + parent.pageId + "?lens=" + pageId;
+						url = "/p/" + parent.pageId + "?l=" + pageId;
 						if ($location.hash()) {
 							url += "#" + $location.hash();
 						}
@@ -201,14 +198,14 @@ app.service("pageService", function($http, $location, userService){
 					if (parent && (
 								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
 								(page.isAnswer() && parent.isQuestion()))) {
-						url = "/pages/" + parent.pageId + "#subpage-" + pageId;
+						url = "/p/" + parent.pageId + "#subpage-" + pageId;
 						break;
 					}
 				}
 			}
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
-				if (page.seeGroupId !== "0") {
+				if (page.seeGroupId !== "") {
 					url = that.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
 				} else {
 					url = that.getDomainUrl() + url;
@@ -223,7 +220,7 @@ app.service("pageService", function($http, $location, userService){
 	};
 
 	this.getEditPageUrl = function(pageId){
-		return "/edit/" + pageId;
+		return "/e/" + pageId;
 	};
 
 	// Get a domain url (with optional subdomain)
@@ -247,13 +244,13 @@ app.service("pageService", function($http, $location, userService){
 		},
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
-			if (!userService.user || userService.user.id === "0") return false;
+			if (!userService.user || userService.user.id === "") return false;
 			return this.creatorId != userService.user.id &&
 				(this.lastVisit === "" || this.originalCreatedAt >= this.lastVisit);
 		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
-			if (!userService.user || userService.user.id === "0") return false;
+			if (!userService.user || userService.user.id === "") return false;
 			return this.creatorId != userService.user.id &&
 				this.lastVisit !== "" && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
 		},
@@ -657,7 +654,7 @@ app.service("pageService", function($http, $location, userService){
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
-		return this.privateGroupId !== page.seeGroupId && page.seeGroupId === "0";
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId === "";
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showPrivate = function(pageId, useEditMap) {
@@ -666,7 +663,7 @@ app.service("pageService", function($http, $location, userService){
 			console.error("Couldn't find pageId: " + pageId);
 			return false;
 		}
-		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== "0";
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== "";
 	};
 
 	// Create a new comment; optionally it's a reply to the given commentId
@@ -711,49 +708,74 @@ app.service("pageService", function($http, $location, userService){
 		$location.hash("subpage-" + commentId);
 	};
 
-	// Check if the user has a mastery
-	this.hasMastery = function(masteryId) {
-		// The user "has" the mastery if ANY of the temp maps says so
-		for (var key in this.tempMasteryMaps) {
-			var masteryMap = this.tempMasteryMaps[key];
-			if (masteryId in masteryMap && masteryMap[masteryId].has) {
-				return true;
+	// Return "has", "wants", or "" depending on the current status of the given mastery.
+	this.getMasteryStatus = function(masteryId) {
+		var has = false, wants = false;
+		for (var n = 0; n < this.masteryMapList.length; n++) {
+			var masteryMap = this.masteryMapList[n];
+			if (masteryMap && masteryId in masteryMap) {
+				var mastery = masteryMap[masteryId];
+				if (!mastery.has && !mastery.wants) {
+					has = false;
+				} else if (mastery.wants) {
+					wants = true;
+				} else if (mastery.has) {
+					has = true;
+				}
 			}
 		}
-		return (masteryId in this.masteryMap) && this.masteryMap[masteryId].has;
+		if (has) return "has";
+		if (wants) return "wants";
+		return "";
 	};
 
-	// Check if the user wants the given mastery
+	// Check if the user has the mastery
+	this.hasMastery = function(masteryId) {
+		return this.getMasteryStatus(masteryId) === "has";
+	};
+
+	// Check if the user wants the mastery
 	this.wantsMastery = function(masteryId) {
-		// The user "wants" the mastery if they don't know it already, and ANY of the
-		// temp maps says so
-		var has = false, wants = false;
-		for (var key in this.tempMasteryMaps) {
-			var masteryMap = this.tempMasteryMaps[key];
-			if (masteryId in masteryMap) {
-				has = has || masteryMap[masteryId].has;
-				wants = wants || masteryMap[masteryId].wants;
-			}
-		}
-		if (!has && wants) return true;
-		return (masteryId in this.masteryMap) && this.masteryMap[masteryId].wants;
+		return this.getMasteryStatus(masteryId) === "wants";
+	};
+
+	// Check if the user doesn't have or want the mastery
+	this.nullMastery = function(masteryId) {
+		return this.getMasteryStatus(masteryId) === "";
 	};
 
 	// =========== Questionnaire helpers ====================
-	// Map questionIndex -> {answer: 'a', knows: [ids], wants: [ids]}
-	this.answers = {};
-	this.setQuestionAnswer = function(qIndex, answer, aKnows, aWants) {
-		// Compute which masteries to remove
-		var removeMasteries = [];
-		if (qIndex in this.answers) {
-			var answer = this.answers[qIndex];
-			removeMasteries = answer.knows.concat(answer.wants);
+	// Map questionIndex -> {knows: [ids], wants: [ids], forgets: [ids]}
+	this.setQuestionAnswer = function(qIndex, aKnows, aWants, aForgets) {
+		if (qIndex <= 0) {
+			return console.error("qIndex has to be > 0");
 		}
-		this.answers[qIndex] = {answer: answer, knows: aKnows, wants: aWants};
-
-		if (!(qIndex in this.tempMasteryMaps)) {
-			this.tempMasteryMaps[qIndex] = {};
+		// Compute which masteries are affected
+		var affectedMasteryIds = (qIndex in this.masteryMapList) ? Object.keys(this.masteryMapList[qIndex]) : [];
+		// Compute new mastery map
+		var masteryMap = {};
+		for (var n = 0; n < aForgets.length; n++) {
+			var masteryId = aForgets[n];
+			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: false};
+			if (affectedMasteryIds.indexOf(masteryId) < 0) {
+				affectedMasteryIds.push(masteryId);
+			}
 		}
-		this.updateMasteries(aKnows, removeMasteries, aWants, this.tempMasteryMaps[qIndex]);
+		for (var n = 0; n < aWants.length; n++) {
+			var masteryId = aWants[n];
+			masteryMap[masteryId] = {pageId: masteryId, has: false, wants: true};
+			if (affectedMasteryIds.indexOf(masteryId) < 0) {
+				affectedMasteryIds.push(masteryId);
+			}
+		}
+		for (var n = 0; n < aKnows.length; n++) {
+			var masteryId = aKnows[n];
+			masteryMap[masteryId] = {pageId: masteryId, has: true, wants: false};
+			if (affectedMasteryIds.indexOf(masteryId) < 0) {
+				affectedMasteryIds.push(masteryId);
+			}
+		}
+		this.masteryMapList[qIndex] = masteryMap;
+		this.pushMasteriesToServer(affectedMasteryIds);
 	};
 });

@@ -33,7 +33,7 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 				if (url.indexOf("?") < 0) {
 					// We have to set the lens explicitly, so we don't get automatically 
 					// redirected to an easier lens or something.
-					url += "?lens=" + $scope.lensId;
+					url += "?l=" + $scope.lensId;
 				}
 				$scope.myUrl = url + "#subpage-" + $scope.page.pageId;
 			} else {

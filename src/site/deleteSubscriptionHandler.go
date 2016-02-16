@@ -4,13 +4,14 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
 // deleteSubscriptionData contains the data we receive in the request.
 type deleteSubscriptionData struct {
-	PageId int64 `json:",string"`
+	PageId string
 }
 
 var deleteSubscriptionHandler = siteHandler{
@@ -33,7 +34,7 @@ func deleteSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.PageId <= 0 {
+	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("Page id has to be set", err)
 	}
 

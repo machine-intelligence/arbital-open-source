@@ -71,38 +71,65 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		.icon("format_header_pound", "static/icons/format-header-pound.svg");
 
 	$locationProvider.html5Mode(true);
-
 	// Set up mapping from URL path to specific controllers
 	$routeProvider
 	.when("/", {
 		template: "",
 		controller: "IndexPageController",
 	})
+
 	.when("/domains/:alias", {
+ 		template: "",
+ 		controller: "DomainPageController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/pages/:alias", {
+ 		template: "",
+ 		controller: "RedirectToPrimaryPageController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/sequences/:pageId", {
+ 		template: "",
+ 		controller: "SequenceController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/edit/:alias?/:edit?", {
+ 		template: "",
+ 		controller: "EditPageController",
+ 		reloadOnSearch: false,
+ 	})
+	.when("/user/:id?", {
+ 		template: "",
+ 		controller: "UserPageController",
+ 		reloadOnSearch: false,
+	})
+
+	.when("/d/:alias", {
 		template: "",
 		controller: "DomainPageController",
 		reloadOnSearch: false,
 	})
-	.when("/pages/:alias", {
+	.when("/p/:alias", {
 		template: "",
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/sequences/:pageId", {
+	.when("/s/:pageId", {
 		template: "",
 		controller: "SequenceController",
 		reloadOnSearch: false,
 	})
-	.when("/edit/:alias?/:edit?", {
+	.when("/e/:alias?/:edit?", {
 		template: "",
 		controller: "EditPageController",
 		reloadOnSearch: false,
 	})
-	.when("/user/:id?", {
+	.when("/u/:id?", {
 		template: "",
 		controller: "UserPageController",
 		reloadOnSearch: false,
 	})
+
 	.when("/dashboard/", {
 		template: "",
 		controller: "DashboardPageController",
@@ -330,6 +357,32 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 	.error($scope.getErrorFunc("domainPage"));
 });
 
+app.controller("RedirectToPrimaryPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	// Get the primary page data
+	var postData = {
+		pageAlias: $routeParams.alias,
+	};
+	$http({method: "POST", url: "/json/redirectToPrimaryPage/", data: JSON.stringify(postData)})
+	.success($scope.getSuccessFunc(function(data){
+		var pageId = data;
+		if (!pageId) {
+			return {
+				title: "Not Found",
+				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
+			};
+		}
+		// Redirect to the primary page, but preserve all search variables
+		var search = $location.search();
+		$location.replace().url(pageService.getPageUrl(pageId));
+		for (var k in search) {
+			$location.search(k, search[k]);
+		}
+		return {
+		};
+	}))
+	.error($scope.getErrorFunc("redirectToPrimaryPage"));
+});
+
 app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
@@ -390,10 +443,10 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 	var pageId = $routeParams.alias;
 
 	// Need to call /default/ in case we are creating a new page
-	// TODO(alexei): have /newPage/ return /default/ data long with /edit/ data
+	// TODO(alexei): have /newPage/ return /default/ data long with /e/ data
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
-		if (+pageId) {
+		if (pageId && pageId.charAt(0) > '0' && pageId.charAt(0) <= '9') {
 			// Load the last edit
 			pageService.loadEdit({
 				pageAlias: pageId,
@@ -412,7 +465,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 					$scope.doneFn = function(result) {
 						var page = pageService.editMap[result.pageId];
 						if (!page.wasPublished && result.discard) {
-							$location.path("/edit/");
+							$location.path("/e/");
 						} else {
 							$location.url(pageService.getPageUrl(page.pageId));
 						}
@@ -523,7 +576,7 @@ app.controller("LoginPageController", function ($scope, $routeParams, $http, $co
 			title: "Log In",
 			element: $compile("<div class='md-whiteframe-1dp capped-body-width'><arb-login></arb-login></div>")($scope),
 		};
-	})({user: {id: "0"}});
+	})({user: {id: ""}});
 });
 
 app.controller("RequisitesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {

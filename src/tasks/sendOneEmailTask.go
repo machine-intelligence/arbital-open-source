@@ -13,13 +13,13 @@ import (
 
 // SendOneEmailTask is the object that's put into the daemon queue.
 type SendOneEmailTask struct {
-	UserId int64
+	UserId string
 }
 
 // Check if this task is valid, and we can safely execute it.
 func (task *SendOneEmailTask) IsValid() error {
-	if task.UserId <= 0 {
-		return fmt.Errorf("User id has to be set")
+	if !core.IsIdValid(task.UserId) {
+		return fmt.Errorf("User id has to be set: %v", task.UserId)
 	}
 
 	return nil

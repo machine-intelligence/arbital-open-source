@@ -1,9 +1,9 @@
 /* An entry for every member in a group. */
 CREATE TABLE groupMembers (
 	/* Id of the group. FK into groups. */
-	groupId BIGINT NOT NULL,
+	groupId VARCHAR(32) NOT NULL,
 	/* Id of the user member. FK into users. */
-	userId BIGINT NOT NULL,
+	userId VARCHAR(32) NOT NULL,
   /* Date this user was added. */
   createdAt DATETIME NOT NULL,
 	/* Whether this user can add new members. */

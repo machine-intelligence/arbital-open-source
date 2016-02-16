@@ -4,52 +4,53 @@ package tasks
 import (
 	"fmt"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 )
 
 // NewUpdateTask is the object that's put into the daemon queue.
 type NewUpdateTask struct {
 	// User who performed an action, e.g. creating a comment
-	UserId     int64
+	UserId     string
 	UpdateType string
 
 	// Grouping key. One of these has to set. We'll group all updates by this key
 	// to show in one panel.
-	GroupByPageId int64
-	GroupByUserId int64
+	GroupByPageId string
+	GroupByUserId string
 
 	// We'll notify the users who are subscribed to this page id (also could be a
 	// user id, group id, domain id)
-	SubscribedToId int64
+	SubscribedToId string
 
 	// Go to destination. One of these has to be set. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
-	GoToPageId int64
+	GoToPageId string
 }
 
 // Check if this task is valid, and we can safely execute it.
 func (task *NewUpdateTask) IsValid() error {
-	if task.UserId <= 0 {
-		return fmt.Errorf("User id has to be set")
+	if !core.IsIdValid(task.UserId) {
+		return fmt.Errorf("User id has to be set: %v", task.UserId)
 	} else if task.UpdateType == "" {
 		return fmt.Errorf("Update type has to be set")
-	} else if task.SubscribedToId <= 0 {
+	} else if !core.IsIdValid(task.SubscribedToId) {
 		return fmt.Errorf("SubscibedTo id has to be set")
 	}
 
 	groupByCount := 0
-	if task.GroupByPageId > 0 {
+	if core.IsIdValid(task.GroupByPageId) {
 		groupByCount++
 	}
-	if task.GroupByUserId > 0 {
+	if core.IsIdValid(task.GroupByUserId) {
 		groupByCount++
 	}
 	if groupByCount != 1 {
 		return fmt.Errorf("Exactly one GroupBy... has to be set")
 	}
 
-	if task.GoToPageId <= 0 {
+	if !core.IsIdValid(task.GoToPageId) {
 		return fmt.Errorf("GoToPageId has to be set")
 	}
 
@@ -72,7 +73,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		FROM subscriptions
 		WHERE toId=?`, task.SubscribedToId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var userId int64
+		var userId string
 		err := rows.Scan(&userId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for subscriptions: %v", err)
@@ -82,7 +83,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		}
 
 		// Check if we already have a similar update.
-		var previousUpdateId int64
+		var previousUpdateId string
 		var exists bool
 		newCountValue := 1
 		row := db.NewStatement(`

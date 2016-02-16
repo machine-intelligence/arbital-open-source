@@ -10,7 +10,7 @@ import (
 
 // childrenJsonData contains parameters passed in to create a page.
 type childrenJsonData struct {
-	ParentId int64 `json:",string"`
+	ParentId string
 }
 
 var childrenHandler = siteHandler{
@@ -29,7 +29,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-	if data.ParentId <= 0 {
+	if !core.IsIdValid(data.ParentId) {
 		return pages.HandlerBadRequestFail("Need a valid parentId", err)
 	}
 

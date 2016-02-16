@@ -2,8 +2,6 @@
 package site
 
 import (
-	"strconv"
-
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 )
@@ -30,46 +28,48 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Manually load some pages we like
 	featuredDomains := make([]*featuredDomain, 0)
+	// HARDCODED
 	featuredDomains = append(featuredDomains,
 		&featuredDomain{
-			DomainId: "8639103000879599414",
+			DomainId: "2v",
 			ChildIds: []string{
-				"8639103000879599414", // VAT
-				"4213693741839491939", // List: value alignment subjects
-				"7722661858289734773", // Value alignment problem
-				"3158562585659930031", // Orthogonality theses
-				"6820582940749120623", // Ontology identification problem
-				"5534008569097047764", // Mindcrime
-				"6053065048861201341", // Diamond maximizer
+				"2v", // VAT
+				"3g", // List: value alignment subjects
+				"5s", // Value alignment problem
+				"1y", // Orthogonality theses
+				"5c", // Ontology identification problem
+				"6v", // Mindcrime
+				"5g", // Diamond maximizer
 			},
 		}, &featuredDomain{
-			DomainId: "3560540392275264633",
+			DomainId: "3d",
 			ChildIds: []string{
-				"3560540392275264633", // What is Arbital
-				"8138584842800103864", // Arbital blog
-				"5092144177314150382", // Arbital features
-				"8992241719442104138", // Parents and children
-				"5933317145970853046", // Editing
-				"4675907493088898985", // Liking
-				"8676677094741262267", // Voting
+				"3d",  // What is Arbital
+				"16q", // Arbital blog
+				"14q", // Arbital features
+				"3n",  // Parents and children
+				"3v",  // Editing
+				"3p",  // Liking
+				"3r",  // Voting
 			},
 		},
 	)
+
 	returnData.ResultMap["featuredDomains"] = featuredDomains
 
 	for _, domain := range featuredDomains {
-		domainId, _ := strconv.ParseInt(domain.DomainId, 10, 64)
-		core.AddPageToMap(domainId, returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddPageToMap(domain.DomainId, returnData.PageMap, core.TitlePlusLoadOptions)
 		for _, pageIdStr := range domain.ChildIds {
-			pageId, _ := strconv.ParseInt(pageIdStr, 10, 64)
-			core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+			core.AddPageToMap(pageIdStr, returnData.PageMap, core.TitlePlusLoadOptions)
 		}
 	}
 	// Display this page fully
-	core.AddPageToMap(3440973961008233681, returnData.PageMap, core.PrimaryPageLoadOptions)
+	// HARDCODED
+	core.AddPageToMap("1k0", returnData.PageMap, core.PrimaryPageLoadOptions)
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}

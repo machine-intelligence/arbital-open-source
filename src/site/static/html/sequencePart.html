@@ -2,7 +2,7 @@
 	<span arb-requisite-button requisite-id="{{::part.pageId}}" allow-wants="true"></span>
 </div>
 <div ng-if="::!pageService.hasMastery(part.pageId)">
-	<div class="which-part" ng-if="::(part.taughtById !== '0')">
+	<div class="which-part" ng-if="::(part.taughtById !== '')">
 		You can learn it from
 		<arb-page-title page-id="{{::part.taughtById}}" is-link="true" custom-page-title="'this page'"></arb-page-title>
 		(<span ng-bind="::(pageService.pageMap[part.taughtById].textLength | numSuffix)"></span> characters)
@@ -10,7 +10,7 @@
 			, which depends on:
 		</span>
 	</div>
-	<div class="which-part" ng-if="::(part.taughtById === '0')">
+	<div class="which-part" ng-if="::(part.taughtById === '')">
 		<span class="md-warn">Unfortunately, Arbital doesn't yet have a page that teaches this.</span>
 		<span ng-if="::(part.requirements.length > 0)">
 			The dependencies are:

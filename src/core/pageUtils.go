@@ -20,7 +20,7 @@ const (
 )
 
 // NewPage returns a pointer to a new page object created with the given page id
-func NewPage(pageId int64) *Page {
+func NewPage(pageId string) *Page {
 	p := &Page{corePageData: corePageData{PageId: pageId}}
 	p.Votes = make([]*Vote, 0)
 	p.Summaries = make(map[string]string)
@@ -44,8 +44,8 @@ func NewPage(pageId int64) *Page {
 // AddPageIdToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
-func AddPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
-	if pageId <= 0 {
+func AddPageIdToMap(pageId string, pageMap map[string]*Page) *Page {
+	if !IsIdValid(pageId) {
 		return nil
 	}
 	if p, ok := pageMap[pageId]; ok {
@@ -59,8 +59,8 @@ func AddPageIdToMap(pageId int64, pageMap map[int64]*Page) *Page {
 // AddPageToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.
-func AddPageToMap(pageId int64, pageMap map[int64]*Page, loadOptions *PageLoadOptions) *Page {
-	if pageId <= 0 {
+func AddPageToMap(pageId string, pageMap map[string]*Page, loadOptions *PageLoadOptions) *Page {
+	if !IsIdValid(pageId) {
 		return nil
 	}
 	if p, ok := pageMap[pageId]; ok {
@@ -76,8 +76,8 @@ func AddPageToMap(pageId int64, pageMap map[int64]*Page, loadOptions *PageLoadOp
 // AddUserToMap adds a new user with the given user id to the map if it's not
 // in the map already.
 // Returns the new/existing user.
-func AddUserToMap(userId int64, userMap map[int64]*User) *User {
-	if userId <= 0 {
+func AddUserToMap(userId string, userMap map[string]*User) *User {
+	if !IsIdValid(userId) {
 		return nil
 	}
 	if u, ok := userMap[userId]; ok {
@@ -89,10 +89,10 @@ func AddUserToMap(userId int64, userMap map[int64]*User) *User {
 }
 
 // PageIdsStringFromMap returns a comma separated string of all pageIds in the given map.
-func PageIdsStringFromMap(pageMap map[int64]*Page) string {
+func PageIdsStringFromMap(pageMap map[string]*Page) string {
 	var buffer bytes.Buffer
 	for id, _ := range pageMap {
-		buffer.WriteString(fmt.Sprintf("%d,", id))
+		buffer.WriteString(fmt.Sprintf("%s,", id))
 	}
 	str := buffer.String()
 	if len(str) >= 1 {
@@ -102,7 +102,7 @@ func PageIdsStringFromMap(pageMap map[int64]*Page) string {
 }
 
 // PageIdsListFromMap returns a comma separated string of all pageIds in the given map.
-func PageIdsListFromMap(pageMap map[int64]*Page) []interface{} {
+func PageIdsListFromMap(pageMap map[string]*Page) []interface{} {
 	list := make([]interface{}, 0, len(pageMap))
 	for id, _ := range pageMap {
 		list = append(list, id)
@@ -135,7 +135,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// the alias, and then 0 or more groups that capture everything after
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/pages/)(" + AliasRegexpStr + ")"),
+		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/p(?:ages)?/)(" + AliasRegexpStr + ")"),
 		// Find ids and aliases using [alias optional text] syntax.
 		regexp.MustCompile(SpacePrefix + "(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
@@ -196,7 +196,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 }
 
 // UpdatePageLinks updates the links table for the given page by parsing the text.
-func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress string) error {
+func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress string) error {
 	// Delete old links.
 	statement := tx.NewTxStatement("DELETE FROM links WHERE parentId=?")
 	_, err := statement.Exec(pageId)
@@ -215,7 +215,7 @@ func UpdatePageLinks(tx *database.Tx, pageId int64, text string, configAddress s
 		}
 	}
 	// Find directly encoded urls
-	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/pages/(" + AliasRegexpStr + ")"))
+	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/p(?:ages)?/(" + AliasRegexpStr + ")"))
 	// Find ids and aliases using [alias optional text] syntax.
 	extractLinks(regexp.MustCompile("\\[\\-?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](alias) syntax.
@@ -258,7 +258,7 @@ func GetPageQuickLockedUntilTime() string {
 }
 
 // ExtractSummaries extracts the summaries from the given page text.
-func ExtractSummaries(pageId int64, text string) (map[string]string, []interface{}) {
+func ExtractSummaries(pageId string, text string) (map[string]string, []interface{}) {
 	const defaultSummary = "Summary"
 	re := regexp.MustCompile("(?ms)^\\[summary(\\([^)]+\\))?: ?([\\s\\S]+?)\\] *(\\z|\n\\z|\n\n)")
 	summaries := make(map[string]string)
@@ -300,31 +300,31 @@ func ExtractTodoCount(text string) int {
 }
 
 // GetPageUrl returns the domain relative url for accessing the given page.
-func GetPageUrl(pageId int64) string {
-	return fmt.Sprintf("/pages/%d", pageId)
+func GetPageUrl(pageId string) string {
+	return fmt.Sprintf("/p/%s", pageId)
 }
 
 // GetPageFullUrl returns the full url for accessing the given page.
-func GetPageFullUrl(subdomain string, pageId int64) string {
+func GetPageFullUrl(subdomain string, pageId string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
 	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
-	return fmt.Sprintf("http://%s%s/pages/%d", subdomain, domain, pageId)
+	return fmt.Sprintf("http://%s%s/p/%s", subdomain, domain, pageId)
 }
 
 // GetEditPageUrl returns the domain relative url for editing the given page.
-func GetEditPageUrl(pageId int64) string {
-	return fmt.Sprintf("/edit/%d", pageId)
+func GetEditPageUrl(pageId string) string {
+	return fmt.Sprintf("/e/%s", pageId)
 }
 
 // GetEditPageFullUrl returns the full url for editing the given page.
-func GetEditPageFullUrl(subdomain string, pageId int64) string {
+func GetEditPageFullUrl(subdomain string, pageId string) string {
 	if len(subdomain) > 0 {
 		subdomain += "."
 	}
 	domain := strings.TrimPrefix(sessions.GetRawDomain(), "http://")
-	return fmt.Sprintf("http://%s%s/edit/%d", subdomain, domain, pageId)
+	return fmt.Sprintf("http://%s%s/e/%s", subdomain, domain, pageId)
 }
 
 // GetNewPageUrl returns the domain relative url for creating a page with a set alias.
@@ -332,7 +332,7 @@ func GetNewPageUrl(alias string) string {
 	if alias != "" {
 		alias = fmt.Sprintf("?alias=%s", alias)
 	}
-	return fmt.Sprintf("/edit/%s", alias)
+	return fmt.Sprintf("/e/%s", alias)
 }
 
 // GetEditLevel checks if the user can edit this page. Possible return values:
@@ -396,4 +396,11 @@ func CorrectPagePairType(pagePairType string) (string, error) {
 		return pagePairType, fmt.Errorf("Incorrect type: %s", pagePairType)
 	}
 	return pagePairType, nil
+}
+
+func IsIdValid(pageId string) bool {
+	if len(pageId) > 0 && pageId[0] > '0' && pageId[0] <= '9' {
+		return true
+	}
+	return false
 }

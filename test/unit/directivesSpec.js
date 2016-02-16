@@ -249,36 +249,60 @@ describe('directives', function() {
 			}
 		}
 		if (options.expectHrefToEqual) {
-			expect($aTag.attr("href")).toEqual(options.expectHrefToEqual);
+			expect($aTag.attr("href")).toBeDefined();
+			if ($aTag.attr("href")) {
+				expect($aTag.attr("href")).toEqual(options.expectHrefToEqual);
+			}
 		}
 		if (options.expectHrefToContain) {
 			for (var index in options.expectHrefToContain) {
-				expect($aTag.attr("href")).toContain(options.expectHrefToContain[index]);
+				expect($aTag.attr("href")).toBeDefined();
+				if ($aTag.attr("href")) {
+					expect($aTag.attr("href")).toContain(options.expectHrefToContain[index]);
+				}
 			}
 		}
 		if (options.expectHrefToNotContain) {
 			for (var index in options.expectHrefToNotContain) {
-				expect($aTag.attr("href")).toNotContain(options.expectHrefToNotContain[index]);
+				expect($aTag.attr("href")).toBeDefined()
+				if ($aTag.attr("href")) {
+					expect($aTag.attr("href")).toNotContain(options.expectHrefToNotContain[index]);
+				}
 			}
 		}
 		if (options.expectClassToContain) {
 			for (var index in options.expectClassToContain) {
-				expect($aTag.attr("class")).toContain(options.expectClassToContain[index]);
+				expect($aTag.attr("class")).toBeDefined()
+				if ($aTag.attr("class")) {
+					expect($aTag.attr("class")).toContain(options.expectClassToContain[index]);
+				}
 			}
 		}
 		if (options.expectClassToNotContain) {
 			for (var index in options.expectClassToNotContain) {
-				expect($aTag.attr("class")).toNotContain(options.expectClassToNotContain[index]);
+				expect($aTag.attr("class")).toBeDefined()
+				if ($aTag.attr("class")) {
+					expect($aTag.attr("class")).toNotContain(options.expectClassToNotContain[index]);
+				}
 			}
 		}
 		if (options.expectPageIdToEqual) {
-			expect($aTag.attr("page-id")).toEqual(options.expectPageIdToEqual);
+			expect($aTag.attr("page-id")).toBeDefined()
+			if ($aTag.attr("page-id")) {
+				expect($aTag.attr("page-id")).toEqual(options.expectPageIdToEqual);
+			}
 		}
 		if (options.expectUserIdToEqual) {
-			expect($aTag.attr("user-id")).toEqual(options.expectUserIdToEqual);
+			expect($aTag.attr("user-id")).toBeDefined()
+			if ($aTag.attr("user-id")) {
+				expect($aTag.attr("user-id")).toEqual(options.expectUserIdToEqual);
+			}
 		}
 		if (options.expectEmbedVoteIdToEqual) {
-			expect($aTag.attr("embed-vote-id")).toEqual(options.expectEmbedVoteIdToEqual);
+			expect($aTag.attr("embed-vote-id")).toBeDefined()
+			if ($aTag.attr("embed-vote-id")) {
+				expect($aTag.attr("embed-vote-id")).toEqual(options.expectEmbedVoteIdToEqual);
+			}
 		}
 		return $aTag;
 	}
@@ -327,7 +351,7 @@ describe('directives', function() {
 			pageId:2,
 			alias:"existentPageAlias",
 			title:"existentPageTitle",
-			seeGroupId:"0"
+			seeGroupId:""
 		};
 		$rootScope.pageService.addPageToMap(testPage2);
 
@@ -339,14 +363,14 @@ describe('directives', function() {
 		expectParagraphTag("[hyphenated-alias description]", {expectTextToEqual:"[hyphenated-alias description]"});
 		expectParagraphTag("[^%@#&^!@ test]", {expectTextToEqual:"[^%@#&^!@ test]"});
 		expectAddressTag("[http://google.com google]", {expectTextToEqual:"google", expectHrefToEqual:"http://google.com"});
-		expectAddressTag("[ text]", {expectTextToEqual:"text", expectHrefToContain:"/edit", expectClassToContain:["red-link"], expectPageIdToEqual:"0"});
-		expectAddressTag("[@1]", {expectTextToEqual:"title", expectHrefToContain:"/user/1", expectClassToNotContain:["red-link"], expectUserIdToEqual:"1"});
-		expectAddressTag("[@999]", {expectTextToEqual:"999",expectHrefToContain:["/user/999"],expectClassToContain:["red-link"],expectUserIdToEqual:"999"});
+		expectAddressTag("[ text]", {expectTextToEqual:"text", expectHrefToContain:"/e", expectClassToContain:["red-link"], expectPageIdToEqual:"0"});
+		expectAddressTag("[@1]", {expectTextToEqual:"title", expectHrefToContain:"/u/1", expectClassToNotContain:["red-link"], expectUserIdToEqual:"1"});
+		expectAddressTag("[@999]", {expectTextToEqual:"999",expectHrefToContain:["/u/999"],expectClassToContain:["red-link"],expectUserIdToEqual:"999"});
 		expectParagraphTag("[text](existentPageAlias)", {expectTextToEqual:"text"});
 		expectParagraphTag("[text](nonexistentPageAlias)", {expectTextToEqual:"text"});
 		expectAddressTag("[text](http://google.com)", {expectTextToEqual:"text",expectHrefToEqual:"http://google.com"});
-		expectAddressTag("[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/2/?embedVote=1"],expectPageIdToEqual:"2",expectEmbedVoteIdToEqual:"2"});
-		expectAddressTag("[vote:nonexistentPageAlias]", {expectTextToContain:["Embedded nonexistentPageAlias vote."],expectHrefToContain:["/pages/nonexistentPageAlias/?embedVote=1"],expectPageIdToEqual:"nonexistentPageAlias",expectEmbedVoteIdToEqual:"nonexistentPageAlias"});
+		expectAddressTag("[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/p/2/?embedVote=1"],expectPageIdToEqual:"2",expectEmbedVoteIdToEqual:"2"});
+		expectAddressTag("[vote:nonexistentPageAlias]", {expectTextToContain:["Embedded nonexistentPageAlias vote."],expectHrefToContain:["/p/nonexistentPageAlias/?embedVote=1"],expectPageIdToEqual:"nonexistentPageAlias",expectEmbedVoteIdToEqual:"nonexistentPageAlias"});
 		expectParagraphTag("[todo:text]", {expectTextToEqual:""});
 		expectParagraphTag("[comment:text]", {expectTextToEqual:""});
 		expectEmptyElement("[summary(optional):markdown]");
@@ -366,29 +390,29 @@ describe('directives', function() {
 		expectParagraphTag("\\[vote:existentPageAlias]", {expectTextToEqual:"[vote:existentPageAlias]"});
 		expectParagraphTag("[vote:existentPageAlias\\]", {expectTextToEqual:"[vote:existentPageAlias]"});
 		expectParagraphTag("\\[vote:existentPageAlias\\]", {expectTextToEqual:"[vote:existentPageAlias]"});
-		expectAddressTag("\\\\[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/pages/2/?embedVote=1"],expectPageIdToEqual:"2",expectEmbedVoteIdToEqual:"2"});
+		expectAddressTag("\\\\[vote:existentPageAlias]", {expectTextToContain:["Embedded existentPageAlias vote."],expectHrefToContain:["/p/2/?embedVote=1"],expectPageIdToEqual:"2",expectEmbedVoteIdToEqual:"2"});
 		expectParagraphTag("[vote:existentPageAlias\\\\]", {}); //expectTextToEqual:"[vote:existentPageAlias\\]"
 		expectParagraphTag("\\\\[vote:existentPageAlias\\\\]", {}); //expectTextToEqual:"\\[vote:existentPageAlias\\]"
 		expectAddressTag("\\[text](http://google.com)", {}); //expectTextToEqual:"http://google.com", expectHrefToEqual:"http://google.com"
 		expectAddressTag("[text\\](http://google.com)", {}); //expectTextToEqual:"http://google.com", expectHrefToEqual:"http://google.com"
-		expectAddressTag("[text]\\(http://google.com)", {}); //expectTextToEqual:"text", expectHrefToContain:["/edit/text"]
+		expectAddressTag("[text]\\(http://google.com)", {}); //expectTextToEqual:"text", expectHrefToContain:["/e/text"]
 		expectAddressTag("[text](http://google.com\\)", {}); //expectTextToEqual:"http://google.com)", expectHrefToEqual:"http://google.com)"
 		expectAddressTag("\\\\[text](http://google.com)", {expectTextToEqual:"text",expectHrefToEqual:"http://google.com"});
 		expectAddressTag("[text\\\\](http://google.com)", {}); //expectTextToEqual:"text\\", expectHrefToEqual:"http://google.com"
-		expectAddressTag("[text]\\\\(http://google.com)", {}); //expectTextToEqual:"texthttp://google.com", expectHrefToContain:["/edit/text"]
+		expectAddressTag("[text]\\\\(http://google.com)", {}); //expectTextToEqual:"texthttp://google.com", expectHrefToContain:["/e/text"]
 		expectParagraphTag("[text](http://google.com\\\\)", {}); //expectTextToEqual:"text"
 		expectParagraphTag("\\[@1]", {expectTextToEqual:"[@1]"});
 		expectParagraphTag("[@1\\]", {expectTextToEqual:"[@1]"});
 		expectParagraphTag("\\[@1\\]", {expectTextToEqual:"[@1]"});
-		expectAddressTag("\\\\[@1]", {expectTextToEqual:"title",expectHrefToContain:["/user/1"],expectClassToNotContain:["red-link"],expectUserIdToEqual:"1"});
+		expectAddressTag("\\\\[@1]", {expectTextToEqual:"title",expectHrefToContain:["/u/1"],expectClassToNotContain:["red-link"],expectUserIdToEqual:"1"});
 		expectParagraphTag("[@1\\\\]", {expectTextToEqual:"[@1\\]"});
 		expectParagraphTag("\\\\[@1\\\\]", {expectTextToEqual:"\\[@1\\]"});
 		expectParagraphTag("\\[ text]", {expectTextToEqual:"[ text]"});
-		expectAddressTag("[ text\\]", {}); //expectTextToEqual:"http://arbital.com/edit", expectHrefToContain:["/edit"]
+		expectAddressTag("[ text\\]", {}); //expectTextToEqual:"http://arbital.com/e", expectHrefToContain:["/e"]
 		expectParagraphTag("\\[ text\\]", {expectTextToEqual:"[ text]"});
-		expectAddressTag("\\\\[ text]", {expectTextToEqual:"text",expectHrefToContain:["/edit"]});
-		expectAddressTag("[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/edit"]
-		expectAddressTag("\\\\[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/edit"]
+		expectAddressTag("\\\\[ text]", {expectTextToEqual:"text",expectHrefToContain:["/e"]});
+		expectAddressTag("[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/e"]
+		expectAddressTag("\\\\[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/e"]
 		expectAddressTag("[ExistentPageAlias]", {expectTextToEqual:"ExistentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
 		expectAddressTag("[NonexistentPageAlias]", {expectTextToEqual:"NonexistentPageAlias",expectClassToContain:["red-link"],expectPageIdToEqual:"NonexistentPageAlias"});
 		expectAddressTag("[-ExistentPageAlias]", {expectTextToEqual:"existentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});

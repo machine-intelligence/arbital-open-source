@@ -11,42 +11,42 @@ import (
 // AtMentionUpdateTask is the object that's put into the daemon queue.
 type AtMentionUpdateTask struct {
 	// User who performed an action, e.g. creating a comment
-	UserId int64
+	UserId string
 
 	// User who was mentioned
-	MentionedUserId int64
+	MentionedUserId string
 
 	// Grouping key. One of these has to set. We'll group all updates by this key
 	// to show in one panel.
-	GroupByPageId int64
-	GroupByUserId int64
+	GroupByPageId string
+	GroupByUserId string
 
 	// Go to destination. One of these has to be set. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
-	GoToPageId int64
+	GoToPageId string
 }
 
 // Check if this task is valid, and we can safely execute it.
 func (task *AtMentionUpdateTask) IsValid() error {
-	if task.UserId <= 0 {
+	if !core.IsIdValid(task.UserId) {
 		return fmt.Errorf("UserId has to be set")
-	} else if task.MentionedUserId <= 0 {
+	} else if !core.IsIdValid(task.MentionedUserId) {
 		return fmt.Errorf("MentionedUserId has to be set")
 	}
 
 	groupByCount := 0
-	if task.GroupByPageId > 0 {
+	if core.IsIdValid(task.GroupByPageId) {
 		groupByCount++
 	}
-	if task.GroupByUserId > 0 {
+	if core.IsIdValid(task.GroupByUserId) {
 		groupByCount++
 	}
 	if groupByCount != 1 {
 		return fmt.Errorf("Exactly one GroupBy... has to be set")
 	}
 
-	if task.GoToPageId <= 0 {
+	if !core.IsIdValid(task.GoToPageId) {
 		return fmt.Errorf("GoToPageId has to be set")
 	}
 
@@ -69,7 +69,7 @@ func (task *AtMentionUpdateTask) Execute(db *database.DB) (delay int, err error)
 		FROM users`).Add(`
 		WHERE id=?`, task.MentionedUserId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var userId int64
+		var userId string
 		err := rows.Scan(&userId)
 		if err != nil {
 			return fmt.Errorf("failed to scan for subscriptions: %v", err)

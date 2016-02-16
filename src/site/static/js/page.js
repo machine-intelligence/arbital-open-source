@@ -36,9 +36,9 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 
 			// Determine which lens is selected
 			var computeSelectedLens = function() {
-				if ($location.search().lens) {
+				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
-					$scope.selectedLens = pageService.pageMap[$location.search().lens];
+					$scope.selectedLens = pageService.pageMap[$location.search().l];
 				} else if ($location.search().sequence) {
 					// The sequence specified this page specifically
 					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
@@ -95,8 +95,8 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
 			var switchToLens = function(lensId) {
-				if (lensId !== scope.page.pageId || $location.search().lens) {
-					$location.search("lens", lensId);
+				if (lensId !== scope.page.pageId || $location.search().l) {
+					$location.search("l", lensId);
 				}
 				scope.selectedLens = pageService.pageMap[lensId];
 				scope.$broadcast("lensTabChanged", lensId);

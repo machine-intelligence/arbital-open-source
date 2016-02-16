@@ -10,7 +10,7 @@ import (
 
 // PropagateDomainTask is the object that's put into the daemon queue.
 type PropagateDomainTask struct {
-	PageId int64
+	PageId string
 	// If true, the page was deleted and we should update children + parents
 	Deleted bool
 }
@@ -22,7 +22,7 @@ type domainFlags struct {
 
 // Check if this task is valid, and we can safely execute it.
 func (task *PropagateDomainTask) IsValid() error {
-	if task.PageId <= 0 {
+	if !core.IsIdValid(task.PageId) {
 		return fmt.Errorf("PageId needs to be set")
 	}
 	return nil
@@ -41,7 +41,7 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 	defer c.Debugf("==== PROPAGATE DOMAIN COMPLETED SUCCESSFULLY ====")
 
 	// Compute what pages we need to process
-	affectedPageIds := make([]int64, 0)
+	affectedPageIds := make([]string, 0)
 	affectedPageIds = append(affectedPageIds, task.PageId)
 	if task.Deleted {
 		// If we are deleting the page, then remember the children, and then delete
@@ -51,7 +51,7 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 			FROM pagePairs
 			WHERE parentId=? AND (type=? OR type=?)`).Query(task.PageId, core.ParentPagePairType, core.TagPagePairType)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var childId int64
+			var childId string
 			if err := rows.Scan(&childId); err != nil {
 				return fmt.Errorf("failed to scan for childId: %v", err)
 			}
@@ -73,7 +73,7 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 
 	// Process the first page.
 	// Map of pageId -> whether or not we processed the children
-	pageMap := make(map[int64]bool)
+	pageMap := make(map[string]bool)
 	for _, pageId := range affectedPageIds {
 		err = propagateDomainToPage(db, pageId, pageMap)
 		if err != nil {
@@ -85,17 +85,17 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 }
 
 // propagateDomainToPage forces domain recalculation for the given page.
-func propagateDomainToPage(db *database.DB, pageId int64, pageMap map[int64]bool) error {
+func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bool) error {
 	processedChildren, processedPage := pageMap[pageId]
 	if !processedPage {
 		// Compute what domains the page already has
-		domainMap := make(map[int64]*domainFlags)
+		domainMap := make(map[string]*domainFlags)
 		rows := db.NewStatement(`
 			SELECT domainId
 			FROM pageDomainPairs
 			WHERE pageId=?`).Query(pageId)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var domainId int64
+			var domainId string
 			if err := rows.Scan(&domainId); err != nil {
 				return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
 			}
@@ -121,14 +121,14 @@ func propagateDomainToPage(db *database.DB, pageId int64, pageMap map[int64]bool
 			FROM pageInfos
 			WHERE pageId=? AND currentEdit>0 AND type="domain")`).Query(pageId, pageId)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var domainId, seeGroupId int64
+			var domainId, seeGroupId string
 			if err := rows.Scan(&domainId, &seeGroupId); err != nil {
 				return fmt.Errorf("failed to scan for pageDomainPair: %v", err)
 			}
 			if flags, ok := domainMap[domainId]; ok {
-				flags.ShouldHave = seeGroupId == 0
+				flags.ShouldHave = !core.IsIdValid(seeGroupId)
 			} else {
-				domainMap[domainId] = &domainFlags{ShouldHave: seeGroupId == 0}
+				domainMap[domainId] = &domainFlags{ShouldHave: seeGroupId == ""}
 			}
 			return nil
 		})
@@ -180,7 +180,7 @@ func propagateDomainToPage(db *database.DB, pageId int64, pageMap map[int64]bool
 			FROM pagePairs
 			WHERE parentId=?`).Query(pageId)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var childId int64
+			var childId string
 			if err := rows.Scan(&childId); err != nil {
 				return fmt.Errorf("failed to scan for childId: %v", err)
 			}

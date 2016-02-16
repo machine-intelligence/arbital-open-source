@@ -28,11 +28,11 @@ type commonPageData struct {
 	// Logged in user
 	User *user.User
 	// Map of page id -> currently live version of the page
-	PageMap map[int64]*core.Page
+	PageMap map[string]*core.Page
 	// Map of page id -> some edit of the page
-	EditMap    map[int64]*core.Page
-	UserMap    map[int64]*core.User
-	MasteryMap map[int64]*core.Mastery
+	EditMap    map[string]*core.Page
+	UserMap    map[string]*core.User
+	MasteryMap map[string]*core.Mastery
 }
 
 // pageHandlerWrapper wraps one of our page handlers.
@@ -103,12 +103,12 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		params.U = u
 
 		// When in a subdomain, we always have to be logged in
-		if params.PrivateGroupId > 0 && u.Id <= 0 {
+		if core.IsIdValid(params.PrivateGroupId) && !core.IsIdValid(u.Id) {
 			if r.URL.Path != "/login/" {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 			}
 		}
-		if u.Id > 0 {
+		if core.IsIdValid(u.Id) {
 			statement := db.NewStatement(`
 						UPDATE users
 						SET lastWebsiteVisit=?
@@ -124,7 +124,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 		}
 		// Check if we have access to the private group
-		if params.PrivateGroupId > 0 &&
+		if core.IsIdValid(params.PrivateGroupId) &&
 			!u.IsMemberOfGroup(params.PrivateGroupId) &&
 			r.URL.Path != "/login/" {
 			fail(http.StatusForbidden, "Don't have access to this group", nil)

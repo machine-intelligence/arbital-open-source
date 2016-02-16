@@ -17,7 +17,7 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 			// Create the edit section for a new answer
 			var createNewAnswer = function() {
 				$scope.newAnswerId = undefined;
-				if ($scope.page.childDraftId === "0") {
+				if ($scope.page.childDraftId === "") {
 					pageService.getNewPage({
 						type: "answer",
 						parentIds: [$scope.page.pageId],

@@ -13,8 +13,8 @@ import (
 
 // newPagePairData contains the data we get in the request.
 type newPagePairData struct {
-	ParentId int64 `json:",string"`
-	ChildId  int64 `json:",string"`
+	ParentId string
+	ChildId  string
 	Type     string
 }
 
@@ -45,7 +45,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	u := params.U
 
 	// Error checking
-	if data.ParentId <= 0 || data.ChildId <= 0 {
+	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
 		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", nil)
 	}
 	if data.ParentId == data.ChildId &&
@@ -89,7 +89,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	}
 
 	// Load the pages
-	pageMap := make(map[int64]*core.Page)
+	pageMap := make(map[string]*core.Page)
 	parent := core.AddPageIdToMap(data.ParentId, pageMap)
 	child := core.AddPageIdToMap(data.ChildId, pageMap)
 
@@ -102,13 +102,13 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	// More error checking
 	// TODO: handle cases where either parent or child (or both) are unpublished
 	if parent.Alias != "" && child.Alias != "" {
-		if data.Type == core.ParentPagePairType && parent.SeeGroupId != 0 && parent.SeeGroupId != child.SeeGroupId {
+		if data.Type == core.ParentPagePairType && core.IsIdValid(parent.SeeGroupId) && parent.SeeGroupId != child.SeeGroupId {
 			return pages.HandlerErrorFail("SeeGroupId has to be the same for parent and child", nil)
 		}
-		if data.Type == core.RequirementPagePairType && parent.SeeGroupId == 0 && child.SeeGroupId != 0 {
+		if data.Type == core.RequirementPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "" {
 			return pages.HandlerErrorFail("For a public parent, all requirements have to be public", nil)
 		}
-		if data.Type == core.SubjectPagePairType && parent.SeeGroupId == 0 && child.SeeGroupId != 0 {
+		if data.Type == core.SubjectPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "" {
 			return pages.HandlerErrorFail("For a public parent, all subjects have to be public", nil)
 		}
 		if child.Type == core.AnswerPageType && parent.Type != core.QuestionPageType {

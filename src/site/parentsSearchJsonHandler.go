@@ -39,7 +39,7 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
-	groupIds := []string{fmt.Sprintf("%d", params.PrivateGroupId)}
+	groupIds := []string{params.PrivateGroupId}
 	escapedTerm := elastic.EscapeMatchTerm(data.Term)
 
 	// Construct the search JSON

@@ -277,7 +277,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.pageUrl = "/edit/";
+			$scope.pageUrl = "/e/";
 			$scope.isSmallScreen = !$mdMedia("gt-sm");
 
 			$scope.isOpen = false;
@@ -289,7 +289,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			// Compute what the urls should be on the compose buttons, and which ones
 			// should be visible.
 			var computeUrls = function() {
-				$scope.questionUrl = "/edit/?type=question";
+				$scope.questionUrl = "/e/?type=question";
 				$scope.editPageUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
@@ -299,12 +299,12 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 					if (type === "question") {
 						$scope.showNewAnswer = true;
 					} else if (type === "wiki" || type === "group" || type === "domain") {
-						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
-						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
-						$scope.childUrl = "/edit?newParentId=" + pageService.primaryPage.pageId;
+						$scope.questionUrl = "/e/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
+						$scope.lensUrl = "/e/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
+						$scope.childUrl = "/e/?newParentId=" + pageService.primaryPage.pageId;
 					}
-					if ($location.search().lens) {
-						$scope.editPageUrl = pageService.getEditPageUrl($location.search().lens);
+					if ($location.search().l) {
+						$scope.editPageUrl = pageService.getEditPageUrl($location.search().l);
 					} else {
 						$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
 					}
@@ -336,15 +336,15 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			};
 
 			$scope.$on("$locationChangeSuccess", function () {
-				$scope.hide = $location.path().indexOf("/edit") === 0;
+				$scope.hide = $location.path().indexOf("/e") === 0;
 			});
-			$scope.hide = $location.path().indexOf("/edit") === 0;
+			$scope.hide = $location.path().indexOf("/e") === 0;
 
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
-					if (event.keyCode == 80) $location.url("/edit/"); // P
+					if (event.keyCode == 80) $location.url("/e/"); // P
 					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
 					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
 					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
@@ -454,7 +454,7 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 		compile: function compile(element, attrs) {
 			var check = attrs.arbUserCheck;
 			var failMessage = "";
-			if (!userService.user || userService.user.id === "0") {
+			if (!userService.user || userService.user.id === "") {
 				failMessage = "Login required";
 			} else if (check === "cool") {
 				if (!userService.userIsCool()) {
@@ -492,14 +492,14 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 			$scope.toggleRequirement = function() {
 				if (pageService.hasMastery($scope.requisiteId)) {
 					if ($scope.allowWants) {
-						pageService.updateMasteries([], [], [$scope.requisiteId]);
+						pageService.updateMasteryMap({wants: [$scope.requisiteId]});
 					} else {
-						pageService.updateMasteries([], [$scope.requisiteId], []);
+						pageService.updateMasteryMap({delete: [$scope.requisiteId]});
 					}
 				} else if (pageService.wantsMastery($scope.requisiteId)) {
-					pageService.updateMasteries([], [$scope.requisiteId], []);
+					pageService.updateMasteryMap({delete: [$scope.requisiteId]});
 				} else {
-					pageService.updateMasteries([$scope.requisiteId], [], []);
+					pageService.updateMasteryMap({knows: [$scope.requisiteId]});
 				}
 			};
 		},
@@ -527,13 +527,13 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 				// Check if the user is doing a sequence
 				$scope.page.sequenceUrl = $location.search().sequence || "";
 				if ($scope.page.sequenceUrl) {
-					var currentPageId = $location.search().lens || $scope.page.pageId;
+					var currentPageId = $location.search().l || $scope.page.pageId;
 					var ids = $scope.page.sequenceUrl.split(",");
 					for (var n = 0; n < ids.length; n++) {
 						var id = ids[n];
 						if (id === currentPageId) {
-							$scope.page.prevPageId = n > 0 ? ids[n-1] : "0";
-							$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "0";
+							$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
+							$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
 						}
 					}
 					$scope.page.sequenceId = ids[ids.length - 1];
