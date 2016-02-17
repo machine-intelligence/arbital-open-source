@@ -1,6 +1,6 @@
 <!-- Top toolbar appearing on every page -->
 <md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== ''}"
-		ng-hide="hide">
+		ng-if="!hide">
 	<div class="md-toolbar-tools">
 		<a ng-href="{{::pageService.getDomainUrl()}}">
 			<md-icon md-svg-icon="arbital_logo" class="arbital-logo"></md-icon>
@@ -8,12 +8,11 @@
 
 		<a href="/"
 				layout-margin
-				ng-bind="pageService.pageMap[pageService.privateGroupId].title | shorten: 30"
-				ng-show="pageService.privateGroupId !== ''"></a>
+				ng-bind="::(pageService.pageMap[pageService.privateGroupId].title | shorten: 30)"></a>
 
 		<!-- Search -->
 		<span flex></span>
-		<arb-autocomplete do-autofocus="doAutofocus"
+		<arb-autocomplete do-autofocus="::doAutofocus"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
 				flex="grow"
@@ -23,31 +22,31 @@
 		<!-- Updates -->
 		<md-button href="/updates/"
 				ng-class="{'md-icon-button': userService.user.updateCount <= 0}"
-				ng-show="userService.user.id !== ''">
-			<md-icon ng-show="userService.user.updateCount <= 0">notifications_none</md-icon>
-			<md-icon class="md-accent md-hue-3" ng-show="userService.user.updateCount > 0">notifications</md-icon>
-			<span ng-bind="userService.user.updateCount" ng-show="userService.user.updateCount > 0"></span>
+				ng-if="userService.user.id !== ''">
+			<md-icon ng-if="userService.user.updateCount <= 0">notifications_none</md-icon>
+			<md-icon class="md-accent md-hue-3" ng-if="userService.user.updateCount > 0">notifications</md-icon>
+			<span ng-bind="userService.user.updateCount" ng-if="userService.user.updateCount > 0"></span>
 		</md-button>
 
 		<!-- Login/signup buttons -->
 		<md-button ng-href="/signup/?continueUrl={{currentUrl}}"
-				ng-hide="userService.user.id !== ''">
+				ng-if="userService.user.id === ''">
 			Sign Up
 		</md-button>
 		<md-button ng-click="toggleRightMenu()"
-				ng-hide="userService.user.id !== ''">
+				ng-if="userService.user.id === ''">
 			Log In
 		</md-button>
 
 		<!-- Button for RHS sidebar -->
 		<md-button class="md-icon-button"
 				ng-click="toggleRightMenu()"
-				ng-show="userService.user.id !== ''">
+				ng-if="userService.user.id !== ''">
 			<md-icon>menu</md-icon>
     </md-button>
 	</div>
 	<div class="md-toolbar-tools md-toolbar-tools-bottom" ng-if="::isTinyScreen">
-		<arb-autocomplete do-autofocus="doAutofocus"
+		<arb-autocomplete do-autofocus="::doAutofocus"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
 				layout-fill></arb-autocomplete>
@@ -59,7 +58,7 @@
 <md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="userService.user.id !== ''">
 	<md-toolbar>
 		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
-			<div class="sidenav-email" ng-bind="userService.user.email"></div>
+			<div class="sidenav-email" ng-bind="::userService.user.email"></div>
 			<md-button class="md-icon-button"
 					ng-click="toggleRightMenu()">
 				<md-icon>arrow_forward</md-icon>
@@ -68,14 +67,14 @@
 	</md-toolbar>
 	<md-content layout="column">
 		<!-- List of groups -->
-		<md-subheader ng-if="userService.user.groupIds.length > 0">
+		<md-subheader ng-if="::(userService.user.groupIds.length > 0)">
 			Your Groups
 		</md-subheader>
 		<div layout="column" layout-align="start center">
-			<div ng-repeat="groupId in userService.user.groupIds">
+			<div ng-repeat="groupId in ::userService.user.groupIds">
 				<md-button aria-label="Go to domain"
-						ng-href="{{pageService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
-						ng-bind="pageService.pageMap[groupId].title | shorten: 30"></md-button>
+						ng-href="{{::pageService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
+						ng-bind="::(pageService.pageMap[groupId].title | shorten: 30)"></md-button>
 			</div>
 		</div>
 		<md-divider></md-divider>
