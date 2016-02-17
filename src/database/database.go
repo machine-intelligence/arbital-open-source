@@ -202,7 +202,7 @@ func (statement *Stmt) Exec(args ...interface{}) (sql.Result, error) {
 		statement.DB.C.Inc("sql_command_fail")
 		return nil, fmt.Errorf("Error while executing an sql statement:\n%v\n%v", statement, err)
 	}
-	//statement.DB.C.Debugf("Executed SQL statement: %v\nwith args: %+v", statement, args)
+	statement.DB.C.Debugf("Executed SQL statement: %v\nwith args: %+v", statement, args)
 	return result, nil
 }
 
