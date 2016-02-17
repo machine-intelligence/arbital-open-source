@@ -363,9 +363,9 @@ describe('directives', function() {
 		expectParagraphTag("[hyphenated-alias description]", {expectTextToEqual:"[hyphenated-alias description]"});
 		expectParagraphTag("[^%@#&^!@ test]", {expectTextToEqual:"[^%@#&^!@ test]"});
 		expectAddressTag("[http://google.com google]", {expectTextToEqual:"google", expectHrefToEqual:"http://google.com"});
-		expectAddressTag("[ text]", {expectTextToEqual:"text", expectHrefToContain:"/e", expectClassToContain:["red-link"], expectPageIdToEqual:"0"});
-		expectAddressTag("[@1]", {expectTextToEqual:"title", expectHrefToContain:"/u/1", expectClassToNotContain:["red-link"], expectUserIdToEqual:"1"});
-		expectAddressTag("[@999]", {expectTextToEqual:"999",expectHrefToContain:["/u/999"],expectClassToContain:["red-link"],expectUserIdToEqual:"999"});
+		expectAddressTag("[ text]", {expectTextToEqual:"text", expectHrefToContain:"/edit", expectClassToContain:["red-link"], expectPageIdToEqual:"0"});
+		expectAddressTag("[@1]", {expectTextToEqual:"title", expectHrefToContain:"/user/1", expectClassToNotContain:["red-link"], expectUserIdToEqual:"1"});
+		expectAddressTag("[@999]", {expectTextToEqual:"999",expectHrefToContain:["/user/999"],expectClassToContain:["red-link"],expectUserIdToEqual:"999"});
 		expectParagraphTag("[text](existentPageAlias)", {expectTextToEqual:"text"});
 		expectParagraphTag("[text](nonexistentPageAlias)", {expectTextToEqual:"text"});
 		expectAddressTag("[text](http://google.com)", {expectTextToEqual:"text",expectHrefToEqual:"http://google.com"});
@@ -395,24 +395,24 @@ describe('directives', function() {
 		expectParagraphTag("\\\\[vote:existentPageAlias\\\\]", {}); //expectTextToEqual:"\\[vote:existentPageAlias\\]"
 		expectAddressTag("\\[text](http://google.com)", {}); //expectTextToEqual:"http://google.com", expectHrefToEqual:"http://google.com"
 		expectAddressTag("[text\\](http://google.com)", {}); //expectTextToEqual:"http://google.com", expectHrefToEqual:"http://google.com"
-		expectAddressTag("[text]\\(http://google.com)", {}); //expectTextToEqual:"text", expectHrefToContain:["/e/text"]
+		expectAddressTag("[text]\\(http://google.com)", {}); //expectTextToEqual:"text", expectHrefToContain:["/edit/text"]
 		expectAddressTag("[text](http://google.com\\)", {}); //expectTextToEqual:"http://google.com)", expectHrefToEqual:"http://google.com)"
 		expectAddressTag("\\\\[text](http://google.com)", {expectTextToEqual:"text",expectHrefToEqual:"http://google.com"});
 		expectAddressTag("[text\\\\](http://google.com)", {}); //expectTextToEqual:"text\\", expectHrefToEqual:"http://google.com"
-		expectAddressTag("[text]\\\\(http://google.com)", {}); //expectTextToEqual:"texthttp://google.com", expectHrefToContain:["/e/text"]
+		expectAddressTag("[text]\\\\(http://google.com)", {}); //expectTextToEqual:"texthttp://google.com", expectHrefToContain:["/edit/text"]
 		expectParagraphTag("[text](http://google.com\\\\)", {}); //expectTextToEqual:"text"
 		expectParagraphTag("\\[@1]", {expectTextToEqual:"[@1]"});
 		expectParagraphTag("[@1\\]", {expectTextToEqual:"[@1]"});
 		expectParagraphTag("\\[@1\\]", {expectTextToEqual:"[@1]"});
-		expectAddressTag("\\\\[@1]", {expectTextToEqual:"title",expectHrefToContain:["/u/1"],expectClassToNotContain:["red-link"],expectUserIdToEqual:"1"});
+		expectAddressTag("\\\\[@1]", {expectTextToEqual:"title",expectHrefToContain:["/user/1"],expectClassToNotContain:["red-link"],expectUserIdToEqual:"1"});
 		expectParagraphTag("[@1\\\\]", {expectTextToEqual:"[@1\\]"});
 		expectParagraphTag("\\\\[@1\\\\]", {expectTextToEqual:"\\[@1\\]"});
 		expectParagraphTag("\\[ text]", {expectTextToEqual:"[ text]"});
-		expectAddressTag("[ text\\]", {}); //expectTextToEqual:"http://arbital.com/e", expectHrefToContain:["/e"]
+		expectAddressTag("[ text\\]", {}); //expectTextToEqual:"http://arbital.com/edit", expectHrefToContain:["/edit"]
 		expectParagraphTag("\\[ text\\]", {expectTextToEqual:"[ text]"});
-		expectAddressTag("\\\\[ text]", {expectTextToEqual:"text",expectHrefToContain:["/e"]});
-		expectAddressTag("[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/e"]
-		expectAddressTag("\\\\[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/e"]
+		expectAddressTag("\\\\[ text]", {expectTextToEqual:"text",expectHrefToContain:["/edit"]});
+		expectAddressTag("[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/edit"]
+		expectAddressTag("\\\\[ text\\\\]", {}); //expectTextToEqual:"text\\", expectHrefToContain:["/edit"]
 		expectAddressTag("[ExistentPageAlias]", {expectTextToEqual:"ExistentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
 		expectAddressTag("[NonexistentPageAlias]", {expectTextToEqual:"NonexistentPageAlias",expectClassToContain:["red-link"],expectPageIdToEqual:"NonexistentPageAlias"});
 		expectAddressTag("[-ExistentPageAlias]", {expectTextToEqual:"existentPageTitle",expectClassToNotContain:["red-link"],expectPageIdToEqual:"2"});
