@@ -293,6 +293,9 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .next-prev-nav {
   min-height: 50px; }
 
+.bottom-next-prev {
+  margin: 0 20px 15px 0; }
+
 #dynamic-view {
   /* position: relative;
   top: -$toolbar-height;
@@ -467,6 +470,19 @@ md-list {
   margin: 0; }
   .md-button:not(.md-fab).md-icon-button {
     overflow: visible; }
+  .md-button:not(.md-fab):not([disabled]).special {
+    color: #137abd !important; }
+    .md-button:not(.md-fab):not([disabled]).special:hover {
+      color: #0c4d77 !important; }
+    .md-button:not(.md-fab):not([disabled]).special.md-raised {
+      background-color: #137abd !important;
+      color: white !important; }
+      .md-button:not(.md-fab):not([disabled]).special.md-raised:hover {
+        background-color: #116ba6 !important; }
+      .md-button:not(.md-fab):not([disabled]).special.md-raised md-icon {
+        color: white !important; }
+    .md-button:not(.md-fab):not([disabled]).special md-icon {
+      color: #137abd; }
 
 .feedback-textarea {
   width: 40vw;

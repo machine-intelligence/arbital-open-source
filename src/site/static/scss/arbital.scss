@@ -5,6 +5,8 @@ $inlineCommentIconZ: 1;
 $popoverZ: 60;
 $composeFabZ: 50;
 
+$link-color: #137abd;
+
 // Colors that are the same as we set for mdThemingProvider
 //http://www.google.com/design/spec/style/color.html#color-color-palette
 $primary-color: #009688; // teal (500)
@@ -385,6 +387,10 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	min-height: 50px;
 }
 
+.bottom-next-prev {
+	margin: 0 20px 15px 0;
+}
+
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
 #dynamic-view {
@@ -655,6 +661,31 @@ md-list {
 		// Sometimes we have an icon AND a number following it inside the button, but
 		// still want to keep it small; so we need to show the overflow.
 		overflow: visible;
+	}
+
+	&:not([disabled]).special {
+		color: $link-color !important;
+
+		&:hover {
+			color: darken($link-color, 15%) !important;
+		}
+
+		&.md-raised {
+			background-color: $link-color !important;
+			color: white !important;
+
+			&:hover {
+				background-color: darken($link-color, 5%) !important;
+			}
+
+			& md-icon {
+				color: white !important;
+			}
+		}
+
+		& md-icon {
+			color: $link-color;
+		}
 	}
 }
 
