@@ -76,6 +76,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/", {
 		template: "",
 		controller: "IndexPageController",
+ 		reloadOnSearch: false,
 	})
 	.when("/domains/:alias", {
  		template: "",

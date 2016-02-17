@@ -83,13 +83,11 @@
 			<div arb-mastery-list ids-source="::subjectIds" hide-checkboxes="!showSubjectCheckboxes"></div>
 
 			<!-- Mark as done button -->
-			<md-button class="md-primary md-raised"
+			<md-button class="special md-raised"
 					ng-click="toggleSubjects()">
-				<md-icon ng-if="knowsAllSubjects()">clear</md-icon>
-				<md-icon ng-if="!knowsAllSubjects()">done_all</md-icon>
 				<span ng-bind="knowsAllSubjects() ? 'Nevermind, none of them' : 'Yes, all of them'"></span>
 			</md-button>
-			<md-button class="md-primary"
+			<md-button class="special"
 					ng-click="showSubjectCheckboxes = !showSubjectCheckboxes"
 					ng-if="!showSubjectCheckboxes">
 				Only some of them
@@ -97,7 +95,9 @@
 		</div>
 	</div>
 
-	<div arb-next-prev page-id="{{::lensParentId}}" extra-info="true"></div>
+	<div class="bottom-next-prev">
+		<div arb-next-prev page-id="{{::lensParentId}}" extra-info="true" class="float-right"></div>
+	</div>
 
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
