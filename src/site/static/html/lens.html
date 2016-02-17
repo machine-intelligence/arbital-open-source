@@ -10,7 +10,7 @@
 				This lens relies on:
 			</span>
 			<span arb-mastery-list ids-source="::page.requirementIds" is-span="true"></span>
-		
+
 			<div>
 				<!-- Mark as done button -->
 				<md-button class="md-primary"
@@ -26,7 +26,7 @@
 		<!-- Lens suggestion -->
 		<div class="lens-suggestion">
 			<div ng-if="::simplerLens">
-				If you have trouble understanding this lens, try a simpler one: 
+				If you have trouble understanding this lens, try a simpler one:
 				<a ng-href="{{::pageService.getPageUrl(simplerLens.pageId)}}"
 						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
 				<!--<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>

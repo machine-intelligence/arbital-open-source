@@ -31,7 +31,7 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 					url = url.slice(0, hashIndex);
 				}
 				if (url.indexOf("?") < 0) {
-					// We have to set the lens explicitly, so we don't get automatically 
+					// We have to set the lens explicitly, so we don't get automatically
 					// redirected to an easier lens or something.
 					url += "?l=" + $scope.lensId;
 				}

@@ -441,7 +441,7 @@ app.directive("arbPageList", function(pageService, userService) {
 			$scope.getPage = function(pageId) {
 				if ($scope.useEditMap) {
 					return pageService.editMap[pageId];
-				} 
+				}
 				return pageService.pageMap[pageId];
 			};
 		},

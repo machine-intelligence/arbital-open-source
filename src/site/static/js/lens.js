@@ -67,7 +67,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			});
 
 			// ============ Masteries ====================
-			
+
 			// Compute subject ids that the user hasn't learned yet.
 			$scope.subjectIds = $scope.page.subjectIds.filter(function(id) { return !pageService.hasMastery(id); });
 

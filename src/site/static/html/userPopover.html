@@ -8,11 +8,11 @@
 				<arb-user-name user-id="{{::userId}}" is-link="true" ng-if="::isLoaded"></arb-user-name>
 			</div>
 		</md-toolbar>
-	
+
 		<arb-vote-bar page-id="{{::userId}}"
 				is-embedded="true"
 				ng-if="::(page.hasVote && isLoaded)"></arb-vote-bar>
-		
+
 		<!-- Lens tabs -->
 		<md-tabs class="md-primary md-hue-2"
 				ng-class="::{'hide-tabs': summaries.length <= 1}"
@@ -30,7 +30,7 @@
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
-	
+
 		<!-- Footer -->
 		<div class="comment-footer" layout="row" layout-align="start center" ng-if="::isLoaded">
 			<arb-likes page-id="{{::userId}}" is-button="true" is-stretched="true"></arb-likes>
@@ -55,14 +55,14 @@
 				Last Online: <span ng-bind="::(user.lastWebsiteVisit | relativeDateTime)"></span>
 			</span>
 		</div>
-		
+
 		<!-- Loading spinner -->
 		<div layout="column"
 				layout-align="center center"
 				ng-hide="::isLoaded">
 			<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 		</div>
-	
+
 	</div>
 	<div class="bottom-triangle-track" ng-show="::direction === 'up'">
 		<div class="triangle-down" ng-style="::getArrowStyle()"></div>

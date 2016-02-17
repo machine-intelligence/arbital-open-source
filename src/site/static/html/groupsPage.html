@@ -9,7 +9,7 @@
 				<arb-page-title page-id="{{::groupId}}" is-link="true"><arb-page-title>
 			</div>
 		</md-toolbar>
-	
+
 		<!-- Members table -->
 		<!-- Header row -->
 		<div layout="row" layout-margin>
@@ -39,7 +39,7 @@
 				</md-button>
 			</div>
 		</div>
-		
+
 		<!-- New Member form -->
 		<div ng-if="::userCanAddMembers">
 			<form layout="row"
@@ -57,7 +57,7 @@
 			</form>
 		</div>
 	</div>
-	
+
 	<!-- Create new group -->
 	<div class="md-whiteframe-1dp" layout-margin ng-if="::userService.user.isAdmin">
 		<md-toolbar class="md-hue-1" layout-fill>

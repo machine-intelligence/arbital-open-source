@@ -437,7 +437,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 					}
 
 					pageService.primaryPage = page;
-			
+
 					// Called when the user is done editing the page.
 					$scope.doneFn = function(result) {
 						var page = pageService.editMap[result.pageId];

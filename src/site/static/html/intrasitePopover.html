@@ -9,12 +9,12 @@
 				<span ng-if="::!page">Not found</span>
 			</div>
 		</md-toolbar>
-	
+
 		<div arb-vote-bar class="white-background md-padding"
 				page-id="{{::page.pageId}}"
 				is-embedded="true"
 				ng-if="::(page.hasVote && isLoaded)"></div>
-		
+
 		<!-- Lens tabs -->
 		<md-tabs class="md-primary md-hue-2"
 				ng-class="::{'hide-tabs': summaries.length <= 1}"
@@ -32,7 +32,7 @@
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
-	
+
 		<!-- Footer -->
 		<div class="comment-footer" layout="row" layout-align="start center" ng-if="::isLoaded">
 			<arb-likes page-id="{{::pageId}}" is-button="true" is-stretched="true"></arb-likes>
@@ -56,7 +56,7 @@
 				<md-tooltip>Page's text length</md-tooltip>
 			</div>
 		</div>
-		
+
 		<!-- Loading spinner -->
 		<div layout="column"
 				layout-align="center center"

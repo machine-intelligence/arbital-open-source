@@ -117,7 +117,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 			updateTimeout();
 			return;
 		}
-		
+
 		if (!$targetCandidate) {
 			createPromise = $timeout(createPopover, showDelay, true, event);
 			$targetCandidate = $target;
@@ -204,7 +204,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 	$("body").on("mousewheel DOMMouseScroll", ".popover-tab-body", function(event) {
 		// Don't prevent body scrolling if there is no scroll bar
 		if (this.scrollHeight <= this.clientHeight) return true;
-		
+
 		var delta = event.wheelDelta || (event.originalEvent && event.originalEvent.wheelDelta) || -event.detail,
 			bottomOverflow = this.scrollTop + this.offsetHeight >= this.scrollHeight - 2,
 			topOverflow = this.scrollTop <= 0;

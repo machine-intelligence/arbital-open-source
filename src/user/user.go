@@ -241,17 +241,17 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 		FROM (
 			SELECT pageId
 			FROM pageInfos
-			UNION 
+			UNION
 			SELECT id
 			FROM users
 		) AS combined
-		WHERE char_length(pageId) = 
+		WHERE char_length(pageId) =
 		(
 			SELECT MAX(char_length(pageId))
 			FROM (
 				SELECT pageId
 				FROM pageInfos
-				UNION 
+				UNION
 				SELECT id
 				FROM users
 			) AS combined2

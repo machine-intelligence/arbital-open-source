@@ -60,7 +60,7 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 					location.reload();
 				});
 			};
-		
+
 			// Process new group form submission.
 			$scope.newGroupFormSubmit = function(event) {
 				var data = {

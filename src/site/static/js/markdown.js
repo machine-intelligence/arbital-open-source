@@ -7,20 +7,20 @@ var aliasMatch = "(" + nakedAliasMatch + ")";
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
 // [vote: alias]
-var voteEmbedRegexp = new RegExp(notEscaped + 
+var voteEmbedRegexp = new RegExp(notEscaped +
 		"\\[vote: ?" + aliasMatch + "\\]" + noParen, "g");
-// [alias/url text] 
-var forwardLinkRegexp = new RegExp(notEscaped + 
+// [alias/url text]
+var forwardLinkRegexp = new RegExp(notEscaped +
 		"\\[([^ \\]]+?) (?![^\\]]*?\\\\\\])([^\\]]+?)\\]" + noParen, "g");
 // [alias]
-var simpleLinkRegexp = new RegExp(notEscaped + 
+var simpleLinkRegexp = new RegExp(notEscaped +
 		"\\[" + aliasMatch + "\\]" + noParen, "g");
 // [text](alias)
-var complexLinkRegexp = new RegExp(notEscaped + 
+var complexLinkRegexp = new RegExp(notEscaped +
 		"\\[([^\\]]+?)\\]" + // match [Text]
 		"\\(" + aliasMatch + "\\)", "g"); // match (Alias)
 // [@alias]
-var atAliasRegexp = new RegExp(notEscaped + 
+var atAliasRegexp = new RegExp(notEscaped +
 		"\\[@" + aliasMatch + "\\]" + noParen, "g");
 
 // markdownService provides a constructor you can use to create a markdown converter,
@@ -90,30 +90,30 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// ] blocks.
 		var mcBlockRegexp = new RegExp("^\\[multiple-choice: ?([^\n]+?)\n" +
 				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
-				"(knows: ?[^\n]+?\n)?" + 
+				"(knows: ?[^\n]+?\n)?" +
 				"(wants: ?[^\n]+?\n)?" +
-				"(-knows: ?[^\n]+?\n)?" + 
-				"(-wants: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" +
+				"(-wants: ?[^\n]+?\n)?" +
 				"(b: ?[^\n]+?\n)" + // choice, e.g. "b: Carrots"
-				"(knows: ?[^\n]+?\n)?" + 
+				"(knows: ?[^\n]+?\n)?" +
 				"(wants: ?[^\n]+?\n)?" +
-				"(-knows: ?[^\n]+?\n)?" + 
-				"(-wants: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" +
+				"(-wants: ?[^\n]+?\n)?" +
 				"(c: ?[^\n]+?\n)?" + // choice, e.g. "c: Carrots"
-				"(knows: ?[^\n]+?\n)?" + 
+				"(knows: ?[^\n]+?\n)?" +
 				"(wants: ?[^\n]+?\n)?" +
-				"(-knows: ?[^\n]+?\n)?" + 
-				"(-wants: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" +
+				"(-wants: ?[^\n]+?\n)?" +
 				"(d: ?[^\n]+?\n)?" + // choice, e.g. "d: Carrots"
-				"(knows: ?[^\n]+?\n)?" + 
+				"(knows: ?[^\n]+?\n)?" +
 				"(wants: ?[^\n]+?\n)?" +
-				"(-knows: ?[^\n]+?\n)?" + 
-				"(-wants: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" +
+				"(-wants: ?[^\n]+?\n)?" +
 				"(e: ?[^\n]+?\n)?" + // choice, e.g. "e: Carrots"
-				"(knows: ?[^\n]+?\n)?" + 
+				"(knows: ?[^\n]+?\n)?" +
 				"(wants: ?[^\n]+?\n)?" +
-				"(-knows: ?[^\n]+?\n)?" + 
-				"(-wants: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" +
+				"(-wants: ?[^\n]+?\n)?" +
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function () {
@@ -144,7 +144,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// wants: [alias1],[alias2]...
 		// ] blocks.
 		var checkboxBlockRegexp = new RegExp("^\\[checkbox: ?([^\n]+?)\n" +
-				"(knows: ?[^\n]+?\n)?" + 
+				"(knows: ?[^\n]+?\n)?" +
 				"(wants: ?[^\n]+?\n)?" +
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
@@ -173,7 +173,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		});
 
 		// Process [todo:text] spans.
-		var todoSpanRegexp = new RegExp(notEscaped + 
+		var todoSpanRegexp = new RegExp(notEscaped +
 				"\\[todo: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(todoSpanRegexp, function (whole, prefix, text) {
@@ -182,7 +182,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		});
 
 		// Process [comment:text] spans.
-		var commentSpanRegexp = new RegExp(notEscaped + 
+		var commentSpanRegexp = new RegExp(notEscaped +
 				"\\[comment: ?([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(commentSpanRegexp, function (whole, prefix, text) {
@@ -198,7 +198,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		});
 
 		// Convert [ text] spans into links.
-		var spaceTextRegexp = new RegExp(notEscaped + 
+		var spaceTextRegexp = new RegExp(notEscaped +
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
@@ -315,7 +315,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			var parts = $element.attr("href").match(pageRe);
 			if (parts !== null)	{
 				var pageAlias = parts[1];
-				
+
 				if (!$element.hasClass("intrasite-link")) {
 					$element.addClass("intrasite-link").attr("page-id", pageAlias);
 					// Check if we are embedding a vote
@@ -354,7 +354,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			parts = $element.attr("href").match(userRe);
 			if (parts !== null) {
 				var userAlias = parts[1];
-				
+
 				if (!$element.hasClass("user-link")) {
 					$element.addClass("user-link").attr("user-id", userAlias);
 					if (userAlias in pageService.pageMap) {
