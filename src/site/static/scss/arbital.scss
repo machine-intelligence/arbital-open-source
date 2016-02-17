@@ -1179,6 +1179,15 @@ arb-multiple-choice {
 	padding-left: 10px;
 }
 
+.sequence-list {
+	margin: 0 0 0 5px;
+	padding-top: 0;
+
+	& > div {
+		margin-bottom: 5px;
+	}
+}
+
 arb-sequence-part, [arb-sequence-part] {
 	padding-top: 7px;
 	margin-bottom: 7px;

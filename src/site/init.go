@@ -66,7 +66,6 @@ func init() {
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/groups/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/knowledge/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc(fmt.Sprintf("/learn/{pageId:%s}/", core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}/", core.AliasRegexpStr),
@@ -75,6 +74,7 @@ func init() {
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/p/{alias:%s}/{title:%s}/", core.AliasRegexpStr, core.UrlTitleRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/s/{pageId:%s}/", core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/sequences/{pageId:%s}/", core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/signup/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
