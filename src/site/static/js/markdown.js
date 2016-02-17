@@ -67,6 +67,22 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process |todo:markdown| blocks.
+		var todoBlockRegexp = new RegExp("^(\\|+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(todoBlockRegexp, function (whole, bars, not, alias, markdown) {
+				return "";
+			});
+		});
+
+		// Process |comment:markdown| blocks.
+		var commentBlockRegexp = new RegExp("^(\\|+)comment: ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(commentBlockRegexp, function (whole, bars, not, alias, markdown) {
+				return "";
+			});
+		});
+
 		// Process [multiple-choice: text
 		// a: text
 		// knows: [alias1],[alias2]...
@@ -147,7 +163,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process |wants-requisite([alias]): markdown| blocks.
+		// Process |wants-requisite([alias]): markdown| spans.
 		var wantsReqSpanRegexp = new RegExp(notEscaped + "(\\|+)(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\2", "g");
 		converter.hooks.chain("preSpanGamut", function (text, run) {
 			return text.replace(wantsReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
