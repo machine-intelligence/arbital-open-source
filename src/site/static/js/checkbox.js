@@ -27,7 +27,7 @@ app.directive("arbCheckbox", function($timeout, $http, $compile, pageService, us
 			"	<md-icon ng-if='choice'>" +
 			"		check_box" +
 			"	</md-icon>" +
-			"	<md-icon ng-hide='choice'>" +
+			"	<md-icon ng-if='!choice'>" +
 			"		check_box_outline_blank" +
 			"	</md-icon>" +
 			"</md-button>";

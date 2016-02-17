@@ -5,8 +5,8 @@
 		ng-if="!isDeleted">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center" ng-if="::isComment">
-		<md-icon ng-hide="::parentSubpageId">comment</md-icon>
-		<span class="separator" ng-hide="::parentSubpageId"></span>
+		<md-icon ng-if="::!parentSubpageId">comment</md-icon>
+		<span class="separator" ng-if="::!parentSubpageId"></span>
 
 		<!-- User name -->
 		<arb-user-name user-id="{{::page.creatorId}}"></arb-user-name>
@@ -14,7 +14,7 @@
 		<!-- Collapse button -->
 		<div layout="column" flex>
 			<md-button ng-click="collapseToggle()">
-				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
+				<md-icon ng-if="!isCollapsed">expand_less</md-icon>
 				<md-icon ng-if="isCollapsed">expand_more</md-icon>
 			</md-button>
 		</div>
@@ -52,7 +52,7 @@
 	</div>
 
 	<!-- Collapsable body -->
-	<div layout="column" ng-hide="isCollapsed" layout-margin>
+	<div layout="column" ng-if="!isCollapsed" layout-margin>
 		<arb-markdown class="comment-text-container" page-id="{{::page.pageId}}" ng-if="!editing && !isQuestion"></arb-markdown>
 		<!-- Edit this subpage -->
 		<div arb-edit-page
@@ -63,14 +63,14 @@
 				ng-if="editing"></div>
 
 		<!-- Footer -->
-		<div class="comment-footer" layout="row" layout-align="start start" ng-hide="editing">
+		<div class="comment-footer" layout="row" layout-align="start start" ng-if="!editing">
 			<arb-likes page-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
-			<arb-subscribe page-id="{{::page.pageId}}" show-subscriber-count="true" ng-hide="::parentSubpageId"></arb-subscribe>
+			<arb-subscribe page-id="{{::page.pageId}}" show-subscriber-count="true" ng-if="::!parentSubpageId"></arb-subscribe>
 			<md-button class="md-primary"
 					ng-click="newReply()"
 					ng-disabled="newReplyId"
 					arb-user-check="cool"
-					ng-hide="::(isQuestion || parentSubpageId || page.subpageIds.length > 0)">
+					ng-if="::(!isQuestion && !parentSubpageId && page.subpageIds.length <= 0)">
 				<md-icon>reply</md-icon>
 				Reply
 			</md-button>
