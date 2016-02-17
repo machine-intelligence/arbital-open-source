@@ -263,7 +263,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	funcMap := template.FuncMap{
 		//"UserFirstName": func() string { return u.Id },
 		"GetUserUrl": func(userId string) string {
-			return fmt.Sprintf(`%s/u/%s`, sessions.GetDomainForTestEmail(), userId)
+			return fmt.Sprintf(`%s/user/%s`, sessions.GetDomainForTestEmail(), userId)
 		},
 		"GetUserName": func(userId string) string {
 			return userMap[userId].FullName()

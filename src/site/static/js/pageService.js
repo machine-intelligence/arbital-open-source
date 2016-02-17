@@ -220,7 +220,7 @@ app.service("pageService", function($http, $location, userService){
 	};
 
 	this.getEditPageUrl = function(pageId){
-		return "/e/" + pageId;
+		return "/edit/" + pageId;
 	};
 
 	// Get a domain url (with optional subdomain)

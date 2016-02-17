@@ -186,7 +186,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
-				return prefix + "[" + text + "](" + "http://" + host + "/e/0" + ")";
+				return prefix + "[" + text + "](" + "http://" + host + "/edit/0" + ")";
 			});
 		});
 
@@ -243,10 +243,10 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
-					var url = "http://" + host + "/u/" + page.pageId + "/";
+					var url = "http://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
-					var url = "http://" + host + "/u/" + alias + "/";
+					var url = "http://" + host + "/user/" + alias + "/";
 					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
@@ -283,14 +283,14 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			getHostMatchRegex(window.location.host) + // match the url host part
-			"\/(?:p|e)\/" + aliasMatch + // [1] capture page alias
+			"\/(?:p|edit)\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
 		// Setup attributes for user links that are within our domain.
 		var userRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
-			"\/u\/" + aliasMatch + // [1] capture user alias
+			"\/user\/" + aliasMatch + // [1] capture user alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
@@ -314,7 +314,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						}
 					} else {
 						// Mark as red link
-						$element.attr("href", $element.attr("href").replace(/\/p\//, "/e/"));
+						$element.attr("href", $element.attr("href").replace(/\/p\//, "/edit/"));
 						$element.addClass("red-link");
 						if (refreshFunc && pageAlias === "") {
 							$element.addClass("red-todo-text");
