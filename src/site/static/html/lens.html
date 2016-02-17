@@ -78,7 +78,7 @@
 
 			<span class="md-subhead">
 				<md-icon>assignment</md-icon>
-				Did you understand these concepts presented in "{{page.title}}"?
+				Did you learn these concepts from "{{page.title}}"?
 			</span>
 			<div arb-mastery-list ids-source="subjectIds" hide-checkboxes="!showSubjectCheckboxes"></div>
 
@@ -87,15 +87,17 @@
 					ng-click="toggleSubjects()">
 				<md-icon ng-show="knowsAllSubjects()">clear</md-icon>
 				<md-icon ng-hide="knowsAllSubjects()">done_all</md-icon>
-				<span ng-bind="knowsAllSubjects() ? 'Nevermind, I didn\'t understand any' : 'I understood all of them'"></span>
+				<span ng-bind="knowsAllSubjects() ? 'Nevermind, none of them' : 'Yes, all of them'"></span>
 			</md-button>
 			<md-button class="md-primary"
 					ng-click="showSubjectCheckboxes = !showSubjectCheckboxes"
 					ng-hide="showSubjectCheckboxes">
-				I only understood some of them
+				Only some of them
 			</md-button>
 		</div>
 	</div>
+
+	<div arb-next-prev page-id="{{lensParentId}}" extra-info="true"></div>
 
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="page.textLength > 1000"></div>
 

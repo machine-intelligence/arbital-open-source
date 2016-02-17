@@ -160,6 +160,8 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			customPageTitle: "=",
 			// Whether to display the title as a link or a span
 			isLink: "=",
+			// If set, we'll use this link for the page
+			customLink: "@",
 			// Whether or not to show the clickbait
 			showClickbait: "=",
 			// Whether or not to show the type of the page icon
@@ -171,6 +173,7 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = ($scope.useEditMap ? pageService.editMap : pageService.pageMap)[$scope.pageId];
+			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
 				if ($scope.customPageTitle) {

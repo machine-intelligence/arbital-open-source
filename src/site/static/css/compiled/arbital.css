@@ -823,6 +823,12 @@ arb-multiple-choice {
   border-left: #E0F2F1 3px solid;
   padding-left: 10px; }
 
+.sequence-list {
+  margin: 0 0 0 5px;
+  padding-top: 0; }
+  .sequence-list > div {
+    margin-bottom: 5px; }
+
 arb-sequence-part, [arb-sequence-part] {
   padding-top: 7px;
   margin-bottom: 7px; }
