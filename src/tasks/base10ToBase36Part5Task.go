@@ -132,16 +132,16 @@ func updatePageTextBase10ToBase36again(db *database.DB, rows *database.Rows) err
 	hashmap["pageId"] = pageId
 	hashmap["edit"] = edit
 	hashmap["text"] = text
-	/*
-		statement := db.NewInsertStatement("pages", hashmap, "text")
 
-		//db.C.Debugf("statement: %v", statement)
-		//db.C.Debugf("hashmap: %v", hashmap)
+	statement := db.NewInsertStatement("pages", hashmap, "text")
 
-		if _, err := statement.Exec(); err != nil {
-			return fmt.Errorf("Couldn't update pages table: %v", err)
-		}
-	*/
+	//db.C.Debugf("statement: %v", statement)
+	//db.C.Debugf("hashmap: %v", hashmap)
+
+	if _, err := statement.Exec(); err != nil {
+		return fmt.Errorf("Couldn't update pages table: %v", err)
+	}
+
 	/*
 		// Update page links table
 		err := core.UpdatePageLinks(tx, pageId, text, sessions.GetDomain())
