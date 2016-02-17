@@ -40,7 +40,9 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 					}
 				};
 				processPart($scope.sequence);
-				$scope.readIds.push($scope.sequence.pageId);
+				if ($scope.readIds.indexOf($scope.sequence.pageId) < 0) {
+					$scope.readIds.push($scope.sequence.pageId);
+				}
 			};
 
 			// Get the url for the given page (optional) with sequence support
