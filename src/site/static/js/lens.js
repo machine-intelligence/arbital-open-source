@@ -112,7 +112,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 
 			// Toggle all subjects
 			$scope.toggleSubjects = function() {
-				$scope.showSubjectCheckboxes = true;
 				if ($scope.knowsAllSubjects()) {
 					pageService.updateMasteryMap({delete: $scope.subjectIds});
 				} else {

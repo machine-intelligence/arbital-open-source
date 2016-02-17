@@ -6,29 +6,28 @@
 		ng-if="page.nextPageId !== '' || page.prevPageId !== ''">
 
 	<md-button ng-href="{{prevUrl}}"
-			class="md-primary"
-			ng-class="{'intrasite-link': page.prevPageId !== '', 'special': extraInfo}"
+			class="special"
+			ng-class="{'intrasite-link': page.prevPageId !== ''}"
 			page-id="{{page.prevPageId}}"
 			ng-disabled="page.prevPageId === ''">
 		<md-tooltip md-delay="500" ng-show="page.prevPageId === ''">No previous page</md-tooltip>
 		<md-icon>chevron_left</md-icon>
 		<span>Prev</span>
 	</md-button>
-	<md-button class="md-primary md-icon-button"
-			ng-class="{'special': extraInfo}"
+	<md-button class="special md-icon-button"
 			ng-href="/learn/{{page.sequenceId}}"
 			ng-if="page.sequenceId">
 		<md-tooltip md-delay="500">Current sequence</md-tooltip>
 		<md-icon>book</md-icon>
 	</md-button>
 	<md-button ng-href="{{nextUrl}}"
-			class="intrasite-link"
-			ng-class="{'special md-raised': extraInfo, 'md-primary': !extraInfo}"
+			class="intrasite-link special"
+			ng-class="{'md-raised': extraInfo}"
 			page-id="{{page.nextPageId}}"
 			ng-disabled="page.nextPageId === ''"
 			ng-if="page.nextPageId !== '' || !page.sequenceUrl">
 		<md-tooltip md-delay="500" ng-show="page.nextPageId === ''">No next page</md-tooltip>
-		Continue path
+		<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
 		<md-icon>chevron_right</md-icon>
 	</md-button>
 	<md-button ng-disabled="true" ng-if="page.nextPageId === '' && page.sequenceUrl">

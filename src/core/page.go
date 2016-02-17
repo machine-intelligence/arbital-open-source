@@ -472,7 +472,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[string]*Page
 	}
 
 	// Load prev/next ids
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool {
+	/*filteredPageMap = filterPageMap(pageMap, func(p *Page) bool {
 		return p.Type == WikiPageType && p.LoadOptions.NextPrevIds
 	})
 	err = LoadNextPrevPageIds(db, u.Id, &LoadDataOptions{
@@ -480,7 +480,7 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[string]*Page
 	})
 	if err != nil {
 		return fmt.Errorf("LoadNextPrevPageIds failed: %v", err)
-	}
+	}*/
 
 	// Add pages that need a corresponding mastery to the masteryMap
 	for _, p := range pageMap {

@@ -72,31 +72,33 @@
 			</span>
 		</div>
 
-		<!-- Subjects taught -->
-		<div ng-if="!isSimpleEmbed && subjectIds.length > 0">
-			<hr>
+		<hr ng-if="(!isSimpleEmbed && subjectIds.length > 0) ||
+				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
+		<div layout="row" layout-align="start end">
+			<!-- Subjects taught -->
+			<div ng-if="!isSimpleEmbed && subjectIds.length > 0">
+				<span class="md-subhead">
+					<md-icon>assignment</md-icon>
+					Did you learn these concepts from "{{page.title}}"?
+				</span>
+				<div arb-mastery-list ids-source="subjectIds"></div>
+	
+				<!-- Mark as done button -->
+				<md-button class="special md-raised"
+						ng-click="toggleSubjects()">
+					<span ng-bind="knowsAllSubjects() ? 'Nevermind, none of them' : 'Yes, all of them'"></span>
+				</md-button>
+				<md-button class="special"
+						ng-click="showSubjectCheckboxes = !showSubjectCheckboxes"
+						ng-hide="showSubjectCheckboxes">
+					Only some of them
+				</md-button>
+			</div>
 
-			<span class="md-subhead">
-				<md-icon>assignment</md-icon>
-				Did you learn these concepts from "{{page.title}}"?
-			</span>
-			<div arb-mastery-list ids-source="subjectIds" hide-checkboxes="!showSubjectCheckboxes"></div>
+			<div flex></div>
 
-			<!-- Mark as done button -->
-			<md-button class="special md-raised"
-					ng-click="toggleSubjects()">
-				<span ng-bind="knowsAllSubjects() ? 'Nevermind, none of them' : 'Yes, all of them'"></span>
-			</md-button>
-			<md-button class="special"
-					ng-click="showSubjectCheckboxes = !showSubjectCheckboxes"
-					ng-hide="showSubjectCheckboxes">
-				Only some of them
-			</md-button>
+			<arb-next-prev page-id="{{lensParentId}}" extra-info="true"></arb-next-prev>
 		</div>
-	</div>
-
-	<div class="bottom-next-prev">
-		<div arb-next-prev page-id="{{lensParentId}}" extra-info="true" class="float-right"></div>
 	</div>
 
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="page.textLength > 1000"></div>
