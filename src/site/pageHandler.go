@@ -74,7 +74,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				if r := recover(); r != nil {
 					c.Errorf("%v", r)
 					w.WriteHeader(http.StatusInternalServerError)
-					fmt.Fprintf(w, "%s", "Super serious error has occured. Super. Serious. Error.")
+					fmt.Fprintf(w, "%s", "Super serious error has occurred. Super. Serious. Error.")
 				}
 			}()
 		}

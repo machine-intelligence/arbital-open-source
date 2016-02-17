@@ -4,7 +4,7 @@
 <div ng-if="::!pageService.hasMastery(part.pageId)">
 	<div class="which-part" ng-if="::(part.taughtById !== '')">
 		You can learn it from
-		<arb-page-title page-id="{{::part.taughtById}}" is-link="true" custom-page-title="'this page'"></arb-page-title>
+		<arb-page-title page-id="{{::part.taughtById}}" is-link="true"></arb-page-title>
 		(<span ng-bind="::(pageService.pageMap[part.taughtById].textLength | numSuffix)"></span> characters)
 		<span ng-if="::(part.requirements.length > 0)">
 			, which depends on:

@@ -165,6 +165,8 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			customPageTitle: "=",
 			// Whether to display the title as a link or a span
 			isLink: "=",
+			// If set, we'll use this link for the page
+			customLink: "@",
 			// Whether or not to show the clickbait
 			showClickbait: "=",
 			// Whether or not to show the type of the page icon
@@ -176,6 +178,7 @@ app.directive("arbPageTitle", function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = ($scope.useEditMap ? pageService.editMap : pageService.pageMap)[$scope.pageId];
+			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
 				if ($scope.customPageTitle) {
@@ -281,7 +284,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.pageUrl = "/e/";
+			$scope.pageUrl = "/edit/";
 			$scope.isSmallScreen = !$mdMedia("gt-sm");
 
 			$scope.isOpen = false;
@@ -293,7 +296,7 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			// Compute what the urls should be on the compose buttons, and which ones
 			// should be visible.
 			var computeUrls = function() {
-				$scope.questionUrl = "/e/?type=question";
+				$scope.questionUrl = "/edit/?type=question";
 				$scope.editPageUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
@@ -303,9 +306,9 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 					if (type === "question") {
 						$scope.showNewAnswer = true;
 					} else if (type === "wiki" || type === "group" || type === "domain") {
-						$scope.questionUrl = "/e/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
-						$scope.lensUrl = "/e/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
-						$scope.childUrl = "/e/?newParentId=" + pageService.primaryPage.pageId;
+						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
+						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
+						$scope.childUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId;
 					}
 					if ($location.search().l) {
 						$scope.editPageUrl = pageService.getEditPageUrl($location.search().l);
@@ -340,15 +343,15 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			};
 
 			$scope.$on("$locationChangeSuccess", function () {
-				$scope.hide = $location.path().indexOf("/e") === 0;
+				$scope.hide = $location.path().indexOf("/edit") === 0;
 			});
-			$scope.hide = $location.path().indexOf("/e") === 0;
+			$scope.hide = $location.path().indexOf("/edit") === 0;
 
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
-					if (event.keyCode == 80) $location.url("/e/"); // P
+					if (event.keyCode == 80) $location.url("/edit/"); // P
 					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
 					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
 					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N

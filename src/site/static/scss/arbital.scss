@@ -209,6 +209,10 @@ span.md-warn {
 	float: right;
 }
 
+.nowrap {
+	white-space: nowrap;
+}
+
 .facebook-button {
 	background-color: #3b5998;
 	color: white;
@@ -1177,6 +1181,15 @@ arb-multiple-choice {
 	margin-left: 10px;
 	border-left: $primary-hue-1 3px solid;
 	padding-left: 10px;
+}
+
+.sequence-list {
+	margin: 0 0 0 5px;
+	padding-top: 0;
+
+	& > div {
+		margin-bottom: 5px;
+	}
 }
 
 arb-sequence-part, [arb-sequence-part] {

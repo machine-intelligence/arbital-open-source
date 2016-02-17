@@ -35,7 +35,7 @@
 				ng-if="::(page.taggedAsIds.length > 0 && !isSimpleEmbed)">
 			<span>Tagged as:</span>
 			<span ng-repeat="(index, tagId) in ::page.taggedAsIds">
-				<span ng-if="index > 0">,</span>
+				<span ng-if="::(index > 0)">,</span>
 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
@@ -75,8 +75,6 @@
 				</md-tab-body>
 			</md-tab>
 		</md-tabs>
-
-		<div arb-next-prev page-id="{{::page.pageId}}" extra-info="true"></div>
 
 		<div class="discussion-container">
 			<!-- arb-discussion is inserted here dynamically -->

@@ -67,6 +67,22 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process |todo:markdown| blocks.
+		var todoBlockRegexp = new RegExp("^(\\|+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(todoBlockRegexp, function (whole, bars, not, alias, markdown) {
+				return "";
+			});
+		});
+
+		// Process |comment:markdown| blocks.
+		var commentBlockRegexp = new RegExp("^(\\|+)comment: ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(commentBlockRegexp, function (whole, bars, not, alias, markdown) {
+				return "";
+			});
+		});
+
 		// Process [multiple-choice: text
 		// a: text
 		// knows: [alias1],[alias2]...
@@ -76,23 +92,28 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(b: ?[^\n]+?\n)" + // choice, e.g. "b: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(c: ?[^\n]+?\n)?" + // choice, e.g. "c: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(d: ?[^\n]+?\n)?" + // choice, e.g. "d: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"(e: ?[^\n]+?\n)?" + // choice, e.g. "e: Carrots"
 				"(knows: ?[^\n]+?\n)?" + 
 				"(wants: ?[^\n]+?\n)?" +
-				"(forgets: ?[^\n]+?\n)?" + 
+				"(-knows: ?[^\n]+?\n)?" + 
+				"(-wants: ?[^\n]+?\n)?" + 
 				"\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function () {
@@ -142,7 +163,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process |wants-requisite([alias]): markdown| blocks.
+		// Process |wants-requisite([alias]): markdown| spans.
 		var wantsReqSpanRegexp = new RegExp(notEscaped + "(\\|+)(!?)wants-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\2", "g");
 		converter.hooks.chain("preSpanGamut", function (text, run) {
 			return text.replace(wantsReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
@@ -181,7 +202,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
-				return prefix + "[" + text + "](" + "http://" + host + "/e/0" + ")";
+				return prefix + "[" + text + "](" + "http://" + host + "/edit/0" + ")";
 			});
 		});
 
@@ -238,10 +259,10 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
-					var url = "http://" + host + "/u/" + page.pageId + "/";
+					var url = "http://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
-					var url = "http://" + host + "/u/" + alias + "/";
+					var url = "http://" + host + "/user/" + alias + "/";
 					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
@@ -278,14 +299,14 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			getHostMatchRegex(window.location.host) + // match the url host part
-			"\/(?:p|e)\/" + aliasMatch + // [1] capture page alias
+			"\/(?:p|edit)\/" + aliasMatch + // [1] capture page alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
 		// Setup attributes for user links that are within our domain.
 		var userRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
-			"\/u\/" + aliasMatch + // [1] capture user alias
+			"\/user\/" + aliasMatch + // [1] capture user alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
@@ -309,7 +330,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						}
 					} else {
 						// Mark as red link
-						$element.attr("href", $element.attr("href").replace(/\/p\//, "/e/"));
+						$element.attr("href", $element.attr("href").replace(/\/p\//, "/edit/"));
 						$element.addClass("red-link");
 						if (refreshFunc && pageAlias === "") {
 							$element.addClass("red-todo-text");

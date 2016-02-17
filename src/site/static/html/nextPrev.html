@@ -1,5 +1,6 @@
 <!-- Prev/Next -->
-<div class="next-prev-nav md-whiteframe-1dp"
+<div class="next-prev-nav"
+		ng-class="::{'md-whiteframe-1dp': !extraInfo}"
 		layout="row"
 		layout-align="start center"
 		ng-if="page.nextPageId !== '' || page.prevPageId !== ''">
@@ -14,7 +15,7 @@
 		<span>Prev</span>
 	</md-button>
 	<md-button class="md-primary md-icon-button"
-			ng-href="/sequences/{{::page.sequenceId}}"
+			ng-href="/learn/{{::page.sequenceId}}"
 			ng-if="::page.sequenceId">
 		<md-tooltip md-delay="500">Current sequence</md-tooltip>
 		<md-icon>book</md-icon>

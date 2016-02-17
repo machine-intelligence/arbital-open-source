@@ -17,7 +17,7 @@ app.service("userService", function($http, $location){
 
 	// Return url to the user page.
 	this.getUserUrl = function(userId) {
-		return "/u/" + userId;
+		return "/user/" + userId;
 	};
 
 	// Return a user's full name.

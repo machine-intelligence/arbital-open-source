@@ -77,7 +77,6 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "IndexPageController",
 	})
-
 	.when("/domains/:alias", {
  		template: "",
  		controller: "DomainPageController",
@@ -88,7 +87,12 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
  		controller: "RedirectToPrimaryPageController",
  		reloadOnSearch: false,
  	})
-	.when("/sequences/:pageId", {
+	.when("/p/:alias", {
+		template: "",
+		controller: "PrimaryPageController",
+		reloadOnSearch: false,
+	})
+	.when("/learn/:pageId", {
  		template: "",
  		controller: "SequenceController",
  		reloadOnSearch: false,
@@ -103,33 +107,6 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
  		controller: "UserPageController",
  		reloadOnSearch: false,
 	})
-
-	.when("/d/:alias", {
-		template: "",
-		controller: "DomainPageController",
-		reloadOnSearch: false,
-	})
-	.when("/p/:alias", {
-		template: "",
-		controller: "PrimaryPageController",
-		reloadOnSearch: false,
-	})
-	.when("/s/:pageId", {
-		template: "",
-		controller: "SequenceController",
-		reloadOnSearch: false,
-	})
-	.when("/e/:alias?/:edit?", {
-		template: "",
-		controller: "EditPageController",
-		reloadOnSearch: false,
-	})
-	.when("/u/:id?", {
-		template: "",
-		controller: "UserPageController",
-		reloadOnSearch: false,
-	})
-
 	.when("/dashboard/", {
 		template: "",
 		controller: "DashboardPageController",
@@ -443,7 +420,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 	var pageId = $routeParams.alias;
 
 	// Need to call /default/ in case we are creating a new page
-	// TODO(alexei): have /newPage/ return /default/ data long with /e/ data
+	// TODO(alexei): have /newPage/ return /default/ data long with /edit/ data
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (pageId && pageId.charAt(0) > '0' && pageId.charAt(0) <= '9') {
@@ -465,7 +442,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 					$scope.doneFn = function(result) {
 						var page = pageService.editMap[result.pageId];
 						if (!page.wasPublished && result.discard) {
-							$location.path("/e/");
+							$location.path("/edit/");
 						} else {
 							$location.url(pageService.getPageUrl(page.pageId));
 						}

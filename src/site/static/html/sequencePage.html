@@ -2,18 +2,63 @@
 	<div class="md-whiteframe-1dp" layout="column">
 		<md-toolbar class="md-hue-2">
 			<div class="md-toolbar-tools">
-				Sequence
+				<md-icon>book</md-icon>
+				&nbsp;Sequence
+				<div flex></div>
+				<!-- Menu with all the other stuff -->
+				<md-menu>
+					<!-- Trigger element is a md-button with an icon -->
+					<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Sequence options">
+						<md-icon>more_vert</md-icon>
+					</md-button>
+					<md-menu-content>
+						<!-- Toggle tree view -->
+						<md-menu-item>
+							<md-button ng-click="toggleView()">
+								Toggle tree view
+							</md-button>
+						</md-menu-item>
+					</md-menu-content>
+				</md-menu>
 			</div>
 		</md-toolbar>
 		
-		<div layout-padding>
+		<!-- Tree view -->
+		<div layout-padding ng-if="showTreeView">
 			<div>
-				To learn about <arb-page-title page-id="{{::sequence.pageId}}" is-link="true"></arb-page-title>, we suggest you acquire the following requisites:
+				This is the requisite tree Arbital generate for learning <arb-page-title page-id="{{::sequence.pageId}}" is-link="true"></arb-page-title>:
 			</div>
 			<div arb-sequence-part part="::sequence"></div>
+		</div>
+
+		<!-- List view -->
+		<div layout-padding ng-if="!showTreeView">
+			<div>
+				To learn about <arb-page-title page-id="{{::sequence.pageId}}" is-link="true"></arb-page-title>, Arbital dynamically generated this sequence based on your <a href="/requisites/">requisites</a>:
+			</div>
+			<div class="sequence-list">
+				<div layout="row" layout-align="start center" ng-repeat="(index,pageId) in ::readIds">
+					<span>
+					<span>{{index + 1}})&nbsp;</span>
+					<arb-page-title page-id="{{::pageId}}"
+							is-link="true"
+							show-clickbait="true"
+							custom-link="{{::getSequenceUrl(pageId)}}"></arb-page-title>
+						</span>
+					<span flex></span>
+					<span class="nowrap md-caption">
+						&nbsp;(<span ng-bind="::(pageService.pageMap[pageId].textLength | numSuffix)"></span> characters)
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Start reading and stuff -->
+		<div layout-padding>
 			<div layout="column" ng-if="::!pageService.hasMastery(sequence.pageId)">
 				<md-button class="md-primary md-raised" ng-click="startReading()">
 					Start reading
+					<md-icon>chevron_right</md-icon>
 				</md-button>
 			</div>
 			<div ng-if="::pageService.hasMastery(sequence.pageId)">
@@ -23,5 +68,27 @@
 				Looks like there is nothing for you to read here.
 			</div>
 		</div>
+
+		<!-- Show a warning if there are requisites the user can't learn. -->
+		<div layout-padding ng-if="!showTreeView">
+			<div ng-if="::(unlearnableIds.length > 0)">
+				<md-icon class="md-warn">
+					warning
+				</md-icon>
+				<span class="md-warn">
+					This sequence is incomplete. Arbital doesn't yet have pages that teach these requisites:
+				</span>
+			</div>
+			<div class="sequence-list">
+				<div ng-repeat="pageId in ::unlearnableIds">
+					<span>&bull;&nbsp;</span>
+					<arb-page-title page-id="{{::pageId}}"
+							is-link="true"
+							show-clickbait="true"
+							custom-link="{{::getSequenceUrl(pageId)}}"></arb-page-title>
+				</div>
+			</div>
+		</div>
+
 	</div>
 </div>
