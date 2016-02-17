@@ -2,12 +2,12 @@
 		arb-user-check
 		ng-click="likeClick()"
 		ng-if="::isButton">
-	<md-icon class="like-icon on" ng-show="page.myLikeValue > 0">thumb_up</md-icon>
-	<md-icon class="like-icon" md-svg-icon="thumb_up_outline" ng-show="page.myLikeValue <= 0"></md-icon>
+	<md-icon class="like-icon on" ng-if="page.myLikeValue > 0">thumb_up</md-icon>
+	<md-icon class="like-icon" md-svg-icon="thumb_up_outline" ng-if="page.myLikeValue <= 0"></md-icon>
 	<span class="like-count" ng-bind="page.likeCount + page.myLikeValue"></span>
 </md-button>
 <span layout="row" layout="start end" ng-if="::!isButton">
-	<md-icon class="like-icon on" ng-show="page.myLikeValue > 0">thumb_up</md-icon>
-	<md-icon class="like-icon off" md-svg-icon="thumb_up_outline" ng-show="page.myLikeValue <= 0"></md-icon>
+	<md-icon class="like-icon on" ng-if="page.myLikeValue > 0">thumb_up</md-icon>
+	<md-icon class="like-icon off" md-svg-icon="thumb_up_outline" ng-if="page.myLikeValue <= 0"></md-icon>
 	<span class="like-count" ng-bind="page.likeCount + page.myLikeValue"></span>
 </span>

@@ -15,7 +15,7 @@
 		<div layout="column" flex>
 			<md-button ng-click="collapseToggle()">
 				<md-icon ng-hide="isCollapsed">expand_less</md-icon>
-				<md-icon ng-show="isCollapsed">expand_more</md-icon>
+				<md-icon ng-if="isCollapsed">expand_more</md-icon>
 			</md-button>
 		</div>
 
@@ -29,7 +29,7 @@
 				class="md-icon-button"
 				ng-disabled="editing"
 				ng-click="editSubpage($event)"
-				ng-show="::(page.creatorId === userService.user.id)">
+				ng-if="::(page.creatorId === userService.user.id)">
 			<md-icon>create</md-icon>
 		</md-button>
 		<md-button class="md-icon-button" ng-href="{{::myUrl}}">
@@ -74,7 +74,7 @@
 				<md-icon>reply</md-icon>
 				Reply
 			</md-button>
-			<span ng-show="::(isQuestion && page.commentIds.length > 0)">
+			<span ng-if="::(isQuestion && page.commentIds.length > 0)">
 				<md-icon>comment</md-icon>
 				<span ng-bind="::page.commentIds.length"></span>
 			</span>
@@ -96,7 +96,7 @@
 				<md-button class="md-primary"
 						ng-click="newReply()"
 						arb-user-check="cool"
-						ng-show="!newReplyId && page.subpageIds.length > 0">
+						ng-if="!newReplyId && page.subpageIds.length > 0">
 					<md-icon>reply</md-icon>
 					New Reply
 				</md-button>

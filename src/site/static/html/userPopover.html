@@ -1,5 +1,5 @@
 <div class="user-popover">
-	<div class="top-triangle-track" ng-show="::direction === 'down'">
+	<div class="top-triangle-track" ng-if="::direction === 'down'">
 		<div class="triangle-up" ng-style="::getArrowStyle()"></div>
 	</div>
 	<div class="popover-body md-whiteframe-8dp">
@@ -36,17 +36,17 @@
 			<arb-likes page-id="{{::userId}}" is-button="true" is-stretched="true"></arb-likes>
 			<arb-subscribe page-id="{{::userId}}" is-user="true"></arb-subscribe>
 			<div flex></div>
-			<div layout="row" layout-align="start center" ng-show="::page.commentCount">
+			<div layout="row" layout-align="start center" ng-if="::page.commentCount">
 				<span class="separator"></span>
 				<md-icon>comment</md-icon>
 				<span ng-bind="::page.commentCount"></span>
 			</div>
-			<div layout="row" layout-align="start center" ng-show="::(page.type === 'question')">
+			<div layout="row" layout-align="start center" ng-if="::(page.type === 'question')">
 				<span class="separator"></span>
 				<md-icon>font_download</md-icon>
 				<span ng-bind="::page.answerCount"></span>
 			</div>
-			<div class="md-caption" ng-show="::(page.type !== 'question')">
+			<div class="md-caption" ng-if="::(page.type !== 'question')">
 				<span class="separator"></span>
 				{{page.textLength}} characters
 			</div>
@@ -64,7 +64,7 @@
 		</div>
 
 	</div>
-	<div class="bottom-triangle-track" ng-show="::direction === 'up'">
+	<div class="bottom-triangle-track" ng-if="::direction === 'up'">
 		<div class="triangle-down" ng-style="::getArrowStyle()"></div>
 	</div>
 </div>

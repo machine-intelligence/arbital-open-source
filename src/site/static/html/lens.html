@@ -36,7 +36,7 @@
 				<span ng-if="simplerLens.requirementIds.length > 0 && !meetsAllRequirements(simplerLens.pageId)">
 					that relies on:
 					<span ng-repeat="(index, reqId) in ::simplerLens.requirementIds">
-						<span ng-show="::(index > 0)">,</span>
+						<span ng-if="::(index > 0)">,</span>
 						<arb-page-title page-id="{{::reqId}}" is-link="true"></arb-page-title>
 					</span>
 				</span>-->

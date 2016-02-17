@@ -50,7 +50,7 @@
 		<div class="submit-form-error md-warn" hidden></div>
 		<div class="md-warn" layout-margin ng-bind="normalError"></div>
 		<md-button class="md-primary md-raised" type="submit" toggle-on-submit ng-hide="signupSuccess">Sign up</md-button>
-		<div ng-show="signupSuccess">
+		<div ng-if="signupSuccess">
 			Success! You should receive an email from us in a few minutes. Please click the link in it to verify your email address.
 		</div>
 	</form>

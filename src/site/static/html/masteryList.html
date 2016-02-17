@@ -11,7 +11,7 @@
 <span ng-if="::isSpan">
 	<!-- List of masteries -->
 	<span ng-repeat="(index,masteryId) in ::idsSource">
-		<span ng-show="::(index > 0)">,</span>
+		<span ng-if="::(index > 0)">,</span>
 		<span arb-requisite-button requisite-id="{{::masteryId}}" allow-wants="::allowWants">
 		</span>
 	</span>
