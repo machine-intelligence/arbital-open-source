@@ -1,5 +1,6 @@
 <!-- Prev/Next -->
-<div class="next-prev-nav md-whiteframe-1dp"
+<div class="next-prev-nav"
+		ng-class="{'md-whiteframe-1dp': !extraInfo}"
 		layout="row"
 		layout-align="start center"
 		ng-if="page.nextPageId !== '' || page.prevPageId !== ''">
