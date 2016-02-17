@@ -69,7 +69,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			};
 
 			processPageSummaries();
-			if (scope.isLoaded) {
+			if (!scope.isLoaded) {
 				// Fetch page summaries from the server.
 				pageService.loadIntrasitePopover(scope.pageId, {
 					success: function() {
