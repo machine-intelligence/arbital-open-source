@@ -54,7 +54,7 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if emailData.UpdateEmailAddress == "" || emailData.UpdateEmailText == "" {
+	if emailData == nil || emailData.UpdateEmailAddress == "" || emailData.UpdateEmailText == "" {
 		fmt.Fprintf(w, "Email is empty")
 		return
 	}

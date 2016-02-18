@@ -185,7 +185,7 @@ func standardizeLinksFromBase10ToBase36(db *database.DB, text string) (string, e
 		// Find directly encoded urls
 		regexp.MustCompile("(/p/)(" + fourOrMoreDigitsRegexpStr + ")"),
 		regexp.MustCompile("(/pages/)(" + fourOrMoreDigitsRegexpStr + ")"),
-		regexp.MustCompile("(/learn/)(" + fourOrMoreDigitsRegexpStr + ")"),
+		regexp.MustCompile("(/path/)(" + fourOrMoreDigitsRegexpStr + ")"),
 		regexp.MustCompile("(/domains/)(" + fourOrMoreDigitsRegexpStr + ")"),
 		//regexp.MustCompile("(/user/)(" + fourOrMoreDigitsRegexpStr + ")"),
 		//regexp.MustCompile("(/groups/)(" + fourOrMoreDigitsRegexpStr + ")"),
