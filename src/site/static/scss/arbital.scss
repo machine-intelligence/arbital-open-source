@@ -1219,6 +1219,14 @@ arb-multiple-choice {
 	}
 }
 
+.unlearnable-list {
+	margin: 0 0 0 20px;
+
+	& > li {
+		margin-bottom: 15px;
+	}
+}
+
 arb-sequence-part, [arb-sequence-part] {
 	padding-top: 7px;
 	margin-bottom: 7px;

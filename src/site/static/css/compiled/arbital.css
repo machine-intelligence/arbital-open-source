@@ -845,6 +845,11 @@ arb-multiple-choice {
   .sequence-list > div {
     margin-bottom: 5px; }
 
+.unlearnable-list {
+  margin: 0 0 0 20px; }
+  .unlearnable-list > li {
+    margin-bottom: 15px; }
+
 arb-sequence-part, [arb-sequence-part] {
   padding-top: 7px;
   margin-bottom: 7px; }
