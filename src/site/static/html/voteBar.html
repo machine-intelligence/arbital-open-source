@@ -41,7 +41,7 @@
 				<div class="vote-bucket-div md-whiteframe-1dp"
 						ng-repeat="bucket in ::voteBuckets"
 						ng-class="{selected: bucket === selectedVoteBucket}"
-						flex="::{{bucket.flex}}">
+						flex="{{::bucket.flex}}">
 					<div class="vote-bucket"
 							ng-style="::{opacity: bucket.normValue}"
 							layout-fill></div>
@@ -67,7 +67,7 @@
 	<div layout="row">
 		<div flex>
 			<div ng-repeat="vote in selectedVoteBucket.votes">
-				<arb-user-name user-id="::{{vote.userId}}"></arb-user-name>:
+				<arb-user-name user-id="{{::vote.userId}}"></arb-user-name>:
 				<span ng-bind="::(typeHelper.toString(vote.value))"></span>
 				<span ng-bind="::(vote.createdAt | relativeDateTime)"></span>
 			</div>

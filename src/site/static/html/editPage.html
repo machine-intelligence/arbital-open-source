@@ -4,12 +4,12 @@
 	<!-- Main edit column (left half) -->
 	<div class="md-primary"
 			layout="column"
-			flex="::{{fullView ? '50' : undefined}}"
+			flex="{{::(fullView ? '50' : undefined)}}"
 			ng-if="!inPreview && (fullView || !otherDiff)">
 		<md-tabs ng-class="::{'hide-tabs': isComment || isAnswer}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
-				md-stretch-tabs="::{{gtXSmallScreen ? 'always' : 'never'}}"
+				md-stretch-tabs="{{::(gtXSmallScreen ? 'always' : 'never')}}"
 				layout="column"
 				flex>
 			<!-- (0) Title tab -->
@@ -18,7 +18,7 @@
 					<div class="editor-tab" layout="column">
 						<md-input-container>
 							<label>Title</label>
-							<input ng-model="page.title" md-maxlength="::{{isLens ? 50 : 100}}" autofocus default-tab-item="0">
+							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" autofocus default-tab-item="0">
 						</md-input-container>
 						<md-input-container>
 							<label>Clickbait</label>
