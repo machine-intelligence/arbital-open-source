@@ -87,7 +87,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
  		controller: "RedirectToPrimaryPageController",
  		reloadOnSearch: false,
  	})
-	.when("/p/:alias", {
+	.when("/p/:alias/:title?", {
 		template: "",
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
@@ -374,6 +374,17 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
+
+		var pathname = location.pathname;
+		var properPath = pageService.getPageUrl(page.pageId);
+		var search = $location.search();
+		if (pathname != properPath) {
+			$location.replace().url(properPath);
+			for (var k in search) {
+				$location.search(k, search[k]);
+			}
+		}
+
 		if (page.isLens() || page.isComment() || page.isAnswer()) {
 			// Redirect to the primary page, but preserve all search variables
 			var search = $location.search();
