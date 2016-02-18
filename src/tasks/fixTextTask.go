@@ -185,9 +185,9 @@ func fixText3(db *database.DB, rows *database.Rows) error {
 		}
 	}
 
-	exp := regexp.MustCompile("Click \\[here to edit\\]\\(http\\:\\/\\/arbital\\.com\\/edit\\/" + pageId)
+	exp = regexp.MustCompile("Click \\[here to edit\\]\\(http\\:\\/\\/arbital\\.com\\/edit\\/" + pageId)
 
-	submatches := exp.FindAllStringSubmatch(newText, -1)
+	submatches = exp.FindAllStringSubmatch(newText, -1)
 
 	for _, submatch := range submatches {
 		db.C.Debugf("correct submatch: %v", submatch)
