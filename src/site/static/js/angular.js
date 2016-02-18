@@ -92,7 +92,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/learn/:pageId", {
+	.when("/path/:pageId", {
  		template: "",
  		controller: "SequenceController",
  		reloadOnSearch: false,
