@@ -41,14 +41,14 @@
 					<arb-autocomplete class="insert-autocomplete"
 							placeholder="Search for a page to link"
 							on-select="insertLinkSelect(result)"
-							ng-if="showInsertLink"></arb-autocomplete>
+							ng-show="showInsertLink"></arb-autocomplete>
 
 					<!-- Markdown toolbar -->
 					<div id="wmd-button-bar{{::page.pageId}}"
 							class="wmd-button-bar"
 						 	layout="row"
 							layout-align="start center"
-							ng-if="!showInsertLink">
+							ng-show="!showInsertLink">
 						<md-button class="wmd-bold-button">
 							<md-icon>format_bold</md-icon>
 							<md-tooltip md-delay="500">**Bold** | Ctrl+B</md-tooltip>
