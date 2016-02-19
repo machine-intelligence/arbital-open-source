@@ -5,7 +5,7 @@
 	<div class="md-primary"
 			layout="column"
 			flex="{{::(fullView ? '50' : undefined)}}"
-			ng-if="!inPreview && (fullView || !otherDiff)">
+			ng-show="!inPreview && (fullView || !otherDiff)">
 		<md-tabs ng-class="::{'hide-tabs': isComment || isAnswer}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
@@ -465,7 +465,7 @@
 			layout="column"
 			flex="{{fullView ? '50' : (inPreview || otherDiff) ? '' : 'none'}}">
 		<!-- Live preview -->
-		<md-content class="preview-area" flex ng-if="(fullView || inPreview) && !otherDiff">
+		<md-content class="preview-area" flex ng-show="(fullView || inPreview) && !otherDiff">
 			<div class="md-display-3" ng-bind="page.title"></div>
 			<div id="wmd-preview{{::page.pageId}}"></div>
 			<div class="md-caption" ng-if="page.title === '' && page.text === ''">
