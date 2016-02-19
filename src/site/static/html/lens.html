@@ -53,7 +53,7 @@
 
 		<arb-markdown class="lens-text"
 				page-id="{{::page.pageId}}"
-				ng-if="!showingDiff"></arb-markdown>
+				ng-show="!showingDiff"></arb-markdown>
 		<div ng-if="showingDiff">
 			<div class="diff-section" ng-bind-html="diffHtml"></div>
 		</div>
@@ -102,13 +102,13 @@
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->
-	<div class="inline-comments-div" ng-if="lensIsVisible && !isSimpleEmbed">
+	<div class="inline-comments-div" ng-show="lensIsVisible && !isSimpleEmbed">
 		<md-button aria-label="New inline comments"
 				class="inline-comment-icon md-icon-button md-accent md-raised"
 				ng-style="getNewInlineCommentButtonStyle()"
 				ng-click="newInlineComment()"
 				arb-user-check="cool"
-				ng-if="showNewInlineCommentButton">
+				ng-show="showNewInlineCommentButton">
 			<md-tooltip>New inline comment (ALT+CTRL+M)</md-tooltip>
 			<md-icon md-svg-icon="comment_plus_outline"></md-icon>
 		</md-button>
