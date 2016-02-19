@@ -12,9 +12,6 @@
 				lens-id="{{page.pageId}}"
 				page-id="{{subpageId}}"
 				ng-repeat="subpageId in page.subpageIds"></div>
-		<div class="md-whiteframe-1dp" ng-show="page.subpageIds.length <= 0" layout-padding>
-			No comments yet
-		</div>
 	
 		<!-- New comment editor -->
 		<div>
@@ -23,7 +20,7 @@
 					arb-user-check="cool"
 					ng-hide="newCommentId">
 				<md-icon class="md-raised">comment</md-icon>
-				New Comment
+				{{page.subpageIds.length <= 0 ? "Write the first comment" : "New Comment"}}
 			</md-button>
 			<div arb-edit-page
 					class="new-comment-edit-page edit-comment-embed"
