@@ -12,21 +12,21 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 			$scope.userService = userService;
 			// Ordered list of page ids in the generated sequence
 			$scope.readIds = [];
-			// There is a page id in this map if the page has at least one requirement
-			// that can't be taught by any existing pages.
 			// If a requisite can't be learned (probably because there is no page that
-			// currently teaches it), we add it to this list.
-			$scope.unlearnableIds = [];
+			// currently teaches it), we add it to this map.
+			// requirement id -> [list of page ids that require it]
+			$scope.unlearnableIds = {};
+			$scope.hasUnlernableIds = false;
 
 			// Figure our the order of pages through which to take the user
 			var computeSequenceIds = function() {
 				$scope.readIds = [];
 				$scope.missingTaughtPartIds = {};
-				var processPart = function(part) {
+				var processPart = function(part, parentPageId) {
 					if (part.requirements) {
 						for (var n = 0; n < part.requirements.length; n++) {
 							if (pageService.hasMastery(part.requirements[n].pageId)) continue;
-							processPart(part.requirements[n]);
+							processPart(part.requirements[n], part.pageId);
 						}
 					}
 					if (part.taughtById !== "") {
@@ -34,15 +34,19 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 							$scope.readIds.push(part.taughtById);
 						}
 					} else {
-						if ($scope.unlearnableIds.indexOf(part.pageId) < 0) {
-							$scope.unlearnableIds.push(part.pageId);
+						if (!(part.pageId in $scope.unlearnableIds)) {
+							$scope.unlearnableIds[part.pageId] = [];
+						}
+						if (parentPageId && $scope.unlearnableIds[part.pageId].indexOf(parentPageId) < 0) {
+							$scope.unlearnableIds[part.pageId].push(parentPageId);
 						}
 					}
 				};
-				processPart($scope.sequence);
+				processPart($scope.sequence, undefined);
 				if ($scope.readIds.indexOf($scope.sequence.pageId) < 0) {
 					$scope.readIds.push($scope.sequence.pageId);
 				}
+				$scope.hasUnlearnableIds = Object.keys($scope.unlearnableIds).length > 0;
 			};
 
 			// Get the url for the given page (optional) with sequence support

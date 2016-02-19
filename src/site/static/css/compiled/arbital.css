@@ -293,9 +293,6 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .next-prev-nav {
   min-height: 50px; }
 
-.bottom-next-prev {
-  margin: 0 20px 15px 0; }
-
 #dynamic-view {
   /* position: relative;
   top: -$toolbar-height;
@@ -844,6 +841,11 @@ arb-multiple-choice {
   padding-top: 0; }
   .sequence-list > div {
     margin-bottom: 5px; }
+
+.unlearnable-list {
+  margin: 0 0 0 20px; }
+  .unlearnable-list > li {
+    margin-bottom: 15px; }
 
 arb-sequence-part, [arb-sequence-part] {
   padding-top: 7px;

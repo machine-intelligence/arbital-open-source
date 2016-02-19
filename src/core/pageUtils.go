@@ -121,8 +121,8 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 		submatches := exp.FindAllStringSubmatch(text, -1)
 		for _, submatch := range submatches {
 			matches[submatch[0]] = submatch
-			lowerCaseString := strings.ToLower(submatch[3][:1]) + submatch[3][1:]
-			upperCaseString := strings.ToUpper(submatch[3][:1]) + submatch[3][1:]
+			lowerCaseString := strings.ToLower(submatch[2][:1]) + submatch[2][1:]
+			upperCaseString := strings.ToUpper(submatch[2][:1]) + submatch[2][1:]
 			aliasesAndIds = append(aliasesAndIds, lowerCaseString)
 			aliasesAndIds = append(aliasesAndIds, upperCaseString)
 		}
@@ -135,15 +135,15 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// the alias, and then 0 or more groups that capture everything after
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile(SpacePrefix + "(" + regexp.QuoteMeta(sessions.GetDomain()) + "/p(?:ages)?/)(" + AliasRegexpStr + ")"),
+		regexp.MustCompile("(/p(?:ages)?/)(" + AliasRegexpStr + ")"),
 		// Find ids and aliases using [alias optional text] syntax.
-		regexp.MustCompile(SpacePrefix + "(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
+		regexp.MustCompile("(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
-		regexp.MustCompile(SpacePrefix + "(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))"),
+		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))"),
 		// Find ids and aliases using [vote: alias] syntax.
-		regexp.MustCompile(SpacePrefix + "(\\[vote: ?)(" + AliasRegexpStr + ")(\\])"),
+		regexp.MustCompile("(\\[vote: ?)(" + AliasRegexpStr + ")(\\])"),
 		// Find ids and aliases using [@alias] syntax.
-		regexp.MustCompile(SpacePrefix + "(\\[@)(" + AliasRegexpStr + ")(\\])([^(]|$)"),
+		regexp.MustCompile("(\\[@)(" + AliasRegexpStr + ")(\\])([^(]|$)"),
 	}
 	for _, exp := range regexps {
 		extractLinks(exp)
@@ -176,16 +176,16 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	replaceAlias := func(match string) string {
 		submatch := matches[match]
 
-		lowerCaseString := strings.ToLower(submatch[3][:1]) + submatch[3][1:]
-		upperCaseString := strings.ToUpper(submatch[3][:1]) + submatch[3][1:]
+		lowerCaseString := strings.ToLower(submatch[2][:1]) + submatch[2][1:]
+		upperCaseString := strings.ToUpper(submatch[2][:1]) + submatch[2][1:]
 
 		// Since ReplaceAllStringFunc gives us the whole match, rather than submatch
 		// array, we have stored it earlier and can now piece it together
 		if id, ok := aliasMap[lowerCaseString]; ok {
-			return submatch[1] + submatch[2] + id + strings.Join(submatch[4:], "")
+			return submatch[1] + id + strings.Join(submatch[3:], "")
 		}
 		if id, ok := aliasMap[upperCaseString]; ok {
-			return submatch[1] + submatch[2] + id + strings.Join(submatch[4:], "")
+			return submatch[1] + id + strings.Join(submatch[3:], "")
 		}
 		return match
 	}
@@ -403,4 +403,14 @@ func IsIdValid(pageId string) bool {
 		return true
 	}
 	return false
+}
+
+func IsUser(db *database.DB, userId string) bool {
+	var userCount int
+	row := db.NewStatement(`
+		SELECT COUNT(id)
+		FROM users
+		WHERE id = ?`).QueryRow(userId)
+	row.Scan(&userCount)
+	return userCount > 0
 }

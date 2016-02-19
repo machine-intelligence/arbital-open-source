@@ -71,7 +71,7 @@
 
 		<!-- Show a warning if there are requisites the user can't learn. -->
 		<div layout-padding ng-if="!showTreeView">
-			<div ng-if="::(unlearnableIds.length > 0)">
+			<div ng-if="hasUnlearnableIds">
 				<md-icon class="md-warn">
 					warning
 				</md-icon>
@@ -79,13 +79,16 @@
 					This sequence is incomplete. Arbital doesn't yet have pages that teach these requisites:
 				</span>
 			</div>
-			<div class="sequence-list">
-				<div ng-repeat="pageId in ::unlearnableIds">
-					<span>&bull;&nbsp;</span>
+			<ul class="unlearnable-list">
+				<li ng-repeat="(pageId,idsList) in unlearnableIds">
 					<arb-page-title page-id="{{::pageId}}"
 							is-link="true"
-							show-clickbait="true"
-							custom-link="{{::getSequenceUrl(pageId)}}"></arb-page-title>
+							show-clickbait="true"></arb-page-title>
+					<span>It's required by:</span>
+					<span ng-repeat="(index, byPageId) in idsList">
+						<span ng-show="::(index > 0)">,</span>
+						<arb-page-title page-id="{{::byPageId}}" is-link="true"></arb-page-title>
+					</span>
 				</div>
 			</div>
 		</div>

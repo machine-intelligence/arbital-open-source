@@ -387,10 +387,6 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 	min-height: 50px;
 }
 
-.bottom-next-prev {
-	margin: 0 20px 15px 0;
-}
-
 // Hack to allow us to use 100% height inside dynamic-view
 $toolbar-height: 64px;
 #dynamic-view {
@@ -1215,6 +1211,14 @@ arb-multiple-choice {
 
 	& > div {
 		margin-bottom: 5px;
+	}
+}
+
+.unlearnable-list {
+	margin: 0 0 0 20px;
+
+	& > li {
+		margin-bottom: 15px;
 	}
 }
 

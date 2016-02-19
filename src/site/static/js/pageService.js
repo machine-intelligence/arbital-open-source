@@ -178,14 +178,15 @@ app.service("pageService", function($http, $location, userService){
 		var url = "/p/" + pageId;
 		var alreadyIncludedHost = false;
 		if (page) {
-			pageId = page.pageId;
-			url = "/p/" + pageId;
+			var pageId = page.pageId;
+			var pageAlias = page.alias;
+			url = "/p/" + pageId + "/" + pageAlias;
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/p/" + parent.pageId + "?l=" + pageId;
+						url = "/p/" + parent.pageId + "/" + parent.alias + "?l=" + pageId;
 						if ($location.hash()) {
 							url += "#" + $location.hash();
 						}
@@ -198,7 +199,7 @@ app.service("pageService", function($http, $location, userService){
 					if (parent && (
 								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
 								(page.isAnswer() && parent.isQuestion()))) {
-						url = "/p/" + parent.pageId + "#subpage-" + pageId;
+						url = "/p/" + parent.pageId + "/" + parent.alias + "#subpage-" + pageId;
 						break;
 					}
 				}
