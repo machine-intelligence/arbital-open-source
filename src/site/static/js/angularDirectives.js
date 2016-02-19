@@ -287,10 +287,11 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			$scope.pageUrl = "/edit/";
 			$scope.isSmallScreen = !$mdMedia("gt-sm");
 
-			$scope.isOpen = false;
+			$scope.fabState = {};
+			$scope.fabState.isOpen = false;
 			$scope.toggle = function(show, hovering) {
 				if (userService.isTouchDevice) return;
-				$scope.isOpen = show;
+				$scope.fabState.isOpen = show;
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
@@ -343,9 +344,9 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			};
 
 			$scope.$on("$locationChangeSuccess", function () {
-				$scope.hide = $location.path().indexOf("/edit") === 0;
+				$scope.fabState.hide = $location.path().indexOf("/edit") === 0;
 			});
-			$scope.hide = $location.path().indexOf("/edit") === 0;
+			$scope.fabState.hide = $location.path().indexOf("/edit") === 0;
 
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
