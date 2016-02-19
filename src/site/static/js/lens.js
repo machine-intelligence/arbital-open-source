@@ -149,7 +149,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			var $inlineCommentsDiv = element.find(".inline-comments-div");
 			var $newInlineCommentButton = $inlineCommentsDiv.find(".inline-comment-icon");
 			$inlineCommentsDiv.appendTo($("body"));
-			var $lensMenuDiv = element.find(".lens-menu-div");
 			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia("gt-md") ? 0.5 : 1.1);
 			scope.$on("$destroy", function() {
 				$inlineCommentsDiv.remove();
