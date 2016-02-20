@@ -241,7 +241,14 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 			$(".global-error").text(data).show();
 			document.title = "Error - Arbital";
 		};
-	}
+	};
+
+	// Watch path changes and update Google Analytics
+	$scope.$watch(function() {
+		return $location.absUrl();
+	}, function() {
+		ga("send", "pageview", $location.absUrl());
+	});
 });
 
 // simpleDateTime filter converts our typical date&time string into local time.

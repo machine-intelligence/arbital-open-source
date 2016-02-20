@@ -70,7 +70,7 @@
 		</div>
 
 		<!-- Show a warning if there are requisites the user can't learn. -->
-		<div layout-padding ng-if="!showTreeView">
+		<div layout-padding ng-if="!showTreeView && !pageService.hasMastery(sequence.pageId)">
 			<div ng-if="hasUnlearnableIds">
 				<md-icon class="md-warn">
 					warning
