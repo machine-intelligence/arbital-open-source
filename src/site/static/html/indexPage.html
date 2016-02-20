@@ -1,36 +1,38 @@
 <div class="capped-body-width">
 	<!-- What is Arbital? page -->
 	<!-- HARDCODED -->
-	<arb-page class="reveal-after-render" page-id="1k0" is-simple-embed="true"></arb-page>
+	<h1 class="dynamic-hor-padding simple-embed-page-title" ng-bind="::pageService.pageMap['1k0'].title">
+	</h1>
+	<div arb-markdown class="lens-text-container lens-text md-whiteframe-1dp reveal-after-render" page-id="1k0"></div>
 	<br>
 	<br>
-	
+
 	<!-- Domains -->
 	<h1 layout-margin>Popular domains</h1>
 	<div layout="column">
 		<!-- Domain -->
 		<div class="pages-list md-whiteframe-1dp"
-				ng-repeat="domain in featuredDomains"
+				ng-repeat="domain in ::featuredDomains"
 				layout="column"
 				flex>
 			<md-toolbar class="md-hue-2">
 				<div class="md-toolbar-tools">
-					<a ng-href="/domains/{{pageService.pageMap[domain.domainId].alias}}"
-						ng-bind="pageService.pageMap[domain.domainId].title + ' domain'"></a>
+					<a ng-href="/domains/{{::pageService.pageMap[domain.domainId].alias}}"
+						ng-bind="::(pageService.pageMap[domain.domainId].title + ' domain')"></a>
 				</div>
 			</md-toolbar>
-			<md-subheader ng-bind="pageService.pageMap[domain.domainId].clickbait">
+			<md-subheader ng-bind="::pageService.pageMap[domain.domainId].clickbait">
 			</md-subheader>
 			<md-list>
-				<md-list-item ng-repeat="childId in domain.childIds">
+				<md-list-item ng-repeat="childId in ::domain.childIds">
 					<div layout="row" layout-align="start start" layout-margin layout-fill>
-						<arb-likes page-id="{{childId}}"></arb-likes>
-						<arb-page-title page-id="{{childId}}"
+						<arb-likes page-id="{{::childId}}"></arb-likes>
+						<arb-page-title page-id="{{::childId}}"
 								is-link="true"
 								show-clickbait="true"
 								flex="100"></arb-page-title>
 					</div>
-					<md-divider ng-if="!$last"></md-divider>
+					<md-divider ng-if="::!$last"></md-divider>
 				</md-list-item>
 			</md-list>
 		</div>

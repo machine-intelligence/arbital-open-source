@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Symlinks 
+# Symlinks
 
 cd .git/hooks/
 ln -s ../../scripts/pre-commit.sh pre-commit

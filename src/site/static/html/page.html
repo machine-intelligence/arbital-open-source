@@ -1,61 +1,59 @@
-<div id="subpage-{{page.pageId}}" layout="{{isSingleColumn ? 'column' : 'row'}}">
+<div id="subpage-{{::page.pageId}}" layout="{{::(isSingleColumn ? 'column' : 'row')}}">
 	<!-- Primary column -->
 	<div ng-class="{'selected-subpage': isSelected()}"
 			layout="column"
 			flex-order="1"
 			flex>
 		<!-- Hash anchor -->
-		<a id="page-{{page.pageId}}"></a>
+		<a id="page-{{::page.pageId}}"></a>
 
 		<div layout-gt-sm="row" layout-align-gt-sm="space-between end">
 			<!-- Page title -->
-			<h1 ng-class="{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}">
-				<arb-page-title page-id="{{page.pageId}}"
-						show-type="true"
-						custom-page-title="selectedLens.title"></arb-page-title>
+			<h1 ng-class="::{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}"
+				ng-bind="selectedLens.title">
 			</h1>
 
-			<div arb-next-prev page-id="{{page.pageId}}"></div>
+			<div arb-next-prev page-id="{{::page.pageId}}"></div>
 		</div>
 
 		<!-- Parents -->
 		<div class="page-list-span"
-				flex-order="{{isTinyScreen ? 1 : 0}}"
-				ng-if="page.parentIds.length > 0 && !isSimpleEmbed">
+				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
+				ng-if="::(page.parentIds.length > 0 && !isSimpleEmbed)">
 			<span>Parents:</span>
-			<span ng-repeat="(index, parentId) in page.parentIds">
-				<span ng-show="index > 0">,</span>
-				<arb-page-title page-id="{{parentId}}" is-link="true"></arb-page-title>
+			<span ng-repeat="(index, parentId) in ::page.parentIds">
+				<span ng-if="index > 0">,</span>
+				<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
 
 		<!-- Tags -->
 		<div class="page-list-span"
-				flex-order="{{isTinyScreen ? 1 : 0}}"
-				ng-if="page.taggedAsIds.length > 0 && !isSimpleEmbed">
+				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
+				ng-if="::(page.taggedAsIds.length > 0 && !isSimpleEmbed)">
 			<span>Tagged as:</span>
-			<span ng-repeat="(index, tagId) in page.taggedAsIds">
-				<span ng-show="index > 0">,</span>
-				<arb-page-title page-id="{{tagId}}" is-link="true"></arb-page-title>
+			<span ng-repeat="(index, tagId) in ::page.taggedAsIds">
+				<span ng-if="::(index > 0)">,</span>
+				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
 
 		<!-- Voting container -->
-		<arb-vote-bar class="md-whiteframe-1dp" page-id="{{page.pageId}}" ng-if="page.hasVote"></arb-vote-bar>
+		<arb-vote-bar class="md-whiteframe-1dp" page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>
 
 		<!-- Lens tabs -->
 		<md-tabs md-dynamic-height
 				md-no-ink-bar
 				class="page-tabs md-whiteframe-1dp md-primary md-hue-2"
-				ng-class="{'hide-tabs': page.lensIds.length <= 1}"
+				ng-class="::{'hide-tabs': page.lensIds.length <= 1}"
 				ng-click="tabsClicked($event)"
 				md-selected="selectedLensIndex">
-			<md-tab ng-repeat="lensId in page.lensIds"
+			<md-tab ng-repeat="lensId in ::page.lensIds"
 					md-on-select="tabSelect(lensId)">
 				<md-tab-label>
-					<arb-page-title page-id="{{lensId}}"
-							custom-page-title="lensId === page.pageId ? 'Main' : pageService.pageMap[lensId].lensTitle()"></arb-page-title>
-					<md-icon class="md-primary" ng-show="!hasAllReqs(lensId)">
+					<arb-page-title page-id="{{::lensId}}"
+							custom-page-title="::(lensId === page.pageId ? 'Main' : pageService.pageMap[lensId].lensTitle())"></arb-page-title>
+					<md-icon class="md-primary" ng-if="!hasAllReqs(lensId)">
 						<md-tooltip>You don't have all the requisites for this lens</md-tooltip>
 						assignment_late
 					</md-icon>
@@ -68,9 +66,9 @@
 						<md-progress-circular md-mode="indeterminate"></md-progress-circular>
 					</div>
 					<arb-lens class="reveal-after-render"
-							page-id="{{lensId}}"
-							lens-parent-id="{{page.pageId}}"
-							is-simple-embed="isSimpleEmbed"
+							page-id="{{::lensId}}"
+							lens-parent-id="{{::page.pageId}}"
+							is-simple-embed="::isSimpleEmbed"
 							ng-if="isLoaded(lensId)"></arb-lens>
 				</md-tab-body>
 			</md-tab>

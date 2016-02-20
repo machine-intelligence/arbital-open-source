@@ -1,62 +1,62 @@
 <!-- Lens menu -->
 <div class="lens-menu md-primary md-hue-1"
 		layout="row"
-		ng-if="!isSimpleEmbed">
+		ng-if="::!isSimpleEmbed">
 	<!-- Like -->
 	<div layout="column" layout-align="start center" flex="25">
 		<arb-likes class="no-right-margin"
-				page-id="{{page.pageId}}"
+				page-id="{{::page.pageId}}"
 				is-stretched="true"
 				is-button="true"></arb-likes>
-		<span class="md-caption" ng-bind="'Seen by ' + page.viewCount" ng-if="!isTinyScreen"></span>
+		<span class="md-caption" ng-bind="::('Seen by ' + page.viewCount)" ng-if="::!isTinyScreen"></span>
 	</div>
-	
+
 	<!-- Subscribe -->
-	<arb-subscribe page-id="{{page.pageId}}"
-			is-stretched="!isTinyScreen"
-			show-subscriber-count="!isTinyScreen"
+	<arb-subscribe page-id="{{::page.pageId}}"
+			is-stretched="::!isTinyScreen"
+			show-subscriber-count="::!isTinyScreen"
 			flex="25"></arb-subscribe>
 
 	<!-- Discussion -->
 	<div layout="column" layout-align="start center" flex="25">
-		<md-button ng-href="#discussion-{{page.pageId}}"
-				ng-class="{'md-icon-button': isTinyScreen}">
+		<md-button ng-href="#discussion-{{::page.pageId}}"
+				ng-class="::{'md-icon-button': isTinyScreen}">
 			<md-icon>comment</md-icon>
-			<span ng-if="!isTinyScreen">Discussion</span>
+			<span ng-if="::!isTinyScreen">Discussion</span>
 		</md-button>
 		<ng-pluralize class="md-caption"
 				count="page.commentIds.length" when="{
 					'0': 'No comments',
 					'one': '1 comment',
 					'other': '{} comments'}"
-				ng-if="!isTinyScreen">
+				ng-if="::!isTinyScreen">
 		</ng-pluralize>
 	</div>
 
 	<!-- Edit -->
 	<div layout="column" layout-align="start center" flex="25">
-		<md-button ng-href="{{pageService.getEditPageUrl(page.pageId)}}"
-				ng-class="{'md-icon-button': isTinyScreen}"
+		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
+				ng-class="::{'md-icon-button': isTinyScreen}"
 				arb-user-check="cool">
 			<md-icon>create</md-icon>
-			<span ng-hide="isTinyScreen">Edit</span>
+			<span ng-if="::!isTinyScreen">Edit</span>
 		</md-button>
-		<span class="accent-dot" ng-show="page.hasDraft && isTinyScreen">
-			<md-tooltip md-delay="500" ng-if="page.hasDraft">
+		<span class="accent-dot" ng-if="::(page.hasDraft && isTinyScreen)">
+			<md-tooltip md-delay="500">
 				You have an unpublished draft
 			</md-tooltip>
 		</span>
-		<span class="md-accent md-caption" ng-if="page.hasDraft">
+		<span class="md-accent md-caption" ng-if="::page.hasDraft">
 			Unpublished draft
 		</span>
 	</div>
-	
+
 	<!-- Link -->
 	<div>
-		<md-button ng-href="{{pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId}}"
-				ng-show="page.type == 'answer'">
+		<md-button ng-href="{{::(pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId)}}"
+				ng-if="::(page.type == 'answer')">
 			<md-icon>link</md-icon>
-			<span ng-hide="isTinyScreen">Link</span>
+			<span ng-if="::!isTinyScreen">Link</span>
 		</md-button>
 	</div>
 
@@ -67,8 +67,8 @@
 		<!-- Trigger element is a md-button with an icon -->
 		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="More page actions">
 			<md-icon>more_vert</md-icon>
-			<span class="primary-dot" ng-show="page.isUpdatedPage()">
-				<md-tooltip md-delay="500" ng-if="page.isUpdatedPage()">
+			<span class="primary-dot" ng-if="::page.isUpdatedPage()">
+				<md-tooltip md-delay="500">
 					This page has been updated since the last time you saw it
 				</md-tooltip>
 			</span>
@@ -80,15 +80,15 @@
 				<md-button arb-user-check="cool" ng-click="toggleDiff()">
 					<md-icon>compare_arrows</md-icon>
 					<span ng-bind="showingDiff ? 'Hide changes' : 'View changes'"></span>
-					<span class="primary-dot" ng-show="page.isUpdatedPage()">
-						<md-tooltip md-delay="500" ng-if="page.isUpdatedPage()">
+					<span class="primary-dot" ng-if="::page.isUpdatedPage()">
+						<md-tooltip md-delay="500">
 							This page has been updated since the last time you saw it
 						</md-tooltip>
 					</span>
 				</md-button>
 			</md-menu-item>
 
-			<md-menu-item ng-hide="showRequirementsPanel">
+			<md-menu-item ng-if="!showRequirementsPanel">
 				<md-button ng-click="showRequirements()">
 					Show requirements
 				</md-button>
@@ -98,7 +98,7 @@
 			<md-menu-item>
 				<span>
 					<span arb-requisite-button
-							requisite-id="{{page.pageId}}"
+							requisite-id="{{::page.pageId}}"
 							allow-wants="true"
 							prevent-menu-close="true"
 							hide-title="true">

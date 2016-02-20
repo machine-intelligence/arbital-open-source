@@ -30,7 +30,7 @@ func getStormpathUrl() string {
 
 func CreateNewUser(c sessions.Context, givenName, surname, email, password string) error {
 	jsonStr := fmt.Sprintf(`{
-		"givenName": "%s",  
+		"givenName": "%s",
 		"surname": "%s",
 		"email": "%s",
 		"password":"%s"
@@ -53,7 +53,7 @@ func CreateNewUser(c sessions.Context, givenName, surname, email, password strin
 func CreateNewFbUser(c sessions.Context, accessToken string) (*Account, error) {
 	jsonStr := fmt.Sprintf(`{
 		"providerData": {
-			"providerId": "facebook",  
+			"providerId": "facebook",
 			"accessToken": "%s"
 		}
 	}`, accessToken)
@@ -100,7 +100,7 @@ func CreateNewFbUser(c sessions.Context, accessToken string) (*Account, error) {
 func AuthenticateUser(c sessions.Context, email, password string) error {
 	value := base64.StdEncoding.EncodeToString([]byte((fmt.Sprintf("%s:%s", email, password))))
 	jsonStr := fmt.Sprintf(`{
-		"type": "basic",  
+		"type": "basic",
 		"value": "%s"
 	}`, value)
 	request, err := http.NewRequest("POST", fmt.Sprintf("%s/loginAttempts", getStormpathUrl()), bytes.NewBuffer([]byte(jsonStr)))

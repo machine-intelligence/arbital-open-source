@@ -1,24 +1,24 @@
 <div layout="column" class="capped-body-width">
 	<!-- Summary pulled from the corresponding group page -->
-	<arb-page class="reveal-after-render" page-id="{{group.pageId}}" is-simple-embed="true"></arb-page>
+	<arb-page class="reveal-after-render" page-id="{{::group.pageId}}" is-simple-embed="true"></arb-page>
 	<br>
 	<br>
 
 	<div arb-page-list panel-title="New"
 			show-created-at="true"
 			show-text-length="true"
-			page-ids="idsMap.recentlyCreatedIds"></div>
+			page-ids="::idsMap.recentlyCreatedIds"></div>
 	<div arb-page-list panel-title="Hot"
 			show-last-edit="true"
 			show-comment-count="true"
 			show-text-length="true"
-			page-ids="idsMap.hotIds"></div>
+			page-ids="::idsMap.hotIds"></div>
 	<div arb-page-list panel-title="Top"
 			show-created-at="true"
 			show-text-length="true"
-			page-ids="idsMap.mostLikedIds"></div>
+			page-ids="::idsMap.mostLikedIds"></div>
 	<div arb-page-list panel-title="Controversial"
 			show-comment-count="true"
 			show-text-length="true"
-			page-ids="idsMap.mostControversialIds"></div>
+			page-ids="::idsMap.mostControversialIds"></div>
 </div>

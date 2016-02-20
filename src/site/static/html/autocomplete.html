@@ -6,9 +6,9 @@
 		md-menu-class="autocomplete-custom-template"
 		md-min-length="1"
 		md-delay="300"
-		md-autofocus="doAutofocus"
+		md-autofocus="::doAutofocus"
 		md-autoselect
-		placeholder="{{placeholder}}">
+		placeholder="{{::placeholder}}">
 	<md-item-template>
 		<div layout="row" layout="start center">
 			<!--<arb-likes page-id="{{result.pageId}}"></arb-likes>-->
@@ -22,20 +22,20 @@
 			<!--<arb-page-title page-id="{{result.pageId}}" show-clickbait="true"></arb-page-title>-->
 			<div layout="column">
 				<div layout="row" layout-align="start center">
-					<md-icon class="no-margins" ng-show="pageService.showPrivate(result.page.pageId)">
+					<md-icon class="no-margins" ng-if="pageService.showPrivate(result.page.pageId)">
 						<md-tooltip>This page belongs to {{pageService.pageMap[page.seeGroupId].title}} group</md-tooltip>
 						lock
 					</md-icon>
-					<md-icon class="no-margins" ng-show="pageService.showPublic(result.page.pageId)">
+					<md-icon class="no-margins" ng-if="pageService.showPublic(result.page.pageId)">
 						<md-tooltip>This page is public</md-tooltip>
 						public
 					</md-icon>
-					<md-icon class="no-margins" ng-show="result.page.isQuestion()">
+					<md-icon class="no-margins" ng-if="result.page.isQuestion()">
 						<md-tooltip>This is a question page</md-tooltip>
 						help
 					</md-icon>
 					<span>{{result.page.title}}</span>
-					<span ng-if="userService.user.isAdmin">&nbsp;&lt;{{result.score}}&gt;</span>
+					<span ng-if="::userService.user.isAdmin">&nbsp;&lt;{{result.score}}&gt;</span>
 				</div>
 				<span class="md-caption">{{result.page.clickbait}}</span>
 			</div>

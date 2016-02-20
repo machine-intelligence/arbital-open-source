@@ -1,6 +1,6 @@
 <!-- Prev/Next -->
 <div class="next-prev-nav"
-		ng-class="{'md-whiteframe-1dp': !extraInfo}"
+		ng-class="::{'md-whiteframe-1dp': !extraInfo}"
 		layout="row"
 		layout-align="start center"
 		ng-if="page.nextPageId !== '' || page.prevPageId !== ''">
@@ -9,19 +9,19 @@
 			ng-class="{'intrasite-link': page.prevPageId !== ''}"
 			page-id="{{page.prevPageId}}"
 			ng-disabled="page.prevPageId === ''">
-		<md-tooltip md-delay="500" ng-show="page.prevPageId === ''">No previous page</md-tooltip>
+		<md-tooltip md-delay="500" ng-if="page.prevPageId === ''">No previous page</md-tooltip>
 		<md-icon>chevron_left</md-icon>
 		<span>Prev</span>
 	</md-button>
 	<md-button class="special md-icon-button"
-			ng-href="/path/{{page.sequenceId}}"
-			ng-if="page.sequenceId">
+			ng-href="/path/{{::page.sequenceId}}"
+			ng-if="::page.sequenceId">
 		<md-tooltip md-delay="500">Current sequence</md-tooltip>
 		<md-icon>book</md-icon>
 	</md-button>
 	<md-button ng-href="{{nextUrl}}"
 			class="intrasite-link special"
-			ng-class="{'md-raised': extraInfo}"
+			ng-class="::{'md-raised': extraInfo}"
 			page-id="{{page.nextPageId}}"
 			ng-disabled="page.nextPageId === ''"
 			ng-if="page.nextPageId !== '' || !page.sequenceUrl">

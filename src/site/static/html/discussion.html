@@ -1,5 +1,5 @@
 <!-- Discussion section for some page -->
-<div ng-attr-id="{{'discussion-' + page.pageId}}"></div>
+<div ng-attr-id="{{::('discussion-' + page.pageId)}}"></div>
 <div layout="column">
 	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
@@ -9,16 +9,15 @@
 
 	<div class="dynamic-hor-padding">
 		<div arb-subpage class="reveal-after-render"
-				lens-id="{{page.pageId}}"
-				page-id="{{subpageId}}"
+				lens-id="{{::page.pageId}}"
+				page-id="{{::subpageId}}"
 				ng-repeat="subpageId in page.subpageIds"></div>
-	
 		<!-- New comment editor -->
 		<div>
 			<md-button class="new-comment-button md-primary"
 					ng-click="newCommentClick()"
 					arb-user-check="cool"
-					ng-hide="newCommentId">
+					ng-if="!newCommentId">
 				<md-icon class="md-raised">comment</md-icon>
 				<span ng-bind="page.subpageIds.length <= 0 ? 'Write the first comment' : 'New Comment'"></span>
 			</md-button>

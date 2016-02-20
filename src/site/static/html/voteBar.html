@@ -1,12 +1,11 @@
 <div class="vote-bar"
-		ng-class="{'lens-text-container': !isEmbedded}"
+		ng-class="::{'lens-text-container': !isEmbedded}"
 		layout="column"
 		layout-margin
 		layout-fill>
 	<!-- Header -->
-	<arb-page-title page-id="{{page.pageId}}" is-link="true" ng-if="showMetaInfo"></arb-page-title> 
 	<div class="md-caption" layout="row">
-		<span flex ng-bind="typeHelper.headerLabel"></span>
+		<span flex ng-bind="::typeHelper.headerLabel"></span>
 		<span>
 			<ng-pluralize count="page.votes.length"
 					when="{'0': 'No votes', 'one': 'One vote', 'other': '{} votes'}"></ng-pluralize>
@@ -31,7 +30,7 @@
 				<!-- Know to show where the user will vote -->
 				<div class="new-vote-div"
 						ng-style="{left: valueToOffset(newVoteValue)}"
-						ng-show="isHovering && userService.user.id !== ''">
+						ng-if="isHovering && userService.user.id !== ''">
 					<div class="new-vote-knob md-whiteframe-4dp"></div>
 					<div class="md-body-2 new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
 				</div>
@@ -40,26 +39,26 @@
 			<!-- Buckets -->
 			<div class="vote-bucket-container" layout="row" layout-align="start center" flex>
 				<div class="vote-bucket-div md-whiteframe-1dp"
-						ng-repeat="bucket in voteBuckets"
+						ng-repeat="bucket in ::voteBuckets"
 						ng-class="{selected: bucket === selectedVoteBucket}"
-						flex="{{bucket.flex}}">
+						flex="{{::bucket.flex}}">
 					<div class="vote-bucket"
-							ng-style="{opacity: bucket.normValue}"
+							ng-style="::{opacity: bucket.normValue}"
 							layout-fill></div>
 				</div>
 			</div>
 
 			<!-- Bottom margin -->
 			<div layout="row" layout-align="start start" flex>
-				<div class="vote-bar-label left-text" flex="{{isTinyScreen ? 20 : 10}}" ng-bind="typeHelper.label1"></div>
+				<div class="vote-bar-label left-text" flex="{{::(isTinyScreen ? 20 : 10)}}" ng-bind="::typeHelper.label1"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label2" ng-if="!isTinyScreen"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label2" ng-if="::!isTinyScreen"></div>
 				<div flex="15"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label3"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label3"></div>
 				<div flex="15"></div>
-				<div class="vote-bar-label center-text" flex="10" ng-bind="typeHelper.label4" ng-if="!isTinyScreen"></div>
+				<div class="vote-bar-label center-text" flex="10" ng-bind="::typeHelper.label4" ng-if="::!isTinyScreen"></div>
 				<div flex="10"></div>
-				<div class="vote-bar-label right-text" flex="{{isTinyScreen ? 20 : 10}}" ng-bind="typeHelper.label5"></div>
+				<div class="vote-bar-label right-text" flex="{{::(isTinyScreen ? 20 : 10)}}" ng-bind="::typeHelper.label5"></div>
 			</div>
 		</div>
 	</div>
@@ -68,18 +67,14 @@
 	<div layout="row">
 		<div flex>
 			<div ng-repeat="vote in selectedVoteBucket.votes">
-				<arb-user-name user-id="{{vote.userId}}"></arb-user-name>:
-				<span ng-bind="typeHelper.toString(vote.value)"></span> 
-				<span ng-bind="vote.createdAt | relativeDateTime"></span>
+				<arb-user-name user-id="{{::vote.userId}}"></arb-user-name>:
+				<span ng-bind="::(typeHelper.toString(vote.value))"></span>
+				<span ng-bind="::(vote.createdAt | relativeDateTime)"></span>
 			</div>
 		</div>
 		<!--<md-button ng-click="deleteMyVote()"
-				ng-show="userVoteValue">
+				ng-if="userVoteValue">
 			Delete your {{typeHelper.toString(userVoteValue)}} vote
 		</md-button>-->
 	</div>
-
-	<arb-markdown page-id="{{pageId}}"
-			summary-name="Vote"
-			ng-if="showMetaInfo"></arb-markdown>
 </div>

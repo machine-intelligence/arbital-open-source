@@ -32,10 +32,11 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				return {"left": +$scope.arrowOffset};
 			};
 
-			// Check if summaries are loaded
-			$scope.isLoaded = function() {
-				return $scope.summaries.length > 0;
-			};
+			// We will check this to see if summaries are loaded.
+			// Note that one-time binding takes effect after an object is set to something
+			// other than undefined for the first time. So '::isLoaded' is safe, but '::!isLoaded'
+			// is not safe (since it will be evaluated to true before isLoaded is set).
+			$scope.isLoaded = undefined;
 		},
 		link: function(scope, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
@@ -62,10 +63,13 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				scope.summaries.sort(function(a, b) {
 					return nameToTabIndex(a.name) > nameToTabIndex(b.name);
 				});
+				if (scope.summaries.length > 0) {
+					scope.isLoaded = true;
+				}
 			};
 
 			processPageSummaries();
-			if (scope.summaries.length <= 0) {
+			if (!scope.isLoaded) {
 				// Fetch page summaries from the server.
 				pageService.loadIntrasitePopover(scope.pageId, {
 					success: function() {
@@ -105,13 +109,11 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 				return {"left": +$scope.arrowOffset};
 			};
 
-			// Check if the data is loaded
-			$scope.isLoaded = function() {
-				if ($scope.user) {
-					return $scope.summaries.length > 0;
-				}
-				return false;
-			};
+			// We will check this to see if summaries are loaded.
+			// Note that one-time binding takes effect after an object is set to something
+			// other than undefined for the first time. So '::isLoaded' is safe, but '::!isLoaded'
+			// is not safe (since it will be evaluated to true before isLoaded is set).
+			$scope.isLoaded = undefined;
 		},
 		link: function(scope, element, attrs) {
 			// Fix to prevent errors when we go to another page while popover is loading.
@@ -127,10 +129,13 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 				for (var name in scope.page.summaries) {
 					scope.summaries.push({name: name, text: scope.page.summaries[name]});
 				}
+				if (scope.summaries.length > 0) {
+					scope.isLoaded = true;
+				}
 			};
 
 			processPageSummaries();
-			if (!scope.isLoaded()) {
+			if (!scope.isLoaded) {
 				pageService.loadUserPopover(scope.userId, {
 					success: function() {
 						if (isDestroyed) return;
@@ -282,10 +287,11 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			$scope.pageUrl = "/edit/";
 			$scope.isSmallScreen = !$mdMedia("gt-sm");
 
-			$scope.isOpen = false;
+			$scope.fabState = {};
+			$scope.fabState.isOpen = false;
 			$scope.toggle = function(show, hovering) {
 				if (userService.isTouchDevice) return;
-				$scope.isOpen = show;
+				$scope.fabState.isOpen = show;
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
@@ -338,9 +344,9 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			};
 
 			$scope.$on("$locationChangeSuccess", function () {
-				$scope.hide = $location.path().indexOf("/edit") === 0;
+				$scope.fabState.hide = $location.path().indexOf("/edit") === 0;
 			});
-			$scope.hide = $location.path().indexOf("/edit") === 0;
+			$scope.fabState.hide = $location.path().indexOf("/edit") === 0;
 
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
@@ -380,7 +386,7 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, userService
 				autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
 					deferred.resolve(results);
 				});
-        return deferred.promise;
+				return deferred.promise;
 			};
 
 			$scope.searchResultSelected = function(result) {
@@ -436,7 +442,7 @@ app.directive("arbPageList", function(pageService, userService) {
 			$scope.getPage = function(pageId) {
 				if ($scope.useEditMap) {
 					return pageService.editMap[pageId];
-				} 
+				}
 				return pageService.pageMap[pageId];
 			};
 		},

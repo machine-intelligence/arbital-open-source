@@ -9,12 +9,12 @@ var InitMathjax = (function () {
 
   var blocks, start, end, last, braces; // used in searching for math
   var math;                             // stores math until markdone is done
-  
+
   var HUB = MathJax.Hub;
 
   //
   //  Runs after initial typeset
-  // 
+  //
   HUB.Queue(function () {
     ready = true;
     HUB.processUpdateTime = 50;  // reduce update time so that we can cancel easier
@@ -27,7 +27,7 @@ var InitMathjax = (function () {
   var SPLIT = /(\$\$?|\\(?:begin|end)\{[a-z]*\*?\}|\\[\\{}$]|[{}]|(?:\n\s*)+|@@\d+@@)/i;
 
   //
-  //  The math is in blocks i through j, so 
+  //  The math is in blocks i through j, so
   //    collect it into one block and clear the others.
   //  Replace &, <, and > by named entities.
   //  For IE, put <br> at the ends of comments since IE removes \n.
@@ -45,8 +45,8 @@ var InitMathjax = (function () {
     blocks[i] = "@@"+math.length+"@@"; math.push(block);
     start = end = last = null;
   }
-  
-  
+
+
   //
   //  Break up the text into its component parts and search
   //    through them for math delimiters, braces, linebreaks, etc.
@@ -96,11 +96,11 @@ var InitMathjax = (function () {
     if (last) {processMath(start,last)}
     return blocks.join("");
   }
-  
+
   //
   //  Put back the math strings that were saved,
   //    and clear the math array (no need to keep it around).
-  //  
+  //
   function replaceMath(text) {
     text = text.replace(/@@(\d+)@@/g,function (match,n) {return math[n]});
     math = null;

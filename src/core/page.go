@@ -1343,7 +1343,7 @@ func loadOrderedChildrenIds(db *database.DB, parentId string, sortType string) (
 		SELECT pp.childId
 		FROM pagePairs AS pp
 		JOIN pages AS p
-		ON (pp.childId=p.pageId) 
+		ON (pp.childId=p.pageId)
 		JOIN pageInfos AS pi
 		ON (pi.pageId=p.pageId)
 		WHERE p.isCurrentEdit

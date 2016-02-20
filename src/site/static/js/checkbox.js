@@ -24,10 +24,10 @@ app.directive("arbCheckbox", function($timeout, $http, $compile, pageService, us
 		},
 		link: function(scope, element, attrs) {
 			var buttonHtml = "<md-button class='md-icon-button' ng-click='toggleChoice()'>" +
-			"	<md-icon ng-show='choice'>" +
+			"	<md-icon ng-if='choice'>" +
 			"		check_box" +
 			"	</md-icon>" +
-			"	<md-icon ng-hide='choice'>" +
+			"	<md-icon ng-if='!choice'>" +
 			"		check_box_outline_blank" +
 			"	</md-icon>" +
 			"</md-button>";

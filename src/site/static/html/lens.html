@@ -9,15 +9,15 @@
 				<md-icon>assignment</md-icon>
 				This lens relies on:
 			</span>
-			<span arb-mastery-list ids-source="page.requirementIds" is-span="true"></span>
-		
+			<span arb-mastery-list ids-source="::page.requirementIds" is-span="true"></span>
+
 			<div>
 				<!-- Mark as done button -->
 				<md-button class="md-primary"
 						ng-click="toggleRequirements()"
-						ng-if="page.requirementIds.length > 1">
-					<md-icon ng-show="meetsAllRequirements()">clear</md-icon>
-					<md-icon ng-hide="meetsAllRequirements()">done_all</md-icon>
+						ng-if="::(page.requirementIds.length > 1)">
+					<md-icon ng-if="meetsAllRequirements()">clear</md-icon>
+					<md-icon ng-if="!meetsAllRequirements()">done_all</md-icon>
 					<span ng-bind="meetsAllRequirements() ? 'Nevermind, I don\'t know these' : 'I already know these'"></span>
 				</md-button>
 			</div>
@@ -25,19 +25,19 @@
 
 		<!-- Lens suggestion -->
 		<div class="lens-suggestion">
-			<div ng-if="simplerLens">
-				If you have trouble understanding this lens, try a simpler one: 
-				<a ng-href="{{pageService.getPageUrl(simplerLens.pageId)}}"
-						ng-bind="'&quot;' + simplerLens.lensTitle() + '&quot;'"></a>.
+			<div ng-if="::simplerLens">
+				If you have trouble understanding this lens, try a simpler one:
+				<a ng-href="{{::pageService.getPageUrl(simplerLens.pageId)}}"
+						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
 				<!--<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
 				<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
 					that relies on requisites you already have.
 				</span>
 				<span ng-if="simplerLens.requirementIds.length > 0 && !meetsAllRequirements(simplerLens.pageId)">
 					that relies on:
-					<span ng-repeat="(index, reqId) in simplerLens.requirementIds">
-						<span ng-show="index > 0">,</span>
-						<arb-page-title page-id="{{reqId}}" is-link="true"></arb-page-title>
+					<span ng-repeat="(index, reqId) in ::simplerLens.requirementIds">
+						<span ng-if="::(index > 0)">,</span>
+						<arb-page-title page-id="{{::reqId}}" is-link="true"></arb-page-title>
 					</span>
 				</span>-->
 			</div>
@@ -47,28 +47,28 @@
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
 		<!-- Owner -->
-		<div class="author-list md-caption page-list-span" ng-if="page.editGroupId !== '' && !isSimpleEmbed">
-			Owner: <arb-page-title page-id="{{page.editGroupId}}" is-link="true"></arb-page-title>
+		<div class="author-list md-caption page-list-span" ng-if="::(page.editGroupId !== '' && !isSimpleEmbed)">
+			Owner: <arb-page-title page-id="{{::page.editGroupId}}" is-link="true"></arb-page-title>
 		</div>
 
 		<arb-markdown class="lens-text"
-				page-id="{{page.pageId}}"
-				ng-hide="showingDiff"></arb-markdown>
+				page-id="{{::page.pageId}}"
+				ng-show="!showingDiff"></arb-markdown>
 		<div ng-if="showingDiff">
 			<div class="diff-section" ng-bind-html="diffHtml"></div>
 		</div>
 
 		<!-- Contributors -->
 		<div class="author-list md-caption page-list-span"
-				ng-if="page.creatorIds.length > 0 && !isSimpleEmbed &&
-					!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1)">
+				ng-if="::(page.creatorIds.length > 0 && !isSimpleEmbed &&
+					!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1))">
 			<br>
-			<ng-pluralize count="page.creatorIds.length"
+			<ng-pluralize count="::page.creatorIds.length"
 					when="{'one': 'Contributor:', 'other': 'Contributors:'}"></ng-pluralize>
-			<span ng-repeat="(index, creatorId) in page.creatorIds">
-				<span ng-show="index > 0">,</span>
-				<arb-user-name ng-class="{bold: creatorId === page.originalCreatedBy}"
-						user-id="{{creatorId}}"></arb-user-name>
+			<span ng-repeat="(index, creatorId) in ::page.creatorIds">
+				<span ng-if="::(index > 0)">,</span>
+				<arb-user-name ng-class="::{bold: creatorId === page.originalCreatedBy}"
+						user-id="{{::creatorId}}"></arb-user-name>
 			</span>
 		</div>
 
@@ -76,12 +76,12 @@
 				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
 		<div layout="row" layout-align="start end">
 			<!-- Subjects taught -->
-			<div ng-if="!isSimpleEmbed && subjectIds.length > 0">
+			<div ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
-					Did you learn these concepts from "{{page.title}}"?
+					Did you learn these concepts from "{{::page.title}}"?
 				</span>
-				<div arb-mastery-list ids-source="subjectIds"></div>
+				<div arb-mastery-list ids-source="::subjectIds"></div>
 	
 				<!-- Mark as done button -->
 				<md-button class="special md-raised"
@@ -97,11 +97,11 @@
 
 			<div flex></div>
 
-			<arb-next-prev page-id="{{lensParentId}}" extra-info="true"></arb-next-prev>
+			<arb-next-prev page-id="{{::lensParentId}}" extra-info="true"></arb-next-prev>
 		</div>
 	</div>
 
-	<div ng-include="'static/html/lensToolbar.html'" ng-if="page.textLength > 1000"></div>
+	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->
 	<div class="inline-comments-div" ng-show="lensIsVisible && !isSimpleEmbed">
@@ -123,7 +123,7 @@
 					ng-class="{'md-primary': isInlineCommentIconSelected(commentId)}"
 					ng-click="toggleInlineComment(commentId)">
 				<md-icon>comment</md-icon>
-				<span ng-bind="'+' + comment.likeScore()" ng-show="comment.likeScore() > 0"></span>
+				<span ng-bind="'+' + comment.likeScore()" ng-if="comment.likeScore() > 0"></span>
 			</md-button>
 		</div>
 	</div>

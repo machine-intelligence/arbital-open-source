@@ -791,9 +791,6 @@ textarea {
 .comment-footer {
   padding: 0 5px; }
 
-.lens-menu-div {
-  position: absolute; }
-
 .inline-comment-icon {
   position: absolute;
   z-index: 1; }

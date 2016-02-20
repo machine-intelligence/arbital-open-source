@@ -1,22 +1,21 @@
-<md-fab-speed-dial md-open="isOpen"
+<md-fab-speed-dial md-open="fabState.isOpen"
 		md-direction="up"
 		class="md-scale md-fab-bottom-right"
 		ng-mouseenter="toggle(true, true)"
 		ng-mouseleave="toggle(false, true)"
-		ng-hide="hide || !userService.userIsCool()">
+		ng-if="!fabState.hide && userService.userIsCool()">
 	<md-fab-trigger>
 		<md-button class="md-fab">
 			<md-icon class="fab-icon">add</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">Quick menu</md-tooltip>
 		</md-button>
-		<md-icon class="private-group-icon" ng-show="pageService.privateGroupId !== ''">
+		<md-icon class="private-group-icon" ng-if="pageService.privateGroupId !== ''">
 			lock
 			<md-tooltip md-autohide="true" md-direction="left">Private domain</md-tooltip>
 		</md-icon>
 	</md-fab-trigger>
-	<!-- TODO(alexei): remove ng-show constraint when the bug with dots appearing is fixed -->
-	<md-fab-actions ng-show="isOpen">
-		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="editPageUrl">
+	<md-fab-actions ng-if="fabState.isOpen">
+		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="editPageUrl">
 			<md-icon>create</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">Edit this page (ALT+CTRL+E)</md-tooltip>
 		</md-button>
@@ -24,19 +23,19 @@
 			<md-icon>note_add</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">New page (ALT+CTRL+P)</md-tooltip>
 		</md-button>
-		<md-button ng-href="{{childUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="childUrl">
+		<md-button ng-href="{{childUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="childUrl">
 			<md-icon>child_care</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">New child page (ALT+CTRL+C)</md-tooltip>
 		</md-button>
-		<md-button ng-href="{{lensUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="lensUrl">
+		<md-button ng-href="{{lensUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="lensUrl">
 			<md-icon>lens</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">New lens page (ALT+CTRL+N)</md-tooltip>
 		</md-button>
-		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-show="questionUrl">
+		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="questionUrl">
 			<md-icon>help</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">New question (ALT+CTRL+Q)</md-tooltip>
 		</md-button>
-		<md-button ng-click="newAnswer()" class="md-fab md-raised md-mini md-accent" ng-show="showNewAnswer">
+		<md-button ng-click="newAnswer()" class="md-fab md-raised md-mini md-accent" ng-if="showNewAnswer">
 			<md-icon>font_download</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">New answer (ALT+CTRL+A)</md-tooltip>
 		</md-button>

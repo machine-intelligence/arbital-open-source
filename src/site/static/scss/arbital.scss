@@ -493,7 +493,7 @@ $toolbar-height: 64px;
 		height: $vote-bar-margin;
 		max-height: $vote-bar-margin;
 	}
-	
+
 	// This is the div we show when the user is hovering over the bar to vote
 	.new-vote-div {
 		position: relative;
@@ -521,7 +521,7 @@ $toolbar-height: 64px;
 			text-align: center;
 		}
 	}
-	
+
 	// This is the bar we show where the user's vote is
 	.my-vote-div {
 		position: relative;
@@ -595,7 +595,7 @@ a:not(.md-button) {
 		&:active {
 			color: $primary-hue-3;
 		}
-	
+
 		// Helper for coloring broken links
 		&.red-link {
 			color: $warn-color;
@@ -606,7 +606,7 @@ a:not(.md-button) {
 				color: $warn-hue-3;
 			}
 		}
-	
+
 		// Helper for coloring [ red text] links.
 		&.red-todo-text {
 			background-color: #ffdddd;
@@ -909,8 +909,8 @@ $triangle-size: 15px;
 
 	.triangle-up {
 		position: relative;
-		width: 0; 
-		height: 0; 
+		width: 0;
+		height: 0;
 		border-left: $triangle-size solid transparent;
 		border-right: $triangle-size solid transparent;
 		border-bottom: $triangle-size solid $primary-color;
@@ -923,8 +923,8 @@ $triangle-size: 15px;
 
 	.triangle-down {
 		position: relative;
-		width: 0; 
-		height: 0; 
+		width: 0;
+		height: 0;
 		border-left: $triangle-size solid transparent;
 		border-right: $triangle-size solid transparent;
 		border-top: $triangle-size solid whitesmoke;
@@ -1129,11 +1129,6 @@ textarea {
 }
 .comment-footer {
 	padding: 0 5px;
-}
-
-// LHS menu with lens actions
-.lens-menu-div {
-	position: absolute;
 }
 
 // Icon shown on the RHS corresponding to an inline comment

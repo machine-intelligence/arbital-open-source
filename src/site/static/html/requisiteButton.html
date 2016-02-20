@@ -1,19 +1,19 @@
 <md-button class="md-primary md-icon-button"
 		ng-click="toggleRequirement()"
-		ng-attr-md-prevent-menu-close="{{preventMenuClose}}"
-		ng-hide="hideCheckbox">
-	<md-icon ng-show="pageService.hasMastery(requisiteId)">
+		ng-attr-md-prevent-menu-close="{{::preventMenuClose}}"
+		ng-if="!hideCheckbox">
+	<md-icon ng-if="pageService.hasMastery(requisiteId)">
 		check_box
 		<md-tooltip>You know this</md-tooltip>
 	</md-icon>
-	<md-icon ng-show="pageService.wantsMastery(requisiteId)">
+	<md-icon ng-if="pageService.wantsMastery(requisiteId)">
 		bookmark
 		<md-tooltip>You want to learn this</md-tooltip>
 	</md-icon>
-	<md-icon ng-show="pageService.nullMastery(requisiteId)">
+	<md-icon ng-if="pageService.nullMastery(requisiteId)">
 		check_box_outline_blank
 		<md-tooltip>You don't know this</md-tooltip>
 	</md-icon>
 </md-button>
-<span ng-show="hideCheckbox">&bull;</span>
-<arb-page-title page-id="{{requisiteId}}" is-link="true" ng-if="!hideTitle"></arb-page-title>
+<span ng-if="hideCheckbox">&bull;</span>
+<arb-page-title page-id="{{::requisiteId}}" is-link="true" ng-if="::!hideTitle"></arb-page-title>

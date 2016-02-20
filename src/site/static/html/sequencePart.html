@@ -1,22 +1,22 @@
 <div>
-	<span arb-requisite-button requisite-id="{{part.pageId}}" allow-wants="true"></span>
+	<span arb-requisite-button requisite-id="{{::part.pageId}}" allow-wants="true"></span>
 </div>
-<div ng-if="!pageService.hasMastery(part.pageId)">
-	<div class="which-part" ng-if="part.taughtById !== ''">
+<div ng-if="::!pageService.hasMastery(part.pageId)">
+	<div class="which-part" ng-if="::(part.taughtById !== '')">
 		You can learn it from
-		<arb-page-title page-id="{{part.taughtById}}" is-link="true"></arb-page-title>
-		(<span ng-bind="pageService.pageMap[part.taughtById].textLength | numSuffix"></span> characters)
-		<span ng-if="part.requirements.length > 0">
+		<arb-page-title page-id="{{::part.taughtById}}" is-link="true"></arb-page-title>
+		(<span ng-bind="::(pageService.pageMap[part.taughtById].textLength | numSuffix)"></span> characters)
+		<span ng-if="::(part.requirements.length > 0)">
 			, which depends on:
 		</span>
 	</div>
-	<div class="which-part" ng-if="part.taughtById === ''">
+	<div class="which-part" ng-if="::(part.taughtById === '')">
 		<span class="md-warn">Unfortunately, Arbital doesn't yet have a page that teaches this.</span>
-		<span ng-if="part.requirements.length > 0">
+		<span ng-if="::(part.requirements.length > 0)">
 			The dependencies are:
 		</span>
 	</div>
 	<div class="sequence-requirements">
-		<div arb-sequence-part part="requirement" ng-repeat="requirement in part.requirements"></div>
+		<div arb-sequence-part part="::requirement" ng-repeat="requirement in ::part.requirements"></div>
 	</div>
 </div>

@@ -7,7 +7,7 @@ app.service("pageService", function($http, $location, userService){
 
 	// All loaded pages.
 	this.pageMap = {};
-	
+
 	// All loaded edits. (These are the pages we will be editing.)
 	this.editMap = {};
 
@@ -125,7 +125,7 @@ app.service("pageService", function($http, $location, userService){
 
 	// Primary page is the one with its id in the url
 	this.primaryPage = undefined;
-	
+
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
 		if (data.resetEverything) {
@@ -319,7 +319,7 @@ app.service("pageService", function($http, $location, userService){
 			return parts[parts.length - 1].trim();
 		},
 	};
-	
+
 	// Massage page's variables to be easier to deal with.
 	var setUpPage = function(page, pageMap) {
 		for (var name in pageFuncs) {
@@ -514,7 +514,7 @@ app.service("pageService", function($http, $location, userService){
 		options.url = "/json/title/";
 		loadPage(pageAlias, options);
 	};
-	
+
 	// Load edit.
 	// options {
 	//   pageAlias: pageAlias to load

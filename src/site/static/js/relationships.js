@@ -42,7 +42,7 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 				autocompleteService.parentsSource({term: text}, function(results) {
 					deferred.resolve(results);
 				});
-        return deferred.promise;
+				return deferred.promise;
 			};
 			$scope.searchResultSelected = function(result) {
 				if (!result) return;

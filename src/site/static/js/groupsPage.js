@@ -9,6 +9,7 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.newGroupForm = {};
 
 			// Populate the groupMap with the groups the user belongs to
 			$scope.groupMap = {};
@@ -60,12 +61,12 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 					location.reload();
 				});
 			};
-		
+
 			// Process new group form submission.
 			$scope.newGroupFormSubmit = function(event) {
 				var data = {
-					name: $scope.newGroupName,
-					alias: $scope.newGroupAlias,
+					name: $scope.newGroupForm.newGroupName,
+					alias: $scope.newGroupForm.newGroupAlias,
 				};
 				submitForm($(event.currentTarget), "/newGroup/", data, function(r) {
 					location.reload();
