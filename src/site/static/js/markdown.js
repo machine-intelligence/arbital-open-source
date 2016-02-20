@@ -421,9 +421,8 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			// Convert page text to html.
 			var converter = markdownService.createConverter();
 			var html = scope.page.text;
-			if (scope.page.anchorText)
-			{
-				html = ">"+scope.page.anchorText+"\r\r"+html;
+			if (scope.page.anchorText) {
+				html = ">" + scope.page.anchorText + "\n\n" + html;
 			}
 			if (scope.summaryName) {
 				html = scope.page.summaries[scope.summaryName] || scope.page.summaries["Summary"];
