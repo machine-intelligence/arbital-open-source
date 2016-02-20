@@ -247,7 +247,6 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 	$scope.$watch(function() {
 		return $location.absUrl();
 	}, function() {
-		console.log("SEND");
 		ga("send", "pageview", $location.absUrl());
 	});
 });
