@@ -24,13 +24,8 @@
 				confirmed="deleteSubpage()"
 				show-icon="true"
 				disabled="editing"
-<<<<<<< HEAD
 				ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && isComment"></arb-confirm-button>
 		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
-=======
-				ng-if="::(page.creatorId === userService.user.id && isComment)"></arb-confirm-button>
-		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
->>>>>>> master
 				class="md-icon-button"
 				ng-disabled="editing"
 				ng-click="editSubpage($event)"
