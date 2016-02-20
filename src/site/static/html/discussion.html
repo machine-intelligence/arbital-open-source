@@ -12,7 +12,7 @@
 				lens-id="{{::page.pageId}}"
 				page-id="{{::subpageId}}"
 				ng-repeat="subpageId in page.subpageIds"></div>
-		<div class="md-whiteframe-1dp" ng-if="page.subpageIds.length <= 0" layout-padding>
+		<div class="md-whiteframe-1dp" layout-padding ng-if="page.subpageIds.length <= 0">
 			No comments yet
 		</div>
 
