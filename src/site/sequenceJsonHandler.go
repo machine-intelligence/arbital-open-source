@@ -22,12 +22,22 @@ type sequenceJsonData struct {
 }
 
 type sequencePart struct {
-	// I want to understand PageId
+	// User wants to understand PageId
 	PageId string `json:"pageId"`
-	// To understand it, I will read TaughtById
+	// To understand it, the user will read TaughtById
 	TaughtById string `json:"taughtById"`
-	// To understand TaughtById, I need to meet th following Requirements
+	// To understand TaughtById, the user needs to have the following Requirements
 	Requirements []*sequencePart `json:"requirements"`
+}
+
+// Return true iff this part already has the requirement for the given page id
+func (p *sequencePart) hasRequirement(pageId string) bool {
+	for _, req := range p.Requirements {
+		if req.PageId == pageId {
+			return true
+		}
+	}
+	return false
 }
 
 func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
@@ -150,11 +160,13 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 				requirementIds = append(requirementIds, parentId)
 				requirementPart, ok := sequenceMap[parentId]
 				if !ok {
-					requirementPart = &sequencePart{PageId: parentId}
+					requirementPart = &sequencePart{PageId: parentId, Requirements: make([]*sequencePart, 0)}
+					sequenceMap[parentId] = requirementPart
+					core.AddPageToMap(parentId, returnData.PageMap, loadOptions)
 				}
-				part.Requirements = append(part.Requirements, requirementPart)
-				sequenceMap[parentId] = requirementPart
-				core.AddPageToMap(parentId, returnData.PageMap, loadOptions)
+				if !part.hasRequirement(requirementPart.PageId) {
+					part.Requirements = append(part.Requirements, requirementPart)
+				}
 			}
 			return nil
 		})

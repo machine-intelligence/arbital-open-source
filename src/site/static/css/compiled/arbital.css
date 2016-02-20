@@ -518,10 +518,10 @@ md-icon.on {
 md-icon.off {
   color: gray; }
 
-arb-likes {
+arb-likes, .likes-in-autocomplete {
   white-space: nowrap;
   margin: 0 10px 0 0; }
-  arb-likes .like-icon {
+  arb-likes .like-icon, .likes-in-autocomplete .like-icon {
     min-width: 24px;
     margin-right: 2px; }
 

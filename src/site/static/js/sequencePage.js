@@ -23,11 +23,9 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 				$scope.readIds = [];
 				$scope.missingTaughtPartIds = {};
 				var processPart = function(part, parentPageId) {
-					if (part.requirements) {
-						for (var n = 0; n < part.requirements.length; n++) {
-							if (pageService.hasMastery(part.requirements[n].pageId)) continue;
-							processPart(part.requirements[n], part.pageId);
-						}
+					for (var n = 0; n < part.requirements.length; n++) {
+						if (pageService.hasMastery(part.requirements[n].pageId)) continue;
+						processPart(part.requirements[n], part.pageId);
 					}
 					if (part.taughtById !== "") {
 						if ($scope.readIds.indexOf(part.taughtById) < 0) {
