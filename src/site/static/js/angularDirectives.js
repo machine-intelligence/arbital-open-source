@@ -532,6 +532,8 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 			// we need to listen to URL change and see if we should recompute which
 			// page in the sequence we are on.
 			var computeUrls = function() {
+				$scope.page.prevPageId = $scope.page.nextPageId = "";
+
 				// Check if the user is doing a sequence
 				$scope.page.sequenceUrl = $location.search().sequence || "";
 				if ($scope.page.sequenceUrl) {
