@@ -404,7 +404,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 	return {
 		scope: {
 			pageId: "@",
-			summaryName: "@"
+			summaryName: "@",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
