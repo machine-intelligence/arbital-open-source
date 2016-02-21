@@ -208,6 +208,9 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return pages.HandlerErrorFail("Error while loading requirements", err)
 		}
+		if maxCount >= 18 {
+			c.Warningf("Max count is close to maximum: %d", maxCount)
+		}
 	}
 
 	var processRequirement func(reqId string) *requirementNode
@@ -218,12 +221,14 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if t.Processed {
 			return t
 		}
+		t.Cost = 10000
+		t.Processed = true
+		costSum := 0
 		// Do processing
 		for _, reqId := range t.RequirementIds {
-			t.Cost += processRequirement(reqId).Cost
+			costSum += processRequirement(reqId).Cost
 		}
-		t.Cost++
-		t.Processed = true
+		t.Cost = costSum + 1
 		t.RequirementMap = requirementMap
 		sort.Sort(t)
 		return t
@@ -236,6 +241,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return r
 		}
 		r.Cost = 10000 // cost of a requirement without a tutor
+		r.Processed = true
 		for _, tutorId := range r.TutorIds {
 			cost := processTutor(tutorId).Cost
 			if r.Cost > cost {
@@ -243,7 +249,6 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				r.BestTutorId = tutorId
 			}
 		}
-		r.Processed = true
 		return r
 	}
 
