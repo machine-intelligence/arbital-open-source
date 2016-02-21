@@ -23,6 +23,7 @@
 		<!-- Updates -->
 		<md-button href="/updates/"
 				ng-class="{'md-icon-button': userService.user.updateCount <= 0}"
+				aria-label="Your updates"
 				ng-if="userService.user.id !== ''">
 			<md-icon ng-if="userService.user.updateCount <= 0">notifications_none</md-icon>
 			<md-icon class="md-accent md-hue-3" ng-if="userService.user.updateCount > 0">notifications</md-icon>
@@ -35,6 +36,7 @@
 			Sign Up
 		</md-button>
 		<md-button ng-click="toggleRightMenu()"
+				aria-label="Log in"
 				ng-if="userService.user.id === ''">
 			Log In
 		</md-button>
@@ -42,6 +44,7 @@
 		<!-- Button for RHS sidebar -->
 		<md-button class="md-icon-button"
 				ng-click="toggleRightMenu()"
+				aria-label="Main menu"
 				ng-if="userService.user.id !== ''">
 			<md-icon>menu</md-icon>
     </md-button>

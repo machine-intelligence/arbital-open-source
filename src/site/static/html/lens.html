@@ -15,6 +15,7 @@
 				<!-- Mark as done button -->
 				<md-button class="md-primary"
 						ng-click="toggleRequirements()"
+						aria-label="Toggle requirements"
 						ng-if="::(page.requirementIds.length > 1)">
 					<md-icon ng-if="meetsAllRequirements()">clear</md-icon>
 					<md-icon ng-if="!meetsAllRequirements()">done_all</md-icon>
@@ -85,7 +86,8 @@
 	
 				<!-- Mark as done button -->
 				<md-button class="special md-raised"
-						ng-click="toggleSubjects()">
+						ng-click="toggleSubjects()"
+						aria-label="Toggle subjects">
 					<span ng-bind="knowsAllSubjects() ? 'Nevermind, none of them' : 'Yes, all of them'"></span>
 				</md-button>
 				<md-button class="special"
