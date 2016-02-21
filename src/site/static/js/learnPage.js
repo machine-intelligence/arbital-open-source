@@ -5,7 +5,8 @@ app.directive("arbLearnPage", function($location, pageService, userService) {
 	return {
 		templateUrl: "static/html/learnPage.html",
 		scope: {
-			learn: "=",
+			pageId: "@",
+			learnMap: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -22,10 +23,11 @@ app.directive("arbLearnPage", function($location, pageService, userService) {
 			var computeLearnIds = function() {
 				$scope.readIds = [];
 				$scope.missingTaughtPartIds = {};
-				var processPart = function(part, parentPageId) {
-					for (var n = 0; n < part.requirements.length; n++) {
-						if (pageService.hasMastery(part.requirements[n].pageId)) continue;
-						processPart(part.requirements[n], part.pageId);
+				var processNode = function(pageId, parentPageId) {
+					var part = $scope.learnMap[pageId];
+					for (var n = 0; n < part.requirementIds.length; n++) {
+						//if (pageService.hasMastery(part.requirements[n].pageId)) continue;
+						processNode(part.requirementIds[n], part.pageId);
 					}
 					if (part.taughtById !== "") {
 						if ($scope.readIds.indexOf(part.taughtById) < 0) {
@@ -40,9 +42,9 @@ app.directive("arbLearnPage", function($location, pageService, userService) {
 						}
 					}
 				};
-				processPart($scope.learn, undefined);
-				if ($scope.readIds.indexOf($scope.learn.pageId) < 0) {
-					$scope.readIds.push($scope.learn.pageId);
+				processNode($scope.pageId, undefined);
+				if ($scope.readIds.indexOf($scope.pageId) < 0) {
+					$scope.readIds.push($scope.pageId);
 				}
 				$scope.hasUnlearnableIds = Object.keys($scope.unlearnableIds).length > 0;
 			};
@@ -78,12 +80,10 @@ app.directive("arbLearnPage", function($location, pageService, userService) {
 app.directive("arbLearnPart", function(pageService, userService, RecursionHelper) {
 	return {
 		templateUrl: "static/html/learnPart.html",
-		scope: {
-			part: "=",
-		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.part = $scope.learnMap[$scope.pageId];
 		},
 		compile: function(element) {
 			return RecursionHelper.compile(element);
