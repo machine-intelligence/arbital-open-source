@@ -1,6 +1,7 @@
 <md-button class="md-primary md-icon-button"
 		ng-click="toggleRequirement()"
 		ng-attr-md-prevent-menu-close="{{::preventMenuClose}}"
+		aria-label="Toggle"
 		ng-if="!hideCheckbox">
 	<md-icon ng-if="pageService.hasMastery(requisiteId)">
 		check_box

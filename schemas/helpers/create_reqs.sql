@@ -1,4 +1,4 @@
-DELETE FROM pageInfos where pageId>="11000" AND pageId<="11999999";
+DELETE FROM pageInfos where pageId>="11000" AND pageId<="11999";
 INSERT INTO pageInfos
 (pageId,alias,currentEdit,maxEdit,createdAt,type,sortChildrenBy,createdBy)
 VALUES
@@ -24,12 +24,12 @@ VALUES
 ("11002","Page 2 (Req for 1)"           ,"Page 1 requires me.",      "Page 2 clickbait" , 1,1,now(),true),
 ("11003","Page 3 (Req for 1)"           ,"Page 1 requires me",       "Page 3 clickbait" , 1,1,now(),true),
 ("11004","Page 4 (Req for 1)"           ,"Page 1 requires me",       "Page 4 clickbait" , 1,1,now(),true),
-("11005","Page 5 (Teaches 2)"           ,"Teaching you about page 2\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na","Page 5 clickbait" , 1,1,now(),true),
+("11005","Page 5 (Teaches 2)"           ,"Teaching you about page 2","Page 5 clickbait" , 1,1,now(),true),
 ("11006","Page 6 (Teaches 2)"           ,"Teaching you about page 2","Page 6 clickbait" , 1,1,now(),true),
 ("11007","Page 7 (Teaches 3)"           ,"Teaching you about page 3","Page 7 clickbait" , 1,1,now(),true),
 ("11008","Page 8 (Teaches 4)"           ,"Teaching you about page 4","Page 8 clickbait" , 1,1,now(),true),
 ("11009","Page 9 (Req for 7)"           ,"Page 7 requires me",       "Page 9 clickbait" , 1,1,now(),true),
-("11010","Page 10 (Teaches 9)"          ,"Teaching you about page 9\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na\n\na","Page 10 clickbait", 1,1,now(),true)
+("11010","Page 10 (Teaches 9)"          ,"Teaching you about page 9","Page 10 clickbait", 1,1,now(),true)
 ;
 
 DELETE FROM pagePairs where (childId>="11000" AND childId<="11999") OR (parentId>="11000" AND parentId<="11999");
@@ -43,7 +43,6 @@ VALUES
 ("11002","11001","requirement"),
 ("11003","11001","requirement"),
 ("11004","11001","requirement"),
-("11009","11001","requirement"),
 ("11009","11007","requirement"),
 ("11000","11001","subject"),
 ("11002","11005","subject"),
