@@ -1,9 +1,16 @@
 <div class="capped-body-width">
 	<!-- What is Arbital? page -->
-	<!-- HARDCODED -->
-	<h1 class="dynamic-hor-padding simple-embed-page-title" ng-bind="::pageService.pageMap['1k0'].title">
-	</h1>
-	<div arb-markdown class="lens-text-container lens-text md-whiteframe-1dp reveal-after-render" page-id="1k0"></div>
+	<h1 ng-class="{'dynamic-hor-padding': showingText, 'layout-margin': !showingText}"
+			ng-bind="::page.title"></h1>
+	<div arb-markdown
+			page-id="{{::page.pageId}}"
+			class="lens-text-container md-whiteframe-1dp reveal-after-render"
+			ng-if="showingText"></div>
+	<md-button class="md-primary md-raised"
+			ng-click="showText()"
+			ng-if="!showingText">
+		Show page text
+	</md-button>
 	<br>
 	<br>
 

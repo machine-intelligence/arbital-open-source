@@ -561,6 +561,19 @@ $toolbar-height: 64px;
 	white-space: pre;
 }
 
+// Add this to an element to only show the first line of text in it.
+.one-line {
+	& > * {
+		white-space: nowrap !important;
+		text-overflow: ellipsis !important;
+		overflow: hidden !important;
+	}
+
+	* + * {
+		display: none;
+	}
+}
+
 // Inside toolbars, color the link differently
 md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
 	color: white;
@@ -929,11 +942,6 @@ $triangle-size: 15px;
 		border-right: $triangle-size solid transparent;
 		border-top: $triangle-size solid whitesmoke;
 	}
-}
-
-// Added to the page title when it's show on the home page / group home page
-.simple-embed-page-title {
-	margin: 1rem 0;
 }
 
 .private-group-icon {

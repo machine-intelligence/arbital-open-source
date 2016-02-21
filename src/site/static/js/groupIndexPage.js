@@ -11,7 +11,11 @@ app.directive("arbGroupIndex", function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.group = pageService.pageMap[$scope.groupId];
+			$scope.page = pageService.pageMap[$scope.groupId];
+			$scope.showingText = $scope.page.isNewPage() || !userService.user.id;
+			$scope.showText = function() {
+				$scope.showingText = true;
+			};
 		},
 	};
 });

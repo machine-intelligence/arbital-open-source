@@ -1,6 +1,16 @@
 <div layout="column" class="capped-body-width">
-	<!-- Summary pulled from the corresponding group page -->
-	<arb-page class="reveal-after-render" page-id="{{::group.pageId}}" is-simple-embed="true"></arb-page>
+	<!-- The group page -->
+	<h1 ng-class="{'dynamic-hor-padding': showingText, 'layout-margin': !showingText}"
+			ng-bind="::page.title"></h1>
+	<div arb-markdown
+			page-id="{{::page.pageId}}"
+			class="lens-text-container md-whiteframe-1dp reveal-after-render"
+			ng-if="showingText"></div>
+	<md-button class="md-primary md-raised"
+			ng-click="showText()"
+			ng-if="!showingText">
+		Show page text
+	</md-button>
 	<br>
 	<br>
 

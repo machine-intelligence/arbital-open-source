@@ -10,6 +10,12 @@ app.directive("arbIndex", function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			// HARDCODED
+			$scope.page = pageService.pageMap["1k0"];
+			$scope.showingText = $scope.page.isNewPage() || !userService.user.id;
+			$scope.showText = function() {
+				$scope.showingText = true;
+			};
 		},
 	};
 });
