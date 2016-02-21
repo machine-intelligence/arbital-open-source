@@ -12,4 +12,4 @@ CREATE TABLE votes (
   /* Date this like was created. */
   createdAt DATETIME NOT NULL,
   PRIMARY KEY(id)
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
+) CHARACTER SETmb4 utf8 COLLATE utf8mb4_general_ci;

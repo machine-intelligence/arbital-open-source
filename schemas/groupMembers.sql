@@ -11,4 +11,4 @@ CREATE TABLE groupMembers (
 	/* Whether this user can change the group settings. */
 	canAdmin BOOLEAN NOT NULL,
   PRIMARY KEY(userId,groupId)
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

@@ -13,4 +13,4 @@ CREATE TABLE userMasteryPairs (
 	/* Set if the user wants to read this. */
 	wants BOOLEAN NOT NULL,
   PRIMARY KEY(userId,masteryId)
-) CHARACTER SET utf8 COLLATE utf8_general_ci;
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
