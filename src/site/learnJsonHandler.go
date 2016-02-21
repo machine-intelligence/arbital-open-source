@@ -1,4 +1,4 @@
-// sequenceJsonHandler.go returns the sequence of pages needed for understanding a page
+// learnJsonHandler.go returns the learn of pages needed for understanding a page
 package site
 
 import (
@@ -12,26 +12,26 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var sequenceHandler = siteHandler{
-	URI:         "/json/sequence/",
-	HandlerFunc: sequenceJsonHandler,
+var learnHandler = siteHandler{
+	URI:         "/json/learn/",
+	HandlerFunc: learnJsonHandler,
 }
 
-type sequenceJsonData struct {
+type learnJsonData struct {
 	PageId string
 }
 
-type sequencePart struct {
+type learnPart struct {
 	// User wants to understand PageId
 	PageId string `json:"pageId"`
 	// To understand it, the user will read TaughtById
 	TaughtById string `json:"taughtById"`
 	// To understand TaughtById, the user needs to have the following Requirements
-	Requirements []*sequencePart `json:"requirements"`
+	Requirements []*learnPart `json:"requirements"`
 }
 
 // Return true iff this part already has the requirement for the given page id
-func (p *sequencePart) hasRequirement(pageId string) bool {
+func (p *learnPart) hasRequirement(pageId string) bool {
 	for _, req := range p.Requirements {
 		if req.PageId == pageId {
 			return true
@@ -40,12 +40,12 @@ func (p *sequencePart) hasRequirement(pageId string) bool {
 	return false
 }
 
-func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
+func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 
 	// Decode data
-	var data sequenceJsonData
+	var data learnJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
@@ -90,10 +90,10 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 		requirementIds = append(requirementIds, data.PageId)
 	}
 
-	// Create the sequence root
-	sequence := &sequencePart{PageId: data.PageId}
-	sequenceMap := make(map[string]*sequencePart)
-	sequenceMap[data.PageId] = sequence
+	// Create the learn root
+	learn := &learnPart{PageId: data.PageId}
+	learnMap := make(map[string]*learnPart)
+	learnMap[data.PageId] = learn
 
 	// What to load for the pages
 	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
@@ -117,7 +117,7 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			sequenceMap[parentId].TaughtById = childId
+			learnMap[parentId].TaughtById = childId
 			taughtByIds = append(taughtByIds, childId)
 			core.AddPageToMap(childId, returnData.PageMap, loadOptions)
 			return nil
@@ -153,15 +153,15 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 				return nil
 			}
 
-			for _, part := range sequenceMap {
+			for _, part := range learnMap {
 				if part.TaughtById != childId {
 					continue
 				}
 				requirementIds = append(requirementIds, parentId)
-				requirementPart, ok := sequenceMap[parentId]
+				requirementPart, ok := learnMap[parentId]
 				if !ok {
-					requirementPart = &sequencePart{PageId: parentId, Requirements: make([]*sequencePart, 0)}
-					sequenceMap[parentId] = requirementPart
+					requirementPart = &learnPart{PageId: parentId, Requirements: make([]*learnPart, 0)}
+					learnMap[parentId] = requirementPart
 					core.AddPageToMap(parentId, returnData.PageMap, loadOptions)
 				}
 				if !part.hasRequirement(requirementPart.PageId) {
@@ -181,6 +181,6 @@ func sequenceJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["sequence"] = sequence
+	returnData.ResultMap["learn"] = learn
 	return pages.StatusOK(returnData.toJson())
 }

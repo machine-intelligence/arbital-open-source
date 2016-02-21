@@ -1,16 +1,16 @@
 "use strict";
 
-// Directive for the sequence page.
-app.directive("arbSequencePage", function($location, pageService, userService) {
+// Directive for the learn page.
+app.directive("arbLearnPage", function($location, pageService, userService) {
 	return {
-		templateUrl: "static/html/sequencePage.html",
+		templateUrl: "static/html/learnPage.html",
 		scope: {
-			sequence: "=",
+			learn: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			// Ordered list of page ids in the generated sequence
+			// Ordered list of page ids in the generated learn
 			$scope.readIds = [];
 			// If a requisite can't be learned (probably because there is no page that
 			// currently teaches it), we add it to this map.
@@ -19,7 +19,7 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 			$scope.hasUnlernableIds = false;
 
 			// Figure our the order of pages through which to take the user
-			var computeSequenceIds = function() {
+			var computeLearnIds = function() {
 				$scope.readIds = [];
 				$scope.missingTaughtPartIds = {};
 				var processPart = function(part, parentPageId) {
@@ -40,24 +40,24 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 						}
 					}
 				};
-				processPart($scope.sequence, undefined);
-				if ($scope.readIds.indexOf($scope.sequence.pageId) < 0) {
-					$scope.readIds.push($scope.sequence.pageId);
+				processPart($scope.learn, undefined);
+				if ($scope.readIds.indexOf($scope.learn.pageId) < 0) {
+					$scope.readIds.push($scope.learn.pageId);
 				}
 				$scope.hasUnlearnableIds = Object.keys($scope.unlearnableIds).length > 0;
 			};
 
-			// Get the url for the given page (optional) with sequence support
-			$scope.getSequenceUrl = function(startingPageId) {
+			// Get the url for the given page (optional) with learn support
+			$scope.getLearnUrl = function(startingPageId) {
 				startingPageId = startingPageId || $scope.readIds[0];
-				return pageService.getPageUrl(startingPageId) + "?sequence=" + $scope.readIds.join(",");
+				return pageService.getPageUrl(startingPageId) + "?learn=" + $scope.readIds.join(",");
 			};
 
-			// Called when the user clicks to start reading the sequence
+			// Called when the user clicks to start reading the learn
 			$scope.startReading = function() {
-				computeSequenceIds();
+				computeLearnIds();
 				// Start them off with the first page
-				$location.url($scope.getSequenceUrl());
+				$location.url($scope.getLearnUrl());
 			};
 
 			// Track whether we show tree or list view
@@ -66,7 +66,7 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 				$scope.showTreeView = !$scope.showTreeView;
 				if (!$scope.showTreeView) {
 					// User might have changed their requisites, so let's recompute everything
-					computeSequenceIds();
+					computeLearnIds();
 				}
 			};
 			$scope.toggleView();
@@ -74,10 +74,10 @@ app.directive("arbSequencePage", function($location, pageService, userService) {
 	};
 });
 
-// Directive for a recursive part of a sequence.
-app.directive("arbSequencePart", function(pageService, userService, RecursionHelper) {
+// Directive for a recursive part of a learn.
+app.directive("arbLearnPart", function(pageService, userService, RecursionHelper) {
 	return {
-		templateUrl: "static/html/sequencePart.html",
+		templateUrl: "static/html/learnPart.html",
 		scope: {
 			part: "=",
 		},

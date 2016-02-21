@@ -235,7 +235,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 900px; }
   arb-requisites-page > .capped-body-width {
     max-width: 560px; }
-  arb-sequence-page > .capped-body-width {
+  arb-learn-page > .capped-body-width {
     max-width: 900px; }
   arb-settings-page > .capped-body-width {
     max-width: 560px; }
@@ -835,15 +835,15 @@ arb-multiple-choice {
     display: inline-block;
     margin: 0; }
 
-.sequence-requirements {
+.learn-requirements {
   margin-left: 10px;
   border-left: #E0F2F1 3px solid;
   padding-left: 10px; }
 
-.sequence-list {
+.learn-list {
   margin: 0 0 0 5px;
   padding-top: 0; }
-  .sequence-list > div {
+  .learn-list > div {
     margin-bottom: 5px; }
 
 .unlearnable-list {
@@ -851,10 +851,10 @@ arb-multiple-choice {
   .unlearnable-list > li {
     margin-bottom: 15px; }
 
-arb-sequence-part, [arb-sequence-part] {
+arb-learn-part, [arb-learn-part] {
   padding-top: 7px;
   margin-bottom: 7px; }
-  arb-sequence-part .which-part, [arb-sequence-part] .which-part {
+  arb-learn-part .which-part, [arb-learn-part] .which-part {
     padding-left: 5px; }
 
 /*# sourceMappingURL=arbital.css.map */

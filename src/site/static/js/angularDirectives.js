@@ -514,13 +514,13 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 	};
 });
 
-// Directive for displaying next/prev buttons for a sequence.
+// Directive for displaying next/prev buttons when learning.
 app.directive("arbNextPrev", function($location, pageService, userService) {
 	return {
 		templateUrl: "static/html/nextPrev.html",
 		scope: {
 			pageId: "@",
-			// If true, show extra information about the sequence
+			// If true, show the expanded version of this directive
 			extraInfo: "=",
 		},
 		controller: function($scope) {
@@ -528,17 +528,17 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
 
-			// Note: because sometimes the next page in the sequence can be a lens,
+			// Note: because sometimes the next page in the list can be a lens,
 			// we need to listen to URL change and see if we should recompute which
-			// page in the sequence we are on.
+			// page in the list we are on.
 			var computeUrls = function() {
 				$scope.page.prevPageId = $scope.page.nextPageId = "";
 
-				// Check if the user is doing a sequence
-				$scope.page.sequenceUrl = $location.search().sequence || "";
-				if ($scope.page.sequenceUrl) {
+				// Check if the user is learning
+				$scope.page.learnUrl = $location.search().learn || "";
+				if ($scope.page.learnUrl) {
 					var currentPageId = $location.search().l || $scope.page.pageId;
-					var ids = $scope.page.sequenceUrl.split(",");
+					var ids = $scope.page.learnUrl.split(",");
 					for (var n = 0; n < ids.length; n++) {
 						var id = ids[n];
 						if (id === currentPageId) {
@@ -546,16 +546,16 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 							$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
 						}
 					}
-					$scope.page.sequenceId = ids[ids.length - 1];
+					$scope.page.learnId = ids[ids.length - 1];
 				}
 
 				$scope.prevUrl = pageService.getPageUrl($scope.page.prevPageId);
 				$scope.prevUrl += $scope.prevUrl.indexOf("?") < 0 ? "?" : "&";
-				$scope.prevUrl += "sequence=" + $scope.page.sequenceUrl;
+				$scope.prevUrl += "learn=" + $scope.page.learnUrl;
 
 				$scope.nextUrl = pageService.getPageUrl($scope.page.nextPageId);
 				$scope.nextUrl += $scope.nextUrl.indexOf("?") < 0 ? "?" : "&";
-				$scope.nextUrl += "sequence=" + $scope.page.sequenceUrl;
+				$scope.nextUrl += "learn=" + $scope.page.learnUrl;
 			};
 			computeUrls();
 			$scope.$watch(function() {

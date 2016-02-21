@@ -14,9 +14,9 @@
 		<span>Prev</span>
 	</md-button>
 	<md-button class="special md-icon-button"
-			ng-href="/path/{{::page.sequenceId}}"
-			ng-if="::page.sequenceId">
-		<md-tooltip md-delay="500">Current sequence</md-tooltip>
+			ng-href="/learn/{{::page.learnId}}"
+			ng-if="::page.learnId">
+		<md-tooltip md-delay="500">Current list</md-tooltip>
 		<md-icon>book</md-icon>
 	</md-button>
 	<md-button ng-href="{{nextUrl}}"
@@ -24,12 +24,12 @@
 			ng-class="::{'md-raised': extraInfo}"
 			page-id="{{page.nextPageId}}"
 			ng-disabled="page.nextPageId === ''"
-			ng-if="page.nextPageId !== '' || !page.sequenceUrl">
+			ng-if="page.nextPageId !== '' || !page.learnUrl">
 		<md-tooltip md-delay="500" ng-show="page.nextPageId === ''">No next page</md-tooltip>
 		<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
 		<md-icon>chevron_right</md-icon>
 	</md-button>
-	<md-button ng-disabled="true" ng-if="page.nextPageId === '' && page.sequenceUrl">
+	<md-button ng-disabled="true" ng-if="page.nextPageId === '' && page.learnUrl">
 		DONE!
 	</md-button>
 </div>

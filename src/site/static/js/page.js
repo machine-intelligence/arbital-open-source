@@ -39,8 +39,8 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
 					$scope.selectedLens = pageService.pageMap[$location.search().l];
-				} else if ($location.search().sequence) {
-					// The sequence specified this page specifically
+				} else if ($location.search().learn) {
+					// The learning list specified this page specifically
 					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
 				} else {
 					// Select the hardest lens for which the user has met all requirements

@@ -1419,7 +1419,7 @@ func loadSiblingId(db *database.DB, pageId string, useNextSibling bool) (string,
 }
 
 // LoadNextPrevPageIds loads the pages that come before / after the given page
-// in the reading sequence.
+// in the learning list.
 func LoadNextPrevPageIds(db *database.DB, userId string, options *LoadDataOptions) error {
 	if len(options.ForPages) > 1 {
 		db.C.Warningf("LoadNextPrevPageIds called with more than one page")

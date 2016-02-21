@@ -93,9 +93,9 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/path/:pageId", {
+	.when("/learn/:pageId", {
  		template: "",
- 		controller: "SequenceController",
+ 		controller: "LearnController",
  		reloadOnSearch: false,
  	})
 	.when("/edit/:alias?/:edit?", {
@@ -412,12 +412,12 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 	.error($scope.getErrorFunc("primaryPage"));
 });
 
-app.controller("SequenceController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+app.controller("LearnController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
 		pageId: $routeParams.pageId,
 	};
-	$http({method: "POST", url: "/json/sequence/", data: JSON.stringify(postData)})
+	$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
 		var page = pageService.pageMap[postData.pageId];
 		if (!page) {
@@ -426,10 +426,10 @@ app.controller("SequenceController", function ($scope, $routeParams, $http, $com
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
-		$scope.sequence = data.result.sequence;
+		$scope.learn = data.result.learn;
 		return {
-			title: "Sequence for " + page.title,
-			element: $compile("<arb-sequence-page sequence='sequence'></arb-sequence-page>")($scope),
+			title: "Learn " + page.title,
+			element: $compile("<arb-learn-page learn='learn'></arb-learn-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("primaryPage"));

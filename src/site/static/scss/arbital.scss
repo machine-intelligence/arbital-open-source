@@ -303,7 +303,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-requisites-page > & {
 		max-width: 560px;
 	}
-	arb-sequence-page > & {
+	arb-learn-page > & {
 		max-width: 900px;
 	}
 	arb-settings-page > & {
@@ -1207,13 +1207,13 @@ arb-multiple-choice {
 	}
 }
 
-.sequence-requirements {
+.learn-requirements {
 	margin-left: 10px;
 	border-left: $primary-hue-1 3px solid;
 	padding-left: 10px;
 }
 
-.sequence-list {
+.learn-list {
 	margin: 0 0 0 5px;
 	padding-top: 0;
 
@@ -1230,7 +1230,7 @@ arb-multiple-choice {
 	}
 }
 
-arb-sequence-part, [arb-sequence-part] {
+arb-learn-part, [arb-learn-part] {
 	padding-top: 7px;
 	margin-bottom: 7px;
 
