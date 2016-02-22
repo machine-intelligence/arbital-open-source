@@ -77,8 +77,8 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					var data = {pageId: $scope.page.pageId, orderMap: {}};
 					for (var n = 0; n < $scope.page.lensIds.length; n++) {
 						var pageId = $scope.page.lensIds[n];
-						pageService.pageMap[pageId].lensIndex = n;
-						data.orderMap[pageId] = n;
+						pageService.pageMap[pageId].lensIndex = n + 1;
+						data.orderMap[pageId] = n + 1;
 					}
 					$http({method: "POST", url: "/updateLensOrder/", data: JSON.stringify(data)})
 					.error(function(data) {

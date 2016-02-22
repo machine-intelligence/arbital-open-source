@@ -27,7 +27,8 @@ const (
 
 // Requirement the user needs to acquire in order to read a tutor page
 type requirementNode struct {
-	PageId string `json:"pageId"`
+	PageId    string `json:"pageId"`
+	LensIndex int    `json:"-"`
 	// Which pages can teach this requirement
 	TutorIds []string `json:"tutorIds"`
 	// Best tutor
@@ -40,7 +41,8 @@ type requirementNode struct {
 
 // Page that will teach the user about stuff.
 type tutorNode struct {
-	PageId string `json:"pageId"`
+	PageId    string `json:"pageId"`
+	LensIndex int    `json:"-"`
 	// To read this page, the user needs these requirements
 	RequirementIds []string `json:"requirementIds"`
 	// Cost assigned to learning this node
@@ -136,14 +138,17 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		// Load which pages teach the requirements
 		tutorIds = make([]string, 0)
 		rows := database.NewQuery(`
-			SELECT pp.parentId,pp.childId
+			SELECT pp.parentId,pp.childId,pi.lensIndex
 			FROM pagePairs AS pp
+			JOIN pageInfos AS pi
+			ON (pp.childId=pi.pageId)
 			WHERE pp.parentId IN`).AddArgsGroupStr(requirementIds).Add(`
 				AND pp.type=?`, core.SubjectPagePairType).Add(`
 			`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId, childId string
-			err := rows.Scan(&parentId, &childId)
+			var lensIndex int
+			err := rows.Scan(&parentId, &childId, &lensIndex)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
@@ -156,6 +161,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if _, ok := tutorMap[childId]; !ok {
 				tutorIds = append(tutorIds, childId)
 				tutorMap[childId] = newTutorNode(childId)
+				tutorMap[childId].LensIndex = lensIndex
 			}
 			return nil
 		})
@@ -170,8 +176,10 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		// Load the requirements for the tutors
 		requirementIds = make([]string, 0)
 		rows = database.NewQuery(`
-			SELECT pp.parentId,pp.childId
+			SELECT pp.parentId,pp.childId,pi.lensIndex
 			FROM pagePairs AS pp
+			JOIN pageInfos AS pi
+			ON (pp.parentId=pi.pageId)
 			LEFT JOIN userMasteryPairs AS mp
 			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, u.Id).Add(`
 			WHERE pp.childId IN`).AddArgsGroupStr(tutorIds).Add(`
@@ -179,7 +187,8 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				AND (NOT mp.has OR isnull(mp.has))`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId, childId string
-			err := rows.Scan(&parentId, &childId)
+			var lensIndex int
+			err := rows.Scan(&parentId, &childId, &lensIndex)
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
@@ -192,6 +201,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if _, ok := requirementMap[parentId]; !ok {
 				requirementIds = append(requirementIds, parentId)
 				requirementMap[parentId] = newRequirementNode(parentId)
+				requirementMap[parentId].LensIndex = lensIndex
 			}
 			return nil
 		})
@@ -256,7 +266,19 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	c.Debugf("================ PROCESSING ==================")
 
+	// Mark all requirements with no teachers as processed
+	for _, req := range requirementMap {
+		if len(req.TutorIds) > 0 {
+			continue
+		}
+		req.Cost = PenaltyCost
+		req.Processed = true
+		core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
+		c.Debugf("Requirement '%s' pre-processed with cost %d", req.PageId, req.Cost)
+	}
+
 	graphChanged := true
+	// Keep processing all the nodes until we processed the node we want to learn
 	for !requirementMap[data.PageId].Processed {
 		if !graphChanged {
 			// We didn't make any progress in the last iteration, which means there is
@@ -266,7 +288,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 					continue
 				}
 				req.Processed = true
-				if req.Cost > PenaltyCost {
+				if req.BestTutorId == "" {
 					req.Cost = PenaltyCost
 				}
 				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
@@ -274,6 +296,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				break
 			}
 		}
+
 		graphChanged = false
 		// Process all requirements
 		for _, req := range requirementMap {
@@ -294,9 +317,6 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				}
 			}
 			if allTutorsProcessed {
-				if len(req.TutorIds) == 0 && req.Cost > PenaltyCost {
-					req.Cost = PenaltyCost
-				}
 				req.Processed = true
 				graphChanged = true
 				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
