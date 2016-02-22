@@ -142,7 +142,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Recursively find which pages the user has to read
 	for maxCount := 0; len(requirementIds) > 0 && maxCount < 20; maxCount++ {
-		c.Debugf("============== requirementIds: %+v", requirementIds)
+		c.Debugf("TequirementIds: %+v", requirementIds)
 		// Load which pages teach the requirements
 		tutorIds = make([]string, 0)
 		rows := database.NewQuery(`
@@ -157,11 +157,11 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			c.Debugf("============ found tutor: %s %s", parentId, childId)
+			c.Debugf("Found tutor: %s %s", parentId, childId)
 			// Get the requirement node and update its tutors
 			requirementNode := requirementMap[parentId]
 			requirementNode.TutorIds = append(requirementNode.TutorIds, childId)
-			c.Debugf("=========== updated requirement node: %+v", requirementNode)
+			c.Debugf("Updated requirement node: %+v", requirementNode)
 			// Recursively load requirements for the tutor, unless we already processed it
 			if _, ok := tutorMap[childId]; !ok {
 				tutorIds = append(tutorIds, childId)
@@ -172,7 +172,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return pages.HandlerErrorFail("Error while loading tutors", err)
 		}
-		c.Debugf("============== tutorIds: %+v", tutorIds)
+		c.Debugf("TutorIds: %+v", tutorIds)
 		if len(tutorIds) <= 0 {
 			break
 		}
@@ -193,12 +193,12 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			if err != nil {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
-			c.Debugf("============ found requirement: %s %s", parentId, childId)
+			c.Debugf("Found requirement: %s %s", parentId, childId)
 
 			// Get the tutor node and update its requirements
 			tutorNode := tutorMap[childId]
 			tutorNode.RequirementIds = append(tutorNode.RequirementIds, parentId)
-			c.Debugf("=========== updated tutor node: %+v", tutorNode)
+			c.Debugf("Updated tutor node: %+v", tutorNode)
 			if _, ok := requirementMap[parentId]; !ok {
 				requirementIds = append(requirementIds, parentId)
 				requirementMap[parentId] = newRequirementNode(parentId)
@@ -221,9 +221,10 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if t.Processed {
 			return t
 		}
-		t.Cost = 10000
+		t.Cost = 10000 // set the cost high in case there is a loop
 		t.Processed = true
 		costSum := 0
+		c.Debugf("Processing tutor: %s", tutorId)
 		// Do processing
 		for _, reqId := range t.RequirementIds {
 			costSum += processRequirement(reqId).Cost
@@ -231,6 +232,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		t.Cost = costSum + 1
 		t.RequirementMap = requirementMap
 		sort.Sort(t)
+		c.Debugf("Tutor %s has cost: %d", tutorId, t.Cost)
 		return t
 	}
 
@@ -242,13 +244,17 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 		r.Cost = 10000 // cost of a requirement without a tutor
 		r.Processed = true
+		noTutor := true // make sure we take at least one tutor, no matter how bad
+		c.Debugf("Processing requirement: %s", reqId)
 		for _, tutorId := range r.TutorIds {
 			cost := processTutor(tutorId).Cost
-			if r.Cost > cost {
+			if r.Cost > cost || noTutor {
 				r.Cost = cost
 				r.BestTutorId = tutorId
+				noTutor = false
 			}
 		}
+		c.Debugf("Best tutor for requirement %s is %s (%d)", reqId, r.BestTutorId, r.Cost)
 		return r
 	}
 
