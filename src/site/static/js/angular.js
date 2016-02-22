@@ -305,7 +305,7 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 			return {
 				title: pageService.pageMap[$scope.subdomain].title + " - Private Domain",
 				element: $compile("<arb-group-index group-id='" + data.result.domainId +
-					"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+					"' ids-map='::indexPageIdsMap'></arb-group-index>")($scope),
 			};
 		}))
 		.error($scope.getErrorFunc("privateIndex"));
@@ -316,7 +316,7 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 			$scope.featuredDomains = data.result.featuredDomains;
 			return {
 				title: "",
-				element: $compile("<arb-index featured-domains='featuredDomains'></arb-index>")($scope),
+				element: $compile("<arb-index featured-domains='::featuredDomains'></arb-index>")($scope),
 			};
 		}))
 		.error($scope.getErrorFunc("index"));
@@ -336,7 +336,7 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 		return {
 			title: pageService.pageMap[groupId].title,
 			element: $compile("<arb-group-index group-id='" + groupId +
-				"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+				"' ids-map='::indexPageIdsMap'></arb-group-index>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("domainPage"));
@@ -513,7 +513,7 @@ app.controller("UserPageController", function ($scope, $routeParams, $http, $com
 		$scope.userPageIdsMap = data.result;
 		return {
 			title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='userPageIdsMap'></arb-user-page>")($scope),
+			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("User"));
@@ -527,7 +527,7 @@ app.controller("DashboardPageController", function ($scope, $routeParams, $http,
 		$scope.dashboardPageIdsMap = data.result;
 		return {
 			title: "Your dashboard",
-			element: $compile("<arb-dashboard-page ids-map='dashboardPageIdsMap'></arb-dashboard-page>")($scope),
+			element: $compile("<arb-dashboard-page ids-map='::dashboardPageIdsMap'></arb-dashboard-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("User"));
@@ -541,7 +541,7 @@ app.controller("UpdatesPageController", function ($scope, $routeParams, $http, $
 		$scope.updateGroups = data.result.updateGroups;
 		return {
 			title: "Updates",
-			element: $compile("<arb-updates update-groups='updateGroups'></arb-updates>")($scope),
+			element: $compile("<arb-updates update-groups='::updateGroups'></arb-updates>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("Updates"));
