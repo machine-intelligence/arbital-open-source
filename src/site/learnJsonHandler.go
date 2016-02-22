@@ -21,6 +21,10 @@ type learnJsonData struct {
 	PageId string
 }
 
+const (
+	PenaltyCost = 10000
+)
+
 // Requirement the user needs to acquire in order to read a tutor page
 type requirementNode struct {
 	PageId string `json:"pageId"`
@@ -58,7 +62,7 @@ func (t *tutorNode) Less(i, j int) bool {
 }
 
 func newRequirementNode(pageId string) *requirementNode {
-	return &requirementNode{PageId: pageId, TutorIds: make([]string, 0)}
+	return &requirementNode{PageId: pageId, TutorIds: make([]string, 0), Cost: 10000000}
 }
 
 func newTutorNode(pageId string) *tutorNode {
@@ -128,7 +132,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Recursively find which pages the user has to read
 	for maxCount := 0; len(requirementIds) > 0 && maxCount < 20; maxCount++ {
-		c.Debugf("TequirementIds: %+v", requirementIds)
+		c.Debugf("RequirementIds: %+v", requirementIds)
 		// Load which pages teach the requirements
 		tutorIds = make([]string, 0)
 		rows := database.NewQuery(`
@@ -199,7 +203,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	var processRequirement func(reqId string) *requirementNode
+	/*var processRequirement func(reqId string) *requirementNode
 
 	// Process the tutor node
 	processTutor := func(tutorId string) *tutorNode {
@@ -208,7 +212,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return t
 		}
 		core.AddPageToMap(tutorId, returnData.PageMap, loadOptions)
-		t.Cost = 10000 // set the cost high in case there is a loop
+		t.Cost = PenaltyCost // set the cost high in case there is a loop
 		t.Processed = true
 		costSum := 0
 		c.Debugf("Processing tutor: %s", tutorId)
@@ -230,7 +234,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return r
 		}
 		core.AddPageToMap(reqId, returnData.PageMap, loadOptions)
-		r.Cost = 10000 // cost of a requirement without a tutor
+		r.Cost = PenaltyCost // cost of a requirement without a tutor
 		r.Processed = true
 		noTutor := true // make sure we take at least one tutor, no matter how bad
 		c.Debugf("Processing requirement: %s", reqId)
@@ -248,6 +252,86 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Process all the nodes
 	processRequirement(data.PageId)
+	*/
+
+	c.Debugf("================ PROCESSING ==================")
+
+	graphChanged := true
+	for !requirementMap[data.PageId].Processed {
+		if !graphChanged {
+			// We didn't make any progress in the last iteration, which means there is
+			// a loop. Arbitrarily mark a requirement as processed.
+			for _, req := range requirementMap {
+				if req.Processed || req.PageId == data.PageId {
+					continue
+				}
+				req.Processed = true
+				if req.Cost > PenaltyCost {
+					req.Cost = PenaltyCost
+				}
+				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
+				c.Debugf("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
+				break
+			}
+		}
+		graphChanged = false
+		// Process all requirements
+		for _, req := range requirementMap {
+			if req.Processed {
+				continue
+			}
+			// We can mark a requirement processed when we processed all its tutors
+			allTutorsProcessed := true
+			for _, tutorId := range req.TutorIds {
+				tutor := tutorMap[tutorId]
+				if !tutor.Processed {
+					allTutorsProcessed = false
+					continue
+				}
+				if req.Cost > tutor.Cost {
+					req.Cost = tutor.Cost
+					req.BestTutorId = tutorId
+				}
+			}
+			if allTutorsProcessed {
+				if len(req.TutorIds) == 0 && req.Cost > PenaltyCost {
+					req.Cost = PenaltyCost
+				}
+				req.Processed = true
+				graphChanged = true
+				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
+				c.Debugf("Requirement '%s' (tutors: %v) processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
+			}
+		}
+
+		// Process all tutors
+		for _, tutor := range tutorMap {
+			if tutor.Processed {
+				continue
+			}
+			// We can mark a tutor processed when we processed all its requirements
+			allReqsProcessed := true
+			tutor.Cost = 0
+			for _, reqId := range tutor.RequirementIds {
+				requirement := requirementMap[reqId]
+				if !requirement.Processed {
+					allReqsProcessed = false
+					continue
+				}
+				tutor.Cost += requirement.Cost
+			}
+			if allReqsProcessed {
+				tutor.Processed = true
+				tutor.Cost++
+				tutor.RequirementMap = requirementMap
+				sort.Sort(tutor)
+				graphChanged = true
+				core.AddPageToMap(tutor.PageId, returnData.PageMap, loadOptions)
+				c.Debugf("Tutor '%s' processed with cost %d and reqs %v", tutor.PageId, tutor.Cost, tutor.RequirementIds)
+			}
+		}
+		c.Debugf("END CYCLE (%v)", graphChanged)
+	}
 
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
