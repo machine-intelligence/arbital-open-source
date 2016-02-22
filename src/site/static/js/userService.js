@@ -51,7 +51,7 @@ app.service("userService", function($http, $location){
 			window.location.href = "https://www.facebook.com/dialog/oauth?client_id=" + appId +
 					"&redirect_uri=" + redirectUrl + "&scope=email,public_profile";
 		} else {
-			FB.login(function(response){
+			window.FB.login(function(response){
 				callback(response);
 			}, {scope: 'public_profile,email'});
 		}

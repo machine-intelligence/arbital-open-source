@@ -123,10 +123,12 @@ func loadUserFromDb(r *http.Request, db *database.DB) (*User, error) {
 		SELECT id,fbUserId,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
-	_, err = row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
+	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
 		&u.EmailFrequency, &u.EmailThreshold, &u.InviteCode, &u.IgnoreMathjax)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
+	} else if !exists {
+		return nil, fmt.Errorf("Couldn't find that email in DB")
 	}
 	u.MaxKarmaLock = GetMaxKarmaLock(u.Karma)
 	return &u, nil
