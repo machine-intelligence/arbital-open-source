@@ -22,13 +22,13 @@ var (
 		xc.MySQL.Password,
 		xc.MySQL.Database)
 	liveSql = fmt.Sprintf(
-		"%s:%s@tcp(%s:3306)/%s",
+		"%s:%s@tcp(%s:3306)/%s?collation=utf8mb4_general_ci",
 		xc.MySQL.User,
 		xc.MySQL.Password,
 		xc.MySQL.Live.Address,
 		xc.MySQL.Database)
 	liveCloudSql = fmt.Sprintf(
-		"root@cloudsql(%s)/%s",
+		"root@cloudsql(%s)/%s?collation=utf8mb4_general_ci",
 		xc.MySQL.Live.Instance,
 		xc.MySQL.Database)
 )
