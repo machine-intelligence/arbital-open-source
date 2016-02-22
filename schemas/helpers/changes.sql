@@ -23,6 +23,7 @@ ALTER TABLE pagesandusers CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_gener
 ALTER TABLE subscriptions CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 ALTER TABLE updates CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 ALTER TABLE userMasteryPairs CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+ALTER TABLE users CHANGE email email varchar(191) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;# email shortened from 255 characters for maximum index size      
 ALTER TABLE users CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 ALTER TABLE visits CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 ALTER TABLE votes CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
@@ -143,8 +144,7 @@ ALTER TABLE userMasteryPairs CHANGE masteryIdBase10 masteryIdBase10 varchar(32) 
 ALTER TABLE userMasteryPairs CHANGE masteryIdBase36 masteryIdBase36 varchar(32) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;
 ALTER TABLE users CHANGE id id varchar(32) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;
 ALTER TABLE users CHANGE idBase10 idBase10 varchar(32) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;
-ALTER TABLE users CHANGE idBase36 idBase36 varchar(32) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;
-ALTER TABLE users CHANGE email email varchar(191) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;# email shortened from 255 characters for maximum index size                                                         
+ALTER TABLE users CHANGE idBase36 idBase36 varchar(32) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;                                                   
 ALTER TABLE users CHANGE firstName firstName varchar(32) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;
 ALTER TABLE users CHANGE lastName lastName varchar(32) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;
 ALTER TABLE users CHANGE inviteCode inviteCode varchar(16) CHARACTER SET utf8mb4 NOT NULL COLLATE utf8mb4_general_ci;
