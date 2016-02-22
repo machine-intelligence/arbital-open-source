@@ -1,12 +1,13 @@
 "use strict";
 
 // Directive for the learn page.
-app.directive("arbLearnPage", function($location, pageService, userService) {
+app.directive("arbLearnPage", function($location, $compile, pageService, userService) {
 	return {
 		templateUrl: "static/html/learnPage.html",
 		scope: {
 			pageId: "@",
-			learnMap: "=",
+			tutorMap: "=",
+			requirementMap: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -22,27 +23,27 @@ app.directive("arbLearnPage", function($location, pageService, userService) {
 			// Figure our the order of pages through which to take the user
 			var computeLearnIds = function() {
 				$scope.readIds = [];
-				$scope.missingTaughtPartIds = {};
-				var processNode = function(pageId, parentPageId) {
-					var part = $scope.learnMap[pageId];
-					for (var n = 0; n < part.requirementIds.length; n++) {
-						//if (pageService.hasMastery(part.requirements[n].pageId)) continue;
-						processNode(part.requirementIds[n], part.pageId);
-					}
-					if (part.taughtById !== "") {
-						if ($scope.readIds.indexOf(part.taughtById) < 0) {
-							$scope.readIds.push(part.taughtById);
+				$scope.unlearnableIds = {};
+				var processRequirement = function(pageId, parentPageId) {
+					var requirement = $scope.requirementMap[pageId];
+					var tutor = requirement.bestTutorId ? $scope.tutorMap[requirement.bestTutorId] : undefined;
+					if (tutor) {
+						for (var n = 0; n < tutor.requirementIds.length; n++) {
+							processRequirement(tutor.requirementIds[n], pageId);
+						}
+						if ($scope.readIds.indexOf(tutor.pageId) < 0) {
+							$scope.readIds.push(tutor.pageId);
 						}
 					} else {
-						if (!(part.pageId in $scope.unlearnableIds)) {
-							$scope.unlearnableIds[part.pageId] = [];
+						if (!(tutor.pageId in $scope.unlearnableIds)) {
+							$scope.unlearnableIds[tutor.pageId] = [];
 						}
-						if (parentPageId && $scope.unlearnableIds[part.pageId].indexOf(parentPageId) < 0) {
-							$scope.unlearnableIds[part.pageId].push(parentPageId);
+						if (parentPageId && $scope.unlearnableIds[tutor.pageId].indexOf(parentPageId) < 0) {
+							$scope.unlearnableIds[tutor.pageId].push(parentPageId);
 						}
 					}
 				};
-				processNode($scope.pageId, undefined);
+				processRequirement($scope.pageId, undefined);
 				if ($scope.readIds.indexOf($scope.pageId) < 0) {
 					$scope.readIds.push($scope.pageId);
 				}
@@ -63,7 +64,7 @@ app.directive("arbLearnPage", function($location, pageService, userService) {
 			};
 
 			// Track whether we show tree or list view
-			$scope.showTreeView = true;
+			$scope.showTreeView = !$location.search().showTree;
 			$scope.toggleView = function() {
 				$scope.showTreeView = !$scope.showTreeView;
 				if (!$scope.showTreeView) {
@@ -72,6 +73,13 @@ app.directive("arbLearnPage", function($location, pageService, userService) {
 				}
 			};
 			$scope.toggleView();
+		},
+		link: function(scope, element, attrs) {
+			// Change which tutor to use for learning the given requisite.
+			scope.changeTutor = function(reqId, newTutorId) {
+				scope.requirementMap[reqId].bestTutorId = newTutorId;
+				$compile(element.find(".root-learn-part"))(scope);
+			};
 		},
 	};
 });
@@ -83,11 +91,11 @@ app.directive("arbLearnPart", function(pageService, userService, RecursionHelper
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.part = $scope.learnMap[$scope.pageId];
+			$scope.requirement = $scope.requirementMap[$scope.pageId];
+			$scope.tutor = $scope.requirement.bestTutorId ? $scope.tutorMap[$scope.requirement.bestTutorId] : undefined;
 		},
 		compile: function(element) {
 			return RecursionHelper.compile(element);
 		}
 	};
 });
-

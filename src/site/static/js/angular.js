@@ -426,10 +426,13 @@ app.controller("LearnController", function ($scope, $routeParams, $http, $compil
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
-		$scope.learnMap = data.result.learnMap;
+		$scope.tutorMap = data.result.tutorMap;
+		$scope.requirementMap = data.result.requirementMap;
 		return {
 			title: "Learn " + page.title,
-			element: $compile("<arb-learn-page page-id='" + page.pageId + "' learn-map='::learnMap'></arb-learn-page>")($scope),
+			element: $compile("<arb-learn-page page-id='" + page.pageId +
+				"' tutor-map='::tutorMap' requirement-map='::requirementMap'" +
+				"></arb-learn-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("primaryPage"));

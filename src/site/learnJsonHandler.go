@@ -21,41 +21,31 @@ type learnJsonData struct {
 	PageId string
 }
 
-// A node in the output tree for the learning path
-type learnNode struct {
-	// User wants to understand PageId
-	PageId string `json:"pageId"`
-	// To understand it, the user will read TaughtById
-	TaughtById string `json:"taughtById"`
-	// To understand TaughtById, the user needs to have the following Requirements
-	RequirementIds []string `json:"requirementIds"`
-}
-
 // Requirement the user needs to acquire in order to read a tutor page
 type requirementNode struct {
-	PageId string
+	PageId string `json:"pageId"`
 	// Which pages can teach this requirement
-	TutorIds []string
+	TutorIds []string `json:"tutorIds"`
 	// Best tutor
-	BestTutorId string
+	BestTutorId string `json:"bestTutorId"`
 	// Cost assigned to learning this node
-	Cost int
+	Cost int `json:"cost"`
 	// Set to true when the node has been processed
-	Processed bool
+	Processed bool `json:"-"`
 }
 
 // Page that will teach the user about stuff.
 type tutorNode struct {
-	PageId string
+	PageId string `json:"pageId"`
 	// To read this page, the user needs these requirements
-	RequirementIds []string
+	RequirementIds []string `json:"requirementIds"`
 	// Cost assigned to learning this node
-	Cost int
+	Cost int `json:"cost"`
 	// Set to true when the node has been processed
-	Processed bool
+	Processed bool `json:"-"`
 
 	// Need to set this map for sorting to work
-	RequirementMap map[string]*requirementNode
+	RequirementMap map[string]*requirementNode `json:"-"`
 }
 
 // Sort node's requirements
@@ -65,10 +55,6 @@ func (t *tutorNode) Swap(i, j int) {
 }
 func (t *tutorNode) Less(i, j int) bool {
 	return t.RequirementMap[t.RequirementIds[i]].Cost < t.RequirementMap[t.RequirementIds[j]].Cost
-}
-
-func newLearnNode(pageId string) *learnNode {
-	return &learnNode{PageId: pageId, TaughtById: "", RequirementIds: make([]string, 0)}
 }
 
 func newRequirementNode(pageId string) *requirementNode {
@@ -221,6 +207,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if t.Processed {
 			return t
 		}
+		core.AddPageToMap(tutorId, returnData.PageMap, loadOptions)
 		t.Cost = 10000 // set the cost high in case there is a loop
 		t.Processed = true
 		costSum := 0
@@ -242,6 +229,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if r.Processed {
 			return r
 		}
+		core.AddPageToMap(reqId, returnData.PageMap, loadOptions)
 		r.Cost = 10000 // cost of a requirement without a tutor
 		r.Processed = true
 		noTutor := true // make sure we take at least one tutor, no matter how bad
@@ -261,44 +249,13 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Process all the nodes
 	processRequirement(data.PageId)
 
-	// Create the learning map, and add the used pages to pageMap
-	learnMap := make(map[string]*learnNode)
-	requirementIds = make([]string, 0)
-	requirementIds = append(requirementIds, data.PageId)
-	for len(requirementIds) > 0 {
-		copyReqIds := append(make([]string, 0), requirementIds...)
-		requirementIds = make([]string, 0)
-		// Process each requirement node
-		for _, reqId := range copyReqIds {
-			learnNode, ok := learnMap[reqId]
-			if ok {
-				continue
-			}
-			learnNode = newLearnNode(reqId)
-			learnMap[reqId] = learnNode
-			core.AddPageToMap(learnNode.PageId, returnData.PageMap, loadOptions)
-			// Get corresponding requirement node
-			reqNode := requirementMap[reqId]
-			// Pick the best tutor
-			learnNode.TaughtById = reqNode.BestTutorId
-			if learnNode.TaughtById != "" {
-				core.AddPageToMap(learnNode.TaughtById, returnData.PageMap, loadOptions)
-				// Now populate the requirementIds
-				tutorNode, ok := tutorMap[learnNode.TaughtById]
-				if ok {
-					learnNode.RequirementIds = tutorNode.RequirementIds
-					requirementIds = append(requirementIds, tutorNode.RequirementIds...)
-				}
-			}
-		}
-	}
-
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["learnMap"] = learnMap
+	returnData.ResultMap["tutorMap"] = tutorMap
+	returnData.ResultMap["requirementMap"] = requirementMap
 	return pages.StatusOK(returnData.toJson())
 }
