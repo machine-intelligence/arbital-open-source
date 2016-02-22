@@ -784,15 +784,23 @@ arb-likes, .likes-in-autocomplete {
 	margin-bottom: 4vw;
 }
 
+@mixin small-button {
+	padding: 0 !important;
+	width: 20px !important;
+	height: 20px !important;
+	min-height: 20px !important;
+	margin-right: 5px !important;
+}
+
+.small-button {
+	@include small-button;
+}
+
 arb-requisite-button, [arb-requisite-button] {
 	white-space: nowrap;
 
 	.md-button {
-		padding: 0;
-		width: 20px;
-		height: 20px;
-		min-height: 20px;
-		margin-right: 5px;
+		@include small-button;
 	}
 }
 

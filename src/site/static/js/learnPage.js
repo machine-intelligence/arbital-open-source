@@ -35,11 +35,11 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 							$scope.readIds.push(tutor.pageId);
 						}
 					} else {
-						if (!(tutor.pageId in $scope.unlearnableIds)) {
-							$scope.unlearnableIds[tutor.pageId] = [];
+						if (!(pageId in $scope.unlearnableIds)) {
+							$scope.unlearnableIds[pageId] = [];
 						}
-						if (parentPageId && $scope.unlearnableIds[tutor.pageId].indexOf(parentPageId) < 0) {
-							$scope.unlearnableIds[tutor.pageId].push(parentPageId);
+						if (parentPageId && $scope.unlearnableIds[pageId].indexOf(parentPageId) < 0) {
+							$scope.unlearnableIds[pageId].push(parentPageId);
 						}
 					}
 				};
