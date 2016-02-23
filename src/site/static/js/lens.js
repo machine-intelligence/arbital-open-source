@@ -125,9 +125,14 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					}
 				}
 				var simplestIndex = primaryPage.lensIds.length - 1;
-				if (!simplerLensId && primaryPage.lensIds[simplestIndex] !== $scope.page.pageId) {
-					// We haven't found a lens for which we've met all requirements, so just suggest the simplest lens
-					simplerLensId = primaryPage.lensIds[simplestIndex];
+				if (!simplerLensId) {
+					if (primaryPage.lensIds[simplestIndex] !== $scope.page.pageId) {
+						// We haven't found a lens for which we've met all requirements, so just suggest the simplest lens
+						simplerLensId = primaryPage.lensIds[simplestIndex];
+					}
+					else {
+						$scope.suggestLearning = true;
+					}
 				}
 				if (simplerLensId) {
 					$scope.simplerLens = pageService.pageMap[simplerLensId];

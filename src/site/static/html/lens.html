@@ -42,6 +42,12 @@
 					</span>
 				</span>-->
 			</div>
+			<!-- Learn this suggestion -->
+			<div ng-if="::suggestLearning" ng-show="!meetsAllRequirements()">
+				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.pageId}}">
+					Learn this...
+				</md-button>
+			</div>
 		</div>
 	</div>
 
