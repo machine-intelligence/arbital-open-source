@@ -23,6 +23,7 @@ type learnJsonData struct {
 
 const (
 	PenaltyCost = 10000
+	LensCost    = 10
 )
 
 // Requirement the user needs to acquire in order to read a tutor page
@@ -291,6 +292,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				if req.BestTutorId == "" {
 					req.Cost = PenaltyCost
 				}
+				req.Cost += req.LensIndex * LensCost
 				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
 				c.Debugf("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
 				break
@@ -317,6 +319,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				}
 			}
 			if allTutorsProcessed {
+				req.Cost += req.LensIndex * LensCost
 				req.Processed = true
 				graphChanged = true
 				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
@@ -341,6 +344,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				tutor.Cost += requirement.Cost
 			}
 			if allReqsProcessed {
+				tutor.Cost += tutor.LensIndex * LensCost
 				tutor.Processed = true
 				tutor.Cost++
 				tutor.RequirementMap = requirementMap
