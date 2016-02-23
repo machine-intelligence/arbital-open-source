@@ -93,7 +93,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/learn/:pageId", {
+	.when("/learn/:pageAlias", {
  		template: "",
  		controller: "LearnController",
  		reloadOnSearch: false,
@@ -415,26 +415,33 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 app.controller("LearnController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
-		pageIds: [$routeParams.pageId],
+		pageAliases: [$routeParams.pageAlias],
 	};
-	var andPageIds = $location.search().and;
-	if (andPageIds) {
-		postData.pageIds = postData.pageIds.concat(andPageIds.split(","));
+	var andPageAliases = $location.search().and;
+	if (andPageAliases) {
+		postData.pageAliases = postData.pageAliases.concat(andPageAliases.split(","));
 	}
 	$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
-		var page = pageService.pageMap[postData.pageIds[0]];
-		if (!page) {
+		var primaryPage = pageService.pageMap[postData.pageAliases[0]];
+		if (!primaryPage) {
 			return {
 				title: "Not Found",
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
-		$scope.pageIds = postData.pageIds;
+		// Convert all aliases to ids
+		$scope.pageIds = [];
+		for (var n = 0; n < postData.pageAliases.length; n++) {
+			var page = pageService.pageMap[postData.pageAliases[n]];
+			if (page) {
+				$scope.pageIds.push(page.pageId);
+			}
+		}
 		$scope.tutorMap = data.result.tutorMap;
 		$scope.requirementMap = data.result.requirementMap;
 		return {
-			title: "Learn " + page.title,
+			title: "Learn " + primaryPage.title,
 			element: $compile("<arb-learn-page page-ids='::pageIds'" +
 				" tutor-map='::tutorMap' requirement-map='::requirementMap'" +
 				"></arb-learn-page>")($scope),

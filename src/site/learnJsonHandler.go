@@ -18,7 +18,7 @@ var learnHandler = siteHandler{
 }
 
 type learnJsonData struct {
-	PageIds []string
+	PageAliases []string
 }
 
 const (
@@ -83,13 +83,23 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-	if len(data.PageIds) <= 0 {
-		return pages.HandlerBadRequestFail("No page ids given", nil)
+	if len(data.PageAliases) <= 0 {
+		return pages.HandlerBadRequestFail("No page aliases given", nil)
 	}
-	for _, pageId := range data.PageIds {
+
+	// Convert aliases to page ids
+	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, data.PageAliases)
+	if err != nil {
+		return pages.HandlerErrorFail("error while loading group members", err)
+	}
+
+	pageIds := make([]string, 0)
+	for _, alias := range data.PageAliases {
+		pageId := aliasToIdMap[alias]
 		if !core.IsIdValid(pageId) {
 			return pages.HandlerBadRequestFail(fmt.Sprintf("Invalid page id: %s", pageId), nil)
 		}
+		pageIds = append(pageIds, pageId)
 	}
 
 	masteryMap := make(map[string]*core.Mastery)
@@ -107,11 +117,11 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData.User = u
 
 	// Remove requirements that the user already has
-	if len(data.PageIds) > 0 && u.Id != "" {
+	if len(pageIds) > 0 && u.Id != "" {
 		rows := database.NewQuery(`
 			SELECT masteryId,has
 			FROM userMasteryPairs
-			WHERE userId=?`, u.Id).Add(`AND masteryId IN`).AddArgsGroupStr(data.PageIds).ToStatement(db).Query()
+			WHERE userId=?`, u.Id).Add(`AND masteryId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var masteryId string
 			var has bool
@@ -134,14 +144,14 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Track which requirements we need to process in the next step
 	requirementIds := make([]string, 0)
-	for _, pageId := range data.PageIds {
+	for _, pageId := range pageIds {
 		core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
 		if mastery, ok := masteryMap[pageId]; !(ok && mastery.Has) {
 			requirementIds = append(requirementIds, pageId)
 		}
 	}
 	// Leave only the page ids we need to process
-	data.PageIds = append(make([]string, 0), requirementIds...)
+	pageIds = append(make([]string, 0), requirementIds...)
 
 	// Which tutor pages to load in the next step
 	tutorIds := make([]string, 0)
@@ -430,7 +440,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 		// Check if we are done
 		done = true
-		for _, pageId := range data.PageIds {
+		for _, pageId := range pageIds {
 			if !requirementMap[pageId].Processed {
 				done = false
 				break
