@@ -290,6 +290,10 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				}
 				req.Processed = true
 				if req.BestTutorId == "" {
+					if len(req.TutorIds) > 0 {
+						// Just take the first tutor
+						req.BestTutorId = req.TutorIds[0]
+					}
 					req.Cost = PenaltyCost
 				}
 				req.Cost += req.LensIndex * LensCost
