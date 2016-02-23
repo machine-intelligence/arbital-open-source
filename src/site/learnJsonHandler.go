@@ -300,6 +300,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 					for _, tutorId := range req.TutorIds {
 						cycleTutor = tutorMap[tutorId]
 						if !cycleTutor.Processed {
+							cycleIds = append(cycleIds, cycleTutor.PageId)
 							break
 						}
 					}
