@@ -42,6 +42,13 @@
 					</span>
 				</span>-->
 			</div>
+			<!-- Learn this suggestion -->
+			<div ng-if="::(isSimplestLens && !isLearning)" ng-show="!meetsAllRequirements()">
+				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.pageId}}">
+					Learn this...
+					<md-tooltip>Learn all the requirements for this page</md-tooltip>
+				</md-button>
+			</div>
 		</div>
 	</div>
 
