@@ -133,6 +133,22 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 					$scope.simplerLens = pageService.pageMap[simplerLensId];
 				}
 			}
+
+			$scope.getToggleSubjectsText = function() {
+				if ($scope.knowsAllSubjects()) {
+					if ($scope.page.subjectIds.length > 1) {
+						return "Nevermind, none of them";
+					} else {
+						return "Nevermind, I didn't get it";
+					}
+				} else {
+					if ($scope.page.subjectIds.length > 1) {
+						return "Yes, all of them";
+					} else {
+						return "Yes, I got it";
+					}
+				}
+			};
 		},
 		link: function(scope, element, attrs) {
 			if (scope.isSimpleEmbed) return;

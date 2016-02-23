@@ -88,12 +88,7 @@
 				<md-button class="special md-raised"
 						ng-click="toggleSubjects()"
 						aria-label="Toggle subjects">
-					<span ng-bind="knowsAllSubjects() ? 'Nevermind, none of them' : 'Yes, all of them'"></span>
-				</md-button>
-				<md-button class="special"
-						ng-click="showSubjectCheckboxes = !showSubjectCheckboxes"
-						ng-hide="showSubjectCheckboxes">
-					Only some of them
+					<span ng-bind="getToggleSubjectsText()"></span>
 				</md-button>
 			</div>
 
