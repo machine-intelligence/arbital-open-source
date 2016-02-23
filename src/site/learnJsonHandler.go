@@ -293,6 +293,8 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				cycleReq := req
 				cycleIds := make([]string, 0)
 				cycleIds = append(cycleIds, cycleReq.PageId)
+				cycleReqMap := make(map[string]bool) // store all requirements we've met
+				cycleReqMap[cycleReq.PageId] = true
 				continueCycle := true
 				for continueCycle {
 					// Get first eligible tutor
@@ -309,13 +311,11 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 						cycleReq := requirementMap[reqId]
 						if !cycleReq.Processed {
 							cycleIds = append(cycleIds, cycleReq.PageId)
-							break
-						}
-					}
-					// Check if we landed on a requirement we already have in the cycle
-					for _, cycleId := range cycleIds {
-						if cycleId == cycleReq.PageId {
-							continueCycle = false
+							if _, ok := cycleReqMap[cycleReq.PageId]; ok {
+								continueCycle = false
+							} else {
+								cycleReqMap[cycleReq.PageId] = true
+							}
 							break
 						}
 					}
