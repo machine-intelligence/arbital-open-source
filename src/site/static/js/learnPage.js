@@ -5,7 +5,7 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 	return {
 		templateUrl: "static/html/learnPage.html",
 		scope: {
-			pageId: "@",
+			pageIds: "=",
 			tutorMap: "=",
 			requirementMap: "=",
 		},
@@ -43,9 +43,14 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 						}
 					}
 				};
-				processRequirement($scope.pageId, undefined);
-				if ($scope.readIds.indexOf($scope.pageId) < 0) {
-					$scope.readIds.push($scope.pageId);
+				for (var n = 0; n < $scope.pageIds.length; n++) {
+					var pageId = $scope.pageIds[n];
+					if (pageId in $scope.requirementMap) {
+						processRequirement(pageId, undefined);
+						if ($scope.readIds.indexOf(pageId) < 0) {
+							$scope.readIds.push(pageId);
+						}
+					}
 				}
 				$scope.hasUnlearnableIds = Object.keys($scope.unlearnableIds).length > 0;
 			};

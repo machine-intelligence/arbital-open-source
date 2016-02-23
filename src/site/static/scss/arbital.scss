@@ -574,6 +574,12 @@ $toolbar-height: 64px;
 	}
 }
 
+// This is used to style the comma which appears in the generated list of things.
+// Normally there is a space before it, so we adjust the left margin.
+.comma {
+	margin-left: -3px;
+}
+
 // Inside toolbars, color the link differently
 md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
 	color: white;

@@ -415,6 +415,9 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .one-line * + * {
   display: none; }
 
+.comma {
+  margin-left: -3px; }
+
 md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
   color: white; }
   md-toolbar a:not(.md-button):hover, md-toolbar a[page-id]:not(.md-button):hover, md-toolbar a[user-id]:not(.md-button):hover {

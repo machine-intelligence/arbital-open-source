@@ -415,23 +415,28 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 app.controller("LearnController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
-		pageId: $routeParams.pageId,
+		pageIds: [$routeParams.pageId],
 	};
+	var andPageIds = $location.search().and;
+	if (andPageIds) {
+		postData.pageIds = postData.pageIds.concat(andPageIds.split(","));
+	}
 	$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
-		var page = pageService.pageMap[postData.pageId];
+		var page = pageService.pageMap[postData.pageIds[0]];
 		if (!page) {
 			return {
 				title: "Not Found",
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
 		}
+		$scope.pageIds = postData.pageIds;
 		$scope.tutorMap = data.result.tutorMap;
 		$scope.requirementMap = data.result.requirementMap;
 		return {
 			title: "Learn " + page.title,
-			element: $compile("<arb-learn-page page-id='" + page.pageId +
-				"' tutor-map='::tutorMap' requirement-map='::requirementMap'" +
+			element: $compile("<arb-learn-page page-ids='::pageIds'" +
+				" tutor-map='::tutorMap' requirement-map='::requirementMap'" +
 				"></arb-learn-page>")($scope),
 		};
 	}))

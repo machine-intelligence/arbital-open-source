@@ -22,7 +22,7 @@
 				ng-if="::(page.parentIds.length > 0 && !isSimpleEmbed)">
 			<span>Parents:</span>
 			<span ng-repeat="(index, parentId) in ::page.parentIds">
-				<span ng-if="index > 0">,</span>
+				<span class="comma" ng-if="index > 0">,</span>
 				<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
@@ -33,7 +33,7 @@
 				ng-if="::(page.taggedAsIds.length > 0 && !isSimpleEmbed)">
 			<span>Tagged as:</span>
 			<span ng-repeat="(index, tagId) in ::page.taggedAsIds">
-				<span ng-if="::(index > 0)">,</span>
+				<span class="comma" ng-if="::(index > 0)">,</span>
 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>

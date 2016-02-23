@@ -18,7 +18,7 @@ var learnHandler = siteHandler{
 }
 
 type learnJsonData struct {
-	PageId string
+	PageIds []string
 }
 
 const (
@@ -83,8 +83,13 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Need a valid pageId", nil)
+	if len(data.PageIds) <= 0 {
+		return pages.HandlerBadRequestFail("No page ids given", nil)
+	}
+	for _, pageId := range data.PageIds {
+		if !core.IsIdValid(pageId) {
+			return pages.HandlerBadRequestFail(fmt.Sprintf("Invalid page id: %s", pageId), nil)
+		}
 	}
 
 	masteryMap := make(map[string]*core.Mastery)
@@ -101,37 +106,52 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData := newHandlerData(true)
 	returnData.User = u
 
-	// Check if the user already has this requirement
-	hasMastery := false
-	if mastery, ok := masteryMap[data.PageId]; ok {
-		hasMastery = mastery.Has
-	}
-	if !hasMastery && u.Id != "" {
-		row := database.NewQuery(`
-		SELECT ifnull(max(has),false)
-		FROM userMasteryPairs
-		WHERE userId=?`, u.Id).Add(`AND masteryId=?`, data.PageId).ToStatement(db).QueryRow()
-		_, err = row.Scan(&hasMastery)
+	// Remove requirements that the user already has
+	if len(data.PageIds) > 0 && u.Id != "" {
+		rows := database.NewQuery(`
+			SELECT masteryId,has
+			FROM userMasteryPairs
+			WHERE userId=?`, u.Id).Add(`AND masteryId IN`).AddArgsGroupStr(data.PageIds).ToStatement(db).Query()
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var masteryId string
+			var has bool
+			err := rows.Scan(&masteryId, &has)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+			if has {
+				masteryMap[masteryId] = &core.Mastery{PageId: masteryId, Has: true}
+			}
+			return nil
+		})
 		if err != nil {
 			return pages.HandlerErrorFail("Error while checking if already knows", err)
 		}
 	}
 
+	// What to load for the pages
+	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
+
 	// Track which requirements we need to process in the next step
 	requirementIds := make([]string, 0)
-	if !hasMastery {
-		requirementIds = append(requirementIds, data.PageId)
+	for _, pageId := range data.PageIds {
+		core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
+		if mastery, ok := masteryMap[pageId]; !(ok && mastery.Has) {
+			requirementIds = append(requirementIds, pageId)
+		}
 	}
+	// Leave only the page ids we need to process
+	data.PageIds = append(make([]string, 0), requirementIds...)
+
 	// Which tutor pages to load in the next step
 	tutorIds := make([]string, 0)
 
 	// Create the maps which will store all the nodes: page id -> node
 	tutorMap := make(map[string]*tutorNode)
 	requirementMap := make(map[string]*requirementNode)
-	requirementMap[data.PageId] = newRequirementNode(data.PageId)
-
-	// What to load for the pages
-	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
+	for _, reqId := range requirementIds {
+		requirementMap[reqId] = newRequirementNode(reqId)
+	}
 
 	// Recursively find which pages the user has to read
 	for maxCount := 0; len(requirementIds) > 0 && maxCount < 20; maxCount++ {
@@ -278,28 +298,28 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		c.Debugf("Requirement '%s' pre-processed with cost %d", req.PageId, req.Cost)
 	}
 
+	done := false
 	graphChanged := true
 	// Keep processing all the nodes until we processed the node we want to learn
-	for !requirementMap[data.PageId].Processed {
+	for !done {
 		if !graphChanged {
 			// We didn't make any progress in the last iteration, which means there is
 			// a cycle. Arbitrarily mark a requirement as processed.
 			for _, req := range requirementMap {
-				if req.Processed || req.PageId == data.PageId {
+				if req.Processed {
 					continue
 				}
 
-				// Print the cycle
-				cycleReq := req
+				// Print the cycle, but also find a node that's actually definitely in the cycle
 				cycleIds := make([]string, 0)
-				cycleIds = append(cycleIds, cycleReq.PageId)
+				cycleIds = append(cycleIds, req.PageId)
 				cycleReqMap := make(map[string]bool) // store all requirements we've met
-				cycleReqMap[cycleReq.PageId] = true
+				cycleReqMap[req.PageId] = true
 				continueCycle := true
 				for continueCycle {
 					// Get first eligible tutor
 					var cycleTutor *tutorNode
-					for _, tutorId := range cycleReq.TutorIds {
+					for _, tutorId := range req.TutorIds {
 						cycleTutor = tutorMap[tutorId]
 						if !cycleTutor.Processed {
 							cycleIds = append(cycleIds, cycleTutor.PageId)
@@ -308,13 +328,13 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 					}
 					// Get first eligible requirement
 					for _, reqId := range cycleTutor.RequirementIds {
-						cycleReq = requirementMap[reqId]
-						if !cycleReq.Processed {
-							cycleIds = append(cycleIds, cycleReq.PageId)
-							if _, ok := cycleReqMap[cycleReq.PageId]; ok {
+						req = requirementMap[reqId]
+						if !req.Processed {
+							cycleIds = append(cycleIds, req.PageId)
+							if _, ok := cycleReqMap[req.PageId]; ok {
 								continueCycle = false
 							} else {
-								cycleReqMap[cycleReq.PageId] = true
+								cycleReqMap[req.PageId] = true
 							}
 							break
 						}
@@ -391,6 +411,15 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				graphChanged = true
 				core.AddPageToMap(tutor.PageId, returnData.PageMap, loadOptions)
 				c.Debugf("Tutor '%s' processed with cost %d and reqs %v", tutor.PageId, tutor.Cost, tutor.RequirementIds)
+			}
+		}
+
+		// Check if we are done
+		done = true
+		for _, pageId := range data.PageIds {
+			if !requirementMap[pageId].Processed {
+				done = false
+				break
 			}
 		}
 	}
