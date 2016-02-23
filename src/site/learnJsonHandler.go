@@ -153,6 +153,19 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		requirementMap[reqId] = newRequirementNode(reqId)
 	}
 
+	var addTutor = func(parentId, childId string, lensIndex int) {
+		// Get the requirement node and update its tutors
+		requirementNode := requirementMap[parentId]
+		requirementNode.TutorIds = append(requirementNode.TutorIds, childId)
+		c.Debugf("Updated requirement node: %+v", requirementNode)
+		// Recursively load requirements for the tutor, unless we already processed it
+		if _, ok := tutorMap[childId]; !ok {
+			tutorIds = append(tutorIds, childId)
+			tutorMap[childId] = newTutorNode(childId)
+			tutorMap[childId].LensIndex = lensIndex
+		}
+	}
+
 	// Recursively find which pages the user has to read
 	for maxCount := 0; len(requirementIds) > 0 && maxCount < 20; maxCount++ {
 		c.Debugf("RequirementIds: %+v", requirementIds)
@@ -174,20 +187,21 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				return fmt.Errorf("Failed to scan: %v", err)
 			}
 			c.Debugf("Found tutor: %s %s", parentId, childId)
-			// Get the requirement node and update its tutors
-			requirementNode := requirementMap[parentId]
-			requirementNode.TutorIds = append(requirementNode.TutorIds, childId)
-			c.Debugf("Updated requirement node: %+v", requirementNode)
-			// Recursively load requirements for the tutor, unless we already processed it
-			if _, ok := tutorMap[childId]; !ok {
-				tutorIds = append(tutorIds, childId)
-				tutorMap[childId] = newTutorNode(childId)
-				tutorMap[childId].LensIndex = lensIndex
-			}
+			addTutor(parentId, childId, lensIndex)
 			return nil
 		})
 		if err != nil {
 			return pages.HandlerErrorFail("Error while loading tutors", err)
+		}
+		if maxCount == 0 {
+			// If we haven't found a tutor for a page we want to learn, we'll just say
+			// that the page can teach itself.
+			for reqId, requirementNode := range requirementMap {
+				if len(requirementNode.TutorIds) <= 0 {
+					c.Debugf("No tutor found for %s, so we are making it teach itself.", reqId)
+					addTutor(reqId, reqId, 0)
+				}
+			}
 		}
 		c.Debugf("TutorIds: %+v", tutorIds)
 		if len(tutorIds) <= 0 {
