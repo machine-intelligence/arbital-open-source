@@ -306,13 +306,9 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 							break
 						}
 					}
-					if cycleTutor.Processed {
-						c.Errorf("Picked a processed tutor: %s", cycleTutor.PageId)
-						break
-					}
 					// Get first eligible requirement
 					for _, reqId := range cycleTutor.RequirementIds {
-						cycleReq := requirementMap[reqId]
+						cycleReq = requirementMap[reqId]
 						if !cycleReq.Processed {
 							cycleIds = append(cycleIds, cycleReq.PageId)
 							if _, ok := cycleReqMap[cycleReq.PageId]; ok {
@@ -322,10 +318,6 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 							}
 							break
 						}
-					}
-					if cycleReq.Processed {
-						c.Errorf("Picked a processed requirement: %s", cycleReq.PageId)
-						break
 					}
 				}
 				c.Debugf("CYCLE: %v", cycleIds)
