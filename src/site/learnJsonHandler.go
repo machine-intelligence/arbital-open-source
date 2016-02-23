@@ -283,11 +283,44 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	for !requirementMap[data.PageId].Processed {
 		if !graphChanged {
 			// We didn't make any progress in the last iteration, which means there is
-			// a loop. Arbitrarily mark a requirement as processed.
+			// a cycle. Arbitrarily mark a requirement as processed.
 			for _, req := range requirementMap {
 				if req.Processed || req.PageId == data.PageId {
 					continue
 				}
+
+				// Print the cycle
+				cycleReq := req
+				cycleIds := make([]string, 0)
+				cycleIds = append(cycleIds, cycleReq.PageId)
+				continueCycle := true
+				for continueCycle {
+					// Get first eligible tutor
+					var cycleTutor *tutorNode
+					for _, tutorId := range req.TutorIds {
+						cycleTutor = tutorMap[tutorId]
+						if !cycleTutor.Processed {
+							break
+						}
+					}
+					// Get first eligible requirement
+					for _, reqId := range cycleTutor.RequirementIds {
+						cycleReq := requirementMap[reqId]
+						if !cycleReq.Processed {
+							cycleIds = append(cycleIds, cycleReq.PageId)
+							break
+						}
+					}
+					// Check if we landed on a requirement we already have in the cycle
+					for _, cycleId := range cycleIds {
+						if cycleId == cycleReq.PageId {
+							continueCycle = false
+							break
+						}
+					}
+				}
+				c.Debugf("CYCLE: %v", cycleIds)
+
 				req.Processed = true
 				if req.BestTutorId == "" {
 					if len(req.TutorIds) > 0 {
@@ -358,7 +391,6 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				c.Debugf("Tutor '%s' processed with cost %d and reqs %v", tutor.PageId, tutor.Cost, tutor.RequirementIds)
 			}
 		}
-		c.Debugf("END CYCLE (%v)", graphChanged)
 	}
 
 	// Load pages
