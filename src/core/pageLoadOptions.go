@@ -79,7 +79,6 @@ var (
 		UsedAsMastery: true,
 		Creators:      true,
 		NextPrevIds:   true,
-		PageObjects:   true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
@@ -114,6 +113,7 @@ var (
 		SubscriberCount: true,
 		IsSubscribed:    true,
 		Text:            true,
+		PageObjects:     true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info for an intrasite link popover
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{
