@@ -113,8 +113,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 
 	// Remove requirements that the user already has
 	if len(pageIds) > 0 && u.Id != "" {
@@ -449,12 +448,12 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["tutorMap"] = tutorMap
 	returnData.ResultMap["requirementMap"] = requirementMap
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

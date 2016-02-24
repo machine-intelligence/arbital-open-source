@@ -6,7 +6,9 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 		templateUrl: "static/html/multipleChoice.html",
 		transclude: true,
 		scope: {
+			pageId: "@",
 			index: "@",
+			objectAlias: "@",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -17,11 +19,23 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 			$scope.delKnows = {};
 			$scope.delWants = {};
 
+			// If the user has already answered this question, load the value
+			var pageObject = pageService.getPageObject($scope.pageId, $scope.objectAlias);
+			if (pageObject) {
+				$scope.choice = pageObject.value;
+			}
+
 			// Called when a user makes a choice
 			$scope.choiceChanged = function() {
 				pageService.setQuestionAnswer($scope.index,
 						$scope.knows[$scope.choice], $scope.wants[$scope.choice],
-						$scope.delKnows[$scope.choice], $scope.delWants[$scope.choice]);
+						$scope.delKnows[$scope.choice], $scope.delWants[$scope.choice],
+						{
+							pageId: $scope.pageId,
+							edit: pageService.pageMap[$scope.pageId].edit,
+							object: $scope.objectAlias,
+							value: $scope.choice,
+						});
 			};
 		},
 		link: function(scope, element, attrs) {

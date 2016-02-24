@@ -25,22 +25,6 @@ type siteHandler struct {
 	Options     pages.PageOptions
 }
 
-// commonHandlerData is what handlers fill out and return
-type commonHandlerData struct {
-	// If set, then this packet should reset everything on the FE
-	ResetEverything bool
-	// Optional user object with the current user's data
-	User *user.User
-	// Map of page id -> currently live version of the page
-	PageMap map[string]*core.Page
-	// Map of page id -> some edit of the page
-	EditMap    map[string]*core.Page
-	UserMap    map[string]*core.User
-	MasteryMap map[string]*core.Mastery
-	// ResultMap contains various data the specific handler returns
-	ResultMap map[string]interface{}
-}
-
 // handlerWrapper wraps our siteHandler to provide standard http handler interface.
 func handlerWrapper(h siteHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -148,37 +132,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
 	}
-}
-
-// newHandlerData creates and initializes a new commonHandlerData object.
-func newHandlerData(resetEverything bool) *commonHandlerData {
-	var data commonHandlerData
-	data.ResetEverything = resetEverything
-	data.PageMap = make(map[string]*core.Page)
-	data.EditMap = make(map[string]*core.Page)
-	data.UserMap = make(map[string]*core.User)
-	data.MasteryMap = make(map[string]*core.Mastery)
-	data.ResultMap = make(map[string]interface{})
-	return &data
-}
-
-// toJson puts together the data into one "json" object, so we
-// can send it to the front-end.
-func (data *commonHandlerData) toJson() map[string]interface{} {
-	jsonData := make(map[string]interface{})
-
-	jsonData["resetEverything"] = data.ResetEverything
-
-	if data.User != nil {
-		jsonData["user"] = data.User
-	}
-
-	jsonData["pages"] = data.PageMap
-	jsonData["edits"] = data.EditMap
-	jsonData["users"] = data.UserMap
-	jsonData["masteries"] = data.MasteryMap
-	jsonData["result"] = data.ResultMap
-	return jsonData
 }
 
 // loadSubdomain loads the id for the private group corresponding to the private group id.

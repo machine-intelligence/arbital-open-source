@@ -56,6 +56,7 @@ type PageLoadOptions struct {
 
 	// Options for what data to load after the page's data has been loaded
 	NextPrevIds bool
+	PageObjects bool
 }
 
 // Here we define some commonly used loadOptions templates.
@@ -78,6 +79,7 @@ var (
 		UsedAsMastery: true,
 		Creators:      true,
 		NextPrevIds:   true,
+		PageObjects:   true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{

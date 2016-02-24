@@ -178,6 +178,10 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return errorMessage, err
 		}
 
+		// Set the user value in params, since some internal handlers we might call
+		// will expect it to be set
+		params.U = &user.User{Id: userId}
+
 		// Process user's cookies
 		masteryMap := make(map[string]*core.Mastery)
 		// Load masteryMap from the cookie, if present
@@ -204,6 +208,30 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				updateMasteriesInternalHandlerFunc(params, masteriesData)
 			} else {
 				params.C.Warningf("Couldn't unmarshal masteryMap cookie: %v", err)
+			}
+		}
+
+		pageObjectMap := make(map[string]map[string]*core.PageObject)
+		// Load pageObjectMap from the cookie, if present
+		cookie, err = params.R.Cookie("pageObjectMap")
+		if err == nil {
+			jsonStr, _ := url.QueryUnescape(cookie.Value)
+			err = json.Unmarshal([]byte(jsonStr), &pageObjectMap)
+			if err == nil {
+				for _, objectMap := range pageObjectMap {
+					for _, pageObject := range objectMap {
+						updatePageObjectData := &updatePageObject{
+							PageId: pageObject.PageId,
+							Edit:   pageObject.Edit,
+							Object: pageObject.Object,
+							Value:  pageObject.Value,
+						}
+						// This is a "nice to have", so we don't check for errors
+						updatePageObjectInternalHandlerFunc(params, updatePageObjectData)
+					}
+				}
+			} else {
+				params.C.Warningf("Couldn't unmarshal pageObjectMap cookie: %v", err)
 			}
 		}
 

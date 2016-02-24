@@ -14,14 +14,12 @@ var defaultHandler = siteHandler{
 
 func defaultJsonHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
-	returnData := newHandlerData(true)
-	returnData.User = u
-	err := core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	returnData := core.NewHandlerData(params.U, true)
+	err := core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

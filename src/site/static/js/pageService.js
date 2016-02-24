@@ -5,6 +5,12 @@
 app.service("pageService", function($http, $location, userService){
 	var that = this;
 
+	// Id of the private group we are in. (Corresponds to the subdomain).
+	this.privateGroupId = "";
+
+	// Primary page is the one with its id in the url
+	this.primaryPage = undefined;
+
 	// All loaded pages.
 	this.pageMap = {};
 
@@ -19,6 +25,10 @@ app.service("pageService", function($http, $location, userService){
 	// sorted array: [map "key" -> masteryMap]
 	// Array is sorted by the order in which the questions appear in the text.
 	this.masteryMapList = [this.masteryMap];
+
+	// All page objects currently loaded
+	// pageId -> {object -> {object data}}
+	this.pageObjectMap = {};
 
 	// Update the masteryMap. Execution happens in the order options are listed.
 	// options = {
@@ -106,25 +116,42 @@ app.service("pageService", function($http, $location, userService){
 		}
 	};
 
-	// Use our smart merge technique to add the new mastery to existing mastery map.
-	this.addMasteryToMap = function(newMastery) {
-		var oldMastery = this.masteryMap[newMastery.pageId];
-		if (newMastery === oldMastery) return;
-		if (oldMastery === undefined) {
-			this.masteryMap[newMastery.pageId] = newMastery;
-			return;
+	// Compute the status of the given masteries and update the server
+	// options = {
+	//	pageId: id of the page
+	//	edit: current edit of the page
+	//	object: page object's alias
+	//	value: page object's value
+	// }
+	this.updatePageObject = function(options) {
+		if (!(options.pageId in this.pageObjectMap)) {
+			this.pageObjectMap[options.pageId] = {};
 		}
-		// Merge each variable.
-		for (var k in oldMastery) {
-			oldMastery[k] = smartMerge(oldMastery[k], newMastery[k]);
+		this.pageObjectMap[options.pageId][options.object] = options;
+
+		if (userService.user.id !== "") {
+			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
+			.error(function(data, status){
+				console.error("Failed to update page object:"); console.log(data); console.log(status);
+			});
+		} else {
+			Cookies.set("pageObjectMap", this.pageObjectMap, {expires: 365});
 		}
 	};
 
-	// Id of the private group we are in. (Corresponds to the subdomain).
-	this.privateGroupId = "";
-
-	// Primary page is the one with its id in the url
-	this.primaryPage = undefined;
+	// Use our smart merge technique to add a new object to existing object map.
+	this.smartAddToMap = function(map, newObject, newObjectId) {
+		var oldObject = map[newObjectId];
+		if (newObject === oldObject) return;
+		if (oldObject === undefined) {
+			map[newObjectId] = newObject;
+			return;
+		}
+		// Merge each variable.
+		for (var k in oldObject) {
+			oldObject[k] = smartMerge(oldObject[k], newObject[k]);
+		}
+	};
 
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
@@ -133,20 +160,36 @@ app.service("pageService", function($http, $location, userService){
 			this.editMap = {};
 			this.masteryMap = {};
 			this.masteryMapList = [this.masteryMap];
+			this.pageObjectMap = {};
+		}
+
+		var pageObjectData = data["pageObjects"];
+		for (var id in pageObjectData) {
+			this.smartAddToMap(this.pageObjectMap, pageObjectData[id], id);
+		}
+
+		if (data.resetEverything && !userService.user.id) {
+			// Load page objects from cookie
+			var cookiePageObjectMap = Cookies.getJSON("pageObjectMap") || {};
+			for (var id in cookiePageObjectMap) {
+				this.smartAddToMap(this.pageObjectMap, cookiePageObjectMap[id], id);
+			}
+		} else if (data.resetEverything && userService.user.id) {
+			Cookies.remove("pageObjectMap");
 		}
 
 		var masteryData = data["masteries"];
 		for (var id in masteryData) {
-			this.addMasteryToMap(masteryData[id]);
+			this.smartAddToMap(masteryData[id]);
 		}
 
-		if (data.resetEverything && !userService.user.id !== "") {
+		if (data.resetEverything && !userService.user.id) {
 			// Load masteries from cookie
 			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
 			for (var id in cookieMasteryMap) {
-				this.addMasteryToMap(cookieMasteryMap[id]);
+				this.smartAddToMap(cookieMasteryMap[id]);
 			}
-		} else if (data.resetEverything && userService.user.id !== "") {
+		} else if (data.resetEverything && userService.user.id) {
 			Cookies.remove("masteryMap");
 		}
 
@@ -164,7 +207,7 @@ app.service("pageService", function($http, $location, userService){
 		for (var id in editData) {
 			this.addPageToEditMap(editData[id]);
 		}
-	}
+	};
 
 	// Returns the url for the given page.
 	// options {
@@ -236,6 +279,13 @@ app.service("pageService", function($http, $location, userService){
 		} else {
 			return "http://" + subdomain + "arbital.com"
 		}
+	};
+
+	// Return the corresponding page object, or undefined if not found.
+	this.getPageObject = function(pageId, objectAlias) {
+		var objectMap = this.pageObjectMap[pageId];
+		if (!objectMap) return undefined;
+		return objectMap[objectAlias];
 	};
 
 	// These functions will be added to each page object.
@@ -748,7 +798,7 @@ app.service("pageService", function($http, $location, userService){
 
 	// =========== Questionnaire helpers ====================
 	// Map questionIndex -> {knows: [ids], wants: [ids], forgets: [ids]}
-	this.setQuestionAnswer = function(qIndex, knows, wants, delKnows, delWants) {
+	this.setQuestionAnswer = function(qIndex, knows, wants, delKnows, delWants, updatePageObjectOptions) {
 		if (qIndex <= 0) {
 			return console.error("qIndex has to be > 0");
 		}
@@ -798,5 +848,6 @@ app.service("pageService", function($http, $location, userService){
 		}
 		this.masteryMapList[qIndex] = masteryMap;
 		this.pushMasteriesToServer(affectedMasteryIds);
+		this.updatePageObject(updatePageObjectOptions);
 	};
 });

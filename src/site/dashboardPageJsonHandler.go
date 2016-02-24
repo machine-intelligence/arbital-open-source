@@ -34,8 +34,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 
 	// Options to load the pages with
 	pageOptions := (&core.PageLoadOptions{
@@ -129,10 +128,10 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

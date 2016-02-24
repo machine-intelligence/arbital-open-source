@@ -21,7 +21,6 @@ var titleHandler = siteHandler{
 // titleJsonHandler handles the request.
 func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
 	// Decode data
 	var data titleJsonData
@@ -32,7 +31,7 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	returnData := newHandlerData(false)
+	returnData := core.NewHandlerData(params.U, false)
 	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
@@ -40,15 +39,15 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if !ok {
 		// Don't fail because sometimes the editor calls this with bad aliases, but
 		// we don't want to generated messages on the FE
-		return pages.StatusOK(returnData.toJson())
+		return pages.StatusOK(returnData.ToJson())
 	}
 
 	// Load data
 	core.AddPageIdToMap(pageId, returnData.PageMap)
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

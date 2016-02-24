@@ -98,7 +98,6 @@ func init() {
 	s.HandleFunc(similarPageSearchHandler.URI, handlerWrapper(similarPageSearchHandler)).Methods("POST")
 	s.HandleFunc(titleHandler.URI, handlerWrapper(titleHandler)).Methods("POST")
 	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
-	s.HandleFunc(updateLensOrderHandler.URI, handlerWrapper(updateLensOrderHandler)).Methods("POST")
 	s.HandleFunc(userPageHandler.URI, handlerWrapper(userPageHandler)).Methods("POST")
 	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")
@@ -122,9 +121,11 @@ func init() {
 	s.HandleFunc(revertPageHandler.URI, handlerWrapper(revertPageHandler)).Methods("POST")
 	s.HandleFunc(feedbackHandler.URI, handlerWrapper(feedbackHandler)).Methods("POST")
 	s.HandleFunc(signupHandler.URI, handlerWrapper(signupHandler)).Methods("POST")
+	s.HandleFunc(updateLensOrderHandler.URI, handlerWrapper(updateLensOrderHandler)).Methods("POST")
 	s.HandleFunc(updateMasteriesHandler.URI, handlerWrapper(updateMasteriesHandler)).Methods("POST")
 	s.HandleFunc(updateMemberHandler.URI, handlerWrapper(updateMemberHandler)).Methods("POST")
 	s.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")
+	s.HandleFunc(updatePageObjectHandler.URI, handlerWrapper(updatePageObjectHandler)).Methods("POST")
 
 	// Admin stuff
 	s.HandleFunc(domainsPageHandler.URI, handlerWrapper(domainsPageHandler)).Methods("POST")

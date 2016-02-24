@@ -104,7 +104,6 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 }
 
 func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages.Result {
-	u := params.U
 	db := params.DB
 
 	// Perform search.
@@ -113,7 +112,7 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		return pages.HandlerErrorFail("Error with elastic search", err)
 	}
 
-	returnData := newHandlerData(false)
+	returnData := core.NewHandlerData(params.U, false)
 
 	// Create page map.
 	for _, hit := range results.Hits.Hits {
@@ -121,11 +120,11 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 	}
 
 	// Load pages.
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
 	returnData.ResultMap["search"] = results.Hits
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }
