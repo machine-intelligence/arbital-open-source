@@ -187,7 +187,7 @@ app.service("pageService", function($http, $location, userService){
 			// Load masteries from cookie
 			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
 			for (var id in cookieMasteryMap) {
-				this.smartAddToMap(cookieMasteryMap[id]);
+				this.smartAddToMap(this.masteryMap, cookieMasteryMap[id], id);
 			}
 		} else if (data.resetEverything && userService.user.id) {
 			Cookies.remove("masteryMap");

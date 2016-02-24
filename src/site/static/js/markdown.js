@@ -52,7 +52,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function (whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return "<div ng-if='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" +
+				return "<div ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" +
 						runBlockGamut(markdown) + "</div>";
 			});
 		});
@@ -62,7 +62,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function (whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return "<div ng-if='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" +
+				return "<div ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" +
 						runBlockGamut(markdown) + "</div>";
 			});
 		});
@@ -160,7 +160,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(hasReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return prefix + "<span ng-if='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + markdown + "</span>";
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + markdown + "</span>";
 			});
 		});
 
@@ -169,7 +169,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preSpanGamut", function (text, run) {
 			return text.replace(wantsReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return prefix + "<span ng-if='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + markdown + "</span>";
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + markdown + "</span>";
 			});
 		});
 
