@@ -93,7 +93,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/learn/:pageAlias", {
+	.when("/learn/:pageAlias?", {
  		template: "",
  		controller: "LearnController",
  		reloadOnSearch: false,
@@ -415,20 +415,27 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 app.controller("LearnController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
-		pageAliases: [$routeParams.pageAlias],
+		pageAliases: [],
 	};
-	var andPageAliases = $location.search().and;
-	if (andPageAliases) {
-		postData.pageAliases = postData.pageAliases.concat(andPageAliases.split(","));
+	if ($routeParams.pageAlias) {
+		postData.pageAliases.push($routeParams.pageAlias);
+	} else if ($location.search().path) {
+		postData.pageAliases = postData.pageAliases.concat($location.search().path.split(","));
+	} else {
+		$(".global-error").text("Invalid learn URL").show();
+		return;
 	}
 	$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
-		var primaryPage = pageService.pageMap[postData.pageAliases[0]];
-		if (!primaryPage) {
-			return {
-				title: "Not Found",
-				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
-			};
+		var primaryPage = undefined;
+		if ($routeParams.pageAlias) {
+			primaryPage = pageService.pageMap[$routeParams.pageAlias];
+			if (!primaryPage) {
+				return {
+					title: "Not Found",
+					error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
+				};
+			}
 		}
 		// Convert all aliases to ids
 		$scope.pageIds = [];
@@ -441,7 +448,7 @@ app.controller("LearnController", function ($scope, $routeParams, $http, $compil
 		$scope.tutorMap = data.result.tutorMap;
 		$scope.requirementMap = data.result.requirementMap;
 		return {
-			title: "Learn " + primaryPage.title,
+			title: "Learn " + (primaryPage ? primaryPage.title : ""),
 			element: $compile("<arb-learn-page page-ids='::pageIds'" +
 				" tutor-map='::tutorMap' requirement-map='::requirementMap'" +
 				"></arb-learn-page>")($scope),
