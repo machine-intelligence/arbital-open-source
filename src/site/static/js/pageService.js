@@ -180,7 +180,7 @@ app.service("pageService", function($http, $location, userService){
 
 		var masteryData = data["masteries"];
 		for (var id in masteryData) {
-			this.smartAddToMap(masteryData[id]);
+			this.smartAddToMap(this.masteryMap, masteryData[id], id);
 		}
 
 		if (data.resetEverything && !userService.user.id) {
