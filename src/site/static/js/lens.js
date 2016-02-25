@@ -117,8 +117,6 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			var simplestLensId = primaryPage.lensIds[primaryPage.lensIds.length - 1];
 			$scope.isSimplestLens = $scope.page.pageId === simplestLensId;
 
-			$scope.isLearning = !!$location.search().learn;
-
 			// Compute simpler lens id if necessary
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;

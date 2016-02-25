@@ -52,6 +52,10 @@ func init() {
 	s.HandleFunc("/edit/", pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}/", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}/{alias2:%s}", core.AliasRegexpStr, core.AliasRegexpStr),
+		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/edit/{id:[0-9]+}/{alias:%s}/{edit:[0-9]+}", core.AliasRegexpStr),
+		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}/{edit:[0-9]+}/", core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
@@ -61,18 +65,21 @@ func init() {
 	s.HandleFunc("/knowledge/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/learn/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/learn/{pageId:%s}/", core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/learn/{pageAlias:%s}/{pageAlias2:%s}", core.AliasRegexpStr, core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}/", core.AliasRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/p/{alias:%s}/", core.AliasRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
-	s.HandleFunc(fmt.Sprintf("/p/{alias:%s}/{title:%s}/", core.AliasRegexpStr, core.AliasRegexpStr),
+	s.HandleFunc(fmt.Sprintf("/p/{alias:%s}/{alias2:%s}/", core.AliasRegexpStr, core.AliasRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/signup/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/updates/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc(fmt.Sprintf("/user/{domain:%s}/", core.AliasRegexpStr),
+	s.HandleFunc(fmt.Sprintf("/user/{alias:%s}/", core.AliasRegexpStr),
+		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc(fmt.Sprintf("/user/{alias:%s}/{alias2:%s}", core.AliasRegexpStr, core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/_test_/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/verifyEmail/", pageHandlerWrapper(&verifyEmailPage)).Methods("GET", "HEAD")

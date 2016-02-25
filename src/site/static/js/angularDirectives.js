@@ -1,13 +1,14 @@
 "use strict";
 
 // userName directive displayes a user's name.
-app.directive("arbUserName", function(userService) {
+app.directive("arbUserName", function(pageService, userService) {
 	return {
 		templateUrl: "static/html/userName.html",
 		scope: {
 			userId: "@",
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.user = userService.userMap[$scope.userId];
 		},

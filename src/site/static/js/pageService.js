@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service("pageService", function($http, $location, $rootScope, userService){
+app.service("pageService", function($http, $location, $ngSilentLocation, $rootScope, userService){
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -212,27 +212,35 @@ app.service("pageService", function($http, $location, $rootScope, userService){
 		}
 	};
 
+
+	// Construct a part of the URL with id and alias if id!=alias, otherwise just id
+	var getBaseUrl = function(base, id, alias) {
+		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias);
+	};
+
 	// Returns the url for the given page.
 	// options {
+	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
 	//	 includeHost: if true, include "http://" + host in the url
 	// }
 	// Track which pages we are already loading. Map url+pageAlias -> true.
 	this.getPageUrl = function(pageId, options){
 		var options = options || {};
 		var host = window.location.host;
-		var page = that.pageMap[pageId];
 		var url = "/p/" + pageId;
 		var alreadyIncludedHost = false;
+		var page = that.pageMap[pageId];
+
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
-			url = "/p/" + pageId + "/" + pageAlias;
+			url = getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias);
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/p/" + parent.pageId + "/" + parent.alias + "?l=" + pageId;
+						url = getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias) + "?l=" + pageId;
 						if ($location.hash()) {
 							url += "#" + $location.hash();
 						}
@@ -245,7 +253,7 @@ app.service("pageService", function($http, $location, $rootScope, userService){
 					if (parent && (
 								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
 								(page.isAnswer() && parent.isQuestion()))) {
-						url = "/p/" + parent.pageId + "/" + parent.alias + "#subpage-" + pageId;
+						url = getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias) + "#subpage-" + pageId;
 						break;
 					}
 				}
@@ -267,7 +275,18 @@ app.service("pageService", function($http, $location, $rootScope, userService){
 	};
 
 	this.getEditPageUrl = function(pageId){
+		if (pageId in this.pageMap) {
+			return getBaseUrl("edit", pageId, this.pageMap[pageId].alias);
+		}
 		return "/edit/" + pageId;
+	};
+
+	// Return url to the user page.
+	this.getUserUrl = function(userId) {
+		if (userId in this.pageMap) {
+			return getBaseUrl("user", userId, this.pageMap[userId].alias);
+		}
+		return "/user/" + userId;
 	};
 
 	// Get a domain url (with optional subdomain)
@@ -281,6 +300,19 @@ app.service("pageService", function($http, $location, $rootScope, userService){
 			return "http://" + subdomain + "localhost:8012";
 		} else {
 			return "http://" + subdomain + "arbital.com"
+		}
+	};
+
+	// Make sure the URL path is in the given canonical form, otherwise silently change
+	// the URL, preserving the search() params.
+	this.ensureCanonUrl = function(canonPath) {
+		var pathname = location.pathname;
+		if (pathname != canonPath) {
+			var search = $location.search();
+			$ngSilentLocation.silent(canonPath, true);
+			for (var k in search) {
+				$location.search(k, search[k]);
+			}
 		}
 	};
 

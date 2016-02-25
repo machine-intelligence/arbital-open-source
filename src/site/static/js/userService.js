@@ -15,11 +15,6 @@ app.service("userService", function($http, $location, $rootScope){
 		return this.user && this.user.karma >= 200;
 	};
 
-	// Return url to the user page.
-	this.getUserUrl = function(userId) {
-		return "/user/" + userId;
-	};
-
 	// Return a user's full name.
 	this.getFullName = function(userId) {
 		var user = this.userMap[userId];

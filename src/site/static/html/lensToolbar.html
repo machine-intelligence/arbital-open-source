@@ -75,6 +75,13 @@
 		</md-button>
 		<md-menu-content>
 
+			<!-- Permalink -->
+			<md-menu-item>
+				<md-button ng-href="{{pageService.getPageUrl(page.pageId, {permalink: true})}}">
+					Permalink
+				</md-button>
+			</md-menu-item>
+
 			<!-- Show diff -->
 			<md-menu-item>
 				<md-button arb-user-check="cool" ng-click="toggleDiff()">
@@ -88,6 +95,7 @@
 				</md-button>
 			</md-menu-item>
 
+			<!-- Show requirements -->
 			<md-menu-item ng-if="!showRequirementsPanel">
 				<md-button ng-click="showRequirements()">
 					Show requirements

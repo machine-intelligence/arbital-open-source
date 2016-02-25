@@ -43,8 +43,8 @@
 				</span>-->
 			</div>
 			<!-- Learn this suggestion -->
-			<div ng-if="::(isSimplestLens && !isLearning)" ng-show="!meetsAllRequirements()">
-				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.pageId}}">
+			<div ng-if="isSimplestLens && !pageService.path" ng-show="!meetsAllRequirements()">
+				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.alias}}">
 					Learn this...
 					<md-tooltip>Learn all the requirements for this page</md-tooltip>
 				</md-button>

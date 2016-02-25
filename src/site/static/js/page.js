@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for showing a standard Arbital page.
-app.directive("arbPage", function ($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
+app.directive("arbPage", function ($ngSilentLocation, $location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: "static/html/page.html",
 		scope: {
@@ -39,7 +39,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
 					$scope.selectedLens = pageService.pageMap[$location.search().l];
-				} else if ($location.search().learn) {
+				} else if (pageService.path && pageService.path.onPath) {
 					// The learning list specified this page specifically
 					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
 				} else {

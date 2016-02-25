@@ -1,7 +1,7 @@
 "use strict";
 
 // Set up angular module.
-var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngRoute",
+var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngSilent", "ngRoute",
 		"ngMessages", "ngSanitize", "RecursionHelper", "as.sortable"]);
 
 app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemingProvider){
@@ -93,17 +93,17 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/learn/:pageAlias?", {
+	.when("/learn/:pageAlias?/:pageAlias2?", {
  		template: "",
  		controller: "LearnController",
  		reloadOnSearch: false,
  	})
-	.when("/edit/:alias?/:edit?", {
+	.when("/edit/:alias?/:editOrAlias?/:edit?", {
  		template: "",
  		controller: "EditPageController",
  		reloadOnSearch: false,
  	})
-	.when("/user/:id?", {
+	.when("/user/:id/:alias2?", {
  		template: "",
  		controller: "UserPageController",
  		reloadOnSearch: false,
@@ -308,7 +308,7 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 					"' ids-map='::indexPageIdsMap'></arb-group-index>")($scope),
 			};
 		}))
-		.error($scope.getErrorFunc("privateIndex"));
+		.error($scope.getErrorFunc("domainPage"));
 	} else {
 		// Get the index page data
 		$http({method: "POST", url: "/json/index/"})
@@ -383,16 +383,6 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 			};
 		}
 
-		var pathname = location.pathname;
-		var properPath = pageService.getPageUrl(page.pageId);
-		var search = $location.search();
-		if (pathname != properPath) {
-			$location.replace().url(properPath);
-			for (var k in search) {
-				$location.search(k, search[k]);
-			}
-		}
-
 		if (page.isLens() || page.isComment() || page.isAnswer()) {
 			// Redirect to the primary page, but preserve all search variables
 			var search = $location.search();
@@ -402,6 +392,8 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 			}
 			return {};
 		}
+
+		pageService.ensureCanonUrl(pageService.getPageUrl(page.pageId));
 		pageService.primaryPage = page;
 		return {
 			title: page.title,
@@ -431,6 +423,7 @@ app.controller("LearnController", function ($scope, $routeParams, $http, $compil
 		var primaryPage = undefined;
 		if ($routeParams.pageAlias) {
 			primaryPage = pageService.pageMap[$routeParams.pageAlias];
+			pageService.ensureCanonUrl("/learn/" + primaryPage.alias);
 		}
 		// Convert all aliases to ids
 		$scope.pageIds = [];
@@ -450,21 +443,27 @@ app.controller("LearnController", function ($scope, $routeParams, $http, $compil
 				"></arb-learn-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("learnPage"));
+	.error($scope.getErrorFunc("learn"));
 });
 
 app.controller("EditPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var pageId = $routeParams.alias;
 
 	// Need to call /default/ in case we are creating a new page
-	// TODO(alexei): have /newPage/ return /default/ data long with /edit/ data
+	// TODO(alexei): have /newPage/ return /default/ data along with /edit/ data
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (pageId && pageId.charAt(0) > '0' && pageId.charAt(0) <= '9') {
+			var specificEdit = 0;
+			if ($routeParams.edit) {
+				specificEdit = +$routeParams.edit ? +$routeParams.edit : 0;
+			} else if (+$routeParams.editOrAlias) {
+				specificEdit = +$routeParams.editOrAlias ? +$routeParams.editOrAlias : 0;
+			}
 			// Load the last edit
 			pageService.loadEdit({
 				pageAlias: pageId,
-				specificEdit: $routeParams.edit ? +$routeParams.edit : 0,
+				specificEdit: specificEdit,
 				success: $scope.getSuccessFunc(function() {
 					var page = pageService.editMap[pageId];
 					if ($location.search().alias) {
@@ -473,6 +472,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 						$location.replace().search("alias", undefined);
 					}
 
+					pageService.ensureCanonUrl(pageService.getEditPageUrl(pageId));
 					pageService.primaryPage = page;
 
 					// Called when the user is done editing the page.
@@ -491,7 +491,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 							"' done-fn='doneFn(result)' layout='column'></arb-edit-page>")($scope),
 					};
 				}),
-				error: $scope.getErrorFunc("loadEdit"),
+				error: $scope.getErrorFunc("edit"),
 			});
 		} else {
 			var type = $location.search().type;
@@ -511,27 +511,25 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 			title: "Edit Page",
 		};
 	}))
-	.error($scope.getErrorFunc("Edit Page"));
+	.error($scope.getErrorFunc("default"));
 });
 
 app.controller("UserPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	var userId = $routeParams.id;
-	if (!userId) {
-		userId = userService.user.id;
-	}
 	var postData = {
 		userId: userId,
 	};
 	// Get the data
 	$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
+		pageService.ensureCanonUrl(pageService.getUserUrl(userId));
 		$scope.userPageIdsMap = data.result;
 		return {
 			title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
 			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("User"));
+	.error($scope.getErrorFunc("userPage"));
 });
 
 app.controller("DashboardPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
@@ -545,7 +543,7 @@ app.controller("DashboardPageController", function ($scope, $routeParams, $http,
 			element: $compile("<arb-dashboard-page ids-map='::dashboardPageIdsMap'></arb-dashboard-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("User"));
+	.error($scope.getErrorFunc("dashboardPage"));
 });
 
 app.controller("UpdatesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
@@ -559,7 +557,7 @@ app.controller("UpdatesPageController", function ($scope, $routeParams, $http, $
 			element: $compile("<arb-updates update-groups='::updateGroups'></arb-updates>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Updates"));
+	.error($scope.getErrorFunc("updates"));
 });
 
 app.controller("GroupsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
@@ -570,7 +568,7 @@ app.controller("GroupsPageController", function ($scope, $routeParams, $http, $c
 			element: $compile("<arb-groups-page></arb-groups-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Groups"));
+	.error($scope.getErrorFunc("groups"));
 });
 
 app.controller("SignupPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
@@ -581,7 +579,7 @@ app.controller("SignupPageController", function ($scope, $routeParams, $http, $c
 			element: $compile("<arb-signup></arb-signup>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Sign Up"));
+	.error($scope.getErrorFunc("default"));
 });
 
 app.controller("LoginPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
@@ -601,7 +599,7 @@ app.controller("RequisitesPageController", function ($scope, $routeParams, $http
 			element: $compile("<arb-requisites-page></arb-requisites-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Requisites"));
+	.error($scope.getErrorFunc("requisites"));
 });
 
 app.controller("SettingsPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
@@ -612,5 +610,5 @@ app.controller("SettingsPageController", function ($scope, $routeParams, $http, 
 			element: $compile("<arb-settings-page></arb-settings-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("Settings"));
+	.error($scope.getErrorFunc("default"));
 });
