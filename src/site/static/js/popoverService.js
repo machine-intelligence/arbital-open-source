@@ -214,10 +214,22 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		}
 	});
 
-	$rootScope.$on("$locationChangeStart", function(event) {
+	var shutItDown = function() {
 		$timeout.cancel(createPromise);
 		$timeout.cancel(removePromise);
 		removePopover();
+	};
+
+	$("body").on("click", ".intrasite-link", function(event) {
+		shutItDown();
+	});
+
+	$("body").on("click", ".user-link", function(event) {
+		shutItDown();
+	});
+
+	$rootScope.$on("$locationChangeStart", function(event) {
+		shutItDown();
 	});
 });
 
