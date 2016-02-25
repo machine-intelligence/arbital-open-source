@@ -1,7 +1,7 @@
 "use strict";
 
 // User service.
-app.service("userService", function($http, $location){
+app.service("userService", function($http, $location, $rootScope){
 	var that = this;
 
 	// Logged in user.
@@ -30,10 +30,11 @@ app.service("userService", function($http, $location){
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
 		if (data.resetEverything) {
-			that.userMap = {};
+			this.userMap = {};
 		}
+
 		if (data.user) {
-			that.user = data.user;
+			this.user = data.user;
 		}
 		$.extend(that.userMap, data["users"]);
 	};

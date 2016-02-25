@@ -526,43 +526,11 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
 
-			// Note: because sometimes the next page in the list can be a lens,
-			// we need to listen to URL change and see if we should recompute which
-			// page in the list we are on.
-			var computeUrls = function() {
-				$scope.page.prevPageId = $scope.page.nextPageId = "";
-
-				// Check if the user is learning
-				$scope.page.learnUrl = $location.search().learn || "";
-				if ($scope.page.learnUrl) {
-					var currentPageId = $location.search().l || $scope.page.pageId;
-					var ids = $scope.page.learnUrl.split(",");
-					for (var n = 0; n < ids.length; n++) {
-						var id = ids[n];
-						if (id === currentPageId) {
-							$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
-							$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
-						}
-					}
-					$scope.page.learnId = ids[ids.length - 1];
-				}
-
-				$scope.prevUrl = pageService.getPageUrl($scope.page.prevPageId);
-				$scope.prevUrl += $scope.prevUrl.indexOf("?") < 0 ? "?" : "&";
-				$scope.prevUrl += "learn=" + $scope.page.learnUrl;
-
-				$scope.nextUrl = pageService.getPageUrl($scope.page.nextPageId);
-				$scope.nextUrl += $scope.nextUrl.indexOf("?") < 0 ? "?" : "&";
-				$scope.nextUrl += "learn=" + $scope.page.learnUrl;
+			$scope.stopLearning = function() {
+				Cookies.remove("path");
+				pageService.path = undefined;
 			};
-			computeUrls();
-			$scope.$watch(function() {
-				return $location.absUrl();
-			}, function() {
-				computeUrls();
-			});
 		},
 	};
 });

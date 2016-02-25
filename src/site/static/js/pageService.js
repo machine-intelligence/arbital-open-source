@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service("pageService", function($http, $location, userService){
+app.service("pageService", function($http, $location, $rootScope, userService){
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -29,6 +29,9 @@ app.service("pageService", function($http, $location, userService){
 	// All page objects currently loaded
 	// pageId -> {object -> {object data}}
 	this.pageObjectMap = {};
+
+	// This object is set when the user is learning / on a path.
+	this.path = undefined;
 
 	// Update the masteryMap. Execution happens in the order options are listed.
 	// options = {
@@ -850,4 +853,28 @@ app.service("pageService", function($http, $location, userService){
 		this.pushMasteriesToServer(affectedMasteryIds);
 		this.updatePageObject(updatePageObjectOptions);
 	};
+
+	// Update the path variables.
+	$rootScope.$watch(function() {
+		return $location.absUrl() + "|" + (that.primaryPage ? that.primaryPage.pageId : "");
+	}, function() {
+		that.path = undefined;
+		that.path = Cookies.getJSON("path");
+		if (!that.path || !that.primaryPage) return;
+
+		// Check if the user is learning
+		var currentPageId = $location.search().l || that.primaryPage.pageId;
+		var pathPageIds = that.path.readIds;
+		var currentIndex = pathPageIds.indexOf(currentPageId);
+		if (currentIndex >= 0) {
+			that.path.onPath = true;
+			that.path.prevPageId = currentIndex > 0 ? pathPageIds[currentIndex - 1] : "";
+			that.path.nextPageId = currentIndex < pathPageIds.length - 1 ? pathPageIds[currentIndex + 1] : "";
+			that.path.currentPageId = currentPageId;
+		} else {
+			that.path.onPath = false;
+			that.path.prevPageId = that.path.nextPageId = "";
+		}
+		Cookies.set("path", that.path);
+	});
 });

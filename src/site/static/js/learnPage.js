@@ -8,6 +8,7 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 			pageIds: "=",
 			tutorMap: "=",
 			requirementMap: "=",
+			continueLearning: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -55,17 +56,17 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 				$scope.hasUnlearnableIds = Object.keys($scope.unlearnableIds).length > 0;
 			};
 
-			// Get the url for the given page (optional) with learn support
-			$scope.getLearnUrl = function(startingPageId) {
-				startingPageId = startingPageId || $scope.readIds[0];
-				return pageService.getPageUrl(startingPageId) + "?learn=" + $scope.readIds.join(",");
-			};
-
 			// Called when the user clicks to start reading the learn
 			$scope.startReading = function() {
 				computeLearnIds();
+				var path = {
+					pageIds: $scope.pageIds,
+					readIds: $scope.readIds,
+					unlearnableIds: $scope.unlearnableIds,
+				};
+				Cookies.set("path", path);
 				// Start them off with the first page
-				$location.url($scope.getLearnUrl());
+				$location.url(pageService.getPageUrl($scope.readIds[0]));
 			};
 
 			// Track whether we show tree or list view

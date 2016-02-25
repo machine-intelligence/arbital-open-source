@@ -71,7 +71,7 @@
 		<div layout-padding>
 			<div layout="column" ng-if="readIds.length > 0">
 				<md-button class="special md-raised" ng-click="startReading()">
-					Begin learning
+					<span ng-bind="::continueLearning ? 'Continue learning' : 'Begin learning'"></span>
 					<md-icon>chevron_right</md-icon>
 				</md-button>
 			</div>

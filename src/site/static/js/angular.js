@@ -400,8 +400,7 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 			for (var k in search) {
 				$location.search(k, search[k]);
 			}
-			return {
-			};
+			return {};
 		}
 		pageService.primaryPage = page;
 		return {
@@ -417,25 +416,21 @@ app.controller("LearnController", function ($scope, $routeParams, $http, $compil
 	var postData = {
 		pageAliases: [],
 	};
+	var continueLearning = false;
 	if ($routeParams.pageAlias) {
 		postData.pageAliases.push($routeParams.pageAlias);
 	} else if ($location.search().path) {
 		postData.pageAliases = postData.pageAliases.concat($location.search().path.split(","));
-	} else {
-		$(".global-error").text("Invalid learn URL").show();
-		return;
+	} else if (pageService.path) {
+		postData.pageAliases = pageService.path.pageIds;
+		continueLearning = true;
 	}
+
 	$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
 		var primaryPage = undefined;
 		if ($routeParams.pageAlias) {
 			primaryPage = pageService.pageMap[$routeParams.pageAlias];
-			if (!primaryPage) {
-				return {
-					title: "Not Found",
-					error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
-				};
-			}
 		}
 		// Convert all aliases to ids
 		$scope.pageIds = [];
@@ -449,12 +444,13 @@ app.controller("LearnController", function ($scope, $routeParams, $http, $compil
 		$scope.requirementMap = data.result.requirementMap;
 		return {
 			title: "Learn " + (primaryPage ? primaryPage.title : ""),
-			element: $compile("<arb-learn-page page-ids='::pageIds'" +
+			element: $compile("<arb-learn-page continue-learning='::" + continueLearning +
+				"' page-ids='::pageIds'" +
 				" tutor-map='::tutorMap' requirement-map='::requirementMap'" +
 				"></arb-learn-page>")($scope),
 		};
 	}))
-	.error($scope.getErrorFunc("primaryPage"));
+	.error($scope.getErrorFunc("learnPage"));
 });
 
 app.controller("EditPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
