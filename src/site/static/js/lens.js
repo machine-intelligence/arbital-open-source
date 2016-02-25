@@ -166,6 +166,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			var $markdownContainer = element.find(".lens-text-container");
 			var $markdown = element.find(".lens-text");
 			scope.inlineComments = {};
+			var orderedInlineComments = [];
 			var dmp = new diff_match_patch();
 			dmp.Match_MaxBits = 10000;
 			dmp.Match_Distance = 10000;
@@ -188,7 +189,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				if (!comment.anchorContext || !comment.anchorText) return;
 
 				// Find the best paragraph
-				var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
+				var bestParagraphNode, bestParagraphText, bestParagraphIndex, bestScore = Number.MAX_SAFE_INTEGER;
 				if (!paragraphTexts) {
 					populateParagraphTexts();
 				}
@@ -200,6 +201,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 						bestParagraphNode = $markdown.children().get(i);
 						bestParagraphText = text;
 						bestScore = score;
+						bestParagraphIndex = i;
 					}
 				}
 
@@ -233,24 +235,61 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				createInlineCommentHighlight(bestParagraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
 
 				// Add to the array of valid inline comments
-				scope.inlineComments[comment.pageId] = {
+				var inlineComment = {
 					paragraphNode: bestParagraphNode,
 					anchorNode: $("." + highlightClass),
+					paragraphIndex: bestParagraphIndex,
+					anchorOffset: anchorOffset,
+					pageId: comment.pageId,
 				};
+				scope.inlineComments[comment.pageId] = inlineComment;
+				orderedInlineComments.push(inlineComment);
 			};
 
 			// Process all inline comments
 			for (var n = 0; n < scope.page.commentIds.length; n++) {
 				processInlineComment(scope.page.commentIds[n]);
 			}
+			var inlineCommentButtonHeight = 40; // $newInlineCommentButton.height(); 
+			function preprocessInlineCommentButtonPositions()
+			{
+			    var minTop = 0;
+			    for (n = 0; n < orderedInlineComments.length; n++) {
+			        var inlineComment = orderedInlineComments[n];
+			        var preferredTop = inlineComment.anchorNode.offset().top;
+			        var top = Math.max(minTop, preferredTop);
+			        inlineComment.topOffset = top - preferredTop; // Use this to recompute the actual top when absolute positions are better known
+			        inlineComment.zIndex = n;
+			        minTop = top + inlineCommentButtonHeight - 8;
+			    }
+			}
+			function preprocessInlineCommentButtons()
+			{
+			    orderedInlineComments.sort(function(a, b){
+			        function compareList(a, b)
+                    {
+                        for (var i = 0; i < a.length; i++) {
+                            if (a[i] < b[i]) { return -1; }
+                            if (a[i] > b[i]) { return 1; }
+                        }
+                        return 0;
+                    }
+			        return compareList(
+			            [a.paragraphIndex, a.anchorOffset, a.pageId],
+			            [b.paragraphIndex, b.anchorOffset, b.pageId]);
+			    });
+			    preprocessInlineCommentButtonPositions();
+			}
+			preprocessInlineCommentButtons();
 
 			// Get the style of an inline comment icon
 			scope.getInlineCommentIconStyle = function(commentId) {
 				var params = scope.inlineComments[commentId];
 				return {
 					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
-					"top": params.anchorNode.offset().top - $newInlineCommentButton.height() / 2,
+					"top": params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
 					"visibility": element.closest(".reveal-after-render-parent").length > 0 ? "hidden" : "visible",
+					"zIndex": params.zIndex,
 				};
 			};
 
@@ -317,7 +356,8 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			scope.getNewInlineCommentButtonStyle = function() {
 				return {
 					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
-					"top": newInlineCommentButtonTop - $newInlineCommentButton.height() / 2,
+					"top": newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
+					"zIndex": orderedInlineComments.length,
 				};
 			};
 
@@ -350,6 +390,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				if (!result.discard) {
 					pageService.newCommentCreated(result.pageId);
 					processInlineComment(result.pageId);
+					preprocessInlineCommentButtons();
 				}
 			};
 
