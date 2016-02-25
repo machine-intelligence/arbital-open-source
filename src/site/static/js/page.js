@@ -30,7 +30,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 
 			// Sort lenses (from most technical to least)
 			$scope.page.lensIds.sort(function(a, b) {
-				return pageService.pageMap[b].lensIndex - pageService.pageMap[a].lensIndex;
+				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
 			});
 			$scope.page.lensIds.unshift($scope.page.pageId);
 

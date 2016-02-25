@@ -222,11 +222,10 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 		return nil, fmt.Errorf("Couldn't load user groups: %v", err)
 	}
 
+	handlerData := NewHandlerData(u, true)
+
 	// Load updates and populate the maps
-	pageMap := make(map[string]*Page)
-	userMap := make(map[string]*User)
-	masteryMap := make(map[string]*Mastery)
-	resultData.UpdateRows, err = LoadUpdateRows(db, u.Id, pageMap, userMap, true)
+	resultData.UpdateRows, err = LoadUpdateRows(db, u.Id, handlerData.PageMap, handlerData.UserMap, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
 	}
@@ -236,10 +235,10 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	if resultData.UpdateCount < u.EmailThreshold {
 		return nil, nil
 	}
-	resultData.UpdateGroups = ConvertUpdateRowsToGroups(resultData.UpdateRows, pageMap)
+	resultData.UpdateGroups = ConvertUpdateRowsToGroups(resultData.UpdateRows, handlerData.PageMap)
 
 	// Load pages.
-	err = ExecuteLoadPipeline(db, u, pageMap, userMap, masteryMap)
+	err = ExecuteLoadPipeline(db, handlerData)
 	if err != nil {
 		return nil, fmt.Errorf("Pipeline error: %v", err)
 	}
@@ -266,13 +265,13 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 			return fmt.Sprintf(`%s/user/%s`, sessions.GetDomainForTestEmail(), userId)
 		},
 		"GetUserName": func(userId string) string {
-			return userMap[userId].FullName()
+			return handlerData.UserMap[userId].FullName()
 		},
 		"GetPageUrl": func(pageId string) string {
-			return fmt.Sprintf("%s/p/%s/"+pageMap[pageId].Alias, sessions.GetDomainForTestEmail(), pageId)
+			return fmt.Sprintf("%s/p/%s/"+handlerData.PageMap[pageId].Alias, sessions.GetDomainForTestEmail(), pageId)
 		},
 		"GetPageTitle": func(pageId string) string {
-			return pageMap[pageId].Title
+			return handlerData.PageMap[pageId].Title
 		},
 		"RelativeDateTime": func(date string) string {
 			t, err := time.Parse(database.TimeLayout, date)

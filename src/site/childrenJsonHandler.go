@@ -21,7 +21,6 @@ var childrenHandler = siteHandler{
 // childrenJsonHandler handles requests to create a new page.
 func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
 	// Decode data
 	var data childrenJsonData
@@ -33,7 +32,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Need a valid parentId", err)
 	}
 
-	returnData := newHandlerData(false)
+	returnData := core.NewHandlerData(params.U, false)
 
 	// Load the children.
 	loadOptions := (&core.PageLoadOptions{
@@ -42,12 +41,12 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 		RedLinkCountForChildren: true,
 	}).Add(core.TitlePlusLoadOptions)
 	core.AddPageToMap(data.ParentId, returnData.PageMap, loadOptions)
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 	// Remove parent, since we only want to return children.
 	delete(returnData.PageMap, data.ParentId)
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

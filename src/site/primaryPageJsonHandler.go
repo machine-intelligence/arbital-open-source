@@ -25,7 +25,6 @@ var primaryPageHandler = siteHandler{
 // primaryPageJsonHandler handles the request.
 func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
 	// Decode data
 	var data primaryPageJsonData
@@ -45,13 +44,12 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

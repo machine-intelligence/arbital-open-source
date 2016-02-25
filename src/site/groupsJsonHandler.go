@@ -21,8 +21,7 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 
 	// Load the groups and members
 	rows := database.NewQuery(`
@@ -58,10 +57,10 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

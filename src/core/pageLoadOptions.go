@@ -56,6 +56,7 @@ type PageLoadOptions struct {
 
 	// Options for what data to load after the page's data has been loaded
 	NextPrevIds bool
+	PageObjects bool
 }
 
 // Here we define some commonly used loadOptions templates.
@@ -112,6 +113,7 @@ var (
 		SubscriberCount: true,
 		IsSubscribed:    true,
 		Text:            true,
+		PageObjects:     true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info for an intrasite link popover
 	IntrasitePopoverLoadOptions = (&PageLoadOptions{

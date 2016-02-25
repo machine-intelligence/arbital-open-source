@@ -21,7 +21,6 @@ var userPopoverHandler = siteHandler{
 // userPopoverJsonHandler handles the request.
 func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
 	// Decode data
 	var data userPopoverJsonData
@@ -32,14 +31,14 @@ func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	returnData := newHandlerData(false)
+	returnData := core.NewHandlerData(params.U, false)
 	core.AddUserToMap(data.UserId, returnData.UserMap)
 	// This page is the user page, this will load user summary
 	core.AddPageToMap(data.UserId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

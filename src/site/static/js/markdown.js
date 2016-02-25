@@ -30,7 +30,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 	var failedPageAliases = {};
 
 	// Pass in a pageId to create an editor for that page
-	var createConverter = function(pageId, postConversionCallback) {
+	var createConverter = function(isEditor, pageId, postConversionCallback) {
 		// NOTE: not using $location, because we need port number
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
@@ -39,7 +39,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		var summaryBlockRegexp = new RegExp("^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(summaryBlockRegexp, function (whole, summaryName, summary) {
-				if (pageId) {
+				if (isEditor) {
 					return runBlockGamut("---\n\n**Summary" + (summaryName || "") + ":** " + summary + "\n\n---");
 				} else {
 					return runBlockGamut("");
@@ -52,7 +52,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function (whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return "<div ng-if='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" +
+				return "<div ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" +
 						runBlockGamut(markdown) + "</div>";
 			});
 		});
@@ -62,7 +62,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function (whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return "<div ng-if='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" +
+				return "<div ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" +
 						runBlockGamut(markdown) + "</div>";
 			});
 		});
@@ -83,12 +83,12 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process [multiple-choice: text
+		// Process [multiple-choice(objectAlias): text
 		// a: text
 		// knows: [alias1],[alias2]...
 		// wants: [alias1],[alias2]...
 		// ] blocks.
-		var mcBlockRegexp = new RegExp("^\\[multiple-choice: ?([^\n]+?)\n" +
+		var mcBlockRegexp = new RegExp("^\\[multiple-choice\\(" + aliasMatch + "\\): ?([^\n]+?)\n" +
 				"(a: ?[^\n]+?\n)" + // choice, e.g. "a: Carrots"
 				"(knows: ?[^\n]+?\n)?" +
 				"(wants: ?[^\n]+?\n)?" +
@@ -119,11 +119,11 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			return text.replace(mcBlockRegexp, function () {
 				var result = [];
 				// Process captured groups
-				for (var n = 1; n < arguments.length; n++) {
+				for (var n = 2; n < arguments.length; n++) {
 					var arg = arguments[n];
 					if (+arg) break; // there are extra arguments that we don't need, starting with some number
 					if (!arg) continue;
-					if (n == 1) { // question text
+					if (n == 2) { // question text
 						result.push(arg + "\n\n");
 					} else {
 						// Match answer line
@@ -135,7 +135,8 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 						result.push(" - " + arg);
 					}
 				}
-				return "<arb-multiple-choice>" + runBlockGamut(result.join("")) + "\n\n</arb-multiple-choice>";
+				return "<arb-multiple-choice page-id='" + pageId + "' object-alias='" + arguments[1] + "'>" +
+					runBlockGamut(result.join("")) + "\n\n</arb-multiple-choice>";
 			});
 		});
 
@@ -159,7 +160,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(hasReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return prefix + "<span ng-if='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + markdown + "</span>";
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.hasMastery(\"" + pageId + "\")'>" + markdown + "</span>";
 			});
 		});
 
@@ -168,7 +169,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		converter.hooks.chain("preSpanGamut", function (text, run) {
 			return text.replace(wantsReqSpanRegexp, function (whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return prefix + "<span ng-if='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + markdown + "</span>";
+				return prefix + "<span ng-show='" + (not ? "!" : "") + "pageService.wantsMastery(\"" + pageId + "\")'>" + markdown + "</span>";
 			});
 		});
 
@@ -268,7 +269,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		if (pageId) {
+		if (isEditor) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId);
 			if (!userService.user.ignoreMathjax) {
@@ -389,13 +390,13 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		});
 	};
 
-	this.createConverter = function() {
-		return createConverter();
+	this.createConverter = function(pageId) {
+		return createConverter(false, pageId);
 	};
 
 	this.createEditConverter = function(pageId, postConversionCallback) {
 		failedPageAliases = {};
-		return createConverter(pageId, postConversionCallback);
+		return createConverter(true, pageId, postConversionCallback);
 	};
 });
 
@@ -419,7 +420,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			});
 
 			// Convert page text to html.
-			var converter = markdownService.createConverter();
+			var converter = markdownService.createConverter(scope.pageId);
 			var html = scope.page.text;
 			if (scope.page.anchorText) {
 				html = ">" + scope.page.anchorText + "\n\n" + html;

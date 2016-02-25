@@ -415,6 +415,9 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 .one-line * + * {
   display: none; }
 
+.comma {
+  margin-left: -3px; }
+
 md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
   color: white; }
   md-toolbar a:not(.md-button):hover, md-toolbar a[page-id]:not(.md-button):hover, md-toolbar a[user-id]:not(.md-button):hover {
@@ -535,14 +538,21 @@ arb-likes, .likes-in-autocomplete {
 [arb-page-list] {
   margin-bottom: 4vw; }
 
+.small-button {
+  padding: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  margin-right: 5px !important; }
+
 arb-requisite-button, [arb-requisite-button] {
   white-space: nowrap; }
   arb-requisite-button .md-button, [arb-requisite-button] .md-button {
-    padding: 0;
-    width: 20px;
-    height: 20px;
-    min-height: 20px;
-    margin-right: 5px; }
+    padding: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-height: 20px !important;
+    margin-right: 5px !important; }
 
 .lens-menu {
   padding: 5px 0; }

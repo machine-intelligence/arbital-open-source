@@ -21,7 +21,6 @@ var parentsHandler = siteHandler{
 // parentsJsonHandler handles the request.
 func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
 	// Decode data
 	var data parentsJsonData
@@ -34,18 +33,18 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the parents
-	returnData := newHandlerData(false)
+	returnData := core.NewHandlerData(params.U, false)
 
 	loadOptions := (&core.PageLoadOptions{
 		Parents: true,
 	}).Add(core.TitlePlusLoadOptions)
 	core.AddPageToMap(data.ChildId, returnData.PageMap, loadOptions)
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load pages", err)
 	}
 	// Remove the child, since we only want to return parents.
 	delete(returnData.PageMap, data.ChildId)
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

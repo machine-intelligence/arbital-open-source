@@ -224,6 +224,66 @@ type Mastery struct {
 	UpdatedAt string `json:"updatedAt"`
 }
 
+// PageObject stores some information for an object embedded in a page
+type PageObject struct {
+	PageId string `json:"pageId"`
+	Edit   int    `json:"edit"`
+	Object string `json:"object"`
+	Value  string `json:"value"`
+}
+
+// CommonHandlerData is what handlers fill out and return
+type CommonHandlerData struct {
+	// If set, then this packet should reset everything on the FE
+	ResetEverything bool
+	// Optional user object with the current user's data
+	User *user.User
+	// Map of page id -> currently live version of the page
+	PageMap map[string]*Page
+	// Map of page id -> some edit of the page
+	EditMap    map[string]*Page
+	UserMap    map[string]*User
+	MasteryMap map[string]*Mastery
+	// Page id -> {object alias -> object}
+	PageObjectMap map[string]map[string]*PageObject
+	// ResultMap contains various data the specific handler returns
+	ResultMap map[string]interface{}
+}
+
+// NewHandlerData creates and initializes a new commonHandlerData object.
+func NewHandlerData(u *user.User, resetEverything bool) *CommonHandlerData {
+	var data CommonHandlerData
+	data.User = u
+	data.ResetEverything = resetEverything
+	data.PageMap = make(map[string]*Page)
+	data.EditMap = make(map[string]*Page)
+	data.UserMap = make(map[string]*User)
+	data.MasteryMap = make(map[string]*Mastery)
+	data.PageObjectMap = make(map[string]map[string]*PageObject)
+	data.ResultMap = make(map[string]interface{})
+	return &data
+}
+
+// ToJson puts together the data into one "json" object, so we
+// can send it to the front-end.
+func (data *CommonHandlerData) ToJson() map[string]interface{} {
+	jsonData := make(map[string]interface{})
+
+	jsonData["resetEverything"] = data.ResetEverything
+
+	if data.User != nil {
+		jsonData["user"] = data.User
+	}
+
+	jsonData["pages"] = data.PageMap
+	jsonData["edits"] = data.EditMap
+	jsonData["users"] = data.UserMap
+	jsonData["masteries"] = data.MasteryMap
+	jsonData["pageObjects"] = data.PageObjectMap
+	jsonData["result"] = data.ResultMap
+	return jsonData
+}
+
 // LoadDataOption is used to set some simple loading options for loading functions
 type LoadDataOptions struct {
 	// If set, we'll only load links for the pages with these ids
@@ -232,7 +292,12 @@ type LoadDataOptions struct {
 
 // ExecuteLoadPipeline runs the pages in the pageMap through the pipeline to load
 // all the data they need.
-func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[string]*Page, userMap map[string]*User, masteryMap map[string]*Mastery) error {
+func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
+	u := data.User
+	pageMap := data.PageMap
+	userMap := data.UserMap
+	masteryMap := data.MasteryMap
+	pageObjectMap := data.PageObjectMap
 
 	// Load answers
 	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Answers })
@@ -482,6 +547,13 @@ func ExecuteLoadPipeline(db *database.DB, u *user.User, pageMap map[string]*Page
 		return fmt.Errorf("LoadNextPrevPageIds failed: %v", err)
 	}*/
 
+	// Load page objects
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.PageObjects })
+	err = LoadPageObjects(db, u, filteredPageMap, pageObjectMap)
+	if err != nil {
+		return fmt.Errorf("LoadPageObject failed: %v", err)
+	}
+
 	// Add pages that need a corresponding mastery to the masteryMap
 	for _, p := range pageMap {
 		if p.LoadOptions.Mastery {
@@ -544,6 +616,33 @@ func LoadMasteries(db *database.DB, userId string, masteryMap map[string]*Master
 			return fmt.Errorf("failed to scan for mastery: %v", err)
 		}
 		masteryMap[mastery.PageId] = &mastery
+		return nil
+	})
+	return err
+}
+
+// LoadPageObjects loads all the page objects necessary for the given pages.
+func LoadPageObjects(db *database.DB, user *user.User, pageMap map[string]*Page, pageObjectMap map[string]map[string]*PageObject) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT pageId,edit,object,value
+		FROM userPageObjectPairs
+		WHERE userId=?`, user.Id).Add(`AND pageId IN `).AddArgsGroup(pageIds).Add(`
+		`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var obj PageObject
+		err := rows.Scan(&obj.PageId, &obj.Edit, &obj.Object, &obj.Value)
+		if err != nil {
+			return fmt.Errorf("failed to scan for user: %v", err)
+		}
+		if _, ok := pageObjectMap[obj.PageId]; !ok {
+			pageObjectMap[obj.PageId] = make(map[string]*PageObject)
+		}
+		pageObjectMap[obj.PageId][obj.Object] = &obj
 		return nil
 	})
 	return err

@@ -79,7 +79,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 
 	// Remove the primary page from the pageMap and add it to the editMap
-	returnData := newHandlerData(false)
+	returnData := core.NewHandlerData(params.U, false)
 	returnData.EditMap[pageId] = p
 	delete(returnData.PageMap, pageId)
 
@@ -92,7 +92,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
@@ -128,5 +128,5 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		}
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

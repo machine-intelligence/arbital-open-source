@@ -263,9 +263,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			data.AnchorText == oldPage.AnchorText &&
 			data.AnchorOffset == oldPage.AnchorOffset {
 
-			returnData := newHandlerData(false)
+			returnData := core.NewHandlerData(params.U, false)
 			returnData.ResultMap["aliasWarnings"] = aliasWarningList
-			return pages.StatusOK(returnData.toJson())
+			return pages.StatusOK(returnData.ToJson())
 		}
 	}
 
@@ -532,7 +532,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	returnData := newHandlerData(false)
+	returnData := core.NewHandlerData(params.U, false)
 	returnData.ResultMap["aliasWarnings"] = aliasWarningList
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

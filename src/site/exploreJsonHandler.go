@@ -18,7 +18,6 @@ var exploreHandler = siteHandler{
 }
 
 func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
-	u := params.U
 	db := params.DB
 
 	// Decode data
@@ -47,8 +46,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("No domain specified", nil)
 	}
 
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 	returnData.ResultMap["rootPageId"] = domainId
 
 	// Load the root page
@@ -61,10 +59,10 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap(domainId, returnData.PageMap, loadOptions)
 
 	// Load pages.
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

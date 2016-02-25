@@ -19,8 +19,7 @@ func domainsPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 
 	var err error
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 
 	// Load the domains
 	err = core.LoadDomainIds(db, u, nil, returnData.PageMap)
@@ -29,10 +28,10 @@ func domainsPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages.
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

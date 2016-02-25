@@ -26,15 +26,29 @@
 		<!-- Tree view -->
 		<div layout-padding ng-if="showTreeView">
 			<div>
-				This is the requisite tree Arbital generate for learning <arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>:
+				This is the requisite tree Arbital generated for learning
+				<span ng-repeat="(index,pageId) in pageIds">
+					<span class="comma" ng-if="::index > 0 && index != pageIds.length - 1">,</span>
+					<span ng-if="::index > 0 && index == pageIds.length - 1">and</span>
+					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+				</span>
+				:
 			</div>
-			<div arb-learn-part></div>
+			<div class="root-learn-part" arb-learn-part ng-repeat="pageId in pageIds"></div>
 		</div>
 
 		<!-- List view -->
-		<div layout-padding ng-if="!showTreeView">
+		<div layout-padding ng-if="!showTreeView && readIds.length > 0">
 			<div>
-				To learn about <arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>, Arbital dynamically generated this list based on your <a href="/requisites/">requisites</a>:
+				To learn about
+				<span ng-repeat="(index,pageId) in pageIds">
+					<span class="comma" ng-if="::index > 0 && index != pageIds.length - 1">,</span>
+					<span ng-if="::index > 0 && index == pageIds.length - 1">and</span>
+					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+				</span>
+				<span class="comma">
+					, Arbital dynamically generated this list based on your <a href="/requisites/">requisites</a>:
+				</span>
 			</div>
 			<div class="learn-list">
 				<div layout="row" layout-align="start center" ng-repeat="(index,pageId) in ::readIds">
@@ -55,19 +69,19 @@
 
 		<!-- Start reading and stuff -->
 		<div layout-padding>
-			<div layout="column" ng-if="::!pageService.hasMastery(pageId)">
+			<div layout="column" ng-if="readIds.length > 0">
 				<md-button class="special md-raised" ng-click="startReading()">
 					Begin learning
 					<md-icon>chevron_right</md-icon>
 				</md-button>
 			</div>
-			<div ng-if="::pageService.hasMastery(pageId)">
+			<div ng-if="readIds.length <= 0">
 				Looks like you are done.
 			</div>
 		</div>
 
 		<!-- Show a warning if there are requisites the user can't learn. -->
-		<div layout-padding ng-if="!showTreeView && !pageService.hasMastery(pageId)">
+		<div layout-padding ng-if="!showTreeView && readIds.length > 0">
 			<div ng-if="hasUnlearnableIds">
 				<md-icon class="md-warn">
 					warning
@@ -81,9 +95,9 @@
 					<arb-page-title page-id="{{::pageId}}"
 							is-link="true"
 							show-clickbait="true"></arb-page-title>
-					<span>It's required by:</span>
+					<span ng-if="::idsList.length > 0">It's required by:</span>
 					<span ng-repeat="(index, byPageId) in idsList">
-						<span ng-show="::(index > 0)">,</span>
+						<span class="comma" ng-show="::(index > 0)">,</span>
 						<arb-page-title page-id="{{::byPageId}}" is-link="true"></arb-page-title>
 					</span>
 				</div>

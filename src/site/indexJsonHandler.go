@@ -21,10 +21,8 @@ var indexHandler = siteHandler{
 
 func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	u := params.U
 
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 
 	// Manually load some pages we like
 	featuredDomains := make([]*featuredDomain, 0)
@@ -68,11 +66,11 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap("1k0", returnData.PageMap, core.PrimaryPageLoadOptions)
 
 	// Load pages.
-	err := core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err := core.ExecuteLoadPipeline(db, returnData)
 
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

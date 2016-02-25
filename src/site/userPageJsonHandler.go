@@ -37,8 +37,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Need a valid user Id", nil)
 	}
 
-	returnData := newHandlerData(true)
-	returnData.User = u
+	returnData := core.NewHandlerData(params.U, true)
 
 	// Options to load the pages with
 	pageOptions := (&core.PageLoadOptions{
@@ -113,10 +112,10 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load pages.
 	core.AddPageToMap(data.UserId, returnData.PageMap, core.PrimaryPageLoadOptions)
 	returnData.UserMap[data.UserId] = &core.User{Id: data.UserId}
-	err = core.ExecuteLoadPipeline(db, u, returnData.PageMap, returnData.UserMap, returnData.MasteryMap)
+	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.toJson())
+	return pages.StatusOK(returnData.ToJson())
 }

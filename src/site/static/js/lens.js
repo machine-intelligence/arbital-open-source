@@ -113,10 +113,15 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				}
 			};
 
+			var primaryPage = pageService.pageMap[$scope.lensParentId];
+			var simplestLensId = primaryPage.lensIds[primaryPage.lensIds.length - 1];
+			$scope.isSimplestLens = $scope.page.pageId === simplestLensId;
+
+			$scope.isLearning = !!$location.search().learn;
+
 			// Compute simpler lens id if necessary
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;
-				var primaryPage = pageService.pageMap[$scope.lensParentId];
 				for (var n = $scope.page.lensIndex - 1; n >= 0; n--) {
 					var lens = pageService.pageMap[primaryPage.lensIds[n]];
 					if ($scope.meetsAllRequirements(lens.pageId)) {
@@ -124,15 +129,30 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 						break;
 					}
 				}
-				var simplestIndex = primaryPage.lensIds.length - 1;
-				if (!simplerLensId && primaryPage.lensIds[simplestIndex] !== $scope.page.pageId) {
+				if (!simplerLensId && !$scope.isSimplestLens) {
 					// We haven't found a lens for which we've met all requirements, so just suggest the simplest lens
-					simplerLensId = primaryPage.lensIds[simplestIndex];
+					simplerLensId = simplestLensId;
 				}
 				if (simplerLensId) {
 					$scope.simplerLens = pageService.pageMap[simplerLensId];
 				}
 			}
+
+			$scope.getToggleSubjectsText = function() {
+				if ($scope.knowsAllSubjects()) {
+					if ($scope.page.subjectIds.length > 1) {
+						return "Nevermind, none of them";
+					} else {
+						return "Nevermind, I didn't get it";
+					}
+				} else {
+					if ($scope.page.subjectIds.length > 1) {
+						return "Yes, all of them";
+					} else {
+						return "Yes, I got it";
+					}
+				}
+			};
 		},
 		link: function(scope, element, attrs) {
 			if (scope.isSimpleEmbed) return;

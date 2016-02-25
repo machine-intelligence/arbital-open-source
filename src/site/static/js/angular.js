@@ -93,7 +93,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,
 	})
-	.when("/learn/:pageId", {
+	.when("/learn/:pageAlias?", {
  		template: "",
  		controller: "LearnController",
  		reloadOnSearch: false,
@@ -305,7 +305,7 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 			return {
 				title: pageService.pageMap[$scope.subdomain].title + " - Private Domain",
 				element: $compile("<arb-group-index group-id='" + data.result.domainId +
-					"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+					"' ids-map='::indexPageIdsMap'></arb-group-index>")($scope),
 			};
 		}))
 		.error($scope.getErrorFunc("privateIndex"));
@@ -316,7 +316,7 @@ app.controller("IndexPageController", function ($scope, $routeParams, $http, $co
 			$scope.featuredDomains = data.result.featuredDomains;
 			return {
 				title: "",
-				element: $compile("<arb-index featured-domains='featuredDomains'></arb-index>")($scope),
+				element: $compile("<arb-index featured-domains='::featuredDomains'></arb-index>")($scope),
 			};
 		}))
 		.error($scope.getErrorFunc("index"));
@@ -336,7 +336,7 @@ app.controller("DomainPageController", function ($scope, $routeParams, $http, $c
 		return {
 			title: pageService.pageMap[groupId].title,
 			element: $compile("<arb-group-index group-id='" + groupId +
-				"' ids-map='indexPageIdsMap'></arb-group-index>")($scope),
+				"' ids-map='::indexPageIdsMap'></arb-group-index>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("domainPage"));
@@ -415,21 +415,43 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 app.controller("LearnController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
-		pageId: $routeParams.pageId,
+		pageAliases: [],
 	};
+	if ($routeParams.pageAlias) {
+		postData.pageAliases.push($routeParams.pageAlias);
+	} else if ($location.search().path) {
+		postData.pageAliases = postData.pageAliases.concat($location.search().path.split(","));
+	} else {
+		$(".global-error").text("Invalid learn URL").show();
+		return;
+	}
 	$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
-		var page = pageService.pageMap[postData.pageId];
-		if (!page) {
-			return {
-				title: "Not Found",
-				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
-			};
+		var primaryPage = undefined;
+		if ($routeParams.pageAlias) {
+			primaryPage = pageService.pageMap[$routeParams.pageAlias];
+			if (!primaryPage) {
+				return {
+					title: "Not Found",
+					error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
+				};
+			}
 		}
-		$scope.learnMap = data.result.learnMap;
+		// Convert all aliases to ids
+		$scope.pageIds = [];
+		for (var n = 0; n < postData.pageAliases.length; n++) {
+			var page = pageService.pageMap[postData.pageAliases[n]];
+			if (page) {
+				$scope.pageIds.push(page.pageId);
+			}
+		}
+		$scope.tutorMap = data.result.tutorMap;
+		$scope.requirementMap = data.result.requirementMap;
 		return {
-			title: "Learn " + page.title,
-			element: $compile("<arb-learn-page page-id='" + page.pageId + "' learn-map='::learnMap'></arb-learn-page>")($scope),
+			title: "Learn " + (primaryPage ? primaryPage.title : ""),
+			element: $compile("<arb-learn-page page-ids='::pageIds'" +
+				" tutor-map='::tutorMap' requirement-map='::requirementMap'" +
+				"></arb-learn-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("primaryPage"));
@@ -510,7 +532,7 @@ app.controller("UserPageController", function ($scope, $routeParams, $http, $com
 		$scope.userPageIdsMap = data.result;
 		return {
 			title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='userPageIdsMap'></arb-user-page>")($scope),
+			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("User"));
@@ -524,7 +546,7 @@ app.controller("DashboardPageController", function ($scope, $routeParams, $http,
 		$scope.dashboardPageIdsMap = data.result;
 		return {
 			title: "Your dashboard",
-			element: $compile("<arb-dashboard-page ids-map='dashboardPageIdsMap'></arb-dashboard-page>")($scope),
+			element: $compile("<arb-dashboard-page ids-map='::dashboardPageIdsMap'></arb-dashboard-page>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("User"));
@@ -538,7 +560,7 @@ app.controller("UpdatesPageController", function ($scope, $routeParams, $http, $
 		$scope.updateGroups = data.result.updateGroups;
 		return {
 			title: "Updates",
-			element: $compile("<arb-updates update-groups='updateGroups'></arb-updates>")($scope),
+			element: $compile("<arb-updates update-groups='::updateGroups'></arb-updates>")($scope),
 		};
 	}))
 	.error($scope.getErrorFunc("Updates"));
