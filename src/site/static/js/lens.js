@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive to show a lens' content
-app.directive("arbLens", function($compile, $timeout, $interval, $mdMedia, pageService, userService) {
+app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: "static/html/lens.html",
 		scope: {
@@ -106,10 +106,16 @@ app.directive("arbLens", function($compile, $timeout, $interval, $mdMedia, pageS
 
 			// Toggle all subjects
 			$scope.toggleSubjects = function(continuePath) {
+				var callback = $scope.pagesUnlocked;
+				if (continuePath) {
+					callback = function() {
+						$location.url(pageService.getPageUrl(pageService.path.nextPageId));
+					};
+				}
 				if ($scope.knowsAllSubjects()) {
-					pageService.updateMasteryMap({delete: $scope.subjectIds, callback: $scope.pagesUnlocked});
+					pageService.updateMasteryMap({delete: $scope.subjectIds, callback: callback});
 				} else {
-					pageService.updateMasteryMap({knows: $scope.subjectIds, callback: $scope.pagesUnlocked});
+					pageService.updateMasteryMap({knows: $scope.subjectIds, callback: callback});
 				}
 			};
 
