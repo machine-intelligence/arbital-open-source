@@ -39,6 +39,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	//		wants: set these masteries to "wants"
 	//		knows: set these masteries to "knows"
 	//		skipPush: if set, don't push the changes to the server
+	//		callback: optional callback function
 	// }
 	this.updateMasteryMap = function(options) {
 		var affectedMasteryIds = [];
@@ -79,12 +80,12 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			}
 		}
 		if (!options.skipPush) {
-			this.pushMasteriesToServer(affectedMasteryIds);
+			this.pushMasteriesToServer(affectedMasteryIds, options.callback);
 		}
 	};
 
 	// Compute the status of the given masteries and update the server
-	this.pushMasteriesToServer = function(affectedMasteryIds) {
+	this.pushMasteriesToServer = function(affectedMasteryIds, callback) {
 		var addMasteries = [], delMasteries = [], wantsMasteries = [];
 		for (var n = 0; n < affectedMasteryIds.length; n++) {
 			var masteryId = affectedMasteryIds[n];
@@ -103,8 +104,16 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 				removeMasteries: delMasteries,
 				wantsMasteries: wantsMasteries,
 				addMasteries: addMasteries,
+				computeUnlocked: !!callback, // hacky
 			};
 			$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
+			.success(function(data) {
+				if (callback) {
+					userService.processServerData(data);
+					that.processServerData(data);
+					callback(data);
+				}
+			})
 			.error(function(data, status){
 				console.error("Failed to change masteries:"); console.log(data); console.log(status);
 			});

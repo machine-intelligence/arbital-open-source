@@ -89,7 +89,7 @@
 					<md-icon>assignment</md-icon>
 					Did you learn these concepts from "{{::page.title}}"?
 				</span>
-				<div arb-mastery-list ids-source="::subjectIds"></div>
+				<div arb-mastery-list ids-source="::subjectIds" unlocked-fn="pagesUnlocked(result)"></div>
 	
 				<!-- Mark as done button -->
 				<md-button class="special md-raised"
@@ -102,6 +102,15 @@
 			<div flex></div>
 
 			<arb-next-prev page-id="{{::lensParentId}}" extra-info="true"></arb-next-prev>
+		</div>
+
+		<!-- You can now read... -->
+		<div ng-if="unlockedIds">
+			Now you have all the requirements for:
+			<span ng-repeat="(index, unlockedId) in unlockedIds">
+				<span class="comma" ng-if="index > 0">,</span>
+				<arb-page-title page-id="{{::unlockedId}}" is-link="true"></arb-page-title>
+			</span>
 		</div>
 	</div>
 

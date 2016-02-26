@@ -492,23 +492,32 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 			allowWants: "=",
 			// If true, clicking the checkbox won't close the menu this button is in
 			preventMenuClose: "=",
+			// Optional callback function for when we change the mastery.
+			unlockedFn: "&",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
+			var unlockedCallback = undefined;
+			if ($scope.unlockedFn) {
+				unlockedCallback = function(data) {
+					$scope.unlockedFn({result: data});
+				};
+			}
+
 			// Toggle whether or not the user has a mastery
 			$scope.toggleRequirement = function() {
 				if (pageService.hasMastery($scope.requisiteId)) {
 					if ($scope.allowWants) {
-						pageService.updateMasteryMap({wants: [$scope.requisiteId]});
+						pageService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
 					} else {
-						pageService.updateMasteryMap({delete: [$scope.requisiteId]});
+						pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
 					}
 				} else if (pageService.wantsMastery($scope.requisiteId)) {
-					pageService.updateMasteryMap({delete: [$scope.requisiteId]});
+					pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
 				} else {
-					pageService.updateMasteryMap({knows: [$scope.requisiteId]});
+					pageService.updateMasteryMap({knows: [$scope.requisiteId], callback: unlockedCallback});
 				}
 			};
 		},
