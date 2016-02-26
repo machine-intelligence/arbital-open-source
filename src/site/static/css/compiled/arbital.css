@@ -234,7 +234,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-groups-page > .capped-body-width {
     max-width: 900px; }
   arb-requisites-page > .capped-body-width {
-    max-width: 560px; }
+    max-width: 900px; }
   arb-learn-page > .capped-body-width {
     max-width: 900px; }
   arb-settings-page > .capped-body-width {
@@ -538,21 +538,24 @@ arb-likes, .likes-in-autocomplete {
 [arb-page-list] {
   margin-bottom: 4vw; }
 
+arb-page-title, [arb-page-title] {
+  line-height: normal; }
+
 .small-button {
   padding: 0 !important;
   width: 20px !important;
   height: 20px !important;
+  min-width: 20px !important;
   min-height: 20px !important;
   margin-right: 5px !important; }
 
-arb-requisite-button, [arb-requisite-button] {
-  white-space: nowrap; }
-  arb-requisite-button .md-button, [arb-requisite-button] .md-button {
-    padding: 0 !important;
-    width: 20px !important;
-    height: 20px !important;
-    min-height: 20px !important;
-    margin-right: 5px !important; }
+arb-requisite-button .md-button, [arb-requisite-button] .md-button {
+  min-width: 40px; }
+
+.mastery-list-vertical {
+  margin-bottom: 10px; }
+  .mastery-list-vertical > * {
+    margin: 5px 0; }
 
 .lens-menu {
   padding: 5px 0; }

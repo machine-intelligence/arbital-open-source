@@ -1,9 +1,10 @@
-<div layout="column" layout-margin ng-if="::!isSpan">
+<div class="mastery-list-vertical" layout="column" ng-if="::!isSpan">
 	<!-- List of masteries -->
 	<div arb-requisite-button
 			requisite-id="{{::masteryId}}"
 			allow-wants="::allowWants"
 			hide-checkbox="hideCheckboxes"
+			show-clickbait="::showClickbait"
 			unlocked-fn="pageUnlocked(result)"
 			ng-repeat="masteryId in ::idsSource">
 	</div>

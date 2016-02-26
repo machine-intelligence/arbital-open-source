@@ -301,7 +301,7 @@ arb-markdown, [arb-markdown], .preview-area {
 		max-width: 900px;
 	}
 	arb-requisites-page > & {
-		max-width: 560px;
+		max-width: 900px;
 	}
 	arb-learn-page > & {
 		max-width: 900px;
@@ -790,10 +790,15 @@ arb-likes, .likes-in-autocomplete {
 	margin-bottom: 4vw;
 }
 
+arb-page-title, [arb-page-title] {
+	line-height: normal;
+}
+
 @mixin small-button {
 	padding: 0 !important;
 	width: 20px !important;
 	height: 20px !important;
+	min-width: 20px !important;
 	min-height: 20px !important;
 	margin-right: 5px !important;
 }
@@ -803,10 +808,17 @@ arb-likes, .likes-in-autocomplete {
 }
 
 arb-requisite-button, [arb-requisite-button] {
-	white-space: nowrap;
-
 	.md-button {
-		@include small-button;
+		min-width: 40px;
+		//@include small-button;
+	}
+}
+
+.mastery-list-vertical {
+	margin-bottom: 10px;
+
+	& > * {
+		margin: 5px 0;
 	}
 }
 

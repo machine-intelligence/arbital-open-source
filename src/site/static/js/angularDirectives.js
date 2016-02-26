@@ -496,6 +496,8 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 			hideTitle: "=",
 			// If true, allow the user to toggle into a "want" state
 			allowWants: "=",
+			// If true, show requisite's clickbait
+			showClickbait: "=",
 			// If true, clicking the checkbox won't close the menu this button is in
 			preventMenuClose: "=",
 			// Optional callback function for when we change the mastery.
