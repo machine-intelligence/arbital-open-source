@@ -65,7 +65,7 @@ app.directive("arbPage", function ($ngSilentLocation, $location, $compile, $time
 				// NOTE: this also gets called when the user clicks on a link to go to another page,
 				// but in that case we don't want to do anything.
 				// TODO: create a better workaround
-				if ($location.path().indexOf($scope.pageId) >= 0) {
+				if ($location.path().indexOf($scope.pageId) >= 0 || $location.path().indexOf($scope.page.alias) >= 0) {
 					computeSelectedLens();
 				}
 			});

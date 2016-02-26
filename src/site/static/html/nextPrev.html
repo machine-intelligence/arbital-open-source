@@ -1,6 +1,8 @@
 <!-- Prev/Next -->
-<div class="next-prev-nav"
-		ng-class="::{'md-whiteframe-1dp': !extraInfo}"
+<div layout="row"
+		layout-align="start center"
+		class="next-prev-nav"
+		ng-class="::{'md-whiteframe-1dp': whiteframe}"
 		ng-if="pageService.path">
 
 	<!-- Show this when the user is on path. -->
@@ -22,7 +24,7 @@
 		</md-button>
 		<md-button ng-href="{{pageService.getPageUrl(pageService.path.nextPageId)}}"
 				class="intrasite-link special"
-				ng-class="::{'md-raised': extraInfo}"
+				ng-class="{'md-raised': extraInfo}"
 				page-id="{{pageService.path.nextPageId}}"
 				ng-disabled="!pageService.path.nextPageId"
 				ng-if="pageService.path.nextPageId">

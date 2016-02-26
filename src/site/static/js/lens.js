@@ -105,7 +105,7 @@ app.directive("arbLens", function($compile, $timeout, $interval, $mdMedia, pageS
 			};
 
 			// Toggle all subjects
-			$scope.toggleSubjects = function() {
+			$scope.toggleSubjects = function(continuePath) {
 				if ($scope.knowsAllSubjects()) {
 					pageService.updateMasteryMap({delete: $scope.subjectIds, callback: $scope.pagesUnlocked});
 				} else {
@@ -152,8 +152,15 @@ app.directive("arbLens", function($compile, $timeout, $interval, $mdMedia, pageS
 				}
 			};
 
+			// Check if the user can use the "yup, i got everything, let's continue" button.
+			$scope.canQuickContinue = true;
+			$scope.showQuickContinue = function() {
+				return $scope.canQuickContinue && pageService.path && pageService.path.onPath;
+			};
+
 			// Called when the user unlocked some pages by acquiring requisites.
 			$scope.pagesUnlocked = function(data) {
+				$scope.canQuickContinue = false;
 				$scope.unlockedIds = data && data.result && data.result.unlockedIds;
 			};
 		},

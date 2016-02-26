@@ -96,15 +96,25 @@
 	
 				<!-- Mark as done button -->
 				<md-button class="special md-raised"
-						ng-click="toggleSubjects()"
-						aria-label="Toggle subjects">
+						ng-click="toggleSubjects(false)"
+						aria-label="Toggle subjects"
+						ng-if="!showQuickContinue()">
 					<span ng-bind="getToggleSubjectsText()"></span>
+				</md-button>
+				<!-- Mark as done button AND continue -->
+				<md-button class="special md-raised"
+						ng-click="toggleSubjects(true)"
+						aria-label="Toggle subjects"
+						ng-if="showQuickContinue()">
+					Yes, I've understood everything. Let's continue!
+					<md-icon>chevron_right</md-icon>
 				</md-button>
 			</div>
 
 			<div flex></div>
 
-			<arb-next-prev page-id="{{::lensParentId}}" extra-info="true"></arb-next-prev>
+			<arb-next-prev page-id="{{::lensParentId}}"
+					extra-info="!showQuickContinue()"></arb-next-prev>
 		</div>
 
 		<!-- You can now read... -->

@@ -540,6 +540,8 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 			pageId: "@",
 			// If true, show the expanded version of this directive
 			extraInfo: "=",
+			// If true, show the directive on a whiteframe
+			whiteframe: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
