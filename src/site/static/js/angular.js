@@ -88,7 +88,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
  		controller: "RedirectToPrimaryPageController",
  		reloadOnSearch: false,
  	})
-	.when("/p/:alias/:title?", {
+	.when("/p/:alias/:alias2?", {
 		template: "",
 		controller: "PrimaryPageController",
 		reloadOnSearch: false,

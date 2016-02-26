@@ -51,6 +51,8 @@ CREATE TABLE pageInfos (
 	/* If this page is a lens, this is its ordering index when sorting its parent's
 		lenses from most simple to most technical. */
 	lensIndex INT NOT NULL,
+	/* If true, this comment is meant for editors only. */
+	isEditorComment BOOL NOT NULL,
 
 	PRIMARY KEY(pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

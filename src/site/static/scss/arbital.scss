@@ -1084,6 +1084,7 @@ ins {
 
 .edit-page-footer {
 	margin: 0;
+	padding-left: 10px;
 }
 
 // Container for a editing a specific type of relationships
@@ -1151,7 +1152,7 @@ textarea {
 	border: $accent-color 1px solid;
 }
 
-[arb-subpage] + [arb-subpage] {
+.subpage-content {
 	margin-top: 20px;
 }
 

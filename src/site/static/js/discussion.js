@@ -34,6 +34,12 @@ app.directive("arbDiscussion", function($compile, $location, $timeout, pageServi
 					pageService.newCommentCreated(result.pageId);
 				}
 			};
+
+			// Track (globally) whether or not to show editor comments.
+			userService.showEditorComments = userService.user.id in $scope.page.creatorIds;
+			$scope.toggleEditorComments = function() {
+				userService.showEditorComments = !userService.showEditorComments;
+			};
 		},
 	};
 });

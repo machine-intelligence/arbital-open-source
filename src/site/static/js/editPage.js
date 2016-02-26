@@ -478,6 +478,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					sortChildrenBy: $scope.page.sortChildrenBy,
 					isRequisite: $scope.page.isRequisite,
 					indirectTeacher: $scope.page.indirectTeacher,
+					isEditorComment: $scope.page.isEditorComment,
 				};
 				$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
 				.success(function(data) {

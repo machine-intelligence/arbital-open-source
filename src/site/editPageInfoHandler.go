@@ -26,6 +26,7 @@ type editPageInfoData struct {
 	SortChildrenBy  string
 	IsRequisite     bool
 	IndirectTeacher bool
+	IsEditorComment bool
 }
 
 var editPageInfoHandler = siteHandler{
@@ -61,6 +62,11 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
 		oldPage = &core.Page{}
+	}
+
+	// Fix some data.
+	if data.Type == core.CommentPageType {
+		data.EditGroupId = u.Id
 	}
 
 	// Error checking.
@@ -179,6 +185,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
+		hashmap["isEditorComment"] = data.IsEditorComment
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		statement := tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {

@@ -277,10 +277,12 @@ app.directive("arbLens", function($compile, $timeout, $interval, $mdMedia, pageS
 			// Get the style of an inline comment icon
 			scope.getInlineCommentIconStyle = function(commentId) {
 				var params = scope.inlineComments[commentId];
+				var isVisible = element.closest(".reveal-after-render-parent").length <= 0;
+				isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments);
 				return {
 					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 					"top": params.anchorNode.offset().top - $newInlineCommentButton.height() / 2,
-					"visibility": element.closest(".reveal-after-render-parent").length > 0 ? "hidden" : "visible",
+					"visibility": isVisible ? "visible" : "hidden",
 				};
 			};
 

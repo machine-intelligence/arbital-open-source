@@ -216,3 +216,4 @@ CREATE TABLE userPageObjectPairs (
 
 	PRIMARY KEY(userId,pageId,object)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+alter table pageInfos add column isEditorComment bool not null;

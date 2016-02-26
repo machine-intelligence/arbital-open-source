@@ -690,7 +690,6 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		};
 		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)})
 		.success(function(data, status){
-			console.log("Successfully discarded " + pageId);
 			if(success) success(data, status);
 		})
 		.error(function(data, status){
@@ -787,6 +786,9 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	// Called when the user created a new comment.
 	this.newCommentCreated = function(commentId) {
 		var comment = this.editMap[commentId];
+		if (comment.isEditorComment) {
+			userService.showEditorComments = true;
+		}
 		comment.originalCreatedAt = moment().format("YYYY-MM-DD HH:mm:ss");
 		this.addPageToMap(comment);
 
@@ -800,7 +802,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		}
 
 		parent.subpageIds.push(commentId);
-		$location.hash("subpage-" + commentId);
+		$ngSilentLocation.silent(this.getPageUrl(commentId));
 	};
 
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
