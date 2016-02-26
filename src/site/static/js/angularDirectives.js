@@ -250,6 +250,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 			// Check if the data is loaded
 			$scope.isSubscribed = function() {
 				if (!$scope.isUser) {
+					if (!($scope.pageId in pageService.pageMap)) console.log($scope.pageId);
 					return pageService.pageMap[$scope.pageId].isSubscribed;
 				} else {
 					return userService.userMap[$scope.pageId].isSubscribed;
@@ -272,6 +273,11 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 					console.error("Error changing a subscription:"); console.log(data); console.log(status);
 				});
 			};
+		},
+		link: function(scope, element, attrs) {
+			if (!scope.page) {
+				console.log(element);
+			}
 		},
 	};
 });

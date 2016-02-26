@@ -105,7 +105,7 @@
 		</div>
 
 		<!-- You can now read... -->
-		<div ng-if="unlockedIds">
+		<div ng-if="unlockedIds && unlockedIds.length > 0">
 			Now you have all the requirements for:
 			<span ng-repeat="(index, unlockedId) in unlockedIds">
 				<span class="comma" ng-if="index > 0">,</span>
