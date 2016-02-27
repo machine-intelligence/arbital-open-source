@@ -84,7 +84,7 @@
 				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
 		<div layout="row" layout-align="start end">
 			<!-- Subjects taught -->
-			<div ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
+			<div flex="100" ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
 					Did you learn these concepts from "{{::page.title}}"?

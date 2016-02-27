@@ -237,7 +237,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				if (!comment.anchorContext || !comment.anchorText) return;
 
 				// Find the best paragraph
-				var bestParagraphNode, bestParagraphText, bestScore = Number.MAX_SAFE_INTEGER;
+				var bestParagraphNode, bestParagraphText, bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER;
 				if (!paragraphTexts) {
 					populateParagraphTexts();
 				}
