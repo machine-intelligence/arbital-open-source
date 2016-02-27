@@ -1,1 +1,4 @@
-<a ng-href="{{::userService.getUserUrl(user.id)}}" ng-bind="::userService.getFullName(user.id)" class="user-link" user-id="{{::user.id}}"></a>
+<a ng-href="{{::pageService.getUserUrl(user.id)}}"
+	class="user-link"
+	user-id="{{::user.id}}"
+	ng-bind="::userService.getFullName(user.id)"></a>

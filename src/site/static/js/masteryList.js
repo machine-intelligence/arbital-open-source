@@ -14,8 +14,12 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 			allowWants: "=",
 			// If true, recursively show requirements for each mastery
 			showRequirements: "=",
+			// If true, show clickbait for all the masteries
+			showClickbait: "=",
 			// If true, show the requirements on one line
 			isSpan: "=",
+			// Optional callback, which will receive results when pages are unlocked
+			unlockedFn: "&",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -36,6 +40,12 @@ app.directive("arbMasteryList", function($timeout, $http, pageService, userServi
 				if (result !== 0) return result;
 				return pageService.pageMap[a].title.localeCompare(pageService.pageMap[b].title);
 			});
+
+			// Called when one of the requisites is changed.
+			$scope.pageUnlocked = function(result) {
+				if (!$scope.unlockedFn) return;
+				$scope.unlockedFn({result: result});
+			};
 		},
 	};
 });

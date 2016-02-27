@@ -84,7 +84,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 	if len(data.PageAliases) <= 0 {
-		return pages.HandlerBadRequestFail("No page aliases given", nil)
+		return pages.StatusOK(nil)
 	}
 
 	// Convert aliases to page ids

@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive to show a lens' content
-app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdMedia, pageService, userService) {
+app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: "static/html/lens.html",
 		scope: {
@@ -49,6 +49,16 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 						$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, "");
 					},
 				});
+			};
+
+			// Compute how many visible comments there are.
+			$scope.visibleCommentCount = function() {
+				var count = 0;
+				for (var n = 0; n < $scope.page.commentIds.length; n++) {
+					var commentId = $scope.page.commentIds[n];
+					count += (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments) ? 1 : 0;
+				}
+				return count;
 			};
 
 			// Listen for shortcut keys
@@ -105,19 +115,26 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			};
 
 			// Toggle all subjects
-			$scope.toggleSubjects = function() {
+			$scope.toggleSubjects = function(continuePath) {
+				var callback = $scope.pagesUnlocked;
+				if (continuePath) {
+					callback = function() {
+						$timeout.cancel(callbackPromise);
+						$location.url(pageService.getPageUrl(pageService.path.nextPageId));
+					};
+					// Make sure we execute the callback if we don't hear back from the server.
+					var callbackPromise = $timeout(callback, 500);
+				}
 				if ($scope.knowsAllSubjects()) {
-					pageService.updateMasteryMap({delete: $scope.subjectIds});
+					pageService.updateMasteryMap({delete: $scope.subjectIds, callback: callback});
 				} else {
-					pageService.updateMasteryMap({knows: $scope.subjectIds});
+					pageService.updateMasteryMap({knows: $scope.subjectIds, callback: callback});
 				}
 			};
 
 			var primaryPage = pageService.pageMap[$scope.lensParentId];
 			var simplestLensId = primaryPage.lensIds[primaryPage.lensIds.length - 1];
 			$scope.isSimplestLens = $scope.page.pageId === simplestLensId;
-
-			$scope.isLearning = !!$location.search().learn;
 
 			// Compute simpler lens id if necessary
 			if ($scope.showRequirementsPanel) {
@@ -152,6 +169,18 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 						return "Yes, I got it";
 					}
 				}
+			};
+
+			// Check if the user can use the "yup, i got everything, let's continue" button.
+			$scope.canQuickContinue = true;
+			$scope.showQuickContinue = function() {
+				return $scope.canQuickContinue && pageService.path && pageService.path.onPath && pageService.path.nextPageId;
+			};
+
+			// Called when the user unlocked some pages by acquiring requisites.
+			$scope.pagesUnlocked = function(data) {
+				$scope.canQuickContinue = false;
+				$scope.unlockedIds = data && data.result && data.result.unlockedIds;
 			};
 		},
 		link: function(scope, element, attrs) {
@@ -209,7 +238,7 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 				if (!comment.anchorContext || !comment.anchorText) return;
 
 				// Find the best paragraph
-				var bestParagraphNode, bestParagraphText, bestParagraphIndex, bestScore = Number.MAX_SAFE_INTEGER;
+				var bestParagraphNode, bestParagraphText, bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER;
 				if (!paragraphTexts) {
 					populateParagraphTexts();
 				}
@@ -305,10 +334,12 @@ app.directive("arbLens", function($compile, $location, $timeout, $interval, $mdM
 			// Get the style of an inline comment icon
 			scope.getInlineCommentIconStyle = function(commentId) {
 				var params = scope.inlineComments[commentId];
+				var isVisible = element.closest(".reveal-after-render-parent").length <= 0;
+				isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments);
 				return {
 					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 					"top": params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
-					"visibility": element.closest(".reveal-after-render-parent").length > 0 ? "hidden" : "visible",
+					"visibility": isVisible ? "visible" : "hidden",
 					"zIndex": params.zIndex,
 				};
 			};

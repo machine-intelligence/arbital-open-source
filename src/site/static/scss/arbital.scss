@@ -301,7 +301,7 @@ arb-markdown, [arb-markdown], .preview-area {
 		max-width: 900px;
 	}
 	arb-requisites-page > & {
-		max-width: 560px;
+		max-width: 900px;
 	}
 	arb-learn-page > & {
 		max-width: 900px;
@@ -709,10 +709,11 @@ md-list {
 	height: 50vh;
 }
 
-md-list-item:not(.no-margins) {
+md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-no-proxy.ng-scope {
 	min-height: 0;
 	margin-top: 10px;
 	margin-bottom: 10px;
+	padding: 5px 16px 10px 16px;
 }
 
 .md-toolbar-tools {
@@ -786,14 +787,19 @@ arb-likes, .likes-in-autocomplete {
 	}
 }
 
-[arb-page-list] {
+[arb-page-list], .arb-page-list {
 	margin-bottom: 4vw;
+}
+
+arb-page-title, [arb-page-title] {
+	line-height: normal;
 }
 
 @mixin small-button {
 	padding: 0 !important;
 	width: 20px !important;
 	height: 20px !important;
+	min-width: 20px !important;
 	min-height: 20px !important;
 	margin-right: 5px !important;
 }
@@ -803,10 +809,17 @@ arb-likes, .likes-in-autocomplete {
 }
 
 arb-requisite-button, [arb-requisite-button] {
-	white-space: nowrap;
-
 	.md-button {
-		@include small-button;
+		min-width: 40px;
+		//@include small-button;
+	}
+}
+
+.mastery-list-vertical {
+	margin-bottom: 10px;
+
+	& > * {
+		margin: 5px 0;
 	}
 }
 
@@ -1072,6 +1085,7 @@ ins {
 
 .edit-page-footer {
 	margin: 0;
+	padding-left: 10px;
 }
 
 // Container for a editing a specific type of relationships
@@ -1139,7 +1153,7 @@ textarea {
 	border: $accent-color 1px solid;
 }
 
-[arb-subpage] + [arb-subpage] {
+.subpage-content {
 	margin-top: 20px;
 }
 
@@ -1185,11 +1199,6 @@ textarea {
 			overflow-y: auto;
 		}
 	}
-}
-
-// Container with a list of pages
-.pages-list {
-	margin-bottom: 20px;
 }
 
 // Container for multiple choice questions

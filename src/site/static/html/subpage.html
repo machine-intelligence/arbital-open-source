@@ -1,8 +1,8 @@
 <div id="subpage-{{::page.pageId}}"
 		layout="column"
-		class="full-width md-whiteframe-2dp"
+		class="subpage-content full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-if="!isDeleted">
+		ng-if="!isDeleted && (!page.isEditorComment || userService.showEditorComments)">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center" ng-if="::isComment">
 		<md-icon ng-if="::!parentSubpageId">comment</md-icon>
@@ -13,7 +13,7 @@
 
 		<!-- Collapse button -->
 		<div layout="column" flex>
-			<md-button ng-click="collapseToggle()">
+			<md-button aria-label="Collapse comment" ng-click="collapseToggle()">
 				<md-icon ng-if="!isCollapsed">expand_less</md-icon>
 				<md-icon ng-if="isCollapsed">expand_more</md-icon>
 			</md-button>
@@ -27,6 +27,7 @@
 				ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && isComment"></arb-confirm-button>
 		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
 				class="md-icon-button"
+				aria-label="Edit comment"
 				ng-disabled="editing"
 				ng-click="editSubpage($event)"
 				ng-if="::(page.creatorId === userService.user.id)">
@@ -67,6 +68,7 @@
 			<arb-likes page-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
 			<arb-subscribe page-id="{{::page.pageId}}" show-subscriber-count="true" ng-if="::!parentSubpageId"></arb-subscribe>
 			<md-button class="md-primary"
+					aria-label="Reply to comment"
 					ng-click="newReply()"
 					ng-disabled="newReplyId"
 					arb-user-check="cool"
@@ -94,6 +96,7 @@
 
 				<!-- Reply to thread button -->
 				<md-button class="md-primary"
+						aria-label="Reply to thread"
 						ng-click="newReply()"
 						arb-user-check="cool"
 						ng-if="!newReplyId && page.subpageIds.length > 0">

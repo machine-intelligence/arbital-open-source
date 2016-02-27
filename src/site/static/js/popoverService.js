@@ -13,12 +13,13 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 	var linkTypeIntrasite = "intrasite";
 	var linkTypeUser = "user";
 
-	var $targetCandidate,
-		targetCandidateLinkType,
-		createPromise;
-
-	var $popoverElement,
+	var popoverScope,
+		$popoverElement,
 		$currentTarget,
+		$targetCandidate;
+
+	var	targetCandidateLinkType,
+		createPromise,
 		removePromise,
 		anchorHovering,
 		popoverHovering;
@@ -26,12 +27,13 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 	// Remove the popover.
 	var removePopover = function() {
 		if ($popoverElement) {
+			popoverScope.$destroy();
 			$popoverElement.remove();
 		}
 		$targetCandidate = undefined;
-		createPromise = undefined;
 		$popoverElement = undefined;
 		$currentTarget = undefined;
+		createPromise = undefined;
 		removePromise = undefined;
 		anchorHovering = false;
 		popoverHovering = false;
@@ -69,14 +71,15 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		var arrowOffset = mousePageX - left;
 
 		// Create the popover
+		popoverScope = $rootScope.$new();
 		if (targetCandidateLinkType == linkTypeIntrasite) {
 			$popoverElement = $compile("<arb-intrasite-popover page-id='" + $target.attr("page-id") +
 				"' direction='" + direction + "' arrow-offset='" + arrowOffset +
-				"'></arb-intrasite-popover>")($rootScope);
+				"'></arb-intrasite-popover>")(popoverScope);
 		} else if (targetCandidateLinkType == linkTypeUser) {
 			$popoverElement = $compile("<arb-user-popover user-id='" + $target.attr("user-id") +
 				"' direction='" + direction + "' arrow-offset='" + arrowOffset +
-				"'></arb-user-popover>")($rootScope);
+				"'></arb-user-popover>")(popoverScope);
 		}
 
 		// Set popover properties
@@ -157,7 +160,7 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 			// Leaving the element we created a popover for
 			anchorHovering = false;
 			updateTimeout();
-			return
+			return;
 		}
 		if ($targetCandidate && $target[0] == $targetCandidate[0]){
 			// Leaving the element we hovered over for a bit
@@ -214,10 +217,22 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		}
 	});
 
-	$rootScope.$on("$locationChangeStart", function(event) {
+	var shutItDown = function() {
 		$timeout.cancel(createPromise);
 		$timeout.cancel(removePromise);
 		removePopover();
+	};
+
+	$("body").on("click", ".intrasite-link", function(event) {
+		shutItDown();
+	});
+
+	$("body").on("click", ".user-link", function(event) {
+		shutItDown();
+	});
+
+	$rootScope.$on("$locationChangeStart", function(event) {
+		shutItDown();
 	});
 });
 

@@ -1,13 +1,14 @@
 "use strict";
 
 // userName directive displayes a user's name.
-app.directive("arbUserName", function(userService) {
+app.directive("arbUserName", function(pageService, userService) {
 	return {
 		templateUrl: "static/html/userName.html",
 		scope: {
 			userId: "@",
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.user = userService.userMap[$scope.userId];
 		},
@@ -249,6 +250,7 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 			// Check if the data is loaded
 			$scope.isSubscribed = function() {
 				if (!$scope.isUser) {
+					if (!($scope.pageId in pageService.pageMap)) console.log($scope.pageId);
 					return pageService.pageMap[$scope.pageId].isSubscribed;
 				} else {
 					return userService.userMap[$scope.pageId].isSubscribed;
@@ -271,6 +273,11 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 					console.error("Error changing a subscription:"); console.log(data); console.log(status);
 				});
 			};
+		},
+		link: function(scope, element, attrs) {
+			if (!scope.page) {
+				console.log(element);
+			}
 		},
 	};
 });
@@ -489,25 +496,36 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 			hideTitle: "=",
 			// If true, allow the user to toggle into a "want" state
 			allowWants: "=",
+			// If true, show requisite's clickbait
+			showClickbait: "=",
 			// If true, clicking the checkbox won't close the menu this button is in
 			preventMenuClose: "=",
+			// Optional callback function for when we change the mastery.
+			unlockedFn: "&",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
+			var unlockedCallback = undefined;
+			if ($scope.unlockedFn) {
+				unlockedCallback = function(data) {
+					$scope.unlockedFn({result: data});
+				};
+			}
+
 			// Toggle whether or not the user has a mastery
 			$scope.toggleRequirement = function() {
 				if (pageService.hasMastery($scope.requisiteId)) {
 					if ($scope.allowWants) {
-						pageService.updateMasteryMap({wants: [$scope.requisiteId]});
+						pageService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
 					} else {
-						pageService.updateMasteryMap({delete: [$scope.requisiteId]});
+						pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
 					}
 				} else if (pageService.wantsMastery($scope.requisiteId)) {
-					pageService.updateMasteryMap({delete: [$scope.requisiteId]});
+					pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
 				} else {
-					pageService.updateMasteryMap({knows: [$scope.requisiteId]});
+					pageService.updateMasteryMap({knows: [$scope.requisiteId], callback: unlockedCallback});
 				}
 			};
 		},
@@ -522,47 +540,17 @@ app.directive("arbNextPrev", function($location, pageService, userService) {
 			pageId: "@",
 			// If true, show the expanded version of this directive
 			extraInfo: "=",
+			// If true, show the directive on a whiteframe
+			whiteframe: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
 
-			// Note: because sometimes the next page in the list can be a lens,
-			// we need to listen to URL change and see if we should recompute which
-			// page in the list we are on.
-			var computeUrls = function() {
-				$scope.page.prevPageId = $scope.page.nextPageId = "";
-
-				// Check if the user is learning
-				$scope.page.learnUrl = $location.search().learn || "";
-				if ($scope.page.learnUrl) {
-					var currentPageId = $location.search().l || $scope.page.pageId;
-					var ids = $scope.page.learnUrl.split(",");
-					for (var n = 0; n < ids.length; n++) {
-						var id = ids[n];
-						if (id === currentPageId) {
-							$scope.page.prevPageId = n > 0 ? ids[n-1] : "";
-							$scope.page.nextPageId = n < ids.length-1 ? ids[n+1] : "";
-						}
-					}
-					$scope.page.learnId = ids[ids.length - 1];
-				}
-
-				$scope.prevUrl = pageService.getPageUrl($scope.page.prevPageId);
-				$scope.prevUrl += $scope.prevUrl.indexOf("?") < 0 ? "?" : "&";
-				$scope.prevUrl += "learn=" + $scope.page.learnUrl;
-
-				$scope.nextUrl = pageService.getPageUrl($scope.page.nextPageId);
-				$scope.nextUrl += $scope.nextUrl.indexOf("?") < 0 ? "?" : "&";
-				$scope.nextUrl += "learn=" + $scope.page.learnUrl;
+			$scope.stopLearning = function() {
+				Cookies.remove("path");
+				pageService.path = undefined;
 			};
-			computeUrls();
-			$scope.$watch(function() {
-				return $location.absUrl();
-			}, function() {
-				computeUrls();
-			});
 		},
 	};
 });

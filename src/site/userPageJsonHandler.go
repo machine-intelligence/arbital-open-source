@@ -22,8 +22,8 @@ type userPageJsonData struct {
 
 // userPageJsonHandler renders the user page.
 func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
-	u := params.U
 	db := params.DB
+	returnData := core.NewHandlerData(params.U, true)
 
 	// Decode data
 	var data userPageJsonData
@@ -32,12 +32,8 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 	if data.UserId == "" {
-		data.UserId = u.Id
-	} else if !core.IsUser(db, data.UserId) {
-		return pages.HandlerBadRequestFail("Need a valid user Id", nil)
+		return pages.HandlerBadRequestFail("Need a user alias", nil)
 	}
-
-	returnData := core.NewHandlerData(params.U, true)
 
 	// Options to load the pages with
 	pageOptions := (&core.PageLoadOptions{

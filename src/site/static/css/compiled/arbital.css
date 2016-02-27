@@ -234,7 +234,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-groups-page > .capped-body-width {
     max-width: 900px; }
   arb-requisites-page > .capped-body-width {
-    max-width: 560px; }
+    max-width: 900px; }
   arb-learn-page > .capped-body-width {
     max-width: 900px; }
   arb-settings-page > .capped-body-width {
@@ -495,10 +495,11 @@ md-list {
   width: 40vw;
   height: 50vh; }
 
-md-list-item:not(.no-margins) {
+md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-no-proxy.ng-scope {
   min-height: 0;
   margin-top: 10px;
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+  padding: 5px 16px 10px 16px; }
 
 .md-toolbar-tools .arbital-logo {
   position: relative;
@@ -535,24 +536,27 @@ arb-likes, .likes-in-autocomplete {
     min-width: 24px;
     margin-right: 2px; }
 
-[arb-page-list] {
+[arb-page-list], .arb-page-list {
   margin-bottom: 4vw; }
+
+arb-page-title, [arb-page-title] {
+  line-height: normal; }
 
 .small-button {
   padding: 0 !important;
   width: 20px !important;
   height: 20px !important;
+  min-width: 20px !important;
   min-height: 20px !important;
   margin-right: 5px !important; }
 
-arb-requisite-button, [arb-requisite-button] {
-  white-space: nowrap; }
-  arb-requisite-button .md-button, [arb-requisite-button] .md-button {
-    padding: 0 !important;
-    width: 20px !important;
-    height: 20px !important;
-    min-height: 20px !important;
-    margin-right: 5px !important; }
+arb-requisite-button .md-button, [arb-requisite-button] .md-button {
+  min-width: 40px; }
+
+.mastery-list-vertical {
+  margin-bottom: 10px; }
+  .mastery-list-vertical > * {
+    margin: 5px 0; }
 
 .lens-menu {
   padding: 5px 0; }
@@ -747,7 +751,8 @@ ins {
   border-left: #00796B 5px solid; }
 
 .edit-page-footer {
-  margin: 0; }
+  margin: 0;
+  padding-left: 10px; }
 
 .edit-relationship-div {
   margin-bottom: 20px; }
@@ -794,7 +799,7 @@ textarea {
   background-color: #FFCCBC;
   border: #FF5722 1px solid; }
 
-[arb-subpage] + [arb-subpage] {
+.subpage-content {
   margin-top: 20px; }
 
 .comment-header {
@@ -822,9 +827,6 @@ textarea {
   .inline-comment-container.constrained arb-subpage {
     max-height: calc(70vh - 20px);
     overflow-y: auto; }
-
-.pages-list {
-  margin-bottom: 20px; }
 
 arb-multiple-choice {
   display: block;

@@ -1,9 +1,11 @@
-<div layout="column" layout-margin ng-if="::!isSpan">
+<div class="mastery-list-vertical" layout="column" ng-if="::!isSpan">
 	<!-- List of masteries -->
 	<div arb-requisite-button
 			requisite-id="{{::masteryId}}"
 			allow-wants="::allowWants"
 			hide-checkbox="hideCheckboxes"
+			show-clickbait="::showClickbait"
+			unlocked-fn="pageUnlocked(result)"
 			ng-repeat="masteryId in ::idsSource">
 	</div>
 </div>
@@ -12,7 +14,10 @@
 	<!-- List of masteries -->
 	<span ng-repeat="(index,masteryId) in ::idsSource">
 		<span class="comma" ng-if="::(index > 0)">,</span>
-		<span arb-requisite-button requisite-id="{{::masteryId}}" allow-wants="::allowWants">
+		<span arb-requisite-button
+				requisite-id="{{::masteryId}}"
+				allow-wants="::allowWants"
+				unlocked-fn="pageUnlocked(result)">
 		</span>
 	</span>
 </span>

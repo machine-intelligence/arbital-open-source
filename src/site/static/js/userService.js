@@ -1,7 +1,7 @@
 "use strict";
 
 // User service.
-app.service("userService", function($http, $location){
+app.service("userService", function($http, $location, $rootScope){
 	var that = this;
 
 	// Logged in user.
@@ -15,11 +15,6 @@ app.service("userService", function($http, $location){
 		return this.user && this.user.karma >= 200;
 	};
 
-	// Return url to the user page.
-	this.getUserUrl = function(userId) {
-		return "/user/" + userId;
-	};
-
 	// Return a user's full name.
 	this.getFullName = function(userId) {
 		var user = this.userMap[userId];
@@ -30,10 +25,11 @@ app.service("userService", function($http, $location){
 	// Call this to process data we received from the server.
 	this.processServerData = function(data) {
 		if (data.resetEverything) {
-			that.userMap = {};
+			this.userMap = {};
 		}
+
 		if (data.user) {
-			that.user = data.user;
+			this.user = data.user;
 		}
 		$.extend(that.userMap, data["users"]);
 	};

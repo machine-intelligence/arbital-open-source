@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service("pageService", function($http, $location, userService){
+app.service("pageService", function($http, $location, $ngSilentLocation, $rootScope, userService){
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -30,12 +30,16 @@ app.service("pageService", function($http, $location, userService){
 	// pageId -> {object -> {object data}}
 	this.pageObjectMap = {};
 
+	// This object is set when the user is learning / on a path.
+	this.path = undefined;
+
 	// Update the masteryMap. Execution happens in the order options are listed.
 	// options = {
 	//		delete: set these masteries to "doesn't know"
 	//		wants: set these masteries to "wants"
 	//		knows: set these masteries to "knows"
 	//		skipPush: if set, don't push the changes to the server
+	//		callback: optional callback function
 	// }
 	this.updateMasteryMap = function(options) {
 		var affectedMasteryIds = [];
@@ -76,12 +80,12 @@ app.service("pageService", function($http, $location, userService){
 			}
 		}
 		if (!options.skipPush) {
-			this.pushMasteriesToServer(affectedMasteryIds);
+			this.pushMasteriesToServer(affectedMasteryIds, options.callback);
 		}
 	};
 
 	// Compute the status of the given masteries and update the server
-	this.pushMasteriesToServer = function(affectedMasteryIds) {
+	this.pushMasteriesToServer = function(affectedMasteryIds, callback) {
 		var addMasteries = [], delMasteries = [], wantsMasteries = [];
 		for (var n = 0; n < affectedMasteryIds.length; n++) {
 			var masteryId = affectedMasteryIds[n];
@@ -100,8 +104,16 @@ app.service("pageService", function($http, $location, userService){
 				removeMasteries: delMasteries,
 				wantsMasteries: wantsMasteries,
 				addMasteries: addMasteries,
+				computeUnlocked: !!callback, // hacky
 			};
 			$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
+			.success(function(data) {
+				if (callback) {
+					userService.processServerData(data);
+					that.processServerData(data);
+					callback(data);
+				}
+			})
 			.error(function(data, status){
 				console.error("Failed to change masteries:"); console.log(data); console.log(status);
 			});
@@ -209,27 +221,35 @@ app.service("pageService", function($http, $location, userService){
 		}
 	};
 
+
+	// Construct a part of the URL with id and alias if id!=alias, otherwise just id
+	var getBaseUrl = function(base, id, alias) {
+		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias);
+	};
+
 	// Returns the url for the given page.
 	// options {
+	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
 	//	 includeHost: if true, include "http://" + host in the url
 	// }
 	// Track which pages we are already loading. Map url+pageAlias -> true.
 	this.getPageUrl = function(pageId, options){
 		var options = options || {};
 		var host = window.location.host;
-		var page = that.pageMap[pageId];
 		var url = "/p/" + pageId;
 		var alreadyIncludedHost = false;
+		var page = that.pageMap[pageId];
+
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
-			url = "/p/" + pageId + "/" + pageAlias;
+			url = getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias);
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = "/p/" + parent.pageId + "/" + parent.alias + "?l=" + pageId;
+						url = getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias) + "?l=" + pageId;
 						if ($location.hash()) {
 							url += "#" + $location.hash();
 						}
@@ -242,7 +262,7 @@ app.service("pageService", function($http, $location, userService){
 					if (parent && (
 								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
 								(page.isAnswer() && parent.isQuestion()))) {
-						url = "/p/" + parent.pageId + "/" + parent.alias + "#subpage-" + pageId;
+						url = getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias) + "#subpage-" + pageId;
 						break;
 					}
 				}
@@ -264,7 +284,18 @@ app.service("pageService", function($http, $location, userService){
 	};
 
 	this.getEditPageUrl = function(pageId){
+		if (pageId in this.pageMap) {
+			return getBaseUrl("edit", pageId, this.pageMap[pageId].alias);
+		}
 		return "/edit/" + pageId;
+	};
+
+	// Return url to the user page.
+	this.getUserUrl = function(userId) {
+		if (userId in this.pageMap) {
+			return getBaseUrl("user", userId, this.pageMap[userId].alias);
+		}
+		return "/user/" + userId;
 	};
 
 	// Get a domain url (with optional subdomain)
@@ -278,6 +309,19 @@ app.service("pageService", function($http, $location, userService){
 			return "http://" + subdomain + "localhost:8012";
 		} else {
 			return "http://" + subdomain + "arbital.com"
+		}
+	};
+
+	// Make sure the URL path is in the given canonical form, otherwise silently change
+	// the URL, preserving the search() params.
+	this.ensureCanonUrl = function(canonPath) {
+		var pathname = location.pathname;
+		if (pathname != canonPath) {
+			var search = $location.search();
+			$ngSilentLocation.silent(canonPath, true);
+			for (var k in search) {
+				$location.search(k, search[k]);
+			}
 		}
 	};
 
@@ -646,7 +690,6 @@ app.service("pageService", function($http, $location, userService){
 		};
 		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)})
 		.success(function(data, status){
-			console.log("Successfully discarded " + pageId);
 			if(success) success(data, status);
 		})
 		.error(function(data, status){
@@ -743,6 +786,9 @@ app.service("pageService", function($http, $location, userService){
 	// Called when the user created a new comment.
 	this.newCommentCreated = function(commentId) {
 		var comment = this.editMap[commentId];
+		if (comment.isEditorComment) {
+			userService.showEditorComments = true;
+		}
 		comment.originalCreatedAt = moment().format("YYYY-MM-DD HH:mm:ss");
 		this.addPageToMap(comment);
 
@@ -756,7 +802,7 @@ app.service("pageService", function($http, $location, userService){
 		}
 
 		parent.subpageIds.push(commentId);
-		$location.hash("subpage-" + commentId);
+		$ngSilentLocation.silent(this.getPageUrl(commentId));
 	};
 
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
@@ -850,4 +896,28 @@ app.service("pageService", function($http, $location, userService){
 		this.pushMasteriesToServer(affectedMasteryIds);
 		this.updatePageObject(updatePageObjectOptions);
 	};
+
+	// Update the path variables.
+	$rootScope.$watch(function() {
+		return $location.absUrl() + "|" + (that.primaryPage ? that.primaryPage.pageId : "");
+	}, function() {
+		that.path = undefined;
+		that.path = Cookies.getJSON("path");
+		if (!that.path || !that.primaryPage) return;
+
+		// Check if the user is learning
+		var currentPageId = $location.search().l || that.primaryPage.pageId;
+		var pathPageIds = that.path.readIds;
+		var currentIndex = pathPageIds.indexOf(currentPageId);
+		if (currentIndex >= 0) {
+			that.path.onPath = true;
+			that.path.prevPageId = currentIndex > 0 ? pathPageIds[currentIndex - 1] : "";
+			that.path.nextPageId = currentIndex < pathPageIds.length - 1 ? pathPageIds[currentIndex + 1] : "";
+			that.path.currentPageId = currentPageId;
+		} else {
+			that.path.onPath = false;
+			that.path.prevPageId = that.path.nextPageId = "";
+		}
+		Cookies.set("path", that.path);
+	});
 });

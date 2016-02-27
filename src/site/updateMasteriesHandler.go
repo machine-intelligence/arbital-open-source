@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -14,6 +15,8 @@ type updateMasteries struct {
 	RemoveMasteries []string
 	WantsMasteries  []string
 	AddMasteries    []string
+	// If true, compute which pages the user can now read
+	ComputeUnlocked bool
 }
 
 var updateMasteriesHandler = siteHandler{
@@ -64,6 +67,35 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		}
 	}
 
+	candidateIds := make([]string, 0)
+	if data.ComputeUnlocked && len(data.AddMasteries) > 0 {
+		// Compute all the pages that rely on at least one of these masteries, that the user can't yet understand
+		rows := database.NewQuery(`
+			SELECT pp1.childId
+			FROM pagePairs AS pp1
+			JOIN pagePairs AS pp2
+			ON (pp1.childId=pp2.childId)
+			JOIN userMasteryPairs AS mp
+			ON (pp2.parentId=mp.masteryId AND mp.userId=?)`, u.Id).Add(`
+			WHERE pp1.parentId IN`).AddArgsGroupStr(data.AddMasteries).Add(`
+				AND pp1.type=?`, core.RequirementPagePairType).Add(`
+				AND pp2.type=?`, core.RequirementPagePairType).Add(`
+				AND NOT mp.has
+			GROUP BY 1`).ToStatement(db).Query()
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var pageId string
+			err := rows.Scan(&pageId)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+			candidateIds = append(candidateIds, pageId)
+			return nil
+		})
+		if err != nil {
+			return pages.HandlerErrorFail("Error while loading potential unlocked ids", err)
+		}
+	}
+
 	// Update the database
 	if len(queryValues) > 0 {
 		statement := db.NewStatement(`
@@ -75,5 +107,45 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		}
 	}
 
-	return pages.StatusOK(nil)
+	if len(candidateIds) <= 0 {
+		return pages.StatusOK(nil)
+	}
+
+	unlockedIds := make([]string, 0)
+	returnData := core.NewHandlerData(params.U, false)
+
+	// For the previously computed candidates, check if the user can now understand them
+	rows := database.NewQuery(`
+		SELECT pp.childId
+		FROM pagePairs AS pp
+		LEFT JOIN userMasteryPairs AS mp
+		ON (pp.parentId=mp.masteryId AND mp.userId=?)`, u.Id).Add(`
+		WHERE pp.childId IN`).AddArgsGroupStr(candidateIds).Add(`
+			AND pp.type=?`, core.RequirementPagePairType).Add(`
+		GROUP BY 1
+		HAVING SUM(1)<=SUM(mp.has)
+		LIMIT 5`).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId string
+		err := rows.Scan(&pageId)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		unlockedIds = append(unlockedIds, pageId)
+		core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+		return nil
+	})
+	if err != nil {
+		return pages.HandlerErrorFail("Error while loading unlocked ids", err)
+	}
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.HandlerErrorFail("Pipeline error", err)
+	}
+
+	returnData.ResultMap["unlockedIds"] = unlockedIds
+	return pages.StatusOK(returnData.ToJson())
+
 }

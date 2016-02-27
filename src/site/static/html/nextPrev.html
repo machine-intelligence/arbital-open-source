@@ -1,35 +1,55 @@
 <!-- Prev/Next -->
-<div class="next-prev-nav"
-		ng-class="::{'md-whiteframe-1dp': !extraInfo}"
-		layout="row"
+<div layout="row"
 		layout-align="start center"
-		ng-if="page.nextPageId !== '' || page.prevPageId !== ''">
-	<md-button ng-href="{{prevUrl}}"
-			class="special"
-			ng-class="{'intrasite-link': page.prevPageId !== ''}"
-			page-id="{{page.prevPageId}}"
-			ng-disabled="page.prevPageId === ''">
-		<md-tooltip md-delay="500" ng-if="page.prevPageId === ''">No previous page</md-tooltip>
-		<md-icon>chevron_left</md-icon>
-		<span>Prev</span>
-	</md-button>
-	<md-button class="special md-icon-button"
-			ng-href="/learn/{{::page.learnId}}"
-			ng-if="::page.learnId">
-		<md-tooltip md-delay="500">Current list</md-tooltip>
-		<md-icon>book</md-icon>
-	</md-button>
-	<md-button ng-href="{{nextUrl}}"
-			class="intrasite-link special"
-			ng-class="::{'md-raised': extraInfo}"
-			page-id="{{page.nextPageId}}"
-			ng-disabled="page.nextPageId === ''"
-			ng-if="page.nextPageId !== '' || !page.learnUrl">
-		<md-tooltip md-delay="500" ng-show="page.nextPageId === ''">No next page</md-tooltip>
-		<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
-		<md-icon>chevron_right</md-icon>
-	</md-button>
-	<md-button ng-disabled="true" ng-if="page.nextPageId === '' && page.learnUrl">
-		DONE!
-	</md-button>
+		class="next-prev-nav"
+		ng-class="::{'md-whiteframe-1dp': whiteframe}"
+		ng-if="pageService.path">
+
+	<!-- Show this when the user is on path. -->
+	<div layout="row"
+			layout-align="start center"
+			ng-if="pageService.path.onPath">
+		<md-button ng-href="{{pageService.getPageUrl(pageService.path.prevPageId)}}"
+				class="special"
+				ng-class="{'intrasite-link': pageService.path.prevPageId}"
+				page-id="{{pageService.path.prevPageId}}"
+				ng-disabled="!pageService.path.prevPageId">
+			<md-tooltip md-delay="500" ng-if="!pageService.path.prevPageId">No previous page</md-tooltip>
+			<md-icon>chevron_left</md-icon>
+			<span>Prev</span>
+		</md-button>
+		<md-button href="/learn/" class="special md-icon-button">
+			<md-tooltip md-delay="500">See the current list</md-tooltip>
+			<md-icon>book</md-icon>
+		</md-button>
+		<md-button ng-href="{{pageService.getPageUrl(pageService.path.nextPageId)}}"
+				class="intrasite-link special"
+				ng-class="{'md-raised': extraInfo}"
+				page-id="{{pageService.path.nextPageId}}"
+				ng-disabled="!pageService.path.nextPageId"
+				ng-if="pageService.path.nextPageId">
+			<md-tooltip md-delay="500" ng-show="!pageService.path.nextPageId">No next page</md-tooltip>
+			<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
+			<md-icon>chevron_right</md-icon>
+		</md-button>
+		<md-button class="md-raised" ng-disabled="true" ng-if="!pageService.path.nextPageId">
+			Done!
+		</md-button>
+	</div>
+	
+	<!-- Show this when the user is no longer on path. -->
+	<div layout="row" layout-align="start center" ng-if="!pageService.path.onPath">
+		<md-button ng-href="{{pageService.getPageUrl(pageService.path.currentPageId)}}" class="special">
+			<md-icon>chevron_left</md-icon>
+			Back to learning
+		</md-button>
+		<md-button href="/learn/" class="special md-icon-button">
+			<md-tooltip md-delay="500">See the current list</md-tooltip>
+			<md-icon>book</md-icon>
+		</md-button>
+		<md-button class="md-icon-button" ng-click="stopLearning()">
+			<md-tooltip md-delay="500">Dismiss learning navigation</md-tooltip>
+			<md-icon>close</md-icon>
+		</md-button>
+	</div>
 </div>

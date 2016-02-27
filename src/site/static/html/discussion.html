@@ -4,6 +4,23 @@
 	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
 			<h1>Discussion</h1>
+
+			<div flex></div>
+			<!-- Menu with all the other stuff -->
+			<md-menu>
+				<!-- Trigger element is a md-button with an icon -->
+				<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Options">
+					<md-icon>more_vert</md-icon>
+				</md-button>
+				<md-menu-content>
+					<!-- Toggle tree view -->
+					<md-menu-item>
+						<md-button ng-click="toggleEditorComments()">
+							Toggle editor comments
+						</md-button>
+					</md-menu-item>
+				</md-menu-content>
+			</md-menu>
 		</div>
 	</md-toolbar>
 
@@ -19,7 +36,7 @@
 					arb-user-check="cool"
 					ng-if="!newCommentId">
 				<md-icon class="md-raised">comment</md-icon>
-				<span ng-bind="page.subpageIds.length <= 0 ? 'Write the first comment' : 'New Comment'"></span>
+				<span ng-bind="visibleCommentCount() <= 0 ? 'Write the first comment' : 'New Comment'"></span>
 			</md-button>
 			<div arb-edit-page
 					class="new-comment-edit-page edit-comment-embed"

@@ -70,10 +70,8 @@ const (
 	PageLockDuration      = 30 * 60 // in seconds
 
 	// String that can be used inside a regexp to match an a page alias or id
-	RemoveFromUrlTitleRegexpStr = "[^a-z0-9\\-]"
-	UrlTitleRegexpStr           = "[a-z0-9\\-]*"
-	AliasRegexpStr              = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
-	SubdomainAliasRegexpStr     = "[A-Za-z0-9_]*"
+	AliasRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
+	SubdomainAliasRegexpStr = "[A-Za-z0-9_]*"
 )
 
 var (
@@ -116,6 +114,7 @@ type corePageData struct {
 	IndirectTeacher   bool   `json:"indirectTeacher"`
 	TodoCount         int    `json:"todoCount"`
 	LensIndex         int    `json:"lensIndex"`
+	IsEditorComment   bool   `json:"isEditorComment"`
 	AnchorContext     string `json:"anchorContext"`
 	AnchorText        string `json:"anchorText"`
 	AnchorOffset      int    `json:"anchorOffset"`
@@ -515,7 +514,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load pages' creator's ids
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Creators })
-	err = LoadCreatorIds(db, filteredPageMap, userMap)
+	err = LoadCreatorIds(db, pageMap, userMap, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
 	if err != nil {
 		return fmt.Errorf("LoadCreatorIds failed: %v", err)
 	}
@@ -669,7 +670,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[string]*Page) error
 		SELECT p.pageId,p.edit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
-			pi.lensIndex,pi.isRequisite,pi.indirectTeacher,
+			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
@@ -684,7 +685,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[string]*Page) error
 			&p.PageId, &p.Edit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
-			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsRequisite, &p.IndirectTeacher,
+			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -813,7 +814,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		SELECT p.pageId,p.edit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
-			pi.createdBy,pi.lensIndex,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
+			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
 			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
@@ -827,7 +828,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
-		&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.CurrentEditNum, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)
@@ -1056,11 +1057,18 @@ func LoadUsedAsMastery(db *database.DB, pageMap map[string]*Page) error {
 }
 
 // LoadCreatorIds loads creator ids for the pages
-func LoadCreatorIds(db *database.DB, pageMap map[string]*Page, userMap map[string]*User) error {
-	if len(pageMap) <= 0 {
+func LoadCreatorIds(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
+	if options == nil {
+		options = &LoadDataOptions{}
+	}
+	sourceMap := options.ForPages
+	if sourceMap == nil {
+		sourceMap = pageMap
+	}
+	if len(sourceMap) <= 0 {
 		return nil
 	}
-	pageIdsList := PageIdsListFromMap(pageMap)
+	pageIdsList := PageIdsListFromMap(sourceMap)
 
 	rows := database.NewQuery(`
 		SELECT pageId,creatorId,COUNT(*)
@@ -1078,6 +1086,25 @@ func LoadCreatorIds(db *database.DB, pageMap map[string]*Page, userMap map[strin
 		}
 		pageMap[pageId].CreatorIds = append(pageMap[pageId].CreatorIds, creatorId)
 		userMap[creatorId] = &User{Id: creatorId}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	// For pages that have editGroupId set, make sure we load those pages too.
+	rows = database.NewQuery(`
+		SELECT pageId,editGroupId
+		FROM pageInfos
+		WHERE pageId IN`).AddArgsGroup(pageIdsList).Add(`
+			AND editGroupId!=""`).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, editGroupId string
+		err := rows.Scan(&pageId, &editGroupId)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		AddPageToMap(editGroupId, pageMap, TitlePlusLoadOptions)
 		return nil
 	})
 	return err

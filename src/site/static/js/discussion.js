@@ -34,6 +34,22 @@ app.directive("arbDiscussion", function($compile, $location, $timeout, pageServi
 					pageService.newCommentCreated(result.pageId);
 				}
 			};
+
+			// Track (globally) whether or not to show editor comments.
+			userService.showEditorComments = userService.user.id in $scope.page.creatorIds;
+			$scope.toggleEditorComments = function() {
+				userService.showEditorComments = !userService.showEditorComments;
+			};
+
+			// Compute how many visible comments there are.
+			$scope.visibleCommentCount = function() {
+				var count = 0;
+				for (var n = 0; n < $scope.page.commentIds.length; n++) {
+					var commentId = $scope.page.commentIds[n];
+					count += (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments) ? 1 : 0;
+				}
+				return count;
+			};
 		},
 	};
 });

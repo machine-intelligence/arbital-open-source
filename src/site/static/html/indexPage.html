@@ -18,10 +18,8 @@
 	<h1 layout-margin>Popular domains</h1>
 	<div layout="column">
 		<!-- Domain -->
-		<div class="pages-list md-whiteframe-1dp"
-				ng-repeat="domain in ::featuredDomains"
-				layout="column"
-				flex>
+		<div class="arb-page-list md-whiteframe-1dp"
+				ng-repeat="domain in ::featuredDomains">
 			<md-toolbar class="md-hue-2">
 				<div class="md-toolbar-tools">
 					<a ng-href="/domains/{{::pageService.pageMap[domain.domainId].alias}}"
@@ -32,7 +30,7 @@
 			</md-subheader>
 			<md-list>
 				<md-list-item ng-repeat="childId in ::domain.childIds">
-					<div layout="row" layout-align="start start" layout-margin layout-fill>
+					<div layout="row" layout-align="start start" flex>
 						<arb-likes page-id="{{::childId}}"></arb-likes>
 						<arb-page-title page-id="{{::childId}}"
 								is-link="true"

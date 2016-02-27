@@ -43,8 +43,8 @@
 				</span>-->
 			</div>
 			<!-- Learn this suggestion -->
-			<div ng-if="::(isSimplestLens && !isLearning)" ng-show="!meetsAllRequirements()">
-				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.pageId}}">
+			<div ng-if="isSimplestLens && !pageService.path" ng-show="!meetsAllRequirements()">
+				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.alias}}">
 					Learn this...
 					<md-tooltip>Learn all the requirements for this page</md-tooltip>
 				</md-button>
@@ -84,24 +84,46 @@
 				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
 		<div layout="row" layout-align="start end">
 			<!-- Subjects taught -->
-			<div ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
+			<div flex="100" ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
 					Did you learn these concepts from "{{::page.title}}"?
 				</span>
-				<div arb-mastery-list ids-source="::subjectIds"></div>
+				<div arb-mastery-list
+						ids-source="::subjectIds"
+						show-clickbait="::true"
+						unlocked-fn="pagesUnlocked(result)"></div>
 	
 				<!-- Mark as done button -->
 				<md-button class="special md-raised"
-						ng-click="toggleSubjects()"
-						aria-label="Toggle subjects">
+						ng-click="toggleSubjects(false)"
+						aria-label="Toggle subjects"
+						ng-if="!showQuickContinue()">
 					<span ng-bind="getToggleSubjectsText()"></span>
+				</md-button>
+				<!-- Mark as done button AND continue -->
+				<md-button class="special md-raised"
+						ng-click="toggleSubjects(true)"
+						aria-label="Toggle subjects"
+						ng-if="showQuickContinue()">
+					Yes, I've understood everything. Let's continue!
+					<md-icon>chevron_right</md-icon>
 				</md-button>
 			</div>
 
 			<div flex></div>
 
-			<arb-next-prev page-id="{{::lensParentId}}" extra-info="true"></arb-next-prev>
+			<arb-next-prev page-id="{{::lensParentId}}"
+					extra-info="!showQuickContinue()"></arb-next-prev>
+		</div>
+
+		<!-- You can now read... -->
+		<div ng-if="unlockedIds && unlockedIds.length > 0">
+			Now you have all the requirements for:
+			<span ng-repeat="(index, unlockedId) in unlockedIds">
+				<span class="comma" ng-if="index > 0">,</span>
+				<arb-page-title page-id="{{::unlockedId}}" is-link="true"></arb-page-title>
+			</span>
 		</div>
 	</div>
 
