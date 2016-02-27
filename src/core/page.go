@@ -585,9 +585,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Computed which pages count as visited.
 	visitedValues := make([]interface{}, 0)
+	visitorId := u.Id
+	if visitorId == "" {
+		visitorId = fmt.Sprintf("sid:%s", u.SessionId)
+	}
 	for id, p := range pageMap {
 		if p.Text != "" {
-			visitedValues = append(visitedValues, u.Id, id, database.Now())
+			visitedValues = append(visitedValues, visitorId, id, database.Now())
 		}
 	}
 

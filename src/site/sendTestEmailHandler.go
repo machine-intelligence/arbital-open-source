@@ -23,7 +23,7 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get user object
 	var u *user.User
-	u, err = user.LoadUser(r, db)
+	u, err = user.LoadUser(w, r, db)
 	if err != nil {
 		fmt.Fprintf(w, "Failed to load user")
 		return

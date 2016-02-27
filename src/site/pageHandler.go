@@ -95,7 +95,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// Get user object
-		u, err := user.LoadUser(r, db)
+		u, err := user.LoadUser(w, r, db)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load user", err)
 			return
