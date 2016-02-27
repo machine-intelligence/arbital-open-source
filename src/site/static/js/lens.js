@@ -161,7 +161,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			// Check if the user can use the "yup, i got everything, let's continue" button.
 			$scope.canQuickContinue = true;
 			$scope.showQuickContinue = function() {
-				return $scope.canQuickContinue && pageService.path && pageService.path.onPath;
+				return $scope.canQuickContinue && pageService.path && pageService.path.onPath && pageService.path.nextPageId;
 			};
 
 			// Called when the user unlocked some pages by acquiring requisites.
