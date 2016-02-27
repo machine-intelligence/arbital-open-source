@@ -5,13 +5,12 @@
 		</div>
 	</md-toolbar>
 	<md-list>
-		<md-list-item class="no-margins" ng-repeat="pageId in ::pageIds">
+		<md-list-item ng-repeat="pageId in ::pageIds">
 			<div ng-init="page=getPage(pageId)"
 					layout="column"
 					layout-gt-sm="row"
 					layout-align-gt-sm="start center"
-					layout-padding
-					layout-fill>
+					flex>
 				<!-- First row -->
 				<div layout="row" layout-align="start start" flex>
 					<arb-likes page-id="{{::pageId}}" ng-if="::!hideLikes"></arb-likes>

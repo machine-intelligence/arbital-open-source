@@ -44,19 +44,19 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 				scope.delWants[answerValue] = [];
 				$(this).find("ul > li").each(function() {
 					var text = $(this).text();
-					if (text.startsWith("knows:")) {
+					if (text.indexOf("knows:") == 0) {
 						$(this).children("a").each(function() {
 							scope.knows[answerValue].push($(this).attr("page-id"));
 						});
-					} else if (text.startsWith("wants:")) {
+					} else if (text.indexOf("wants:") == 0) {
 						$(this).children("a").each(function() {
 							scope.wants[answerValue].push($(this).attr("page-id"));
 						});
-					} else if (text.startsWith("-knows:")) {
+					} else if (text.indexOf("-knows:") == 0) {
 						$(this).children("a").each(function() {
 							scope.delKnows[answerValue].push($(this).attr("page-id"));
 						});
-					} else if (text.startsWith("-wants:")) {
+					} else if (text.indexOf("-wants:") == 0) {
 						$(this).children("a").each(function() {
 							scope.delWants[answerValue].push($(this).attr("page-id"));
 						});

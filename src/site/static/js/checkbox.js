@@ -36,11 +36,11 @@ app.directive("arbCheckbox", function($timeout, $http, $compile, pageService, us
 			// Extract "knows" and "wants"
 			element.find("ng-transclude > ul > li > p").each(function () {
 				var text = $(this).text();
-				if (text.startsWith("knows:")) {
+				if (text.indexOf("knows:") == 0) {
 					$(this).children("a").each(function() {
 						scope.knows.push($(this).attr("page-id"));
 					});
-				} else if (text.startsWith("wants:")) {
+				} else if (text.indexOf("wants:") == 0) {
 					$(this).children("a").each(function() {
 						scope.wants.push($(this).attr("page-id"));
 					});

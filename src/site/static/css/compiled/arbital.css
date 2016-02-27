@@ -495,10 +495,11 @@ md-list {
   width: 40vw;
   height: 50vh; }
 
-md-list-item:not(.no-margins) {
+md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-no-proxy.ng-scope {
   min-height: 0;
   margin-top: 10px;
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+  padding: 5px 16px 10px 16px; }
 
 .md-toolbar-tools .arbital-logo {
   position: relative;
@@ -535,7 +536,7 @@ arb-likes, .likes-in-autocomplete {
     min-width: 24px;
     margin-right: 2px; }
 
-[arb-page-list] {
+[arb-page-list], .arb-page-list {
   margin-bottom: 4vw; }
 
 arb-page-title, [arb-page-title] {
@@ -826,9 +827,6 @@ textarea {
   .inline-comment-container.constrained arb-subpage {
     max-height: calc(70vh - 20px);
     overflow-y: auto; }
-
-.pages-list {
-  margin-bottom: 20px; }
 
 arb-multiple-choice {
   display: block;
