@@ -50,13 +50,18 @@ type User struct {
 	InviteCode     string `json:"inviteCode"`
 	IgnoreMathjax  bool   `json:"ignoreMathjax"`
 
+	// If the user isn't logged in, this is set to their unique session id
+	SessionId string `json:"-"`
+
 	// Computed variables
 	UpdateCount int      `json:"updateCount"`
 	GroupIds    []string `json:"groupIds"`
 }
 
 type CookieSession struct {
-	Email string
+	Email     string
+	SessionId string
+
 	// Randomly generated string
 	Random string
 }
@@ -93,7 +98,7 @@ func SaveEmailCookie(w http.ResponseWriter, r *http.Request, email string) error
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	s.Values[sessionKey] = CookieSession{email, fmt.Sprintf("%d", rand.Int63())}
+	s.Values[sessionKey] = CookieSession{Email: email, Random: fmt.Sprintf("%d", rand.Int63())}
 	err = s.Save(r, w)
 	if err != nil {
 		return fmt.Errorf("Failed to save user to session: %v", err)
@@ -101,10 +106,30 @@ func SaveEmailCookie(w http.ResponseWriter, r *http.Request, email string) error
 	return nil
 }
 
+// Store a unique id in a cookie so we can track session
+func saveSessionCookie(w http.ResponseWriter, r *http.Request) (string, error) {
+	s, err := sessions.GetSession(r)
+	if err != nil {
+		return "", fmt.Errorf("Couldn't get session: %v", err)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	sessionId := fmt.Sprintf("%d", rand.Int63())
+	s.Values[sessionKey] = CookieSession{
+		SessionId: sessionId,
+		Random:    fmt.Sprintf("%d", rand.Int63()),
+	}
+	err = s.Save(r, w)
+	if err != nil {
+		return "", fmt.Errorf("Failed to save user to session: %v", err)
+	}
+	return sessionId, nil
+}
+
 // loadUserFromDb tries to load the current user's info from the database. If
 // there is no data in the DB, but the user is logged in through AppEngine,
 // a new record is created.
-func loadUserFromDb(r *http.Request, db *database.DB) (*User, error) {
+func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*User, error) {
 	// Load email from the cookie
 	s, err := sessions.GetSession(r)
 	if err != nil {
@@ -113,9 +138,13 @@ func loadUserFromDb(r *http.Request, db *database.DB) (*User, error) {
 
 	var cookie *CookieSession
 	if cookieStruct, ok := s.Values[sessionKey]; !ok {
-		return nil, nil
+		sessionId, err := saveSessionCookie(w, r)
+		return &User{SessionId: sessionId}, err
 	} else {
 		cookie = cookieStruct.(*CookieSession)
+	}
+	if cookie.Email == "" {
+		return &User{SessionId: cookie.SessionId}, err
 	}
 
 	var u User
@@ -139,8 +168,8 @@ func loadUserFromDb(r *http.Request, db *database.DB) (*User, error) {
 // in the database. If the user is not logged in, we return a partially filled
 // User object.
 // A user object is returned iff there is no error.
-func LoadUser(r *http.Request, db *database.DB) (userPtr *User, err error) {
-	userPtr, err = loadUserFromDb(r, db)
+func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *User, err error) {
+	userPtr, err = loadUserFromDb(w, r, db)
 	if err != nil {
 		return
 	} else if userPtr == nil {
