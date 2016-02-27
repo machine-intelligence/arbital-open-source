@@ -51,6 +51,16 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				});
 			};
 
+			// Compute how many visible comments there are.
+			$scope.visibleCommentCount = function() {
+				var count = 0;
+				for (var n = 0; n < $scope.page.commentIds.length; n++) {
+					var commentId = $scope.page.commentIds[n];
+					count += (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments) ? 1 : 0;
+				}
+				return count;
+			};
+
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
 				if (!$scope.lensIsVisible) return true;

@@ -25,7 +25,7 @@
 			<span ng-if="::!isTinyScreen">Discussion</span>
 		</md-button>
 		<ng-pluralize class="md-caption"
-				count="page.commentIds.length" when="{
+				count="visibleCommentCount()" when="{
 					'0': 'No comments',
 					'one': '1 comment',
 					'other': '{} comments'}"
