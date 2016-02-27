@@ -119,8 +119,11 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				var callback = $scope.pagesUnlocked;
 				if (continuePath) {
 					callback = function() {
+						$timeout.cancel(callbackPromise);
 						$location.url(pageService.getPageUrl(pageService.path.nextPageId));
 					};
+					// Make sure we execute the callback if we don't hear back from the server.
+					var callbackPromise = $timeout(callback, 500);
 				}
 				if ($scope.knowsAllSubjects()) {
 					pageService.updateMasteryMap({delete: $scope.subjectIds, callback: callback});
