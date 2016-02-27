@@ -175,13 +175,14 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			this.pageObjectMap = {};
 		}
 
+		// Populate page object map.
 		var pageObjectData = data["pageObjects"];
 		for (var id in pageObjectData) {
 			this.smartAddToMap(this.pageObjectMap, pageObjectData[id], id);
 		}
 
+		// Load page objects from cookie
 		if (data.resetEverything && !userService.user.id) {
-			// Load page objects from cookie
 			var cookiePageObjectMap = Cookies.getJSON("pageObjectMap") || {};
 			for (var id in cookiePageObjectMap) {
 				this.smartAddToMap(this.pageObjectMap, cookiePageObjectMap[id], id);
@@ -190,13 +191,14 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			Cookies.remove("pageObjectMap");
 		}
 
+		// Populate materies map.
 		var masteryData = data["masteries"];
 		for (var id in masteryData) {
 			this.smartAddToMap(this.masteryMap, masteryData[id], id);
 		}
 
+		// Load masteries from cookie
 		if (data.resetEverything && !userService.user.id) {
-			// Load masteries from cookie
 			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
 			for (var id in cookieMasteryMap) {
 				this.smartAddToMap(this.masteryMap, cookieMasteryMap[id], id);
