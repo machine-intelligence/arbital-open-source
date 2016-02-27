@@ -1,15 +1,14 @@
 <div class="capped-body-width">
 	<form class="md-whiteframe-1dp"
 			layout="column"
-			layout-margin
 			ng-submit="formSubmit($event)">
-		<md-toolbar class="md-hue-1" layout-fill>
+		<md-toolbar class="md-hue-2">
 			<div class="md-toolbar-tools">
-				<h3>Sign Up</h3>
+				<h3>Sign up</h3>
 			</div>
 		</md-toolbar>
 
-		<div>
+		<div layout-margin>
 			<md-button class="facebook-button" ng-click="signupWithFb()">
 				<md-icon md-svg-icon="facebook_box"></md-icon>
 				facebook
@@ -17,9 +16,9 @@
 			<div class="md-warn" ng-bind="socialError"></div>
 		</div>
 
-		<div>
-			--- OR sign up with email ---
-		</div>
+		<md-subheader class="md-hue-1">
+			Or sign up with email:
+		</md-subheader>
 
 		<div layout="column" layout-margin>
 			<md-input-container>
@@ -49,7 +48,12 @@
 		<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 		<div class="submit-form-error md-warn" hidden></div>
 		<div class="md-warn" layout-margin ng-bind="normalError"></div>
-		<md-button class="md-primary md-raised" type="submit" toggle-on-submit ng-if="!signupSuccess">Sign up</md-button>
+		<md-button class="md-primary md-raised"
+				type="submit"
+				toggle-on-submit
+				ng-if="!signupSuccess">
+			Sign up with email
+		</md-button>
 		<div ng-if="signupSuccess">
 			Success! You should receive an email from us in a few minutes. Please click the link in it to verify your email address.
 		</div>
