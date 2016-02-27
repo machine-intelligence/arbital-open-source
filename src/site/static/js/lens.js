@@ -300,23 +300,9 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				processInlineComment(scope.page.commentIds[n]);
 			}
 			var inlineCommentButtonHeight = 40; // $newInlineCommentButton.height(); 
-			function preprocessInlineCommentButtonPositions()
-			{
-			    var minTop = 0;
-			    for (n = 0; n < orderedInlineComments.length; n++) {
-			        var inlineComment = orderedInlineComments[n];
-			        var preferredTop = inlineComment.anchorNode.offset().top;
-			        var top = Math.max(minTop, preferredTop);
-			        inlineComment.topOffset = top - preferredTop; // Use this to recompute the actual top when absolute positions are better known
-			        inlineComment.zIndex = n;
-			        minTop = top + inlineCommentButtonHeight - 8;
-			    }
-			}
-			function preprocessInlineCommentButtons()
-			{
+			function preprocessInlineCommentButtons() {
 			    orderedInlineComments.sort(function(a, b){
-			        function compareList(a, b)
-                    {
+			        function compareList(a, b) {
                         for (var i = 0; i < a.length; i++) {
                             if (a[i] < b[i]) { return -1; }
                             if (a[i] > b[i]) { return 1; }
@@ -327,7 +313,15 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			            [a.paragraphIndex, a.anchorOffset, a.pageId],
 			            [b.paragraphIndex, b.anchorOffset, b.pageId]);
 			    });
-			    preprocessInlineCommentButtonPositions();
+			    var minTop = 0;
+			    for (n = 0; n < orderedInlineComments.length; n++) {
+			        var inlineComment = orderedInlineComments[n];
+			        var preferredTop = inlineComment.anchorNode.offset().top;
+			        var top = Math.max(minTop, preferredTop);
+			        inlineComment.topOffset = top - preferredTop; // Use this to recompute the actual top when absolute positions are better known
+			        inlineComment.zIndex = n;
+			        minTop = top + inlineCommentButtonHeight - 8; // Subtract 8 pixels to allow small overlap between buttons
+			    }
 			}
 			preprocessInlineCommentButtons();
 
