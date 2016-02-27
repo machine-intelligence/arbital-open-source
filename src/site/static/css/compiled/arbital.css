@@ -841,7 +841,7 @@ arb-multiple-choice {
     display: block;
     margin-left: 10px;
     margin-top: 0;
-    border-left: #E0F2F1 3px solid;
+    border-left: #e0e0e0 3px solid;
     padding-left: 10px; }
   arb-multiple-choice md-radio-button {
     display: inline-block;

@@ -2,6 +2,9 @@
 package site
 
 import (
+	"encoding/json"
+	"net/url"
+
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 )
@@ -21,9 +24,7 @@ func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData := core.NewHandlerData(params.U, true)
 
 	// Options to load the pages with
-	pageOptions := (&core.PageLoadOptions{
-		RedLinkCount: true,
-	}).Add(core.TitlePlusLoadOptions)
+	pageOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
 
 	// Load all masteries
 	rows := db.NewStatement(`
@@ -33,6 +34,21 @@ func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	_, err := core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("Error while loading masteries", err)
+	}
+
+	// Load masteryMap from the cookie, if present
+	cookie, err := params.R.Cookie("masteryMap")
+	if err == nil {
+		masteryMap := make(map[string]*core.Mastery)
+		jsonStr, _ := url.QueryUnescape(cookie.Value)
+		err = json.Unmarshal([]byte(jsonStr), &masteryMap)
+		if err != nil {
+			params.C.Warningf("Couldn't unmarshal masteryMap cookie: %v", err)
+		}
+
+		for masteryId, _ := range masteryMap {
+			core.AddPageToMap(masteryId, returnData.PageMap, pageOptions)
+		}
 	}
 
 	// Load pages.
