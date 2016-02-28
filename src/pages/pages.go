@@ -59,10 +59,11 @@ type Page struct {
 // NOTE: make sure that default values are okay for all pages.
 type PageOptions struct {
 	AdminOnly       bool
-	SkipLoadingUser bool
 	RequireLogin    bool
 	MinKarma        int
 	LoadUpdateCount bool
+	// If true, we don't care if the user is signed in or not
+	AllowAnyone bool
 }
 
 // Add creates a new page.

@@ -574,6 +574,9 @@ app.controller("GroupsPageController", function ($scope, $routeParams, $http, $c
 app.controller("SignupPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
+		if (userService.user.id) {
+			window.location.href = "http://" + window.location.host;
+		}
 		return {
 			title: "Sign Up",
 			element: $compile("<arb-signup></arb-signup>")($scope),
@@ -583,12 +586,17 @@ app.controller("SignupPageController", function ($scope, $routeParams, $http, $c
 });
 
 app.controller("LoginPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-	$scope.getSuccessFunc(function(data){
+	$http({method: "POST", url: "/json/default/"})
+	.success($scope.getSuccessFunc(function(data){
+		if (userService.user.id) {
+			window.location.href = "http://" + window.location.host;
+		}
 		return {
 			title: "Log In",
 			element: $compile("<div class='md-whiteframe-1dp capped-body-width'><arb-login></arb-login></div>")($scope),
 		};
-	})({user: {id: ""}});
+	}))
+	.error($scope.getErrorFunc("default"));
 });
 
 app.controller("RequisitesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {

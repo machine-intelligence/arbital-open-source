@@ -19,7 +19,7 @@ var loginHandler = siteHandler{
 	URI:         "/login/",
 	HandlerFunc: loginHandlerFunc,
 	Options: pages.PageOptions{
-		SkipLoadingUser: true,
+		AllowAnyone: true,
 	},
 }
 var logoutHandler = siteHandler{

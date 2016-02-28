@@ -10,6 +10,9 @@ import (
 var defaultHandler = siteHandler{
 	URI:         "/json/default/",
 	HandlerFunc: defaultJsonHandlerFunc,
+	Options: pages.PageOptions{
+		AllowAnyone: true,
+	},
 }
 
 func defaultJsonHandlerFunc(params *pages.HandlerParams) *pages.Result {

@@ -64,41 +64,38 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Get user object
-		u := &user.User{}
-		if !h.Options.SkipLoadingUser {
-			u, err = user.LoadUser(w, r, db)
-			if err != nil {
-				fail(http.StatusInternalServerError, "Couldn't load user", err)
-				return
-			}
-			params.U = u
+		u, err := user.LoadUser(w, r, db)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load user", err)
+			return
+		}
+		params.U = u
 
-			// Check permissions
-			if h.Options.RequireLogin && !core.IsIdValid(u.Id) {
-				fail(http.StatusInternalServerError, "Have to be logged in", nil)
-				return
-			}
-			if h.Options.AdminOnly && !u.IsAdmin {
-				fail(http.StatusInternalServerError, "Have to be an admin", nil)
-				return
-			}
-			if h.Options.MinKarma != 0 && u.Karma < h.Options.MinKarma {
-				fail(http.StatusInternalServerError, "Not enough karma", nil)
-				return
-			}
+		// Check permissions
+		if h.Options.RequireLogin && !core.IsIdValid(u.Id) {
+			fail(http.StatusInternalServerError, "Have to be logged in", nil)
+			return
+		}
+		if h.Options.AdminOnly && !u.IsAdmin {
+			fail(http.StatusInternalServerError, "Have to be an admin", nil)
+			return
+		}
+		if h.Options.MinKarma != 0 && u.Karma < h.Options.MinKarma {
+			fail(http.StatusInternalServerError, "Not enough karma", nil)
+			return
+		}
 
-			if core.IsIdValid(u.Id) {
-				// Load the groups the user belongs to.
-				if err = core.LoadUserGroupIds(db, u); err != nil {
-					fail(http.StatusInternalServerError, "Couldn't load user groups", err)
-					return
-				}
-			}
-			// Check if we have access to the private group
-			if core.IsIdValid(params.PrivateGroupId) && !u.IsMemberOfGroup(params.PrivateGroupId) {
-				fail(http.StatusForbidden, "Don't have access to this group", nil)
+		if core.IsIdValid(u.Id) {
+			// Load the groups the user belongs to.
+			if err = core.LoadUserGroupIds(db, u); err != nil {
+				fail(http.StatusInternalServerError, "Couldn't load user groups", err)
 				return
 			}
+		}
+		// Check if we have access to the private group
+		if !h.Options.AllowAnyone && core.IsIdValid(params.PrivateGroupId) && !u.IsMemberOfGroup(params.PrivateGroupId) {
+			fail(http.StatusForbidden, "Don't have access to this group", nil)
+			return
 		}
 
 		result := h.HandlerFunc(params)

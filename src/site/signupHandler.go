@@ -36,7 +36,7 @@ var signupHandler = siteHandler{
 	URI:         "/signup/",
 	HandlerFunc: signupHandlerFunc,
 	Options: pages.PageOptions{
-		SkipLoadingUser: true,
+		AllowAnyone: true,
 	},
 }
 

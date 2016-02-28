@@ -61,9 +61,18 @@ app.service("userService", function($http, $location, $rootScope){
 	};
 
 	// Check if FB redirected back to use with the code
-	if ($location.search().code) {
+	var fbCode = $location.search().code;
+	if (!fbCode && $location.search().continueUrl) {
+		// For private domains, we end up with the code in the continueUrl.
+		var continueUrl = decodeURIComponent($location.search().continueUrl);
+		var match = continueUrl.match(/code=[A-Za-z0-9_-]+/);
+		if (match && match.length > 0) {
+			fbCode = match[0].substring(5);
+		}
+	}
+	if (fbCode) {
 		var data = {
-			fbCodeToken: $location.search().code,
+			fbCodeToken: fbCode,
 		};
 		$location.search("code", undefined);
 		// FB inserts this hash if there was no hash. It's a security thing. We need
