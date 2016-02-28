@@ -300,28 +300,28 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				processInlineComment(scope.page.commentIds[n]);
 			}
 			var inlineCommentButtonHeight = 40; // $newInlineCommentButton.height(); 
-			function preprocessInlineCommentButtons() {
-			    orderedInlineComments.sort(function(a, b){
-			        function compareList(a, b) {
-                        for (var i = 0; i < a.length; i++) {
-                            if (a[i] < b[i]) { return -1; }
-                            if (a[i] > b[i]) { return 1; }
-                        }
-                        return 0;
-                    }
-			        return compareList(
-			            [a.paragraphIndex, a.anchorOffset, a.pageId],
-			            [b.paragraphIndex, b.anchorOffset, b.pageId]);
-			    });
-			    var minTop = 0;
-			    for (n = 0; n < orderedInlineComments.length; n++) {
-			        var inlineComment = orderedInlineComments[n];
-			        var preferredTop = inlineComment.anchorNode.offset().top;
-			        var top = Math.max(minTop, preferredTop);
-			        inlineComment.topOffset = top - preferredTop; // Use this to recompute the actual top when absolute positions are better known
-			        inlineComment.zIndex = n;
-			        minTop = top + inlineCommentButtonHeight - 8; // Subtract 8 pixels to allow small overlap between buttons
-			    }
+			var preprocessInlineCommentButtons = function() {
+				orderedInlineComments.sort(function(a, b) {
+					// Create arrays of values which we compare, breaking ties with the next item in the array.
+					var arrayA = [a.paragraphIndex, a.anchorOffset, a.pageId];
+					var arrayB = [b.paragraphIndex, b.anchorOffset, b.pageId];
+					for (var i = 0; i < arrayA.length; i++) {
+						if (arrayA[i] < arrayB[i]) { return -1; }
+						if (arrayA[i] > arrayB[i]) { return 1; }
+					}
+					return 0;
+				});
+				var minTop = 0;
+				for (n = 0; n < orderedInlineComments.length; n++) {
+					var inlineComment = orderedInlineComments[n];
+					var preferredTop = inlineComment.anchorNode.offset().top;
+					var top = Math.max(minTop, preferredTop);
+					// Use this to recompute the actual top when absolute positions are better known
+					inlineComment.topOffset = top - preferredTop;
+					inlineComment.zIndex = n;
+					// Subtract 8 pixels to allow small overlap between buttons
+					minTop = top + inlineCommentButtonHeight - 8;
+				}
 			}
 			preprocessInlineCommentButtons();
 

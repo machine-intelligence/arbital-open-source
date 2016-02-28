@@ -14,6 +14,11 @@ app.directive("arbRequisitesPage", function(pageService, userService) {
 			for (var id in pageService.masteryMap) {
 				$scope.masteryList.push(id);
 			}
+
+			// Set all requisites to "not known"
+			$scope.resetAll = function() {
+				pageService.updateMasteryMap({delete: $scope.masteryList});
+			};
 		},
 	};
 });

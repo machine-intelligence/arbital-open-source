@@ -11,8 +11,14 @@
 			allow-wants="::true"
 			show-clickbait="::true"
 			ids-source="::masteryList"></div>
-		<span class="md-caption" ng-if="::(masteryList.length <= 0)" layout-padding>
+		<span class="md-caption" layout-padding ng-if="::(masteryList.length <= 0)">
 			You don't have any requisites yet.
 		</span>
+		<md-button class="md-warn md-raised"
+				aria-label="Reset all requisites"
+				ng-click="resetAll()"
+				ng-if="::(masteryList.length > 0)">
+			Reset all requisites
+		</md-button>
 	</div>
 </div>
