@@ -43,7 +43,14 @@ app.service("userService", function($http, $location, $rootScope){
 		// Apparently FB.login is not supported in Chrome in iOS
 		if (navigator.userAgent.match("CriOS")) {
 			var appId = isLive() ? "1064531780272247" : "1064555696936522";
-			var redirectUrl = encodeURIComponent($location.absUrl());
+			var redirectUrl = $location.absUrl();
+			// NOTE: Because of ngSilentLocation our URL state is fucked somehow, and so for now
+			// the best we can do is just redirect the user to the home page.
+			redirectUrl = isLive() ? "http://arbital.com" : "http://localhost:8012";
+			if (redirectUrl.indexOf("?") < 0 && redirectUrl[redirectUrl.length - 1] != "/") {
+				redirectUrl += "/";
+			}
+			redirectUrl = encodeURIComponent(redirectUrl);
 			window.location.href = "https://www.facebook.com/dialog/oauth?client_id=" + appId +
 					"&redirect_uri=" + redirectUrl + "&scope=email,public_profile";
 		} else {
@@ -65,6 +72,9 @@ app.service("userService", function($http, $location, $rootScope){
 			$location.hash("");
 		}
 		data.fbRedirectUrl = $location.absUrl();
+		if (redirectUrl.indexOf("?") < 0 && redirectUrl[redirectUrl.length - 1] != "/") {
+			data.fbRedirectUrl += "/";
+		}
 		$http({method: "POST", url: "/signup/", data: JSON.stringify(data)})
 		.success(function(data, status){
 			window.location.reload();
