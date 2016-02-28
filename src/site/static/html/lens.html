@@ -28,17 +28,6 @@
 				If you have trouble understanding this lens, try a simpler one:
 				<a ng-href="{{::pageService.getPageUrl(simplerLens.pageId)}}"
 						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
-				<!--<span ng-if="simplerLens.requirementIds.length <= 0">with no requisites.</span>
-				<span ng-if="simplerLens.requirementIds.length > 0 && meetsAllRequirements(simplerLens.pageId)">
-					that relies on requisites you already have.
-				</span>
-				<span ng-if="simplerLens.requirementIds.length > 0 && !meetsAllRequirements(simplerLens.pageId)">
-					that relies on:
-					<span ng-repeat="(index, reqId) in ::simplerLens.requirementIds">
-						<span class="comma" ng-if="::(index > 0)">,</span>
-						<arb-page-title page-id="{{::reqId}}" is-link="true"></arb-page-title>
-					</span>
-				</span>-->
 			</div>
 			<!-- Learn this suggestion -->
 			<div ng-if="isSimplestLens && !pageService.path" ng-show="!meetsAllRequirements()">
@@ -80,7 +69,9 @@
 
 		<hr ng-if="(!isSimpleEmbed && subjectIds.length > 0) ||
 				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
-		<div layout="row" layout-align="start end">
+		<div layout="row"
+				layout-align="start end"
+				layout-xs="column">
 			<!-- Subjects taught -->
 			<div flex="100" ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
 				<span class="md-subhead">

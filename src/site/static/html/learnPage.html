@@ -53,14 +53,16 @@
 			<div class="learn-list">
 				<div layout="row"
 						layout-align="start center"
+						layout-xs="column"
+						layout-align-xs="start start"
 						ng-repeat="(index,pageId) in ::readIds">
 					<span>
-					<span>{{index + 1}})&nbsp;</span>
-					<arb-page-title page-id="{{::pageId}}"
-							is-link="true"
-							show-clickbait="true"
-							custom-link="{{::getListUrl(pageId)}}"></arb-page-title>
-						</span>
+						<span>{{index + 1}})&nbsp;</span>
+						<arb-page-title page-id="{{::pageId}}"
+								is-link="true"
+								show-clickbait="true"
+								custom-link="{{::getListUrl(pageId)}}"></arb-page-title>
+					</span>
 					<span flex></span>
 					<span class="nowrap md-caption">
 						&nbsp;(<span ng-bind="::(pageService.pageMap[pageId].textLength | numSuffix)"></span> characters)
