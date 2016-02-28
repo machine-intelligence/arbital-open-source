@@ -40,6 +40,12 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 	};
 	removePopover(); // init all the variables
 
+	var shutItDown = function() {
+		$timeout.cancel(createPromise);
+		$timeout.cancel(removePromise);
+		removePopover();
+	};
+
 	// Update the timeout timer.
 	var updateTimeout = function() {
 		if (anchorHovering || popoverHovering) {
@@ -201,6 +207,15 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		$("body").on("click", ".user-link", function(event) {
 			return touchDeviceLinkClick(event, linkTypeUser);
 		});
+	} else {
+		// On desktop, clicking the link kills the popover
+		$("body").on("click", ".intrasite-link", function(event) {
+			shutItDown();
+		});
+
+		$("body").on("click", ".user-link", function(event) {
+			shutItDown();
+		});
 	}
 
 	// Don't allow the body to scroll when scrolling a popover tab body
@@ -215,20 +230,6 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 		if ((delta < 0 && bottomOverflow) || (delta > 0 && topOverflow)) {
 			event.preventDefault();
 		}
-	});
-
-	var shutItDown = function() {
-		$timeout.cancel(createPromise);
-		$timeout.cancel(removePromise);
-		removePopover();
-	};
-
-	$("body").on("click", ".intrasite-link", function(event) {
-		shutItDown();
-	});
-
-	$("body").on("click", ".user-link", function(event) {
-		shutItDown();
 	});
 
 	$rootScope.$on("$locationChangeStart", function(event) {

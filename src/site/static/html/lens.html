@@ -74,7 +74,9 @@
 			<div flex="100" ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
-					Did you learn these concepts from "{{::page.title}}"?
+					Did you learn
+					<span ng-bind="::(subjectIds.length > 1 ? 'these concepts' : 'this concept')"></span>
+					from "<span ng-bind="::page.title"></span>"?
 				</span>
 				<div arb-mastery-list
 						ids-source="::subjectIds"

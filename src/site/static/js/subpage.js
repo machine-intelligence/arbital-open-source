@@ -1,7 +1,7 @@
 "use strict";
 
 // Directive for showing a subpage.
-app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, $mdMedia, pageService, userService, autocompleteService, RecursionHelper) {
 	return {
 		templateUrl: "static/html/subpage.html",
 		scope: {
@@ -23,6 +23,7 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, p
 				$scope.page.subpageIds.sort(pageService.getChildSortFunc("likes"));
 			}
 			$scope.isCollapsed = false;
+			$scope.isTinyScreen = !$mdMedia("gt-xs");
 
 			if ($scope.isComment) {
 				var url = pageService.getPageUrl($scope.lensId);
