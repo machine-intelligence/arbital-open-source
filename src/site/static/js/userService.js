@@ -72,7 +72,8 @@ app.service("userService", function($http, $location, $rootScope){
 			$location.hash("");
 		}
 		data.fbRedirectUrl = $location.absUrl();
-		if (redirectUrl.indexOf("?") < 0 && redirectUrl[redirectUrl.length - 1] != "/") {
+		data.fbRedirectUrl = isLive() ? "http://arbital.com" : "http://localhost:8012";
+		if (data.fbRedirectUrl.indexOf("?") < 0 && data.fbRedirectUrl[data.fbRedirectUrl.length - 1] != "/") {
 			data.fbRedirectUrl += "/";
 		}
 		$http({method: "POST", url: "/signup/", data: JSON.stringify(data)})
