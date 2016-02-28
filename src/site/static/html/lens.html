@@ -69,9 +69,7 @@
 
 		<hr ng-if="(!isSimpleEmbed && subjectIds.length > 0) ||
 				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
-		<div layout="row"
-				layout-align="start end"
-				layout-xs="column">
+		<div layout-gt-xs="row" layout-align="start end">
 			<!-- Subjects taught -->
 			<div flex="100" ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
 				<span class="md-subhead">
