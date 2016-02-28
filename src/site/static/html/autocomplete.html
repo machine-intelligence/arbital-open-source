@@ -14,13 +14,13 @@
 			<!--<arb-likes page-id="{{result.pageId}}"></arb-likes>-->
 			<!-- There is a bug with using custom directives inside the autocomplete,
 				because it uses md-virtual-repeat. -->
-			<span class="likes-in-autocomplete" layout-gt-xs="row" layout="start end">
+			<div class="likes-in-autocomplete" layout="row" layout="start end">
 				<md-icon class="like-icon on no-margins" ng-show="result.page.myLikeValue > 0">thumb_up</md-icon>
 				<md-icon class="like-icon off no-margins" md-svg-icon="thumb_up_outline" ng-show="result.page.myLikeValue <= 0"></md-icon>
 				<span class="like-count">{{result.page.likeCount + result.page.myLikeValue}}</span>
-			</span>
+			</div>
 			<!--<arb-page-title page-id="{{result.pageId}}" show-clickbait="true"></arb-page-title>-->
-			<div layout="column">
+			<div layout="column" flex>
 				<div layout="row" layout-align="start center">
 					<md-icon class="no-margins" ng-if="pageService.showPrivate(result.page.pageId)">
 						<md-tooltip>This page belongs to {{pageService.pageMap[page.seeGroupId].title}} group</md-tooltip>
