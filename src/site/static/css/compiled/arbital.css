@@ -534,7 +534,7 @@ arb-likes, .likes-in-autocomplete {
   margin: 0 10px 0 0; }
   arb-likes .like-icon, .likes-in-autocomplete .like-icon {
     min-width: 24px;
-    margin-right: 2px; }
+    margin-right: 2px !important; }
 
 [arb-page-list], .arb-page-list {
   margin-bottom: 4vw; }
@@ -544,10 +544,10 @@ arb-page-title, [arb-page-title] {
 
 .small-button {
   padding: 0 !important;
-  width: 20px !important;
-  height: 20px !important;
-  min-width: 20px !important;
-  min-height: 20px !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
   margin-right: 5px !important; }
 
 arb-requisite-button .md-button, [arb-requisite-button] .md-button {
@@ -846,6 +846,9 @@ arb-multiple-choice {
   arb-multiple-choice md-radio-button {
     display: inline-block;
     margin: 0; }
+  @media (max-width: 599px) {
+    arb-multiple-choice .multiple-choice-option + .multiple-choice-option {
+      margin-top: 5px; } }
 
 .learn-requirements {
   margin-left: 10px;

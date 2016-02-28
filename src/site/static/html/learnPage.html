@@ -51,7 +51,9 @@
 				</span>
 			</div>
 			<div class="learn-list">
-				<div layout="row" layout-align="start center" ng-repeat="(index,pageId) in ::readIds">
+				<div layout="row"
+						layout-align="start center"
+						ng-repeat="(index,pageId) in ::readIds">
 					<span>
 					<span>{{index + 1}})&nbsp;</span>
 					<arb-page-title page-id="{{::pageId}}"

@@ -15,8 +15,8 @@
 			<!-- There is a bug with using custom directives inside the autocomplete,
 				because it uses md-virtual-repeat. -->
 			<span class="likes-in-autocomplete" layout="row" layout="start end">
-				<md-icon class="like-icon on" ng-show="result.page.myLikeValue > 0">thumb_up</md-icon>
-				<md-icon class="like-icon off" md-svg-icon="thumb_up_outline" ng-show="result.page.myLikeValue <= 0"></md-icon>
+				<md-icon class="like-icon on no-margins" ng-show="result.page.myLikeValue > 0">thumb_up</md-icon>
+				<md-icon class="like-icon off no-margins" md-svg-icon="thumb_up_outline" ng-show="result.page.myLikeValue <= 0"></md-icon>
 				<span class="like-count">{{result.page.likeCount + result.page.myLikeValue}}</span>
 			</span>
 			<!--<arb-page-title page-id="{{result.pageId}}" show-clickbait="true"></arb-page-title>-->

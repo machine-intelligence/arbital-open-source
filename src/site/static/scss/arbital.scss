@@ -779,7 +779,7 @@ arb-likes, .likes-in-autocomplete {
 	.like-icon {
 		// Set width manually, otherwise Safari has it smaller
 		min-width: 24px;
-		margin-right: 2px;
+		margin-right: 2px !important;
 	}
 
 	// Number of likes
@@ -797,10 +797,10 @@ arb-page-title, [arb-page-title] {
 
 @mixin small-button {
 	padding: 0 !important;
-	width: 20px !important;
-	height: 20px !important;
-	min-width: 20px !important;
-	min-height: 20px !important;
+	width: 24px !important;
+	height: 24px !important;
+	min-width: 24px !important;
+	min-height: 24px !important;
 	margin-right: 5px !important;
 }
 
@@ -1227,6 +1227,12 @@ arb-multiple-choice {
 	md-radio-button {
 		display: inline-block;
 		margin: 0;
+	}
+
+	@media (max-width: 599px) {
+		.multiple-choice-option + .multiple-choice-option {
+			margin-top: 5px;
+		}
 	}
 }
 

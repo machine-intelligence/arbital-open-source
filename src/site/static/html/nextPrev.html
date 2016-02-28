@@ -32,7 +32,7 @@
 			<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
 			<md-icon>chevron_right</md-icon>
 		</md-button>
-		<md-button class="md-raised" ng-disabled="true" ng-if="!pageService.path.nextPageId">
+		<md-button ng-disabled="true" ng-if="!pageService.path.nextPageId">
 			Done!
 		</md-button>
 	</div>

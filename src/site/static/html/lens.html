@@ -17,8 +17,6 @@
 						ng-click="toggleRequirements()"
 						aria-label="Toggle requirements"
 						ng-if="::(page.requirementIds.length > 1)">
-					<md-icon ng-if="meetsAllRequirements()">clear</md-icon>
-					<md-icon ng-if="!meetsAllRequirements()">done_all</md-icon>
 					<span ng-bind="meetsAllRequirements() ? 'Nevermind, I don\'t know these' : 'I already know these'"></span>
 				</md-button>
 			</div>

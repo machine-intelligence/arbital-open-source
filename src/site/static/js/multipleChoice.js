@@ -63,7 +63,7 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 					}
 				});
 				$(this).children("ul").remove();
-				$(this).changeElementType("div")
+				$(this).changeElementType("div").addClass("multiple-choice-option")
 				.prepend("<md-radio-button class='md-primary' aria-label='Answer " + answerValue +
 					"' value='" + answerValue + "'></md-radio-button>");
 				answerValue = String.fromCharCode(answerValue.charCodeAt() + 1);
