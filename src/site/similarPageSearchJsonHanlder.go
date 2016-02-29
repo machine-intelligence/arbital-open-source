@@ -54,23 +54,24 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
-		"min_score": 0.1,
+		"min_score": %v,
+		"size": %d,
 		"query": {
 			"filtered": {
 				"query": {
 					"bool": {
 						"should": [
 							{
-								"match": { "title": "%[1]s" }
+								"match": { "title": "%s" }
 							},
 							{
-								"match": { "clickbait": "%[2]s" }
+								"match": { "clickbait": "%s" }
 							},
 							{
-								"match": { "text": "%[3]s" }
+								"match": { "text": "%s" }
 							},
 							{
-								"match": { "type": "%[4]s" }
+								"match": { "type": "%s" }
 							}
 						]
 					}
@@ -79,7 +80,7 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 					"bool": {
 						"must": [
 							{
-								"terms": { "seeGroupId": [%[5]s] }
+								"terms": { "seeGroupId": [%s] }
 							}
 						]
 					}
@@ -87,6 +88,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, escapedTitle, escapedClickbait, escapedText, escapedPageType, strings.Join(groupIds, ","))
+	}`, minSearchScore, searchSize, escapedTitle, escapedClickbait, escapedText, escapedPageType, strings.Join(groupIds, ","))
 	return searchJsonInternalHandler(params, jsonStr)
 }
