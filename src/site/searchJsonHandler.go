@@ -4,6 +4,8 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"sort"
 	"strings"
 
 	"zanaduu3/src/core"
@@ -116,6 +118,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages.Result {
 	db := params.DB
+	u := params.U
 
 	// Perform search.
 	results, err := elastic.SearchPageIndex(params.C, query)
@@ -127,7 +130,7 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 
 	loadOptions := (&core.PageLoadOptions{
 		Tags:     true,
-		Creators: true,
+		Creators: u.Id != "",
 	}).Add(core.TitlePlusLoadOptions)
 
 	// Create page map.
@@ -141,19 +144,35 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		return pages.HandlerErrorFail("error while loading pages", err)
 	}
 
-	// Adjust hit values and then extract top N
-	// 22t - just a requisite
-	// 15r - out of date
-	// 4v - work in progress
-	// 72 - stub
+	// Adjust results' scores
 	penaltyMap := map[string]float32{
-		"22t": 0.9,
+		"22t": 0.75, // Just a requisite
+		"15r": 0.85, // Out of date
+		"4v":  0.75, // Work in progress
+		"72":  0.65, // Stub
 	}
 	for _, hit := range results.Hits.Hits {
 		if page, ok := returnData.PageMap[hit.Source.PageId]; ok {
+			// Adjust the score based on tags
 			for _, tagId := range page.TaggedAsIds {
 				if penalty, ok := penaltyMap[tagId]; ok {
 					hit.Score *= penalty
+				}
+			}
+			// Adjust the score based on likes
+			if page.LikeScore > 0 {
+				hit.Score *= float32(math.Log(float64(page.LikeScore))/10) + 1
+			}
+			if page.MyLikeValue > 0 {
+				hit.Score *= 1.2
+			}
+			// Adjust the score if the user created the page
+			if u.Id != "" {
+				for _, creatorId := range page.CreatorIds {
+					if creatorId == u.Id {
+						hit.Score *= 1.2
+						break
+					}
 				}
 			}
 		} else {
@@ -161,7 +180,12 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		}
 	}
 
-	results.Hits.Hits = results.Hits.Hits[0:returnSearchSize]
+	sort.Sort(results.Hits.Hits)
+	if returnSearchSize < len(results.Hits.Hits) {
+		results.Hits.Hits = results.Hits.Hits[0:returnSearchSize]
+	} else {
+		results.Hits.Hits = results.Hits.Hits[0:len(results.Hits.Hits)]
+	}
 	returnData.ResultMap["search"] = results.Hits
 	return pages.StatusOK(returnData.ToJson())
 }

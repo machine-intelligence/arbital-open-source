@@ -21,6 +21,10 @@ var (
 
 type HitsList []*Hit
 
+func (a HitsList) Len() int           { return len(a) }
+func (a HitsList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a HitsList) Less(i, j int) bool { return a[i].Score > a[j].Score }
+
 // Document describes the document which goes into the pages search index.
 type Document struct {
 	PageId     string `json:"pageId"`
