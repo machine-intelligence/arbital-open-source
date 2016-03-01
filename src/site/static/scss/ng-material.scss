@@ -1,0 +1,380 @@
+// This file directly augments Angular Material library
+@import "constants.scss";
+
+#primary-color {
+	border-top-color: $primary-color;
+	border-right-color: $primary-hue-1;
+	border-bottom-color: $primary-hue-2;
+	border-left-color: $primary-hue-3;
+}
+
+#accent-color {
+	border-top-color: $accent-color;
+	border-right-color: $accent-hue-1;
+	border-bottom-color: $accent-hue-2;
+	border-left-color: $accent-hue-3;
+}
+
+#warn-color {
+	border-top-color: $warn-color;
+	border-right-color: $warn-hue-1;
+	border-bottom-color: $warn-hue-2;
+	border-left-color: $warn-hue-3;
+}
+
+md-content {
+	background-color: initial;
+}
+
+.md-whiteframe-1dp {
+	background-color: white;
+}
+.md-whiteframe-2dp {
+	background-color: white;
+}
+
+// WTF? This is probably a bug with NgMaterial
+.md-select-menu-container {
+	background-color: white;
+}
+
+div.md-primary, md-list-item.md-primary {
+	background-color: $primary-color;
+	&.md-hue-1 {
+		background-color: $primary-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $primary-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $primary-hue-3;
+	}
+}
+
+div.md-accent, md-list-item.md-accent {
+	background-color: $accent-color;
+	&.md-hue-1 {
+		background-color: $accent-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $accent-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $accent-hue-3;
+	}
+}
+
+div.md-warn, md-list-item.md-warn {
+	background-color: $warn-color;
+	&.md-hue-1 {
+		background-color: $warn-hue-1;
+	}
+	&.md-hue-2 {
+		background-color: $warn-hue-2;
+	}
+	&.md-hue-3 {
+		background-color: $warn-hue-3;
+	}
+}
+
+span.md-accent {
+	color: $accent-color;
+	& > span, & > md-icon {
+		color: $accent-color;
+	}
+}
+
+span.md-warn {
+	color: $warn-color;
+	& > span, & > md-icon {
+		color: $warn-color;
+	}
+}
+
+// Page and section titles
+.md-display-3 {
+	font-family: "Roboto Slab";
+	font-size: 2.5rem;
+	line-height: 3rem;
+	font-weight: 400;
+	margin: 0.5rem 0;
+
+	md-icon {
+		font-size: 2.5rem;
+		width: 2.5rem;
+		height: 2.5rem;
+	}
+}
+
+// Markdown header 1
+.md-display-2, .preview-area h1, arb-markdown h1 {
+	font-family: "Roboto Slab";
+	font-size: 2rem;
+	line-height: 2.2rem;
+	font-weight: 700;
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+
+// Markdown header 2
+.md-display-1, .preview-area h2, arb-markdown h2 {
+	font-size: 1.5rem;
+	line-height: 1.7rem;
+	font-weight: 300;
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+
+// Markdown header 3
+.md-headline, .preview-area h3, arb-markdown h3 {
+	font-size: 1.3rem;
+	line-height: 1.5rem;
+	font-weight: 700;
+	margin-top: 1.5rem;
+	margin-bottom: 0.5rem;
+	color: #555555;
+}
+
+.md-subhead {
+	font-weight: 700;
+}
+
+// Used for helpful, non-important info text
+.md-caption {
+	font-size: 12px;
+	color: darkgray;
+	line-height: normal;
+}
+
+// Slightly bolder normal font
+.md-body-2 {
+	font-weight: 700;
+}
+
+.md-subheader {
+	background-color: whitesmoke;
+	padding: 8px 16px;
+	margin-bottom: 6px;
+
+	&.md-primary {
+		background-color: $primary-color;
+	}
+	&.md-accent {
+		background-color: $accent-color;
+	}
+	&.md-warn {
+		background-color: $warn-color;
+	}
+
+	.md-subheader-inner {
+		padding: 0;
+	}
+}
+
+.md-button:not(.md-fab) {
+	// Remove all margins from buttons so we can easier have them fill areas we need
+	margin: 0;
+
+	&.md-icon-button {
+		// Sometimes we have an icon AND a number following it inside the button, but
+		// still want to keep it small; so we need to show the overflow.
+		overflow: visible;
+	}
+
+	&:not([disabled]).special {
+		color: $link-color !important;
+
+		&:hover {
+			color: darken($link-color, 15%) !important;
+		}
+
+		&.md-raised {
+			background-color: $link-color !important;
+			color: white !important;
+
+			&:hover {
+				background-color: darken($link-color, 5%) !important;
+			}
+
+			& md-icon {
+				color: white !important;
+			}
+		}
+
+		& md-icon {
+			color: $link-color;
+		}
+	}
+}
+
+md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-no-proxy.ng-scope {
+	min-height: 0;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	padding: 5px 16px 10px 16px;
+}
+
+.md-toolbar-tools {
+	.arbital-logo {
+		position: relative;
+		top: -4px;
+		width: 48px;
+		height: 48px;
+		margin: 10px 15px 0 0;
+	}
+
+	a {
+		// Prevent links from wrapping inside toolbars
+		white-space: nowrap;
+	}
+
+	&:not(.md-toolbar-tools-bottom) arb-autocomplete {
+		max-width: 70%;
+	}
+
+	md-autocomplete {
+		background-color: $primary-hue-2;
+
+		md-autocomplete-wrap {
+			// Remove the shadow since this autocomplete is inside a toolbar
+			box-shadow: none;
+		}
+
+		input {
+			color: white;
+		}
+	}
+}
+
+md-autocomplete {
+	input {
+		// Change line-height, otherwise the caret looks oversized in Safari
+		line-height: normal;
+	}
+}
+
+// Remove "X" button on IE
+.md-input::-ms-clear {
+  display: none;
+}
+
+// Style all md-icons to have size proportionate to the font size
+md-icon {
+	&.on {
+		color: $primary-color;
+	}
+
+	&.off {
+		color: gray;
+	}
+}
+
+md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
+	height: 100%;
+}
+
+// Helper class for hiding the tabs (used when we only have one)
+.hide-tabs {
+	md-tabs-wrapper {
+		display: none;
+	}
+	md-tabs-content-wrapper {
+		top: 0px;
+	}
+}
+
+md-tabs {
+	outline: none;
+}
+
+md-tabs-wrapper {
+	a {
+		color: inherit;
+	}
+}
+
+// When applying layout-column and flex to md-tabs, we want to propagate these
+// all the way down to the tab content
+md-tabs.layout-column.flex {
+	@mixin layout-column-flex {
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1;
+	}
+
+	md-tabs-content-wrapper {
+		@include layout-column-flex;
+	}
+	md-tab-content {
+		@include layout-column-flex;
+	}
+	md-tab-content > div {
+		@include layout-column-flex;
+	}
+}
+
+md-tab-content {
+	background-color: white;
+}
+
+// Color the active tab
+.md-tab {
+	&.md-active {
+		background-color: $primary-hue-3;
+	}
+}
+
+md-tabs.page-tabs {
+	margin-top: 15px;
+
+	& > md-tabs-wrapper {
+		background-color: white !important;
+		border-bottom: $primary-hue-2 2px solid;
+
+		md-tab-item {
+			color: $primary-hue-2 !important;
+			md-icon {
+				color: $primary-hue-2 !important;
+			}
+
+			&.md-active {
+				background-color: $primary-hue-1;
+				border: $primary-hue-2 2px solid;
+				margin-right: -4px;
+			}
+		}
+	}
+}
+
+// Fixing the issue with the dropdown autocomplete sometimes being too small.
+.md-virtual-repeat-container.md-autocomplete-suggestions-container {
+	min-height: 30vh;
+}
+
+// Inside toolbars, color the link differently
+md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
+	color: white;
+	&:hover {
+		color: $primary-hue-1;
+	}
+	&:active {
+		color: darken($primary-hue-1, 20%);
+	}
+}
+
+// Tooltips that show up when you hover over things
+md-tooltip .md-content {
+	background-color: rgba(0,0,0,0.9);
+	font-size: 12px;
+	font-weight: bold;
+}
+
+md-list {
+	// Remove padding, so that when the list is empty, it doesn't take up space
+	padding-top: 0;
+	padding-bottom: 0;
+}
+

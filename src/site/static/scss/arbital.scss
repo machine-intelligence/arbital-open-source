@@ -1,47 +1,7 @@
 @import "ng-sortable.scss";
-
-// All the z-indices we use
-$inlineCommentIconZ: 1;
-$popoverZ: 60;
-$composeFabZ: 50;
-
-$link-color: #137abd;
-
-// Colors that are the same as we set for mdThemingProvider
-//http://www.google.com/design/spec/style/color.html#color-color-palette
-$primary-color: #009688; // teal (500)
-$primary-hue-1: #E0F2F1; // 100
-$primary-hue-2: #00796B; // 700
-$primary-hue-3: #004D40; // 900
-$accent-color: #FF5722; // deep-orange (500)
-$accent-hue-1: #FFCCBC; // 100
-$accent-hue-2: #E64A19; // 700
-$accent-hue-3: #F16700; // custom (opposite to teal500)
-$warn-color: #F44336; // red (500)
-$warn-hue-1: #FFCDD2; // 100
-$warn-hue-2: #D32F2F; // 700
-$warn-hue-3: #B71C1C; // 900
-
-#primary-color {
-	border-top-color: $primary-color;
-	border-right-color: $primary-hue-1;
-	border-bottom-color: $primary-hue-2;
-	border-left-color: $primary-hue-3;
-}
-
-#accent-color {
-	border-top-color: $accent-color;
-	border-right-color: $accent-hue-1;
-	border-bottom-color: $accent-hue-2;
-	border-left-color: $accent-hue-3;
-}
-
-#warn-color {
-	border-top-color: $warn-color;
-	border-right-color: $warn-hue-1;
-	border-bottom-color: $warn-hue-2;
-	border-left-color: $warn-hue-3;
-}
+@import "constants.scss";
+@import "ng-material.scss";
+@import "util.scss";
 
 body {
 	overflow-x: hidden;
@@ -52,167 +12,6 @@ body {
 // Edit page is the notable exception
 .body-fix {
 	height: auto;
-}
-
-md-content {
-	background-color: initial;
-}
-
-// WTF? This is probably a bug with NgMaterial
-.md-select-menu-container {
-	background-color: white;
-}
-
-div.md-primary, md-list-item.md-primary {
-	background-color: $primary-color;
-	&.md-hue-1 {
-		background-color: $primary-hue-1;
-	}
-	&.md-hue-2 {
-		background-color: $primary-hue-2;
-	}
-	&.md-hue-3 {
-		background-color: $primary-hue-3;
-	}
-}
-
-div.md-accent, md-list-item.md-accent {
-	background-color: $accent-color;
-	&.md-hue-1 {
-		background-color: $accent-hue-1;
-	}
-	&.md-hue-2 {
-		background-color: $accent-hue-2;
-	}
-	&.md-hue-3 {
-		background-color: $accent-hue-3;
-	}
-}
-
-div.md-warn, md-list-item.md-warn {
-	background-color: $warn-color;
-	&.md-hue-1 {
-		background-color: $warn-hue-1;
-	}
-	&.md-hue-2 {
-		background-color: $warn-hue-2;
-	}
-	&.md-hue-3 {
-		background-color: $warn-hue-3;
-	}
-}
-
-span.md-accent {
-	color: $accent-color;
-	& > span, & > md-icon {
-		color: $accent-color;
-	}
-}
-
-span.md-warn {
-	color: $warn-color;
-	& > span, & > md-icon {
-		color: $warn-color;
-	}
-}
-
-// Page and section titles
-.md-display-3 {
-	font-family: "Roboto Slab";
-	font-size: 2.5rem;
-	line-height: 3rem;
-	font-weight: 400;
-	margin: 0.5rem 0;
-
-	md-icon {
-		font-size: 2.5rem;
-		width: 2.5rem;
-		height: 2.5rem;
-	}
-}
-
-// Markdown header 1
-.md-display-2, .preview-area h1, arb-markdown h1 {
-	font-family: "Roboto Slab";
-	font-size: 2rem;
-	line-height: 2.2rem;
-	font-weight: 700;
-	margin-top: 2rem;
-	margin-bottom: 0.75rem;
-}
-
-// Markdown header 2
-.md-display-1, .preview-area h2, arb-markdown h2 {
-	font-size: 1.5rem;
-	line-height: 1.7rem;
-	font-weight: 300;
-	margin-top: 2rem;
-	margin-bottom: 0.75rem;
-}
-
-// Markdown header 3
-.md-headline, .preview-area h3, arb-markdown h3 {
-	font-size: 1.3rem;
-	line-height: 1.5rem;
-	font-weight: 700;
-	margin-top: 1.5rem;
-	margin-bottom: 0.5rem;
-	color: #555555;
-}
-
-.md-subhead {
-	font-weight: 700;
-}
-
-// Used for helpful, non-important info text
-.md-caption {
-	font-size: 12px;
-	color: darkgray;
-	line-height: normal;
-}
-
-// Slightly bolder normal font
-.md-body-2 {
-	font-weight: 700;
-}
-
-.md-subheader {
-	background-color: whitesmoke;
-	padding: 8px 16px;
-	margin-bottom: 6px;
-
-	&.md-primary {
-		background-color: $primary-color;
-	}
-	&.md-accent {
-		background-color: $accent-color;
-	}
-	&.md-warn {
-		background-color: $warn-color;
-	}
-
-	.md-subheader-inner {
-		padding: 0;
-	}
-}
-
-.submit-form-error {
-	padding: 10px;
-}
-
-.bold {
-	font-weight: bold;
-}
-
-.float-left {
-	float: left;
-}
-.float-right {
-	float: right;
-}
-
-.nowrap {
-	white-space: nowrap;
 }
 
 .facebook-button {
@@ -321,48 +120,6 @@ arb-markdown, [arb-markdown], .preview-area {
 	margin: 20px 0;
 }
 
-.white-background {
-	background-color: white;
-}
-.md-whiteframe-1dp {
-	background-color: white;
-}
-.md-whiteframe-2dp {
-	background-color: white;
-}
-
-.black-font {
-	color: black;
-}
-
-.full-width {
-	width: 100%;
-}
-.full-height {
-	height: 100%;
-}
-md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
-	height: 100%;
-}
-
-.no-margins {
-	margin: 0 !important;
-}
-
-// Use this class to reveal the element after it and the children are linked
-.reveal-after-render-parent {
-	visibility: hidden !important;
-
-	.reveal-after-render {
-		visibility: hidden !important;
-	}
-
-	// Have to hide the knob, otherwise it appears before we reveal the page
-	.my-vote-knob {
-		visibility: hidden !important;
-	}
-}
-
 // Container for a list of tags/parents
 .page-list-span {
 	margin: 5px 0;
@@ -409,26 +166,6 @@ $toolbar-height: 64px;
 	background-color: $primary-hue-1;
 }
 
-// Used to style the dot we display when a page hasn't been visited / was updated
-@mixin dot($color) {
-	position: relative;
-	top: -0.4em;
-	display: inline-block;
-	background-color: $color;
-	width: 0.4em;
-	height: 0.4em;
-	border-radius: 50%;
-}
-.primary-dot {
-	@include dot($primary-color);
-}
-.accent-dot {
-	@include dot($accent-color);
-}
-.warn-dot {
-	@include dot($warn-color);
-}
-
 // Element inside an autocomplete dropdown list
 .autocomplete-custom-template li {
 	border-bottom: 1px solid silver;
@@ -437,11 +174,6 @@ $toolbar-height: 64px;
 	height: auto;
 	white-space: normal;
 	line-height: 20px;
-}
-
-// Fixing the issue with the dropdown autocomplete sometimes being too small.
-.md-virtual-repeat-container.md-autocomplete-suggestions-container {
-	min-height: 30vh;
 }
 
 // Voting bar
@@ -548,52 +280,6 @@ $toolbar-height: 64px;
 	outline: none;
 }
 
-// Helpers used to align text horizontally
-.left-text {
-	text-align: left;
-}
-.center-text {
-	text-align: center;
-}
-.right-text {
-	text-align: right;
-}
-
-// Helper to preserve whitespace
-.pre {
-	white-space: pre;
-}
-
-// Add this to an element to only show the first line of text in it.
-.one-line {
-	& > * {
-		white-space: nowrap !important;
-		text-overflow: ellipsis !important;
-		overflow: hidden !important;
-	}
-
-	* + * {
-		display: none;
-	}
-}
-
-// This is used to style the comma which appears in the generated list of things.
-// Normally there is a space before it, so we adjust the left margin.
-.comma {
-	margin-left: -3px;
-}
-
-// Inside toolbars, color the link differently
-md-toolbar a:not(.md-button), md-toolbar a[page-id]:not(.md-button), md-toolbar a[user-id]:not(.md-button) {
-	color: white;
-	&:hover {
-		color: $primary-hue-1;
-	}
-	&:active {
-		color: darken($primary-hue-1, 20%);
-	}
-}
-
 // Style all the links
 a:not(.md-button) {
 	$color: #0000cc;
@@ -642,19 +328,6 @@ a:not(.md-button) {
 	margin-top: 12px;
 }
 
-// Tooltips that show up when you hover over things
-md-tooltip .md-content {
-	background-color: rgba(0,0,0,0.9);
-	font-size: 12px;
-	font-weight: bold;
-}
-
-md-list {
-	// Remove padding, so that when the list is empty, it doesn't take up space
-	padding-top: 0;
-	padding-bottom: 0;
-}
-
 .edit-page-dialog {
 	width: 90vw;
 	height: 90vh;
@@ -671,107 +344,9 @@ md-list {
 	}
 }
 
-.md-button:not(.md-fab) {
-	// Remove all margins from buttons so we can easier have them fill areas we need
-	margin: 0;
-
-	&.md-icon-button {
-		// Sometimes we have an icon AND a number following it inside the button, but
-		// still want to keep it small; so we need to show the overflow.
-		overflow: visible;
-	}
-
-	&:not([disabled]).special {
-		color: $link-color !important;
-
-		&:hover {
-			color: darken($link-color, 15%) !important;
-		}
-
-		&.md-raised {
-			background-color: $link-color !important;
-			color: white !important;
-
-			&:hover {
-				background-color: darken($link-color, 5%) !important;
-			}
-
-			& md-icon {
-				color: white !important;
-			}
-		}
-
-		& md-icon {
-			color: $link-color;
-		}
-	}
-}
-
 .feedback-textarea {
 	width: 40vw;
 	height: 50vh;
-}
-
-md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-no-proxy.ng-scope {
-	min-height: 0;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	padding: 5px 16px 10px 16px;
-}
-
-.md-toolbar-tools {
-	.arbital-logo {
-		position: relative;
-		top: -4px;
-		width: 48px;
-		height: 48px;
-		margin: 10px 15px 0 0;
-	}
-
-	a {
-		// Prevent links from wrapping inside toolbars
-		white-space: nowrap;
-	}
-
-	&:not(.md-toolbar-tools-bottom) arb-autocomplete {
-		max-width: 70%;
-	}
-
-	md-autocomplete {
-		background-color: $primary-hue-2;
-
-		md-autocomplete-wrap {
-			// Remove the shadow since this autocomplete is inside a toolbar
-			box-shadow: none;
-		}
-
-		input {
-			color: white;
-		}
-	}
-}
-
-md-autocomplete {
-	input {
-		// Change line-height, otherwise the caret looks oversized in Safari
-		line-height: normal;
-	}
-}
-
-// Remove "X" button on IE
-.md-input::-ms-clear {
-  display: none;
-}
-
-// Style all md-icons to have size proportionate to the font size
-md-icon {
-	&.on {
-		color: $primary-color;
-	}
-
-	&.off {
-		color: gray;
-	}
 }
 
 arb-likes, .likes-in-autocomplete {
@@ -796,19 +371,6 @@ arb-likes, .likes-in-autocomplete {
 
 arb-page-title, [arb-page-title] {
 	line-height: normal;
-}
-
-@mixin small-button {
-	padding: 0 !important;
-	width: 24px !important;
-	height: 24px !important;
-	min-width: 24px !important;
-	min-height: 24px !important;
-	margin-right: 5px !important;
-}
-
-.small-button {
-	@include small-button;
 }
 
 arb-requisite-button, [arb-requisite-button] {
@@ -849,7 +411,7 @@ arb-requisite-button, [arb-requisite-button] {
 		box-sizing: border-box;
 	}
 }
-@media (min-width: 600px) {
+@media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
 	.lens-text-container {
 		padding: 10px $lens-padding 20px;
@@ -867,7 +429,7 @@ arb-requisite-button, [arb-requisite-button] {
 		box-sizing: border-box;
 	}
 }
-@media (min-width: 960px) {
+@media (min-width: 960px) and (max-width: 1099px) {
 	$lens-padding: 90px;
 	.lens-text-container {
 		padding: 30px $lens-padding 60px;
@@ -997,82 +559,6 @@ arb-compose-fab {
 	font-size: 30px;
 }
 
-// Helper class for hiding the tabs (used when we only have one)
-.hide-tabs {
-	md-tabs-wrapper {
-		display: none;
-	}
-	md-tabs-content-wrapper {
-		top: 0px;
-	}
-}
-
-md-tabs {
-	outline: none;
-}
-
-md-tabs-wrapper {
-	a {
-		color: inherit;
-	}
-}
-
-// When applying layout-column and flex to md-tabs, we want to propagate these
-// all the way down to the tab content
-md-tabs.layout-column.flex {
-	@mixin layout-column-flex {
-		display: -webkit-flex;
-		display: -ms-flexbox;
-		display: flex;
-		-webkit-flex: 1;
-		-ms-flex: 1;
-		flex: 1;
-	}
-
-	md-tabs-content-wrapper {
-		@include layout-column-flex;
-	}
-	md-tab-content {
-		@include layout-column-flex;
-	}
-	md-tab-content > div {
-		@include layout-column-flex;
-	}
-}
-
-md-tab-content {
-	background-color: white;
-}
-
-// Color the active tab
-.md-tab {
-	&.md-active {
-		background-color: $primary-hue-3;
-	}
-}
-
-md-tabs.page-tabs {
-	margin-top: 15px;
-
-	& > md-tabs-wrapper {
-		background-color: white !important;
-		border-bottom: $primary-hue-2 2px solid;
-
-		md-tab-item {
-			color: $primary-hue-2 !important;
-			md-icon {
-				color: $primary-hue-2 !important;
-			}
-
-			&.md-active {
-				background-color: $primary-hue-1;
-				border: $primary-hue-2 2px solid;
-				margin-right: -4px;
-			}
-		}
-	}
-}
-
 // Show deletes and inserts
 del {
 	color: red;
@@ -1117,13 +603,6 @@ ins {
 			padding: 0 5px;
 		}
 	}
-}
-
-// Small vertical separator
-.separator {
-	margin: 10px 10px;
-	padding: 0 1px 0 0;
-	background-color: silver;
 }
 
 // Textarea for editing markdown
