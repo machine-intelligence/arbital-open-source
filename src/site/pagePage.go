@@ -21,14 +21,8 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	pageId, ok, err := core.LoadAliasToPageId(db, pageAlias)
 	if err != nil {
 		return pages.Fail("Couldn't convert alias", err)
-	}
-	if !ok {
+	} else if !ok {
 		return pages.Fail("Couldn't find page", err)
-	}
-	// If the url has an actual alias, then redirect to use page id
-	// TODO: do this on the FE
-	if pageAlias != pageId {
-		return pages.RedirectWith(core.GetPageUrl(pageId))
 	}
 
 	// Check if we need to redirect.

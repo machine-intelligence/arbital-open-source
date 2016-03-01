@@ -22,13 +22,9 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		pageId, ok, err := core.LoadAliasToPageId(db, pageAlias)
 		if err != nil {
 			return pages.Fail("Couldn't convert alias", err)
-		}
-		if !ok {
+		} else if !ok {
 			// Couldn't find alias, so let's create a page with it
 			return pages.RedirectWith(core.GetNewPageUrl(pageAlias))
-		}
-		if pageAlias != pageId {
-			return pages.RedirectWith(core.GetEditPageUrl(pageId))
 		}
 
 		// Check if we need to redirect.
