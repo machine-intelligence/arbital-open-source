@@ -78,24 +78,17 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		controller: "IndexPageController",
  		reloadOnSearch: false,
 	})
+	.when("/adminDashboard/", {
+		template: "",
+		controller: "AdminDashboardPageController",
+	})
+	.when("/dashboard/", {
+		template: "",
+		controller: "DashboardPageController",
+	})
 	.when("/domains/:alias", {
  		template: "",
  		controller: "DomainPageController",
- 		reloadOnSearch: false,
- 	})
-	.when("/pages/:alias", {
- 		template: "",
- 		controller: "RedirectToPrimaryPageController",
- 		reloadOnSearch: false,
- 	})
-	.when("/p/:alias/:alias2?", {
-		template: "",
-		controller: "PrimaryPageController",
-		reloadOnSearch: false,
-	})
-	.when("/learn/:pageAlias?/:pageAlias2?", {
- 		template: "",
- 		controller: "LearnController",
  		reloadOnSearch: false,
  	})
 	.when("/edit/:alias?/:editOrAlias?/:edit?", {
@@ -103,31 +96,29 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
  		controller: "EditPageController",
  		reloadOnSearch: false,
  	})
-	.when("/user/:id/:alias2?", {
- 		template: "",
- 		controller: "UserPageController",
- 		reloadOnSearch: false,
-	})
-	.when("/dashboard/", {
-		template: "",
-		controller: "DashboardPageController",
-	})
-	.when("/updates/", {
-		template: "",
-		controller: "UpdatesPageController",
-	})
 	.when("/groups/", {
 		template: "",
 		controller: "GroupsPageController",
 	})
-	.when("/signup/", {
-		template: "",
-		controller: "SignupPageController",
-	})
+	.when("/learn/:pageAlias?/:pageAlias2?", {
+ 		template: "",
+ 		controller: "LearnController",
+ 		reloadOnSearch: false,
+ 	})
 	.when("/login/", {
 		template: "",
 		controller: "LoginPageController",
 	})
+	.when("/p/:alias/:alias2?", {
+		template: "",
+		controller: "PrimaryPageController",
+		reloadOnSearch: false,
+	})
+	.when("/pages/:alias", {
+ 		template: "",
+ 		controller: "RedirectToPrimaryPageController",
+ 		reloadOnSearch: false,
+ 	})
 	.when("/requisites/", {
 		template: "",
 		controller: "RequisitesPageController",
@@ -135,7 +126,20 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	.when("/settings/", {
 		template: "",
 		controller: "SettingsPageController",
-	});
+	})
+	.when("/signup/", {
+		template: "",
+		controller: "SignupPageController",
+	})
+	.when("/updates/", {
+		template: "",
+		controller: "UpdatesPageController",
+	})
+	.when("/user/:id/:alias2?", {
+ 		template: "",
+ 		controller: "UserPageController",
+ 		reloadOnSearch: false,
+	})
 });
 
 // ArbitalCtrl is used across all pages.
@@ -544,6 +548,20 @@ app.controller("DashboardPageController", function ($scope, $routeParams, $http,
 		};
 	}))
 	.error($scope.getErrorFunc("dashboardPage"));
+});
+
+app.controller("AdminDashboardPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+	var postData = { };
+	// Get the data
+	$http({method: "POST", url: "/json/adminDashboardPage/", data: JSON.stringify(postData)})
+	.success($scope.getSuccessFunc(function(data){
+		$scope.adminDashboardData = data.result;
+		return {
+			title: "Admin dashboard",
+			element: $compile("<arb-admin-dashboard-page data='::adminDashboardData'></arb-admin-dashboard-page>")($scope),
+		};
+	}))
+	.error($scope.getErrorFunc("adminDashboardPage"));
 });
 
 app.controller("UpdatesPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
