@@ -35,13 +35,28 @@ func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 	c.Debugf("==== EMAIL UPDATES START ====")
 	defer c.Debugf("==== EMAIL UPDATES COMPLETED SUCCESSFULLY ====")
 
+	// For all the users that don't want emails, set their updates to 'emailed'
+	statement := db.NewStatement(`
+		UPDATE updates
+		SET emailed=true
+		WHERE userId IN (
+			SELECT userId
+			FROM users
+			WHERE emailFrequency=?
+		)`)
+	_, err = statement.Exec(user.NeverEmailFrequency)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to update updates: %v", err)
+	}
+
 	// Find all users who need emailing.
 	rows := db.NewStatement(`
 		SELECT id
 		FROM users
 		WHERE (DATEDIFF(NOW(),updateEmailSentAt)>=7 AND emailFrequency=?)
 			OR (DATEDIFF(NOW(),updateEmailSentAt)>=1 AND emailFrequency=?)
-			OR (DATEDIFF(NOW(),updateEmailSentAt)>=0 AND emailFrequency=?)`).Query(user.WeeklyEmailFrequency, user.DailyEmailFrequency, user.ImmediatelyEmailFrequency)
+			OR (DATEDIFF(NOW(),updateEmailSentAt)>=0 AND emailFrequency=?)
+		`).Query(user.WeeklyEmailFrequency, user.DailyEmailFrequency, user.ImmediatelyEmailFrequency)
 
 	err = rows.Process(emailUpdatesProcessUser)
 	if err != nil {
