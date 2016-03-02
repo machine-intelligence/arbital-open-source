@@ -72,18 +72,22 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			processPageSummaries();
 			if (!scope.isLoaded) {
 				// Fetch page summaries from the server.
-				pageService.loadIntrasitePopover(scope.pageId, {
-					success: function() {
-						if (isDestroyed) return;
-						scope.page = pageService.pageMap[scope.pageId];
-						processPageSummaries();
-						// Hack: we need to fix the md-tabs height, because it takes way too long
-						// to adjust by itself.
-						$timeout(function() {
-							var $el = element.find(".popover-tab-body");
-							$el.closest("md-tabs").height($el.children().height());
-						});
-					},
+				pageService.loadIntrasitePopover(scope.pageId);
+				// NOTE: we set up a watch instead of doing something on a success callback,
+				// because the request might have been issued by another code already, and
+				// in that case our callback wouldn't be called.
+				scope.$watch(function() {
+					return scope.pageId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.pageId].summaries).length : -1;
+				}, function() {
+					if (isDestroyed) return;
+					scope.page = pageService.pageMap[scope.pageId];
+					processPageSummaries();
+					// Hack: we need to fix the md-tabs height, because it takes way too long
+					// to adjust by itself.
+					$timeout(function() {
+						var $el = element.find(".popover-tab-body");
+						$el.closest("md-tabs").height($el.children().height());
+					});
 				});
 			}
 		},
@@ -137,19 +141,23 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 
 			processPageSummaries();
 			if (!scope.isLoaded) {
-				pageService.loadUserPopover(scope.userId, {
-					success: function() {
-						if (isDestroyed) return;
-						scope.user = userService.userMap[scope.userId];
-						scope.page = pageService.pageMap[scope.userId];
-						processPageSummaries();
-						// Hack: we need to fix the md-tabs height, because it takes way too long
-						// to adjust by itself.
-						$timeout(function() {
-							var $el = element.find(".popover-tab-body");
-							$el.closest("md-tabs").height($el.children().height());
-						});
-					},
+				pageService.loadUserPopover(scope.userId);
+				// NOTE: we set up a watch instead of doing something on a success callback,
+				// because the request might have been issued by another code already, and
+				// in that case our callback wouldn't be called.
+				scope.$watch(function() {
+					return scope.userId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.userId].summaries).length : -1;
+				}, function() {
+					if (isDestroyed) return;
+					scope.user = userService.userMap[scope.userId];
+					scope.page = pageService.pageMap[scope.userId];
+					processPageSummaries();
+					// Hack: we need to fix the md-tabs height, because it takes way too long
+					// to adjust by itself.
+					$timeout(function() {
+						var $el = element.find(".popover-tab-body");
+						$el.closest("md-tabs").height($el.children().height());
+					});
 				});
 			}
 		},
@@ -273,11 +281,6 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 					console.error("Error changing a subscription:"); console.log(data); console.log(status);
 				});
 			};
-		},
-		link: function(scope, element, attrs) {
-			if (!scope.page) {
-				console.log(element);
-			}
 		},
 	};
 });
