@@ -40,7 +40,9 @@
 	
 	<!-- Show this when the user is no longer on path. -->
 	<div layout="row" layout-align="start center" ng-if="!pageService.path.onPath">
-		<md-button ng-href="{{pageService.getPageUrl(pageService.path.currentPageId)}}" class="special">
+		<md-button ng-href="{{pageService.getPageUrl(pageService.path.currentPageId)}}"
+				class="special"
+				ng-class="{'md-raised': extraInfo}">
 			<md-icon>chevron_left</md-icon>
 			Back to learning
 		</md-button>

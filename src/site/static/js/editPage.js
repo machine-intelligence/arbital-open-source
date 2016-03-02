@@ -563,7 +563,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						if (!blurHooked) {
 							blurHooked = true;
 							$input.on("blur", function(event) {
-								if (scope.showInsertLink) return;
+								if (!scope.showInsertLink) return;
 								scope.showInsertLink = false;
 								scope.insertLinkCallback();
 								$timeout(function() { $timeout(function() {

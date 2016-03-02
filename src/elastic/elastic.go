@@ -19,6 +19,12 @@ var (
 	ElasticDomain = fmt.Sprintf("%s/arbital", sessions.GetElasticDomain())
 )
 
+type HitsList []*Hit
+
+func (a HitsList) Len() int           { return len(a) }
+func (a HitsList) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a HitsList) Less(i, j int) bool { return a[i].Score > a[j].Score }
+
 // Document describes the document which goes into the pages search index.
 type Document struct {
 	PageId     string `json:"pageId"`
@@ -37,9 +43,9 @@ type SearchResult struct {
 }
 
 type Hits struct {
-	Total    int     `json:"total"`
-	MaxScore float32 `json:"max_score"`
-	Hits     []*Hit  `json:"hits"`
+	Total    int      `json:"total"`
+	MaxScore float32  `json:"max_score"`
+	Hits     HitsList `json:"hits"`
 }
 
 type Hit struct {

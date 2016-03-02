@@ -44,19 +44,21 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Construct the search JSON
 	jsonStr := fmt.Sprintf(`{
+		"min_score": %[1]v,
+		"size": %[2]d,
 		"query": {
 			"filtered": {
 				"query": {
 					"bool": {
 						"should": [
 							{
-								"term": { "pageId": "%[1]s" }
+								"term": { "pageId": "%[3]s" }
 							},
 							{
-								"match_phrase_prefix": { "title": "%[1]s" }
+								"match_phrase_prefix": { "title": "%[3]s" }
 							},
 							{
-								"match_phrase_prefix": { "alias": "%[1]s" }
+								"match_phrase_prefix": { "alias": "%[3]s" }
 							}
 						]
 					}
@@ -70,7 +72,7 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 						],
 						"must": [
 							{
-								"terms": { "seeGroupId": [%[2]s] }
+								"terms": { "seeGroupId": [%[4]s] }
 							}
 						]
 					}
@@ -78,6 +80,6 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, escapedTerm, strings.Join(groupIds, ","))
+	}`, minSearchScore, searchSize, escapedTerm, strings.Join(groupIds, ","))
 	return searchJsonInternalHandler(params, jsonStr)
 }

@@ -1,0 +1,19 @@
+<div class="capped-body-width">
+
+	<!-- For each result data set -->
+	<div class="arb-page-list md-whiteframe-1dp" ng-repeat="(name, rows) in ::data">
+		<md-toolbar class="md-hue-2">
+			<div class="md-toolbar-tools">
+				<span ng-bind="::name"></span>
+			</div>
+		</md-toolbar>
+
+		<!-- Header -->
+		<div layout="row" ng-repeat="(rowIndex, row) in ::rows">
+			<div flex></div>
+			<div ng-repeat="value in ::row" flex>
+				<span ng-class="{'md-headline': rowIndex == 0}" ng-bind="::value"></span>
+			</div>
+		</div>
+	</div>
+</div>
