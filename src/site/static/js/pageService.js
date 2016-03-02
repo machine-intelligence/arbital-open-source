@@ -319,8 +319,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	this.ensureCanonUrl = function(canonPath) {
 		var pathname = location.pathname;
 		if (pathname != canonPath) {
+			var hash = $location.hash();
 			var search = $location.search();
 			$ngSilentLocation.silent(canonPath, true);
+			$location.hash(hash);
 			for (var k in search) {
 				$location.search(k, search[k]);
 			}
