@@ -76,9 +76,10 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				// NOTE: we set up a watch instead of doing something on a success callback,
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
-				scope.$watch(function() {
+				var destroyWatcher = scope.$watch(function() {
 					return scope.pageId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.pageId].summaries).length : -1;
 				}, function() {
+					destroyWatcher();
 					if (isDestroyed) return;
 					scope.page = pageService.pageMap[scope.pageId];
 					processPageSummaries();
@@ -145,9 +146,10 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 				// NOTE: we set up a watch instead of doing something on a success callback,
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
-				scope.$watch(function() {
+				var destroyWatcher = scope.$watch(function() {
 					return scope.userId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.userId].summaries).length : -1;
 				}, function() {
+					destroyWatcher();
 					if (isDestroyed) return;
 					scope.user = userService.userMap[scope.userId];
 					scope.page = pageService.pageMap[scope.userId];
