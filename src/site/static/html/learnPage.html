@@ -61,7 +61,8 @@
 						<arb-page-title page-id="{{::pageId}}"
 								is-link="true"
 								show-clickbait="true"
-								custom-link="{{::getListUrl(pageId)}}"></arb-page-title>
+								custom-link="{{::getListUrl(pageId)}}"
+								ng-click="startReading(false)"></arb-page-title>
 					</span>
 					<span flex></span>
 					<span class="nowrap md-caption">
@@ -74,7 +75,7 @@
 		<!-- Start reading and stuff -->
 		<div layout-padding>
 			<div layout="column" ng-if="readIds.length > 0">
-				<md-button class="special md-raised" ng-click="startReading()">
+				<md-button class="special md-raised" ng-click="startReading(true)">
 					<span ng-bind="::continueLearning ? 'Continue learning' : 'Begin learning'"></span>
 					<md-icon>chevron_right</md-icon>
 				</md-button>
@@ -87,12 +88,10 @@
 		<!-- Show a warning if there are requisites the user can't learn. -->
 		<div layout-padding ng-if="!showTreeView && readIds.length > 0">
 			<div ng-if="hasUnlearnableIds">
-				<md-icon class="md-warn">
+				<md-icon>
 					warning
 				</md-icon>
-				<span class="md-warn">
-					Some of the pages in the generated list have requirements that Arbital can't yet teach:
-				</span>
+				Some of the pages in the generated list have requirements that Arbital can't yet teach:
 			</div>
 			<ul class="unlearnable-list">
 				<li ng-repeat="(pageId,idsList) in unlearnableIds">
