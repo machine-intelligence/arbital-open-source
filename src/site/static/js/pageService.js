@@ -226,7 +226,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 
 	// Construct a part of the URL with id and alias if id!=alias, otherwise just id
 	var getBaseUrl = function(base, id, alias) {
-		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias);
+		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias) + "/";
 	};
 
 	// Returns the url for the given page.
@@ -238,7 +238,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	this.getPageUrl = function(pageId, options){
 		var options = options || {};
 		var host = window.location.host;
-		var url = "/p/" + pageId;
+		var url = "/p/" + pageId + "/";
 		var alreadyIncludedHost = false;
 		var page = that.pageMap[pageId];
 
@@ -289,7 +289,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		if (pageId in this.pageMap) {
 			return getBaseUrl("edit", pageId, this.pageMap[pageId].alias);
 		}
-		return "/edit/" + pageId;
+		return "/edit/" + pageId + "/";
 	};
 
 	// Return url to the user page.
