@@ -206,6 +206,18 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 				$loadingBar.show();
 				$scope.loadingBarValue = 0;
 				var startTime = (new Date()).getTime();
+
+				var showEverything = function() {
+					$interval.cancel(revealInterval);
+					$interval.cancel(revealTimeout);
+					// Do short timeout to prevent some rendering bugs that occur on edit page
+					$timeout(function() {
+						result.element.removeClass("reveal-after-render-parent");
+						$loadingBar.hide();
+						$anchorScroll();
+					}, 50);
+				};
+
 				var revealInterval = $interval(function() {
 					var timePassed = ((new Date()).getTime() - startTime) / 1000;
 					$scope.loadingBarValue = Math.min(100, timePassed * 30);
@@ -218,14 +230,13 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 						});
 						return;
 					}
-					$interval.cancel(revealInterval);
-					// Do short timeout to prevent some rendering bugs that occur on edit page
-					$timeout(function() {
-						result.element.removeClass("reveal-after-render-parent");
-						$loadingBar.hide();
-						$anchorScroll();
-					}, 50);
+					showEverything();
 				}, 50);
+				// Do a timeout as well, just in case we have a buggy element
+				var revealTimeout = $timeout(function() {
+					console.error("Forced reveal timeout");
+					showEverything();
+				}, 1000);
 
 				$("[ng-view]").append(result.element);
 			}
