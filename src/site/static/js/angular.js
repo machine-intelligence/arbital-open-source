@@ -209,7 +209,7 @@ app.controller("ArbitalCtrl", function ($scope, $location, $timeout, $interval, 
 
 				var showEverything = function() {
 					$interval.cancel(revealInterval);
-					$interval.cancel(revealTimeout);
+					$timeout.cancel(revealTimeout);
 					// Do short timeout to prevent some rendering bugs that occur on edit page
 					$timeout(function() {
 						result.element.removeClass("reveal-after-render-parent");
