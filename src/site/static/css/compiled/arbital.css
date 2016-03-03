@@ -854,7 +854,7 @@ arb-multiple-choice {
 
 .learn-requirements {
   margin-left: 10px;
-  border-left: #E0F2F1 3px solid;
+  border-left: #e0e0e0 3px solid;
   padding-left: 10px; }
 
 .learn-list {
@@ -873,5 +873,16 @@ arb-learn-part, [arb-learn-part] {
   margin-bottom: 7px; }
   arb-learn-part .which-part, [arb-learn-part] .which-part {
     padding-left: 5px; }
+
+.toc-div {
+  border-left: #e0e0e0 3px solid;
+  padding-left: 10px;
+  margin-bottom: 20px; }
+  .toc-div .toc-section-number {
+    margin-right: 10px; }
+  .toc-div .toc-row-tab-1 {
+    margin-left: 30px; }
+  .toc-div .toc-row-tab-2 {
+    margin-left: 70px; }
 
 /*# sourceMappingURL=arbital.css.map */

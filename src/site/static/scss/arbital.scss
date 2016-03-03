@@ -720,7 +720,7 @@ arb-multiple-choice {
 
 .learn-requirements {
 	margin-left: 10px;
-	border-left: $primary-hue-1 3px solid;
+	border-left: #e0e0e0 3px solid;
 	padding-left: 10px;
 }
 
@@ -747,5 +747,26 @@ arb-learn-part, [arb-learn-part] {
 
 	.which-part {
 		padding-left: 5px;
+	}
+}
+
+.toc-div {
+	border-left: #e0e0e0 3px solid;
+	padding-left: 10px;
+	margin-bottom: 20px;
+
+	.toc-title {
+		color: gray;
+	}
+
+	.toc-section-number {
+		margin-right: 10px;
+	}
+	
+	.toc-row-tab-1 {
+		margin-left: 30px;
+	}
+	.toc-row-tab-2 {
+		margin-left: 70px;
 	}
 }
