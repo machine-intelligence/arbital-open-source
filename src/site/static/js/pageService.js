@@ -250,7 +250,11 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
-			url = getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias);
+			url = getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias)
+			if (options.permalink) {
+				url += "?l=" + pageId;
+			}
+
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
