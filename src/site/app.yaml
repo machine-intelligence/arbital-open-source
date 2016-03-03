@@ -3,9 +3,9 @@ version: 001h
 runtime: go
 api_version: go1
 automatic_scaling:
-  min_idle_instances: 10
+  min_idle_instances: 3
   max_pending_latency: 0.5s
-instance_class: F1
+instance_class: F2
 
 handlers:
 - url: /static

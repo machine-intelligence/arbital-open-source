@@ -49,12 +49,14 @@ type Tx struct {
 }
 
 type Row struct {
-	row *sql.Row
-	DB  *DB
+	row  *sql.Row
+	stmt *Stmt
+	DB   *DB
 }
 
 type Rows struct {
 	rows *sql.Rows
+	stmt *Stmt
 	DB   *DB
 }
 
@@ -198,6 +200,7 @@ func (statement *Stmt) Exec(args ...interface{}) (sql.Result, error) {
 		args = statement.args
 	}
 	result, err := statement.stmt.Exec(args...)
+	statement.Close()
 	if err != nil {
 		statement.DB.C.Inc("sql_command_fail")
 		return nil, fmt.Errorf("Error while executing an sql statement:\n%v\n%v", statement, err)
@@ -222,7 +225,7 @@ func (statement *Stmt) Query(args ...interface{}) *Rows {
 		statement.DB.C.Errorf("Error while querying:\n%v\n%v", statement, err)
 		return nil
 	}
-	return &Rows{rows: rows, DB: statement.DB}
+	return &Rows{rows: rows, stmt: statement, DB: statement.DB}
 }
 
 // QueryRow executes the given SQL statement and returns the
@@ -235,7 +238,7 @@ func (statement *Stmt) QueryRow(args ...interface{}) *Row {
 		}
 		args = statement.args
 	}
-	return &Row{row: statement.stmt.QueryRow(args...), DB: statement.DB}
+	return &Row{row: statement.stmt.QueryRow(args...), stmt: statement, DB: statement.DB}
 }
 
 // String return's statement query
@@ -257,12 +260,15 @@ func (rows *Rows) Process(f ProcessRowCallback) error {
 			return err
 		}
 	}
+	rows.stmt.Close()
 	return nil
 }
 
 // Scan processes the row and outputs the results into the given variables.
 func (rows *Rows) Scan(dest ...interface{}) error {
-	return rows.rows.Scan(dest...)
+	result := rows.rows.Scan(dest...)
+	rows.stmt.Close()
+	return result
 }
 
 // QueryRowSql executes the given SQL statement that's expected to return only
@@ -275,6 +281,7 @@ func (row *Row) Scan(outArgs ...interface{}) (bool, error) {
 		row.DB.C.Inc("sql_command_fail")
 		return false, fmt.Errorf("Error while querying row: %v", err)
 	}
+	row.stmt.Close()
 	return err != sql.ErrNoRows, nil
 }
 
