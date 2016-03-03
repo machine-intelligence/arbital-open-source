@@ -36,7 +36,7 @@
 			<arb-likes page-id="{{::userId}}" is-button="true" is-stretched="true"></arb-likes>
 			<arb-subscribe page-id="{{::userId}}" is-user="true"></arb-subscribe>
 			<div flex></div>
-			<div layout="row" layout-align="start center" ng-if="::page.commentCount">
+			<div layout="row" layout-align="start center">
 				<span class="separator"></span>
 				<md-button ng-href="{{::pageService.getPageUrl(page.pageId)}}/#discussion-{{::page.pageId}}">
 					<md-icon>comment</md-icon>
