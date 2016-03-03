@@ -125,6 +125,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 				skipPush: true,
 			});
 			Cookies.set("masteryMap", this.masteryMap, {expires: 365});
+			if (callback) callback();
 		}
 	};
 
