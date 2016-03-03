@@ -3,8 +3,8 @@ version: 001h
 runtime: go
 api_version: go1
 automatic_scaling:
-  min_idle_instances: 4
-  max_pending_latency: 1s
+  min_idle_instances: 10
+  max_pending_latency: 0.5s
 instance_class: F1
 
 handlers:
