@@ -22,9 +22,7 @@ type updateMasteries struct {
 var updateMasteriesHandler = siteHandler{
 	URI:         "/updateMasteries/",
 	HandlerFunc: updateMasteriesHandlerFunc,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 func updateMasteriesHandlerFunc(params *pages.HandlerParams) *pages.Result {
@@ -42,6 +40,11 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	db := params.DB
 	u := params.U
 
+	userId := u.GetSomeId()
+	if userId == "" {
+		return pages.HandlerBadRequestFail("No user id or session id", nil)
+	}
+
 	allMasteries := append(append(data.AddMasteries, data.RemoveMasteries...), data.WantsMasteries...)
 	aliasMap, err := core.LoadAliasToPageIdMap(db, allMasteries)
 	if err != nil {
@@ -53,17 +56,17 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	queryValues := make([]interface{}, 0)
 	for _, masteryAlias := range data.RemoveMasteries {
 		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, u.Id, false, false, database.Now(), database.Now())
+			queryValues = append(queryValues, masteryId, userId, false, false, database.Now(), database.Now())
 		}
 	}
 	for _, masteryAlias := range data.WantsMasteries {
 		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, u.Id, false, true, database.Now(), database.Now())
+			queryValues = append(queryValues, masteryId, userId, false, true, database.Now(), database.Now())
 		}
 	}
 	for _, masteryAlias := range data.AddMasteries {
 		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, u.Id, true, false, database.Now(), database.Now())
+			queryValues = append(queryValues, masteryId, userId, true, false, database.Now(), database.Now())
 		}
 	}
 
@@ -76,7 +79,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 			JOIN pagePairs AS pp2
 			ON (pp1.childId=pp2.childId)
 			JOIN userMasteryPairs AS mp
-			ON (pp2.parentId=mp.masteryId AND mp.userId=?)`, u.Id).Add(`
+			ON (pp2.parentId=mp.masteryId AND mp.userId=?)`, userId).Add(`
 			WHERE pp1.parentId IN`).AddArgsGroupStr(data.AddMasteries).Add(`
 				AND pp1.type=?`, core.RequirementPagePairType).Add(`
 				AND pp2.type=?`, core.RequirementPagePairType).Add(`
@@ -119,7 +122,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		SELECT pp.childId
 		FROM pagePairs AS pp
 		LEFT JOIN userMasteryPairs AS mp
-		ON (pp.parentId=mp.masteryId AND mp.userId=?)`, u.Id).Add(`
+		ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userId).Add(`
 		WHERE pp.childId IN`).AddArgsGroupStr(candidateIds).Add(`
 			AND pp.type=?`, core.RequirementPagePairType).Add(`
 		GROUP BY 1

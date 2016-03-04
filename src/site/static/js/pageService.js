@@ -129,18 +129,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		}
 		this.pageObjectMap[options.pageId][options.object] = options;
 
-		if (userService.user.id !== "") {
-			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
-			.error(function(data, status){
-				console.error("Failed to update page object:"); console.log(data); console.log(status);
-			});
-		} else {
-			Cookies.set("pageObjectMap", this.pageObjectMap, {expires: 365});
-			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
-			.error(function(data, status){
-				console.error("Failed to update page object:"); console.log(data); console.log(status);
-			});
-		}
+		$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
+		.error(function(data, status){
+			console.error("Failed to update page object:"); console.log(data); console.log(status);
+		});
 	};
 
 	// Use our smart merge technique to add a new object to existing object map.
@@ -173,30 +165,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			this.smartAddToMap(this.pageObjectMap, pageObjectData[id], id);
 		}
 
-		// Load page objects from cookie
-		if (data.resetEverything && !userService.user.id) {
-			var cookiePageObjectMap = Cookies.getJSON("pageObjectMap") || {};
-			for (var id in cookiePageObjectMap) {
-				this.smartAddToMap(this.pageObjectMap, cookiePageObjectMap[id], id);
-			}
-		} else if (data.resetEverything && userService.user.id) {
-			Cookies.remove("pageObjectMap");
-		}
-
 		// Populate materies map.
 		var masteryData = data["masteries"];
 		for (var id in masteryData) {
 			this.smartAddToMap(this.masteryMap, masteryData[id], id);
-		}
-
-		// Load masteries from cookie
-		if (data.resetEverything && !userService.user.id) {
-			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
-			for (var id in cookieMasteryMap) {
-				this.smartAddToMap(this.masteryMap, cookieMasteryMap[id], id);
-			}
-		} else if (data.resetEverything && userService.user.id) {
-			Cookies.remove("masteryMap");
 		}
 
 		var pageData = data["pages"];

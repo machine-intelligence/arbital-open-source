@@ -4,7 +4,6 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"sort"
 
 	"zanaduu3/src/core"
@@ -103,24 +102,15 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	masteryMap := make(map[string]*core.Mastery)
-	// Load masteryMap from the cookie, if present
-	cookie, err := params.R.Cookie("masteryMap")
-	if err == nil {
-		jsonStr, _ := url.QueryUnescape(cookie.Value)
-		err = json.Unmarshal([]byte(jsonStr), &masteryMap)
-		if err != nil {
-			params.C.Warningf("Couldn't unmarshal masteryMap cookie: %v", err)
-		}
-	}
-
 	returnData := core.NewHandlerData(params.U, true)
 
 	// Remove requirements that the user already has
-	if len(pageIds) > 0 && u.Id != "" {
+	userId := u.GetSomeId()
+	if len(pageIds) > 0 && userId != "" {
 		rows := database.NewQuery(`
 			SELECT masteryId,has
 			FROM userMasteryPairs
-			WHERE userId=?`, u.Id).Add(`AND masteryId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
+			WHERE userId=?`, userId).Add(`AND masteryId IN`).AddArgsGroupStr(pageIds).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var masteryId string
 			var has bool
@@ -225,7 +215,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			JOIN pageInfos AS pi
 			ON (pp.parentId=pi.pageId)
 			LEFT JOIN userMasteryPairs AS mp
-			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, u.Id).Add(`
+			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userId).Add(`
 			WHERE pp.childId IN`).AddArgsGroupStr(tutorIds).Add(`
 				AND pp.type=?`, core.RequirementPagePairType).Add(`
 				AND (NOT mp.has OR isnull(mp.has))`).ToStatement(db).Query()
