@@ -38,7 +38,6 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	//		delete: set these masteries to "doesn't know"
 	//		wants: set these masteries to "wants"
 	//		knows: set these masteries to "knows"
-	//		skipPush: if set, don't push the changes to the server
 	//		callback: optional callback function
 	// }
 	this.updateMasteryMap = function(options) {
@@ -79,9 +78,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 				affectedMasteryIds.push(masteryId);
 			}
 		}
-		if (!options.skipPush) {
-			this.pushMasteriesToServer(affectedMasteryIds, options.callback);
-		}
+		this.pushMasteriesToServer(affectedMasteryIds, options.callback);
 	};
 
 	// Compute the status of the given masteries and update the server
@@ -99,33 +96,24 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			}
 		}
 
-		if (userService.user.id !== "") {
-			var data = {
-				removeMasteries: delMasteries,
-				wantsMasteries: wantsMasteries,
-				addMasteries: addMasteries,
-				computeUnlocked: !!callback, // hacky
-			};
-			$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
-			.success(function(data) {
-				if (callback) {
-					userService.processServerData(data);
-					that.processServerData(data);
-					callback(data);
-				}
-			})
-			.error(function(data, status){
-				console.error("Failed to change masteries:"); console.log(data); console.log(status);
-			});
-		} else {
-			this.updateMasteryMap({
-				delete: delMasteries,
-				wants: wantsMasteries,
-				knows: addMasteries,
-				skipPush: true,
-			});
-			Cookies.set("masteryMap", this.masteryMap, {expires: 365});
-		}
+		var data = {
+			removeMasteries: delMasteries,
+			wantsMasteries: wantsMasteries,
+			addMasteries: addMasteries,
+			// Note: this is a bit hacky. We should probably pass computeUnlocked explicitly
+			computeUnlocked: !!callback,
+		};
+		$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
+		.success(function(data) {
+			if (callback) {
+				userService.processServerData(data);
+				that.processServerData(data);
+				callback(data);
+			}
+		})
+		.error(function(data, status){
+			console.error("Failed to change masteries:"); console.log(data); console.log(status);
+		});
 	};
 
 	// Compute the status of the given masteries and update the server
