@@ -11,7 +11,7 @@
 	
 		<div class="md-body-1" ng-show="showToc">
 			<div ng-repeat="row in toc">
-				<a ng-href="#" ng-class="{'toc-row-tab-1': row.tabSize == 1, 'toc-row-tab-2': row.tabSize == 2}">
+				<a ng-href="{{row.url}}" ng-class="{'toc-row-tab-1': row.tabSize == 1, 'toc-row-tab-2': row.tabSize == 2}">
 					<span class="toc-section-number" ng-bind="::row.section"></span>
 					<span ng-bind="::row.header"></span>
 				</a>

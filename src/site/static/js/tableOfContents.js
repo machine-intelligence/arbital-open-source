@@ -31,11 +31,11 @@ app.directive("arbTableOfContents", function($timeout, $http, $compile, pageServ
 				if (counts.length > 2) {
 					section += "." + counts[2].count;
 				}
-				var id = "h-" + section;
-				var url = "#h-" + section;
+				var id = "h-" + scope.pageId + "-" + section;
+				var url = "#" + id;
 				var row = {section: section, header: header, tabSize: counts.length - 1, url: url};
 				scope.toc.push(row);
-				return row;
+				return id;
 			};
 
 			// Go through all the headers and create TOC entries
@@ -69,7 +69,6 @@ app.directive("arbTableOfContents", function($timeout, $http, $compile, pageServ
 				var id = addContentRow($this.text());
 				$this.attr("id", id);
 			});
-			console.log(scope.toc);
 		},
 	};
 });

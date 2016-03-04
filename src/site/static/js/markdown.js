@@ -159,7 +159,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		var tocBlockRegexp = new RegExp("^\\[toc:\\] *(?=\Z|\n\Z|\n\n)", "gm");
 		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
 			return text.replace(tocBlockRegexp, function (whole, text, knows, wants) {
-				return "<arb-table-of-contents></arb-table-of-contents>";
+				return "<arb-table-of-contents page-id='" + pageId + "'></arb-table-of-contents>";
 			});
 		});
 
