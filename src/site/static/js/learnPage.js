@@ -57,7 +57,7 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 			};
 
 			// Called when the user clicks to start reading the learn
-			$scope.startReading = function() {
+			$scope.startReading = function(redirect) {
 				computeLearnIds();
 				var path = {
 					pageIds: $scope.pageIds,
@@ -65,8 +65,10 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 					unlearnableIds: $scope.unlearnableIds,
 				};
 				Cookies.set("path", path);
-				// Start them off with the first page
-				$location.url(pageService.getPageUrl($scope.readIds[0]));
+				if (redirect) {
+					// Start them off with the first page
+					$location.url(pageService.getPageUrl($scope.readIds[0]));
+				}
 			};
 
 			// Track whether we show tree or list view

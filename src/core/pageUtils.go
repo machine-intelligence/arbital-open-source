@@ -410,7 +410,7 @@ func IsUser(db *database.DB, userId string) bool {
 	row := db.NewStatement(`
 		SELECT COUNT(id)
 		FROM users
-		WHERE id = ?`).QueryRow(userId)
+		WHERE id=?`).QueryRow(userId)
 	row.Scan(&userCount)
 	return userCount > 0
 }

@@ -127,15 +127,29 @@ app.service("popoverService", function($rootScope, $compile, $timeout, pageServi
 			return;
 		}
 
-		if (!$targetCandidate) {
+		if (!$targetCandidate || $target[0] != $targetCandidate[0]) {
+			if ($targetCandidate && $target[0] != $targetCandidate[0]) {
+				$timeout.cancel(createPromise);
+			}
+
 			createPromise = $timeout(createPopover, showDelay, true, event);
 			$targetCandidate = $target;
 			targetCandidateLinkType = linkType;
-		} else if ($target[0] != $targetCandidate[0]) {
-			$timeout.cancel(createPromise);
-			createPromise = $timeout(createPopover, showDelay, true, event);
-			$targetCandidate = $target;
-			targetCandidateLinkType = linkType;
+
+			// Prefetch the data
+			if (targetCandidateLinkType == linkTypeIntrasite) {
+				var pageId = $target.attr("page-id");
+				var page = pageService.pageMap[pageId];
+				if (!page || Object.keys(page.summaries).length <= 0) {
+					pageService.loadIntrasitePopover(pageId);
+				}
+			} else {
+				var userId = $target.attr("user-id");
+				var page = pageService.pageMap[userId];
+				if (!page || Object.keys(page.summaries).length <= 0) {
+					pageService.loadUserPopover(userId);
+				}
+			}
 		}
 	};
 

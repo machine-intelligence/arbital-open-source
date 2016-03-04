@@ -136,6 +136,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			});
 		} else {
 			Cookies.set("pageObjectMap", this.pageObjectMap, {expires: 365});
+			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
+			.error(function(data, status){
+				console.error("Failed to update page object:"); console.log(data); console.log(status);
+			});
 		}
 	};
 
@@ -214,7 +218,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 
 	// Construct a part of the URL with id and alias if id!=alias, otherwise just id
 	var getBaseUrl = function(base, id, alias) {
-		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias);
+		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias) + "/";
 	};
 
 	// Returns the url for the given page.
@@ -226,7 +230,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	this.getPageUrl = function(pageId, options){
 		var options = options || {};
 		var host = window.location.host;
-		var url = "/p/" + pageId;
+		var url = "/p/" + pageId + "/";
 		var alreadyIncludedHost = false;
 		var page = that.pageMap[pageId];
 
@@ -277,7 +281,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		if (pageId in this.pageMap) {
 			return getBaseUrl("edit", pageId, this.pageMap[pageId].alias);
 		}
-		return "/edit/" + pageId;
+		return "/edit/" + pageId + "/";
 	};
 
 	// Return url to the user page.
@@ -307,8 +311,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	this.ensureCanonUrl = function(canonPath) {
 		var pathname = location.pathname;
 		if (pathname != canonPath) {
+			var hash = $location.hash();
 			var search = $location.search();
 			$ngSilentLocation.silent(canonPath, true);
+			$location.hash(hash);
 			for (var k in search) {
 				$location.search(k, search[k]);
 			}
@@ -544,12 +550,12 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 					delete loadingPageAliases[options.url + id];
 					delete loadingPageAliases[options.url + pageData[id].alias];
 				}
-				if(options.success) options.success();
+				if (options.success) options.success();
 			}).error(function(data, status){
 				if (!options.silentFail) {
 					console.log("Error loading page:"); console.log(data); console.log(status);
 				}
-				if(options.error) options.error(data, status);
+				if (options.error) options.error(data, status);
 			}
 		);
 	};
@@ -563,11 +569,15 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 
 	// Get data to display a popover for the user with the given alias.
 	// options {
-	//	 url: url to call
 	//   success: callback on success
 	//   error: callback on error
 	// }
+	var loadingUserPopovers = {};
 	this.loadUserPopover = function(userId, options) {
+		if (userId in loadingUserPopovers) {
+			return;
+		}
+		loadingUserPopovers[userId] = true;
 		options = options || {};
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
@@ -575,11 +585,13 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		console.log("Issuing POST request to /json/userPopover/?userId=" + userId);
 		$http({method: "POST", url: "/json/userPopover/", data: JSON.stringify({userId: userId})})
 		.success(function(data, status){
+			delete loadingUserPopovers[userId];
 			userService.processServerData(data);
 			that.processServerData(data);
 			if (success) success(data, status);
 		})
 		.error(function(data, status){
+			delete loadingUserPopovers[userId];
 			console.error("Error loading user popover:"); console.log(data); console.log(status);
 			if (error) error(data, status);
 		});
