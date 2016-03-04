@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -21,7 +22,7 @@ var updatePageObjectHandler = siteHandler{
 	URI:         "/updatePageObject/",
 	HandlerFunc: updatePageObjectHandlerFunc,
 	Options: pages.PageOptions{
-		RequireLogin: true,
+		RequireLogin: false,
 	},
 }
 
@@ -46,9 +47,17 @@ func updatePageObjectInternalHandlerFunc(params *pages.HandlerParams, data *upda
 	if data.Object == "" {
 		return pages.HandlerBadRequestFail("Object alias isn't set", nil)
 	}
+	var userId string
+	if u.Id != "" {
+		userId = u.Id
+	} else if u.SessionId != "" {
+		userId = fmt.Sprintf("sid:%s", u.SessionId)
+	} else {
+		return pages.HandlerBadRequestFail("No user id or session id", nil)
+	}
 
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
+	hashmap["userId"] = userId
 	hashmap["pageId"] = data.PageId
 	hashmap["edit"] = data.Edit
 	hashmap["object"] = data.Object

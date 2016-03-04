@@ -149,6 +149,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			});
 		} else {
 			Cookies.set("pageObjectMap", this.pageObjectMap, {expires: 365});
+			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
+			.error(function(data, status){
+				console.error("Failed to update page object:"); console.log(data); console.log(status);
+			});
 		}
 	};
 
