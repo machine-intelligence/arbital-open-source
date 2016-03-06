@@ -6,18 +6,13 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 		templateUrl: "static/html/toolbar.html",
 		scope: {
 			loadingBarValue: "=",
+			currentUrl: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.isTinyScreen = !$mdMedia("gt-xs");
 			$scope.doAutofocus = !userService.isTouchDevice;
-
-			// Keep the current url updated
-			$scope.currentUrl = encodeURIComponent($location.absUrl());
-			$rootScope.$on("$routeChangeSuccess", function() {
-				$scope.currentUrl = encodeURIComponent($location.absUrl());
-			});
 
 			// Called when a search result is selected
 			$scope.searchResultSelected = function(result) {
