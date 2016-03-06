@@ -77,18 +77,23 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
 				var destroyWatcher = scope.$watch(function() {
-					return scope.pageId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.pageId].summaries).length : -1;
+					return scope.pageId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.pageId].summaries).length : 0;
 				}, function() {
-					destroyWatcher();
-					if (isDestroyed) return;
+					if (isDestroyed) {
+						destroyWatcher();
+						return;
+					}
 					scope.page = pageService.pageMap[scope.pageId];
 					processPageSummaries();
-					// Hack: we need to fix the md-tabs height, because it takes way too long
-					// to adjust by itself.
-					$timeout(function() {
-						var $el = element.find(".popover-tab-body");
-						$el.closest("md-tabs").height($el.children().height());
-					});
+					if (scope.isLoaded) {
+						destroyWatcher();
+						// Hack: we need to fix the md-tabs height, because it takes way too long
+						// to adjust by itself.
+						$timeout(function() {
+							var $el = element.find(".popover-tab-body");
+							$el.closest("md-tabs").height($el.children().height());
+						});
+					}
 				});
 			}
 		},
@@ -147,19 +152,24 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
 				var destroyWatcher = scope.$watch(function() {
-					return scope.userId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.userId].summaries).length : -1;
+					return scope.userId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.userId].summaries).length : 0;
 				}, function() {
-					destroyWatcher();
-					if (isDestroyed) return;
+					if (isDestroyed) {
+						destroyWatcher();
+						return;
+					}
 					scope.user = userService.userMap[scope.userId];
 					scope.page = pageService.pageMap[scope.userId];
 					processPageSummaries();
-					// Hack: we need to fix the md-tabs height, because it takes way too long
-					// to adjust by itself.
-					$timeout(function() {
-						var $el = element.find(".popover-tab-body");
-						$el.closest("md-tabs").height($el.children().height());
-					});
+					if (scope.isLoaded) {
+						destroyWatcher();
+						// Hack: we need to fix the md-tabs height, because it takes way too long
+						// to adjust by itself.
+						$timeout(function() {
+							var $el = element.find(".popover-tab-body");
+							$el.closest("md-tabs").height($el.children().height());
+						});
+					}
 				});
 			}
 		},

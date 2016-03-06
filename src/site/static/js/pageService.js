@@ -125,6 +125,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 				skipPush: true,
 			});
 			Cookies.set("masteryMap", this.masteryMap, {expires: 365});
+			if (callback) callback();
 		}
 	};
 
@@ -148,6 +149,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			});
 		} else {
 			Cookies.set("pageObjectMap", this.pageObjectMap, {expires: 365});
+			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
+			.error(function(data, status){
+				console.error("Failed to update page object:"); console.log(data); console.log(status);
+			});
 		}
 	};
 
@@ -245,7 +250,11 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
-			url = getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias);
+			url = getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias)
+			if (options.permalink) {
+				url += "?l=" + pageId;
+			}
+
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
