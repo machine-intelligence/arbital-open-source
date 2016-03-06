@@ -135,7 +135,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "UpdatesPageController",
 	})
-	.when("/user/:id/:alias2?", {
+	.when("/user/:alias/:alias2?", {
  		template: "",
  		controller: "UserPageController",
  		reloadOnSearch: false,
@@ -530,13 +530,22 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 });
 
 app.controller("UserPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-	var userId = $routeParams.id;
+	var userAlias = $routeParams.alias;
 	var postData = {
-		userId: userId,
+		userAlias: userAlias,
 	};
 	// Get the data
 	$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
+		var page = pageService.pageMap[postData.userAlias];
+		if (!page) {
+			return {
+				title: "Not Found",
+				error: "User doesn't exist.",
+			};
+		}
+
+		var userId = page.pageId;
 		pageService.ensureCanonUrl(pageService.getUserUrl(userId));
 		$scope.userPageIdsMap = data.result;
 		return {

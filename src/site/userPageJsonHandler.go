@@ -17,7 +17,7 @@ var userPageHandler = siteHandler{
 }
 
 type userPageJsonData struct {
-	UserId string
+	UserAlias string
 }
 
 // userPageJsonHandler renders the user page.
@@ -31,8 +31,17 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-	if data.UserId == "" {
+	if data.UserAlias == "" {
 		return pages.HandlerBadRequestFail("Need a user alias", nil)
+	}
+
+	// Get actual user id
+	userId, ok, err := core.LoadAliasToPageId(db, data.UserAlias)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't convert alias", err)
+	}
+	if !ok {
+		return pages.HandlerErrorFail("Couldn't find user", err)
 	}
 
 	// Options to load the pages with
@@ -46,7 +55,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pageInfos AS pi
 		WHERE pi.currentEdit>0 AND pi.createdBy=? AND pi.seeGroupId=? AND pi.type!=?
 		ORDER BY pi.createdAt DESC
-		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
+		LIMIT ?`).Query(userId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading recently created page ids", err)
@@ -60,7 +69,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
 		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
 		ORDER BY pi.createdAt DESC
-		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
+		LIMIT ?`).Query(userId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedCommentIds"], err =
 		core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
@@ -76,7 +85,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
 		GROUP BY 1
 		ORDER BY MAX(p.createdAt) DESC
-		LIMIT ?`).Query(data.UserId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
+		LIMIT ?`).Query(userId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading recently edited page ids", err)
@@ -99,15 +108,15 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		WHERE pi.currentEdit>0 AND pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
 		GROUP BY 1
 		ORDER BY SUM(l2.value) DESC
-		LIMIT ?`).Query(params.PrivateGroupId, data.UserId, core.CommentPageType, indexPanelLimit)
+		LIMIT ?`).Query(params.PrivateGroupId, userId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["topPagesIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
 		return pages.HandlerErrorFail("error while loading recently edited by me page ids", err)
 	}
 
 	// Load pages.
-	core.AddPageToMap(data.UserId, returnData.PageMap, core.PrimaryPageLoadOptions)
-	returnData.UserMap[data.UserId] = &core.User{Id: data.UserId}
+	core.AddPageToMap(userId, returnData.PageMap, core.PrimaryPageLoadOptions)
+	returnData.UserMap[userId] = &core.User{Id: userId}
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
