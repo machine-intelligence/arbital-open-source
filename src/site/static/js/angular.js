@@ -150,7 +150,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 					$timeout.cancel(revealTimeout);
 					// Do short timeout to prevent some rendering bugs that occur on edit page
 					$timeout(function() {
-						result.element.removeClass("reveal-after-render-parent");
+						result.content.element.removeClass("reveal-after-render-parent");
 						$loadingBar.hide();
 						$anchorScroll();
 					}, 50);
