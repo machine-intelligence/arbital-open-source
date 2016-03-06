@@ -129,6 +129,13 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 					}
 				}
 			}
+			
+			
+			if (currentView) {
+				currentView.scope.$destroy();
+				currentView.element.remove();
+				currentView = null;
+			}
 
 			// Get the results from page-specific callback
 			$(".global-error").hide();
@@ -176,10 +183,6 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 					showEverything();
 				}, 1000);
 
-				if (currentView) {
-					currentView.scope.$destroy();
-					currentView.element.remove();
-				}
 				currentView = result.content;
 				$("[ng-view]").append(result.content.element);
 			}
