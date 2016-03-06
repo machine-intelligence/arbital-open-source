@@ -71,7 +71,6 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider){
 		.icon("format_header_pound", "static/icons/format-header-pound.svg");
 
 	$locationProvider.html5Mode(true);
-	
 });
 
 // ArbitalCtrl is used across all pages.
@@ -658,24 +657,33 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("updates"));
 		},
 	});
-	addUrlHandler("/user/:id/:alias2?", {
+	addUrlHandler("/user/:alias/:alias2?", {
  		name: "UserPage",
  		handler: function (args) {
-			var userId = args.id;
-			var postData = {
-				userId: userId,
-			};
-			// Get the data
-			$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data){
-				pageService.ensureCanonUrl(pageService.getUserUrl(userId));
-				$scope.userPageIdsMap = data.result;
+		var userAlias = args.alias;
+		var postData = {
+			userAlias: userAlias,
+		};
+		// Get the data
+		$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
+		.success($scope.getSuccessFunc(function(data){
+			var page = pageService.pageMap[postData.userAlias];
+			if (!page) {
 				return {
-					title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-					content: $scope.compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>"),
+					title: "Not Found",
+					error: "User doesn't exist.",
 				};
-			}))
-			.error($scope.getErrorFunc("userPage"));
+			}
+
+			var userId = page.pageId;
+			pageService.ensureCanonUrl(pageService.getUserUrl(userId));
+			$scope.userPageIdsMap = data.result;
+			return {
+				title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
+				content: $scope.compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>"),
+			};
+		}))
+		.error($scope.getErrorFunc("userPage"));
 		},
 	});
 	
