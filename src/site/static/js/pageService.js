@@ -245,7 +245,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		var host = window.location.host;
 		var url = "/p/" + pageId + "/";
 		var alreadyIncludedHost = false;
-		var page = that.pageMap[pageId];
+		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
 
 		if (page) {
 			var pageId = page.pageId;

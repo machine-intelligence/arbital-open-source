@@ -496,7 +496,7 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 						if (!page.wasPublished && result.discard) {
 							$location.path("/edit/");
 						} else {
-							$location.url(pageService.getPageUrl(page.pageId));
+							$location.url(pageService.getPageUrl(page.pageId, {useEditMap: true}));
 						}
 					};
 					return {
