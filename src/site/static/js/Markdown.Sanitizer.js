@@ -20,7 +20,7 @@
     }
 
     // (tags that can be opened/closed) | (tags that stand alone)
-    var basic_tag_whitelist = /^(<\/?(arb-checkbox|arb-multiple-choice(?: page-id='[^']+')?(?: object-alias='[^']+')?|b|blockquote|code|div(?: ng-show='[^']+')?|del|dd|dl|dt|em|h1|h2|h3|i|kbd|li|ol(?: start="\d+")?|p(?: ng-show='[^']+')?|pre|s|span(?: ng-show='[^']+')?|sup|sub|strong|strike|ul)>|<(br|hr)\s?\/?>)$/i;
+    var basic_tag_whitelist = /^(<\/?(arb-checkbox|arb-multiple-choice(?: page-id='[^']+')?(?: object-alias='[^']+')?|arb-table-of-contents(?: page-id='[^']+')?|b|blockquote|code|div(?: ng-show='[^']+')?|del|dd|dl|dt|em|h1|h2|h3|i|kbd|li|ol(?: start="\d+")?|p(?: ng-show='[^']+')?|pre|s|span(?: ng-show='[^']+')?|sup|sub|strong|strike|ul)>|<(br|hr)\s?\/?>)$/i;
     // <a href="url..." optional title>|</a>
     var a_white = /^(<a\shref="((https?|ftp):\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)*[\]$]+"(\stitle="[^"<>]+")?\s?>|<\/a>)$/i;
 
@@ -58,7 +58,7 @@
             return html;
 
         var tagname, tag;
-        var ignoredtags = "<arb-checkbox><arb-multiple-choice><p><img><br><li><hr><div>";
+        var ignoredtags = "<arb-checkbox><arb-multiple-choice><arb-table-of-contents><p><img><br><li><hr><div>";
         var match;
         var tagpaired = [];
         var tagremove = [];

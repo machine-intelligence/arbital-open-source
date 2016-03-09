@@ -155,6 +155,14 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process [toc:] block.
+		var tocBlockRegexp = new RegExp("^\\[toc:\\] *(?=\Z|\n\Z|\n\n)", "gm");
+		converter.hooks.chain("preBlockGamut", function (text, runBlockGamut) {
+			return text.replace(tocBlockRegexp, function (whole, text, knows, wants) {
+				return "<arb-table-of-contents page-id='" + pageId + "'></arb-table-of-contents>";
+			});
+		});
+
 		// Process |knows-requisite([alias]): markdown| spans.
 		var hasReqSpanRegexp = new RegExp(notEscaped + "(\\|+)(!?)knows-requisite\\(\\[" + aliasMatch + "\\]\\): ?([\\s\\S]+?)\\2", "g");
 		converter.hooks.chain("preSpanGamut", function (text) {

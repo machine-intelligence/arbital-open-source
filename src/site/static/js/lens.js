@@ -386,7 +386,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			var $inlineCommentEditPage = undefined;
 			var newInlineCommentButtonTop = 0;
 			scope.showNewInlineCommentButton = false;
-			$markdown.on("mouseup", function(event) {
+			$markdownContainer.on("mouseup", function(event) {
 				if ($inlineCommentEditPage) return;
 				// Do $timeout, because otherwise there is a bug when you double click to
 				// select a word/paragraph, then click again and the selection var is still

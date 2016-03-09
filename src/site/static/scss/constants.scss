@@ -1,0 +1,21 @@
+// All the z-indices we use
+$inlineCommentIconZ: 1;
+$popoverZ: 60;
+$composeFabZ: 50;
+
+$link-color: #137abd;
+
+// Colors that are the same as we set for mdThemingProvider
+//http://www.google.com/design/spec/style/color.html#color-color-palette
+$primary-color: #009688; // teal (500)
+$primary-hue-1: #E0F2F1; // 100
+$primary-hue-2: #00796B; // 700
+$primary-hue-3: #004D40; // 900
+$accent-color: #FF5722; // deep-orange (500)
+$accent-hue-1: #FFCCBC; // 100
+$accent-hue-2: #E64A19; // 700
+$accent-hue-3: #F16700; // custom (opposite to teal500)
+$warn-color: #F44336; // red (500)
+$warn-hue-1: #FFCDD2; // 100
+$warn-hue-2: #D32F2F; // 700
+$warn-hue-3: #B71C1C; // 900

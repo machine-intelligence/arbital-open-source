@@ -1,0 +1,22 @@
+<div layout="row">
+	<div class="toc-div">
+		<div>
+			<span class="toc-title bold">Contents</span>
+			<!-- Trigger element is a md-button with an icon -->
+			<md-button ng-click="showToc = !showToc" class="md-icon-button" aria-label="Toggle table of contents">
+				<md-icon ng-if="showToc">expand_less</md-icon>
+				<md-icon ng-if="!showToc">expand_more</md-icon>
+			</md-button>
+		</div>
+	
+		<div class="md-body-1" ng-show="showToc">
+			<div ng-repeat="row in toc">
+				<a ng-href="{{row.url}}" ng-class="{'toc-row-tab-1': row.tabSize == 1, 'toc-row-tab-2': row.tabSize == 2}">
+					<span class="toc-section-number" ng-bind="::row.section"></span>
+					<span ng-bind="::row.header"></span>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div flex></div>
+</div>
