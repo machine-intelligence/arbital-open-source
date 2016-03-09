@@ -208,11 +208,13 @@ type Page struct {
 
 // ChangeLog describes a row from changeLogs table.
 type ChangeLog struct {
-	UserId    string `json:"userId"`
-	Edit      int    `json:"edit"`
-	Type      string `json:"type"`
-	CreatedAt string `json:"createdAt"`
-	AuxPageId string `json:"auxPageId"`
+	UserId           string `json:"userId"`
+	Edit             int    `json:"edit"`
+	Type             string `json:"type"`
+	CreatedAt        string `json:"createdAt"`
+	AuxPageId        string `json:"auxPageId"`
+	OldSettingsValue string `json:"oldSettingsValue"`
+	NewSettingsValue string `json:"newSettingsValue"`
 }
 
 // Mastery is a page you should have mastered before you can understand another page.
@@ -745,14 +747,14 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 	for _, p := range sourcePageMap {
 		p.ChangeLogs = make([]*ChangeLog, 0)
 		rows := database.NewQuery(`
-		SELECT userId,edit,type,createdAt,auxPageId
+		SELECT userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
 		FROM changeLogs
 		WHERE pageId=?`, p.PageId).Add(`
 			AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
 		ORDER BY createdAt DESC`).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var l ChangeLog
-			err := rows.Scan(&l.UserId, &l.Edit, &l.Type, &l.CreatedAt, &l.AuxPageId)
+			err := rows.Scan(&l.UserId, &l.Edit, &l.Type, &l.CreatedAt, &l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
 			if err != nil {
 				return fmt.Errorf("failed to scan a page log: %v", err)
 			}
