@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/user"
 )
@@ -108,25 +107,6 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	p.SubjectIds = livePage.SubjectIds
 	p.ChangeLogs = livePage.ChangeLogs
 	livePage.ChangeLogs = []*core.ChangeLog{}
-
-	// Grab the lock to this page, but only if we have the right group permissions
-	if !core.IsIdValid(p.SeeGroupId) || u.IsMemberOfGroup(p.SeeGroupId) {
-		now := database.Now()
-		if p.LockedBy == "" || p.LockedUntil < now {
-			hashmap := make(map[string]interface{})
-			hashmap["pageId"] = pageId
-			hashmap["createdAt"] = database.Now()
-			hashmap["currentEdit"] = -1
-			hashmap["lockedBy"] = u.Id
-			hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
-			statement := db.NewInsertStatement("pageInfos", hashmap, "lockedBy", "lockedUntil")
-			if _, err = statement.Exec(); err != nil {
-				return pages.Fail("Couldn't add a lock: %v", err)
-			}
-			p.LockedBy = hashmap["lockedBy"].(string)
-			p.LockedUntil = hashmap["lockedUntil"].(string)
-		}
-	}
 
 	return pages.StatusOK(returnData.ToJson())
 }
