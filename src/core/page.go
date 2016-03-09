@@ -72,6 +72,7 @@ const (
 	// String that can be used inside a regexp to match an a page alias or id
 	AliasRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
 	SubdomainAliasRegexpStr = "[A-Za-z0-9_]*"
+	ReplaceRegexpStr        = "[^A-Za-z0-9_]" // used for replacing non-alias characters
 )
 
 var (

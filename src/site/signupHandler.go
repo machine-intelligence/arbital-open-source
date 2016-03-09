@@ -80,11 +80,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("A required field is not set.", nil)
 	}
 
-	nameRegexp := regexp.MustCompile("^[A-Za-z]+$")
-	if !nameRegexp.MatchString(data.FirstName) || !nameRegexp.MatchString(data.LastName) {
-		return pages.HandlerBadRequestFail("Only letter characters (A-Z) are allowed in the name", nil)
-	}
-
 	// Check if this user already exists.
 	var existingFbUserId string
 	var existingId string
@@ -117,7 +112,15 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Prevent alias collision
+	cleanupRegexp := regexp.MustCompile(core.ReplaceRegexpStr)
 	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
+	aliasBase = cleanupRegexp.ReplaceAllLiteralString(aliasBase, "")
+	if len(aliasBase) <= 3 {
+		return pages.HandlerBadRequestFail("Not enough good characters for an alias", nil)
+	} else if '0' <= aliasBase[0] && aliasBase[0] <= '9' {
+		// Only ids can start with numbers
+		aliasBase = "a" + aliasBase
+	}
 	alias := aliasBase
 	suffix := 2
 	for ; ; suffix++ {
