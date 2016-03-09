@@ -264,11 +264,14 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// Helper function for savePage. Computes the data to submit via AJAX.
 			var computeAutosaveData = function() {
+				// We have to pull the text from textarea directly, because if it's changed by
+				// Markdown library, AngularJS doesn't notice it and page.text isn't updated.
+				$scope.page.text = $("#wmd-input" + $scope.pageId)[0].value;
 				var data = {
 					pageId: $scope.pageId,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
-					text: $("#wmd-input" + $scope.pageId)[0].value,
+					text: $scope.page.text,
 				};
 				if ($scope.page.anchorContext) {
 					data.anchorContext = $scope.page.anchorContext;
