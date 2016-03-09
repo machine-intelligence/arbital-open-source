@@ -345,25 +345,25 @@
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">
-						<div layout="column">
-							<div>
-								<span ng-if="::(changeLog.auxPageId == '')" ng-bind="::changeLog.type">
-								</span>
-								<span ng-if="::(changeLog.auxPageId != '')">
-									<a class="intrasite-link"
-											page-id="{{::changeLog.auxPageId}}"
-											ng-href="{{::pageService.getPageUrl(changeLog.auxPageId)}}"
-											ng-bind="::changeLog.type"></a>
-								</span>
-								<span ng-if="::(changeLog.edit != 0)">(edit #{{::changeLog.edit}})</span>
-								by
-
-								<span ng-if="::(userService.user.id === changeLog.userId)">you</span>
-								<span ng-if="::(userService.user.id !== changeLog.userId)">
+						<div layout="column" flex>
+							<div layout="row">
+								<div>
+									<span ng-if="::(changeLog.auxPageId == '')" ng-bind="::changeLog.type">
+									</span>
+									<span ng-if="::(changeLog.auxPageId != '')">
+										<a class="intrasite-link"
+												page-id="{{::changeLog.auxPageId}}"
+												ng-href="{{::pageService.getPageUrl(changeLog.auxPageId)}}"
+												ng-bind="::changeLog.type"></a>
+									</span>
+									<span ng-if="::(changeLog.edit != 0)">(edit #{{::changeLog.edit}})</span>
+								</div>
+								<div flex/>
+								<div>
 									<arb-user-name user-id="{{::changeLog.userId}}"></arb-user-name>
-								</span>
 
-								<span ng-bind="::(changeLog.createdAt | relativeDateTime)"></span>
+									<span ng-bind="::(changeLog.createdAt | relativeDateTime)"></span>
+								</div>
 							</div>
 
 							<!-- Extra functionality for new edits -->
