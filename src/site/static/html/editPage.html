@@ -356,7 +356,12 @@
 												ng-href="{{::pageService.getPageUrl(changeLog.auxPageId)}}"
 												ng-bind="::changeLog.type"></a>
 									</span>
-									<span ng-if="::(changeLog.edit != 0)">(edit #{{::changeLog.edit}})</span>
+									<span ng-if="::(changeLog.edit != 0 &&
+										(changeLog.type == 'newEdit'
+										|| changeLog.type == 'revertEdit'
+										|| changeLog.type == 'newSnapshot'))">
+										(edit #{{::changeLog.edit}})
+									</span>
 								</div>
 								<div flex/>
 								<div>
