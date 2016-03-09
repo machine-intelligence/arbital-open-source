@@ -23,8 +23,8 @@ CREATE TABLE changeLogs (
 	be set to the parent id. */
 	auxPageId VARCHAR(32) NOT NULL,
 
-	oldSettingsValue VARCHAR(32),
-	newSettingsValue VARCHAR(32),
+	oldSettingsValue VARCHAR(32) NOT NULL,
+	newSettingsValue VARCHAR(32) NOT NULL,
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

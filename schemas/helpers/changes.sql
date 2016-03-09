@@ -218,5 +218,5 @@ CREATE TABLE userPageObjectPairs (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 alter table pageInfos add column isEditorComment bool not null;
 
-alter table changeLogs add column oldSettingsValue varchar(32);
-alter table changeLogs add column newSettingsValue varchar(32);
+alter table changeLogs add column oldSettingsValue varchar(32) not null;
+alter table changeLogs add column newSettingsValue varchar(32) not null;
