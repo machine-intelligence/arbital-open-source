@@ -558,19 +558,6 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					// NOTE: not sure why, but we need two timeouts here
 					$timeout(function() { $timeout(function() {
 						var $input = element.find(".insert-autocomplete").find("input").focus();
-						// Catch blur events as a workaround for when the user presses Enter to
-						// select a link, which doesn't trigger insertLinkSelect for some reason.
-						if (!blurHooked) {
-							blurHooked = true;
-							$input.on("blur", function(event) {
-								if (!scope.showInsertLink) return;
-								scope.showInsertLink = false;
-								scope.insertLinkCallback();
-								$timeout(function() { $timeout(function() {
-									$("#wmd-input" + scope.pageId).focus();
-								}); });
-							});
-						}
 					}); });
 				});
 
