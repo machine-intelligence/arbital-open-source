@@ -1356,8 +1356,9 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, opti
 			WHERE type=?`, options.PagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pageInfos AS pi
-		ON (pi.pageId=pp.parentId AND pi.currentEdit>0)`).Add(`
+		ON (pi.pageId=pp.parentId)`).Add(`
 		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+			AND (pi.currentEdit>0 || pp.parentId=pp.childId)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId string
