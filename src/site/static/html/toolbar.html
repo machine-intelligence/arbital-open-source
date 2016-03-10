@@ -13,7 +13,8 @@
 
 		<!-- Search -->
 		<span flex></span>
-		<arb-autocomplete do-autofocus="::doAutofocus"
+		<arb-autocomplete ng-repeat="currentPage in [urlService.currentPage]"
+				do-autofocus="::doAutofocus()"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
 				flex="grow"
@@ -50,7 +51,8 @@
     </md-button>
 	</div>
 	<div class="md-toolbar-tools md-toolbar-tools-bottom" ng-if="::isTinyScreen">
-		<arb-autocomplete do-autofocus="::doAutofocus"
+		<arb-autocomplete ng-repeat="currentPage in [urlService.currentPage]"
+				do-autofocus="::doAutofocus()"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
 				layout-fill></arb-autocomplete>

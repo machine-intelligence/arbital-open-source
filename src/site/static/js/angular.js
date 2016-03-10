@@ -75,7 +75,8 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider){
 
 // ArbitalCtrl is used across all pages.
 // NOTE: we need to include popoverService, so that it can initialize itself
-app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService) {
+app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService, urlService) {
+	$scope.urlService = urlService;
 	$scope.pageService = pageService;
 	$scope.userService = userService;
 	$scope.loadingBarValue = 0;
@@ -134,7 +135,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 				currentView.scope.$destroy();
 				currentView.element.remove();
 				currentView = null;
+				urlService.hasLoadedFirstPage = true;
 			}
+			urlService.currentPage = {};
 
 			// Get the results from page-specific callback
 			$(".global-error").hide();
@@ -214,48 +217,6 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 		resolveUrl();
 	});
 	
-	// The current page can register a pageUpdater function to handle certain URLs by modifying itself
-	var pageUpdater = null;
-	$scope.setPageUpdater = function(value){
-		pageUpdater = value;
-	};
-	
-	// Map of URL patterns to handlers
-	var urlRules = [];
-	function addUrlHandler(urlPattern, rule) {
-		var sections = urlPattern.split("/");
-		// math path from beginning
-		var builder = ["^"];
-		var parameters = [];
-		for (var n = 0; n < sections.length ; n++) {
-			var section = sections[n];
-			if (section == 0) {
-				// ignore empty section
-			}
-			else if (section[0] == ":") {
-				if (section.endsWith("?")) {
-					// Optional parameter capture
-					parameters.push(section.substring(1, section.length - 1));
-					builder.push("(?:\\/([^\\/]+))?");
-				}
-				else {
-					// Parameter capture
-					parameters.push(section.substring(1));
-					builder.push("\\/([^\\/]+)");
-				}
-			}
-			else {
-				// match name
-				builder.push("\\/"+section);
-			}
-		}
-		// optional trailing slash, optional query or fragment, match to end of path
-		builder.push("\\/?(?:[\\?\\#].*)?$");
-		var re = builder.join("");
-		rule.urlPattern = new RegExp(re);
-		rule.parameters = parameters;
-		urlRules.push(rule);
-	}
 	
 	// The URL rule match for the current page
 	var currentLocation = {};
@@ -267,6 +228,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			$scope.subdomain = subdomainMatch[1];
 		}
 		var path = $location.path();
+		var urlRules = urlService.urlRules;
 		for (var ruleIndex = 0; ruleIndex < urlRules.length; ruleIndex++) {
 			var rule = urlRules[ruleIndex];
 			var m = rule.urlPattern.exec(path);
@@ -277,6 +239,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 					var parameter = parameters[parameterIndex];
 					args[parameter] = m[parameterIndex + 1];
 				}
+				var pageUpdater = urlService.pageUpdater;
 				if (pageUpdater && $scope.subdomain == currentLocation.subdomain) {
 					var name = rule.name;
 					if (name) {
@@ -298,8 +261,8 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 						return;
 					}
 				}
-				pageUpdater = null;
-				rule.handler(args);
+				urlService.pageUpdater = null;
+				rule.handler(args, $scope);
 				currentLocation = { subdomain: $scope.subdomain, rule: rule, args: args };
 				$scope.currentUrl = $location.url();
 				return;
@@ -307,10 +270,15 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 		}
 	};
 	
+	// resolve URL of initial page load
+	resolveUrl();
+});
+
+app.run(function($http, $location, urlService, pageService) {
 	// Set up mapping from URL path to specific controllers
-	addUrlHandler("/", {
+	urlService.addUrlHandler("/", {
 		name: "IndexPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			if ($scope.subdomain) {
 				// Get the private domain index page data
 				$http({method: "POST", url: "/json/domainPage/", data: JSON.stringify({})})
@@ -337,9 +305,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			}
 		},	
 	});
-	addUrlHandler("/adminDashboard/", {
+	urlService.addUrlHandler("/adminDashboard/", {
 		name: "AdminDashboardPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			var postData = { };
 			// Get the data
 			$http({method: "POST", url: "/json/adminDashboardPage/", data: JSON.stringify(postData)})
@@ -353,9 +321,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("adminDashboardPage"));
 		},
 	});
-	addUrlHandler("/dashboard/", {
+	urlService.addUrlHandler("/dashboard/", {
 		name: "DashboardPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			var postData = { };
 			// Get the data
 			$http({method: "POST", url: "/json/dashboardPage/", data: JSON.stringify(postData)})
@@ -369,7 +337,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("dashboardPage"));
 		},
 	});
-	addUrlHandler("/domains/:alias", {
+	urlService.addUrlHandler("/domains/:alias", {
  		name: "DomainPageController",
  		hander: function (args) {
 			pageService.domainAlias = args.alias;
@@ -390,9 +358,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("domainPage"));
 		},
  	});
-	addUrlHandler("/edit/:alias?/:editOrAlias?/:edit?", {
+	urlService.addUrlHandler("/edit/:alias?/:editOrAlias?/:edit?", {
  		name: "EditPage",
- 		handler: function (args) {
+ 		handler: function (args, $scope) {
 			var pageId = args.alias;
 
 			// Need to call /default/ in case we are creating a new page
@@ -460,9 +428,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("default"));
 		},
  	});
-	addUrlHandler("/groups/", {
+	urlService.addUrlHandler("/groups/", {
 		name: "GroupsPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			$http({method: "POST", url: "/json/groups/"})
 			.success($scope.getSuccessFunc(function(data){
 				return {
@@ -473,9 +441,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("groups"));
 		},
 	});
-	addUrlHandler("/learn/:pageAlias?/:pageAlias2?", {
+	urlService.addUrlHandler("/learn/:pageAlias?/:pageAlias2?", {
  		name: "Learn",
- 		handler: function (args) {
+ 		handler: function (args, $scope) {
 			// Get the primary page data
 			var postData = {
 				pageAliases: [],
@@ -518,9 +486,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("learn"));
 		},
  	});
-	addUrlHandler("/login/", {
+	urlService.addUrlHandler("/login/", {
 		name: "LoginPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			$http({method: "POST", url: "/json/default/"})
 			.success($scope.getSuccessFunc(function(data){
 				if (userService.user.id) {
@@ -534,9 +502,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("default"));
 		},
 	});
-	addUrlHandler("/p/:alias/:alias2?", {
+	urlService.addUrlHandler("/p/:alias/:alias2?", {
 		name: "PrimaryPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			// Get the primary page data
 			var postData = {
 				pageAlias: args.alias,
@@ -571,9 +539,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("primaryPage"));
 		},
 	});
-	addUrlHandler("/pages/:alias", {
+	urlService.addUrlHandler("/pages/:alias", {
  		name: "RedirectToPrimaryPage",
- 		handler: function (args) {
+ 		handler: function (args, $scope) {
 			// Get the primary page data
 			var postData = {
 				pageAlias: args.alias,
@@ -599,9 +567,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("redirectToPrimaryPage"));
 		},
  	});
-	addUrlHandler("/requisites/", {
+	urlService.addUrlHandler("/requisites/", {
 		name: "RequisitesPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			$http({method: "POST", url: "/json/requisites/"})
 			.success($scope.getSuccessFunc(function(data){
 				return {
@@ -612,9 +580,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("requisites"));
 		},
 	});
-	addUrlHandler("/settings/", {
+	urlService.addUrlHandler("/settings/", {
 		name: "SettingsPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			$http({method: "POST", url: "/json/default/"})
 			.success($scope.getSuccessFunc(function(data){
 				return {
@@ -625,9 +593,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("default"));
 		},
 	});
-	addUrlHandler("/signup/", {
+	urlService.addUrlHandler("/signup/", {
 		name: "SignupPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			$http({method: "POST", url: "/json/default/"})
 			.success($scope.getSuccessFunc(function(data){
 				if (userService.user.id) {
@@ -641,9 +609,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("default"));
 		},
 	});
-	addUrlHandler("/updates/", {
+	urlService.addUrlHandler("/updates/", {
 		name: "UpdatesPage",
-		handler: function (args) {
+		handler: function (args, $scope) {
 			var postData = { };
 			// Get the explore data
 			$http({method: "POST", url: "/json/updates/", data: JSON.stringify(postData)})
@@ -657,9 +625,9 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 			.error($scope.getErrorFunc("updates"));
 		},
 	});
-	addUrlHandler("/user/:alias/:alias2?", {
+	urlService.addUrlHandler("/user/:alias/:alias2?", {
  		name: "UserPage",
- 		handler: function (args) {
+ 		handler: function (args, $scope) {
 		var userAlias = args.alias;
 		var postData = {
 			userAlias: userAlias,
@@ -686,9 +654,6 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 		.error($scope.getErrorFunc("userPage"));
 		},
 	});
-	
-	// resolve URL of initial page load
-	resolveUrl();
 });
 
 // simpleDateTime filter converts our typical date&time string into local time.
