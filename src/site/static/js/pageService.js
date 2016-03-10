@@ -38,7 +38,6 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	//		delete: set these masteries to "doesn't know"
 	//		wants: set these masteries to "wants"
 	//		knows: set these masteries to "knows"
-	//		skipPush: if set, don't push the changes to the server
 	//		callback: optional callback function
 	// }
 	this.updateMasteryMap = function(options) {
@@ -79,9 +78,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 				affectedMasteryIds.push(masteryId);
 			}
 		}
-		if (!options.skipPush) {
-			this.pushMasteriesToServer(affectedMasteryIds, options.callback);
-		}
+		this.pushMasteriesToServer(affectedMasteryIds, options.callback);
 	};
 
 	// Compute the status of the given masteries and update the server
@@ -99,34 +96,24 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			}
 		}
 
-		if (userService.user.id !== "") {
-			var data = {
-				removeMasteries: delMasteries,
-				wantsMasteries: wantsMasteries,
-				addMasteries: addMasteries,
-				computeUnlocked: !!callback, // hacky
-			};
-			$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
-			.success(function(data) {
-				if (callback) {
-					userService.processServerData(data);
-					that.processServerData(data);
-					callback(data);
-				}
-			})
-			.error(function(data, status){
-				console.error("Failed to change masteries:"); console.log(data); console.log(status);
-			});
-		} else {
-			this.updateMasteryMap({
-				delete: delMasteries,
-				wants: wantsMasteries,
-				knows: addMasteries,
-				skipPush: true,
-			});
-			Cookies.set("masteryMap", this.masteryMap, {expires: 365});
-			if (callback) callback();
-		}
+		var data = {
+			removeMasteries: delMasteries,
+			wantsMasteries: wantsMasteries,
+			addMasteries: addMasteries,
+			// Note: this is a bit hacky. We should probably pass computeUnlocked explicitly
+			computeUnlocked: !!callback,
+		};
+		$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
+		.success(function(data) {
+			if (callback) {
+				userService.processServerData(data);
+				that.processServerData(data);
+				callback(data);
+			}
+		})
+		.error(function(data, status){
+			console.error("Failed to change masteries:"); console.log(data); console.log(status);
+		});
 	};
 
 	// Compute the status of the given masteries and update the server
@@ -142,18 +129,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		}
 		this.pageObjectMap[options.pageId][options.object] = options;
 
-		if (userService.user.id !== "") {
-			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
-			.error(function(data, status){
-				console.error("Failed to update page object:"); console.log(data); console.log(status);
-			});
-		} else {
-			Cookies.set("pageObjectMap", this.pageObjectMap, {expires: 365});
-			$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
-			.error(function(data, status){
-				console.error("Failed to update page object:"); console.log(data); console.log(status);
-			});
-		}
+		$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
+		.error(function(data, status){
+			console.error("Failed to update page object:"); console.log(data); console.log(status);
+		});
 	};
 
 	// Use our smart merge technique to add a new object to existing object map.
@@ -186,30 +165,10 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			this.smartAddToMap(this.pageObjectMap, pageObjectData[id], id);
 		}
 
-		// Load page objects from cookie
-		if (data.resetEverything && !userService.user.id) {
-			var cookiePageObjectMap = Cookies.getJSON("pageObjectMap") || {};
-			for (var id in cookiePageObjectMap) {
-				this.smartAddToMap(this.pageObjectMap, cookiePageObjectMap[id], id);
-			}
-		} else if (data.resetEverything && userService.user.id) {
-			Cookies.remove("pageObjectMap");
-		}
-
 		// Populate materies map.
 		var masteryData = data["masteries"];
 		for (var id in masteryData) {
 			this.smartAddToMap(this.masteryMap, masteryData[id], id);
-		}
-
-		// Load masteries from cookie
-		if (data.resetEverything && !userService.user.id) {
-			var cookieMasteryMap = Cookies.getJSON("masteryMap") || {};
-			for (var id in cookieMasteryMap) {
-				this.smartAddToMap(this.masteryMap, cookieMasteryMap[id], id);
-			}
-		} else if (data.resetEverything && userService.user.id) {
-			Cookies.remove("masteryMap");
 		}
 
 		var pageData = data["pages"];
@@ -245,7 +204,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		var host = window.location.host;
 		var url = "/p/" + pageId + "/";
 		var alreadyIncludedHost = false;
-		var page = that.pageMap[pageId];
+		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
 
 		if (page) {
 			var pageId = page.pageId;

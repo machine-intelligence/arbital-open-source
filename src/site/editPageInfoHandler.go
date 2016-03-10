@@ -186,7 +186,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
 		hashmap["isEditorComment"] = data.IsEditorComment
-		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
 		statement := tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update pageInfos", err

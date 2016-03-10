@@ -392,16 +392,20 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, userService
 	return {
 		templateUrl: "static/html/autocomplete.html",
 		scope: {
+			// If true, the input will start out focused
 			doAutofocus: "=",
+			// Placeholder text
 			placeholder: "@",
 			// If set, the search will be constrained to this page type
 			pageType: "@",
+			// Function to call when a result is selected / user cancels selection
 			onSelect: "&",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
+			// Called to get search results from the server
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
 				var deferred = $q.defer();
@@ -411,9 +415,20 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, userService
 				return deferred.promise;
 			};
 
+			// Called when user's choice changes
+			$scope.ignoreNextResult = false;
 			$scope.searchResultSelected = function(result) {
+				var ignoring = $scope.ignoreNextResult;
+				$scope.ignoreNextResult = false;
+				if (ignoring) return;
 				$scope.onSelect({result: result});
-				$scope.searchText = ""; // this triggers this function
+				// Note(alexei): this condition seems a little hacky, but it helps us prevent
+				// calling callback twice.
+				if ($scope.searchText || !result) {
+					// Changing searchText will trigger this function, so we want to ignore it
+					$scope.ignoreNextResult = true;
+					$scope.searchText = "";
+				}
 			};
 		},
 	};

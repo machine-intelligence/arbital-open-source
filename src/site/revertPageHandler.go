@@ -5,6 +5,7 @@ package site
 
 import (
 	"encoding/json"
+	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -40,12 +41,17 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the page
-	var page *core.Page
-	page, err = core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
+	page, err := core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	} else if page == nil {
 		return pages.HandlerErrorFail("Couldn't find page", nil)
+	}
+
+	if page.Type == core.LensPageType {
+		// Need to get the actual lens title
+		parts := strings.Split(page.Title, ":")
+		page.Title = strings.TrimSpace(parts[len(parts)-1])
 	}
 
 	// Create the data to pass to the edit page handler

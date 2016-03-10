@@ -72,6 +72,7 @@ const (
 	// String that can be used inside a regexp to match an a page alias or id
 	AliasRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
 	SubdomainAliasRegexpStr = "[A-Za-z0-9_]*"
+	ReplaceRegexpStr        = "[^A-Za-z0-9_]" // used for replacing non-alias characters
 )
 
 var (
@@ -563,7 +564,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load what requirements the user has met
-	err = LoadMasteries(db, u.Id, masteryMap)
+	err = LoadMasteries(db, u, masteryMap)
 	if err != nil {
 		return fmt.Errorf("LoadMasteries failed: %v", err)
 	}
@@ -585,13 +586,12 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Computed which pages count as visited.
 	visitedValues := make([]interface{}, 0)
-	visitorId := u.Id
-	if visitorId == "" {
-		visitorId = fmt.Sprintf("sid:%s", u.SessionId)
-	}
-	for id, p := range pageMap {
-		if p.Text != "" {
-			visitedValues = append(visitedValues, visitorId, id, database.Now())
+	visitorId := u.GetSomeId()
+	if visitorId != "" {
+		for id, p := range pageMap {
+			if p.Text != "" {
+				visitedValues = append(visitedValues, visitorId, id, database.Now())
+			}
 		}
 	}
 
@@ -609,7 +609,12 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 }
 
 // LoadMasteries loads the masteries.
-func LoadMasteries(db *database.DB, userId string, masteryMap map[string]*Mastery) error {
+func LoadMasteries(db *database.DB, u *user.User, masteryMap map[string]*Mastery) error {
+	userId := u.GetSomeId()
+	if userId == "" {
+		return nil
+	}
+
 	rows := database.NewQuery(`
 		SELECT masteryId,updatedAt,has,wants
 		FROM userMasteryPairs
@@ -627,22 +632,27 @@ func LoadMasteries(db *database.DB, userId string, masteryMap map[string]*Master
 }
 
 // LoadPageObjects loads all the page objects necessary for the given pages.
-func LoadPageObjects(db *database.DB, user *user.User, pageMap map[string]*Page, pageObjectMap map[string]map[string]*PageObject) error {
+func LoadPageObjects(db *database.DB, u *user.User, pageMap map[string]*Page, pageObjectMap map[string]map[string]*PageObject) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 
+	userId := u.GetSomeId()
+	if userId == "" {
+		return nil
+	}
+
 	rows := database.NewQuery(`
 		SELECT pageId,edit,object,value
 		FROM userPageObjectPairs
-		WHERE userId=?`, user.Id).Add(`AND pageId IN `).AddArgsGroup(pageIds).Add(`
+		WHERE userId=?`, userId).Add(`AND pageId IN `).AddArgsGroup(pageIds).Add(`
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var obj PageObject
 		err := rows.Scan(&obj.PageId, &obj.Edit, &obj.Object, &obj.Value)
 		if err != nil {
-			return fmt.Errorf("failed to scan for user: %v", err)
+			return fmt.Errorf("Failed to scan for user: %v", err)
 		}
 		if _, ok := pageObjectMap[obj.PageId]; !ok {
 			pageObjectMap[obj.PageId] = make(map[string]*PageObject)
@@ -654,7 +664,7 @@ func LoadPageObjects(db *database.DB, user *user.User, pageMap map[string]*Page,
 }
 
 // LoadPages loads the given pages.
-func LoadPages(db *database.DB, user *user.User, pageMap map[string]*Page) error {
+func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -681,7 +691,7 @@ func LoadPages(db *database.DB, user *user.User, pageMap map[string]*Page) error
 		JOIN pageInfos AS pi
 		ON (p.pageId = pi.pageId AND p.isCurrentEdit)
 		WHERE p.pageId IN`).AddArgsGroup(pageIds).Add(`
-			AND (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(user.GroupIds).Add(`)
+			AND (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p corePageData
@@ -1347,8 +1357,9 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, opti
 			WHERE type=?`, options.PagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pageInfos AS pi
-		ON (pi.pageId=pp.parentId AND pi.currentEdit>0)`).Add(`
+		ON (pi.pageId=pp.parentId)`).Add(`
 		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+			AND (pi.currentEdit>0 || pp.parentId=pp.childId)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId string

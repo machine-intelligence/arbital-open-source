@@ -108,15 +108,17 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 				http.Redirect(w, r, fmt.Sprintf("/login/?continueUrl=%s", url.QueryEscape(r.URL.String())), http.StatusSeeOther)
 			}
 		}
-		if core.IsIdValid(u.Id) {
+		if userId := u.GetSomeId(); userId != "" {
 			statement := db.NewStatement(`
 						UPDATE users
 						SET lastWebsiteVisit=?
 						WHERE id=?`)
-			if _, err := statement.Exec(database.Now(), u.Id); err != nil {
+			if _, err := statement.Exec(database.Now(), userId); err != nil {
 				fail(http.StatusInternalServerError, "Couldn't update users", err)
 				return
 			}
+		}
+		if core.IsIdValid(u.Id) {
 			// Load the groups the user belongs to.
 			if err = core.LoadUserGroupIds(db, u); err != nil {
 				fail(http.StatusInternalServerError, "Couldn't load user groups", err)

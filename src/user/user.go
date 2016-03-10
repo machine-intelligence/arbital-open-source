@@ -70,6 +70,14 @@ func (user *User) FullName() string {
 	return user.FirstName + " " + user.LastName
 }
 
+// GetSomeId returns user's id or, if not available, session id, which could still be ""
+func (user *User) GetSomeId() string {
+	if user.Id != "" {
+		return user.Id
+	}
+	return user.SessionId
+}
+
 // GetMaxKarmaLock returns the highest possible karma lock a user with the
 // given amount of karma can create.
 func GetMaxKarmaLock(karma int) int {
@@ -114,7 +122,7 @@ func saveSessionCookie(w http.ResponseWriter, r *http.Request) (string, error) {
 	}
 
 	rand.Seed(time.Now().UnixNano())
-	sessionId := fmt.Sprintf("%d", rand.Int63())
+	sessionId := fmt.Sprintf("sid:%d", rand.Int63())
 	s.Values[sessionKey] = CookieSession{
 		SessionId: sessionId,
 		Random:    fmt.Sprintf("%d", rand.Int63()),
