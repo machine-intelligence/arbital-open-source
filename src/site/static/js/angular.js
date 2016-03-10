@@ -102,7 +102,7 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 	})
 	.when("/learn/:pageAlias?/:pageAlias2?", {
  		template: "",
- 		controller: "LearnController",
+ 		controller: "LearnPageController",
  		reloadOnSearch: false,
  	})
 	.when("/login/", {
@@ -418,10 +418,11 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 	.error($scope.getErrorFunc("primaryPage"));
 });
 
-app.controller("LearnController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
+app.controller("LearnPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
 	// Get the primary page data
 	var postData = {
 		pageAliases: [],
+		onlyWanted: $location.search()["only_wanted"] === "1",
 	};
 	var continueLearning = false;
 	if ($routeParams.pageAlias) {
@@ -440,21 +441,17 @@ app.controller("LearnController", function ($scope, $routeParams, $http, $compil
 			primaryPage = pageService.pageMap[$routeParams.pageAlias];
 			pageService.ensureCanonUrl("/learn/" + primaryPage.alias);
 		}
-		// Convert all aliases to ids
-		$scope.pageIds = [];
-		for (var n = 0; n < postData.pageAliases.length; n++) {
-			var page = pageService.pageMap[postData.pageAliases[n]];
-			if (page) {
-				$scope.pageIds.push(page.pageId);
-			}
-		}
-		$scope.tutorMap = data.result.tutorMap;
-		$scope.requirementMap = data.result.requirementMap;
+
+		$scope.learnPageIds = data.result.pageIds;
+		$scope.learnOptionsMap = data.result.optionsMap;
+		$scope.learnTutorMap = data.result.tutorMap;
+		$scope.learnRequirementMap = data.result.requirementMap;
 		return {
 			title: "Learn " + (primaryPage ? primaryPage.title : ""),
 			element: $compile("<arb-learn-page continue-learning='::" + continueLearning +
-				"' page-ids='::pageIds'" +
-				" tutor-map='::tutorMap' requirement-map='::requirementMap'" +
+				"' page-ids='::learnPageIds'" +
+				"' options-map='::learnOptionsMap'" +
+				" tutor-map='::learnTutorMap' requirement-map='::learnRequirementMap'" +
 				"></arb-learn-page>")($scope),
 		};
 	}))

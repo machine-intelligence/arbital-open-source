@@ -6,6 +6,7 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 		templateUrl: "static/html/learnPage.html",
 		scope: {
 			pageIds: "=",
+			optionsMap: "=",
 			tutorMap: "=",
 			requirementMap: "=",
 			continueLearning: "=",
@@ -20,11 +21,12 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 			// requirement id -> [list of page ids that require it]
 			$scope.unlearnableIds = {};
 			$scope.hasUnlernableIds = false;
-
+			
 			// Figure our the order of pages through which to take the user
 			var computeLearnIds = function() {
 				$scope.readIds = [];
 				$scope.unlearnableIds = {};
+				// Function for recursively processing a pageId that needs to be learned
 				var processRequirement = function(pageId, parentPageId) {
 					var requirement = $scope.requirementMap[pageId];
 					var tutor = requirement.bestTutorId ? $scope.tutorMap[requirement.bestTutorId] : undefined;
@@ -44,11 +46,12 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 						}
 					}
 				};
+				// Process the requirements tree into a linear path
 				for (var n = 0; n < $scope.pageIds.length; n++) {
 					var pageId = $scope.pageIds[n];
 					if (pageId in $scope.requirementMap) {
 						processRequirement(pageId, undefined);
-						if ($scope.readIds.indexOf(pageId) < 0) {
+						if ($scope.readIds.indexOf(pageId) < 0 && $scope.optionsMap[pageId].appendToPath) {
 							$scope.readIds.push(pageId);
 						}
 					}

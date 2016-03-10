@@ -1,3 +1,5 @@
+<!-- WARNING: There is a bug with using custom directives inside the autocomplete,
+	because it uses md-virtual-repeat. Proceed with extreme caution. -->
 <md-autocomplete md-selected-item="searchItem"
 		md-search-text="searchText"
 		md-items="result in getSearchResults(searchText)"
@@ -12,8 +14,6 @@
 	<md-item-template>
 		<div layout="row" layout="start center">
 			<!--<arb-likes page-id="{{result.pageId}}"></arb-likes>-->
-			<!-- There is a bug with using custom directives inside the autocomplete,
-				because it uses md-virtual-repeat. -->
 			<div class="likes-in-autocomplete" layout="row" layout="start end">
 				<md-icon class="like-icon on no-margins" ng-show="result.page.myLikeValue > 0">thumb_up</md-icon>
 				<md-icon class="like-icon off no-margins" md-svg-icon="thumb_up_outline" ng-show="result.page.myLikeValue <= 0"></md-icon>

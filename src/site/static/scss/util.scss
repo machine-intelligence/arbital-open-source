@@ -1,0 +1,128 @@
+// Random helpful classes we have for Arbital
+
+.submit-form-error {
+	padding: 10px;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.float-left {
+	float: left;
+}
+.float-right {
+	float: right;
+}
+
+.nowrap {
+	white-space: nowrap;
+}
+
+.white-background {
+	background-color: white;
+}
+
+.black-font {
+	color: black;
+}
+
+.full-width {
+	width: 100%;
+}
+.full-height {
+	height: 100%;
+}
+
+.no-margins {
+	margin: 0 !important;
+}
+
+// Use this class to reveal the element after it and the children are linked
+.reveal-after-render-parent {
+	visibility: hidden !important;
+
+	.reveal-after-render {
+		visibility: hidden !important;
+	}
+
+	// Have to hide the knob, otherwise it appears before we reveal the page
+	.my-vote-knob {
+		visibility: hidden !important;
+	}
+}
+
+// Used to style the dot we display when a page hasn't been visited / was updated
+@mixin dot($color) {
+	position: relative;
+	top: -0.4em;
+	display: inline-block;
+	background-color: $color;
+	width: 0.4em;
+	height: 0.4em;
+	border-radius: 50%;
+}
+.primary-dot {
+	@include dot($primary-color);
+}
+.accent-dot {
+	@include dot($accent-color);
+}
+.warn-dot {
+	@include dot($warn-color);
+}
+
+// Helpers used to align text horizontally
+.left-text {
+	text-align: left;
+}
+.center-text {
+	text-align: center;
+}
+.right-text {
+	text-align: right;
+}
+
+// Helper to preserve whitespace
+.pre {
+	white-space: pre;
+}
+
+// Add this to an element to only show the first line of text in it.
+.one-line {
+	& > * {
+		white-space: nowrap !important;
+		text-overflow: ellipsis !important;
+		overflow: hidden !important;
+	}
+
+	* + * {
+		display: none;
+	}
+}
+
+// This is used to style the comma which appears in the generated list of things.
+// Normally there is a space before it, so we adjust the left margin.
+.comma {
+	margin-left: -3px;
+}
+
+@mixin small-button {
+	padding: 0 !important;
+	width: 24px !important;
+	height: 24px !important;
+	min-width: 24px !important;
+	min-height: 24px !important;
+	margin-right: 5px !important;
+}
+
+.small-button {
+	@include small-button;
+}
+
+// Small vertical separator
+.separator {
+	margin: 10px 10px;
+	padding: 0 1px 0 0;
+	background-color: silver;
+}

@@ -55,6 +55,15 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 				$scope.idsSource.push(data.parentId);
 			};
 
+			$scope.relatesToItself = $scope.idsSource.indexOf($scope.pageId) >= 0;
+			$scope.teachItself = function() {
+				// Make the page teach itself. Used when the page isn't published yet.
+				$scope.searchResultSelected({
+					pageId: $scope.pageId,
+				});
+				$scope.relatesToItself = true;
+			};
+
 			// Process deleting a relationship
 			$scope.deleteRelationship = function(otherPageId) {
 				var options = {
@@ -64,6 +73,7 @@ app.directive("arbRelationships", function($q, $timeout, $interval, $http, pageS
 				};
 				pageService.deletePagePair(options);
 				$scope.idsSource.splice($scope.idsSource.indexOf(options.parentId), 1);
+				$scope.relatesToItself = $scope.idsSource.indexOf($scope.pageId) >= 0;
 			};
 		},
 	};
