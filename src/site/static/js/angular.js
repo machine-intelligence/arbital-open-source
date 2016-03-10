@@ -274,7 +274,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 	resolveUrl();
 });
 
-app.run(function($http, $location, urlService, pageService) {
+app.run(function($http, $location, urlService, pageService, userService) {
 	// Set up mapping from URL path to specific controllers
 	urlService.addUrlHandler("/", {
 		name: "IndexPage",
