@@ -263,9 +263,9 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	// Return url to the user page.
 	this.getUserUrl = function(userId) {
 		if (userId in this.pageMap) {
-			return getBaseUrl("user", userId, this.pageMap[userId].alias);
+			return getBaseUrl("p", userId, this.pageMap[userId].alias);
 		}
-		return "/user/" + userId;
+		return "/p/" + userId;
 	};
 
 	// Get a domain url (with optional subdomain)
