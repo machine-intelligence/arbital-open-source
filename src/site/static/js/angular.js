@@ -442,15 +442,16 @@ app.run(function($http, $location, urlService, pageService, userService) {
 		},
 	});
 	urlService.addUrlHandler("/learn/:pageAlias?/:pageAlias2?", {
- 		name: "Learn",
+ 		name: "LearnPage",
  		handler: function (args, $scope) {
 			// Get the primary page data
 			var postData = {
 				pageAliases: [],
+				onlyWanted: $location.search()["only_wanted"] === "1",
 			};
 			var continueLearning = false;
-			if (args.pageAlias) {
-				postData.pageAliases.push(args.pageAlias);
+			if ($routeParams.pageAlias) {
+				postData.pageAliases.push($routeParams.pageAlias);
 			} else if ($location.search().path) {
 				postData.pageAliases = postData.pageAliases.concat($location.search().path.split(","));
 			} else if (pageService.path) {
@@ -461,26 +462,22 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data){
 				var primaryPage = undefined;
-				if (args.pageAlias) {
-					primaryPage = pageService.pageMap[args.pageAlias];
+				if ($routeParams.pageAlias) {
+					primaryPage = pageService.pageMap[$routeParams.pageAlias];
 					pageService.ensureCanonUrl("/learn/" + primaryPage.alias);
 				}
-				// Convert all aliases to ids
-				$scope.pageIds = [];
-				for (var n = 0; n < postData.pageAliases.length; n++) {
-					var page = pageService.pageMap[postData.pageAliases[n]];
-					if (page) {
-						$scope.pageIds.push(page.pageId);
-					}
-				}
-				$scope.tutorMap = data.result.tutorMap;
-				$scope.requirementMap = data.result.requirementMap;
+
+				$scope.learnPageIds = data.result.pageIds;
+				$scope.learnOptionsMap = data.result.optionsMap;
+				$scope.learnTutorMap = data.result.tutorMap;
+				$scope.learnRequirementMap = data.result.requirementMap;
 				return {
 					title: "Learn " + (primaryPage ? primaryPage.title : ""),
-					content: $scope.compile("<arb-learn-page continue-learning='::" + continueLearning +
-						"' page-ids='::pageIds'" +
-						" tutor-map='::tutorMap' requirement-map='::requirementMap'" +
-						"></arb-learn-page>"),
+					element: $compile("<arb-learn-page continue-learning='::" + continueLearning +
+						"' page-ids='::learnPageIds'" +
+						"' options-map='::learnOptionsMap'" +
+						" tutor-map='::learnTutorMap' requirement-map='::learnRequirementMap'" +
+						"></arb-learn-page>")($scope),
 				};
 			}))
 			.error($scope.getErrorFunc("learn"));
