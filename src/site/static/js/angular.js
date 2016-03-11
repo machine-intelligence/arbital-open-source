@@ -450,8 +450,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				onlyWanted: $location.search()["only_wanted"] === "1",
 			};
 			var continueLearning = false;
-			if ($routeParams.pageAlias) {
-				postData.pageAliases.push($routeParams.pageAlias);
+			if (args.pageAlias) {
+				postData.pageAliases.push(args.pageAlias);
 			} else if ($location.search().path) {
 				postData.pageAliases = postData.pageAliases.concat($location.search().path.split(","));
 			} else if (pageService.path) {
@@ -462,8 +462,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			$http({method: "POST", url: "/json/learn/", data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data){
 				var primaryPage = undefined;
-				if ($routeParams.pageAlias) {
-					primaryPage = pageService.pageMap[$routeParams.pageAlias];
+				if (args.pageAlias) {
+					primaryPage = pageService.pageMap[args.pageAlias];
 					pageService.ensureCanonUrl("/learn/" + primaryPage.alias);
 				}
 
@@ -473,11 +473,11 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				$scope.learnRequirementMap = data.result.requirementMap;
 				return {
 					title: "Learn " + (primaryPage ? primaryPage.title : ""),
-					element: $compile("<arb-learn-page continue-learning='::" + continueLearning +
+					content: $scope.compile("<arb-learn-page continue-learning='::" + continueLearning +
 						"' page-ids='::learnPageIds'" +
 						"' options-map='::learnOptionsMap'" +
 						" tutor-map='::learnTutorMap' requirement-map='::learnRequirementMap'" +
-						"></arb-learn-page>")($scope),
+						"></arb-learn-page>"),
 				};
 			}))
 			.error($scope.getErrorFunc("learn"));
