@@ -46,7 +46,7 @@ app.service("userService", function($http, $location, $rootScope){
 			var redirectUrl = $location.absUrl();
 			// NOTE: Because of ngSilentLocation our URL state is fucked somehow, and so for now
 			// the best we can do is just redirect the user to the home page.
-			redirectUrl = "http://" + window.location.host;
+			redirectUrl = "https://" + window.location.host;
 			if (redirectUrl.indexOf("?") < 0 && redirectUrl[redirectUrl.length - 1] != "/") {
 				redirectUrl += "/";
 			}
@@ -81,7 +81,7 @@ app.service("userService", function($http, $location, $rootScope){
 			$location.hash("");
 		}
 		data.fbRedirectUrl = $location.absUrl();
-		data.fbRedirectUrl = "http://" + window.location.host;
+		data.fbRedirectUrl = "https://" + window.location.host;
 		if (data.fbRedirectUrl.indexOf("?") < 0 && data.fbRedirectUrl[data.fbRedirectUrl.length - 1] != "/") {
 			data.fbRedirectUrl += "/";
 		}

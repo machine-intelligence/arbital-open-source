@@ -211,7 +211,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 				"\\[ ([^\\]]+?)\\]" + noParen, "g");
 		converter.hooks.chain("preSpanGamut", function (text) {
 			return text.replace(spaceTextRegexp, function (whole, prefix, text) {
-				return prefix + "[" + text + "](" + "http://" + host + "/edit/0" + ")";
+				return prefix + "[" + text + "](" + "https://" + host + "/edit/0" + ")";
 			});
 		});
 
@@ -268,10 +268,10 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
-					var url = "http://" + host + "/user/" + page.pageId + "/";
+					var url = "https://" + host + "/user/" + page.pageId + "/";
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
-					var url = "http://" + host + "/user/" + alias + "/";
+					var url = "https://" + host + "/user/" + alias + "/";
 					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
