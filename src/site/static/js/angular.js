@@ -244,7 +244,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 					var name = rule.name;
 					if (name) {
 						if (pageUpdater(name, args)) {
-							$scope.currentUrl = $location.url();
+							urlService.currentUrl = $location.absUrl();
 							currentLocation = { subdomain: $scope.subdomain, rule: rule, args: args };
 							return; // The current page could handle the URL by modifying itself
 						}
@@ -264,7 +264,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 				urlService.pageUpdater = null;
 				rule.handler(args, $scope);
 				currentLocation = { subdomain: $scope.subdomain, rule: rule, args: args };
-				$scope.currentUrl = $location.url();
+				urlService.currentUrl = $location.absUrl();
 				return;
 			}
 		}
@@ -339,7 +339,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 	});
 	urlService.addUrlHandler("/domains/:alias", {
  		name: "DomainPageController",
- 		hander: function (args) {
+ 		handler: function (args, $scope) {
 			pageService.domainAlias = args.alias;
 			var postData = {
 				domainAlias: pageService.domainAlias,

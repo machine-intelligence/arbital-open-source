@@ -32,7 +32,7 @@
 		</md-button>
 
 		<!-- Login/signup buttons -->
-		<md-button ng-href="/signup/?continueUrl={{currentUrl}}"
+		<md-button ng-href="/signup/?continueUrl={{urlService.currentUrl}}"
 				ng-if="userService.user.id === ''">
 			Sign Up
 		</md-button>

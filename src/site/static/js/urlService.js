@@ -4,6 +4,10 @@
 app.service("urlService", function($http, $location, $ngSilentLocation, $rootScope){
 	var that = this;
 	
+	// The URL for the currently displayed page
+	this.currentUrl;
+	
+	// This will be set to true before loading content for a second page
 	this.hasLoadedFirstPage = false;
 	
 	// Object reference that will change when a new URL handler is invoked
