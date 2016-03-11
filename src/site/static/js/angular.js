@@ -135,11 +135,6 @@ app.config(function($locationProvider, $routeProvider, $mdIconProvider, $mdThemi
 		template: "",
 		controller: "UpdatesPageController",
 	})
-	.when("/user/:alias/:alias2?", {
- 		template: "",
- 		controller: "UserPageController",
- 		reloadOnSearch: false,
-	})
 });
 
 // ArbitalCtrl is used across all pages.
@@ -387,6 +382,7 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 	// Get the primary page data
 	var postData = {
 		pageAlias: $routeParams.alias,
+		userAlias: $routeParams.alias
 	};
 	$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
 	.success($scope.getSuccessFunc(function(data){
@@ -396,6 +392,39 @@ app.controller("PrimaryPageController", function ($scope, $routeParams, $http, $
 				title: "Not Found",
 				error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 			};
+		}
+
+		// Look up page's alias in userMap;
+		var user = userService.userMap[page.pageId];
+		console.log("user?", user);
+		// If the page is a user page, get the additional data about user
+		// - recently created by me page ids.
+		// - recently created by me comment ids.
+		// - recently edited by me page ids.
+		// - top pages by me
+		if (user) {
+			console.log("user!", user);
+			$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
+			.success($scope.getSuccessFunc(function(data){
+				var page = pageService.pageMap[postData.userAlias];
+				if (!page) {
+					return {
+						title: "Not Found",
+						error: "User doesn't exist.",
+					};
+				}
+
+				var userId = page.pageId;
+				pageService.ensureCanonUrl(pageService.getPageUrl(userId));
+				$scope.userPageIdsMap = data.result;
+				return {
+					title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
+					element: $compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>")($scope),
+				};
+			}))
+			.error($scope.getErrorFunc("userPage"));
+			return {};
+
 		}
 
 		if (page.isLens() || page.isComment() || page.isAnswer()) {
@@ -524,33 +553,6 @@ app.controller("EditPageController", function ($scope, $routeParams, $http, $com
 		};
 	}))
 	.error($scope.getErrorFunc("default"));
-});
-
-app.controller("UserPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
-	var userAlias = $routeParams.alias;
-	var postData = {
-		userAlias: userAlias,
-	};
-	// Get the data
-	$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
-	.success($scope.getSuccessFunc(function(data){
-		var page = pageService.pageMap[postData.userAlias];
-		if (!page) {
-			return {
-				title: "Not Found",
-				error: "User doesn't exist.",
-			};
-		}
-
-		var userId = page.pageId;
-		pageService.ensureCanonUrl(pageService.getUserUrl(userId));
-		$scope.userPageIdsMap = data.result;
-		return {
-			title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-			element: $compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>")($scope),
-		};
-	}))
-	.error($scope.getErrorFunc("userPage"));
 });
 
 app.controller("DashboardPageController", function ($scope, $routeParams, $http, $compile, $location, pageService, userService) {
