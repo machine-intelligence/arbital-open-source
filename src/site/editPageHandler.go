@@ -404,7 +404,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Delete it from the elastic index
 			err = elastic.DeletePageFromIndex(c, data.PageId)
 			if err != nil {
-				return pages.HandlerErrorFail("failed to update index", err)
+				c.Errorf("failed to update index: %v", err)
 			}
 		} else {
 			// Update elastic search index.
