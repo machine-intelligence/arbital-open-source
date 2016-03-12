@@ -610,7 +610,7 @@ app.controller("SignupPageController", function ($scope, $routeParams, $http, $c
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (userService.user.id) {
-			window.location.href = "http://" + window.location.host;
+			window.location.href = "https://" + window.location.host;
 		}
 		return {
 			title: "Sign Up",
@@ -624,7 +624,7 @@ app.controller("LoginPageController", function ($scope, $routeParams, $http, $co
 	$http({method: "POST", url: "/json/default/"})
 	.success($scope.getSuccessFunc(function(data){
 		if (userService.user.id) {
-			window.location.href = "http://" + window.location.host;
+			window.location.href = "https://" + window.location.host;
 		}
 		return {
 			title: "Log In",

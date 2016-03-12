@@ -17,8 +17,8 @@ handlers:
 
 - url: /.*
   script: _go_app
+  secure: always
 
 - url: /daemon
   script: _go_app
   login: admin
-

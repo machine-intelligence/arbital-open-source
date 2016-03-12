@@ -196,7 +196,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 	// Returns the url for the given page.
 	// options {
 	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
-	//	 includeHost: if true, include "http://" + host in the url
+	//	 includeHost: if true, include "https://" + host in the url
 	// }
 	// Track which pages we are already loading. Map url+pageAlias -> true.
 	this.getPageUrl = function(pageId, options){
@@ -248,7 +248,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			}
 		}
 		if (options.includeHost && !alreadyIncludedHost) {
-			url = "http://" + host + url;
+			url = "https://" + host + url;
 		}
 		return url;
 	};
@@ -278,7 +278,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		if (/localhost/.exec($location.host())) {
 			return "http://" + subdomain + "localhost:8012";
 		} else {
-			return "http://" + subdomain + "arbital.com"
+			return "https://" + subdomain + "arbital.com"
 		}
 	};
 
