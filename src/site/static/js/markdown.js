@@ -269,10 +269,10 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 			return text.replace(atAliasRegexp, function (whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
-					var url = pageService.getUserUrl(page.pageId);
+					var url = pageService.getUserUrl(page.pageId, {includeHost: true});
 					return prefix + "[" + page.title + "](" + url + ")";
 				} else {
-					var url = pageService.getUserUrl(alias);
+					var url = pageService.getUserUrl(alias, {includeHost: true});
 					return prefix + "[" + alias + "](" + url + ")";
 				}
 			});
@@ -317,6 +317,7 @@ app.service("markdownService", function($compile, $timeout, pageService, userSer
 		var userRe = new RegExp("^(?:https?:\/\/)?(?:www\.)?" + // match http and www stuff
 			window.location.host + // match the url host part
 			"\/user\/" + aliasMatch + // [1] capture user alias
+			"(\/" + nakedAliasMatch + ")?" + // [2] optional alias
 			"\/?" + // optional ending /
 			"(.*)"); // optional other stuff
 
