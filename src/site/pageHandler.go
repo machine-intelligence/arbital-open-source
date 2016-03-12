@@ -38,10 +38,15 @@ type commonPageData struct {
 // pageHandlerWrapper wraps one of our page handlers.
 func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rand.Seed(time.Now().UnixNano())
+		// If live, check that this is an HTTPS request
+		if sessions.Live && r.URL.Scheme != "https" {
+			safeUrl := strings.Replace(r.URL.String(), "http", "https", 1)
+			http.Redirect(w, r, safeUrl, http.StatusSeeOther)
+		}
 
 		c := sessions.NewContext(r)
 		params := pages.HandlerParams{W: w, R: r, C: c}
+		rand.Seed(time.Now().UnixNano())
 
 		// Redirect www.
 		if mux.Vars(r)["www"] != "" {

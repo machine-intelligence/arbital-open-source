@@ -289,8 +289,8 @@ func ExtractSummaries(pageId string, text string) (map[string]string, []interfac
 
 // ExtractTodoCount extracts the number of todos from a page text.
 func ExtractTodoCount(text string) int {
-	// Match [todo: text]
-	re := regexp.MustCompile("\\[todo: ?[^\\]]*\\]")
+	// Match [todo: text] or |todo: text| or ||todo: text|| (any number of vertical bars)
+	re := regexp.MustCompile("\\[todo: ?[^\\]]*\\]|(?U:\\|+todo: ?[^\\|]*(?-U:\\|+))")
 	submatches := re.FindAllString(text, -1)
 	todoCount := len(submatches)
 	// Match [ red link text]
