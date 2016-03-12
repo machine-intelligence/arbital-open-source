@@ -291,17 +291,13 @@ func ExtractSummaries(pageId string, text string) (map[string]string, []interfac
 func ExtractTodoCount(text string) int {
 	// Match [todo: text] or |todo: text| or ||todo: text|| (any number of vertical bars)
 
-	// regexp for todo with brackets, [todo: text]
+	// Regexp for todo with brackets, [todo: text]
 	re := regexp.MustCompile("\\[todo: ?[^\\]]*\\]")
 	submatches := re.FindAllString(text, -1)
-
-	// regexp for todo with vertical bars, |todo: text|, ||todo: text|| etc.
+	// Regexp for todo with vertical bars, |todo: text|, ||todo: text|| etc.
 	re = regexp.MustCompile("\\|+?todo: ?[^\\|]*\\|+")
-	submatches = append( submatches, re.FindAllString(text, -1)... )
-
+	submatches = append(submatches, re.FindAllString(text, -1)...)
 	todoCount := len(submatches)
-	// Count matches with brackets and vertical bars
-
 
 	// Match [ red link text]
 	re = regexp.MustCompile("\\[ [^\\]]+\\]")
