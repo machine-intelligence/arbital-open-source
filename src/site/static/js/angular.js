@@ -489,7 +489,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			$http({method: "POST", url: "/json/default/"})
 			.success($scope.getSuccessFunc(function(data){
 				if (userService.user.id) {
-					window.location.href = "http://" + window.location.host;
+					window.location.href = "https://" + window.location.host;
 				}
 				return {
 					title: "Log In",
@@ -596,7 +596,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			$http({method: "POST", url: "/json/default/"})
 			.success($scope.getSuccessFunc(function(data){
 				if (userService.user.id) {
-					window.location.href = "http://" + window.location.host;
+					window.location.href = "https://" + window.location.host;
 				}
 				return {
 					title: "Sign Up",

@@ -28,6 +28,12 @@ type siteHandler struct {
 // handlerWrapper wraps our siteHandler to provide standard http handler interface.
 func handlerWrapper(h siteHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// If live, check that this is an HTTPS request
+		if sessions.Live && r.URL.Scheme != "https" {
+			safeUrl := strings.Replace(r.URL.String(), "http", "https", 1)
+			http.Redirect(w, r, safeUrl, http.StatusSeeOther)
+		}
+
 		c := sessions.NewContext(r)
 		rand.Seed(time.Now().UnixNano())
 
