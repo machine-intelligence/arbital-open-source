@@ -1,7 +1,7 @@
 "use strict";
 
 // Set up angular module.
-var app = angular.module("arbital", ["ngMaterial", "ngResource", "ngSilent",
+var app = angular.module("arbital", ["ngMaterial", "ngResource",
 		"ngMessages", "ngSanitize", "RecursionHelper", "as.sortable"]);
 
 app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider){
@@ -91,7 +91,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 	refreshAutoupdates();
 	
 	// Returns an object containing a compiled element and its scope
-	$scope.compile = function(html, parentScope) {
+	$scope.newElement = function(html, parentScope) {
 		if (!parentScope) parentScope = $scope;
 		var childScope = parentScope.$new();
 		var element = $compile(html)(childScope);
@@ -130,14 +130,12 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 				}
 			}
 			
-			
 			if (currentView) {
 				currentView.scope.$destroy();
 				currentView.element.remove();
 				currentView = null;
 				urlService.hasLoadedFirstPage = true;
 			}
-			urlService.currentPage = {};
 
 			// Get the results from page-specific callback
 			$(".global-error").hide();
@@ -213,11 +211,6 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 		ga("send", "pageview", $location.absUrl());
 	});
 	
-	$rootScope.$on('$locationChangeSuccess', function (event, url) {
-		resolveUrl();
-	});
-	
-	
 	// The URL rule match for the current page
 	var currentLocation = {};
 	function resolveUrl() {
@@ -231,20 +224,19 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 		var urlRules = urlService.urlRules;
 		for (var ruleIndex = 0; ruleIndex < urlRules.length; ruleIndex++) {
 			var rule = urlRules[ruleIndex];
-			var m = rule.urlPattern.exec(path);
-			if (m) {
+			var matches = rule.urlPattern.exec(path);
+			if (matches) {
 				var args = {};
 				var parameters = rule.parameters;
 				for (var parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
 					var parameter = parameters[parameterIndex];
-					args[parameter] = m[parameterIndex + 1];
+					args[parameter] = matches[parameterIndex + 1];
 				}
 				var pageUpdater = urlService.pageUpdater;
 				if (pageUpdater && $scope.subdomain == currentLocation.subdomain) {
 					var name = rule.name;
 					if (name) {
 						if (pageUpdater(name, args)) {
-							urlService.currentUrl = $location.absUrl();
 							currentLocation = { subdomain: $scope.subdomain, rule: rule, args: args };
 							return; // The current page could handle the URL by modifying itself
 						}
@@ -264,13 +256,16 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 				urlService.pageUpdater = null;
 				rule.handler(args, $scope);
 				currentLocation = { subdomain: $scope.subdomain, rule: rule, args: args };
-				urlService.currentUrl = $location.absUrl();
 				return;
 			}
 		}
 	};
+
+	$rootScope.$on('$locationChangeSuccess', function (event, url) {
+		resolveUrl();
+	});
 	
-	// resolve URL of initial page load
+	// Resolve URL of initial page load
 	resolveUrl();
 });
 
@@ -286,7 +281,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 					$scope.indexPageIdsMap = data.result;
 					return {
 						title: pageService.pageMap[$scope.subdomain].title + " - Private Domain",
-						content: $scope.compile("<arb-group-index group-id='" + data.result.domainId +
+						content: $scope.newElement("<arb-group-index group-id='" + data.result.domainId +
 							"' ids-map='::indexPageIdsMap'></arb-group-index>"),
 					};
 				}))
@@ -298,7 +293,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 					$scope.featuredDomains = data.result.featuredDomains;
 					return {
 						title: "",
-						content: $scope.compile("<arb-index featured-domains='::featuredDomains'></arb-index>"),
+						content: $scope.newElement("<arb-index featured-domains='::featuredDomains'></arb-index>"),
 					};
 				}))
 				.error($scope.getErrorFunc("index"));
@@ -315,7 +310,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				$scope.adminDashboardData = data.result;
 				return {
 					title: "Admin dashboard",
-					content: $scope.compile("<arb-admin-dashboard-page data='::adminDashboardData'></arb-admin-dashboard-page>"),
+					content: $scope.newElement("<arb-admin-dashboard-page data='::adminDashboardData'></arb-admin-dashboard-page>"),
 				};
 			}))
 			.error($scope.getErrorFunc("adminDashboardPage"));
@@ -331,7 +326,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				$scope.dashboardPageIdsMap = data.result;
 				return {
 					title: "Your dashboard",
-					content: $scope.compile("<arb-dashboard-page ids-map='::dashboardPageIdsMap'></arb-dashboard-page>"),
+					content: $scope.newElement("<arb-dashboard-page ids-map='::dashboardPageIdsMap'></arb-dashboard-page>"),
 				};
 			}))
 			.error($scope.getErrorFunc("dashboardPage"));
@@ -351,7 +346,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				var groupId = pageService.pageMap[pageService.domainAlias].pageId;
 				return {
 					title: pageService.pageMap[groupId].title,
-					content: $scope.compile("<arb-group-index group-id='" + groupId +
+					content: $scope.newElement("<arb-group-index group-id='" + groupId +
 						"' ids-map='::indexPageIdsMap'></arb-group-index>"),
 				};
 			}))
@@ -386,7 +381,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 								$location.replace().search("alias", undefined);
 							}
 
-							pageService.ensureCanonUrl(pageService.getEditPageUrl(pageId));
+							urlService.ensureCanonPath(pageService.getEditPageUrl(pageId, {specificEdit: specificEdit}));
 							pageService.primaryPage = page;
 
 							// Called when the user is done editing the page.
@@ -401,7 +396,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 							return {
 								removeBodyFix: true,
 								title: "Edit " + (page.title ? page.title : "New Page"),
-								content: $scope.compile("<arb-edit-page class='full-height' page-id='" + pageId +
+								content: $scope.newElement("<arb-edit-page class='full-height' page-id='" + pageId +
 									"' done-fn='doneFn(result)' layout='column'></arb-edit-page>"),
 							};
 						}),
@@ -417,7 +412,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 						type: type,
 						parentIds: newParentIdString ? newParentIdString.split(",") : [],
 						success: function(newPageId) {
-							$location.replace().path(pageService.getEditPageUrl(newPageId));
+							$location.path(pageService.getEditPageUrl(newPageId));
 						},
 					});
 				}
@@ -435,7 +430,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.success($scope.getSuccessFunc(function(data){
 				return {
 					title: "Groups",
-					content: $scope.compile("<arb-groups-page></arb-groups-page>"),
+					content: $scope.newElement("<arb-groups-page></arb-groups-page>"),
 				};
 			}))
 			.error($scope.getErrorFunc("groups"));
@@ -464,7 +459,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				var primaryPage = undefined;
 				if (args.pageAlias) {
 					primaryPage = pageService.pageMap[args.pageAlias];
-					pageService.ensureCanonUrl("/learn/" + primaryPage.alias);
+					urlService.ensureCanonPath("/learn/" + primaryPage.alias);
 				}
 
 				$scope.learnPageIds = data.result.pageIds;
@@ -473,7 +468,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				$scope.learnRequirementMap = data.result.requirementMap;
 				return {
 					title: "Learn " + (primaryPage ? primaryPage.title : ""),
-					content: $scope.compile("<arb-learn-page continue-learning='::" + continueLearning +
+					content: $scope.newElement("<arb-learn-page continue-learning='::" + continueLearning +
 						"' page-ids='::learnPageIds'" +
 						"' options-map='::learnOptionsMap'" +
 						" tutor-map='::learnTutorMap' requirement-map='::learnRequirementMap'" +
@@ -489,11 +484,11 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			$http({method: "POST", url: "/json/default/"})
 			.success($scope.getSuccessFunc(function(data){
 				if (userService.user.id) {
-					window.location.href = "https://" + window.location.host;
+					window.location.href = urlService.getDomainUrl();
 				}
 				return {
 					title: "Log In",
-					content: $scope.compile("<div class='md-whiteframe-1dp capped-body-width'><arb-login></arb-login></div>"),
+					content: $scope.newElement("<div class='md-whiteframe-1dp capped-body-width'><arb-login></arb-login></div>"),
 				};
 			}))
 			.error($scope.getErrorFunc("default"));
@@ -526,11 +521,11 @@ app.run(function($http, $location, urlService, pageService, userService) {
 					return {};
 				}
 
-				pageService.ensureCanonUrl(pageService.getPageUrl(page.pageId));
+				urlService.ensureCanonPath(pageService.getPageUrl(page.pageId));
 				pageService.primaryPage = page;
 				return {
 					title: page.title,
-					content: $scope.compile("<arb-primary-page></arb-primary-page>"),
+					content: $scope.newElement("<arb-primary-page></arb-primary-page>"),
 				};
 			}))
 			.error($scope.getErrorFunc("primaryPage"));
@@ -571,7 +566,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.success($scope.getSuccessFunc(function(data){
 				return {
 					title: "Requisites",
-					content: $scope.compile("<arb-requisites-page></arb-requisites-page>"),
+					content: $scope.newElement("<arb-requisites-page></arb-requisites-page>"),
 				};
 			}))
 			.error($scope.getErrorFunc("requisites"));
@@ -584,7 +579,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.success($scope.getSuccessFunc(function(data){
 				return {
 					title: "Settings",
-					content: $scope.compile("<arb-settings-page></arb-settings-page>"),
+					content: $scope.newElement("<arb-settings-page></arb-settings-page>"),
 				};
 			}))
 			.error($scope.getErrorFunc("default"));
@@ -596,11 +591,11 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			$http({method: "POST", url: "/json/default/"})
 			.success($scope.getSuccessFunc(function(data){
 				if (userService.user.id) {
-					window.location.href = "https://" + window.location.host;
+					window.location.href = urlService.getDomainUrl();
 				}
 				return {
 					title: "Sign Up",
-					content: $scope.compile("<arb-signup></arb-signup>"),
+					content: $scope.newElement("<arb-signup></arb-signup>"),
 				};
 			}))
 			.error($scope.getErrorFunc("default"));
@@ -616,7 +611,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				$scope.updateGroups = data.result.updateGroups;
 				return {
 					title: "Updates",
-					content: $scope.compile("<arb-updates update-groups='::updateGroups'></arb-updates>"),
+					content: $scope.newElement("<arb-updates update-groups='::updateGroups'></arb-updates>"),
 				};
 			}))
 			.error($scope.getErrorFunc("updates"));
@@ -641,11 +636,11 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			}
 
 			var userId = page.pageId;
-			pageService.ensureCanonUrl(pageService.getUserUrl(userId));
+			urlService.ensureCanonPath(pageService.getUserUrl(userId));
 			$scope.userPageIdsMap = data.result;
 			return {
 				title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-				content: $scope.compile("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>"),
+				content: $scope.newElement("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>"),
 			};
 		}))
 		.error($scope.getErrorFunc("userPage"));

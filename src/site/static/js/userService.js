@@ -46,6 +46,7 @@ app.service("userService", function($http, $location, $rootScope){
 			var redirectUrl = $location.absUrl();
 			// NOTE: Because of ngSilentLocation our URL state is fucked somehow, and so for now
 			// the best we can do is just redirect the user to the home page.
+			// TODO(alexei): now that we are not using ngSilentLocation, fix this
 			redirectUrl = "https://" + window.location.host;
 			if (redirectUrl.indexOf("?") < 0 && redirectUrl[redirectUrl.length - 1] != "/") {
 				redirectUrl += "/";

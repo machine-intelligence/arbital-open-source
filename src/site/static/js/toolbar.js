@@ -9,18 +9,25 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 			currentUrl: "=",
 		},
 		controller: function($scope) {
-			$scope.urlService = urlService;
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.urlService = urlService;
 			$scope.isTinyScreen = !$mdMedia("gt-xs");
-			$scope.doAutofocus = function() {return !userService.isTouchDevice && !urlService.hasLoadedFirstPage;};
+
+			$scope.doAutofocus = function() {
+				return !userService.isTouchDevice && !urlService.hasLoadedFirstPage;
+			};
 
 			// Called when a search result is selected
 			$scope.searchResultSelected = function(result) {
 				if (result) {
 					$location.url(pageService.getPageUrl(result.pageId));
 				}
-			}
+			};
+
+			$scope.getSignupUrl = function() {
+				return "/signup/?continueUrl=" + encodeURIComponent($location.absUrl());
+			};
 
 			// Open RHS menu
 			$scope.toggleRightMenu = function() {

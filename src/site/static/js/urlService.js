@@ -1,18 +1,11 @@
 "use strict";
 
-// related to changing URLs
-app.service("urlService", function($http, $location, $ngSilentLocation, $rootScope){
+// urlService handles working with URLs
+app.service("urlService", function($http, $location, $rootScope){
 	var that = this;
-	
-	// The URL for the currently displayed page
-	this.currentUrl;
 	
 	// This will be set to true before loading content for a second page
 	this.hasLoadedFirstPage = false;
-	
-	// Object reference that will change when a new URL handler is invoked
-	this.currentPage = {};
-	
 	
 	// The current page can register a pageUpdater function to handle certain URLs by modifying itself
 	var pageUpdater = null;
@@ -23,38 +16,66 @@ app.service("urlService", function($http, $location, $ngSilentLocation, $rootSco
 	// Map of URL patterns to handlers
 	this.urlRules = [];
 	// Add a rule to handle URL changes
+	// urlPattern - follows Angular ngRoute pattern rules
 	this.addUrlHandler = function(urlPattern, rule) {
 		var sections = urlPattern.split("/");
-		// math path from beginning
+		// Match path from the beginning
 		var builder = ["^"];
 		var parameters = [];
-		for (var n = 0; n < sections.length ; n++) {
+		for (var n = 0; n < sections.length; n++) {
 			var section = sections[n];
 			if (section == 0) {
-				// ignore empty section
-			}
-			else if (section[0] == ":") {
+				// Ignore empty section
+			} else if (section[0] == ":") {
 				if (section.endsWith("?")) {
 					// Optional parameter capture
 					parameters.push(section.substring(1, section.length - 1));
 					builder.push("(?:\\/([^\\/]+))?");
-				}
-				else {
+				} else {
 					// Parameter capture
 					parameters.push(section.substring(1));
 					builder.push("\\/([^\\/]+)");
 				}
-			}
-			else {
-				// match name
+			} else {
+				// Match name
 				builder.push("\\/"+section);
 			}
 		}
-		// optional trailing slash, optional query or fragment, match to end of path
+		// Optional trailing slash, optional query or fragment, match to end of path
 		builder.push("\\/?(?:[\\?\\#].*)?$");
-		var re = builder.join("");
-		rule.urlPattern = new RegExp(re);
+		rule.urlPattern = new RegExp(builder.join(""));
 		rule.parameters = parameters;
 		that.urlRules.push(rule);
-	}
+	};
+
+	// Construct a part of the URL with id and alias if id!=alias, otherwise just id
+	this.getBaseUrl = function(base, id, alias) {
+		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias) + "/";
+	};
+
+	// Get a domain url (with optional subdomain)
+	this.getDomainUrl = function(subdomain) {
+		if (subdomain) {
+			subdomain += ".";
+		} else {
+			subdomain = "";
+		}
+		if (isLive()) {
+			return "https://" + subdomain + location.host;
+		} else {
+			return "http://" + subdomain + location.host;
+		}
+	};
+
+	// Make sure the URL path is in the given canonical form, otherwise silently change
+	// the URL, preserving the search() params.
+	this.ensureCanonPath = function(canonPath) {
+		var hash = $location.hash();
+		var search = $location.search();
+		$location.replace().path(canonPath);
+		$location.hash(hash);
+		for (var k in search) {
+			$location.search(k, search[k]);
+		}
+	};
 });
