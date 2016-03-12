@@ -21,7 +21,7 @@ app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $ro
 			// Called when a search result is selected
 			$scope.searchResultSelected = function(result) {
 				if (result) {
-					$location.url(pageService.getPageUrl(result.pageId));
+					urlService.goToUrl(pageService.getPageUrl(result.pageId));
 				}
 			};
 

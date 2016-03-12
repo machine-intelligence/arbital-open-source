@@ -38,7 +38,7 @@ app.service("urlService", function($http, $location, $rootScope){
 				}
 			} else {
 				// Match name
-				builder.push("\\/"+section);
+				builder.push("\\/" + section);
 			}
 		}
 		// Optional trailing slash, optional query or fragment, match to end of path
@@ -76,6 +76,21 @@ app.service("urlService", function($http, $location, $rootScope){
 		$location.hash(hash);
 		for (var k in search) {
 			$location.search(k, search[k]);
+		}
+	};
+
+	// Go to the given url. If there is a domain switch, we refresh the page.
+	this.goToUrl = function(url) {
+		var differentHost = false;
+		if (url.indexOf("http") === 0) {
+			if (url.indexOf(this.getDomainUrl()) !== 0) {
+				differentHost = true;
+			}
+		}
+		if (differentHost) {
+			window.location.href = url;
+		} else {
+			$location.url(url);
 		}
 	};
 });
