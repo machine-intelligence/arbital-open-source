@@ -1576,11 +1576,11 @@
 
 			if (isImage) {
 				if (!this.hooks.insertImageDialog(linkEnteredCallback)) {
-					linkEnteredCallback("http://arbital.com/static/images/default-image-link.png");
+					linkEnteredCallback("https://arbital.com/static/images/default-image-link.png");
 					//ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
 				}
 			} else {
-				linkEnteredCallback("http://arbital.com");
+				linkEnteredCallback("https://arbital.com");
 				//ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
 			}
 			return true;

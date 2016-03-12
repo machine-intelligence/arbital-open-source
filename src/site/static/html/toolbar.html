@@ -2,7 +2,7 @@
 <md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== ''}"
 		ng-if="!hide">
 	<div class="md-toolbar-tools">
-		<a ng-href="{{::pageService.getDomainUrl()}}">
+		<a href="https://arbital.com">
 			<md-icon md-svg-icon="arbital_logo" class="arbital-logo"></md-icon>
 		</a>
 
@@ -13,7 +13,7 @@
 
 		<!-- Search -->
 		<span flex></span>
-		<arb-autocomplete do-autofocus="::doAutofocus"
+		<arb-autocomplete do-autofocus="::doAutofocus()"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
 				flex="grow"
@@ -31,7 +31,7 @@
 		</md-button>
 
 		<!-- Login/signup buttons -->
-		<md-button ng-href="/signup/?continueUrl={{currentUrl}}"
+		<md-button ng-href="{{getSignupUrl()}}"
 				ng-if="userService.user.id === ''">
 			Sign Up
 		</md-button>
@@ -50,7 +50,7 @@
     </md-button>
 	</div>
 	<div class="md-toolbar-tools md-toolbar-tools-bottom" ng-if="::isTinyScreen">
-		<arb-autocomplete do-autofocus="::doAutofocus"
+		<arb-autocomplete do-autofocus="::doAutofocus()"
 				placeholder="Search"
 				on-select="searchResultSelected(result)"
 				layout-fill></arb-autocomplete>
@@ -77,7 +77,7 @@
 		<div layout="column" layout-align="start center">
 			<div ng-repeat="groupId in ::userService.user.groupIds">
 				<md-button aria-label="Go to domain"
-						ng-href="{{::pageService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
+						ng-href="{{::urlService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
 						ng-bind="::(pageService.pageMap[groupId].title | shorten: 30)"></md-button>
 			</div>
 		</div>

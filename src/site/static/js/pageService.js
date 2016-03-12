@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service("pageService", function($http, $location, $ngSilentLocation, $rootScope, userService){
+app.service("pageService", function($http, $location, $rootScope, userService, urlService){
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -187,18 +187,12 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		}
 	};
 
-
-	// Construct a part of the URL with id and alias if id!=alias, otherwise just id
-	var getBaseUrl = function(base, id, alias) {
-		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias) + "/";
-	};
-
 	// Returns the url for the given page.
 	// options {
 	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
-	//	 includeHost: if true, include "http://" + host in the url
+	//	 includeHost: if true, include "https://" + host in the url
+	//	 useEditMap: if true, use edit map to retrieve info for this page
 	// }
-	// Track which pages we are already loading. Map url+pageAlias -> true.
 	this.getPageUrl = function(pageId, options){
 		var options = options || {};
 		var host = window.location.host;
@@ -209,7 +203,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
-			url = getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias)
+			url = urlService.getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias)
 			if (options.permalink) {
 				url += "?l=" + pageId;
 			}
@@ -219,20 +213,20 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias) + "?l=" + pageId;
-						if ($location.hash()) {
-							url += "#" + $location.hash();
-						}
+						url = urlService.getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias);
+						url += "?l=" + pageId;
 						break;
 					}
 				}
 			} else if (page.isComment() || page.isAnswer()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
-					if (parent && (
-								(page.isComment() && (parent.isWiki() || parent.isLens())) ||
-								(page.isAnswer() && parent.isQuestion()))) {
-						url = getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias) + "#subpage-" + pageId;
+					if (!parent) continue;
+					// Make sure the parent type is the type of the parent we are looking for.
+					if ((page.isComment() && (parent.isWiki() || parent.isLens())) ||
+							(page.isAnswer() && parent.isQuestion())) {
+						url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
+						url += "#subpage-" + pageId;
 						break;
 					}
 				}
@@ -240,61 +234,54 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
 				if (page.seeGroupId !== "") {
-					url = that.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
+					url = urlService.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
 				} else {
-					url = that.getDomainUrl() + url;
+					url = urlService.getDomainUrl() + url;
 				}
 				alreadyIncludedHost = true;
 			}
 		}
 		if (options.includeHost && !alreadyIncludedHost) {
-			url = "http://" + host + url;
+			url = urlService.getDomainUrl() + url;
 		}
 		return url;
 	};
 
-	this.getEditPageUrl = function(pageId){
+	// Get url to edit the given page.
+	// options {
+	//	 includeHost: if true, include "https://" + host in the url
+	//	 specificEdit: if set to non-zero, include the edit parameter in the url
+	// }
+	this.getEditPageUrl = function(pageId, options){
+		options = options || {};
+		var url = "";
 		if (pageId in this.pageMap) {
-			return getBaseUrl("edit", pageId, this.pageMap[pageId].alias);
+			url = urlService.getBaseUrl("edit", pageId, this.pageMap[pageId].alias);
+		} else {
+			url = "/edit/" + pageId + "/";
 		}
-		return "/edit/" + pageId + "/";
+		if (options.specificEdit) {
+			url = url + options.specificEdit + "/";
+		}
+		if (options.includeHost) {
+			url = urlService.getDomainUrl() + url;
+		}
+		return url;
 	};
 
-	// Return url to the user page.
-	this.getUserUrl = function(userId) {
+	// Get url to the user page.
+	this.getUserUrl = function(userId, options) {
+		options = options || {};
+		var url = "";
 		if (userId in this.pageMap) {
-			return getBaseUrl("user", userId, this.pageMap[userId].alias);
-		}
-		return "/user/" + userId;
-	};
-
-	// Get a domain url (with optional subdomain)
-	this.getDomainUrl = function(subdomain) {
-		if (subdomain) {
-			subdomain += ".";
+			url = urlService.getBaseUrl("user", userId, this.pageMap[userId].alias);
 		} else {
-			subdomain = "";
+			url = "/user/" + userId + "/";
 		}
-		if (/localhost/.exec($location.host())) {
-			return "http://" + subdomain + "localhost:8012";
-		} else {
-			return "http://" + subdomain + "arbital.com"
+		if (options.includeHost) {
+			url = urlService.getDomainUrl() + url;
 		}
-	};
-
-	// Make sure the URL path is in the given canonical form, otherwise silently change
-	// the URL, preserving the search() params.
-	this.ensureCanonUrl = function(canonPath) {
-		var pathname = location.pathname;
-		if (pathname != canonPath) {
-			var hash = $location.hash();
-			var search = $location.search();
-			$ngSilentLocation.silent(canonPath, true);
-			$location.hash(hash);
-			for (var k in search) {
-				$location.search(k, search[k]);
-			}
-		}
+		return url;
 	};
 
 	// Return the corresponding page object, or undefined if not found.
@@ -780,7 +767,7 @@ app.service("pageService", function($http, $location, $ngSilentLocation, $rootSc
 		}
 
 		parent.subpageIds.push(commentId);
-		$ngSilentLocation.silent(this.getPageUrl(commentId));
+		$location.replace().url(this.getPageUrl(commentId));
 	};
 
 	// Return "has", "wants", or "" depending on the current status of the given mastery.

@@ -1,5 +1,8 @@
 <!-- WARNING: There is a bug with using custom directives inside the autocomplete,
 	because it uses md-virtual-repeat. Proceed with extreme caution. -->
+<!-- WARNING: when the user goes to another page and the pageMap is erased, the
+	results still linger in autocomplete and might cause errors. Hence the check
+	to make sure the page is still in the map and the md-no-cache attribute -->
 <md-autocomplete md-selected-item="searchItem"
 		md-search-text="searchText"
 		md-items="result in getSearchResults(searchText)"
@@ -7,12 +10,13 @@
 		md-selected-item-change="searchResultSelected(result)"
 		md-menu-class="autocomplete-custom-template"
 		md-min-length="1"
+		md-no-cache="::true"
 		md-delay="300"
 		md-autofocus="::doAutofocus"
 		md-autoselect
 		placeholder="{{::placeholder}}">
 	<md-item-template>
-		<div layout="row" layout="start center">
+		<div layout="row" layout="start center" ng-if="pageService.pageMap[result.page.pageId]">
 			<!--<arb-likes page-id="{{result.pageId}}"></arb-likes>-->
 			<div class="likes-in-autocomplete" layout="row" layout="start end">
 				<md-icon class="like-icon on no-margins" ng-show="result.page.myLikeValue > 0">thumb_up</md-icon>

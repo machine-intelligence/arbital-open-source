@@ -22,7 +22,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			$scope.gtXSmallScreen = $mdMedia("gt-xs");
 			$scope.gtSmallScreen = $mdMedia("gt-sm");
 			$scope.gtMediumScreen = $mdMedia("gt-md");
-			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + "/" + $scope.page.currentEditNum;
+			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + $scope.page.currentEditNum;
 			$scope.isPageDirty = $scope.page.isAutosave;
 
 			// If the alias contains a subdomain, then remove it
@@ -535,9 +535,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					var percentage = this.scrollTop / (this.scrollHeight - this.offsetHeight);
 					other.scrollTop = Math.round(percentage * (other.scrollHeight - other.offsetHeight));
 					// Firefox workaround. Rebinding without delay isn't enough.
-					setTimeout(function() {
+					/*setTimeout(function() {
 						$other.on("scroll", syncScroll);
-					}, 10);
+					}, 10);*/
 				};
 				if (scope.fullView) {
 					$divs.on("scroll", syncScroll);
