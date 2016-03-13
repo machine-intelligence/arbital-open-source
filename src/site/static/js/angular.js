@@ -513,11 +513,11 @@ app.run(function($http, $location, urlService, pageService, userService) {
 					};
 				}
 
-				// // If the page is a user page, get the additional data about user
-				// // - recently created by me page ids.
-				// // - recently created by me comment ids.
-				// // - recently edited by me page ids.
-				// // - top pages by me
+				// If the page is a user page, get the additional data about user
+				// - Recently created by me page ids.
+				// - Recently created by me comment ids.
+				// - Recently edited by me page ids.
+				// - Top pages by me
 				if (data.result.isUserPage === 1) {
 					urlService.ensureCanonPath(pageService.getPageUrl(page.pageId));
 					$scope.userPageIdsMap = data.result;
