@@ -524,7 +524,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 					pageService.primaryPage = page;
 					return {
 						title: userService.userMap[page.pageId].firstName + " " + userService.userMap[page.pageId].lastName,
-						element: $scope.newElement("<arb-user-page user-id='" + page.pageId +
+						content: $scope.newElement("<arb-user-page user-id='" + page.pageId +
 							"' ids-map='::userPageIdsMap'></arb-user-page>"),
 					};
 				}
