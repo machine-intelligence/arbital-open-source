@@ -89,7 +89,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 		$timeout(refreshAutoupdates, 30000);
 	};
 	refreshAutoupdates();
-	
+
 	// Returns an object containing a compiled element and its scope
 	$scope.newElement = function(html, parentScope) {
 		if (!parentScope) parentScope = $scope;
@@ -129,7 +129,8 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 					}
 				}
 			}
-			
+
+
 			if (currentView) {
 				currentView.scope.$destroy();
 				currentView.element.remove();
@@ -210,7 +211,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 	}, function() {
 		ga("send", "pageview", $location.absUrl());
 	});
-	
+
 	// The URL rule match for the current page
 	var currentLocation = {};
 	function resolveUrl() {
@@ -264,7 +265,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 	$rootScope.$on('$locationChangeSuccess', function (event, url) {
 		resolveUrl();
 	});
-	
+
 	// Resolve URL of initial page load
 	resolveUrl();
 });
@@ -298,7 +299,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				}))
 				.error($scope.getErrorFunc("index"));
 			}
-		},	
+		},
 	});
 	urlService.addUrlHandler("/adminDashboard/", {
 		name: "AdminDashboardPage",
@@ -512,37 +513,20 @@ app.run(function($http, $location, urlService, pageService, userService) {
 					};
 				}
 
-				// Look up page's alias in userMap;
-				var user = userService.userMap[page.pageId];
-				console.log("user?", user);
-				// If the page is a user page, get the additional data about user
-				// - recently created by me page ids.
-				// - recently created by me comment ids.
-				// - recently edited by me page ids.
-				// - top pages by me
-				if (user) {
-					console.log("user!", user);
-					$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
-					.success($scope.getSuccessFunc(function(data){
-						var page = pageService.pageMap[postData.userAlias];
-						if (!page) {
-							return {
-								title: "Not Found",
-								error: "User doesn't exist.",
-							};
-						}
-
-						var userId = page.pageId;
-						urlService.ensureCanonPath(pageService.getPageUrl(userId));
-						$scope.userPageIdsMap = data.result;
-						return {
-							title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-							element: $scope.newElement("<arb-user-page user-id='" + userId +
-								"' ids-map='::userPageIdsMap'></arb-user-page>"),
-						};
-					}))
-					.error($scope.getErrorFunc("userPage"));
-					return {};
+				// // If the page is a user page, get the additional data about user
+				// // - recently created by me page ids.
+				// // - recently created by me comment ids.
+				// // - recently edited by me page ids.
+				// // - top pages by me
+				if (data.result.isUserPage === 1) {
+					urlService.ensureCanonPath(pageService.getPageUrl(page.pageId));
+					$scope.userPageIdsMap = data.result;
+					pageService.primaryPage = page;
+					return {
+						title: userService.userMap[page.pageId].firstName + " " + userService.userMap[page.pageId].lastName,
+						element: $scope.newElement("<arb-user-page user-id='" + page.pageId +
+							"' ids-map='::userPageIdsMap'></arb-user-page>"),
+					};
 				}
 
 				if (page.isLens() || page.isComment() || page.isAnswer()) {
