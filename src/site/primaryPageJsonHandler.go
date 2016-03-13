@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -48,32 +47,23 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if page is a user page
-	rows := db.NewStatement(`
+	row := db.NewStatement(`
 		SELECT id
 		FROM users
-		WHERE id=?`).Query(pageId)
+		WHERE id=?`).QueryRow(pageId)
 	var id string
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		err := rows.Scan(&id)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a member: %v", err)
-		}
-		return nil
-	})
+	exists, err := row.Scan(&id)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't process db rows", err)
+		fmt.Errorf("failed to scan for a member: %v", err)
 	}
 	// If page is a user page, add some values to returnData
-	if id != "" {
+	if exists {
 		c.Infof("Page is a user page, id: %v", id)
 
 		// Options to load the pages with
 		pageOptions := (&core.PageLoadOptions{
 			RedLinkCount: true,
 		}).Add(core.TitlePlusLoadOptions)
-
-		// Let frontend know it's a user page
-		returnData.ResultMap["isUserPage"] = 1
 
 		// Load recently created by me page ids.
 		rows := db.NewStatement(`
