@@ -130,7 +130,6 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 				}
 			}
 
-
 			if (currentView) {
 				currentView.scope.$destroy();
 				currentView.element.remove();
@@ -501,11 +500,12 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			// Get the primary page data
 			var postData = {
 				pageAlias: args.alias,
-				userAlias: args.alias,
 			};
 			$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data){
-				var page = pageService.pageMap[postData.pageAlias];
+				var page = pageService.pageMap[postData.pageAlias],
+					pageTemplate = "<arb-primary-page></arb-primary-page>";
+
 				if (!page) {
 					return {
 						title: "Not Found",
@@ -518,15 +518,10 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				// - Recently created by me comment ids.
 				// - Recently edited by me page ids.
 				// - Top pages by me
-				if (data.result.isUserPage === 1) {
-					urlService.ensureCanonPath(pageService.getPageUrl(page.pageId));
+				if (userService.userMap[page.pageId]) {
 					$scope.userPageIdsMap = data.result;
-					pageService.primaryPage = page;
-					return {
-						title: userService.userMap[page.pageId].firstName + " " + userService.userMap[page.pageId].lastName,
-						content: $scope.newElement("<arb-user-page user-id='" + page.pageId +
-							"' ids-map='::userPageIdsMap'></arb-user-page>"),
-					};
+					pageTemplate = "<arb-user-page user-id='" + page.pageId +
+							"' ids-map='::userPageIdsMap'></arb-user-page>";
 				}
 
 				if (page.isLens() || page.isComment() || page.isAnswer()) {
@@ -543,7 +538,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				pageService.primaryPage = page;
 				return {
 					title: page.title,
-					content: $scope.newElement("<arb-primary-page></arb-primary-page>"),
+					content: $scope.newElement(pageTemplate),
 				};
 			}))
 			.error($scope.getErrorFunc("primaryPage"));
