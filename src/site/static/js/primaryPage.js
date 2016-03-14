@@ -5,6 +5,8 @@ app.directive("arbPrimaryPage", function($compile, $location, $timeout, pageServ
 	return {
 		templateUrl: "static/html/primaryPage.html",
 		scope: {
+			userId: "@",
+			idsMap: "=",
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;

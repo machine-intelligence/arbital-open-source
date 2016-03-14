@@ -520,8 +520,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				// - Top pages by me
 				if (userService.userMap[page.pageId]) {
 					$scope.userPageIdsMap = data.result;
-					pageTemplate = "<arb-user-page user-id='" + page.pageId +
-							"' ids-map='::userPageIdsMap'></arb-user-page>";
+					pageTemplate = "<arb-primary-page user-id='" + page.pageId +
+							"' ids-map='::userPageIdsMap'></arb-primary-page>";
 				}
 
 				if (page.isLens() || page.isComment() || page.isAnswer()) {

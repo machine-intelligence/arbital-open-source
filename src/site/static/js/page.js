@@ -6,10 +6,10 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 		templateUrl: "static/html/page.html",
 		scope: {
 			pageId: "@",
-			isSimpleEmbed: "="
+			isSimpleEmbed: "=",
+			isUser: "@",
 		},
 		controller: function($scope) {
-			$scope.isUser = $scope.$parent.$parent.userId;
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
