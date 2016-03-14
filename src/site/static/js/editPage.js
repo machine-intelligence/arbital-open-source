@@ -469,28 +469,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			// Save the page info.
 			// callback is called with a potential error message when the server replies
 			$scope.savePageInfo = function(callback){
-				var data = {
-					pageId: $scope.page.pageId,
-					type: $scope.page.type,
-					seeGroupId: $scope.page.seeGroupId,
-					editGroupId: $scope.page.editGroupId,
-					hasVote: $scope.page.hasVote,
-					voteType: $scope.page.voteType,
-					editKarmaLock: $scope.page.editKarmaLock,
-					alias: $scope.page.alias,
-					sortChildrenBy: $scope.page.sortChildrenBy,
-					isRequisite: $scope.page.isRequisite,
-					indirectTeacher: $scope.page.indirectTeacher,
-					isEditorComment: $scope.page.isEditorComment,
-				};
-				$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
-				.success(function(data) {
-					if(callback) callback();
-				})
-				.error(function(data) {
-					console.error("Error /editPageInfo/ :"); console.error(data);
-					if(callback) callback(data);
-				});
+				pageService.savePageInfo($scope.page, callback);
 			};
 
 			// Focus on the default element in the tab

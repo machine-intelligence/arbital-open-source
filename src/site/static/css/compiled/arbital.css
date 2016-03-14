@@ -323,6 +323,9 @@ md-list {
 .no-margins {
   margin: 0 !important; }
 
+.no-padding {
+  padding: 0 !important; }
+
 .reveal-after-render-parent {
   visibility: hidden !important; }
   .reveal-after-render-parent .reveal-after-render {
@@ -878,6 +881,8 @@ arb-learn-part, [arb-learn-part] {
   border-left: #e0e0e0 3px solid;
   padding-left: 10px;
   margin-bottom: 20px; }
+  .toc-div .toc-title {
+    color: gray; }
   .toc-div .toc-section-number {
     margin-right: 10px; }
   .toc-div .toc-row-tab-1 {

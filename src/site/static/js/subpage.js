@@ -106,6 +106,12 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, $
 					pageService.newCommentCreated(result.pageId);
 				}
 			};
+
+			// Called to set the comment's isEditorComment
+			$scope.showToEditorsOnly = function() {
+				$scope.page.isEditorComment = true;
+				pageService.savePageInfo($scope.page);
+			};
 		},
 		compile: function(element) {
 			return RecursionHelper.compile(element);

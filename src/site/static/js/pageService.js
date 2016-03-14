@@ -664,6 +664,32 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		);
 	};
 
+	// Save page's info.
+	this.savePageInfo = function(page, callback) {
+		var data = {
+			pageId: page.pageId,
+			type: page.type,
+			seeGroupId: page.seeGroupId,
+			editGroupId: page.editGroupId,
+			hasVote: page.hasVote,
+			voteType: page.voteType,
+			editKarmaLock: page.editKarmaLock,
+			alias: page.alias,
+			sortChildrenBy: page.sortChildrenBy,
+			isRequisite: page.isRequisite,
+			indirectTeacher: page.indirectTeacher,
+			isEditorComment: page.isEditorComment,
+		};
+		$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
+		.success(function(data) {
+			if(callback) callback();
+		})
+		.error(function(data) {
+			console.error("Error /editPageInfo/ :"); console.error(data);
+			if(callback) callback(data);
+		});
+	};
+
 	// (Un)subscribe a user to a page.
 	this.subscribeTo = function($target) {
 		var $target = $(event.target);
