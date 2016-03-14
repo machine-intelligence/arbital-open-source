@@ -8,6 +8,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
+	"zanaduu3/src/logger"
 	"zanaduu3/src/pages"
 )
 
@@ -187,6 +188,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		requirementMap[reqId] = newRequirementNode(reqId)
 	}
 
+	// Add a tutor for the tutorMap
 	var addTutor = func(parentId, childId string, lensIndex int) {
 		// Get the requirement node and update its tutors
 		requirementNode := requirementMap[parentId]
@@ -277,12 +279,34 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return pages.HandlerErrorFail("Error while loading requirements", err)
 		}
-		if maxCount >= 18 {
+		if maxCount >= 15 {
 			c.Warningf("Max count is close to maximum: %d", maxCount)
 		}
 	}
 
-	c.Infof("================ COMPUTING LEARNING PATH  ==================")
+	computeLearningPath(c, pageIds, requirementMap, tutorMap, loadOptions, returnData)
+
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.HandlerErrorFail("Pipeline error", err)
+	}
+
+	returnData.ResultMap["tutorMap"] = tutorMap
+	returnData.ResultMap["requirementMap"] = requirementMap
+	returnData.ResultMap["pageIds"] = pageIds
+	returnData.ResultMap["optionsMap"] = optionsMap
+	return pages.StatusOK(returnData.ToJson())
+}
+
+func computeLearningPath(pl logger.Logger,
+	pageIds []string,
+	requirementMap map[string]*requirementNode,
+	tutorMap map[string]*tutorNode,
+	loadOptions *core.PageLoadOptions,
+	returnData *core.CommonHandlerData) {
+
+	pl.Infof("================ COMPUTING LEARNING PATH  ==================")
 
 	// Mark all requirements with no teachers as processed
 	for _, req := range requirementMap {
@@ -292,7 +316,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		req.Cost = PenaltyCost
 		req.Processed = true
 		core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
-		c.Infof("Requirement '%s' pre-processed with cost %d", req.PageId, req.Cost)
+		pl.Infof("Requirement '%s' pre-processed with cost %d", req.PageId, req.Cost)
 	}
 
 	done := false
@@ -337,7 +361,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 						}
 					}
 				}
-				c.Infof("CYCLE: %v", cycleIds)
+				pl.Infof("CYCLE: %v", cycleIds)
 
 				// Force the picked requirement to be processed
 				req.Processed = true
@@ -350,7 +374,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				}
 				req.Cost += req.LensIndex * LensCost
 				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
-				c.Infof("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
+				pl.Infof("Requirement '%s' (tutors: %v) forced to processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
 				break
 			}
 		}
@@ -379,7 +403,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				req.Processed = true
 				graphChanged = true
 				core.AddPageToMap(req.PageId, returnData.PageMap, loadOptions)
-				c.Infof("Requirement '%s' (tutors: %v) processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
+				pl.Infof("Requirement '%s' (tutors: %v) processed with cost %d and best tutor '%s'", req.PageId, req.TutorIds, req.Cost, req.BestTutorId)
 			}
 		}
 
@@ -407,7 +431,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 				sort.Sort(tutor)
 				graphChanged = true
 				core.AddPageToMap(tutor.PageId, returnData.PageMap, loadOptions)
-				c.Infof("Tutor '%s' processed with cost %d and reqs %v", tutor.PageId, tutor.Cost, tutor.RequirementIds)
+				pl.Infof("Tutor '%s' processed with cost %d and reqs %v", tutor.PageId, tutor.Cost, tutor.RequirementIds)
 			}
 		}
 
@@ -420,16 +444,4 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 	}
-
-	// Load pages
-	err = core.ExecuteLoadPipeline(db, returnData)
-	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
-	}
-
-	returnData.ResultMap["tutorMap"] = tutorMap
-	returnData.ResultMap["requirementMap"] = requirementMap
-	returnData.ResultMap["pageIds"] = pageIds
-	returnData.ResultMap["optionsMap"] = optionsMap
-	return pages.StatusOK(returnData.ToJson())
 }
