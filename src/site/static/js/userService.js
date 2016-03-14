@@ -26,9 +26,6 @@ app.service("userService", function($http, $location, $rootScope){
 	this.processServerData = function(data) {
 		if (data.resetEverything) {
 			this.userMap = {};
-		}
-
-		if (data.user) {
 			this.user = data.user;
 		}
 		$.extend(that.userMap, data["users"]);

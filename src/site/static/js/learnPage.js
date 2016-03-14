@@ -21,6 +21,11 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 			// requirement id -> [list of page ids that require it]
 			$scope.unlearnableIds = {};
 			$scope.hasUnlernableIds = false;
+
+			// Check to see if the given page has "Just a Requisite" (22t) tag.
+			var isJustARequisite = function(pageId) {
+				return pageService.pageMap[pageId].taggedAsIds.indexOf("22t") >= 0;
+			};
 			
 			// Figure our the order of pages through which to take the user
 			var computeLearnIds = function() {
@@ -30,14 +35,17 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 				var processRequirement = function(pageId, parentPageId) {
 					var requirement = $scope.requirementMap[pageId];
 					var tutor = requirement.bestTutorId ? $scope.tutorMap[requirement.bestTutorId] : undefined;
-					if (tutor) {
-						for (var n = 0; n < tutor.requirementIds.length; n++) {
-							processRequirement(tutor.requirementIds[n], pageId);
-						}
-						if ($scope.readIds.indexOf(tutor.pageId) < 0) {
-							$scope.readIds.push(tutor.pageId);
-						}
-					} else {
+					// Process all requirements, recursively.
+					for (var n = 0; n < tutor.requirementIds.length; n++) {
+						processRequirement(tutor.requirementIds[n], pageId);
+					}
+					// Add the tutor to the path.
+					var shouldIncludeInPath = !isJustARequisite(tutor.pageId) || $scope.optionsMap[tutor.pageId].appendToPath;
+					if ($scope.readIds.indexOf(tutor.pageId) < 0 && shouldIncludeInPath) {
+						$scope.readIds.push(tutor.pageId);
+					}
+					// Mark the requirement as one lacking a tutor.
+					if (tutor.madeUp && !isJustARequisite(tutor.pageId)) {
 						if (!(pageId in $scope.unlearnableIds)) {
 							$scope.unlearnableIds[pageId] = [];
 						}

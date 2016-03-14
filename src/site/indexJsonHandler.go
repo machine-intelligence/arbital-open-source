@@ -29,7 +29,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// HARDCODED
 	featuredDomains = append(featuredDomains,
 		&featuredDomain{
-			DomainId: "2v",
+			DomainId: "2v", // Value alignment theory
 			ChildIds: []string{
 				"2v", // VAT
 				"3g", // List: value alignment subjects
@@ -40,7 +40,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 				"5g", // Diamond maximizer
 			},
 		}, &featuredDomain{
-			DomainId: "3d",
+			DomainId: "3d", // Arbital
 			ChildIds: []string{
 				"3d",  // What is Arbital
 				"16q", // Arbital blog
@@ -49,6 +49,16 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 				"3v",  // Editing
 				"3p",  // Liking
 				"3r",  // Voting
+			},
+		}, &featuredDomain{
+			DomainId: "1lw", // Mathematics
+			ChildIds: []string{
+				"1mg", // Arithmetical hierarchy
+				"1zq", // Bayes' rule: Guide
+				"220", // Bayesian view of scientific virtues
+				"1zg", // Multiple hypotheses and updates
+				"1x5", // Bayes's Rule (odds form)
+				"1wy", // Waterfall and frequency diagrams
 			},
 		},
 	)

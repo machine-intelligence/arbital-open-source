@@ -59,6 +59,8 @@ type tutorNode struct {
 	Cost int `json:"cost"`
 	// Set to true when the node has been processed
 	Processed bool `json:"-"`
+	// Set when a requsite doesn't have a tutor, so we pretend it teaches itself.
+	MadeUp bool `json:"madeUp"`
 
 	// Need to set this map for sorting to work
 	RequirementMap map[string]*requirementNode `json:"-"`
@@ -160,7 +162,9 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// What to load for the pages
-	loadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
+	loadOptions := (&core.PageLoadOptions{
+		Tags: true,
+	}).Add(core.TitlePlusLoadOptions)
 
 	// Track which requirements we need to process in the next step
 	requirementIds := make([]string, 0)
@@ -229,14 +233,14 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return pages.HandlerErrorFail("Error while loading tutors", err)
 		}
-		if maxCount == 0 {
-			// If we haven't found a tutor for a page we want to learn, we'll just say
-			// that the page can teach itself.
-			for reqId, requirementNode := range requirementMap {
-				if len(requirementNode.TutorIds) <= 0 {
-					c.Infof("No tutor found for %s, so we are making it teach itself.", reqId)
-					addTutor(reqId, reqId, 0)
-				}
+		// If we haven't found a tutor for a page we want to learn, we'll pretend
+		// that the page can teach itself.
+		for reqId, requirementNode := range requirementMap {
+			_, ok := tutorMap[reqId]
+			if len(requirementNode.TutorIds) <= 0 && !ok {
+				c.Infof("No tutor found for %s, so we are making it teach itself.", reqId)
+				addTutor(reqId, reqId, 0)
+				tutorMap[reqId].MadeUp = true
 			}
 		}
 		c.Infof("TutorIds: %+v", tutorIds)
@@ -308,8 +312,9 @@ func computeLearningPath(pl logger.Logger,
 
 	pl.Infof("================ COMPUTING LEARNING PATH  ==================")
 
-	// Mark all requirements with no teachers as processed
+	// Mark all requirements with no teachers as processed. Also set the initial cost.
 	for _, req := range requirementMap {
+		req.Cost = 10000000
 		if len(req.TutorIds) > 0 {
 			continue
 		}

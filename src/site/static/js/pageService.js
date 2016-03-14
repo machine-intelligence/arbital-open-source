@@ -223,7 +223,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 					var parent = this.pageMap[page.parentIds[n]];
 					if (!parent) continue;
 					// Make sure the parent type is the type of the parent we are looking for.
-					if ((page.isComment() && (parent.isWiki() || parent.isLens())) ||
+					if ((page.isComment() && !parent.isComment()) ||
 							(page.isAnswer() && parent.isQuestion())) {
 						url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
 						url += "#subpage-" + pageId;
