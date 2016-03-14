@@ -86,6 +86,7 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 
 // propagateDomainToPage forces domain recalculation for the given page.
 func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bool) error {
+	db.C.Infof("Processing %s", pageId)
 	processedChildren, processedPage := pageMap[pageId]
 	if !processedPage {
 		// Compute what domains the page already has
@@ -112,14 +113,14 @@ func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bo
 			(SELECT pd.domainId,pi.seeGroupId
 			FROM pageDomainPairs AS pd
 			JOIN pagePairs AS pp
-			ON (pp.parentId=pd.pageId)
+			ON (pp.parentId=pd.pageId AND pp.type=?)
 			JOIN pageInfos AS pi
 			ON (pd.pageId=pi.pageId AND pi.currentEdit>0)
 			WHERE childId=?)
 			UNION
 			(SELECT pageId,seeGroupId
 			FROM pageInfos
-			WHERE pageId=? AND currentEdit>0 AND type="domain")`).Query(pageId, pageId)
+			WHERE pageId=? AND currentEdit>0 AND type="domain")`).Query(core.ParentPagePairType, pageId, pageId)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var domainId, seeGroupId string
 			if err := rows.Scan(&domainId, &seeGroupId); err != nil {
@@ -178,7 +179,7 @@ func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bo
 		rows := db.NewStatement(`
 			SELECT childId
 			FROM pagePairs
-			WHERE parentId=?`).Query(pageId)
+			WHERE parentId=? AND type=?`).Query(pageId, core.ParentPagePairType)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var childId string
 			if err := rows.Scan(&childId); err != nil {
