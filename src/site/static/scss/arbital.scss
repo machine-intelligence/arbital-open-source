@@ -71,9 +71,15 @@ arb-markdown, [arb-markdown], .preview-area {
 
 // Cap the width of some pages, so they look nicer
 .capped-body-width {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
+	&, & #footer {
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	& #footer {
+		max-width: 1100px;
+	}
 
 	arb-index > & {
 		max-width: 1100px;
@@ -536,6 +542,13 @@ $triangle-size: 15px;
 	}
 }
 
+// Person icon next to title on a user's /p/ page
+.page-title-icon {
+	font-size: 43px;
+    line-height: 0.33;
+    padding-right: 25px;
+}
+
 .private-group-icon {
 	position: absolute;
 	bottom: 4px;
@@ -762,7 +775,7 @@ arb-learn-part, [arb-learn-part] {
 	.toc-section-number {
 		margin-right: 10px;
 	}
-	
+
 	.toc-row-tab-1 {
 		margin-left: 30px;
 	}
