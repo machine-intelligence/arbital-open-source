@@ -84,3 +84,22 @@ func (g Glogger) Criticalf(format string, args ...interface{}) {
 	// everything.
 	glog.Errorf(fmt.Sprintf("CRITICAL: %s", format), args...)
 }
+
+// StdLogger implements Logger itnerface using stdout.
+type StdLogger struct{}
+
+func (l StdLogger) Debugf(format string, args ...interface{}) {
+	fmt.Printf(format+"\n", args...)
+}
+func (l StdLogger) Infof(format string, args ...interface{}) {
+	fmt.Printf(format+"\n", args...)
+}
+func (l StdLogger) Warningf(format string, args ...interface{}) {
+	fmt.Printf("WARNING: "+format+"\n", args...)
+}
+func (l StdLogger) Errorf(format string, args ...interface{}) {
+	fmt.Errorf(format+"\n", args...)
+}
+func (l StdLogger) Criticalf(format string, args ...interface{}) {
+	fmt.Errorf(format+"\n", args...)
+}

@@ -12,5 +12,6 @@ ROOT_PW=$(cfg mysql.root.password)
 USER_PW=$(cfg mysql.password)
 
 cat schemas/helpers/create_reqs.sql | mysql -f --host ${HOST} -u ${DB_USER} -p${USER_PW} ${DB_NAME}
+cat schemas/helpers/create_reqs2.sql | mysql -f --host ${HOST} -u ${DB_USER} -p${USER_PW} ${DB_NAME}
 
 echo "All done."
