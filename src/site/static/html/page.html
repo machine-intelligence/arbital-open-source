@@ -10,10 +10,7 @@
 		<div layout-gt-sm="row" layout-align-gt-sm="space-between end">
 			<!-- Page title -->
 			<h1>
-				<md-icon class="md-primary page-title-icon" ng-if="::isUser">
-					<md-tooltip>User Page for {{::selectedLens.title}} </md-tooltip>
-					person
-				</md-icon>
+				<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
 				<span ng-class="::{'md-display-3': page.type !== 'answer', 'md-display-2': page.type === 'answer', 'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}"
 					ng-bind="selectedLens.title"></span>
 			</h1>
