@@ -139,7 +139,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			// Compute simpler lens id if necessary
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;
-				for (var n = $scope.page.lensIndex - 1; n >= 0; n--) {
+				for (var n = $scope.page.lensIndex + 1; n < primaryPage.lensIds.length; n++) {
 					var lens = pageService.pageMap[primaryPage.lensIds[n]];
 					if ($scope.meetsAllRequirements(lens.pageId)) {
 						simplerLensId = lens.pageId;
