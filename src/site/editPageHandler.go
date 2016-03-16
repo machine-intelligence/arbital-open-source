@@ -18,17 +18,18 @@ import (
 
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
-	PageId         string
-	Title          string
-	Clickbait      string
-	Text           string
-	MetaText       string
-	IsMinorEditStr string
-	IsAutosave     bool
-	IsSnapshot     bool
-	AnchorContext  string
-	AnchorText     string
-	AnchorOffset   int
+	PageId          string
+	Title           string
+	Clickbait       string
+	Text            string
+	MetaText        string
+	IsMinorEditStr  string
+	IsAutosave      bool
+	IsSnapshot      bool
+	AnchorContext   string
+	AnchorText      string
+	AnchorOffset    int
+	IsEditorComment bool
 
 	// These parameters are only accepted from internal BE calls
 	RevertToEdit int  `json:"-"`
@@ -489,6 +490,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Send updates.
 			if !isMinorEdit {
 				var task tasks.NewUpdateTask
+				task.EditorsOnly = data.IsEditorComment
 				task.UserId = u.Id
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
