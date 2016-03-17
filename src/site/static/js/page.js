@@ -53,10 +53,8 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 						}
 					}
 				}
-				$scope.selectedLensIndex = $scope.page.lensIds.indexOf($scope.selectedLens.pageId);
 			};
 			computeSelectedLens();
-			$scope.originalLensId = $scope.selectedLens.pageId;
 
 			// Monitor URL to see if we need to switch lenses
 			$scope.$watch(function() {
@@ -70,24 +68,23 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				}
 			});
 
+			// Check if the given lens is loaded.
 			$scope.isLoaded = function(lensId) {
 				return pageService.pageMap[lensId].text.length > 0;
 			};
 
 			// Called when there is a click inside the tabs
-			var currentSelectedLensIndex = -1;
-			$scope.tabsClicked = function($event) {
+			$scope.tabsClicked = function($event, lensId) {
 				// Check if there was a CTRL+click on a tab
-				if (!$event.ctrlKey) return;
-				var $target = $(event.target);
-				var $tab = $target.closest("md-tab-item");
-				if ($tab.length != 1) return;
-				var tabIndex = $tab.index();
-				var lensId = $scope.page.lensIds[tabIndex];
-				window.open(pageService.getPageUrl(lensId), "_blank");
+				if ($event.ctrlKey) {
+					console.log(pageService.getPageUrl(lensId));
+					window.open(pageService.getPageUrl(lensId, {permalink: true}), "_blank");
+				} else {
+					$scope.tabSelect(lensId);
+				}
 			};
 
-			// Check if this comment is selected via URL hash
+			// Check if this page is selected via URL hash
 			$scope.isSelected = function() {
 				return $location.hash() === "subpage-" + $scope.page.pageId;
 			};
@@ -95,17 +92,19 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
 			var switchToLens = function(lensId) {
-				if (lensId !== scope.page.pageId || $location.search().l) {
+				if (lensId === scope.selectedLens.pageId) return;
+
+				var $pageLensBody = $(element).find(".page-lens-body");
+				$pageLensBody.animate({opacity:0}, 400, "swing", function() {
+					$timeout(function() {
+						$pageLensBody.animate({opacity:1}, 400, "swing", function() {
+							$pageLensBody.css("opacity", "");
+						});
+					});
+					scope.selectedLens = pageService.pageMap[lensId];
 					$location.search("l", lensId);
-				}
-				scope.selectedLens = pageService.pageMap[lensId];
-				scope.$broadcast("lensTabChanged", lensId);
-				if (!scope.isSimpleEmbed) {
-					var $container = element.find(".discussion-container");
-					var $el = $compile("<arb-discussion class='reveal-after-render' page-id='" + lensId +
-						"'></arb-discussion>")(scope);
-					$container.empty().append($el);
-				}
+					scope.$broadcast("lensTabChanged", lensId);
+				});
 			};
 			scope.tabSelect = function(lensId) {
 				if (scope.isLoaded(lensId)) {
@@ -113,13 +112,11 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 						switchToLens(lensId);
 					});
 				} else {
-					pageService.loadLens(lensId, {
-						success: function(data, status) {
-							switchToLens(lensId);
-						},
-					});
+					pageService.loadLens(lensId);
+					switchToLens(lensId);
 				}
 			};
+			scope.tabSelect(scope.selectedLens.pageId);
 		},
 	};
 });

@@ -42,23 +42,24 @@
 		<arb-vote-bar class="md-whiteframe-1dp" page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>
 
 		<!-- Lens tabs -->
-		<md-tabs md-dynamic-height
-				md-no-ink-bar
-				class="page-tabs md-whiteframe-1dp md-primary md-hue-2"
-				ng-class="::{'hide-tabs': page.lensIds.length <= 1}"
-				ng-click="tabsClicked($event)"
-				md-selected="selectedLensIndex">
-			<md-tab ng-repeat="lensId in ::page.lensIds"
-					md-on-select="tabSelect(lensId)">
-				<md-tab-label>
+		<div class="page-tabs md-whiteframe-1dp">
+			<!-- Tab labels -->
+			<div class="page-tabs-holder" layout="row">
+				<md-button ng-repeat="lensId in ::page.lensIds"
+						ng-click="tabsClicked($event,lensId)"
+						ng-class="{'active-tab': lensId == selectedLens.pageId}">
 					<arb-page-title page-id="{{::lensId}}"
 							custom-page-title="::(lensId === page.pageId ? 'Main' : pageService.pageMap[lensId].lensTitle())"></arb-page-title>
 					<md-icon class="md-primary" ng-if="!hasAllReqs(lensId)">
 						<md-tooltip>You don't have all the requisites for this lens</md-tooltip>
 						assignment_late
 					</md-icon>
-				</md-tab-label>
-				<md-tab-body>
+				</md-button>
+			</div>
+
+			<!-- Lens body -->
+			<div class="page-lens-body">
+				<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
 					<div ng-style="{'min-height': 500}"
 							layout="column"
 							layout-align="center center"
@@ -70,12 +71,16 @@
 							lens-parent-id="{{::page.pageId}}"
 							is-simple-embed="::isSimpleEmbed"
 							ng-if="isLoaded(lensId)"></arb-lens>
-				</md-tab-body>
-			</md-tab>
-		</md-tabs>
+				</div>
+			</div>
+		</div>
 
-		<div class="discussion-container" flex-order="2">
-			<!-- arb-discussion is inserted here dynamically -->
+		<!-- Discussion section -->
+		<div class="discussion-container" flex-order="2" ng-if="::!isSimpleEmbed">
+			<arb-discussion ng-repeat="lensId in ::page.lensIds"
+					class="reveal-after-render"
+					page-id="{{::lensId}}"
+					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-discussion>
 		</div>
 	</div>
 </div>

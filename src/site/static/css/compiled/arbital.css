@@ -260,20 +260,6 @@ md-tab-content {
 .md-tab.md-active {
   background-color: #004D40; }
 
-md-tabs.page-tabs {
-  margin-top: 15px; }
-  md-tabs.page-tabs > md-tabs-wrapper {
-    background-color: white !important;
-    border-bottom: #00796B 2px solid; }
-    md-tabs.page-tabs > md-tabs-wrapper md-tab-item {
-      color: #00796B !important; }
-      md-tabs.page-tabs > md-tabs-wrapper md-tab-item md-icon {
-        color: #00796B !important; }
-      md-tabs.page-tabs > md-tabs-wrapper md-tab-item.md-active {
-        background-color: #E0F2F1;
-        border: #00796B 2px solid;
-        margin-right: -4px; }
-
 .md-virtual-repeat-container.md-autocomplete-suggestions-container {
   min-height: 30vh; }
 
@@ -756,6 +742,23 @@ del {
 
 ins {
   color: green; }
+
+.page-tabs {
+  margin-top: 15px; }
+  .page-tabs > .page-tabs-holder {
+    border-bottom: #00796B 2px solid; }
+    .page-tabs > .page-tabs-holder > .md-button {
+      padding: 5px 35px;
+      color: #00796B !important; }
+      .page-tabs > .page-tabs-holder > .md-button md-icon {
+        color: #00796B !important; }
+      .page-tabs > .page-tabs-holder > .md-button.active-tab {
+        background-color: #E0F2F1;
+        border: #00796B 2px solid;
+        border-bottom: none;
+        border-radius: 0; }
+  .page-tabs > .page-lens-body {
+    overflow: hidden; }
 
 .edit-page-rhs-border {
   border-left: #00796B 5px solid; }

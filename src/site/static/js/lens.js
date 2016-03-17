@@ -7,7 +7,6 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 		scope: {
 			pageId: "@",
 			lensParentId: "@",
-			selectedLens: "=",
 			isSimpleEmbed: "=",
 		},
 		controller: function($scope) {
