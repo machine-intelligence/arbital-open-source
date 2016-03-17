@@ -35,26 +35,25 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			$scope.page.lensIds.unshift($scope.page.pageId);
 
 			// Determine which lens is selected
-			var computeSelectedLens = function() {
+			$scope.computeSelectedLensId = function() {
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
-					$scope.selectedLens = pageService.pageMap[$location.search().l];
+					return $location.search().l;
 				} else if (pageService.path && pageService.path.onPath) {
 					// The learning list specified this page specifically
-					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
-				} else {
-					// Select the hardest lens for which the user has met all requirements
-					var lastIndex = $scope.page.lensIds.length - 1;
-					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[lastIndex]];
-					for (var n = lastIndex - 1; n >= 0; n--) {
-						var lensId = $scope.page.lensIds[n];
-						if ($scope.hasAllReqs(lensId)) {
-							$scope.selectedLens = pageService.pageMap[lensId];
-						}
+					return $scope.page.pageId;
+				}
+				// Select the hardest lens for which the user has met all requirements
+				var lastIndex = $scope.page.lensIds.length - 1;
+				var selectedLensId = $scope.page.lensIds[lastIndex];
+				for (var n = lastIndex - 1; n >= 0; n--) {
+					var lensId = $scope.page.lensIds[n];
+					if ($scope.hasAllReqs(lensId)) {
+						selectedLensId = lensId;
 					}
 				}
+				return selectedLensId;
 			};
-			computeSelectedLens();
 
 			// Monitor URL to see if we need to switch lenses
 			$scope.$watch(function() {
@@ -64,7 +63,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				// but in that case we don't want to do anything.
 				// TODO: create a better workaround
 				if ($location.path().indexOf($scope.pageId) >= 0 || $location.path().indexOf($scope.page.alias) >= 0) {
-					computeSelectedLens();
+					$scope.tabSelect($scope.computeSelectedLensId());
 				}
 			});
 
@@ -92,7 +91,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
 			var switchToLens = function(lensId) {
-				if (lensId === scope.selectedLens.pageId) return;
+				if (scope.selectedLens && lensId === scope.selectedLens.pageId) return;
 
 				var $pageLensBody = $(element).find(".page-lens-body");
 				$pageLensBody.animate({opacity:0}, 400, "swing", function() {
@@ -116,7 +115,7 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 					switchToLens(lensId);
 				}
 			};
-			scope.tabSelect(scope.selectedLens.pageId);
+			scope.tabSelect(scope.computeSelectedLensId());
 		},
 	};
 });
