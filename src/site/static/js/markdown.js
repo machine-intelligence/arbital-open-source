@@ -451,7 +451,7 @@ app.directive("arbMarkdown", function ($compile, $timeout, pageService, markdown
 			$pageText.html(html);
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, $pageText.get(0)]);
-			}, 100);
+			}, 300);
 			markdownService.processLinks(scope, $pageText);
 		},
 	};
