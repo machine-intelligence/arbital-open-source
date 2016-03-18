@@ -665,6 +665,10 @@ textarea {
 
 .subpage-content {
 	margin-top: 20px;
+
+	.inline-subpage > & {
+		margin-top: 0px;
+	}
 }
 
 // Header/footer sections for a comment

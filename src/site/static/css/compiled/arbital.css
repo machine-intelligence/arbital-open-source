@@ -809,6 +809,8 @@ textarea {
 
 .subpage-content {
   margin-top: 20px; }
+  .inline-subpage > .subpage-content {
+    margin-top: 0px; }
 
 .comment-header {
   background-color: #E0F2F1;

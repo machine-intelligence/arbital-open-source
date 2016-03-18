@@ -62,7 +62,6 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
-				if (!$scope.lensIsVisible) return true;
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
 					if (event.keyCode == 77) $scope.newInlineComment(); // M
@@ -184,21 +183,6 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 		},
 		link: function(scope, element, attrs) {
 			if (scope.isSimpleEmbed) return;
-
-			// Check if this lens is actually visible
-			scope.lensIsVisible = true;
-			scope.$on("lensTabChanged", function(event, lensId){
-				var wasVisible = scope.lensIsVisible;
-				scope.lensIsVisible = scope.pageId == lensId;
-				if (wasVisible != scope.lensIsVisible && scope.lensIsVisible) {
-					// This lens became visible. Sometimes this happens when the user is going through
-					// a path and clicks "Next" at the bottom of the page. In this case we need to
-					// scroll upwards to have them start reading this lens
-					if ($("body").scrollTop() > element.offset().top) {
-						$("body").scrollTop(element.offset().top - 100);
-					}
-				}
-			});
 
 			// Detach some elements and append them to the body, since they will appear
 			// outside of the lens's div, and otherwise would be masked

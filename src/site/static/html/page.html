@@ -44,7 +44,7 @@
 		<!-- Lens tabs -->
 		<div class="page-tabs md-whiteframe-1dp">
 			<!-- Tab labels -->
-			<div class="page-tabs-holder" layout="row">
+			<div class="page-tabs-holder" layout="row" ng-if="::page.lensIds.length > 1">
 				<md-button ng-repeat="lensId in ::page.lensIds"
 						ng-click="tabsClicked($event,lensId)"
 						ng-class="{'active-tab': lensId == selectedLens.pageId}">

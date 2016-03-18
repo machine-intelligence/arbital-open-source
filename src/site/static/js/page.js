@@ -90,8 +90,11 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 		},
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
+			var switchingLenses = false;
 			var switchToLens = function(lensId) {
 				if (scope.selectedLens && lensId === scope.selectedLens.pageId) return;
+				if (switchingLenses) return;
+				switchingLenses = true;
 
 				var $pageLensBody = $(element).find(".page-lens-body");
 				$pageLensBody.animate({opacity:0}, 400, "swing", function() {
@@ -100,9 +103,17 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 							$pageLensBody.css("opacity", "");
 						});
 					});
+					if (scope.selectedLens || lensId !== scope.pageId) {
+						$location.search("l", lensId);
+					}
 					scope.selectedLens = pageService.pageMap[lensId];
-					$location.search("l", lensId);
-					scope.$broadcast("lensTabChanged", lensId);
+					// A new lens became visible. Sometimes this happens when the user is going through
+					// a path and clicks "Next" at the bottom of the page. In this case we need to
+					// scroll upwards to have them start reading this lens
+					if ($("body").scrollTop() > $pageLensBody.offset().top) {
+						$("body").scrollTop($pageLensBody.offset().top - 100);
+					}
+					switchingLenses = false;
 				});
 			};
 			scope.tabSelect = function(lensId) {
