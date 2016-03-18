@@ -53,6 +53,15 @@ app.service("urlService", function($http, $location, $rootScope){
 		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias) + "/";
 	};
 
+	// Return the top level domain.
+	this.getTopLevelDomain = function() {
+		if (isLive()) {
+			return "arbital.com";
+		} else {
+			return "localhost:8012";
+		}
+	};
+
 	// Get a domain url (with optional subdomain)
 	this.getDomainUrl = function(subdomain) {
 		if (subdomain) {
@@ -61,9 +70,9 @@ app.service("urlService", function($http, $location, $rootScope){
 			subdomain = "";
 		}
 		if (isLive()) {
-			return "https://" + subdomain + location.host;
+			return "https://" + subdomain + this.getTopLevelDomain();
 		} else {
-			return "http://" + subdomain + location.host;
+			return "http://" + subdomain + this.getTopLevelDomain();
 		}
 	};
 

@@ -195,7 +195,6 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// }
 	this.getPageUrl = function(pageId, options){
 		var options = options || {};
-		var host = window.location.host;
 		var url = "/p/" + pageId + "/";
 		var alreadyIncludedHost = false;
 		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
