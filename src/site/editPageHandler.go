@@ -19,6 +19,7 @@ import (
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
 	PageId         string
+	PrevEdit       int
 	Title          string
 	Clickbait      string
 	Text           string
