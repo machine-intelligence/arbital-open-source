@@ -77,7 +77,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		}
 	}
 	if !p.IsAutosave && !p.IsSnapshot {
-		p.PrevEdit++
+		p.PrevEdit = p.Edit
 	}
 
 	// Remove the primary page from the pageMap and add it to the editMap

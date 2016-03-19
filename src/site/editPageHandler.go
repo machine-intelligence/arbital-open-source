@@ -286,6 +286,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
+		hashmap["prevEdit"] = data.PrevEdit
 		hashmap["creatorId"] = u.Id
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait

@@ -269,6 +269,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				$scope.page.text = $("#wmd-input" + $scope.pageId)[0].value;
 				var data = {
 					pageId: $scope.pageId,
+					prevEdit: $scope.page.prevEdit,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
