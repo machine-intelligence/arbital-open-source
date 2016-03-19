@@ -199,6 +199,14 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var alreadyIncludedHost = false;
 		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
 
+		// Make sure the page's alias is scoped to its group
+		if (page.seeGroupId) {
+			var groupAlias = that.pageMap[page.seeGroupId].alias;
+			if (page.alias.indexOf(".") == -1) {
+				page.alias = groupAlias + "." + page.alias;
+			}
+		}
+
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
@@ -230,6 +238,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 					}
 				}
 			}
+
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
 				if (page.seeGroupId !== "") {
