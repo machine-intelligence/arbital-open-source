@@ -199,17 +199,17 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var alreadyIncludedHost = false;
 		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
 
-		// Make sure the page's alias is scoped to its group
-		if (page.seeGroupId) {
-			var groupAlias = that.pageMap[page.seeGroupId].alias;
-			if (page.alias.indexOf(".") == -1) {
-				page.alias = groupAlias + "." + page.alias;
-			}
-		}
-
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
+			// Make sure the page's alias is scoped to its group
+			if (page.seeGroupId) {
+				var groupAlias = that.pageMap[page.seeGroupId].alias;
+				if (pageAlias.indexOf(".") == -1) {
+					pageAlias = groupAlias + "." + pageAlias;
+				}
+			}
+
 			url = urlService.getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias)
 			if (options.permalink) {
 				url += "?l=" + pageId;
