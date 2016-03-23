@@ -1,10 +1,8 @@
 <div class="capped-body-width">
 	<!-- The primary page -->
 	<div arb-page
-		 class=""
 		 page-id="{{::pageService.primaryPage.pageId}}"
-		 is-user="{{::userId}}"
-		 ></div>
+		 is-user="{{::userId}}"></div>
 
 	<!-- Answers for a question page -->
 	<div ng-if="::(page.type === 'question')">
@@ -44,32 +42,6 @@
 			show-text-length="true"
 			page-ids="::page.relatedIds"
 			ng-if="::page.relatedIds.length > 0"></div>
-
-	<div arb-page-list panel-title="Recently created comments"
-			show-created-at="true"
-			page-ids="::idsMap.recentlyCreatedCommentIds"
-			ng-if="::userId"
-			></div>
-	<div arb-page-list panel-title="Recently created pages"
-			show-created-at="true"
-			show-red-link-count="::(userId === userService.user.id)"
-			show-text-length="::(userId === userService.user.id)"
-			page-ids="::idsMap.recentlyCreatedIds"
-			ng-if="::userId"
-			></div>
-	<div arb-page-list panel-title="Recently edited"
-			show-last-edit="true"
-			show-red-link-count="::(userId === userService.user.id)"
-			show-text-length="::(userId === userService.user.id)"
-			show-quick-edit-link="true"
-			page-ids="::idsMap.recentlyEditedIds"
-			ng-if="::userId"
-			></div>
-	<div arb-page-list panel-title="Top pages"
-			show-created-at="true"
-			page-ids="::idsMap.topPagesIds"
-			ng-if="::userId"
-			></div>
 
 	<div ng-include="'static/html/footer.html'"></div>
 </div>
