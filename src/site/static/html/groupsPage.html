@@ -45,11 +45,11 @@
 			<form layout="row"
 					layout-align="start center"
 					layout-margin
-					ng-submit="newMemberFormSubmit($event, groupId, newMemberId)">
+					ng-submit="newMemberFormSubmit($event, groupId, newMemberInput)">
 				<span><md-icon>person_add</md-icon></span>
 				<md-input-container>
-					<label>New member id</label>
-					<input name="userId" ng-model="newMemberId">
+					<label>User's id, email, or alias</label>
+					<input name="newMemberInput" ng-model="newMemberInput">
 				</md-input-container>
 				<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 				<md-button type="submit" toggle-on-submit>Add member</md-button>

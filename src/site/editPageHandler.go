@@ -19,6 +19,7 @@ import (
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
 	PageId          string
+	PrevEdit        int
 	Title           string
 	Clickbait       string
 	Text            string
@@ -286,6 +287,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
+		hashmap["prevEdit"] = data.PrevEdit
 		hashmap["creatorId"] = u.Id
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait
@@ -490,10 +492,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Send updates.
 			if !isMinorEdit {
 				var task tasks.NewUpdateTask
-				task.EditorsOnly = data.IsEditorComment
 				task.UserId = u.Id
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
+				task.EditorsOnly = data.IsEditorComment
 				if core.IsIdValid(commentParentId) {
 					// This is a new reply
 					task.UpdateType = core.ReplyUpdateType

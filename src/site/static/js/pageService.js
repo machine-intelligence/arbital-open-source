@@ -195,7 +195,6 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// }
 	this.getPageUrl = function(pageId, options){
 		var options = options || {};
-		var host = window.location.host;
 		var url = "/p/" + pageId + "/";
 		var alreadyIncludedHost = false;
 		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
@@ -203,6 +202,14 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
+			// Make sure the page's alias is scoped to its group
+			if (page.seeGroupId && page.pageId != page.alias) {
+				var groupAlias = that.pageMap[page.seeGroupId].alias;
+				if (pageAlias.indexOf(".") == -1) {
+					pageAlias = groupAlias + "." + pageAlias;
+				}
+			}
+
 			url = urlService.getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias)
 			if (options.permalink) {
 				url += "?l=" + pageId;
@@ -231,6 +238,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 					}
 				}
 			}
+
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
 				if (page.seeGroupId !== "") {
