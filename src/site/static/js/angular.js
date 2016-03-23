@@ -497,19 +497,23 @@ app.run(function($http, $location, urlService, pageService, userService) {
       // Get the primary page data
       var postData = {
         pageAliases: [],
-        onlyWanted: $location.search()['only_wanted'] === '1',
+        onlyWanted: $location.search().only_wanted === '1',
       };
       var continueLearning = false;
       if (args.pageAlias) {
         postData.pageAliases.push(args.pageAlias);
       } else if ($location.search().path) {
-        postData.pageAliases = postData.pageAliases.concat($location.search().path.split(','));
+        postData.pageAliases = postData.pageAliases.concat(
+					$location.search().path.split(','));
       } else if (pageService.path) {
         postData.pageAliases = pageService.path.pageIds;
         continueLearning = true;
       }
 
-      $http({method: 'POST', url: '/json/learn/', data: JSON.stringify(postData)})
+      $http({
+				method: 'POST',
+				url: '/json/learn/',
+				data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
   			var primaryPage = undefined;
   			if (args.pageAlias) {
@@ -523,11 +527,13 @@ app.run(function($http, $location, urlService, pageService, userService) {
   			$scope.learnRequirementMap = data.result.requirementMap;
   			return {
     			title: 'Learn ' + (primaryPage ? primaryPage.title : ''),
-    			content: $scope.newElement('<arb-learn-page continue-learning=\'::' + continueLearning +
-    			'\' page-ids=\'::learnPageIds\'' +
-    			'\' options-map=\'::learnOptionsMap\'' +
-    			' tutor-map=\'::learnTutorMap\' requirement-map=\'::learnRequirementMap\'' +
-    			'></arb-learn-page>'),
+    			content: $scope.newElement(
+						'<arb-learn-page continue-learning=\'::' + continueLearning +
+    				'\' page-ids=\'::learnPageIds\'' +
+    				'\' options-map=\'::learnOptionsMap\'' +
+    				' tutor-map=\'::learnTutorMap\'' +
+						' requirement-map=\'::learnRequirementMap\'' +
+    				'></arb-learn-page>'),
   			};
 			}))
 			.error($scope.getErrorFunc('learn'));
@@ -544,7 +550,9 @@ app.run(function($http, $location, urlService, pageService, userService) {
   			}
   			return {
     			title: 'Log In',
-    			content: $scope.newElement('<div class=\'md-whiteframe-1dp capped-body-width\'><arb-login></arb-login></div>'),
+    			content: $scope.newElement(
+						'<div class=\'md-whiteframe-1dp capped-body-width\'>' +
+						'<arb-login></arb-login></div>'),
   			};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -559,18 +567,19 @@ app.run(function($http, $location, urlService, pageService, userService) {
         pageAlias: args.alias,
       };
       $http({
-				method: 'POST',
-				url: '/json/primaryPage/',
-				data: JSON.stringify(postData)
-			})
+        method: 'POST',
+        url: '/json/primaryPage/',
+        data: JSON.stringify(postData)
+      })
 			.success($scope.getSuccessFunc(function(data) {
-  			var page = pageService.pageMap[postData.pageAlias],
-  			pageTemplate = '<arb-primary-page></arb-primary-page>';
+  			var page = pageService.pageMap[postData.pageAlias];
+  			var pageTemplate = '<arb-primary-page></arb-primary-page>';
 
   			if (!page) {
     			return {
       			title: 'Not Found',
-      			error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
+      			error: 'Page doesn\'t exist, was deleted, ' +
+							'or you don\'t have permission to view it.',
     			};
   			}
 
@@ -586,12 +595,12 @@ app.run(function($http, $location, urlService, pageService, userService) {
   			}
 
   			if (page.isLens() || page.isComment() || page.isAnswer()) {
-	    		// Redirect to the primary page, but preserve all search variables
-	    		var search = $location.search();
-	    		$location.replace().url(pageService.getPageUrl(page.pageId));
-	    		for (var k in search) {
-	      		$location.search(k, search[k]);
-	    		}
+    // Redirect to the primary page, but preserve all search variables
+    var search = $location.search();
+    $location.replace().url(pageService.getPageUrl(page.pageId));
+    for (var k in search) {
+      $location.search(k, search[k]);
+    }
     			return {};
   			}
 
@@ -614,20 +623,21 @@ app.run(function($http, $location, urlService, pageService, userService) {
         pageAlias: args.alias,
       };
       $http({
-				method: 'POST',
-				url: '/json/redirectToPrimaryPage/',
-				data: JSON.stringify(postData)
-			})
+        method: 'POST',
+        url: '/json/redirectToPrimaryPage/',
+        data: JSON.stringify(postData)
+      })
 			.success($scope.getSuccessFunc(function(data) {
   			var pageId = data;
   			if (!pageId) {
     			return {
       			title: 'Not Found',
-      			error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
+      			error: 'Page doesn\'t exist, was deleted, ' +
+							'or you don\'t have permission to view it.',
     			};
   			}
 
-				// Redirect to the primary page, but preserve all search variables
+  // Redirect to the primary page, but preserve all search variables
   			var search = $location.search();
   			$location.replace().url(pageService.getPageUrl(pageId));
   			for (var k in search) {
@@ -643,13 +653,14 @@ app.run(function($http, $location, urlService, pageService, userService) {
     name: 'RequisitesPage',
     handler: function(args, $scope) {
       $http({
-				method: 'POST',
-				url: '/json/requisites/'
-			})
+        method: 'POST',
+        url: '/json/requisites/'
+      })
 			.success($scope.getSuccessFunc(function(data) {
   			return {
     			title: 'Requisites',
-    			content: $scope.newElement('<arb-requisites-page></arb-requisites-page>'),
+    			content: $scope.newElement(
+						'<arb-requisites-page></arb-requisites-page>'),
   			};
 			}))
 			.error($scope.getErrorFunc('requisites'));
@@ -660,9 +671,9 @@ app.run(function($http, $location, urlService, pageService, userService) {
     name: 'SettingsPage',
     handler: function(args, $scope) {
       $http({
-				method: 'POST',
-				url: '/json/default/'
-			})
+        method: 'POST',
+        url: '/json/default/'
+      })
 			.success($scope.getSuccessFunc(function(data) {
   			return {
     			title: 'Settings',
@@ -677,9 +688,9 @@ app.run(function($http, $location, urlService, pageService, userService) {
     name: 'SignupPage',
     handler: function(args, $scope) {
       $http({
-				method: 'POST',
-				url: '/json/default/'
-			})
+        method: 'POST',
+        url: '/json/default/'
+      })
 			.success($scope.getSuccessFunc(function(data) {
   			if (userService.user.id) {
     			window.location.href = urlService.getDomainUrl();
@@ -699,15 +710,16 @@ app.run(function($http, $location, urlService, pageService, userService) {
       var postData = {};
       // Get the explore data
       $http({
-				method: 'POST',
-				url: '/json/updates/',
-				data: JSON.stringify(postData)
-			})
+        method: 'POST',
+        url: '/json/updates/',
+        data: JSON.stringify(postData)
+      })
 			.success($scope.getSuccessFunc(function(data) {
   			$scope.updateGroups = data.result.updateGroups;
   			return {
     			title: 'Updates',
-    			content: $scope.newElement('<arb-updates update-groups=\'::updateGroups\'></arb-updates>'),
+    			content: $scope.newElement(
+						'<arb-updates update-groups=\'::updateGroups\'></arb-updates>'),
   			};
 			}))
 			.error($scope.getErrorFunc('updates'));
@@ -742,8 +754,8 @@ app.filter('relativeDateTimeNoSuffix', function() {
 app.filter('numSuffix', function() {
   return function(input) {
     var num = +input;
-    if (num >= 100000) return (Math.round(num / 100000) / 10) + 'M';
-    if (num >= 100) return (Math.round(num / 100) / 10) + 'K';
+    if (num >= 100000) { return (Math.round(num / 100000) / 10) + 'M'; }
+    if (num >= 100) { return (Math.round(num / 100) / 10) + 'K'; }
     return input;
   };
 });
@@ -751,10 +763,10 @@ app.filter('numSuffix', function() {
 // shorten filter shortens a string to the given number of characters
 app.filter('shorten', function() {
   return function(input, charCount) {
-    if (!input || input.length <= charCount) return input;
+    if (!input || input.length <= charCount) { return input; }
     var s = input.substring(0, charCount);
     var lastSpaceIndex = s.lastIndexOf(' ');
-    if (lastSpaceIndex < 0) return s + '...';
+    if (lastSpaceIndex < 0) { return s + '...'; }
     return input.substring(0, lastSpaceIndex) + '...';
   };
 });
