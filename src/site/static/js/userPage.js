@@ -6,7 +6,7 @@ app.directive('arbUserPage', function(pageService, userService) {
     templateUrl: 'static/html/userPage.html',
     scope: {
       userId: '@',
-      idsMap: '=',
+      userPageData: '=',
     },
     controller: function($scope) {
       $scope.pageService = pageService;

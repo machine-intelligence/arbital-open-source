@@ -591,7 +591,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
   			if (userService.userMap[page.pageId]) {
     			$scope.userPageIdsMap = data.result;
     			pageTemplate = '<arb-user-page user-id=\'' + page.pageId +
-    			'\' ids-map=\'::userPageIdsMap\'></arb-user-page>';
+    			'\' user_page_data=\'::userPageIdsMap\'></arb-user-page>';
   			}
 
   			if (page.isLens() || page.isComment() || page.isAnswer()) {
