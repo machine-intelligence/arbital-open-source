@@ -1,14 +1,9 @@
 'use strict';
 
 // Directive for the entire primary page.
-app.directive('arbPrimaryPage', function($compile, $location, $timeout,
-  pageService, userService, autocompleteService) {
+app.directive('arbPrimaryPage', function($compile, $location, $timeout, pageService, userService, autocompleteService) {
   return {
     templateUrl: 'static/html/primaryPage.html',
-    scope: {
-      userId: '@',
-      idsMap: '=',
-    },
     controller: function($scope) {
       $scope.pageService = pageService;
       $scope.userService = userService;
