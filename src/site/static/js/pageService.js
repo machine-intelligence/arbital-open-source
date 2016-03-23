@@ -203,7 +203,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
 			// Make sure the page's alias is scoped to its group
-			if (page.seeGroupId) {
+			if (page.seeGroupId && page.pageId != page.alias) {
 				var groupAlias = that.pageMap[page.seeGroupId].alias;
 				if (pageAlias.indexOf(".") == -1) {
 					pageAlias = groupAlias + "." + pageAlias;
