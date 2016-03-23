@@ -196,13 +196,10 @@ md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-n
   width: 48px;
   height: 48px;
   margin: 10px 15px 0 0; }
-
 .md-toolbar-tools a {
   white-space: nowrap; }
-
 .md-toolbar-tools:not(.md-toolbar-tools-bottom) arb-autocomplete {
   max-width: 70%; }
-
 .md-toolbar-tools md-autocomplete {
   background-color: #00796B; }
   .md-toolbar-tools md-autocomplete md-autocomplete-wrap {
@@ -218,7 +215,6 @@ md-autocomplete input {
 
 md-icon.on {
   color: #009688; }
-
 md-icon.off {
   color: gray; }
 
@@ -227,7 +223,6 @@ md-tabs.full-height > md-tabs-content-wrapper > md-tab-content > div {
 
 .hide-tabs md-tabs-wrapper {
   display: none; }
-
 .hide-tabs md-tabs-content-wrapper {
   top: 0px; }
 
@@ -244,7 +239,6 @@ md-tabs.layout-column.flex md-tabs-content-wrapper {
   -webkit-flex: 1;
   -ms-flex: 1;
   flex: 1; }
-
 md-tabs.layout-column.flex md-tab-content {
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -252,7 +246,6 @@ md-tabs.layout-column.flex md-tab-content {
   -webkit-flex: 1;
   -ms-flex: 1;
   flex: 1; }
-
 md-tabs.layout-column.flex md-tab-content > div {
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -266,20 +259,6 @@ md-tab-content {
 
 .md-tab.md-active {
   background-color: #004D40; }
-
-md-tabs.page-tabs {
-  margin-top: 15px; }
-  md-tabs.page-tabs > md-tabs-wrapper {
-    background-color: white !important;
-    border-bottom: #00796B 2px solid; }
-    md-tabs.page-tabs > md-tabs-wrapper md-tab-item {
-      color: #00796B !important; }
-      md-tabs.page-tabs > md-tabs-wrapper md-tab-item md-icon {
-        color: #00796B !important; }
-      md-tabs.page-tabs > md-tabs-wrapper md-tab-item.md-active {
-        background-color: #E0F2F1;
-        border: #00796B 2px solid;
-        margin-right: -4px; }
 
 .md-virtual-repeat-container.md-autocomplete-suggestions-container {
   min-height: 30vh; }
@@ -329,6 +308,9 @@ md-list {
 
 .no-margins {
   margin: 0 !important; }
+
+.no-padding {
+  padding: 0 !important; }
 
 .reveal-after-render-parent {
   visibility: hidden !important; }
@@ -380,7 +362,6 @@ md-list {
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
   overflow: hidden !important; }
-
 .one-line * + * {
   display: none; }
 
@@ -423,23 +404,18 @@ arb-markdown p, [arb-markdown] p, .preview-area p {
   overflow-y: hidden; }
   arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
     margin: 0; }
-
 arb-markdown img, [arb-markdown] img, .preview-area img {
   max-width: 100%; }
-
 arb-markdown ul, arb-markdown ol, [arb-markdown] ul, [arb-markdown] ol, .preview-area ul, .preview-area ol {
   padding-left: 1.5em; }
-
 arb-markdown li p, [arb-markdown] li p, .preview-area li p {
   overflow: inherit; }
-
 arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
   border-left: lightgray 7px solid;
   padding-left: 10px;
   margin-left: 2px; }
   arb-markdown blockquote p, [arb-markdown] blockquote p, .preview-area blockquote p {
     padding: 10px 0; }
-
 arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
   margin-bottom: 0; }
 
@@ -447,46 +423,32 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   display: block;
   margin-left: auto;
   margin-right: auto; }
-
 .capped-body-width #footer {
   max-width: 1100px; }
-
 arb-index > .capped-body-width {
   max-width: 1100px; }
-
 arb-group-index > .capped-body-width {
   max-width: 1100px; }
-
 arb-user-page > .capped-body-width {
   max-width: 1100px; }
-
 arb-dashboard-page > .capped-body-width {
   max-width: 1100px; }
-
 arb-signup > .capped-body-width {
   max-width: 560px; }
-
 arb-login > .capped-body-width {
   max-width: 560px; }
-
 arb-updates > .capped-body-width {
   max-width: 560px; }
-
 arb-groups-page > .capped-body-width {
   max-width: 900px; }
-
 arb-requisites-page > .capped-body-width {
   max-width: 900px; }
-
 arb-learn-page > .capped-body-width {
   max-width: 900px; }
-
 arb-settings-page > .capped-body-width {
   max-width: 560px; }
-
 arb-primary-page > .capped-body-width {
   max-width: 1100px; }
-
 arb-admin-dashboard-page > .capped-body-width {
   max-width: 900px; }
 
@@ -512,9 +474,9 @@ arb-admin-dashboard-page > .capped-body-width {
 
 #dynamic-view {
   /* position: relative;
-	top: -$toolbar-height;
-	padding-top: $toolbar-height;
-	box-sizing: border-box;*/ }
+  top: -$toolbar-height;
+  padding-top: $toolbar-height;
+  box-sizing: border-box;*/ }
 
 .sidenav-email {
   max-width: 90%;
@@ -535,10 +497,8 @@ arb-admin-dashboard-page > .capped-body-width {
   margin: 10px 0px;
   white-space: pre;
   line-height: normal; }
-
 .vote-bar .vote-bucket-container {
   min-height: 30px; }
-
 .vote-bar .vote-bucket-div {
   border: 1px solid black;
   height: 18px; }
@@ -549,14 +509,11 @@ arb-admin-dashboard-page > .capped-body-width {
     height: 24px; }
     .vote-bar .vote-bucket-div.selected .vote-bucket {
       background-color: #009688; }
-
 .vote-bar .vote-bucket-div:not(.selected) + .vote-bucket-div:not(.selected) {
   border-left: none; }
-
 .vote-bar .vote-bar-margin {
   height: 27px;
   max-height: 27px; }
-
 .vote-bar .new-vote-div {
   position: relative;
   top: 19.5px;
@@ -574,7 +531,6 @@ arb-admin-dashboard-page > .capped-body-width {
     width: 50px;
     height: 18px;
     text-align: center; }
-
 .vote-bar .my-vote-div {
   position: relative;
   top: 19.5px;
@@ -661,57 +617,61 @@ arb-requisite-button .md-button, [arb-requisite-button] .md-button {
     padding: 10px 5px 20px;
     font-size: 16px;
     line-height: 20px; }
+
   .comment-text-container {
     padding: 5px 5px;
     font-size: 16px;
     line-height: 18px; }
+
   .dynamic-hor-padding {
     padding-left: 5px;
     padding-right: 5px;
     box-sizing: border-box; } }
-
 @media (min-width: 600px) and (max-width: 959px) {
   .lens-text-container {
     padding: 10px 50px 20px;
     font-size: 18px;
     line-height: 22px; }
+
   .comment-text-container {
     padding: 5px 10px;
     font-size: 16px;
     line-height: 20px; }
+
   .dynamic-hor-padding {
     padding-left: 50px;
     padding-right: 50px;
     box-sizing: border-box; } }
-
 @media (min-width: 960px) and (max-width: 1099px) {
   .lens-text-container {
     padding: 30px 90px 60px;
     font-size: 18px;
     line-height: 26px; }
+
   .comment-text-container {
     padding: 5px 15px;
     font-size: 17px;
     line-height: 22px; }
+
   .dynamic-hor-padding {
     padding-left: 90px;
     padding-right: 90px;
     box-sizing: border-box; } }
-
 @media (min-width: 1100px) {
   .lens-text-container {
     padding: 40px 100px 80px;
     font-size: 18px;
     line-height: 30px; }
+
   .comment-text-container {
     padding: 5px 20px;
     font-size: 18px;
     line-height: 24px; }
+
   .dynamic-hor-padding {
     padding-left: 100px;
     padding-right: 100px;
     box-sizing: border-box; } }
-
 .requirements-container {
   padding: 5px 10px;
   border-bottom: silver 1px solid; }
@@ -790,6 +750,23 @@ del {
 ins {
   color: green; }
 
+.page-tabs {
+  margin-top: 15px; }
+  .page-tabs > .page-tabs-holder {
+    border-bottom: #00796B 2px solid; }
+    .page-tabs > .page-tabs-holder > .md-button {
+      padding: 5px 35px;
+      color: #00796B !important; }
+      .page-tabs > .page-tabs-holder > .md-button md-icon {
+        color: #00796B !important; }
+      .page-tabs > .page-tabs-holder > .md-button.active-tab {
+        background-color: #E0F2F1;
+        border: #00796B 2px solid;
+        border-bottom: none;
+        border-radius: 0; }
+  .page-tabs > .page-lens-body {
+    overflow: hidden; }
+
 .edit-page-rhs-border {
   border-left: #00796B 5px solid; }
 
@@ -839,6 +816,8 @@ textarea {
 
 .subpage-content {
   margin-top: 20px; }
+  .inline-subpage > .subpage-content {
+    margin-top: 0px; }
 
 .comment-header {
   background-color: #E0F2F1;

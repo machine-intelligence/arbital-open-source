@@ -52,10 +52,10 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 			};
 
 			// Process new member form submission.
-			$scope.newMemberFormSubmit = function(event, groupId, userId) {
+			$scope.newMemberFormSubmit = function(event, groupId, userInput) {
 				var data = {
 					groupId: groupId,
-					userId: userId,
+					userInput: userInput,
 				};
 				submitForm($(event.currentTarget), "/newMember/", data, function(r) {
 					location.reload();

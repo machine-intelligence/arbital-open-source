@@ -72,6 +72,7 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		hashmap = make(map[string]interface{})
 		hashmap["pageId"] = pageId
 		hashmap["edit"] = 1
+		hashmap["prevEdit"] = 0
 		hashmap["isAutosave"] = true
 		hashmap["creatorId"] = u.Id
 		hashmap["createdAt"] = database.Now()
