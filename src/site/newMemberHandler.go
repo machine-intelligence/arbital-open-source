@@ -13,7 +13,7 @@ import (
 // newMemberData contains data given to us in the request.
 type newMemberData struct {
 	GroupId string
-	UserId  string
+	UserInput  string
 }
 
 var newMemberHandler = siteHandler{
@@ -36,8 +36,11 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if !core.IsIdValid(data.GroupId) || !core.IsIdValid(data.UserId) {
-		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
+	if !core.IsIdValid(data.GroupId) {
+		return pages.HandlerBadRequestFail("GroupId has to be set", nil)
+	}
+	if data.UserInput == "" {
+		return pages.HandlerBadRequestFail("Must provide an identifier for the new user", nil)
 	}
 
 	// Check to see if this user can add members.
@@ -55,21 +58,36 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerForbiddenFail("You don't have the permission to add a user", nil)
 	}
 
-	// Check to see if the proposed member exists.
+	var newMemberId string
+
+	// See if data.UserInput is the id or email of an existing user
 	row = db.NewStatement(`
-		SELECT 1
+		SELECT id
 		FROM users
-		WHERE id=?`).QueryRow(data.UserId)
-	found, err = row.Scan(&blank)
+		WHERE id=? OR email=?`).QueryRow(data.UserInput, data.UserInput)
+	found, err = row.Scan(&newMemberId)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't check for a user", err)
-	} else if !found {
-		return pages.HandlerErrorFail("New member id doesn't correspond to a user", nil)
 	}
 
+	if !found {
+		// See if data.UserInput is the alias of the user's page
+		row = db.NewStatement(`
+			SELECT pageId
+			FROM pageInfos
+			WHERE alias=?`).QueryRow(data.UserInput)
+		// The id of this page is the same as the id of the user we want
+		found, err = row.Scan(&newMemberId)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't check for a user", err)
+		} else if !found {
+			return pages.HandlerErrorFail("Couldn't find the user", nil)
+		}
+	}
+	
 	// Update groupMembers table
 	hashmap := make(map[string]interface{})
-	hashmap["userId"] = data.UserId
+	hashmap["userId"] = newMemberId
 	hashmap["groupId"] = data.GroupId
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("groupMembers", hashmap)
@@ -81,7 +99,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var task tasks.MemberUpdateTask
 	task.UserId = u.Id
 	task.UpdateType = core.AddedToGroupUpdateType
-	task.MemberId = data.UserId
+	task.MemberId = newMemberId
 	task.GroupId = data.GroupId
 	if err := tasks.Enqueue(c, &task, "memberUpdate"); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)

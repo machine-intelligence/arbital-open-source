@@ -120,7 +120,7 @@
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
 	<!-- Inline comments container (but the buttons are positioned absolutely) -->
-	<div class="inline-comments-div" ng-show="lensIsVisible && !isSimpleEmbed">
+	<div class="inline-comments-div" ng-show="!isSimpleEmbed">
 		<md-button aria-label="New inline comments"
 				class="inline-comment-icon md-icon-button md-accent md-raised"
 				ng-style="getNewInlineCommentButtonStyle()"

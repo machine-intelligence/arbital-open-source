@@ -34,13 +34,14 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 				// Function for recursively processing a pageId that needs to be learned
 				var processRequirement = function(pageId, parentPageId) {
 					var requirement = $scope.requirementMap[pageId];
-					var tutor = requirement.bestTutorId ? $scope.tutorMap[requirement.bestTutorId] : undefined;
+					var tutor = $scope.tutorMap[requirement.bestTutorId];
 					// Process all requirements, recursively.
 					for (var n = 0; n < tutor.requirementIds.length; n++) {
 						processRequirement(tutor.requirementIds[n], pageId);
 					}
 					// Add the tutor to the path.
-					var shouldIncludeInPath = !isJustARequisite(tutor.pageId) || $scope.optionsMap[tutor.pageId].appendToPath;
+					var options = $scope.optionsMap[tutor.pageId] || {};
+					var shouldIncludeInPath = !isJustARequisite(tutor.pageId) || options.appendToPath;
 					if ($scope.readIds.indexOf(tutor.pageId) < 0 && shouldIncludeInPath) {
 						$scope.readIds.push(tutor.pageId);
 					}

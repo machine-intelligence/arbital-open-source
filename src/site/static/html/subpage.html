@@ -19,23 +19,50 @@
 			</md-button>
 		</div>
 
-		<!-- RHS icons -->
-		<arb-confirm-button
-				confirmed="deleteSubpage()"
-				show-icon="true"
-				disabled="editing"
-				ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && isComment"></arb-confirm-button>
-		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
-				class="md-icon-button"
-				aria-label="Edit comment"
-				ng-disabled="editing"
-				ng-click="editSubpage($event)"
-				ng-if="::(page.creatorId === userService.user.id)">
-			<md-icon>create</md-icon>
-		</md-button>
-		<md-button class="md-icon-button" ng-href="{{::myUrl}}">
-			<md-icon>link</md-icon>
-		</md-button>
+		<!-- RHS menu -->
+		<md-menu class="no-padding">
+			<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Options">
+				<md-icon>more_vert</md-icon>
+			</md-button>
+			<md-menu-content>
+
+				<!-- Edit comment -->
+				<md-menu-item ng-if="::(page.creatorId === userService.user.id)">
+					<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
+							aria-label="Edit comment"
+							ng-disabled="editing"
+							ng-click="editSubpage($event)">
+						Edit
+					</md-button>
+				</md-menu-item>
+
+				<!-- Permalink -->
+				<md-menu-item>
+					<md-button ng-href="{{::myUrl}}" aria-label="Permalink">
+						Permalink
+					</md-button>
+				</md-menu-item>
+
+				<!-- Mark comment as for editors only -->
+				<md-menu-item ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && !page.isEditorComment && isComment">
+					<md-button ng-click="showToEditorsOnly()"
+							ng-disabled="editing"
+							aria-label="Show to editors only">
+						Show to editors only
+					</md-button>
+				</md-menu-item>
+
+				<!-- Delete comment -->
+				<md-menu-item ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && isComment">
+					<md-button ng-click="deleteSubpage()"
+							ng-disabled="editing"
+							aria-label="Delete comment">
+						Delete
+					</md-button>
+				</md-menu-item>
+
+			</md-menu-content>
+		</md-menu>
 	</div>
 
 	<!-- Question header -->

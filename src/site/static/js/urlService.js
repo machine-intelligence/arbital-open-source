@@ -53,6 +53,15 @@ app.service("urlService", function($http, $location, $rootScope){
 		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias) + "/";
 	};
 
+	// Return the top level domain.
+	this.getTopLevelDomain = function() {
+		if (isLive()) {
+			return "arbital.com";
+		} else {
+			return "localhost:8012";
+		}
+	};
+
 	// Get a domain url (with optional subdomain)
 	this.getDomainUrl = function(subdomain) {
 		if (subdomain) {
@@ -61,9 +70,9 @@ app.service("urlService", function($http, $location, $rootScope){
 			subdomain = "";
 		}
 		if (isLive()) {
-			return "https://" + subdomain + location.host;
+			return "https://" + subdomain + this.getTopLevelDomain();
 		} else {
-			return "http://" + subdomain + location.host;
+			return "http://" + subdomain + this.getTopLevelDomain();
 		}
 	};
 
@@ -72,7 +81,7 @@ app.service("urlService", function($http, $location, $rootScope){
 	this.ensureCanonPath = function(canonPath) {
 		var hash = $location.hash();
 		var search = $location.search();
-		$location.replace().path(canonPath);
+		this.goToUrl(canonPath, true);
 		$location.hash(hash);
 		for (var k in search) {
 			$location.search(k, search[k]);
@@ -80,16 +89,20 @@ app.service("urlService", function($http, $location, $rootScope){
 	};
 
 	// Go to the given url. If there is a domain switch, we refresh the page.
-	this.goToUrl = function(url) {
+	this.goToUrl = function(url, replace) {
 		var differentHost = false;
 		if (url.indexOf("http") === 0) {
-			if (url.indexOf(this.getDomainUrl()) !== 0) {
+			var domainUrl = this.getDomainUrl();
+			if (url.indexOf(domainUrl) !== 0) {
 				differentHost = true;
+			} else {
+				url = url.slice(domainUrl.length);
 			}
 		}
 		if (differentHost) {
 			window.location.href = url;
 		} else {
+			if (replace) $location.replace();
 			$location.url(url);
 		}
 	};

@@ -19,6 +19,7 @@ import (
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
 	PageId         string
+	PrevEdit       int
 	Title          string
 	Clickbait      string
 	Text           string
@@ -285,6 +286,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
+		hashmap["prevEdit"] = data.PrevEdit
 		hashmap["creatorId"] = u.Id
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait

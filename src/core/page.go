@@ -92,6 +92,7 @@ type corePageData struct {
 	// Any time we load a page, you can at least expect all this data.
 	PageId            string `json:"pageId"`
 	Edit              int    `json:"edit"`
+	PrevEdit          int    `json:"prevEdit"`
 	Type              string `json:"type"`
 	Title             string `json:"title"`
 	Clickbait         string `json:"clickbait"`
@@ -681,7 +682,7 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 
 	// Load the page data
 	rows := database.NewQuery(`
-		SELECT p.pageId,p.edit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
+		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
@@ -696,7 +697,7 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p corePageData
 		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
+			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
@@ -825,7 +826,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 			)`, pageId, userId)
 	}
 	statement := database.NewQuery(`
-		SELECT p.pageId,p.edit,pi.type,p.title,p.clickbait,p.text,p.metaText,
+		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
@@ -838,7 +839,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		WHERE`).AddPart(whereClause).Add(`AND
 			(pi.seeGroupId=0 OR pi.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
-	exists, err := row.Scan(&p.PageId, &p.Edit, &p.Type, &p.Title, &p.Clickbait,
+	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,

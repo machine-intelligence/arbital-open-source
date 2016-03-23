@@ -5,6 +5,9 @@ CREATE TABLE pages (
 	pageId VARCHAR(32) NOT NULL,
 	/* The edit (version) number. Always >0. */
 	edit INT NOT NULL,
+	/* Edit number that preceded this edit. Used to detect when a user has an edit
+		that's been obsoleted by a newly published edit. */
+	prevEdit INT NOT NULL,
 	/* True iff this is the edit currently used to display the page. */
 	isCurrentEdit BOOLEAN NOT NULL,
 	/* True iff this is a minor edit. */

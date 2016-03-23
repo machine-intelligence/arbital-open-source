@@ -36,28 +36,25 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 			$scope.page.lensIds.unshift($scope.page.pageId);
 
 			// Determine which lens is selected
-			var computeSelectedLens = function() {
+			$scope.computeSelectedLensId = function() {
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
-					$scope.selectedLens = pageService.pageMap[$location.search().l];
+					return $location.search().l;
 				} else if (pageService.path && pageService.path.onPath) {
 					// The learning list specified this page specifically
-					$scope.selectedLens = pageService.pageMap[$scope.page.pageId];
-				} else {
-					// Select the hardest lens for which the user has met all requirements
-					var lastIndex = $scope.page.lensIds.length - 1;
-					$scope.selectedLens = pageService.pageMap[$scope.page.lensIds[lastIndex]];
-					for (var n = lastIndex - 1; n >= 0; n--) {
-						var lensId = $scope.page.lensIds[n];
-						if ($scope.hasAllReqs(lensId)) {
-							$scope.selectedLens = pageService.pageMap[lensId];
-						}
+					return $scope.page.pageId;
+				}
+				// Select the hardest lens for which the user has met all requirements
+				var lastIndex = $scope.page.lensIds.length - 1;
+				var selectedLensId = $scope.page.lensIds[lastIndex];
+				for (var n = lastIndex - 1; n >= 0; n--) {
+					var lensId = $scope.page.lensIds[n];
+					if ($scope.hasAllReqs(lensId)) {
+						selectedLensId = lensId;
 					}
 				}
-				$scope.selectedLensIndex = $scope.page.lensIds.indexOf($scope.selectedLens.pageId);
+				return selectedLensId;
 			};
-			computeSelectedLens();
-			$scope.originalLensId = $scope.selectedLens.pageId;
 
 			// Monitor URL to see if we need to switch lenses
 			$scope.$watch(function() {
@@ -67,46 +64,58 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 				// but in that case we don't want to do anything.
 				// TODO: create a better workaround
 				if ($location.path().indexOf($scope.pageId) >= 0 || $location.path().indexOf($scope.page.alias) >= 0) {
-					computeSelectedLens();
+					$scope.tabSelect($scope.computeSelectedLensId());
 				}
 			});
 
+			// Check if the given lens is loaded.
 			$scope.isLoaded = function(lensId) {
 				return pageService.pageMap[lensId].text.length > 0;
 			};
 
 			// Called when there is a click inside the tabs
-			var currentSelectedLensIndex = -1;
-			$scope.tabsClicked = function($event) {
+			$scope.tabsClicked = function($event, lensId) {
 				// Check if there was a CTRL+click on a tab
-				if (!$event.ctrlKey) return;
-				var $target = $(event.target);
-				var $tab = $target.closest("md-tab-item");
-				if ($tab.length != 1) return;
-				var tabIndex = $tab.index();
-				var lensId = $scope.page.lensIds[tabIndex];
-				window.open(pageService.getPageUrl(lensId), "_blank");
+				if ($event.ctrlKey) {
+					console.log(pageService.getPageUrl(lensId));
+					window.open(pageService.getPageUrl(lensId, {permalink: true}), "_blank");
+				} else {
+					$scope.tabSelect(lensId);
+				}
 			};
 
-			// Check if this comment is selected via URL hash
+			// Check if this page is selected via URL hash
 			$scope.isSelected = function() {
 				return $location.hash() === "subpage-" + $scope.page.pageId;
 			};
 		},
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
+			var switchingLenses = false;
 			var switchToLens = function(lensId) {
-				if (lensId !== scope.page.pageId || $location.search().l) {
-					$location.search("l", lensId);
-				}
-				scope.selectedLens = pageService.pageMap[lensId];
-				scope.$broadcast("lensTabChanged", lensId);
-				if (!scope.isSimpleEmbed) {
-					var $container = element.find(".discussion-container");
-					var $el = $compile("<arb-discussion class='reveal-after-render' page-id='" + lensId +
-						"'></arb-discussion>")(scope);
-					$container.empty().append($el);
-				}
+				if (scope.selectedLens && lensId === scope.selectedLens.pageId) return;
+				if (switchingLenses) return;
+				switchingLenses = true;
+
+				var $pageLensBody = $(element).find(".page-lens-body");
+				$pageLensBody.animate({opacity:0}, 400, "swing", function() {
+					$timeout(function() {
+						$pageLensBody.animate({opacity:1}, 400, "swing", function() {
+							$pageLensBody.css("opacity", "");
+						});
+					});
+					if (scope.selectedLens || lensId !== scope.pageId) {
+						$location.search("l", lensId);
+					}
+					scope.selectedLens = pageService.pageMap[lensId];
+					// A new lens became visible. Sometimes this happens when the user is going through
+					// a path and clicks "Next" at the bottom of the page. In this case we need to
+					// scroll upwards to have them start reading this lens
+					if ($("body").scrollTop() > $pageLensBody.offset().top) {
+						$("body").scrollTop($pageLensBody.offset().top - 100);
+					}
+					switchingLenses = false;
+				});
 			};
 			scope.tabSelect = function(lensId) {
 				if (scope.isLoaded(lensId)) {
@@ -114,13 +123,11 @@ app.directive("arbPage", function ($location, $compile, $timeout, $interval, $md
 						switchToLens(lensId);
 					});
 				} else {
-					pageService.loadLens(lensId, {
-						success: function(data, status) {
-							switchToLens(lensId);
-						},
-					});
+					pageService.loadLens(lensId);
+					switchToLens(lensId);
 				}
 			};
+			scope.tabSelect(scope.computeSelectedLensId());
 		},
 	};
 });
