@@ -4,6 +4,9 @@
 app.directive('arbPrimaryPage', function($compile, $location, $timeout, pageService, userService, autocompleteService) {
   return {
     templateUrl: 'static/html/primaryPage.html',
+    scope: {
+        noFooter: "@",
+    },
     controller: function($scope) {
       $scope.pageService = pageService;
       $scope.userService = userService;

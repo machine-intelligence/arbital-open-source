@@ -41,5 +41,5 @@
 			page-ids="::page.relatedIds"
 			ng-if="::page.relatedIds.length > 0"></div>
 
-	<div ng-include="'static/html/footer.html'"></div>
+	<div ng-include="'static/html/footer.html'" ng-if="!noFooter"></div>
 </div>
