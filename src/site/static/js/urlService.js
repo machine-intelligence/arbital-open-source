@@ -1,78 +1,78 @@
-"use strict";
+'use strict';
 
 // urlService handles working with URLs
-app.service("urlService", function($http, $location, $rootScope){
+app.service('urlService', function($http, $location, $rootScope) {
 	var that = this;
-	
+
 	// This will be set to true before loading content for a second page
 	this.hasLoadedFirstPage = false;
-	
+
 	// The current page can register a pageUpdater function to handle certain URLs by modifying itself
 	var pageUpdater = null;
-	this.setPageUpdater = function(value){
+	this.setPageUpdater = function(value) {
 		pageUpdater = value;
 	};
-	
+
 	// Map of URL patterns to handlers
 	this.urlRules = [];
 	// Add a rule to handle URL changes
 	// urlPattern - follows Angular ngRoute pattern rules
 	this.addUrlHandler = function(urlPattern, rule) {
-		var sections = urlPattern.split("/");
+		var sections = urlPattern.split('/');
 		// Match path from the beginning
-		var builder = ["^"];
+		var builder = ['^'];
 		var parameters = [];
 		for (var n = 0; n < sections.length; n++) {
 			var section = sections[n];
 			if (section == 0) {
 				// Ignore empty section
-			} else if (section[0] == ":") {
-				if (section.endsWith("?")) {
+			} else if (section[0] == ':') {
+				if (section.endsWith('?')) {
 					// Optional parameter capture
 					parameters.push(section.substring(1, section.length - 1));
-					builder.push("(?:\\/([^\\/]+))?");
+					builder.push('(?:\\/([^\\/]+))?');
 				} else {
 					// Parameter capture
 					parameters.push(section.substring(1));
-					builder.push("\\/([^\\/]+)");
+					builder.push('\\/([^\\/]+)');
 				}
 			} else {
 				// Match name
-				builder.push("\\/" + section);
+				builder.push('\\/' + section);
 			}
 		}
 		// Optional trailing slash, optional query or fragment, match to end of path
-		builder.push("\\/?(?:[\\?\\#].*)?$");
-		rule.urlPattern = new RegExp(builder.join(""));
+		builder.push('\\/?(?:[\\?\\#].*)?$');
+		rule.urlPattern = new RegExp(builder.join(''));
 		rule.parameters = parameters;
 		that.urlRules.push(rule);
 	};
 
 	// Construct a part of the URL with id and alias if id!=alias, otherwise just id
 	this.getBaseUrl = function(base, id, alias) {
-		return "/" + base + "/" + id + (alias === id ? "" : "/" + alias) + "/";
+		return '/' + base + '/' + id + (alias === id ? '' : '/' + alias) + '/';
 	};
 
 	// Return the top level domain.
 	this.getTopLevelDomain = function() {
 		if (isLive()) {
-			return "arbital.com";
+			return 'arbital.com';
 		} else {
-			return "localhost:8012";
+			return 'localhost:8012';
 		}
 	};
 
 	// Get a domain url (with optional subdomain)
 	this.getDomainUrl = function(subdomain) {
 		if (subdomain) {
-			subdomain += ".";
+			subdomain += '.';
 		} else {
-			subdomain = "";
+			subdomain = '';
 		}
 		if (isLive()) {
-			return "https://" + subdomain + this.getTopLevelDomain();
+			return 'https://' + subdomain + this.getTopLevelDomain();
 		} else {
-			return "http://" + subdomain + this.getTopLevelDomain();
+			return 'http://' + subdomain + this.getTopLevelDomain();
 		}
 	};
 
@@ -91,7 +91,7 @@ app.service("urlService", function($http, $location, $rootScope){
 	// Go to the given url. If there is a domain switch, we refresh the page.
 	this.goToUrl = function(url, replace) {
 		var differentHost = false;
-		if (url.indexOf("http") === 0) {
+		if (url.indexOf('http') === 0) {
 			var domainUrl = this.getDomainUrl();
 			if (url.indexOf(domainUrl) !== 0) {
 				differentHost = true;

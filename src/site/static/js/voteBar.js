@@ -1,29 +1,29 @@
 // Directive for showing a vote bar.
-app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageService, userService) {
+app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, pageService, userService) {
 	return {
-		templateUrl: "static/html/voteBar.html",
+		templateUrl: 'static/html/voteBar.html',
 		scope: {
-			pageId: "@",
-			isEmbedded: "=",
+			pageId: '@',
+			isEmbedded: '=',
 		},
 		link: function(scope, element, attrs) {
 			scope.pageService = pageService;
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
-			scope.isTinyScreen = !$mdMedia("gt-xs");
+			scope.isTinyScreen = !$mdMedia('gt-xs');
 			var userId = userService.user.id;
 
 			// Value of the current user's vote
 			scope.userVoteValue = undefined;
 			var typeHelpers = {
 				probability: {
-					headerLabel: "Probability this claim is true",
-					label1: "0%",
-					label2: "25%",
-					label3: "50%",
-					label4: "75%",
-					label5: "100%",
-					toString: function(value) { return value + "%"; },
+					headerLabel: 'Probability this claim is true',
+					label1: '0%',
+					label2: '25%',
+					label3: '50%',
+					label4: '75%',
+					label5: '100%',
+					toString: function(value) { return value + '%'; },
 					bucketCount: 10,
 					min: 0,
 					max: 100,
@@ -32,14 +32,14 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageSe
 					getBucketIndex: function(value) { return Math.floor(value / 10); },
 				},
 				approval: {
-					headerLabel: "Approval ratings",
-					label1: "Strongly\nDisapprove",
-					label2: "Disapprove",
-					label3: "Neutral",
-					label4: "Approve",
-					label5: "Strongly\nApprove",
+					headerLabel: 'Approval ratings',
+					label1: 'Strongly\nDisapprove',
+					label2: 'Disapprove',
+					label3: 'Neutral',
+					label4: 'Approve',
+					label5: 'Strongly\nApprove',
 					toString: function(value) {
-						return "";
+						return '';
 					},
 					bucketCount: 9,
 					min: 0,
@@ -55,8 +55,8 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageSe
 					},
 				},
 			};
-			scope.isProbability = scope.page.voteType === "probability";
-			scope.isApproval = scope.page.voteType === "approval";
+			scope.isProbability = scope.page.voteType === 'probability';
+			scope.isApproval = scope.page.voteType === 'approval';
 			scope.typeHelper = typeHelpers[scope.page.voteType];
 
 			// Create vote buckets
@@ -65,7 +65,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageSe
 				scope.voteBuckets.push({normValue: 0, flex: scope.typeHelper.getFlex(n), votes: []});
 			}
 			// Fill buckets.
-			for(var i = 0; i < scope.page.votes.length; i++) {
+			for (var i = 0; i < scope.page.votes.length; i++) {
 				var vote = scope.page.votes[i];
 				var bucket = scope.voteBuckets[scope.typeHelper.getBucketIndex(vote.value)];
 				if (vote.userId === userService.user.id) {
@@ -91,13 +91,13 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageSe
 					pageId: scope.page.pageId,
 					value: scope.userVoteValue || 0.0,
 				};
-				$http({method: "POST", url: "/newVote/", data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error changing a vote:"); console.log(data); console.log(status);
+				$http({method: 'POST', url: '/newVote/', data: JSON.stringify(data)})
+				.error(function(data, status) {
+					console.error('Error changing a vote:'); console.log(data); console.log(status);
 				});
-			}
+			};
 
-			var $voteBarBody = element.find(".vote-bar-body");
+			var $voteBarBody = element.find('.vote-bar-body');
 			// Bucket the user is hovering over
 			scope.selectedVoteBucket = undefined;
 			// Convert mouseX position to selected value on the bar.
@@ -110,7 +110,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageSe
 			scope.valueToOffset = function(value) {
 				var range = scope.typeHelper.max - scope.typeHelper.min;
 				value = ((value - scope.typeHelper.min) * 100) / range;
-				return value + "%";
+				return value + '%';
 			};
 
 			// Hande mouse events
@@ -127,7 +127,7 @@ app.directive("arbVoteBar", function($http, $compile, $timeout, $mdMedia, pageSe
 				scope.isHovering = !leave;
 			};
 			scope.voteMouseClick = function(event, leave) {
-				if (userService.user.id !== "") {
+				if (userService.user.id !== '') {
 					scope.userVoteValue = scope.offsetToValue(event.pageX);
 					postNewVote();
 				}

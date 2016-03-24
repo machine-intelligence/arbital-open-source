@@ -1,49 +1,49 @@
-"use strict";
+'use strict';
 
 // Directive for showing a subpage.
-app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, $mdMedia, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $mdMedia, pageService, userService, autocompleteService, RecursionHelper) {
 	return {
-		templateUrl: "static/html/subpage.html",
+		templateUrl: 'static/html/subpage.html',
 		scope: {
-			pageId: "@",  // id of this subpage
-			lensId: "@",  // id of the lens this subpage belongs to
-			parentSubpageId: "@",  // id of the parent subpage, if there is one
+			pageId: '@',  // id of this subpage
+			lensId: '@',  // id of the lens this subpage belongs to
+			parentSubpageId: '@',  // id of the parent subpage, if there is one
 		},
-		controller: function ($scope) {
+		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
-			$scope.isComment = $scope.page.type === "comment";
-			$scope.isQuestion = $scope.page.type === "question";
+			$scope.isComment = $scope.page.type === 'comment';
+			$scope.isQuestion = $scope.page.type === 'question';
 			if ($scope.isComment) {
 				$scope.page.subpageIds = $scope.page.commentIds;
-				$scope.page.subpageIds.sort(pageService.getChildSortFunc("oldestFirst"));
+				$scope.page.subpageIds.sort(pageService.getChildSortFunc('oldestFirst'));
 			} else if ($scope.isQuestion) {
 				$scope.page.subpageIds = $scope.page.answerIds;
-				$scope.page.subpageIds.sort(pageService.getChildSortFunc("likes"));
+				$scope.page.subpageIds.sort(pageService.getChildSortFunc('likes'));
 			}
 			$scope.isCollapsed = false;
-			$scope.isTinyScreen = !$mdMedia("gt-xs");
+			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
 			if ($scope.isComment) {
 				var url = pageService.getPageUrl($scope.lensId);
-				var hashIndex = url.indexOf("#");
+				var hashIndex = url.indexOf('#');
 				if (hashIndex > 0) {
 					url = url.slice(0, hashIndex);
 				}
-				if (url.indexOf("?") < 0) {
+				if (url.indexOf('?') < 0) {
 					// We have to set the lens explicitly, so we don't get automatically
 					// redirected to an easier lens or something.
-					url += "?l=" + $scope.lensId;
+					url += '?l=' + $scope.lensId;
 				}
-				$scope.myUrl = url + "#subpage-" + $scope.page.pageId;
+				$scope.myUrl = url + '#subpage-' + $scope.page.pageId;
 			} else {
 				$scope.myUrl = pageService.getPageUrl($scope.page.pageId);
 			}
 
 			// Check if this comment is selected via URL hash
 			$scope.isSelected = function() {
-				return $location.hash() === "subpage-" + $scope.page.pageId;
+				return $location.hash() === 'subpage-' + $scope.page.pageId;
 			};
 
 			// Called when the user collapses/expands this subpage
@@ -84,7 +84,7 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, $
 						.hideDelay(3000)
 					);*/
 				}, function(data) {
-					$scope.addMessage("delete", "Error deleting page: " + data, "error");
+					$scope.addMessage('delete', 'Error deleting page: ' + data, 'error');
 				});
 			};
 
@@ -120,21 +120,21 @@ app.directive("arbSubpage", function ($compile, $timeout, $location, $mdToast, $
 });
 
 // Directive for container holding an inline comment
-app.directive("arbInlineComment", function ($compile, $timeout, $location, $mdToast, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive('arbInlineComment', function($compile, $timeout, $location, $mdToast, pageService, userService, autocompleteService, RecursionHelper) {
 	return {
-		templateUrl: "static/html/inlineComment.html",
+		templateUrl: 'static/html/inlineComment.html',
 		scope: {
-			commentId: "@",
-			lensId: "@",  // id of the lens this comment belongs to
+			commentId: '@',
+			lensId: '@',  // id of the lens this comment belongs to
 		},
-		controller: function ($scope) {
+		controller: function($scope) {
 			$scope.isExpanded = false;
 			$scope.toggleExpand = function() {
 				$scope.isExpanded = !$scope.isExpanded;
 			};
 		},
 		link: function(scope, element, attrs) {
-			var content = element.find(".inline-subpage");
+			var content = element.find('.inline-subpage');
 			scope.showExpandButton = function() {
 				return content.get(0).scrollHeight > content.height() && !scope.isExpanded;
 			};

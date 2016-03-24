@@ -1,13 +1,14 @@
-"use strict";
+'use strict';
+// jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive to show a lens' content
-app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
+app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
-		templateUrl: "static/html/lens.html",
+		templateUrl: 'static/html/lens.html',
 		scope: {
-			pageId: "@",
-			lensParentId: "@",
-			isSimpleEmbed: "=",
+			pageId: '@',
+			lensParentId: '@',
+			isSimpleEmbed: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -16,8 +17,8 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			if ($scope.lensParentId) {
 				$scope.lensParentPage = pageService.pageMap[$scope.lensParentId];
 			}
-			$scope.isTinyScreen = !$mdMedia("gt-xs");
-			$scope.isSmallScreen = !$mdMedia("gt-sm");
+			$scope.isTinyScreen = !$mdMedia('gt-xs');
+			$scope.isSmallScreen = !$mdMedia('gt-sm');
 
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
 			if (!$scope.mastery) {
@@ -42,10 +43,10 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 					createdAtLimit: earliest,
 					skipProcessDataStep: true,
 					success: function(data, status) {
-						var dmp = new diff_match_patch();
+						var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 						var diffs = dmp.diff_main(data[$scope.page.pageId].text, $scope.page.text);
 						dmp.diff_cleanupSemantic(diffs);
-						$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, "");
+						$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, '');
 					},
 				});
 			};
@@ -156,15 +157,15 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			$scope.getToggleSubjectsText = function() {
 				if ($scope.knowsAllSubjects()) {
 					if ($scope.page.subjectIds.length > 1) {
-						return "Nevermind, none of them";
+						return 'Nevermind, none of them';
 					} else {
-						return "Nevermind, I didn't get it";
+						return 'Nevermind, I didn\'t get it';
 					}
 				} else {
 					if ($scope.page.subjectIds.length > 1) {
-						return "Yes, all of them";
+						return 'Yes, all of them';
 					} else {
-						return "Yes, I got it";
+						return 'Yes, I got it';
 					}
 				}
 			};
@@ -186,20 +187,20 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 
 			// Detach some elements and append them to the body, since they will appear
 			// outside of the lens's div, and otherwise would be masked
-			var $inlineCommentsDiv = element.find(".inline-comments-div");
-			var $newInlineCommentButton = $inlineCommentsDiv.find(".inline-comment-icon");
-			$inlineCommentsDiv.appendTo($("body"));
-			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia("gt-md") ? 0.5 : 1.1);
-			scope.$on("$destroy", function() {
+			var $inlineCommentsDiv = element.find('.inline-comments-div');
+			var $newInlineCommentButton = $inlineCommentsDiv.find('.inline-comment-icon');
+			$inlineCommentsDiv.appendTo($('body'));
+			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia('gt-md') ? 0.5 : 1.1);
+			scope.$on('$destroy', function() {
 				$inlineCommentsDiv.remove();
 			});
 
 			// =========================== Inline comments ===========================
-			var $markdownContainer = element.find(".lens-text-container");
-			var $markdown = element.find(".lens-text");
+			var $markdownContainer = element.find('.lens-text-container');
+			var $markdown = element.find('.lens-text');
 			scope.inlineComments = {};
 			var orderedInlineComments = [];
-			var dmp = new diff_match_patch();
+			var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 			dmp.Match_MaxBits = 10000;
 			dmp.Match_Distance = 10000;
 
@@ -221,7 +222,10 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				if (!comment.anchorContext || !comment.anchorText) return;
 
 				// Find the best paragraph
-				var bestParagraphNode, bestParagraphText, bestParagraphIndex, bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER;
+				var bestParagraphNode;
+				var bestParagraphText;
+				var bestParagraphIndex;
+				var bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER doesn't exist in IE
 				if (!paragraphTexts) {
 					populateParagraphTexts();
 				}
@@ -263,13 +267,13 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				}
 
 				// Create the span corresponding to the anchor text
-				var highlightClass = "inline-comment-" + comment.pageId;
+				var highlightClass = 'inline-comment-' + comment.pageId;
 				createInlineCommentHighlight(bestParagraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
 
 				// Add to the array of valid inline comments
 				var inlineComment = {
 					paragraphNode: bestParagraphNode,
-					anchorNode: $("." + highlightClass),
+					anchorNode: $('.' + highlightClass),
 					paragraphIndex: bestParagraphIndex,
 					anchorOffset: anchorOffset,
 					pageId: comment.pageId,
@@ -282,7 +286,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			for (var n = 0; n < scope.page.commentIds.length; n++) {
 				processInlineComment(scope.page.commentIds[n]);
 			}
-			var inlineCommentButtonHeight = 40; // $newInlineCommentButton.height(); 
+			var inlineCommentButtonHeight = 40; // $newInlineCommentButton.height();
 			var preprocessInlineCommentButtons = function() {
 				orderedInlineComments.sort(function(a, b) {
 					// Create arrays of values which we compare, breaking ties with the next item in the array.
@@ -305,19 +309,19 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 					// Subtract 8 pixels to allow small overlap between buttons
 					minTop = top + inlineCommentButtonHeight - 8;
 				}
-			}
+			};
 			preprocessInlineCommentButtons();
 
 			// Get the style of an inline comment icon
 			scope.getInlineCommentIconStyle = function(commentId) {
 				var params = scope.inlineComments[commentId];
-				var isVisible = element.closest(".reveal-after-render-parent").length <= 0;
+				var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
 				isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments);
 				return {
-					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
-					"top": params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
-					"visibility": isVisible ? "visible" : "hidden",
-					"zIndex": params.zIndex,
+					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+					'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
+					'visibility': isVisible ? 'visible' : 'hidden',
+					'zIndex': params.zIndex,
 				};
 			};
 
@@ -332,7 +336,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				var params = scope.inlineComments[commentId];
 				params.mouseover = mouseover;
 				if (params.visible) return;
-				params.anchorNode.toggleClass("inline-comment-highlight-hover", mouseover);
+				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover);
 			};
 
 			// Hide/show the inline comment
@@ -341,7 +345,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 				if (!params.container) return;
 				params.container.remove();
 				params.container = undefined;
-				params.anchorNode.toggleClass("inline-comment-highlight-hover", params.mouseover);
+				params.anchorNode.toggleClass('inline-comment-highlight-hover', params.mouseover);
 				params.visible = false;
 			};
 			scope.toggleInlineComment = function(commentId) {
@@ -356,9 +360,9 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 					}
 
 					// Create the container
-					params.container = $compile($("<arb-inline-comment" +
-						" lens-id='" + scope.page.pageId +
-						"' comment-id='" + commentId + "'></arb-inline-comment>"))(scope);
+					params.container = $compile($('<arb-inline-comment' +
+						' lens-id=\'' + scope.page.pageId +
+						'\' comment-id=\'' + commentId + '\'></arb-inline-comment>'))(scope);
 					$(params.paragraphNode).after(params.container);
 				} else {
 					closeInlineComment(commentId);
@@ -369,12 +373,12 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			var $inlineCommentEditPage = undefined;
 			var newInlineCommentButtonTop = 0;
 			scope.showNewInlineCommentButton = false;
-			$markdownContainer.on("mouseup", function(event) {
+			$markdownContainer.on('mouseup', function(event) {
 				if ($inlineCommentEditPage) return;
 				// Do $timeout, because otherwise there is a bug when you double click to
 				// select a word/paragraph, then click again and the selection var is still
 				// the same (not cleared).
-				$timeout(function(){
+				$timeout(function() {
 					scope.showNewInlineCommentButton = !!processSelectedParagraphText();
 					if (scope.showNewInlineCommentButton) {
 						newInlineCommentButtonTop = event.pageY;
@@ -383,9 +387,9 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			});
 			scope.getNewInlineCommentButtonStyle = function() {
 				return {
-					"left": $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
-					"top": newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
-					"zIndex": orderedInlineComments.length,
+					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+					'top': newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
+					'zIndex': orderedInlineComments.length,
 				};
 			};
 
@@ -401,9 +405,9 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 						comment.anchorContext = selection.context;
 						comment.anchorText = selection.text;
 						comment.anchorOffset = selection.offset;
-						$inlineCommentEditPage = $compile($("<div arb-edit-page class='edit-comment-embed'" +
-							" is-embedded='true' page-id='" + newCommentId +
-							"' done-fn='newInlineCommentDone(result)'></div>"))(scope);
+						$inlineCommentEditPage = $compile($('<div arb-edit-page class=\'edit-comment-embed\'' +
+							' is-embedded=\'true\' page-id=\'' + newCommentId +
+							'\' done-fn=\'newInlineCommentDone(result)\'></div>'))(scope);
 						$(selection.paragraphNode).after($inlineCommentEditPage);
 						scope.showNewInlineCommentButton = false;
 					},
@@ -414,7 +418,7 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 			scope.newInlineCommentDone = function(result) {
 				$inlineCommentEditPage.remove();
 				$inlineCommentEditPage = undefined;
-				$markdown.find(".inline-comment-highlight").removeClass("inline-comment-highlight");
+				$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
 				if (!result.discard) {
 					pageService.newCommentCreated(result.pageId);
 					processInlineComment(result.pageId);
@@ -424,20 +428,20 @@ app.directive("arbLens", function($location, $compile, $timeout, $interval, $mdM
 
 			// Process all embedded votes
 			$timeout(function() {
-				element.find("[embed-vote-id]").each(function(index) {
+				element.find('[embed-vote-id]').each(function(index) {
 					var $link = $(this);
-					var pageAlias = $link.attr("embed-vote-id");
+					var pageAlias = $link.attr('embed-vote-id');
 					pageService.loadIntrasitePopover(pageAlias, {
 						success: function(data, status) {
 							var pageId = pageService.pageMap[pageAlias].pageId;
-							var divId = "embed-vote-" + pageId;
-							var $embedDiv = $compile("<div id='" + divId +
-								"' class='md-whiteframe-2dp' arb-vote-bar page-id='" + pageId +
-								"' is-embedded='true' show-meta-info='true'></div>")(scope);
+							var divId = 'embed-vote-' + pageId;
+							var $embedDiv = $compile('<div id=\'' + divId +
+								'\' class=\'md-whiteframe-2dp\' arb-vote-bar page-id=\'' + pageId +
+								'\' is-embedded=\'true\' show-meta-info=\'true\'></div>')(scope);
 							$link.replaceWith($embedDiv);
 						},
 						error: function(data, status) {
-							console.error("Couldn't load embedded votes: " + pageAlias);
+							console.error('Couldn\'t load embedded votes: ' + pageAlias);
 						}
 					});
 				});

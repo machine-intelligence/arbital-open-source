@@ -1,12 +1,12 @@
-"use strict";
+'use strict';
 
 // Directive for table of contents
-app.directive("arbTableOfContents", function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbTableOfContents', function($timeout, $http, $compile, pageService, userService) {
 	return {
-		templateUrl: "static/html/tableOfContents.html",
+		templateUrl: 'static/html/tableOfContents.html',
 		transclude: true,
 		scope: {
-			pageId: "@",
+			pageId: '@',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -15,7 +15,7 @@ app.directive("arbTableOfContents", function($timeout, $http, $compile, pageServ
 			$scope.toc = [];
 		},
 		link: function(scope, element, attrs) {
-			var $parent = element.closest("arb-markdown");
+			var $parent = element.closest('arb-markdown');
 
 			// We compute sections in a bit of a weird way because we can have H3 or H2 come
 			// before we have H1, so we need to count them as whole sections until we find H1,
@@ -24,30 +24,30 @@ app.directive("arbTableOfContents", function($timeout, $http, $compile, pageServ
 
 			// Add a row to TOC given current state.
 			var addContentRow = function(header) {
-				var section = "" + counts[0].count;
+				var section = '' + counts[0].count;
 				if (counts.length > 1) {
-					section += "." + counts[1].count;
+					section += '.' + counts[1].count;
 				}
 				if (counts.length > 2) {
-					section += "." + counts[2].count;
+					section += '.' + counts[2].count;
 				}
-				var id = "h-" + scope.pageId + "-" + section;
-				var url = "#" + id;
+				var id = 'h-' + scope.pageId + '-' + section;
+				var url = '#' + id;
 				var row = {section: section, header: header, tabSize: counts.length - 1, url: url};
 				scope.toc.push(row);
 				return id;
 			};
 
 			// Go through all the headers and create TOC entries
-			$parent.find("h1,h2,h3").each(function () {
+			$parent.find('h1,h2,h3').each(function() {
 				var $this = $(this);
-				var headerType = $this.prop("nodeName");
+				var headerType = $this.prop('nodeName');
 				var currentHeader;
-				if (headerType === "H1") {
+				if (headerType === 'H1') {
 					currentHeader = 1;
-				} else if (headerType === "H2") {
+				} else if (headerType === 'H2') {
 					currentHeader = 2;
-				} else if (headerType === "H3") {
+				} else if (headerType === 'H3') {
 					currentHeader = 3;
 				} else {
 					return;
@@ -67,7 +67,7 @@ app.directive("arbTableOfContents", function($timeout, $http, $compile, pageServ
 					counts = counts.slice(0, n + 1);
 				}
 				var id = addContentRow($this.text());
-				$this.attr("id", id);
+				$this.attr('id', id);
 			});
 		},
 	};

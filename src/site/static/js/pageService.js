@@ -1,12 +1,12 @@
-"use strict";
+'use strict';
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service("pageService", function($http, $location, $rootScope, userService, urlService){
+app.service('pageService', function($http, $location, $rootScope, userService, urlService) {
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
-	this.privateGroupId = "";
+	this.privateGroupId = '';
 
 	// Primary page is the one with its id in the url
 	this.primaryPage = undefined;
@@ -83,13 +83,15 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 
 	// Compute the status of the given masteries and update the server
 	this.pushMasteriesToServer = function(affectedMasteryIds, callback) {
-		var addMasteries = [], delMasteries = [], wantsMasteries = [];
+		var addMasteries = [];
+		var delMasteries = [];
+		var wantsMasteries = [];
 		for (var n = 0; n < affectedMasteryIds.length; n++) {
 			var masteryId = affectedMasteryIds[n];
 			var masteryStatus = this.getMasteryStatus(masteryId);
-			if (masteryStatus === "has") {
+			if (masteryStatus === 'has') {
 				addMasteries.push(masteryId);
-			} else if (masteryStatus === "wants") {
+			} else if (masteryStatus === 'wants') {
 				wantsMasteries.push(masteryId);
 			} else {
 				delMasteries.push(masteryId);
@@ -103,7 +105,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 			// Note: this is a bit hacky. We should probably pass computeUnlocked explicitly
 			computeUnlocked: !!callback,
 		};
-		$http({method: "POST", url: "/updateMasteries/", data: JSON.stringify(data)})
+		$http({method: 'POST', url: '/updateMasteries/', data: JSON.stringify(data)})
 		.success(function(data) {
 			if (callback) {
 				userService.processServerData(data);
@@ -111,8 +113,8 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 				callback(data);
 			}
 		})
-		.error(function(data, status){
-			console.error("Failed to change masteries:"); console.log(data); console.log(status);
+		.error(function(data, status) {
+			console.error('Failed to change masteries:'); console.log(data); console.log(status);
 		});
 	};
 
@@ -129,9 +131,9 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		}
 		this.pageObjectMap[options.pageId][options.object] = options;
 
-		$http({method: "POST", url: "/updatePageObject/", data: JSON.stringify(options)})
-		.error(function(data, status){
-			console.error("Failed to update page object:"); console.log(data); console.log(status);
+		$http({method: 'POST', url: '/updatePageObject/', data: JSON.stringify(options)})
+		.error(function(data, status) {
+			console.error('Failed to update page object:'); console.log(data); console.log(status);
 		});
 	};
 
@@ -160,18 +162,18 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		}
 
 		// Populate page object map.
-		var pageObjectData = data["pageObjects"];
+		var pageObjectData = data.pageObjects;
 		for (var id in pageObjectData) {
 			this.smartAddToMap(this.pageObjectMap, pageObjectData[id], id);
 		}
 
 		// Populate materies map.
-		var masteryData = data["masteries"];
+		var masteryData = data.masteries;
 		for (var id in masteryData) {
 			this.smartAddToMap(this.masteryMap, masteryData[id], id);
 		}
 
-		var pageData = data["pages"];
+		var pageData = data.pages;
 		for (var id in pageData) {
 			var page = pageData[id];
 			if (page.isCurrentEdit) {
@@ -181,7 +183,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 			}
 		}
 
-		var editData = data["edits"];
+		var editData = data.edits;
 		for (var id in editData) {
 			this.addPageToEditMap(editData[id]);
 		}
@@ -193,9 +195,9 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	//	 includeHost: if true, include "https://" + host in the url
 	//	 useEditMap: if true, use edit map to retrieve info for this page
 	// }
-	this.getPageUrl = function(pageId, options){
+	this.getPageUrl = function(pageId, options) {
 		var options = options || {};
-		var url = "/p/" + pageId + "/";
+		var url = '/p/' + pageId + '/';
 		var alreadyIncludedHost = false;
 		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
 
@@ -205,14 +207,14 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 			// Make sure the page's alias is scoped to its group
 			if (page.seeGroupId && page.pageId != page.alias) {
 				var groupAlias = that.pageMap[page.seeGroupId].alias;
-				if (pageAlias.indexOf(".") == -1) {
-					pageAlias = groupAlias + "." + pageAlias;
+				if (pageAlias.indexOf('.') == -1) {
+					pageAlias = groupAlias + '.' + pageAlias;
 				}
 			}
 
-			url = urlService.getBaseUrl("p", options.permalink ? pageId : pageAlias, pageAlias)
+			url = urlService.getBaseUrl('p', options.permalink ? pageId : pageAlias, pageAlias);
 			if (options.permalink) {
-				url += "?l=" + pageId;
+				url += '?l=' + pageId;
 			}
 
 			// Check page's type to see if we need a special url
@@ -220,8 +222,8 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (parent) {
-						url = urlService.getBaseUrl("p", options.permalink ? parent.pageId : parent.alias, parent.alias);
-						url += "?l=" + pageId;
+						url = urlService.getBaseUrl('p', options.permalink ? parent.pageId : parent.alias, parent.alias);
+						url += '?l=' + pageId;
 						break;
 					}
 				}
@@ -233,7 +235,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 					if ((page.isComment() && !parent.isComment()) ||
 							(page.isAnswer() && parent.isQuestion())) {
 						url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
-						url += "#subpage-" + pageId;
+						url += '#subpage-' + pageId;
 						break;
 					}
 				}
@@ -241,7 +243,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 
 			// Check if we should set the domain
 			if (page.seeGroupId != that.privateGroupId) {
-				if (page.seeGroupId !== "") {
+				if (page.seeGroupId !== '') {
 					url = urlService.getDomainUrl(that.pageMap[page.seeGroupId].alias) + url;
 				} else {
 					url = urlService.getDomainUrl() + url;
@@ -260,16 +262,16 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	//	 includeHost: if true, include "https://" + host in the url
 	//	 specificEdit: if set to non-zero, include the edit parameter in the url
 	// }
-	this.getEditPageUrl = function(pageId, options){
+	this.getEditPageUrl = function(pageId, options) {
 		options = options || {};
-		var url = "";
+		var url = '';
 		if (pageId in this.pageMap) {
-			url = urlService.getBaseUrl("edit", pageId, this.pageMap[pageId].alias);
+			url = urlService.getBaseUrl('edit', pageId, this.pageMap[pageId].alias);
 		} else {
-			url = "/edit/" + pageId + "/";
+			url = '/edit/' + pageId + '/';
 		}
 		if (options.specificEdit) {
-			url = url + options.specificEdit + "/";
+			url = url + options.specificEdit + '/';
 		}
 		if (options.includeHost) {
 			url = urlService.getDomainUrl() + url;
@@ -280,11 +282,11 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// Get url to the user page.
 	this.getUserUrl = function(userId, options) {
 		options = options || {};
-		var url = "";
+		var url = '';
 		if (userId in this.pageMap) {
-			url = urlService.getBaseUrl("p", userId, this.pageMap[userId].alias);
+			url = urlService.getBaseUrl('p', userId, this.pageMap[userId].alias);
 		} else {
-			url = "/p/" + userId;
+			url = '/p/' + userId;
 		}
 		if (options.includeHost) {
 			url = urlService.getDomainUrl() + url;
@@ -306,36 +308,36 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		},
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
-			if (!userService.user || userService.user.id === "") return false;
+			if (!userService.user || userService.user.id === '') return false;
 			return this.creatorId != userService.user.id &&
-				(this.lastVisit === "" || this.originalCreatedAt >= this.lastVisit);
+				(this.lastVisit === '' || this.originalCreatedAt >= this.lastVisit);
 		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
-			if (!userService.user || userService.user.id === "") return false;
+			if (!userService.user || userService.user.id === '') return false;
 			return this.creatorId != userService.user.id &&
-				this.lastVisit !== "" && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
+				this.lastVisit !== '' && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
 		},
 		isWiki: function() {
-			return this.type === "wiki";
+			return this.type === 'wiki';
 		},
 		isLens: function() {
-			return this.type === "lens";
+			return this.type === 'lens';
 		},
 		isQuestion: function() {
-			return this.type === "question";
+			return this.type === 'question';
 		},
 		isAnswer: function() {
-			return this.type === "answer";
+			return this.type === 'answer';
 		},
 		isComment: function() {
-			return this.type === "comment";
+			return this.type === 'comment';
 		},
 		isGroup: function() {
-			return this.type === "group";
+			return this.type === 'group';
 		},
 		isDomain: function() {
-			return this.type === "domain";
+			return this.type === 'domain';
 		},
 		// Return empty string if the user can edit this page. Otherwise a reason for
 		// why they can't.
@@ -344,11 +346,11 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 			if (userService.user.karma < karmaReq) {
 				if (userService.user.isAdmin) {
 					// Can edit but only because user is an admin.
-					return "admin";
+					return 'admin';
 				}
-				return "" + karmaReq;
+				return '' + karmaReq;
 			}
-			return "";
+			return '';
 		},
 		// Return empty string if the user can delete this page. Otherwise a reason
 		// for why they can't.
@@ -356,15 +358,15 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 			var karmaReq = 200; // TODO: fix this
 			if (userService.user.karma < karmaReq) {
 				if (userService.user.isAdmin) {
-					return "admin";
+					return 'admin';
 				}
-				return "" + karmaReq;
+				return '' + karmaReq;
 			}
-			return "";
+			return '';
 		},
 		// Return true iff the page is deleted.
 		isDeleted: function() {
-			return this.type === "";
+			return this.type === '';
 		},
 		// Get page's url
 		url: function() {
@@ -376,7 +378,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		},
 		// Return just the title to display for a lens.
 		lensTitle: function() {
-			var parts = this.title.split(":");
+			var parts = this.title.split(':');
 			return parts[parts.length - 1].trim();
 		},
 	};
@@ -397,7 +399,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// already exists, we do a clever merge.
 	var isValueTruthy = function(v) {
 		// "0" is falsy
-		if (v === "0") {
+		if (v === '0') {
 			return false;
 		}
 		// Empty array is falsy.
@@ -437,7 +439,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// Add the given page to the global editMap.
 	this.addPageToEditMap = function(page) {
 		this.editMap[page.pageId] = setUpPage(page);
-	}
+	};
 
 	// Remove page with the given pageId from the global editMap;
 	this.removePageFromEditMap = function(pageId) {
@@ -447,7 +449,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// Return function for sorting children ids.
 	this.getChildSortFunc = function(sortChildrenBy) {
 		var pageMap = this.pageMap;
-		if(sortChildrenBy === "alphabetical") {
+		if (sortChildrenBy === 'alphabetical') {
 			return function(aId, bId) {
 				var aTitle = pageMap[aId].title;
 				var bTitle = pageMap[bId].title;
@@ -462,17 +464,17 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 				}
 				return pageMap[aId].title.localeCompare(pageMap[bId].title);
 			};
-		} else if (sortChildrenBy === "recentFirst") {
+		} else if (sortChildrenBy === 'recentFirst') {
 			return function(aId, bId) {
 				return pageMap[bId].originalCreatedAt.localeCompare(pageMap[aId].originalCreatedAt);
 			};
-		} else if (sortChildrenBy === "oldestFirst") {
+		} else if (sortChildrenBy === 'oldestFirst') {
 			return function(aId, bId) {
 				return pageMap[aId].originalCreatedAt.localeCompare(pageMap[bId].originalCreatedAt);
 			};
 		} else {
-			if (sortChildrenBy !== "likes") {
-				console.error("Unknown sort type: " + sortChildrenBy);
+			if (sortChildrenBy !== 'likes') {
+				console.error('Unknown sort type: ' + sortChildrenBy);
 			}
 			return function(aId, bId) {
 				var diff = pageMap[bId].likeScore() - pageMap[aId].likeScore();
@@ -508,23 +510,23 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		}
 		loadingPageAliases[loadKey] = true;
 
-		console.log("Issuing a POST request to: " + options.url + "?pageAlias=" + pageAlias);
-		$http({method: "POST", url: options.url, data: JSON.stringify({pageAlias: pageAlias})}).
-			success(function(data, status){
+		console.log('Issuing a POST request to: ' + options.url + '?pageAlias=' + pageAlias);
+		$http({method: 'POST', url: options.url, data: JSON.stringify({pageAlias: pageAlias})}).
+			success(function(data, status) {
 				if (!options.silentFail) {
-					console.log("JSON " + options.url + " data:"); console.dir(data);
+					console.log('JSON ' + options.url + ' data:'); console.dir(data);
 				}
 				userService.processServerData(data);
 				that.processServerData(data);
-				var pageData = data["pages"];
+				var pageData = data.pages;
 				for (var id in pageData) {
 					delete loadingPageAliases[options.url + id];
 					delete loadingPageAliases[options.url + pageData[id].alias];
 				}
 				if (options.success) options.success();
-			}).error(function(data, status){
+			}).error(function(data, status) {
 				if (!options.silentFail) {
-					console.log("Error loading page:"); console.log(data); console.log(status);
+					console.log('Error loading page:'); console.log(data); console.log(status);
 				}
 				if (options.error) options.error(data, status);
 			}
@@ -534,7 +536,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// Get data to display a popover for the page with the given alias.
 	this.loadIntrasitePopover = function(pageAlias, options) {
 		options = options || {};
-		options.url = "/json/intrasitePopover/";
+		options.url = '/json/intrasitePopover/';
 		loadPage(pageAlias, options);
 	};
 
@@ -553,17 +555,17 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
 
-		console.log("Issuing POST request to /json/userPopover/?userId=" + userId);
-		$http({method: "POST", url: "/json/userPopover/", data: JSON.stringify({userId: userId})})
-		.success(function(data, status){
+		console.log('Issuing POST request to /json/userPopover/?userId=' + userId);
+		$http({method: 'POST', url: '/json/userPopover/', data: JSON.stringify({userId: userId})})
+		.success(function(data, status) {
 			delete loadingUserPopovers[userId];
 			userService.processServerData(data);
 			that.processServerData(data);
 			if (success) success(data, status);
 		})
-		.error(function(data, status){
+		.error(function(data, status) {
 			delete loadingUserPopovers[userId];
-			console.error("Error loading user popover:"); console.log(data); console.log(status);
+			console.error('Error loading user popover:'); console.log(data); console.log(status);
 			if (error) error(data, status);
 		});
 	};
@@ -571,14 +573,14 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	// Get data to display a lens.
 	this.loadLens = function(pageAlias, options) {
 		options = options || {};
-		options.url = "/json/lens/";
+		options.url = '/json/lens/';
 		loadPage(pageAlias, options);
 	};
 
 	// Get data to display page's title
 	this.loadTitle = function(pageAlias, options) {
 		options = options || {};
-		options.url = "/json/title/";
+		options.url = '/json/title/';
 		loadPage(pageAlias, options);
 	};
 
@@ -598,19 +600,19 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var error = options.error; delete options.error;
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
-		console.log("Issuing a POST request to: /json/edit/?pageAlias=" + options.pageAlias);
-		$http({method: "POST", url: "/json/edit/", data: JSON.stringify(options)})
-		.success(function(data, status){
-			console.log("JSON /json/edit/ data:"); console.dir(data);
+		console.log('Issuing a POST request to: /json/edit/?pageAlias=' + options.pageAlias);
+		$http({method: 'POST', url: '/json/edit/', data: JSON.stringify(options)})
+		.success(function(data, status) {
+			console.log('JSON /json/edit/ data:'); console.dir(data);
 			if (!skipProcessDataStep) {
 				userService.processServerData(data);
 				that.processServerData(data);
 			}
-			if(success) success(data["edits"], status);
+			if (success) success(data.edits, status);
 		})
-		.error(function(data, status){
-			console.log("Error loading page:"); console.log(data); console.log(status);
-			if(error) error(data, status);
+		.error(function(data, status) {
+			console.log('Error loading page:'); console.log(data); console.log(status);
+			if (error) error(data, status);
 		});
 	};
 
@@ -625,17 +627,17 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
 
-		$http({method: "POST", url: "/json/newPage/", data: JSON.stringify(options)})
-		.success(function(data, status){
-			console.log("JSON /json/newPage/ data:"); console.dir(data);
+		$http({method: 'POST', url: '/json/newPage/', data: JSON.stringify(options)})
+		.success(function(data, status) {
+			console.log('JSON /json/newPage/ data:'); console.dir(data);
 			userService.processServerData(data);
 			that.processServerData(data);
-			var pageId = Object.keys(data["edits"])[0];
-			if(success) success(pageId);
+			var pageId = Object.keys(data.edits)[0];
+			if (success) success(pageId);
 		})
-		.error(function(data, status){
-			console.log("Error getting a new page:"); console.log(data); console.log(status);
-			if(error) error(data, status);
+		.error(function(data, status) {
+			console.log('Error getting a new page:'); console.log(data); console.log(status);
+			if (error) error(data, status);
 		});
 	};
 
@@ -644,14 +646,14 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/deletePage/", data: JSON.stringify(data)})
-		.success(function(data, status){
-			console.log("Successfully deleted " + pageId);
-			if(success) success(data, status);
+		$http({method: 'POST', url: '/deletePage/', data: JSON.stringify(data)})
+		.success(function(data, status) {
+			console.log('Successfully deleted ' + pageId);
+			if (success) success(data, status);
 		})
-		.error(function(data, status){
-			console.log("Error deleting " + pageId + ":"); console.log(data); console.log(status);
-			if(error) error(data, status);
+		.error(function(data, status) {
+			console.log('Error deleting ' + pageId + ':'); console.log(data); console.log(status);
+			if (error) error(data, status);
 		}
 		);
 	};
@@ -661,13 +663,13 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var data = {
 			pageId: pageId,
 		};
-		$http({method: "POST", url: "/discardPage/", data: JSON.stringify(data)})
-		.success(function(data, status){
-			if(success) success(data, status);
+		$http({method: 'POST', url: '/discardPage/', data: JSON.stringify(data)})
+		.success(function(data, status) {
+			if (success) success(data, status);
 		})
-		.error(function(data, status){
-			console.log("Error discarding " + pageId + ":"); console.log(data); console.log(status);
-			if(error) error(data, status);
+		.error(function(data, status) {
+			console.log('Error discarding ' + pageId + ':'); console.log(data); console.log(status);
+			if (error) error(data, status);
 		}
 		);
 	};
@@ -688,32 +690,32 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 			indirectTeacher: page.indirectTeacher,
 			isEditorComment: page.isEditorComment,
 		};
-		$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
+		$http({method: 'POST', url: '/editPageInfo/', data: JSON.stringify(data)})
 		.success(function(data) {
-			if(callback) callback();
+			if (callback) callback();
 		})
 		.error(function(data) {
-			console.error("Error /editPageInfo/ :"); console.error(data);
-			if(callback) callback(data);
+			console.error('Error /editPageInfo/ :'); console.error(data);
+			if (callback) callback(data);
 		});
 	};
 
 	// (Un)subscribe a user to a page.
 	this.subscribeTo = function($target) {
 		var $target = $(event.target);
-		$target.toggleClass("on");
+		$target.toggleClass('on');
 		var data = {
-			pageId: $target.attr("page-id"),
+			pageId: $target.attr('page-id'),
 		};
-		var isSubscribed = $target.hasClass("on");
+		var isSubscribed = $target.hasClass('on');
 		$.ajax({
-			type: "POST",
-			url: isSubscribed ? "/newSubscription/" : "/deleteSubscription/",
+			type: 'POST',
+			url: isSubscribed ? '/newSubscription/' : '/deleteSubscription/',
 			data: JSON.stringify(data),
 		});
 		this.pageMap[data.pageId].isSubscribed = isSubscribed;
 		$rootScope.$apply();
-	}
+	};
 
 	// Add a new relationship between pages using the given options.
 	// options = {
@@ -722,20 +724,20 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	//	type: type of the relationships
 	// }
 	this.newPagePair = function(options, success) {
-		$http({method: "POST", url: "/newPagePair/", data: JSON.stringify(options)})
-		.success(function(data, status){
-			if(success) success();
+		$http({method: 'POST', url: '/newPagePair/', data: JSON.stringify(options)})
+		.success(function(data, status) {
+			if (success) success();
 		})
-		.error(function(data, status){
-			console.log("Error creating new page pair:"); console.log(data); console.log(status);
+		.error(function(data, status) {
+			console.log('Error creating new page pair:'); console.log(data); console.log(status);
 		});
 	};
 	// Note: you also need to specify the type of the relationship here, sinc we
 	// don't want to accidentally delete the wrong type.
 	this.deletePagePair = function(options) {
-		$http({method: "POST", url: "/deletePagePair/", data: JSON.stringify(options)})
-		.error(function(data, status){
-			console.log("Error deleting a page pair:"); console.log(data); console.log(status);
+		$http({method: 'POST', url: '/deletePagePair/', data: JSON.stringify(options)})
+		.error(function(data, status) {
+			console.log('Error deleting a page pair:'); console.log(data); console.log(status);
 		});
 	};
 
@@ -744,19 +746,19 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 	this.showPublic = function(pageId, useEditMap) {
 		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
-			console.error("Couldn't find pageId: " + pageId);
+			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
 		}
-		return this.privateGroupId !== page.seeGroupId && page.seeGroupId === "";
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId === '';
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showPrivate = function(pageId, useEditMap) {
 		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
 		if (!page) {
-			console.error("Couldn't find pageId: " + pageId);
+			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
 		}
-		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== "";
+		return this.privateGroupId !== page.seeGroupId && page.seeGroupId !== '';
 	};
 
 	// Create a new comment; optionally it's a reply to the given commentId
@@ -772,7 +774,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		}
 		// Create new comment
 		this.getNewPage({
-			type: "comment",
+			type: 'comment',
 			parentIds: parentIds,
 			success: function(newCommentId) {
 				if (options.success) {
@@ -788,7 +790,7 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		if (comment.isEditorComment) {
 			userService.showEditorComments = true;
 		}
-		comment.originalCreatedAt = moment().format("YYYY-MM-DD HH:mm:ss");
+		comment.originalCreatedAt = moment().format('YYYY-MM-DD HH:mm:ss');
 		this.addPageToMap(comment);
 
 		// Find the parent comment, or fall back on the parent page
@@ -806,7 +808,8 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
 	this.getMasteryStatus = function(masteryId) {
-		var has = false, wants = false;
+		var has = false;
+		var wants = false;
 		for (var n = 0; n < this.masteryMapList.length; n++) {
 			var masteryMap = this.masteryMapList[n];
 			if (masteryMap && masteryId in masteryMap) {
@@ -821,31 +824,31 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 				}
 			}
 		}
-		if (has) return "has";
-		if (wants) return "wants";
-		return "";
+		if (has) return 'has';
+		if (wants) return 'wants';
+		return '';
 	};
 
 	// Check if the user has the mastery
 	this.hasMastery = function(masteryId) {
-		return this.getMasteryStatus(masteryId) === "has";
+		return this.getMasteryStatus(masteryId) === 'has';
 	};
 
 	// Check if the user wants the mastery
 	this.wantsMastery = function(masteryId) {
-		return this.getMasteryStatus(masteryId) === "wants";
+		return this.getMasteryStatus(masteryId) === 'wants';
 	};
 
 	// Check if the user doesn't have or want the mastery
 	this.nullMastery = function(masteryId) {
-		return this.getMasteryStatus(masteryId) === "";
+		return this.getMasteryStatus(masteryId) === '';
 	};
 
 	// =========== Questionnaire helpers ====================
 	// Map questionIndex -> {knows: [ids], wants: [ids], forgets: [ids]}
 	this.setQuestionAnswer = function(qIndex, knows, wants, delKnows, delWants, updatePageObjectOptions) {
 		if (qIndex <= 0) {
-			return console.error("qIndex has to be > 0");
+			return console.error('qIndex has to be > 0');
 		}
 		// Compute which masteries are affected
 		var affectedMasteryIds = (qIndex in this.masteryMapList) ? Object.keys(this.masteryMapList[qIndex]) : [];
@@ -898,10 +901,10 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 
 	// Update the path variables.
 	$rootScope.$watch(function() {
-		return $location.absUrl() + "|" + (that.primaryPage ? that.primaryPage.pageId : "");
+		return $location.absUrl() + '|' + (that.primaryPage ? that.primaryPage.pageId : '');
 	}, function() {
 		that.path = undefined;
-		that.path = Cookies.getJSON("path");
+		that.path = Cookies.getJSON('path');
 		if (!that.path || !that.primaryPage) return;
 
 		// Check if the user is learning
@@ -910,13 +913,13 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		var currentIndex = pathPageIds.indexOf(currentPageId);
 		if (currentIndex >= 0) {
 			that.path.onPath = true;
-			that.path.prevPageId = currentIndex > 0 ? pathPageIds[currentIndex - 1] : "";
-			that.path.nextPageId = currentIndex < pathPageIds.length - 1 ? pathPageIds[currentIndex + 1] : "";
+			that.path.prevPageId = currentIndex > 0 ? pathPageIds[currentIndex - 1] : '';
+			that.path.nextPageId = currentIndex < pathPageIds.length - 1 ? pathPageIds[currentIndex + 1] : '';
 			that.path.currentPageId = currentPageId;
 		} else {
 			that.path.onPath = false;
-			that.path.prevPageId = that.path.nextPageId = "";
+			that.path.prevPageId = that.path.nextPageId = '';
 		}
-		Cookies.set("path", that.path);
+		Cookies.set('path', that.path);
 	});
 });

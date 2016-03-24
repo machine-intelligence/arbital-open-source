@@ -1,25 +1,25 @@
-"use strict";
+'use strict';
 
 // Directive for listing masteries and allowing the user to claim them.
-app.directive("arbMasteryList", function($timeout, $http, pageService, userService) {
+app.directive('arbMasteryList', function($timeout, $http, pageService, userService) {
 	return {
-		templateUrl: "static/html/masteryList.html",
+		templateUrl: 'static/html/masteryList.html',
 		scope: {
-			idsSource: "=",
+			idsSource: '=',
 			// If true, don't show the checkboxes
-			hideCheckboxes: "=",
+			hideCheckboxes: '=',
 			// If true, show the requisites the user has first
-			showHasFirst: "=",
+			showHasFirst: '=',
 			// If true, allow the user to toggle through want states
-			allowWants: "=",
+			allowWants: '=',
 			// If true, recursively show requirements for each mastery
-			showRequirements: "=",
+			showRequirements: '=',
 			// If true, show clickbait for all the masteries
-			showClickbait: "=",
+			showClickbait: '=',
 			// If true, show the requirements on one line
-			isSpan: "=",
+			isSpan: '=',
 			// Optional callback, which will receive results when pages are unlocked
-			unlockedFn: "&",
+			unlockedFn: '&',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;

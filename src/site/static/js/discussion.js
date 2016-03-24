@@ -1,9 +1,9 @@
 // Directive to show the discussion section for a page
-app.directive("arbDiscussion", function($compile, $location, $timeout, pageService, userService, autocompleteService) {
+app.directive('arbDiscussion', function($compile, $location, $timeout, pageService, userService, autocompleteService) {
 	return {
-		templateUrl: "static/html/discussion.html",
+		templateUrl: 'static/html/discussion.html',
 		scope: {
-			pageId: "@",
+			pageId: '@',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -13,7 +13,7 @@ app.directive("arbDiscussion", function($compile, $location, $timeout, pageServi
 			// Compute all ids to show under discussion
 			var computeSubpageIds = function() {
 				$scope.page.subpageIds = ($scope.page.questionIds || []).concat($scope.page.commentIds || []);
-				$scope.page.subpageIds.sort(pageService.getChildSortFunc("likes"));
+				$scope.page.subpageIds.sort(pageService.getChildSortFunc('likes'));
 			};
 			computeSubpageIds();
 
@@ -39,7 +39,7 @@ app.directive("arbDiscussion", function($compile, $location, $timeout, pageServi
 			userService.showEditorComments = userService.user.id in $scope.page.creatorIds;
 			if (!userService.showEditorComments && $location.hash()) {
 				// If hash points to a subpage for editors, show it
-				var matches = (new RegExp("^subpage-" + aliasMatch + "$")).exec($location.hash());
+				var matches = (new RegExp('^subpage-' + aliasMatch + '$')).exec($location.hash());
 				if (matches) {
 					var page = pageService.pageMap[matches[1]];
 					if (page) {

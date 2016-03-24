@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 
 // Autocomplete service provides data for autocompletion.
-app.service("autocompleteService", function($http, $compile, pageService){
+app.service('autocompleteService', function($http, $compile, pageService) {
 	var that = this;
 
 	// Take data we get from BE search, and extract the data to forward it to
@@ -37,52 +37,52 @@ app.service("autocompleteService", function($http, $compile, pageService){
 	// }
 	// Returns: list of results
 	this.performSearch = function(options, callback) {
-		$http({method: "POST", url: "/json/search/", data: JSON.stringify(options)})
-		.success(function(data, status){
+		$http({method: 'POST', url: '/json/search/', data: JSON.stringify(options)})
+		.success(function(data, status) {
 			var results = that.processAutocompleteResults(data);
 			if (callback) callback(results);
 		})
-		.error(function(data, status){
-			console.log("Error loading /search/ autocomplete data:"); console.log(data); console.log(status);
+		.error(function(data, status) {
+			console.log('Error loading /search/ autocomplete data:'); console.log(data); console.log(status);
 			if (callback) callback({});
 		});
-	}
+	};
 
 	// Load data for autocompleting parents search.
 	this.parentsSource = function(request, callback) {
-		$http({method: "POST", url: "/json/parentsSearch/", data: JSON.stringify(request)})
-		.success(function(data, status){
+		$http({method: 'POST', url: '/json/parentsSearch/', data: JSON.stringify(request)})
+		.success(function(data, status) {
 			var results = that.processAutocompleteResults(data);
 			if (callback) callback(results);
 		})
-		.error(function(data, status){
-			console.log("Error loading /parentsSearch/ autocomplete data:"); console.log(data); console.log(status);
+		.error(function(data, status) {
+			console.log('Error loading /parentsSearch/ autocomplete data:'); console.log(data); console.log(status);
 			callback([]);
 		});
 	};
 
 	// Load data for autocompleting user search.
 	this.userSource = function(request, callback) {
-		$http({method: "POST", url: "/json/userSearch/", data: JSON.stringify(request)})
-		.success(function(data, status){
+		$http({method: 'POST', url: '/json/userSearch/', data: JSON.stringify(request)})
+		.success(function(data, status) {
 			var results = that.processAutocompleteResults(data);
 			if (callback) callback(results);
 		})
-		.error(function(data, status){
-			console.log("Error loading /userSearch/ autocomplete data:"); console.log(data); console.log(status);
+		.error(function(data, status) {
+			console.log('Error loading /userSearch/ autocomplete data:'); console.log(data); console.log(status);
 			callback([]);
 		});
 	};
 
 	// Find other pages similar to the page with the given data.
 	this.findSimilarPages = function(pageData, callback) {
-		$http({method: "POST", url: "/json/similarPageSearch/", data: JSON.stringify(pageData)})
-		.success(function(data, status){
+		$http({method: 'POST', url: '/json/similarPageSearch/', data: JSON.stringify(pageData)})
+		.success(function(data, status) {
 			var results = that.processAutocompleteResults(data);
 			if (callback) callback(results);
 		})
-		.error(function(data, status){
-			console.log("Error doing similar page search:"); console.log(data); console.log(status);
+		.error(function(data, status) {
+			console.log('Error doing similar page search:'); console.log(data); console.log(status);
 		});
 	};
 });

@@ -1,15 +1,15 @@
-"use strict";
+'use strict';
 
 // Directive for the learn page.
-app.directive("arbLearnPage", function($location, $compile, pageService, userService) {
+app.directive('arbLearnPage', function($location, $compile, pageService, userService) {
 	return {
-		templateUrl: "static/html/learnPage.html",
+		templateUrl: 'static/html/learnPage.html',
 		scope: {
-			pageIds: "=",
-			optionsMap: "=",
-			tutorMap: "=",
-			requirementMap: "=",
-			continueLearning: "=",
+			pageIds: '=',
+			optionsMap: '=',
+			tutorMap: '=',
+			requirementMap: '=',
+			continueLearning: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -24,9 +24,9 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 
 			// Check to see if the given page has "Just a Requisite" (22t) tag.
 			var isJustARequisite = function(pageId) {
-				return pageService.pageMap[pageId].taggedAsIds.indexOf("22t") >= 0;
+				return pageService.pageMap[pageId].taggedAsIds.indexOf('22t') >= 0;
 			};
-			
+
 			// Figure our the order of pages through which to take the user
 			var computeLearnIds = function() {
 				$scope.readIds = [];
@@ -76,7 +76,7 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 					readIds: $scope.readIds,
 					unlearnableIds: $scope.unlearnableIds,
 				};
-				Cookies.set("path", path);
+				Cookies.set('path', path);
 				if (redirect) {
 					// Start them off with the first page
 					$location.url(pageService.getPageUrl($scope.readIds[0]));
@@ -98,16 +98,16 @@ app.directive("arbLearnPage", function($location, $compile, pageService, userSer
 			// Change which tutor to use for learning the given requisite.
 			scope.changeTutor = function(reqId, newTutorId) {
 				scope.requirementMap[reqId].bestTutorId = newTutorId;
-				$compile(element.find(".root-learn-part"))(scope);
+				$compile(element.find('.root-learn-part'))(scope);
 			};
 		},
 	};
 });
 
 // Directive for a recursive part of a learn.
-app.directive("arbLearnPart", function(pageService, userService, RecursionHelper) {
+app.directive('arbLearnPart', function(pageService, userService, RecursionHelper) {
 	return {
-		templateUrl: "static/html/learnPart.html",
+		templateUrl: 'static/html/learnPart.html',
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
