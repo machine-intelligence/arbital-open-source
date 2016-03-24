@@ -282,9 +282,9 @@ app.service("pageService", function($http, $location, $rootScope, userService, u
 		options = options || {};
 		var url = "";
 		if (userId in this.pageMap) {
-			url = urlService.getBaseUrl("user", userId, this.pageMap[userId].alias);
+			url = urlService.getBaseUrl("p", userId, this.pageMap[userId].alias);
 		} else {
-			url = "/user/" + userId + "/";
+			url = "/p/" + userId;
 		}
 		if (options.includeHost) {
 			url = urlService.getDomainUrl() + url;

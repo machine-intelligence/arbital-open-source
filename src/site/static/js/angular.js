@@ -89,7 +89,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 		$timeout(refreshAutoupdates, 30000);
 	};
 	refreshAutoupdates();
-	
+
 	// Returns an object containing a compiled element and its scope
 	$scope.newElement = function(html, parentScope) {
 		if (!parentScope) parentScope = $scope;
@@ -129,7 +129,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 					}
 				}
 			}
-			
+
 			if (currentView) {
 				currentView.scope.$destroy();
 				currentView.element.remove();
@@ -210,7 +210,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 	}, function() {
 		ga("send", "pageview", $location.absUrl());
 	});
-	
+
 	// The URL rule match for the current page
 	var currentLocation = {};
 	function resolveUrl() {
@@ -264,7 +264,7 @@ app.controller("ArbitalCtrl", function ($rootScope, $scope, $location, $timeout,
 	$rootScope.$on('$locationChangeSuccess', function (event, url) {
 		resolveUrl();
 	});
-	
+
 	// Resolve URL of initial page load
 	resolveUrl();
 });
@@ -298,7 +298,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				}))
 				.error($scope.getErrorFunc("index"));
 			}
-		},	
+		},
 	});
 	urlService.addUrlHandler("/adminDashboard/", {
 		name: "AdminDashboardPage",
@@ -333,8 +333,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 		},
 	});
 	urlService.addUrlHandler("/domains/:alias", {
- 		name: "DomainPageController",
- 		handler: function (args, $scope) {
+		name: "DomainPageController",
+		handler: function (args, $scope) {
 			pageService.domainAlias = args.alias;
 			var postData = {
 				domainAlias: pageService.domainAlias,
@@ -352,10 +352,10 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			}))
 			.error($scope.getErrorFunc("domainPage"));
 		},
- 	});
+	});
 	urlService.addUrlHandler("/edit/:alias?/:editOrAlias?/:edit?", {
- 		name: "EditPage",
- 		handler: function (args, $scope) {
+		name: "EditPage",
+		handler: function (args, $scope) {
 			var pageId = args.alias;
 
 			// Need to call /default/ in case we are creating a new page
@@ -422,7 +422,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			}))
 			.error($scope.getErrorFunc("default"));
 		},
- 	});
+	});
 	urlService.addUrlHandler("/groups/", {
 		name: "GroupsPage",
 		handler: function (args, $scope) {
@@ -437,8 +437,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 		},
 	});
 	urlService.addUrlHandler("/learn/:pageAlias?/:pageAlias2?", {
- 		name: "LearnPage",
- 		handler: function (args, $scope) {
+		name: "LearnPage",
+		handler: function (args, $scope) {
 			// Get the primary page data
 			var postData = {
 				pageAliases: [],
@@ -477,7 +477,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			}))
 			.error($scope.getErrorFunc("learn"));
 		},
- 	});
+	});
 	urlService.addUrlHandler("/login/", {
 		name: "LoginPage",
 		handler: function (args, $scope) {
@@ -503,12 +503,25 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			};
 			$http({method: "POST", url: "/json/primaryPage/", data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data){
-				var page = pageService.pageMap[postData.pageAlias];
+				var page = pageService.pageMap[postData.pageAlias],
+					pageTemplate = "<arb-primary-page></arb-primary-page>";
+
 				if (!page) {
 					return {
 						title: "Not Found",
 						error: "Page doesn't exist, was deleted, or you don't have permission to view it.",
 					};
+				}
+
+				// If the page is a user page, get the additional data about user
+				// - Recently created by me page ids.
+				// - Recently created by me comment ids.
+				// - Recently edited by me page ids.
+				// - Top pages by me
+				if (userService.userMap[page.pageId]) {
+					$scope.userPageIdsMap = data.result;
+					pageTemplate = "<arb-user-page user-id='" + page.pageId +
+							"' user_page_data='::userPageIdsMap'></arb-user-page>";
 				}
 
 				if (page.isLens() || page.isComment() || page.isAnswer()) {
@@ -525,15 +538,15 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				pageService.primaryPage = page;
 				return {
 					title: page.title,
-					content: $scope.newElement("<arb-primary-page></arb-primary-page>"),
+					content: $scope.newElement(pageTemplate),
 				};
 			}))
 			.error($scope.getErrorFunc("primaryPage"));
 		},
 	});
 	urlService.addUrlHandler("/pages/:alias", {
- 		name: "RedirectToPrimaryPage",
- 		handler: function (args, $scope) {
+		name: "RedirectToPrimaryPage",
+		handler: function (args, $scope) {
 			// Get the primary page data
 			var postData = {
 				pageAlias: args.alias,
@@ -558,7 +571,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			}))
 			.error($scope.getErrorFunc("redirectToPrimaryPage"));
 		},
- 	});
+	});
 	urlService.addUrlHandler("/requisites/", {
 		name: "RequisitesPage",
 		handler: function (args, $scope) {
@@ -615,35 +628,6 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				};
 			}))
 			.error($scope.getErrorFunc("updates"));
-		},
-	});
-	urlService.addUrlHandler("/user/:alias/:alias2?", {
- 		name: "UserPage",
- 		handler: function (args, $scope) {
-		var userAlias = args.alias;
-		var postData = {
-			userAlias: userAlias,
-		};
-		// Get the data
-		$http({method: "POST", url: "/json/userPage/", data: JSON.stringify(postData)})
-		.success($scope.getSuccessFunc(function(data){
-			var page = pageService.pageMap[postData.userAlias];
-			if (!page) {
-				return {
-					title: "Not Found",
-					error: "User doesn't exist.",
-				};
-			}
-
-			var userId = page.pageId;
-			urlService.ensureCanonPath(pageService.getUserUrl(userId));
-			$scope.userPageIdsMap = data.result;
-			return {
-				title: userService.userMap[userId].firstName + " " + userService.userMap[userId].lastName,
-				content: $scope.newElement("<arb-user-page user-id='" + userId + "' ids-map='::userPageIdsMap'></arb-user-page>"),
-			};
-		}))
-		.error($scope.getErrorFunc("userPage"));
 		},
 	});
 });
