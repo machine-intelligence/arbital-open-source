@@ -290,6 +290,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
+					data.isEditorComment = $scope.page.isEditorComment;
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: "POST", url: "/editPage/", data: JSON.stringify(data)})
