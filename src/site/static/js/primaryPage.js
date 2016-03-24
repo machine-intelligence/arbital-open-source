@@ -5,7 +5,7 @@ app.directive('arbPrimaryPage', function($compile, $location, $timeout, pageServ
   return {
     templateUrl: 'static/html/primaryPage.html',
     scope: {
-        noFooter: "@",
+        noFooter: "=",
     },
     controller: function($scope) {
       $scope.pageService = pageService;
