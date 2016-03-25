@@ -18,17 +18,19 @@ import (
 
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
-	PageId         string
-	Title          string
-	Clickbait      string
-	Text           string
-	MetaText       string
-	IsMinorEditStr string
-	IsAutosave     bool
-	IsSnapshot     bool
-	AnchorContext  string
-	AnchorText     string
-	AnchorOffset   int
+	PageId          string
+	PrevEdit        int
+	Title           string
+	Clickbait       string
+	Text            string
+	MetaText        string
+	IsMinorEditStr  string
+	IsAutosave      bool
+	IsSnapshot      bool
+	AnchorContext   string
+	AnchorText      string
+	AnchorOffset    int
+	IsEditorComment bool
 
 	// These parameters are only accepted from internal BE calls
 	RevertToEdit int  `json:"-"`
@@ -285,6 +287,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
+		hashmap["prevEdit"] = data.PrevEdit
 		hashmap["creatorId"] = u.Id
 		hashmap["title"] = data.Title
 		hashmap["clickbait"] = data.Clickbait
@@ -404,7 +407,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Delete it from the elastic index
 			err = elastic.DeletePageFromIndex(c, data.PageId)
 			if err != nil {
-				return pages.HandlerErrorFail("failed to update index", err)
+				c.Errorf("failed to update index: %v", err)
 			}
 		} else {
 			// Update elastic search index.
@@ -492,6 +495,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UserId = u.Id
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
+				task.EditorsOnly = data.IsEditorComment
 				if core.IsIdValid(commentParentId) {
 					// This is a new reply
 					task.UpdateType = core.ReplyUpdateType

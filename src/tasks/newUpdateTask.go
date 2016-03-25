@@ -23,6 +23,9 @@ type NewUpdateTask struct {
 	// user id, group id, domain id)
 	SubscribedToId string
 
+	// If it is an editors only comment, only notify editors
+	EditorsOnly bool
+
 	// Go to destination. One of these has to be set. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
@@ -61,6 +64,7 @@ func (task *NewUpdateTask) IsValid() error {
 // For comments on return value see tasks.QueueTask
 func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
+	var rows *database.Rows
 
 	if err = task.IsValid(); err != nil {
 		c.Errorf("Invalid new update task: %s", err)
@@ -68,10 +72,20 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	}
 
 	// Iterate through all users who are subscribed to this page/comment.
-	rows := database.NewQuery(`
-		SELECT userId
-		FROM subscriptions
-		WHERE toId=?`, task.SubscribedToId).ToStatement(db).Query()
+	// If it is an editors only comment, only select editor ids.
+	if task.EditorsOnly {
+		rows = database.NewQuery(`
+			SELECT s.userId
+			FROM subscriptions AS s
+			JOIN pages as p
+			ON s.userId = p.creatorId
+			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId).ToStatement(db).Query()
+	} else {
+		rows = database.NewQuery(`
+			SELECT userId
+			FROM subscriptions
+			WHERE toId=?`, task.SubscribedToId).ToStatement(db).Query()
+	}
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId string
 		err := rows.Scan(&userId)

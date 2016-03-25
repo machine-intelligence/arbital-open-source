@@ -1,34 +1,35 @@
-"use strict";
+'use strict';
+// jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, pageService, userService, autocompleteService, markdownService) {
+app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, pageService, userService, autocompleteService, markdownService) {
 	return {
-		templateUrl: "static/html/editPage.html",
+		templateUrl: 'static/html/editPage.html',
 		scope: {
-			pageId: "@",
+			pageId: '@',
 			// Whether or not this edit page is embedded in some column, and should be
 			// sized accordingly
-			isEmbedded: "=",
+			isEmbedded: '=',
 			// True iff this is embedded inside a dialog
-			insideDialog: "=",
+			insideDialog: '=',
 			// Called when the user is done with the edit.
-			doneFn: "&",
+			doneFn: '&',
 		},
 		controller: function($scope) {
 			$scope.userService = userService;
 			$scope.pageService = pageService;
 			$scope.page = pageService.editMap[$scope.pageId];
-			$scope.fullView = !$scope.isEmbedded && $mdMedia("gt-md");
-			$scope.gtXSmallScreen = $mdMedia("gt-xs");
-			$scope.gtSmallScreen = $mdMedia("gt-sm");
-			$scope.gtMediumScreen = $mdMedia("gt-md");
-			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + "/" + $scope.page.currentEditNum;
+			$scope.fullView = !$scope.isEmbedded && $mdMedia('gt-md');
+			$scope.gtXSmallScreen = $mdMedia('gt-xs');
+			$scope.gtSmallScreen = $mdMedia('gt-sm');
+			$scope.gtMediumScreen = $mdMedia('gt-md');
+			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + $scope.page.currentEditNum;
 			$scope.isPageDirty = $scope.page.isAutosave;
 
 			// If the alias contains a subdomain, then remove it
-			var periodIndex = $scope.page.alias.indexOf(".");
+			var periodIndex = $scope.page.alias.indexOf('.');
 			if (periodIndex > 0) {
-				$scope.page.alias = $scope.page.alias.substring(periodIndex+1);
+				$scope.page.alias = $scope.page.alias.substring(periodIndex + 1);
 			}
 
 			// Return true if we should be using a table layout (so we can stack right
@@ -48,7 +49,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// Set up markdown
 			$timeout(function() {
-				var $wmdPreview = $("#wmd-preview" + $scope.page.pageId);
+				var $wmdPreview = $('#wmd-preview' + $scope.page.pageId);
 				// Initialize pagedown
 				markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
 					$timeout(function() {
@@ -80,9 +81,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						pageService.pageMap[pageId].lensIndex = n + 1;
 						data.orderMap[pageId] = n + 1;
 					}
-					$http({method: "POST", url: "/updateLensOrder/", data: JSON.stringify(data)})
+					$http({method: 'POST', url: '/updateLensOrder/', data: JSON.stringify(data)})
 					.error(function(data) {
-						$scope.addMessage("lensOrder", "Error updating lens order: " + data, "error");
+						$scope.addMessage('lensOrder', 'Error updating lens order: ' + data, 'error');
 					});
 				},
 			};
@@ -104,20 +105,20 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// Set up page types.
 			if ($scope.isQuestion) {
-				$scope.pageTypes = {question: "Question"};
-			} else if($scope.isAnswer) {
-				$scope.pageTypes = {answer: "Answer"};
-			} else if($scope.isComment) {
-				$scope.pageTypes = {comment: "Comment"};
-			} else if($scope.isWiki) {
-				$scope.pageTypes = {wiki: "Wiki Page"};
-			} else if($scope.isLens) {
-				$scope.pageTypes = {lens: "Lens Page"};
+				$scope.pageTypes = {question: 'Question'};
+			} else if ($scope.isAnswer) {
+				$scope.pageTypes = {answer: 'Answer'};
+			} else if ($scope.isComment) {
+				$scope.pageTypes = {comment: 'Comment'};
+			} else if ($scope.isWiki) {
+				$scope.pageTypes = {wiki: 'Wiki Page'};
+			} else if ($scope.isLens) {
+				$scope.pageTypes = {lens: 'Lens Page'};
 			}
 
 			// Set up group names.
 			var groupIds = userService.user.groupIds;
-			$scope.groupOptions = {"": "-"};
+			$scope.groupOptions = {'': '-'};
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
@@ -128,20 +129,20 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// Set up sort types.
 			$scope.sortTypes = {
-				likes: "By Likes",
-				recentFirst: "Recent First",
-				oldestFirst: "Oldest First",
-				alphabetical: "Alphabetically",
+				likes: 'By Likes',
+				recentFirst: 'Recent First',
+				oldestFirst: 'Oldest First',
+				alphabetical: 'Alphabetically',
 			};
 
 			// Set up vote types.
 			$scope.voteTypes = {
-				"": "-",
-				probability: "Probability",
-				approval: "Approval",
+				'': '-',
+				probability: 'Probability',
+				approval: 'Approval',
 			};
 
-			$scope.lockExists = $scope.page.lockedBy != "" && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
+			$scope.lockExists = $scope.page.lockedBy != '' && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== userService.user.id;
 
 			$scope.convertPageIdsToAliases = function(textToConvert) {
@@ -149,7 +150,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				return textToConvert.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						return prefix + "[" + text + "](" + page.alias + ")";
+						return prefix + '[' + text + '](' + page.alias + ')';
 					}
 					return whole;
 					/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
@@ -158,29 +159,29 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						return prefix + "[vote: " + page.alias + "]";
 						}
 						return whole;*/
-				}).replace(forwardLinkRegexp, function (whole, prefix, alias, text) {
+				}).replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						return prefix + "[" + page.alias + " " + text + "]";
+						return prefix + '[' + page.alias + ' ' + text + ']';
 					}
 					return whole;
-				}).replace(simpleLinkRegexp, function (whole, prefix, alias) {
-					if (alias.substring(0,1) == "-") {
+				}).replace(simpleLinkRegexp, function(whole, prefix, alias) {
+					if (alias.substring(0,1) == '-') {
 						var page = pageService.pageMap[alias.substring(1)];
 						if (page) {
-							return prefix + "[-" + page.alias + "]";
+							return prefix + '[-' + page.alias + ']';
 						}
 					} else {
 						var page = pageService.pageMap[alias];
 						if (page) {
-							return prefix + "[" + page.alias + "]";
+							return prefix + '[' + page.alias + ']';
 						}
 					}
 					return whole;
 				}).replace(atAliasRegexp, function(whole, prefix, alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						return prefix + "[@" + page.alias + "]";
+						return prefix + '[@' + page.alias + ']';
 					}
 					return whole;
 				});
@@ -197,12 +198,12 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					pageId: $scope.page.pageId,
 					editNum: editNum,
 				};
-				$http({method: "POST", url: "/revertPage/", data: JSON.stringify(data)})
+				$http({method: 'POST', url: '/revertPage/', data: JSON.stringify(data)})
 				.success(function(data) {
 					$location.url(pageService.getPageUrl($scope.page.pageId));
 				})
 				.error(function(data) {
-					$scope.addMessage("revert", "Error reverting: " + data, "error");
+					$scope.addMessage('revert', 'Error reverting: ' + data, 'error');
 				});
 			};
 
@@ -216,38 +217,38 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			};
 
 			$scope.hideMessage = function(event) {
-				$(event.currentTarget).closest("md-list-item").hide();
+				$(event.currentTarget).closest('md-list-item').hide();
 			};
 
 			// Check if the user can edit this page
 			if ($scope.page.wasPublished) {
 				var editLevel = $scope.page.getEditLevel();
-				if (editLevel === "admin") {
-					$scope.addMessage("editLevel", "Enforcing admin priviledges", "warning");
-				} else if (editLevel === "comment") {
-					$scope.addMessage("editLevel", "Can't edit a comment you didn't create", "error", true);
-				} else if (editLevel === "") {
+				if (editLevel === 'admin') {
+					$scope.addMessage('editLevel', 'Enforcing admin priviledges', 'warning');
+				} else if (editLevel === 'comment') {
+					$scope.addMessage('editLevel', 'Can\'t edit a comment you didn\'t create', 'error', true);
+				} else if (editLevel === '') {
 				} else {
-					$scope.addMessage("editLevel", "You don't have enough karma to edit this page. Required: " +
-						$scope.page.getEditLevel(), "error", true);
+					$scope.addMessage('editLevel', 'You don\'t have enough karma to edit this page. Required: ' +
+						$scope.page.getEditLevel(), 'error', true);
 				}
 			}
 			// Check group permissions
-			if ($scope.page.editGroupId !== "" && !($scope.page.editGroupId in $scope.groupOptions)) {
-				$scope.addMessage("editGroup", "You need to be part of " +
-					pageService.pageMap[$scope.page.editGroupId].title + " group to edit this page", "error", true);
+			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {
+				$scope.addMessage('editGroup', 'You need to be part of ' +
+					pageService.pageMap[$scope.page.editGroupId].title + ' group to edit this page', 'error', true);
 			}
 			// Check if you've loaded an edit that's not currently live
 			if ($scope.page.edit !== $scope.page.currentEditNum && !$scope.page.isAutosave && !$scope.page.isSnapshot) {
-				$scope.addMessage("nonLiveEdit", "Currently looking at a non-live edit", "warning");
+				$scope.addMessage('nonLiveEdit', 'Currently looking at a non-live edit', 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isAutosave) {
-				$scope.addMessage("nonLiveEdit", "Restored an autosave which was last updated " +
-					$filter("relativeDateTime")(pageService.primaryPage.createdAt), "warning");
+				$scope.addMessage('nonLiveEdit', 'Restored an autosave which was last updated ' +
+					$filter('relativeDateTime')(pageService.primaryPage.createdAt), 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
-				$scope.addMessage("nonLiveEdit", "Restored a snapshot which was last updated " +
-					$filter("relativeDateTime")(pageService.primaryPage.createdAt), "warning");
+				$scope.addMessage('nonLiveEdit', 'Restored a snapshot which was last updated ' +
+					$filter('relativeDateTime')(pageService.primaryPage.createdAt), 'warning');
 			}
 
 			// =========== Autosaving / snapshotting / publishing stuff ==============
@@ -266,9 +267,10 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			var computeAutosaveData = function() {
 				// We have to pull the text from textarea directly, because if it's changed by
 				// Markdown library, AngularJS doesn't notice it and page.text isn't updated.
-				$scope.page.text = $("#wmd-input" + $scope.pageId)[0].value;
+				$scope.page.text = $('#wmd-input' + $scope.pageId)[0].value;
 				var data = {
 					pageId: $scope.pageId,
+					prevEdit: $scope.page.prevEdit,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
@@ -289,13 +291,14 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
+					data.isEditorComment = $scope.page.isEditorComment;
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
-					$http({method: "POST", url: "/editPage/", data: JSON.stringify(data)})
+					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
 					.success(function(data) {
 						if (isAutosave) {
 							// Refresh the lock
-							$scope.page.lockedUntil = moment.utc().add(30, "m").format("YYYY-MM-DD HH:mm:ss");
+							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
 						}
 						$scope.isPageDirty = isAutosave;
 						callback();
@@ -314,12 +317,12 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				$scope.savePageInfo(function(error) {
 					if (error) {
 						$scope.publishing = false;
-						$scope.addMessage("publish", "Publishing failed: " + error, "error");
+						$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
 					} else {
 						savePage(false, false, function(error) {
 							$scope.publishing = false;
 							if (error) {
-								$scope.addMessage("publish", "Publishing failed: " + error, "error");
+								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
 							} else {
 								$scope.doneFn({result: {
 									pageId: $scope.page.pageId,
@@ -338,9 +341,9 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				savePage(false, true, function(error) {
 					$scope.snapshotting = false;
 					if (error) {
-						$scope.addMessage("snapshot", "Snapshot failed: " + error, "error");
+						$scope.addMessage('snapshot', 'Snapshot failed: ' + error, 'error');
 					} else {
-						$scope.addMessage("snapshot", "Snapshot saved!", "info");
+						$scope.addMessage('snapshot', 'Snapshot saved!', 'info');
 					}
 				});
 			};
@@ -372,7 +375,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 						}});
 					}
 				}, function(data) {
-					$scope.addMessage("delete", "Error deleting page: " + data, "error");
+					$scope.addMessage('delete', 'Error deleting page: ' + data, 'error');
 				});
 			};
 
@@ -386,16 +389,16 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					$scope.autosaving = false;
 					$scope.successfulAutosave = !error;
 					if (error) {
-						$scope.addMessage("autosave", "Autosave error: " + error, "error", true);
+						$scope.addMessage('autosave', 'Autosave error: ' + error, 'error', true);
 					} else {
-						$scope.deleteMessage("autosave");
+						$scope.deleteMessage('autosave');
 					}
 				}, function() {
 					$scope.autosaving = false;
 				});
 			};
 			var autosaveInterval = $interval(autosaveFunc, 5000);
-			$scope.$on("$destroy", function() {
+			$scope.$on('$destroy', function() {
 				$interval.cancel(autosaveInterval);
 				// Autosave just in case.
 				savePage(true, false, function() {});
@@ -421,7 +424,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					clickbait: $scope.page.clickbait,
 					pageType: $scope.page.type,
 				};
-				autocompleteService.findSimilarPages(data, function(data){
+				autocompleteService.findSimilarPages(data, function(data) {
 					$scope.similarPages.length = 0;
 					for (var n = 0; n < data.length; n++) {
 						var pageId = data[n].pageId;
@@ -431,7 +434,7 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 				});
 			};
 			var similarInterval = $interval(findSimilarFunc, $scope.isQuestion ? 10000 : 3000);
-			$scope.$on("$destroy", function() {
+			$scope.$on('$destroy', function() {
 				$interval.cancel(similarInterval);
 			});
 
@@ -441,11 +444,11 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 			$scope.diffHtml = undefined;
 			// Refresh the diff edit text.
 			$scope.refreshDiff = function() {
-				var dmp = new diff_match_patch();
+				var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 				var diffs = dmp.diff_main($scope.otherDiff.text, $scope.page.text);
 				dmp.diff_cleanupSemantic(diffs);
-				$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, "");
-			}
+				$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, '');
+			};
 			// Process click event for diffing edits.
 			$scope.showDiff = function(editNum) {
 				// Load the edit from the server.
@@ -468,50 +471,29 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 
 			// Save the page info.
 			// callback is called with a potential error message when the server replies
-			$scope.savePageInfo = function(callback){
-				var data = {
-					pageId: $scope.page.pageId,
-					type: $scope.page.type,
-					seeGroupId: $scope.page.seeGroupId,
-					editGroupId: $scope.page.editGroupId,
-					hasVote: $scope.page.hasVote,
-					voteType: $scope.page.voteType,
-					editKarmaLock: $scope.page.editKarmaLock,
-					alias: $scope.page.alias,
-					sortChildrenBy: $scope.page.sortChildrenBy,
-					isRequisite: $scope.page.isRequisite,
-					indirectTeacher: $scope.page.indirectTeacher,
-					isEditorComment: $scope.page.isEditorComment,
-				};
-				$http({method: "POST", url: "/editPageInfo/", data: JSON.stringify(data)})
-				.success(function(data) {
-					if(callback) callback();
-				})
-				.error(function(data) {
-					console.error("Error /editPageInfo/ :"); console.error(data);
-					if(callback) callback(data);
-				});
+			$scope.savePageInfo = function(callback) {
+				pageService.savePageInfo($scope.page, callback);
 			};
 
 			// Focus on the default element in the tab
 			$scope.focusDefaultTabElement = function() {
 				var activeTab = $scope.selectedTab;
-				var defaultTabItem = $("[default-tab-item|=" + activeTab + "]");
+				var defaultTabItem = $('[default-tab-item|=' + activeTab + ']');
 				if (0 in defaultTabItem) {
 					defaultTabItem[0].focus();
 				}
-			}
+			};
 
 			// Change selected tab manually
 			$scope.changeTab = function(activeTab) {
 				if (activeTab < 0) activeTab = 4;
 				if (activeTab >= 5) activeTab = 0;
 				$scope.selectedTab = activeTab;
-				var tabList = $("md-tab-item");
+				var tabList = $('md-tab-item');
 				if (activeTab in tabList) {
 					tabList[activeTab].focus();
 				}
-			}
+			};
 
 			$scope.handleKeyPress = function(event) {
 				if (event.ctrlKey && event.keyCode == 38) {
@@ -523,59 +505,61 @@ app.directive("arbEditPage", function($location, $filter, $timeout, $interval, $
 					$scope.changeTab($scope.selectedTab + 1);
 					setTimeout($scope.focusDefaultTabElement, 1000);
 				}
-			}
+			};
 		},
 		link: function(scope, element, attrs) {
 			$timeout(function() {
 				// Synchronize scrolling between the textarea and the preview.
-				var $wmdInput = element.find(".wmd-input");
-				var $divs = $wmdInput.add(element.find(".preview-area"));
+				var $wmdInput = element.find('.wmd-input');
+				var $divs = $wmdInput.add(element.find('.preview-area'));
 				var syncScroll = function(event) {
-					var $other = $divs.not(this).off("scroll"), other = $other.get(0);
+					var $other = $divs.not(this).off('scroll');
+					var other = $other.get(0);
 					var percentage = this.scrollTop / (this.scrollHeight - this.offsetHeight);
 					other.scrollTop = Math.round(percentage * (other.scrollHeight - other.offsetHeight));
 					// Firefox workaround. Rebinding without delay isn't enough.
-					setTimeout(function() {
+					/*setTimeout(function() {
 						$other.on("scroll", syncScroll);
-					}, 10);
+					}, 10);*/
 				};
 				if (scope.fullView) {
-					$divs.on("scroll", syncScroll);
+					$divs.on('scroll', syncScroll);
 				}
 
 				if (scope.isComment) {
 					// Scroll to show the entire edit page element and focus on the input.
-					$("html, body").animate({
-						scrollTop: Math.max($("body").scrollTop(), element.offset().top + element.height() - $(window).height() + 80),
+					var editorTop = element.offset().top + element.height() - $(window).height() + 80;
+					$('html, body').animate({
+						scrollTop: Math.max($('body').scrollTop(), editorTop),
 					}, 1000);
 					$wmdInput.focus();
 				}
 
 				// Listen to events from Markdown.Editor
-				var $markdownToolbar = element.find(".wmd-button-bar");
+				var $markdownToolbar = element.find('.wmd-button-bar');
 				var blurHooked = false;
 				// Show autocomplete for inserting an intrasite link
-				$markdownToolbar.on("showInsertLink", function(event, callback) {
+				$markdownToolbar.on('showInsertLink', function(event, callback) {
 					scope.showInsertLink = true;
 					scope.insertLinkCallback = callback;
 					// NOTE: not sure why, but we need two timeouts here
 					$timeout(function() { $timeout(function() {
-						var $input = element.find(".insert-autocomplete").find("input").focus();
+						var $input = element.find('.insert-autocomplete').find('input').focus();
 					}); });
 				});
 
 				// Create a dialog for (resuming) editing a new page
 				var resumePageId = undefined;
-				$markdownToolbar.on("showNewPageDialog", function(event, callback, newPageType) {
+				$markdownToolbar.on('showNewPageDialog', function(event, callback, newPageType) {
 					var parentIds = [];
-					if (newPageType === "child") {
+					if (newPageType === 'child') {
 						parentIds = [scope.page.pageId];
-					} else if (newPageType === "sibling") {
+					} else if (newPageType === 'sibling') {
 						parentIds = scope.page.parentIds;
 					}
 					$mdDialog.show({
-						templateUrl: "static/html/editPageDialog.html",
-						controller: "EditPageDialogController",
+						templateUrl: 'static/html/editPageDialog.html',
+						controller: 'EditPageDialogController',
 						autoWrap: false,
 						targetEvent: event,
 						locals: {

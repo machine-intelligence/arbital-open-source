@@ -1,12 +1,12 @@
-"use strict";
+'use strict';
 
 // Directive for the User page.
-app.directive("arbUserPage", function(pageService, userService) {
+app.directive('arbUserPage', function(pageService, userService) {
 	return {
-		templateUrl: "static/html/userPage.html",
+		templateUrl: 'static/html/userPage.html',
 		scope: {
-			userId: "@",
-			idsMap: "=",
+			userId: '@',
+			userPageData: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;

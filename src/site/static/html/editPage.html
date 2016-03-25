@@ -380,7 +380,7 @@
 									<md-tooltip md-delay="500">Revert to this edit</md-tooltip>
 									Revert
 								</md-button>
-								<md-button ng-href="{{::(pageService.getEditPageUrl(page.pageId) + '/' + changeLog.edit)}}"
+								<md-button ng-href="{{::(pageService.getEditPageUrl(page.pageId, {'specificEdit': changeLog.edit}))}}"
 										class="md-warn">
 									<md-tooltip md-delay="500">Load this edit in the editor</md-tooltip>
 									Load Edit

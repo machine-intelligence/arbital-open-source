@@ -76,6 +76,9 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 			return pages.HandlerBadRequestFail("Trying to edit a public page. Go to arbital.com", err)
 		}
 	}
+	if !p.IsAutosave && !p.IsSnapshot {
+		p.PrevEdit = p.Edit
+	}
 
 	// Remove the primary page from the pageMap and add it to the editMap
 	returnData := core.NewHandlerData(params.U, false)

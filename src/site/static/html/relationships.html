@@ -37,11 +37,24 @@
 		</md-button>
 
 		<!-- Relationship page title -->
-		<arb-page-title page-id="{{::otherPageId}}" is-link="true" show-clickbait="true"></arb-page-title>
+		<arb-page-title page-id="{{::otherPageId}}"
+				is-link="true"
+				show-clickbait="true"
+				ng-if="!(otherPageId === pageId && isSubjectType && !page.wasPublished)"></arb-page-title>
+
+		<span ng-bind="pageService.editMap[pageId].title ? pageService.editMap[pageId].title : '*Untitled*'"
+				ng-if="otherPageId === pageId && isSubjectType && !page.wasPublished"></span>
 	</div>
 
 	<!-- Add a relationship -->
 	<arb-autocomplete placeholder="Add a {{::type}}"
 			on-select="searchResultSelected(result)"
 			ng-if="::!readonly"></arb-autocomplete>
+
+	<div ng-if="!relatesToItself && isSubjectType && !page.wasPublished">
+		<md-button ng-click="teachItself()">
+			<md-icon>add</md-icon>
+			Teaches itself
+		</md-button>
+	</div>
 </div>

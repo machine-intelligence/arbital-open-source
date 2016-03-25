@@ -1,19 +1,19 @@
 // Just a wrapper to get node's class name, but convert undefined into "".
 var getNodeClassName = function(node) {
-	return node.className || "";
-}
+	return node.className || '';
+};
 
 // Return the parent node that's just under markdown-text and contains the given node.
 var getParagraphNode = function(node) {
 	var paragraphNode = node.parentNode;
 	while (paragraphNode.parentNode != null) {
-		if (getNodeClassName(paragraphNode.parentNode).indexOf("markdown-text") >= 0) {
+		if (getNodeClassName(paragraphNode.parentNode).indexOf('markdown-text') >= 0) {
 			return paragraphNode;
 		}
 		paragraphNode = paragraphNode.parentNode;
 	}
 	return null;
-}
+};
 
 // Called when the user selects markdown text.
 // Return y position of where comment div should appear; null if it should
@@ -37,13 +37,13 @@ var processSelectedParagraphText = function() {
 // Wrap the given range in a a higlight node. That node gets the optinal nodeClass.
 var highlightRange = function(range, nodeClass) {
 	var parentNodeName = range.startContainer.parentNode.nodeName;
-	if (parentNodeName === "SCRIPT") return;
+	if (parentNodeName === 'SCRIPT') return;
 	var startNodeName = range.startContainer.nodeName;
-	var newNode = document.createElement((startNodeName == "DIV" || startNodeName == "P") ? "DIV" : "SPAN");
+	var newNode = document.createElement((startNodeName == 'DIV' || startNodeName == 'P') ? 'DIV' : 'SPAN');
 	if (nodeClass) {
 		newNode.className += nodeClass;
 	} else {
-		newNode.className += "inline-comment-highlight";
+		newNode.className += 'inline-comment-highlight';
 	}
 	newNode.appendChild(range.extractContents());
 	range.insertNode(newNode);
@@ -60,12 +60,12 @@ var getSelectedParagraphText = function() {
 	if (!paragraphNode) return null;
 
 	return getParagraphText(paragraphNode, selection);
-}
+};
 
 // Return {context: paragraph text, text: selected text} object or null based
 // on the given selection.
 var getParagraphText = function(paragraphNode, selection) {
-	var result = {text: "", context: "", offset: 0, paragraphNode: paragraphNode};
+	var result = {text: '', context: '', offset: 0, paragraphNode: paragraphNode};
 	// Whether the nodes we are visiting right now are inside the selection
 	var insideText = false;
 	// Store ranges we want to highlight.
@@ -118,7 +118,7 @@ var getParagraphText = function(paragraphNode, selection) {
 				range.setEnd(node, selection.endOffset);
 				ranges.push(range);
 			}
-		} else if(insideText) {
+		} else if (insideText) {
 			if (nodeText !== null) {
 				result.text += escapedText;
 				ranges.push(range);
@@ -136,7 +136,7 @@ var getParagraphText = function(paragraphNode, selection) {
 
 // Return true if the given node is a node containing MathJax spans.
 var isNodeMathJax = function(node) {
-	return node.className && node.className.indexOf("MathJax") >= 0;
+	return node.className && node.className.indexOf('MathJax') >= 0;
 };
 
 // Recursively visit all leaf nodes in-order starting from the given node.
@@ -149,14 +149,14 @@ var	recursivelyVisitChildren = function(node, callback) {
 	var text = node.textContent;
 	var needsEscaping = false;
 	if (isNodeMathJax(node)) {
-		text = "";
+		text = '';
 		childLength = 0;
 	} else if (node.parentNode.id && node.parentNode.id.match(/^MathJax-Element-[0-9]+$/)) {
 		childLength = 0;
-		if (node.parentNode.type && node.parentNode.type.indexOf("mode=display") >= 0) {
-			text = "$$$" + text + "$$$";
+		if (node.parentNode.type && node.parentNode.type.indexOf('mode=display') >= 0) {
+			text = '$$$' + text + '$$$';
 		} else {
-			text = "$$" + text + "$$";
+			text = '$$' + text + '$$';
 		}
 	} else if (childLength === 0) {
 		needsEscaping = true;
@@ -171,7 +171,7 @@ var	recursivelyVisitChildren = function(node, callback) {
 		done = callback(node, null);
 	}
 	return done;
-}
+};
 
 // Return our type of Selection object.
 var getStartEndSelection = function() {
@@ -216,11 +216,11 @@ var getStartEndSelection = function() {
 // Return the string, but with all the markdown chars escaped.
 // NOTE: this doesn't work perfectly.
 var escapeMarkdownChars = function(s) {
-	return s.replace(/([\\`*_{}[\]()#+\-.!$])/g, "\\$1");
-}
+	return s.replace(/([\\`*_{}[\]()#+\-.!$])/g, '\\$1');
+};
 var unescapeMarkdownChars = function(s) {
-	return s.replace(/\\([\\`*_{}[\]()#+\-.!$])/g, "$1");
-}
+	return s.replace(/\\([\\`*_{}[\]()#+\-.!$])/g, '$1');
+};
 
 // Inline comments
 // Create the inline comment highlight spans for the given paragraph.

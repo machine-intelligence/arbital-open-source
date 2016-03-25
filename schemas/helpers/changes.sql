@@ -217,6 +217,11 @@ CREATE TABLE userPageObjectPairs (
 	PRIMARY KEY(userId,pageId,object)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 alter table pageInfos add column isEditorComment bool not null;
+alter table pages add column prevEdit int not null;
+create table copyPages like pages;
+insert copyPages select * from pages;
+update pages as p set prevEdit=(select max(cp.edit) from copyPages as cp where p.pageId=cp.pageId and NOT cp.isAutosave and NOT cp.isSnapshot and cp.createdAt<p.createdAt);
+drop table copyPages;
 
 alter table changeLogs add column oldSettingsValue varchar(32) not null;
 alter table changeLogs add column newSettingsValue varchar(32) not null;

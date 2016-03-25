@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 // Directive for the Groups page.
-app.directive("arbGroupsPage", function(pageService, userService, autocompleteService, $timeout, $http) {
+app.directive('arbGroupsPage', function(pageService, userService, autocompleteService, $timeout, $http) {
 	return {
-		templateUrl: "static/html/groupsPage.html",
+		templateUrl: 'static/html/groupsPage.html',
 		scope: {
 		},
 		controller: function($scope) {
@@ -24,9 +24,9 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 					userId: userId,
 					groupId: groupId,
 				};
-				$http({method: "POST", url: "/deleteMember/", data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error deleting user:"); console.log(data); console.log(status);
+				$http({method: 'POST', url: '/deleteMember/', data: JSON.stringify(data)})
+				.error(function(data, status) {
+					console.error('Error deleting user:'); console.log(data); console.log(status);
 				});
 
 				// Adjust data
@@ -40,24 +40,24 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 					member.canAddMembers = true;
 				}
 				var data = {
-					userId : userId,
+					userId: userId,
 					groupId: groupId,
 					canAddMembers: member.canAddMembers,
 					canAdmin: member.canAdmin,
 				};
-				$http({method: "POST", url: "/updateMember/", data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error updating member:"); console.log(data); console.log(status);
+				$http({method: 'POST', url: '/updateMember/', data: JSON.stringify(data)})
+				.error(function(data, status) {
+					console.error('Error updating member:'); console.log(data); console.log(status);
 				});
 			};
 
 			// Process new member form submission.
-			$scope.newMemberFormSubmit = function(event, groupId, userId) {
+			$scope.newMemberFormSubmit = function(event, groupId, userInput) {
 				var data = {
 					groupId: groupId,
-					userId: userId,
+					userInput: userInput,
 				};
-				submitForm($(event.currentTarget), "/newMember/", data, function(r) {
+				submitForm($(event.currentTarget), '/newMember/', data, function(r) {
 					location.reload();
 				});
 			};
@@ -68,7 +68,7 @@ app.directive("arbGroupsPage", function(pageService, userService, autocompleteSe
 					name: $scope.newGroupForm.newGroupName,
 					alias: $scope.newGroupForm.newGroupAlias,
 				};
-				submitForm($(event.currentTarget), "/newGroup/", data, function(r) {
+				submitForm($(event.currentTarget), '/newGroup/', data, function(r) {
 					location.reload();
 				});
 			};

@@ -1,0 +1,16 @@
+{
+	"preset": "google",
+	"validateIndentation": "\t",
+  "maximumLineLength": null,
+  "requireCurlyBraces": [
+    "else",
+    "for",
+    "while",
+    "do",
+    "try",
+    "catch",
+    "case",
+    "default"
+  ],
+  "excludeFiles": ["src/site/static/js/lib/**"]
+}

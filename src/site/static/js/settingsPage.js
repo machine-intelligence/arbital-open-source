@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 
 // Directive for the Settings page.
-app.directive("arbSettingsPage", function($timeout, $http, pageService, userService) {
+app.directive('arbSettingsPage', function($timeout, $http, pageService, userService) {
 	return {
-		templateUrl: "static/html/settingsPage.html",
+		templateUrl: 'static/html/settingsPage.html',
 		scope: {
 		},
 		controller: function($scope) {
@@ -11,7 +11,7 @@ app.directive("arbSettingsPage", function($timeout, $http, pageService, userServ
 			$scope.userService = userService;
 
 			// Set up frequency types.
-			$scope.frequencyTypes = {never: "Never", weekly: "Weekly", daily: "Daily", immediately: "Immediately"};
+			$scope.frequencyTypes = {never: 'Never', weekly: 'Weekly', daily: 'Daily', immediately: 'Immediately'};
 
 			// Process Email Settings form submission.
 			$scope.submitForm = function(event) {
@@ -21,7 +21,7 @@ app.directive("arbSettingsPage", function($timeout, $http, pageService, userServ
 					inviteCode: userService.user.inviteCode,
 					ignoreMathjax: userService.user.ignoreMathjax,
 				};
-				submitForm($(event.currentTarget), "/updateSettings/", data, function(r) {
+				submitForm($(event.currentTarget), '/updateSettings/', data, function(r) {
 					$scope.submitted = true;
 					$scope.$apply();
 				});

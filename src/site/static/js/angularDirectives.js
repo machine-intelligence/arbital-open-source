@@ -1,11 +1,11 @@
-"use strict";
+'use strict';
 
 // userName directive displayes a user's name.
-app.directive("arbUserName", function(pageService, userService) {
+app.directive('arbUserName', function(pageService, userService) {
 	return {
-		templateUrl: "static/html/userName.html",
+		templateUrl: 'static/html/userName.html',
 		scope: {
-			userId: "@",
+			userId: '@',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -16,13 +16,13 @@ app.directive("arbUserName", function(pageService, userService) {
 });
 
 // intrasitePopover contains the popover body html.
-app.directive("arbIntrasitePopover", function($timeout, pageService, userService) {
+app.directive('arbIntrasitePopover', function($timeout, pageService, userService) {
 	return {
-		templateUrl: "static/html/intrasitePopover.html",
+		templateUrl: 'static/html/intrasitePopover.html',
 		scope: {
-			pageId: "@",
-			direction: "@",
-			arrowOffset: "@",
+			pageId: '@',
+			direction: '@',
+			arrowOffset: '@',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -30,7 +30,7 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.summaries = [];
 			$scope.getArrowStyle = function() {
-				return {"left": +$scope.arrowOffset};
+				return {'left': +$scope.arrowOffset};
 			};
 
 			// We will check this to see if summaries are loaded.
@@ -43,15 +43,15 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 			// Fix to prevent errors when we go to another page while popover is loading.
 			// TODO: abort all http requests when switching to another page
 			var isDestroyed = false;
-			scope.$on("$destroy", function() {
+			scope.$on('$destroy', function() {
 				isDestroyed = true;
 			});
 
 			// Convert the name of the tab into an index for sorting.
 			var nameToTabIndex = function(name) {
-				if (name === "Brief") return 0;
-				if (name === "Summary") return 1;
-				if (name === "Technical") return 2;
+				if (name === 'Brief') return 0;
+				if (name === 'Summary') return 1;
+				if (name === 'Technical') return 2;
 				return 3;
 			};
 
@@ -90,8 +90,8 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 						// Hack: we need to fix the md-tabs height, because it takes way too long
 						// to adjust by itself.
 						$timeout(function() {
-							var $el = element.find(".popover-tab-body");
-							$el.closest("md-tabs").height($el.children().height());
+							var $el = element.find('.popover-tab-body');
+							$el.closest('md-tabs').height($el.children().height());
 						});
 					}
 				});
@@ -101,13 +101,13 @@ app.directive("arbIntrasitePopover", function($timeout, pageService, userService
 });
 
 // userPopover contains the popover body html.
-app.directive("arbUserPopover", function($timeout, pageService, userService) {
+app.directive('arbUserPopover', function($timeout, pageService, userService) {
 	return {
-		templateUrl: "static/html/userPopover.html",
+		templateUrl: 'static/html/userPopover.html',
 		scope: {
-			userId: "@",
-			direction: "@",
-			arrowOffset: "@",
+			userId: '@',
+			direction: '@',
+			arrowOffset: '@',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -117,7 +117,7 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 			$scope.summaries = [];
 
 			$scope.getArrowStyle = function() {
-				return {"left": +$scope.arrowOffset};
+				return {'left': +$scope.arrowOffset};
 			};
 
 			// We will check this to see if summaries are loaded.
@@ -130,7 +130,7 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 			// Fix to prevent errors when we go to another page while popover is loading.
 			// TODO: abort all http requests when switching to another page
 			var isDestroyed = false;
-			scope.$on("$destroy", function() {
+			scope.$on('$destroy', function() {
 				isDestroyed = true;
 			});
 
@@ -166,8 +166,8 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 						// Hack: we need to fix the md-tabs height, because it takes way too long
 						// to adjust by itself.
 						$timeout(function() {
-							var $el = element.find(".popover-tab-body");
-							$el.closest("md-tabs").height($el.children().height());
+							var $el = element.find('.popover-tab-body');
+							$el.closest('md-tabs').height($el.children().height());
 						});
 					}
 				});
@@ -177,23 +177,23 @@ app.directive("arbUserPopover", function($timeout, pageService, userService) {
 });
 
 // pageTitle displays page's title with optional meta info.
-app.directive("arbPageTitle", function(pageService, userService) {
+app.directive('arbPageTitle', function(pageService, userService) {
 	return {
-		templateUrl: "static/html/pageTitle.html",
+		templateUrl: 'static/html/pageTitle.html',
 		scope: {
-			pageId: "@",
+			pageId: '@',
 			// Options override for the page's title
-			customPageTitle: "=",
+			customPageTitle: '=',
 			// Whether to display the title as a link or a span
-			isLink: "=",
+			isLink: '=',
 			// If set, we'll use this link for the page
-			customLink: "@",
+			customLink: '@',
 			// Whether or not to show the clickbait
-			showClickbait: "=",
+			showClickbait: '=',
 			// Whether or not to show the type of the page icon
-			showType: "=",
+			showType: '=',
 			// If set, we'll pull the page from the edit map
-			useEditMap: "=",
+			useEditMap: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -206,10 +206,10 @@ app.directive("arbPageTitle", function(pageService, userService) {
 					return $scope.customPageTitle;
 				}
 				if ($scope.page.isComment()) {
-					return "*Comment*";
+					return '*Comment*';
 				}
 				if ($scope.page.isAnswer() && !$scope.page.title) {
-					return "*Answer*";
+					return '*Answer*';
 				}
 				return $scope.page.title;
 			};
@@ -218,15 +218,15 @@ app.directive("arbPageTitle", function(pageService, userService) {
 });
 
 // likes displays the likes button(s) for a page.
-app.directive("arbLikes", function($http, pageService, userService) {
+app.directive('arbLikes', function($http, pageService, userService) {
 	return {
-		templateUrl: "static/html/likes.html",
+		templateUrl: 'static/html/likes.html',
 		scope: {
-			pageId: "@",
+			pageId: '@',
 			// If true, the button is not an icon button, but is a normal button
-			isStretched: "=",
+			isStretched: '=',
 			// Whether or not we show likes as a button or a span
-			isButton: "=",
+			isButton: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -241,9 +241,9 @@ app.directive("arbLikes", function($http, pageService, userService) {
 					pageId: $scope.page.pageId,
 					value: $scope.page.myLikeValue,
 				};
-				$http({method: "POST", url: "/newLike/", data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error changing a like:"); console.log(data); console.log(status);
+				$http({method: 'POST', url: '/newLike/', data: JSON.stringify(data)})
+				.error(function(data, status) {
+					console.error('Error changing a like:'); console.log(data); console.log(status);
 				});
 			};
 		},
@@ -251,16 +251,16 @@ app.directive("arbLikes", function($http, pageService, userService) {
 });
 
 // subscribe directive displays the button for subscribing to a page.
-app.directive("arbSubscribe", function($http, pageService, userService) {
+app.directive('arbSubscribe', function($http, pageService, userService) {
 	return {
-		templateUrl: "static/html/subscribe.html",
+		templateUrl: 'static/html/subscribe.html',
 		scope: {
-			pageId: "@",
+			pageId: '@',
 			// If true, subscribe to a user, not a page
-			isUser: "=",
+			isUser: '=',
 			// If true, the button is not an icon button, but is a normal button with a label
-			isStretched: "=",
-			showSubscriberCount: "=",
+			isStretched: '=',
+			showSubscriberCount: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -287,10 +287,10 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 				var data = {
 					pageId: $scope.pageId,
 				};
-				var url = $scope.isSubscribed() ? "/newSubscription/" : "/deleteSubscription/";
-				$http({method: "POST", url: url, data: JSON.stringify(data)})
-				.error(function(data, status){
-					console.error("Error changing a subscription:"); console.log(data); console.log(status);
+				var url = $scope.isSubscribed() ? '/newSubscription/' : '/deleteSubscription/';
+				$http({method: 'POST', url: url, data: JSON.stringify(data)})
+				.error(function(data, status) {
+					console.error('Error changing a subscription:'); console.log(data); console.log(status);
 				});
 			};
 		},
@@ -298,16 +298,16 @@ app.directive("arbSubscribe", function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog, pageService, userService) {
+app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, pageService, userService) {
 	return {
-		templateUrl: "static/html/composeFab.html",
+		templateUrl: 'static/html/composeFab.html',
 		scope: {
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.pageUrl = "/edit/";
-			$scope.isSmallScreen = !$mdMedia("gt-sm");
+			$scope.pageUrl = '/edit/';
+			$scope.isSmallScreen = !$mdMedia('gt-sm');
 
 			$scope.fabState = {};
 			$scope.fabState.isOpen = false;
@@ -319,19 +319,19 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			// Compute what the urls should be on the compose buttons, and which ones
 			// should be visible.
 			var computeUrls = function() {
-				$scope.questionUrl = "/edit/?type=question";
+				$scope.questionUrl = '/edit/?type=question';
 				$scope.editPageUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
 				$scope.showNewAnswer = false;
 				if (pageService.primaryPage) {
 					var type = pageService.primaryPage.type;
-					if (type === "question") {
+					if (type === 'question') {
 						$scope.showNewAnswer = true;
-					} else if (type === "wiki" || type === "group" || type === "domain") {
-						$scope.questionUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=question";
-						$scope.lensUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId + "&type=lens";
-						$scope.childUrl = "/edit/?newParentId=" + pageService.primaryPage.pageId;
+					} else if (type === 'wiki' || type === 'group' || type === 'domain') {
+						$scope.questionUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId + '&type=question';
+						$scope.lensUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId + '&type=lens';
+						$scope.childUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId;
 					}
 					if ($location.search().l) {
 						$scope.editPageUrl = pageService.getEditPageUrl($location.search().l);
@@ -343,38 +343,38 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 			computeUrls();
 			$scope.$watch(function() {
 				// Note: can't use an object, so we just hack together a string
-				return (pageService.primaryPage ? pageService.primaryPage.pageId : "none") + $location.absUrl();
+				return (pageService.primaryPage ? pageService.primaryPage.pageId : 'none') + $location.absUrl();
 			}, function() {
 				computeUrls();
 			});
 
 			// New answer button is clicked
 			$scope.newAnswer = function() {
-				$("html, body").animate({
-					scrollTop: $("#your-answer").offset().top,
-		    }, 1000);
+				$('html, body').animate({
+					scrollTop: $('#your-answer').offset().top,
+				}, 1000);
 			};
 
 			// New feedback button is clicked
 			$scope.newFeedback = function(event) {
 				$mdDialog.show({
-					templateUrl: "static/html/feedbackDialog.html",
-					controller: "FeedbackDialogController",
+					templateUrl: 'static/html/feedbackDialog.html',
+					controller: 'FeedbackDialogController',
 					autoWrap: false,
 					targetEvent: event,
 				});
 			};
 
-			$scope.$on("$locationChangeSuccess", function () {
-				$scope.fabState.hide = $location.path().indexOf("/edit") === 0;
+			$scope.$on('$locationChangeSuccess', function() {
+				$scope.fabState.hide = $location.path().indexOf('/edit') === 0;
 			});
-			$scope.fabState.hide = $location.path().indexOf("/edit") === 0;
+			$scope.fabState.hide = $location.path().indexOf('/edit') === 0;
 
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
-					if (event.keyCode == 80) $location.url("/edit/"); // P
+					if (event.keyCode == 80) $location.url('/edit/'); // P
 					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
 					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
 					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
@@ -388,18 +388,18 @@ app.directive("arbComposeFab", function($location, $timeout, $mdMedia, $mdDialog
 });
 
 // autocomplete searches for relevant pages as you do the search
-app.directive("arbAutocomplete", function($timeout, $q, pageService, userService, autocompleteService) {
+app.directive('arbAutocomplete', function($timeout, $q, pageService, userService, autocompleteService) {
 	return {
-		templateUrl: "static/html/autocomplete.html",
+		templateUrl: 'static/html/autocomplete.html',
 		scope: {
 			// If true, the input will start out focused
-			doAutofocus: "=",
+			doAutofocus: '=',
 			// Placeholder text
-			placeholder: "@",
+			placeholder: '@',
 			// If set, the search will be constrained to this page type
-			pageType: "@",
+			pageType: '@',
 			// Function to call when a result is selected / user cancels selection
-			onSelect: "&",
+			onSelect: '&',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -427,7 +427,7 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, userService
 				if ($scope.searchText || !result) {
 					// Changing searchText will trigger this function, so we want to ignore it
 					$scope.ignoreNextResult = true;
-					$scope.searchText = "";
+					$scope.searchText = '';
 				}
 			};
 		},
@@ -435,14 +435,14 @@ app.directive("arbAutocomplete", function($timeout, $q, pageService, userService
 });
 
 // confirmButton is a button that ask for a confirmation when you press it
-app.directive("arbConfirmButton", function() {
+app.directive('arbConfirmButton', function() {
 	return {
-		templateUrl: "static/html/confirmButton.html",
+		templateUrl: 'static/html/confirmButton.html',
 		scope: {
-			buttonText: "@",
-			buttonBeforeConfirm: "@",
-			disabled: "=",
-			confirmed: "&",
+			buttonText: '@',
+			buttonBeforeConfirm: '@',
+			disabled: '=',
+			confirmed: '&',
 		},
 		controller: function($scope) {
 			$scope.confirming = false;
@@ -456,21 +456,21 @@ app.directive("arbConfirmButton", function() {
 });
 
 // Directive for the User page panel
-app.directive("arbPageList", function(pageService, userService) {
+app.directive('arbPageList', function(pageService, userService) {
 	return {
-		templateUrl: "static/html/pageList.html",
+		templateUrl: 'static/html/pageList.html',
 		scope: {
-			pageIds: "=",
-			panelTitle: "@",
-			hideLikes: "=",
-			showLastEdit: "=",
-			showCreatedAt: "=",
-			showQuickEdit: "=",
-			showRedLinkCount: "=",
-			showCommentCount: "=",
-			showTextLength: "=",
+			pageIds: '=',
+			panelTitle: '@',
+			hideLikes: '=',
+			showLastEdit: '=',
+			showCreatedAt: '=',
+			showQuickEdit: '=',
+			showRedLinkCount: '=',
+			showCommentCount: '=',
+			showTextLength: '=',
 			// If set, we'll pull the page from the editMap instead of pageMap
-			useEditMap: "=",
+			useEditMap: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -487,9 +487,9 @@ app.directive("arbPageList", function(pageService, userService) {
 });
 
 // Directive for checking if the user meets the necessary permissions
-app.directive("arbUserCheck", function($compile, $mdToast, pageService, userService) {
+app.directive('arbUserCheck', function($compile, $mdToast, pageService, userService) {
 	return {
-		restrict: "A",
+		restrict: 'A',
 		controller: function($scope) {
 			$scope.showUserCheckToast = function(message) {
 				// TODO: restore when we figure out the bug with $mdToast
@@ -498,40 +498,40 @@ app.directive("arbUserCheck", function($compile, $mdToast, pageService, userServ
 		},
 		compile: function compile(element, attrs) {
 			var check = attrs.arbUserCheck;
-			var failMessage = "";
-			if (!userService.user || userService.user.id === "") {
-				failMessage = "Login required";
-			} else if (check === "cool") {
+			var failMessage = '';
+			if (!userService.user || userService.user.id === '') {
+				failMessage = 'Login required';
+			} else if (check === 'cool') {
 				if (!userService.userIsCool()) {
-					failMessage = "You have a limited account";
+					failMessage = 'You have a limited account';
 				}
 			}
 			if (failMessage) {
-				element.prepend(angular.element("<md-tooltip>" + failMessage + "</md-tooltip>"));
-				attrs.ngClick = "showUserCheckToast('" + failMessage + "')";
+				element.prepend(angular.element('<md-tooltip>' + failMessage + '</md-tooltip>'));
+				attrs.ngClick = 'showUserCheckToast(\'' + failMessage + '\')';
 			}
 		},
 	};
 });
 
 // Directive for a button to toggle requisite state
-app.directive("arbRequisiteButton", function(pageService, userService) {
+app.directive('arbRequisiteButton', function(pageService, userService) {
 	return {
-		templateUrl: "static/html/requisiteButton.html",
+		templateUrl: 'static/html/requisiteButton.html',
 		scope: {
-			requisiteId: "@",
+			requisiteId: '@',
 			// If true, don't show the checkbox
-			hideCheckbox: "=",
+			hideCheckbox: '=',
 			// If true, don't show the page title
-			hideTitle: "=",
+			hideTitle: '=',
 			// If true, allow the user to toggle into a "want" state
-			allowWants: "=",
+			allowWants: '=',
 			// If true, show requisite's clickbait
-			showClickbait: "=",
+			showClickbait: '=',
 			// If true, clicking the checkbox won't close the menu this button is in
-			preventMenuClose: "=",
+			preventMenuClose: '=',
 			// Optional callback function for when we change the mastery.
-			unlockedFn: "&",
+			unlockedFn: '&',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -563,22 +563,22 @@ app.directive("arbRequisiteButton", function(pageService, userService) {
 });
 
 // Directive for displaying next/prev buttons when learning.
-app.directive("arbNextPrev", function($location, pageService, userService) {
+app.directive('arbNextPrev', function($location, pageService, userService) {
 	return {
-		templateUrl: "static/html/nextPrev.html",
+		templateUrl: 'static/html/nextPrev.html',
 		scope: {
-			pageId: "@",
+			pageId: '@',
 			// If true, show the expanded version of this directive
-			extraInfo: "=",
+			extraInfo: '=',
 			// If true, show the directive on a whiteframe
-			whiteframe: "=",
+			whiteframe: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
 			$scope.stopLearning = function() {
-				Cookies.remove("path");
+				Cookies.remove('path');
 				pageService.path = undefined;
 			};
 		},

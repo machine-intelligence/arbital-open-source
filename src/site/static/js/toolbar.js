@@ -1,47 +1,50 @@
-"use strict";
+'use strict';
 
 // toolbar directive displays the toolbar at the top of each page
-app.directive("arbToolbar", function($mdSidenav, $http, $location, $compile, $rootScope, $timeout, $q, $mdMedia, pageService, userService, autocompleteService) {
+app.directive('arbToolbar', function($mdSidenav, $http, $location, $compile, $rootScope, $timeout, $q, $mdMedia, pageService, userService, autocompleteService, urlService) {
 	return {
-		templateUrl: "static/html/toolbar.html",
+		templateUrl: 'static/html/toolbar.html',
 		scope: {
-			loadingBarValue: "=",
+			loadingBarValue: '=',
+			currentUrl: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.isTinyScreen = !$mdMedia("gt-xs");
-			$scope.doAutofocus = !userService.isTouchDevice;
+			$scope.urlService = urlService;
+			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
-			// Keep the current url updated
-			$scope.currentUrl = encodeURIComponent($location.absUrl());
-			$rootScope.$on("$routeChangeSuccess", function() {
-				$scope.currentUrl = encodeURIComponent($location.absUrl());
-			});
+			$scope.doAutofocus = function() {
+				return !userService.isTouchDevice && !urlService.hasLoadedFirstPage;
+			};
 
 			// Called when a search result is selected
 			$scope.searchResultSelected = function(result) {
 				if (result) {
-					window.location.href = pageService.getPageUrl(result.pageId);
+					urlService.goToUrl(pageService.getPageUrl(result.pageId));
 				}
-			}
+			};
+
+			$scope.getSignupUrl = function() {
+				return '/signup/?continueUrl=' + encodeURIComponent($location.absUrl());
+			};
 
 			// Open RHS menu
 			$scope.toggleRightMenu = function() {
-				$mdSidenav("right").toggle();
+				$mdSidenav('right').toggle();
 			};
 
 			$scope.logout = function() {
-				Cookies.remove("masteryMap");
-				Cookies.remove("arbital");
+				Cookies.remove('masteryMap');
+				Cookies.remove('arbital');
 				window.location.reload();
 			};
 
 			// Hide toolbar in the edit screen
-			$scope.$on("$locationChangeSuccess", function () {
-				$scope.hide = $location.path().indexOf("/edit") === 0;
+			$scope.$on('$locationChangeSuccess', function() {
+				$scope.hide = $location.path().indexOf('/edit') === 0;
 			});
-			$scope.hide = $location.path().indexOf("/edit") === 0;
+			$scope.hide = $location.path().indexOf('/edit') === 0;
 		},
 	};
 });

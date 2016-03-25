@@ -1,6 +1,6 @@
 <div class="capped-body-width">
 	<!-- The primary page -->
-	<div arb-page class="" page-id="{{::pageService.primaryPage.pageId}}"></div>
+	<div arb-page page-id="{{::pageService.primaryPage.pageId}}"></div>
 
 	<!-- Answers for a question page -->
 	<div ng-if="::(page.type === 'question')">
@@ -41,5 +41,5 @@
 			page-ids="::page.relatedIds"
 			ng-if="::page.relatedIds.length > 0"></div>
 
-	<div ng-include="'static/html/footer.html'"></div>
+	<div ng-include="'static/html/footer.html'" ng-if="::!noFooter"></div>
 </div>

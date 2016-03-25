@@ -1,11 +1,11 @@
-"use strict";
+'use strict';
 
 // Used to escape regexp symbols in a string to make it safe for injecting into a regexp
 RegExp.escape = function(s) {
-  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+	return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
-var subdomainRegexpStr = "[A-Za-z0-9]+\\.";
+var subdomainRegexpStr = '[A-Za-z0-9]+\\.';
 
 // Return a regex that handles all 4 possible cases for subdomains in the URL
 var getHostMatchRegex = function(host) {
@@ -14,30 +14,30 @@ var getHostMatchRegex = function(host) {
 	// We want to match arbital.com and linksubdomain.arbital.com
 	// So we need one variable with the host as it is, and one variable with the host with everything up to the first . removed
 	var hostWithoutSubdomain = host;
-	var periodIndex = hostWithoutSubdomain.indexOf(".");
+	var periodIndex = hostWithoutSubdomain.indexOf('.');
 	if (periodIndex > 0) {
-		hostWithoutSubdomain = hostWithoutSubdomain.substring(periodIndex+1);
+		hostWithoutSubdomain = hostWithoutSubdomain.substring(periodIndex + 1);
 	}
 	// We will be using these variables as part of the regex, which requires escaping the . and :
-	host = host.replace(/\./g, "\\.");
-	hostWithoutSubdomain = hostWithoutSubdomain.replace(/\./g, "\\.");
-	host = host.replace(/\:/g, "\\:");
-	hostWithoutSubdomain = hostWithoutSubdomain.replace(/\:/g, "\\:");
+	host = host.replace(/\./g, '\\.');
+	hostWithoutSubdomain = hostWithoutSubdomain.replace(/\./g, '\\.');
+	host = host.replace(/\:/g, '\\:');
+	hostWithoutSubdomain = hostWithoutSubdomain.replace(/\:/g, '\\:');
 
 	// Now compile the regex to handle all 4 possible cases
-	var regexString = "(?:" +
-		"(?:" + host + ")|" + // arbital.com or pagesubdomain.arbital.com
-		"(?:" + hostWithoutSubdomain + ")|" + // com or arbital.com
-		"(?:" + subdomainRegexpStr + host + ")|" + // linksubdomain.arbital.com or linksubdomain.pagesubdomain.arbital.com
-		"(?:" + subdomainRegexpStr + hostWithoutSubdomain + ")" + // linksubdomain.com or linksubdomain.arbital.com
-		")";
+	var regexString = '(?:' +
+		'(?:' + host + ')|' + // arbital.com or pagesubdomain.arbital.com
+		'(?:' + hostWithoutSubdomain + ')|' + // com or arbital.com
+		'(?:' + subdomainRegexpStr + host + ')|' + // linksubdomain.arbital.com or linksubdomain.pagesubdomain.arbital.com
+		'(?:' + subdomainRegexpStr + hostWithoutSubdomain + ')' + // linksubdomain.com or linksubdomain.arbital.com
+		')';
 
 	return regexString;
 };
 
 // Return true if we are in the live/production environment. (False if it's staging.)
 var isLive = function() {
-	return window.location.host.indexOf("arbital.com") >= 0;
+	return window.location.host.indexOf('arbital.com') >= 0;
 };
 
 // Extend jQuery with a function to change element's type
@@ -49,7 +49,7 @@ var isLive = function() {
 			attrs[attr.nodeName] = attr.nodeValue;
 		});
 
-		var $newElement = $("<" + newType + "/>", attrs);
+		var $newElement = $('<' + newType + '/>', attrs);
 		this.replaceWith(function() {
 			return $newElement.append($(this).contents());
 		});
@@ -92,24 +92,24 @@ var createThrottledCallback = function(callback, delay) {
 // submitForm handles the common functionality in submitting a form like
 // showing/hiding UI elements and doing the AJAX call.
 var submitForm = function($form, url, data, success, error) {
-	var $errorText = $form.find(".submit-form-error");
-	var $successText = $form.find(".submit-form-success");
-	var invisibleSubmit = data["__invisibleSubmit"];
+	var $errorText = $form.find('.submit-form-error');
+	var $successText = $form.find('.submit-form-success');
+	var invisibleSubmit = data.__invisibleSubmit;
 	if (!invisibleSubmit) {
-		$form.find("[toggle-on-submit]").toggle();
+		$form.find('[toggle-on-submit]').toggle();
 	}
 
-	if (!("password" in data)) {
-		console.log("Submitting form to " + url + ":"); console.log(data);
+	if (!('password' in data)) {
+		console.log('Submitting form to ' + url + ':'); console.log(data);
 	}
 	$.ajax({
-		type: "POST",
+		type: 'POST',
 		url: url,
 		data: JSON.stringify(data),
 	})
 	.always(function(r) {
 		if (!invisibleSubmit) {
-			$form.find("[toggle-on-submit]").toggle();
+			$form.find('[toggle-on-submit]').toggle();
 		}
 	}).success(function(r) {
 		$errorText.hide();
@@ -118,9 +118,9 @@ var submitForm = function($form, url, data, success, error) {
 	}).fail(function(r) {
 		// Want to show an error even on invisible submit.
 		$errorText.show();
-		$errorText.text(r.statusText + ": " + r.responseText);
+		$errorText.text(r.statusText + ': ' + r.responseText);
 		$successText.hide();
 		console.error(r);
 		if (error) error();
 	});
-}
+};

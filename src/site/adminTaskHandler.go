@@ -32,6 +32,12 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err := tasks.Enqueue(params.C, &task, "updateMetadata"); err != nil {
 			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
 		}
+	} else if task == "propagateDomain" {
+		var task tasks.PropagateDomainTask
+		task.PageId = params.R.FormValue("pageId")
+		if err := tasks.Enqueue(params.C, &task, "propagateDomain"); err != nil {
+			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+		}
 	} else if task == "resetPasswords" {
 		var task tasks.ResetPasswordsTask
 		if err := tasks.Enqueue(params.C, &task, "resetPasswords"); err != nil {

@@ -71,9 +71,15 @@ arb-markdown, [arb-markdown], .preview-area {
 
 // Cap the width of some pages, so they look nicer
 .capped-body-width {
-	display: block;
-	margin-left: auto;
-	margin-right: auto;
+	&, & #footer {
+		display: block;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	& #footer {
+		max-width: 1100px;
+	}
 
 	arb-index > & {
 		max-width: 1100px;
@@ -536,6 +542,13 @@ $triangle-size: 15px;
 	}
 }
 
+// Person icon next to title on a user's /p/ page
+.page-title-icon {
+	font-size: 43px;
+	line-height: 0.33;
+	padding-right: 25px;
+}
+
 .private-group-icon {
 	position: absolute;
 	bottom: 4px;
@@ -565,6 +578,34 @@ del {
 }
 ins {
 	color: green;
+}
+
+.page-tabs {
+	margin-top: 15px;
+
+	& > .page-tabs-holder {
+		//background-color: white !important;
+		border-bottom: $primary-hue-2 2px solid;
+
+		& > .md-button {
+			padding: 5px 35px;
+			color: $primary-hue-2 !important;
+			md-icon {
+				color: $primary-hue-2 !important;
+			}
+
+			&.active-tab {
+				background-color: $primary-hue-1;
+				border: $primary-hue-2 2px solid;
+				border-bottom: none;
+				border-radius: 0;
+			}
+		}
+	}
+
+	& > .page-lens-body {
+		overflow: hidden;
+	}
 }
 
 // Border for the RHS preview half on the edit page
@@ -637,6 +678,10 @@ textarea {
 
 .subpage-content {
 	margin-top: 20px;
+
+	.inline-subpage > & {
+		margin-top: 0px;
+	}
 }
 
 // Header/footer sections for a comment
@@ -762,7 +807,7 @@ arb-learn-part, [arb-learn-part] {
 	.toc-section-number {
 		margin-right: 10px;
 	}
-	
+
 	.toc-row-tab-1 {
 		margin-left: 30px;
 	}

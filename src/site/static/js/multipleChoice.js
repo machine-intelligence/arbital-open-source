@@ -1,19 +1,19 @@
-"use strict";
+'use strict';
 
 // Directive for multiple choice
-app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageService, userService) {
 	return {
-		templateUrl: "static/html/multipleChoice.html",
+		templateUrl: 'static/html/multipleChoice.html',
 		transclude: true,
 		scope: {
-			pageId: "@",
-			index: "@",
-			objectAlias: "@",
+			pageId: '@',
+			index: '@',
+			objectAlias: '@',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.choice = "";
+			$scope.choice = '';
 			$scope.knows = {};
 			$scope.wants = {};
 			$scope.delKnows = {};
@@ -33,47 +33,46 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 			};
 		},
 		link: function(scope, element, attrs) {
-			element.find("ng-transclude > p").prepend($compile("<md-icon class='question-icon'>help_outline</md-icon>")(scope));
-			var answerValue = "a";
+			element.find('ng-transclude > p').prepend($compile('<md-icon class=\'question-icon\'>help_outline</md-icon>')(scope));
+			var answerValue = 'a';
 			// Go through all answers
-			element.find("ng-transclude > ul > li").each(function () {
+			element.find('ng-transclude > ul > li').each(function() {
 				// For each answer, extract "knows" and "wants"
 				scope.knows[answerValue] = [];
 				scope.wants[answerValue] = [];
 				scope.delKnows[answerValue] = [];
 				scope.delWants[answerValue] = [];
-				$(this).find("ul > li").each(function() {
+				$(this).find('ul > li').each(function() {
 					var text = $(this).text();
-					if (text.indexOf("knows:") == 0) {
-						$(this).children("a").each(function() {
-							scope.knows[answerValue].push($(this).attr("page-id"));
+					if (text.indexOf('knows:') == 0) {
+						$(this).children('a').each(function() {
+							scope.knows[answerValue].push($(this).attr('page-id'));
 						});
-					} else if (text.indexOf("wants:") == 0) {
-						$(this).children("a").each(function() {
-							scope.wants[answerValue].push($(this).attr("page-id"));
+					} else if (text.indexOf('wants:') == 0) {
+						$(this).children('a').each(function() {
+							scope.wants[answerValue].push($(this).attr('page-id'));
 						});
-					} else if (text.indexOf("-knows:") == 0) {
-						$(this).children("a").each(function() {
-							scope.delKnows[answerValue].push($(this).attr("page-id"));
+					} else if (text.indexOf('-knows:') == 0) {
+						$(this).children('a').each(function() {
+							scope.delKnows[answerValue].push($(this).attr('page-id'));
 						});
-					} else if (text.indexOf("-wants:") == 0) {
-						$(this).children("a").each(function() {
-							scope.delWants[answerValue].push($(this).attr("page-id"));
+					} else if (text.indexOf('-wants:') == 0) {
+						$(this).children('a').each(function() {
+							scope.delWants[answerValue].push($(this).attr('page-id'));
 						});
 					}
 				});
-				$(this).children("ul").remove();
-				$(this).changeElementType("div").addClass("multiple-choice-option")
-				.prepend("<md-radio-button class='md-primary' aria-label='Answer " + answerValue +
-					"' value='" + answerValue + "'></md-radio-button>");
+				$(this).children('ul').remove();
+				$(this).changeElementType('div').addClass('multiple-choice-option')
+				.prepend('<md-radio-button class=\'md-primary\' aria-label=\'Answer ' + answerValue +
+					'\' value=\'' + answerValue + '\'></md-radio-button>');
 				answerValue = String.fromCharCode(answerValue.charCodeAt() + 1);
 			});
-			var $ul = element.find("ng-transclude > ul")
-				.changeElementType("md-radio-group")
-				.attr("ng-model", "choice")
-				.attr("ng-change", "choiceChanged()");
+			var $ul = element.find('ng-transclude > ul')
+				.changeElementType('md-radio-group')
+				.attr('ng-model', 'choice')
+				.attr('ng-change', 'choiceChanged()');
 			$compile($ul)(scope);
-
 
 			// If the user has answered this question before, let's restore the answer.
 			var pageObject = pageService.getPageObject(scope.pageId, scope.objectAlias);
@@ -131,19 +130,19 @@ app.directive("arbMultipleChoice", function($timeout, $http, $compile, pageServi
 					}
 					if (!scope.choice) {
 						scope.choice = possibleAnswer;
-						console.log("Found a good choice for " + scope.objectAlias + ":" + scope.choice);
+						console.log('Found a good choice for ' + scope.objectAlias + ':' + scope.choice);
 					} else {
 						// We already have a possible answer and just found another one, so give up.
-						scope.choice = "";
-						console.log("Found another good choice:" + possibleAnswer);
+						scope.choice = '';
+						console.log('Found another good choice:' + possibleAnswer);
 						break;
 					}
 				}
-	
+
 				// Our fallback plan: recall the answer user gave last time.
 				if (!scope.choice) {
 					scope.choice = pageObject.value;
-					console.log("Restored saved choice for " + scope.objectAlias + ":" + scope.choice);
+					console.log('Restored saved choice for ' + scope.objectAlias + ':' + scope.choice);
 				}
 			}
 		},
