@@ -153,10 +153,10 @@
 													{{else if eq .Type "deleteSubject"}}
 														Deleted "teaches requisite": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newTeaches"}}
+													{{else if eq .Type "newTeacher"}}
 														New "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "deleteTeaches"}}
+													{{else if eq .Type "deleteTeacher"}}
 														Deleted "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "commentEdit"}}

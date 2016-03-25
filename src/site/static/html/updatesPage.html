@@ -117,13 +117,13 @@
 							(<span ng-bind="::(update.createdAt | relativeDateTime)"></span>)
 						</div>
 
-						<div ng-switch-when="newTeaches">
+						<div ng-switch-when="newTeacher">
 							New "taught by":
 							<arb-page-title is-link="true" page-id="{{::update.goToPageId}}"></arb-page-title>
 							(<span ng-bind="::(update.createdAt | relativeDateTime)"></span>)
 						</div>
 
-						<div ng-switch-when="deleteTeaches">
+						<div ng-switch-when="deleteTeacher">
 							Deleted "taught by":
 							<arb-page-title is-link="true" page-id="{{::update.goToPageId}}"></arb-page-title>
 							(<span ng-bind="::(update.createdAt | relativeDateTime)"></span>)
