@@ -42,5 +42,9 @@ CREATE TABLE pages (
 	/* Offset of the text into the context. */
 	anchorOffset INT NOT NULL,
 
+	/* == Following variables are set for some specific pages. == */
+	/* Text associated with the snapshot. */
+	snapshotText MEDIUMTEXT NOT NULL,
+
 	PRIMARY KEY(pageId, edit)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

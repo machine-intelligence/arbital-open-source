@@ -222,3 +222,4 @@ create table copyPages like pages;
 insert copyPages select * from pages;
 update pages as p set prevEdit=(select max(cp.edit) from copyPages as cp where p.pageId=cp.pageId and NOT cp.isAutosave and NOT cp.isSnapshot and cp.createdAt<p.createdAt);
 drop table copyPages;
+alter table pages add column snapshotText mediumtext not null;

@@ -31,6 +31,8 @@ type editPageData struct {
 	AnchorText      string
 	AnchorOffset    int
 	IsEditorComment bool
+	// Edit that FE thinks is the current edit
+	CurrentEdit int
 
 	// These parameters are only accepted from internal BE calls
 	RevertToEdit int  `json:"-"`
@@ -62,7 +64,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	c := params.C
 	db := params.DB
 	u := params.U
-	aliasWarningList := make([]string, 0)
+	returnData := core.NewHandlerData(params.U, false)
 
 	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("No pageId specified", nil)
@@ -81,9 +83,18 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	var myLastAutosaveEdit sql.NullInt64
+	// If the client think the current edit is X, but it's actually Y (X!=Y), then
+	if oldPage.WasPublished && data.CurrentEdit != oldPage.Edit {
+		// Notify the client with a warning.
+		returnData.ResultMap["obsoleteEdit"] = oldPage
+		// And save a snapshot
+		data.IsAutosave = false
+		data.IsSnapshot = true
+		data.SnapshotText = fmt.Sprintf("Automatically saved snapshot (%s)", database.Now())
+	}
 
 	// Load additional info
+	var myLastAutosaveEdit sql.NullInt64
 	row := db.NewStatement(`
 		SELECT max(edit)
 		FROM pages
@@ -229,6 +240,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.HandlerErrorFail("Couldn't standardize links", err)
 	}
 	data.MetaText = strings.Replace(data.MetaText, "\r\n", "\n", -1)
+	if !data.IsSnapshot {
+		data.SnapshotText = ""
+	}
 
 	// Compute title
 	if oldPage.Type == core.LensPageType {
@@ -264,9 +278,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			data.AnchorContext == oldPage.AnchorContext &&
 			data.AnchorText == oldPage.AnchorText &&
 			data.AnchorOffset == oldPage.AnchorOffset {
-
-			returnData := core.NewHandlerData(params.U, false)
-			returnData.ResultMap["aliasWarnings"] = aliasWarningList
 			return pages.StatusOK(returnData.ToJson())
 		}
 	}
@@ -298,6 +309,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["isMinorEdit"] = isMinorEdit
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
+		hashmap["snapshotText"] = data.SnapshotText
 		hashmap["createdAt"] = database.Now()
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText
@@ -536,7 +548,5 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	returnData := core.NewHandlerData(params.U, false)
-	returnData.ResultMap["aliasWarnings"] = aliasWarningList
 	return pages.StatusOK(returnData.ToJson())
 }

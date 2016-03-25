@@ -47,8 +47,14 @@
 					<div id="wmd-button-bar{{::page.pageId}}"
 							class="wmd-button-bar"
 						 	layout="row"
-							layout-align="start center"
-							ng-show="!showInsertLink">
+							ng-show="!showInsertLink && !freezeEdit">
+						<md-button ng-class="{'md-primary': showSnapshotText}"
+									ng-click="toggleSnapshotting()"
+									ng-if="::!isComment">
+							<md-icon>save</md-icon>
+							<md-tooltip md-delay="500">**Snapshot**</md-tooltip>
+						</md-button>
+						<div class="separator"></div>
 						<md-button class="wmd-bold-button">
 							<md-icon>format_bold</md-icon>
 							<md-tooltip md-delay="500">**Bold** | Ctrl+B</md-tooltip>
@@ -136,13 +142,22 @@
 						</md-button>
 					</div>
 
+					<!-- Input we show when the user wants to snapshot the page. -->
+					<div layout="row" ng-if="showSnapshotText">
+						<input class="snapshot-text" ng-model="page.snapshotText" flex>
+						<md-button class="md-primary md-hue-1 md-raised" ng-click="snapshotPage()">
+								<md-tooltip md-delay="500">Save snapshot</md-tooltip>
+							Snapshot
+						</md-button>
+					</div>
+
 					<!-- Textarea for editing the page's text -->
 					<textarea class="wmd-input"
 							id="wmd-input{{::page.pageId}}"
 							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 							ng-model="page.text" autofocus
 							flex
-							ng-disabled="showInsertLink" default-tab-item="1"></textarea>
+							ng-disabled="showInsertLink || freezeEdit" default-tab-item="1"></textarea>
 				</div>
 			</md-tab>
 
@@ -435,16 +450,8 @@
 			<arb-confirm-button button-text="Discard"
 					confirmed="discardPage()"
 					disabled="publishing || snapshotting"
-					ng-if="selectedTab != 2 && isPageDirty"></arb-confirm-button>
-			<div ng-show="selectedTab == 0 || selectedTab == 1" ng-if="::gtXSmallScreen && !isComment">
-				<md-button class="md-primary md-hue-1 md-raised"
-						ng-click="snapshotPage()"
-						ng-disable="publishing || snapshotting">
-					<md-tooltip md-delay="500">Save this text for later</md-tooltip>
-					Snapshot
-				</md-button>
-			</div>
-			<div ng-if="!fullView && !inPreview && (selectedTab != 2)">
+					ng-if="selectedTab != 2 && isPageDirty && !freezeEdit"></arb-confirm-button>
+			<div ng-if="!fullView && !inPreview && (selectedTab != 2) && !freezeEdit">
 				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="togglePreview(true)"
 						ng-disable="publishing || snapshotting">
@@ -452,7 +459,7 @@
 					Preview
 				</md-button>
 			</div>
-			<div ng-if="selectedTab != 2">
+			<div ng-if="selectedTab != 2 && !freezeEdit">
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
 						ng-disable="publishing || snapshotting">

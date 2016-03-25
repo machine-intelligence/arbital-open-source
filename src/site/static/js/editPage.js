@@ -23,8 +23,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.gtXSmallScreen = $mdMedia('gt-xs');
 			$scope.gtSmallScreen = $mdMedia('gt-sm');
 			$scope.gtMediumScreen = $mdMedia('gt-md');
-			$scope.liveEditUrl = pageService.getEditPageUrl($scope.page.pageId) + $scope.page.currentEditNum;
+			// Set to true if the page has been changed (and therefore can be discarded)
 			$scope.isPageDirty = $scope.page.isAutosave;
+			// Set to true when the user can enter custom snapshot text.
+			$scope.showSnapshotText = false;
+			// Set when we can't allow the user to edit the text anymore (e.g. when
+			// we notice that a new edit has been published.)
+			$scope.freezeEdit = false;
 
 			// If the alias contains a subdomain, then remove it
 			var periodIndex = $scope.page.alias.indexOf('.');
@@ -286,6 +291,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// callback is called with the error (or undefined on success)
 			var savePage = function(isAutosave, isSnapshot, callback, autosaveNotPerformedCallback) {
 				var data = computeAutosaveData();
+				if (isSnapshot) {
+					data.snapshotText = $scope.page.snapshotText;
+				}
 				if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
 					shouldFindSimilar = true;
 					prevEditPageData = $.extend({}, data);
@@ -296,6 +304,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
 					.success(function(data) {
+						console.log(data);
+						var newEdit = data.result.obsoleteEdit;
+						if (newEdit) {
+							// A new edit has been published while the user has been editing.
+							$scope.freezeEdit = true;
+							var message = "User (id=" + newEdit.creatorId + ") published a new version. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)";
+							$scope.addMessage("obsoleteEdit", message, "error");
+						}
 						if (isAutosave) {
 							// Refresh the lock
 							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
@@ -336,6 +352,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Process Snapshot button click
 			$scope.snapshotPage = function() {
+				$scope.showSnapshotText = false;
 				$scope.snapshotting = true;
 				$scope.successfulSnapshot = false;
 				savePage(false, true, function(error) {
@@ -352,7 +369,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.discardPage = function(continueEditing) {
 				var cont = function() {
 					if (continueEditing) {
-						window.location.href = $scope.liveEditUrl;
+						window.location.href = pageService.getEditPageUrl($scope.page.pageId, {
+							includeHost: true,
+							specificEdit: $scope.page.currentEditNum,
+						});
 					} else if ($scope.doneFn) {
 						$scope.doneFn({result: {
 							pageId: $scope.page.pageId,
@@ -508,6 +528,16 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 		},
 		link: function(scope, element, attrs) {
+			scope.toggleSnapshotting = function() {
+				scope.showSnapshotText = !scope.showSnapshotText;
+				if (scope.showSnapshotText) {
+					scope.page.snapshotText = "My snapshot (" + moment().format("YYYY-MM-DD h:mm a") + ")";
+					$timeout(function() {
+						element.find(".snapshot-text").focus();
+					});
+				}
+			};
+
 			$timeout(function() {
 				// Synchronize scrolling between the textarea and the preview.
 				var $wmdInput = element.find('.wmd-input');
