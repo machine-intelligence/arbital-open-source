@@ -131,38 +131,48 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			return "Couldn't insert pagePair", err
 		}
 
-		// Update change log
-		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = data.ParentId
-		hashmap["auxPageId"] = data.ChildId
-		hashmap["userId"] = u.Id
-		hashmap["edit"] = parent.Edit
-		hashmap["createdAt"] = database.Now()
-		hashmap["type"] = map[string]string{
-			core.ParentPagePairType:      core.NewChildChangeLog,
-			core.TagPagePairType:         core.NewTagTargetChangeLog,
-			core.RequirementPagePairType: core.NewRequiredForChangeLog,
-			core.SubjectPagePairType:     core.NewTeachesChangeLog,
-		}[data.Type]
-		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
-		if _, err = statement.Exec(); err != nil {
-			return "Couldn't insert new child change log", err
+		addRelationshipToChangelog := func(pageId string, auxPageId string, pageEdit int, auxPageEdit int, parentPPT string, tagPPT string,
+			requirementPPT string, subjectPPT string) error {
+			// do not add to the changelog of a public page if its aux page hasn't been published
+			// (as this would leak data about a user's unpublished draft)
+			if auxPageEdit <= 0 {
+				return nil
+			}
+
+			hashmap = make(database.InsertMap)
+			hashmap["pageId"] = pageId
+			hashmap["auxPageId"] = auxPageId
+			hashmap["userId"] = u.Id
+			hashmap["edit"] = pageEdit
+			hashmap["createdAt"] = database.Now()
+			hashmap["type"] = map[string]string{
+				core.ParentPagePairType:      parentPPT,
+				core.TagPagePairType:         tagPPT,
+				core.RequirementPagePairType: requirementPPT,
+				core.SubjectPagePairType:     subjectPPT,
+			}[data.Type]
+
+			_, err := tx.NewInsertTxStatement("changeLogs", hashmap).Exec()
+			return err
 		}
-		hashmap = make(database.InsertMap)
-		hashmap["pageId"] = data.ChildId
-		hashmap["auxPageId"] = data.ParentId
-		hashmap["userId"] = u.Id
-		hashmap["edit"] = child.Edit
-		hashmap["createdAt"] = database.Now()
-		hashmap["type"] = map[string]string{
-			core.ParentPagePairType:      core.NewParentChangeLog,
-			core.TagPagePairType:         core.NewTagChangeLog,
-			core.RequirementPagePairType: core.NewRequirementChangeLog,
-			core.SubjectPagePairType:     core.NewSubjectChangeLog,
-		}[data.Type]
-		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
-		if _, err = statement.Exec(); err != nil {
-			return "Couldn't insert new child change log", err
+
+		// Update change log
+		// don't add to the changelog of the parent if the child is unpublished (current edit == 0)
+		if child.Edit > 0 {
+			err = addRelationshipToChangelog(data.ParentId, data.ChildId, parent.Edit, child.Edit, core.NewChildChangeLog,
+				core.NewTagTargetChangeLog, core.NewRequiredForChangeLog, core.NewTeachesChangeLog)
+			if err != nil {
+				return "Couldn't insert new change log", err
+			}
+
+		}
+		// don't add to the changelog of the child if the parent is unpublished (current edit == 0)
+		if parent.Edit > 0 {
+			err = addRelationshipToChangelog(data.ChildId, data.ParentId, child.Edit, parent.Edit, core.NewParentChangeLog,
+				core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
+			if err != nil {
+				return "Couldn't insert new change log", err
+			}
 		}
 		return "", nil
 	})
