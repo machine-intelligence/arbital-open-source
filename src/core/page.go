@@ -768,7 +768,7 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 		// Process change logs
 		for _, log := range p.ChangeLogs {
 			userMap[log.UserId] = &User{Id: log.UserId}
-			AddPageIdToMap(log.AuxPageId, pageMap)
+			AddPageToMap(log.AuxPageId, pageMap, TitlePlusLoadOptions)
 		}
 	}
 	return nil
