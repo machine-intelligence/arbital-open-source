@@ -260,7 +260,6 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// Get url to edit the given page.
 	// options {
 	//	 includeHost: if true, include "https://" + host in the url
-	//	 specificEdit: if set to non-zero, include the edit parameter in the url
 	// }
 	this.getEditPageUrl = function(pageId, options) {
 		options = options || {};
@@ -269,9 +268,6 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			url = urlService.getBaseUrl('edit', pageId, this.pageMap[pageId].alias);
 		} else {
 			url = '/edit/' + pageId + '/';
-		}
-		if (options.specificEdit) {
-			url = url + options.specificEdit + '/';
 		}
 		if (options.includeHost) {
 			url = urlService.getDomainUrl() + url;

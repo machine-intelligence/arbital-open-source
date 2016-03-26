@@ -5,7 +5,7 @@
 	<div class="md-primary"
 			layout="column"
 			flex="{{::(fullView ? '50' : undefined)}}"
-			ng-show="!inPreview && (fullView || !otherDiff)">
+			ng-show="!inPreview && (fullView || (!otherDiff && !sideEdit))">
 		<md-tabs ng-class="::{'hide-tabs': isComment || isAnswer}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
@@ -52,7 +52,7 @@
 									ng-click="toggleSnapshotting()"
 									ng-if="::!isComment">
 							<md-icon>save</md-icon>
-							<md-tooltip md-delay="500">**Snapshot**</md-tooltip>
+							<md-tooltip md-delay="500">Snapshot</md-tooltip>
 						</md-button>
 						<div class="separator"></div>
 						<md-button class="wmd-bold-button">
@@ -61,7 +61,7 @@
 						</md-button>
 						<md-button class="wmd-italic-button">
 							<md-icon>format_italic</md-icon>
-							<md-tooltip md-delay="500">**Italics** | Ctrl+I</md-tooltip>
+							<md-tooltip md-delay="500">*Italics* | Ctrl+I</md-tooltip>
 						</md-button>
 						<div class="separator"></div>
 						<md-button class="wmd-link-button">
@@ -299,7 +299,7 @@
 						<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki)">
 							<md-switch ng-model="page.hasVote">
 								Show the {{::page.lockedVoteType}} voting bar
-						  </md-switch>
+							</md-switch>
 						</div>
 
 						<!-- Vote type -->
@@ -337,14 +337,14 @@
 						<div layout="row" layout-margin ng-if="::isWiki">
 							<md-switch ng-model="page.isRequisite">
 								This page is used as a requisite
-						  </md-switch>
+							</md-switch>
 						</div>
 
 						<!-- Indirect teacher -->
 						<div layout="row" layout-margin ng-if="::isWiki">
 							<md-switch ng-model="page.indirectTeacher">
 								This page teaches its requisites indirectly
-						  </md-switch>
+							</md-switch>
 						</div>
 
 						<!-- Delete page -->
@@ -386,14 +386,13 @@
 									layout="row" layout-align="start center">
 								<md-button class="md-warn"
 										ng-click="revertToEdit(changeLog.edit)"
-										ng-if="::(changeLog.type === 'newEdit' && changeLog.edit !== page.currentEditNum)">
+										ng-if="::(changeLog.type === 'newEdit' && changeLog.edit !== page.currentEdit)">
 									<md-tooltip md-delay="500">Revert to this edit</md-tooltip>
 									Revert
 								</md-button>
-								<md-button ng-href="{{::(pageService.getEditPageUrl(page.pageId, {'specificEdit': changeLog.edit}))}}"
-										class="md-warn">
-									<md-tooltip md-delay="500">Load this edit in the editor</md-tooltip>
-									Load Edit
+								<md-button ng-click="loadSideEdit(changeLog.edit)">
+									<md-tooltip md-delay="500">Show this edit</md-tooltip>
+									Show edit
 								</md-button>
 								<md-button ng-click="showDiff(changeLog.edit)">
 									<md-tooltip md-delay="500">Diff with this edit</md-tooltip>
@@ -402,6 +401,9 @@
 							</div>
 							<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit)">
 								Currently loaded
+							</div>
+							<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.currentEdit)">
+								Currently live
 							</div>
 						</div>
 						<md-divider ng-if="::!$last"></md-divider>
@@ -450,6 +452,7 @@
 			<arb-confirm-button button-text="Discard"
 					confirmed="discardPage()"
 					disabled="publishing || snapshotting"
+					tooltip-text="Discard the autosave"
 					ng-if="selectedTab != 2 && isPageDirty && !freezeEdit"></arb-confirm-button>
 			<div ng-if="!fullView && !inPreview && (selectedTab != 2) && !freezeEdit">
 				<md-button class="md-primary md-hue-1 md-raised"
@@ -474,9 +477,24 @@
 	<!-- Right half -->
 	<div ng-class="::{'edit-page-rhs-border': fullView}"
 			layout="column"
-			flex="{{fullView ? '50' : (inPreview || otherDiff) ? '' : 'none'}}">
+			flex="{{fullView ? '50' : (inPreview || otherDiff || sideEdit) ? '' : 'none'}}">
+		<!-- Messages -->
+		<md-list ng-if="!otherDiff && !sideEdit">
+			<md-list-item class="no-margins"
+					ng-class="::({error: 'md-warn bold', warning: 'md-warn md-hue-1', info: 'md-primary md-hue-1'}[value.type])"
+					ng-repeat="(key,value) in messages">
+				<!-- Dismiss button -->
+				<md-button class="md-icon-button"
+						ng-click="deleteMessage(key)"
+						ng-if="::!value.permanent">
+					<md-icon>close</md-icon>
+				</md-button>
+				<div ng-bind="::value.text"></div>
+			</md-list-item>
+		</md-list>
+
 		<!-- Live preview -->
-		<md-content class="preview-area" flex ng-show="(fullView || inPreview) && !otherDiff">
+		<md-content class="preview-area" flex ng-show="(fullView || inPreview) && !otherDiff && !sideEdit">
 			<div class="md-display-3" ng-bind="page.title"></div>
 			<div class="md-caption" ng-if="page.title === '' && page.text === ''">
 				<div class="md-display-3">Live preview</div>
@@ -505,7 +523,7 @@
 		</div>
 
 		<!-- Diff between edits -->
-		<md-content flex ng-if="otherDiff">
+		<md-content layout-padding flex ng-if="otherDiff">
 			<h2 class="md-display-3" ng-bind="'(#' + otherDiff.edit + ') ' + otherDiff.title"></h2>
 			<h3 class="md-display-1" ng-bind="'Clickbait: ' + otherDiff.clickbait"></h3>
 			<div ng-bind-html="diffHtml"></div>
@@ -530,20 +548,22 @@
 			</div>
 		</div>
 
-		<!-- Messages -->
-		<md-list ng-if="!otherDiff">
-			<md-list-item class="no-margins"
-					ng-class="::({error: 'md-warn md-body-2', warning: 'md-warn md-hue-1', info: 'md-primary md-hue-1'}[value.type])"
-					ng-repeat="(key,value) in messages">
-				<!-- Dismiss button -->
-				<md-button class="md-icon-button"
-						ng-click="deleteMessage(key)"
-						ng-if="::!value.permanent">
-					<md-icon>close</md-icon>
-				</md-button>
-				<div ng-bind="::value.text"></div>
-			</md-list-item>
-		</md-list>
+		<!-- Show side-by-side edit -->
+		<md-content layout-padding flex ng-if="sideEdit">
+			<h2 class="md-display-1" ng-bind="'(#' + sideEdit.edit + ') ' + sideEdit.snapshotText"></h2>
+			<h2 class="md-display-3" ng-bind="sideEdit.title"></h2>
+			<h3 class="md-display-1" ng-bind="sideEdit.clickbait"></h3>
+			<div class="edit-page-side-text" ng-bind="sideEdit.text"></div>
+		</md-content>
+		<div class="md-primary md-hue-2"
+				layout-padding
+				ng-if="sideEdit">
+			<md-button class="md-primary md-hue-1 md-raised" ng-click="hideSideEdit()">
+				<md-icon>arrow_back</md-icon>
+				<md-tooltip md-delay="500">Go back to live preview</md-tooltip>
+				Back to live preview
+			</md-button>
+		</div>
 
 		<!-- Related pages -->
 		<ng-include src="'static/html/editPageSimilarList.html'" ng-if="::(isQuestion && fullView)"></ng-include>

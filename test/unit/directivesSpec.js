@@ -51,7 +51,7 @@ describe('directives', function() {
 		lastVisit:"",
 		hasDraft:false,
 
-		currentEditNum:0,
+		currentEdit:0,
 		wasPublished:false,
 		votes:[],
 		lockedVoteType:"",

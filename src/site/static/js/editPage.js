@@ -37,12 +37,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.page.alias = $scope.page.alias.substring(periodIndex + 1);
 			}
 
-			// Return true if we should be using a table layout (so we can stack right
-			// and left columns vertically)
-			$scope.useTableLayout = function() {
-				return !$scope.fullView && !$scope.inPreview && !$scope.otherDiff;
-			};
-
 			// Select correct tab
 			$scope.selectedTab = ($scope.page.wasPublished || $scope.page.title.length > 0) ? 1 : 0;
 			if ($location.search().tab) {
@@ -107,6 +101,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.isLens = $scope.page.isLens();
 			$scope.isGroup = $scope.page.isGroup() || $scope.page.isDomain();
 			$scope.forceExpandSimilarPagesCount = $scope.isQuestion ? 5 : 10;
+			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
 			// Set up page types.
 			if ($scope.isQuestion) {
@@ -161,7 +156,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
 						var page = pageService.pageMap[alias];
 						if (page) {
-						return prefix + "[vote: " + page.alias + "]";
+						return prefix + '[vote: ' + page.alias + ']';
 						}
 						return whole;*/
 				}).replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
@@ -244,16 +239,20 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					pageService.pageMap[$scope.page.editGroupId].title + ' group to edit this page', 'error', true);
 			}
 			// Check if you've loaded an edit that's not currently live
-			if ($scope.page.edit !== $scope.page.currentEditNum && !$scope.page.isAutosave && !$scope.page.isSnapshot) {
+			if ($scope.page.edit !== $scope.page.currentEdit && $scope.isNormalEdit) {
 				$scope.addMessage('nonLiveEdit', 'Currently looking at a non-live edit', 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isAutosave) {
-				$scope.addMessage('nonLiveEdit', 'Restored an autosave which was last updated ' +
+				$scope.addMessage('nonLiveEdit', 'Loaded an autosave which was last updated ' +
 					$filter('relativeDateTime')(pageService.primaryPage.createdAt), 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
-				$scope.addMessage('nonLiveEdit', 'Restored a snapshot which was last updated ' +
+				$scope.addMessage('nonLiveEdit', 'Loaded a snapshot which was last updated ' +
 					$filter('relativeDateTime')(pageService.primaryPage.createdAt), 'warning');
+			}
+			// Check if we loaded a live edit, but the user has a draft
+			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {
+				//$scope.addMessage('hasDraft', 'You have an unpublished draft that\'s more recent than this edit', 'error');
 			}
 
 			// =========== Autosaving / snapshotting / publishing stuff ==============
@@ -263,6 +262,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			var prevEditPageData = undefined;
 			$timeout(function() {
+				// If we loaded an edit that's not based off of the current edit, freeze!
+				// Note: do this before we compute prevEditPageData, to make sure autosave goes through.
+				if ($scope.page.wasPublished && $scope.page.prevEdit != $scope.page.currentEdit) {
+					$scope.freezeEdit = true;
+					savePage(false, true);
+					var message = 'A new version was published. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
+					$scope.addMessage('obsoleteEdit', message, 'error');
+				}
 				// Compute prevEditPageData, so we don't fire off autosave when there were
 				// no changes made.
 				prevEditPageData = computeAutosaveData();
@@ -276,6 +283,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				var data = {
 					pageId: $scope.pageId,
 					prevEdit: $scope.page.prevEdit,
+					currentEdit: $scope.page.currentEdit,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
@@ -304,23 +312,22 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
 					.success(function(data) {
-						console.log(data);
 						var newEdit = data.result.obsoleteEdit;
 						if (newEdit) {
 							// A new edit has been published while the user has been editing.
 							$scope.freezeEdit = true;
-							var message = "User (id=" + newEdit.creatorId + ") published a new version. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)";
-							$scope.addMessage("obsoleteEdit", message, "error");
+							var message = 'User (id=' + newEdit.creatorId + ') published a new version. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
+							$scope.addMessage('obsoleteEdit', message, 'error');
 						}
 						if (isAutosave) {
 							// Refresh the lock
 							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
 						}
 						$scope.isPageDirty = isAutosave;
-						callback();
+						if (callback) callback();
 					})
 					.error(function(data) {
-						callback(data);
+						if (callback) callback(data);
 					});
 				} else {
 					if (autosaveNotPerformedCallback) autosaveNotPerformedCallback();
@@ -366,20 +373,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Process Discard button click.
-			$scope.discardPage = function(continueEditing) {
+			$scope.discardPage = function() {
 				var cont = function() {
-					if (continueEditing) {
-						window.location.href = pageService.getEditPageUrl($scope.page.pageId, {
-							includeHost: true,
-							specificEdit: $scope.page.currentEditNum,
-						});
-					} else if ($scope.doneFn) {
-						$scope.doneFn({result: {
-							pageId: $scope.page.pageId,
-							alias: $scope.page.alias,
-							discard: true,
-						}});
-					}
+					if (!$scope.doneFn) return;
+					$scope.doneFn({result: {
+						pageId: $scope.page.pageId,
+						alias: $scope.page.alias,
+						discard: true,
+					}});
 				};
 				pageService.discardPage($scope.page.pageId, cont, cont);
 			};
@@ -469,9 +470,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				dmp.diff_cleanupSemantic(diffs);
 				$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, '');
 			};
-			// Process click event for diffing edits.
+			// Process click event for diffing edits
 			$scope.showDiff = function(editNum) {
-				// Load the edit from the server.
+				// Load the edit from the server
 				pageService.loadEdit({
 					pageAlias: $scope.page.pageId,
 					specificEdit: editNum,
@@ -487,6 +488,27 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.hideDiff = function() {
 				$scope.otherDiff = undefined;
 				$scope.diffHtml = undefined;
+			};
+
+			// =========== Side by side edit ==============
+			// sideEdit stores the edit we loaded to show on the right-hand side
+			$scope.sideEdit = undefined;
+			// Process click event for showing a side edit
+			$scope.loadSideEdit = function(editNum) {
+				// Load the edit from the server
+				pageService.loadEdit({
+					pageAlias: $scope.page.pageId,
+					specificEdit: editNum,
+					skipProcessDataStep: true,
+					success: function(data, status) {
+						$scope.sideEdit = data[$scope.page.pageId];
+						$scope.sideEdit.text = $scope.convertPageIdsToAliases($scope.sideEdit.text);
+						$scope.selectedTab = 1;
+					},
+				});
+			};
+			$scope.hideSideEdit = function() {
+				$scope.sideEdit = undefined;
 			};
 
 			// Save the page info.
@@ -531,9 +553,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			scope.toggleSnapshotting = function() {
 				scope.showSnapshotText = !scope.showSnapshotText;
 				if (scope.showSnapshotText) {
-					scope.page.snapshotText = "My snapshot (" + moment().format("YYYY-MM-DD h:mm a") + ")";
+					scope.page.snapshotText = 'My snapshot (' + moment().format('YYYY-MM-DD h:mm a') + ')';
 					$timeout(function() {
-						element.find(".snapshot-text").focus();
+						element.find('.snapshot-text').focus();
 					});
 				}
 			};
@@ -549,7 +571,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					other.scrollTop = Math.round(percentage * (other.scrollHeight - other.offsetHeight));
 					// Firefox workaround. Rebinding without delay isn't enough.
 					/*setTimeout(function() {
-						$other.on("scroll", syncScroll);
+						$other.on('scroll', syncScroll);
 					}, 10);*/
 				};
 				if (scope.fullView) {

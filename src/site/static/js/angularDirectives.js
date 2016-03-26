@@ -442,6 +442,7 @@ app.directive('arbConfirmButton', function() {
 			buttonText: '@',
 			buttonBeforeConfirm: '@',
 			disabled: '=',
+			tooltipText: '@',
 			confirmed: '&',
 		},
 		controller: function($scope) {

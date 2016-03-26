@@ -2,10 +2,11 @@
 	<md-button aria-label="{{::buttonText}}"
 			class="md-warn md-raised"
 			ng-click="toggleConfirming(true)"
-			ng-bind="::buttonText"
 			ng-disabled="disabled"
 			flex-order="{{::buttonFlexOrder}}"
 			ng-if="::buttonText">
+		<span ng-bind="::buttonText"></span>
+		<md-tooltip ng-bind="::tooltipText" ng-if="::tooltipText"></md-tooltip>
 	</md-button>
 	<md-button aria-label="{{::buttonText}}"
 			class="md-icon-button"
@@ -13,6 +14,7 @@
 			ng-disabled="disabled"
 			flex-order="{{::buttonFlexOrder}}"
 			ng-if="::!buttonText">
+		<md-tooltip ng-bind="::tooltipText" ng-if="::tooltipText"></md-tooltip>
 		<md-icon>delete</md-icon>
 	</md-button>
 

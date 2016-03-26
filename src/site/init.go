@@ -55,10 +55,6 @@ func init() {
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}/{alias2:%s}/", core.AliasRegexpStr, core.AliasRegexpStr),
 		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
-	s.HandleFunc(fmt.Sprintf("/edit/{id:%s}/{alias:%s}/{edit:[0-9]+}/", core.AliasRegexpStr, core.AliasRegexpStr),
-		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
-	s.HandleFunc(fmt.Sprintf("/edit/{alias:%s}/{edit:[0-9]+}/", core.AliasRegexpStr),
-		pageHandlerWrapper(&editPagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/explore/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/explore/{domain:%s}/", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")

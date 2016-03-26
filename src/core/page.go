@@ -117,6 +117,7 @@ type corePageData struct {
 	TodoCount         int    `json:"todoCount"`
 	LensIndex         int    `json:"lensIndex"`
 	IsEditorComment   bool   `json:"isEditorComment"`
+	SnapshotText      string `json:"snapshotText"`
 	AnchorContext     string `json:"anchorContext"`
 	AnchorText        string `json:"anchorText"`
 	AnchorOffset      int    `json:"anchorOffset"`
@@ -149,7 +150,7 @@ type Page struct {
 	// === Full data. ===
 	// For pages that are displayed fully, we load more additional data.
 	// Edit number for the currently live version
-	CurrentEditNum int `json:"currentEditNum"`
+	CurrentEdit int `json:"currentEdit"`
 	// True iff there is an edit that has isCurrentEdit set for this page
 	WasPublished bool    `json:"wasPublished"`
 	Votes        []*Vote `json:"votes"`
@@ -687,7 +688,7 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
 			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
-			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset
+			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId = pi.pageId AND p.isCurrentEdit)
@@ -702,9 +703,9 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
-			&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
+			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
-			return fmt.Errorf("failed to scan a page: %v", err)
+			return fmt.Errorf("Failed to scan a page: %v", err)
 		}
 		pageMap[p.PageId].corePageData = p
 		return nil
@@ -816,12 +817,20 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 				WHERE pageId=? AND edit<? AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.LoadEditWithLimit)
 	} else if options.LoadNonliveEdit {
+		// Load the most recent edit we have for the current user.
+		// If there is an autosave, load that.
+		// If there is are snapshots, only consider those that are based off of the currently live edit.
+		// Otherwise, load the currently live edit.
+		// Note: "z" is just a hack to make sure autosave is sorted to the top.
 		whereClause = database.NewQuery(`
 			p.edit=(
-				SELECT edit
-				FROM pages
-				WHERE pageId=? AND (creatorId=? OR NOT (isSnapshot OR isAutosave))
-				ORDER BY createdAt DESC
+				SELECT p.edit
+				FROM pages AS p
+				JOIN pageInfos AS pi
+				ON (p.pageId=pi.pageId)
+				WHERE p.pageId=? AND (p.prevEdit=pi.currentEdit OR p.isCurrentEdit OR p.isAutosave) AND
+					(p.creatorId=? OR NOT (p.isSnapshot OR p.isAutosave))
+				ORDER BY IF(p.isAutosave,"z",p.createdAt) DESC
 				LIMIT 1
 			)`, pageId, userId)
 	}
@@ -830,7 +839,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
-			p.todoCount,p.anchorContext,p.anchorText,p.anchorOffset,
+			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
 		FROM pages AS p
@@ -844,8 +853,8 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
 		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
-		&p.TodoCount, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
-		&p.CurrentEditNum, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
+		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
+		&p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
@@ -1603,19 +1612,15 @@ func LoadDraftExistence(db *database.DB, userId string, options *LoadDataOptions
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT pageId,MAX(
-				IF(isAutosave AND creatorId=?, edit, -1)
-			) AS myMaxEdit, MAX(IF(isCurrentEdit, edit, -1)) AS currentEdit
-		FROM pages`, userId).Add(`
+		SELECT pageId
+		FROM pages
 		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
-		GROUP BY pageId
-		HAVING myMaxEdit > currentEdit`).ToStatement(db).Query()
+			AND isAutosave AND creatorId=?`, userId).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId string
-		var blank int
-		err := rows.Scan(&pageId, &blank, &blank)
+		err := rows.Scan(&pageId)
 		if err != nil {
-			return fmt.Errorf("failed to scan a page id: %v", err)
+			return fmt.Errorf("Failed to scan a draft existence: %v", err)
 		}
 		pageMap[pageId].HasDraft = true
 		return nil
@@ -1639,7 +1644,7 @@ func LoadLastVisits(db *database.DB, currentUserId string, pageMap map[string]*P
 		var createdAt string
 		err := rows.Scan(&pageId, &createdAt)
 		if err != nil {
-			return fmt.Errorf("failed to scan for a comment like: %v", err)
+			return fmt.Errorf("Failed to scan for a comment like: %v", err)
 		}
 		pageMap[pageId].LastVisit = createdAt
 		return nil
@@ -1662,7 +1667,7 @@ func LoadSubscriptions(db *database.DB, currentUserId string, pageMap map[string
 		var toPageId string
 		err := rows.Scan(&toPageId)
 		if err != nil {
-			return fmt.Errorf("failed to scan for a subscription: %v", err)
+			return fmt.Errorf("Failed to scan for a subscription: %v", err)
 		}
 		pageMap[toPageId].IsSubscribed = true
 		return nil

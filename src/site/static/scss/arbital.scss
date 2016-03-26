@@ -623,6 +623,11 @@ ins {
 	margin-bottom: 20px;
 }
 
+// Container for the text that's displayed when a side edit is loaded
+.edit-page-side-text {
+	white-space: pre-wrap;
+}
+
 // Contains all markdown buttons
 .wmd-button-bar {
 	background-color: white;

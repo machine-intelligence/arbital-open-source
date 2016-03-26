@@ -27,6 +27,7 @@ type editPageData struct {
 	IsMinorEditStr  string
 	IsAutosave      bool
 	IsSnapshot      bool
+	SnapshotText    string
 	AnchorContext   string
 	AnchorText      string
 	AnchorOffset    int
@@ -85,7 +86,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// If the client think the current edit is X, but it's actually Y (X!=Y), then
 	if oldPage.WasPublished && data.CurrentEdit != oldPage.Edit {
-		// Notify the client with a warning.
+		// Notify the client with an error
 		returnData.ResultMap["obsoleteEdit"] = oldPage
 		// And save a snapshot
 		data.IsAutosave = false

@@ -353,7 +353,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('domainPage'));
 		},
 	});
-	urlService.addUrlHandler('/edit/:alias?/:editOrAlias?/:edit?', {
+	urlService.addUrlHandler('/edit/:alias?/:alias2?', {
 		name: 'EditPage',
 		handler: function(args, $scope) {
 			var pageId = args.alias;
@@ -363,16 +363,9 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			$http({method: 'POST', url: '/json/default/'})
 			.success($scope.getSuccessFunc(function(data) {
 				if (pageId && pageId.charAt(0) > '0' && pageId.charAt(0) <= '9') {
-					var specificEdit = 0;
-					if (args.edit) {
-						specificEdit = +args.edit ? +args.edit : 0;
-					} else if (+args.editOrAlias) {
-						specificEdit = +args.editOrAlias ? +args.editOrAlias : 0;
-					}
 					// Load the last edit
 					pageService.loadEdit({
 						pageAlias: pageId,
-						specificEdit: specificEdit,
 						success: $scope.getSuccessFunc(function() {
 							var page = pageService.editMap[pageId];
 							if ($location.search().alias) {
@@ -381,7 +374,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 								$location.replace().search('alias', undefined);
 							}
 
-							urlService.ensureCanonPath(pageService.getEditPageUrl(pageId, {specificEdit: specificEdit}));
+							urlService.ensureCanonPath(pageService.getEditPageUrl(pageId));
 							pageService.primaryPage = page;
 
 							// Called when the user is done editing the page.
