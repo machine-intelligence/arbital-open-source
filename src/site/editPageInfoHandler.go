@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"zanaduu3/src/core"
@@ -193,13 +194,17 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		if oldPage.WasPublished {
-			updateChangeLog := func(changeType string, auxPageId string) (string, error) {
+			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (string, error) {
+
 				hashmap = make(database.InsertMap)
 				hashmap["pageId"] = data.PageId
 				hashmap["userId"] = u.Id
 				hashmap["createdAt"] = database.Now()
 				hashmap["type"] = changeType
 				hashmap["auxPageId"] = auxPageId
+				hashmap["oldSettingsValue"] = oldSettingsValue
+				hashmap["newSettingsValue"] = newSettingsValue
+
 				statement = tx.NewInsertTxStatement("changeLogs", hashmap)
 				if _, err = statement.Exec(); err != nil {
 					return fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err
@@ -207,12 +212,12 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				return "", nil
 			}
 			if data.Alias != oldPage.Alias {
-				if errorMessage, err := updateChangeLog(core.NewAliasChangeLog, ""); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.SortChildrenBy != oldPage.SortChildrenBy {
-				if errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, ""); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
@@ -221,22 +226,22 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if !hasVote {
 					changeType = core.TurnOffVoteChangeLog
 				}
-				if errorMessage, err := updateChangeLog(changeType, ""); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(changeType, "", strconv.FormatBool(oldPage.HasVote), strconv.FormatBool(hasVote)); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.VoteType != oldPage.VoteType {
-				if errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, ""); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.EditKarmaLock != oldPage.EditKarmaLock {
-				if errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, ""); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, "", strconv.Itoa(oldPage.EditKarmaLock), strconv.Itoa(data.EditKarmaLock)); errorMessage != "" {
 					return errorMessage, err
 				}
 			}
 			if data.EditGroupId != oldPage.EditGroupId {
-				if errorMessage, err := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupId); errorMessage != "" {
+				if errorMessage, err := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupId, oldPage.EditGroupId, data.EditGroupId); errorMessage != "" {
 					return errorMessage, err
 				}
 			}

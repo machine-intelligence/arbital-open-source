@@ -97,6 +97,7 @@ func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType 
 		core.ParentPagePairType:      core.DeleteChildChangeLog,
 		core.TagPagePairType:         core.DeleteTagTargetChangeLog,
 		core.RequirementPagePairType: core.DeleteRequiredForChangeLog,
+		core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
 	}[pairType]
 	statement := tx.NewInsertTxStatement("changeLogs", hashmap)
 	if _, err := statement.Exec(); err != nil {
@@ -112,6 +113,7 @@ func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType 
 		core.ParentPagePairType:      core.DeleteParentChangeLog,
 		core.TagPagePairType:         core.DeleteTagChangeLog,
 		core.RequirementPagePairType: core.DeleteRequirementChangeLog,
+		core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
 	}[pairType]
 	statement = tx.NewInsertTxStatement("changeLogs", hashmap)
 	if _, err := statement.Exec(); err != nil {

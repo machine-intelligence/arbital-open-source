@@ -32,7 +32,7 @@ const (
 	NewRequirementUpdateType   = "newRequirement"
 	NewRequiredByUpdateType    = "newRequiredBy"
 	NewSubjectUpdateType       = "newSubject"
-	NewTeachesUpdateType       = "newTeaches"
+	NewTeacherUpdateType       = "newTeacher"
 	AtMentionUpdateType        = "atMention"
 	AddedToGroupUpdateType     = "addedToGroup"
 	RemovedFromGroupUpdateType = "removedFromGroup"
