@@ -159,7 +159,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		// Update change log
 
 		// Don't add to the changelog of the parent if the child is unpublished (current edit == 0)
-		if child.CurrentEditNum > 0 {
+		if child.CurrentEdit > 0 {
 			err = addRelationshipToChangelog(data.ParentId, data.ChildId, parent.Edit, child.Edit, core.NewChildChangeLog,
 				core.NewTagTargetChangeLog, core.NewRequiredForChangeLog, core.NewTeacherChangeLog)
 			if err != nil {
@@ -168,7 +168,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 		}
 		// Don't add to the changelog of the child if the parent is unpublished (current edit == 0)
-		if parent.CurrentEditNum > 0 {
+		if parent.CurrentEdit > 0 {
 			err = addRelationshipToChangelog(data.ChildId, data.ParentId, child.Edit, parent.Edit, core.NewParentChangeLog,
 				core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
 			if err != nil {
