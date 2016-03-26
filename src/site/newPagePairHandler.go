@@ -133,8 +133,8 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 		addRelationshipToChangelog := func(pageId string, auxPageId string, pageEdit int, auxPageEdit int, parentPPT string, tagPPT string,
 			requirementPPT string, subjectPPT string) error {
-			// do not add to the changelog of a public page if its aux page hasn't been published
-			// (as this would leak data about a user's unpublished draft)
+			// Do not add to the changelog of a public page if its aux page hasn't been published (as this would leak data
+			// about a user's unpublished draft).
 			if auxPageEdit <= 0 {
 				return nil
 			}
@@ -157,8 +157,9 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		}
 
 		// Update change log
-		// don't add to the changelog of the parent if the child is unpublished (current edit == 0)
-		if child.Edit > 0 {
+
+		// Don't add to the changelog of the parent if the child is unpublished (current edit == 0)
+		if child.CurrentEditNum > 0 {
 			err = addRelationshipToChangelog(data.ParentId, data.ChildId, parent.Edit, child.Edit, core.NewChildChangeLog,
 				core.NewTagTargetChangeLog, core.NewRequiredForChangeLog, core.NewTeacherChangeLog)
 			if err != nil {
@@ -166,8 +167,8 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			}
 
 		}
-		// don't add to the changelog of the child if the parent is unpublished (current edit == 0)
-		if parent.Edit > 0 {
+		// Don't add to the changelog of the child if the parent is unpublished (current edit == 0)
+		if parent.CurrentEditNum > 0 {
 			err = addRelationshipToChangelog(data.ChildId, data.ParentId, child.Edit, parent.Edit, core.NewParentChangeLog,
 				core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
 			if err != nil {

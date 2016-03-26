@@ -194,8 +194,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		if oldPage.WasPublished {
-			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string,
-				newSettingsValue string) (string, error) {
+			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (string, error) {
 
 				hashmap = make(database.InsertMap)
 				hashmap["pageId"] = data.PageId

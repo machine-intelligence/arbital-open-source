@@ -344,9 +344,7 @@
 			<md-tab label="Changelog" ng-disabled="::(isComment || isAnswer)">
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
-					<!-- have to check that changeLog.type is not empty because we used to not store the type
-					of change for a deleteSubject / deleteTeacher, and we don't know which is which -->
-					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs" ng-if="::changeLog.type">
+					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">
 						<div layout="column" flex>
 							<div layout="row">
 								<div ng-switch="::([
