@@ -1,0 +1,139 @@
+<div layout="column" flex>
+	<div layout="row">
+		<div ng-switch="::([
+				'newParent',
+				'deleteParent',
+				'newChild',
+				'deleteChild',
+				'newTag',
+				'deleteTag',
+				'newTagTarget',
+				'deleteTagTarget',
+				'newRequirement',
+				'deleteRequirement',
+				'newRequiredFor',
+				'deleteRequiredFor',
+				'newSubject',
+				'deleteSubject',
+				'newTeacher',
+				'deleteTeacher'
+			].indexOf(changeLog.type) >= 0)">
+			<!-- if -->
+			<div ng-switch-when="true">
+				<!-- changes that include aux pages -->
+				<span ng-switch="::changeLog.type">
+					<span ng-switch-when="newParent">New parent:</span>
+					<span ng-switch-when="deleteParent">Removed parent:</span>
+					<span ng-switch-when="newChild">New child:</span>
+					<span ng-switch-when="deleteChild">Removed child:</span>
+					<span ng-switch-when="newTag">New tag:</span>
+					<span ng-switch-when="deleteTag">Removed tag:</span>
+					<span ng-switch-when="newTagTarget">Tag for:</span>
+					<span ng-switch-when="deleteTagTarget">Not a tag for:</span>
+					<span ng-switch-when="newRequirement">New requirement:</span>
+					<span ng-switch-when="deleteRequirement">Removed requirement:</span>
+					<span ng-switch-when="newRequiredFor">Required for:</span>
+					<span ng-switch-when="deleteRequiredFor">Not required for:</span>
+					<span ng-switch-when="newSubject">Teaches:</span>
+					<span ng-switch-when="deleteSubject">Doesn't teach:</span>
+					<span ng-switch-when="newTeacher">Taught by:</span>
+					<span ng-switch-when="deleteTeacher">Not taught by:</span>
+				</span>
+				<arb-page-title page-id="{{::changeLog.auxPageId}}" is-link="true"></arb-page-title>
+			</div>
+			<!-- else -->
+			<div ng-switch-default ng-switch="::([
+					'newAlias',
+					'newSortChildrenBy',
+					'setVoteType',
+					'newEditKarmaLock'
+				].indexOf(changeLog.type) >= 0)">
+				<!-- if -->
+				<div ng-switch-when="true">
+					<!-- changes that should show old values -->
+					Changed
+					<span ng-switch="::changeLog.type">
+						<span ng-switch-when="newAlias">"alias"</span>
+						<span ng-switch-when="newSortChildrenBy">"child sort order"</span>
+						<span ng-switch-when="setVoteType">"vote type"</span>
+						<span ng-switch-when="newEditKarmaLock">"edit karma lock"</span>
+					</span>
+					from "{{::changeLog.oldSettingsValue}}" to "{{::changeLog.newSettingsValue}}"
+				</div>
+				<!-- else -->
+				<div ng-switch-default ng-switch="::(changeLog.type == 'newEditGroup')">
+					<!-- if -->
+					<div ng-switch-when="true">
+						Changed "edit group" from
+						<!-- old edit group -->
+						<span ng-if="::(changeLog.oldSettingsValue == '')">none</span>
+						<span ng-if="::(changeLog.oldSettingsValue != '')">
+							<arb-page-title page-id="{{::changeLog.oldSettingsValue}}" is-link="true"></arb-page-title>
+						</span>
+						to
+						<!-- new edit group -->
+						<span ng-if="::(changeLog.newSettingsValue == '')">none</span>
+						<span ng-if="::(changeLog.newSettingsValue != '')">
+							<arb-page-title page-id="{{::changeLog.newSettingsValue}}" is-link="true"></arb-page-title>
+						</span>
+					</div>
+					<!-- else -->
+					<div ng-switch-default ng-switch="::([
+							'deletePage',
+							'newEdit',
+							'revertEdit',
+							'newSnapshot',
+							'turnOnVote',
+							'turnOffVote'
+						].indexOf(changeLog.type) >= 0)">
+						<!-- if -->
+						<span ng-switch-when="true" ng-switch="::changeLog.type">
+								<!-- other changes -->
+								<span ng-switch-when="deletePage">Deleted page</span>
+								<span ng-switch-when="newEdit">New edit #{{::changeLog.edit}}</span>
+								<span ng-switch-when="revertEdit">Reverted to edit #{{::changeLog.edit}}</span>
+								<span ng-switch-when="newSnapshot">New snapshot (edit #{{::changeLog.edit}})</span>
+								<span ng-switch-when="turnOnVote">Show probability bar</span>
+								<span ng-switch-when="turnOffVote">Hide probability bar</span>
+						</span>
+						<!-- else -->
+						<div ng-switch-default>
+							{{::changeLog.type}}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div flex />
+		<div>
+			<arb-user-name user-id="{{::changeLog.userId}}"></arb-user-name>
+
+			<span ng-bind="::(changeLog.createdAt | relativeDateTime)"></span>
+		</div>
+	</div>
+
+	<!-- Extra functionality for new edits -->
+	<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && page.edit !== changeLog.edit)"
+			layout="row" layout-align="start center">
+		<md-button class="md-warn"
+				ng-click="revertToEdit(changeLog.edit)"
+				ng-if="::(changeLog.type === 'newEdit' && changeLog.edit !== page.currentEdit)">
+			<md-tooltip md-delay="500">Revert to this edit</md-tooltip>
+			Revert
+		</md-button>
+		<md-button ng-click="loadSideEdit(changeLog.edit)">
+			<md-tooltip md-delay="500">Show this edit</md-tooltip>
+			Show edit
+		</md-button>
+		<md-button ng-click="showDiff(changeLog.edit)">
+			<md-tooltip md-delay="500">Diff with this edit</md-tooltip>
+			Diff
+		</md-button>
+	</div>
+	<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit)">
+		Currently loaded
+	</div>
+	<div ng-if="::((changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.currentEdit)">
+		Currently live
+	</div>
+</div>

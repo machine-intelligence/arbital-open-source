@@ -585,3 +585,15 @@ app.directive('arbNextPrev', function($location, pageService, userService) {
 		},
 	};
 });
+
+// Directive for displaying individual changes in the changelog tab on the edit page.
+app.directive('arbChangeLogEntry', function() {
+	return {
+		templateUrl: 'static/html/changeLogEntry.html',
+		scope: {
+			changeLog: '=',
+		},
+		controller: function($scope) {
+		},
+	};
+});
