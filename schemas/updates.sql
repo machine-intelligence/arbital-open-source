@@ -2,10 +2,11 @@
 there was a new comment. Updates are created only when a user is subscribed to
 something, usually a page.
 
-Since there could be multiple new comments on a page, we don't want to count
-each one as a new update. That's what "count" variable is for. This way we can
-set subsequent new comments to have count of "0". Sum of all counts is what the
-user sees in the navigation bar.
+If there are multiple new comments on (or edits to) a page, we don't want to count
+each one as a new update for the count that the user sees in the navigation bar
+(on the bell icon). That's what the "newCount" variable is for -- after the first
+update of a particular type, for a particular page, we set subsequent similar
+updates to have newCount of "0". What the user sees is the sum of all newCounts.
 
 When the user visits the update pages, all the counts are zeroed out, since
 the user has been made aware of all the updates.
