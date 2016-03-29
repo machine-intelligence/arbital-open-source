@@ -23,7 +23,7 @@ CREATE TABLE changeLogs (
 	be set to the parent id. */
 	auxPageId VARCHAR(32) NOT NULL,
 
-	/* For use in the change log and on the updates page. */
+	/* So that we can show what changed in the change log. */
 	oldSettingsValue VARCHAR(32) NOT NULL,
 	newSettingsValue VARCHAR(32) NOT NULL,
 
