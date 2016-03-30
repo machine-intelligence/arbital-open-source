@@ -3,35 +3,31 @@
 	<br><br>
 
 	<!-- Begin MailChimp Signup Form -->
+	<h1 layout-margin>Subscribe to our mailing list</h1>
 	<div id="mc-signup" class="md-whiteframe-1dp" layout-padding>
+		<md-input-container>
+			<label>
+				Your email
+			</label>
+			<input type="email" ng-model="subscribeData.email" required>
+		</md-input-container>
+		<div layout="column">
+			<strong>What are you interested in?</strong>
+			<md-checkbox ng-model="subscribeData.interests['7ec5d431b0']">
+			  General updates (once a month)
+			</md-checkbox>
+			<md-checkbox ng-model="subscribeData.interests['7b38bc3921']">
+			  Contributing math content
+			</md-checkbox>
+		</div>
 		<div>
-			<h1 class="no-margins">
-				Subscribe to our mailing list
-			</h1>
-			<md-input-container>
-				<label>
-					Your email
-				</label>
-				<input type="email" ng-model="subscribeData.email" required>
-			</md-input-container>
-			<div layout="column">
-				<strong>What are you interested in?</strong>
-				<md-checkbox ng-model="subscribeData.interests['7ec5d431b0']">
-				  General updates (once a month)
-				</md-checkbox>
-				<md-checkbox ng-model="subscribeData.interests['7b38bc3921']">
-				  Contributing math content
-				</md-checkbox>
-			</div>
-			<div>
-				<md-button class="md-primary md-raised" ng-click="subscribeToList()" ng-if="!subscribed">
-					Subscribe
-				</md-button>
-				<span ng-if="subscribed">
-					Thank you! Please check your inbox for the confirmation email.
-				</span>
-				<div class="md-warn" ng-bind="subscribeError" ng-if="subscribeError"></div>
-			</div>
+			<md-button class="md-primary md-raised" ng-click="subscribeToList()" ng-if="!subscribed">
+				Subscribe
+			</md-button>
+			<span ng-if="subscribed">
+				Thank you! Please check your inbox for the confirmation email.
+			</span>
+			<div class="md-warn" ng-bind="subscribeError" ng-if="subscribeError"></div>
 		</div>
 	</div>
 

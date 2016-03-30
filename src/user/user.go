@@ -21,6 +21,9 @@ const (
 	WeeklyEmailFrequency      = "weekly"
 	NeverEmailFrequency       = "never"
 	ImmediatelyEmailFrequency = "immediately"
+
+	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
+	Base31CharsForFirstChar = "0123456789"
 )
 
 var (
@@ -198,16 +201,6 @@ func ParseUser(rc io.ReadCloser) (*User, error) {
 	return &user, nil
 }
 
-func init() {
-	// Need to register this so it can be stored inside a cookie
-	gob.Register(&CookieSession{})
-}
-
-const (
-	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
-	Base31CharsForFirstChar = "0123456789"
-)
-
 // Replace a rune at a specific index in a string
 func replaceAtIndex(in string, r rune, i int) string {
 	out := []rune(in)
@@ -304,4 +297,9 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 	nextAvailableId, err := IncrementBase31Id(tx.DB.C, highestUsedId)
 
 	return nextAvailableId, err
+}
+
+func init() {
+	// Need to register this so it can be stored inside a cookie
+	gob.Register(&CookieSession{})
 }

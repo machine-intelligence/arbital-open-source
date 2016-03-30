@@ -70,6 +70,16 @@
 		</h1>
 	</md-toolbar>
 	<md-content layout="column">
+		<!-- Other buttons -->
+		<md-subheader>
+			Your Account
+		</md-subheader>
+		<md-button href="/dashboard/" ng-click="toggleRightMenu()">Your Dashboard</md-button>
+		<md-button ng-href="/groups" ng-click="toggleRightMenu()">Your Groups</md-button>
+		<md-button ng-href="/requisites" ng-click="toggleRightMenu()">Your Requisites</md-button>
+		<md-button ng-href="/settings" ng-click="toggleRightMenu()">Your Settings</md-button>
+		<md-divider></md-divider>
+
 		<!-- List of groups -->
 		<md-subheader ng-if="(userService.user.groupIds.length > 0)">
 			Your Groups
@@ -81,18 +91,6 @@
 						ng-bind="::(pageService.pageMap[groupId].title | shorten: 30)"></md-button>
 			</div>
 		</div>
-		<md-divider></md-divider>
-
-		<!-- Other buttons -->
-		<md-subheader>
-			Your Account
-		</md-subheader>
-		<md-button href="/dashboard/" ng-click="toggleRightMenu()">
-			Your Dashboard
-		</md-button>
-		<md-button ng-href="/groups" ng-click="toggleRightMenu()">Your Groups</md-button>
-		<md-button ng-href="/requisites" ng-click="toggleRightMenu()">Your Requisites</md-button>
-		<md-button ng-href="/settings" ng-click="toggleRightMenu()">Your Settings</md-button>
 		<md-divider></md-divider>
 
 		<md-button ng-click="logout()" id="logout">Log Out</md-button>
