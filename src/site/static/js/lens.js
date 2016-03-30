@@ -119,7 +119,13 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				if (continuePath) {
 					callback = function() {
 						$timeout.cancel(callbackPromise);
-						$location.url(pageService.getPageUrl(pageService.path.nextPageId));
+						if (pageService.path.nextPageId) {
+							// Go to the next page.
+							$location.url(pageService.getPageUrl(pageService.path.nextPageId));
+						} else {
+							// This is the end of the path.
+							pageService.abandonPath();
+						}
 					};
 					// Make sure we execute the callback if we don't hear back from the server.
 					var callbackPromise = $timeout(callback, 500);
@@ -173,7 +179,13 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			// Check if the user can use the "yup, i got everything, let's continue" button.
 			$scope.canQuickContinue = true;
 			$scope.showQuickContinue = function() {
-				return $scope.canQuickContinue && pageService.path && pageService.path.onPath && pageService.path.nextPageId;
+				return $scope.canQuickContinue && pageService.path && pageService.path.onPath;
+			};
+			$scope.getQuickContinueText = function() {
+				if (pageService.path.nextPageId) {
+					return 'Yes, I got this. Let\'s continue!';
+				}
+				return 'Yes, I got this. Now, I\'m all done!';
 			};
 
 			// Called when the user unlocked some pages by acquiring requisites.

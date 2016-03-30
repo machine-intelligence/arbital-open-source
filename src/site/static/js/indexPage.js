@@ -15,6 +15,7 @@ app.directive('arbIndex', function($http, pageService, userService) {
 			$scope.showingText = $scope.page.isNewPage() || !userService.user.id;
 
 			$scope.subscribeData = {
+				email: userService.user.email,
 				interests: {
 					'7ec5d431b0': true,
 					'7b38bc3921': false,

@@ -579,8 +579,7 @@ app.directive('arbNextPrev', function($location, pageService, userService) {
 			$scope.userService = userService;
 
 			$scope.stopLearning = function() {
-				Cookies.remove('path');
-				pageService.path = undefined;
+				pageService.abandonPath();
 			};
 		},
 	};
