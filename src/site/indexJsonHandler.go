@@ -29,6 +29,16 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// HARDCODED
 	featuredDomains = append(featuredDomains,
 		&featuredDomain{
+			DomainId: "1lw", // Mathematics
+			ChildIds: []string{
+				"1mg", // Arithmetical hierarchy
+				"1zq", // Bayes' rule: Guide
+				"220", // Bayesian view of scientific virtues
+				"1zg", // Multiple hypotheses and updates
+				"1x5", // Bayes's Rule (odds form)
+				"1wy", // Waterfall and frequency diagrams
+			},
+		}, &featuredDomain{
 			DomainId: "2v", // Value alignment theory
 			ChildIds: []string{
 				"2v", // VAT
@@ -50,16 +60,6 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 				"3p",  // Liking
 				"3r",  // Voting
 			},
-		}, &featuredDomain{
-			DomainId: "1lw", // Mathematics
-			ChildIds: []string{
-				"1mg", // Arithmetical hierarchy
-				"1zq", // Bayes' rule: Guide
-				"220", // Bayesian view of scientific virtues
-				"1zg", // Multiple hypotheses and updates
-				"1x5", // Bayes's Rule (odds form)
-				"1wy", // Waterfall and frequency diagrams
-			},
 		},
 	)
 
@@ -71,8 +71,9 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			core.AddPageToMap(pageIdStr, returnData.PageMap, core.TitlePlusLoadOptions)
 		}
 	}
+	// Display this page fully
 	// HARDCODED
-	core.AddPageToMap("1k0", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageToMap("1k0", returnData.PageMap, core.PrimaryPageLoadOptions)
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, returnData)
