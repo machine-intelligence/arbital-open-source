@@ -71,9 +71,8 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 			core.AddPageToMap(pageIdStr, returnData.PageMap, core.TitlePlusLoadOptions)
 		}
 	}
-	// Display this page fully
 	// HARDCODED
-	core.AddPageToMap("1k0", returnData.PageMap, core.PrimaryPageLoadOptions)
+	core.AddPageToMap("1k0", returnData.PageMap, core.TitlePlusLoadOptions)
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, returnData)
