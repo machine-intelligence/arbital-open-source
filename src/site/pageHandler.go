@@ -145,6 +145,13 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			fail(result.ResponseCode, result.Message, result.Err)
 			return
 		}
+		if result.Data == nil {
+			result.Data = map[string]string{
+				"Title":       "Arbital",
+				"Url":         "https://" + r.Host + r.RequestURI,
+				"Description": "",
+			}
+		}
 
 		// Load updates count. (Loading it afterwards since it could be affected by the page)
 		u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
@@ -153,7 +160,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			return
 		}
 
-		//w.Header().Add("Cache-Control", "max-age=0, no-cache, no-store")
 		p.ServeHTTP(w, r, result)
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
 	}

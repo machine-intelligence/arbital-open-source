@@ -53,5 +53,18 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.RedirectWith(core.GetPageFullUrl(subdomain, pageId))
 	}
 
-	return pages.StatusOK(nil)
+	p := core.NewPage(pageId)
+	pageMap := map[string]*core.Page{
+		pageId: p,
+	}
+	err = core.LoadPages(db, params.U, pageMap)
+	if err != nil {
+		return pages.Fail("Couldn't load page", err)
+	}
+
+	return pages.StatusOK(map[string]string{
+		"Title":       p.Title,
+		"Url":         "https://" + params.R.Host + params.R.RequestURI,
+		"Description": p.Clickbait,
+	})
 }
