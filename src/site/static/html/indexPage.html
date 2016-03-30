@@ -1,16 +1,48 @@
 <div class="capped-body-width">
+
+	<br><br>
+
+	<!-- Begin MailChimp Signup Form -->
+	<div id="mc-signup" class="md-whiteframe-1dp" layout-padding>
+		<div>
+			<h2 class="subscribe-header">
+				Subscribe to our mailing list
+			</h2>
+			<md-input-container>
+				<label>
+					Your email
+				</label>
+				<input type="email" ng-model="subscribeData.email" required>
+			</md-input-container>
+			<div layout="column">
+				<strong>What are you interested in?</strong>
+				<md-checkbox ng-model="subscribeData.interests['7ec5d431b0']">
+				  General updates (once a month)
+				</md-checkbox>
+				<md-checkbox ng-model="subscribeData.interests['7b38bc3921']">
+				  Contributing math content
+				</md-checkbox>
+			</div>
+			<div>
+				<md-button class="md-primary md-raised" ng-click="subscribeToList()" ng-if="!subscribed">
+					Subscribe
+				</md-button>
+				<span ng-if="subscribed">
+					Thank you! Please check your inbox for the confirmation email.
+				</span>
+				<div class="md-warn" ng-bind="subscribeError" ng-if="subscribeError"></div>
+			</div>
+		</div>
+	</div>
+
 	<!-- What is Arbital? page -->
-	<h1 ng-class="{'dynamic-hor-padding': showingText, 'layout-margin': !showingText}"
-			ng-bind="::page.title"></h1>
+	<h1 class="dynamic-hor-padding"
+			ng-bind="::page.title"
+			ng-if="showingText"></h1>
 	<div arb-markdown
 			page-id="{{::page.pageId}}"
 			class="lens-text-container md-whiteframe-1dp reveal-after-render"
 			ng-if="showingText"></div>
-	<md-button class="md-primary md-raised"
-			ng-click="showText()"
-			ng-if="!showingText">
-		Show page text
-	</md-button>
 	<br>
 	<br>
 

@@ -153,6 +153,12 @@ type Config struct {
 		TestId     string `yaml:"testId"`
 		TestSecret string `yaml:"testSecret"`
 	}
+	Mailchimp struct {
+		Id         string
+		Secret     string
+		Apikey     string
+		Production string
+	}
 	Monitoring struct {
 		Whitelist []string
 		Sendgrid  struct {
