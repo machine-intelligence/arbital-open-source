@@ -30,6 +30,9 @@ type NewUpdateTask struct {
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
 	GoToPageId string
+
+	// Only set if UpdateType is 'pageInfoEdit'. Id of the associated entry in changeLogs.
+	ChangeLogId int64
 }
 
 // Check if this task is valid, and we can safely execute it.
@@ -128,6 +131,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["groupByUserId"] = task.GroupByUserId
 		hashmap["subscribedToId"] = task.SubscribedToId
 		hashmap["goToPageId"] = task.GoToPageId
+		hashmap["changeLogId"] = task.ChangeLogId
 		hashmap["createdAt"] = database.Now()
 		hashmap["newCount"] = newCountValue
 		statement := db.NewInsertStatement("updates", hashmap)

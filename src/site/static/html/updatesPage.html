@@ -42,23 +42,64 @@
 						</div>
 
 						<div ng-switch-when="pageEdit">
-							This page has been edited
-							<span ng-if="::(update.repeated === 1)">
-								by <arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-							</span>
+							Edited
 							<span ng-if="::(update.repeated > 1)">
 								{{::update.repeated}} times
+							</span>
+							<span>
+								by <arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 							</span>
 							(<span ng-bind="::(update.createdAt | relativeDateTime)"></span>)
 						</div>
 
 						<div ng-switch-when="pageInfoEdit">
-							This page's meta data has been edited
-							<span ng-if="::(update.repeated === 1)">
-								by <arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+							<span ng-switch="update.settingsChangeType">
+								<span ng-switch-when="newAlias">
+									Alias changed from "{{::update.oldSettingsValue}}" to "{{::update.newSettingsValue}}"
+								</span>
+
+								<span ng-switch-when="newSortChildrenBy">
+									Child sort order changed from "{{::update.oldSettingsValue}}" to "{{::update.newSettingsValue}}"
+								</span>
+
+								<span ng-switch-when="setVoteType">
+									Vote type changed from "{{::update.oldSettingsValue}}" to "{{::update.newSettingsValue}}"
+								</span>
+
+								<span ng-switch-when="newEditKarmaLock">
+									Edit karma lock changed from "{{::update.oldSettingsValue}}" to "{{::update.newSettingsValue}}"
+								</span>
+
+								<span ng-switch-when="newEditGroup">
+									Edit group changed from
+									<!-- old edit group -->
+									<span ng-if="::(update.oldSettingsValue == '')">none</span>
+									<span ng-if="::(update.oldSettingsValue != '')">
+										<arb-page-title page-id="{{::update.oldSettingsValue}}" is-link="true"></arb-page-title>
+									</span>
+									to
+									<!-- new edit group -->
+									<span ng-if="::(update.newSettingsValue == '')">none</span>
+									<span ng-if="::(update.newSettingsValue != '')">
+										<!-- ROGTODO: this is showing up blank. is it because the page isn't in the pagemap? -->
+										<arb-page-title page-id="{{::update.newSettingsValue}}" is-link="true"></arb-page-title>
+									</span>
+								</span>
+
+								<span ng-switch-when="turnOnVote">
+									Probability bar shown
+								</span>
+
+								<span ng-switch-when="turnOffVote">
+									Probability bar hidden
+								</span>
+
+								<span ng-switch-default>
+									Settings edited
+								</span>
 							</span>
-							<span ng-if="::(update.repeated > 1)">
-								{{::update.repeated}} times
+							<span>
+								by <arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 							</span>
 							(<span ng-bind="::(update.createdAt | relativeDateTime)"></span>)
 						</div>

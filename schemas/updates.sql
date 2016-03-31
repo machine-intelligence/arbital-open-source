@@ -46,5 +46,10 @@ CREATE TABLE updates (
 	/* User will be directed to "this thing" for more information about the update. */
 	goToPageId VARCHAR(32) NOT NULL,
 
+
+	/* Only set if type is 'pageInfoEdit'. Used to show what changed on the updates page.
+		FK into changeLogs. */
+	changeLogId VARCHAR(32) NOT NULL,
+
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

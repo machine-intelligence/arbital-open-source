@@ -40,16 +40,19 @@ const (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
-	Id             string
-	UserId         string
-	ByUserId       string
-	CreatedAt      string
-	Type           string
-	GroupByPageId  string
-	GroupByUserId  string
-	NewCount       int
-	SubscribedToId string
-	GoToPageId     string
+	Id                 string
+	UserId             string
+	ByUserId           string
+	CreatedAt          string
+	Type               string
+	GroupByPageId      string
+	GroupByUserId      string
+	NewCount           int
+	SubscribedToId     string
+	GoToPageId         string
+	SettingsChangeType string
+	OldSettingsValue   string
+	NewSettingsValue   string
 }
 
 // UpdateGroupKey is what we group updateEntries by
@@ -62,12 +65,15 @@ type UpdateGroupKey struct {
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
-	UserId         string `json:"userId"`
-	ByUserId       string `json:"byUserId"`
-	Type           string `json:"type"`
-	Repeated       int    `json:"repeated"`
-	SubscribedToId string `json:"subscribedToId"`
-	GoToPageId     string `json:"goToPageId"`
+	UserId             string `json:"userId"`
+	ByUserId           string `json:"byUserId"`
+	Type               string `json:"type"`
+	Repeated           int    `json:"repeated"`
+	SubscribedToId     string `json:"subscribedToId"`
+	GoToPageId         string `json:"goToPageId"`
+	SettingsChangeType string `json:"settingsChangeType"`
+	OldSettingsValue   string `json:"oldSettingsValue"`
+	NewSettingsValue   string `json:"newSettingsValue"`
 	// True if the user has gone to the GoToPage
 	IsVisited bool   `json:"isVisited"`
 	CreatedAt string `json:"createdAt"`
@@ -109,17 +115,20 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 
 	updateRows := make([]*UpdateRow, 0, 0)
 	rows := db.NewStatement(`
-		SELECT id,userId,byUserId,createdAt,type,newCount,groupByPageId,groupByUserId,
-			subscribedToId,goToPageId
-		FROM updates
-		WHERE userId=? ` + emailFilter + `
-		ORDER BY createdAt DESC
+		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.newCount,
+			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,
+			COALESCE(changeLogs.type, ''),
+			COALESCE(changeLogs.oldSettingsValue, ''),
+			COALESCE(changeLogs.newSettingsValue, '')
+		FROM updates LEFT JOIN changeLogs ON updates.changeLogId = changeLogs.id
+		WHERE updates.userId=? ` + emailFilter + `
+		ORDER BY updates.createdAt DESC
 		LIMIT 100`).Query(userId)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.NewCount, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId)
+			&row.GoToPageId, &row.SettingsChangeType, &row.OldSettingsValue, &row.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
@@ -173,7 +182,8 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		if row.Type == PageEditUpdateType || row.Type == CommentEditUpdateType {
 			// Check if this kind of update already exists
 			for _, entry := range group.Updates {
-				if entry.Type == row.Type && entry.SubscribedToId == row.SubscribedToId {
+				if entry.Type == row.Type && entry.SubscribedToId == row.SubscribedToId &&
+					entry.ByUserId == row.ByUserId {
 					createNewEntry = false
 					entry.Repeated++
 					break
@@ -186,14 +196,17 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		if createNewEntry {
 			// Add new entry to the group
 			entry := &UpdateEntry{
-				UserId:         row.UserId,
-				ByUserId:       row.ByUserId,
-				Type:           row.Type,
-				Repeated:       1,
-				SubscribedToId: row.SubscribedToId,
-				GoToPageId:     row.GoToPageId,
-				CreatedAt:      row.CreatedAt,
-				IsVisited:      pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
+				UserId:             row.UserId,
+				ByUserId:           row.ByUserId,
+				Type:               row.Type,
+				Repeated:           1,
+				SubscribedToId:     row.SubscribedToId,
+				GoToPageId:         row.GoToPageId,
+				SettingsChangeType: row.SettingsChangeType,
+				OldSettingsValue:   row.OldSettingsValue,
+				NewSettingsValue:   row.NewSettingsValue,
+				CreatedAt:          row.CreatedAt,
+				IsVisited:          pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
 			}
 			group.Updates = append(group.Updates, entry)
 		}

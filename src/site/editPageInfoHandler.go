@@ -171,6 +171,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
+	var changeLogIds []int64
+
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Update pageInfos
@@ -194,7 +196,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Update change logs
 		if oldPage.WasPublished {
-			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (string, error) {
+			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (int64, string, error) {
 
 				hashmap = make(database.InsertMap)
 				hashmap["pageId"] = data.PageId
@@ -206,45 +208,64 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["newSettingsValue"] = newSettingsValue
 
 				statement = tx.NewInsertTxStatement("changeLogs", hashmap)
-				if _, err = statement.Exec(); err != nil {
-					return fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err
+				result, err := statement.Exec()
+				if err != nil {
+					return 0, fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err
 				}
-				return "", nil
+				changeLogId, err := result.LastInsertId()
+				if err != nil {
+					return 0, fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err
+				}
+				return changeLogId, "", nil
 			}
+
 			if data.Alias != oldPage.Alias {
-				if errorMessage, err := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias); errorMessage != "" {
+				changeLogId, errorMessage, err := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias)
+				if errorMessage != "" {
 					return errorMessage, err
 				}
+				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if data.SortChildrenBy != oldPage.SortChildrenBy {
-				if errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy); errorMessage != "" {
+				changeLogId, errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy)
+				if errorMessage != "" {
 					return errorMessage, err
 				}
+				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if hasVote != oldPage.HasVote {
 				changeType := core.TurnOnVoteChangeLog
 				if !hasVote {
 					changeType = core.TurnOffVoteChangeLog
 				}
-				if errorMessage, err := updateChangeLog(changeType, "", strconv.FormatBool(oldPage.HasVote), strconv.FormatBool(hasVote)); errorMessage != "" {
+				changeLogId, errorMessage, err := updateChangeLog(changeType, "", strconv.FormatBool(oldPage.HasVote), strconv.FormatBool(hasVote))
+				if errorMessage != "" {
 					return errorMessage, err
 				}
+				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if data.VoteType != oldPage.VoteType {
-				if errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType); errorMessage != "" {
+				changeLogId, errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
+				if errorMessage != "" {
 					return errorMessage, err
 				}
+				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if data.EditKarmaLock != oldPage.EditKarmaLock {
-				if errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, "", strconv.Itoa(oldPage.EditKarmaLock), strconv.Itoa(data.EditKarmaLock)); errorMessage != "" {
+				changeLogId, errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, "", strconv.Itoa(oldPage.EditKarmaLock), strconv.Itoa(data.EditKarmaLock))
+				if errorMessage != "" {
 					return errorMessage, err
 				}
+				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if data.EditGroupId != oldPage.EditGroupId {
-				if errorMessage, err := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupId, oldPage.EditGroupId, data.EditGroupId); errorMessage != "" {
+				changeLogId, errorMessage, err := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupId, oldPage.EditGroupId, data.EditGroupId)
+				if errorMessage != "" {
 					return errorMessage, err
 				}
+				changeLogIds = append(changeLogIds, changeLogId)
 			}
+
 		}
 		return "", nil
 	})
@@ -275,14 +296,17 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Generate "edit" update for users who are subscribed to this page.
 	if oldPage.WasPublished {
-		var task tasks.NewUpdateTask
-		task.UserId = u.Id
-		task.GoToPageId = data.PageId
-		task.SubscribedToId = data.PageId
-		task.UpdateType = core.PageInfoEditUpdateType
-		task.GroupByPageId = data.PageId
-		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
+		for _, changeLogId := range changeLogIds {
+			var task tasks.NewUpdateTask
+			task.UserId = u.Id
+			task.GoToPageId = data.PageId
+			task.SubscribedToId = data.PageId
+			task.UpdateType = core.PageInfoEditUpdateType
+			task.GroupByPageId = data.PageId
+			task.ChangeLogId = changeLogId
+			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
+			}
 		}
 	}
 
