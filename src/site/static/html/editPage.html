@@ -18,7 +18,7 @@
 					<div class="editor-tab" layout="column">
 						<md-input-container>
 							<label>Title</label>
-							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" autofocus default-tab-item="0">
+							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" autofocus>
 						</md-input-container>
 						<md-input-container>
 							<label>Clickbait</label>
@@ -157,7 +157,7 @@
 							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
 							ng-model="page.text" autofocus
 							flex
-							ng-disabled="showInsertLink || freezeEdit" default-tab-item="1"></textarea>
+							ng-disabled="showInsertLink || freezeEdit"></textarea>
 				</div>
 			</md-tab>
 
@@ -224,7 +224,7 @@
 							<div layout="column" flex>
 								<md-input-container>
 									<label>Alias</label>
-									<input ng-model="page.alias" md-maxlength="50" default-tab-item="2">
+									<input ng-model="page.alias" md-maxlength="50">
 								</md-input-container>
 							</div>
 							<div class="md-caption" layout-margin flex>
