@@ -135,7 +135,7 @@
 														This page is now a requirement for: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
 													{{else if eq .Type "newTag"}}
 														New tag: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
-													{{else if eq .Type "newTaggedBy"}}
+													{{else if eq .Type "newUsedAsTag"}}
 														This page now tags: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
 													{{else if eq .Type "commentEdit"}}
 														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> edited a

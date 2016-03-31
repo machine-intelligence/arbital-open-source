@@ -95,8 +95,8 @@ func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType 
 	hashmap["createdAt"] = database.Now()
 	hashmap["type"] = map[string]string{
 		core.ParentPagePairType:      core.DeleteChildChangeLog,
-		core.TagPagePairType:         core.DeleteTagTargetChangeLog,
-		core.RequirementPagePairType: core.DeleteRequiredForChangeLog,
+		core.TagPagePairType:         core.DeleteUsedAsTagChangeLog,
+		core.RequirementPagePairType: core.DeleteRequiredByChangeLog,
 		core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
 	}[pairType]
 	statement := tx.NewInsertTxStatement("changeLogs", hashmap)

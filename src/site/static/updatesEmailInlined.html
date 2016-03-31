@@ -144,7 +144,7 @@
 													{{else if eq .Type "newTag"}}
 														New tag: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newTaggedBy"}}
+													{{else if eq .Type "newUsedAsTag"}}
 														This page now tags: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newSubject"}}

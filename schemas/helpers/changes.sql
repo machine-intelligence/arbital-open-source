@@ -38,3 +38,10 @@ alter table updates add column changeLogId varchar(32) not null;
 alter table updates add column unseen bool not null;
 update updates set unseen = TRUE where newCount > 0;
 alter table updates drop column newCount;
+
+update changeLogs set type = 'newRequiredBy' where type = 'newRequiredFor';
+update changeLogs set type = 'deleteRequiredBy' where type = 'deleteRequiredFor';
+update changeLogs set type = 'newUsedAsTag' where type = 'newTagTarget';
+update changeLogs set type = 'deleteUsedAsTag' where type = 'deleteTagTarget';
+update updates set type = 'newUsedAsTag' where type = 'newTaggedBy';
+update updates set type = 'deleteUsedAsTag' where type = 'deleteTaggedBy';

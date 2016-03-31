@@ -161,7 +161,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		// Don't add to the changelog of the parent if the child is unpublished (current edit == 0)
 		if child.CurrentEdit > 0 {
 			err = addRelationshipToChangelog(data.ParentId, data.ChildId, parent.Edit, child.Edit, core.NewChildChangeLog,
-				core.NewTagTargetChangeLog, core.NewRequiredForChangeLog, core.NewTeacherChangeLog)
+				core.NewUsedAsTagChangeLog, core.NewRequiredByChangeLog, core.NewTeacherChangeLog)
 			if err != nil {
 				return "Couldn't insert new change log", err
 			}
@@ -206,7 +206,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewChildUpdateType
 		} else if data.Type == core.TagPagePairType {
-			task.UpdateType = core.NewTaggedByUpdateType
+			task.UpdateType = core.NewUsedAsTagUpdateType
 		} else if data.Type == core.RequirementPagePairType {
 			task.UpdateType = core.NewRequiredByUpdateType
 		} else if data.Type == core.SubjectPagePairType {

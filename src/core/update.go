@@ -28,7 +28,7 @@ const (
 	NewParentUpdateType        = "newParent"
 	NewChildUpdateType         = "newChild"
 	NewTagUpdateType           = "newTag"
-	NewTaggedByUpdateType      = "newTaggedBy"
+	NewUsedAsTagUpdateType     = "newUsedAsTag"
 	NewRequirementUpdateType   = "newRequirement"
 	NewRequiredByUpdateType    = "newRequiredBy"
 	NewSubjectUpdateType       = "newSubject"
