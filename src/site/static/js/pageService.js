@@ -33,6 +33,17 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// This object is set when the user is learning / on a path.
 	this.path = undefined;
 
+	// Returns the id of the current page, if there is one.
+	this.getCurrentPageId = function() {
+		return $location.search().l ||
+			(that.primaryPage ? that.primaryPage.pageId : '');
+	};
+
+	// Returns the current page
+	this.getCurrentPage = function() {
+		return that.pageMap[that.getCurrentPageId()];
+	};
+
 	// Update the masteryMap. Execution happens in the order options are listed.
 	// options = {
 	//		delete: set these masteries to "doesn't know"
@@ -104,7 +115,9 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			addMasteries: addMasteries,
 			// Note: this is a bit hacky. We should probably pass computeUnlocked explicitly
 			computeUnlocked: !!callback,
+			taughtBy: that.getCurrentPageId(),
 		};
+
 		$http({method: 'POST', url: '/updateMasteries/', data: JSON.stringify(data)})
 		.success(function(data) {
 			if (callback) {
@@ -910,7 +923,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		if (!that.path || !that.primaryPage) return;
 
 		// Check if the user is learning
-		var currentPageId = $location.search().l || that.primaryPage.pageId;
+		var currentPageId = that.getCurrentPageId();
 		var pathPageIds = that.path.readIds;
 		var currentIndex = pathPageIds.indexOf(currentPageId);
 		if (currentIndex >= 0) {

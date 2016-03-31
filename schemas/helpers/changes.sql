@@ -32,3 +32,5 @@ alter table changeLogs add column newSettingsValue varchar(32) not null;
 delete from changeLogs where type = '';
 delete changeLogs from changeLogs join pageInfos on changeLogs.auxPageId=pageInfos.pageId where pageInfos.currentEdit <= 0;
 update changeLogs set type = 'newTeacher' where type = 'newTeaches';
+
+alter table userMasteryPairs add column taughtBy varchar(32) not null;
