@@ -895,6 +895,12 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		this.updatePageObject(updatePageObjectOptions);
 	};
 
+	// Stop and forget the current path.
+	this.abandonPath = function() {
+		Cookies.remove('path');
+		this.path = undefined;
+	};
+
 	// Update the path variables.
 	$rootScope.$watch(function() {
 		return $location.absUrl() + '|' + (that.primaryPage ? that.primaryPage.pageId : '');

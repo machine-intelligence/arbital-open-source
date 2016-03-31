@@ -1,21 +1,46 @@
 <div class="capped-body-width">
+
 	<!-- What is Arbital? page -->
-	<h1 ng-class="{'dynamic-hor-padding': showingText, 'layout-margin': !showingText}"
-			ng-bind="::page.title"></h1>
+	<h1 ng-bind="::page.title"></h1>
 	<div arb-markdown
 			page-id="{{::page.pageId}}"
-			class="lens-text-container md-whiteframe-1dp reveal-after-render"
-			ng-if="showingText"></div>
-	<md-button class="md-primary md-raised"
-			ng-click="showText()"
-			ng-if="!showingText">
-		Show page text
-	</md-button>
-	<br>
-	<br>
+			class="lens-text-container md-whiteframe-1dp reveal-after-render"></div>
+	<br><br>
+
+	<!-- Begin MailChimp Signup Form -->
+	<h1 id="subscribe">Subscribe to our mailing list</h1>
+	<div id="mc-signup" class="lens-text-container md-whiteframe-1dp">
+		<div ng-if="subscribed">
+			Thank you! Please check your inbox for the confirmation email.
+		</div>
+		<div ng-if="!subscribed">
+			<md-input-container>
+				<label>
+					Your email
+				</label>
+				<input type="email" ng-model="subscribeData.email" required>
+			</md-input-container>
+			<div layout="column">
+				<p><strong>What are you interested in?</strong></p>
+				<md-checkbox ng-model="subscribeData.interests['7ec5d431b0']">
+				  Receiving general updates about Arbital (once a month)
+				</md-checkbox>
+				<md-checkbox ng-model="subscribeData.interests['7b38bc3921']">
+				  Explaining math topics on Arbital
+				</md-checkbox>
+			</div>
+			<div>
+				<md-button class="md-primary md-raised" ng-click="subscribeToList()">
+					Subscribe
+				</md-button>
+				<div class="md-warn" ng-bind="subscribeError" ng-if="subscribeError"></div>
+			</div>
+		</div>
+	</div>
+	<br><br>
 
 	<!-- Domains -->
-	<h1 layout-margin>Popular domains</h1>
+	<h1>Browse popular domains</h1>
 	<div layout="column">
 		<!-- Domain -->
 		<div class="arb-page-list md-whiteframe-1dp"

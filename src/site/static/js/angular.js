@@ -256,6 +256,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				urlService.pageUpdater = null;
 				rule.handler(args, $scope);
 				currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
+				$('[ng-view]').empty();
 				return;
 			}
 		}

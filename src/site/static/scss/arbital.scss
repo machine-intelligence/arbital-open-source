@@ -172,6 +172,17 @@ $toolbar-height: 64px;
 	background-color: $primary-hue-1;
 }
 
+// MailChimp signup form
+#mc-signup {
+	.subscribe-header {
+		margin-bottom: 0;
+	}
+	
+	md-input-container {
+		margin-bottom: 0;
+	}
+}
+
 // Element inside an autocomplete dropdown list
 .autocomplete-custom-template li {
 	border-bottom: 1px solid silver;

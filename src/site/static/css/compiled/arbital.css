@@ -485,6 +485,11 @@ arb-admin-dashboard-page > .capped-body-width {
 .unseen-update {
   background-color: #E0F2F1; }
 
+#mc-signup .subscribe-header {
+  margin-bottom: 0; }
+#mc-signup md-input-container {
+  margin-bottom: 0; }
+
 .autocomplete-custom-template li {
   border-bottom: 1px solid silver;
   padding-top: 10px;
