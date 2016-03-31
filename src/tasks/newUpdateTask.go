@@ -99,29 +99,6 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			return nil
 		}
 
-		// Check if we already have a similar update.
-		var previousUpdateId string
-		var exists bool
-		newCountValue := 1
-		row := db.NewStatement(`
-			SELECT id
-			FROM updates
-			WHERE userId=? AND byUserId=? AND type=? AND newCount>0 AND
-				groupByPageId=? AND groupByUserId=? AND
-				subscribedToId=? AND goToPageId=?
-			ORDER BY createdAt DESC
-			LIMIT 1`).QueryRow(userId, task.UserId, task.UpdateType,
-			task.GroupByPageId, task.GroupByUserId,
-			task.SubscribedToId, task.GoToPageId)
-		exists, err = row.Scan(&previousUpdateId)
-		if err != nil {
-			return fmt.Errorf("failed to check for existing update: %v", err)
-		}
-		if exists {
-			// If we already have an update like this, don't count this one
-			newCountValue = 0
-		}
-
 		// Insert new update
 		hashmap := make(map[string]interface{})
 		hashmap["userId"] = userId
@@ -133,7 +110,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["changeLogId"] = task.ChangeLogId
 		hashmap["createdAt"] = database.Now()
-		hashmap["newCount"] = newCountValue
+		hashmap["unseen"] = true
 		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {
 			c.Inc("new_update_fail")

@@ -44,7 +44,7 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 	// Mark all updates as new and not emailed, for testing
 	statement = db.NewStatement(`
 		UPDATE updates
-		SET newCount=1,emailed=0
+		SET unseen=TRUE,emailed=0
 		WHERE userId=?`)
 	statement.Exec(u.Id)
 

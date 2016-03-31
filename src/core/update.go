@@ -47,7 +47,7 @@ type UpdateRow struct {
 	Type               string
 	GroupByPageId      string
 	GroupByUserId      string
-	NewCount           int
+	Unseen             bool
 	SubscribedToId     string
 	GoToPageId         string
 	SettingsChangeType string
@@ -60,7 +60,7 @@ type UpdateGroupKey struct {
 	GroupByPageId string `json:"groupByPageId"`
 	GroupByUserId string `json:"groupByUserId"`
 	// True if this is the first time the user is seeing this update
-	IsNew bool `json:"isNew"`
+	Unseen bool `json:"unseen"`
 }
 
 // UpdateEntry corresponds to one update entry we'll display.
@@ -101,7 +101,7 @@ type UpdateData struct {
 func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, forEmail bool) ([]*UpdateRow, error) {
 	emailFilter := ""
 	if forEmail {
-		emailFilter = "AND newCount>0 AND NOT emailed"
+		emailFilter = "AND unseen AND NOT emailed"
 	}
 
 	// Create group loading options
@@ -115,7 +115,7 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 
 	updateRows := make([]*UpdateRow, 0, 0)
 	rows := db.NewStatement(`
-		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.newCount,
+		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
@@ -127,7 +127,7 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
-			&row.NewCount, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
+			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
 			&row.GoToPageId, &row.SettingsChangeType, &row.OldSettingsValue, &row.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
@@ -162,8 +162,9 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		key := UpdateGroupKey{
 			GroupByPageId: row.GroupByPageId,
 			GroupByUserId: row.GroupByUserId,
-			IsNew:         row.NewCount > 0,
+			Unseen:        row.Unseen,
 		}
+
 		// Create/update the group.
 		group, ok := groupMap[key]
 		if !ok {

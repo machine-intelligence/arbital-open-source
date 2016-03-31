@@ -27,9 +27,8 @@ CREATE TABLE updates (
 	/* When this update was created. */
 	createdAt DATETIME NOT NULL,
 
-	/* Amount this update contributes to the "number of new updates user has".
-		Usually 1 or 0. */
-	newCount INT NOT NULL,
+	/* Whether the user has seen this update. */
+	unseen BOOLEAN NOT NULL,
 
 	/* True if this update has been emailed out. */
 	emailed BOOLEAN NOT NULL,

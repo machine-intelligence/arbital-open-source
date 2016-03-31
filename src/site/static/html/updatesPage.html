@@ -3,7 +3,7 @@
 		<div class="md-whiteframe-1dp" ng-repeat="(index,group) in ::updateGroups">
 
 			<!-- Panel header -->
-			<md-subheader ng-class="::{'md-accent md-hue-1': group.key.isNew}">
+			<md-subheader ng-class="::{'md-accent md-hue-1': group.key.unseen}">
 				<!-- Header when grouping by page -->
 				<div layout="row" layout-align="start center" ng-if="::(group.key.groupByPageId !== '')">
 					<arb-page-title is-link="true" page-id="{{::group.key.groupByPageId}}" flex></arb-page-title>

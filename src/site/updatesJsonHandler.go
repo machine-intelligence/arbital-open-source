@@ -40,7 +40,7 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Zero out all counts.
 	statement := db.NewStatement(`
 		UPDATE updates
-		SET newCount=0
+		SET unseen=FALSE
 		WHERE userId=?`)
 	if _, err = statement.Exec(u.Id); err != nil {
 		return pages.HandlerErrorFail("Couldn't mark updates seen", err)

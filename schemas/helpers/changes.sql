@@ -35,3 +35,6 @@ update changeLogs set type = 'newTeacher' where type = 'newTeaches';
 update updates set type = 'newTeacher' where type = 'newTeaches';
 
 alter table updates add column changeLogId varchar(32) not null;
+alter table updates add column unseen bool not null;
+update updates set unseen = TRUE where newCount > 0;
+alter table updates drop column newCount;
