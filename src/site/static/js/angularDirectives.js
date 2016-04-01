@@ -590,7 +590,27 @@ app.directive('arbChangeLogEntry', function() {
 	return {
 		templateUrl: 'static/html/changeLogEntry.html',
 		scope: {
+			pageId: '@',
 			changeLog: '=',
+		},
+		controller: function($scope) {
+		},
+	};
+});
+
+app.directive('arbLogRow', function() {
+	return {
+		templateUrl: 'static/html/logRow.html',
+		scope: {
+			pageId: '@',
+			userId: '@',
+			type: '@',
+			relatedPageId: '@',
+			createdAt: '@',
+			oldSettingsValue: '@',
+			newSettingsValue: '@',
+			edit: '@',
+			repeated: '@',
 		},
 		controller: function($scope) {
 		},
