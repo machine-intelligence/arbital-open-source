@@ -94,17 +94,8 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return "Couldn't update isCurrentEdit for old edits", err
 		}
 
-		// Update pageInfos table
-		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = data.PageId
-		hashmap["currentEdit"] = 0
-		statement = tx.NewInsertTxStatement("pageInfos", hashmap, "currentEdit")
-		if _, err = statement.Exec(); err != nil {
-			return "Couldn't update pageInfos", err
-		}
-
 		// Update change log
-		hashmap = make(database.InsertMap)
+		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["userId"] = u.Id
 		hashmap["createdAt"] = database.Now()
