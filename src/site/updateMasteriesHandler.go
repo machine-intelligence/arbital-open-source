@@ -15,6 +15,8 @@ type updateMasteries struct {
 	RemoveMasteries []string
 	WantsMasteries  []string
 	AddMasteries    []string
+	// The id of the page that taught these masteries, if any
+	TaughtBy string
 	// If true, compute which pages the user can now read
 	ComputeUnlocked bool
 }
@@ -51,22 +53,42 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		return pages.HandlerErrorFail("Couldn't translate aliases to ids", err)
 	}
 
+	subjectIds := make(map[string]bool)
+	if data.TaughtBy != "" {
+		rows := db.NewStatement(`
+			SELECT parentId from pagePairs
+			WHERE childId=? AND type=?`).Query(data.TaughtBy, core.SubjectPagePairType)
+		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+			var subjectId string
+			err := rows.Scan(&subjectId)
+			if err != nil {
+				return fmt.Errorf("Failed to scan: %v", err)
+			}
+			subjectIds[subjectId] = true
+			return nil
+		})
+	}
+
 	// Create values list for creating the query
 	// NOTE: order is important: we are deleting, then adding "wants", then adding "haves"
 	queryValues := make([]interface{}, 0)
 	for _, masteryAlias := range data.RemoveMasteries {
 		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, userId, false, false, database.Now(), database.Now())
+			queryValues = append(queryValues, masteryId, userId, false, false, database.Now(), database.Now(), "")
 		}
 	}
 	for _, masteryAlias := range data.WantsMasteries {
 		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, userId, false, true, database.Now(), database.Now())
+			queryValues = append(queryValues, masteryId, userId, false, true, database.Now(), database.Now(), "")
 		}
 	}
 	for _, masteryAlias := range data.AddMasteries {
 		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, userId, true, false, database.Now(), database.Now())
+			var taughtBy = ""
+			if _, ok := subjectIds[masteryId]; ok {
+				taughtBy = data.TaughtBy
+			}
+			queryValues = append(queryValues, masteryId, userId, true, false, database.Now(), database.Now(), taughtBy)
 		}
 	}
 
@@ -102,12 +124,14 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	// Update the database
 	if len(queryValues) > 0 {
 		statement := db.NewStatement(`
-			INSERT INTO userMasteryPairs (masteryId,userId,has,wants,createdAt,updatedAt)
-			VALUES ` + database.ArgsPlaceholder(len(queryValues), 6) + `
-			ON DUPLICATE KEY UPDATE has=VALUES(has),wants=VALUES(wants),updatedAt=VALUES(updatedAt)`)
+			INSERT INTO userMasteryPairs (masteryId,userId,has,wants,createdAt,updatedAt,taughtBy)
+			VALUES ` + database.ArgsPlaceholder(len(queryValues), 7) + `
+			ON DUPLICATE KEY UPDATE has=VALUES(has),wants=VALUES(wants),updatedAt=VALUES(updatedAt),taughtBy=VALUES(taughtBy)`)
+
 		if _, err = statement.Exec(queryValues...); err != nil {
 			return pages.HandlerErrorFail("Couldn't update masteries", err)
 		}
+
 	}
 
 	if len(candidateIds) <= 0 {

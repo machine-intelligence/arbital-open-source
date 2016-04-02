@@ -45,3 +45,5 @@ update changeLogs set type = 'newUsedAsTag' where type = 'newTagTarget';
 update changeLogs set type = 'deleteUsedAsTag' where type = 'deleteTagTarget';
 update updates set type = 'newUsedAsTag' where type = 'newTaggedBy';
 update updates set type = 'deleteUsedAsTag' where type = 'deleteTaggedBy';
+
+alter table userMasteryPairs add column taughtBy varchar(32) not null;

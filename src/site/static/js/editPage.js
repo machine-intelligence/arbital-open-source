@@ -516,38 +516,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.savePageInfo = function(callback) {
 				pageService.savePageInfo($scope.page, callback);
 			};
-
-			// Focus on the default element in the tab
-			$scope.focusDefaultTabElement = function() {
-				var activeTab = $scope.selectedTab;
-				var defaultTabItem = $('[default-tab-item|=' + activeTab + ']');
-				if (0 in defaultTabItem) {
-					defaultTabItem[0].focus();
-				}
-			};
-
-			// Change selected tab manually
-			$scope.changeTab = function(activeTab) {
-				if (activeTab < 0) activeTab = 4;
-				if (activeTab >= 5) activeTab = 0;
-				$scope.selectedTab = activeTab;
-				var tabList = $('md-tab-item');
-				if (activeTab in tabList) {
-					tabList[activeTab].focus();
-				}
-			};
-
-			$scope.handleKeyPress = function(event) {
-				if (event.ctrlKey && event.keyCode == 38) {
-					// Ctrl + up
-					$scope.changeTab($scope.selectedTab - 1);
-					setTimeout($scope.focusDefaultTabElement, 1000);
-				} else if (event.ctrlKey && event.keyCode == 40) {
-					// Ctrl + down
-					$scope.changeTab($scope.selectedTab + 1);
-					setTimeout($scope.focusDefaultTabElement, 1000);
-				}
-			};
 		},
 		link: function(scope, element, attrs) {
 			scope.toggleSnapshotting = function() {
