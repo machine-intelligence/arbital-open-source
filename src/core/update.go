@@ -50,6 +50,7 @@ type UpdateRow struct {
 	Unseen             bool
 	SubscribedToId     string
 	GoToPageId         string
+	IsGoToPageAlive    bool
 	SettingsChangeType string
 	OldSettingsValue   string
 	NewSettingsValue   string
@@ -71,6 +72,7 @@ type UpdateEntry struct {
 	Repeated           int    `json:"repeated"`
 	SubscribedToId     string `json:"subscribedToId"`
 	GoToPageId         string `json:"goToPageId"`
+	IsGoToPageAlive    bool   `json:"isGoToPageAlive"`
 	SettingsChangeType string `json:"settingsChangeType"`
 	OldSettingsValue   string `json:"oldSettingsValue"`
 	NewSettingsValue   string `json:"newSettingsValue"`
@@ -117,18 +119,22 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 	rows := db.NewStatement(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,
+			SUM(pages.isCurrentEdit) > 0 AS isGoToPageAlive,
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
-		FROM updates LEFT JOIN changeLogs ON updates.changeLogId = changeLogs.id
+		FROM updates
+			JOIN pages ON updates.goToPageId = pages.pageId
+			LEFT JOIN changeLogs ON updates.changeLogId = changeLogs.id
 		WHERE updates.userId=? ` + emailFilter + `
+		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
 		LIMIT 100`).Query(userId)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId, &row.SettingsChangeType, &row.OldSettingsValue, &row.NewSettingsValue)
+			&row.GoToPageId, &row.IsGoToPageAlive, &row.SettingsChangeType, &row.OldSettingsValue, &row.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
@@ -203,6 +209,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 				Repeated:           1,
 				SubscribedToId:     row.SubscribedToId,
 				GoToPageId:         row.GoToPageId,
+				IsGoToPageAlive:    row.IsGoToPageAlive,
 				SettingsChangeType: row.SettingsChangeType,
 				OldSettingsValue:   row.OldSettingsValue,
 				NewSettingsValue:   row.NewSettingsValue,

@@ -28,7 +28,7 @@
 		</span>
 
 		<span ng-switch-when="newUsedAsTag">
-			Tag for: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Used as tag for: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteUsedAsTag">
@@ -71,42 +71,57 @@
 		<!-- Settings changes -->
 
 		<span ng-switch-when="newAlias">
-			Changed "alias" from "{{::oldSettingsValue}}" to "{{::newSettingsValue}}"
+			Alias changed
+			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
+			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newSortChildrenBy">
-			Changed "child sort order" from "{{::oldSettingsValue}}" to "{{::newSettingsValue}}"
+			Child sort order changed
+			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
+			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="setVoteType">
-			Changed "vote type" from "{{::oldSettingsValue}}" to "{{::newSettingsValue}}"
+			Vote type changed
+			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
+			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newEditKarmaLock">
-			Changed "edit karma lock" from "{{::oldSettingsValue}}" to "{{::newSettingsValue}}"
+			Edit karma lock changed
+			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
+			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newEditGroup">
-			Changed "edit group" from
-			<!-- old edit group -->
-			<span ng-if="::(oldSettingsValue == '')">none</span>
-			<span ng-if="::(oldSettingsValue != '')">
-				<arb-page-title page-id="{{::oldSettingsValue}}" is-link="true"></arb-page-title>
+			Edit group changed
+			<br><span style="margin-left: 40px">from:
+				<!-- old edit group -->
+				<span ng-if="::(oldSettingsValue == '')">none</span>
+				<span ng-if="::(oldSettingsValue != '')">
+					<arb-page-title page-id="{{::oldSettingsValue}}" is-link="true"></arb-page-title>
+				</span>
 			</span>
-			to
-			<!-- new edit group -->
-			<span ng-if="::(newSettingsValue == '')">none</span>
-			<span ng-if="::(newSettingsValue != '')">
-				<arb-page-title page-id="{{::newSettingsValue}}" is-link="true"></arb-page-title>
+			<br><span style="margin-left: 40px">to:
+				<!-- new edit group -->
+				<span ng-if="::(newSettingsValue == '')">none</span>
+				<span ng-if="::(newSettingsValue != '')">
+					<arb-page-title page-id="{{::newSettingsValue}}" is-link="true"></arb-page-title>
+				</span>
 			</span>
 		</span>
 
 		<span ng-switch-when="turnOnVote">
-			Show probability bar
+			Probability bar shown
 		</span>
 
 		<span ng-switch-when="turnOffVote">
-			Hide probability bar
+			Probability bar hidden
+		</span>
+
+		<span ng-switch-when="pageInfoEdit">
+			Settings changed
 		</span>
 
 
@@ -129,18 +144,102 @@
 		</span>
 
 
+		<!-- Updates -->
+
+		<span ng-switch-when="topLevelComment">
+			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			wrote a
+			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
+					page-id="{{::relatedPageId}}"
+					class="intrasite-link">new comment</a>
+		</span>
+
+		<span ng-switch-when="reply">
+			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			wrote a
+			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
+					page-id="{{::relatedPageId}}"
+					class="intrasite-link">new comment reply</a>
+		</span>
+
+		<span ng-switch-when="pageEdit">
+			Edited
+			<span ng-if="::(repeated > 1)">
+				{{::repeated}} times
+			</span>
+		</span>
+
+		<span ng-switch-when="newPageByUser">
+			Created a new page:
+			<!-- ROGTODO: do the following check for all references to the related page -->
+			<span ng-if="::isRelatedPageAlive">
+				<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			</span>
+			<span ng-if="!isRelatedPageAlive">
+				[deleted]
+			</span>
+		</span>
+
+		<span ng-switch-when="commentEdit">
+			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			edited a
+			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
+					page-id="{{::relatedPageId}}"
+					class="intrasite-link">comment</a>
+		</span>
+
+		<span ng-switch-when="atMention">
+			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			mentioned you in a
+			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
+					page-id="{{::relatedPageId}}"
+					class="intrasite-link">comment</a>
+		</span>
+
+		<span ng-switch-when="addedToGroup">
+			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			added you to
+			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
+					page-id="{{::relatedPageId}}"
+					class="intrasite-link">
+				the {{pageService.pageMap[relatedPageId].title}} group
+			</a>
+		</span>
+
+		<span ng-switch-when="removedFromGroup">
+			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			removed you from
+			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
+					page-id="{{::relatedPageId}}"
+					class="intrasite-link">
+				the {{pageService.pageMap[relatedPageId].title}} group
+			</a>
+		</span>
+
+
 		<!-- Unknown -->
 
-		<span ng-switch-default>
-			Unknown change type: {{::type}}
+		<span ng-switch-default class="md-warn">
+			Unknown activity type: {{::type}}
 		</span>
 
 	</div>
 
 	<div flex></div>
 
-	<div>
-		<arb-user-name user-id="{{::userId}}"></arb-user-name>
+	<div style="white-space: nowrap">
+		<!-- Link to the user who performed the action (if we haven't already) -->
+		<span ng-switch="::type">
+			<span ng-switch-when="topLevelComment"></span>
+			<span ng-switch-when="reply"></span>
+			<span ng-switch-when="commentEdit"></span>
+			<span ng-switch-when="atMention"></span>
+			<span ng-switch-when="addedToGroup"></span>
+			<span ng-switch-when="removedFromGroup"></span>
+			<span ng-switch-default>
+			<arb-user-name user-id="{{::userId}}" ng-if="showUserLink"></arb-user-name>
+			</span>
+		</span>
 
 		<span ng-bind="::(createdAt | relativeDateTime)"></span>
 	</div>

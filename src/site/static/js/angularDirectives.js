@@ -598,6 +598,7 @@ app.directive('arbChangeLogEntry', function() {
 	};
 });
 
+// Shared by the changelog and the updates page.
 app.directive('arbLogRow', function() {
 	return {
 		templateUrl: 'static/html/logRow.html',
@@ -606,11 +607,13 @@ app.directive('arbLogRow', function() {
 			userId: '@',
 			type: '@',
 			relatedPageId: '@',
+			isRelatedPageAlive: '=',
 			createdAt: '@',
 			oldSettingsValue: '@',
 			newSettingsValue: '@',
 			edit: '@',
-			repeated: '@',
+			repeated: '=',
+			showUserLink: '=',
 		},
 		controller: function($scope) {
 		},
