@@ -110,7 +110,7 @@ type corePageData struct {
 	EditGroupId       string `json:"editGroupId"`
 	IsAutosave        bool   `json:"isAutosave"`
 	IsSnapshot        bool   `json:"isSnapshot"`
-	IsCurrentEdit     bool   `json:"isCurrentEdit"`
+	IsLiveEdit        bool   `json:"isLiveEdit"`
 	IsMinorEdit       bool   `json:"isMinorEdit"`
 	IsRequisite       bool   `json:"isRequisite"`
 	IndirectTeacher   bool   `json:"indirectTeacher"`
@@ -151,7 +151,7 @@ type Page struct {
 	// For pages that are displayed fully, we load more additional data.
 	// Edit number for the currently live version
 	CurrentEdit int `json:"currentEdit"`
-	// True iff there is an edit that has isCurrentEdit set for this page
+	// True iff there is an edit that has isLiveEdit set for this page
 	WasPublished bool    `json:"wasPublished"`
 	Votes        []*Vote `json:"votes"`
 	// We don't allow users to change the vote type once a page has been published
@@ -689,11 +689,11 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
-			p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
+			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN pageInfos AS pi
-		ON (p.pageId = pi.pageId AND p.isCurrentEdit)
+		ON (p.pageId = pi.pageId AND p.isLiveEdit)
 		WHERE p.pageId IN`).AddArgsGroup(pageIds).Add(`
 			AND (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		`).ToStatement(db).Query()
@@ -704,7 +704,7 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
-			&p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("Failed to scan a page: %v", err)
@@ -801,7 +801,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 	}
 	p := NewPage(pageId)
 
-	whereClause := database.NewQuery("p.isCurrentEdit")
+	whereClause := database.NewQuery("p.isLiveEdit")
 	if options.LoadSpecificEdit > 0 {
 		whereClause = database.NewQuery("p.edit=?", options.LoadSpecificEdit)
 	} else if options.CreatedAtLimit != "" {
@@ -830,7 +830,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 				FROM pages AS p
 				JOIN pageInfos AS pi
 				ON (p.pageId=pi.pageId)
-				WHERE p.pageId=? AND (p.prevEdit=pi.currentEdit OR p.isCurrentEdit OR p.isAutosave) AND
+				WHERE p.pageId=? AND (p.prevEdit=pi.currentEdit OR p.isLiveEdit OR p.isAutosave) AND
 					(p.creatorId=? OR NOT (p.isSnapshot OR p.isAutosave))
 				ORDER BY IF(p.isAutosave,"z",p.createdAt) DESC
 				LIMIT 1
@@ -840,7 +840,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
-			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isCurrentEdit,p.isMinorEdit,
+			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
@@ -854,7 +854,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
-		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsCurrentEdit, &p.IsMinorEdit,
+		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)
@@ -905,7 +905,7 @@ func LoadChildDrafts(db *database.DB, userId string, options *LoadDataOptions) e
 					WHERE pp.parentId=? AND`, p.PageId).Add(`
 						(pi.type=? OR pi.type=?)`, QuestionPageType, AnswerPageType).Add(`
 					GROUP BY p.pageId
-					HAVING SUM(p.isCurrentEdit)<=0
+					HAVING SUM(p.isLiveEdit)<=0
 				) AS a
 				WHERE a.creatorId=?`, userId).Add(`
 				LIMIT 1`).ToStatement(db).QueryRow()
@@ -1499,7 +1499,7 @@ func loadOrderedChildrenIds(db *database.DB, parentId string, sortType string) (
 		ON (pp.childId=p.pageId)
 		JOIN pageInfos AS pi
 		ON (pi.pageId=p.pageId)
-		WHERE p.isCurrentEdit
+		WHERE p.isLiveEdit
 			AND pi.type!=? AND pi.type!=? AND pi.type!=?`, CommentPageType, QuestionPageType, LensPageType).Add(`
 			AND pp.type=?`, ParentPagePairType).Add(`AND pp.parentId=?`, parentId).Add(`
 		ORDER BY ` + orderClause).ToStatement(db).Query()
@@ -1606,7 +1606,7 @@ func LoadNextPrevPageIds(db *database.DB, userId string, options *LoadDataOption
 
 // LoadDraftExistence computes for each page whether or not the user has an
 // autosave draft for it.
-// This only makes sense to call for pages which were loaded for isCurrentEdit=true.
+// This only makes sense to call for pages which were loaded for isLiveEdit=true.
 func LoadDraftExistence(db *database.DB, userId string, options *LoadDataOptions) error {
 	pageMap := options.ForPages
 	if len(pageMap) <= 0 {

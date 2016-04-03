@@ -55,7 +55,7 @@ func (task *Base10ToBase36Part5Task) Execute(db *database.DB) (delay int, err er
 			rows := db.NewStatement(`
 						SELECT pageId,edit,text
 						FROM pages
-						WHERE pageId = "1m6" and isCurrentEdit`).Query()
+						WHERE pageId = "1m6" and isLiveEdit`).Query()
 		*/
 		if err = rows.Process(updatePageTextBase10ToBase36again); err != nil {
 			c.Debugf("ERROR, failed to update page text: %v", err)

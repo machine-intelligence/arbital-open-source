@@ -47,3 +47,5 @@ update updates set type = 'newUsedAsTag' where type = 'newTaggedBy';
 update updates set type = 'deleteUsedAsTag' where type = 'deleteTaggedBy';
 
 alter table userMasteryPairs add column taughtBy varchar(32) not null;
+
+alter table pages change isCurrentEdit `isLiveEdit` BOOLEAN NOT NULL;

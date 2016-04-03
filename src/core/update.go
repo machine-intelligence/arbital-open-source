@@ -119,7 +119,7 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 	rows := db.NewStatement(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,
-			SUM(pages.isCurrentEdit) > 0 AS isGoToPageAlive,
+			SUM(pages.isLiveEdit) > 0 AS isGoToPageAlive,
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')

@@ -89,9 +89,9 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Clear the current edit in pages
-		statement := tx.NewTxStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit")
+		statement := tx.NewTxStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit")
 		if _, err = statement.Exec(data.PageId); err != nil {
-			return "Couldn't update isCurrentEdit for old edits", err
+			return "Couldn't update isLiveEdit for old edits", err
 		}
 
 		// Update change log

@@ -17,7 +17,7 @@ VALUES
 
 DELETE FROM pages where pageId>="11000" AND pageId<="11999";
 INSERT INTO pages
-(pageId,title,text,clickbait,edit,creatorId,createdAt,isCurrentEdit)
+(pageId,title,text,clickbait,edit,creatorId,createdAt,isLiveEdit)
 VALUES
 ("11000","Page 0 (I want to learn this)","I want to learn this",     "Page 0 clickbait" , 1,1,now(),true),
 ("11001","Page 1 (Teaches 0)"           ,"Teaching you about page 0","Page 1 clickbait" , 1,1,now(),true),

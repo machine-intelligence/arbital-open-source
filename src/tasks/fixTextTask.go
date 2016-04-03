@@ -34,7 +34,7 @@ func (task *FixTextTask) Execute(db *database.DB) (delay int, err error) {
 	rows := db.NewStatement(`
 			SELECT pageId,edit,text
 			FROM pages
-			WHERE isCurrentEdit`).Query()
+			WHERE isLiveEdit`).Query()
 	//if err = rows.Process(fixText1); err != nil {
 	//if err = rows.Process(fixText2); err != nil {
 	if err = rows.Process(fixText3); err != nil {

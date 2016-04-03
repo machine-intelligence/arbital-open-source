@@ -114,7 +114,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 				FROM links AS l
 				JOIN pages AS p
 				ON (l.parentId=p.pageId)
-				WHERE p.creatorId=? AND p.isCurrentEdit
+				WHERE p.creatorId=? AND p.isLiveEdit
 			) AS l
 			LEFT JOIN pageInfos AS pi
 			ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)

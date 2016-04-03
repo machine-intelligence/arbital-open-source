@@ -45,7 +45,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 				row := database.NewQuery(`
 					SELECT alias
 					FROM pages
-					WHERE pageId=? and isCurrentEdit`, seeGroupId).ToStatement(db).QueryRow()
+					WHERE pageId=? and isLiveEdit`, seeGroupId).ToStatement(db).QueryRow()
 				exists, err := row.Scan(&subdomain)
 				if err != nil || !exists {
 					return pages.Fail("Failed to redirect to subdomain", err)

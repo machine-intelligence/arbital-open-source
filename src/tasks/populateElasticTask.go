@@ -50,7 +50,7 @@ func (task *PopulateElasticTask) Execute(db *database.DB) (delay int, err error)
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE isCurrentEdit`).Query()
+		WHERE isLiveEdit`).Query()
 	err = rows.Process(populateElasticProcessPage)
 	if err != nil {
 		c.Debugf("ERROR: %v", err)

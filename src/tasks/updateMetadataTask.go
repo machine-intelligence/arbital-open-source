@@ -34,7 +34,7 @@ func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) 
 	rows := db.NewStatement(`
 		SELECT pageId,edit,text
 		FROM pages
-		WHERE isCurrentEdit`).Query()
+		WHERE isLiveEdit`).Query()
 	if err = rows.Process(updateMetadata); err != nil {
 		c.Debugf("ERROR, failed to update pages and pageLinks: %v", err)
 		return 0, err
@@ -42,7 +42,7 @@ func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) 
 
 	// Regenerate pageInfos table
 	rows = db.NewStatement(`
-		SELECT pageId, MAX(if(isCurrentEdit, edit, 0)), MAX(edit), MIN(createdAt)
+		SELECT pageId, MAX(if(isLiveEdit, edit, 0)), MAX(edit), MIN(createdAt)
 		FROM pages
 		WHERE 1
 		GROUP BY pageId`).Query()

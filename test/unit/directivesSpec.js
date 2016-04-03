@@ -32,7 +32,7 @@ describe('directives', function() {
 		editGroupId:0,
 		isAutosave:false,
 		isSnapshot:false,
-		isCurrentEdit:false,
+		isLiveEdit:false,
 		isMinorEdit:false,
 		todoCount:0,
 		anchorContext:"",

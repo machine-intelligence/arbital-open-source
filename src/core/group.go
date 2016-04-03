@@ -89,7 +89,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	hashmap["clickbait"] = clickbait
 	hashmap["creatorId"] = userId
 	hashmap["createdAt"] = database.Now()
-	hashmap["isCurrentEdit"] = true
+	hashmap["isLiveEdit"] = true
 	statement := tx.NewInsertTxStatement("pages", hashmap)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't create a new page", err

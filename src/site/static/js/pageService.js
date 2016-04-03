@@ -189,7 +189,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		var pageData = data.pages;
 		for (var id in pageData) {
 			var page = pageData[id];
-			if (page.isCurrentEdit) {
+			if (page.isLiveEdit) {
 				this.addPageToMap(pageData[id]);
 			} else {
 				this.addPageToEditMap(pageData[id]);

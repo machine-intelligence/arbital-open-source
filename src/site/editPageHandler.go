@@ -107,7 +107,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
-	isCurrentEdit := !data.IsAutosave && !data.IsSnapshot
+	isLiveEdit := !data.IsAutosave && !data.IsSnapshot
 	newEditNum := oldPage.MaxEditEver + 1
 	if myLastAutosaveEdit.Valid {
 		// ... unless we can just replace a existing autosave.
@@ -146,7 +146,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
-	if isCurrentEdit {
+	if isLiveEdit {
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType && oldPage.Type != core.AnswerPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
 		}
@@ -172,7 +172,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			return pages.HandlerBadRequestFail("Not enough karma to edit this page.", nil)
 		}
 	}
-	if isCurrentEdit {
+	if isLiveEdit {
 		// Process meta text
 		_, err := core.ParseMetaText(data.MetaText)
 		if err != nil {
@@ -183,7 +183,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Load parents for comments
 	var commentParentId string
 	var commentPrimaryPageId string
-	if isCurrentEdit && oldPage.Type == core.CommentPageType {
+	if isLiveEdit && oldPage.Type == core.CommentPageType {
 		rows := db.NewStatement(`
 			SELECT pi.pageId,pi.type
 			FROM pageInfos AS pi
@@ -222,7 +222,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	primaryPageMap := make(map[string]*core.Page)
 	primaryPage := core.AddPageIdToMap(data.PageId, primaryPageMap)
 	pageMap := make(map[string]*core.Page)
-	if isCurrentEdit && !oldPage.WasPublished {
+	if isLiveEdit && !oldPage.WasPublished {
 		// Load parents and children.
 		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
 		if err != nil {
@@ -259,7 +259,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			ON (pi.pageId=pp.parentId)
 			JOIN pages AS p
 			ON (pi.pageId=p.pageId)
-			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND p.isCurrentEdit
+			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND p.isLiveEdit
 			`).QueryRow(core.ParentPagePairType, data.PageId).Scan(&parentTitle)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load lens parent", err)
@@ -271,7 +271,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	isMinorEdit := data.IsMinorEditStr == "on"
 
 	// Check if something is actually different from live edit
-	if isCurrentEdit && oldPage.WasPublished {
+	if isLiveEdit && oldPage.WasPublished {
 		if data.Title == oldPage.Title &&
 			data.Clickbait == oldPage.Clickbait &&
 			data.Text == oldPage.Text &&
@@ -285,12 +285,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		if isCurrentEdit {
-			// Handle isCurrentEdit and clearing previous isCurrentEdit if necessary
+		if isLiveEdit {
+			// Handle isLiveEdit and clearing previous isLiveEdit if necessary
 			if oldPage.WasPublished {
-				statement := tx.NewTxStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit")
+				statement := tx.NewTxStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit")
 				if _, err = statement.Exec(data.PageId); err != nil {
-					return "Couldn't update isCurrentEdit for old edits", err
+					return "Couldn't update isLiveEdit for old edits", err
 				}
 			}
 		}
@@ -306,7 +306,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["text"] = data.Text
 		hashmap["metaText"] = data.MetaText
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
-		hashmap["isCurrentEdit"] = isCurrentEdit
+		hashmap["isLiveEdit"] = isLiveEdit
 		hashmap["isMinorEdit"] = isMinorEdit
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
@@ -321,7 +321,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Update summaries
-		if isCurrentEdit {
+		if isLiveEdit {
 			// Delete old page summaries
 			statement = database.NewQuery(`
 				DELETE FROM pageSummaries WHERE pageId=?`, data.PageId).ToTxStatement(tx)
@@ -341,7 +341,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Update pageInfos
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
-		if !oldPage.WasPublished && isCurrentEdit {
+		if !oldPage.WasPublished && isLiveEdit {
 			hashmap["createdAt"] = database.Now()
 			hashmap["createdBy"] = u.Id
 		}
@@ -349,7 +349,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if oldPage.MaxEditEver < newEditNum {
 			hashmap["maxEdit"] = newEditNum
 		}
-		if isCurrentEdit {
+		if isLiveEdit {
 			hashmap["currentEdit"] = newEditNum
 			hashmap["lockedUntil"] = database.Now()
 		} else if data.IsAutosave {
@@ -372,7 +372,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			hashmap["type"] = core.RevertEditChangeLog
 		} else if data.IsSnapshot {
 			hashmap["type"] = core.NewSnapshotChangeLog
-		} else if isCurrentEdit {
+		} else if isLiveEdit {
 			hashmap["type"] = core.NewEditChangeLog
 		} else {
 			updateChangeLogs = false
@@ -385,7 +385,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Add subscription.
-		if isCurrentEdit && !oldPage.WasPublished {
+		if isLiveEdit && !oldPage.WasPublished {
 			hashmap = make(map[string]interface{})
 			hashmap["userId"] = u.Id
 			hashmap["toId"] = data.PageId
@@ -400,7 +400,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Update the links table.
-		if isCurrentEdit {
+		if isLiveEdit {
 			err = core.UpdatePageLinks(tx, data.PageId, data.Text, sessions.GetDomain())
 			if err != nil {
 				return "Couldn't update links", err
@@ -415,7 +415,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// === Once the transaction has succeeded, we can't really fail on anything
 	// else. So we print out errors, but don't return an error. ===
 
-	if isCurrentEdit {
+	if isLiveEdit {
 		if data.DeleteEdit {
 			// Delete it from the elastic index
 			err = elastic.DeletePageFromIndex(c, data.PageId)

@@ -12,7 +12,7 @@ VALUES
 
 DELETE FROM pages where pageId>="22000" AND pageId<="22999";
 INSERT INTO pages
-(pageId,title,text,clickbait,edit,creatorId,createdAt,isCurrentEdit)
+(pageId,title,text,clickbait,edit,creatorId,createdAt,isLiveEdit)
 VALUES
 ("22000","Page 0 (I want to learn this)","I want to learn this",     "Page 0 clickbait",1,1,now(),true),
 ("22001","Page 1 (Req for 0)"           ,"Page 0 requires me.",      "Page 1 clickbait",1,1,now(),true),

@@ -75,7 +75,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		ON (p.pageId=pi.pageId)
 		LEFT JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
-		WHERE p.isCurrentEdit AND pi.type!=?`, core.CommentPageType).AddPart(constraintPart).Add(`
+		WHERE p.isLiveEdit AND pi.type!=?`, core.CommentPageType).AddPart(constraintPart).Add(`
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
