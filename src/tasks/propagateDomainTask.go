@@ -115,12 +115,12 @@ func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bo
 			JOIN pagePairs AS pp
 			ON (pp.parentId=pd.pageId AND pp.type=?)
 			JOIN pageInfos AS pi
-			ON (pd.pageId=pi.pageId AND pi.currentEdit>0)
+			ON (pd.pageId=pi.pageId AND pi.currentEdit>0 AND NOT pi.isDeleted)
 			WHERE childId=?)
 			UNION
 			(SELECT pageId,seeGroupId
 			FROM pageInfos
-			WHERE pageId=? AND currentEdit>0 AND type="domain")`).Query(core.ParentPagePairType, pageId, pageId)
+			WHERE pageId=? AND currentEdit>0 AND NOT isDeleted AND type="domain")`).Query(core.ParentPagePairType, pageId, pageId)
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var domainId, seeGroupId string
 			if err := rows.Scan(&domainId, &seeGroupId); err != nil {

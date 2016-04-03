@@ -151,9 +151,14 @@ type Page struct {
 	// For pages that are displayed fully, we load more additional data.
 	// Edit number for the currently live version
 	CurrentEdit int `json:"currentEdit"`
-	// True iff there is an edit that has isLiveEdit set for this page
-	WasPublished bool    `json:"wasPublished"`
-	Votes        []*Vote `json:"votes"`
+
+	// True iff there has ever been an edit that had isLiveEdit set for this page
+	WasPublished bool `json:"wasPublished"`
+
+	// True iff this page is currently in a deleted state
+	IsDeleted bool `json:"isDeleted"`
+
+	Votes []*Vote `json:"votes"`
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
 	// always have.
@@ -842,7 +847,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
-			pi.currentEdit>0,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
+			pi.currentEdit>0,pi.isDeleted,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
 		FROM pages AS p
 		JOIN pageInfos AS pi
@@ -856,7 +861,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
 		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
-		&p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
+		&p.IsDeleted, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
@@ -1036,7 +1041,7 @@ func LoadRedLinkCount(db *database.DB, pageMap map[string]*Page) error {
 		SELECT l.parentId,SUM(ISNULL(pi.pageId))
 		FROM pageInfos AS pi
 		RIGHT JOIN links AS l
-		ON ((pi.pageId=l.childAlias OR pi.alias=l.childAlias) AND pi.currentEdit>0 AND pi.type!="")
+		ON ((pi.pageId=l.childAlias OR pi.alias=l.childAlias) AND pi.currentEdit>0 AND NOT pi.isDeleted AND pi.type!="")
 		WHERE l.parentId IN`).AddArgsGroup(pageIdsList).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -1186,7 +1191,7 @@ func LoadLinks(db *database.DB, pageMap map[string]*Page, options *LoadDataOptio
 		rows = database.NewQuery(`
 			SELECT pageId
 			FROM pageInfos
-			WHERE currentEdit>0 AND alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
+			WHERE currentEdit>0 AND NOT isDeleted AND alias IN`).AddArgsGroup(aliasesList).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId string
 			err := rows.Scan(&pageId)
@@ -1230,7 +1235,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *user.User, optio
 			WHERE type=?`, options.PagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pageInfos AS pi
-		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND pi.type=?)`, options.Type).Add(`
+		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND NOT pi.isDeleted AND pi.type=?)`, options.Type).Add(`
 		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -1284,7 +1289,7 @@ func LoadSubpageCounts(db *database.DB, pageMap map[string]*Page) error {
 		) AS pp JOIN (
 			SELECT pageId,type
 			FROM pageInfos
-			WHERE currentEdit>0`).Add(`
+			WHERE currentEdit>0 AND NOT isDeleted`).Add(`
 		) AS pi
 		ON (pi.pageId=pp.childId)
 		GROUP BY 1,2`).ToStatement(db).Query()
@@ -1371,7 +1376,7 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, opti
 		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.parentId)`).Add(`
 		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
-			AND (pi.currentEdit>0 || pp.parentId=pp.childId)
+			AND ((pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId string
@@ -1442,7 +1447,7 @@ func LoadCommentIds(db *database.DB, pageMap map[string]*Page, options *LoadData
 			SELECT pp.childId
 			FROM pagePairs AS pp
 			JOIN pageInfos AS pi
-			ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND pi.type=?`, CommentPageType).Add(`
+			ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND NOT pi.isDeleted AND pi.type=?`, CommentPageType).Add(`
 				AND pp.type=?`, ParentPagePairType).Add(`
 				AND pp.parentId IN`).AddArgsGroup(pageIds).Add(`)
 		)`).ToStatement(db).Query()
@@ -1529,7 +1534,7 @@ func loadSiblingId(db *database.DB, pageId string, useNextSibling bool) (string,
 		SELECt ifnull(max(pp.parentId),0),ifnull(max(pi.sortChildrenBy),""),count(*)
 		FROM pagePairs AS pp
 		JOIN pageInfos AS pi
-		ON (pp.parentId=pi.pageId AND pi.currentEdit>0)
+		ON (pp.parentId=pi.pageId AND pi.currentEdit>0 AND NOT pi.isDeleted)
 		WHERE pp.type=?`, ParentPagePairType).Add(`AND pp.childId=?`, pageId).ToStatement(db).QueryRow()
 	found, err := row.Scan(&parentId, &sortType, &parentCount)
 	if err != nil {
@@ -1722,17 +1727,17 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string,
 			query = database.NewQuery(`
 			SELECT pageId,alias
 			FROM pageInfos
-			WHERE currentEdit>0 AND (alias IN`).AddArgsGroupStr(strictAliases).Add(`)`).ToStatement(db)
+			WHERE currentEdit>0 AND NOT isDeleted AND (alias IN`).AddArgsGroupStr(strictAliases).Add(`)`).ToStatement(db)
 		} else if len(strictAliases) <= 0 {
 			query = database.NewQuery(`
 			SELECT pageId,alias
 			FROM pageInfos
-			WHERE currentEdit>0 AND (pageId IN`).AddArgsGroupStr(strictPageIds).Add(`)`).ToStatement(db)
+			WHERE currentEdit>0 AND NOT isDeleted AND (pageId IN`).AddArgsGroupStr(strictPageIds).Add(`)`).ToStatement(db)
 		} else {
 			query = database.NewQuery(`
 			SELECT pageId,alias
 			FROM pageInfos
-			WHERE currentEdit>0 AND (pageId IN`).AddArgsGroupStr(strictPageIds).Add(`OR alias IN`).AddArgsGroupStr(strictAliases).Add(`)`).ToStatement(db)
+			WHERE currentEdit>0 AND NOT isDeleted AND (pageId IN`).AddArgsGroupStr(strictPageIds).Add(`OR alias IN`).AddArgsGroupStr(strictAliases).Add(`)`).ToStatement(db)
 		}
 
 		rows := query.Query()
@@ -1752,7 +1757,7 @@ func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string,
 			return nil, fmt.Errorf("Couldn't convert pageId=>alias", err)
 		}
 
-		// The query only gets results for when currentEdit > 0
+		// The query only gets results for when the page is published
 		// We also want to return the pageIds even if they aren't for valid pages
 		for _, pageId := range strictPageIds {
 			aliasToIdMap[strings.ToLower(pageId)] = strings.ToLower(pageId)

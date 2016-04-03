@@ -31,7 +31,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 	row := database.NewQuery(`
 		SELECT type,seeGroupId
 		FROM pageInfos
-		WHERE currentEdit>0 AND pageId=?`, pageId).ToStatement(db).QueryRow()
+		WHERE currentEdit>0 AND NOT isDeleted AND pageId=?`, pageId).ToStatement(db).QueryRow()
 	exists, err := row.Scan(&pageType, &seeGroupId)
 	if err != nil {
 		return pages.Fail("Couldn't get page info", err)
@@ -44,7 +44,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 			row := database.NewQuery(`
 					SELECT alias
 					FROM pageInfos
-					WHERE pageId=? AND currentEdit>0`, seeGroupId).ToStatement(db).QueryRow()
+					WHERE pageId=? AND currentEdit>0 AND NOT isDeleted`, seeGroupId).ToStatement(db).QueryRow()
 			exists, err := row.Scan(&subdomain)
 			if err != nil || !exists {
 				return pages.Fail("Failed to redirect to subdomain", err)

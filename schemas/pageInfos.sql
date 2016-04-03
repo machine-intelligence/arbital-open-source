@@ -54,5 +54,8 @@ CREATE TABLE pageInfos (
 	/* If true, this comment is meant for editors only. */
 	isEditorComment BOOL NOT NULL,
 
+	/* True iff this page is currently in a deleted state. */
+	isDeleted BOOLEAN NOT NULL,
+
 	PRIMARY KEY(pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

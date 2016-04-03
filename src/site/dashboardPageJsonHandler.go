@@ -47,7 +47,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
+		WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(u.Id, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedCommentIds"], err =
@@ -62,7 +62,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
+		WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
 		GROUP BY 1
 		ORDER BY MAX(p.createdAt) DESC
 		LIMIT ?`).Query(u.Id, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
@@ -74,7 +74,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	pagesWithDraftIds := make([]string, 0)
 	// Load pages with unpublished drafts
 	rows = db.NewStatement(`
-			SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0
+			SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
 			FROM pages AS p
 			JOIN pageInfos AS pi
 			ON (p.pageId = pi.pageId)
@@ -86,7 +86,8 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		var pageId string
 		var title, createdAt string
 		var wasPublished bool
-		err := rows.Scan(&pageId, &title, &createdAt, &wasPublished)
+		var isDeleted bool
+		err := rows.Scan(&pageId, &title, &createdAt, &wasPublished, &isDeleted)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
@@ -99,6 +100,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		page.Title = title
 		page.CreatedAt = createdAt
 		page.WasPublished = wasPublished
+		page.IsDeleted = isDeleted
 		return nil
 	})
 	if err != nil {
@@ -118,7 +120,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			) AS l
 			LEFT JOIN pageInfos AS pi
 			ON (l.childAlias=pi.alias OR l.childAlias=pi.pageId)
-			WHERE pi.currentEdit>0 AND pi.seeGroupId=? AND pi.type!=?
+			WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND pi.seeGroupId=? AND pi.type!=?
 			GROUP BY 1
 			ORDER BY (SUM(ISNULL(pi.pageId)) + MAX(l.parentTodoCount)) DESC
 			LIMIT ?`).Query(u.Id, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)

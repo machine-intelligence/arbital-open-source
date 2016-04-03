@@ -157,7 +157,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		ON (v2.pageId=pd.pageId)
 		JOIN pageInfos AS pi
 		ON (pd.pageId=pi.pageId)
-		WHERE pi.currentEdit > 0 AND pi.hasVote`).AddPart(constraintPart).Add(`
+		WHERE pi.currentEdit > 0 AND NOT pi.isDeleted AND pi.hasVote`).AddPart(constraintPart).Add(`
 		GROUP BY pd.pageId
 		HAVING COUNT(v2.value) > 1
 		ORDER BY VAR_POP(v2.value) DESC

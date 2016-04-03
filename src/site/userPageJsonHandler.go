@@ -53,7 +53,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	rows := db.NewStatement(`
 		SELECT pi.pageId
 		FROM pageInfos AS pi
-		WHERE pi.currentEdit>0 AND pi.createdBy=? AND pi.seeGroupId=? AND pi.type!=?
+		WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND pi.createdBy=? AND pi.seeGroupId=? AND pi.type!=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(userId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
@@ -67,7 +67,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
+		WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`).Query(userId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
 	returnData.ResultMap["recentlyCreatedCommentIds"], err =
@@ -82,7 +82,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM pages AS p
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE pi.currentEdit>0 AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
+		WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
 		GROUP BY 1
 		ORDER BY MAX(p.createdAt) DESC
 		LIMIT ?`).Query(userId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
@@ -105,7 +105,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			GROUP BY userId,pageId
 		) AS l2
 		ON (pi.pageId=l2.pageId)
-		WHERE pi.currentEdit>0 AND pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
+		WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
 		GROUP BY 1
 		ORDER BY SUM(l2.value) DESC
 		LIMIT ?`).Query(params.PrivateGroupId, userId, core.CommentPageType, indexPanelLimit)

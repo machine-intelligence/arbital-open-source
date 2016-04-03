@@ -53,6 +53,7 @@ describe('directives', function() {
 
 		currentEdit:0,
 		wasPublished:false,
+		isDeleted:false,
 		votes:[],
 		lockedVoteType:"",
 		maxEditEver:0,

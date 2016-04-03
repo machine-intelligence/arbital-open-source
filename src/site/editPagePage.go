@@ -32,7 +32,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		row := database.NewQuery(`
 			SELECT seeGroupId
 			FROM pageInfos
-			WHERE currentEdit>0 AND pageId=?`, pageId).ToStatement(db).QueryRow()
+			WHERE currentEdit>0 AND NOT isDeleted AND pageId=?`, pageId).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&seeGroupId)
 		if err != nil {
 			return pages.Fail("Couldn't get page info", err)

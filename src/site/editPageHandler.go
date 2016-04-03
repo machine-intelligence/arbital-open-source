@@ -189,7 +189,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			FROM pageInfos AS pi
 			JOIN pagePairs AS pp
 			ON (pi.pageId=pp.parentId)
-			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0
+			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND NOT pi.isDeleted
 			`).Query(core.ParentPagePairType, data.PageId)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId string
@@ -259,7 +259,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			ON (pi.pageId=pp.parentId)
 			JOIN pages AS p
 			ON (pi.pageId=p.pageId)
-			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND p.isLiveEdit
+			WHERE pp.type=? AND pp.childId=? AND p.isLiveEdit
 			`).QueryRow(core.ParentPagePairType, data.PageId).Scan(&parentTitle)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load lens parent", err)

@@ -49,3 +49,19 @@ update updates set type = 'deleteUsedAsTag' where type = 'deleteTaggedBy';
 alter table userMasteryPairs add column taughtBy varchar(32) not null;
 
 alter table pages change isCurrentEdit `isLiveEdit` BOOLEAN NOT NULL;
+alter table pageInfos add column isDeleted BOOLEAN NOT NULL;
+update pageInfos,
+(select
+	pageId,
+	count(*) > 0 as ever_published,
+	max(edit) as last_published_edit,
+	sum(isLiveEdit) > 0 as is_live
+	from pages
+	where not isSnapshot and not isAutosave
+	group by pageId
+	having ever_published and not is_live)
+as deleted_pages
+set
+	pageInfos.currentEdit = deleted_pages.last_published_edit,
+	pageInfos.isDeleted = true
+where pageInfos.pageId = deleted_pages.pageId;

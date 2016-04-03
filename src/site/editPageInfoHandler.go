@@ -162,7 +162,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		row := db.NewStatement(`
 			SELECT pageId
 			FROM pageInfos
-			WHERE currentEdit>0 AND pageId!=? AND alias=?`).QueryRow(data.PageId, data.Alias)
+			WHERE currentEdit>0 AND NOT isDeleted AND pageId!=? AND alias=?`).QueryRow(data.PageId, data.Alias)
 		exists, err := row.Scan(&existingPageId)
 		if err != nil {
 			return pages.HandlerErrorFail("Failed on looking for conflicting alias", err)
