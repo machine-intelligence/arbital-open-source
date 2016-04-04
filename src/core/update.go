@@ -124,8 +124,8 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
 		FROM updates
-			JOIN pages ON updates.goToPageId = pages.pageId
-			LEFT JOIN changeLogs ON updates.changeLogId = changeLogs.id
+		JOIN pages ON updates.goToPageId = pages.pageId
+		LEFT JOIN changeLogs ON updates.changeLogId = changeLogs.id
 		WHERE updates.userId=? ` + emailFilter + `
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC

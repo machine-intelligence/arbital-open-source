@@ -72,38 +72,38 @@
 
 		<span ng-switch-when="newAlias">
 			Alias changed
-			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
-			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::oldSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newSortChildrenBy">
 			Child sort order changed
-			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
-			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::oldSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="setVoteType">
 			Vote type changed
-			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
-			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::oldSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newEditKarmaLock">
 			Edit karma lock changed
-			<br><span style="margin-left: 40px">from: "{{::oldSettingsValue}}"</span>
-			<br><span style="margin-left: 40px">to: "{{::newSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::oldSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newEditGroup">
 			Edit group changed
-			<br><span style="margin-left: 40px">from:
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from:
 				<!-- old edit group -->
 				<span ng-if="::(oldSettingsValue == '')">none</span>
 				<span ng-if="::(oldSettingsValue != '')">
 					<arb-page-title page-id="{{::oldSettingsValue}}" is-link="true"></arb-page-title>
 				</span>
 			</span>
-			<br><span style="margin-left: 40px">to:
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to:
 				<!-- new edit group -->
 				<span ng-if="::(newSettingsValue == '')">none</span>
 				<span ng-if="::(newSettingsValue != '')">
@@ -227,7 +227,7 @@
 
 	<div flex></div>
 
-	<div style="white-space: nowrap">
+	<div>
 		<!-- Link to the user who performed the action (if we haven't already) -->
 		<span ng-switch="::type">
 			<span ng-switch-when="topLevelComment"></span>
@@ -237,7 +237,7 @@
 			<span ng-switch-when="addedToGroup"></span>
 			<span ng-switch-when="removedFromGroup"></span>
 			<span ng-switch-default>
-			<arb-user-name user-id="{{::userId}}" ng-if="showUserLink"></arb-user-name>
+			<arb-user-name user-id="{{::userId}}" ng-if="::showUserLink"></arb-user-name>
 			</span>
 		</span>
 
