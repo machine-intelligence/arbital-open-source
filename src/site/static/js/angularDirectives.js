@@ -599,7 +599,7 @@ app.directive('arbChangeLogEntry', function() {
 });
 
 // Shared by the changelog and the updates page.
-app.directive('arbLogRow', function() {
+app.directive('arbLogRow', function(pageService) {
 	return {
 		templateUrl: 'static/html/logRow.html',
 		scope: {
@@ -616,6 +616,7 @@ app.directive('arbLogRow', function() {
 			showUserLink: '=',
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
 		},
 	};
 });
