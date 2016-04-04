@@ -65,3 +65,6 @@ set
 	pageInfos.currentEdit = deleted_pages.last_published_edit,
 	pageInfos.isDeleted = true
 where pageInfos.pageId = deleted_pages.pageId;
+
+alter table changeLogs modify oldSettingsValue varchar(64) not null;
+alter table changeLogs modify newSettingsValue varchar(64) not null;
