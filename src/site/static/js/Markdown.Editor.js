@@ -1647,11 +1647,11 @@
 				if (alias) {
 					// Same regex as in other link functions.
 					chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
-					chunk.startTag = '[';
-					chunk.endTag = '](' + alias + ')';
+					chunk.startTag = '[' + alias + " ";
+					chunk.endTag = ']';
 
 					if (!chunk.selection) {
-						chunk.endTag = ']';
+						chunk.startTag = '[';
 						chunk.selection = alias;
 					}
 				}
