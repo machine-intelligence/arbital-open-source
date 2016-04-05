@@ -94,6 +94,12 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return "Couldn't update isLiveEdit for old edits", err
 		}
 
+		// Set isDeleted in pageInfos
+		statement = tx.NewTxStatement("UPDATE pageInfos SET isDeleted=true WHERE pageId=?")
+		if _, err = statement.Exec(data.PageId); err != nil {
+			return "Couldn't set isDeleted for deleted page", err
+		}
+
 		// Update change log
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
