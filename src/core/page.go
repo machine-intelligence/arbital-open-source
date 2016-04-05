@@ -1125,17 +1125,24 @@ func LoadCreatorIds(db *database.DB, pageMap map[string]*Page, userMap map[strin
 
 	// For pages that have editGroupId set, make sure we load those pages too.
 	rows = database.NewQuery(`
-		SELECT pageId,editGroupId
-		FROM pageInfos
-		WHERE pageId IN`).AddArgsGroup(pageIdsList).Add(`
-			AND editGroupId!=""`).ToStatement(db).Query()
+		SELECT pi.pageId,pi.editGroupId,ISNULL(u.id)
+		FROM pageInfos AS pi
+		LEFT JOIN users AS u
+		ON (pi.pageId = u.id)
+		WHERE pi.pageId IN`).AddArgsGroup(pageIdsList).Add(`
+			AND pi.editGroupId!=""`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, editGroupId string
-		err := rows.Scan(&pageId, &editGroupId)
+		var isPage bool
+		err := rows.Scan(&pageId, &editGroupId, &isPage)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		AddPageToMap(editGroupId, pageMap, TitlePlusLoadOptions)
+		if isPage {
+			AddPageToMap(editGroupId, pageMap, TitlePlusLoadOptions)
+		} else {
+			userMap[editGroupId] = &User{Id: editGroupId}
+		}
 		return nil
 	})
 	return err
