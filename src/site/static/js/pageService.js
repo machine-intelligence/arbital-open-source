@@ -373,10 +373,6 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			}
 			return '';
 		},
-		// Return true iff the page is deleted.
-		isDeleted: function() {
-			return this.type === '';
-		},
 		// Get page's url
 		url: function() {
 			return that.getPageUrl(this.pageId);
