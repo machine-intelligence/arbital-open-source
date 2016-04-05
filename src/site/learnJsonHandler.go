@@ -218,6 +218,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ON (pp.childId=pi.pageId)
 			WHERE pp.parentId IN`).AddArgsGroupStr(requirementIds).Add(`
 				AND pp.type=?`, core.SubjectPagePairType).Add(`
+				AND (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 			`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId, childId string
@@ -259,6 +260,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ON (pp.parentId=mp.masteryId AND mp.userId=?)`, userId).Add(`
 			WHERE pp.childId IN`).AddArgsGroupStr(tutorIds).Add(`
 				AND pp.type=?`, core.RequirementPagePairType).Add(`
+				AND (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 				AND (NOT mp.has OR isnull(mp.has))`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var parentId, childId string
