@@ -3,9 +3,7 @@ package user
 
 import (
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -59,6 +57,8 @@ type User struct {
 	// Computed variables
 	UpdateCount int      `json:"updateCount"`
 	GroupIds    []string `json:"groupIds"`
+	// If set, these are the lists the user is subscribed to via mailchimp
+	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
 
 type CookieSession struct {
@@ -184,21 +184,9 @@ func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr 
 	if err != nil {
 		return
 	} else if userPtr == nil {
-		userPtr = &User{}
+		userPtr = &User{MailchimpInterests: make(map[string]bool)}
 	}
 	return
-}
-
-// ParseUser returns a new user object from a io.ReadCloser.
-//
-// The io.ReadCloser might e.g. be a HTTP response body.
-func ParseUser(rc io.ReadCloser) (*User, error) {
-	var user User
-	err := json.NewDecoder(rc).Decode(&user)
-	if err != nil {
-		return nil, fmt.Errorf("Error decoding the user: %v", err)
-	}
-	return &user, nil
 }
 
 // Replace a rune at a specific index in a string
@@ -277,8 +265,7 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 			SELECT id
 			FROM users
 		) AS combined
-		WHERE char_length(pageId) =
-		(
+		WHERE char_length(pageId) = (
 			SELECT MAX(char_length(pageId))
 			FROM (
 				SELECT pageId
@@ -293,10 +280,7 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load id: %v", err)
 	}
-
-	nextAvailableId, err := IncrementBase31Id(tx.DB.C, highestUsedId)
-
-	return nextAvailableId, err
+	return IncrementBase31Id(tx.DB.C, highestUsedId)
 }
 
 func init() {
