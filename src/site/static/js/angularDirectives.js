@@ -183,7 +183,7 @@ app.directive('arbPageTitle', function(pageService, userService) {
 		scope: {
 			pageId: '@',
 			// Options override for the page's title
-			customPageTitle: '=',
+			customPageTitle: '@',
 			// Whether to display the title as a link or a span
 			isLink: '=',
 			// If set, we'll use this link for the page
