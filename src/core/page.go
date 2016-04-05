@@ -835,7 +835,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 				FROM pages AS p
 				JOIN pageInfos AS pi
 				ON (p.pageId=pi.pageId)
-				WHERE p.pageId=? AND (p.prevEdit=pi.currentEdit OR p.isLiveEdit OR p.isAutosave) AND
+				WHERE p.pageId=? AND (p.prevEdit=pi.currentEdit OR p.edit=pi.currentEdit OR p.isAutosave) AND
 					(p.creatorId=? OR NOT (p.isSnapshot OR p.isAutosave))
 				ORDER BY IF(p.isAutosave,"z",p.createdAt) DESC
 				LIMIT 1
