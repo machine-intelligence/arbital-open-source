@@ -69,6 +69,12 @@ type CookieSession struct {
 	Random string
 }
 
+func NewUser() *User {
+	var u User
+	u.MailchimpInterests = make(map[string]bool)
+	return &u
+}
+
 func (user *User) FullName() string {
 	return user.FirstName + " " + user.LastName
 }
@@ -146,19 +152,21 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*U
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get session: %v", err)
 	}
+	u := NewUser()
 
 	var cookie *CookieSession
 	if cookieStruct, ok := s.Values[sessionKey]; !ok {
 		sessionId, err := saveSessionCookie(w, r)
-		return &User{SessionId: sessionId}, err
+		u.SessionId = sessionId
+		return u, err
 	} else {
 		cookie = cookieStruct.(*CookieSession)
 	}
 	if cookie.Email == "" {
-		return &User{SessionId: cookie.SessionId}, err
+		u.SessionId = cookie.SessionId
+		return u, err
 	}
 
-	var u User
 	row := db.NewStatement(`
 		SELECT id,fbUserId,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
 		FROM users
@@ -171,7 +179,7 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*U
 		return nil, fmt.Errorf("Couldn't find that email in DB")
 	}
 	u.MaxKarmaLock = GetMaxKarmaLock(u.Karma)
-	return &u, nil
+	return u, nil
 }
 
 // LoadUser returns user object corresponding to logged in user. First, we check
@@ -184,7 +192,7 @@ func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr 
 	if err != nil {
 		return
 	} else if userPtr == nil {
-		userPtr = &User{MailchimpInterests: make(map[string]bool)}
+		userPtr = NewUser()
 	}
 	return
 }
