@@ -591,6 +591,17 @@ ins {
 	color: green;
 }
 
+// Fixed-position container which shows global events.
+#events-info-div {
+	position: fixed;
+	right: 0;
+	top: 0;
+	max-width: 600px;
+	max-height: 600px;
+	z-index: $eventsDivZ;
+	background-color: white;
+}
+
 .page-tabs {
 	margin-top: 15px;
 
@@ -714,6 +725,16 @@ textarea {
 .inline-comment-icon {
 	position: absolute;
 	z-index: $inlineCommentIconZ;
+}
+
+// Div holding the RHS buttons (inline comment, confused mark)
+.rhs-buttons {
+	position: absolute;
+	z-index: $inlineCommentIconZ;
+
+	.md-button {
+		margin: 5px 5px 0px 0px !important;
+	}
 }
 
 // Anchor text for an inline comment

@@ -811,6 +811,17 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		$location.replace().url(this.getPageUrl(commentId));
 	};
 
+	// Create a new mark.
+	this.newMark = function(params, success) {
+		$http({method: 'POST', url: '/newMark/', data: JSON.stringify(params)})
+		.success(function(data, status) {
+			if (success) success(data);
+		})
+		.error(function(data, status) {
+			console.error('Error creating a new mark:'); console.error(data);
+		});
+	};
+
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
 	this.getMasteryStatus = function(masteryId) {
 		var has = false;
@@ -908,6 +919,15 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	this.abandonPath = function() {
 		Cookies.remove('path');
 		this.path = undefined;
+	};
+
+	// Show an event message.
+	var $eventsDiv = $('#events-info-div');
+	var $eventsHeader = $('#events-info-header');
+	var $eventsBody = $('#events-info-body');
+	this.showEvent = function(params) {
+		$eventsBody.empty().append(params.$element);
+		$eventsHeader.text(params.title);
 	};
 
 	// Update the path variables.

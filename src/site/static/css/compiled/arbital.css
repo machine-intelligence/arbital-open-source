@@ -438,7 +438,7 @@ arb-signup > .capped-body-width {
 arb-login > .capped-body-width {
   max-width: 560px; }
 arb-updates > .capped-body-width {
-  max-width: 720px; }
+  max-width: 560px; }
 arb-groups-page > .capped-body-width {
   max-width: 900px; }
 arb-requisites-page > .capped-body-width {
@@ -755,6 +755,15 @@ del {
 ins {
   color: green; }
 
+#events-info-div {
+  position: fixed;
+  right: 0;
+  top: 0;
+  max-width: 600px;
+  max-height: 600px;
+  z-index: 10000;
+  background-color: white; }
+
 .page-tabs {
   margin-top: 15px; }
   .page-tabs > .page-tabs-holder {
@@ -838,6 +847,12 @@ textarea {
 .inline-comment-icon {
   position: absolute;
   z-index: 1; }
+
+.rhs-buttons {
+  position: absolute;
+  z-index: 1; }
+  .rhs-buttons .md-button {
+    margin: 5px 5px 0px 0px !important; }
 
 .inline-comment-highlight {
   background-color: #E0F2F1; }
