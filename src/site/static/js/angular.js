@@ -501,6 +501,10 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				var pageTemplate = '<arb-primary-page></arb-primary-page>';
 
 				if (!page) {
+					if (postData.pageAlias in pageService.deletedPagesMap) {
+						urlService.goToUrl(pageService.getEditPageUrl(postData.pageAlias));
+						return;
+					};
 					return {
 						title: 'Not Found',
 						error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
