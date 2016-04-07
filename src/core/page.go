@@ -86,7 +86,7 @@ type Vote struct {
 	CreatedAt string `json:"createdAt"`
 }
 
-// corePageData has data we load directly from pages table.
+// corePageData has data we load directly from the pages and pageInfos tables.
 type corePageData struct {
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
@@ -121,6 +121,8 @@ type corePageData struct {
 	AnchorContext     string `json:"anchorContext"`
 	AnchorText        string `json:"anchorText"`
 	AnchorOffset      int    `json:"anchorOffset"`
+	// True iff this page is currently in a deleted state
+	IsDeleted bool `json:"isDeleted"`
 
 	// The following data is filled on demand.
 	Text     string `json:"text"`
@@ -154,9 +156,6 @@ type Page struct {
 
 	// True iff there has ever been an edit that had isLiveEdit set for this page
 	WasPublished bool `json:"wasPublished"`
-
-	// True iff this page is currently in a deleted state
-	IsDeleted bool `json:"isDeleted"`
 
 	Votes []*Vote `json:"votes"`
 	// We don't allow users to change the vote type once a page has been published
@@ -694,11 +693,11 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
-			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
+			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN pageInfos AS pi
-		ON (p.pageId = pi.pageId AND p.isLiveEdit)
+		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
 		WHERE p.pageId IN`).AddArgsGroup(pageIds).Add(`
 			AND (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		`).ToStatement(db).Query()
@@ -709,7 +708,7 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
-			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
+			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("Failed to scan a page: %v", err)

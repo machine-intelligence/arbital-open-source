@@ -14,6 +14,9 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// All loaded pages.
 	this.pageMap = {};
 
+	// All loaded deleted pages.
+	this.deletedPagesMap = {};
+
 	// All loaded edits. (These are the pages we will be editing.)
 	this.editMap = {};
 
@@ -168,6 +171,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	this.processServerData = function(data) {
 		if (data.resetEverything) {
 			this.pageMap = {};
+			this.deletedPagesMap = {};
 			this.editMap = {};
 			this.masteryMap = {};
 			this.masteryMapList = [this.masteryMap];
@@ -189,7 +193,9 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		var pageData = data.pages;
 		for (var id in pageData) {
 			var page = pageData[id];
-			if (page.isLiveEdit) {
+			if (page.isDeleted) {
+				this.addPageToDeletedPagesMap(pageData[id]);
+			} else if (page.isLiveEdit) {
 				this.addPageToMap(pageData[id]);
 			} else {
 				this.addPageToEditMap(pageData[id]);
@@ -444,6 +450,10 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// Add the given page to the global editMap.
 	this.addPageToEditMap = function(page) {
 		this.editMap[page.pageId] = setUpPage(page);
+	};
+
+	this.addPageToDeletedPagesMap = function(page) {
+		this.deletedPagesMap[page.pageId] = setUpPage(page, this.deletedPagesMap);
 	};
 
 	// Remove page with the given pageId from the global editMap;
