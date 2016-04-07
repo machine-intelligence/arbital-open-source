@@ -11,7 +11,10 @@
 	<h1 id="subscribe">Subscribe to our mailing list</h1>
 	<div id="mc-signup" class="lens-text-container md-whiteframe-1dp">
 		<div ng-if="subscribed">
-			Thank you! Please check your inbox for the confirmation email.
+			Thank you!
+			<span ng-if="::!alreadySubscribed">
+				Please check your inbox for the confirmation email.
+			</span>
 		</div>
 		<div ng-if="!subscribed">
 			<md-input-container>
@@ -30,8 +33,10 @@
 				</md-checkbox>
 			</div>
 			<div>
-				<md-button class="md-primary md-raised" ng-click="subscribeToList()">
-					Subscribe
+				<md-button class="md-primary"
+						ng-class="{'md-raised': !alreadySubscribed}"
+						ng-click="subscribeToList()"
+						ng-bind="::alreadySubscribed ? 'Update subscription' : 'Subscribe'">
 				</md-button>
 				<div class="md-warn" ng-bind="subscribeError" ng-if="subscribeError"></div>
 			</div>

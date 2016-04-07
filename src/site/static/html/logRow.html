@@ -174,7 +174,9 @@
 				<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
 			</span>
 			<span ng-if="!isRelatedPageAlive">
-				[deleted]
+				<a ng-href="{{::pageService.getEditPageUrl(relatedPageId)}}"
+						page-id="{{::relatedPageId}}"
+						class="red-link">[DELETED]</a>
 			</span>
 		</span>
 

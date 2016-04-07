@@ -3,6 +3,7 @@ package site
 
 import (
 	"zanaduu3/src/core"
+	"zanaduu3/src/mailchimp"
 	"zanaduu3/src/pages"
 )
 
@@ -20,7 +21,9 @@ var indexHandler = siteHandler{
 }
 
 func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
+	c := params.C
 
 	returnData := core.NewHandlerData(params.U, true)
 
@@ -77,9 +80,15 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, returnData)
-
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
+	}
+
+	if u.Email != "" {
+		u.MailchimpInterests, err = mailchimp.GetInterests(c, u.Email)
+		if err != nil {
+			c.Errorf("Couldn't load mailchimp subscriptions: %v", err)
+		}
 	}
 
 	return pages.StatusOK(returnData.ToJson())

@@ -37,11 +37,16 @@
 			<!-- (1) Text tab -->
 			<md-tab label="Text">
 				<div layout="column" flex>
-					<!-- Input we show when entering a new link -->
-					<arb-autocomplete class="insert-autocomplete"
-							placeholder="Search for a page to link"
-							on-select="insertLinkSelect(result)"
-							ng-show="showInsertLink"></arb-autocomplete>
+					<div layout="row" ng-show="showInsertLink">
+						<md-button class="md-icon-button" ng-click="insertLinkSelect()">
+							<md-icon>close</md-icon>
+						</md-button>
+						<!-- Input we show when entering a new link -->
+						<arb-autocomplete class="insert-autocomplete"
+								placeholder="Search for a page to link"
+								on-select="insertLinkSelect(result)"
+								flex></arb-autocomplete>
+					</div>
 
 					<!-- Markdown toolbar -->
 					<div id="wmd-button-bar{{::page.pageId}}"

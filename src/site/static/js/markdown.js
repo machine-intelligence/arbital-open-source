@@ -334,7 +334,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 						$element.attr('embed-vote-id', pageAlias).addClass('red-link');
 					} else if (pageAlias in pageService.pageMap) {
 						$element.attr('page-id', pageService.pageMap[pageAlias].pageId);
-						if (pageService.pageMap[pageAlias].isDeleted()) {
+						if (pageService.pageMap[pageAlias].isDeleted) {
 							// Link to a deleted page.
 							$element.addClass('red-link');
 						} else {

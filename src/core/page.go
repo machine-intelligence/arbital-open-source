@@ -700,7 +700,7 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 		JOIN pageInfos AS pi
 		ON (p.pageId = pi.pageId AND p.isLiveEdit)
 		WHERE p.pageId IN`).AddArgsGroup(pageIds).Add(`
-			AND (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+			AND (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p corePageData
@@ -853,7 +853,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageId).Add(`
 		WHERE`).AddPart(whereClause).Add(`AND
-			(pi.seeGroupId=0 OR pi.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
+			(pi.seeGroupId="" OR pi.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
@@ -1125,17 +1125,24 @@ func LoadCreatorIds(db *database.DB, pageMap map[string]*Page, userMap map[strin
 
 	// For pages that have editGroupId set, make sure we load those pages too.
 	rows = database.NewQuery(`
-		SELECT pageId,editGroupId
-		FROM pageInfos
-		WHERE pageId IN`).AddArgsGroup(pageIdsList).Add(`
-			AND editGroupId!=""`).ToStatement(db).Query()
+		SELECT pi.pageId,pi.editGroupId,ISNULL(u.id)
+		FROM pageInfos AS pi
+		LEFT JOIN users AS u
+		ON (pi.pageId = u.id)
+		WHERE pi.pageId IN`).AddArgsGroup(pageIdsList).Add(`
+			AND pi.editGroupId!=""`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, editGroupId string
-		err := rows.Scan(&pageId, &editGroupId)
+		var isPage bool
+		err := rows.Scan(&pageId, &editGroupId, &isPage)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		AddPageToMap(editGroupId, pageMap, TitlePlusLoadOptions)
+		if isPage {
+			AddPageToMap(editGroupId, pageMap, TitlePlusLoadOptions)
+		} else {
+			userMap[editGroupId] = &User{Id: editGroupId}
+		}
 		return nil
 	})
 	return err
@@ -1236,7 +1243,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *user.User, optio
 		) AS pp
 		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND NOT pi.isDeleted AND pi.type=?)`, options.Type).Add(`
-		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+		WHERE (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId string
@@ -1375,7 +1382,7 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, opti
 		) AS pp
 		JOIN pageInfos AS pi
 		ON (pi.pageId=pp.parentId)`).Add(`
-		WHERE (pi.seeGroupId=0 OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+		WHERE (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 			AND ((pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {

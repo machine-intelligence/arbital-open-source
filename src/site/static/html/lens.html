@@ -43,7 +43,12 @@
 	<div class="lens-text-container">
 		<!-- Owner -->
 		<div class="author-list md-caption page-list-span" ng-if="::(page.editGroupId !== '' && !isSimpleEmbed)">
-			Owner: <arb-page-title page-id="{{::page.editGroupId}}" is-link="true"></arb-page-title>
+			Owner:
+			<arb-page-title page-id="{{::page.editGroupId}}"
+					is-link="true"
+					ng-if="::!userService.userMap[page.editGroupId]"></arb-page-title>
+			<arb-user-name user-id="{{::page.editGroupId}}"
+					ng-if="::userService.userMap[page.editGroupId]"></arb-user-name>
 		</div>
 
 		<arb-markdown class="lens-text"

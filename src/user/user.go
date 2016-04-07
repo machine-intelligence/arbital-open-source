@@ -3,9 +3,7 @@ package user
 
 import (
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -59,6 +57,8 @@ type User struct {
 	// Computed variables
 	UpdateCount int      `json:"updateCount"`
 	GroupIds    []string `json:"groupIds"`
+	// If set, these are the lists the user is subscribed to via mailchimp
+	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
 
 type CookieSession struct {
@@ -67,6 +67,12 @@ type CookieSession struct {
 
 	// Randomly generated string
 	Random string
+}
+
+func NewUser() *User {
+	var u User
+	u.MailchimpInterests = make(map[string]bool)
+	return &u
 }
 
 func (user *User) FullName() string {
@@ -146,19 +152,21 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*U
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get session: %v", err)
 	}
+	u := NewUser()
 
 	var cookie *CookieSession
 	if cookieStruct, ok := s.Values[sessionKey]; !ok {
 		sessionId, err := saveSessionCookie(w, r)
-		return &User{SessionId: sessionId}, err
+		u.SessionId = sessionId
+		return u, err
 	} else {
 		cookie = cookieStruct.(*CookieSession)
 	}
 	if cookie.Email == "" {
-		return &User{SessionId: cookie.SessionId}, err
+		u.SessionId = cookie.SessionId
+		return u, err
 	}
 
-	var u User
 	row := db.NewStatement(`
 		SELECT id,fbUserId,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
 		FROM users
@@ -171,7 +179,7 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*U
 		return nil, fmt.Errorf("Couldn't find that email in DB")
 	}
 	u.MaxKarmaLock = GetMaxKarmaLock(u.Karma)
-	return &u, nil
+	return u, nil
 }
 
 // LoadUser returns user object corresponding to logged in user. First, we check
@@ -184,21 +192,9 @@ func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr 
 	if err != nil {
 		return
 	} else if userPtr == nil {
-		userPtr = &User{}
+		userPtr = NewUser()
 	}
 	return
-}
-
-// ParseUser returns a new user object from a io.ReadCloser.
-//
-// The io.ReadCloser might e.g. be a HTTP response body.
-func ParseUser(rc io.ReadCloser) (*User, error) {
-	var user User
-	err := json.NewDecoder(rc).Decode(&user)
-	if err != nil {
-		return nil, fmt.Errorf("Error decoding the user: %v", err)
-	}
-	return &user, nil
 }
 
 // Replace a rune at a specific index in a string
@@ -277,8 +273,7 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 			SELECT id
 			FROM users
 		) AS combined
-		WHERE char_length(pageId) =
-		(
+		WHERE char_length(pageId) = (
 			SELECT MAX(char_length(pageId))
 			FROM (
 				SELECT pageId
@@ -293,10 +288,7 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load id: %v", err)
 	}
-
-	nextAvailableId, err := IncrementBase31Id(tx.DB.C, highestUsedId)
-
-	return nextAvailableId, err
+	return IncrementBase31Id(tx.DB.C, highestUsedId)
 }
 
 func init() {
