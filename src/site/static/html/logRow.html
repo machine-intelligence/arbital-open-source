@@ -169,15 +169,7 @@
 
 		<span ng-switch-when="newPageByUser">
 			Created a new page:
-			<!-- ROGTODO: do the following check for all references to the related page -->
-			<span ng-if="::isRelatedPageAlive">
-				<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
-			</span>
-			<span ng-if="!isRelatedPageAlive">
-				<a ng-href="{{::pageService.getEditPageUrl(relatedPageId)}}"
-						page-id="{{::relatedPageId}}"
-						class="red-link">[DELETED]</a>
-			</span>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="commentEdit">

@@ -198,7 +198,15 @@ app.directive('arbPageTitle', function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.page = ($scope.useEditMap ? pageService.editMap : pageService.pageMap)[$scope.pageId];
+			var map;
+			if ($scope.pageId in pageService.deletedPagesMap) {
+				map = pageService.deletedPagesMap;
+			} else if ($scope.useEditMap) {
+				map = pageService.editMap;
+			} else {
+				map = pageService.pageMap;
+			};
+			$scope.page = map[$scope.pageId];
 			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {

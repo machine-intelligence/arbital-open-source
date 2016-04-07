@@ -453,7 +453,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	};
 
 	this.addPageToDeletedPagesMap = function(page) {
-		this.deletedPagesMap[page.pageId] = setUpPage(page, this.deletedPagesMap);
+		this.deletedPagesMap[page.pageId] = setUpPage(page);
 	};
 
 	// Remove page with the given pageId from the global editMap;

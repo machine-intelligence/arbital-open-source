@@ -4,7 +4,7 @@
 	help
 </md-icon>
 <a ng-href="{{::pageUrl}}"
-		class="intrasite-link"
+		ng-class="::('intrasite-link' + (page.isDeleted ? ' red-link' : ''))"
 		page-id="{{::page.pageId}}"
 		ng-bind="::getTitle()"
 		ng-if="::isLink"></a>
