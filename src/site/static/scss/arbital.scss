@@ -716,6 +716,16 @@ textarea {
 	z-index: $inlineCommentIconZ;
 }
 
+// Div holding the RHS buttons (inline comment, confused mark)
+.rhs-buttons {
+	position: absolute;
+	z-index: $inlineCommentIconZ;
+
+	.md-button {
+		margin: 5px 5px 0px 0px !important;
+	}
+}
+
 // Anchor text for an inline comment
 .inline-comment-highlight {
 	background-color: $primary-hue-1;

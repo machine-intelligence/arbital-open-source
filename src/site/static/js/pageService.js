@@ -811,6 +811,19 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		$location.replace().url(this.getPageUrl(commentId));
 	};
 
+	// Create a new mark.
+	// options = {
+	// }
+	this.newMark = function(options, success) {
+		$http({method: 'POST', url: '/newMark/', data: JSON.stringify(options)})
+		.success(function(data, status) {
+			if (success) success(data);
+		})
+		.error(function(data, status) {
+			console.error('Error creating a new mark:'); console.error(data);
+		});
+	};
+
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
 	this.getMasteryStatus = function(masteryId) {
 		var has = false;
