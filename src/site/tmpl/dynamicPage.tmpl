@@ -93,6 +93,28 @@
 	<div id="accent-color"></div>
 	<div id="warn-color"></div>
 
+	<!-- Any global events that happen are shown here. -->
+	<div id="events-info-div"
+			class="md-whiteframe-6dp"
+			ng-show="showEventsDiv()">
+
+		<md-toolbar class="md-hue-3">
+			<div class="md-toolbar-tools md-primary md-hue-2">
+				<span id="events-info-header"></span>
+				<span flex></span>
+				<md-button class="md-icon-button" ng-click="closeEventsDiv()">
+					<md-icon>close</md-icon>
+				</md-button>
+			</div>
+		</md-toolbar>
+
+		<div id="events-info-body" layout-margin>
+		</div>
+	</div>
+	<!-- Global info messages -->
+	<!-- TODO: remove this, and make use of events-info-div instead. -->
+	<div class="global-error md-warn" hidden></div>
+
 	<!-- ======= Collection of common popover templates ======= -->
 
 	<!-- Compose fab -->
@@ -101,9 +123,6 @@
 	<!-- All the content -->
 	<div id="content-div" class="full-height">
 		<arb-toolbar loading-bar-value="loadingBarValue"></arb-toolbar>
-
-		<!-- Global info messages -->
-		<div class="global-error md-warn" hidden></div>
 
 		<!-- We append dynamic content to this div. -->
 		<div id="dynamic-view" class="full-height" layout="column" ng-view></div>

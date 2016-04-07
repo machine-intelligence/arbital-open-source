@@ -755,6 +755,15 @@ del {
 ins {
   color: green; }
 
+#events-info-div {
+  position: fixed;
+  right: 0;
+  top: 0;
+  max-width: 600px;
+  max-height: 600px;
+  z-index: 10000;
+  background-color: white; }
+
 .page-tabs {
   margin-top: 15px; }
   .page-tabs > .page-tabs-holder {

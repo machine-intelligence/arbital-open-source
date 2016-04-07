@@ -445,18 +445,29 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				if (!scope.showNewInlineCommentButton) return;
 				var selection = getSelectedParagraphText();
 				if (!selection) return;
-				pageService.newMark({
-					pageId: scope.pageId,
-					edit: scope.page.edit,
-					anchorContext: selection.context,
-					anchorText: selection.text,
-					anchorOffset: selection.offset,
-					success: function(markId) {
-						scope.showNewInlineCommentButton = false;
+				pageService.newMark(
+					{
+						pageId: scope.pageId,
+						edit: scope.page.edit,
+						anchorContext: selection.context,
+						anchorText: selection.text,
+						anchorOffset: selection.offset,
 					},
-				});
+					function(data) {
+						var newMarkId = data.result.markId;
+						scope.showNewInlineCommentButton = false;
+						pageService.showEvent({
+							title: 'Confusion noted',
+							$element: $compile(
+								'<div>Your feedback will be sent to the contributors. Thanks!</div>' +
+								'<span>Is there a specific question you want to ask?</span>' +
+								'<md-button class="md-primary">' +
+									'Ask a question' +
+								'</md-button>')(scope),
+						});
+					}
+				);
 			};
-
 
 			// Process all embedded votes
 			$timeout(function() {

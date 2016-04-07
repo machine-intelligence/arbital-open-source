@@ -812,10 +812,8 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	};
 
 	// Create a new mark.
-	// options = {
-	// }
-	this.newMark = function(options, success) {
-		$http({method: 'POST', url: '/newMark/', data: JSON.stringify(options)})
+	this.newMark = function(params, success) {
+		$http({method: 'POST', url: '/newMark/', data: JSON.stringify(params)})
 		.success(function(data, status) {
 			if (success) success(data);
 		})
@@ -921,6 +919,15 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	this.abandonPath = function() {
 		Cookies.remove('path');
 		this.path = undefined;
+	};
+
+	// Show an event message.
+	var $eventsDiv = $('#events-info-div');
+	var $eventsHeader = $('#events-info-header');
+	var $eventsBody = $('#events-info-body');
+	this.showEvent = function(params) {
+		$eventsBody.empty().append(params.$element);
+		$eventsHeader.text(params.title);
 	};
 
 	// Update the path variables.

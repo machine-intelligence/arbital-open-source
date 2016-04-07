@@ -54,8 +54,16 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmap["creatorId"] = u.Id
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("marks", hashmap)
-	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update a like", err)
+	resp, err := statement.Exec()
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't insert an new mark", err)
 	}
-	return pages.StatusOK(returnData.toJson())
+
+	lastInsertId, err := resp.LastInsertId()
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't get inserted id", err)
+	}
+	returnData.ResultMap["markId"] = lastInsertId
+
+	return pages.StatusOK(returnData.ToJson())
 }
