@@ -28,8 +28,9 @@ var deletePageHandler = siteHandler{
 
 // deletePageHandlerFunc handles requests for deleting a page.
 func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	u := params.U
+	c := params.C
 	db := params.DB
+	u := params.U
 
 	decoder := json.NewDecoder(params.R.Body)
 	var data deletePageData
@@ -109,6 +110,25 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update change logs", err
+		}
+
+		// Generate "delete" update for users who are subscribed to this page.
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.GoToPageId = data.PageId
+		task.SubscribedToId = data.PageId
+		task.UpdateType = core.DeletePageUpdateType
+		if page.Type == core.CommentPageType {
+			_, commentPrimaryPageId, err := core.GetCommentParents(db, data.PageId)
+			if err != nil {
+				return "Couldn't load comment's parents", err
+			}
+			task.GroupByPageId = commentPrimaryPageId
+		} else {
+			task.GroupByPageId = data.PageId
+		}
+		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
 		// Delete it from the elastic index

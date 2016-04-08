@@ -36,6 +36,7 @@ const (
 	AtMentionUpdateType        = "atMention"
 	AddedToGroupUpdateType     = "addedToGroup"
 	RemovedFromGroupUpdateType = "removedFromGroup"
+	DeletePageUpdateType       = "deletePage"
 )
 
 // UpdateRow is a row from updates table

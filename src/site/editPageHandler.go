@@ -184,38 +184,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	var commentParentId string
 	var commentPrimaryPageId string
 	if isLiveEdit && oldPage.Type == core.CommentPageType {
-		rows := db.NewStatement(`
-			SELECT pi.pageId,pi.type
-			FROM pageInfos AS pi
-			JOIN pagePairs AS pp
-			ON (pi.pageId=pp.parentId)
-			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND NOT pi.isDeleted
-			`).Query(core.ParentPagePairType, data.PageId)
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId string
-			var pageType string
-			err := rows.Scan(&parentId, &pageType)
-			if err != nil {
-				return fmt.Errorf("failed to scan: %v", err)
-			}
-			if pageType == core.CommentPageType {
-				if core.IsIdValid(commentParentId) {
-					db.C.Errorf("Can't have more than one comment parent")
-				}
-				commentParentId = parentId
-			} else {
-				if core.IsIdValid(commentPrimaryPageId) {
-					db.C.Errorf("Can't have more than one non-comment parent for a comment")
-				}
-				commentPrimaryPageId = parentId
-			}
-			return nil
-		})
+		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load comment's parents", err)
-		}
-		if !core.IsIdValid(commentPrimaryPageId) {
-			db.C.Errorf("Comment pages need at least one normal page parent")
 		}
 	}
 
