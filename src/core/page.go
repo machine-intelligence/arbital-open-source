@@ -930,13 +930,8 @@ func LoadLikes(db *database.DB, currentUserId string, pageMap map[string]*Page) 
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := db.NewStatement(`
 		SELECT userId,pageId,value
-		FROM (
-			SELECT *
-			FROM likes
-			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
-			ORDER BY id DESC
-		) AS v
-		GROUP BY userId,pageId`).Query(pageIds...)
+		FROM likes
+		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId string
 		var pageId string

@@ -93,3 +93,8 @@ CREATE TABLE marks (
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
+delete from likes where id not in (select max(id) from (select * from likes) as newestLikes group by userId,pageId);
+alter table likes modify id bigint, drop primary key, add primary key(userId, pageId);
+alter table likes drop column id;
+alter table likes add column updatedAt datetime not null;
+update likes set updatedAt=createdAt;

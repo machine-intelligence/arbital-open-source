@@ -27,7 +27,7 @@ var newLikeHandler = siteHandler{
 	},
 }
 
-// newLikeHandlerFunc handles requests to create/update a prior like.
+// newLikeHandlerFunc handles requests to create/update a like.
 func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
@@ -42,37 +42,16 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
 	}
 
-	// Check to see if we have a recent like by this user for this page.
-	var id string
-	var found bool
-	row := db.NewStatement(`
-		SELECT id
-		FROM likes
-		WHERE userId=? AND pageId=? AND TIME_TO_SEC(TIMEDIFF(?, createdAt)) < ?
-		`).QueryRow(u.Id, task.PageId, database.Now(), redoWindow)
-	found, err = row.Scan(&id)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for a recent like", err)
+	hashmap := make(map[string]interface{})
+	hashmap["userId"] = u.Id
+	hashmap["pageId"] = task.PageId
+	hashmap["value"] = task.Value
+	hashmap["updatedAt"] = database.Now()
+	hashmap["createdAt"] = database.Now()
+	statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt")
+	if _, err = statement.Exec(); err != nil {
+		return pages.HandlerErrorFail("Couldn't update a like", err)
 	}
-	if found {
-		hashmap := make(map[string]interface{})
-		hashmap["id"] = id
-		hashmap["value"] = task.Value
-		hashmap["createdAt"] = database.Now()
-		statement := db.NewInsertStatement("likes", hashmap, "value", "createdAt")
-		if _, err = statement.Exec(); err != nil {
-			return pages.HandlerErrorFail("Couldn't update a like", err)
-		}
-	} else {
-		hashmap := make(map[string]interface{})
-		hashmap["userId"] = u.Id
-		hashmap["pageId"] = task.PageId
-		hashmap["value"] = task.Value
-		hashmap["createdAt"] = database.Now()
-		statement := db.NewInsertStatement("likes", hashmap)
-		if _, err = statement.Exec(); err != nil {
-			return pages.HandlerErrorFail("Couldn't add a like", err)
-		}
-	}
+
 	return pages.StatusOK(nil)
 }
