@@ -9,11 +9,12 @@
 		</md-toolbar>
 
 		<!-- Header -->
-		<div layout="row" ng-repeat="(rowIndex, row) in ::rows">
-			<div flex></div>
-			<div ng-repeat="value in ::row track by $index" flex>
-				<span ng-class="{'md-headline': rowIndex == 0}" ng-bind="::value"></span>
-			</div>
-		</div>
+		<table layout-fill>
+			<tr ng-repeat="(rowIndex, row) in ::rows">
+				<td ng-repeat="value in ::row track by $index">
+					<span ng-class="{'md-headline': rowIndex == 0}" ng-bind="::value"></span>
+				</td>
+			</tr>
+		</table>
 	</div>
 </div>
