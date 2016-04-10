@@ -80,7 +80,7 @@ func (m InsertMap) GetKeys() []string {
 }
 
 // ArgsPlaceholder returns the placeholder string for an sql.
-// Examplers: "(?)", "(?,?,?)", "(?,?),(?,?)"
+// Examples: "(?)", "(?,?,?)", "(?,?),(?,?)"
 // Total number of question marks will be argsLen. They will be grouped in
 // parenthesis groups countPerGroup at a time.
 func ArgsPlaceholder(argsLen int, countPerGroup int) string {
@@ -129,16 +129,6 @@ func (db *DB) NewStatement(query string) *Stmt {
 	return &Stmt{stmt: statement, QueryStr: query, DB: db}
 }
 
-// NewTxStatement returns a new SQL statement built from the given SQL string,
-// The statement will be executed *atomically* as part of the given transaction.
-func (tx *Tx) NewTxStatement(query string) *Stmt {
-	statement, err := tx.tx.Prepare(query)
-	if err != nil {
-		tx.DB.C.Errorf("Error creating TX statement from query:\n%s\n%v", query, err)
-	}
-	return &Stmt{stmt: statement, QueryStr: query, DB: tx.DB}
-}
-
 // newInsertStmtInternal creates an INSERT-like query based on the given
 // parameters.
 func newInsertStmtInternal(command string, tableName string, hashmap InsertMap, updateArgs ...string) *QueryPart {
@@ -182,14 +172,10 @@ func (db *DB) NewReplaceStatement(tableName string, hashmap InsertMap) *Stmt {
 	return query.ToStatement(db)
 }
 
-func (tx *Tx) NewInsertTxStatement(tableName string, hashmap InsertMap, updateArgs ...string) *Stmt {
-	query := newInsertStmtInternal("INSERT", tableName, hashmap, updateArgs...)
-	return query.ToTxStatement(tx)
-}
-
-func (tx *Tx) NewReplaceTxStatement(tableName string, hashmap InsertMap) *Stmt {
-	query := newInsertStmtInternal("REPLACE", tableName, hashmap)
-	return query.ToTxStatement(tx)
+// WithTx converts the given statement to be part of the given transaction.
+func (statement *Stmt) WithTx(tx *Tx) *Stmt {
+	statement.stmt = tx.tx.Stmt(statement.stmt)
+	return statement
 }
 
 // Execute executes the given SQL statement.

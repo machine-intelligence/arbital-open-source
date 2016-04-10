@@ -60,10 +60,10 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Compute snapshot id we can use
 		var requisiteSnapshotId int64
-		row := tx.NewTxStatement(`
+		row := tx.DB.NewStatement(`
 			SELECT IFNULL(max(id),0)
 			FROM userRequisitePairSnapshots
-			`).QueryRow()
+			`).WithTx(tx).QueryRow()
 		_, err = row.Scan(&requisiteSnapshotId)
 		if err != nil {
 			return "Couldn't load max snapshot id", err
@@ -80,7 +80,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText
 		hashmap["anchorOffset"] = data.AnchorOffset
-		statement := tx.NewInsertTxStatement("marks", hashmap)
+		statement := tx.DB.NewInsertStatement("marks", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {
 			return "Couldn't insert an new mark", err
@@ -98,9 +98,9 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 
-		statement = tx.NewTxStatement(`
+		statement = tx.DB.NewStatement(`
 				INSERT INTO userRequisitePairSnapshots (id,userId,requisiteId,createdAt,has,wants)
-				VALUES ` + database.ArgsPlaceholder(len(snapshotValues), 6))
+				VALUES ` + database.ArgsPlaceholder(len(snapshotValues), 6)).WithTx(tx)
 		if _, err := statement.Exec(snapshotValues...); err != nil {
 			return "Couldn't insert into userRequisitePairSnapshots", err
 		}

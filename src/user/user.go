@@ -264,7 +264,7 @@ func GetNextAvailableIdInNewTransaction(db *database.DB) (string, error) {
 func GetNextAvailableId(tx *database.Tx) (string, error) {
 	// Query for the highest used pageId or userId
 	var highestUsedId string
-	row := tx.NewTxStatement(`
+	row := database.NewQuery(`
 		SELECT MAX(pageId)
 		FROM (
 			SELECT pageId
@@ -283,7 +283,7 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 				FROM users
 			) AS combined2
     )
-		`).QueryRow()
+		`).ToTxStatement(tx).QueryRow()
 	_, err := row.Scan(&highestUsedId)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load id: %v", err)
