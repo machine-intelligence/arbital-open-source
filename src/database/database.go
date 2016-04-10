@@ -25,8 +25,9 @@ type ProcessRowCallback func(db *DB, rows *Rows) error
 
 type TransactionCallback func(tx *Tx) (string, error)
 
-// InsertMap is the map passed in to various database helper functions.
+// InsertMap is map: DB column name -> value, which together corresponds to one row entry.
 type InsertMap map[string]interface{}
+type MultipleInsertMap []InsertMap
 
 // DB is our structure for the database. For convenience it wraps around the
 // sessions context.
