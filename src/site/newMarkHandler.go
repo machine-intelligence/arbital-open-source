@@ -71,7 +71,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		requisiteSnapshotId++
 
 		// Create a new mark
-		hashmap := make(map[string]interface{})
+		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = data.Edit
 		hashmap["creatorId"] = u.Id
@@ -85,23 +85,27 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return "Couldn't insert an new mark", err
 		}
-
 		lastInsertId, err = resp.LastInsertId()
 		if err != nil {
 			return "Couldn't get inserted id", err
 		}
 
-		snapshotValues := make([]interface{}, 0)
+		// Snapshot user's requisites
+		hashmaps := make(database.InsertMaps, 0)
 		for _, req := range masteryMap {
 			if req.Has || req.Wants {
-				snapshotValues = append(snapshotValues, requisiteSnapshotId, u.Id, req.PageId, now, req.Has, req.Wants)
+				hashmap := make(database.InsertMap)
+				hashmap["id"] = requisiteSnapshotId
+				hashmap["userId"] = u.Id
+				hashmap["requisiteId"] = req.PageId
+				hashmap["has"] = req.Has
+				hashmap["wants"] = req.Wants
+				hashmap["createdAt"] = now
+				hashmaps = append(hashmaps, hashmap)
 			}
 		}
-
-		statement = tx.DB.NewStatement(`
-				INSERT INTO userRequisitePairSnapshots (id,userId,requisiteId,createdAt,has,wants)
-				VALUES ` + database.ArgsPlaceholder(len(snapshotValues), 6)).WithTx(tx)
-		if _, err := statement.Exec(snapshotValues...); err != nil {
+		statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
+		if _, err := statement.WithTx(tx).Exec(); err != nil {
 			return "Couldn't insert into userRequisitePairSnapshots", err
 		}
 
