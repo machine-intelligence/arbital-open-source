@@ -110,3 +110,4 @@ CREATE TABLE userRequisitePairSnapshots (
 	wants BOOLEAN NOT NULL
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
+alter table marks add column text mediumtext not null;

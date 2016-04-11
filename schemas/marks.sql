@@ -14,7 +14,9 @@ CREATE TABLE marks (
 	/* If this mark is associated with a question, this is the id. FK into pageInfos. */
 	questionId VARCHAR(32) NOT NULL,
 	/* User's snapshotted requisites. FK into userRequisitePairSnapshots. */
-	requisiteSnapshotId BIGINT NOT NULL;
+	requisiteSnapshotId BIGINT NOT NULL,
+	/* Optional text associated with this mark. */
+	text MEDIUMTEXT NOT NULL,
 
 	/* Text of the paragraph the anchor is in. */
 	anchorContext MEDIUMTEXT NOT NULL,

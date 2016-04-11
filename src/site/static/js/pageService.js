@@ -821,6 +821,15 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			console.error('Error creating a new mark:'); console.error(data);
 		});
 	};
+	this.updateMark = function(params, success) {
+		$http({method: 'POST', url: '/updateMark/', data: JSON.stringify(params)})
+		.success(function(data, status) {
+			if (success) success(data);
+		})
+		.error(function(data, status) {
+			console.error('Error creating a new mark:'); console.error(data);
+		});
+	};
 
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
 	this.getMasteryStatus = function(masteryId) {
@@ -925,9 +934,26 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	var $eventsDiv = $('#events-info-div');
 	var $eventsHeader = $('#events-info-header');
 	var $eventsBody = $('#events-info-body');
-	this.showEvent = function(params) {
-		$eventsBody.empty().append(params.$element);
+	var eventWindowIsVisible = false;
+	var eventHideCallback = undefined;
+	this.showEvent = function(params, hideCallback) {
+		if (eventWindowIsVisible) {
+			this.hideEvent();
+		}
+		$eventsBody.append(params.$element);
 		$eventsHeader.text(params.title);
+		eventHideCallback = hideCallback;
+		eventWindowIsVisible = true;
+	};
+
+	// Hide the event message.
+	this.hideEvent = function() {
+		if (eventHideCallback) {
+			eventHideCallback();
+			eventHideCallback = undefined;
+		}
+		$eventsBody.empty();
+		eventWindowIsVisible = false;
 	};
 
 	// Update the path variables.
