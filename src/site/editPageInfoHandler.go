@@ -189,7 +189,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
 		hashmap["isEditorComment"] = data.IsEditorComment
-		statement := tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
+		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update pageInfos", err
 		}
@@ -207,7 +207,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["oldSettingsValue"] = oldSettingsValue
 				hashmap["newSettingsValue"] = newSettingsValue
 
-				statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+				statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 				result, err := statement.Exec()
 				if err != nil {
 					return 0, fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err

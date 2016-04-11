@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -45,25 +46,76 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("No anchor context is set", nil)
 	}
 
-	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = data.PageId
-	hashmap["edit"] = data.Edit
-	hashmap["anchorContext"] = data.AnchorContext
-	hashmap["anchorText"] = data.AnchorText
-	hashmap["anchorOffset"] = data.AnchorOffset
-	hashmap["creatorId"] = u.Id
-	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("marks", hashmap)
-	resp, err := statement.Exec()
+	// Load what requirements the user has met
+	masteryMap := make(map[string]*core.Mastery)
+	err = core.LoadMasteries(db, u, masteryMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't insert an new mark", err)
+		return pages.HandlerErrorFail("Load masteries failed: %v", err)
 	}
 
-	lastInsertId, err := resp.LastInsertId()
+	now := database.Now()
+	var lastInsertId int64
+
+	// Begin the transaction.
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Compute snapshot id we can use
+		var requisiteSnapshotId int64
+		row := tx.DB.NewStatement(`
+			SELECT IFNULL(max(id),0)
+			FROM userRequisitePairSnapshots
+			`).WithTx(tx).QueryRow()
+		_, err = row.Scan(&requisiteSnapshotId)
+		if err != nil {
+			return "Couldn't load max snapshot id", err
+		}
+		requisiteSnapshotId++
+
+		// Create a new mark
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = data.PageId
+		hashmap["edit"] = data.Edit
+		hashmap["creatorId"] = u.Id
+		hashmap["createdAt"] = now
+		hashmap["requisiteSnapshotId"] = requisiteSnapshotId
+		hashmap["anchorContext"] = data.AnchorContext
+		hashmap["anchorText"] = data.AnchorText
+		hashmap["anchorOffset"] = data.AnchorOffset
+		statement := tx.DB.NewInsertStatement("marks", hashmap).WithTx(tx)
+		resp, err := statement.Exec()
+		if err != nil {
+			return "Couldn't insert an new mark", err
+		}
+		lastInsertId, err = resp.LastInsertId()
+		if err != nil {
+			return "Couldn't get inserted id", err
+		}
+
+		// Snapshot user's requisites
+		hashmaps := make(database.InsertMaps, 0)
+		for _, req := range masteryMap {
+			if req.Has || req.Wants {
+				hashmap := make(database.InsertMap)
+				hashmap["id"] = requisiteSnapshotId
+				hashmap["userId"] = u.Id
+				hashmap["requisiteId"] = req.PageId
+				hashmap["has"] = req.Has
+				hashmap["wants"] = req.Wants
+				hashmap["createdAt"] = now
+				hashmaps = append(hashmaps, hashmap)
+			}
+		}
+		statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
+		if _, err := statement.WithTx(tx).Exec(); err != nil {
+			return "Couldn't insert into userRequisitePairSnapshots", err
+		}
+
+		return "", nil
+	})
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't get inserted id", err)
+		return pages.HandlerErrorFail(errMessage, err)
 	}
-	returnData.ResultMap["markId"] = lastInsertId
+
+	returnData.ResultMap["markId"] = fmt.Sprintf("%d", lastInsertId)
 
 	return pages.StatusOK(returnData.ToJson())
 }

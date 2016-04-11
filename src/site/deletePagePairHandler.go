@@ -80,9 +80,9 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 // deletePagePair deletes the parent-child pagePair of the given type.
 func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType string) (string, error) {
 	// Delete the pair
-	query := tx.NewTxStatement(`
+	query := tx.DB.NewStatement(`
 			DELETE FROM pagePairs
-			WHERE parentId=? AND childId=? AND type=?`)
+			WHERE parentId=? AND childId=? AND type=?`).WithTx(tx)
 	if _, err := query.Exec(parentId, childId, pairType); err != nil {
 		return "Couldn't delete a page pair", err
 	}
@@ -99,7 +99,7 @@ func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType 
 		core.RequirementPagePairType: core.DeleteRequiredByChangeLog,
 		core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
 	}[pairType]
-	statement := tx.NewInsertTxStatement("changeLogs", hashmap)
+	statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't insert new child change log", err
 	}
@@ -115,7 +115,7 @@ func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType 
 		core.RequirementPagePairType: core.DeleteRequirementChangeLog,
 		core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
 	}[pairType]
-	statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+	statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't insert new child change log", err
 	}

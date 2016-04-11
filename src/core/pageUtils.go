@@ -198,7 +198,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 // UpdatePageLinks updates the links table for the given page by parsing the text.
 func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress string) error {
 	// Delete old links.
-	statement := tx.NewTxStatement("DELETE FROM links WHERE parentId=?")
+	statement := tx.DB.NewStatement("DELETE FROM links WHERE parentId=?").WithTx(tx)
 	_, err := statement.Exec(pageId)
 	if err != nil {
 		return fmt.Errorf("Couldn't delete old links: %v", err)
@@ -238,9 +238,9 @@ func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress 
 		}
 
 		// Insert all the tuples into the links table.
-		statement := tx.NewTxStatement(`
+		statement := tx.DB.NewStatement(`
 			INSERT INTO links (parentId,childAlias)
-			VALUES ` + database.ArgsPlaceholder(len(valuesList), 2))
+			VALUES ` + database.ArgsPlaceholder(len(valuesList), 2)).WithTx(tx)
 		if _, err = statement.Exec(valuesList...); err != nil {
 			return fmt.Errorf("Couldn't insert links: %v", err)
 		}

@@ -25,8 +25,9 @@ type ProcessRowCallback func(db *DB, rows *Rows) error
 
 type TransactionCallback func(tx *Tx) (string, error)
 
-// InsertMap is the map passed in to various database helper functions.
+// InsertMap is map: DB column name -> value, which together corresponds to one row entry.
 type InsertMap map[string]interface{}
+type InsertMaps []InsertMap
 
 // DB is our structure for the database. For convenience it wraps around the
 // sessions context.
@@ -79,7 +80,7 @@ func (m InsertMap) GetKeys() []string {
 }
 
 // ArgsPlaceholder returns the placeholder string for an sql.
-// Examplers: "(?)", "(?,?,?)", "(?,?),(?,?)"
+// Examples: "(?)", "(?,?,?)", "(?,?),(?,?)"
 // Total number of question marks will be argsLen. They will be grouped in
 // parenthesis groups countPerGroup at a time.
 func ArgsPlaceholder(argsLen int, countPerGroup int) string {
@@ -128,42 +129,38 @@ func (db *DB) NewStatement(query string) *Stmt {
 	return &Stmt{stmt: statement, QueryStr: query, DB: db}
 }
 
-// NewTxStatement returns a new SQL statement built from the given SQL string,
-// The statement will be executed *atomically* as part of the given transaction.
-func (tx *Tx) NewTxStatement(query string) *Stmt {
-	statement, err := tx.tx.Prepare(query)
-	if err != nil {
-		tx.DB.C.Errorf("Error creating TX statement from query:\n%s\n%v", query, err)
-	}
-	return &Stmt{stmt: statement, QueryStr: query, DB: tx.DB}
-}
-
-// newInsertStmtInternal creates an INSERT-like query based on the given
+// newMultipleInsertStmtInternal creates an INSERT-like query based on the given
 // parameters.
-func newInsertStmtInternal(command string, tableName string, hashmap InsertMap, updateArgs ...string) *QueryPart {
-	// Extract hash keys and values
-	hashKeys := make([]string, 0, len(hashmap))
-	hashValues := make([]interface{}, 0, len(hashmap))
-	for k, v := range hashmap {
-		hashKeys = append(hashKeys, k)
-		hashValues = append(hashValues, v)
-	}
+func newMultipleInsertStmtInternal(command string, tableName string, insertMaps InsertMaps, updateArgs ...string) *QueryPart {
+	// Compute map keys list, since Go doesn't iterate through hashmaps in the same order each time
+	rowNames := insertMaps[0].GetKeys()
+	rowNamesStr := strings.Join(rowNames, ",")
 
-	variables := strings.Join(hashKeys, ",")
+	// Start the query
+	query := NewQuery(command + " INTO " + tableName + "(" + rowNamesStr + ") VALUES")
+
+	// Add the values
+	for n, insertMap := range insertMaps {
+		argsGroup := make([]interface{}, 0)
+		for _, rowName := range rowNames {
+			argsGroup = append(argsGroup, insertMap[rowName])
+		}
+		if n > 0 {
+			query.Add(",")
+		}
+		query.AddArgsGroup(argsGroup)
+	}
 
 	// Check if we should update some values in case of key collision.
-	onDuplicateKeyPart := NewQuery("")
 	if len(updateArgs) > 0 {
-		onDuplicateKeyPart.Add("ON DUPLICATE KEY UPDATE")
+		query.Add("ON DUPLICATE KEY UPDATE")
 		updateVars := make([]string, 0, len(updateArgs))
 		for _, v := range updateArgs {
 			updateVars = append(updateVars, v+"=VALUES("+v+")")
 		}
-		onDuplicateKeyPart.Add(strings.Join(updateVars, ","))
+		query.Add(strings.Join(updateVars, ","))
 	}
 
-	query := NewQuery(command + " INTO " + tableName + "(" + variables + ") VALUES").AddArgsGroup(
-		hashValues).AddPart(onDuplicateKeyPart)
 	return query
 }
 
@@ -171,24 +168,28 @@ func newInsertStmtInternal(command string, tableName string, hashmap InsertMap, 
 // The hashmap describes what values to set for that row.
 // If there is a name collision, the variables in updateArgs will be updated.
 func (db *DB) NewInsertStatement(tableName string, hashmap InsertMap, updateArgs ...string) *Stmt {
-	query := newInsertStmtInternal("INSERT", tableName, hashmap, updateArgs...)
+	query := newMultipleInsertStmtInternal("INSERT", tableName, InsertMaps{hashmap}, updateArgs...)
 	return query.ToStatement(db)
 }
 
 // NewReplaceStatement acts just like NewInsertStatement, but does REPLACE instead of INSERT.
 func (db *DB) NewReplaceStatement(tableName string, hashmap InsertMap) *Stmt {
-	query := newInsertStmtInternal("REPLACE", tableName, hashmap)
+	query := newMultipleInsertStmtInternal("REPLACE", tableName, InsertMaps{hashmap})
 	return query.ToStatement(db)
 }
 
-func (tx *Tx) NewInsertTxStatement(tableName string, hashmap InsertMap, updateArgs ...string) *Stmt {
-	query := newInsertStmtInternal("INSERT", tableName, hashmap, updateArgs...)
-	return query.ToTxStatement(tx)
+// NewInsertStatement returns an SQL statement for inserting multiple rows into the given table.
+// The array of hashmaps describes what values to set for each row.
+// If there is a name collision, the variables in updateArgs will be updated.
+func (db *DB) NewMultipleInsertStatement(tableName string, insertMaps InsertMaps, updateArgs ...string) *Stmt {
+	query := newMultipleInsertStmtInternal("INSERT", tableName, insertMaps, updateArgs...)
+	return query.ToStatement(db)
 }
 
-func (tx *Tx) NewReplaceTxStatement(tableName string, hashmap InsertMap) *Stmt {
-	query := newInsertStmtInternal("REPLACE", tableName, hashmap)
-	return query.ToTxStatement(tx)
+// WithTx converts the given statement to be part of the given transaction.
+func (statement *Stmt) WithTx(tx *Tx) *Stmt {
+	statement.stmt = tx.tx.Stmt(statement.stmt)
+	return statement
 }
 
 // Execute executes the given SQL statement.
