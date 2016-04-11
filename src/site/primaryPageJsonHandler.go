@@ -111,15 +111,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		rows = db.NewStatement(`
 			SELECT pi.pageId
 			FROM pageInfos AS pi
-			JOIN (
-				SELECT *
-				FROM (
-					SELECT *
-					FROM likes
-					ORDER BY id DESC
-				) AS l1
-				GROUP BY userId,pageId
-			) AS l2
+			JOIN likes AS l2
 			ON (pi.pageId=l2.pageId)
 			WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
 			GROUP BY 1

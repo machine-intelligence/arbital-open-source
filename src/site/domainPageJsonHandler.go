@@ -86,15 +86,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load most liked page ids.
 	rows = database.NewQuery(`
 		SELECT l2.pageId
-		FROM (
-			SELECT *
-			FROM (
-				SELECT *
-				FROM likes
-				ORDER BY id DESC
-			) AS l1
-			GROUP BY userId,pageId
-		) AS l2
+		FROM likes AS l2
 		LEFT JOIN pageDomainPairs AS pd
 		ON (l2.pageId=pd.pageId)
 		JOIN pageInfos AS pi
