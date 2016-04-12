@@ -208,9 +208,6 @@ app.directive('arbPageTitle', function(pageService, userService) {
 				if ($scope.page.isComment()) {
 					return '*Comment*';
 				}
-				if ($scope.page.isAnswer() && !$scope.page.title) {
-					return '*Answer*';
-				}
 				return $scope.page.title;
 			};
 		},

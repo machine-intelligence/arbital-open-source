@@ -147,7 +147,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if isLiveEdit {
-		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType && oldPage.Type != core.AnswerPageType {
+		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
 		}
 		if len(data.Text) <= 0 {

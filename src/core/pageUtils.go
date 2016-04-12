@@ -385,7 +385,6 @@ func CorrectPageType(pageType string) (string, error) {
 	if pageType != WikiPageType &&
 		pageType != LensPageType &&
 		pageType != QuestionPageType &&
-		pageType != AnswerPageType &&
 		pageType != CommentPageType &&
 		pageType != GroupPageType &&
 		pageType != DomainPageType {

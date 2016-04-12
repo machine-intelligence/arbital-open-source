@@ -37,7 +37,6 @@ type PageLoadOptions struct {
 	ChangeLogs bool
 
 	// Options for what data to load for the page itself
-	ChildDraftId    bool
 	HasDraft        bool
 	Likes           bool
 	ViewCount       bool
@@ -73,7 +72,6 @@ var (
 		Requirements:  true,
 		Subjects:      true,
 		Domains:       true,
-		ChildDraftId:  true,
 		ViewCount:     true,
 		Mastery:       true,
 		UsedAsMastery: true,
@@ -98,7 +96,6 @@ var (
 		SubpageCounts: true,
 		Requirements:  true,
 		Subjects:      true,
-		ChildDraftId:  true,
 		ViewCount:     true,
 		Mastery:       true,
 		Creators:      true,

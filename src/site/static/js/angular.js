@@ -529,7 +529,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 							'\' user_page_data=\'::userPageIdsMap\'></arb-user-page>';
 				}
 
-				if (page.isLens() || page.isComment() || page.isAnswer()) {
+				if (page.isLens() || page.isComment()) {
 					// Redirect to the primary page, but preserve all search variables
 					var search = $location.search();
 					$location.replace().url(pageService.getPageUrl(page.pageId));

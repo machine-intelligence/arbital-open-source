@@ -240,13 +240,12 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 						break;
 					}
 				}
-			} else if (page.isComment() || page.isAnswer()) {
+			} else if (page.isComment()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (!parent) continue;
 					// Make sure the parent type is the type of the parent we are looking for.
-					if ((page.isComment() && !parent.isComment()) ||
-							(page.isAnswer() && parent.isQuestion())) {
+					if (!parent.isComment()) {
 						url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
 						url += '#subpage-' + pageId;
 						break;
@@ -335,9 +334,6 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		},
 		isQuestion: function() {
 			return this.type === 'question';
-		},
-		isAnswer: function() {
-			return this.type === 'answer';
 		},
 		isComment: function() {
 			return this.type === 'comment';
