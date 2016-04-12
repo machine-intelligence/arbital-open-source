@@ -32,20 +32,23 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	var task newLikeData
+	var data newLikeData
 	decoder := json.NewDecoder(params.R.Body)
-	err := decoder.Decode(&task)
-	if err != nil || !core.IsIdValid(task.PageId) {
+	err := decoder.Decode(&data)
+	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if task.Value < -1 || task.Value > 1 {
+	if !core.IsIdValid(data.PageId) {
+		return pages.HandlerBadRequestFail("Invalid page id", nil)
+	}
+	if data.Value < -1 || data.Value > 1 {
 		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
 	}
 
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
-	hashmap["pageId"] = task.PageId
-	hashmap["value"] = task.Value
+	hashmap["pageId"] = data.PageId
+	hashmap["value"] = data.Value
 	hashmap["updatedAt"] = database.Now()
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt")

@@ -184,24 +184,28 @@
 							type="parent"
 							force-edit-mode="true"
 							readonly="::!(isWiki || isQuestion)"></div>
+
 					<!-- Tags -->
 					<div arb-relationships class="edit-relationship-div"
 							page-id="{{::page.pageId}}"
 							type="tag"
 							force-edit-mode="true"
 							readonly="::!(isWiki || isQuestion)"></div>
+
 					<!-- Requirements -->
 					<div arb-relationships class="edit-relationship-div"
 							page-id="{{::page.pageId}}"
 							type="requirement"
 							force-edit-mode="true"
 							readonly="::!(isWiki || isLens || isQuestion)"></div>
+
 					<!-- Teaches -->
 					<div arb-relationships class="edit-relationship-div"
 							page-id="{{::page.pageId}}"
 							type="subject"
 							force-edit-mode="true"
 							readonly="::!(isWiki || isLens)"></div>
+
 					<!-- Lens ordering -->
 					<div class="edit-relationship-div" ng-if="::!isLens">
 						<div class="md-subhead">
@@ -226,6 +230,39 @@
 							</div>
 						</div>
 					</div>
+
+					<!-- List of strings (for questions) -->
+					<div ng-if="isQuestion">
+						<div class="md-subhead">
+							<arb-page-title page-id="35z"
+									is-link="true"
+									custom-page-title="'Search strings'"></arb-page-title>
+						</div>
+						<div layout="row"
+								layout-align="start center"
+								ng-repeat="(id,text) in page.searchStrings">
+							<!-- Delete button -->
+							<md-button class="md-icon-button" ng-click="deleteSearchString(id)">
+								<md-icon>delete</md-icon>
+							</md-button>
+					
+							<!-- Relationship page title -->
+							<span ng-bind="text"></span>
+						</div>
+
+						<!-- Add a new string -->
+						<br>
+						<div layout="row" layout-align="start start">
+							<md-input-container layout-fill>
+								<label>New search string</label>
+								<input ng-model="addSearchStringData.text">
+							</md-input-container>
+							<md-button class="md-primary" ng-click="addSearchString()">
+								Add string
+							</md-button>
+						</div>
+					</div>
+
 				</div>
 			</md-tab>
 

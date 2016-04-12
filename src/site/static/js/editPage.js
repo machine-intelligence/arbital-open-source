@@ -505,6 +505,35 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.sideEdit = undefined;
 			};
 
+			// =========== Search strings ==============
+			$scope.addSearchStringData = {
+				pageId: $scope.pageId,
+				text: "",
+			};
+			$scope.addSearchString = function() {
+				console.log($scope.addSearchStringData);
+				$http({method: 'POST', url: '/newSearchString/', data: JSON.stringify($scope.addSearchStringData)})
+				.success(function(data) {
+					console.log(data);
+					$scope.page.searchStrings[data.result.searchStringId] = $scope.addSearchStringData.text;
+					$scope.addSearchStringData.text = "";
+				})
+				.error(function(data) {
+					$scope.addMessage('addSearchString', 'Error adding a search string: ' + data, 'error');
+				});
+			};
+			
+			$scope.deleteSearchString = function(id) {
+				var postData = {
+					id: id,
+				};
+				$http({method: 'POST', url: '/deleteSearchString/', data: JSON.stringify(postData)})
+				.error(function(data) {
+					$scope.addMessage('deleteSearchString', 'Error deleting a search string: ' + data, 'error');
+				});
+				delete $scope.page.searchStrings[id];
+			};
+
 			// Save the page info.
 			// callback is called with a potential error message when the server replies
 			$scope.savePageInfo = function(callback) {

@@ -33,8 +33,9 @@ type PageLoadOptions struct {
 	Domains bool
 
 	// Load options for loading a page for editing
-	Edit       bool
-	ChangeLogs bool
+	Edit          bool
+	ChangeLogs    bool
+	SearchStrings bool
 
 	// Options for what data to load for the page itself
 	HasDraft        bool
@@ -80,15 +81,16 @@ var (
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
-		Children:     true,
-		Parents:      true,
-		Tags:         true,
-		Lenses:       true,
-		Requirements: true,
-		Subjects:     true,
-		ChangeLogs:   true,
-		Links:        true,
-		Text:         true,
+		Children:      true,
+		Parents:       true,
+		Tags:          true,
+		Lenses:        true,
+		Requirements:  true,
+		Subjects:      true,
+		ChangeLogs:    true,
+		SearchStrings: true,
+		Links:         true,
+		Text:          true,
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
@@ -101,7 +103,7 @@ var (
 		Creators:      true,
 		UsedAsMastery: true,
 	}).Add(SubpageLoadOptions)
-	// Options for loading a subpage (like a comment or answer)
+	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{
 		Comments:        true,
 		Links:           true,

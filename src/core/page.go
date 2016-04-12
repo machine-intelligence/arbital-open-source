@@ -180,7 +180,7 @@ type Page struct {
 	// Ids of the users who edited this page. Ordered by how much they contributed.
 	CreatorIds []string `json:"creatorIds"`
 
-	// Subpages.
+	// Relevant ids.
 	AnswerIds      []string `json:"answerIds"`
 	CommentIds     []string `json:"commentIds"`
 	QuestionIds    []string `json:"questionIds"`
@@ -189,23 +189,24 @@ type Page struct {
 	RelatedIds     []string `json:"relatedIds"`
 	RequirementIds []string `json:"requirementIds"`
 	SubjectIds     []string `json:"subjectIds"`
+	DomainIds      []string `json:"domainIds"`
+	ChildIds       []string `json:"childIds"`
+	ParentIds      []string `json:"parentIds"`
 
 	// Subpage counts (these might be zeroes if not loaded explicitly)
 	AnswerCount  int `json:"answerCount"`
 	CommentCount int `json:"commentCount"`
 
-	// Domains.
-	DomainIds []string `json:"domainIds"`
-
 	// List of changes to this page
 	ChangeLogs []*ChangeLog `json:"changeLogs"`
+
+	// List of search strings associated with this page. Map: string id -> string text
+	SearchStrings map[string]string `json:"searchStrings"`
 
 	// Whether or not this page has children
 	HasChildren bool `json:"hasChildren"`
 	// Whether or not this page has parents
-	HasParents bool     `json:"hasParents"`
-	ChildIds   []string `json:"childIds"`
-	ParentIds  []string `json:"parentIds"`
+	HasParents bool `json:"hasParents"`
 
 	// Populated for groups
 	Members map[string]*Member `json:"members"`
@@ -436,6 +437,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadChangeLogs failed: %v", err)
+	}
+
+	// Load search strings
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SearchStrings })
+	err = LoadSearchStrings(db, pageMap)
+	if err != nil {
+		return fmt.Errorf("LoadSearchStrings failed: %v", err)
 	}
 
 	// Load whether or not the pages have an unpublished draft
@@ -919,6 +927,29 @@ func LoadLikes(db *database.DB, currentUserId string, pageMap map[string]*Page) 
 	return err
 }
 
+// LoadSearchStrings loads all the search strings for the given pages
+func LoadSearchStrings(db *database.DB, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+	rows := db.NewStatement(`
+		SELECT id,pageId,text
+		FROM searchStrings
+		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var id int64
+		var pageId, text string
+		err := rows.Scan(&id, &pageId, &text)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		pageMap[pageId].SearchStrings[fmt.Sprintf("%d", id)] = text
+		return nil
+	})
+	return err
+}
+
 // LoadViewCounts loads view counts for the pages
 func LoadViewCounts(db *database.DB, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
@@ -935,7 +966,7 @@ func LoadViewCounts(db *database.DB, pageMap map[string]*Page) error {
 		var count int
 		err := rows.Scan(&pageId, &count)
 		if err != nil {
-			return fmt.Errorf("failed to scan for a like: %v", err)
+			return fmt.Errorf("failed to scan: %v", err)
 		}
 		pageMap[pageId].ViewCount = count
 		return nil
