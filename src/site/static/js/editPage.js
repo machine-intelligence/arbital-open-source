@@ -254,6 +254,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {
 				//$scope.addMessage('hasDraft', 'You have an unpublished draft that\'s more recent than this edit', 'error');
 			}
+			if ($scope.page.isDeleted) {
+				$scope.addMessage('deletedPage', 'This page was deleted. Republishing will restore it.', 'warning');
+			}
 
 			// =========== Autosaving / snapshotting / publishing stuff ==============
 			$scope.autosaving = false;

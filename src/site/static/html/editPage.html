@@ -428,7 +428,7 @@
 						ng-disabled="publishing || snapshotting">
 					<!-- Don't show for comments, because when inline comment gets created the tooltip remains -->
 					<md-tooltip md-delay="500" ng-if="::!isComment">Make this version live</md-tooltip>
-					Publish
+					{{::(page.isDeleted ? 'Republish' : 'Publish')}}
 				</md-button>
 			</div>
 		</div>
