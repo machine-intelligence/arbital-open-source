@@ -56,16 +56,6 @@ func processTask(c sessions.Context) error {
 		task = &tasks.UpdateMetadataTask{}
 	} else if leasedTask.Tag == "fixText" {
 		task = &tasks.FixTextTask{}
-	} else if leasedTask.Tag == "base10ToBase36Part1" {
-		task = &tasks.Base10ToBase36Part1Task{}
-	} else if leasedTask.Tag == "base10ToBase36Part2" {
-		task = &tasks.Base10ToBase36Part2Task{}
-	} else if leasedTask.Tag == "base10ToBase36Part3" {
-		task = &tasks.Base10ToBase36Part3Task{}
-	} else if leasedTask.Tag == "base10ToBase36Part4" {
-		task = &tasks.Base10ToBase36Part4Task{}
-	} else if leasedTask.Tag == "base10ToBase36Part5" {
-		task = &tasks.Base10ToBase36Part5Task{}
 	} else if leasedTask.Tag == "resetPasswords" {
 		task = &tasks.ResetPasswordsTask{}
 	} else {
