@@ -36,8 +36,7 @@ type editPageData struct {
 	CurrentEdit int
 
 	// These parameters are only accepted from internal BE calls
-	RevertToEdit int  `json:"-"`
-	DeleteEdit   bool `json:"-"`
+	RevertToEdit int `json:"-"`
 }
 
 var editPageHandler = siteHandler{
@@ -387,28 +386,20 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// else. So we print out errors, but don't return an error. ===
 
 	if isLiveEdit {
-		if data.DeleteEdit {
-			// Delete it from the elastic index
-			err = elastic.DeletePageFromIndex(c, data.PageId)
-			if err != nil {
-				c.Errorf("failed to update index: %v", err)
-			}
-		} else {
-			// Update elastic search index.
-			doc := &elastic.Document{
-				PageId:     data.PageId,
-				Type:       oldPage.Type,
-				Title:      data.Title,
-				Clickbait:  data.Clickbait,
-				Text:       data.Text,
-				Alias:      oldPage.Alias,
-				SeeGroupId: seeGroupId,
-				CreatorId:  u.Id,
-			}
-			err = elastic.AddPageToIndex(c, doc)
-			if err != nil {
-				c.Errorf("failed to update index: %v", err)
-			}
+		// Update elastic search index.
+		doc := &elastic.Document{
+			PageId:     data.PageId,
+			Type:       oldPage.Type,
+			Title:      data.Title,
+			Clickbait:  data.Clickbait,
+			Text:       data.Text,
+			Alias:      oldPage.Alias,
+			SeeGroupId: seeGroupId,
+			CreatorId:  u.Id,
+		}
+		err = elastic.AddPageToIndex(c, doc)
+		if err != nil {
+			c.Errorf("failed to update index: %v", err)
 		}
 
 		// Generate "edit" update for users who are subscribed to this page.
