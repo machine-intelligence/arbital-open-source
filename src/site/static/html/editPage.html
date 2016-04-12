@@ -6,14 +6,14 @@
 			layout="column"
 			flex="{{::(fullView ? '50' : undefined)}}"
 			ng-show="!inPreview && (fullView || (!otherDiff && !sideEdit))">
-		<md-tabs ng-class="::{'hide-tabs': isComment || isAnswer}"
+		<md-tabs ng-class="::{'hide-tabs': isComment}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
 				md-stretch-tabs="{{::(gtXSmallScreen ? 'always' : 'never')}}"
 				layout="column"
 				flex>
 			<!-- (0) Title tab -->
-			<md-tab label="Title" ng-disabled="::(isComment || isAnswer)">
+			<md-tab label="Title" ng-disabled="::(isComment)">
 				<div flex>
 					<div class="editor-tab" layout="column">
 						<md-input-container>
@@ -29,8 +29,17 @@
 							<input ng-model="page.alias" md-maxlength="50">
 						</md-input-container>
 					</div>
+
 					<!-- Related pages -->
-					<ng-include src="'static/html/editPageSimilarList.html'" ng-if="::!isQuestion"></ng-include>
+					<md-list ng-if="::!page.wasPublished">
+						<md-subheader class="md-primary md-hue-1 md-no-sticky" ng-if="similarPages.length > 0">
+							<span class="black-font">Similar pages</span>
+						</md-subheader>
+						<md-list-item layout="row" ng-repeat="(index,similarPage) in similarPages">
+							<arb-likes page-id="{{::similarPage.pageId}}"></arb-likes>
+							<arb-page-title page-id="{{::similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
+						</md-list-item>
+					</md-list>
 				</div>
 			</md-tab>
 
@@ -186,7 +195,7 @@
 							page-id="{{::page.pageId}}"
 							type="requirement"
 							force-edit-mode="true"
-							readonly="::!(isWiki || isLens)"></div>
+							readonly="::!(isWiki || isLens || isQuestion)"></div>
 					<!-- Teaches -->
 					<div arb-relationships class="edit-relationship-div"
 							page-id="{{::page.pageId}}"
@@ -221,11 +230,11 @@
 			</md-tab>
 
 			<!-- (3) Settings tab -->
-			<md-tab label="Settings" ng-disabled="::!(isWiki || isLens)">
+			<md-tab label="Settings" ng-disabled="::isComment || isGroup">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<!-- Alias -->
-						<div layout="row" ng-if="::(!isAnswer && !isComment && !isGroup)">
+						<div layout="row" ng-if="::(!isComment && !isGroup)">
 							<div layout="column" flex>
 								<md-input-container>
 									<label>Alias</label>
@@ -361,7 +370,7 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog" ng-disabled="::(isComment || isAnswer)">
+			<md-tab label="Changelog" ng-disabled="::(isComment)">
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">
@@ -371,11 +380,6 @@
 				</md-list>
 			</md-tab>
 		</md-tabs>
-
-		<!-- Related pages -->
-		<ng-include class="white-background"
-				src="'static/html/editPageSimilarList.html'"
-				ng-if="::(isQuestion && !fullView)"></ng-include>
 
 		<!-- Footer -->
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
@@ -524,8 +528,5 @@
 				Back to live preview
 			</md-button>
 		</div>
-
-		<!-- Related pages -->
-		<ng-include src="'static/html/editPageSimilarList.html'" ng-if="::(isQuestion && fullView)"></ng-include>
 	</div>
 </div>

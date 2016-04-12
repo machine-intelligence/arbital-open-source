@@ -96,18 +96,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Setup all the settings
 			$scope.isWiki = $scope.page.isWiki();
 			$scope.isQuestion = $scope.page.isQuestion();
-			$scope.isAnswer = $scope.page.isAnswer();
 			$scope.isComment = $scope.page.isComment();
 			$scope.isLens = $scope.page.isLens();
 			$scope.isGroup = $scope.page.isGroup() || $scope.page.isDomain();
-			$scope.forceExpandSimilarPagesCount = $scope.isQuestion ? 5 : 10;
+			$scope.forceExpandSimilarPagesCount = 10;
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
 			// Set up page types.
 			if ($scope.isQuestion) {
 				$scope.pageTypes = {question: 'Question'};
-			} else if ($scope.isAnswer) {
-				$scope.pageTypes = {answer: 'Answer'};
 			} else if ($scope.isComment) {
 				$scope.pageTypes = {comment: 'Comment'};
 			} else if ($scope.isWiki) {
@@ -430,22 +427,19 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// =========== Find similar pages ==============
 			var shouldFindSimilar = false;
-			$scope.expandSimilarPages = false;
-			$scope.toggleSimilarPages = function(show) {
-				$scope.expandSimilarPages = show;
-			};
 			$scope.similarPages = [];
 			var findSimilarFunc = function() {
 				if ($scope.page.wasPublished) return;
 				if (!shouldFindSimilar || $scope.isComment) return;
 				// Don't search, if we don't have the first tab selected
-				if (!$scope.isQuestion && $scope.selectedTab != 0) return;
+				if ($scope.selectedTab != 0) return;
 				shouldFindSimilar = false;
 				var data = {
 					title: $scope.page.title,
-					// Cutting off text at the last (arbitrary) 4k characters, so Elastic doesn't choke
+					// Cutting off text at the last 4k characters, so Elastic doesn't choke
 					text: $scope.page.text.length > 4000 ? $scope.page.text.slice(-4000) : $scope.page.text,
 					clickbait: $scope.page.clickbait,
+					// TODO: probably shouldn't worry about page type here
 					pageType: $scope.page.type,
 				};
 				autocompleteService.findSimilarPages(data, function(data) {
@@ -457,7 +451,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					}
 				});
 			};
-			var similarInterval = $interval(findSimilarFunc, $scope.isQuestion ? 10000 : 3000);
+			var similarInterval = $interval(findSimilarFunc, 3000);
 			$scope.$on('$destroy', function() {
 				$interval.cancel(similarInterval);
 			});

@@ -1,10 +1,6 @@
 /* An entry for every like a user cast for a page. There could be
 multiple likes from one user for the same page. */
 CREATE TABLE likes (
-
-	/* PK. Like's unique id. */
-	id BIGINT NOT NULL AUTO_INCREMENT,
-
 	/* Id of the user who liked. FK into users. */
 	userId VARCHAR(32) NOT NULL,
 
@@ -17,5 +13,8 @@ CREATE TABLE likes (
 	/* Date this like was created. */
 	createdAt DATETIME NOT NULL,
 
-	PRIMARY KEY(id)
+	/* Date this like was updated. */
+	updatedAt DATETIME NOT NULL,
+
+	PRIMARY KEY(userId,pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

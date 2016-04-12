@@ -124,17 +124,32 @@
 
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
-	<!-- Inline comments container (but the buttons are positioned absolutely) -->
+	<!-- Inline comments container -->
 	<div class="inline-comments-div" ng-show="!isSimpleEmbed">
-		<md-button aria-label="New inline comments"
-				class="inline-comment-icon md-icon-button md-accent md-raised"
-				ng-style="getNewInlineCommentButtonStyle()"
-				ng-click="newInlineComment()"
-				arb-user-check="cool"
+		<!-- Absolutely positioned RHS buttons -->
+		<div class="rhs-buttons"
+				ng-style="getRhsButtonsStyle()"
+				layout="column"
+				layout-gt-md="row"
 				ng-show="showNewInlineCommentButton">
-			<md-tooltip>New inline comment (ALT+CTRL+M)</md-tooltip>
-			<md-icon md-svg-icon="comment_plus_outline"></md-icon>
-		</md-button>
+			<md-button aria-label="New inline comments"
+					class="md-icon-button md-accent md-raised"
+					ng-click="newInlineComment()"
+					arb-user-check="cool">
+				<md-tooltip>New inline comment (ALT+CTRL+M)</md-tooltip>
+				<md-icon md-svg-icon="comment_plus_outline"></md-icon>
+			</md-button>
+			<md-button aria-label="Are you confused?"
+					class="md-icon-button md-accent md-raised"
+					ng-style="getNewConfusedMarkButtonStyle()"
+					ng-click="newConfusedMark()"
+					arb-user-check="cool">
+				<md-tooltip>Are you confuzed? (ALT+CTRL+U)</md-tooltip>
+				<md-icon>help_outline</md-icon>
+			</md-button>
+		</div>
+
+		<!-- All the inline comment icons -->
 		<div class="inline-comment-icon"
 				ng-style="getInlineCommentIconStyle(commentId)"
 				ng-mouseenter="inlineCommentIconMouseover(commentId, true)"

@@ -52,7 +52,7 @@
 			ng-if="::!readonly"></arb-autocomplete>
 
 	<div ng-if="!relatesToItself && isSubjectType && !page.wasPublished">
-		<md-button ng-click="teachItself()">
+		<md-button ng-click="teachItself()" ng-if="::!readonly">
 			<md-icon>add</md-icon>
 			Teaches itself
 		</md-button>

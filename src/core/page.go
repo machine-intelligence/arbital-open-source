@@ -15,7 +15,6 @@ const (
 	WikiPageType     = "wiki"
 	CommentPageType  = "comment"
 	QuestionPageType = "question"
-	AnswerPageType   = "answer"
 	LensPageType     = "lens"
 	GroupPageType    = "group"
 	DomainPageType   = "domain"
@@ -165,8 +164,6 @@ type Page struct {
 	// Highest edit number used for this page for all users
 	MaxEditEver  int `json:"maxEditEver"`
 	RedLinkCount int `json:"redLinkCount"`
-	// Set to pageId corresponding to the question/answer the user started creating for this page
-	ChildDraftId string `json:"childDraftId"`
 	// Page is locked by this user
 	LockedBy string `json:"lockedBy"`
 	// User has the page lock until this time
@@ -308,7 +305,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	pageObjectMap := data.PageObjectMap
 
 	// Load answers
-	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Answers })
+	/*filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Answers })
 	err := LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
 		ForPages:     filteredPageMap,
 		Type:         AnswerPageType,
@@ -317,11 +314,11 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadChildIds for answers failed: %v", err)
-	}
+	}*/
 
 	// Load comments
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Comments })
-	err = LoadCommentIds(db, pageMap, &LoadDataOptions{ForPages: filteredPageMap})
+	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Comments })
+	err := LoadCommentIds(db, pageMap, &LoadDataOptions{ForPages: filteredPageMap})
 	if err != nil {
 		return fmt.Errorf("LoadCommentIds for failed: %v", err)
 	}
@@ -440,22 +437,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadChangeLogs failed: %v", err)
 	}
 
-	// Load whether or not the pages have child drafts
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ChildDraftId })
-	err = LoadChildDrafts(db, u.Id, &LoadDataOptions{
-		ForPages: filteredPageMap,
-	})
-	if err != nil {
-		return fmt.Errorf("LoadChildDrafts failed: %v", err)
-	}
-
 	// Load whether or not the pages have an unpublished draft
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.HasDraft })
 	err = LoadDraftExistence(db, u.Id, &LoadDataOptions{
 		ForPages: filteredPageMap,
 	})
 	if err != nil {
-		return fmt.Errorf("LoadChildDrafts failed: %v", err)
+		return fmt.Errorf("LoadDraftExistence failed: %v", err)
 	}
 
 	// Load (dis)likes
@@ -890,37 +878,6 @@ func LoadPageIds(rows *database.Rows, pageMap map[string]*Page, loadOptions *Pag
 	return ids, err
 }
 
-// LoadChildDrafts loads a potentially existing draft for the given page. If it's
-// loaded, it'll be added to the given map.
-func LoadChildDrafts(db *database.DB, userId string, options *LoadDataOptions) error {
-	if len(options.ForPages) > 1 {
-		db.C.Warningf("LoadChildDrafts called with more than one page")
-	}
-	for _, p := range options.ForPages {
-		row := database.NewQuery(`
-				SELECT a.pageId
-				FROM (
-					SELECT p.pageId,p.creatorId
-					FROM pages AS p
-					JOIN pagePairs AS pp
-					ON (p.pageId=pp.childId)
-					JOIN pageInfos AS pi
-					ON (p.pageId=pi.pageId)
-					WHERE pp.parentId=? AND`, p.PageId).Add(`
-						(pi.type=? OR pi.type=?)`, QuestionPageType, AnswerPageType).Add(`
-					GROUP BY p.pageId
-					HAVING SUM(p.isLiveEdit)<=0
-				) AS a
-				WHERE a.creatorId=?`, userId).Add(`
-				LIMIT 1`).ToStatement(db).QueryRow()
-		_, err := row.Scan(&p.ChildDraftId)
-		if err != nil {
-			return fmt.Errorf("Couldn't load answer draft id: %v", err)
-		}
-	}
-	return nil
-}
-
 // LoadLikes loads likes corresponding to the given pages and updates the pages.
 func LoadLikes(db *database.DB, currentUserId string, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
@@ -929,13 +886,8 @@ func LoadLikes(db *database.DB, currentUserId string, pageMap map[string]*Page) 
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := db.NewStatement(`
 		SELECT userId,pageId,value
-		FROM (
-			SELECT *
-			FROM likes
-			WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds)) + `
-			ORDER BY id DESC
-		) AS v
-		GROUP BY userId,pageId`).Query(pageIds...)
+		FROM likes
+		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId string
 		var pageId string
@@ -1257,8 +1209,6 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *user.User, optio
 		if options.Type == LensPageType {
 			parent.LensIds = append(parent.LensIds, newPage.PageId)
 			newPage.ParentIds = append(newPage.ParentIds, parent.PageId)
-		} else if options.Type == AnswerPageType {
-			parent.AnswerIds = append(parent.AnswerIds, newPage.PageId)
 		} else if options.Type == CommentPageType {
 			parent.CommentIds = append(parent.CommentIds, newPage.PageId)
 		} else if options.Type == QuestionPageType {
@@ -1309,8 +1259,6 @@ func LoadSubpageCounts(db *database.DB, pageMap map[string]*Page) error {
 		}
 		if childType == CommentPageType {
 			pageMap[pageId].CommentCount = count
-		} else if childType == AnswerPageType {
-			pageMap[pageId].AnswerCount = count
 		}
 		return nil
 	})

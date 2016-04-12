@@ -204,6 +204,16 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		};
 	};
 
+	// Check to see if we should show the events div.
+	var $eventsBody = $('#events-info-body');
+	$scope.showEventsDiv = function() {
+		return $eventsBody.children().length > 0;
+	};
+
+	$scope.closeEventsDiv = function() {
+		$eventsBody.empty();
+	};
+
 	// Watch path changes and update Google Analytics
 	$scope.$watch(function() {
 		return $location.absUrl();
@@ -257,6 +267,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				rule.handler(args, $scope);
 				currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
 				$('[ng-view]').empty();
+				$scope.closeEventsDiv();
 				return;
 			}
 		}
@@ -522,7 +533,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 							'\' user_page_data=\'::userPageIdsMap\'></arb-user-page>';
 				}
 
-				if (page.isLens() || page.isComment() || page.isAnswer()) {
+				if (page.isLens() || page.isComment()) {
 					// Redirect to the primary page, but preserve all search variables
 					var search = $location.search();
 					$location.replace().url(pageService.getPageUrl(page.pageId));

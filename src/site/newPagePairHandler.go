@@ -111,9 +111,6 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		if data.Type == core.SubjectPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "" {
 			return pages.HandlerErrorFail("For a public parent, all subjects have to be public", nil)
 		}
-		if child.Type == core.AnswerPageType && parent.Type != core.QuestionPageType {
-			return pages.HandlerErrorFail("Answer page can only be a child of a question page", nil)
-		}
 		if child.SeeGroupId != parent.SeeGroupId {
 			return pages.HandlerErrorFail("Parent and child need to have the same See Group", nil)
 		}
@@ -126,7 +123,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		hashmap["parentId"] = data.ParentId
 		hashmap["childId"] = data.ChildId
 		hashmap["type"] = data.Type
-		statement := tx.NewInsertTxStatement("pagePairs", hashmap, "parentId")
+		statement := tx.DB.NewInsertStatement("pagePairs", hashmap, "parentId").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't insert pagePair", err
 		}
@@ -152,7 +149,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 				core.SubjectPagePairType:     subjectPPT,
 			}[data.Type]
 
-			_, err := tx.NewInsertTxStatement("changeLogs", hashmap).Exec()
+			_, err := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx).Exec()
 			return err
 		}
 

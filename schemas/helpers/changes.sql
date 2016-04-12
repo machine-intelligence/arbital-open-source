@@ -68,3 +68,52 @@ where pageInfos.pageId = deleted_pages.pageId;
 
 alter table changeLogs modify oldSettingsValue varchar(64) not null;
 alter table changeLogs modify newSettingsValue varchar(64) not null;
+
+CREATE TABLE marks (
+	/* Id of this mark. */
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	/* Id of the page this mark is on. FK into pageInfos. */
+	pageId VARCHAR(32) NOT NULL,
+	/* Which edit was live when this mark was created. */
+	edit INT NOT NULL,
+	/* Id of the user who created this mark. FK into users. */
+	creatorId VARCHAR(32) NOT NULL,
+	/* When this was created. */
+	createdAt DATETIME NOT NULL,
+	/* If this mark is associated with a question, this is the id. FK into pageInfos. */
+	questionId VARCHAR(32) NOT NULL,
+
+	/* Text of the paragraph the anchor is in. */
+	anchorContext MEDIUMTEXT NOT NULL,
+	/* Text the comment is attached to. */
+	anchorText MEDIUMTEXT NOT NULL,
+	/* Offset of the text into the context. */
+	anchorOffset INT NOT NULL,
+
+	PRIMARY KEY(id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+delete from likes where id not in (select max(id) from (select * from likes) as newestLikes group by userId,pageId);
+alter table likes modify id bigint, drop primary key, add primary key(userId, pageId);
+alter table likes drop column id;
+alter table likes add column updatedAt datetime not null;
+update likes set updatedAt=createdAt;
+
+ALTER TABLE marks ADD COLUMN requisiteSnapshotId BIGINT NOT NULL;
+
+CREATE TABLE userRequisitePairSnapshots (
+	/* Id of the snapshot. Note that this is not unique per row. */
+	id BIGINT NOT NULL,
+	/* Id of the user. FK into users. */
+	userId VARCHAR(32) NOT NULL,
+	/* Id of the requisite. FK into pages. */
+	requisiteId VARCHAR(32) NOT NULL,
+ 	/* Date this entry was created. */
+ 	createdAt DATETIME NOT NULL,
+	/* Set if the user has this mastery. */
+	has BOOLEAN NOT NULL,
+	/* Set if the user wants to read this. */
+	wants BOOLEAN NOT NULL
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+alter table marks add column text mediumtext not null;

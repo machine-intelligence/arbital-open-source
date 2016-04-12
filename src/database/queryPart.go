@@ -82,7 +82,7 @@ func (q *QueryPart) ToStatement(db *DB) *Stmt {
 
 // Convert the query part into a transaction statement.
 func (q *QueryPart) ToTxStatement(tx *Tx) *Stmt {
-	statement := tx.NewTxStatement(strings.Join(q.query, ""))
+	statement := tx.DB.NewStatement(strings.Join(q.query, ""))
 	statement.args = q.args
-	return statement
+	return statement.WithTx(tx)
 }

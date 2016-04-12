@@ -43,31 +43,6 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err := tasks.Enqueue(params.C, &task, "resetPasswords"); err != nil {
 			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
 		}
-	} else if task == "base10ToBase36Part1" {
-		var task tasks.Base10ToBase36Part1Task
-		if err := tasks.Enqueue(params.C, &task, "base10ToBase36Part1"); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
-		}
-	} else if task == "base10ToBase36Part2" {
-		var task tasks.Base10ToBase36Part2Task
-		if err := tasks.Enqueue(params.C, &task, "base10ToBase36Part2"); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
-		}
-	} else if task == "base10ToBase36Part3" {
-		var task tasks.Base10ToBase36Part3Task
-		if err := tasks.Enqueue(params.C, &task, "base10ToBase36Part3"); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
-		}
-	} else if task == "base10ToBase36Part4" {
-		var task tasks.Base10ToBase36Part4Task
-		if err := tasks.Enqueue(params.C, &task, "base10ToBase36Part4"); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
-		}
-	} else if task == "base10ToBase36Part5" {
-		var task tasks.Base10ToBase36Part5Task
-		if err := tasks.Enqueue(params.C, &task, "base10ToBase36Part5"); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
-		}
 	} else {
 		return pages.HandlerErrorFail("Unknown ?task var", nil)
 	}

@@ -146,7 +146,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if isLiveEdit {
-		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType && oldPage.Type != core.AnswerPageType {
+		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
 		}
 		if len(data.Text) <= 0 {
@@ -258,7 +258,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if isLiveEdit {
 			// Handle isLiveEdit and clearing previous isLiveEdit if necessary
 			if oldPage.WasPublished {
-				statement := tx.NewTxStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit")
+				statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
 				if _, err = statement.Exec(data.PageId); err != nil {
 					return "Couldn't update isLiveEdit for old edits", err
 				}
@@ -285,7 +285,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText
 		hashmap["anchorOffset"] = data.AnchorOffset
-		statement := tx.NewInsertTxStatement("pages", hashmap, hashmap.GetKeys()...)
+		statement := tx.DB.NewInsertStatement("pages", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't insert a new page", err
 		}
@@ -300,9 +300,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 
 			_, summaryValues := core.ExtractSummaries(data.PageId, data.Text)
-			statement = tx.NewTxStatement(`
+			statement = tx.DB.NewStatement(`
 				INSERT INTO pageSummaries (pageId,name,text)
-				VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3))
+				VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3)).WithTx(tx)
 			if _, err := statement.Exec(summaryValues...); err != nil {
 				return "Couldn't insert page summaries", err
 			}
@@ -326,7 +326,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			hashmap["lockedBy"] = u.Id
 			hashmap["lockedUntil"] = core.GetPageLockedUntilTime()
 		}
-		statement = tx.NewInsertTxStatement("pageInfos", hashmap, hashmap.GetKeys()...)
+		statement = tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update pageInfos", err
 		}
@@ -348,7 +348,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			updateChangeLogs = false
 		}
 		if updateChangeLogs {
-			statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+			statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 			if _, err = statement.Exec(); err != nil {
 				return "Couldn't insert new child change log", err
 			}
@@ -363,7 +363,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				hashmap["toId"] = commentParentId // subscribe to the parent comment
 			}
 			hashmap["createdAt"] = database.Now()
-			statement = tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
+			statement = tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
 			if _, err = statement.Exec(); err != nil {
 				return "Couldn't add a subscription", err
 			}

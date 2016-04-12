@@ -167,7 +167,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["karma"] = karma
 		hashmap["emailFrequency"] = user.DefaultEmailFrequency
 		hashmap["emailThreshold"] = user.DefaultEmailThreshold
-		statement := tx.NewInsertTxStatement("users", hashmap)
+		statement := tx.DB.NewInsertStatement("users", hashmap).WithTx(tx)
 		_, err = statement.Exec()
 		if err != nil {
 			return "Couldn't update user's record", err

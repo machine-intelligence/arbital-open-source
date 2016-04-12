@@ -73,7 +73,7 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 		hashmap["edit"] = edit
 		hashmap["text"] = text
 		hashmap["todoCount"] = core.ExtractTodoCount(text)
-		statement := tx.NewInsertTxStatement("pages", hashmap, "text", "todoCount")
+		statement := tx.DB.NewInsertStatement("pages", hashmap, "text", "todoCount").WithTx(tx)
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't update pages table", err
 		}
@@ -87,9 +87,9 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 
 		// Add new page summaries
 		_, summaryValues := core.ExtractSummaries(pageId, text)
-		statement = tx.NewTxStatement(`
+		statement = tx.DB.NewStatement(`
 			INSERT INTO pageSummaries (pageId,name,text)
-			VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3))
+			VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3)).WithTx(tx)
 		if _, err := statement.Exec(summaryValues...); err != nil {
 			return "Couldn't insert page summaries", err
 		}
@@ -124,7 +124,7 @@ func updatePageInfos(db *database.DB, rows *database.Rows) error {
 		hashmap["currentEdit"] = currentEdit
 		hashmap["maxEdit"] = maxEdit
 		hashmap["createdAt"] = createdAt
-		statement := tx.NewInsertTxStatement("pageInfos", hashmap, "currentEdit", "maxEdit", "createdAt")
+		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, "currentEdit", "maxEdit", "createdAt").WithTx(tx)
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't update pageInfos table", err
 		}

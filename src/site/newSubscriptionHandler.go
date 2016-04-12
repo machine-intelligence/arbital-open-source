@@ -51,7 +51,7 @@ func addSubscription(tx *database.Tx, userId string, toPageId string) (string, e
 	hashmap["userId"] = userId
 	hashmap["toId"] = toPageId
 	hashmap["createdAt"] = database.Now()
-	statement := tx.NewInsertTxStatement("subscriptions", hashmap, "userId")
+	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
 	_, err := statement.Exec()
 	if err != nil {
 		return "Couldn't subscribe", err

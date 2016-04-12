@@ -66,6 +66,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
 					if (event.keyCode == 77) $scope.newInlineComment(); // M
+					else if (event.keyCode == 85) $scope.newConfusedMark(); // U
 				});
 			});
 
@@ -200,9 +201,9 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			// Detach some elements and append them to the body, since they will appear
 			// outside of the lens's div, and otherwise would be masked
 			var $inlineCommentsDiv = element.find('.inline-comments-div');
-			var $newInlineCommentButton = $inlineCommentsDiv.find('.inline-comment-icon');
+			var inlineCommentButtonHeight = 40;
 			$inlineCommentsDiv.appendTo($('body'));
-			var inlineIconShiftLeft = $newInlineCommentButton.outerWidth() * ($mdMedia('gt-md') ? 0.5 : 1.1);
+			var inlineIconShiftLeft = inlineCommentButtonHeight * ($mdMedia('gt-md') ? 0.5 : 1.1);
 			scope.$on('$destroy', function() {
 				$inlineCommentsDiv.remove();
 			});
@@ -298,7 +299,6 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			for (var n = 0; n < scope.page.commentIds.length; n++) {
 				processInlineComment(scope.page.commentIds[n]);
 			}
-			var inlineCommentButtonHeight = 40; // $newInlineCommentButton.height();
 			var preprocessInlineCommentButtons = function() {
 				orderedInlineComments.sort(function(a, b) {
 					// Create arrays of values which we compare, breaking ties with the next item in the array.
@@ -397,7 +397,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					}
 				});
 			});
-			scope.getNewInlineCommentButtonStyle = function() {
+			scope.getRhsButtonsStyle = function() {
 				return {
 					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 					'top': newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
@@ -436,6 +436,34 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					processInlineComment(result.pageId);
 					preprocessInlineCommentButtons();
 				}
+			};
+
+			// =========================== Inline questions ===========================
+
+			// Create a new confused mark
+			scope.newConfusedMark = function() {
+				if (!scope.showNewInlineCommentButton) return;
+				var selection = getSelectedParagraphText();
+				if (!selection) return;
+				pageService.newMark({
+						pageId: scope.pageId,
+						edit: scope.page.edit,
+						anchorContext: selection.context,
+						anchorText: selection.text,
+						anchorOffset: selection.offset,
+					},
+					function(data) {
+						var newMarkId = data.result.markId;
+						scope.showNewInlineCommentButton = false;
+						pageService.showEvent({
+							title: 'Ask a question?',
+							$element: $compile('<arb-confusion-window mark-id="' + newMarkId +
+								'"></arb-confusion-window>')(scope),
+						}, function() {
+							$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
+						});
+					}
+				);
 			};
 
 			// Process all embedded votes

@@ -90,13 +90,13 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Clear the current edit in pages
-		statement := tx.NewTxStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit")
+		statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
 		if _, err = statement.Exec(data.PageId); err != nil {
 			return "Couldn't update isLiveEdit for old edits", err
 		}
 
 		// Set isDeleted in pageInfos
-		statement = tx.NewTxStatement("UPDATE pageInfos SET isDeleted=true WHERE pageId=?")
+		statement = tx.DB.NewStatement("UPDATE pageInfos SET isDeleted=true WHERE pageId=?").WithTx(tx)
 		if _, err = statement.Exec(data.PageId); err != nil {
 			return "Couldn't set isDeleted for deleted page", err
 		}
@@ -107,7 +107,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["userId"] = u.Id
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = core.DeletePageChangeLog
-		statement = tx.NewInsertTxStatement("changeLogs", hashmap)
+		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update change logs", err
 		}

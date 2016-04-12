@@ -246,13 +246,12 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 						break;
 					}
 				}
-			} else if (page.isComment() || page.isAnswer()) {
+			} else if (page.isComment()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
 					var parent = this.pageMap[page.parentIds[n]];
 					if (!parent) continue;
 					// Make sure the parent type is the type of the parent we are looking for.
-					if ((page.isComment() && !parent.isComment()) ||
-							(page.isAnswer() && parent.isQuestion())) {
+					if (!parent.isComment()) {
 						url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
 						url += '#subpage-' + pageId;
 						break;
@@ -341,9 +340,6 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		},
 		isQuestion: function() {
 			return this.type === 'question';
-		},
-		isAnswer: function() {
-			return this.type === 'answer';
 		},
 		isComment: function() {
 			return this.type === 'comment';
@@ -821,6 +817,26 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		$location.replace().url(this.getPageUrl(commentId));
 	};
 
+	// Create a new mark.
+	this.newMark = function(params, success) {
+		$http({method: 'POST', url: '/newMark/', data: JSON.stringify(params)})
+		.success(function(data, status) {
+			if (success) success(data);
+		})
+		.error(function(data, status) {
+			console.error('Error creating a new mark:'); console.error(data);
+		});
+	};
+	this.updateMark = function(params, success) {
+		$http({method: 'POST', url: '/updateMark/', data: JSON.stringify(params)})
+		.success(function(data, status) {
+			if (success) success(data);
+		})
+		.error(function(data, status) {
+			console.error('Error creating a new mark:'); console.error(data);
+		});
+	};
+
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
 	this.getMasteryStatus = function(masteryId) {
 		var has = false;
@@ -918,6 +934,32 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	this.abandonPath = function() {
 		Cookies.remove('path');
 		this.path = undefined;
+	};
+
+	// Show an event message.
+	var $eventsDiv = $('#events-info-div');
+	var $eventsHeader = $('#events-info-header');
+	var $eventsBody = $('#events-info-body');
+	var eventWindowIsVisible = false;
+	var eventHideCallback = undefined;
+	this.showEvent = function(params, hideCallback) {
+		if (eventWindowIsVisible) {
+			this.hideEvent();
+		}
+		$eventsBody.append(params.$element);
+		$eventsHeader.text(params.title);
+		eventHideCallback = hideCallback;
+		eventWindowIsVisible = true;
+	};
+
+	// Hide the event message.
+	this.hideEvent = function() {
+		if (eventHideCallback) {
+			eventHideCallback();
+			eventHideCallback = undefined;
+		}
+		$eventsBody.empty();
+		eventWindowIsVisible = false;
 	};
 
 	// Update the path variables.

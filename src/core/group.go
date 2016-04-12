@@ -90,7 +90,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	hashmap["creatorId"] = userId
 	hashmap["createdAt"] = database.Now()
 	hashmap["isLiveEdit"] = true
-	statement := tx.NewInsertTxStatement("pages", hashmap)
+	statement := tx.DB.NewInsertStatement("pages", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't create a new page", err
 	}
@@ -108,7 +108,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	if groupType == GroupPageType {
 		hashmap["editGroupId"] = groupId
 	}
-	statement = tx.NewInsertTxStatement("pageInfos", hashmap)
+	statement = tx.DB.NewInsertStatement("pageInfos", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't create a new page", err
 	}
@@ -118,7 +118,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	hashmap["pageId"] = groupId
 	hashmap["name"] = "Summary"
 	hashmap["text"] = text
-	statement = tx.NewInsertTxStatement("pageSummaries", hashmap)
+	statement = tx.DB.NewInsertStatement("pageSummaries", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
 		return "Couldn't create a new page summary", err
 	}
@@ -133,7 +133,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 			hashmap["canAddMembers"] = true
 			hashmap["canAdmin"] = true
 		}
-		statement = tx.NewInsertTxStatement("groupMembers", hashmap)
+		statement = tx.DB.NewInsertStatement("groupMembers", hashmap).WithTx(tx)
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't add user to the group", err
 		}

@@ -1,0 +1,22 @@
+<div>
+	<md-icon class="green-font">check_circle</md-icon>
+	Your note of confusion, along with your current requisites, has been sent anonymously to the page authors. Thanks for making Arbital better!
+</div>
+<div>
+	<md-input-container class="full-width">
+		<label>Is there a specific question you want to ask?</label>
+		<textarea ng-model="confusionText" md-maxlength="300"></textarea>
+	</md-input-container>
+</div>
+<div class="md-caption">
+	To avoid confusing the system, make sure this is your question and not someone else's.
+</div>
+<div layout="row">
+	<md-button ng-click="dismissWindow()">
+		Dismiss
+	</md-button>
+	<div flex></div>
+	<md-button class="md-primary" ng-click="updateMarkText()">
+		Ask the question
+	</md-button>
+</div>
