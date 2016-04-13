@@ -233,6 +233,20 @@ type Mastery struct {
 	UpdatedAt string `json:"updatedAt"`
 }
 
+// Mark is something attached to a page, e.g. a place where a user said they were confused.
+type Mark struct {
+	Id                  string `json:"id"`
+	PageId              string `json:"pageId"`
+	CreatorId           string `json:"creatorId"`
+	CreatedAt           string `json:"createdAt"`
+	AnchorContext       string `json:"anchorContext"`
+	AnchorText          string `json:"anchorText"`
+	AnchorOffset        int    `json:"anchorOffset"`
+	Text                string `json:"text"`
+	RequisiteSnapshotId string `json:"requisiteSnapshotId"`
+	ResolvePageId       string `json:"resolvePageId"`
+}
+
 // PageObject stores some information for an object embedded in a page
 type PageObject struct {
 	PageId string `json:"pageId"`
@@ -262,6 +276,7 @@ type CommonHandlerData struct {
 	EditMap    map[string]*Page
 	UserMap    map[string]*User
 	MasteryMap map[string]*Mastery
+	MarkMap    map[string]*Mark
 	// Page id -> {object alias -> object}
 	PageObjectMap map[string]map[string]*PageObject
 	// ResultMap contains various data the specific handler returns

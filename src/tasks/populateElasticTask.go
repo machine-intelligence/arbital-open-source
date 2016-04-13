@@ -13,6 +13,10 @@ import (
 type PopulateElasticTask struct {
 }
 
+func (task *PopulateElasticTask) Tag() string {
+	return "populateElastic"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *PopulateElasticTask) IsValid() error {
 	return nil

@@ -36,6 +36,7 @@ const (
 	AtMentionUpdateType        = "atMention"
 	AddedToGroupUpdateType     = "addedToGroup"
 	RemovedFromGroupUpdateType = "removedFromGroup"
+	NewMarkUpdateType          = "newMark"
 )
 
 // UpdateRow is a row from updates table
@@ -50,6 +51,7 @@ type UpdateRow struct {
 	Unseen             bool
 	SubscribedToId     string
 	GoToPageId         string
+	MarkId             int64
 	IsGoToPageAlive    bool
 	SettingsChangeType string
 	OldSettingsValue   string
@@ -73,6 +75,7 @@ type UpdateEntry struct {
 	SubscribedToId     string `json:"subscribedToId"`
 	GoToPageId         string `json:"goToPageId"`
 	IsGoToPageAlive    bool   `json:"isGoToPageAlive"`
+	MarkId             int64  `json:"markId"`
 	SettingsChangeType string `json:"settingsChangeType"`
 	OldSettingsValue   string `json:"oldSettingsValue"`
 	NewSettingsValue   string `json:"newSettingsValue"`
@@ -100,7 +103,7 @@ type UpdateData struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, forEmail bool) ([]*UpdateRow, error) {
+func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, markMap map[string]*Mark, forEmail bool) ([]*UpdateRow, error) {
 	emailFilter := ""
 	if forEmail {
 		emailFilter = "AND unseen AND NOT emailed"
@@ -118,7 +121,7 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 	updateRows := make([]*UpdateRow, 0, 0)
 	rows := db.NewStatement(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
-			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,
+			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
 			SUM(pages.isLiveEdit) > 0 AS isGoToPageAlive,
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
@@ -134,7 +137,8 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 		var row UpdateRow
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId, &row.IsGoToPageAlive, &row.SettingsChangeType, &row.OldSettingsValue, &row.NewSettingsValue)
+			&row.GoToPageId, &row.MarkId, &row.IsGoToPageAlive, &row.SettingsChangeType,
+			&row.OldSettingsValue, &row.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
@@ -210,6 +214,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 				SubscribedToId:     row.SubscribedToId,
 				GoToPageId:         row.GoToPageId,
 				IsGoToPageAlive:    row.IsGoToPageAlive,
+				MarkId:             row.MarkId,
 				SettingsChangeType: row.SettingsChangeType,
 				OldSettingsValue:   row.OldSettingsValue,
 				NewSettingsValue:   row.NewSettingsValue,

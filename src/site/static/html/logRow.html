@@ -67,6 +67,13 @@
 			Not taught by: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
 		</span>
 
+		<div ng-switch-when="newMark">
+			New mark: {{::markId}}
+			<div layout="row" ng-init="mark=pageService.markMap[markId]">
+				<md-button>
+				</md-button>
+			</div>
+		</div>
 
 		<!-- Settings changes -->
 

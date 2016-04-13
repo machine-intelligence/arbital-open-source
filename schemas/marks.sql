@@ -11,8 +11,6 @@ CREATE TABLE marks (
 	creatorId VARCHAR(32) NOT NULL,
 	/* When this was created. */
 	createdAt DATETIME NOT NULL,
-	/* If this mark is associated with a question, this is the id. FK into pageInfos. */
-	questionId VARCHAR(32) NOT NULL,
 	/* User's snapshotted requisites. FK into userRequisitePairSnapshots. */
 	requisiteSnapshotId BIGINT NOT NULL,
 	/* Optional text associated with this mark. */
@@ -26,7 +24,8 @@ CREATE TABLE marks (
 	anchorOffset INT NOT NULL,
 
 	/* If the mark is associated to some page, this is the id of that page. This
-		can happen if the user picked a page or an author resolved the mark. */
+		can happen if the user picked a page or an author resolved the mark.
+		FK into pageInfos. */
 	resolvedPageId VARCHAR(32) NOT NULL,
 
 	PRIMARY KEY(id)

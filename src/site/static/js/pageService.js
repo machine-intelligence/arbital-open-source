@@ -26,6 +26,9 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// Array is sorted by the order in which the questions appear in the text.
 	this.masteryMapList = [this.masteryMap];
 
+	// Map of all loaded marks: mark id -> mark object.
+	this.markMap = {};
+
 	// All page objects currently loaded
 	// pageId -> {object -> {object data}}
 	this.pageObjectMap = {};

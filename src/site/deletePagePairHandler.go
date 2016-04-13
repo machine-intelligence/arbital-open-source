@@ -70,7 +70,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Create a task to propagate the domain change to all children
 		var task tasks.PropagateDomainTask
 		task.PageId = data.ChildId
-		if err := tasks.Enqueue(c, &task, "propagateDomain"); err != nil {
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 	}

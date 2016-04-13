@@ -426,7 +426,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		} else {
 			var task tasks.UpdateElasticPageTask
 			task.PageId = data.PageId
-			if err := tasks.Enqueue(c, &task, "updateElasticPage"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -444,7 +444,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UpdateType = core.CommentEditUpdateType
 				task.GroupByPageId = commentPrimaryPageId
 			}
-			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -457,7 +457,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GroupByUserId = u.Id
 			task.SubscribedToId = u.Id
 			task.GoToPageId = data.PageId
-			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -472,7 +472,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.GroupByPageId = parentIdStr
 				task.SubscribedToId = parentIdStr
 				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -485,7 +485,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.GroupByPageId = childIdStr
 				task.SubscribedToId = childIdStr
 				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -509,7 +509,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					task.UpdateType = core.TopLevelCommentUpdateType
 					task.SubscribedToId = commentPrimaryPageId
 				}
-				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -524,7 +524,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.MentionedUserId = submatch[1]
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, "atMentionUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -534,7 +534,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
 			task.PageId = data.PageId
-			if err := tasks.Enqueue(c, &task, "propagateDomain"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}

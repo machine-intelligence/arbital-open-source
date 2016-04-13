@@ -4,10 +4,17 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
+)
+
+const (
+	processMarkDelay = time.Duration(5*60) * time.Second
 )
 
 // newMarkData contains data given to us in the request.
@@ -29,6 +36,7 @@ var newMarkHandler = siteHandler{
 
 // newMarkHandlerFunc handles requests to create/update a prior like.
 func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
+	c := params.C
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(params.U, true)
@@ -104,15 +112,29 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
-		statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
-		if _, err := statement.WithTx(tx).Exec(); err != nil {
-			return "Couldn't insert into userRequisitePairSnapshots", err
+		if len(hashmaps) > 0 {
+			statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
+			if _, err := statement.WithTx(tx).Exec(); err != nil {
+				return "Couldn't insert into userRequisitePairSnapshots", err
+			}
 		}
 
 		return "", nil
 	})
 	if err != nil {
 		return pages.HandlerErrorFail(errMessage, err)
+	}
+
+	// Generate updates relevant to this mark.
+	options := &tasks.TaskOptions{Delay: processMarkDelay}
+	if !sessions.Live {
+		options.Delay = 0
+	}
+
+	var task tasks.ProcessMarkTask
+	task.Id = lastInsertId
+	if err := tasks.Enqueue(c, &task, options); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
 	returnData.ResultMap["markId"] = fmt.Sprintf("%d", lastInsertId)

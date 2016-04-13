@@ -14,6 +14,10 @@ import (
 type ResetPasswordsTask struct {
 }
 
+func (task *ResetPasswordsTask) Tag() string {
+	return "resetPasswords"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *ResetPasswordsTask) IsValid() error {
 	return nil

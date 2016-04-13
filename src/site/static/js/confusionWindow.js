@@ -38,7 +38,6 @@ app.directive('arbConfusionWindow', function($interval, pageService, userService
 					term: $scope.confusionText,
 				};
 				autocompleteService.performSearch(data, function(data) {
-					console.log(data);
 					$scope.similarPages.length = 0;
 					for (var n = 0; n < data.length; n++) {
 						var pageId = data[n].pageId;

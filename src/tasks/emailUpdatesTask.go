@@ -17,6 +17,10 @@ const (
 type EmailUpdatesTask struct {
 }
 
+func (task *EmailUpdatesTask) Tag() string {
+	return "emailUpdates"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *EmailUpdatesTask) IsValid() error {
 	return nil
@@ -76,7 +80,7 @@ func emailUpdatesProcessUser(db *database.DB, rows *database.Rows) error {
 
 	var task SendOneEmailTask
 	task.UserId = userId
-	if err := Enqueue(c, &task, "sendOneEmail"); err != nil {
+	if err := Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 

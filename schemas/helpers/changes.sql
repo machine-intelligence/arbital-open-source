@@ -147,3 +147,5 @@ CREATE TABLE answers (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table marks add resolvedPageId VARCHAR(32) NOT NULL;
+alter table marks drop column questionId;
+alter table updates add column markId BIGINT NOT NULL;

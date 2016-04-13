@@ -69,7 +69,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	task.GroupByPageId = data.PageId
 	task.SubscribedToId = data.PageId
 	task.GoToPageId = data.PageId
-	if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
