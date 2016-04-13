@@ -12,7 +12,6 @@ import (
 // Keep in mind that we check each option only once for all pages.
 type PageLoadOptions struct {
 	// Load options for subpages
-	Answers   bool
 	Comments  bool
 	Questions bool
 
@@ -27,6 +26,7 @@ type PageLoadOptions struct {
 	Lenses                  bool
 	Requirements            bool
 	Subjects                bool
+	Answers                 bool
 
 	// Load options for basic pages
 	Links   bool
@@ -63,7 +63,6 @@ type PageLoadOptions struct {
 var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
-		Answers:       true,
 		Questions:     true,
 		Children:      true,
 		Parents:       true,
@@ -72,6 +71,7 @@ var (
 		Lenses:        true,
 		Requirements:  true,
 		Subjects:      true,
+		Answers:       true,
 		Domains:       true,
 		ViewCount:     true,
 		Mastery:       true,
@@ -125,6 +125,10 @@ var (
 	// Options for loading info about a lens
 	LensInfoLoadOptions = (&PageLoadOptions{
 		Requirements: true,
+	}).Add(TitlePlusLoadOptions)
+	// Options for loading an answer
+	AnswerLoadOptions = (&PageLoadOptions{
+		SubpageCounts: true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading a page to display the title + some additional info.
 	TitlePlusLoadOptions = &PageLoadOptions{

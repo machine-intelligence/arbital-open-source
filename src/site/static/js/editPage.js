@@ -514,7 +514,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				console.log($scope.addSearchStringData);
 				$http({method: 'POST', url: '/newSearchString/', data: JSON.stringify($scope.addSearchStringData)})
 				.success(function(data) {
-					console.log(data);
 					$scope.page.searchStrings[data.result.searchStringId] = $scope.addSearchStringData.text;
 					$scope.addSearchStringData.text = "";
 				})

@@ -181,7 +181,6 @@ type Page struct {
 	CreatorIds []string `json:"creatorIds"`
 
 	// Relevant ids.
-	AnswerIds      []string `json:"answerIds"`
 	CommentIds     []string `json:"commentIds"`
 	QuestionIds    []string `json:"questionIds"`
 	LensIds        []string `json:"lensIds"`
@@ -192,6 +191,9 @@ type Page struct {
 	DomainIds      []string `json:"domainIds"`
 	ChildIds       []string `json:"childIds"`
 	ParentIds      []string `json:"parentIds"`
+
+	// Answers associated with this page, if it's a question page.
+	Answers []*Answer `json:"answers"`
 
 	// Subpage counts (these might be zeroes if not loaded explicitly)
 	AnswerCount  int `json:"answerCount"`
@@ -237,6 +239,15 @@ type PageObject struct {
 	Edit   int    `json:"edit"`
 	Object string `json:"object"`
 	Value  string `json:"value"`
+}
+
+// Answer is attached to a question page, and points to another page that
+// answers the question.
+type Answer struct {
+	Id           int64  `json:"id,string"`
+	AnswerPageId string `json:"answerPageId"`
+	UserId       string `json:"userId"`
+	CreatedAt    string `json:"createdAt"`
 }
 
 // CommonHandlerData is what handlers fill out and return
@@ -305,18 +316,6 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	userMap := data.UserMap
 	masteryMap := data.MasteryMap
 	pageObjectMap := data.PageObjectMap
-
-	// Load answers
-	/*filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Answers })
-	err := LoadChildIds(db, pageMap, u, &LoadChildIdsOptions{
-		ForPages:     filteredPageMap,
-		Type:         AnswerPageType,
-		PagePairType: ParentPagePairType,
-		LoadOptions:  SubpageLoadOptions,
-	})
-	if err != nil {
-		return fmt.Errorf("LoadChildIds for answers failed: %v", err)
-	}*/
 
 	// Load comments
 	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Comments })
@@ -419,6 +418,15 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadParentIds for subjects failed: %v", err)
 	}
 
+	// Load answers
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Answers })
+	err = LoadAnswers(db, pageMap, userMap, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadAnswers failed: %v", err)
+	}
+
 	// Load links
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Links })
 	err = LoadLinks(db, pageMap, &LoadDataOptions{
@@ -441,7 +449,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load search strings
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SearchStrings })
-	err = LoadSearchStrings(db, pageMap)
+	err = LoadSearchStrings(db, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSearchStrings failed: %v", err)
 	}
@@ -1142,10 +1150,7 @@ func LoadLinks(db *database.DB, pageMap map[string]*Page, options *LoadDataOptio
 		sourceMap = pageMap
 	}
 
-	pageIds := make([]interface{}, 0, len(sourceMap))
-	for id, _ := range sourceMap {
-		pageIds = append(pageIds, id)
-	}
+	pageIds := PageIdsListFromMap(sourceMap)
 	if len(pageIds) <= 0 {
 		return nil
 	}
@@ -1196,6 +1201,47 @@ func LoadLinks(db *database.DB, pageMap map[string]*Page, options *LoadDataOptio
 		}
 	}
 	return nil
+}
+
+// LoadAnswers loads the answers for the given pages, and adds the corresponding pages to the pageMap.
+func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
+	if options == nil {
+		options = &LoadDataOptions{}
+	}
+
+	sourceMap := options.ForPages
+	if sourceMap == nil {
+		sourceMap = pageMap
+	}
+
+	pageIds := PageIdsListFromMap(sourceMap)
+	if len(pageIds) <= 0 {
+		return nil
+	}
+
+	// Load all links.
+	rows := db.NewStatement(`
+		SELECT id,questionId,answerPageId,userId,createdAt
+		FROM answers
+		WHERE questionId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var id int64
+		var questionId, answerPageId, userId, createdAt string
+		err := rows.Scan(&id, &questionId, &answerPageId, &userId, &createdAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		AddPageToMap(answerPageId, pageMap, AnswerLoadOptions)
+		userMap[userId] = &User{Id: userId}
+		pageMap[questionId].Answers = append(pageMap[questionId].Answers, &Answer{
+			Id:           id,
+			AnswerPageId: answerPageId,
+			UserId:       userId,
+			CreatedAt:    createdAt,
+		})
+		return nil
+	})
+	return err
 }
 
 type LoadChildIdsOptions struct {

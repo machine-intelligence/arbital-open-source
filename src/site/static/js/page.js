@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a standard Arbital page.
-app.directive('arbPage', function($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
+app.directive('arbPage', function($http, $location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
 	return {
 		templateUrl: 'static/html/page.html',
 		scope: {
@@ -87,6 +87,24 @@ app.directive('arbPage', function($location, $compile, $timeout, $interval, $mdM
 			// Check if this page is selected via URL hash
 			$scope.isSelected = function() {
 				return $location.hash() === 'subpage-' + $scope.page.pageId;
+			};
+
+			// ================ Manage answers ===================
+			$scope.addAnswer = function(result) {
+				if (!result) return;
+				var postData = {
+					questionId: $scope.pageId,
+					answerPageId: result.pageId,
+				};
+				console.log(postData);
+				$http({method: 'POST', url: '/newAnswer/', data: JSON.stringify(postData)})
+				.success(function(data) {
+					console.log(data);
+					$scope.page.answers.push(data.result.newAnswer);
+				})
+				.error(function(data) {
+					console.error("Couldn't add answer:"); console.error(data);
+				});
 			};
 		},
 		link: function(scope, element, attrs) {
