@@ -598,7 +598,8 @@ ins {
 	top: 0;
 	width: 600px;
 	max-width: 100%;
-	max-height: 600px;
+	max-height: 100%;
+	overflow-y: auto;
 	z-index: $eventsDivZ;
 	background-color: white;
 }

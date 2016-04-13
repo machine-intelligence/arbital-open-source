@@ -96,10 +96,8 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					questionId: $scope.pageId,
 					answerPageId: result.pageId,
 				};
-				console.log(postData);
 				$http({method: 'POST', url: '/newAnswer/', data: JSON.stringify(postData)})
 				.success(function(data) {
-					console.log(data);
 					$scope.page.answers.push(data.result.newAnswer);
 				})
 				.error(function(data) {

@@ -11,7 +11,10 @@ import (
 // updateMarkData contains data given to us in the request.
 type updateMarkData struct {
 	MarkId string
-	Text   string
+
+	// Optional vars to update
+	Text           string
+	ResolvedPageId string
 }
 
 var updateMarkHandler = siteHandler{
@@ -36,8 +39,13 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Create a new mark
 	hashmap := make(database.InsertMap)
 	hashmap["id"] = data.MarkId
-	hashmap["text"] = data.Text
-	statement := db.NewInsertStatement("marks", hashmap, "text")
+	if data.Text != "" {
+		hashmap["text"] = data.Text
+	}
+	if data.ResolvedPageId != "" {
+		hashmap["resolvedPageId"] = data.ResolvedPageId
+	}
+	statement := db.NewInsertStatement("marks", hashmap, hashmap.GetKeys()...)
 	_, err = statement.Exec()
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't update the mark", err)

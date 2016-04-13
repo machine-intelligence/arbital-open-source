@@ -146,3 +146,4 @@ CREATE TABLE answers (
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
+alter table marks add resolvedPageId VARCHAR(32) NOT NULL;

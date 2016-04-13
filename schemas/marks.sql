@@ -25,5 +25,9 @@ CREATE TABLE marks (
 	/* Offset of the text into the context. */
 	anchorOffset INT NOT NULL,
 
+	/* If the mark is associated to some page, this is the id of that page. This
+		can happen if the user picked a page or an author resolved the mark. */
+	resolvedPageId VARCHAR(32) NOT NULL,
+
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

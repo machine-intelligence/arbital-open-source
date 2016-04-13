@@ -2,15 +2,35 @@
 	<md-icon class="green-font">check_circle</md-icon>
 	Your note of confusion, along with your current requisites, has been sent anonymously to the page authors. Thanks for making Arbital better!
 </div>
+
+<!-- Optional confusion text input -->
 <div>
 	<md-input-container class="full-width">
 		<label>Is there a specific question you want to ask?</label>
-		<textarea ng-model="confusionText" md-maxlength="300"></textarea>
+		<textarea ng-model="confusionText" md-maxlength="300" autofocus></textarea>
 	</md-input-container>
 </div>
+
+<!-- Potential questions / answers -->
+<div>
+	<md-list>
+		<md-subheader class="md-primary md-hue-1 md-no-sticky" ng-if="similarPages.length > 0">
+			<span class="black-font">Possible answers</span>
+		</md-subheader>
+		<md-list-item layout="row" ng-repeat="(index,similarPage) in similarPages">
+			<arb-likes page-id="{{::similarPage.pageId}}"></arb-likes>
+			<arb-page-title page-id="{{::similarPage.pageId}}"
+					is-link="true"
+					show-clickbait="true"
+					ng-click="answerClicked(similarPage.pageId)"></arb-page-title>
+		</md-list-item>
+	</md-list>
+</div>
+
 <div class="md-caption">
 	To avoid confusing the system, make sure this is your question and not someone else's.
 </div>
+
 <div layout="row">
 	<md-button ng-click="dismissWindow()">
 		Dismiss
