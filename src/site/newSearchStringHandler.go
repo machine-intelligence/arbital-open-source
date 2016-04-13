@@ -8,6 +8,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/tasks"
 )
 
 // newSearchStringData contains data given to us in the request.
@@ -28,6 +29,7 @@ var newSearchStringHandler = siteHandler{
 func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
+	c := params.C
 	returnData := core.NewHandlerData(params.U, false)
 
 	var data newSearchStringData
@@ -57,6 +59,12 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	newId, err := resp.LastInsertId()
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't get inserted id", err)
+	}
+
+	var task tasks.UpdateElasticPageTask
+	task.PageId = data.PageId
+	if err := tasks.Enqueue(c, &task, "updateElasticPage"); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
 	returnData.ResultMap["searchStringId"] = fmt.Sprintf("%d", newId)

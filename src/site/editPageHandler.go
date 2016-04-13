@@ -416,6 +416,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// else. So we print out errors, but don't return an error. ===
 
 	if isLiveEdit {
+		// Update elastic
 		if data.DeleteEdit {
 			// Delete it from the elastic index
 			err = elastic.DeletePageFromIndex(c, data.PageId)
@@ -423,20 +424,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				c.Errorf("failed to update index: %v", err)
 			}
 		} else {
-			// Update elastic search index.
-			doc := &elastic.Document{
-				PageId:     data.PageId,
-				Type:       oldPage.Type,
-				Title:      data.Title,
-				Clickbait:  data.Clickbait,
-				Text:       data.Text,
-				Alias:      oldPage.Alias,
-				SeeGroupId: seeGroupId,
-				CreatorId:  u.Id,
-			}
-			err = elastic.AddPageToIndex(c, doc)
-			if err != nil {
-				c.Errorf("failed to update index: %v", err)
+			var task tasks.UpdateElasticPageTask
+			task.PageId = data.PageId
+			if err := tasks.Enqueue(c, &task, "updateElasticPage"); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
 

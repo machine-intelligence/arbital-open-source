@@ -9,7 +9,6 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
 )
@@ -278,19 +277,10 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Update elastic search index.
 	if oldPage.WasPublished {
-		doc := &elastic.Document{
-			PageId:     data.PageId,
-			Type:       data.Type,
-			Title:      oldPage.Title,
-			Clickbait:  oldPage.Clickbait,
-			Text:       oldPage.Text,
-			Alias:      data.Alias,
-			SeeGroupId: data.SeeGroupId,
-			CreatorId:  u.Id,
-		}
-		err = elastic.AddPageToIndex(c, doc)
-		if err != nil {
-			c.Errorf("failed to update index: %v", err)
+		var task tasks.UpdateElasticPageTask
+		task.PageId = data.PageId
+		if err := tasks.Enqueue(c, &task, "updateElasticPage"); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 	}
 

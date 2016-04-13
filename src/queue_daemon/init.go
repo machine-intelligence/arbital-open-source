@@ -38,6 +38,8 @@ func processTask(c sessions.Context) error {
 		task = &tasks.TickTask{}
 	} else if leasedTask.Tag == "populateElastic" {
 		task = &tasks.PopulateElasticTask{}
+	} else if leasedTask.Tag == "updateElasticPage" {
+		task = &tasks.UpdateElasticPageTask{}
 	} else if leasedTask.Tag == "newUpdate" {
 		task = &tasks.NewUpdateTask{}
 	} else if leasedTask.Tag == "atMentionUpdate" {
