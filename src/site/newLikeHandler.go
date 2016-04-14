@@ -47,15 +47,15 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
-		snapshotId, err := InsertUserTrustSnapshots(tx, u, task.PageId)
+		snapshotId, err := InsertUserTrustSnapshots(tx, u, data.PageId)
 		if err != nil {
 			return "Couldn't insert userTrustSnapshot", err
 		}
 
 		hashmap := make(map[string]interface{})
 		hashmap["userId"] = u.Id
-		hashmap["pageId"] = task.PageId
-		hashmap["value"] = task.Value
+		hashmap["pageId"] = data.PageId
+		hashmap["value"] = data.Value
 		hashmap["updatedAt"] = database.Now()
 		hashmap["createdAt"] = database.Now()
 		hashmap["userTrustSnapshotId"] = snapshotId
