@@ -119,6 +119,15 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			}
 		}
 
+		if core.IsIdValid(u.Id) && h.Options.LoadUserTrust {
+			// Load the user's trust
+			u.TrustMap, err = user.LoadUserTrust(db, u.Id)
+			if err != nil {
+				fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
+				return
+			}
+		}
+
 		if result.Data != nil {
 			w.Header().Set("Content-type", "application/json")
 			// Return the pages in JSON format.

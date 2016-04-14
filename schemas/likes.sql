@@ -5,6 +5,8 @@ CREATE TABLE likes (
 	userId VARCHAR(32) NOT NULL,
 	/* Id of the page this like is for. FK into pages. */
 	pageId VARCHAR(32) NOT NULL,
+	/* User's trust when they made the like. FK into userTrustSnapshots */
+	trustSnapshotId BIGINT NOT NULL,
 	/* Like value [-1,1]. */
 	value TINYINT NOT NULL,
 	/* Date this like was created. */

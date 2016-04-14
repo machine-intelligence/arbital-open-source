@@ -146,3 +146,21 @@ CREATE TABLE answers (
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
+CREATE TABLE userTrustSnapshots (
+	/* Id of the userTrustStates.  Note that this is not unique per row */
+	id BIGINT NOT NULL,
+	/* The user's trust for general actions */
+	generalTrust INT NOT NULL,
+	/* The user's trust for editing actions */
+	editTrust INT NOT NULL,
+	/* The domain that these trust scores belong to */
+	domainId varchar(32) NOT NULL,
+	/* The user this trust corresponds to */
+	userId varchar(32) NOT NULL,
+	/* The time this snapshot was created */
+	createdAt datetime NOT NULL
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+alter table likes add column userTrustSnapshotId bigint;
+alter table userMasteryPairs add column userTrustSnapshotId bigint;
+alter table subscriptions add column userTrustSnapshotId bigint;

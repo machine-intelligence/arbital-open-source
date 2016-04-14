@@ -23,7 +23,8 @@ var newLikeHandler = siteHandler{
 	URI:         "/newLike/",
 	HandlerFunc: newLikeHandlerFunc,
 	Options: pages.PageOptions{
-		RequireLogin: true,
+		RequireLogin:  true,
+		LoadUserTrust: true,
 	},
 }
 
@@ -45,16 +46,27 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
 	}
 
-	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["pageId"] = data.PageId
-	hashmap["value"] = data.Value
-	hashmap["updatedAt"] = database.Now()
-	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt")
-	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update a like", err)
-	}
+	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
+		snapshotId, err := InsertUserTrustSnapshots(tx, u, task.PageId)
+		if err != nil {
+			return "Couldn't insert userTrustSnapshot", err
+		}
+
+		hashmap := make(map[string]interface{})
+		hashmap["userId"] = u.Id
+		hashmap["pageId"] = task.PageId
+		hashmap["value"] = task.Value
+		hashmap["updatedAt"] = database.Now()
+		hashmap["createdAt"] = database.Now()
+		hashmap["userTrustSnapshotId"] = snapshotId
+		statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
+
+		if _, err := statement.WithTx(tx).Exec(); err != nil {
+			return "Couldn't update/create a like", err
+		}
+
+		return "", nil
+	})
 
 	return pages.StatusOK(nil)
 }

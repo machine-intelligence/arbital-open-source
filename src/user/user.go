@@ -55,10 +55,17 @@ type User struct {
 	SessionId string `json:"-"`
 
 	// Computed variables
-	UpdateCount int      `json:"updateCount"`
-	GroupIds    []string `json:"groupIds"`
+	UpdateCount int              `json:"updateCount"`
+	GroupIds    []string         `json:"groupIds"`
+	TrustMap    map[string]Trust `json:"trust"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
+}
+
+// Trust has the different scores for how much we trust a user.
+type Trust struct {
+	GeneralTrust int `json:"generalTrust"`
+	EditTrust    int `json:"editTrust"`
 }
 
 type CookieSession struct {
@@ -289,6 +296,39 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 		return "", fmt.Errorf("Couldn't load id: %v", err)
 	}
 	return IncrementBase31Id(tx.DB.C, highestUsedId)
+}
+
+// LoadUserTrust returns the trust that the user has in all domains.
+func LoadUserTrust(db *database.DB, userId string) (map[string]Trust, error) {
+	trustMap := make(map[string]Trust)
+
+	// Fetch all the domainIds
+	domainIds := make([]string, 0)
+	rows := database.NewQuery(`
+		SELECT DISTINCT domainId
+		FROM pageDomainPairs`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var domainId string
+		err := rows.Scan(&domainId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a domain: %v", err)
+		}
+		domainIds = append(domainIds, domainId)
+		return nil
+	})
+	// We also have a "" domain for pages with no domain.
+	domainIds = append(domainIds, "")
+
+	for _, domainId := range domainIds {
+		var trust Trust
+		trust.EditTrust = 0
+		trust.GeneralTrust = 0
+		trustMap[domainId] = trust
+	}
+
+	// TODO: actually count up the user's trust
+
+	return trustMap, err
 }
 
 func init() {
