@@ -18,7 +18,8 @@ var newSubscriptionHandler = siteHandler{
 	URI:         "/newSubscription/",
 	HandlerFunc: newSubscriptionHandlerFunc,
 	Options: pages.PageOptions{
-		RequireLogin: true,
+		RequireLogin:  true,
+		LoadUserTrust: true,
 	},
 }
 
@@ -38,7 +39,11 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	errorMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		return addSubscription(tx, u.Id, data.PageId)
+		snapshotId, err := InsertUserTrustSnapshots(tx, u, "")
+		if err != nil {
+			return "Couldn't insert userTrustSnapshot", err
+		}
+		return addSubscription(tx, u.Id, data.PageId, snapshotId)
 	})
 	if errorMessage != "" {
 		return pages.HandlerErrorFail(errorMessage, err)
@@ -46,12 +51,13 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.StatusOK(nil)
 }
 
-func addSubscription(tx *database.Tx, userId string, toPageId string) (string, error) {
+func addSubscription(tx *database.Tx, userId string, toPageId string, snapshotId int64) (string, error) {
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = userId
 	hashmap["toId"] = toPageId
 	hashmap["createdAt"] = database.Now()
-	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
+	hashmap["userTrustSnapshotId"] = snapshotId
+	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId", "userTrustSnapshotId").WithTx(tx)
 	_, err := statement.Exec()
 	if err != nil {
 		return "Couldn't subscribe", err

@@ -10,7 +10,15 @@ import (
 // id of the snapshot created.
 func InsertUserTrustSnapshots(tx *database.Tx, u *user.User, pageId string) (int64, error) {
 	now := database.Now()
-	domainIds, err := loadDomainsForPage(tx.DB, pageId)
+
+	var domainIds []string
+	var err error
+
+	if pageId == "" {
+		domainIds, err = user.LoadAllDomainIds(tx.DB)
+	} else {
+		domainIds, err = loadDomainsForPage(tx.DB, pageId)
+	}
 	if err != nil {
 		return 0, err
 	}

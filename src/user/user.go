@@ -302,8 +302,28 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 func LoadUserTrust(db *database.DB, userId string) (map[string]Trust, error) {
 	trustMap := make(map[string]Trust)
 
-	// Fetch all the domainIds
+	domainIds, err := LoadAllDomainIds(db)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, domainId := range domainIds {
+		var trust Trust
+		trust.EditTrust = 0
+		trust.GeneralTrust = 0
+		trustMap[domainId] = trust
+	}
+
+	// TODO: actually count up the user's trust
+
+	return trustMap, err
+}
+
+// Load all the domains that currently exist on Arbital.
+// TODO: move this to pageUtils.go and figure out how to cache the result
+func LoadAllDomainIds(db *database.DB) ([]string, error) {
 	domainIds := make([]string, 0)
+
 	rows := database.NewQuery(`
 		SELECT DISTINCT domainId
 		FROM pageDomainPairs`).ToStatement(db).Query()
@@ -318,17 +338,7 @@ func LoadUserTrust(db *database.DB, userId string) (map[string]Trust, error) {
 	})
 	// We also have a "" domain for pages with no domain.
 	domainIds = append(domainIds, "")
-
-	for _, domainId := range domainIds {
-		var trust Trust
-		trust.EditTrust = 0
-		trust.GeneralTrust = 0
-		trustMap[domainId] = trust
-	}
-
-	// TODO: actually count up the user's trust
-
-	return trustMap, err
+	return domainIds, err
 }
 
 func init() {
