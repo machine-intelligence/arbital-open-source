@@ -90,5 +90,5 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

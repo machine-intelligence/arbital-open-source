@@ -13,6 +13,7 @@ import (
 // primaryPageJsonData contains parameters passed in via the request.
 type primaryPageJsonData struct {
 	PageAlias string
+	MarkId    string
 }
 
 var primaryPageHandler = siteHandler{
@@ -127,10 +128,13 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
+	if data.MarkId != "" {
+		returnData.AddMark(data.MarkId)
+	}
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

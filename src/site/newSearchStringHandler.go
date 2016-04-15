@@ -68,5 +68,5 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	returnData.ResultMap["searchStringId"] = fmt.Sprintf("%d", newId)
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

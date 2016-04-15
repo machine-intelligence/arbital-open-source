@@ -191,13 +191,15 @@ type Page struct {
 	DomainIds      []string `json:"domainIds"`
 	ChildIds       []string `json:"childIds"`
 	ParentIds      []string `json:"parentIds"`
+	MarkIds        []string `json:"markIds"`
 
 	// Answers associated with this page, if it's a question page.
 	Answers []*Answer `json:"answers"`
 
-	// Subpage counts (these might be zeroes if not loaded explicitly)
-	AnswerCount  int `json:"answerCount"`
-	CommentCount int `json:"commentCount"`
+	// Various counts (these might be zeroes if not loaded explicitly)
+	AnswerCount       int `json:"answerCount"`
+	CommentCount      int `json:"commentCount"`
+	IncomingMarkCount int `json:"incomingMarkCount"`
 
 	// List of changes to this page
 	ChangeLogs []*ChangeLog `json:"changeLogs"`
@@ -235,16 +237,18 @@ type Mastery struct {
 
 // Mark is something attached to a page, e.g. a place where a user said they were confused.
 type Mark struct {
-	Id                  string `json:"id"`
-	PageId              string `json:"pageId"`
-	CreatorId           string `json:"creatorId"`
+	Id     string `json:"id"`
+	PageId string `json:"pageId"`
+	// True if it's owned by the logged in user
+	IsUserOwned         bool   `json:"isUserOwned"`
 	CreatedAt           string `json:"createdAt"`
 	AnchorContext       string `json:"anchorContext"`
 	AnchorText          string `json:"anchorText"`
 	AnchorOffset        int    `json:"anchorOffset"`
 	Text                string `json:"text"`
 	RequisiteSnapshotId string `json:"requisiteSnapshotId"`
-	ResolvePageId       string `json:"resolvePageId"`
+	ResolvedPageId      string `json:"resolvedPageId"`
+	ResolvedBy          string `json:"resolvedBy"`
 }
 
 // PageObject stores some information for an object embedded in a page
@@ -267,20 +271,20 @@ type Answer struct {
 // CommonHandlerData is what handlers fill out and return
 type CommonHandlerData struct {
 	// If set, then this packet should reset everything on the FE
-	ResetEverything bool
+	ResetEverything bool `json:"resetEverything"`
 	// Optional user object with the current user's data
-	User *user.User
+	User *user.User `json:"user"`
 	// Map of page id -> currently live version of the page
-	PageMap map[string]*Page
+	PageMap map[string]*Page `json:"pages"`
 	// Map of page id -> some edit of the page
-	EditMap    map[string]*Page
-	UserMap    map[string]*User
-	MasteryMap map[string]*Mastery
-	MarkMap    map[string]*Mark
+	EditMap    map[string]*Page    `json:"edits"`
+	UserMap    map[string]*User    `json:"users"`
+	MasteryMap map[string]*Mastery `json:"masteries"`
+	MarkMap    map[string]*Mark    `json:"marks"`
 	// Page id -> {object alias -> object}
-	PageObjectMap map[string]map[string]*PageObject
+	PageObjectMap map[string]map[string]*PageObject `json:"pageObjects"`
 	// ResultMap contains various data the specific handler returns
-	ResultMap map[string]interface{}
+	ResultMap map[string]interface{} `json:"result"`
 }
 
 // NewHandlerData creates and initializes a new commonHandlerData object.
@@ -292,29 +296,16 @@ func NewHandlerData(u *user.User, resetEverything bool) *CommonHandlerData {
 	data.EditMap = make(map[string]*Page)
 	data.UserMap = make(map[string]*User)
 	data.MasteryMap = make(map[string]*Mastery)
+	data.MarkMap = make(map[string]*Mark)
 	data.PageObjectMap = make(map[string]map[string]*PageObject)
 	data.ResultMap = make(map[string]interface{})
 	return &data
 }
 
-// ToJson puts together the data into one "json" object, so we
-// can send it to the front-end.
-func (data *CommonHandlerData) ToJson() map[string]interface{} {
-	jsonData := make(map[string]interface{})
-
-	jsonData["resetEverything"] = data.ResetEverything
-
-	if data.User != nil {
-		jsonData["user"] = data.User
+func (data CommonHandlerData) AddMark(idStr string) {
+	if _, ok := data.MarkMap[idStr]; !ok {
+		data.MarkMap[idStr] = &Mark{Id: idStr}
 	}
-
-	jsonData["pages"] = data.PageMap
-	jsonData["edits"] = data.EditMap
-	jsonData["users"] = data.UserMap
-	jsonData["masteries"] = data.MasteryMap
-	jsonData["pageObjects"] = data.PageObjectMap
-	jsonData["result"] = data.ResultMap
-	return jsonData
 }
 
 // LoadDataOption is used to set some simple loading options for loading functions
@@ -331,6 +322,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	userMap := data.UserMap
 	masteryMap := data.MasteryMap
 	pageObjectMap := data.PageObjectMap
+	markMap := data.MarkMap
 
 	// Load comments
 	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Comments })
@@ -440,6 +432,32 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadAnswers failed: %v", err)
+	}
+
+	// Load user's marks
+	if u.Id != "" {
+		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UserMarks })
+		err = LoadMarkIds(db, pageMap, markMap, u, &LoadDataOptions{
+			ForPages: filteredPageMap,
+		})
+		if err != nil {
+			return fmt.Errorf("LoadMarkIds for user's marks failed: %v", err)
+		}
+
+		// Load unresolved marks
+		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UnresolvedMarks })
+		err = LoadMarkIds(db, pageMap, markMap, nil, &LoadDataOptions{
+			ForPages: filteredPageMap,
+		})
+		if err != nil {
+			return fmt.Errorf("LoadMarkIds for unresolved marks failed: %v", err)
+		}
+	}
+
+	// Load data for all marks in the map
+	err = LoadMarkData(db, pageMap, userMap, markMap, u)
+	if err != nil {
+		return fmt.Errorf("LoadMarkData failed: %v", err)
 	}
 
 	// Load links
@@ -559,11 +577,19 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	if err != nil {
 		return fmt.Errorf("LoadPages failed: %v", err)
 	}
+
 	// Load summaries
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Summaries })
 	err = LoadSummaries(db, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSummaries failed: %v", err)
+	}
+
+	// Load incoming mark count
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IncomingMarkCount && p.Type == QuestionPageType })
+	err = LoadIncomingMarkCounts(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadIncomingMarkCounts failed: %v", err)
 	}
 
 	// Load prev/next ids
@@ -760,9 +786,34 @@ func LoadSummaries(db *database.DB, pageMap map[string]*Page) error {
 		var name, text string
 		err := rows.Scan(&pageId, &name, &text)
 		if err != nil {
-			return fmt.Errorf("failed to scan a page: %v", err)
+			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		pageMap[pageId].Summaries[name] = text
+		return nil
+	})
+	return err
+}
+
+// LoadIncomingMarkCounts loads the number of marks that link to these questions.
+func LoadIncomingMarkCounts(db *database.DB, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT resolvedPageId,SUM(1)
+		FROM marks
+		WHERE resolvedPageId IN`).AddArgsGroup(pageIds).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var resolvedPageId string
+		var count int
+		err := rows.Scan(&resolvedPageId, &count)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		pageMap[resolvedPageId].IncomingMarkCount = count
 		return nil
 	})
 	return err
@@ -1254,6 +1305,80 @@ func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*
 			UserId:       userId,
 			CreatedAt:    createdAt,
 		})
+		return nil
+	})
+	return err
+}
+
+// LoadMarkIds loads all the marks owned by the given user
+func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*Mark, u *user.User, options *LoadDataOptions) error {
+
+	sourceMap := options.ForPages
+	if sourceMap == nil {
+		sourceMap = pageMap
+	}
+
+	pageIds := PageIdsListFromMap(sourceMap)
+	if len(pageIds) <= 0 {
+		return nil
+	}
+
+	userConstraint := database.NewQuery("")
+	if u != nil {
+		userConstraint = database.NewQuery("AND creatorId=?", u.Id)
+	}
+
+	rows := database.NewQuery(`
+		SELECT id,pageId
+		FROM marks
+		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
+			AND resolvedBy=""`).AddPart(userConstraint).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var markId, pageId string
+		err := rows.Scan(&markId, &pageId)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		markMap[markId] = &Mark{Id: markId}
+		pageMap[pageId].MarkIds = append(pageMap[pageId].MarkIds, markId)
+		return nil
+	})
+	return err
+}
+
+// LoadMarkData loads all the relevant data for each mark
+func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, markMap map[string]*Mark, u *user.User) error {
+	if len(markMap) <= 0 {
+		return nil
+	}
+	markIds := make([]interface{}, 0)
+	for markId, _ := range markMap {
+		markIds = append(markIds, markId)
+	}
+
+	rows := db.NewStatement(`
+		SELECT id,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
+			text,requisiteSnapshotId,resolvedPageId,resolvedBy
+		FROM marks
+		WHERE id IN ` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var creatorId string
+		mark := &Mark{}
+		err := rows.Scan(&mark.Id, &mark.PageId, &creatorId, &mark.CreatedAt,
+			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
+			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		mark.IsUserOwned = creatorId == u.Id
+		markMap[mark.Id] = mark
+
+		AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
+		if mark.ResolvedPageId != "" {
+			AddPageToMap(mark.ResolvedPageId, pageMap, TitlePlusLoadOptions)
+			userMap[mark.ResolvedBy] = &User{Id: mark.ResolvedBy}
+		}
+		userMap[creatorId] = &User{Id: creatorId}
 		return nil
 	})
 	return err

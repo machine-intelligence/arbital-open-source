@@ -174,6 +174,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			this.editMap = {};
 			this.masteryMap = {};
 			this.masteryMapList = [this.masteryMap];
+			this.markMap = {};
 			this.pageObjectMap = {};
 		}
 
@@ -187,6 +188,12 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		var masteryData = data.masteries;
 		for (var id in masteryData) {
 			this.smartAddToMap(this.masteryMap, masteryData[id], id);
+		}
+
+		// Populate marks map.
+		var markData = data.marks;
+		for (var id in markData) {
+			this.smartAddToMap(this.markMap, markData[id], id);
 		}
 
 		var pageData = data.pages;
@@ -210,6 +217,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
 	//	 includeHost: if true, include "https://" + host in the url
 	//	 useEditMap: if true, use edit map to retrieve info for this page
+	//	 markId: if set, select the given mark on the page
 	// }
 	this.getPageUrl = function(pageId, options) {
 		var options = options || {};
@@ -265,6 +273,12 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 				}
 				alreadyIncludedHost = true;
 			}
+
+			// Add markId argument
+			if (options.markId) {
+				url += url.indexOf("?") < 0 ? '?' : '&';
+				url += 'markId=' + options.markId;
+			}
 		}
 		if (options.includeHost && !alreadyIncludedHost) {
 			url = urlService.getDomainUrl() + url;
@@ -275,6 +289,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// Get url to edit the given page.
 	// options {
 	//	 includeHost: if true, include "https://" + host in the url
+	//	 markId: if set, resolve the given mark when publishing the page and show it
 	// }
 	this.getEditPageUrl = function(pageId, options) {
 		options = options || {};
@@ -283,6 +298,11 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			url = urlService.getBaseUrl('edit', pageId, this.pageMap[pageId].alias);
 		} else {
 			url = '/edit/' + pageId + '/';
+		}
+		// Add markId argument
+		if (options.markId) {
+			url += url.indexOf("?") < 0 ? '?' : '&';
+			url += 'markId=' + options.markId;
 		}
 		if (options.includeHost) {
 			url = urlService.getDomainUrl() + url;
@@ -814,19 +834,36 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	this.newMark = function(params, success) {
 		$http({method: 'POST', url: '/newMark/', data: JSON.stringify(params)})
 		.success(function(data, status) {
+			userService.processServerData(data);
+			that.processServerData(data);
 			if (success) success(data);
 		})
 		.error(function(data, status) {
 			console.error('Error creating a new mark:'); console.error(data);
 		});
 	};
-	this.updateMark = function(params, success) {
+	this.updateMark = function(params, success, error) {
 		$http({method: 'POST', url: '/updateMark/', data: JSON.stringify(params)})
 		.success(function(data, status) {
 			if (success) success(data);
 		})
 		.error(function(data, status) {
 			console.error('Error creating a new mark:'); console.error(data);
+			if (error) error(data);
+		});
+	};
+
+	// Load all unresolved marks for a given page.
+	this.loadUnresolvedMarks = function(params, success, error) {
+		$http({method: 'POST', url: '/json/marks/', data: JSON.stringify(params)})
+		.success(function(data, status) {
+			userService.processServerData(data);
+			that.processServerData(data);
+			if (success) success(data);
+		})
+		.error(function(data, status) {
+			console.error('Error creating a new mark:'); console.error(data);
+			if (error) error(data);
 		});
 	};
 

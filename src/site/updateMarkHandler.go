@@ -15,6 +15,7 @@ type updateMarkData struct {
 	// Optional vars to update
 	Text           string
 	ResolvedPageId string
+	Dismiss        bool
 }
 
 var updateMarkHandler = siteHandler{
@@ -28,6 +29,7 @@ var updateMarkHandler = siteHandler{
 // updateMarkHandlerFunc handles requests to create/update a prior like.
 func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
+	u := params.U
 
 	var data updateMarkData
 	decoder := json.NewDecoder(params.R.Body)
@@ -41,9 +43,14 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmap["id"] = data.MarkId
 	if data.Text != "" {
 		hashmap["text"] = data.Text
+		hashmap["resolvedPageId"] = ""
+		hashmap["resolvedBy"] = ""
 	}
 	if data.ResolvedPageId != "" {
 		hashmap["resolvedPageId"] = data.ResolvedPageId
+		hashmap["resolvedBy"] = u.Id
+	} else if data.Dismiss {
+		hashmap["resolvedBy"] = u.Id
 	}
 	statement := db.NewInsertStatement("marks", hashmap, hashmap.GetKeys()...)
 	_, err = statement.Exec()

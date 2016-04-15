@@ -104,6 +104,30 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					console.error("Couldn't add answer:"); console.error(data);
 				});
 			};
+
+			$scope.showDeleteAnswer = false;
+			$scope.toggleDeleteAnswers = function() {
+				$scope.showDeleteAnswer = !$scope.showDeleteAnswer;
+			};
+
+			$scope.deleteAnswer = function(answerId) {
+				var postData = {
+					answerId: answerId,
+				};
+				$http({method: 'POST', url: '/deleteAnswer/', data: JSON.stringify(postData)})
+				.success(function(data) {
+					for (var n = 0; n < $scope.page.answers.length; n++) {
+						var answer = $scope.page.answers[n];
+						if (answer.id == answerId) {
+							$scope.page.answers.splice(n, 1);
+							break;
+						}
+					}
+				})
+				.error(function(data) {
+					console.error("Couldn't add answer:"); console.error(data);
+				});
+			};
 		},
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.

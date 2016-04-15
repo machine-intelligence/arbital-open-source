@@ -27,6 +27,8 @@ type PageLoadOptions struct {
 	Requirements            bool
 	Subjects                bool
 	Answers                 bool
+	UserMarks               bool // marks owned by the logged in user
+	UnresolvedMarks         bool // all unresolved marks
 
 	// Load options for basic pages
 	Links   bool
@@ -38,17 +40,18 @@ type PageLoadOptions struct {
 	SearchStrings bool
 
 	// Options for what data to load for the page itself
-	HasDraft        bool
-	Likes           bool
-	ViewCount       bool
-	Votes           bool
-	LastVisit       bool
-	IsSubscribed    bool
-	SubscriberCount bool
-	RedLinkCount    bool
-	Mastery         bool
-	UsedAsMastery   bool
-	Creators        bool
+	HasDraft          bool
+	Likes             bool
+	ViewCount         bool
+	Votes             bool
+	LastVisit         bool
+	IsSubscribed      bool
+	SubscriberCount   bool
+	IncomingMarkCount bool
+	RedLinkCount      bool
+	Mastery           bool
+	UsedAsMastery     bool
+	Creators          bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -63,34 +66,37 @@ type PageLoadOptions struct {
 var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
-		Questions:     true,
-		Children:      true,
-		Parents:       true,
-		Tags:          true,
-		Related:       true,
-		Lenses:        true,
-		Requirements:  true,
-		Subjects:      true,
-		Answers:       true,
-		Domains:       true,
-		ViewCount:     true,
-		Mastery:       true,
-		UsedAsMastery: true,
-		Creators:      true,
-		NextPrevIds:   true,
+		Questions:         true,
+		Children:          true,
+		Parents:           true,
+		Tags:              true,
+		Related:           true,
+		Lenses:            true,
+		Requirements:      true,
+		Subjects:          true,
+		UserMarks:         true,
+		Answers:           true,
+		Domains:           true,
+		ViewCount:         true,
+		IncomingMarkCount: true,
+		Mastery:           true,
+		UsedAsMastery:     true,
+		Creators:          true,
+		NextPrevIds:       true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
-		Children:      true,
-		Parents:       true,
-		Tags:          true,
-		Lenses:        true,
-		Requirements:  true,
-		Subjects:      true,
-		ChangeLogs:    true,
-		SearchStrings: true,
-		Links:         true,
-		Text:          true,
+		Children:          true,
+		Parents:           true,
+		Tags:              true,
+		Lenses:            true,
+		Requirements:      true,
+		Subjects:          true,
+		ChangeLogs:        true,
+		SearchStrings:     true,
+		Links:             true,
+		IncomingMarkCount: true,
+		Text:              true,
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
@@ -98,6 +104,7 @@ var (
 		SubpageCounts: true,
 		Requirements:  true,
 		Subjects:      true,
+		UserMarks:     true,
 		ViewCount:     true,
 		Mastery:       true,
 		Creators:      true,

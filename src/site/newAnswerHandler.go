@@ -69,5 +69,5 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		UserId:       u.Id,
 		CreatedAt:    now,
 	}
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

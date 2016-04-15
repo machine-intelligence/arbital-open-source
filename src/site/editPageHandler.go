@@ -279,7 +279,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			data.AnchorContext == oldPage.AnchorContext &&
 			data.AnchorText == oldPage.AnchorText &&
 			data.AnchorOffset == oldPage.AnchorOffset {
-			return pages.StatusOK(returnData.ToJson())
+			return pages.StatusOK(returnData)
 		}
 	}
 
@@ -540,5 +540,5 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

@@ -1,18 +1,44 @@
-<div>
-	<md-icon class="green-font">check_circle</md-icon>
-	Your note of confusion, along with your current requisites, has been sent anonymously to the page authors. Thanks for making Arbital better!
-</div>
+<!-- Show this if this marked is owned by the logged in user -->
+<div ng-if="::mark.isUserOwned">
+	<div ng-if="::isNew">
+		<md-icon class="green-font">check_circle</md-icon>
+		Your
+		<arb-page-title page-id="{{::'370'}}"
+				is-link="true"
+				custom-page-title="::'mark of confusion'"></arb-page-title>
+		, along with your current requisites, has been sent anonymously to the page authors. Thanks for making Arbital better!
+	</div>
+	
+	<div ng-if="::!isNew">
+		You created this mark
+		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
+	</div>
 
-<!-- Optional confusion text input -->
-<div>
-	<md-input-container class="full-width">
-		<label>Is there a specific question you want to ask?</label>
-		<textarea ng-model="confusionText" md-maxlength="300" autofocus></textarea>
-	</md-input-container>
-</div>
-
-<!-- Potential questions / answers -->
-<div>
+	<!-- Resolved text -->
+	<div ng-if="mark.resolvedPageId || mark.resolvedBy">
+		This mark has been
+		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
+		by
+		<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
+		<span ng-if="mark.resolvedPageId !== ''">
+			with:
+			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
+		</span>
+	</div>
+	
+	<!-- Optional confusion text input -->
+	<div>
+		<md-input-container class="full-width">
+			<label ng-if="::isNew">Is there a specific question you want to ask?</label>
+			<label ng-if="::!isNew">Update question text</label>
+			<textarea ng-model="mark.text"
+				md-maxlength="300"
+				autofocus
+				aria-label="Mark question text"></textarea>
+		</md-input-container>
+	</div>
+	
+	<!-- Potential questions / answers -->
 	<md-list>
 		<md-subheader class="md-primary md-hue-1 md-no-sticky" ng-if="similarPages.length > 0">
 			<span class="black-font">Possible answers</span>
@@ -22,21 +48,87 @@
 			<arb-page-title page-id="{{::similarPage.pageId}}"
 					is-link="true"
 					show-clickbait="true"
-					ng-click="answerClicked(similarPage.pageId)"></arb-page-title>
+					ng-click="suggestedLinkClicked(similarPage.pageId, $event)"></arb-page-title>
 		</md-list-item>
 	</md-list>
+	
+	<div class="md-caption" ng-if="::isNew">
+		To avoid confusing the system, make sure this is your question and not someone else's.
+	</div>
+	
+	<!-- Bottom buttons -->
+	<div layout="row">
+		<md-button class="md-accent" ng-click="dismissMark()">
+			Discard
+		</md-button>
+		<div flex></div>
+		<md-button class="md-primary" ng-click="updateMarkText()" aria-label="Set question">
+			<span ng-bind="::isNew ? 'Ask the question' : 'Update'"></span>
+		</md-button>
+	</div>
 </div>
 
-<div class="md-caption">
-	To avoid confusing the system, make sure this is your question and not someone else's.
-</div>
+<!-- Show this if this marked is NOT owned by the logged in user -->
+<div ng-if="::!mark.isUserOwned">
+	This confusion mark was created 
+	<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 
-<div layout="row">
-	<md-button ng-click="dismissWindow()">
-		Dismiss
-	</md-button>
-	<div flex></div>
-	<md-button class="md-primary" ng-click="updateMarkText()">
-		Ask the question
-	</md-button>
+	<div ng-if="::!isOnPage">A reader marked the following section as confusing:</div>
+	<blockquote arb-markdown mark-id="{{::mark.id}}" ng-if="::!isOnPage"></blockquote>
+
+	<div ng-if="::mark.text.length > 0">
+		Their query was: <span ng-bind="::mark.text"></span>
+	</div>
+
+	<!-- Resolved text -->
+	<div ng-if="mark.resolvedPageId || mark.resolvedBy">
+		This mark has been
+		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
+		by
+		<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
+		<span ng-if="mark.resolvedPageId !== ''">
+			with:
+			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
+		</span>
+	</div>
+
+	<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+			page-id="{{::mark.pageId}}"
+			class="intrasite-link"
+			ng-if="::!isOnPage">
+		View this mark on the page
+	</a>
+
+	<!-- Bottom buttons -->
+	<div layout="row" layout-align="space-around center" ng-if="!mark.resolvedPageId">
+		<md-button ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+			<md-icon>edit</md-icon>
+			Edit page
+		</md-button>
+		<md-button ng-click="showConnectToQuestion()">
+			Connect to question
+		</md-button>
+		<md-button ng-href="/edit?markId={{::markId}}">
+			Connect to new question
+		</md-button>
+		<md-button class="md-warn" ng-click="dismissMark(markId)">
+			Dismiss
+		</md-button>
+	</div>
+
+	<!-- User can search for a matching question. -->
+	<!-- NOTE: we can't use ng-if with autocomplete, because then when autocomplete
+		goes away, it'll leave an md-scoll-mask in place. -->
+	<div ng-show="showQuestionInput">
+		<arb-autocomplete do-autofocus="::true"
+				placeholder="Search for existing question"
+				on-select="questionResultSelected(result)"
+				page-type="{{::'question'}}"></arb-autocomplete>
+	</div>
+
+	<div ng-if="questionLinked">
+		Thanks! Consider
+		<a ng-href="{{::pageService.getEditPageUrl(mark.resolvedPageId)}}">editing the question page</a>
+		to include a new search string or tag.
+	</div>
 </div>

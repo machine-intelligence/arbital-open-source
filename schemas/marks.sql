@@ -27,6 +27,8 @@ CREATE TABLE marks (
 		can happen if the user picked a page or an author resolved the mark.
 		FK into pageInfos. */
 	resolvedPageId VARCHAR(32) NOT NULL,
+	/* Id of the user who resolved the mark. FK into users. */
+	resolvedBy VARCHAR(32) NOT NULL,
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

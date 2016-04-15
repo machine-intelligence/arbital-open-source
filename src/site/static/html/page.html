@@ -82,11 +82,27 @@
 		<!-- Answers section -->
 		<div class="discussion-container" flex-order="2" ng-if="::!isSimpleEmbed && page.isQuestion()">
 			<div class="user-page-panel md-whiteframe-1dp" layout="column">
+
 				<md-toolbar class="md-hue-2">
 					<div class="md-toolbar-tools">
 						Answers
+						<div flex></div>
+						<md-menu>
+							<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Answer actions">
+								<md-icon>more_vert</md-icon>
+							</md-button>
+							<md-menu-content>
+								<!-- Delete answers -->
+								<md-menu-item>
+									<md-button ng-click="toggleDeleteAnswers()" aria-label="Toggle delete answers">
+										Toggle delete answers
+									</md-button>
+								</md-menu-item>
+							</md-menu-content>
+						</md-menu>
 					</div>
 				</md-toolbar>
+
 				<md-list>
 					<md-list-item ng-repeat="answer in page.answers">
 						<div layout="column"
@@ -95,6 +111,13 @@
 								flex>
 							<!-- First row -->
 							<div layout="row" layout-align="start start" flex>
+								<md-button class="md-accent"
+										ng-click="deleteAnswer(answer.id)"
+										aria-label="Delete answer"
+										ng-if="showDeleteAnswer">
+									<md-icon>delete</md-icon>
+									Delete
+								</md-button>
 								<arb-likes page-id="{{::answer.answerPageId}}"></arb-likes>
 								<arb-page-title page-id="{{::answer.answerPageId}}"
 										is-link="true"
@@ -121,8 +144,12 @@
 						<md-divider ng-if="!$last"></md-divider>
 					</md-list-item>
 				</md-list>
-				<span class="md-caption" ng-if="(page.answers.length <= 0)" layout-padding>
-					No answers yet
+				<span ng-if="(page.answers.length <= 0)" layout-padding>
+					<span>
+						No answers yet. {{page.incomingMarkCount}} 
+						<ng-pluralize count="page.incomingMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+						linked to this question.
+					</span>
 				</span>
 				<div layout="row" layout="start start" ng-if="userService.userIsCool()">
 					<arb-autocomplete class="insert-autocomplete"

@@ -190,5 +190,5 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		results.Hits.Hits = results.Hits.Hits[0:len(results.Hits.Hits)]
 	}
 	returnData.ResultMap["search"] = results.Hits
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

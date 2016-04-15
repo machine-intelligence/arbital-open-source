@@ -39,7 +39,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(params.U, false)
 
 	var data newMarkData
 	decoder := json.NewDecoder(params.R.Body)
@@ -62,7 +62,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	now := database.Now()
-	var lastInsertId int64
+	var markId int64
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
@@ -93,7 +93,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return "Couldn't insert an new mark", err
 		}
-		lastInsertId, err = resp.LastInsertId()
+		markId, err = resp.LastInsertId()
 		if err != nil {
 			return "Couldn't get inserted id", err
 		}
@@ -125,19 +125,27 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail(errMessage, err)
 	}
 
-	// Generate updates relevant to this mark.
+	// Enqueue a task that will create relevant updates for this mark event
+	var task tasks.ProcessMarkTask
+	task.Id = markId
 	options := &tasks.TaskOptions{Delay: processMarkDelay}
 	if !sessions.Live {
 		options.Delay = 0
 	}
-
-	var task tasks.ProcessMarkTask
-	task.Id = lastInsertId
 	if err := tasks.Enqueue(c, &task, options); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	returnData.ResultMap["markId"] = fmt.Sprintf("%d", lastInsertId)
+	// Load mark to return it
+	markIdStr := fmt.Sprintf("%d", markId)
+	returnData.AddMark(markIdStr)
+	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.HandlerErrorFail("Pipeline error", err)
+	}
 
-	return pages.StatusOK(returnData.ToJson())
+	returnData.ResultMap["markId"] = markIdStr
+
+	return pages.StatusOK(returnData)
 }
