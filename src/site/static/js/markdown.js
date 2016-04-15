@@ -415,12 +415,17 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownService) {
 	return {
 		scope: {
+			// One of these ids has to be set.
 			pageId: '@',
+			markId: '@',
+
+			// If summary name is set, we'll display the page's corresponding summary
 			summaryName: '@',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
-			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.page = !!$scope.pageId ? pageService.pageMap[$scope.pageId] : undefined;
+			$scope.mark = !!$scope.markId ? pageService.markMap[$scope.markId] : undefined;
 		},
 		link: function(scope, element, attrs) {
 			element.addClass('markdown-text reveal-after-render');
@@ -431,10 +436,16 @@ app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownS
 			});
 
 			// Convert page text to html.
+			// Note: converter takes pageId, which might not be set if we are displaying
+			// a mark, but it should be ok, since the mark doesn't have most markdown features.
 			var converter = markdownService.createConverter(scope.pageId);
-			var html = scope.page.text;
-			if (scope.page.anchorText) {
-				html = '>' + scope.page.anchorText + '\n\n' + html;
+			if (scope.page) {
+				var html =  scope.page.text;
+				if (scope.page.anchorText) {
+					html = '>' + scope.page.anchorText + '\n\n' + html;
+				}
+			} else if (scope.mark) {
+				var html = scope.mark.anchorContext;
 			}
 			if (scope.summaryName) {
 				html = scope.page.summaries[scope.summaryName];
@@ -454,6 +465,15 @@ app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownS
 				MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
 			}, 300);
 			markdownService.processLinks(scope, $pageText);
+
+			// Highlight the anchorText for marks.
+			if (scope.mark) {
+				$timeout(function() {
+					var highlightClass = 'inline-comment-highlight-hover';
+					createInlineCommentHighlight(element.children().get(0), scope.mark.anchorOffset,
+						scope.mark.anchorOffset + scope.mark.anchorText.length, highlightClass);
+				});
+			}
 		},
 	};
 });

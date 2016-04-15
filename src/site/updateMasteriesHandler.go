@@ -180,7 +180,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	}
 
 	returnData.ResultMap["unlockedIds"] = unlockedIds
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 
 }
 

@@ -302,7 +302,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["requirementMap"] = requirementMap
 	returnData.ResultMap["pageIds"] = pageIds
 	returnData.ResultMap["optionsMap"] = optionsMap
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }
 
 func computeLearningPath(pl logger.Logger,

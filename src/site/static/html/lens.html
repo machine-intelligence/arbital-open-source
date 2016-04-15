@@ -159,7 +159,19 @@
 					ng-class="{'md-primary': isInlineCommentIconSelected(commentId)}"
 					ng-click="toggleInlineComment(commentId)">
 				<md-icon>comment</md-icon>
-				<span ng-bind="'+' + comment.likeScore()" ng-if="comment.likeScore() > 0"></span>
+			</md-button>
+		</div>
+
+		<!-- All the mark icons -->
+		<div class="inline-comment-icon"
+				ng-style="getInlineMarkIconStyle(markId)"
+				ng-mouseenter="inlineMarkIconMouseover(markId, true)"
+				ng-mouseleave="inlineMarkIconMouseover(markId, false)"
+				ng-repeat="(markId,mark) in inlineMarks">
+			<md-button class="md-icon-button md-raised"
+					ng-class="{'md-primary': isInlineMarkIconSelected(markId)}"
+					ng-click="toggleInlineMark(markId)">
+				<md-icon>help</md-icon>
 			</md-button>
 		</div>
 	</div>

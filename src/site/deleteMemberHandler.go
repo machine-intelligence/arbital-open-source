@@ -86,7 +86,7 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	task.UpdateType = core.RemovedFromGroupUpdateType
 	task.MemberId = data.UserId
 	task.GroupId = data.GroupId
-	if err := tasks.Enqueue(c, &task, "memberUpdate"); err != nil {
+	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 

@@ -100,7 +100,7 @@ arb-markdown, [arb-markdown], .preview-area {
 		max-width: 560px;
 	}
 	arb-updates > & {
-		max-width: 560px;
+		max-width: 1100px;
 	}
 	arb-groups-page > & {
 		max-width: 900px;
@@ -598,7 +598,8 @@ ins {
 	top: 0;
 	width: 600px;
 	max-width: 100%;
-	max-height: 600px;
+	max-height: 100%;
+	overflow-y: auto;
 	z-index: $eventsDivZ;
 	background-color: white;
 }

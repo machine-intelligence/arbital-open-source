@@ -112,5 +112,5 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	p.SearchStrings = livePage.SearchStrings
 	livePage.ChangeLogs = []*core.ChangeLog{}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

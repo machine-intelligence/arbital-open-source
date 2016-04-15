@@ -94,6 +94,7 @@ func init() {
 	s.HandleFunc(intrasitePopoverHandler.URI, handlerWrapper(intrasitePopoverHandler)).Methods("POST")
 	s.HandleFunc(learnHandler.URI, handlerWrapper(learnHandler)).Methods("POST")
 	s.HandleFunc(lensHandler.URI, handlerWrapper(lensHandler)).Methods("POST")
+	s.HandleFunc(marksHandler.URI, handlerWrapper(marksHandler)).Methods("POST")
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
@@ -110,6 +111,7 @@ func init() {
 
 	// POST handlers (API)
 	s.HandleFunc(discardPageHandler.URI, handlerWrapper(discardPageHandler)).Methods("POST")
+	s.HandleFunc(deleteAnswerHandler.URI, handlerWrapper(deleteAnswerHandler)).Methods("POST")
 	s.HandleFunc(deleteMemberHandler.URI, handlerWrapper(deleteMemberHandler)).Methods("POST")
 	s.HandleFunc(deletePageHandler.URI, handlerWrapper(deletePageHandler)).Methods("POST")
 	s.HandleFunc(deletePagePairHandler.URI, handlerWrapper(deletePagePairHandler)).Methods("POST")

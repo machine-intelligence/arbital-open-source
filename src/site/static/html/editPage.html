@@ -261,6 +261,13 @@
 								Add string
 							</md-button>
 						</div>
+
+						<!-- Info about how many incoming marks there are. -->
+						<span>
+							{{pageService.pageMap[page.pageId].incomingMarkCount}} 
+							<ng-pluralize count="pageService.pageMap[page.pageId].incomingMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+							linked to this question.
+						</span>
 					</div>
 
 				</div>
@@ -447,7 +454,7 @@
 				<div ng-if="publishing">
 					Publishing...
 				</div>
-				<div ng-if="selectedTab == 2">All changes saved automatically</div>
+				<div ng-if="selectedTab == 2">All relationship changes are published instantly</div>
 			</div>
 
 			<arb-confirm-button button-text="Discard"

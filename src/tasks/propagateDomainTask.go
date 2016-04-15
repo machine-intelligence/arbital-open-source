@@ -15,6 +15,10 @@ type PropagateDomainTask struct {
 	Deleted bool
 }
 
+func (task *PropagateDomainTask) Tag() string {
+	return "propagateDomain"
+}
+
 type domainFlags struct {
 	Has        bool
 	ShouldHave bool

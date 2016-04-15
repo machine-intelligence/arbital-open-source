@@ -13,6 +13,10 @@ import (
 type UpdateMetadataTask struct {
 }
 
+func (task *UpdateMetadataTask) Tag() string {
+	return "updateMetadata"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *UpdateMetadataTask) IsValid() error {
 	return nil

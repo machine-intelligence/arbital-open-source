@@ -279,7 +279,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if oldPage.WasPublished {
 		var task tasks.UpdateElasticPageTask
 		task.PageId = data.PageId
-		if err := tasks.Enqueue(c, &task, "updateElasticPage"); err != nil {
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 	}
@@ -294,7 +294,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			task.UpdateType = core.PageInfoEditUpdateType
 			task.GroupByPageId = data.PageId
 			task.ChangeLogId = changeLogId
-			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}

@@ -67,7 +67,6 @@
 			Not taught by: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
 		</span>
 
-
 		<!-- Settings changes -->
 
 		<span ng-switch-when="newAlias">
@@ -218,6 +217,12 @@
 			</a>
 		</span>
 
+		<!-- Marks -->
+
+		<div ng-switch-when="newMark"
+				arb-confusion-window
+				mark-id="{{::markId}}">
+		</div>
 
 		<!-- Unknown -->
 
@@ -239,11 +244,11 @@
 			<span ng-switch-when="addedToGroup"></span>
 			<span ng-switch-when="removedFromGroup"></span>
 			<span ng-switch-default>
-			<arb-user-name user-id="{{::userId}}" ng-if="::showUserLink"></arb-user-name>
+			<arb-user-name user-id="{{::userId}}" ng-if="::showUserLink && !!userId"></arb-user-name>
 			</span>
 		</span>
 
-		<span ng-bind="::(createdAt | relativeDateTime)"></span>
+		<span class="nowrap" ng-bind="::(createdAt | relativeDateTime)"></span>
 	</div>
 
 </div>

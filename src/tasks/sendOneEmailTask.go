@@ -16,6 +16,10 @@ type SendOneEmailTask struct {
 	UserId string
 }
 
+func (task *SendOneEmailTask) Tag() string {
+	return "sendOneEmail"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *SendOneEmailTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {

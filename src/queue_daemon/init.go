@@ -34,31 +34,33 @@ func processTask(c sessions.Context) error {
 
 	var task tasks.QueueTask
 	// TODO: refactor tag strings into the corresponding files as consts
-	if leasedTask.Tag == "tick" {
+	if leasedTask.Tag == (&tasks.TickTask{}).Tag() {
 		task = &tasks.TickTask{}
-	} else if leasedTask.Tag == "populateElastic" {
+	} else if leasedTask.Tag == (&tasks.PopulateElasticTask{}).Tag() {
 		task = &tasks.PopulateElasticTask{}
-	} else if leasedTask.Tag == "updateElasticPage" {
+	} else if leasedTask.Tag == (&tasks.UpdateElasticPageTask{}).Tag() {
 		task = &tasks.UpdateElasticPageTask{}
-	} else if leasedTask.Tag == "newUpdate" {
+	} else if leasedTask.Tag == (&tasks.NewUpdateTask{}).Tag() {
 		task = &tasks.NewUpdateTask{}
-	} else if leasedTask.Tag == "atMentionUpdate" {
+	} else if leasedTask.Tag == (&tasks.AtMentionUpdateTask{}).Tag() {
 		task = &tasks.AtMentionUpdateTask{}
-	} else if leasedTask.Tag == "memberUpdate" {
+	} else if leasedTask.Tag == (&tasks.MemberUpdateTask{}).Tag() {
 		task = &tasks.MemberUpdateTask{}
-	} else if leasedTask.Tag == "emailUpdates" {
+	} else if leasedTask.Tag == (&tasks.EmailUpdatesTask{}).Tag() {
 		task = &tasks.EmailUpdatesTask{}
-	} else if leasedTask.Tag == "sendOneEmail" {
+	} else if leasedTask.Tag == (&tasks.ProcessMarkTask{}).Tag() {
+		task = &tasks.ProcessMarkTask{}
+	} else if leasedTask.Tag == (&tasks.SendOneEmailTask{}).Tag() {
 		task = &tasks.SendOneEmailTask{}
-	} else if leasedTask.Tag == "sendFeedbackEmail" {
+	} else if leasedTask.Tag == (&tasks.SendFeedbackEmailTask{}).Tag() {
 		task = &tasks.SendFeedbackEmailTask{}
-	} else if leasedTask.Tag == "propagateDomain" {
+	} else if leasedTask.Tag == (&tasks.PropagateDomainTask{}).Tag() {
 		task = &tasks.PropagateDomainTask{}
-	} else if leasedTask.Tag == "updateMetadata" {
+	} else if leasedTask.Tag == (&tasks.UpdateMetadataTask{}).Tag() {
 		task = &tasks.UpdateMetadataTask{}
-	} else if leasedTask.Tag == "fixText" {
+	} else if leasedTask.Tag == (&tasks.FixTextTask{}).Tag() {
 		task = &tasks.FixTextTask{}
-	} else if leasedTask.Tag == "resetPasswords" {
+	} else if leasedTask.Tag == (&tasks.ResetPasswordsTask{}).Tag() {
 		task = &tasks.ResetPasswordsTask{}
 	} else {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
@@ -109,7 +111,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		c.Debugf("TickTask enqueue error: %v", err)
 	}*/
 	var emailUpdatesTask tasks.EmailUpdatesTask
-	err := tasks.EnqueueWithName(c, &emailUpdatesTask, "emailUpdates", "emailUpdates")
+	err := tasks.Enqueue(c, &emailUpdatesTask, &tasks.TaskOptions{Name: emailUpdatesTask.Tag()})
 	if err != nil {
 		c.Debugf("EmailUpdatesTask enqueue error: %v", err)
 	}

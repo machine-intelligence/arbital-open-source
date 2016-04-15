@@ -331,6 +331,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				}
 			};
 
+			// Call the doneFn callback after the page has been fully published.
+			var publishPageDone = function() {
+				$scope.doneFn({result: {
+					pageId: $scope.page.pageId,
+					alias: $scope.page.alias
+				}});
+			};
 			// Called when user clicks Publish button
 			$scope.publishPage = function() {
 				$scope.publishing = true;
@@ -343,11 +350,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 							$scope.publishing = false;
 							if (error) {
 								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
+							} else if ($location.search().markId) {
+								// Update the mark as resolved
+								pageService.updateMark({
+									markId: $location.search().markId,
+									resolvedPageId: $scope.pageId,
+								}, publishPageDone, publishPageDone);
 							} else {
-								$scope.doneFn({result: {
-									pageId: $scope.page.pageId,
-									alias: $scope.page.alias
-								}});
+								publishPageDone();
 							}
 						});
 					}

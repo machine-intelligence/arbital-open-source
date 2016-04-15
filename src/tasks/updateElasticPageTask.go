@@ -13,6 +13,10 @@ type UpdateElasticPageTask struct {
 	PageId string
 }
 
+func (task *UpdateElasticPageTask) Tag() string {
+	return "updateElasticPage"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *UpdateElasticPageTask) IsValid() error {
 	if !core.IsIdValid(task.PageId) {

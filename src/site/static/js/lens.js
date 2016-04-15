@@ -208,11 +208,12 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				$inlineCommentsDiv.remove();
 			});
 
-			// =========================== Inline comments ===========================
+			// =========================== Inline elements ===========================
 			var $markdownContainer = element.find('.lens-text-container');
 			var $markdown = element.find('.lens-text');
 			scope.inlineComments = {};
-			var orderedInlineComments = [];
+			scope.inlineMarks = {};
+			var orderedInlineButtons = [];
 			var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 			dmp.Match_MaxBits = 10000;
 			dmp.Match_Distance = 10000;
@@ -228,82 +229,129 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				});
 			};
 
-			// Process an inline comment
-			var processInlineComment = function(commentId) {
-				if (scope.isTinyScreen) return;
-				var comment = pageService.pageMap[commentId];
-				if (!comment.anchorContext || !comment.anchorText) return;
-
+			// Given the anchor parameters, find the corresponding place in DOM.
+			var computeInlineHightlightParams = function(anchorContext, anchorText, anchorOffset) {
+				var results = {
+					bestParagraphNode: undefined,
+					bestParagraphIndex: 0,
+					anchorOffset: 0,
+					anchorLength: 0,
+				}
 				// Find the best paragraph
-				var bestParagraphNode;
 				var bestParagraphText;
-				var bestParagraphIndex;
 				var bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER doesn't exist in IE
 				if (!paragraphTexts) {
 					populateParagraphTexts();
 				}
 				for (var i = 0; i < paragraphTexts.length; i++) {
 					var text = paragraphTexts[i];
-					var diffs = dmp.diff_main(text, comment.anchorContext);
+					var diffs = dmp.diff_main(text, anchorContext);
 					var score = dmp.diff_levenshtein(diffs);
 					if (score < bestScore) {
-						bestParagraphNode = $markdown.children().get(i);
+						results.bestParagraphNode = $markdown.children().get(i);
 						bestParagraphText = text;
 						bestScore = score;
-						bestParagraphIndex = i;
+						results.bestParagraphIndex = i;
 					}
 				}
 
 				// Check if it's a close enough match
-				if (bestScore > comment.anchorContext.length / 2) return;
+				if (bestScore > anchorContext.length / 2) return undefined;
 
 				// Find offset into the best paragraph
-				var anchorLength;
-				var anchorOffset = dmp.match_main(bestParagraphText, comment.anchorText, comment.anchorOffset);
-				if (anchorOffset < 0) {
+				results.anchorOffset = dmp.match_main(bestParagraphText, anchorText, anchorOffset);
+				if (results.anchorOffset < 0) {
 					// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor
-					anchorOffset = 0;
-					anchorLength = bestParagraphText.length;
+					results.anchorOffset = 0;
+					results.anchorLength = bestParagraphText.length;
 				} else {
 					// Figure out how long the highlighted anchor should be
-					var remainingText = bestParagraphText.substring(anchorOffset);
-					var diffs = dmp.diff_main(remainingText, comment.anchorText);
-					anchorLength = remainingText.length;
+					var remainingText = bestParagraphText.substring(results.anchorOffset);
+					var diffs = dmp.diff_main(remainingText, anchorText);
+					results.anchorLength = remainingText.length;
 					if (diffs.length > 0) {
 						// Note: we can potentially be more clever here and discount
 						// edits done after anchorText.length chars
 						var lastDiff = diffs[diffs.length - 1];
 						if (lastDiff[0] < 0) {
-							anchorLength -= lastDiff[1].length;
+							results.anchorLength -= lastDiff[1].length;
 						}
 					}
 				}
+				return results;
+			};
+
+			// Process a mark.
+			var processMark = function(markId) {
+				if (scope.isTinyScreen) return;
+				var mark = pageService.markMap[markId];
+				if (!mark.anchorContext || !mark.anchorText) return;
 
 				// Create the span corresponding to the anchor text
+				var highlightParams = computeInlineHightlightParams(mark.anchorContext,
+						mark.anchorText, mark.anchorOffset);
+				if (!highlightParams) return;
+				var highlightClass = 'inline-mark-' + mark.id;
+				createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
+						highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
+
+				// Add to the array of valid inline comments
+				var inlineMark = {
+					paragraphNode: highlightParams.bestParagraphNode,
+					anchorNode: $('.' + highlightClass),
+					paragraphIndex: highlightParams.bestParagraphIndex,
+					anchorOffset: highlightParams.anchorOffset,
+					markId: mark.id,
+				};
+				scope.inlineMarks[mark.id] = inlineMark;
+				orderedInlineButtons.push(inlineMark);
+			};
+
+			// Process an inline comment
+			var processInlineComment = function(commentId) {
+				if (scope.isTinyScreen) return;
+				var comment = pageService.pageMap[commentId];
+				if (!comment.anchorContext || !comment.anchorText) return;
+
+				// Create the span corresponding to the anchor text
+				var highlightParams = computeInlineHightlightParams(comment.anchorContext,
+						comment.anchorText, comment.anchorOffset);
+				if (!highlightParams) return;
 				var highlightClass = 'inline-comment-' + comment.pageId;
-				createInlineCommentHighlight(bestParagraphNode, anchorOffset, anchorOffset + anchorLength, highlightClass);
+				createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
+						highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
 
 				// Add to the array of valid inline comments
 				var inlineComment = {
-					paragraphNode: bestParagraphNode,
+					paragraphNode: highlightParams.bestParagraphNode,
 					anchorNode: $('.' + highlightClass),
-					paragraphIndex: bestParagraphIndex,
-					anchorOffset: anchorOffset,
+					paragraphIndex: highlightParams.bestParagraphIndex,
+					anchorOffset: highlightParams.anchorOffset,
 					pageId: comment.pageId,
 				};
 				scope.inlineComments[comment.pageId] = inlineComment;
-				orderedInlineComments.push(inlineComment);
+				orderedInlineButtons.push(inlineComment);
 			};
 
 			// Process all inline comments
 			for (var n = 0; n < scope.page.commentIds.length; n++) {
 				processInlineComment(scope.page.commentIds[n]);
 			}
+			// Process all marks
+			if ($location.search().markId) {
+				processMark($location.search().markId);
+			}
+			for (var n = 0; n < scope.page.markIds.length; n++) {
+				processMark(scope.page.markIds[n]);
+			}
+			
+			// Process all RHS buttons to compute their position, zIndex, etc...
+			// This fixes any potential overlapping issues.
 			var preprocessInlineCommentButtons = function() {
-				orderedInlineComments.sort(function(a, b) {
+				orderedInlineButtons.sort(function(a, b) {
 					// Create arrays of values which we compare, breaking ties with the next item in the array.
-					var arrayA = [a.paragraphIndex, a.anchorOffset, a.pageId];
-					var arrayB = [b.paragraphIndex, b.anchorOffset, b.pageId];
+					var arrayA = [a.paragraphIndex, a.anchorOffset, a.pageId, a.markId];
+					var arrayB = [b.paragraphIndex, b.anchorOffset, b.pageId, b.markId];
 					for (var i = 0; i < arrayA.length; i++) {
 						if (arrayA[i] < arrayB[i]) { return -1; }
 						if (arrayA[i] > arrayB[i]) { return 1; }
@@ -311,13 +359,13 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					return 0;
 				});
 				var minTop = 0;
-				for (n = 0; n < orderedInlineComments.length; n++) {
-					var inlineComment = orderedInlineComments[n];
-					var preferredTop = inlineComment.anchorNode.offset().top;
+				for (n = 0; n < orderedInlineButtons.length; n++) {
+					var inlineButton = orderedInlineButtons[n];
+					var preferredTop = inlineButton.anchorNode.offset().top;
 					var top = Math.max(minTop, preferredTop);
 					// Use this to recompute the actual top when absolute positions are better known
-					inlineComment.topOffset = top - preferredTop;
-					inlineComment.zIndex = n;
+					inlineButton.topOffset = top - preferredTop;
+					inlineButton.zIndex = n;
 					// Subtract 8 pixels to allow small overlap between buttons
 					minTop = top + inlineCommentButtonHeight - 8;
 				}
@@ -336,6 +384,17 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					'zIndex': params.zIndex,
 				};
 			};
+			// Get the style of an inline mark icon
+			scope.getInlineMarkIconStyle = function(markId) {
+				var params = scope.inlineMarks[markId];
+				var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
+				return {
+					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+					'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
+					'visibility': isVisible ? 'visible' : 'hidden',
+					'zIndex': params.zIndex,
+				};
+			};
 
 			// Return true iff the comment icon is selected
 			scope.isInlineCommentIconSelected = function(commentId) {
@@ -343,9 +402,23 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				return params.mouseover || params.visible;
 			};
 
-			// Called when the use hovers the mouse over the icon
+			// Return true iff the mark icon is selected
+			scope.isInlineMarkIconSelected = function(markId) {
+				var params = scope.inlineMarks[markId];
+				return params.mouseover || params.visible;
+			};
+
+			// Called when the user hovers the mouse over the inline comment icon
 			scope.inlineCommentIconMouseover = function(commentId, mouseover) {
 				var params = scope.inlineComments[commentId];
+				params.mouseover = mouseover;
+				if (params.visible) return;
+				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover);
+			};
+
+			// Called when the user hovers the mouse over the inline mark icon
+			scope.inlineMarkIconMouseover = function(markId, mouseover) {
+				var params = scope.inlineMarks[markId];
 				params.mouseover = mouseover;
 				if (params.visible) return;
 				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover);
@@ -381,6 +454,16 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				}
 			};
 
+			// Hide/show the inline mark.
+			scope.toggleInlineMark = function(markId) {
+				var params = scope.inlineMarks[markId];
+				params.visible = !params.visible;
+				pageService.hideEvent();
+				if (params.visible) {
+					showConfusionEventWindow(markId, false);
+				}
+			};
+
 			// Process creating new inline comments
 			var $inlineCommentEditPage = undefined;
 			var newInlineCommentButtonTop = 0;
@@ -401,7 +484,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				return {
 					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 					'top': newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
-					'zIndex': orderedInlineComments.length,
+					'zIndex': orderedInlineButtons.length,
 				};
 			};
 
@@ -438,9 +521,34 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				}
 			};
 
+			// Show all unresolved marks on this lens.
+			scope.loadedUnresolvedMarks = false;
+			scope.loadUnresolvedMarks = function() {
+				scope.loadedUnresolvedMarks = true;
+				pageService.loadUnresolvedMarks({pageId: scope.page.pageId}, function(data){
+					for (var markId in data.marks) {
+						processMark(markId);
+					}
+					preprocessInlineCommentButtons();
+				});
+			};
+
 			// =========================== Inline questions ===========================
 
 			// Create a new confused mark
+			var showConfusionEventWindow = function(markId, isNew) {
+				scope.showNewInlineCommentButton = false;
+				pageService.showEvent({
+					title: isNew ? 'New confusion mark' : 'Update your confusion mark',
+					$element: $compile('<div arb-confusion-window mark-id="' + markId +
+						'" is-new="::' + isNew +
+						'"></div>')(scope),
+				}, function() {
+					var params = scope.inlineMarks[markId];
+					params.visible = false;
+					$markdown.find('.inline-comment-highlight-hover').removeClass('inline-comment-highlight-hover');
+				});
+			};
 			scope.newConfusedMark = function() {
 				if (!scope.showNewInlineCommentButton) return;
 				var selection = getSelectedParagraphText();
@@ -453,15 +561,10 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						anchorOffset: selection.offset,
 					},
 					function(data) {
-						var newMarkId = data.result.markId;
-						scope.showNewInlineCommentButton = false;
-						pageService.showEvent({
-							title: 'Ask a question?',
-							$element: $compile('<arb-confusion-window mark-id="' + newMarkId +
-								'"></arb-confusion-window>')(scope),
-						}, function() {
-							$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
-						});
+						processMark(data.result.markId);
+						preprocessInlineCommentButtons();
+						$location.search("markId", data.result.markId);
+						showConfusionEventWindow(data.result.markId, true);
 					}
 				);
 			};
@@ -485,7 +588,6 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						}
 					});
 				});
-
 			});
 		},
 	};

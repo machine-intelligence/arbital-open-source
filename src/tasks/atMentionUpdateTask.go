@@ -27,6 +27,10 @@ type AtMentionUpdateTask struct {
 	GoToPageId string
 }
 
+func (task *AtMentionUpdateTask) Tag() string {
+	return "atMentionUpdate"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *AtMentionUpdateTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {

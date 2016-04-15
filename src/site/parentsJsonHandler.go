@@ -46,5 +46,5 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Remove the child, since we only want to return parents.
 	delete(returnData.PageMap, data.ChildId)
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

@@ -48,5 +48,5 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 		pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

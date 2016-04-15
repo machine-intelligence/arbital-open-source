@@ -19,6 +19,10 @@ type MemberUpdateTask struct {
 	GroupId  string
 }
 
+func (task *MemberUpdateTask) Tag() string {
+	return "memberUpdate"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *MemberUpdateTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {

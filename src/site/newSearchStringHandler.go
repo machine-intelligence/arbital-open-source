@@ -63,10 +63,10 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	var task tasks.UpdateElasticPageTask
 	task.PageId = data.PageId
-	if err := tasks.Enqueue(c, &task, "updateElasticPage"); err != nil {
+	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
 	returnData.ResultMap["searchStringId"] = fmt.Sprintf("%d", newId)
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

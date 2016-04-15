@@ -164,3 +164,8 @@ CREATE TABLE userTrustSnapshots (
 alter table likes add column userTrustSnapshotId bigint;
 alter table userMasteryPairs add column userTrustSnapshotId bigint;
 alter table subscriptions add column userTrustSnapshotId bigint;
+
+alter table marks add resolvedPageId VARCHAR(32) NOT NULL;
+alter table marks add column resolvedBy varchar(32) not null;
+alter table marks drop column questionId;
+alter table updates add column markId BIGINT NOT NULL;

@@ -36,6 +36,7 @@ func NewPage(pageId string) *Page {
 	p.ChangeLogs = make([]*ChangeLog, 0)
 	p.ChildIds = make([]string, 0)
 	p.ParentIds = make([]string, 0)
+	p.MarkIds = make([]string, 0)
 	p.Members = make(map[string]*Member)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)

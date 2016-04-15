@@ -39,7 +39,7 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if !ok {
 		// Don't fail because sometimes the editor calls this with bad aliases, but
 		// we don't want to generated messages on the FE
-		return pages.StatusOK(returnData.ToJson())
+		return pages.StatusOK(returnData)
 	}
 
 	// Load data
@@ -49,5 +49,5 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 		pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

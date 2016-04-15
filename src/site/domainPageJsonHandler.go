@@ -165,5 +165,5 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }
