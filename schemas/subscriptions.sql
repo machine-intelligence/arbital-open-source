@@ -10,5 +10,8 @@ CREATE TABLE subscriptions (
 	/* When this subscription was created. */
 	createdAt DATETIME NOT NULL,
 
-	PRIMARY KEY(userId, toId)
+	/* User's trust when they subscribed. FK into userTrustSnapshots */
+	trustSnapshotId BIGINT NOT NULL,
+
+  	PRIMARY KEY(userId, toId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

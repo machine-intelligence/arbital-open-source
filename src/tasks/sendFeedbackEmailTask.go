@@ -18,6 +18,10 @@ type SendFeedbackEmailTask struct {
 	Text      string
 }
 
+func (task *SendFeedbackEmailTask) Tag() string {
+	return "sendFeedbackEmail"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *SendFeedbackEmailTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {

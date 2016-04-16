@@ -22,5 +22,8 @@ CREATE TABLE userMasteryPairs (
 	/* Id of the page where the user marked the mastery learned */
 	taughtBy VARCHAR(32) NOT NULL,
 
+	/* User's trust when they learned the mastery. FK into userTrustSnapshots */
+	trustSnapshotId BIGINT NOT NULL,
+
 	PRIMARY KEY(userId,masteryId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

@@ -27,14 +27,15 @@ func (a HitsList) Less(i, j int) bool { return a[i].Score > a[j].Score }
 
 // Document describes the document which goes into the pages search index.
 type Document struct {
-	PageId     string `json:"pageId"`
-	Alias      string `json:"alias"`
-	Type       string `json:"type"`
-	Title      string `json:"title"`
-	Clickbait  string `json:"clickbait"`
-	Text       string `json:"text"`
-	SeeGroupId string `json:"seeGroupId"`
-	CreatorId  string `json:"creatorId"`
+	PageId        string   `json:"pageId"`
+	Alias         string   `json:"alias"`
+	Type          string   `json:"type"`
+	Title         string   `json:"title"`
+	Clickbait     string   `json:"clickbait"`
+	Text          string   `json:"text"`
+	SeeGroupId    string   `json:"seeGroupId"`
+	CreatorId     string   `json:"creatorId"`
+	SearchStrings []string `json:"searchStrings"`
 }
 
 // All the elasticsearch result structs
@@ -140,9 +141,10 @@ type Mapping struct {
 }
 
 type Property struct {
-	Type     string `json:"type,omitempty"`
-	Index    string `json:"index,omitempty"`
-	Analyzer string `json:"analyzer,omitempty"`
+	Type      string `json:"type,omitempty"`
+	Index     string `json:"index,omitempty"`
+	Analyzer  string `json:"analyzer,omitempty"`
+	IndexName string `json:"index_name,omitempty"`
 }
 
 // CreatePageIndex creates the pages index.
@@ -159,6 +161,7 @@ func CreatePageIndex(c sessions.Context) error {
 	mapping.Properties["alias"] = &Property{Type: "string"}
 	mapping.Properties["seeGroupId"] = &Property{Type: "string", Index: "not_analyzed"}
 	mapping.Properties["creatorId"] = &Property{Type: "string", Index: "not_analyzed"}
+	mapping.Properties["searchStrings"] = &Property{Type: "string", IndexName: "searchString", Analyzer: "english"}
 
 	var schema IndexSchema
 	schema.Mappings = make(map[string]*Mapping)

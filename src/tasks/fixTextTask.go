@@ -14,6 +14,10 @@ import (
 type FixTextTask struct {
 }
 
+func (task *FixTextTask) Tag() string {
+	return "fixTextTask"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *FixTextTask) IsValid() error {
 	return nil

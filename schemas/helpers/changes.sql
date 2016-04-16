@@ -118,6 +118,58 @@ CREATE TABLE userRequisitePairSnapshots (
 
 alter table marks add column text mediumtext not null;
 
+CREATE TABLE searchStrings (
+	/* Id of this search string. */
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	/* Id of the page this string is for. FK into pages. */
+	pageId VARCHAR(32) NOT NULL,
+	/* Id of the user who added this string. FK into users. */
+	userId VARCHAR(32) NOT NULL,
+	/* String's text. */
+	text VARCHAR(1024) NOT NULL,
+	/* Date this string was created. */
+	createdAt DATETIME NOT NULL,
+	PRIMARY KEY(id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE answers (
+	/* Id of this answer. */
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	/* Id of the question this answer is for. FK into pages. */
+	questionId VARCHAR(32) NOT NULL,
+	/* Id of the user who added this string. FK into users. */
+	answerPageId VARCHAR(32) NOT NULL,
+	/* Id of the user who added this answer. FK into users. */
+	userId VARCHAR(32) NOT NULL,
+	/* Date this answer was created. */
+	createdAt DATETIME NOT NULL,
+	PRIMARY KEY(id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+CREATE TABLE userTrustSnapshots (
+	/* Id of the userTrustStates.  Note that this is not unique per row */
+	id BIGINT NOT NULL,
+	/* The user's trust for general actions */
+	generalTrust INT NOT NULL,
+	/* The user's trust for editing actions */
+	editTrust INT NOT NULL,
+	/* The domain that these trust scores belong to */
+	domainId varchar(32) NOT NULL,
+	/* The user this trust corresponds to */
+	userId varchar(32) NOT NULL,
+	/* The time this snapshot was created */
+	createdAt datetime NOT NULL
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+alter table likes add column userTrustSnapshotId bigint;
+alter table userMasteryPairs add column userTrustSnapshotId bigint;
+alter table subscriptions add column userTrustSnapshotId bigint;
+
+alter table marks add resolvedPageId VARCHAR(32) NOT NULL;
+alter table marks add column resolvedBy varchar(32) not null;
+alter table marks drop column questionId;
+alter table updates add column markId BIGINT NOT NULL;
+
 alter table pagePairs add column everPublished boolean not null;
 update pagePairs set everPublished = 1
 where

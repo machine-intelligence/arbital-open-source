@@ -24,7 +24,9 @@ type updateMasteries struct {
 var updateMasteriesHandler = siteHandler{
 	URI:         "/updateMasteries/",
 	HandlerFunc: updateMasteriesHandlerFunc,
-	Options:     pages.PageOptions{},
+	Options: pages.PageOptions{
+		LoadUserTrust: true,
+	},
 }
 
 func updateMasteriesHandlerFunc(params *pages.HandlerParams) *pages.Result {
@@ -69,29 +71,6 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		})
 	}
 
-	// Create values list for creating the query
-	// NOTE: order is important: we are deleting, then adding "wants", then adding "haves"
-	queryValues := make([]interface{}, 0)
-	for _, masteryAlias := range data.RemoveMasteries {
-		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, userId, false, false, database.Now(), database.Now(), "")
-		}
-	}
-	for _, masteryAlias := range data.WantsMasteries {
-		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			queryValues = append(queryValues, masteryId, userId, false, true, database.Now(), database.Now(), "")
-		}
-	}
-	for _, masteryAlias := range data.AddMasteries {
-		if masteryId, ok := aliasMap[masteryAlias]; ok {
-			var taughtBy = ""
-			if _, ok := subjectIds[masteryId]; ok {
-				taughtBy = data.TaughtBy
-			}
-			queryValues = append(queryValues, masteryId, userId, true, false, database.Now(), database.Now(), taughtBy)
-		}
-	}
-
 	candidateIds := make([]string, 0)
 	if data.ComputeUnlocked && len(data.AddMasteries) > 0 {
 		// Compute all the pages that rely on at least one of these masteries, that the user can't yet understand
@@ -121,17 +100,45 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		}
 	}
 
-	// Update the database
-	if len(queryValues) > 0 {
-		statement := db.NewStatement(`
-			INSERT INTO userMasteryPairs (masteryId,userId,has,wants,createdAt,updatedAt,taughtBy)
-			VALUES ` + database.ArgsPlaceholder(len(queryValues), 7) + `
-			ON DUPLICATE KEY UPDATE has=VALUES(has),wants=VALUES(wants),updatedAt=VALUES(updatedAt),taughtBy=VALUES(taughtBy)`)
-
-		if _, err = statement.Exec(queryValues...); err != nil {
-			return pages.HandlerErrorFail("Couldn't update masteries", err)
+	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
+		snapshotId, err := InsertUserTrustSnapshots(tx, u, data.TaughtBy)
+		if err != nil {
+			return "Couldn't insert userTrustSnapshot", err
 		}
 
+		hashmaps := make(database.InsertMaps, 0)
+		for _, masteryAlias := range data.RemoveMasteries {
+			if masteryId, ok := aliasMap[masteryAlias]; ok {
+				hashmap := getHashmapForMasteryInsert(masteryId, userId, false, false, "", snapshotId)
+				hashmaps = append(hashmaps, hashmap)
+			}
+		}
+		for _, masteryAlias := range data.WantsMasteries {
+			if masteryId, ok := aliasMap[masteryAlias]; ok {
+				hashmap := getHashmapForMasteryInsert(masteryId, userId, false, true, "", snapshotId)
+				hashmaps = append(hashmaps, hashmap)
+			}
+		}
+		for _, masteryAlias := range data.AddMasteries {
+			if masteryId, ok := aliasMap[masteryAlias]; ok {
+				var taughtBy = ""
+				if _, ok := subjectIds[masteryId]; ok {
+					taughtBy = data.TaughtBy
+				}
+				hashmap := getHashmapForMasteryInsert(masteryId, userId, true, false, taughtBy, snapshotId)
+				hashmaps = append(hashmaps, hashmap)
+			}
+		}
+
+		statement := tx.DB.NewMultipleInsertStatement("userMasteryPairs", hashmaps, "has", "wants", "updatedAt", "taughtBy", "userTrustSnapshotId")
+		if _, err := statement.WithTx(tx).Exec(); err != nil {
+			return "Failed to insert masteries", err
+		}
+		return "", nil
+	})
+
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't update masteries", err)
 	}
 
 	if len(candidateIds) <= 0 {
@@ -173,6 +180,20 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	}
 
 	returnData.ResultMap["unlockedIds"] = unlockedIds
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 
+}
+
+func getHashmapForMasteryInsert(masteryId string, userId string, has bool, wants bool, taughtBy string, snapshotId int64) database.InsertMap {
+	hashmap := make(database.InsertMap)
+	hashmap["masteryId"] = masteryId
+	hashmap["userId"] = userId
+	hashmap["has"] = has
+	hashmap["wants"] = wants
+	hashmap["createdAt"] = database.Now()
+	hashmap["updatedAt"] = database.Now()
+	hashmap["taughtBy"] = taughtBy
+	hashmap["userTrustSnapshotId"] = snapshotId
+
+	return hashmap
 }

@@ -260,7 +260,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			data.AnchorContext == oldPage.AnchorContext &&
 			data.AnchorText == oldPage.AnchorText &&
 			data.AnchorOffset == oldPage.AnchorOffset {
-			return pages.StatusOK(returnData.ToJson())
+			return pages.StatusOK(returnData)
 		}
 	}
 
@@ -424,20 +424,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// else. So we print out errors, but don't return an error. ===
 
 	if isLiveEdit {
-		// Update elastic search index.
-		doc := &elastic.Document{
-			PageId:     data.PageId,
-			Type:       oldPage.Type,
-			Title:      data.Title,
-			Clickbait:  data.Clickbait,
-			Text:       data.Text,
-			Alias:      oldPage.Alias,
-			SeeGroupId: seeGroupId,
-			CreatorId:  u.Id,
-		}
-		err = elastic.AddPageToIndex(c, doc)
-		if err != nil {
-			c.Errorf("failed to update index: %v", err)
+		// Update elastic
+		var task tasks.UpdateElasticPageTask
+		task.PageId = data.PageId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
 		// ROGTODO: send undelete update if oldPage.IsDeleted
@@ -454,7 +445,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UpdateType = core.CommentEditUpdateType
 				task.GroupByPageId = commentPrimaryPageId
 			}
-			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -467,7 +458,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GroupByUserId = u.Id
 			task.SubscribedToId = u.Id
 			task.GoToPageId = data.PageId
-			if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
@@ -481,7 +472,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// ROGTODO: rest of the update types
 			for updateType, ids := range relationshipMap {
 				for _, id := range ids {
-					c.Debugf("\n\n\nnew update: %v, %v", updateType, id)
 					var task tasks.NewUpdateTask
 					task.UserId = u.Id
 					task.UpdateType = updateType
@@ -514,7 +504,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					task.UpdateType = core.TopLevelCommentUpdateType
 					task.SubscribedToId = commentPrimaryPageId
 				}
-				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -529,7 +519,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.MentionedUserId = submatch[1]
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, "atMentionUpdate"); err != nil {
+				if err := tasks.Enqueue(c, &task, nil); err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}
 			}
@@ -539,11 +529,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if oldPage.IsDeleted || !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
 			task.PageId = data.PageId
-			if err := tasks.Enqueue(c, &task, "propagateDomain"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

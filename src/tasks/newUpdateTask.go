@@ -31,8 +31,15 @@ type NewUpdateTask struct {
 	// comment someone made.
 	GoToPageId string
 
-	// Only set if UpdateType is 'pageInfoEdit'. Id of the associated entry in changeLogs.
+	// Only set if UpdateType is 'pageInfoEdit'. Id is a FK into changeLogs table.
 	ChangeLogId int64
+
+	// Only set if UpdateType is for a mark. Id is a FK into marks table.
+	MarkId int64
+}
+
+func (task *NewUpdateTask) Tag() string {
+	return "newUpdate"
 }
 
 // Check if this task is valid, and we can safely execute it.
@@ -109,6 +116,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["subscribedToId"] = task.SubscribedToId
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["changeLogId"] = task.ChangeLogId
+		hashmap["markId"] = task.MarkId
 		hashmap["createdAt"] = database.Now()
 		hashmap["unseen"] = true
 		statement := db.NewInsertStatement("updates", hashmap)

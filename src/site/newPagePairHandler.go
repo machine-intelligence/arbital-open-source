@@ -195,7 +195,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		task.GroupByPageId = child.PageId
 		task.SubscribedToId = child.PageId
 		task.GoToPageId = parent.PageId
-		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
@@ -213,7 +213,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		task.GroupByPageId = parent.PageId
 		task.SubscribedToId = parent.PageId
 		task.GoToPageId = child.PageId
-		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
@@ -221,7 +221,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			// Create a task to propagate the domain change to all children
 			var task tasks.PropagateDomainTask
 			task.PageId = child.PageId
-			if err := tasks.Enqueue(c, &task, "propagateDomain"); err != nil {
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}

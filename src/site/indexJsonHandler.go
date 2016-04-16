@@ -75,7 +75,6 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 	// Display this page fully
-	// HARDCODED
 	core.AddPageToMap("1k0", returnData.PageMap, core.PrimaryPageLoadOptions)
 
 	// Load pages.
@@ -91,5 +90,5 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

@@ -16,6 +16,10 @@ const (
 type TickTask struct {
 }
 
+func (task *TickTask) Tag() string {
+	return "tick"
+}
+
 // Check if this task is valid, and we can safely execute it.
 func (task *TickTask) IsValid() error {
 	return nil

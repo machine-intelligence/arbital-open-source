@@ -25,7 +25,6 @@ func NewPage(pageId string) *Page {
 	p.Votes = make([]*Vote, 0)
 	p.Summaries = make(map[string]string)
 	p.CreatorIds = make([]string, 0)
-	p.AnswerIds = make([]string, 0)
 	p.CommentIds = make([]string, 0)
 	p.QuestionIds = make([]string, 0)
 	p.LensIds = make([]string, 0)
@@ -37,7 +36,10 @@ func NewPage(pageId string) *Page {
 	p.ChangeLogs = make([]*ChangeLog, 0)
 	p.ChildIds = make([]string, 0)
 	p.ParentIds = make([]string, 0)
+	p.MarkIds = make([]string, 0)
 	p.Members = make(map[string]*Member)
+	p.Answers = make([]*Answer, 0)
+	p.SearchStrings = make(map[string]string)
 	return p
 }
 

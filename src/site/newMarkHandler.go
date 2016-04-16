@@ -4,10 +4,17 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
+)
+
+const (
+	processMarkDelay = time.Duration(5*60) * time.Second
 )
 
 // newMarkData contains data given to us in the request.
@@ -29,9 +36,10 @@ var newMarkHandler = siteHandler{
 
 // newMarkHandlerFunc handles requests to create/update a prior like.
 func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
+	c := params.C
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(params.U, false)
 
 	var data newMarkData
 	decoder := json.NewDecoder(params.R.Body)
@@ -54,7 +62,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	now := database.Now()
-	var lastInsertId int64
+	var markId int64
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
@@ -85,7 +93,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if err != nil {
 			return "Couldn't insert an new mark", err
 		}
-		lastInsertId, err = resp.LastInsertId()
+		markId, err = resp.LastInsertId()
 		if err != nil {
 			return "Couldn't get inserted id", err
 		}
@@ -104,9 +112,11 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmaps = append(hashmaps, hashmap)
 			}
 		}
-		statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
-		if _, err := statement.WithTx(tx).Exec(); err != nil {
-			return "Couldn't insert into userRequisitePairSnapshots", err
+		if len(hashmaps) > 0 {
+			statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
+			if _, err := statement.WithTx(tx).Exec(); err != nil {
+				return "Couldn't insert into userRequisitePairSnapshots", err
+			}
 		}
 
 		return "", nil
@@ -115,7 +125,27 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail(errMessage, err)
 	}
 
-	returnData.ResultMap["markId"] = fmt.Sprintf("%d", lastInsertId)
+	// Enqueue a task that will create relevant updates for this mark event
+	var task tasks.ProcessMarkTask
+	task.Id = markId
+	options := &tasks.TaskOptions{Delay: processMarkDelay}
+	if !sessions.Live {
+		options.Delay = 0
+	}
+	if err := tasks.Enqueue(c, &task, options); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
+	}
 
-	return pages.StatusOK(returnData.ToJson())
+	// Load mark to return it
+	markIdStr := fmt.Sprintf("%d", markId)
+	returnData.AddMark(markIdStr)
+	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.HandlerErrorFail("Pipeline error", err)
+	}
+
+	returnData.ResultMap["markId"] = markIdStr
+
+	return pages.StatusOK(returnData)
 }

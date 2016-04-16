@@ -334,6 +334,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				}
 			};
 
+			// Call the doneFn callback after the page has been fully published.
+			var publishPageDone = function() {
+				$scope.doneFn({result: {
+					pageId: $scope.page.pageId,
+					alias: $scope.page.alias
+				}});
+			};
 			// Called when user clicks Publish button
 			$scope.publishPage = function() {
 				$scope.publishing = true;
@@ -346,11 +353,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 							$scope.publishing = false;
 							if (error) {
 								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
+							} else if ($location.search().markId) {
+								// Update the mark as resolved
+								pageService.updateMark({
+									markId: $location.search().markId,
+									resolvedPageId: $scope.pageId,
+								}, publishPageDone, publishPageDone);
 							} else {
-								$scope.doneFn({result: {
-									pageId: $scope.page.pageId,
-									alias: $scope.page.alias
-								}});
+								publishPageDone();
 							}
 						});
 					}
@@ -506,6 +516,34 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 			$scope.hideSideEdit = function() {
 				$scope.sideEdit = undefined;
+			};
+
+			// =========== Search strings ==============
+			$scope.addSearchStringData = {
+				pageId: $scope.pageId,
+				text: "",
+			};
+			$scope.addSearchString = function() {
+				console.log($scope.addSearchStringData);
+				$http({method: 'POST', url: '/newSearchString/', data: JSON.stringify($scope.addSearchStringData)})
+				.success(function(data) {
+					$scope.page.searchStrings[data.result.searchStringId] = $scope.addSearchStringData.text;
+					$scope.addSearchStringData.text = "";
+				})
+				.error(function(data) {
+					$scope.addMessage('addSearchString', 'Error adding a search string: ' + data, 'error');
+				});
+			};
+			
+			$scope.deleteSearchString = function(id) {
+				var postData = {
+					id: id,
+				};
+				$http({method: 'POST', url: '/deleteSearchString/', data: JSON.stringify(postData)})
+				.error(function(data) {
+					$scope.addMessage('deleteSearchString', 'Error deleting a search string: ' + data, 'error');
+				});
+				delete $scope.page.searchStrings[id];
 			};
 
 			// Save the page info.

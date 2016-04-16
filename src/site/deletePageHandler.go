@@ -123,7 +123,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Create a task to propagate the domain change to all children
 	var task tasks.PropagateDomainTask
 	task.PageId = data.PageId
-	if err := tasks.Enqueue(params.C, &task, "propagateDomain"); err != nil {
+	if err := tasks.Enqueue(params.C, &task, nil); err != nil {
 		return pages.HandlerErrorFail("Couldn't enqueue a task: %v", err)
 	}
 

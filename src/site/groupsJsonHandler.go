@@ -62,5 +62,5 @@ func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData.ToJson())
+	return pages.StatusOK(returnData)
 }

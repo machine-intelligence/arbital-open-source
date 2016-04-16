@@ -23,7 +23,8 @@ var newLikeHandler = siteHandler{
 	URI:         "/newLike/",
 	HandlerFunc: newLikeHandlerFunc,
 	Options: pages.PageOptions{
-		RequireLogin: true,
+		RequireLogin:  true,
+		LoadUserTrust: true,
 	},
 }
 
@@ -32,26 +33,40 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 
-	var task newLikeData
+	var data newLikeData
 	decoder := json.NewDecoder(params.R.Body)
-	err := decoder.Decode(&task)
-	if err != nil || !core.IsIdValid(task.PageId) {
+	err := decoder.Decode(&data)
+	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if task.Value < -1 || task.Value > 1 {
+	if !core.IsIdValid(data.PageId) {
+		return pages.HandlerBadRequestFail("Invalid page id", nil)
+	}
+	if data.Value < -1 || data.Value > 1 {
 		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
 	}
 
-	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["pageId"] = task.PageId
-	hashmap["value"] = task.Value
-	hashmap["updatedAt"] = database.Now()
-	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt")
-	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update a like", err)
-	}
+	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
+		snapshotId, err := InsertUserTrustSnapshots(tx, u, data.PageId)
+		if err != nil {
+			return "Couldn't insert userTrustSnapshot", err
+		}
+
+		hashmap := make(map[string]interface{})
+		hashmap["userId"] = u.Id
+		hashmap["pageId"] = data.PageId
+		hashmap["value"] = data.Value
+		hashmap["updatedAt"] = database.Now()
+		hashmap["createdAt"] = database.Now()
+		hashmap["userTrustSnapshotId"] = snapshotId
+		statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
+
+		if _, err := statement.WithTx(tx).Exec(); err != nil {
+			return "Couldn't update/create a like", err
+		}
+
+		return "", nil
+	})
 
 	return pages.StatusOK(nil)
 }

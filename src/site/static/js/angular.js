@@ -211,7 +211,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	};
 
 	$scope.closeEventsDiv = function() {
-		$eventsBody.empty();
+		pageService.hideEvent();
 	};
 
 	// Watch path changes and update Google Analytics
@@ -395,7 +395,10 @@ app.run(function($http, $location, urlService, pageService, userService) {
 								if (!page.wasPublished && result.discard) {
 									$location.path('/edit/');
 								} else {
-									$location.url(pageService.getPageUrl(page.pageId, {useEditMap: true}));
+									$location.url(pageService.getPageUrl(page.pageId, {
+										useEditMap: true,
+										markId: $location.search().markId,
+									}));
 								}
 							};
 							return {
@@ -505,6 +508,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			// Get the primary page data
 			var postData = {
 				pageAlias: args.alias,
+				markId: $location.search().markId,
 			};
 			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {

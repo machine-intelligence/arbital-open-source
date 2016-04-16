@@ -12,7 +12,6 @@ import (
 // Keep in mind that we check each option only once for all pages.
 type PageLoadOptions struct {
 	// Load options for subpages
-	Answers   bool
 	Comments  bool
 	Questions bool
 
@@ -27,27 +26,32 @@ type PageLoadOptions struct {
 	Lenses                  bool
 	Requirements            bool
 	Subjects                bool
+	Answers                 bool
+	UserMarks               bool // marks owned by the logged in user
+	UnresolvedMarks         bool // all unresolved marks
 
 	// Load options for basic pages
 	Links   bool
 	Domains bool
 
 	// Load options for loading a page for editing
-	Edit       bool
-	ChangeLogs bool
+	Edit          bool
+	ChangeLogs    bool
+	SearchStrings bool
 
 	// Options for what data to load for the page itself
-	HasDraft        bool
-	Likes           bool
-	ViewCount       bool
-	Votes           bool
-	LastVisit       bool
-	IsSubscribed    bool
-	SubscriberCount bool
-	RedLinkCount    bool
-	Mastery         bool
-	UsedAsMastery   bool
-	Creators        bool
+	HasDraft          bool
+	Likes             bool
+	ViewCount         bool
+	Votes             bool
+	LastVisit         bool
+	IsSubscribed      bool
+	SubscriberCount   bool
+	IncomingMarkCount bool
+	RedLinkCount      bool
+	Mastery           bool
+	UsedAsMastery     bool
+	Creators          bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -62,33 +66,37 @@ type PageLoadOptions struct {
 var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
-		Answers:       true,
-		Questions:     true,
-		Children:      true,
-		Parents:       true,
-		Tags:          true,
-		Related:       true,
-		Lenses:        true,
-		Requirements:  true,
-		Subjects:      true,
-		Domains:       true,
-		ViewCount:     true,
-		Mastery:       true,
-		UsedAsMastery: true,
-		Creators:      true,
-		NextPrevIds:   true,
+		Questions:         true,
+		Children:          true,
+		Parents:           true,
+		Tags:              true,
+		Related:           true,
+		Lenses:            true,
+		Requirements:      true,
+		Subjects:          true,
+		UserMarks:         true,
+		Answers:           true,
+		Domains:           true,
+		ViewCount:         true,
+		IncomingMarkCount: true,
+		Mastery:           true,
+		UsedAsMastery:     true,
+		Creators:          true,
+		NextPrevIds:       true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
-		Children:     true,
-		Parents:      true,
-		Tags:         true,
-		Lenses:       true,
-		Requirements: true,
-		Subjects:     true,
-		ChangeLogs:   true,
-		Links:        true,
-		Text:         true,
+		Children:          true,
+		Parents:           true,
+		Tags:              true,
+		Lenses:            true,
+		Requirements:      true,
+		Subjects:          true,
+		ChangeLogs:        true,
+		SearchStrings:     true,
+		Links:             true,
+		IncomingMarkCount: true,
+		Text:              true,
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
@@ -96,12 +104,13 @@ var (
 		SubpageCounts: true,
 		Requirements:  true,
 		Subjects:      true,
+		UserMarks:     true,
 		ViewCount:     true,
 		Mastery:       true,
 		Creators:      true,
 		UsedAsMastery: true,
 	}).Add(SubpageLoadOptions)
-	// Options for loading a subpage (like a comment or answer)
+	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{
 		Comments:        true,
 		Links:           true,
@@ -123,6 +132,10 @@ var (
 	// Options for loading info about a lens
 	LensInfoLoadOptions = (&PageLoadOptions{
 		Requirements: true,
+	}).Add(TitlePlusLoadOptions)
+	// Options for loading an answer
+	AnswerLoadOptions = (&PageLoadOptions{
+		SubpageCounts: true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading a page to display the title + some additional info.
 	TitlePlusLoadOptions = &PageLoadOptions{

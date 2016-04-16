@@ -12,8 +12,8 @@ import (
 
 // newMemberData contains data given to us in the request.
 type newMemberData struct {
-	GroupId string
-	UserInput  string
+	GroupId   string
+	UserInput string
 }
 
 var newMemberHandler = siteHandler{
@@ -84,7 +84,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return pages.HandlerErrorFail("Couldn't find the user", nil)
 		}
 	}
-	
+
 	// Update groupMembers table
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = newMemberId
@@ -101,7 +101,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	task.UpdateType = core.AddedToGroupUpdateType
 	task.MemberId = newMemberId
 	task.GroupId = data.GroupId
-	if err := tasks.Enqueue(c, &task, "memberUpdate"); err != nil {
+	if err := tasks.Enqueue(c, &task, nil); err != nil {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 

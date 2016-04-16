@@ -4,12 +4,17 @@ package tasks
 import (
 	"fmt"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
 )
 
 // PopulateElasticTask is the object that's put into the daemon queue.
 type PopulateElasticTask struct {
+}
+
+func (task *PopulateElasticTask) Tag() string {
+	return "populateElastic"
 }
 
 // Check if this task is valid, and we can safely execute it.
@@ -64,6 +69,17 @@ func populateElasticProcessPage(db *database.DB, rows *database.Rows) error {
 	if err := rows.Scan(&doc.PageId, &doc.Type, &doc.Title, &doc.Clickbait,
 		&doc.Text, &doc.Alias, &doc.SeeGroupId, &doc.CreatorId); err != nil {
 		return fmt.Errorf("failed to scan for page: %v", err)
+	}
+
+	// Load search strings
+	pageMap := make(map[string]*core.Page)
+	p := core.AddPageIdToMap(doc.PageId, pageMap)
+	if err := core.LoadSearchStrings(db, pageMap); err != nil {
+		return fmt.Errorf("LoadSearchStrings failed: %v", err)
+	}
+	doc.SearchStrings = make([]string, 0)
+	for _, str := range p.SearchStrings {
+		doc.SearchStrings = append(doc.SearchStrings, str)
 	}
 
 	return elastic.AddPageToIndex(db.C, doc)

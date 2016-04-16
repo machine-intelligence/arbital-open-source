@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"time"
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
@@ -13,6 +14,7 @@ import (
 
 // QueueTask is the object that's put into the daemon queue.
 type QueueTask interface {
+	Tag() string
 	IsValid() error
 	// If the int returned is:
 	// > 0:  the task will be put back into the queue with the given number of seconds
@@ -21,34 +23,41 @@ type QueueTask interface {
 	Execute(db *database.DB) (int, error)
 }
 
+// TaskOptions specify how to add a task to the queue.
+type TaskOptions struct {
+	// Optional vars.
+	Name  string
+	Delay time.Duration
+}
+
 // Add the task to the queue.
-func EnqueueWithName(c sessions.Context, task QueueTask, tag string, name string) (err error) {
-	if err = task.IsValid(); err != nil {
-		err = fmt.Errorf("Attempting to enqueue invalid task: %v", err)
-		return
+func Enqueue(c sessions.Context, task QueueTask, options *TaskOptions) error {
+	if options == nil {
+		options = &TaskOptions{}
+	}
+	if err := task.IsValid(); err != nil {
+		return fmt.Errorf("Attempting to enqueue invalid task: %v", err)
 	}
 	buffer := new(bytes.Buffer)
-	err = gob.NewEncoder(buffer).Encode(task)
+	err := gob.NewEncoder(buffer).Encode(task)
 	if err != nil {
-		err = fmt.Errorf("Couldn't encode the task.")
-		return
+		return fmt.Errorf("Couldn't encode the task.")
 	}
 	newTask := &taskqueue.Task{
 		Method:  "PULL",
 		Payload: buffer.Bytes(),
-		Tag:     tag,
-		Name:    name}
+		Tag:     task.Tag(),
+		Delay:   options.Delay,
+	}
+	if options.Name != "" {
+		newTask.Name = options.Name
+	}
+
 	newTask, err = taskqueue.Add(c, newTask, "daemonQueue")
 	if err != nil {
-		err = fmt.Errorf("Failed to insert task: %v", err)
-		return
+		return fmt.Errorf("Failed to insert task: %v", err)
 	}
-	return
-}
-
-// Add the task to the queue.
-func Enqueue(c sessions.Context, task QueueTask, tag string) (err error) {
-	return EnqueueWithName(c, task, tag, "")
+	return nil
 }
 
 // Convert byte stream into a QueueTask.

@@ -36,6 +36,7 @@ const (
 	AtMentionUpdateType        = "atMention"
 	AddedToGroupUpdateType     = "addedToGroup"
 	RemovedFromGroupUpdateType = "removedFromGroup"
+	NewMarkUpdateType          = "newMark"
 	DeletePageUpdateType       = "deletePage"
 	// ROGTODO: do we need this as well?
 	// DeleteCommentUpdateType       = "deleteComment"
@@ -53,6 +54,7 @@ type UpdateRow struct {
 	Unseen             bool
 	SubscribedToId     string
 	GoToPageId         string
+	MarkId             string
 	IsGoToPageAlive    bool
 	SettingsChangeType string
 	OldSettingsValue   string
@@ -76,6 +78,7 @@ type UpdateEntry struct {
 	SubscribedToId     string `json:"subscribedToId"`
 	GoToPageId         string `json:"goToPageId"`
 	IsGoToPageAlive    bool   `json:"isGoToPageAlive"`
+	MarkId             string `json:"markId"`
 	SettingsChangeType string `json:"settingsChangeType"`
 	OldSettingsValue   string `json:"oldSettingsValue"`
 	NewSettingsValue   string `json:"newSettingsValue"`
@@ -103,7 +106,7 @@ type UpdateData struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, forEmail bool) ([]*UpdateRow, error) {
+func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerData, forEmail bool) ([]*UpdateRow, error) {
 	emailFilter := ""
 	if forEmail {
 		emailFilter = "AND unseen AND NOT emailed"
@@ -121,7 +124,7 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 	updateRows := make([]*UpdateRow, 0, 0)
 	rows := db.NewStatement(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
-			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,
+			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
 			SUM(pages.isLiveEdit) > 0 AS isGoToPageAlive,
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
@@ -137,20 +140,26 @@ func LoadUpdateRows(db *database.DB, userId string, pageMap map[string]*Page, us
 		var row UpdateRow
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId, &row.IsGoToPageAlive, &row.SettingsChangeType, &row.OldSettingsValue, &row.NewSettingsValue)
+			&row.GoToPageId, &row.MarkId, &row.IsGoToPageAlive, &row.SettingsChangeType,
+			&row.OldSettingsValue, &row.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
-		AddPageToMap(row.GoToPageId, pageMap, goToPageLoadOptions)
-		AddPageToMap(row.GroupByPageId, pageMap, groupLoadOptions)
-		AddPageToMap(row.SubscribedToId, pageMap, groupLoadOptions)
+		AddPageToMap(row.GoToPageId, resultData.PageMap, goToPageLoadOptions)
+		AddPageToMap(row.GroupByPageId, resultData.PageMap, groupLoadOptions)
+		AddPageToMap(row.SubscribedToId, resultData.PageMap, groupLoadOptions)
 
-		userMap[row.UserId] = &User{Id: row.UserId}
+		resultData.UserMap[row.UserId] = &User{Id: row.UserId}
 		if IsIdValid(row.ByUserId) {
-			userMap[row.ByUserId] = &User{Id: row.ByUserId}
+			resultData.UserMap[row.ByUserId] = &User{Id: row.ByUserId}
 		}
 		if IsIdValid(row.GroupByUserId) {
-			userMap[row.GroupByUserId] = &User{Id: row.GroupByUserId}
+			resultData.UserMap[row.GroupByUserId] = &User{Id: row.GroupByUserId}
+		}
+		if row.MarkId == "0" {
+			row.MarkId = ""
+		} else {
+			resultData.AddMark(row.MarkId)
 		}
 		updateRows = append(updateRows, &row)
 		return nil
@@ -213,11 +222,15 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 				SubscribedToId:     row.SubscribedToId,
 				GoToPageId:         row.GoToPageId,
 				IsGoToPageAlive:    row.IsGoToPageAlive,
+				MarkId:             row.MarkId,
 				SettingsChangeType: row.SettingsChangeType,
 				OldSettingsValue:   row.OldSettingsValue,
 				NewSettingsValue:   row.NewSettingsValue,
 				CreatedAt:          row.CreatedAt,
 				IsVisited:          pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
+			}
+			if entry.MarkId != "" {
+				entry.ByUserId = ""
 			}
 			group.Updates = append(group.Updates, entry)
 		}
@@ -249,7 +262,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	handlerData := NewHandlerData(u, true)
 
 	// Load updates and populate the maps
-	resultData.UpdateRows, err = LoadUpdateRows(db, u.Id, handlerData.PageMap, handlerData.UserMap, true)
+	resultData.UpdateRows, err = LoadUpdateRows(db, u.Id, handlerData, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
 	}
