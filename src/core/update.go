@@ -37,6 +37,8 @@ const (
 	AddedToGroupUpdateType     = "addedToGroup"
 	RemovedFromGroupUpdateType = "removedFromGroup"
 	DeletePageUpdateType       = "deletePage"
+	// ROGTODO: do we need this as well?
+	// DeleteCommentUpdateType       = "deleteComment"
 )
 
 // UpdateRow is a row from updates table

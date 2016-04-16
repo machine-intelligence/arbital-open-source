@@ -40,51 +40,19 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 	c.Debugf("==== PROPAGATE DOMAIN START ====")
 	defer c.Debugf("==== PROPAGATE DOMAIN COMPLETED SUCCESSFULLY ====")
 
-	// Compute what pages we need to process
-	affectedPageIds := make([]string, 0)
-	affectedPageIds = append(affectedPageIds, task.PageId)
-	if task.Deleted {
-		// If we are deleting the page, then remember the children, and then delete
-		// the relationships.
-		rows := db.NewStatement(`
-			SELECT childId
-			FROM pagePairs
-			WHERE parentId=? AND (type=? OR type=?)`).Query(task.PageId, core.ParentPagePairType, core.TagPagePairType)
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var childId string
-			if err := rows.Scan(&childId); err != nil {
-				return fmt.Errorf("failed to scan for childId: %v", err)
-			}
-			affectedPageIds = append(affectedPageIds, childId)
-			return nil
-		})
-		if err != nil {
-			return -1, fmt.Errorf("Faled to load pageDomainPairs: %v", err)
-		}
-
-		// Delete all relationships.
-		statement := db.NewStatement(`
-			DELETE FROM pagePairs
-			WHERE parentId=? OR childId=?`)
-		if _, err := statement.Exec(task.PageId, task.PageId); err != nil {
-			return -1, fmt.Errorf("Couldn't delete page pairs: %v", err)
-		}
-	}
-
 	// Process the first page.
 	// Map of pageId -> whether or not we processed the children
 	pageMap := make(map[string]bool)
-	for _, pageId := range affectedPageIds {
-		err = propagateDomainToPage(db, pageId, pageMap)
-		if err != nil {
-			return -1, fmt.Errorf("Error propagating domain: %v", err)
-		}
+	err = propagateDomainToPage(db, task.PageId, pageMap)
+	if err != nil {
+		return -1, fmt.Errorf("Error propagating domain: %v", err)
 	}
 
 	return 0, nil
 }
 
 // propagateDomainToPage forces domain recalculation for the given page.
+// It uses a depth-first search to process the children of the page.
 func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bool) error {
 	db.C.Infof("Processing %s", pageId)
 	processedChildren, processedPage := pageMap[pageId]

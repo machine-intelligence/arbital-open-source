@@ -53,6 +53,7 @@ const (
 	NewTeacherChangeLog        = "newTeacher"
 	DeleteTeacherChangeLog     = "deleteTeacher"
 	DeletePageChangeLog        = "deletePage"
+	UndeletePageChangeLog      = "undeletePage"
 	NewEditChangeLog           = "newEdit"
 	RevertEditChangeLog        = "revertEdit"
 	NewSnapshotChangeLog       = "newSnapshot"

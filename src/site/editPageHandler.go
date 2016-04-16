@@ -83,7 +83,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	// If the client think the current edit is X, but it's actually Y (X!=Y), then
+	// If the client think the current edit is X, but it's actually Y where X!=Y
+	// (e.g. if someone else published a new version since we started editing), then
 	if oldPage.WasPublished && data.CurrentEdit != oldPage.Edit {
 		// Notify the client with an error
 		returnData.ResultMap["obsoleteEdit"] = oldPage
@@ -108,13 +109,14 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
 	isLiveEdit := !data.IsAutosave && !data.IsSnapshot
 	newEditNum := oldPage.MaxEditEver + 1
-	if myLastAutosaveEdit.Valid {
-		// ... unless we can just replace a existing autosave.
-		newEditNum = int(myLastAutosaveEdit.Int64)
-	}
-	if data.RevertToEdit > 0 {
-		// ... or unless we are reverting an edit
+	if oldPage.IsDeleted {
+		newEditNum = data.CurrentEdit
+	} else if data.RevertToEdit > 0 {
+		// ... unless we are reverting an edit
 		newEditNum = data.RevertToEdit
+	} else if myLastAutosaveEdit.Valid {
+		// ... or unless we can just replace an existing autosave.
+		newEditNum = int(myLastAutosaveEdit.Int64)
 	}
 
 	// Set the see-group
@@ -241,7 +243,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	isMinorEdit := data.IsMinorEditStr == "on"
 
 	// Check if something is actually different from live edit
-	if isLiveEdit && oldPage.WasPublished {
+	if isLiveEdit && oldPage.WasPublished && !oldPage.IsDeleted {
 		if data.Title == oldPage.Title &&
 			data.Clickbait == oldPage.Clickbait &&
 			data.Text == oldPage.Text &&
@@ -333,6 +335,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Update pageInfos
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
+		if isLiveEdit && oldPage.IsDeleted {
+			hashmap["isDeleted"] = false
+		}
 		if !oldPage.WasPublished && isLiveEdit {
 			hashmap["createdAt"] = database.Now()
 			hashmap["createdBy"] = u.Id
@@ -360,7 +365,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["edit"] = newEditNum
 		hashmap["userId"] = u.Id
 		hashmap["createdAt"] = database.Now()
-		if data.RevertToEdit != 0 {
+		if oldPage.IsDeleted {
+			hashmap["type"] = core.UndeletePageChangeLog
+		} else if data.RevertToEdit != 0 {
 			hashmap["type"] = core.RevertEditChangeLog
 		} else if data.IsSnapshot {
 			hashmap["type"] = core.NewSnapshotChangeLog
@@ -424,6 +431,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			c.Errorf("failed to update index: %v", err)
 		}
 
+		// ROGTODO: send undelete update if oldPage.IsDeleted
 		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !isMinorEdit {
 			var task tasks.NewUpdateTask
@@ -484,6 +492,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
+		// ROGTODO: send updates if oldPage.IsDeleted
 		// Do some stuff for a new comment.
 		if !oldPage.WasPublished && oldPage.Type == core.CommentPageType {
 			// Send updates.
@@ -524,7 +533,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Create a task to propagate the domain change to all children
-		if !oldPage.WasPublished {
+		if oldPage.IsDeleted || !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
 			task.PageId = data.PageId
 			if err := tasks.Enqueue(c, &task, "propagateDomain"); err != nil {
