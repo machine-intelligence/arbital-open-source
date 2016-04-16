@@ -1177,6 +1177,8 @@ type LoadChildIdsOptions struct {
 	PagePairType string
 	// Load options to set for the new pages
 	LoadOptions *PageLoadOptions
+	// Whether to skip relationships that have already had updates created for them
+	SkipPublishedRelationships bool
 }
 
 // LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
@@ -1185,36 +1187,53 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *user.User, optio
 	if len(sourcePageMap) <= 0 {
 		return nil
 	}
+
+	neverPublishedFilter := ""
+	if options.SkipPublishedRelationships {
+		neverPublishedFilter = "NOT everPublished AND "
+	}
+
+	pairTypeFilter := ""
+	if options.PagePairType != "" {
+		pairTypeFilter = "type = '" + options.PagePairType + "' AND"
+	}
+
+	pageTypeFilter := ""
+	if options.Type != "" {
+		pageTypeFilter = "AND pi.type = '" + options.Type + "'"
+	}
+
 	pageIds := PageIdsListFromMap(sourcePageMap)
 	rows := database.NewQuery(`
-		SELECT pp.parentId,pp.childId,pp.type
+		SELECT pp.parentId,pp.childId,pp.type,pi.type
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE type=?`, options.PagePairType).Add(`AND parentId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE `).Add(neverPublishedFilter).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pageInfos AS pi
-		ON (pi.pageId=pp.childId AND pi.currentEdit>0 AND NOT pi.isDeleted AND pi.type=?)`, options.Type).Add(`
+		ON pi.pageId=pp.childId AND pi.currentEdit>0 AND NOT pi.isDeleted `).Add(pageTypeFilter).Add(`
 		WHERE (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId string
 		var ppType string
-		err := rows.Scan(&parentId, &childId, &ppType)
+		var piType string
+		err := rows.Scan(&parentId, &childId, &ppType, &piType)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
 		newPage := AddPageToMap(childId, pageMap, options.LoadOptions)
 
 		parent := sourcePageMap[parentId]
-		if options.Type == LensPageType {
+		if piType == LensPageType {
 			parent.LensIds = append(parent.LensIds, newPage.PageId)
 			newPage.ParentIds = append(newPage.ParentIds, parent.PageId)
-		} else if options.Type == CommentPageType {
+		} else if piType == CommentPageType {
 			parent.CommentIds = append(parent.CommentIds, newPage.PageId)
-		} else if options.Type == QuestionPageType {
+		} else if piType == QuestionPageType {
 			parent.QuestionIds = append(parent.QuestionIds, newPage.PageId)
-		} else if options.Type == WikiPageType && options.PagePairType == ParentPagePairType {
+		} else if piType == WikiPageType && ppType == ParentPagePairType {
 			parent.ChildIds = append(parent.ChildIds, childId)
 			parent.HasChildren = true
 			if parent.LoadOptions.HasGrandChildren {
@@ -1223,7 +1242,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *user.User, optio
 			if parent.LoadOptions.RedLinkCountForChildren {
 				newPage.LoadOptions.RedLinkCount = true
 			}
-		} else if options.Type == WikiPageType && options.PagePairType == TagPagePairType {
+		} else if piType == WikiPageType && ppType == TagPagePairType {
 			parent.RelatedIds = append(parent.RelatedIds, childId)
 		}
 		return nil
@@ -1310,6 +1329,8 @@ type LoadParentIdsOptions struct {
 	LoadOptions *PageLoadOptions
 	// Mastery map to populate with masteries necessary for a requirement
 	MasteryMap map[string]*Mastery
+	// Whether to skip relationships that have already had updates created for them
+	SkipPublishedRelationships bool
 }
 
 // LoadParentIds loads the page ids for all the parents of the pages in the given pageMap.
@@ -1319,6 +1340,16 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, opti
 		return nil
 	}
 
+	neverPublishedFilter := ""
+	if options.SkipPublishedRelationships {
+		neverPublishedFilter = "NOT everPublished AND "
+	}
+
+	pairTypeFilter := ""
+	if options.PagePairType != "" {
+		pairTypeFilter = "type = '" + options.PagePairType + "' AND"
+	}
+
 	pageIds := PageIdsListFromMap(sourcePageMap)
 	newPages := make(map[string]*Page)
 	rows := database.NewQuery(`
@@ -1326,13 +1357,14 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, opti
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE type=?`, options.PagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE `).Add(neverPublishedFilter).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN pageInfos AS pi
-		ON (pi.pageId=pp.parentId)`).Add(`
+		ON (pi.pageId=pp.parentId)
 		WHERE (pi.seeGroupId="" OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 			AND ((pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId)
 		`).ToStatement(db).Query()
+
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId, childId string
 		var ppType string
@@ -1341,18 +1373,18 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, opti
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
 		newPage := AddPageToMap(parentId, pageMap, options.LoadOptions)
-		childPage := pageMap[childId]
+		childPage := sourcePageMap[childId]
 
-		if options.PagePairType == ParentPagePairType {
+		if ppType == ParentPagePairType {
 			childPage.ParentIds = append(childPage.ParentIds, parentId)
 			childPage.HasParents = true
 			newPages[newPage.PageId] = newPage
-		} else if options.PagePairType == RequirementPagePairType {
+		} else if ppType == RequirementPagePairType {
 			childPage.RequirementIds = append(childPage.RequirementIds, parentId)
 			options.MasteryMap[parentId] = &Mastery{PageId: parentId}
-		} else if options.PagePairType == TagPagePairType {
+		} else if ppType == TagPagePairType {
 			childPage.TaggedAsIds = append(childPage.TaggedAsIds, parentId)
-		} else if options.PagePairType == SubjectPagePairType {
+		} else if ppType == SubjectPagePairType {
 			childPage.SubjectIds = append(childPage.SubjectIds, parentId)
 			options.MasteryMap[parentId] = &Mastery{PageId: parentId}
 		}

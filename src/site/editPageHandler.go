@@ -191,16 +191,25 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
+	// Load relationships so we can send notifications on a page that had relationships but is being published for the first time.
+	// Also send notifications if we undelete a page that has had new relationships created since it was deleted.
 	primaryPageMap := make(map[string]*core.Page)
 	primaryPage := core.AddPageIdToMap(data.PageId, primaryPageMap)
 	pageMap := make(map[string]*core.Page)
-	if isLiveEdit && !oldPage.WasPublished {
+	core.AddPageIdToMap(data.PageId, pageMap)
+	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
 		// Load parents and children.
-		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{
+			ForPages:                   primaryPageMap,
+			LoadOptions:                core.EmptyLoadOptions,
+			SkipPublishedRelationships: true})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load parents", err)
 		}
-		err = core.LoadChildIds(db, pageMap, u, &core.LoadChildIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadChildIds(db, pageMap, u, &core.LoadChildIdsOptions{
+			ForPages:                   primaryPageMap,
+			LoadOptions:                core.EmptyLoadOptions,
+			SkipPublishedRelationships: true})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load children", err)
 		}
@@ -464,30 +473,24 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Do some stuff for a new parent/child.
-		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType {
-			// Generate updates for users who are subscribed to the parent pages.
-			for _, parentIdStr := range primaryPage.ParentIds {
-				var task tasks.NewUpdateTask
-				task.UserId = u.Id
-				task.UpdateType = core.NewChildUpdateType
-				task.GroupByPageId = parentIdStr
-				task.SubscribedToId = parentIdStr
-				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
-					c.Errorf("Couldn't enqueue a task: %v", err)
-				}
-			}
-
-			// Generate updates for users who are subscribed to the child pages.
-			for _, childIdStr := range primaryPage.ChildIds {
-				var task tasks.NewUpdateTask
-				task.UserId = u.Id
-				task.UpdateType = core.NewParentUpdateType
-				task.GroupByPageId = childIdStr
-				task.SubscribedToId = childIdStr
-				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
-					c.Errorf("Couldn't enqueue a task: %v", err)
+		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
+			// Generate updates for users who are subscribed to related pages.
+			relationshipMap := make(map[string][]string)
+			relationshipMap[core.NewChildUpdateType] = primaryPage.ParentIds
+			relationshipMap[core.NewParentUpdateType] = primaryPage.ChildIds
+			// ROGTODO: rest of the update types
+			for updateType, ids := range relationshipMap {
+				for _, id := range ids {
+					c.Debugf("\n\n\nnew update: %v, %v", updateType, id)
+					var task tasks.NewUpdateTask
+					task.UserId = u.Id
+					task.UpdateType = updateType
+					task.GroupByPageId = id
+					task.SubscribedToId = id
+					task.GoToPageId = data.PageId
+					if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+						c.Errorf("Couldn't enqueue a task: %v", err)
+					}
 				}
 			}
 		}
