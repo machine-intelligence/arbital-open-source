@@ -67,6 +67,24 @@
 			Not taught by: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
 		</span>
 
+		<span ng-switch-when="searchStringChange">
+			<span ng-if="::newSettingsValue">
+				Search string added: <span ng-bind="::newSettingsValue"></span>
+			</span>
+			<span ng-if="::oldSettingsValue">
+				Search string removed: <span ng-bind="::oldSettingsValue"></span>
+			</span>
+		</span>
+
+		<span ng-switch-when="answerChange">
+			<span ng-if="::newSettingsValue">
+				Answer added: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			</span>
+			<span ng-if="::oldSettingsValue">
+				Answer removed: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			</span>
+		</span>
+
 		<!-- Settings changes -->
 
 		<span ng-switch-when="newAlias">
@@ -224,6 +242,11 @@
 				mark-id="{{::markId}}">
 		</div>
 
+		<div ng-switch-when="resolvedMark"
+				arb-confusion-window
+				mark-id="{{::markId}}">
+		</div>
+
 		<!-- Unknown -->
 
 		<span ng-switch-default class="md-warn">
@@ -244,7 +267,7 @@
 			<span ng-switch-when="addedToGroup"></span>
 			<span ng-switch-when="removedFromGroup"></span>
 			<span ng-switch-default>
-			<arb-user-name user-id="{{::userId}}" ng-if="::showUserLink && !!userId"></arb-user-name>
+				<arb-user-name user-id="{{::userId}}" ng-if="::showUserLink && !!userId"></arb-user-name>
 			</span>
 		</span>
 

@@ -36,33 +36,35 @@ const (
 	ApprovalVoteType    = "approval"
 
 	// Various events we log when a page changes
-	NewParentChangeLog         = "newParent"
-	DeleteParentChangeLog      = "deleteParent"
-	NewChildChangeLog          = "newChild"
-	DeleteChildChangeLog       = "deleteChild"
-	NewTagChangeLog            = "newTag"
-	DeleteTagChangeLog         = "deleteTag"
-	NewUsedAsTagChangeLog      = "newUsedAsTag"
-	DeleteUsedAsTagChangeLog   = "deleteUsedAsTag"
-	NewRequirementChangeLog    = "newRequirement"
-	DeleteRequirementChangeLog = "deleteRequirement"
-	NewRequiredByChangeLog     = "newRequiredBy"
-	DeleteRequiredByChangeLog  = "deleteRequiredBy"
-	NewSubjectChangeLog        = "newSubject"
-	DeleteSubjectChangeLog     = "deleteSubject"
-	NewTeacherChangeLog        = "newTeacher"
-	DeleteTeacherChangeLog     = "deleteTeacher"
-	DeletePageChangeLog        = "deletePage"
-	NewEditChangeLog           = "newEdit"
-	RevertEditChangeLog        = "revertEdit"
-	NewSnapshotChangeLog       = "newSnapshot"
-	NewAliasChangeLog          = "newAlias"
-	NewSortChildrenByChangeLog = "newSortChildrenBy"
-	TurnOnVoteChangeLog        = "turnOnVote"
-	TurnOffVoteChangeLog       = "turnOffVote"
-	SetVoteTypeChangeLog       = "setVoteType"
-	NewEditKarmaLockChangeLog  = "newEditKarmaLock"
-	NewEditGroupChangeLog      = "newEditGroup"
+	NewParentChangeLog          = "newParent"
+	DeleteParentChangeLog       = "deleteParent"
+	NewChildChangeLog           = "newChild"
+	DeleteChildChangeLog        = "deleteChild"
+	NewTagChangeLog             = "newTag"
+	DeleteTagChangeLog          = "deleteTag"
+	NewUsedAsTagChangeLog       = "newUsedAsTag"
+	DeleteUsedAsTagChangeLog    = "deleteUsedAsTag"
+	NewRequirementChangeLog     = "newRequirement"
+	DeleteRequirementChangeLog  = "deleteRequirement"
+	NewRequiredByChangeLog      = "newRequiredBy"
+	DeleteRequiredByChangeLog   = "deleteRequiredBy"
+	NewSubjectChangeLog         = "newSubject"
+	DeleteSubjectChangeLog      = "deleteSubject"
+	NewTeacherChangeLog         = "newTeacher"
+	DeleteTeacherChangeLog      = "deleteTeacher"
+	DeletePageChangeLog         = "deletePage"
+	NewEditChangeLog            = "newEdit"
+	RevertEditChangeLog         = "revertEdit"
+	NewSnapshotChangeLog        = "newSnapshot"
+	NewAliasChangeLog           = "newAlias"
+	NewSortChildrenByChangeLog  = "newSortChildrenBy"
+	TurnOnVoteChangeLog         = "turnOnVote"
+	TurnOffVoteChangeLog        = "turnOffVote"
+	SetVoteTypeChangeLog        = "setVoteType"
+	NewEditKarmaLockChangeLog   = "newEditKarmaLock"
+	NewEditGroupChangeLog       = "newEditGroup"
+	SearchStringChangeChangeLog = "searchStringChange"
+	AnswerChangeChangeLog       = "answerChange"
 
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
@@ -197,9 +199,9 @@ type Page struct {
 	Answers []*Answer `json:"answers"`
 
 	// Various counts (these might be zeroes if not loaded explicitly)
-	AnswerCount       int `json:"answerCount"`
-	CommentCount      int `json:"commentCount"`
-	IncomingMarkCount int `json:"incomingMarkCount"`
+	AnswerCount     int `json:"answerCount"`
+	CommentCount    int `json:"commentCount"`
+	LinkedMarkCount int `json:"linkedMarkCount"`
 
 	// List of changes to this page
 	ChangeLogs []*ChangeLog `json:"changeLogs"`
@@ -263,9 +265,18 @@ type PageObject struct {
 // answers the question.
 type Answer struct {
 	Id           int64  `json:"id,string"`
+	QuestionId   string `json:"questionId"`
 	AnswerPageId string `json:"answerPageId"`
 	UserId       string `json:"userId"`
 	CreatedAt    string `json:"createdAt"`
+}
+
+// SearchString is attached to a question page to help with directing users
+// towards it via search or marks.
+type SearchString struct {
+	Id     int64
+	PageId string
+	Text   string
 }
 
 // CommonHandlerData is what handlers fill out and return
@@ -586,10 +597,10 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load incoming mark count
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IncomingMarkCount && p.Type == QuestionPageType })
-	err = LoadIncomingMarkCounts(db, filteredPageMap)
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LinkedMarkCount && p.Type == QuestionPageType })
+	err = LoadLinkedMarkCounts(db, filteredPageMap)
 	if err != nil {
-		return fmt.Errorf("LoadIncomingMarkCounts failed: %v", err)
+		return fmt.Errorf("LoadLinkedMarkCounts failed: %v", err)
 	}
 
 	// Load prev/next ids
@@ -794,8 +805,8 @@ func LoadSummaries(db *database.DB, pageMap map[string]*Page) error {
 	return err
 }
 
-// LoadIncomingMarkCounts loads the number of marks that link to these questions.
-func LoadIncomingMarkCounts(db *database.DB, pageMap map[string]*Page) error {
+// LoadLinkedMarkCounts loads the number of marks that link to these questions.
+func LoadLinkedMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -813,7 +824,7 @@ func LoadIncomingMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		pageMap[resolvedPageId].IncomingMarkCount = count
+		pageMap[resolvedPageId].LinkedMarkCount = count
 		return nil
 	})
 	return err
@@ -1022,6 +1033,23 @@ func LoadSearchStrings(db *database.DB, pageMap map[string]*Page) error {
 		return nil
 	})
 	return err
+}
+
+// LoadSearchString loads just one search string given its id
+func LoadSearchString(db *database.DB, id string) (*SearchString, error) {
+	var searchString SearchString
+	rows := db.NewStatement(`
+		SELECT id,pageId,text
+		FROM searchStrings
+		WHERE id=?`).Query(id)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		err := rows.Scan(&searchString.Id, &searchString.PageId, &searchString.Text)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		return nil
+	})
+	return &searchString, err
 }
 
 // LoadViewCounts loads view counts for the pages
@@ -1285,29 +1313,33 @@ func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*
 		return nil
 	}
 
-	// Load all links.
 	rows := db.NewStatement(`
 		SELECT id,questionId,answerPageId,userId,createdAt
 		FROM answers
 		WHERE questionId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var id int64
-		var questionId, answerPageId, userId, createdAt string
-		err := rows.Scan(&id, &questionId, &answerPageId, &userId, &createdAt)
+		var answer Answer
+		err := rows.Scan(&answer.Id, &answer.QuestionId, &answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		AddPageToMap(answerPageId, pageMap, AnswerLoadOptions)
-		userMap[userId] = &User{Id: userId}
-		pageMap[questionId].Answers = append(pageMap[questionId].Answers, &Answer{
-			Id:           id,
-			AnswerPageId: answerPageId,
-			UserId:       userId,
-			CreatedAt:    createdAt,
-		})
+		AddPageToMap(answer.AnswerPageId, pageMap, AnswerLoadOptions)
+		userMap[answer.UserId] = &User{Id: answer.UserId}
+		pageMap[answer.QuestionId].Answers = append(pageMap[answer.QuestionId].Answers, &answer)
 		return nil
 	})
 	return err
+}
+
+// LoadAnswer just loads the data for one specific answer.
+func LoadAnswer(db *database.DB, answerId string) (*Answer, error) {
+	var answer Answer
+	_, err := db.NewStatement(`
+		SELECT id,questionId,answerPageId,userId,createdAt
+		FROM answers
+		WHERE id=?`).QueryRow(answerId).Scan(&answer.Id, &answer.QuestionId,
+		&answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
+	return &answer, err
 }
 
 // LoadMarkIds loads all the marks owned by the given user

@@ -261,14 +261,24 @@
 								Add string
 							</md-button>
 						</div>
+					</div>
 
-						<!-- Info about how many incoming marks there are. -->
+					<!-- Info about how many incoming marks there are. -->
+					<div ng-if="isQuestion">
+						<div class="md-subhead">
+							<arb-page-title page-id="370"
+									is-link="true"
+									custom-page-title="'Linked marks'"></arb-page-title>
+						</div>
 						<span>
-							{{pageService.pageMap[page.pageId].incomingMarkCount}} 
-							<ng-pluralize count="pageService.pageMap[page.pageId].incomingMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+							{{pageService.pageMap[page.pageId].linkedMarkCount}} 
+							<ng-pluralize count="pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 							linked to this question.
 						</span>
 					</div>
+
+					<br>
+					<br>
 
 				</div>
 			</md-tab>
