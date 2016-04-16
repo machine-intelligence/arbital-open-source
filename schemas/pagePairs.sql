@@ -20,8 +20,10 @@ CREATE TABLE pagePairs (
 		is the child.*/
 	type VARCHAR(32) NOT NULL,
 
-	/* A pair is considered published once its parent and child both have
-		pageInfos.currentEdit>0 and not pageInfos.isDeleted. */
+	/* A pair is considered published the first time its parent and child
+		are both published and not deleted. (Once everPublisehd is set to
+		true, it does not going back to being false even if its parent
+		and child pages are deleted.) */
 	everPublished BOOLEAN NOT NULL,
 
 	UNIQUE(parentId, childId, type),
