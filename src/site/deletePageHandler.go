@@ -65,30 +65,6 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		// Delete all pairs
-		rows := database.NewQuery(`
-			SELECT parentId,childId,type
-			FROM pagePairs
-			WHERE parentId=? OR childId=?`, data.PageId, data.PageId).ToStatement(db).Query()
-		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId, childId string
-			var pairType string
-			err := rows.Scan(&parentId, &childId, &pairType)
-			if err != nil {
-				return fmt.Errorf("failed to scan: %v", err)
-			}
-			errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-				return deletePagePair(tx, u.Id, parentId, childId, pairType)
-			})
-			if errMessage != "" {
-				return fmt.Errorf("%s: %v", errMessage, err)
-			}
-			return nil
-		})
-		if err != nil {
-			return "Couldn't load pairs: %v", err
-		}
-
 		// Clear the current edit in pages
 		statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
 		if _, err = statement.Exec(data.PageId); err != nil {
@@ -147,7 +123,6 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Create a task to propagate the domain change to all children
 	var task tasks.PropagateDomainTask
 	task.PageId = data.PageId
-	task.Deleted = true
 	if err := tasks.Enqueue(params.C, &task, "propagateDomain"); err != nil {
 		return pages.HandlerErrorFail("Couldn't enqueue a task: %v", err)
 	}
