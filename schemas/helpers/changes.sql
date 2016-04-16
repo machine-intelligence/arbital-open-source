@@ -117,3 +117,9 @@ CREATE TABLE userRequisitePairSnapshots (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table marks add column text mediumtext not null;
+
+alter table pagePairs add column everPublished boolean not null;
+update pagePairs set everPublished = 1
+where
+	parentId not in (select pageId from pageInfos where currentEdit <= 0) and
+	childId not in (select pageId from pageInfos where currentEdit <= 0);

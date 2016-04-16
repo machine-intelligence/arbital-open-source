@@ -14,8 +14,15 @@ CREATE TABLE pagePairs (
 		tag: parentId is a tag of childId
 		requirement: parentId is a requirement of childId
 		subject: parentId is a subject that childId teaches
-		Easy way to memorize: {parentId} is {childId}'s {type} */
+		Easy way to memorize: {parentId} is {childId}'s {type}
+		Other way to memorize: for each of the relationships you can add
+		on the relationship tab of the edit page, the page you're editing
+		is the child.*/
 	type VARCHAR(32) NOT NULL,
+
+	/* A pair is considered published once its parent and child both have
+		pageInfos.currentEdit>0 and not pageInfos.isDeleted. */
+	everPublished BOOLEAN NOT NULL,
 
 	UNIQUE(parentId, childId, type),
 

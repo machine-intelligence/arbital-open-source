@@ -308,6 +308,28 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
+		if isLiveEdit {
+			// set pagePairs.everPublished where the current page is the child (and the parent is already published)
+			statement = database.NewQuery(`
+				UPDATE pagePairs, pageInfos SET pagePairs.everPublished = 1
+				WHERE pagePairs.parentId = pageInfos.pageId
+					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
+					AND pagePairs.childId=?`, data.PageId).ToTxStatement(tx)
+			if _, err := statement.Exec(); err != nil {
+				return "Couldn't set everPublished on pagePairs", err
+			}
+
+			// set pagePairs.everPublished where the current page is the parent (and the child is already published)
+			statement = database.NewQuery(`
+				UPDATE pagePairs, pageInfos SET pagePairs.everPublished = 1
+				WHERE pagePairs.childId = pageInfos.pageId
+					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
+					AND pagePairs.parentId=?`, data.PageId).ToTxStatement(tx)
+			if _, err := statement.Exec(); err != nil {
+				return "Couldn't set everPublished on pagePairs", err
+			}
+		}
+
 		// Update pageInfos
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
