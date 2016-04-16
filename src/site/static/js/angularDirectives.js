@@ -205,7 +205,7 @@ app.directive('arbPageTitle', function(pageService, userService) {
 				map = pageService.editMap;
 			} else {
 				map = pageService.pageMap;
-			};
+			}
 			$scope.page = map[$scope.pageId];
 			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
@@ -613,7 +613,7 @@ app.directive('arbLogRow', function(pageService) {
 			type: '@',
 			relatedPageId: '@',
 			isRelatedPageAlive: '=',
-			markId: "@",
+			markId: '@',
 			createdAt: '@',
 			oldSettingsValue: '@',
 			newSettingsValue: '@',

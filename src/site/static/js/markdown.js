@@ -243,7 +243,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// Convert [alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(simpleLinkRegexp, function(whole, prefix, alias) {
-				var firstAliasChar = alias.substring(0,1);
+				var firstAliasChar = alias.substring(0, 1);
 				var trimmedAlias = alias;
 				if (firstAliasChar == '-') {
 					trimmedAlias = alias.substring(1);
@@ -253,9 +253,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					var url = pageService.getPageUrl(page.pageId, {includeHost: true});
 					// Match the page title's case to the alias's case
 					if (firstAliasChar == '-') {
-						return prefix + '[' + page.title.substring(0,1).toLowerCase() + page.title.substring(1) + '](' + url + ')';
+						return prefix + '[' + page.title.substring(0, 1).toLowerCase() + page.title.substring(1) + '](' + url + ')';
 					} else {
-						return prefix + '[' + page.title.substring(0,1).toUpperCase() + page.title.substring(1) + '](' + url + ')';
+						return prefix + '[' + page.title.substring(0, 1).toUpperCase() + page.title.substring(1) + '](' + url + ')';
 					}
 				} else {
 					var url = pageService.getPageUrl(trimmedAlias, {includeHost: true});

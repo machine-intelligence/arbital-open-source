@@ -1,4 +1,4 @@
-﻿// jscs:disable
+// jscs:disable
 // needs Markdown.Converter.js at the moment
 
 (function() {

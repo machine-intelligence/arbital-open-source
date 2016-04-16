@@ -236,7 +236,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					bestParagraphIndex: 0,
 					anchorOffset: 0,
 					anchorLength: 0,
-				}
+				};
 				// Find the best paragraph
 				var bestParagraphText;
 				var bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER doesn't exist in IE
@@ -344,7 +344,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			for (var n = 0; n < scope.page.markIds.length; n++) {
 				processMark(scope.page.markIds[n]);
 			}
-			
+
 			// Process all RHS buttons to compute their position, zIndex, etc...
 			// This fixes any potential overlapping issues.
 			var preprocessInlineCommentButtons = function() {
@@ -525,7 +525,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			scope.loadedUnresolvedMarks = false;
 			scope.loadUnresolvedMarks = function() {
 				scope.loadedUnresolvedMarks = true;
-				pageService.loadUnresolvedMarks({pageId: scope.page.pageId}, function(data){
+				pageService.loadUnresolvedMarks({pageId: scope.page.pageId}, function(data) {
 					for (var markId in data.marks) {
 						processMark(markId);
 					}
@@ -563,7 +563,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					function(data) {
 						processMark(data.result.markId);
 						preprocessInlineCommentButtons();
-						$location.search("markId", data.result.markId);
+						$location.search('markId', data.result.markId);
 						showConfusionEventWindow(data.result.markId, true);
 					}
 				);

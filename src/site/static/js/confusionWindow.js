@@ -91,19 +91,19 @@ app.directive('arbConfusionWindow', function($interval, pageService, userService
 					markId: $scope.markId,
 					dismiss: true,
 				});
-				$scope.mark.resolvedPageId = "";
+				$scope.mark.resolvedPageId = '';
 				$scope.mark.resolvedBy = userService.user.id;
 				$scope.hideEventWindow();
 			};
 		},
 		link: function(scope, element, attrs) {
 			// Hide current event window, if it makes sense.
-			var isInsideEventWindow = element.closest("#events-info-div").length > 0;
+			var isInsideEventWindow = element.closest('#events-info-div').length > 0;
 			scope.hideEventWindow = function() {
 				if (isInsideEventWindow) {
 					pageService.hideEvent();
 				}
-			}
+			};
 		},
 	};
 });

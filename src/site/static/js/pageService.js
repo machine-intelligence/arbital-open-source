@@ -282,7 +282,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 
 			// Add markId argument
 			if (options.markId) {
-				url += url.indexOf("?") < 0 ? '?' : '&';
+				url += url.indexOf('?') < 0 ? '?' : '&';
 				url += 'markId=' + options.markId;
 			}
 		}
@@ -307,7 +307,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		}
 		// Add markId argument
 		if (options.markId) {
-			url += url.indexOf("?") < 0 ? '?' : '&';
+			url += url.indexOf('?') < 0 ? '?' : '&';
 			url += 'markId=' + options.markId;
 		}
 		if (options.includeHost) {
@@ -420,8 +420,8 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		}
 		// Add page's alias to the map as well, both with lowercase and uppercase first letter
 		if (pageMap && page.pageId !== page.alias) {
-			pageMap[page.alias.substring(0,1).toLowerCase() + page.alias.substring(1)] = page;
-			pageMap[page.alias.substring(0,1).toUpperCase() + page.alias.substring(1)] = page;
+			pageMap[page.alias.substring(0, 1).toLowerCase() + page.alias.substring(1)] = page;
+			pageMap[page.alias.substring(0, 1).toUpperCase() + page.alias.substring(1)] = page;
 		}
 		return page;
 	};
