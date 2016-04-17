@@ -13,18 +13,18 @@ import (
 type PopulateElasticTask struct {
 }
 
-func (task *PopulateElasticTask) Tag() string {
+func (task PopulateElasticTask) Tag() string {
 	return "populateElastic"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *PopulateElasticTask) IsValid() error {
+func (task PopulateElasticTask) IsValid() error {
 	return nil
 }
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *PopulateElasticTask) Execute(db *database.DB) (delay int, err error) {
+func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
 	delay = tickPeriod

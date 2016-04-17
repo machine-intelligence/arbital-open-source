@@ -569,6 +569,15 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				);
 			};
 
+			// Scroll down to selected markId
+			$timeout(function() {
+				var markId = $location.search().markId;
+				if (!markId) return;
+				scope.toggleInlineMark(markId);
+				var top = scope.getInlineMarkIconStyle(markId).top;
+				$('body').scrollTop(top - ($(window).height() / 2));
+			});
+
 			// Process all embedded votes
 			$timeout(function() {
 				element.find('[embed-vote-id]').each(function(index) {

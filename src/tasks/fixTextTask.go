@@ -14,18 +14,18 @@ import (
 type FixTextTask struct {
 }
 
-func (task *FixTextTask) Tag() string {
+func (task FixTextTask) Tag() string {
 	return "fixTextTask"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *FixTextTask) IsValid() error {
+func (task FixTextTask) IsValid() error {
 	return nil
 }
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *FixTextTask) Execute(db *database.DB) (delay int, err error) {
+func (task FixTextTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
 	if err = task.IsValid(); err != nil {

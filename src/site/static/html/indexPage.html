@@ -36,7 +36,8 @@
 				<md-button class="md-primary"
 						ng-class="{'md-raised': !alreadySubscribed}"
 						ng-click="subscribeToList()"
-						ng-bind="::alreadySubscribed ? 'Update subscription' : 'Subscribe'">
+						ng-bind="::alreadySubscribed ? 'Update subscription' : 'Subscribe'"
+						aria-label="Subscribe">
 				</md-button>
 				<div class="md-warn" ng-bind="subscribeError" ng-if="subscribeError"></div>
 			</div>

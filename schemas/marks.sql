@@ -29,6 +29,8 @@ CREATE TABLE marks (
 	resolvedPageId VARCHAR(32) NOT NULL,
 	/* Id of the user who resolved the mark. FK into users. */
 	resolvedBy VARCHAR(32) NOT NULL,
+	/* Set to true once there is an answer that works for the given user. */
+	answered BOOLEAN NOT NULL,
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

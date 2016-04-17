@@ -28,9 +28,6 @@ var deletePageHandler = siteHandler{
 
 // deletePageHandlerFunc handles requests for deleting a page.
 func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	u := params.U
-	db := params.DB
-
 	decoder := json.NewDecoder(params.R.Body)
 	var data deletePageData
 	err := decoder.Decode(&data)
@@ -40,11 +37,17 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("PageId isn't set", nil)
 	}
+	return deletePageInternalHandlerFunc(params, &data)
+}
+
+func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePageData) *pages.Result {
+	u := params.U
+	db := params.DB
 
 	// Load the page
 	pageMap := make(map[string]*core.Page)
 	page := core.AddPageIdToMap(data.PageId, pageMap)
-	err = core.LoadPages(db, u, pageMap)
+	err := core.LoadPages(db, u, pageMap)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}

@@ -16,12 +16,12 @@ type SendOneEmailTask struct {
 	UserId string
 }
 
-func (task *SendOneEmailTask) Tag() string {
+func (task SendOneEmailTask) Tag() string {
 	return "sendOneEmail"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *SendOneEmailTask) IsValid() error {
+func (task SendOneEmailTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {
 		return fmt.Errorf("User id has to be set: %v", task.UserId)
 	}
@@ -31,7 +31,7 @@ func (task *SendOneEmailTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
+func (task SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 	delay = 0
 	c := db.C
 
@@ -40,7 +40,7 @@ func (task *SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 	}
 
 	c.Debugf("==== SEND EMAIL START ====")
-	defer c.Debugf("==== SEND EMAIL COMPLETED SUCCESSFULLY ====")
+	defer c.Debugf("==== SEND EMAIL COMPLETED ====")
 
 	// Update database first, even though we might fail to send the email. This
 	// way we definitely won't accidentally email a person twice.

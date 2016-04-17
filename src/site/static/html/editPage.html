@@ -415,6 +415,30 @@
 							</md-switch>
 						</div>
 
+						<!-- Merge question -->
+						<div layout="row" layout-margin ng-if="::isQuestion">
+							<div flex>
+								<arb-autocomplete class="insert-autocomplete"
+										placeholder="Find the question to merge into"
+										on-select="selectedMergeQuestion(result)"
+										do-autofocus="false"
+										flex
+										page-type="question"
+										ng-show="!mergeCandidate"></arb-autocomplete>
+								<arb-page-title page-id="{{::mergeCandidate.pageId}}"
+										is-link="true"
+										show-clickbait="true"
+										ng-if="mergeCandidate"></arb-page-title>
+								<arb-confirm-button button-text="Merge"
+										button-before-confirm="true"
+										confirmed="mergeQuestion()"
+										ng-if="mergeCandidate"></arb-confirm-button>
+							</div>
+							<div class="md-caption" flex>
+								This will merge all answers and search strings into the selected question. This question will be deleted.
+							</div>
+						</div>
+
 						<!-- Delete page -->
 						<arb-confirm-button button-text="Delete page"
 								button-before-confirm="true"

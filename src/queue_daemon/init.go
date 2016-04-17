@@ -5,6 +5,7 @@ import (
 	"appengine/taskqueue"
 	"fmt"
 	"net/http"
+	"reflect"
 	"time"
 
 	"zanaduu3/src/database"
@@ -32,46 +33,47 @@ func processTask(c sessions.Context) error {
 	}
 	leasedTask := leasedTasks[0]
 
+	// Go through all possible tasks and decode into correct type based on the tag string
 	var task tasks.QueueTask
-	// TODO: refactor tag strings into the corresponding files as consts
-	if leasedTask.Tag == (&tasks.TickTask{}).Tag() {
-		task = &tasks.TickTask{}
-	} else if leasedTask.Tag == (&tasks.PopulateElasticTask{}).Tag() {
-		task = &tasks.PopulateElasticTask{}
-	} else if leasedTask.Tag == (&tasks.UpdateElasticPageTask{}).Tag() {
-		task = &tasks.UpdateElasticPageTask{}
-	} else if leasedTask.Tag == (&tasks.NewUpdateTask{}).Tag() {
-		task = &tasks.NewUpdateTask{}
-	} else if leasedTask.Tag == (&tasks.AtMentionUpdateTask{}).Tag() {
-		task = &tasks.AtMentionUpdateTask{}
-	} else if leasedTask.Tag == (&tasks.MemberUpdateTask{}).Tag() {
-		task = &tasks.MemberUpdateTask{}
-	} else if leasedTask.Tag == (&tasks.EmailUpdatesTask{}).Tag() {
-		task = &tasks.EmailUpdatesTask{}
-	} else if leasedTask.Tag == (&tasks.ProcessMarkTask{}).Tag() {
-		task = &tasks.ProcessMarkTask{}
-	} else if leasedTask.Tag == (&tasks.SendOneEmailTask{}).Tag() {
-		task = &tasks.SendOneEmailTask{}
-	} else if leasedTask.Tag == (&tasks.SendFeedbackEmailTask{}).Tag() {
-		task = &tasks.SendFeedbackEmailTask{}
-	} else if leasedTask.Tag == (&tasks.PropagateDomainTask{}).Tag() {
-		task = &tasks.PropagateDomainTask{}
-	} else if leasedTask.Tag == (&tasks.UpdateMetadataTask{}).Tag() {
-		task = &tasks.UpdateMetadataTask{}
-	} else if leasedTask.Tag == (&tasks.FixTextTask{}).Tag() {
-		task = &tasks.FixTextTask{}
-	} else if leasedTask.Tag == (&tasks.ResetPasswordsTask{}).Tag() {
-		task = &tasks.ResetPasswordsTask{}
+	taskPrototypes := []tasks.QueueTask{
+		tasks.AtMentionUpdateTask{},
+		tasks.CheckAnsweredMarksTask{},
+		tasks.EmailUpdatesTask{},
+		tasks.FixTextTask{},
+		tasks.MemberUpdateTask{},
+		tasks.NewUpdateTask{},
+		tasks.PopulateElasticTask{},
+		tasks.ProcessMarkTask{},
+		tasks.PropagateDomainTask{},
+		tasks.ResetPasswordsTask{},
+		tasks.SendFeedbackEmailTask{},
+		tasks.SendOneEmailTask{},
+		tasks.TickTask{},
+		tasks.UpdateElasticPageTask{},
+		tasks.UpdateMetadataTask{},
+	}
+	taskPrototypeMap := make(map[string]tasks.QueueTask)
+	for _, prototype := range taskPrototypes {
+		key := prototype.Tag()
+		if _, ok := taskPrototypeMap[key]; !ok {
+			taskPrototypeMap[key] = prototype
+		} else {
+			return fmt.Errorf("Some tasks are registering a duplicate tag: %s", prototype.Tag())
+		}
+	}
+	if taskPrototype, ok := taskPrototypeMap[leasedTask.Tag]; ok {
+		task = reflect.New(reflect.TypeOf(taskPrototype)).Interface().(tasks.QueueTask)
 	} else {
 		return fmt.Errorf("Unknown tag for the task: %s", leasedTask.Tag)
 	}
 
+	// Decode the task
 	err = tasks.Decode(leasedTask, task)
 	if err != nil {
 		taskqueue.Delete(c, leasedTask, daemonQueueName)
 		return fmt.Errorf("Couldn't decode a task: %v", err)
 	}
-	c.Debugf("Decoded a task: %v", task)
+	c.Debugf("Decoded a task: %+v", task)
 
 	// Open DB connection
 	db, err := database.GetDB(c)
@@ -103,7 +105,7 @@ func processTask(c sessions.Context) error {
 func handler(w http.ResponseWriter, r *http.Request) {
 	c := sessions.NewContext(r)
 
-	// Insert the first Tick task
+	// Insert multiple tasks that need to be always running.
 	// TODO: catch errors, but ignore "already added" error
 	/*var tickTask tasks.TickTask
 	err := tasks.EnqueueWithName(c, &tickTask, "tick", "tick")
@@ -114,6 +116,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	err := tasks.Enqueue(c, &emailUpdatesTask, &tasks.TaskOptions{Name: emailUpdatesTask.Tag()})
 	if err != nil {
 		c.Debugf("EmailUpdatesTask enqueue error: %v", err)
+	}
+	var checkMarksTask tasks.CheckAnsweredMarksTask
+	err = tasks.Enqueue(c, &checkMarksTask, &tasks.TaskOptions{Name: checkMarksTask.Tag()})
+	if err != nil {
+		c.Debugf("CheckAnsweredMarksTask enqueue error: %v", err)
 	}
 
 	for true {

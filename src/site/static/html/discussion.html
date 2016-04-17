@@ -1,9 +1,9 @@
 <!-- Discussion section for some page -->
-<div ng-attr-id="{{::('discussion-' + page.pageId)}}"></div>
+<a id="discussion"></a>
 <div layout="column">
 	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
-			<h1>Discussion</h1>
+			<h1>Discussion ({{page.subpageIds.length}})</h1>
 
 			<div flex></div>
 			<!-- Menu with all the other stuff -->

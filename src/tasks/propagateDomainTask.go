@@ -15,7 +15,7 @@ type PropagateDomainTask struct {
 	Deleted bool
 }
 
-func (task *PropagateDomainTask) Tag() string {
+func (task PropagateDomainTask) Tag() string {
 	return "propagateDomain"
 }
 
@@ -25,7 +25,7 @@ type domainFlags struct {
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *PropagateDomainTask) IsValid() error {
+func (task PropagateDomainTask) IsValid() error {
 	if !core.IsIdValid(task.PageId) {
 		return fmt.Errorf("PageId needs to be set")
 	}
@@ -34,7 +34,7 @@ func (task *PropagateDomainTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error) {
+func (task PropagateDomainTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
 	if err = task.IsValid(); err != nil {
@@ -42,7 +42,7 @@ func (task *PropagateDomainTask) Execute(db *database.DB) (delay int, err error)
 	}
 
 	c.Debugf("==== PROPAGATE DOMAIN START ====")
-	defer c.Debugf("==== PROPAGATE DOMAIN COMPLETED SUCCESSFULLY ====")
+	defer c.Debugf("==== PROPAGATE DOMAIN COMPLETED ====")
 
 	// Compute what pages we need to process
 	affectedPageIds := make([]string, 0)

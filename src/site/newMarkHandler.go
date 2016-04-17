@@ -118,7 +118,6 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				return "Couldn't insert into userRequisitePairSnapshots", err
 			}
 		}
-
 		return "", nil
 	})
 	if err != nil {

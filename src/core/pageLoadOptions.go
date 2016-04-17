@@ -19,6 +19,7 @@ type PageLoadOptions struct {
 	Children                bool
 	HasGrandChildren        bool
 	SubpageCounts           bool
+	AnswerCounts            bool
 	RedLinkCountForChildren bool
 	Parents                 bool
 	Tags                    bool
@@ -127,6 +128,7 @@ var (
 		Votes:         true,
 		IsSubscribed:  true,
 		SubpageCounts: true,
+		AnswerCounts:  true,
 		Summaries:     true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading info about a lens

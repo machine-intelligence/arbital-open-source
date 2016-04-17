@@ -18,12 +18,12 @@ type SendFeedbackEmailTask struct {
 	Text      string
 }
 
-func (task *SendFeedbackEmailTask) Tag() string {
+func (task SendFeedbackEmailTask) Tag() string {
 	return "sendFeedbackEmail"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *SendFeedbackEmailTask) IsValid() error {
+func (task SendFeedbackEmailTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {
 		return fmt.Errorf("User id has to be set: %v", task.UserId)
 	}
@@ -36,7 +36,7 @@ func (task *SendFeedbackEmailTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error) {
+func (task SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error) {
 	delay = 0
 	c := db.C
 

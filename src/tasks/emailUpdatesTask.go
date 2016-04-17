@@ -17,18 +17,18 @@ const (
 type EmailUpdatesTask struct {
 }
 
-func (task *EmailUpdatesTask) Tag() string {
+func (task EmailUpdatesTask) Tag() string {
 	return "emailUpdates"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *EmailUpdatesTask) IsValid() error {
+func (task EmailUpdatesTask) IsValid() error {
 	return nil
 }
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
+func (task EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 	delay = emailUpdatesPeriod
 	c := db.C
 
@@ -37,7 +37,7 @@ func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 	}
 
 	c.Debugf("==== EMAIL UPDATES START ====")
-	defer c.Debugf("==== EMAIL UPDATES COMPLETED SUCCESSFULLY ====")
+	defer c.Debugf("==== EMAIL UPDATES COMPLETED ====")
 
 	// For all the users that don't want emails, set their updates to 'emailed'
 	statement := db.NewStatement(`
@@ -50,7 +50,8 @@ func (task *EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 		)`)
 	_, err = statement.Exec(user.NeverEmailFrequency)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to update updates: %v", err)
+		err = fmt.Errorf("Failed to update updates: %v", err)
+		return
 	}
 
 	// Find all users who need emailing.

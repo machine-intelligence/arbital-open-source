@@ -485,8 +485,11 @@ arb-admin-dashboard-page > .capped-body-width {
   max-width: 90%;
   overflow-x: hidden; }
 
+.update-rows > * + * {
+  margin-top: 5px; }
+
 .unseen-update {
-  background-color: #E0F2F1; }
+  border-left: #E0F2F1 5px solid; }
 
 #mc-signup .subscribe-header {
   margin-bottom: 0; }

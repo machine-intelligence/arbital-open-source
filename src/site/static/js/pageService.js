@@ -218,6 +218,8 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	//	 includeHost: if true, include "https://" + host in the url
 	//	 useEditMap: if true, use edit map to retrieve info for this page
 	//	 markId: if set, select the given mark on the page
+	//	 discussionHash: if true, jump to the discussion part of the page
+	//	 answersHash: if true, jump to the answers part of the page
 	// }
 	this.getPageUrl = function(pageId, options) {
 		var options = options || {};
@@ -278,6 +280,13 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			if (options.markId) {
 				url += url.indexOf("?") < 0 ? '?' : '&';
 				url += 'markId=' + options.markId;
+			}
+		}
+		if (url.indexOf("#") < 0) {
+			if (options.discussionHash) {
+				url += "#discussion";
+			} else if (options.answersHash) {
+				url += "#answers";
 			}
 		}
 		if (options.includeHost && !alreadyIncludedHost) {

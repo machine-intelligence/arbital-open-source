@@ -251,6 +251,7 @@ type Mark struct {
 	RequisiteSnapshotId string `json:"requisiteSnapshotId"`
 	ResolvedPageId      string `json:"resolvedPageId"`
 	ResolvedBy          string `json:"resolvedBy"`
+	Answered            bool   `json:"answered"`
 }
 
 // PageObject stores some information for an object embedded in a page
@@ -554,6 +555,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	err = LoadSubpageCounts(db, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadSubpageCounts failed: %v", err)
+	}
+
+	// Load answer counts
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.AnswerCounts })
+	err = LoadAnswerCounts(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadAnswerCounts failed: %v", err)
 	}
 
 	// Load number of red links.
@@ -1344,7 +1352,6 @@ func LoadAnswer(db *database.DB, answerId string) (*Answer, error) {
 
 // LoadMarkIds loads all the marks owned by the given user
 func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*Mark, u *user.User, options *LoadDataOptions) error {
-
 	sourceMap := options.ForPages
 	if sourceMap == nil {
 		sourceMap = pageMap
@@ -1390,7 +1397,7 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 
 	rows := db.NewStatement(`
 		SELECT id,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
-			text,requisiteSnapshotId,resolvedPageId,resolvedBy
+			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered
 		FROM marks
 		WHERE id IN ` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -1398,7 +1405,7 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 		mark := &Mark{}
 		err := rows.Scan(&mark.Id, &mark.PageId, &creatorId, &mark.CreatedAt,
 			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
-			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy)
+			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
@@ -1505,11 +1512,36 @@ func LoadSubpageCounts(db *database.DB, pageMap map[string]*Page) error {
 		var count int
 		err := rows.Scan(&pageId, &childType, &count)
 		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
+			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		if childType == CommentPageType {
 			pageMap[pageId].CommentCount = count
 		}
+		return nil
+	})
+	return err
+}
+
+// LoadAnswerCounts loads the number of answers the pages have
+func LoadAnswerCounts(db *database.DB, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+	rows := database.NewQuery(`
+		SELECT questionId,sum(1)
+		FROM answers
+		WHERE questionId IN`).AddArgsGroup(pageIds).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var questionId string
+		var count int
+		err := rows.Scan(&questionId, &count)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		pageMap[questionId].AnswerCount = count
+
 		return nil
 	})
 	return err
