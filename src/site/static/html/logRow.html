@@ -166,17 +166,15 @@
 		<span ng-switch-when="topLevelComment">
 			<arb-user-name user-id="{{::userId}}"></arb-user-name>
 			wrote a
-			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
-					page-id="{{::relatedPageId}}"
-					class="intrasite-link">new comment</a>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+				custom-page-title="new comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="reply">
 			<arb-user-name user-id="{{::userId}}"></arb-user-name>
 			wrote a
-			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
-					page-id="{{::relatedPageId}}"
-					class="intrasite-link">new comment reply</a>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+				custom-page-title="new comment reply"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="pageEdit">
@@ -188,51 +186,35 @@
 
 		<span ng-switch-when="newPageByUser">
 			Created a new page:
-			<!-- ROGTODO: do the following check for all references to the related page -->
-			<span ng-if="::isRelatedPageAlive">
-				<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
-			</span>
-			<span ng-if="!isRelatedPageAlive">
-				<a ng-href="{{::pageService.getEditPageUrl(relatedPageId)}}"
-						page-id="{{::relatedPageId}}"
-						class="red-link">[DELETED]</a>
-			</span>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="commentEdit">
 			<arb-user-name user-id="{{::userId}}"></arb-user-name>
 			edited a
-			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
-					page-id="{{::relatedPageId}}"
-					class="intrasite-link">comment</a>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+				custom-page-title="comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="atMention">
 			<arb-user-name user-id="{{::userId}}"></arb-user-name>
 			mentioned you in a
-			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
-					page-id="{{::relatedPageId}}"
-					class="intrasite-link">comment</a>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+				custom-page-title="comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="addedToGroup">
 			<arb-user-name user-id="{{::userId}}"></arb-user-name>
 			added you to
-			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
-					page-id="{{::relatedPageId}}"
-					class="intrasite-link">
-				the {{pageService.pageMap[relatedPageId].title}} group
-			</a>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+				custom-page-title="the {{::pageService.pageMap[relatedPageId].title}} group"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="removedFromGroup">
 			<arb-user-name user-id="{{::userId}}"></arb-user-name>
 			removed you from
-			<a ng-href="{{::pageService.getPageUrl(relatedPageId)}}"
-					page-id="{{::relatedPageId}}"
-					class="intrasite-link">
-				the {{pageService.pageMap[relatedPageId].title}} group
-			</a>
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+				custom-page-title="the {{::pageService.pageMap[relatedPageId].title}} group"></arb-page-title>
 		</span>
 
 		<!-- Marks -->

@@ -421,3 +421,43 @@ func IsUser(db *database.DB, userId string) bool {
 	row.Scan(&userCount)
 	return userCount > 0
 }
+
+func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
+	var commentParentId string
+	var commentPrimaryPageId string
+	rows := db.NewStatement(`
+		SELECT pi.pageId,pi.type
+		FROM pageInfos AS pi
+		JOIN pagePairs AS pp
+		ON (pi.pageId=pp.parentId)
+		WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND NOT pi.isDeleted
+		`).Query(ParentPagePairType, pageId)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var parentId string
+		var pageType string
+		err := rows.Scan(&parentId, &pageType)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		if pageType == CommentPageType {
+			if IsIdValid(commentParentId) {
+				return fmt.Errorf("Can't have more than one comment parent")
+			}
+			commentParentId = parentId
+		} else {
+			if IsIdValid(commentPrimaryPageId) {
+				return fmt.Errorf("Can't have more than one non-comment parent for a comment")
+			}
+			commentPrimaryPageId = parentId
+		}
+		return nil
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("failed to process rows: %v", err)
+	}
+	if !IsIdValid(commentPrimaryPageId) {
+		return "", "", fmt.Errorf("Comment pages need at least one normal page parent")
+	}
+
+	return commentParentId, commentPrimaryPageId, nil
+}

@@ -183,7 +183,7 @@ app.directive('arbPageTitle', function(pageService, userService) {
 		scope: {
 			pageId: '@',
 			// Options override for the page's title
-			customPageTitle: '=',
+			customPageTitle: '@',
 			// Whether to display the title as a link or a span
 			isLink: '=',
 			// If set, we'll use this link for the page
@@ -198,7 +198,15 @@ app.directive('arbPageTitle', function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.page = ($scope.useEditMap ? pageService.editMap : pageService.pageMap)[$scope.pageId];
+			var map;
+			if ($scope.pageId in pageService.deletedPagesMap) {
+				map = pageService.deletedPagesMap;
+			} else if ($scope.useEditMap) {
+				map = pageService.editMap;
+			} else {
+				map = pageService.pageMap;
+			}
+			$scope.page = map[$scope.pageId];
 			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
@@ -605,7 +613,7 @@ app.directive('arbLogRow', function(pageService) {
 			type: '@',
 			relatedPageId: '@',
 			isRelatedPageAlive: '=',
-			markId: "@",
+			markId: '@',
 			createdAt: '@',
 			oldSettingsValue: '@',
 			newSettingsValue: '@',

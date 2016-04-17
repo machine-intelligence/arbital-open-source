@@ -14,6 +14,9 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// All loaded pages.
 	this.pageMap = {};
 
+	// All loaded deleted pages.
+	this.deletedPagesMap = {};
+
 	// All loaded edits. (These are the pages we will be editing.)
 	this.editMap = {};
 
@@ -171,6 +174,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	this.processServerData = function(data) {
 		if (data.resetEverything) {
 			this.pageMap = {};
+			this.deletedPagesMap = {};
 			this.editMap = {};
 			this.masteryMap = {};
 			this.masteryMapList = [this.masteryMap];
@@ -199,7 +203,9 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		var pageData = data.pages;
 		for (var id in pageData) {
 			var page = pageData[id];
-			if (page.isLiveEdit) {
+			if (page.isDeleted) {
+				this.addPageToDeletedPagesMap(pageData[id]);
+			} else if (page.isLiveEdit) {
 				this.addPageToMap(pageData[id]);
 			} else {
 				this.addPageToEditMap(pageData[id]);
@@ -278,7 +284,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 
 			// Add markId argument
 			if (options.markId) {
-				url += url.indexOf("?") < 0 ? '?' : '&';
+				url += url.indexOf('?') < 0 ? '?' : '&';
 				url += 'markId=' + options.markId;
 			}
 		}
@@ -310,7 +316,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		}
 		// Add markId argument
 		if (options.markId) {
-			url += url.indexOf("?") < 0 ? '?' : '&';
+			url += url.indexOf('?') < 0 ? '?' : '&';
 			url += 'markId=' + options.markId;
 		}
 		if (options.includeHost) {
@@ -423,8 +429,8 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		}
 		// Add page's alias to the map as well, both with lowercase and uppercase first letter
 		if (pageMap && page.pageId !== page.alias) {
-			pageMap[page.alias.substring(0,1).toLowerCase() + page.alias.substring(1)] = page;
-			pageMap[page.alias.substring(0,1).toUpperCase() + page.alias.substring(1)] = page;
+			pageMap[page.alias.substring(0, 1).toLowerCase() + page.alias.substring(1)] = page;
+			pageMap[page.alias.substring(0, 1).toUpperCase() + page.alias.substring(1)] = page;
 		}
 		return page;
 	};
@@ -472,6 +478,10 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	// Add the given page to the global editMap.
 	this.addPageToEditMap = function(page) {
 		this.editMap[page.pageId] = setUpPage(page);
+	};
+
+	this.addPageToDeletedPagesMap = function(page) {
+		this.deletedPagesMap[page.pageId] = setUpPage(page);
 	};
 
 	// Remove page with the given pageId from the global editMap;

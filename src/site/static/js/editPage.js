@@ -163,7 +163,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					}
 					return whole;
 				}).replace(simpleLinkRegexp, function(whole, prefix, alias) {
-					if (alias.substring(0,1) == '-') {
+					if (alias.substring(0, 1) == '-') {
 						var page = pageService.pageMap[alias.substring(1)];
 						if (page) {
 							return prefix + '[-' + page.alias + ']';
@@ -272,6 +272,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Check if we loaded a live edit, but the user has a draft
 			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {
 				//$scope.addMessage('hasDraft', 'You have an unpublished draft that\'s more recent than this edit', 'error');
+			}
+			if ($scope.page.isDeleted) {
+				$scope.addMessage('deletedPage', 'This page was deleted. Republishing will restore it.', 'warning');
 			}
 
 			// =========== Autosaving / snapshotting / publishing stuff ==============
@@ -540,20 +543,20 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// =========== Search strings ==============
 			$scope.addSearchStringData = {
 				pageId: $scope.pageId,
-				text: "",
+				text: '',
 			};
 			$scope.addSearchString = function() {
 				console.log($scope.addSearchStringData);
 				$http({method: 'POST', url: '/newSearchString/', data: JSON.stringify($scope.addSearchStringData)})
 				.success(function(data) {
 					$scope.page.searchStrings[data.result.searchStringId] = $scope.addSearchStringData.text;
-					$scope.addSearchStringData.text = "";
+					$scope.addSearchStringData.text = '';
 				})
 				.error(function(data) {
 					$scope.addMessage('addSearchString', 'Error adding a search string: ' + data, 'error');
 				});
 			};
-			
+
 			$scope.deleteSearchString = function(id) {
 				var postData = {
 					id: id,
@@ -618,8 +621,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					scope.insertLinkCallback = callback;
 					// NOTE: not sure why, but we need two timeouts here
 					$timeout(function() { $timeout(function() {
-						var $input = element.find('.insert-autocomplete').find('input').focus();
-					}); });
+							var $input = element.find('.insert-autocomplete').find('input').focus();
+						}); });
 				});
 
 				// Create a dialog for (resuming) editing a new page

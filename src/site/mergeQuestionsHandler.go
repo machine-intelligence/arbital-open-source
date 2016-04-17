@@ -46,11 +46,11 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load questions", err)
 	}
-	if question == nil {
-		return pages.HandlerBadRequestFail("Couldn't load the question", nil)
+	if question.Type != core.QuestionPageType {
+		return pages.HandlerBadRequestFail("QuestionId isn't a question", nil)
 	}
-	if intoQuestion == nil {
-		return pages.HandlerBadRequestFail("Couldn't load the intoQuestion", nil)
+	if intoQuestion.Type != core.QuestionPageType {
+		return pages.HandlerBadRequestFail("IntoQuestionId isn't a question", nil)
 	}
 
 	// Begin the transaction.
@@ -70,7 +70,20 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		if _, err := statement.Exec(); err != nil {
 			return "Couldn't update answers", err
 		}
-		return "", nil
+
+		statement = database.NewQuery(`
+			UPDATE pageInfos
+			SET mergedInto=?`, data.IntoQuestionId).Add(`
+			WHERE pageId=?`, data.QuestionId).ToTxStatement(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't update pageInfos", err
+		}
+
+		// Delete the question page
+		deletePageData := &deletePageData{
+			PageId: data.QuestionId,
+		}
+		return deletePageTx(tx, params, deletePageData, question)
 	})
 	if err != nil {
 		return pages.HandlerErrorFail(errMessage, err)

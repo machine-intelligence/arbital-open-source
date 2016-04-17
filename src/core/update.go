@@ -40,6 +40,9 @@ const (
 	AnsweredMarkUpdateType       = "answeredMark"
 	SearchStringChangeUpdateType = "searchStringChange"
 	AnswerChangeUpdateType       = "answerChange"
+	DeletePageUpdateType         = "deletePage"
+	// ROGTODO: do we need this as well?
+	// DeleteCommentUpdateType       = "deleteComment"
 )
 
 // UpdateRow is a row from updates table

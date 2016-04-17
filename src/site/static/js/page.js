@@ -101,7 +101,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					$scope.page.answers.push(data.result.newAnswer);
 				})
 				.error(function(data) {
-					console.error("Couldn't add answer:"); console.error(data);
+					console.error('Couldn\'t add answer:'); console.error(data);
 				});
 			};
 
@@ -125,7 +125,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					}
 				})
 				.error(function(data) {
-					console.error("Couldn't add answer:"); console.error(data);
+					console.error('Couldn\'t add answer:'); console.error(data);
 				});
 			};
 		},

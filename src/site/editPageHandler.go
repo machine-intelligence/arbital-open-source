@@ -10,7 +10,6 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
@@ -36,8 +35,7 @@ type editPageData struct {
 	CurrentEdit int
 
 	// These parameters are only accepted from internal BE calls
-	RevertToEdit int  `json:"-"`
-	DeleteEdit   bool `json:"-"`
+	RevertToEdit int `json:"-"`
 }
 
 var editPageHandler = siteHandler{
@@ -84,7 +82,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	// If the client think the current edit is X, but it's actually Y (X!=Y), then
+	// If the client think the current edit is X, but it's actually Y where X!=Y
+	// (e.g. if someone else published a new version since we started editing), then
 	if oldPage.WasPublished && data.CurrentEdit != oldPage.Edit {
 		// Notify the client with an error
 		returnData.ResultMap["obsoleteEdit"] = oldPage
@@ -109,13 +108,14 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
 	isLiveEdit := !data.IsAutosave && !data.IsSnapshot
 	newEditNum := oldPage.MaxEditEver + 1
-	if myLastAutosaveEdit.Valid {
-		// ... unless we can just replace a existing autosave.
-		newEditNum = int(myLastAutosaveEdit.Int64)
-	}
-	if data.RevertToEdit > 0 {
-		// ... or unless we are reverting an edit
+	if oldPage.IsDeleted {
+		newEditNum = data.CurrentEdit
+	} else if data.RevertToEdit > 0 {
+		// ... unless we are reverting an edit
 		newEditNum = data.RevertToEdit
+	} else if myLastAutosaveEdit.Valid {
+		// ... or unless we can just replace an existing autosave.
+		newEditNum = int(myLastAutosaveEdit.Int64)
 	}
 
 	// Set the see-group
@@ -184,51 +184,31 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	var commentParentId string
 	var commentPrimaryPageId string
 	if isLiveEdit && oldPage.Type == core.CommentPageType {
-		rows := db.NewStatement(`
-			SELECT pi.pageId,pi.type
-			FROM pageInfos AS pi
-			JOIN pagePairs AS pp
-			ON (pi.pageId=pp.parentId)
-			WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND NOT pi.isDeleted
-			`).Query(core.ParentPagePairType, data.PageId)
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var parentId string
-			var pageType string
-			err := rows.Scan(&parentId, &pageType)
-			if err != nil {
-				return fmt.Errorf("failed to scan: %v", err)
-			}
-			if pageType == core.CommentPageType {
-				if core.IsIdValid(commentParentId) {
-					db.C.Errorf("Can't have more than one comment parent")
-				}
-				commentParentId = parentId
-			} else {
-				if core.IsIdValid(commentPrimaryPageId) {
-					db.C.Errorf("Can't have more than one non-comment parent for a comment")
-				}
-				commentPrimaryPageId = parentId
-			}
-			return nil
-		})
+		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load comment's parents", err)
 		}
-		if !core.IsIdValid(commentPrimaryPageId) {
-			db.C.Errorf("Comment pages need at least one normal page parent")
-		}
 	}
 
+	// Load relationships so we can send notifications on a page that had relationships but is being published for the first time.
+	// Also send notifications if we undelete a page that has had new relationships created since it was deleted.
 	primaryPageMap := make(map[string]*core.Page)
 	primaryPage := core.AddPageIdToMap(data.PageId, primaryPageMap)
 	pageMap := make(map[string]*core.Page)
-	if isLiveEdit && !oldPage.WasPublished {
+	core.AddPageIdToMap(data.PageId, pageMap)
+	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
 		// Load parents and children.
-		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{
+			ForPages:                   primaryPageMap,
+			LoadOptions:                core.EmptyLoadOptions,
+			SkipPublishedRelationships: true})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load parents", err)
 		}
-		err = core.LoadChildIds(db, pageMap, u, &core.LoadChildIdsOptions{ForPages: primaryPageMap})
+		err = core.LoadChildIds(db, pageMap, u, &core.LoadChildIdsOptions{
+			ForPages:                   primaryPageMap,
+			LoadOptions:                core.EmptyLoadOptions,
+			SkipPublishedRelationships: true})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load children", err)
 		}
@@ -271,7 +251,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	isMinorEdit := data.IsMinorEditStr == "on"
 
 	// Check if something is actually different from live edit
-	if isLiveEdit && oldPage.WasPublished {
+	if isLiveEdit && oldPage.WasPublished && !oldPage.IsDeleted {
 		if data.Title == oldPage.Title &&
 			data.Clickbait == oldPage.Clickbait &&
 			data.Text == oldPage.Text &&
@@ -338,9 +318,35 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
+		if isLiveEdit {
+			// set pagePairs.everPublished where the current page is the child (and the parent is already published)
+			statement = database.NewQuery(`
+				UPDATE pagePairs, pageInfos SET pagePairs.everPublished = 1
+				WHERE pagePairs.parentId = pageInfos.pageId
+					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
+					AND pagePairs.childId=?`, data.PageId).ToTxStatement(tx)
+			if _, err := statement.Exec(); err != nil {
+				return "Couldn't set everPublished on pagePairs", err
+			}
+
+			// set pagePairs.everPublished where the current page is the parent (and the child is already published)
+			statement = database.NewQuery(`
+				UPDATE pagePairs, pageInfos SET pagePairs.everPublished = 1
+				WHERE pagePairs.childId = pageInfos.pageId
+					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
+					AND pagePairs.parentId=?`, data.PageId).ToTxStatement(tx)
+			if _, err := statement.Exec(); err != nil {
+				return "Couldn't set everPublished on pagePairs", err
+			}
+		}
+
 		// Update pageInfos
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
+		if isLiveEdit && oldPage.IsDeleted {
+			hashmap["isDeleted"] = false
+			hashmap["mergedInto"] = ""
+		}
 		if !oldPage.WasPublished && isLiveEdit {
 			hashmap["createdAt"] = database.Now()
 			hashmap["createdBy"] = u.Id
@@ -368,7 +374,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["edit"] = newEditNum
 		hashmap["userId"] = u.Id
 		hashmap["createdAt"] = database.Now()
-		if data.RevertToEdit != 0 {
+		if oldPage.IsDeleted {
+			hashmap["type"] = core.UndeletePageChangeLog
+		} else if data.RevertToEdit != 0 {
 			hashmap["type"] = core.RevertEditChangeLog
 		} else if data.IsSnapshot {
 			hashmap["type"] = core.NewSnapshotChangeLog
@@ -417,20 +425,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	if isLiveEdit {
 		// Update elastic
-		if data.DeleteEdit {
-			// Delete it from the elastic index
-			err = elastic.DeletePageFromIndex(c, data.PageId)
-			if err != nil {
-				c.Errorf("failed to update index: %v", err)
-			}
-		} else {
-			var task tasks.UpdateElasticPageTask
-			task.PageId = data.PageId
-			if err := tasks.Enqueue(c, &task, nil); err != nil {
-				c.Errorf("Couldn't enqueue a task: %v", err)
-			}
+		var task tasks.UpdateElasticPageTask
+		task.PageId = data.PageId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
+		// ROGTODO: send undelete update if oldPage.IsDeleted
 		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !isMinorEdit {
 			var task tasks.NewUpdateTask
@@ -463,34 +464,28 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Do some stuff for a new parent/child.
-		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType {
-			// Generate updates for users who are subscribed to the parent pages.
-			for _, parentIdStr := range primaryPage.ParentIds {
-				var task tasks.NewUpdateTask
-				task.UserId = u.Id
-				task.UpdateType = core.NewChildUpdateType
-				task.GroupByPageId = parentIdStr
-				task.SubscribedToId = parentIdStr
-				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, nil); err != nil {
-					c.Errorf("Couldn't enqueue a task: %v", err)
-				}
-			}
-
-			// Generate updates for users who are subscribed to the child pages.
-			for _, childIdStr := range primaryPage.ChildIds {
-				var task tasks.NewUpdateTask
-				task.UserId = u.Id
-				task.UpdateType = core.NewParentUpdateType
-				task.GroupByPageId = childIdStr
-				task.SubscribedToId = childIdStr
-				task.GoToPageId = data.PageId
-				if err := tasks.Enqueue(c, &task, nil); err != nil {
-					c.Errorf("Couldn't enqueue a task: %v", err)
+		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
+			// Generate updates for users who are subscribed to related pages.
+			relationshipMap := make(map[string][]string)
+			relationshipMap[core.NewChildUpdateType] = primaryPage.ParentIds
+			relationshipMap[core.NewParentUpdateType] = primaryPage.ChildIds
+			// ROGTODO: rest of the update types
+			for updateType, ids := range relationshipMap {
+				for _, id := range ids {
+					var task tasks.NewUpdateTask
+					task.UserId = u.Id
+					task.UpdateType = updateType
+					task.GroupByPageId = id
+					task.SubscribedToId = id
+					task.GoToPageId = data.PageId
+					if err := tasks.Enqueue(c, &task, nil); err != nil {
+						c.Errorf("Couldn't enqueue a task: %v", err)
+					}
 				}
 			}
 		}
 
+		// ROGTODO: send updates if oldPage.IsDeleted
 		// Do some stuff for a new comment.
 		if !oldPage.WasPublished && oldPage.Type == core.CommentPageType {
 			// Send updates.
@@ -531,7 +526,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Create a task to propagate the domain change to all children
-		if !oldPage.WasPublished {
+		if oldPage.IsDeleted || !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
 			task.PageId = data.PageId
 			if err := tasks.Enqueue(c, &task, nil); err != nil {

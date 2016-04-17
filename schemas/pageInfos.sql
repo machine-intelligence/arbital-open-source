@@ -12,7 +12,6 @@ CREATE TABLE pageInfos (
 	createdAt DATETIME NOT NULL,
 	/* Id of the user who created the page. FK into users. */
 	createdBy VARCHAR(32) NOT NULL,
-
 	/* Alias name of the page. */
 	alias VARCHAR(64) NOT NULL,
 	/* Page's type. */
@@ -29,7 +28,10 @@ CREATE TABLE pageInfos (
 	isRequisite BOOL NOT NULL,
 	/* If true, this page teaches its requisites indirectly (e.g. by providing links). */
 	indirectTeacher BOOL NOT NULL,
-
+	/* True iff this page is currently in a deleted state. */
+	isDeleted BOOLEAN NOT NULL,
+	/* If set, this page has been merged into the mergedInto page id. FK into pageInfos. */
+	mergedInto VARCHAR(32) NOT NULL,
 
 	/* === Permission settings === */
 	/* see: who can see the page */
@@ -53,9 +55,6 @@ CREATE TABLE pageInfos (
 	lensIndex INT NOT NULL,
 	/* If true, this comment is meant for editors only. */
 	isEditorComment BOOL NOT NULL,
-
-	/* True iff this page is currently in a deleted state. */
-	isDeleted BOOLEAN NOT NULL,
 
 	PRIMARY KEY(pageId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

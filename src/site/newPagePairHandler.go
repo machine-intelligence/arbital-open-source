@@ -155,17 +155,16 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 		// Update change log
 
-		// Don't add to the changelog of the parent if the child is unpublished (current edit == 0)
-		if child.CurrentEdit > 0 {
+		// Don't add to the changelog of the parent if the child is unpublished
+		if child.CurrentEdit > 0 && !child.IsDeleted {
 			err = addRelationshipToChangelog(data.ParentId, data.ChildId, parent.Edit, child.Edit, core.NewChildChangeLog,
 				core.NewUsedAsTagChangeLog, core.NewRequiredByChangeLog, core.NewTeacherChangeLog)
 			if err != nil {
 				return "Couldn't insert new change log", err
 			}
-
 		}
-		// Don't add to the changelog of the child if the parent is unpublished (current edit == 0)
-		if parent.CurrentEdit > 0 {
+		// Don't add to the changelog of the child if the parent is unpublished
+		if parent.CurrentEdit > 0 && !parent.IsDeleted {
 			err = addRelationshipToChangelog(data.ChildId, data.ParentId, child.Edit, parent.Edit, core.NewParentChangeLog,
 				core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
 			if err != nil {
@@ -179,7 +178,9 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	}
 
 	// Generate updates for users who are subscribed to the parent pages.
-	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" {
+	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" &&
+		!parent.IsDeleted && !child.IsDeleted {
+
 		var task tasks.NewUpdateTask
 		if data.Type == core.ParentPagePairType {
 			task.UpdateType = core.NewParentUpdateType

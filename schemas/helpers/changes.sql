@@ -174,3 +174,10 @@ alter table changeLogs modify column oldSettingsValue varchar(1024) not null;
 alter table changeLogs modify column newSettingsValue varchar(1024) not null;
 
 alter table marks add column answered BOOLEAN NOT NULL;
+alter table pagePairs add column everPublished boolean not null;
+update pagePairs set everPublished = 1
+where
+	parentId not in (select pageId from pageInfos where currentEdit <= 0) and
+	childId not in (select pageId from pageInfos where currentEdit <= 0);
+
+alter table pageInfos add column mergedInto varchar(32) not null;
