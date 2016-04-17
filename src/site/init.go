@@ -122,6 +122,7 @@ func init() {
 	s.HandleFunc(loginHandler.URI, handlerWrapper(loginHandler)).Methods("POST")
 	s.HandleFunc(logoutHandler.URI, handlerWrapper(logoutHandler)).Methods("POST")
 	s.HandleFunc(mailchimpSignupHandler.URI, handlerWrapper(mailchimpSignupHandler)).Methods("POST")
+	s.HandleFunc(mergeQuestionsHandler.URI, handlerWrapper(mergeQuestionsHandler)).Methods("POST")
 	s.HandleFunc(newAnswerHandler.URI, handlerWrapper(newAnswerHandler)).Methods("POST")
 	s.HandleFunc(newGroupHandler.URI, handlerWrapper(newGroupHandler)).Methods("POST")
 	s.HandleFunc(newLikeHandler.URI, handlerWrapper(newLikeHandler)).Methods("POST")

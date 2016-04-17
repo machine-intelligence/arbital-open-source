@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -40,20 +41,41 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("One of the passed page ids is invalid", nil)
 	}
 
-	hashmap := make(map[string]interface{})
-	hashmap["questionId"] = data.QuestionId
-	hashmap["answerPageId"] = data.AnswerPageId
-	hashmap["userId"] = u.Id
-	hashmap["createdAt"] = now
-	statement := db.NewInsertStatement("answers", hashmap)
-	resp, err := statement.Exec()
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't insert into DB", err)
-	}
+	var newId int64
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Add the answer
+		hashmap := make(database.InsertMap)
+		hashmap["questionId"] = data.QuestionId
+		hashmap["answerPageId"] = data.AnswerPageId
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = now
+		statement := db.NewInsertStatement("answers", hashmap).WithTx(tx)
+		resp, err := statement.Exec()
+		if err != nil {
+			return "Couldn't insert into DB", err
+		}
 
-	newId, err := resp.LastInsertId()
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't get inserted id", err)
+		newId, err = resp.LastInsertId()
+		if err != nil {
+			return "Couldn't get inserted id", err
+		}
+
+		// Update change logs
+		hashmap = make(database.InsertMap)
+		hashmap["pageId"] = data.QuestionId
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = core.AnswerChangeChangeLog
+		hashmap["auxPageId"] = data.AnswerPageId
+		hashmap["newSettingsValue"] = "new"
+		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't add to changeLogs", err
+		}
+		return "", nil
+	})
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	// Load pages.
@@ -63,11 +85,9 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["newAnswer"] = core.Answer{
-		Id:           newId,
-		AnswerPageId: data.AnswerPageId,
-		UserId:       u.Id,
-		CreatedAt:    now,
+	returnData.ResultMap["newAnswer"], err = core.LoadAnswer(db, fmt.Sprintf("%d", newId))
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't load the new answer", err)
 	}
 	return pages.StatusOK(returnData)
 }

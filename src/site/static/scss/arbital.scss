@@ -167,9 +167,15 @@ $toolbar-height: 64px;
 	overflow-x: hidden;
 }
 
+.update-rows {
+	& > * + * {
+		margin-top: 5px;
+	}
+}
+
 // Added to updates that the user hasn't seen yet
 .unseen-update {
-	background-color: $primary-hue-1;
+	border-left: $primary-hue-1 5px solid;
 }
 
 // MailChimp signup form

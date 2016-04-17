@@ -38,12 +38,12 @@ type NewUpdateTask struct {
 	MarkId int64
 }
 
-func (task *NewUpdateTask) Tag() string {
+func (task NewUpdateTask) Tag() string {
 	return "newUpdate"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *NewUpdateTask) IsValid() error {
+func (task NewUpdateTask) IsValid() error {
 	if !core.IsIdValid(task.UserId) {
 		return fmt.Errorf("User id has to be set: %v", task.UserId)
 	} else if task.UpdateType == "" {
@@ -72,13 +72,12 @@ func (task *NewUpdateTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
+func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 	var rows *database.Rows
 
 	if err = task.IsValid(); err != nil {
-		c.Errorf("Invalid new update task: %s", err)
-		return -1, err
+		return -1, fmt.Errorf("Invalid new update task: %v", err)
 	}
 
 	// Iterate through all users who are subscribed to this page/comment.
@@ -107,7 +106,7 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		}
 
 		// Insert new update
-		hashmap := make(map[string]interface{})
+		hashmap := make(database.InsertMap)
 		hashmap["userId"] = userId
 		hashmap["byUserId"] = task.UserId
 		hashmap["type"] = task.UpdateType
@@ -121,14 +120,13 @@ func (task *NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["unseen"] = true
 		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {
-			c.Inc("new_update_fail")
-			c.Errorf("Couldn't create new update: %v", err)
+			return fmt.Errorf("Couldn't create new update: %v", err)
 		}
 		return nil
 	})
 	if err != nil {
-		c.Errorf("Couldn't process subscriptions: %v", err)
-		return -1, err
+		c.Inc("new_update_fail")
+		return -1, fmt.Errorf("Couldn't process subscriptions: %v", err)
 	}
 	return 0, nil
 }

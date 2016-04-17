@@ -16,18 +16,18 @@ const (
 type TickTask struct {
 }
 
-func (task *TickTask) Tag() string {
+func (task TickTask) Tag() string {
 	return "tick"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *TickTask) IsValid() error {
+func (task TickTask) IsValid() error {
 	return nil
 }
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *TickTask) Execute(db *database.DB) (delay int, err error) {
+func (task TickTask) Execute(db *database.DB) (delay int, err error) {
 	delay = tickPeriod
 	c := db.C
 

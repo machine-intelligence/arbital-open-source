@@ -513,7 +513,7 @@ app.directive('arbUserCheck', function($compile, $mdToast, pageService, userServ
 				}
 			}
 			if (failMessage) {
-				element.prepend(angular.element('<md-tooltip>' + failMessage + '</md-tooltip>'));
+				element.prepend(angular.element('<md-tooltip md-direction="top">' + failMessage + '</md-tooltip>'));
 				attrs.ngClick = 'showUserCheckToast(\'' + failMessage + '\')';
 			}
 		},

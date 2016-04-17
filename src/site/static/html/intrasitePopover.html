@@ -40,7 +40,7 @@
 			<div flex></div>
 			<div layout="row" layout-align="start center">
 				<span class="separator"></span>
-				<md-button ng-href="{{::pageService.getPageUrl(page.pageId, {permalink:true})}}#discussion-{{::page.pageId}}">
+				<md-button ng-href="{{::pageService.getPageUrl(page.pageId, {permalink:true, discussionHash: true})}}">
 					<md-icon>comment</md-icon>
 					<span ng-bind="::page.commentCount"></span>
 					<md-tooltip>Comment count</md-tooltip>
@@ -48,9 +48,11 @@
 			</div>
 			<div layout="row" layout-align="start center" ng-if="::(page.type === 'question')">
 				<span class="separator"></span>
-				<md-icon>font_download</md-icon>
-				<span ng-bind="::page.answerCount"></span>
-				<md-tooltip>Answer count</md-tooltip>
+				<md-button ng-href="{{::pageService.getPageUrl(page.pageId, {permalink:true, answersHash: true})}}">
+					<md-icon>font_download</md-icon>
+					<span ng-bind="::page.answerCount"></span>
+					<md-tooltip>Answer count</md-tooltip>
+				</md-button>
 			</div>
 			<div class="md-caption" ng-if="::(page.type !== 'question')">
 				<span class="separator"></span>

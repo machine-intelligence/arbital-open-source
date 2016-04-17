@@ -19,25 +19,28 @@ import (
 
 const (
 	// Various types of updates a user can get.
-	TopLevelCommentUpdateType  = "topLevelComment"
-	ReplyUpdateType            = "reply"
-	PageEditUpdateType         = "pageEdit"
-	PageInfoEditUpdateType     = "pageInfoEdit"
-	CommentEditUpdateType      = "commentEdit"
-	NewPageByUserUpdateType    = "newPageByUser"
-	NewParentUpdateType        = "newParent"
-	NewChildUpdateType         = "newChild"
-	NewTagUpdateType           = "newTag"
-	NewUsedAsTagUpdateType     = "newUsedAsTag"
-	NewRequirementUpdateType   = "newRequirement"
-	NewRequiredByUpdateType    = "newRequiredBy"
-	NewSubjectUpdateType       = "newSubject"
-	NewTeacherUpdateType       = "newTeacher"
-	AtMentionUpdateType        = "atMention"
-	AddedToGroupUpdateType     = "addedToGroup"
-	RemovedFromGroupUpdateType = "removedFromGroup"
-	NewMarkUpdateType          = "newMark"
-	DeletePageUpdateType       = "deletePage"
+	TopLevelCommentUpdateType    = "topLevelComment"
+	ReplyUpdateType              = "reply"
+	PageEditUpdateType           = "pageEdit"
+	PageInfoEditUpdateType       = "pageInfoEdit"
+	CommentEditUpdateType        = "commentEdit"
+	NewPageByUserUpdateType      = "newPageByUser"
+	NewParentUpdateType          = "newParent"
+	NewChildUpdateType           = "newChild"
+	NewTagUpdateType             = "newTag"
+	NewUsedAsTagUpdateType       = "newUsedAsTag"
+	NewRequirementUpdateType     = "newRequirement"
+	NewRequiredByUpdateType      = "newRequiredBy"
+	NewSubjectUpdateType         = "newSubject"
+	NewTeacherUpdateType         = "newTeacher"
+	AtMentionUpdateType          = "atMention"
+	AddedToGroupUpdateType       = "addedToGroup"
+	RemovedFromGroupUpdateType   = "removedFromGroup"
+	NewMarkUpdateType            = "newMark"
+	AnsweredMarkUpdateType       = "answeredMark"
+	SearchStringChangeUpdateType = "searchStringChange"
+	AnswerChangeUpdateType       = "answerChange"
+	DeletePageUpdateType         = "deletePage"
 	// ROGTODO: do we need this as well?
 	// DeleteCommentUpdateType       = "deleteComment"
 )
@@ -130,8 +133,10 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
 		FROM updates
-		JOIN pages ON updates.goToPageId = pages.pageId
-		LEFT JOIN changeLogs ON updates.changeLogId = changeLogs.id
+		JOIN pages
+		ON updates.goToPageId = pages.pageId
+		LEFT JOIN changeLogs
+		ON updates.changeLogId = changeLogs.id
 		WHERE updates.userId=? ` + emailFilter + `
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC

@@ -516,14 +516,25 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				var pageTemplate = '<arb-primary-page></arb-primary-page>';
 
 				if (!page) {
-					if (postData.pageAlias in pageService.deletedPagesMap) {
-						urlService.goToUrl(pageService.getEditPageUrl(postData.pageAlias));
+					page = pageService.deletedPagesMap[postData.pageAlias];
+					if (page) {
+						if (page.mergedInto) {
+							urlService.goToUrl(pageService.getPageUrl(page.mergedInto));
+						} else {
+							urlService.goToUrl(pageService.getEditPageUrl(postData.pageAlias));
+						}
 						return;
 					}
 					return {
 						title: 'Not Found',
 						error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
 					};
+				}
+
+				// If this page has been merged into another, go there
+				if (page.mergedInto) {
+					urlService.goToUrl(pageService.getPageUrl(page.mergedInto));
+					return;
 				}
 
 				// If the page is a user page, get the additional data about user

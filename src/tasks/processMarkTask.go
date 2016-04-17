@@ -13,12 +13,12 @@ type ProcessMarkTask struct {
 	Id int64
 }
 
-func (task *ProcessMarkTask) Tag() string {
+func (task ProcessMarkTask) Tag() string {
 	return "processMark"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *ProcessMarkTask) IsValid() error {
+func (task ProcessMarkTask) IsValid() error {
 	if task.Id <= 0 {
 		return fmt.Errorf("Invalid id: %d", task.Id)
 	}
@@ -27,7 +27,7 @@ func (task *ProcessMarkTask) IsValid() error {
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *ProcessMarkTask) Execute(db *database.DB) (int, error) {
+func (task ProcessMarkTask) Execute(db *database.DB) (int, error) {
 	c := db.C
 
 	if err := task.IsValid(); err != nil {

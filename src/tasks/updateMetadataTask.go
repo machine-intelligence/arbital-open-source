@@ -13,18 +13,18 @@ import (
 type UpdateMetadataTask struct {
 }
 
-func (task *UpdateMetadataTask) Tag() string {
+func (task UpdateMetadataTask) Tag() string {
 	return "updateMetadata"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *UpdateMetadataTask) IsValid() error {
+func (task UpdateMetadataTask) IsValid() error {
 	return nil
 }
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) {
+func (task UpdateMetadataTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
 	if err = task.IsValid(); err != nil {

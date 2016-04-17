@@ -14,18 +14,18 @@ import (
 type ResetPasswordsTask struct {
 }
 
-func (task *ResetPasswordsTask) Tag() string {
+func (task ResetPasswordsTask) Tag() string {
 	return "resetPasswords"
 }
 
 // Check if this task is valid, and we can safely execute it.
-func (task *ResetPasswordsTask) IsValid() error {
+func (task ResetPasswordsTask) IsValid() error {
 	return nil
 }
 
 // Execute this task. Called by the actual daemon worker, don't call on BE.
 // For comments on return value see tasks.QueueTask
-func (task *ResetPasswordsTask) Execute(db *database.DB) (delay int, err error) {
+func (task ResetPasswordsTask) Execute(db *database.DB) (delay int, err error) {
 	c := db.C
 
 	if err = task.IsValid(); err != nil {

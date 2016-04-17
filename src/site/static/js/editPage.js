@@ -204,6 +204,28 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				});
 			};
 
+			// Called when a user selects a question to merge into.
+			$scope.mergeCandidate = undefined;
+			$scope.selectedMergeQuestion = function(result) {
+				if (result.pageId == $scope.page.pageId) return;
+				$scope.mergeCandidate = pageService.pageMap[result.pageId];
+			};
+
+			// Called when the user wants to merge this question.
+			$scope.mergeQuestion = function() {
+				var data = {
+					questionId: $scope.page.pageId,
+					intoQuestionId: $scope.mergeCandidate.pageId,
+				};
+				$http({method: 'POST', url: '/mergeQuestions/', data: JSON.stringify(data)})
+				.success(function(data) {
+					$location.url(pageService.getPageUrl($scope.mergeCandidate.pageId));
+				})
+				.error(function(data) {
+					$scope.addMessage('merge', 'Error merging: ' + data, 'error');
+				});
+			};
+
 			// =========== Error, warning, and info management system ==============
 			$scope.messages = {};
 			$scope.addMessage = function(key, text, type, permanent) {

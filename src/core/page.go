@@ -36,34 +36,36 @@ const (
 	ApprovalVoteType    = "approval"
 
 	// Various events we log when a page changes
-	NewParentChangeLog         = "newParent"
-	DeleteParentChangeLog      = "deleteParent"
-	NewChildChangeLog          = "newChild"
-	DeleteChildChangeLog       = "deleteChild"
-	NewTagChangeLog            = "newTag"
-	DeleteTagChangeLog         = "deleteTag"
-	NewUsedAsTagChangeLog      = "newUsedAsTag"
-	DeleteUsedAsTagChangeLog   = "deleteUsedAsTag"
-	NewRequirementChangeLog    = "newRequirement"
-	DeleteRequirementChangeLog = "deleteRequirement"
-	NewRequiredByChangeLog     = "newRequiredBy"
-	DeleteRequiredByChangeLog  = "deleteRequiredBy"
-	NewSubjectChangeLog        = "newSubject"
-	DeleteSubjectChangeLog     = "deleteSubject"
-	NewTeacherChangeLog        = "newTeacher"
-	DeleteTeacherChangeLog     = "deleteTeacher"
-	DeletePageChangeLog        = "deletePage"
-	UndeletePageChangeLog      = "undeletePage"
-	NewEditChangeLog           = "newEdit"
-	RevertEditChangeLog        = "revertEdit"
-	NewSnapshotChangeLog       = "newSnapshot"
-	NewAliasChangeLog          = "newAlias"
-	NewSortChildrenByChangeLog = "newSortChildrenBy"
-	TurnOnVoteChangeLog        = "turnOnVote"
-	TurnOffVoteChangeLog       = "turnOffVote"
-	SetVoteTypeChangeLog       = "setVoteType"
-	NewEditKarmaLockChangeLog  = "newEditKarmaLock"
-	NewEditGroupChangeLog      = "newEditGroup"
+	NewParentChangeLog          = "newParent"
+	DeleteParentChangeLog       = "deleteParent"
+	NewChildChangeLog           = "newChild"
+	DeleteChildChangeLog        = "deleteChild"
+	NewTagChangeLog             = "newTag"
+	DeleteTagChangeLog          = "deleteTag"
+	NewUsedAsTagChangeLog       = "newUsedAsTag"
+	DeleteUsedAsTagChangeLog    = "deleteUsedAsTag"
+	NewRequirementChangeLog     = "newRequirement"
+	DeleteRequirementChangeLog  = "deleteRequirement"
+	NewRequiredByChangeLog      = "newRequiredBy"
+	DeleteRequiredByChangeLog   = "deleteRequiredBy"
+	NewSubjectChangeLog         = "newSubject"
+	DeleteSubjectChangeLog      = "deleteSubject"
+	NewTeacherChangeLog         = "newTeacher"
+	DeleteTeacherChangeLog      = "deleteTeacher"
+	DeletePageChangeLog         = "deletePage"
+	UndeletePageChangeLog       = "undeletePage"
+	NewEditChangeLog            = "newEdit"
+	RevertEditChangeLog         = "revertEdit"
+	NewSnapshotChangeLog        = "newSnapshot"
+	NewAliasChangeLog           = "newAlias"
+	NewSortChildrenByChangeLog  = "newSortChildrenBy"
+	TurnOnVoteChangeLog         = "turnOnVote"
+	TurnOffVoteChangeLog        = "turnOffVote"
+	SetVoteTypeChangeLog        = "setVoteType"
+	NewEditKarmaLockChangeLog   = "newEditKarmaLock"
+	NewEditGroupChangeLog       = "newEditGroup"
+	SearchStringChangeChangeLog = "searchStringChange"
+	AnswerChangeChangeLog       = "answerChange"
 
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
@@ -121,8 +123,8 @@ type corePageData struct {
 	AnchorContext     string `json:"anchorContext"`
 	AnchorText        string `json:"anchorText"`
 	AnchorOffset      int    `json:"anchorOffset"`
-	// True iff this page is currently in a deleted state
-	IsDeleted bool `json:"isDeleted"`
+	MergedInto        string `json:"mergedInto"`
+	IsDeleted         bool   `json:"isDeleted"`
 
 	// The following data is filled on demand.
 	Text     string `json:"text"`
@@ -197,9 +199,9 @@ type Page struct {
 	Answers []*Answer `json:"answers"`
 
 	// Various counts (these might be zeroes if not loaded explicitly)
-	AnswerCount       int `json:"answerCount"`
-	CommentCount      int `json:"commentCount"`
-	IncomingMarkCount int `json:"incomingMarkCount"`
+	AnswerCount     int `json:"answerCount"`
+	CommentCount    int `json:"commentCount"`
+	LinkedMarkCount int `json:"linkedMarkCount"`
 
 	// List of changes to this page
 	ChangeLogs []*ChangeLog `json:"changeLogs"`
@@ -249,6 +251,7 @@ type Mark struct {
 	RequisiteSnapshotId string `json:"requisiteSnapshotId"`
 	ResolvedPageId      string `json:"resolvedPageId"`
 	ResolvedBy          string `json:"resolvedBy"`
+	Answered            bool   `json:"answered"`
 }
 
 // PageObject stores some information for an object embedded in a page
@@ -263,9 +266,18 @@ type PageObject struct {
 // answers the question.
 type Answer struct {
 	Id           int64  `json:"id,string"`
+	QuestionId   string `json:"questionId"`
 	AnswerPageId string `json:"answerPageId"`
 	UserId       string `json:"userId"`
 	CreatedAt    string `json:"createdAt"`
+}
+
+// SearchString is attached to a question page to help with directing users
+// towards it via search or marks.
+type SearchString struct {
+	Id     int64
+	PageId string
+	Text   string
 }
 
 // CommonHandlerData is what handlers fill out and return
@@ -545,6 +557,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadSubpageCounts failed: %v", err)
 	}
 
+	// Load answer counts
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.AnswerCounts })
+	err = LoadAnswerCounts(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadAnswerCounts failed: %v", err)
+	}
+
 	// Load number of red links.
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.RedLinkCount })
 	err = LoadRedLinkCount(db, filteredPageMap)
@@ -586,10 +605,10 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load incoming mark count
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IncomingMarkCount && p.Type == QuestionPageType })
-	err = LoadIncomingMarkCounts(db, filteredPageMap)
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.LinkedMarkCount && p.Type == QuestionPageType })
+	err = LoadLinkedMarkCounts(db, filteredPageMap)
 	if err != nil {
-		return fmt.Errorf("LoadIncomingMarkCounts failed: %v", err)
+		return fmt.Errorf("LoadLinkedMarkCounts failed: %v", err)
 	}
 
 	// Load prev/next ids
@@ -739,7 +758,7 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
-			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,
+			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN pageInfos AS pi
@@ -754,12 +773,13 @@ func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
-			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted,
+			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("Failed to scan a page: %v", err)
 		}
 		pageMap[p.PageId].corePageData = p
+		pageMap[p.PageId].WasPublished = true
 		return nil
 	})
 	for _, p := range pageMap {
@@ -794,8 +814,8 @@ func LoadSummaries(db *database.DB, pageMap map[string]*Page) error {
 	return err
 }
 
-// LoadIncomingMarkCounts loads the number of marks that link to these questions.
-func LoadIncomingMarkCounts(db *database.DB, pageMap map[string]*Page) error {
+// LoadLinkedMarkCounts loads the number of marks that link to these questions.
+func LoadLinkedMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -813,7 +833,7 @@ func LoadIncomingMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		pageMap[resolvedPageId].IncomingMarkCount = count
+		pageMap[resolvedPageId].LinkedMarkCount = count
 		return nil
 	})
 	return err
@@ -917,7 +937,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
-			pi.currentEdit>0,pi.isDeleted,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
+			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
 		FROM pages AS p
 		JOIN pageInfos AS pi
@@ -931,7 +951,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
 		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
-		&p.IsDeleted, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
+		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
@@ -1022,6 +1042,23 @@ func LoadSearchStrings(db *database.DB, pageMap map[string]*Page) error {
 		return nil
 	})
 	return err
+}
+
+// LoadSearchString loads just one search string given its id
+func LoadSearchString(db *database.DB, id string) (*SearchString, error) {
+	var searchString SearchString
+	rows := db.NewStatement(`
+		SELECT id,pageId,text
+		FROM searchStrings
+		WHERE id=?`).Query(id)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		err := rows.Scan(&searchString.Id, &searchString.PageId, &searchString.Text)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		return nil
+	})
+	return &searchString, err
 }
 
 // LoadViewCounts loads view counts for the pages
@@ -1285,34 +1322,37 @@ func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*
 		return nil
 	}
 
-	// Load all links.
 	rows := db.NewStatement(`
 		SELECT id,questionId,answerPageId,userId,createdAt
 		FROM answers
 		WHERE questionId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var id int64
-		var questionId, answerPageId, userId, createdAt string
-		err := rows.Scan(&id, &questionId, &answerPageId, &userId, &createdAt)
+		var answer Answer
+		err := rows.Scan(&answer.Id, &answer.QuestionId, &answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		AddPageToMap(answerPageId, pageMap, AnswerLoadOptions)
-		userMap[userId] = &User{Id: userId}
-		pageMap[questionId].Answers = append(pageMap[questionId].Answers, &Answer{
-			Id:           id,
-			AnswerPageId: answerPageId,
-			UserId:       userId,
-			CreatedAt:    createdAt,
-		})
+		AddPageToMap(answer.AnswerPageId, pageMap, AnswerLoadOptions)
+		userMap[answer.UserId] = &User{Id: answer.UserId}
+		pageMap[answer.QuestionId].Answers = append(pageMap[answer.QuestionId].Answers, &answer)
 		return nil
 	})
 	return err
 }
 
+// LoadAnswer just loads the data for one specific answer.
+func LoadAnswer(db *database.DB, answerId string) (*Answer, error) {
+	var answer Answer
+	_, err := db.NewStatement(`
+		SELECT id,questionId,answerPageId,userId,createdAt
+		FROM answers
+		WHERE id=?`).QueryRow(answerId).Scan(&answer.Id, &answer.QuestionId,
+		&answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
+	return &answer, err
+}
+
 // LoadMarkIds loads all the marks owned by the given user
 func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*Mark, u *user.User, options *LoadDataOptions) error {
-
 	sourceMap := options.ForPages
 	if sourceMap == nil {
 		sourceMap = pageMap
@@ -1358,7 +1398,7 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 
 	rows := db.NewStatement(`
 		SELECT id,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
-			text,requisiteSnapshotId,resolvedPageId,resolvedBy
+			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered
 		FROM marks
 		WHERE id IN ` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -1366,7 +1406,7 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 		mark := &Mark{}
 		err := rows.Scan(&mark.Id, &mark.PageId, &creatorId, &mark.CreatedAt,
 			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
-			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy)
+			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
@@ -1492,11 +1532,36 @@ func LoadSubpageCounts(db *database.DB, pageMap map[string]*Page) error {
 		var count int
 		err := rows.Scan(&pageId, &childType, &count)
 		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
+			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		if childType == CommentPageType {
 			pageMap[pageId].CommentCount = count
 		}
+		return nil
+	})
+	return err
+}
+
+// LoadAnswerCounts loads the number of answers the pages have
+func LoadAnswerCounts(db *database.DB, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+	rows := database.NewQuery(`
+		SELECT questionId,sum(1)
+		FROM answers
+		WHERE questionId IN`).AddArgsGroup(pageIds).Add(`
+		GROUP BY 1`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var questionId string
+		var count int
+		err := rows.Scan(&questionId, &count)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		pageMap[questionId].AnswerCount = count
+
 		return nil
 	})
 	return err

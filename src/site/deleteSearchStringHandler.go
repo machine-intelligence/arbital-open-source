@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
@@ -24,6 +25,7 @@ var deleteSearchStringHandler = siteHandler{
 
 // deleteSearchStringHandlerFunc handles requests to create/update a like.
 func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
 
 	var data deleteSearchStringData
@@ -38,10 +40,34 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Invalid id", err)
 	}
 
-	statement := database.NewQuery(`
-		DELETE FROM searchStrings WHERE id=?`, id).ToStatement(db)
-	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't delete from DB", err)
+	searchString, err := core.LoadSearchString(db, data.Id)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't load the search string", err)
+	}
+
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Delete the search string
+		statement := database.NewQuery(`
+		DELETE FROM searchStrings WHERE id=?`, id).ToStatement(db).WithTx(tx)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't delete from DB", err
+		}
+
+		// Update change logs
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = searchString.PageId
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = core.SearchStringChangeChangeLog
+		hashmap["oldSettingsValue"] = searchString.Text
+		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't add to changeLogs", err
+		}
+		return "", nil
+	})
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	return pages.StatusOK(nil)

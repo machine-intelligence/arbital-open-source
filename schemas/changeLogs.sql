@@ -24,8 +24,8 @@ CREATE TABLE changeLogs (
 	auxPageId VARCHAR(32) NOT NULL,
 
 	/* So that we can show what changed in the change log. */
-	oldSettingsValue VARCHAR(64) NOT NULL,
-	newSettingsValue VARCHAR(64) NOT NULL,
+	oldSettingsValue VARCHAR(1024) NOT NULL,
+	newSettingsValue VARCHAR(1024) NOT NULL,
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

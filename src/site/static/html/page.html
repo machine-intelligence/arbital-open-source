@@ -80,12 +80,13 @@
 		</div>
 
 		<!-- Answers section -->
+		<a id="answers"></a>
 		<div class="discussion-container" flex-order="2" ng-if="::!isSimpleEmbed && page.isQuestion()">
 			<div class="user-page-panel md-whiteframe-1dp" layout="column">
 
 				<md-toolbar class="md-hue-2">
 					<div class="md-toolbar-tools">
-						Answers
+						Answers ({{page.answers.length}})
 						<div flex></div>
 						<md-menu>
 							<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Answer actions">
@@ -146,8 +147,8 @@
 				</md-list>
 				<span ng-if="(page.answers.length <= 0)" layout-padding>
 					<span>
-						No answers yet. {{page.incomingMarkCount}} 
-						<ng-pluralize count="page.incomingMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+						No answers yet. {{page.linkedMarkCount}} 
+						<ng-pluralize count="page.linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 						linked to this question.
 					</span>
 				</span>

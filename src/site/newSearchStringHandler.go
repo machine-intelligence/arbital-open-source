@@ -45,22 +45,43 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Invalid text", nil)
 	}
 
-	hashmap := make(map[string]interface{})
-	hashmap["pageId"] = data.PageId
-	hashmap["text"] = data.Text
-	hashmap["userId"] = u.Id
-	hashmap["createdAt"] = database.Now()
-	statement := db.NewInsertStatement("searchStrings", hashmap)
-	resp, err := statement.Exec()
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't insert into DB", err)
+	var newId int64
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Add the new search string
+		hashmap := make(map[string]interface{})
+		hashmap["pageId"] = data.PageId
+		hashmap["text"] = data.Text
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		statement := db.NewInsertStatement("searchStrings", hashmap).WithTx(tx)
+		resp, err := statement.Exec()
+		if err != nil {
+			return "Couldn't insert into DB", err
+		}
+
+		newId, err = resp.LastInsertId()
+		if err != nil {
+			return "Couldn't get inserted id", err
+		}
+
+		// Update change logs
+		hashmap = make(database.InsertMap)
+		hashmap["pageId"] = data.PageId
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = core.SearchStringChangeChangeLog
+		hashmap["newSettingsValue"] = data.Text
+		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		if _, err = statement.Exec(); err != nil {
+			return "Couldn't add to changeLogs", err
+		}
+		return "", nil
+	})
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
-	newId, err := resp.LastInsertId()
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't get inserted id", err)
-	}
-
+	// Update Elastic
 	var task tasks.UpdateElasticPageTask
 	task.PageId = data.PageId
 	if err := tasks.Enqueue(c, &task, nil); err != nil {

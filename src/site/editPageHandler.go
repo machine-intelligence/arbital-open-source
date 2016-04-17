@@ -345,6 +345,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["pageId"] = data.PageId
 		if isLiveEdit && oldPage.IsDeleted {
 			hashmap["isDeleted"] = false
+			hashmap["mergedInto"] = ""
 		}
 		if !oldPage.WasPublished && isLiveEdit {
 			hashmap["createdAt"] = database.Now()

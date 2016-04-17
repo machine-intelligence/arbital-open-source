@@ -14,8 +14,13 @@
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 	</div>
 
-	<!-- Resolved text -->
-	<div ng-if="mark.resolvedPageId || mark.resolvedBy">
+	<!-- Show mark's text -->
+	<div ng-if="::!isNew && mark.text.length > 0">
+		Your query was: <span ng-bind="::mark.text"></span>
+	</div>
+
+	<!-- Resolved -->
+	<div ng-if="!mark.answered && (mark.resolvedPageId || mark.resolvedBy)">
 		This mark has been
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
@@ -25,18 +30,22 @@
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 		</span>
 	</div>
+
+	<!-- Answered -->
+	<div ng-if="mark.answered">
+		This mark has been <strong>answered</strong> via:
+		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
+	</div>
 	
 	<!-- Optional confusion text input -->
-	<div>
-		<md-input-container class="full-width">
-			<label ng-if="::isNew">Is there a specific question you want to ask?</label>
-			<label ng-if="::!isNew">Update question text</label>
-			<textarea ng-model="mark.text"
-				md-maxlength="300"
-				autofocus
-				aria-label="Mark question text"></textarea>
-		</md-input-container>
-	</div>
+	<md-input-container class="full-width" ng-if="::isNew">
+		<label ng-if="::isNew">Is there a specific question you want to ask?</label>
+		<label ng-if="::!isNew">Update question text</label>
+		<textarea ng-model="mark.text"
+			md-maxlength="300"
+			autofocus
+			aria-label="Mark question text"></textarea>
+	</md-input-container>
 	
 	<!-- Potential questions / answers -->
 	<md-list>
@@ -58,12 +67,12 @@
 	
 	<!-- Bottom buttons -->
 	<div layout="row">
-		<md-button class="md-accent" ng-click="dismissMark()">
+		<md-button class="md-accent" ng-click="dismissMark()" ng-if="!mark.resolvedPageId">
 			Discard
 		</md-button>
 		<div flex></div>
-		<md-button class="md-primary" ng-click="updateMarkText()" aria-label="Set question">
-			<span ng-bind="::isNew ? 'Ask the question' : 'Update'"></span>
+		<md-button class="md-primary" ng-click="updateMarkText()" aria-label="Set question" ng-if="::isNew">
+			<span>Ask the question</span>
 		</md-button>
 	</div>
 </div>
@@ -80,8 +89,8 @@
 		Their query was: <span ng-bind="::mark.text"></span>
 	</div>
 
-	<!-- Resolved text -->
-	<div ng-if="mark.resolvedPageId || mark.resolvedBy">
+	<!-- Resolved -->
+	<div ng-if="!mark.answered && (mark.resolvedPageId || mark.resolvedBy)">
 		This mark has been
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
@@ -90,6 +99,12 @@
 			with:
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 		</span>
+	</div>
+
+	<!-- Answered -->
+	<div ng-if="mark.answered">
+		This mark has been <strong>answered</strong> via:
+		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
 	<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"

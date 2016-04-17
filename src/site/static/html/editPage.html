@@ -261,14 +261,24 @@
 								Add string
 							</md-button>
 						</div>
+					</div>
 
-						<!-- Info about how many incoming marks there are. -->
+					<!-- Info about how many incoming marks there are. -->
+					<div ng-if="isQuestion">
+						<div class="md-subhead">
+							<arb-page-title page-id="370"
+									is-link="true"
+									custom-page-title="'Linked marks'"></arb-page-title>
+						</div>
 						<span>
-							{{pageService.pageMap[page.pageId].incomingMarkCount}} 
-							<ng-pluralize count="pageService.pageMap[page.pageId].incomingMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+							{{pageService.pageMap[page.pageId].linkedMarkCount}} 
+							<ng-pluralize count="pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 							linked to this question.
 						</span>
 					</div>
+
+					<br>
+					<br>
 
 				</div>
 			</md-tab>
@@ -403,6 +413,30 @@
 							<md-switch ng-model="page.indirectTeacher">
 								This page teaches its requisites indirectly
 							</md-switch>
+						</div>
+
+						<!-- Merge question -->
+						<div layout="row" layout-margin ng-if="::isQuestion && !page.isDeleted">
+							<div flex>
+								<arb-autocomplete class="insert-autocomplete"
+										placeholder="Find the question to merge into"
+										on-select="selectedMergeQuestion(result)"
+										do-autofocus="false"
+										flex
+										page-type="question"
+										ng-show="!mergeCandidate"></arb-autocomplete>
+								<arb-page-title page-id="{{::mergeCandidate.pageId}}"
+										is-link="true"
+										show-clickbait="true"
+										ng-if="mergeCandidate"></arb-page-title>
+								<arb-confirm-button button-text="Merge"
+										button-before-confirm="true"
+										confirmed="mergeQuestion()"
+										ng-if="mergeCandidate"></arb-confirm-button>
+							</div>
+							<div class="md-caption" flex>
+								This will merge all answers and search strings into the selected question. This question will be deleted.
+							</div>
 						</div>
 
 						<!-- Delete page -->
