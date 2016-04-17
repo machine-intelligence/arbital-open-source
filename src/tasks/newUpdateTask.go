@@ -80,21 +80,52 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Invalid new update task: %v", err)
 	}
 
+	var requiredGroupMemberships []string
+	rows = database.NewQuery(`
+		SELECT DISTINCT seeGroupId
+		FROM pageInfos
+		WHERE seeGroupId != '' AND pageId IN (?, ?, ?)`, task.GroupByPageId, task.GroupByUserId, task.GoToPageId).ToStatement(db).Query()
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var groupId string
+		err := rows.Scan(&groupId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for required groups: %v", err)
+		}
+
+		requiredGroupMemberships = append(requiredGroupMemberships, groupId)
+		return nil
+	})
+	if err != nil {
+		c.Errorf("Couldn't process group requirements: %v", err)
+		return -1, err
+	}
+
+	var query *database.QueryPart
 	// Iterate through all users who are subscribed to this page/comment.
 	// If it is an editors only comment, only select editor ids.
 	if task.EditorsOnly {
-		rows = database.NewQuery(`
+		query = database.NewQuery(`
 			SELECT s.userId
 			FROM subscriptions AS s
 			JOIN pages as p
 			ON s.userId = p.creatorId
-			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId).ToStatement(db).Query()
+			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId)
 	} else {
-		rows = database.NewQuery(`
-			SELECT userId
-			FROM subscriptions
-			WHERE toId=?`, task.SubscribedToId).ToStatement(db).Query()
+		query = database.NewQuery(`
+			SELECT s.userId
+			FROM subscriptions AS s
+			WHERE
+				s.toId=?`, task.SubscribedToId)
 	}
+	if len(requiredGroupMemberships) > 0 {
+		query = query.Add(`AND
+		(
+			SELECT COUNT(*)
+			FROM groupMembers AS gm
+			WHERE gm.userId = s.userId AND gm.groupId IN`).AddArgsGroupStr(requiredGroupMemberships).Add(`
+		) = ?`, len(requiredGroupMemberships))
+	}
+	rows = query.ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId string
 		err := rows.Scan(&userId)

@@ -42,6 +42,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		if exists && seeGroupId != params.PrivateGroupId {
 			subdomain := ""
 			if core.IsIdValid(seeGroupId) {
+				// ROGTODO: "SELECT alias FROM pages" causes an error (should be FROM pageInfos?)
 				row := database.NewQuery(`
 					SELECT alias
 					FROM pages
