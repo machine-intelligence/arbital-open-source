@@ -103,7 +103,7 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		} else {
 			task.GroupByPageId = data.PageId
 		}
-		if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 

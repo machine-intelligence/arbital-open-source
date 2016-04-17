@@ -10,7 +10,6 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
@@ -478,7 +477,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					task.GroupByPageId = id
 					task.SubscribedToId = id
 					task.GoToPageId = data.PageId
-					if err := tasks.Enqueue(c, &task, "newUpdate"); err != nil {
+					if err := tasks.Enqueue(c, &task, nil); err != nil {
 						c.Errorf("Couldn't enqueue a task: %v", err)
 					}
 				}
