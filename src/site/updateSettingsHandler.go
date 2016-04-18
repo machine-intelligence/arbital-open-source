@@ -6,7 +6,6 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/user"
 )
 
 // updateSettingsData contains data given to us in the request.
@@ -36,10 +35,10 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if data.EmailFrequency != user.DailyEmailFrequency &&
-		data.EmailFrequency != user.WeeklyEmailFrequency &&
-		data.EmailFrequency != user.NeverEmailFrequency &&
-		data.EmailFrequency != user.ImmediatelyEmailFrequency {
+	if data.EmailFrequency != core.DailyEmailFrequency &&
+		data.EmailFrequency != core.WeeklyEmailFrequency &&
+		data.EmailFrequency != core.NeverEmailFrequency &&
+		data.EmailFrequency != core.ImmediatelyEmailFrequency {
 		return pages.HandlerBadRequestFail("EmailFrequency value is invalid", nil)
 	}
 	if data.EmailThreshold <= 0 {

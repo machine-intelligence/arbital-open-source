@@ -4,9 +4,9 @@ package site
 import (
 	"encoding/json"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/stormpath"
-	"zanaduu3/src/user"
 )
 
 // loginHandlerData is the data received from the request.
@@ -45,7 +45,7 @@ func loginHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Set the cookie
-	err = user.SaveEmailCookie(params.W, params.R, data.Email)
+	err = core.SaveEmailCookie(params.W, params.R, data.Email)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't save a cookie", err)
 	}

@@ -1,5 +1,5 @@
 // Package user manages information about the current user.
-package user
+package core
 
 import (
 	"encoding/gob"
@@ -24,6 +24,27 @@ const (
 	Base31CharsForFirstChar = "0123456789"
 )
 
+const (
+	// Karma requirements to perform various actions
+	CommentKarmaReq            = -5
+	LikeKarmaReq               = 0
+	PrivatePageKarmaReq        = 5
+	VoteKarmaReq               = 10
+	AddParentKarmaReq          = 20
+	CreateAliasKarmaReq        = 50
+	EditPageKarmaReq           = 0 //50 // edit wiki page
+	DeleteParentKarmaReq       = 100
+	KarmaLockKarmaReq          = 100
+	ChangeSortChildrenKarmaReq = 100
+	ChangeAliasKarmaReq        = 200
+	DeletePageKarmaReq         = 500
+	DashlessAliasKarmaReq      = 1000
+
+	// Enter the correct invite code to get karma
+	CorrectInviteCode  = "TRUTH"
+	CorrectInviteKarma = 200
+)
+
 var (
 	sessionKey = "arbitalSession2" // key for session storage
 
@@ -34,9 +55,9 @@ var (
 	DefaultEmailThreshold = 3
 )
 
-// User holds information about a user of the app.
+// User holds information about the current user of the app.
 // Note: this structure is also stored in a cookie.
-type User struct {
+type CurrentUser struct {
 	// DB variables
 	Id             string `json:"id"`
 	FbUserId       string `json:"fbUserId"`
@@ -76,18 +97,18 @@ type CookieSession struct {
 	Random string
 }
 
-func NewUser() *User {
-	var u User
+func NewUser() *CurrentUser {
+	var u CurrentUser
 	u.MailchimpInterests = make(map[string]bool)
 	return &u
 }
 
-func (user *User) FullName() string {
+func (user *CurrentUser) FullName() string {
 	return user.FirstName + " " + user.LastName
 }
 
 // GetSomeId returns user's id or, if not available, session id, which could still be ""
-func (user *User) GetSomeId() string {
+func (user *CurrentUser) GetSomeId() string {
 	if user.Id != "" {
 		return user.Id
 	}
@@ -102,7 +123,7 @@ func GetMaxKarmaLock(karma int) int {
 
 // IsMemberOfGroup returns true iff the user is member of the given group.
 // NOTE: we are assuming GroupIds have been loaded.
-func (user *User) IsMemberOfGroup(groupId string) bool {
+func (user *CurrentUser) IsMemberOfGroup(groupId string) bool {
 	isMember := false
 	oldGroupIdStr := groupId
 	for _, groupIdStr := range user.GroupIds {
@@ -153,7 +174,7 @@ func saveSessionCookie(w http.ResponseWriter, r *http.Request) (string, error) {
 // loadUserFromDb tries to load the current user's info from the database. If
 // there is no data in the DB, but the user is logged in through AppEngine,
 // a new record is created.
-func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*User, error) {
+func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*CurrentUser, error) {
 	// Load email from the cookie
 	s, err := sessions.GetSession(r)
 	if err != nil {
@@ -194,7 +215,7 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*U
 // in the database. If the user is not logged in, we return a partially filled
 // User object.
 // A user object is returned iff there is no error.
-func LoadUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *User, err error) {
+func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (userPtr *CurrentUser, err error) {
 	userPtr, err = loadUserFromDb(w, r, db)
 	if err != nil {
 		return
@@ -298,6 +319,35 @@ func GetNextAvailableId(tx *database.Tx) (string, error) {
 	return IncrementBase31Id(tx.DB.C, highestUsedId)
 }
 
+// LoadUpdateCount returns the number of unseen updates the given user has.
+func LoadUpdateCount(db *database.DB, userId string) (int, error) {
+	editTypes := []string{PageEditUpdateType, CommentEditUpdateType}
+
+	var editUpdateCount int
+	row := database.NewQuery(`
+		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
+		FROM updates
+		WHERE unseen AND userId=?`, userId).Add(`
+			AND type IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
+	_, err := row.Scan(&editUpdateCount)
+	if err != nil {
+		return -1, err
+	}
+
+	var nonEditUpdateCount int
+	row = database.NewQuery(`
+		SELECT COUNT(*)
+		FROM updates
+		WHERE unseen AND userId=?`, userId).Add(`
+			AND type NOT IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
+	_, err = row.Scan(&nonEditUpdateCount)
+	if err != nil {
+		return -1, err
+	}
+
+	return editUpdateCount + nonEditUpdateCount, err
+}
+
 // LoadUserTrust returns the trust that the user has in all domains.
 func LoadUserTrust(db *database.DB, userId string) (map[string]Trust, error) {
 	trustMap := make(map[string]Trust)
@@ -317,28 +367,6 @@ func LoadUserTrust(db *database.DB, userId string) (map[string]Trust, error) {
 	// TODO: actually count up the user's trust
 
 	return trustMap, err
-}
-
-// Load all the domains that currently exist on Arbital.
-// TODO: move this to pageUtils.go and figure out how to cache the result
-func LoadAllDomainIds(db *database.DB) ([]string, error) {
-	domainIds := make([]string, 0)
-
-	rows := database.NewQuery(`
-		SELECT DISTINCT domainId
-		FROM pageDomainPairs`).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		err := rows.Scan(&domainId)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a domain: %v", err)
-		}
-		domainIds = append(domainIds, domainId)
-		return nil
-	})
-	// We also have a "" domain for pages with no domain.
-	domainIds = append(domainIds, "")
-	return domainIds, err
 }
 
 func init() {

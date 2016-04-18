@@ -8,7 +8,6 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 )
 
 func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,8 +21,8 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get user object
-	var u *user.User
-	u, err = user.LoadUser(w, r, db)
+	var u *core.CurrentUser
+	u, err = core.LoadCurrentUser(w, r, db)
 	if err != nil {
 		fmt.Fprintf(w, "Failed to load user")
 		return

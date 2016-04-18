@@ -1,23 +1,22 @@
 package site
 
 import (
-	"fmt"
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/user"
 )
 
 // Create a statement for inserting new userTrustSnapshots rows for this user. Returns the
 // id of the snapshot created.
-func InsertUserTrustSnapshots(tx *database.Tx, u *user.User, pageId string) (int64, error) {
+func InsertUserTrustSnapshots(tx *database.Tx, u *core.CurrentUser, pageId string) (int64, error) {
 	now := database.Now()
 
 	var domainIds []string
 	var err error
 
 	if pageId == "" {
-		domainIds, err = user.LoadAllDomainIds(tx.DB)
+		domainIds, err = core.LoadAllDomainIds(tx.DB)
 	} else {
-		domainIds, err = loadDomainsForPage(tx.DB, pageId)
+		domainIds, err = core.LoadDomainsForPage(tx.DB, pageId)
 	}
 	if err != nil {
 		return 0, err
@@ -53,32 +52,4 @@ func InsertUserTrustSnapshots(tx *database.Tx, u *user.User, pageId string) (int
 	}
 
 	return snapshotId, err
-}
-
-// Look up the domains that this page is in
-func loadDomainsForPage(db *database.DB, pageId string) ([]string, error) {
-	domainIds := make([]string, 0)
-
-	rows := database.NewQuery(`
-		SELECT domainId
-		FROM pageInfos
-		JOIN pageDomainPairs
-		ON (pageInfos.pageId=pageDomainPairs.pageId)
-		WHERE pageInfos.pageId=?`).ToStatement(db).Query(pageId)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		err := rows.Scan(&domainId)
-		if err != nil {
-			return fmt.Errorf("failed to scan for a domain: %v", err)
-		}
-		domainIds = append(domainIds, domainId)
-		return nil
-	})
-
-	// For pages with no domain, we consider them to be in the "" domain.
-	if len(domainIds) == 0 {
-		domainIds = append(domainIds, "")
-	}
-
-	return domainIds, err
 }

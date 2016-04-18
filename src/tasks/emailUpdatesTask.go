@@ -4,8 +4,8 @@ package tasks
 import (
 	"fmt"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/user"
 )
 
 const (
@@ -48,7 +48,7 @@ func (task EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 			FROM users
 			WHERE emailFrequency=?
 		)`)
-	_, err = statement.Exec(user.NeverEmailFrequency)
+	_, err = statement.Exec(core.NeverEmailFrequency)
 	if err != nil {
 		err = fmt.Errorf("Failed to update updates: %v", err)
 		return
@@ -61,7 +61,7 @@ func (task EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 		WHERE (DATEDIFF(NOW(),updateEmailSentAt)>=7 AND emailFrequency=?)
 			OR (DATEDIFF(NOW(),updateEmailSentAt)>=1 AND emailFrequency=?)
 			OR (DATEDIFF(NOW(),updateEmailSentAt)>=0 AND emailFrequency=?)
-		`).Query(user.WeeklyEmailFrequency, user.DailyEmailFrequency, user.ImmediatelyEmailFrequency)
+		`).Query(core.WeeklyEmailFrequency, core.DailyEmailFrequency, core.ImmediatelyEmailFrequency)
 
 	err = rows.Process(emailUpdatesProcessUser)
 	if err != nil {

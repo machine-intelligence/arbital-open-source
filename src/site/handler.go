@@ -13,7 +13,6 @@ import (
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
 )
@@ -70,7 +69,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Get user object
-		u, err := user.LoadUser(w, r, db)
+		u, err := core.LoadCurrentUser(w, r, db)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load user", err)
 			return
@@ -121,7 +120,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 
 		if core.IsIdValid(u.Id) && h.Options.LoadUserTrust {
 			// Load the user's trust
-			u.TrustMap, err = user.LoadUserTrust(db, u.Id)
+			u.TrustMap, err = core.LoadUserTrust(db, u.Id)
 			if err != nil {
 				fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
 				return

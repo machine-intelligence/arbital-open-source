@@ -1,4 +1,4 @@
-// user.go contains all the stuff about user
+// user.go contains some user things.
 package core
 
 import (
@@ -7,28 +7,7 @@ import (
 	"zanaduu3/src/database"
 )
 
-const (
-	// Karma requirements to perform various actions
-	CommentKarmaReq            = -5
-	LikeKarmaReq               = 0
-	PrivatePageKarmaReq        = 5
-	VoteKarmaReq               = 10
-	AddParentKarmaReq          = 20
-	CreateAliasKarmaReq        = 50
-	EditPageKarmaReq           = 0 //50 // edit wiki page
-	DeleteParentKarmaReq       = 100
-	KarmaLockKarmaReq          = 100
-	ChangeSortChildrenKarmaReq = 100
-	ChangeAliasKarmaReq        = 200
-	DeletePageKarmaReq         = 500
-	DashlessAliasKarmaReq      = 1000
-
-	// Enter the correct invite code to get karma
-	CorrectInviteCode  = "TRUTH"
-	CorrectInviteKarma = 200
-)
-
-// User has information about a user from the users table.
+// User has a selection of the information about a user.
 type User struct {
 	Id               string `json:"id"`
 	FirstName        string `json:"firstName"`
@@ -57,7 +36,7 @@ func IdsListFromUserMap(userMap map[string]*User) []interface{} {
 	return list
 }
 
-// LoadUsers loads user information (like name) for each user in the given map.
+// LoadUsers loads User information (like name) for each user in the given map.
 func LoadUsers(db *database.DB, userMap map[string]*User, userId string) error {
 	if len(userMap) <= 0 {
 		return nil
@@ -89,33 +68,4 @@ func LoadUsers(db *database.DB, userMap map[string]*User, userId string) error {
 		return nil
 	})
 	return err
-}
-
-// LoadUpdateCount returns the number of unseen updates the given user has.
-func LoadUpdateCount(db *database.DB, userId string) (int, error) {
-	editTypes := []string{PageEditUpdateType, CommentEditUpdateType}
-
-	var editUpdateCount int
-	row := database.NewQuery(`
-		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
-		FROM updates
-		WHERE unseen AND userId=?`, userId).Add(`
-			AND type IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
-	_, err := row.Scan(&editUpdateCount)
-	if err != nil {
-		return -1, err
-	}
-
-	var nonEditUpdateCount int
-	row = database.NewQuery(`
-		SELECT COUNT(*)
-		FROM updates
-		WHERE unseen AND userId=?`, userId).Add(`
-			AND type NOT IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
-	_, err = row.Scan(&nonEditUpdateCount)
-	if err != nil {
-		return -1, err
-	}
-
-	return editUpdateCount + nonEditUpdateCount, err
 }

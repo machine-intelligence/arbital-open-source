@@ -16,10 +16,10 @@ import (
 	"net/http"
 	"net/url"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/logger"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 )
 
 var (
@@ -37,7 +37,7 @@ type HandlerParams struct {
 	R              *http.Request
 	C              sessions.Context
 	DB             *database.DB
-	U              *user.User
+	U              *core.CurrentUser
 	PrivateGroupId string
 }
 
