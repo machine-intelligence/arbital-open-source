@@ -581,6 +581,8 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						preprocessInlineCommentButtons();
 						$location.search('markId', data.result.markId);
 						showConfusionEventWindow(data.result.markId, true);
+						var params = scope.inlineMarks[markId];
+						params.visible = true;
 					}
 				);
 			};

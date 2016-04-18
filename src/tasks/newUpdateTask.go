@@ -109,13 +109,13 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			FROM subscriptions AS s
 			JOIN pages as p
 			ON s.userId = p.creatorId
-			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId)
+			WHERE s.toId=? AND p.pageId=?
+			GROUP BY 1`, task.SubscribedToId, task.SubscribedToId)
 	} else {
 		query = database.NewQuery(`
 			SELECT s.userId
 			FROM subscriptions AS s
-			WHERE
-				s.toId=?`, task.SubscribedToId)
+			WHERE s.toId=?`, task.SubscribedToId)
 	}
 	if len(requiredGroupMemberships) > 0 {
 		query = query.Add(`AND

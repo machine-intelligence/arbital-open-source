@@ -51,7 +51,8 @@
 			<div class="page-tabs-holder" layout="row" layout-xs="column" ng-if="::page.lensIds.length > 1">
 				<md-button ng-repeat="lensId in ::page.lensIds"
 						ng-click="tabsClicked($event,lensId)"
-						ng-class="{'active-tab': lensId == selectedLens.pageId}">
+						ng-class="{'active-tab': lensId == selectedLens.pageId}"
+						aria-label="Switch tab">
 					<arb-page-title page-id="{{::lensId}}"
 							custom-page-title="{{::(lensId === page.pageId ? 'Main' : pageService.pageMap[lensId].lensTitle())}}"></arb-page-title>
 					<md-icon class="md-primary" ng-if="!hasAllReqs(lensId)">
