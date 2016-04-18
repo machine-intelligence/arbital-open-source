@@ -449,8 +449,10 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	// Load user's marks
 	if u.Id != "" {
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UserMarks })
-		err = LoadMarkIds(db, pageMap, markMap, u, &LoadDataOptions{
-			ForPages: filteredPageMap,
+		err = LoadMarkIds(db, pageMap, markMap, &LoadMarkIdsOptions{
+			ForPages:        filteredPageMap,
+			UserConstraint:  u,
+			LoadResolvedToo: true,
 		})
 		if err != nil {
 			return fmt.Errorf("LoadMarkIds for user's marks failed: %v", err)
@@ -458,7 +460,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 		// Load unresolved marks
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UnresolvedMarks })
-		err = LoadMarkIds(db, pageMap, markMap, nil, &LoadDataOptions{
+		err = LoadMarkIds(db, pageMap, markMap, &LoadMarkIdsOptions{
 			ForPages: filteredPageMap,
 		})
 		if err != nil {
@@ -1351,8 +1353,18 @@ func LoadAnswer(db *database.DB, answerId string) (*Answer, error) {
 	return &answer, err
 }
 
+type LoadMarkIdsOptions struct {
+	// If set, we'll only load links for the pages with these ids
+	ForPages map[string]*Page
+
+	// If set, only load marks owned by this user
+	UserConstraint *user.User
+	// If true, load resolved marks too
+	LoadResolvedToo bool
+}
+
 // LoadMarkIds loads all the marks owned by the given user
-func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*Mark, u *user.User, options *LoadDataOptions) error {
+func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*Mark, options *LoadMarkIdsOptions) error {
 	sourceMap := options.ForPages
 	if sourceMap == nil {
 		sourceMap = pageMap
@@ -1363,16 +1375,20 @@ func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*
 		return nil
 	}
 
-	userConstraint := database.NewQuery("")
-	if u != nil {
-		userConstraint = database.NewQuery("AND creatorId=?", u.Id)
+	userConstraint := database.NewQuery(``)
+	if options.UserConstraint != nil {
+		userConstraint = database.NewQuery(`AND creatorId=?`, options.UserConstraint.Id)
+	}
+	resolvedConstraint := database.NewQuery(`AND resolvedBy=""`)
+	if options.LoadResolvedToo {
+		resolvedConstraint = database.NewQuery(``)
 	}
 
 	rows := database.NewQuery(`
 		SELECT id,pageId
 		FROM marks
 		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
-			AND resolvedBy=""`).AddPart(userConstraint).ToStatement(db).Query()
+			`).AddPart(userConstraint).AddPart(resolvedConstraint).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var markId, pageId string
 		err := rows.Scan(&markId, &pageId)

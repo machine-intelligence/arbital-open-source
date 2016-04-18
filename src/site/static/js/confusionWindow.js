@@ -93,15 +93,15 @@ app.directive('arbConfusionWindow', function($interval, pageService, userService
 				});
 				$scope.mark.resolvedPageId = '';
 				$scope.mark.resolvedBy = userService.user.id;
-				$scope.hideEventWindow();
+				$scope.hideEventWindow({dismiss: true});
 			};
 		},
 		link: function(scope, element, attrs) {
 			// Hide current event window, if it makes sense.
 			var isInsideEventWindow = element.closest('#events-info-div').length > 0;
-			scope.hideEventWindow = function() {
+			scope.hideEventWindow = function(result) {
 				if (isInsideEventWindow) {
-					pageService.hideEvent();
+					pageService.hideEvent(result);
 				}
 			};
 		},

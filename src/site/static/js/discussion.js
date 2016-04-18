@@ -9,13 +9,8 @@ app.directive('arbDiscussion', function($compile, $location, $timeout, pageServi
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
-
-			// Compute all ids to show under discussion
-			var computeSubpageIds = function() {
-				$scope.page.subpageIds = ($scope.page.questionIds || []).concat($scope.page.commentIds || []);
-				$scope.page.subpageIds.sort(pageService.getChildSortFunc('likes'));
-			};
-			computeSubpageIds();
+			$scope.page.subpageIds = $scope.page.commentIds || [];
+			$scope.page.subpageIds.sort(pageService.getChildSortFunc('likes'));
 
 			// Process user clicking on New Comment button
 			$scope.newCommentClick = function() {

@@ -126,6 +126,8 @@
 														{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>{{end}}
 														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}
 														({{RelativeDateTime .CreatedAt}})
+													{{else if eq .Type "pageInfoEdit"}}
+														Page's settings were edited.
 													{{else if eq .Type "newPageByUser"}}
 														Created a new page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
@@ -175,6 +177,12 @@
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> removed you from
 														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">the {{GetPageTitle .GoToPageId}} group</a>
 														({{RelativeDateTime .CreatedAt}})
+													{{else if eq .Type "newMark"}}
+														A confusion mark has been created.
+													{{else if eq .Type "answeredMark"}}
+														Your confusion mark has been answered.
+													{{else}}
+														Something else ({{.Type}}) happened.
 													{{end}}
 												</div>
 											{{end}}

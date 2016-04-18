@@ -4,67 +4,67 @@
 		<!-- Changes with links -->
 
 		<span ng-switch-when="newParent">
-			New parent: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			New parent: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteParent">
-			Removed parent: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Removed parent: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="newChild">
-			New child: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			New child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteChild">
-			Removed child: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Removed child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="newTag">
-			New tag: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			New tag: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteTag">
-			Removed tag: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Removed tag: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="newUsedAsTag">
-			Used as tag for: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Used as tag for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteUsedAsTag">
-			Not a tag for: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Not a tag for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="newRequirement">
-			New requirement: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			New requirement: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteRequirement">
-			Removed requirement: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Removed requirement: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="newRequiredBy">
-			Required for: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Required for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteRequiredBy">
-			Not required for: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Not required for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="newSubject">
-			Teaches: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Teaches: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteSubject">
-			Doesn't teach: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Doesn't teach: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="newTeacher">
-			Taught by: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Taught by: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteTeacher">
-			Not taught by: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			Not taught by: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="searchStringChange">
@@ -78,19 +78,19 @@
 
 		<span ng-switch-when="answerChange">
 			<span ng-if="::newSettingsValue">
-				Answer added: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+				Answer added: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
 			<span ng-if="::oldSettingsValue">
-				Answer removed: <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+				Answer removed: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
 		</span>
 
 		<span ng-switch-when="questionMerged">
-			This question has been merged into <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			This question has been merged into <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="questionMergedReverse">
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			question was merged into this.
 		</span>
 
@@ -173,16 +173,16 @@
 		<!-- Updates -->
 
 		<span ng-switch-when="topLevelComment">
-			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			wrote a
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
 				custom-page-title="new comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="reply">
-			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			wrote a
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
 				custom-page-title="new comment reply"></arb-page-title>
 		</span>
 
@@ -195,35 +195,35 @@
 
 		<span ng-switch-when="newPageByUser">
 			Created a new page:
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="commentEdit">
-			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			edited a
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
 				custom-page-title="comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="atMention">
-			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			mentioned you in a
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
 				custom-page-title="comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="addedToGroup">
-			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			added you to
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
-				custom-page-title="the {{::pageService.pageMap[relatedPageId].title}} group"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
+				custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="removedFromGroup">
-			<arb-user-name user-id="{{::userId}}"></arb-user-name>
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			removed you from
-			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"
-				custom-page-title="the {{::pageService.pageMap[relatedPageId].title}} group"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
+				custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 		</span>
 
 		<!-- Marks -->
@@ -258,7 +258,7 @@
 			<span ng-switch-when="addedToGroup"></span>
 			<span ng-switch-when="removedFromGroup"></span>
 			<span ng-switch-default>
-				<arb-user-name user-id="{{::userId}}" ng-if="::showUserLink && !!userId"></arb-user-name>
+				<arb-user-name user-id="{{::byUserId}}" ng-if="::showUserLink && !!byUserId"></arb-user-name>
 			</span>
 		</span>
 

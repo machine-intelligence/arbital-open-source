@@ -50,7 +50,7 @@ func sendTestEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	emailData, err := core.LoadUpdateEmail(db, u.Id)
 	if err != nil {
-		fmt.Fprintf(w, "Loading email failed")
+		fmt.Fprintf(w, "Loading email failed: %v", err)
 		return
 	}
 

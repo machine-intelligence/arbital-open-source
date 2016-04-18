@@ -543,10 +543,26 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					$element: $compile('<div arb-confusion-window mark-id="' + markId +
 						'" is-new="::' + isNew +
 						'"></div>')(scope),
-				}, function() {
-					var params = scope.inlineMarks[markId];
-					params.visible = false;
+				}, function(result) {
+					if (result.dismiss) {
+						delete scope.inlineMarks[markId];
+						for (var n = 0; n < orderedInlineButtons.length; n++) {
+							var button = orderedInlineButtons[n];
+							if (button.markId == markId) {
+								orderedInlineButtons.splice(n, 1);
+								break;
+							}
+						}
+						preprocessInlineCommentButtons();
+					} else {
+						var params = scope.inlineMarks[markId];
+						params.visible = false;
+					}
+					$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
 					$markdown.find('.inline-comment-highlight-hover').removeClass('inline-comment-highlight-hover');
+					if ($location.search().markId == markId) {
+						$location.search("markId", undefined);
+					}
 				});
 			};
 			scope.newConfusedMark = function() {
@@ -573,6 +589,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			$timeout(function() {
 				var markId = $location.search().markId;
 				if (!markId) return;
+				scope.inlineMarkIconMouseover(markId, true);
 				scope.toggleInlineMark(markId);
 				var top = scope.getInlineMarkIconStyle(markId).top;
 				$('body').scrollTop(top - ($(window).height() / 2));

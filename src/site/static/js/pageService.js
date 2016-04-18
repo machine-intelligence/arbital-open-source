@@ -1002,9 +1002,10 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 	};
 
 	// Hide the event message.
-	this.hideEvent = function() {
+	this.hideEvent = function(result) {
+		result = result || {};
 		if (eventHideCallback) {
-			eventHideCallback();
+			eventHideCallback(result);
 			eventHideCallback = undefined;
 		}
 		$eventsBody.empty();

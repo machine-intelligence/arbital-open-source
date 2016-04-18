@@ -609,9 +609,9 @@ app.directive('arbLogRow', function(pageService) {
 		templateUrl: 'static/html/logRow.html',
 		scope: {
 			pageId: '@',
-			userId: '@',
+			byUserId: '@',
 			type: '@',
-			relatedPageId: '@',
+			goToPageId: '@',
 			isRelatedPageAlive: '=',
 			markId: '@',
 			createdAt: '@',

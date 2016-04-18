@@ -4,7 +4,7 @@
 		ng-class="{'selected-subpage': isSelected()}"
 		ng-if="!isDeleted && (!page.isEditorComment || userService.showEditorComments)">
 	<!-- Comment header -->
-	<div class="comment-header" layout="row" layout-align="start center" ng-if="::isComment">
+	<div class="comment-header" layout="row" layout-align="start center">
 		<md-icon ng-if="::!parentSubpageId">comment</md-icon>
 		<span class="separator" ng-if="::!parentSubpageId"></span>
 
@@ -44,7 +44,7 @@
 				</md-menu-item>
 
 				<!-- Mark comment as for editors only -->
-				<md-menu-item ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && !page.isEditorComment && isComment">
+				<md-menu-item ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && !page.isEditorComment">
 					<md-button ng-click="showToEditorsOnly()"
 							ng-disabled="editing"
 							aria-label="Show to editors only">
@@ -53,7 +53,7 @@
 				</md-menu-item>
 
 				<!-- Delete comment -->
-				<md-menu-item ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && isComment">
+				<md-menu-item ng-if="page.creatorId === userService.user.id || userService.user.isAdmin">
 					<md-button ng-click="deleteSubpage()"
 							ng-disabled="editing"
 							aria-label="Delete comment">
@@ -65,23 +65,9 @@
 		</md-menu>
 	</div>
 
-	<!-- Question header -->
-	<div class="comment-header"
-			layout="row"
-			layout-align="start center"
-			layout-padding
-			ng-if="::isQuestion">
-		<div>
-			<md-icon>help</md-icon>
-			<arb-page-title page-id="{{::page.pageId}}" is-link="true"></arb-page-title>
-			<ng-pluralize count="::page.answerCount"
-					when="{'0': '(No answers)', 'one': '(One answer)', 'other': '({} answers)'}" flex></ng-pluralize>
-		</div>
-	</div>
-
 	<!-- Collapsable body -->
 	<div layout="column" ng-if="!isCollapsed" layout-margin>
-		<arb-markdown class="comment-text-container" page-id="{{::page.pageId}}" ng-if="!editing && !isQuestion"></arb-markdown>
+		<arb-markdown class="comment-text-container" page-id="{{::page.pageId}}" ng-if="!editing"></arb-markdown>
 		<!-- Edit this subpage -->
 		<div arb-edit-page
 				class="edit-comment-embed"
@@ -101,14 +87,10 @@
 					ng-click="newReply()"
 					ng-disabled="newReplyId"
 					arb-user-check="cool"
-					ng-if="::(!isQuestion && !parentSubpageId && page.subpageIds.length <= 0)">
+					ng-if="::(!parentSubpageId && page.subpageIds.length <= 0)">
 				<md-icon>reply</md-icon>
 				Reply
 			</md-button>
-			<span ng-if="::(isQuestion && page.commentIds.length > 0)">
-				<md-icon>comment</md-icon>
-				<span ng-bind="::page.commentIds.length"></span>
-			</span>
 			<span flex></span>
 			<span class="md-caption" ng-bind="::(page.originalCreatedAt | relativeDateTime)"></span>
 		</div>

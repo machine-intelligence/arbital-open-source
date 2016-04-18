@@ -13,33 +13,22 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
-			$scope.isComment = $scope.page.type === 'comment';
-			$scope.isQuestion = $scope.page.type === 'question';
-			if ($scope.isComment) {
-				$scope.page.subpageIds = $scope.page.commentIds;
-				$scope.page.subpageIds.sort(pageService.getChildSortFunc('oldestFirst'));
-			} else if ($scope.isQuestion) {
-				$scope.page.subpageIds = $scope.page.answerIds;
-				$scope.page.subpageIds.sort(pageService.getChildSortFunc('likes'));
-			}
+			$scope.page.subpageIds = $scope.page.commentIds;
+			$scope.page.subpageIds.sort(pageService.getChildSortFunc('oldestFirst'));
 			$scope.isCollapsed = false;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
-			if ($scope.isComment) {
-				var url = pageService.getPageUrl($scope.lensId);
-				var hashIndex = url.indexOf('#');
-				if (hashIndex > 0) {
-					url = url.slice(0, hashIndex);
-				}
-				if (url.indexOf('?') < 0) {
-					// We have to set the lens explicitly, so we don't get automatically
-					// redirected to an easier lens or something.
-					url += '?l=' + $scope.lensId;
-				}
-				$scope.myUrl = url + '#subpage-' + $scope.page.pageId;
-			} else {
-				$scope.myUrl = pageService.getPageUrl($scope.page.pageId);
+			var url = pageService.getPageUrl($scope.lensId);
+			var hashIndex = url.indexOf('#');
+			if (hashIndex > 0) {
+				url = url.slice(0, hashIndex);
 			}
+			if (url.indexOf('?') < 0) {
+				// We have to set the lens explicitly, so we don't get automatically
+				// redirected to an easier lens or something.
+				url += '?l=' + $scope.lensId;
+			}
+			$scope.myUrl = url + '#subpage-' + $scope.page.pageId;
 
 			// Check if this comment is selected via URL hash
 			$scope.isSelected = function() {
