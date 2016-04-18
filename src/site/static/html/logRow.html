@@ -85,6 +85,15 @@
 			</span>
 		</span>
 
+		<span ng-switch-when="questionMerged">
+			This question has been merged into <arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="questionMergedReverse">
+			<arb-page-title page-id="{{::relatedPageId}}" is-link="true"></arb-page-title>
+			question was merged into this.
+		</span>
+
 		<!-- Settings changes -->
 
 		<span ng-switch-when="newAlias">

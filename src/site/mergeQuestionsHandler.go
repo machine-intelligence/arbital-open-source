@@ -7,6 +7,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/tasks"
 )
 
 // mergeQuestionsData is the data received from the request.
@@ -26,6 +27,7 @@ var mergeQuestionsHandler = siteHandler{
 
 func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
+	c := params.C
 	db := params.DB
 
 	decoder := json.NewDecoder(params.R.Body)
@@ -81,12 +83,31 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Delete the question page
 		deletePageData := &deletePageData{
-			PageId: data.QuestionId,
+			PageId:         data.QuestionId,
+			GenerateUpdate: false,
 		}
 		return deletePageTx(tx, params, deletePageData, question)
 	})
 	if err != nil {
 		return pages.HandlerErrorFail(errMessage, err)
+	}
+
+	// Generate "merge" update for users who are subscribed to either of the questions
+	var updateTask tasks.NewUpdateTask
+	updateTask.UserId = u.Id
+	updateTask.GoToPageId = data.IntoQuestionId
+	updateTask.SubscribedToId = data.QuestionId
+	updateTask.GroupByPageId = data.QuestionId
+	updateTask.UpdateType = core.QuestionMergedUpdateType
+	if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
+	}
+	updateTask.GoToPageId = data.QuestionId
+	updateTask.SubscribedToId = data.IntoQuestionId
+	updateTask.GroupByPageId = data.IntoQuestionId
+	updateTask.UpdateType = core.QuestionMergedReverseUpdateType
+	if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
+		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
 	return pages.StatusOK(nil)
