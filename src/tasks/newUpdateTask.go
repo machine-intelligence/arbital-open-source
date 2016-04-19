@@ -80,11 +80,13 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Invalid new update task: %v", err)
 	}
 
+	// Load seeGroupIds for the groupByPage and goToPage. Used to filter out updates for users who
+	// won't have permission to click through to the pages linked in the update.
 	var requiredGroupMemberships []string
 	rows = database.NewQuery(`
 		SELECT DISTINCT seeGroupId
 		FROM pageInfos
-		WHERE seeGroupId != '' AND pageId IN (?, ?, ?)`, task.GroupByPageId, task.GroupByUserId, task.GoToPageId).ToStatement(db).Query()
+		WHERE seeGroupId != '' AND pageId IN (?, ?)`, task.GroupByPageId, task.GoToPageId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId string
 		err := rows.Scan(&groupId)
@@ -105,12 +107,11 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	// If it is an editors only comment, only select editor ids.
 	if task.EditorsOnly {
 		query = database.NewQuery(`
-			SELECT s.userId
+			SELECT DISTINCT s.userId
 			FROM subscriptions AS s
 			JOIN pages as p
 			ON s.userId = p.creatorId
-			WHERE s.toId=? AND p.pageId=?
-			GROUP BY 1`, task.SubscribedToId, task.SubscribedToId)
+			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId)
 	} else {
 		query = database.NewQuery(`
 			SELECT s.userId
