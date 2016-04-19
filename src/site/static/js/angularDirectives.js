@@ -328,12 +328,9 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				$scope.editPageUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
-				$scope.showNewAnswer = false;
 				if (pageService.primaryPage) {
 					var type = pageService.primaryPage.type;
-					if (type === 'question') {
-						$scope.showNewAnswer = true;
-					} else if (type === 'wiki' || type === 'group' || type === 'domain') {
+					if (type === 'wiki' || type === 'group' || type === 'domain') {
 						$scope.questionUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId + '&type=question';
 						$scope.lensUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId + '&type=lens';
 						$scope.childUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId;
@@ -352,13 +349,6 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			}, function() {
 				computeUrls();
 			});
-
-			// New answer button is clicked
-			$scope.newAnswer = function() {
-				$('html, body').animate({
-					scrollTop: $('#your-answer').offset().top,
-				}, 1000);
-			};
 
 			// New feedback button is clicked
 			$scope.newFeedback = function(event) {
@@ -384,7 +374,6 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
 					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
 					else if (event.keyCode == 81 && $scope.questionUrl) $location.url($scope.questionUrl); // Q
-					else if (event.keyCode == 65 && $scope.showNewAnswer) $scope.newAnswer(); // A
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});
 			});

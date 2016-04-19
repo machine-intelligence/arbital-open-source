@@ -166,12 +166,36 @@
 					</div>
 
 					<!-- Textarea for editing the page's text -->
-					<textarea class="wmd-input"
-							id="wmd-input{{::page.pageId}}"
+					<textarea id="wmd-input{{::page.pageId}}"
+							class="wmd-input"
 							placeholder="Truth is singular. Its &#34;versions&#34; are mistruths.&#13;&#10;&mdash; Sonmi-451"
-							ng-model="page.text" autofocus
+							ng-model="page.text"
+							autofocus
 							flex
-							ng-disabled="showInsertLink || freezeEdit"></textarea>
+							ng-disabled="showInsertLink || freezeEdit"
+							ng-if="::!isQuestion"></textarea>
+
+					<div class="prevent-horizontal-scroll" layout="column" flex ng-if="::isQuestion">
+						<md-input-container class="question-text-container" flex>
+							<textarea id="wmd-input{{::page.pageId}}"
+								class="wmd-input"
+								ng-model="page.text"
+								md-maxlength="1000"
+								autofocus
+								flex
+								aria-label="Question text"></textarea>
+						</md-input-container>
+						<div>
+							Note that Arbital 
+							<arb-page-title page-id="185"
+									is-link="true"
+									custom-page-title="questions"></arb-page-title>
+							are not like StackOverflow or Quora questions, which ask someone for an answer.
+							Instead, Arbital questions are means of navigation. Most users won't stop
+							to read the question and, in fact, might skip it entirely and go to the best
+							answer. Because of that, the question text is limited to 1000 characters.
+						</div>
+					</div>
 				</div>
 			</md-tab>
 
@@ -252,7 +276,7 @@
 
 						<!-- Add a new string -->
 						<br>
-						<div layout="row" layout-align="start start">
+						<form layout="row" layout-align="start start" ng-submit="addSearchString()">
 							<md-input-container layout-fill>
 								<label>New search string</label>
 								<input ng-model="addSearchStringData.text">
@@ -261,9 +285,9 @@
 								Add string
 							</md-button>
 						</div>
-					</div>
+					</form>
 
-					<!-- Info about how many incoming marks there are. -->
+					<!-- Info about how many incoming marks there are -->
 					<div ng-if="isQuestion">
 						<div class="md-subhead">
 							<arb-page-title page-id="370"
@@ -275,6 +299,18 @@
 							<ng-pluralize count="pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 							linked to this question.
 						</span>
+					</div>
+
+					<br>
+
+					<!-- Answers section -->
+					<div ng-if="isQuestion">
+						<div class="md-subhead">
+							<arb-page-title page-id="187"
+									is-link="true"
+									custom-page-title="'Answers'"></arb-page-title>
+						</div>
+						<arb-answers page-id="{{::page.pageId}}" show-delete="true"></arb-answers>
 					</div>
 
 					<br>

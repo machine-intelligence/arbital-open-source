@@ -310,6 +310,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
 				};
+				if ($scope.isQuestion) {
+					data.text = data.text.length > 1000 ? data.text.slice(-1000) : data.text;
+				}
 				if ($scope.page.anchorContext) {
 					data.anchorContext = $scope.page.anchorContext;
 					data.anchorText = $scope.page.anchorText;

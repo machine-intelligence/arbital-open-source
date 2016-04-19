@@ -387,6 +387,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			// Get the style of an inline mark icon
 			scope.getInlineMarkIconStyle = function(markId) {
 				var params = scope.inlineMarks[markId];
+				if (!params) return;
 				var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
 				return {
 					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
@@ -419,6 +420,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			// Called when the user hovers the mouse over the inline mark icon
 			scope.inlineMarkIconMouseover = function(markId, mouseover) {
 				var params = scope.inlineMarks[markId];
+				if (!params) return;
 				params.mouseover = mouseover;
 				if (params.visible) return;
 				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover);
@@ -457,6 +459,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			// Hide/show the inline mark.
 			scope.toggleInlineMark = function(markId) {
 				var params = scope.inlineMarks[markId];
+				if (!params) return;
 				params.visible = !params.visible;
 				pageService.hideEvent();
 				if (params.visible) {
@@ -593,8 +596,11 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				if (!markId) return;
 				scope.inlineMarkIconMouseover(markId, true);
 				scope.toggleInlineMark(markId);
-				var top = scope.getInlineMarkIconStyle(markId).top;
-				$('body').scrollTop(top - ($(window).height() / 2));
+				var style = scope.getInlineMarkIconStyle(markId);
+				if (style) {
+					var top = style.top;
+					$('body').scrollTop(top - ($(window).height() / 2));
+				}
 			});
 
 			// Process all embedded votes

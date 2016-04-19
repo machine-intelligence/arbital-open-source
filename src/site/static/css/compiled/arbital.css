@@ -485,8 +485,9 @@ arb-admin-dashboard-page > .capped-body-width {
   max-width: 90%;
   overflow-x: hidden; }
 
-.update-rows > * + * {
-  margin-top: 5px; }
+.list > * {
+  margin-top: 7px;
+  margin-bottom: 7px; }
 
 .unseen-update {
   border-left: #E0F2F1 5px solid; }
@@ -789,6 +790,9 @@ ins {
   .page-tabs > .page-lens-body {
     overflow: hidden; }
 
+.prevent-horizontal-scroll {
+  overflow-x: hidden; }
+
 .edit-page-rhs-border {
   border-left: #00796B 5px solid; }
 
@@ -805,7 +809,7 @@ ins {
 .wmd-button-bar {
   background-color: white;
   border-bottom: silver 1px solid;
-  min-height: 0; }
+  min-height: 36px; }
   .wmd-button-bar .md-button {
     width: 25px;
     min-width: 25px;
@@ -824,6 +828,10 @@ ins {
   outline: none;
   padding: 5px 15px;
   background-color: whitesmoke; }
+
+.question-text-container {
+  width: 100%;
+  overflow-y: auto; }
 
 textarea {
   resize: none; }

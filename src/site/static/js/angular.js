@@ -63,12 +63,13 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 
 	// Set up custom icons
 	$mdIconProvider.icon('arbital_logo', 'static/icons/arbital-logo.svg', 40)
-		.icon('thumb_up_outline', 'static/icons/thumb-up-outline.svg')
-		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg')
-		.icon('facebook_box', 'static/icons/facebook-box.svg')
-		.icon('link_variant', 'static/icons/link-variant.svg')
 		.icon('comment_plus_outline', 'static/icons/comment-plus-outline.svg')
-		.icon('format_header_pound', 'static/icons/format-header-pound.svg');
+		.icon('comment_question_outline', 'static/icons/comment-question-outline.svg')
+		.icon('facebook_box', 'static/icons/facebook-box.svg')
+		.icon('format_header_pound', 'static/icons/format-header-pound.svg')
+		.icon('link_variant', 'static/icons/link-variant.svg')
+		.icon('thumb_up_outline', 'static/icons/thumb-up-outline.svg')
+		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg');
 
 	$locationProvider.html5Mode(true);
 });

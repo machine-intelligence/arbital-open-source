@@ -1,0 +1,53 @@
+<div class="list">
+	<div ng-repeat="answer in page.answers">
+		<div layout="column"
+				layout-gt-sm="row"
+				layout-align-gt-sm="start center"
+				flex>
+			<!-- First row -->
+			<div layout="row" layout-align="start start" flex>
+				<md-button class="md-icon-button"
+						ng-click="deleteAnswer(answer.id)"
+						aria-label="Delete answer"
+						ng-if="showDelete">
+					<md-icon>delete</md-icon>
+				</md-button>
+				<arb-likes page-id="{{::answer.answerPageId}}"></arb-likes>
+				<arb-page-title page-id="{{::answer.answerPageId}}"
+						is-link="true"
+						show-clickbait="true"
+						flex></arb-page-title>
+			</div>
+			<!-- Second row -->
+			<div class="md-caption" layout-gt-xs="row" layout-align="start center">
+				<div style="white-space: nowrap">
+					<span class="separator"></span>
+					<span ng-bind="::(pageService.pageMap[answer.answerPageId].textLength | numSuffix)"></span> characters
+				</div>
+				<div style="white-space: nowrap">
+					<span class="separator"></span>
+					added <span ng-bind="::(answer.createdAt | relativeDateTime)"></span>
+				</div>
+				<div style="white-space: nowrap">
+					<span class="separator"></span>
+					<md-icon>comment</md-icon>
+					<span ng-bind="::pageService.pageMap[answer.answerPageId].commentCount"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<span ng-if="(page.answers.length <= 0)" layout-padding>
+	<span>
+		No answers yet. {{page.linkedMarkCount}} 
+		<ng-pluralize count="page.linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+		linked to this question.
+	</span>
+</span>
+<div layout="row" layout="start start" ng-if="userService.userIsCool()">
+	<arb-autocomplete class="insert-autocomplete"
+			placeholder="Add an answer"
+			on-select="addAnswer(result)"
+			do-autofocus="false"
+			flex></arb-autocomplete>
+</div>

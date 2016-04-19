@@ -93,6 +93,7 @@ var (
 		Lenses:          true,
 		Requirements:    true,
 		Subjects:        true,
+		Answers:         true,
 		ChangeLogs:      true,
 		SearchStrings:   true,
 		Links:           true,

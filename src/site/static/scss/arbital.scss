@@ -167,9 +167,10 @@ $toolbar-height: 64px;
 	overflow-x: hidden;
 }
 
-.update-rows {
-	& > * + * {
-		margin-top: 5px;
+.list {
+	& > * {
+		margin-top: 7px;
+		margin-bottom: 7px;
 	}
 }
 
@@ -638,6 +639,10 @@ ins {
 	}
 }
 
+.prevent-horizontal-scroll {
+	overflow-x: hidden;
+}
+
 // Border for the RHS preview half on the edit page
 .edit-page-rhs-border {
 	border-left: $primary-hue-2 5px solid;
@@ -662,7 +667,7 @@ ins {
 .wmd-button-bar {
 	background-color: white;
 	border-bottom: silver 1px solid;
-	min-height: 0; // otherwise it collapses for some reason
+	min-height: 36px; // otherwise it collapses for some reason
 
 	.md-button {
 		width: 25px;
@@ -688,6 +693,12 @@ ins {
 	outline: none;
 	padding: 5px 15px;
 	background-color: whitesmoke;
+}
+
+// Container for .wmd-input for question text
+.question-text-container {
+	width: 100%;
+	overflow-y: auto;
 }
 
 textarea {
