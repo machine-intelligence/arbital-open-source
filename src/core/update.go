@@ -43,8 +43,6 @@ const (
 	DeletePageUpdateType            = "deletePage"
 	QuestionMergedUpdateType        = "questionMerged"
 	QuestionMergedReverseUpdateType = "questionMergedReverse"
-	// ROGTODO: do we need this as well?
-	// DeleteCommentUpdateType       = "deleteComment"
 )
 
 // UpdateRow is a row from updates table

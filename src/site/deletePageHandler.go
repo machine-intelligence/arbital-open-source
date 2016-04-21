@@ -123,23 +123,15 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	if data.GenerateUpdate {
+	if data.GenerateUpdate && page.Type != core.CommentPageType {
 		// Generate "delete" update for users who are subscribed to this page.
 		var updateTask tasks.NewUpdateTask
 		updateTask.UserId = params.U.Id
 		updateTask.GoToPageId = data.PageId
 		updateTask.SubscribedToId = data.PageId
+		updateTask.GroupByPageId = data.PageId
 		updateTask.UpdateType = core.DeletePageUpdateType
-		if page.Type == core.CommentPageType {
-			_, commentPrimaryPageId, err := core.GetCommentParents(tx.DB, data.PageId)
-			if err != nil {
-				c.Errorf("Couldn't load comment's parents", err)
-				return "", nil
-			}
-			updateTask.GroupByPageId = commentPrimaryPageId
-		} else {
-			updateTask.GroupByPageId = data.PageId
-		}
+
 		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
