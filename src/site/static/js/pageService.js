@@ -301,17 +301,6 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 		return url;
 	};
 
-	// Get the url for the home page of the private group corresponding to the given id.
-	// If no group is given, returns the Arbital home page url.
-	this.getGroupUrl = function(seeGroupId) {
-		console.log('in getGroupUrl');
-		var groupAlias = '';
-		if (seeGroupId && seeGroupId in this.pageMap) {
-			groupAlias = this.pageMap[seeGroupId].alias;
-		}
-		return urlService.getDomainUrl(groupAlias);
-	};
-
 	// Get url to edit the given page.
 	// options {
 	//	 includeHost: if true, include "https://" + host in the url

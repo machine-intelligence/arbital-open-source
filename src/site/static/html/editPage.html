@@ -499,11 +499,16 @@
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
 			<div layout="column" ng-if="::!isEmbedded">
-				<md-button ng-href="{{::(page.isDeleted ? pageService.getGroupUrl(page.seeGroupId)
-					: pageService.getPageUrl(page.pageId))}}" class="md-primary md-hue-1 md-raised">
+				<md-button ng-if="::page.isDeleted" ng-href="/" class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
-					{{::(page.isDeleted ? 'Home' : 'Back')}}
-					<md-tooltip md-delay="500">{{::(page.isDeleted ? 'Go home' : 'Go to live view')}}</md-tooltip>
+					Home
+					<md-tooltip md-delay="500">Go home</md-tooltip>
+				</md-button>
+				<md-button ng-if="::!page.isDeleted" ng-href="{{::pageService.getPageUrl(page.pageId)}}"
+					class="md-primary md-hue-1 md-raised">
+					<md-icon>arrow_back</md-icon>
+					Back
+					<md-tooltip md-delay="500">Go to live view</md-tooltip>
 				</md-button>
 			</div>
 			<md-checkbox ng-model="page.isEditorComment" aria-label="Is for editors only?" ng-if="::isComment">
