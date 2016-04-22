@@ -107,8 +107,16 @@
 			</div>
 		</div>
 
-		<!-- Discussion section -->
+		<!-- Marks section -->
 		<div class="discussion-container" flex-order="3" ng-if="::!isSimpleEmbed">
+			<arb-marks ng-repeat="lensId in ::page.lensIds"
+					class="reveal-after-render"
+					page-id="{{::lensId}}"
+					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-marks>
+		</div>
+
+		<!-- Discussion section -->
+		<div class="discussion-container" flex-order="4" ng-if="::!isSimpleEmbed">
 			<arb-discussion ng-repeat="lensId in ::page.lensIds"
 					class="reveal-after-render"
 					page-id="{{::lensId}}"

@@ -563,7 +563,9 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					orderRhsButtons();
 				} else {
 					var params = scope.inlineMarks[markId];
-					params.visible = false;
+					if (params) {
+						params.visible = false;
+					}
 				}
 				$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
 				$markdown.find('.inline-comment-highlight-hover').removeClass('inline-comment-highlight-hover');

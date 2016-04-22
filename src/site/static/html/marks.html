@@ -1,0 +1,53 @@
+<!-- Marks section for some page -->
+<a id="marks"></a>
+<div layout="column" ng-if="markIds.length > 0">
+	<md-toolbar class="md-hue-2">
+		<div class="md-toolbar-tools">
+			<h1>Queries ({{markIds.length}})</h1>
+
+			<div flex></div>
+			<!-- Menu with all the other stuff -->
+			<md-menu>
+				<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Options">
+					<md-icon>more_vert</md-icon>
+				</md-button>
+				<md-menu-content>
+					<!-- Toggle seeing all unresolved marks -->
+					<md-menu-item>
+						<md-button ng-click="toggleAllMarks()">
+							{{userService.showAllMarks ? 'Hide' : 'Show'}} all marks
+						</md-button>
+					</md-menu-item>
+				</md-menu-content>
+			</md-menu>
+		</div>
+	</md-toolbar>
+
+	<div class="md-whiteframe-1dp dynamic-hor-padding">
+		<br>
+		<div ng-repeat="markId in markIds"
+				ng-init="mark = pageService.markMap[markId]">
+			<div layout="row"
+					layout-align="start center"
+					ng-if="userService.showAllMarks || mark.isCurrentUserOwned">
+				<div>
+					<md-button class="md-primary md-icon-button" ng-click="bringUpMark(mark.id)">
+						<md-icon>launch</md-icon>
+					</md-button>
+					<span ng-if="mark.resolvedBy">
+						[<span ng-bind="mark.resolvedPageId === '' ? 'Dismissed' : 'Resolved'"></span>]
+					</span>
+					{{mark.isCurrentUserOwned ? "Your query" : "Query"}}:
+					<strong ng-bind="mark.text"></strong>
+				</div>
+				<div flex></div>
+				<div>
+					<span>
+						created <span ng-bind="::(mark.createdAt | relativeDateTime)"></span>
+					</span>
+				</div>
+			</div>
+		</div>
+		<br>
+	</div>
+</div>
