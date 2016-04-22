@@ -31,7 +31,7 @@ app.directive('arbDiscussion', function($compile, $location, $timeout, pageServi
 			};
 
 			// Track (globally) whether or not to show editor comments.
-			userService.showEditorComments = userService.user.id in $scope.page.creatorIds;
+			userService.showEditorComments = $scope.page.creatorIds.indexOf(userService.user.id) >= 0;
 			if (!userService.showEditorComments && $location.hash()) {
 				// If hash points to a subpage for editors, show it
 				var matches = (new RegExp('^subpage-' + aliasMatch + '$')).exec($location.hash());

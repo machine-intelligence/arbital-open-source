@@ -9,7 +9,9 @@
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 	</div>
 
-	<blockquote arb-markdown mark-id="{{::mark.id}}" ng-if="!isOnPage"></blockquote>
+	<blockquote arb-markdown
+			mark-id="{{::mark.id}}"
+			ng-if="!isOnPage && mark.anchorContext"></blockquote>
 
 	<!-- Show query's text -->
 	<div ng-if="!isNew && mark.text.length > 0">
@@ -111,12 +113,12 @@
 <!-- Show this if this marked is NOT owned by the logged in user -->
 <div ng-if="::!mark.isCurrentUserOwned">
 	<span ng-if="isOnPage()">
-		This query mark was created 
+		This question/objection was created 
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 	</span>
 
-	<div ng-if="!isOnPage()">
-		A reader had a question/objection on the following section:
+	<div ng-if="!isOnPage() && mark.anchorContext">
+		The reader highlighted the following section:
 		<blockquote arb-markdown mark-id="{{::mark.id}}"></blockquote>
 	</div>
 
@@ -161,7 +163,7 @@
 		<md-button ng-href="/edit?markId={{::markId}}">
 			Link to new question
 		</md-button>
-		<md-button class="md-warn" ng-click="dismissMark(markId)">
+		<md-button class="md-warn" ng-click="dismissMark(markId)" ng-if="!mark.resolvedBy">
 			Dismiss
 		</md-button>
 	</div>

@@ -10,6 +10,13 @@ app.service('userService', function($http, $location, $rootScope) {
 	// Map of all user objects.
 	this.userMap = {};
 
+	// Should we show editor comments for the currently selected lens.
+	this.showEditorComments = false;
+
+	// Should we show all marks for the currently selected lens. By default we just
+	// show the current user's.
+	this.showAllMarks = false;
+
 	// Check if we can let this user do stuff.
 	this.userIsCool = function() {
 		return this.user && this.user.karma >= 200;

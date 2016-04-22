@@ -1405,19 +1405,18 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 	}
 
 	rows := database.NewQuery(`
-		SELECT m.id,m.pageId
+		SELECT m.id
 		FROM marks AS m
 		WHERE m.pageId IN`).AddPart(pageIdsPart).Add(`
 			`).AddPart(userConstraint).AddPart(resolvedConstraint).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var markId, pageId string
-		err := rows.Scan(&markId, &pageId)
+		var markId string
+		err := rows.Scan(&markId)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		if _, ok := markMap[markId]; !ok {
 			markMap[markId] = &Mark{Id: markId}
-			pageMap[pageId].MarkIds = append(pageMap[pageId].MarkIds, markId)
 		}
 		return nil
 	})
@@ -1451,6 +1450,9 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 		mark.IsCurrentUserOwned = mark.CreatorId == u.Id
 		*markMap[mark.Id] = *mark
 
+		if page, ok := pageMap[mark.PageId]; ok {
+			page.MarkIds = append(page.MarkIds, mark.Id)
+		}
 		AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
 		if mark.ResolvedPageId != "" {
 			AddPageToMap(mark.ResolvedPageId, pageMap, TitlePlusLoadOptions)
