@@ -6,7 +6,6 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/user"
 )
 
 var editHandler = siteHandler{
@@ -48,7 +47,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 	if !ok {
 		// No alias found. Assume user is trying to create a new page with an alias.
-		newPageId, err := user.GetNextAvailableIdInNewTransaction(db)
+		newPageId, err := core.GetNextAvailableIdInNewTransaction(db)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get next available Id", err)
 		}

@@ -8,7 +8,6 @@ import (
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
-	"zanaduu3/src/user"
 )
 
 // newGroupData contains data given to us in the request.
@@ -47,7 +46,7 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		groupId, err := user.GetNextAvailableId(tx)
+		groupId, err := core.GetNextAvailableId(tx)
 		if err != nil {
 			return "Couldn't get next available Id", err
 		}

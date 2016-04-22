@@ -6,7 +6,6 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
-	"zanaduu3/src/user"
 )
 
 type Member struct {
@@ -16,7 +15,7 @@ type Member struct {
 }
 
 // LoadUserGroupIds loads all the group names this user belongs to.
-func LoadUserGroupIds(db *database.DB, u *user.User) error {
+func LoadUserGroupIds(db *database.DB, u *CurrentUser) error {
 	u.GroupIds = make([]string, 0)
 	rows := db.NewStatement(`
 		SELECT groupId
@@ -35,14 +34,14 @@ func LoadUserGroupIds(db *database.DB, u *user.User) error {
 }
 
 // AddUserGroupIdsToPageMap adds user's groups to the page map so we can load them.
-func AddUserGroupIdsToPageMap(u *user.User, pageMap map[string]*Page) {
+func AddUserGroupIdsToPageMap(u *CurrentUser, pageMap map[string]*Page) {
 	for _, pageId := range u.GroupIds {
 		AddPageIdToMap(pageId, pageMap)
 	}
 }
 
 // LoadDomainIds loads the domain ids for the given page and adds them to the map
-func LoadDomainIds(db *database.DB, u *user.User, page *Page, pageMap map[string]*Page) error {
+func LoadDomainIds(db *database.DB, u *CurrentUser, page *Page, pageMap map[string]*Page) error {
 	pageIdConstraint := database.NewQuery("")
 	if page != nil {
 		pageIdConstraint = database.NewQuery("AND pd.pageId=?", page.PageId)

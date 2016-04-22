@@ -42,11 +42,10 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 		if exists && seeGroupId != params.PrivateGroupId {
 			subdomain := ""
 			if core.IsIdValid(seeGroupId) {
-				// ROGTODO: "SELECT alias FROM pages" causes an error (should be FROM pageInfos?)
 				row := database.NewQuery(`
 					SELECT alias
-					FROM pages
-					WHERE pageId=? and isLiveEdit`, seeGroupId).ToStatement(db).QueryRow()
+					FROM pageInfos
+					WHERE pageId=? AND NOT isDeleted`, seeGroupId).ToStatement(db).QueryRow()
 				exists, err := row.Scan(&subdomain)
 				if err != nil || !exists {
 					return pages.Fail("Failed to redirect to subdomain", err)

@@ -8,7 +8,6 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/user"
 )
 
 var newPageHandler = siteHandler{
@@ -46,7 +45,7 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	pageId := ""
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
-		pageId, err = user.GetNextAvailableId(tx)
+		pageId, err = core.GetNextAvailableId(tx)
 		if err != nil {
 			return "", fmt.Errorf("Couldn't get next available Id", err)
 		}

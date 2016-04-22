@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"zanaduu3/src/database"
-	"zanaduu3/src/user"
 )
 
 const (
@@ -294,7 +293,7 @@ type CommonHandlerData struct {
 	// If set, then this packet should reset everything on the FE
 	ResetEverything bool `json:"resetEverything"`
 	// Optional user object with the current user's data
-	User *user.User `json:"user"`
+	User *CurrentUser `json:"user"`
 	// Map of page id -> currently live version of the page
 	PageMap map[string]*Page `json:"pages"`
 	// Map of page id -> some edit of the page
@@ -309,7 +308,7 @@ type CommonHandlerData struct {
 }
 
 // NewHandlerData creates and initializes a new commonHandlerData object.
-func NewHandlerData(u *user.User, resetEverything bool) *CommonHandlerData {
+func NewHandlerData(u *CurrentUser, resetEverything bool) *CommonHandlerData {
 	var data CommonHandlerData
 	data.User = u
 	data.ResetEverything = resetEverything
@@ -693,7 +692,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 }
 
 // LoadMasteries loads the masteries.
-func LoadMasteries(db *database.DB, u *user.User, masteryMap map[string]*Mastery) error {
+func LoadMasteries(db *database.DB, u *CurrentUser, masteryMap map[string]*Mastery) error {
 	userId := u.GetSomeId()
 	if userId == "" {
 		return nil
@@ -716,7 +715,7 @@ func LoadMasteries(db *database.DB, u *user.User, masteryMap map[string]*Mastery
 }
 
 // LoadPageObjects loads all the page objects necessary for the given pages.
-func LoadPageObjects(db *database.DB, u *user.User, pageMap map[string]*Page, pageObjectMap map[string]map[string]*PageObject) error {
+func LoadPageObjects(db *database.DB, u *CurrentUser, pageMap map[string]*Page, pageObjectMap map[string]map[string]*PageObject) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -748,7 +747,7 @@ func LoadPageObjects(db *database.DB, u *user.User, pageMap map[string]*Page, pa
 }
 
 // LoadPages loads the given pages.
-func LoadPages(db *database.DB, u *user.User, pageMap map[string]*Page) error {
+func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -1375,7 +1374,7 @@ type LoadMarkIdsOptions struct {
 }
 
 // LoadMarkIds loads all the marks owned by the given user
-func LoadMarkIds(db *database.DB, u *user.User, pageMap map[string]*Page, markMap map[string]*Mark, options *LoadMarkIdsOptions) error {
+func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, markMap map[string]*Mark, options *LoadMarkIdsOptions) error {
 	sourceMap := options.ForPages
 	if sourceMap == nil {
 		sourceMap = pageMap
@@ -1426,7 +1425,7 @@ func LoadMarkIds(db *database.DB, u *user.User, pageMap map[string]*Page, markMa
 }
 
 // LoadMarkData loads all the relevant data for each mark
-func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, markMap map[string]*Mark, u *user.User) error {
+func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, markMap map[string]*Mark, u *CurrentUser) error {
 	if len(markMap) <= 0 {
 		return nil
 	}
@@ -1478,7 +1477,7 @@ type LoadChildIdsOptions struct {
 }
 
 // LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
-func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *user.User, options *LoadChildIdsOptions) error {
+func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadChildIdsOptions) error {
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
@@ -1655,7 +1654,7 @@ type LoadParentIdsOptions struct {
 }
 
 // LoadParentIds loads the page ids for all the parents of the pages in the given pageMap.
-func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *user.User, options *LoadParentIdsOptions) error {
+func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadParentIdsOptions) error {
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil

@@ -12,7 +12,6 @@ import (
 	"zanaduu3/src/facebook"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/stormpath"
-	"zanaduu3/src/user"
 )
 
 // signupHandlerData is the data received from the request.
@@ -70,7 +69,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.LastName = account.Surname
 
 		// Set the cookie
-		err = user.SaveEmailCookie(params.W, params.R, data.Email)
+		err = core.SaveEmailCookie(params.W, params.R, data.Email)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't save a cookie", err)
 		}
@@ -150,7 +149,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 
-		userId, err := user.GetNextAvailableId(tx)
+		userId, err := core.GetNextAvailableId(tx)
 		if err != nil {
 			return "", fmt.Errorf("Couldn't get last insert id for new user: %v", err)
 		}
@@ -165,8 +164,8 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["lastWebsiteVisit"] = database.Now()
 		hashmap["inviteCode"] = inviteCode
 		hashmap["karma"] = karma
-		hashmap["emailFrequency"] = user.DefaultEmailFrequency
-		hashmap["emailThreshold"] = user.DefaultEmailThreshold
+		hashmap["emailFrequency"] = core.DefaultEmailFrequency
+		hashmap["emailThreshold"] = core.DefaultEmailThreshold
 		statement := tx.DB.NewInsertStatement("users", hashmap).WithTx(tx)
 		_, err = statement.Exec()
 		if err != nil {

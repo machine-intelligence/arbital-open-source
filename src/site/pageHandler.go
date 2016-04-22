@@ -15,7 +15,6 @@ import (
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/gorilla/mux"
 )
@@ -26,7 +25,7 @@ type handler http.HandlerFunc
 // commonPageData contains data that is common between all pages.
 type commonPageData struct {
 	// Logged in user
-	User *user.User
+	User *core.CurrentUser
 	// Map of page id -> currently live version of the page
 	PageMap map[string]*core.Page
 	// Map of page id -> some edit of the page
@@ -100,7 +99,7 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 
 		// Get user object
-		u, err := user.LoadUser(w, r, db)
+		u, err := core.LoadCurrentUser(w, r, db)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load user", err)
 			return

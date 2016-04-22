@@ -10,7 +10,6 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 )
 
 const (
@@ -348,7 +347,7 @@ func GetNewPageUrl(alias string) string {
 // "admin" = user can perform the action, but only because they are an admin
 // "comment" = can't perform action because this is a comment page the user doesn't own
 // "###" = user doesn't have at least ### karma
-func GetEditLevel(p *Page, u *user.User) string {
+func GetEditLevel(p *Page, u *CurrentUser) string {
 	karmaReq := p.EditKarmaLock
 	if karmaReq < EditPageKarmaReq && p.WasPublished {
 		karmaReq = EditPageKarmaReq
@@ -366,7 +365,7 @@ func GetEditLevel(p *Page, u *user.User) string {
 // "" = user has correct permissions to perform the action
 // "admin" = user can perform the action, but only because they are an admin
 // "###" = user doesn't have at least ### karma
-func GetDeleteLevel(p *Page, u *user.User) string {
+func GetDeleteLevel(p *Page, u *CurrentUser) string {
 	karmaReq := p.EditKarmaLock
 	if karmaReq < DeletePageKarmaReq {
 		karmaReq = DeletePageKarmaReq
@@ -460,4 +459,54 @@ func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
 	}
 
 	return commentParentId, commentPrimaryPageId, nil
+}
+
+// Look up the domains that this page is in
+func LoadDomainsForPage(db *database.DB, pageId string) ([]string, error) {
+	domainIds := make([]string, 0)
+
+	rows := database.NewQuery(`
+		SELECT domainId
+		FROM pageInfos
+		JOIN pageDomainPairs
+		ON (pageInfos.pageId=pageDomainPairs.pageId)
+		WHERE pageInfos.pageId=?`).ToStatement(db).Query(pageId)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var domainId string
+		err := rows.Scan(&domainId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a domain: %v", err)
+		}
+		domainIds = append(domainIds, domainId)
+		return nil
+	})
+
+	// For pages with no domain, we consider them to be in the "" domain.
+	if len(domainIds) == 0 {
+		domainIds = append(domainIds, "")
+	}
+
+	return domainIds, err
+}
+
+// Load all the domains that currently exist on Arbital.
+// TODO: figure out how to cache the result
+func LoadAllDomainIds(db *database.DB) ([]string, error) {
+	domainIds := make([]string, 0)
+
+	rows := database.NewQuery(`
+		SELECT DISTINCT domainId
+		FROM pageDomainPairs`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var domainId string
+		err := rows.Scan(&domainId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a domain: %v", err)
+		}
+		domainIds = append(domainIds, domainId)
+		return nil
+	})
+	// We also have a "" domain for pages with no domain.
+	domainIds = append(domainIds, "")
+	return domainIds, err
 }

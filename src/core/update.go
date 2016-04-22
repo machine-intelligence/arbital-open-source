@@ -12,7 +12,6 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/sessions"
-	"zanaduu3/src/user"
 
 	"github.com/dustin/go-humanize"
 )
@@ -252,7 +251,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 
 	resultData = &UpdateData{}
 
-	u := &user.User{}
+	u := &CurrentUser{}
 	row := db.NewStatement(`
 		SELECT id,email,emailFrequency,emailThreshold
 		FROM users
