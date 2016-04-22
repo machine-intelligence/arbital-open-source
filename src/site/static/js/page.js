@@ -39,7 +39,8 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.computeSelectedLensId = function() {
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
-					return $location.search().l;
+					selectedLensId = $location.search().l;
+					return $scope.isRealLensId(selectedLensId) ? selectedLensId : $scope.pageId;
 				} else if (pageService.path && pageService.path.onPath) {
 					// The learning list specified this page specifically
 					return $scope.page.pageId;
@@ -67,6 +68,10 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					$scope.tabSelect($scope.computeSelectedLensId());
 				}
 			});
+
+			$scope.isRealLensId = function(lensId) {
+				return lensId in pageService.pageMap;
+			};
 
 			// Check if the given lens is loaded.
 			$scope.isLoaded = function(lensId) {
