@@ -429,6 +429,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 							pageId: $scope.page.pageId,
 							alias: $scope.page.alias,
 							discard: true,
+							deletedPage: true,
 						}});
 					}
 				}, function(data) {
