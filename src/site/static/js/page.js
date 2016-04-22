@@ -39,9 +39,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.computeSelectedLensId = function() {
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
-					selectedLensId = $location.search().l;
-					// check that the id is in the pageMap to make sure that it's for a real lens
-					return lensId in pageService.pageMap ? selectedLensId : $scope.pageId;
+					return $location.search().l;
 				} else if (pageService.path && pageService.path.onPath) {
 					// The learning list specified this page specifically
 					return $scope.page.pageId;
@@ -73,7 +71,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			// Check if the given lens is loaded.
 			$scope.isLoaded = function(lensId) {
 				// Note that questions might have empty text.
-				return pageService.pageMap[lensId].text.length > 0 || pageService.pageMap[lensId].isQuestion();
+				return lensId in pageService.pageMap && (pageService.pageMap[lensId].text.length > 0 || pageService.pageMap[lensId].isQuestion());
 			};
 
 			// Called when there is a click inside the tabs
@@ -133,7 +131,9 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					});
 				} else {
 					pageService.loadLens(lensId);
-					switchToLens(lensId);
+					// Switch to the loaded lens. If we couldn't load the specified lens (e.g. if it doesn't exist),
+					// then just go to the main lens.
+					switchToLens(lensId in pageService.pageMap ? lensId : scope.pageId);
 				}
 			};
 			scope.tabSelect(scope.computeSelectedLensId());
