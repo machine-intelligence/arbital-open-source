@@ -23,7 +23,7 @@
 		by
 		<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
 		<span ng-if="mark.resolvedPageId !== ''">
-			with:
+			via:
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 		</span>
 	</div>
@@ -33,6 +33,13 @@
 		This mark has been <strong>answered</strong> via:
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
+
+	<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+			page-id="{{::mark.pageId}}"
+			class="intrasite-link"
+			ng-if="!inPopup">
+		View this mark on the page
+	</a>
 
 	<!-- Accept/reject answer -->
 	<div ng-if="potentialResolvedPageId">
@@ -103,24 +110,28 @@
 
 <!-- Show this if this marked is NOT owned by the logged in user -->
 <div ng-if="::!mark.isCurrentUserOwned">
-	This confusion mark was created 
-	<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
+	<span ng-if="isOnPage()">
+		This query mark was created 
+		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
+	</span>
 
-	<div ng-if="!isOnPage()">A reader marked the following section as confusing:</div>
-	<blockquote arb-markdown mark-id="{{::mark.id}}" ng-if="!isOnPage()"></blockquote>
+	<div ng-if="!isOnPage()">
+		A reader had a question/objection on the following section:
+		<blockquote arb-markdown mark-id="{{::mark.id}}"></blockquote>
+	</div>
 
 	<div ng-if="::mark.text.length > 0">
-		Their query was: <span ng-bind="::mark.text"></span>
+		Their query was: <strong ng-bind="::mark.text"></strong>
 	</div>
 
 	<!-- Resolved -->
 	<div ng-if="!mark.answered && (mark.resolvedPageId || mark.resolvedBy)">
-		This mark has been
+		This query mark has been
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
 		<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
 		<span ng-if="mark.resolvedPageId !== ''">
-			with:
+			via:
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 		</span>
 	</div>
