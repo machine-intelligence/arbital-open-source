@@ -37,6 +37,7 @@ const (
 	AddedToGroupUpdateType          = "addedToGroup"
 	RemovedFromGroupUpdateType      = "removedFromGroup"
 	NewMarkUpdateType               = "newMark"
+	ResolvedMarkUpdateType          = "resolvedMark"
 	AnsweredMarkUpdateType          = "answeredMark"
 	SearchStringChangeUpdateType    = "searchStringChange"
 	AnswerChangeUpdateType          = "answerChange"

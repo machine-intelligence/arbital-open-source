@@ -3,6 +3,8 @@
 CREATE TABLE marks (
 	/* Id of this mark. */
 	id BIGINT NOT NULL AUTO_INCREMENT,
+	/* Type of this mark. */
+	type VARCHAR(32) NOT NULL,
 	/* Id of the page this mark is on. FK into pageInfos. */
 	pageId VARCHAR(32) NOT NULL,
 	/* Which edit was live when this mark was created. */
@@ -23,14 +25,21 @@ CREATE TABLE marks (
 	/* Offset of the text into the context. */
 	anchorOffset INT NOT NULL,
 
-	/* If the mark is associated to some page, this is the id of that page. This
-		can happen if the user picked a page or an author resolved the mark.
+	/* If an author resolves this mark, this variable is set. It might be set to
+		the page the mark is on (e.g. for "typo" marks) or to the question page id
+		to which the mark was linked (e.g. for "query" marks).
 		FK into pageInfos. */
 	resolvedPageId VARCHAR(32) NOT NULL,
-	/* Id of the user who resolved the mark. FK into users. */
+	/* Id of the user who resolved / dismissed the mark. FK into users. */
 	resolvedBy VARCHAR(32) NOT NULL,
+	/* When this mark was resolved. */
+	resolvedAt DATETIME NOT NULL,
+
+	/* ============= Variables specifically for query-typed marks ============= */
 	/* Set to true once there is an answer that works for the given user. */
 	answered BOOLEAN NOT NULL,
+	/* When this mark was answered. */
+	answeredAt DATETIME NOT NULL,
 
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

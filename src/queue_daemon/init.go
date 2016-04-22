@@ -43,7 +43,6 @@ func processTask(c sessions.Context) error {
 		tasks.MemberUpdateTask{},
 		tasks.NewUpdateTask{},
 		tasks.PopulateElasticTask{},
-		tasks.ProcessMarkTask{},
 		tasks.PropagateDomainTask{},
 		tasks.ResetPasswordsTask{},
 		tasks.SendFeedbackEmailTask{},

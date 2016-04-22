@@ -180,7 +180,7 @@
 							<textarea id="wmd-input{{::page.pageId}}"
 								class="wmd-input"
 								ng-model="page.text"
-								md-maxlength="1000"
+								md-maxlength="{{maxQuestionTextLength}}"
 								autofocus
 								flex
 								aria-label="Question text"></textarea>
@@ -193,7 +193,7 @@
 							are not like StackOverflow or Quora questions, which ask someone for an answer.
 							Instead, Arbital questions are means of navigation. Most users won't stop
 							to read the question and, in fact, might skip it entirely and go to the best
-							answer. Because of that, the question text is limited to 1000 characters.
+							answer. Because of that, the question text is limited to {{maxQuestionTextLength}} characters.
 						</div>
 					</div>
 				</div>
@@ -505,7 +505,7 @@
 					<md-tooltip md-delay="500">Go to live view</md-tooltip>
 				</md-button>
 			</div>
-			<md-checkbox ng-model="page.isEditorComment" ng-if="::isComment">
+			<md-checkbox ng-model="page.isEditorComment" aria-label="Is for editors only?" ng-if="::isComment">
 				<span ng-if="::!gtXSmallScreen">For editors</span>
 				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
 			</md-checkbox>

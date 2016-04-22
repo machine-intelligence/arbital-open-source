@@ -303,7 +303,7 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, pageService, userService) {
+app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, pageService, userService) {
 	return {
 		templateUrl: 'static/html/composeFab.html',
 		scope: {
@@ -377,6 +377,10 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});
 			});
+
+			$scope.newQueryMark = function() {
+				$rootScope.$broadcast('newQueryMark');
+			};
 		},
 	};
 });

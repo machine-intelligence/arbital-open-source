@@ -70,7 +70,8 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 
 			// Check if the given lens is loaded.
 			$scope.isLoaded = function(lensId) {
-				return pageService.pageMap[lensId].text.length > 0;
+				// Note that questions might have empty text.
+				return pageService.pageMap[lensId].text.length > 0 || pageService.pageMap[lensId].isQuestion();
 			};
 
 			// Called when there is a click inside the tabs

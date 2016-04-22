@@ -30,6 +30,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Set when we can't allow the user to edit the text anymore (e.g. when
 			// we notice that a new edit has been published.)
 			$scope.freezeEdit = false;
+			$scope.maxQuestionTextLength = 1000;
 
 			// If the alias contains a subdomain, then remove it
 			var periodIndex = $scope.page.alias.indexOf('.');
@@ -311,7 +312,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					text: $scope.page.text,
 				};
 				if ($scope.isQuestion) {
-					data.text = data.text.length > 1000 ? data.text.slice(-1000) : data.text;
+					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;
 				}
 				if ($scope.page.anchorContext) {
 					data.anchorContext = $scope.page.anchorContext;

@@ -598,16 +598,16 @@ ins {
 	color: green;
 }
 
-// Fixed-position container which shows global events.
-#events-info-div {
+// Fixed-position popup.
+#popup-div {
 	position: fixed;
 	right: 0;
 	top: 0;
 	width: 600px;
 	max-width: 100%;
-	max-height: 100%;
+	max-height: 100vh;
 	overflow-y: auto;
-	z-index: $eventsDivZ;
+	z-index: $popupDivZ;
 	background-color: white;
 }
 
@@ -695,6 +695,10 @@ ins {
 	background-color: whitesmoke;
 }
 
+.editor-feedback-fab {
+	width: 40px;
+}
+
 // Container for .wmd-input for question text
 .question-text-container {
 	width: 100%;
@@ -751,7 +755,7 @@ textarea {
 	position: absolute;
 	z-index: $inlineCommentIconZ;
 
-	.md-button {
+	.rhs-button {
 		margin: 5px 5px 0px 0px !important;
 	}
 }

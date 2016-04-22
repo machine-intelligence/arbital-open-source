@@ -67,6 +67,11 @@ const (
 	SearchStringChangeChangeLog = "searchStringChange"
 	AnswerChangeChangeLog       = "answerChange"
 
+	// Mark types
+	QueryMarkType     = "query"
+	TypoMarkType      = "typo"
+	ConfusionMarkType = "confusion"
+
 	// How long the page lock lasts
 	PageQuickLockDuration = 5 * 60  // in seconds
 	PageLockDuration      = 30 * 60 // in seconds
@@ -239,10 +244,10 @@ type Mastery struct {
 
 // Mark is something attached to a page, e.g. a place where a user said they were confused.
 type Mark struct {
-	Id     string `json:"id"`
-	PageId string `json:"pageId"`
-	// True if it's owned by the logged in user
-	IsUserOwned         bool   `json:"isUserOwned"`
+	Id                  string `json:"id"`
+	PageId              string `json:"pageId"`
+	Type                string `json:"type"`
+	IsCurrentUserOwned  bool   `json:"isCurrentUserOwned"`
 	CreatedAt           string `json:"createdAt"`
 	AnchorContext       string `json:"anchorContext"`
 	AnchorText          string `json:"anchorText"`
@@ -252,6 +257,10 @@ type Mark struct {
 	ResolvedPageId      string `json:"resolvedPageId"`
 	ResolvedBy          string `json:"resolvedBy"`
 	Answered            bool   `json:"answered"`
+
+	// Marks are anonymous, so the only info FE gets is whether this mark is owned
+	// by the current user.
+	CreatorId string `json:"-"`
 }
 
 // PageObject stores some information for an object embedded in a page
@@ -449,10 +458,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	// Load user's marks
 	if u.Id != "" {
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UserMarks })
-		err = LoadMarkIds(db, pageMap, markMap, &LoadMarkIdsOptions{
-			ForPages:        filteredPageMap,
-			UserConstraint:  u,
-			LoadResolvedToo: true,
+		err = LoadMarkIds(db, u, pageMap, markMap, &LoadMarkIdsOptions{
+			ForPages:              filteredPageMap,
+			CurrentUserConstraint: true,
 		})
 		if err != nil {
 			return fmt.Errorf("LoadMarkIds for user's marks failed: %v", err)
@@ -460,8 +468,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 		// Load unresolved marks
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UnresolvedMarks })
-		err = LoadMarkIds(db, pageMap, markMap, &LoadMarkIdsOptions{
-			ForPages: filteredPageMap,
+		err = LoadMarkIds(db, u, pageMap, markMap, &LoadMarkIdsOptions{
+			ForPages:         filteredPageMap,
+			EditorConstraint: true,
 		})
 		if err != nil {
 			return fmt.Errorf("LoadMarkIds for unresolved marks failed: %v", err)
@@ -1357,14 +1366,16 @@ type LoadMarkIdsOptions struct {
 	// If set, we'll only load links for the pages with these ids
 	ForPages map[string]*Page
 
-	// If set, only load marks owned by this user
-	UserConstraint *user.User
+	// If set, only load marks owned by the current user
+	CurrentUserConstraint bool
+	// If true, load unresolved marks only iff you are an editor
+	EditorConstraint bool
 	// If true, load resolved marks too
 	LoadResolvedToo bool
 }
 
 // LoadMarkIds loads all the marks owned by the given user
-func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*Mark, options *LoadMarkIdsOptions) error {
+func LoadMarkIds(db *database.DB, u *user.User, pageMap map[string]*Page, markMap map[string]*Mark, options *LoadMarkIdsOptions) error {
 	sourceMap := options.ForPages
 	if sourceMap == nil {
 		sourceMap = pageMap
@@ -1376,18 +1387,28 @@ func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*
 	}
 
 	userConstraint := database.NewQuery(``)
-	if options.UserConstraint != nil {
-		userConstraint = database.NewQuery(`AND creatorId=?`, options.UserConstraint.Id)
+	if options.CurrentUserConstraint {
+		userConstraint = database.NewQuery(`AND m.creatorId=?`, u.Id)
 	}
-	resolvedConstraint := database.NewQuery(`AND resolvedBy=""`)
+	pageIdsPart := database.NewQuery(``).AddArgsGroup(pageIds)
+	if options.EditorConstraint {
+		pageIdsPart = database.NewQuery(`(
+			SELECT p.pageId
+			FROM pages AS p
+			WHERE p.pageId IN`).AddArgsGroup(pageIds).Add(`
+				AND NOT p.isSnapshot AND NOT p.isAutosave
+				AND p.creatorId=?`, u.Id).Add(`
+		)`)
+	}
+	resolvedConstraint := database.NewQuery(`AND m.resolvedBy=""`)
 	if options.LoadResolvedToo {
 		resolvedConstraint = database.NewQuery(``)
 	}
 
 	rows := database.NewQuery(`
-		SELECT id,pageId
-		FROM marks
-		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
+		SELECT m.id,m.pageId
+		FROM marks AS m
+		WHERE m.pageId IN`).AddPart(pageIdsPart).Add(`
 			`).AddPart(userConstraint).AddPart(resolvedConstraint).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var markId, pageId string
@@ -1395,8 +1416,10 @@ func LoadMarkIds(db *database.DB, pageMap map[string]*Page, markMap map[string]*
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		markMap[markId] = &Mark{Id: markId}
-		pageMap[pageId].MarkIds = append(pageMap[pageId].MarkIds, markId)
+		if _, ok := markMap[markId]; !ok {
+			markMap[markId] = &Mark{Id: markId}
+			pageMap[pageId].MarkIds = append(pageMap[pageId].MarkIds, markId)
+		}
 		return nil
 	})
 	return err
@@ -1413,21 +1436,21 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 	}
 
 	rows := db.NewStatement(`
-		SELECT id,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
+		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
 			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered
 		FROM marks
-		WHERE id IN ` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
+		WHERE id IN` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var creatorId string
 		mark := &Mark{}
-		err := rows.Scan(&mark.Id, &mark.PageId, &creatorId, &mark.CreatedAt,
+		err := rows.Scan(&mark.Id, &mark.Type, &mark.PageId, &mark.CreatorId, &mark.CreatedAt,
 			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
 			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		mark.IsUserOwned = creatorId == u.Id
-		markMap[mark.Id] = mark
+		mark.IsCurrentUserOwned = mark.CreatorId == u.Id
+		*markMap[mark.Id] = *mark
 
 		AddPageToMap(mark.PageId, pageMap, TitlePlusLoadOptions)
 		if mark.ResolvedPageId != "" {

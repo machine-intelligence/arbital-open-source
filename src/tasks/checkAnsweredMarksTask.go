@@ -86,7 +86,7 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		// Update the answered marks
 		statement := database.NewQuery(`
 			UPDATE marks
-			SET answered=true
+			SET answered=true,answeredAt=NOW()
 			WHERE id IN`).AddArgsGroupStr(markIds).ToTxStatement(tx)
 		if _, err = statement.Exec(); err != nil {
 			return "Failed to load update marks: %v", err

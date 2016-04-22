@@ -4,22 +4,17 @@ package site
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
-	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
-)
-
-const (
-	processMarkDelay = time.Duration(5*60) * time.Second
 )
 
 // newMarkData contains data given to us in the request.
 type newMarkData struct {
 	PageId        string
+	Type          string
 	Edit          int
 	AnchorContext string
 	AnchorText    string
@@ -50,7 +45,10 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("Invalid page id", nil)
 	}
-	if data.AnchorContext == "" {
+	if data.Type != core.QueryMarkType && data.Type != core.TypoMarkType && data.Type != core.ConfusionMarkType {
+		return pages.HandlerBadRequestFail("Invalid mark type", nil)
+	}
+	if data.Type != core.QueryMarkType && data.AnchorContext == "" {
 		return pages.HandlerBadRequestFail("No anchor context is set", nil)
 	}
 
@@ -81,6 +79,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Create a new mark
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
+		hashmap["type"] = data.Type
 		hashmap["edit"] = data.Edit
 		hashmap["creatorId"] = u.Id
 		hashmap["createdAt"] = now
@@ -99,23 +98,25 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Snapshot user's requisites
-		hashmaps := make(database.InsertMaps, 0)
-		for _, req := range masteryMap {
-			if req.Has || req.Wants {
-				hashmap := make(database.InsertMap)
-				hashmap["id"] = requisiteSnapshotId
-				hashmap["userId"] = u.Id
-				hashmap["requisiteId"] = req.PageId
-				hashmap["has"] = req.Has
-				hashmap["wants"] = req.Wants
-				hashmap["createdAt"] = now
-				hashmaps = append(hashmaps, hashmap)
+		if data.Type != core.TypoMarkType {
+			hashmaps := make(database.InsertMaps, 0)
+			for _, req := range masteryMap {
+				if req.Has || req.Wants {
+					hashmap := make(database.InsertMap)
+					hashmap["id"] = requisiteSnapshotId
+					hashmap["userId"] = u.Id
+					hashmap["requisiteId"] = req.PageId
+					hashmap["has"] = req.Has
+					hashmap["wants"] = req.Wants
+					hashmap["createdAt"] = now
+					hashmaps = append(hashmaps, hashmap)
+				}
 			}
-		}
-		if len(hashmaps) > 0 {
-			statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
-			if _, err := statement.WithTx(tx).Exec(); err != nil {
-				return "Couldn't insert into userRequisitePairSnapshots", err
+			if len(hashmaps) > 0 {
+				statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
+				if _, err := statement.WithTx(tx).Exec(); err != nil {
+					return "Couldn't insert into userRequisitePairSnapshots", err
+				}
 			}
 		}
 		return "", nil
@@ -123,20 +124,24 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerErrorFail(errMessage, err)
 	}
+	markIdStr := fmt.Sprintf("%d", markId)
 
 	// Enqueue a task that will create relevant updates for this mark event
-	var task tasks.ProcessMarkTask
-	task.Id = markId
-	options := &tasks.TaskOptions{Delay: processMarkDelay}
-	if !sessions.Live {
-		options.Delay = 0
-	}
-	if err := tasks.Enqueue(c, &task, options); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
+	if data.Type != core.QueryMarkType {
+		var updateTask tasks.NewUpdateTask
+		updateTask.UserId = u.Id
+		updateTask.GoToPageId = data.PageId
+		updateTask.SubscribedToId = data.PageId
+		updateTask.UpdateType = core.NewMarkUpdateType
+		updateTask.GroupByPageId = data.PageId
+		updateTask.MarkId = markIdStr
+		updateTask.EditorsOnly = true
+		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
+			return pages.HandlerErrorFail("Couldn't enqueue an updateTask", err)
+		}
 	}
 
 	// Load mark to return it
-	markIdStr := fmt.Sprintf("%d", markId)
 	returnData.AddMark(markIdStr)
 	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)

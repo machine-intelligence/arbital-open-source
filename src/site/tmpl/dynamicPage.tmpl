@@ -42,7 +42,8 @@
 	<script src="/static/js/multipleChoice.js"></script>
 	<script src="/static/js/checkbox.js"></script>
 	<script src="/static/js/tableOfContents.js"></script>
-	<script src="/static/js/confusionWindow.js"></script>
+	<script src="/static/js/queryInfo.js"></script>
+	<script src="/static/js/markInfo.js"></script>
 	<script src="/static/js/answers.js"></script>
 
 	<!-- Page specific scripts -->
@@ -95,26 +96,29 @@
 	<div id="accent-color"></div>
 	<div id="warn-color"></div>
 
-	<!-- Any global events that happen are shown here. -->
-	<div id="events-info-div"
+	<!-- Persistent popup -->
+	<div id="popup-div"
 			class="md-whiteframe-6dp"
-			ng-show="showEventsDiv()">
+			ng-show="pageService.popupParams">
+			<!--ng-style="{opacity: pageService.popupPercentLeft / 100}"-->
 
 		<md-toolbar class="md-hue-3">
 			<div class="md-toolbar-tools md-primary md-hue-2">
-				<span id="events-info-header"></span>
+				<span id="popup-header"></span>
 				<span flex></span>
-				<md-button class="md-icon-button" ng-click="closeEventsDiv()">
+				<md-button class="md-icon-button" ng-click="pageService.hidePopup()">
 					<md-icon>close</md-icon>
 				</md-button>
 			</div>
 		</md-toolbar>
+		<!--<md-progress-linear md-mode="determinate"
+				ng-value="pageService.popupPercentLeft"
+				ng-if="pageService.popupPercentLeft"></md-progress-linear>-->
 
-		<div id="events-info-body" layout-margin>
+		<div id="popup-body" layout-margin>
 		</div>
 	</div>
 	<!-- Global info messages -->
-	<!-- TODO: remove this, and make use of events-info-div instead. -->
 	<div class="global-error md-warn" hidden></div>
 
 	<!-- ======= Collection of common popover templates ======= -->

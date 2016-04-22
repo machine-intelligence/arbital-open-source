@@ -181,3 +181,7 @@ where
 	childId not in (select pageId from pageInfos where currentEdit <= 0);
 
 alter table pageInfos add column mergedInto varchar(32) not null;
+alter table marks add column type varchar(32) not null;
+update marks set type="query";
+alter table marks add column resolvedAt datetime not null;
+alter table marks add column answeredAt datetime not null;

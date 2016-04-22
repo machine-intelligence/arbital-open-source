@@ -1,0 +1,71 @@
+<!-- Note that there are two views we have to present here. One is for the user who
+	created the mark and the other is for everybody else. There is significant overlap,
+	but ocasionally we need to do if/else. -->
+
+<!-- New mark 'thank you' and explanation -->
+<div ng-if="::isNew">
+	<md-icon class="green-font">check_circle</md-icon>
+	Thanks for your feedback! It will be delivered anonymously to the page's authors.
+	<span ng-switch="::mark.type">
+		<span ng-switch-when="confusion">
+			They'll be able to see an anonymous snapshot of your current requisites.
+		</span>
+		<span ng-switch-when="typo">
+		</span>
+	<span>
+</div>
+	
+<!-- Meta info -->
+<div ng-if="::!mark.isCurrentUserOwned && isOnPage">
+	This mark was created 
+	<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
+</div>
+
+<!-- Mark details -->
+<div ng-if="::!isNew">
+	{{mark.isCurrentUserOwned ? 'You' : 'A reader'}} said this section
+	<span ng-switch="::mark.type">
+		<span ng-switch-when="confusion">
+			was confusing.
+		</span>
+		<span ng-switch-when="typo">
+			had a spelling/grammar error.
+		</span>
+	<span>
+	<blockquote arb-markdown mark-id="{{::mark.id}}" ng-if="::!isOnPage"></blockquote>
+</div>
+
+<!-- Resolved -->
+<div ng-if="mark.resolvedBy">
+	This mark has been resolved by
+	<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
+</div>
+
+<!-- Link to the mark on the page itself -->
+<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+		page-id="{{::mark.pageId}}"
+		class="intrasite-link"
+		ng-if="::!isOnPage">
+	View this mark on the page
+</a>
+
+<!-- Bottom buttons -->
+<div ng-if="::mark.isCurrentUserOwned">
+	<md-button class="md-accent" ng-click="dismissMark()" ng-if="!mark.resolvedPageId">
+		Discard
+	</md-button>
+</div>
+<div layout="row"
+		layout-align="space-around center"
+		ng-if="!mark.isCurrentUserOwned && !mark.resolvedPageId">
+	<md-button ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+		<md-icon>edit</md-icon>
+		Edit page
+	</md-button>
+	<md-button class="md-primary" ng-click="resolveWith(mark.pageId)">
+		Fixed
+	</md-button>
+	<md-button class="md-warn" ng-click="dismissMark(markId)" ng-if="!mark.resolvedBy">
+		Dismiss
+	</md-button>
+</div>

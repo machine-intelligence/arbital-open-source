@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service('pageService', function($http, $location, $rootScope, userService, urlService) {
+app.service('pageService', function($http, $location, $rootScope, $interval, userService, urlService) {
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -867,7 +867,7 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 			if (success) success(data);
 		})
 		.error(function(data, status) {
-			console.error('Error creating a new mark:'); console.error(data);
+			console.error('Error updating a mark:'); console.error(data);
 			if (error) error(data);
 		});
 	};
@@ -985,32 +985,72 @@ app.service('pageService', function($http, $location, $rootScope, userService, u
 		this.path = undefined;
 	};
 
-	// Show an event message.
-	var $eventsDiv = $('#events-info-div');
-	var $eventsHeader = $('#events-info-header');
-	var $eventsBody = $('#events-info-body');
-	var eventWindowIsVisible = false;
-	var eventHideCallback = undefined;
-	this.showEvent = function(params, hideCallback) {
-		if (eventWindowIsVisible) {
-			this.hideEvent();
+	// ======================= Popup stuff ======================================
+	
+	var $popupDiv = $('#popup-div');
+	var $popupHeader = $('#popup-header');
+	var $popupBody = $('#popup-body');
+	var popupHideCallback = undefined;
+	var popupIntervalPromise = undefined;
+	this.popupPercentLeft = 0;
+	this.popupParams = undefined;
+
+	// Show the popup.
+	// params = {
+	//	title: string to set the window title to
+	//	$element: compiled element to add to the window body
+	//	persistent: if true, this popup will persist when user moves between pages
+	//	timeout: optional number of seconds to wait before automatically hiding the window
+	// }
+	this.showPopup = function(params, hideCallback) {
+		if (that.popupParams) {
+			that.hidePopup();
 		}
-		$eventsBody.append(params.$element);
-		$eventsHeader.text(params.title);
-		eventHideCallback = hideCallback;
-		eventWindowIsVisible = true;
+		$popupBody.append(params.$element);
+		$popupHeader.text(params.title);
+		popupHideCallback = hideCallback;
+		that.popupParams = params;
+		if (params.timeout) {
+			// Compute how often we need to decrease the bar by 1 percent
+			var interval = params.timeout / 100;
+			popupIntervalPromise = $interval(that.updatePopupTimeLeft, interval);
+			that.popupPercentLeft = 100;
+		}
 	};
 
-	// Hide the event message.
-	this.hideEvent = function(result) {
-		result = result || {};
-		if (eventHideCallback) {
-			eventHideCallback(result);
-			eventHideCallback = undefined;
+	// Called every so often to update how much time the popup has left.
+	this.updatePopupTimeLeft = function() {
+		that.popupPercentLeft--;
+		if (that.popupPercentLeft <= 0) {
+			that.hidePopup();
 		}
-		$eventsBody.empty();
-		eventWindowIsVisible = false;
 	};
+
+	// Hide the popup.
+	this.hidePopup = function(result) {
+		result = result || {};
+		if (popupIntervalPromise) {
+			$interval.cancel(popupIntervalPromise);
+			popupIntervalPromise = undefined;
+			that.popupPercentLeft = 0;
+		}
+		if (popupHideCallback) {
+			popupHideCallback(result);
+			popupHideCallback = undefined;
+		}
+		$popupBody.empty();
+		that.popupParams = undefined;
+	};
+
+	// This is called when we go to a different page. If there is an existing popup
+	// that's not persistent, hide it.
+	this.hideNonpersistentPopup = function() {
+		if (that.popupParams && !that.popupParams.persistent) {
+			that.hidePopup();
+		}
+	};
+
+	// ===========================================================================
 
 	// Update the path variables.
 	$rootScope.$watch(function() {

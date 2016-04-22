@@ -76,6 +76,7 @@ var (
 		Requirements:    true,
 		Subjects:        true,
 		UserMarks:       true,
+		UnresolvedMarks: true,
 		Answers:         true,
 		Domains:         true,
 		ViewCount:       true,
@@ -102,15 +103,16 @@ var (
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
-		Questions:     true,
-		SubpageCounts: true,
-		Requirements:  true,
-		Subjects:      true,
-		UserMarks:     true,
-		ViewCount:     true,
-		Mastery:       true,
-		Creators:      true,
-		UsedAsMastery: true,
+		Questions:       true,
+		SubpageCounts:   true,
+		Requirements:    true,
+		Subjects:        true,
+		UserMarks:       true,
+		UnresolvedMarks: true,
+		ViewCount:       true,
+		Mastery:         true,
+		Creators:        true,
+		UsedAsMastery:   true,
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{

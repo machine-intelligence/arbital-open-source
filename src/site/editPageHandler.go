@@ -150,7 +150,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
 			return pages.HandlerBadRequestFail("Need title", nil)
 		}
-		if len(data.Text) <= 0 {
+		if len(data.Text) <= 0 && oldPage.Type != core.QuestionPageType {
 			return pages.HandlerBadRequestFail("Need text", nil)
 		}
 	}

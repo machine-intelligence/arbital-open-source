@@ -33,7 +33,7 @@
 			<div ng-if="isSimplestLens && !pageService.path" ng-show="!meetsAllRequirements()">
 				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.alias}}">
 					Learn this...
-					<md-tooltip>Learn all the requirements for this page</md-tooltip>
+					<md-tooltip md-delay="500">Learn all the requirements for this page</md-tooltip>
 				</md-button>
 			</div>
 		</div>
@@ -122,6 +122,7 @@
 		</div>
 	</div>
 
+	<!-- Show the lens toolbar at the bottom too if the page is long enough. -->
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
 	<!-- Inline comments container -->
@@ -131,21 +132,51 @@
 				ng-style="getRhsButtonsStyle()"
 				layout="column"
 				layout-gt-md="row"
-				ng-show="showNewInlineCommentButton">
-			<md-button aria-label="New inline comments"
-					class="md-icon-button md-accent md-raised"
-					ng-click="newInlineComment()"
-					arb-user-check="cool">
-				<md-tooltip>New inline comment (ALT+CTRL+M)</md-tooltip>
-				<md-icon md-svg-icon="comment_plus_outline"></md-icon>
+				ng-show="showRhsButtons">
+
+			<md-button class="rhs-button md-icon-button md-accent md-raised"
+					ng-click="newInlineComment(false)"
+					arb-user-check="cool"
+					aria-label="New inline comment">
+				<md-tooltip md-delay="500" md-direction="top">New discussion comment (ALT+CTRL+M)</md-tooltip>
+				<md-icon>comment</md-icon>
 			</md-button>
-			<md-button aria-label="Are you confused?"
-					class="md-icon-button md-accent md-raised"
-					ng-style="getNewConfusedMarkButtonStyle()"
-					ng-click="newConfusedMark()"
-					arb-user-check="cool">
-				<md-tooltip>Are you confuzed? (ALT+CTRL+U)</md-tooltip>
-				<md-icon md-svg-icon="comment_question_outline"></md-icon>
+
+			<!-- FAB for editor feedback -->
+			<md-fab-speed-dial class="md-scale editor-feedback-fab"
+					md-direction="down"
+					md-open="isEditorFeedbackFabOpen"
+					ng-mouseenter="toggleEditorFeedbackFab(true)"
+					ng-mouseleave="toggleEditorFeedbackFab(false)">
+				<md-fab-trigger>
+					<md-button class="rhs-button md-fab md-mini"
+							ng-click="newInlineComment(true)"
+							arb-user-check="cool"
+							aria-label="New editor feedback">
+						<md-tooltip md-delay="500" md-direction="top">New editor feedback (ALT+CTRL+U)</md-tooltip>
+						<md-icon>rate_review</md-icon>
+					</md-button>
+				</md-fab-trigger>
+				<md-fab-actions>
+					<md-button class="md-raised"
+							ng-click="newEditorMark('confusion')"
+							aria-label="This is confusing">
+						This is confusing
+					</md-button>
+					<md-button class="md-raised"
+							ng-click="newEditorMark('typo')"
+							aria-label="Spelling/grammar">
+						Spelling/grammar
+					</md-button>
+				</md-fab-actions>
+			</md-fab-speed-dial>
+
+			<md-button class="rhs-button md-icon-button md-accent md-raised"
+					ng-click="newQueryMark()"
+					arb-user-check="cool"
+					aria-label="Question/objection">
+				<md-tooltip md-delay="500" md-direction="top">Question/objection (ALT+CTRL+U)</md-tooltip>
+				<md-icon md-svg-icon="hand-pointing-right"></md-icon>
 			</md-button>
 		</div>
 
@@ -157,7 +188,8 @@
 				ng-repeat="(commentId,comment) in inlineComments">
 			<md-button class="md-icon-button md-raised"
 					ng-class="{'md-primary': isInlineCommentIconSelected(commentId)}"
-					ng-click="toggleInlineComment(commentId)">
+					ng-click="toggleInlineComment(commentId)"
+					aria-label="Inline comment">
 				<md-icon>comment</md-icon>
 			</md-button>
 		</div>
@@ -170,8 +202,11 @@
 				ng-repeat="(markId,mark) in inlineMarks">
 			<md-button class="md-icon-button md-raised"
 					ng-class="{'md-primary': isInlineMarkIconSelected(markId)}"
-					ng-click="toggleInlineMark(markId)">
-				<md-icon md-svg-icon="comment_question_outline"></md-icon>
+					ng-click="toggleInlineMark(markId)"
+					aria-label="Question/objection">
+				<md-icon md-svg-icon="hand-pointing-right"
+						ng-if="::pageService.markMap[markId].type === 'query'"></md-icon>
+				<md-icon ng-if="::pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
 			</md-button>
 		</div>
 	</div>

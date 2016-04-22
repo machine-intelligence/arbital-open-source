@@ -35,7 +35,7 @@ type NewUpdateTask struct {
 	ChangeLogId int64
 
 	// Only set if UpdateType is for a mark. Id is a FK into marks table.
-	MarkId int64
+	MarkId string
 }
 
 func (task NewUpdateTask) Tag() string {

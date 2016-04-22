@@ -228,13 +228,22 @@
 
 		<!-- Marks -->
 
-		<div ng-switch-when="newMark"
-				arb-confusion-window
+		<div ng-switch-when="newMark">
+				<div arb-query-info
+				mark-id="{{::markId}}"
+				ng-if="pageService.markMap[markId].type === 'query'"></div>
+			<div arb-mark-info
+					mark-id="{{::markId}}"
+					ng-if="pageService.markMap[markId].type !== 'query'"></div>
+		</div>
+
+		<div ng-switch-when="answeredQuery"
+				arb-query-info
 				mark-id="{{::markId}}">
 		</div>
 
-		<div ng-switch-when="answeredMark"
-				arb-confusion-window
+		<div ng-switch-when="resolvedMark"
+				arb-mark-info
 				mark-id="{{::markId}}">
 		</div>
 

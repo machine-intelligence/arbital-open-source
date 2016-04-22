@@ -2,7 +2,7 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive to show a lens' content
-app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
+app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, $rootScope, pageService, userService) {
 	return {
 		templateUrl: 'static/html/lens.html',
 		scope: {
@@ -66,7 +66,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
 					if (event.keyCode == 77) $scope.newInlineComment(); // M
-					else if (event.keyCode == 85) $scope.newConfusedMark(); // U
+					else if (event.keyCode == 85) $scope.newQueryMark(); // U
 				});
 			});
 
@@ -347,7 +347,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 
 			// Process all RHS buttons to compute their position, zIndex, etc...
 			// This fixes any potential overlapping issues.
-			var preprocessInlineCommentButtons = function() {
+			var orderRhsButtons = function() {
 				orderedInlineButtons.sort(function(a, b) {
 					// Create arrays of values which we compare, breaking ties with the next item in the array.
 					var arrayA = [a.paragraphIndex, a.anchorOffset, a.pageId, a.markId];
@@ -370,7 +370,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					minTop = top + inlineCommentButtonHeight - 8;
 				}
 			};
-			preprocessInlineCommentButtons();
+			orderRhsButtons();
 
 			// Get the style of an inline comment icon
 			scope.getInlineCommentIconStyle = function(commentId) {
@@ -413,8 +413,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			scope.inlineCommentIconMouseover = function(commentId, mouseover) {
 				var params = scope.inlineComments[commentId];
 				params.mouseover = mouseover;
-				if (params.visible) return;
-				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover);
+				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover || params.visible);
 			};
 
 			// Called when the user hovers the mouse over the inline mark icon
@@ -422,8 +421,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				var params = scope.inlineMarks[markId];
 				if (!params) return;
 				params.mouseover = mouseover;
-				if (params.visible) return;
-				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover);
+				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover || params.visible);
 			};
 
 			// Hide/show the inline comment
@@ -461,24 +459,30 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				var params = scope.inlineMarks[markId];
 				if (!params) return;
 				params.visible = !params.visible;
-				pageService.hideEvent();
+				pageService.hidePopup();
 				if (params.visible) {
-					showConfusionEventWindow(markId, false);
+					if (pageService.markMap[markId].type === 'query') {
+						showQueryMarkWindow(markId, false);
+					} else {
+						showEditorMarkWindow(markId, false);
+					}
+					scope.inlineMarkIconMouseover(markId, true);
+					$location.replace().search("markId", markId);
 				}
 			};
 
 			// Process creating new inline comments
 			var $inlineCommentEditPage = undefined;
 			var newInlineCommentButtonTop = 0;
-			scope.showNewInlineCommentButton = false;
+			scope.showRhsButtons = false;
 			$markdownContainer.on('mouseup', function(event) {
 				if ($inlineCommentEditPage) return;
 				// Do $timeout, because otherwise there is a bug when you double click to
 				// select a word/paragraph, then click again and the selection var is still
 				// the same (not cleared).
 				$timeout(function() {
-					scope.showNewInlineCommentButton = !!processSelectedParagraphText();
-					if (scope.showNewInlineCommentButton) {
+					scope.showRhsButtons = !!processSelectedParagraphText();
+					if (scope.showRhsButtons) {
 						newInlineCommentButtonTop = event.pageY;
 					}
 				});
@@ -492,8 +496,8 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			};
 
 			// Create a new inline comment
-			scope.newInlineComment = function() {
-				if (!scope.showNewInlineCommentButton) return;
+			scope.newInlineComment = function(isEditorComment) {
+				if (!scope.showRhsButtons) return;
 				var selection = getSelectedParagraphText();
 				if (!selection) return;
 				pageService.newComment({
@@ -503,11 +507,12 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						comment.anchorContext = selection.context;
 						comment.anchorText = selection.text;
 						comment.anchorOffset = selection.offset;
+						comment.isEditorComment = isEditorComment;
 						$inlineCommentEditPage = $compile($('<div arb-edit-page class=\'edit-comment-embed\'' +
 							' is-embedded=\'true\' page-id=\'' + newCommentId +
 							'\' done-fn=\'newInlineCommentDone(result)\'></div>'))(scope);
 						$(selection.paragraphNode).after($inlineCommentEditPage);
-						scope.showNewInlineCommentButton = false;
+						scope.showRhsButtons = false;
 					},
 				});
 			};
@@ -520,7 +525,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				if (!result.discard) {
 					pageService.newCommentCreated(result.pageId);
 					processInlineComment(result.pageId);
-					preprocessInlineCommentButtons();
+					orderRhsButtons();
 				}
 			};
 
@@ -532,62 +537,109 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					for (var markId in data.marks) {
 						processMark(markId);
 					}
-					preprocessInlineCommentButtons();
+					orderRhsButtons();
 				});
+			};
+
+			scope.isEditorFeedbackFabOpen = false;
+			scope.toggleEditorFeedbackFab = function(show) {
+				scope.isEditorFeedbackFabOpen = show;
 			};
 
 			// =========================== Inline questions ===========================
-
-			// Create a new confused mark
-			var showConfusionEventWindow = function(markId, isNew) {
-				scope.showNewInlineCommentButton = false;
-				pageService.showEvent({
-					title: isNew ? 'New confusion mark' : 'Update your confusion mark',
-					$element: $compile('<div arb-confusion-window mark-id="' + markId +
-						'" is-new="::' + isNew +
-						'"></div>')(scope),
-				}, function(result) {
-					if (result.dismiss) {
-						delete scope.inlineMarks[markId];
-						for (var n = 0; n < orderedInlineButtons.length; n++) {
-							var button = orderedInlineButtons[n];
-							if (button.markId == markId) {
-								orderedInlineButtons.splice(n, 1);
-								break;
-							}
+			
+			// Helper to call when a mark window has been closed.
+			var markWindowClosed = function(markId, dismiss) {
+				if (dismiss) {
+					delete scope.inlineMarks[markId];
+					for (var n = 0; n < orderedInlineButtons.length; n++) {
+						var button = orderedInlineButtons[n];
+						if (button.markId == markId) {
+							orderedInlineButtons.splice(n, 1);
+							break;
 						}
-						preprocessInlineCommentButtons();
-					} else {
-						var params = scope.inlineMarks[markId];
-						params.visible = false;
 					}
-					$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
-					$markdown.find('.inline-comment-highlight-hover').removeClass('inline-comment-highlight-hover');
-					if ($location.search().markId == markId) {
-						$location.search("markId", undefined);
-					}
+					orderRhsButtons();
+				} else {
+					var params = scope.inlineMarks[markId];
+					params.visible = false;
+				}
+				$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
+				$markdown.find('.inline-comment-highlight-hover').removeClass('inline-comment-highlight-hover');
+				if ($location.search().markId == markId) {
+					// TODO: GAH! We can't erase markId here, because then we'll erase it when the user goes to edit
+					// page url with ?markId set. We should fix this with a better URL state management system.
+					//$location.replace().search("markId", undefined);
+				}
+			};
+
+			// Show the window for editing a query mark.
+			var showQueryMarkWindow = function(markId, isNew) {
+				scope.showRhsButtons = false;
+				pageService.showPopup({
+					title: isNew ? 'New query mark' : 'Edit query mark',
+					$element: $compile('<div arb-query-info mark-id="' + markId +
+						'" is-new="::' + isNew +
+						'" in-popup="::true' +
+						'"></div>')($rootScope),
+					persistent: true,
+				}, function(result) {
+					markWindowClosed(markId, result.dismiss);
 				});
 			};
-			scope.newConfusedMark = function() {
-				if (!scope.showNewInlineCommentButton) return;
+
+			// Show the window for editing an editor mark.
+			var showEditorMarkWindow  = function(markId, isNew) {
+				scope.showRhsButtons = false;
+				pageService.showPopup({
+					title: isNew ? 'New mark' : 'Edit mark',
+					$element: $compile('<div arb-mark-info mark-id="' + markId +
+						'" is-new="::' + isNew +
+						'"></div>')($rootScope),
+					timeout: isNew ? 10000 : undefined,
+				}, function(result) {
+					markWindowClosed(markId, result.dismiss);
+				});
+			};
+
+			// Helper for creating a new mark.
+			var newMark = function(type, success) {
 				var selection = getSelectedParagraphText();
-				if (!selection) return;
+				if (!selection && type !== 'query') return;
 				pageService.newMark({
 						pageId: scope.pageId,
 						edit: scope.page.edit,
-						anchorContext: selection.context,
-						anchorText: selection.text,
-						anchorOffset: selection.offset,
+						type: type,
+						anchorContext: selection ? selection.context : undefined,
+						anchorText: selection ? selection.text : undefined,
+						anchorOffset: selection ? selection.offset : undefined,
 					},
 					function(data) {
-						processMark(data.result.markId);
-						preprocessInlineCommentButtons();
-						$location.search('markId', data.result.markId);
-						showConfusionEventWindow(data.result.markId, true);
+						var markId = data.result.markId;
+						processMark(markId);
+						orderRhsButtons();
+						$location.replace().search('markId', markId);
 						var params = scope.inlineMarks[markId];
-						params.visible = true;
+						if (params) {
+							params.visible = true;
+						}
+						success(data);
 					}
 				);
+			};
+
+			// Called to create a new query (question/objection) mark.
+			scope.newQueryMark = function() {
+				newMark('query', function(data) {
+					showQueryMarkWindow(data.result.markId, true);
+				});
+			};
+
+			// Called to create a new editor (confusion/spelling) mark.
+			scope.newEditorMark = function(type) {
+				newMark(type, function(data) {
+					showEditorMarkWindow(data.result.markId, true);
+				});
 			};
 
 			// Scroll down to selected markId
@@ -601,6 +653,11 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					var top = style.top;
 					$('body').scrollTop(top - ($(window).height() / 2));
 				}
+			});
+
+			// We might get this event from composeFab.
+			scope.$on('newQueryMark', function() {
+				scope.newQueryMark();
 			});
 
 			// Process all embedded votes

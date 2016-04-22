@@ -67,6 +67,7 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 		.icon('comment_question_outline', 'static/icons/comment-question-outline.svg')
 		.icon('facebook_box', 'static/icons/facebook-box.svg')
 		.icon('format_header_pound', 'static/icons/format-header-pound.svg')
+		.icon('hand-pointing-right', 'static/icons/hand-pointing-right.svg')
 		.icon('link_variant', 'static/icons/link-variant.svg')
 		.icon('thumb_up_outline', 'static/icons/thumb-up-outline.svg')
 		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg');
@@ -80,7 +81,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	$scope.urlService = urlService;
 	$scope.pageService = pageService;
 	$scope.userService = userService;
-	$scope.loadingBarValue = 0;
 
 	// Refresh all the fields that need to be updated every so often.
 	var refreshAutoupdates = function() {
@@ -150,7 +150,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				result.content.element.addClass('reveal-after-render-parent');
 				var $loadingBar = $('#loading-bar');
 				$loadingBar.show();
-				$scope.loadingBarValue = 0;
 				var startTime = (new Date()).getTime();
 
 				var showEverything = function() {
@@ -166,7 +165,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 
 				var revealInterval = $interval(function() {
 					var timePassed = ((new Date()).getTime() - startTime) / 1000;
-					$scope.loadingBarValue = Math.min(100, timePassed * 30);
 					var hiddenChildren = result.content.element.find('.reveal-after-render');
 					if (hiddenChildren.length > 0) {
 						hiddenChildren.each(function() {
@@ -205,14 +203,9 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		};
 	};
 
-	// Check to see if we should show the events div.
-	var $eventsBody = $('#events-info-body');
-	$scope.showEventsDiv = function() {
-		return $eventsBody.children().length > 0;
-	};
-
-	$scope.closeEventsDiv = function() {
-		pageService.hideEvent();
+	// Check to see if we should show the popup.
+	$scope.closePopup = function() {
+		pageService.hideNonpersistentPopup();
 	};
 
 	// Watch path changes and update Google Analytics
@@ -268,7 +261,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				rule.handler(args, $scope);
 				currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
 				$('[ng-view]').empty();
-				$scope.closeEventsDiv();
+				$scope.closePopup();
 				return;
 			}
 		}

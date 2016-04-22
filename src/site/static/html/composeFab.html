@@ -33,7 +33,11 @@
 		</md-button>
 		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="questionUrl">
 			<md-icon>help</md-icon>
-			<md-tooltip md-delay="500" md-direction="left">New question (ALT+CTRL+Q)</md-tooltip>
+			<md-tooltip md-delay="500" md-direction="left">New question page (ALT+CTRL+Q)</md-tooltip>
+		</md-button>
+		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="pageService.primaryPage">
+			<md-icon md-svg-icon="hand-pointing-right"></md-icon>
+			<md-tooltip md-delay="500" md-direction="left">New question/objection (ALT+CTRL+U)</md-tooltip>
 		</md-button>
 		<md-button ng-click="newFeedback($event)" class="md-fab md-raised md-mini md-accent">
 			<md-icon>feedback</md-icon>

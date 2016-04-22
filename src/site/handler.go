@@ -44,7 +44,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			fmt.Fprintf(w, "%s", message)
 		}
 
-		// Recover from panic.
+		// Recover from panic
 		defer func() {
 			if sessions.Live {
 				if r := recover(); r != nil {
