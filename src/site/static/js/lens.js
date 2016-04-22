@@ -550,6 +550,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			
 			// Helper to call when a mark window has been closed.
 			var markWindowClosed = function(markId, dismiss) {
+				if (scope.$$destroyed) return;
 				if (dismiss) {
 					delete scope.inlineMarks[markId];
 					for (var n = 0; n < orderedInlineButtons.length; n++) {
