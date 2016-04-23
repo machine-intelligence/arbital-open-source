@@ -17,6 +17,9 @@ app.service('userService', function($http, $location, $rootScope) {
 	// show the current user's.
 	this.showAllMarks = false;
 
+	// Set to true when user has some text selected.
+	this.lensTextSelected = false;
+
 	// Check if we can let this user do stuff.
 	this.userIsCool = function() {
 		return this.user && this.user.karma >= 200;

@@ -2,7 +2,7 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive to show a lens' content
-app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, $rootScope, pageService, userService) {
+app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope, pageService, userService) {
 	return {
 		templateUrl: 'static/html/lens.html',
 		scope: {
@@ -475,18 +475,52 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			var $inlineCommentEditPage = undefined;
 			var newInlineCommentButtonTop = 0;
 			scope.showRhsButtons = false;
-			$markdownContainer.on('mouseup', function(event) {
-				if ($inlineCommentEditPage) return;
-				// Do $timeout, because otherwise there is a bug when you double click to
-				// select a word/paragraph, then click again and the selection var is still
-				// the same (not cleared).
-				$timeout(function() {
-					scope.showRhsButtons = !!processSelectedParagraphText();
-					if (scope.showRhsButtons) {
-						newInlineCommentButtonTop = event.pageY;
-					}
+
+			// Handle text selection.
+			var mouseUpFn;
+			if (userService.isTouchDevice) {
+				$markdownContainer.on('selectstart', function(event) {
+					if ($inlineCommentEditPage) return;
+					$timeout(function() {
+						userService.lensTextSelected = !!processSelectedParagraphText();
+					});
 				});
+				mouseUpFn = function(event) {
+					scope.$apply(function() {
+						userService.lensTextSelected = !!processSelectedParagraphText();
+					});
+				};
+
+				// Called when the fab is clicked when text is selected.
+				scope.$on('fabClicked', function() {
+					$('body').toggleClass('body-fix', false);
+					$mdBottomSheet.show({
+						templateUrl: "static/html/rhsButtons.html",
+						controller: "RhsButtonsController",
+					}).then(function(result) {
+						scope[result.func].apply(null, result.params);
+						userService.lensTextSelected = false;
+					});
+				});
+			} else {
+				mouseUpFn = function(event) {
+					if ($inlineCommentEditPage) return;
+					// Do $timeout, because otherwise there is a bug when you double click to
+					// select a word/paragraph, then click again and the selection var is still
+					// the same (not cleared).
+					$timeout(function() {
+						scope.showRhsButtons = !!processSelectedParagraphText();
+						if (scope.showRhsButtons) {
+							newInlineCommentButtonTop = event.pageY;
+						}
+					});
+				};
+			}
+			$('body').on('mouseup', mouseUpFn);
+			scope.$on('$destroy', function() {
+				$('body').off('mouseup', mouseUpFn);
 			});
+
 			scope.getRhsButtonsStyle = function() {
 				return {
 					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
@@ -497,7 +531,6 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 
 			// Create a new inline comment
 			scope.newInlineComment = function(isEditorComment) {
-				if (!scope.showRhsButtons) return;
 				var selection = getSelectedParagraphText();
 				if (!selection) return;
 				pageService.newComment({

@@ -756,6 +756,11 @@ arb-compose-fab {
   height: 30px;
   font-size: 30px; }
 
+md-bottom-sheet button md-icon {
+  font-size: 48px !important;
+  width: 48px;
+  height: 48px; }
+
 del {
   color: red; }
 

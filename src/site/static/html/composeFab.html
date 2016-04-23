@@ -1,12 +1,13 @@
-<md-fab-speed-dial md-open="fabState.isOpen"
+<md-fab-speed-dial md-open="isOpen"
 		md-direction="up"
 		class="md-scale md-fab-bottom-right"
 		ng-mouseenter="toggle(true, true)"
 		ng-mouseleave="toggle(false, true)"
-		ng-if="!fabState.hide && userService.userIsCool()">
+		ng-if="!hideFab && userService.userIsCool()">
 	<md-fab-trigger>
-		<md-button class="md-fab">
-			<md-icon class="fab-icon">add</md-icon>
+		<md-button ng-click="fabClicked($event)" class="md-fab">
+			<md-icon class="fab-icon" ng-if="!userService.lensTextSelected">add</md-icon>
+			<md-icon class="fab-icon" ng-if="userService.lensTextSelected">add_box</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">Quick menu</md-tooltip>
 		</md-button>
 		<md-icon class="private-group-icon" ng-if="pageService.privateGroupId !== ''">
@@ -14,7 +15,7 @@
 			<md-tooltip md-autohide="true" md-direction="left">Private domain</md-tooltip>
 		</md-icon>
 	</md-fab-trigger>
-	<md-fab-actions ng-if="fabState.isOpen">
+	<md-fab-actions ng-if="isOpen && !(userService.isTouchDevice && userService.lensTextSelected)">
 		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="editPageUrl">
 			<md-icon>create</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">Edit this page (ALT+CTRL+E)</md-tooltip>
@@ -33,15 +34,15 @@
 		</md-button>
 		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="questionUrl">
 			<md-icon>help</md-icon>
-			<md-tooltip md-delay="500" md-direction="left">New question page (ALT+CTRL+Q)</md-tooltip>
+			<md-tooltip md-delay="500" md-direction="left">New question page</md-tooltip>
 		</md-button>
 		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="pageService.primaryPage">
-			<md-icon md-svg-icon="hand-pointing-right"></md-icon>
-			<md-tooltip md-delay="500" md-direction="left">New question/objection (ALT+CTRL+U)</md-tooltip>
+			<md-icon md-svg-icon="cursor-pointer"></md-icon>
+			<md-tooltip md-delay="500" md-direction="left">New question/objection (ALT+CTRL+Q)</md-tooltip>
 		</md-button>
 		<md-button ng-click="newFeedback($event)" class="md-fab md-raised md-mini md-accent">
 			<md-icon>feedback</md-icon>
-			<md-tooltip md-delay="500" md-direction="left">Leave feedback for Arbital creators (ALT+CTRL+K)</md-tooltip>
+			<md-tooltip md-delay="500" md-direction="left">Leave feedback about Arbital (ALT+CTRL+K)</md-tooltip>
 		</md-button>
 	</md-fab-actions>
 </md-fab-speed-dial>

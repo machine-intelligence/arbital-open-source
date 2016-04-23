@@ -176,7 +176,7 @@
 					arb-user-check="cool"
 					aria-label="Question/objection">
 				<md-tooltip md-delay="500" md-direction="top">Question/objection (ALT+CTRL+U)</md-tooltip>
-				<md-icon md-svg-icon="hand-pointing-right"></md-icon>
+				<md-icon md-svg-icon="cursor-pointer"></md-icon>
 			</md-button>
 		</div>
 
@@ -204,7 +204,7 @@
 					ng-class="{'md-primary': isInlineMarkIconSelected(markId)}"
 					ng-click="toggleInlineMark(markId)"
 					aria-label="Question/objection">
-				<md-icon md-svg-icon="hand-pointing-right"
+				<md-icon md-svg-icon="cursor-pointer"
 						ng-if="::pageService.markMap[markId].type === 'query'"></md-icon>
 				<md-icon ng-if="::pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
 			</md-button>

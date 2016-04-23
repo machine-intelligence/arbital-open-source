@@ -1,0 +1,77 @@
+<md-bottom-sheet ng-class="{'md-grid': !isTinyScreen, 'md-list': isTinyScreen}">
+	<md-list layout="row"
+			layout-xs="column"
+			layout-align="center center"
+			flex
+			ng-show="!isSubmenu">
+		<md-list-item>
+			<div>
+				<md-button ng-click="newInlineComment(false)"
+						arb-user-check="cool"
+						aria-label="New inline comment">
+					<md-icon>comment</md-icon>
+					<div>New discussion comment</div>
+				</md-button>
+			</div>
+		</md-list-item>
+
+		<md-list-item>
+			<div>
+				<md-button ng-click="showEditorFeedbackSubmenu()"
+						arb-user-check="cool"
+						aria-label="New editor feedback">
+					<md-icon>rate_review</md-icon>
+					<div>New editor feedback</div>
+				</md-button>
+			</div>
+		</md-list-item>
+
+		<md-list-item>
+			<div>
+				<md-button ng-click="newQueryMark()"
+						arb-user-check="cool"
+						aria-label="Question/objection">
+					<md-icon md-svg-icon="cursor-pointer"></md-icon>
+					<div>Question/objection</div>
+				</md-button>
+			</div>
+		</md-list-item>
+	</md-list>
+
+	<md-list layout="row"
+			layout-xs="column"
+			layout-align="center center"
+			flex
+			ng-show="isSubmenu">
+		<md-list-item>
+			<div>
+				<md-button ng-click="newInlineComment(true)"
+						arb-user-check="cool"
+						aria-label="New editor feedback">
+					<md-icon>rate_review</md-icon>
+					<div>New editor feedback</div>
+				</md-button>
+			</div>
+		</md-list-item>
+
+		<md-list-item>
+			<div>
+				<md-button ng-click="newEditorMark('confusion')"
+						aria-label="This is confusing">
+					<md-icon>lightbulb_outline</md-icon>
+					<div>This is confusing</div>
+				</md-button>
+			</div>
+		</md-list-item>
+
+		<md-list-item>
+			<div>
+				<md-button ng-click="newEditorMark('typo')"
+						aria-label="Spelling/grammar">
+					<md-icon>spellcheck</md-icon>
+					<div>Spelling/grammar</div>
+				</md-button>
+			</div>
+		</md-list-item>
+	</md-list>
+</md-bottom-sheet>

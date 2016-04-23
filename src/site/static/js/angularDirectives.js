@@ -313,12 +313,20 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.userService = userService;
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
+			$scope.isOpen = false;
 
-			$scope.fabState = {};
-			$scope.fabState.isOpen = false;
+			// Toggle FAB children
 			$scope.toggle = function(show, hovering) {
-				if (userService.isTouchDevice) return;
-				$scope.fabState.isOpen = show;
+				if (userService.isTouchDevice) return true;
+				$scope.isOpen = show;
+			};
+
+			// Called when the FAB is clicked
+			$scope.fabClicked = function(event) {
+				if (!(userService.isTouchDevice && userService.lensTextSelected)) return true;
+				$rootScope.$broadcast('fabClicked');
+				$scope.isOpen = false;
+				return false;
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
@@ -361,9 +369,9 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			};
 
 			$scope.$on('$locationChangeSuccess', function() {
-				$scope.fabState.hide = $location.path().indexOf('/edit') === 0;
+				$scope.hideFab = $location.path().indexOf('/edit') === 0;
 			});
-			$scope.fabState.hide = $location.path().indexOf('/edit') === 0;
+			$scope.hideFab = $location.path().indexOf('/edit') === 0;
 
 			// Listen for shortcut keys
 			$(document).keyup(function(event) {
@@ -373,7 +381,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
 					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
 					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
-					else if (event.keyCode == 81 && $scope.questionUrl) $location.url($scope.questionUrl); // Q
+					else if (event.keyCode == 81 && pageService.primaryPage) $scope.newQueryMark(); // Q
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});
 			});

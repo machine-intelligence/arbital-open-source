@@ -590,6 +590,16 @@ arb-compose-fab {
 	font-size: 30px;
 }
 
+md-bottom-sheet {
+	button {
+		md-icon {
+			font-size: 48px !important;
+			width: 48px;
+			height: 48px;
+		}
+	}
+}
+
 // Show deletes and inserts
 del {
 	color: red;
