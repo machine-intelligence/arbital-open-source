@@ -4,6 +4,10 @@ CREATE TABLE changeLogs (
 	/* Unique update id. PK. */
 	id BIGINT NOT NULL AUTO_INCREMENT,
 
+	/* Likeable id for this changelog. Partial FK into likes.
+	   Note that this is not set until the first time this changelog is liked. */
+	likeableId BIGINT NOT NULL,
+
 	/* The user who caused this event. FK into users. */
 	userId VARCHAR(32) NOT NULL,
 
