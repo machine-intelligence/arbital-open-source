@@ -467,7 +467,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						showEditorMarkWindow(markId, false);
 					}
 					scope.inlineMarkIconMouseover(markId, true);
-					$location.replace().search("markId", markId);
+					$location.replace().search('markId', markId);
 				}
 			};
 
@@ -477,49 +477,51 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			scope.showRhsButtons = false;
 
 			// Handle text selection.
-			var mouseUpFn;
+			var cachedSelection;
 			if (userService.isTouchDevice) {
-				$markdownContainer.on('selectstart', function(event) {
+				// On mobile it's very hard to get user's selected text. The best way Alexei found
+				// was to just check for selected text every so often. 
+				$interval(function() {
 					if ($inlineCommentEditPage) return;
-					$timeout(function() {
-						userService.lensTextSelected = !!processSelectedParagraphText();
-					});
-				});
-				mouseUpFn = function(event) {
-					scope.$apply(function() {
-						userService.lensTextSelected = !!processSelectedParagraphText();
-					});
-				};
+					userService.lensTextSelected = !!processSelectedParagraphText();
+					if (userService.lensTextSelected) {
+						// Cache the selection we found, because we are pretty much guaranteed to
+						// lose it as soon as the user clicks on anything.
+						cachedSelection = getStartEndSelection();
+					}
+				}, 500);
 
 				// Called when the fab is clicked when text is selected.
 				scope.$on('fabClicked', function() {
-					$('body').toggleClass('body-fix', false);
+					//$('body').toggleClass('body-fix', false);
 					$mdBottomSheet.show({
-						templateUrl: "static/html/rhsButtons.html",
-						controller: "RhsButtonsController",
+						templateUrl: 'static/html/rhsButtons.html',
+						controller: 'RhsButtonsController',
+						parent: '#fixed-overlay',
 					}).then(function(result) {
 						scope[result.func].apply(null, result.params);
 						userService.lensTextSelected = false;
 					});
 				});
 			} else {
-				mouseUpFn = function(event) {
+				var mouseUpFn = function(event) {
 					if ($inlineCommentEditPage) return;
 					// Do $timeout, because otherwise there is a bug when you double click to
 					// select a word/paragraph, then click again and the selection var is still
 					// the same (not cleared).
 					$timeout(function() {
 						scope.showRhsButtons = !!processSelectedParagraphText();
+						userService.lensTextSelected = !!processSelectedParagraphText();
 						if (scope.showRhsButtons) {
 							newInlineCommentButtonTop = event.pageY;
 						}
 					});
 				};
+				$('body').on('mouseup', mouseUpFn);
+				scope.$on('$destroy', function() {
+					$('body').off('mouseup', mouseUpFn);
+				});
 			}
-			$('body').on('mouseup', mouseUpFn);
-			scope.$on('$destroy', function() {
-				$('body').off('mouseup', mouseUpFn);
-			});
 
 			scope.getRhsButtonsStyle = function() {
 				return {
@@ -531,7 +533,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 
 			// Create a new inline comment
 			scope.newInlineComment = function(isEditorComment) {
-				var selection = getSelectedParagraphText();
+				var selection = getSelectedParagraphText(cachedSelection);
 				if (!selection) return;
 				pageService.newComment({
 					parentPageId: scope.page.pageId,
@@ -580,7 +582,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			};
 
 			// =========================== Inline questions ===========================
-			
+
 			// Helper to call when a mark window has been closed.
 			var markWindowClosed = function(markId, dismiss) {
 				if (scope.$$destroyed) return;
@@ -640,7 +642,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 
 			// Helper for creating a new mark.
 			var newMark = function(type, success) {
-				var selection = getSelectedParagraphText();
+				var selection = getSelectedParagraphText(cachedSelection);
 				if (!selection && type !== 'query') return;
 				pageService.newMark({
 						pageId: scope.pageId,

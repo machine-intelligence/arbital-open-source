@@ -143,7 +143,6 @@ func init() {
 	s.HandleFunc(updatePageObjectHandler.URI, handlerWrapper(updatePageObjectHandler)).Methods("POST")
 
 	// Admin stuff
-	s.HandleFunc(domainsPageHandler.URI, handlerWrapper(domainsPageHandler)).Methods("POST")
 	s.HandleFunc(adminTaskHandler.URI, handlerWrapper(adminTaskHandler)).Methods("GET")
 
 	// Various internal handlers

@@ -567,6 +567,14 @@ $triangle-size: 15px;
 	padding-right: 25px;
 }
 
+// Fixed full-screen overlay that we use for showing $mdBottomSheet
+#fixed-overlay {
+	position: fixed;
+	width: 100vw;
+	height: 100vh;
+	z-index: $fixedOverlayZ;
+}
+
 .private-group-icon {
 	position: absolute;
 	bottom: 4px;
@@ -592,10 +600,12 @@ arb-compose-fab {
 
 md-bottom-sheet {
 	button {
-		md-icon {
-			font-size: 48px !important;
-			width: 48px;
-			height: 48px;
+		@media (min-width: 600px) {
+			md-icon {
+				font-size: 48px !important;
+				width: 48px;
+				height: 48px;
+			}
 		}
 	}
 }

@@ -19,6 +19,6 @@ app.controller('RhsButtonsController', function($scope, $mdMedia, $mdBottomSheet
 	$scope.isSubmenu = false;
 	$scope.showEditorFeedbackSubmenu = function() {
 		$scope.isSubmenu = true;
-	}
+	};
 });
 

@@ -51,8 +51,9 @@ var highlightRange = function(range, nodeClass) {
 
 // Return {context: paragraph text, text: selected text} object or null based
 // on current user text selection.
-var getSelectedParagraphText = function() {
-	var selection = getStartEndSelection();
+// cachedSelection - if set, will use this selection instead of the current one
+var getSelectedParagraphText = function(cachedSelection) {
+	var selection = cachedSelection || getStartEndSelection();
 	if (!selection) return null;
 
 	// Find the paragraph node, i.e. parent node right under markdown-text.

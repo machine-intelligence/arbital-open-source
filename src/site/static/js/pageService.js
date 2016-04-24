@@ -288,11 +288,11 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 				url += 'markId=' + options.markId;
 			}
 		}
-		if (url.indexOf("#") < 0) {
+		if (url.indexOf('#') < 0) {
 			if (options.discussionHash) {
-				url += "#discussion";
+				url += '#discussion';
 			} else if (options.answersHash) {
-				url += "#answers";
+				url += '#answers';
 			}
 		}
 		if (options.includeHost && !alreadyIncludedHost) {
@@ -986,7 +986,7 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 	};
 
 	// ======================= Popup stuff ======================================
-	
+
 	var $popupDiv = $('#popup-div');
 	var $popupHeader = $('#popup-header');
 	var $popupBody = $('#popup-body');

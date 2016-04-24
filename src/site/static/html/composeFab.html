@@ -6,8 +6,8 @@
 		ng-if="!hideFab && userService.userIsCool()">
 	<md-fab-trigger>
 		<md-button ng-click="fabClicked($event)" class="md-fab">
-			<md-icon class="fab-icon" ng-if="!userService.lensTextSelected">add</md-icon>
-			<md-icon class="fab-icon" ng-if="userService.lensTextSelected">add_box</md-icon>
+			<md-icon class="fab-icon" ng-if="!showInlineVersion()">add</md-icon>
+			<md-icon class="fab-icon" ng-if="showInlineVersion()">add_box</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">Quick menu</md-tooltip>
 		</md-button>
 		<md-icon class="private-group-icon" ng-if="pageService.privateGroupId !== ''">

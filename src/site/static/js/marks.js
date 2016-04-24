@@ -40,7 +40,7 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, pa
 			};
 
 			// Check if ?markId is set and we need to take care of it.
-			var searchMarkId = $location.search().markId; 
+			var searchMarkId = $location.search().markId;
 			if (searchMarkId && $scope.markIds.indexOf(searchMarkId) >= 0) {
 				var mark = pageService.markMap[searchMarkId];
 				if (!mark.anchorContext) {

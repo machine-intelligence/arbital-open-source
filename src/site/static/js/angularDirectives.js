@@ -315,15 +315,22 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
 			$scope.isOpen = false;
 
+			// Returns true if user has text selected on a touch device, and we should show
+			// a special fab.
+			$scope.showInlineVersion = function() {
+				return userService.isTouchDevice && userService.lensTextSelected;
+			};
+
 			// Toggle FAB children
 			$scope.toggle = function(show, hovering) {
-				if (userService.isTouchDevice) return true;
+				if (userService.isTouchDevice) return false;
 				$scope.isOpen = show;
+				return false;
 			};
 
 			// Called when the FAB is clicked
 			$scope.fabClicked = function(event) {
-				if (!(userService.isTouchDevice && userService.lensTextSelected)) return true;
+				if (!$scope.showInlineVersion()) return true;
 				$rootScope.$broadcast('fabClicked');
 				$scope.isOpen = false;
 				return false;
