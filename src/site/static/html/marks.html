@@ -24,6 +24,11 @@
 	</md-toolbar>
 
 	<div class="md-whiteframe-1dp dynamic-hor-padding">
+		<div>
+			<br>
+			This is a list of questions/objections {{userService.showAllMarks ? 'readers' : 'you'}}
+			left on this page.
+			<span ng-if="isPageCreator">You can help these readers by resolving their marks.</span>
 		<br>
 		<div ng-repeat="markId in markIds"
 				ng-init="mark = pageService.markMap[markId]">

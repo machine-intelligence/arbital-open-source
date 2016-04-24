@@ -13,7 +13,8 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, pa
 			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// Track (globally) whether or not to show all marks.
-			userService.showAllMarks = $scope.page.creatorIds.indexOf(userService.user.id) >= 0;
+			$scope.isPageCreator = $scope.page.creatorIds.indexOf(userService.user.id) >= 0;
+			userService.showAllMarks = $scope.isPageCreator;
 
 			// Compute which marks to show.
 			var computeMarkIds = function() {

@@ -5,7 +5,7 @@
 	</div>
 	
 	<div ng-if="!isNew">
-		You created this query mark
+		You created this query
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 	</div>
 
@@ -15,12 +15,12 @@
 
 	<!-- Show query's text -->
 	<div ng-if="!isNew && mark.text.length > 0">
-		Your query was: <strong ng-bind="::mark.text"></strong>
+		Query text: <strong ng-bind="::mark.text"></strong>
 	</div>
 
 	<!-- Resolved -->
 	<div ng-if="!mark.answered && (mark.resolvedPageId || mark.resolvedBy)">
-		This mark has been
+		This query has been
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
 		<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
@@ -32,7 +32,7 @@
 
 	<!-- Answered -->
 	<div ng-if="mark.answered">
-		This mark has been <strong>answered</strong> via:
+		This query has been <strong>answered</strong> via:
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
@@ -40,7 +40,7 @@
 			page-id="{{::mark.pageId}}"
 			class="intrasite-link"
 			ng-if="!inPopup">
-		View this mark on the page
+		View this query mark on the page
 	</a>
 
 	<!-- Accept/reject answer -->
@@ -123,7 +123,7 @@
 	</div>
 
 	<div ng-if="::mark.text.length > 0">
-		Their query was: <strong ng-bind="::mark.text"></strong>
+		Query text: <strong ng-bind="::mark.text"></strong>
 	</div>
 
 	<!-- Resolved -->
@@ -140,7 +140,7 @@
 
 	<!-- Answered -->
 	<div ng-if="mark.answered">
-		This mark has been <strong>answered</strong> via:
+		This query has been <strong>answered</strong> via:
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
@@ -148,24 +148,28 @@
 			page-id="{{::mark.pageId}}"
 			class="intrasite-link"
 			ng-if="!isOnPage()">
-		View this mark on the page
+		View this query mark on the page
 	</a>
 
 	<!-- Bottom buttons -->
-	<div layout="row" layout-align="space-around center" ng-if="!mark.resolvedPageId">
-		<md-button ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
-			<md-icon>edit</md-icon>
-			Edit page
-		</md-button>
-		<md-button ng-click="showLinkToQuestion()">
-			Link to existing question
-		</md-button>
-		<md-button ng-href="/edit?markId={{::markId}}">
-			Link to new question
-		</md-button>
-		<md-button class="md-warn" ng-click="dismissMark(markId)" ng-if="!mark.resolvedBy">
-			Dismiss
-		</md-button>
+	<div ng-if="!mark.resolvedPageId">
+		<div>
+			Help this reader by resolving this query:
+		</div>
+		<div layout="row" layout-align="space-around center">
+			<md-button ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+				Edit page
+			</md-button>
+			<md-button ng-click="showLinkToQuestion()">
+				Link to existing question
+			</md-button>
+			<md-button ng-href="/edit?markId={{::markId}}">
+				Link to new question
+			</md-button>
+			<md-button class="md-warn" ng-click="dismissMark(markId)" ng-if="!mark.resolvedBy">
+				Dismiss
+			</md-button>
+		</div>
 	</div>
 
 	<!-- User can search for a matching question. -->
