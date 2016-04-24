@@ -185,3 +185,13 @@ alter table marks add column type varchar(32) not null;
 update marks set type="query";
 alter table marks add column resolvedAt datetime not null;
 alter table marks add column answeredAt datetime not null;
+
+alter table pageInfos add column likeableId bigint not null;
+alter table changelogs add column likeableId bigint not null;
+
+/* A table for keeping track of likeableIds */
+CREATE TABLE likeableIds (
+	/* Id of the likeable. */
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	PRIMARY KEY(id)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

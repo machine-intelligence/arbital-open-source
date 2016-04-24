@@ -3,6 +3,10 @@
 CREATE TABLE pageInfos (
 	/* Id of the page the info is for. */
 	pageId VARCHAR(32) NOT NULL,
+	/* Likeable id for this page. Partial FK into likes.
+	   Note that this is not set until the first time this page is liked. */
+	likeableId BIGINT NOT NULL,
+
 	/* Edit number currently used to display the page. 0 if this page hasn't
 		been published. */
 	currentEdit INT NOT NULL,

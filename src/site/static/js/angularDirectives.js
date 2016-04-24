@@ -227,7 +227,14 @@ app.directive('arbLikes', function($http, pageService, userService) {
 	return {
 		templateUrl: 'static/html/likes.html',
 		scope: {
-			pageId: '@',
+			// The type of likeable, such as 'changelog'.
+			likeableType: '@',
+			// The id of the likeable object.
+			id: '@',
+			// The likeable object this button corresponds to.
+			// If likeableType is 'page', we'll look it up in the pageMap.
+			likeable: '=',
+
 			// If true, the button is not an icon button, but is a normal button
 			isStretched: '=',
 			// Whether or not we show likes as a button or a span
@@ -236,15 +243,22 @@ app.directive('arbLikes', function($http, pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
+
+			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changelog')) {
+				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
+			}
+			if (!$scope.likeable && $scope.likeableType == 'page') {
+				$scope.likeable = pageService.pageMap[$scope.id];
+			}
 
 			// User clicked on the like button
 			$scope.likeClick = function() {
-				$scope.page.myLikeValue = Math.min(1, 1 - $scope.page.myLikeValue);
+				$scope.likeable.myLikeValue = Math.min(1, 1 - $scope.likeable.myLikeValue);
 
 				var data = {
-					pageId: $scope.page.pageId,
-					value: $scope.page.myLikeValue,
+					likeableType: $scope.likeableType,
+					pageId: $scope.id,
+					value: $scope.likeable.myLikeValue,
 				};
 				$http({method: 'POST', url: '/newLike/', data: JSON.stringify(data)})
 				.error(function(data, status) {
