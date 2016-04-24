@@ -62,7 +62,7 @@
 			<md-list>
 				<md-list-item ng-repeat="childId in ::domain.childIds">
 					<div layout="row" layout-align="start start" flex>
-						<arb-likes page-id="{{::childId}}"></arb-likes>
+						<arb-likes likeable-type="page" id="{{::childId}}"></arb-likes>
 						<arb-page-title page-id="{{::childId}}"
 								is-link="true"
 								show-clickbait="true"
