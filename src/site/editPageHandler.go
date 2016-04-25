@@ -38,6 +38,12 @@ type editPageData struct {
 	RevertToEdit int `json:"-"`
 }
 
+type relatedPageData struct {
+	PairType    string
+	PageId      string
+	CurrentEdit int
+}
+
 var editPageHandler = siteHandler{
 	URI:         "/editPage/",
 	HandlerFunc: editPageHandlerFunc,
@@ -196,6 +202,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	primaryPage := core.AddPageIdToMap(data.PageId, primaryPageMap)
 	pageMap := make(map[string]*core.Page)
 	core.AddPageIdToMap(data.PageId, pageMap)
+	var parents, children []relatedPageData
 	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
 		// Load parents and children.
 		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{
@@ -211,6 +218,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			SkipPublishedRelationships: true})
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load children", err)
+		}
+
+		parents, children, err = getUnpublishedRelationships(db, u, data.PageId)
+		if err != nil {
+			return pages.HandlerErrorFail("Couldn't get parents and children for page", err)
 		}
 	}
 
@@ -337,6 +349,15 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					AND pagePairs.parentId=?`, data.PageId).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
 				return "Couldn't set everPublished on pagePairs", err
+			}
+
+			for _, parent := range parents {
+				addRelationshipToChangelog(tx, u.Id, parent.PairType, data.PageId, parent.PageId, newEditNum, parent.CurrentEdit,
+					false, false)
+			}
+			for _, child := range children {
+				addRelationshipToChangelog(tx, u.Id, child.PairType, child.PageId, data.PageId, child.CurrentEdit, newEditNum,
+					false, false)
 			}
 		}
 
@@ -536,4 +557,47 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	return pages.StatusOK(returnData)
+}
+
+func getUnpublishedRelationships(db *database.DB, u *core.CurrentUser, pageId string) ([]relatedPageData, []relatedPageData, error) {
+	parents := make([]relatedPageData, 0)
+	children := make([]relatedPageData, 0)
+
+	rows := database.NewQuery(`
+		SELECT
+			otherId, pairType, otherIsParent, pi.currentEdit AS otherCurrentEdit
+		FROM
+			(SELECT parentId AS otherId, type AS pairType, True AS otherIsParent FROM pagePairs WHERE childId=?`, pageId).Add(`AND NOT everPublished
+			UNION
+			SELECT childId AS otherId, type AS pairType, False AS otherIsParent FROM pagePairs WHERE parentId=?`, pageId).Add(`AND NOT everPublished)
+			AS others
+		JOIN pageInfos AS pi
+		ON pi.pageId=otherId
+		WHERE (otherId=?`, pageId).Add(`) OR
+		(
+			pi.currentEdit>0 AND NOT pi.isDeleted AND
+			(pi.seeGroupId='' OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+		)`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var otherId, pairType string
+		var otherIsParent bool
+		var otherCurrentEdit int
+		err := rows.Scan(&otherId, &pairType, &otherIsParent, &otherCurrentEdit)
+		if err != nil {
+			return fmt.Errorf("failed to scan for page pairs: %v", err)
+		}
+
+		otherPageData := relatedPageData{PairType: pairType, PageId: otherId, CurrentEdit: otherCurrentEdit}
+		if otherIsParent {
+			parents = append(parents, otherPageData)
+		} else {
+			children = append(children, otherPageData)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to load parents and children: %v", err)
+	}
+
+	return parents, children, nil
 }
