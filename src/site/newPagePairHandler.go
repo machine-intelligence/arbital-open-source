@@ -144,41 +144,8 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" &&
 		!parent.IsDeleted && !child.IsDeleted {
 
-		var task tasks.NewUpdateTask
-		if data.Type == core.ParentPagePairType {
-			task.UpdateType = core.NewParentUpdateType
-		} else if data.Type == core.TagPagePairType {
-			task.UpdateType = core.NewTagUpdateType
-		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequirementUpdateType
-		} else if data.Type == core.SubjectPagePairType {
-			task.UpdateType = core.NewSubjectUpdateType
-		}
-		task.UserId = u.Id
-		task.GroupByPageId = child.PageId
-		task.SubscribedToId = child.PageId
-		task.GoToPageId = parent.PageId
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
-
-		task = tasks.NewUpdateTask{}
-		task.UserId = u.Id
-		if data.Type == core.ParentPagePairType {
-			task.UpdateType = core.NewChildUpdateType
-		} else if data.Type == core.TagPagePairType {
-			task.UpdateType = core.NewUsedAsTagUpdateType
-		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequiredByUpdateType
-		} else if data.Type == core.SubjectPagePairType {
-			task.UpdateType = core.NewTeacherUpdateType
-		}
-		task.GroupByPageId = parent.PageId
-		task.SubscribedToId = parent.PageId
-		task.GoToPageId = child.PageId
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
+		tasks.EnqueueNewRelationshipUpdate(c, u.Id, data.Type, parent.PageId, child.PageId, true)
+		tasks.EnqueueNewRelationshipUpdate(c, u.Id, data.Type, parent.PageId, child.PageId, false)
 
 		if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
 			// Create a task to propagate the domain change to all children

@@ -198,28 +198,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Load relationships so we can send notifications on a page that had relationships but is being published for the first time.
 	// Also send notifications if we undelete a page that has had new relationships created since it was deleted.
-	primaryPageMap := make(map[string]*core.Page)
-	primaryPage := core.AddPageIdToMap(data.PageId, primaryPageMap)
-	pageMap := make(map[string]*core.Page)
-	core.AddPageIdToMap(data.PageId, pageMap)
 	var parents, children []relatedPageData
 	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
-		// Load parents and children.
-		err = core.LoadParentIds(db, pageMap, u, &core.LoadParentIdsOptions{
-			ForPages:                   primaryPageMap,
-			LoadOptions:                core.EmptyLoadOptions,
-			SkipPublishedRelationships: true})
-		if err != nil {
-			return pages.HandlerErrorFail("Couldn't load parents", err)
-		}
-		err = core.LoadChildIds(db, pageMap, u, &core.LoadChildIdsOptions{
-			ForPages:                   primaryPageMap,
-			LoadOptions:                core.EmptyLoadOptions,
-			SkipPublishedRelationships: true})
-		if err != nil {
-			return pages.HandlerErrorFail("Couldn't load children", err)
-		}
-
 		parents, children, err = getUnpublishedRelationships(db, u, data.PageId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't get parents and children for page", err)
@@ -487,22 +467,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Do some stuff for a new parent/child.
 		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
 			// Generate updates for users who are subscribed to related pages.
-			relationshipMap := make(map[string][]string)
-			relationshipMap[core.NewChildUpdateType] = primaryPage.ParentIds
-			relationshipMap[core.NewParentUpdateType] = primaryPage.ChildIds
-			// ROGTODO: rest of the update types
-			for updateType, ids := range relationshipMap {
-				for _, id := range ids {
-					var task tasks.NewUpdateTask
-					task.UserId = u.Id
-					task.UpdateType = updateType
-					task.GroupByPageId = id
-					task.SubscribedToId = id
-					task.GoToPageId = data.PageId
-					if err := tasks.Enqueue(c, &task, nil); err != nil {
-						c.Errorf("Couldn't enqueue a task: %v", err)
-					}
-				}
+			for _, parent := range parents {
+				tasks.EnqueueNewRelationshipUpdate(c, u.Id, parent.PairType, parent.PageId, data.PageId, false)
+			}
+			for _, child := range children {
+				tasks.EnqueueNewRelationshipUpdate(c, u.Id, child.PairType, data.PageId, child.PageId, true)
 			}
 		}
 

@@ -341,3 +341,34 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 
 	return resultData, nil
 }
+
+func GetUpdateTypeForPagePair(pairType string, updateIsForChild bool) (string, error) {
+	switch pairType {
+	case ParentPagePairType:
+		if updateIsForChild {
+			return NewParentUpdateType, nil
+		} else {
+			return NewChildUpdateType, nil
+		}
+	case TagPagePairType:
+		if updateIsForChild {
+			return NewTagUpdateType, nil
+		} else {
+			return NewUsedAsTagUpdateType, nil
+		}
+	case RequirementPagePairType:
+		if updateIsForChild {
+			return NewRequirementUpdateType, nil
+		} else {
+			return NewRequiredByUpdateType, nil
+		}
+	case SubjectPagePairType:
+		if updateIsForChild {
+			return NewSubjectUpdateType, nil
+		} else {
+			return NewTeacherUpdateType, nil
+		}
+	}
+
+	return "", fmt.Errorf("Unexpected pagePair type")
+}
