@@ -289,7 +289,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				// Note: do this before we compute prevEditPageData, to make sure autosave goes through.
 				if ($scope.page.wasPublished && $scope.page.prevEdit != $scope.page.currentEdit) {
 					$scope.freezeEdit = true;
-					savePage(false, true);
+					$scope.savePage(false, true);
 					var message = 'A new version was published. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
 					$scope.addMessage('obsoleteEdit', message, 'error');
 				}
@@ -323,7 +323,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 			// Save the current page.
 			// callback is called with the error (or undefined on success)
-			var savePage = function(isAutosave, isSnapshot, callback, autosaveNotPerformedCallback) {
+			$scope.savePage = function(isAutosave, isSnapshot, callback, autosaveNotPerformedCallback) {
 				var data = computeAutosaveData();
 				if (isSnapshot) {
 					data.snapshotText = $scope.page.snapshotText;
@@ -375,7 +375,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						$scope.publishing = false;
 						$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
 					} else {
-						savePage(false, false, function(error) {
+						$scope.savePage(false, false, function(error) {
 							$scope.publishing = false;
 							if (error) {
 								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
@@ -398,7 +398,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.showSnapshotText = false;
 				$scope.snapshotting = true;
 				$scope.successfulSnapshot = false;
-				savePage(false, true, function(error) {
+				$scope.savePage(false, true, function(error) {
 					$scope.snapshotting = false;
 					if (error) {
 						$scope.addMessage('snapshot', 'Snapshot failed: ' + error, 'error');
@@ -438,11 +438,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Set up autosaving.
 			$scope.successfulAutosave = false;
-			var autosaveFunc = function() {
+			$scope.autosaveFunc = function() {
 				if ($scope.autosaving) return;
 				$scope.autosaving = true;
 				$scope.successfulAutosave = false;
-				savePage(true, false, function(error) {
+				$scope.savePage(true, false, function(error) {
 					$scope.autosaving = false;
 					$scope.successfulAutosave = !error;
 					if (error) {
@@ -454,12 +454,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					$scope.autosaving = false;
 				});
 			};
-			var autosaveInterval = $interval(autosaveFunc, 5000);
-			$scope.$on('$destroy', function() {
-				$interval.cancel(autosaveInterval);
-				// Autosave just in case.
-				savePage(true, false, function() {});
-			});
 
 			// =========== Find similar pages ==============
 			var shouldFindSimilar = false;
@@ -579,6 +573,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 		},
 		link: function(scope, element, attrs) {
+			// Do autosave every so often.
+			var autosaveInterval = $interval(scope.autosaveFunc, 5000);
+			// When this element is destroyed, do one last autosave just in case.
+			element.on('$destroy', function() {
+				console.log("YEAH");
+				$interval.cancel(autosaveInterval);
+				scope.savePage(true, false, function() {});
+			});
+
 			scope.toggleSnapshotting = function() {
 				scope.showSnapshotText = !scope.showSnapshotText;
 				if (scope.showSnapshotText) {
