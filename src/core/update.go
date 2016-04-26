@@ -342,6 +342,8 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	return resultData, nil
 }
 
+// Determines which kind of update should be created for users subscribed to either the parent
+// or the child of a page pair.
 func GetUpdateTypeForPagePair(pairType string, updateIsForChild bool) (string, error) {
 	switch pairType {
 	case ParentPagePairType:

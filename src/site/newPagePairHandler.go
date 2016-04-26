@@ -142,7 +142,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return pages.HandlerErrorFail(errMessage, err)
 	}
 
-	// Generate updates for users who are subscribed to the parent pages.
+	// Generate updates for users who are subscribed to the parent/child pages.
 	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" &&
 		!parent.IsDeleted && !child.IsDeleted {
 

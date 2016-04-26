@@ -529,6 +529,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	return pages.StatusOK(returnData)
 }
 
+// Find all the relationships a given page is a part of, where the other page is published (and not deleted), but
+// where the relationship has not yet become public (e.g. because the given page was deleted or not-yet-published
+// when the relationship was created).
 func getUnpublishedRelationships(db *database.DB, u *core.CurrentUser, pageId string) ([]relatedPageData, []relatedPageData, error) {
 	parents := make([]relatedPageData, 0)
 	children := make([]relatedPageData, 0)
