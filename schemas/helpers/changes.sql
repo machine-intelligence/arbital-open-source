@@ -42,3 +42,6 @@ alter table likes drop primary key, add primary key (userId, likeableId);
 alter table likes drop column pageId;
 
 alter table subscriptions drop column userTrustSnapshotId;
+
+DELETE FROM updates USING updates, pageInfos AS pi WHERE pi.pageId = updates.goToPageId
+	AND pi.seeGroupId != '' AND pi.seeGroupId NOT IN (SELECT groupId FROM groupMembers AS gm WHERE gm.userId = updates.userId)
