@@ -47,21 +47,22 @@ const (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
-	Id                 string
-	UserId             string
-	ByUserId           string
-	CreatedAt          string
-	Type               string
-	GroupByPageId      string
-	GroupByUserId      string
-	Unseen             bool
-	SubscribedToId     string
-	GoToPageId         string
-	MarkId             string
-	IsGoToPageAlive    bool
-	SettingsChangeType string
-	OldSettingsValue   string
-	NewSettingsValue   string
+	Id                   string
+	UserId               string
+	ByUserId             string
+	CreatedAt            string
+	Type                 string
+	GroupByPageId        string
+	GroupByUserId        string
+	Unseen               bool
+	SubscribedToId       string
+	GoToPageId           string
+	MarkId               string
+	IsGroupByObjectAlive bool
+	IsGoToPageAlive      bool
+	SettingsChangeType   string
+	OldSettingsValue     string
+	NewSettingsValue     string
 }
 
 // UpdateGroupKey is what we group updateEntries by
@@ -69,7 +70,8 @@ type UpdateGroupKey struct {
 	GroupByPageId string `json:"groupByPageId"`
 	GroupByUserId string `json:"groupByUserId"`
 	// True if this is the first time the user is seeing this update
-	Unseen bool `json:"unseen"`
+	Unseen               bool `json:"unseen"`
+	IsGroupByObjectAlive bool `json:"isGroupByObjectAlive"`
 }
 
 // UpdateEntry corresponds to one update entry we'll display.
@@ -128,15 +130,15 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 	rows := db.NewStatement(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
-			SUM(pages.isLiveEdit) > 0 AS isGoToPageAlive,
+			(groupByPIs.currentEdit > 0 AND !groupByPIs.isDeleted) AS isGroupByObjectAlive,
+			(goToPageInfos.currentEdit > 0 AND !goToPageInfos.isDeleted) AS isGoToPageAlive,
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
 		FROM updates
-		JOIN pages
-		ON updates.goToPageId = pages.pageId
-		LEFT JOIN changeLogs
-		ON updates.changeLogId = changeLogs.id
+		JOIN pageInfos AS groupByPIs	ON groupByPIs.pageId IN (updates.groupByPageId, updates.groupByUserId)
+		JOIN pageInfos AS goToPageInfos	ON updates.goToPageId = goToPageInfos.pageId
+		LEFT JOIN changeLogs			ON updates.changeLogId = changeLogs.id
 		WHERE updates.userId=? ` + emailFilter + `
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
@@ -145,7 +147,7 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 		var row UpdateRow
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId, &row.MarkId, &row.IsGoToPageAlive, &row.SettingsChangeType,
+			&row.GoToPageId, &row.MarkId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive, &row.SettingsChangeType,
 			&row.OldSettingsValue, &row.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
@@ -183,9 +185,10 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 	groupMap := make(map[UpdateGroupKey]*UpdateGroup)
 	for _, row := range rows {
 		key := UpdateGroupKey{
-			GroupByPageId: row.GroupByPageId,
-			GroupByUserId: row.GroupByUserId,
-			Unseen:        row.Unseen,
+			GroupByPageId:        row.GroupByPageId,
+			GroupByUserId:        row.GroupByUserId,
+			Unseen:               row.Unseen,
+			IsGroupByObjectAlive: row.IsGroupByObjectAlive,
 		}
 
 		// Create/update the group.

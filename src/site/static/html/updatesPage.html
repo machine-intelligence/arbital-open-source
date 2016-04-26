@@ -7,13 +7,15 @@
 				<!-- Header when grouping by page -->
 				<div layout="row" layout-align="start center" ng-if="::(group.key.groupByPageId !== '')">
 					<arb-page-title is-link="true" page-id="{{::group.key.groupByPageId}}" flex></arb-page-title>
-					<arb-subscribe page-id="{{::group.key.groupByPageId}}" ng-if="::!parentSubpageId"></arb-subscribe>
+					<arb-subscribe page-id="{{::group.key.groupByPageId}}"
+						ng-if="::(!parentSubpageId && group.key.isGroupByObjectAlive)"></arb-subscribe>
 				</div>
 
 				<!-- Header when grouping by user -->
 				<div layout="row" layout-align="start center" ng-if="::(group.key.groupByUserId !== '')">
 					<arb-user-name user-id="{{::group.key.groupByUserId}}" flex></arb-user-name>
-					<arb-subscribe page-id="{{::group.key.groupByUserId}}" is-user="true" ng-if="::!parentSubpageId"></arb-subscribe>
+					<arb-subscribe page-id="{{::group.key.groupByUserId}}" is-user="true"
+						ng-if="::(!parentSubpageId && group.key.isGroupByObjectAlive)"></arb-subscribe>
 				</div>
 			</md-subheader>
 
