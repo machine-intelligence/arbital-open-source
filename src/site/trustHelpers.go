@@ -23,7 +23,7 @@ func InsertUserTrustSnapshotsForChangelog(tx *database.Tx, u *core.CurrentUser, 
 	var auxPageId string
 	row := tx.DB.NewStatement(`
 			SELECT pageId,auxPageId
-			FROM changelogs
+			FROM changeLogs
 			WHERE id=?`).WithTx(tx).QueryRow(changelogId)
 	_, err := row.Scan(&pageId, &auxPageId)
 	if err != nil {

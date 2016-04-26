@@ -21,7 +21,8 @@ alter table marks add column resolvedAt datetime not null;
 alter table marks add column answeredAt datetime not null;
 
 alter table pageInfos add column likeableId bigint not null;
-alter table changelogs add column likeableId bigint not null;
+
+alter table changeLogs add column likeableId bigint not null;
 
 /* A table for keeping track of likeableIds */
 CREATE TABLE likeableIds (

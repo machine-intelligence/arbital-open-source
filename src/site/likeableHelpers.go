@@ -1,4 +1,4 @@
-// Contains helpers for likeable things, like pages and changelogs.
+// Contains helpers for likeable things, like pages and changeLogs.
 package site
 
 import (
@@ -78,7 +78,7 @@ func getTableAndIdFieldForLikeable(likeableType string) (string, string, error) 
 	case PageLikeableType:
 		return "pageInfos", "pageId", nil
 	case ChangelogLikeableType:
-		return "changelogs", "id", nil
+		return "changeLogs", "id", nil
 	default:
 		return "", "", fmt.Errorf("invalid likeableType")
 	}
