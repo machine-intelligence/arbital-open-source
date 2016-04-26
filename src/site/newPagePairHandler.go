@@ -128,11 +128,13 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			return "Couldn't insert pagePair", err
 		}
 
-		// Update change log
-		addRelationshipToChangelog(tx, u.Id, data.Type, data.ChildId, data.ParentId, child.Edit, parent.Edit,
-			child.IsDeleted, parent.IsDeleted)
+		err = addNewChildToChangelog(tx, u.Id, data.Type, data.ParentId, parent.Edit, data.ChildId, child.Edit, child.IsDeleted)
 		if err != nil {
-			return "Couldn't insert new change log", err
+			return "Couldn't add to changelog of parent", err
+		}
+		err = addNewParentToChangelog(tx, u.Id, data.Type, data.ChildId, child.Edit, data.ParentId, parent.Edit, parent.IsDeleted)
+		if err != nil {
+			return "Couldn't add to changelog of child", err
 		}
 		return "", nil
 	})
@@ -160,33 +162,27 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	return pages.StatusOK(nil)
 }
 
-func addRelationshipToChangelog(tx *database.Tx, userId string, pairType string, childId string, parentId string,
-	childEdit int, parentEdit int, childIsDeleted bool, parentIsDeleted bool) error {
-
-	// Don't add to the changelog of the parent if the child is unpublished
-	if childId == parentId || childEdit > 0 && !childIsDeleted {
-		err := addRelationshipToChangelogInternal(tx, userId, pairType, parentId, childId, parentEdit, childEdit,
-			core.NewChildChangeLog, core.NewUsedAsTagChangeLog, core.NewRequiredByChangeLog, core.NewTeacherChangeLog)
-		if err != nil {
-			return err
-		}
-	}
-	// Don't add to the changelog of the child if the parent is unpublished
-	if parentId == childId || parentEdit > 0 && !parentIsDeleted {
-		err := addRelationshipToChangelogInternal(tx, userId, pairType, childId, parentId, childEdit, parentEdit,
-			core.NewParentChangeLog, core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+// Update the changelogs of the parent for a new relationship.
+func addNewChildToChangelog(tx *database.Tx, userId string, pairType string, pageId string, pageEdit int,
+	childId string, childEdit int, childIsDeleted bool) error {
+	return addRelationshipToChangelogInternal(tx, userId, pairType, pageId, pageEdit, childId, childEdit, childIsDeleted,
+		core.NewChildChangeLog, core.NewUsedAsTagChangeLog, core.NewRequiredByChangeLog, core.NewTeacherChangeLog)
 }
 
-func addRelationshipToChangelogInternal(tx *database.Tx, userId string, pairType string, pageId string, auxPageId string,
-	pageEdit int, auxPageEdit int, parentPPT string, tagPPT string, requirementPPT string, subjectPPT string) error {
+// Update the changelogs of the child for a new relationship.
+func addNewParentToChangelog(tx *database.Tx, userId string, pairType string, pageId string, pageEdit int,
+	parentId string, parentEdit int, parentIsDeleted bool) error {
+	return addRelationshipToChangelogInternal(tx, userId, pairType, pageId, pageEdit, parentId, parentEdit, parentIsDeleted,
+		core.NewParentChangeLog, core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
+}
+
+func addRelationshipToChangelogInternal(tx *database.Tx, userId string, pairType string, pageId string, pageEdit int,
+	auxPageId string, auxPageEdit int, auxPageIsDeleted bool, parentPPT string, tagPPT string, requirementPPT string,
+	subjectPPT string) error {
 	// Do not add to the changelog of a public page if its aux page hasn't been published (as this would leak data
-	// about a user's unpublished draft).
-	if auxPageEdit <= 0 {
+	// about a user's unpublished draft) or if it's deleted (editing a deleted page shouldn't affect live pages
+	// until the deleted page is published again).
+	if auxPageId != pageId && (auxPageEdit <= 0 || auxPageIsDeleted) {
 		return nil
 	}
 

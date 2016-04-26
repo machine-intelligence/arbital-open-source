@@ -198,11 +198,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Load relationships so we can send notifications on a page that had relationships but is being published for the first time.
 	// Also send notifications if we undelete a page that has had new relationships created since it was deleted.
-	var parents, children []relatedPageData
+	var newParents, newChildren []relatedPageData
 	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
-		parents, children, err = getUnpublishedRelationships(db, u, data.PageId)
+		newParents, newChildren, err = getUnpublishedRelationships(db, u, data.PageId)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't get parents and children for page", err)
+			return pages.HandlerErrorFail("Couldn't get new parents and children for page", err)
 		}
 	}
 
@@ -331,13 +331,14 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				return "Couldn't set everPublished on pagePairs", err
 			}
 
-			for _, parent := range parents {
-				addRelationshipToChangelog(tx, u.Id, parent.PairType, data.PageId, parent.PageId, newEditNum, parent.CurrentEdit,
-					false, false)
+			// Now that we're publishing this page, add to the changelogs of any new parents or children
+			for _, parent := range newParents {
+				addNewChildToChangelog(tx, u.Id, parent.PairType, parent.PageId, parent.CurrentEdit,
+					data.PageId, newEditNum, false)
 			}
-			for _, child := range children {
-				addRelationshipToChangelog(tx, u.Id, child.PairType, child.PageId, data.PageId, child.CurrentEdit, newEditNum,
-					false, false)
+			for _, child := range newChildren {
+				addNewParentToChangelog(tx, u.Id, child.PairType, child.PageId, child.CurrentEdit,
+					data.PageId, newEditNum, false)
 			}
 		}
 
@@ -467,10 +468,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Do some stuff for a new parent/child.
 		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
 			// Generate updates for users who are subscribed to related pages.
-			for _, parent := range parents {
+			for _, parent := range newParents {
 				tasks.EnqueueNewRelationshipUpdate(c, u.Id, parent.PairType, parent.PageId, data.PageId, false)
 			}
-			for _, child := range children {
+			for _, child := range newChildren {
 				tasks.EnqueueNewRelationshipUpdate(c, u.Id, child.PairType, data.PageId, child.PageId, true)
 			}
 		}
