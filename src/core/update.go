@@ -136,9 +136,9 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
 		FROM updates
-		JOIN pageInfos AS groupByPIs	ON groupByPIs.pageId IN (updates.groupByPageId, updates.groupByUserId)
-		JOIN pageInfos AS goToPageInfos	ON updates.goToPageId = goToPageInfos.pageId
-		LEFT JOIN changeLogs			ON updates.changeLogId = changeLogs.id
+		JOIN pageInfos AS groupByPIs    ON groupByPIs.pageId IN (updates.groupByPageId, updates.groupByUserId)
+		JOIN pageInfos AS goToPageInfos ON updates.goToPageId = goToPageInfos.pageId
+		LEFT JOIN changeLogs            ON updates.changeLogId = changeLogs.id
 		WHERE updates.userId=? ` + emailFilter + `
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
