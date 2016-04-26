@@ -85,14 +85,14 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load most liked page ids.
 	rows = database.NewQuery(`
-		SELECT l2.pageId
+		SELECT pi.pageId
 		FROM likes AS l2
-		LEFT JOIN pageDomainPairs AS pd
-		ON (l2.pageId=pd.pageId)
 		JOIN pageInfos AS pi
-		ON (l2.pageId=pi.pageId)
+		ON (l2.likeableId=pi.likeableId)
+		LEFT JOIN pageDomainPairs AS pd
+		ON (pi.pageId=pd.pageId)
 		WHERE TRUE`).AddPart(constraintPart).Add(`
-		GROUP BY l2.pageId
+		GROUP BY l2.likeableId
 		ORDER BY SUM(value) DESC
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)

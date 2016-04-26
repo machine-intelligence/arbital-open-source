@@ -257,7 +257,7 @@ app.directive('arbLikes', function($http, pageService, userService) {
 
 				var data = {
 					likeableType: $scope.likeableType,
-					pageId: $scope.id,
+					id: $scope.id,
 					value: $scope.likeable.myLikeValue,
 				};
 				$http({method: 'POST', url: '/newLike/', data: JSON.stringify(data)})

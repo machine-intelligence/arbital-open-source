@@ -463,6 +463,11 @@ func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
 
 // Look up the domains that this page is in
 func LoadDomainsForPage(db *database.DB, pageId string) ([]string, error) {
+	return LoadDomainsForPages(db, pageId)
+}
+
+// Look up the domains that these pages are in
+func LoadDomainsForPages(db *database.DB, pageIds ...interface{}) ([]string, error) {
 	domainIds := make([]string, 0)
 
 	rows := database.NewQuery(`
@@ -470,7 +475,7 @@ func LoadDomainsForPage(db *database.DB, pageId string) ([]string, error) {
 		FROM pageInfos
 		JOIN pageDomainPairs
 		ON (pageInfos.pageId=pageDomainPairs.pageId)
-		WHERE pageInfos.pageId=?`).ToStatement(db).Query(pageId)
+		WHERE pageInfos.pageId IN `).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var domainId string
 		err := rows.Scan(&domainId)
