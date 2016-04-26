@@ -95,6 +95,9 @@ func ArgsPlaceholder(argsLen int, countPerGroup int) string {
 // Examples: "(?)", "(?,?,?)"
 // Total number of question marks will be argsLen.
 func InArgsPlaceholder(argsLen int) string {
+	if argsLen == 0 {
+		return "()"
+	}
 	return "(?" + strings.Repeat(",?", argsLen-1) + ")"
 }
 

@@ -15,8 +15,9 @@ const (
 
 // newLikeData contains data given to us in the request.
 type newLikeData struct {
-	PageId string
-	Value  int
+	LikeableType string // Eg 'changelog', 'page'
+	Id           string
+	Value        int
 }
 
 var newLikeHandler = siteHandler{
@@ -39,34 +40,47 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode json", err)
 	}
-	if !core.IsIdValid(data.PageId) {
+	if data.LikeableType == PageLikeableType && !core.IsIdValid(data.Id) {
 		return pages.HandlerBadRequestFail("Invalid page id", nil)
 	}
 	if data.Value < -1 || data.Value > 1 {
 		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
 	}
+	if !(data.LikeableType == ChangelogLikeableType || data.LikeableType == PageLikeableType) {
+		return pages.HandlerBadRequestFail("LikeableType has to be 'changelog' or 'page'", nil)
+	}
 
 	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
-		snapshotId, err := InsertUserTrustSnapshots(tx, u, data.PageId)
+		// Snapshot the state of the user's trust.
+		snapshotId, err := InsertUserTrustSnapshotsForLikeable(tx, u, data.LikeableType, data.Id)
 		if err != nil {
 			return "Couldn't insert userTrustSnapshot", err
 		}
 
+		// Get the likeableId of this likeable.
+		likeableId, err := GetOrCreateLikeableId(tx, data.LikeableType, data.Id)
+		if err != nil {
+			return "Couldn't get the likeableId", err
+		}
+
+		// Create/update the like.
 		hashmap := make(map[string]interface{})
 		hashmap["userId"] = u.Id
-		hashmap["pageId"] = data.PageId
+		hashmap["likeableId"] = likeableId
 		hashmap["value"] = data.Value
 		hashmap["updatedAt"] = database.Now()
 		hashmap["createdAt"] = database.Now()
 		hashmap["userTrustSnapshotId"] = snapshotId
 		statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
-
 		if _, err := statement.WithTx(tx).Exec(); err != nil {
 			return "Couldn't update/create a like", err
 		}
 
 		return "", nil
 	})
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't insert a like", err)
+	}
 
 	return pages.StatusOK(nil)
 }

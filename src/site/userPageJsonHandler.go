@@ -96,7 +96,7 @@ func userPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		SELECT pi.pageId
 		FROM pageInfos AS pi
 		JOIN likes l2
-		ON (pi.pageId=l2.pageId)
+		ON (pi.likeableId=l2.likeableId)
 		WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
 		GROUP BY 1
 		ORDER BY SUM(l2.value) DESC

@@ -39,11 +39,7 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	errorMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		snapshotId, err := InsertUserTrustSnapshots(tx, u, "")
-		if err != nil {
-			return "Couldn't insert userTrustSnapshot", err
-		}
-		return addSubscription(tx, u.Id, data.PageId, snapshotId)
+		return addSubscription(tx, u.Id, data.PageId)
 	})
 	if errorMessage != "" {
 		return pages.HandlerErrorFail(errorMessage, err)
@@ -51,13 +47,12 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.StatusOK(nil)
 }
 
-func addSubscription(tx *database.Tx, userId string, toPageId string, snapshotId int64) (string, error) {
+func addSubscription(tx *database.Tx, userId string, toPageId string) (string, error) {
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = userId
 	hashmap["toId"] = toPageId
 	hashmap["createdAt"] = database.Now()
-	hashmap["userTrustSnapshotId"] = snapshotId
-	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId", "userTrustSnapshotId").WithTx(tx)
+	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
 	_, err := statement.Exec()
 	if err != nil {
 		return "Couldn't subscribe", err

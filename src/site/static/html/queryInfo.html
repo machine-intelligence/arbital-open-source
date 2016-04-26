@@ -83,7 +83,7 @@
 				<span class="black-font">Possible responses</span>
 			</md-subheader>
 			<md-list-item layout="row" ng-repeat="(index,response) in responses">
-				<arb-likes page-id="{{::response.pageId}}"></arb-likes>
+				<arb-likes likeable-type="page" id="{{::response.pageId}}"></arb-likes>
 				<arb-page-title page-id="{{::response.pageId}}"
 						is-link="true"
 						show-clickbait="true"

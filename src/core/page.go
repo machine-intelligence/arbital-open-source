@@ -998,9 +998,11 @@ func LoadLikes(db *database.DB, currentUserId string, pageMap map[string]*Page) 
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := db.NewStatement(`
-		SELECT userId,pageId,value
-		FROM likes
-		WHERE pageId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
+		SELECT l.userId,pi.pageId,l.value
+		FROM likes as l
+		JOIN pageInfos as pi
+		ON l.likeableId=pi.likeableId
+		WHERE pi.pageId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var userId string
 		var pageId string
