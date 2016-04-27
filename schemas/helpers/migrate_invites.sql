@@ -1,12 +1,6 @@
 /* Move any invite codes associated with karma > 0 to invites table */
 INSERT INTO invites (code, type, senderId, domainId, createdAt)
-VALUES ("BAYES", "group", "0", "", NOW());
-INSERT INTO invites (code, type, senderId, domainId, createdAt)
 VALUES ("TRUTH", "group", "0", "", NOW());
-INSERT INTO invites (code, type, senderId, domainId, createdAt)
-VALUES ("ALEXEI", "group", "0", "", NOW());
-INSERT INTO invites (code, type, senderId, domainId, createdAt)
-VALUES ("LESSWRONG", "group", "0", "", NOW());
 
 /* Add a row to inviteEmailPairs for every user with karma > 0 and either TRUTH, BAYES, ALEXEI, or LESSWRONG inviteCode */
 INSERT INTO inviteEmailPairs(code, inviteeEmail, claimingUserId, claimedAt)

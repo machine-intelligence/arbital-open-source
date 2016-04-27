@@ -66,7 +66,7 @@ CREATE TABLE inviteEmailPairs (
 	claimingUserId VARCHAR(32) NOT NULL,
 	/* Date this invite was claimed */
 	claimedAt DATETIME NOT NULL,
-	PRIMARY KEY(code, inviteeEmail)
+	PRIMARY KEY(code, email)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 CREATE TABLE userDomainBonusTrust (
 	/* Id of User. FK into users.*/
