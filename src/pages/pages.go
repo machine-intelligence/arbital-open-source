@@ -60,6 +60,7 @@ type Page struct {
 type PageOptions struct {
 	AdminOnly       bool
 	RequireLogin    bool
+	RequireTrusted  bool
 	MinKarma        int
 	LoadUpdateCount bool
 	LoadUserTrust   bool

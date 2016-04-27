@@ -5,65 +5,104 @@
 				Settings
 			</div>
 		</md-toolbar>
-		<form ng-submit="submitForm($event)" layout="column" layout-padding>
-			<!-- Email frequency -->
-			<md-input-container>
-				<label>
-					Email frequency
-				</label>
-				<md-select ng-model="userService.user.emailFrequency">
-					<md-option ng-repeat="(type,label) in ::frequencyTypes" value="{{::type}}">
-						{{::label}}
-					</md-option>
-				</md-select>
-			</md-input-container>
 
-			<!-- Email threshold -->
-			<md-input-container ng-if="userService.user.emailFrequency === 'daily' ||
-					userService.user.emailFrequency === 'weekly'">
-				<label>
-					Email threshold
-				</label>
-				<input type="number" min="0" name="emailThreshold" ng-model="userService.user.emailThreshold">
-			</md-input-container>
+		<md-tabs md-selected="selectedIndex" md-dynamic-height md-border-bottom>
+			<md-tab label="Account">
+				<md-content layout-margin>
+					<form ng-submit="submitForm($event)" layout="column" layout-margin>
+						<div>
+							Your email: {{userService.user.email}}
+						</div>
 
-			<div ng-switch="userService.user.emailFrequency">
-				<span ng-switch-when="never">
-					You'll never get update emails.
-				</span>
-				<span ng-switch-when="immediately">
-					You'll receive an email as soon as there is a new update.
-				</span>
-				<span ng-switch-default>
-					You will receive a {{userService.user.emailFrequency}} email when you have more than {{userService.user.emailThreshold}} unread updates.
-				</span>
-			</div>
+						<!-- Email frequency -->
+						<md-input-container>
+							<label>
+								Email frequency
+							</label>
+							<md-select ng-model="userService.user.emailFrequency">
+								<md-option ng-repeat="(type,label) in ::frequencyTypes" value="{{::type}}">
+									{{::label}}
+								</md-option>
+							</md-select>
+						</md-input-container>
 
-			<md-subheader class="md-hue-1">
-				Account
-			</md-subheader>
+						<!-- Email threshold -->
+						<md-input-container ng-if="userService.user.emailFrequency === 'daily' ||
+								userService.user.emailFrequency === 'weekly'">
+							<label>
+								Email threshold
+							</label>
+							<input type="number" min="0" name="emailThreshold" ng-model="userService.user.emailThreshold">
+						</md-input-container>
 
-			<!-- Invite Code -->
-			<md-input-container>
-				<label>
-					Invite code
-				</label>
-				<input name="inviteCode" ng-model="userService.user.inviteCode">
-			</md-input-container>
+						<!-- Explain email settings to the user in a readable format -->
+						<div ng-switch="userService.user.emailFrequency">
+							<span ng-switch-when="never">
+								You'll never get update emails.
+							</span>
+							<span ng-switch-when="immediately">
+								You'll receive an email as soon as there is a new update.
+							</span>
+							<span ng-switch-default>
+								You will receive a {{userService.user.emailFrequency}} email when you have more than {{userService.user.emailThreshold}} unread updates.
+							</span>
+						</div>
 
-			<md-subheader class="md-hue-1">
-				Performance
-			</md-subheader>
+						<br>
+						<br>
 
-			<!-- Ignore MathJax -->
-			<md-checkbox ng-model="userService.user.ignoreMathjax">
-				Ignore MathJax in live preview
-			</md-checkbox>
+						<md-subheader class="md-hue-1">
+							Your claimed invite codes
+						</md-subheader>
+						<!--  List of claimed invite codes -->
+						<div ng-if="currentUserHasClaimedInvites()">
+							<div layout="row">
+								<div flex class="table-header">Domain</div>
+								<div flex class="table-header">Code</div>
+							</div>
+							<div layout="row" ng-repeat="invite in userService.user.invitesClaimed">
+								<div flex ng-bind="pageService.getDomainName(invite.domainId)"></div>
+								<div flex ng-bind="::invite.code"></div>
+							</div>
+						</div>
+						<!-- Add new invite code input -->
+						<md-input-container>
+							<label>
+								Claim a new invite code
+							</label>
+							<input name="newInviteCodeClaimed" ng-model="newInviteCodeClaimed">
+						</md-input-container>
 
-			<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
-			<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Submit</md-button>
-			<div class="submit-form-error md-warn" hidden></div>
-			<div ng-if="submitted">Submitted!</div>
-		</form>
+						<br>
+
+						<md-subheader class="md-hue-1">
+							Performance
+						</md-subheader>
+
+						<!-- Ignore MathJax -->
+						<md-checkbox ng-model="userService.user.ignoreMathjax">
+							Ignore MathJax in live preview
+						</md-checkbox>
+
+						<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
+						<div layout-align="end center" layout="row">
+							<md-button class="md-primary md-raised" type="submit" toggle-on-submit>Submit</md-button>
+						</div>
+						<div class="submit-form-error md-warn" hidden></div>
+						<div ng-if="submitted">Submitted!</div>
+					</form>
+				</md-content>
+			</md-tab>
+
+			<md-tab label="Send invites">
+				<div arb-settings-invite-tab
+						domains="domains"
+						invites-sent="invitesSent"
+						ng-if="::userService.user.isTrusted"></div>
+				<div layout-padding ng-if="::!userService.user.isTrusted">
+					You haven't unlocked this feature yet.
+				</div>
+			</md-tab>
+		</md-tabs>
 	</div>
 </div>

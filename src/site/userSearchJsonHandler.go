@@ -68,7 +68,7 @@ func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 								"terms": { "seeGroupId": [%[2]s] }
 							},
 							{
-								"terms": { "type": ["group"] }
+								"terms": { "type": ["%[3]s"] }
 							}
 						]
 					}
@@ -76,6 +76,6 @@ func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, escapedTerm, strings.Join(groupIds, ","))
+	}`, escapedTerm, strings.Join(groupIds, ","), core.GroupPageType)
 	return searchJsonInternalHandler(params, jsonStr)
 }

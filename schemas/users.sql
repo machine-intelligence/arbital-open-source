@@ -16,7 +16,9 @@ CREATE TABLE users (
 	lastWebsiteVisit DATETIME NOT NULL,
 	/* True iff the user is an admin. */
 	isAdmin BOOLEAN NOT NULL,
-	/* Amount of karam this user has. */
+	/* True iff the user is trusted to send invites. */
+	isTrusted BOOLEAN NOT NULL,
+	/* Amount of general karma this user has. */
 	karma INT NOT NULL,
 	/* Invite code the user used to join the website, if any. */
 	inviteCode VARCHAR(16) NOT NULL,

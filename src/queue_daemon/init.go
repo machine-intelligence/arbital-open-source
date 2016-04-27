@@ -46,6 +46,7 @@ func processTask(c sessions.Context) error {
 		tasks.PropagateDomainTask{},
 		tasks.ResetPasswordsTask{},
 		tasks.SendFeedbackEmailTask{},
+		tasks.SendInviteEmailTask{},
 		tasks.SendOneEmailTask{},
 		tasks.TickTask{},
 		tasks.UpdateElasticPageTask{},

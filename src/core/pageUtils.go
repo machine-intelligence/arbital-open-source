@@ -494,11 +494,10 @@ func LoadDomainsForPages(db *database.DB, pageIds ...interface{}) ([]string, err
 	return domainIds, err
 }
 
-// Load all the domains that currently exist on Arbital.
-// TODO: figure out how to cache the result
-func LoadAllDomainIds(db *database.DB) ([]string, error) {
+// LoadAllDomainIds loads all the domains that currently exist on Arbital.
+// If pageMap is given, it also adds them to the pageMap.
+func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, error) {
 	domainIds := make([]string, 0)
-
 	rows := database.NewQuery(`
 		SELECT DISTINCT domainId
 		FROM pageDomainPairs`).ToStatement(db).Query()
@@ -509,6 +508,9 @@ func LoadAllDomainIds(db *database.DB) ([]string, error) {
 			return fmt.Errorf("failed to scan for a domain: %v", err)
 		}
 		domainIds = append(domainIds, domainId)
+		if pageMap != nil {
+			AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
+		}
 		return nil
 	})
 	// We also have a "" domain for pages with no domain.

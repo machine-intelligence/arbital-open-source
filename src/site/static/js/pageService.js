@@ -924,6 +924,14 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 		return this.getMasteryStatus(masteryId) === '';
 	};
 
+	// Look up the long version of a domain's name from id
+	this.getDomainName = function(domainId) {
+		if (domainId === '') {
+			return 'General';
+		}
+		return this.pageMap[domainId].title;
+	};
+
 	// =========== Questionnaire helpers ====================
 	// Map questionIndex -> {knows: [ids], wants: [ids], forgets: [ids]}
 	this.setQuestionAnswer = function(qIndex, knows, wants, delKnows, delWants, updatePageObjectOptions) {

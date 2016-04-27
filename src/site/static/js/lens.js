@@ -480,7 +480,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			var cachedSelection;
 			if (userService.isTouchDevice) {
 				// On mobile it's very hard to get user's selected text. The best way Alexei found
-				// was to just check for selected text every so often. 
+				// was to just check for selected text every so often.
 				$interval(function() {
 					if ($inlineCommentEditPage) return;
 					userService.lensTextSelected = !!processSelectedParagraphText();

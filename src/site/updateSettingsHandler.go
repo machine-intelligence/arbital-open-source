@@ -10,10 +10,10 @@ import (
 
 // updateSettingsData contains data given to us in the request.
 type updateSettingsData struct {
-	EmailFrequency string
-	EmailThreshold int
-	InviteCode     string
-	IgnoreMathjax  bool
+	EmailFrequency       string `json:"emailFrequency"`
+	EmailThreshold       int    `json:"emailThreshold"`
+	NewInviteCodeClaimed string `json:"newInviteCodeClaimed"`
+	IgnoreMathjax        bool   `json:"ignoreMathJax"`
 }
 
 var updateSettingsHandler = siteHandler{
@@ -28,6 +28,7 @@ var updateSettingsHandler = siteHandler{
 func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
+	returnData := core.NewHandlerData(params.U, true)
 
 	var data updateSettingsData
 	decoder := json.NewDecoder(params.R.Body)
@@ -45,28 +46,40 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Email Threshold has to be greater than 0", nil)
 	}
 
-	row := db.NewStatement(`
-		SELECT karma
-		FROM users
-		WHERE id=?`).QueryRow(u.Id)
-	_, err = row.Scan(&u.Karma)
-	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't retrieve a user", err)
-	}
-
-	if u.Karma < core.CorrectInviteKarma && data.InviteCode == core.CorrectInviteCode {
-		u.Karma = core.CorrectInviteKarma
-	}
-
+	// Update user model from settings form
 	statement := db.NewStatement(`
 		UPDATE users
-		SET emailFrequency=?,emailThreshold=?,inviteCode=?,karma=?,ignoreMathjax=?
+		SET emailFrequency=?,emailThreshold=?,ignoreMathjax=?
 		WHERE id=?`)
-	_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold,
-		data.InviteCode, u.Karma, data.IgnoreMathjax, u.Id)
+	_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, data.IgnoreMathjax, u.Id)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't update settings", err)
 	}
 
-	return pages.StatusOK(nil)
+	// If there's no newInviteCode submitted, return here
+	if data.NewInviteCodeClaimed != "" {
+		// Check if it matches a general code or domain code. Then process.
+		// Search for code in inviteeEmailPairs (joined with invites, to get domainId)
+		match, err := core.MatchInvite(db, data.NewInviteCodeClaimed, u.Email)
+		if err != nil {
+			return pages.HandlerErrorFail("Unable to match invite code", err)
+		}
+		// If code is not in db, return as bad
+		if !match.CodeMatch {
+			return pages.HandlerBadRequestFail("Not an invite code", nil)
+		}
+		// If code is in claimed in db and is personal, can't be used again
+		if match.Invitee.ClaimingUserId != "" && match.Invite.Type == core.PersonalInviteType {
+			return pages.HandlerBadRequestFail("Single-use invite already claimed", nil)
+		}
+
+		// Claim code for user, and send invite to UI
+		_, err = core.ClaimCode(db, data.NewInviteCodeClaimed, match.Invite.DomainId, u)
+		if err != nil {
+			return pages.HandlerBadRequestFail("Couldn't claim code", err)
+		}
+		returnData.ResultMap["invite"] = match.Invite
+	}
+
+	return pages.StatusOK(returnData)
 }

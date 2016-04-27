@@ -41,3 +41,40 @@ alter table likes drop primary key, add primary key (userId, likeableId);
 alter table likes drop column pageId;
 
 alter table subscriptions drop column userTrustSnapshotId;
+
+CREATE TABLE invites (
+	/* PK: Invite's unique code. */
+	code VARCHAR(32) NOT NULL,
+	/* Type of invite: personal or group */
+	type VARCHAR(32) NOT NULL,
+	/* Id of user sending invite. FK into users.*/
+	senderId VARCHAR(32) NOT NULL,
+	/* Id of domain that this invite is for. FK into pages. */
+	domainId VARCHAR(32) NOT NULL,
+	/* Date this invite was added to the table. */
+	createdAt DATETIME NOT NULL,
+
+	PRIMARY KEY(code)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE inviteEmailPairs (
+	/* Invite's unique code. FK into invites */
+	code VARCHAR(32) NOT NULL,
+	/* Email address to send invite to */
+	email VARCHAR(100) NOT NULL,
+	/* Id of user claiming invite. FK into users */
+	claimingUserId VARCHAR(32) NOT NULL,
+	/* Date this invite was claimed */
+	claimedAt DATETIME NOT NULL,
+	PRIMARY KEY(code, inviteeEmail)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+CREATE TABLE userDomainBonusTrust (
+	/* Id of User. FK into users.*/
+	userId VARCHAR(32) NOT NULL,
+	/* Id of the domain the page belongs to. FK into groups. */
+	domainId VARCHAR(32) NOT NULL,
+	/* BonusTrust score a user has to edit pages in this domain */
+	bonusEditTrust BIGINT NOT NULL,
+	PRIMARY KEY(userId, domainId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+ALTER TABLE users ADD COLUMN isTrusted BOOLEAN NOT NULL;

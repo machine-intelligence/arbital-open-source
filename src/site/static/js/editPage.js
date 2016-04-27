@@ -577,7 +577,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			var autosaveInterval = $interval(scope.autosaveFunc, 5000);
 			// When this element is destroyed, do one last autosave just in case.
 			element.on('$destroy', function() {
-				console.log("YEAH");
 				$interval.cancel(autosaveInterval);
 				scope.savePage(true, false, function() {});
 			});

@@ -956,4 +956,35 @@ arb-learn-part, [arb-learn-part] {
   .toc-div .toc-row-tab-2 {
     margin-left: 70px; }
 
+arb-settings-page .create-code-form {
+  background-color: #E0F2F1;
+  padding: 30px; }
+arb-settings-page .invite-header {
+  margin-top: 0px; }
+arb-settings-page .delete-undo {
+  background-color: #FFCCBC; }
+arb-settings-page .small-icon {
+  font-size: 15px;
+  line-height: inherit;
+  width: inherit;
+  height: inherit; }
+arb-settings-page .invite-invitee {
+  display: inline-block;
+  margin-right: 10px; }
+arb-settings-page .table-header {
+  font-weight: bold; }
+
+.hint {
+  /* Position the hint */
+  position: absolute;
+  left: 2px;
+  right: auto;
+  bottom: 7px;
+  /* Copy styles from ng-messages */
+  font-size: 12px;
+  line-height: 14px;
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+  /* Set our own color */
+  color: grey; }
+
 /*# sourceMappingURL=arbital.css.map */

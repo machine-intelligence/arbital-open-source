@@ -124,3 +124,30 @@ var submitForm = function($form, url, data, success, error) {
 		if (error) error();
 	});
 };
+
+// Validate email addresses, get rid of whitespace & duplicates.
+// emailStr - comma separated list of emails.
+// Returns object with array of valid emails and array with invalid emails
+var cleanEmails = function(emailStr) {
+	var dirtyArray = emailStr.split(',');
+	var cleanedArray = [];
+	var invalidEmails = [];
+	for (var i = 0; i < dirtyArray.length; i++) {
+		var trimmedEmail = dirtyArray[i].trim();
+		// If it's a valid email, and not yet in cleanedArray, add.
+		if (isValidEmail(trimmedEmail)) {
+			if (cleanedArray.indexOf(trimmedEmail) === -1) {
+				cleanedArray.push(trimmedEmail);
+			}
+		} else {
+			invalidEmails.push(trimmedEmail);
+		};
+	}
+	return {valid: cleanedArray, invalid: invalidEmails};
+};
+
+// Validate email addresses. Based on RFC 2822.
+var isValidEmail = function(email) {
+	var re = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+	return re.test(email);
+};

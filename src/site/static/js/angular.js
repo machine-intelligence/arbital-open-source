@@ -208,7 +208,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		pageService.hideNonpersistentPopup();
 	};
 
-	var $fixedOverlay = $("#fixed-overlay");
+	var $fixedOverlay = $('#fixed-overlay');
 	$scope.getFixedAnchorStyle = function() {
 		return {
 			display: $fixedOverlay.children().length > 0 ? 'initial' : 'none',
@@ -613,14 +613,23 @@ app.run(function($http, $location, urlService, pageService, userService) {
 	urlService.addUrlHandler('/settings/', {
 		name: 'SettingsPage',
 		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/default/'})
+			$http({method: 'POST', url: '/json/settingsPage/'})
 			.success($scope.getSuccessFunc(function(data) {
+				if (data.result) {
+					$scope.domains = data.result.domains;
+					// Convert invitesSent object to array for ease in angular
+					$scope.invitesSent = [];
+					for (var key in data.result.invitesSent) {
+						$scope.invitesSent.push(data.result.invitesSent[key]);
+					}
+				}
 				return {
 					title: 'Settings',
-					content: $scope.newElement('<arb-settings-page></arb-settings-page>'),
+					content: $scope.newElement('<arb-settings-page domains="::domains" ' +
+						'invites-sent="::invitesSent"></arb-settings-page>'),
 				};
 			}))
-			.error($scope.getErrorFunc('default'));
+			.error($scope.getErrorFunc('settingsPage'));
 		},
 	});
 	urlService.addUrlHandler('/signup/', {

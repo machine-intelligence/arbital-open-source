@@ -2017,6 +2017,31 @@ func LoadSubscriberCount(db *database.DB, currentUserId string, pageMap map[stri
 	return err
 }
 
+// LoadDomainIds loads the domain ids for the given page and adds them to the map
+func LoadDomainIds(db *database.DB, u *CurrentUser, page *Page, pageMap map[string]*Page) error {
+	pageIdConstraint := database.NewQuery("")
+	if page != nil {
+		pageIdConstraint = database.NewQuery("AND pd.pageId=?", page.PageId)
+	}
+	rows := database.NewQuery(`
+		SELECT p.pageId
+		FROM pages AS p
+		JOIN pageDomainPairs AS pd
+		ON (p.pageId=pd.domainId)
+		WHERE p.type="domain"`).AddPart(pageIdConstraint).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var domainId string
+		err := rows.Scan(&domainId)
+		if err != nil {
+			return fmt.Errorf("failed to scan for a domain: %v", err)
+		}
+		page.DomainIds = append(page.DomainIds, domainId)
+		AddPageIdToMap(domainId, pageMap)
+		return nil
+	})
+	return err
+}
+
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.
 func LoadAliasToPageIdMap(db *database.DB, aliases []string) (map[string]string, error) {
 	aliasToIdMap := make(map[string]string)

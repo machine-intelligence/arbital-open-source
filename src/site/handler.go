@@ -76,9 +76,22 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 		params.U = u
 
+		// Load the user's trust
+		if core.IsIdValid(u.Id) && h.Options.LoadUserTrust {
+			u.TrustMap, err = core.LoadUserTrust(db, u)
+			if err != nil {
+				fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
+				return
+			}
+		}
+
 		// Check permissions
 		if h.Options.RequireLogin && !core.IsIdValid(u.Id) {
 			fail(http.StatusInternalServerError, "Have to be logged in", nil)
+			return
+		}
+		if h.Options.RequireTrusted && !u.IsTrusted {
+			fail(http.StatusInternalServerError, "Have to be a trusted user", nil)
 			return
 		}
 		if h.Options.AdminOnly && !u.IsAdmin {
@@ -114,15 +127,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
 			if err != nil {
 				fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
-				return
-			}
-		}
-
-		if core.IsIdValid(u.Id) && h.Options.LoadUserTrust {
-			// Load the user's trust
-			u.TrustMap, err = core.LoadUserTrust(db, u.Id)
-			if err != nil {
-				fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
 				return
 			}
 		}

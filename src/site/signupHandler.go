@@ -106,11 +106,29 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Process invite code and assign karma
 	inviteCode := strings.ToUpper(data.InviteCode)
 	karma := 0
-	if inviteCode == core.CorrectInviteCode {
-		karma = core.CorrectInviteKarma
+	var match *core.InviteMatch
+	if inviteCode != "" {
+		// Check if it matches a general code or domain code. Then process.
+		// Search for code in inviteeEmailPairs (joined with invites, to get domainId)
+		match, err = core.MatchInvite(db, inviteCode, data.Email)
+		if err != nil {
+			return pages.HandlerErrorFail("Unable to match invite code", err)
+		}
+		// If code is not in db, return as bad
+		if !match.CodeMatch {
+			return pages.HandlerErrorFail("Not an invite code", nil)
+		}
+		// If code is in claimed in db and is personal, can't be used again
+		if match.Invitee.ClaimingUserId != "" && match.Invite.Type == core.PersonalInviteType {
+			return pages.HandlerErrorFail("Single-use invite already claimed", nil)
+		}
+		// If the code matches and it's a general invite (domainId="")
+		if match.CodeMatch && match.Invite.DomainId == "" {
+			karma = core.DefaultInviteKarma
+		}
 	}
 
-	// Prevent alias collision
+	// Compute user's page alias and prevent collisions
 	cleanupRegexp := regexp.MustCompile(core.ReplaceRegexpStr)
 	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
 	aliasBase = cleanupRegexp.ReplaceAllLiteralString(aliasBase, "")
@@ -127,7 +145,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		exists, err := db.NewStatement(`
 				SELECT 1
 				FROM pageInfos
-				WHERE type="group" AND alias=?`).QueryRow(alias).Scan(&ignore)
+				WHERE type=? AND alias=?`).QueryRow(core.GroupPageType, alias).Scan(&ignore)
 		if err != nil {
 			return pages.HandlerErrorFail("Error checking for existing alias", err)
 		}
@@ -137,13 +155,14 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		alias = fmt.Sprintf("%s%d", aliasBase, suffix)
 	}
 
-	// If there is no password, then the user must have signed up through a social network
 	if len(data.Password) > 0 {
 		// Sign up the user through Stormpath
 		err = stormpath.CreateNewUser(params.C, data.FirstName, data.LastName, data.Email, data.Password)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't create a new user", err)
 		}
+	} else {
+		// If there is no password, then the user must have signed up through a social network
 	}
 
 	// Begin the transaction.
@@ -154,6 +173,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return "", fmt.Errorf("Couldn't get last insert id for new user: %v", err)
 		}
 
+		// Create new user
 		hashmap := make(database.InsertMap)
 		hashmap["id"] = userId
 		hashmap["firstName"] = data.FirstName
@@ -182,6 +202,15 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Set the user value in params, since some internal handlers we might call
 		// will expect it to be set
 		params.U.Id = userId
+		params.U.Email = data.Email
+
+		// Claim invite code for user, and give them karma
+		if match.CodeMatch || match.EmailMatch {
+			_, err := core.ClaimCode(db, data.InviteCode, match.Invite.DomainId, params.U)
+			if err != nil {
+				return "Couldn't claim code for user", err
+			}
+		}
 
 		// The user might have some data stored under their session id
 		if params.U.SessionId != "" {
@@ -198,7 +227,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 
-		// Signup for that page
+		// Signup for the user's own page
 		return addSubscription(tx, userId, userId)
 	})
 	if errMessage != "" {

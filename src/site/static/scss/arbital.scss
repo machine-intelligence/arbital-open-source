@@ -895,3 +895,43 @@ arb-learn-part, [arb-learn-part] {
 		margin-left: 70px;
 	}
 }
+
+arb-settings-page {
+	.create-code-form {
+		background-color: $primary-hue-1;
+		padding: 30px;
+	}
+	.invite-header {
+		margin-top: 0px;
+	}
+	.delete-undo {
+		background-color: $accent-hue-1;
+	}
+	.small-icon {
+		font-size: 15px;
+		line-height: inherit;
+		width: inherit;
+		height: inherit;
+	}
+	.invite-invitee {
+		display: inline-block;
+		margin-right: 10px;
+	}
+	.table-header {
+		font-weight: bold;
+	}
+}
+
+.hint {
+	/* Position the hint */
+	position: absolute;
+	left: 2px;
+	right: auto;
+	bottom: 7px;
+	/* Copy styles from ng-messages */
+	font-size: 12px;
+	line-height: 14px;
+	transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+	/* Set our own color */
+	color: grey;
+}

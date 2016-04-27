@@ -20,6 +20,9 @@ const (
 	NeverEmailFrequency       = "never"
 	ImmediatelyEmailFrequency = "immediately"
 
+	PersonalInviteType = "personal"
+	GroupInviteType    = "group"
+
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
 	Base31CharsForFirstChar = "0123456789"
 )
@@ -40,9 +43,7 @@ const (
 	DeletePageKarmaReq         = 500
 	DashlessAliasKarmaReq      = 1000
 
-	// Enter the correct invite code to get karma
-	CorrectInviteCode  = "TRUTH"
-	CorrectInviteKarma = 200
+	DefaultInviteKarma = 200
 )
 
 var (
@@ -65,6 +66,7 @@ type CurrentUser struct {
 	FirstName      string `json:"firstName"`
 	LastName       string `json:"lastName"`
 	IsAdmin        bool   `json:"isAdmin"`
+	IsTrusted      bool   `json:"isTrusted"`
 	Karma          int    `json:"karma"`
 	MaxKarmaLock   int    `json:"maxKarmaLock"`
 	EmailFrequency string `json:"emailFrequency"`
@@ -76,11 +78,36 @@ type CurrentUser struct {
 	SessionId string `json:"-"`
 
 	// Computed variables
-	UpdateCount int              `json:"updateCount"`
-	GroupIds    []string         `json:"groupIds"`
-	TrustMap    map[string]Trust `json:"trust"`
+	UpdateCount    int                `json:"updateCount"`
+	GroupIds       []string           `json:"groupIds"`
+	TrustMap       map[string]*Trust  `json:"trust"`
+	InvitesClaimed map[string]*Invite `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
+}
+
+// Invite represents a code we can send to invite one or more users.
+type Invite struct {
+	Code      string     `json:"code"`
+	Type      string     `json:"type"`
+	DomainId  string     `json:"domainId"`
+	Invitees  []*Invitee `json:"invitees"`
+	CreatedAt string     `json:"createdAt"`
+}
+
+// Invitee is an invited user.
+type Invitee struct {
+	Email          string `json:"email"`
+	ClaimingUserId string `json:"claimingUserId"`
+	ClaimedAt      string `json:"claimedAt"`
+}
+
+// InviteMatch is the result for whether or not there exists a match for an invite code
+type InviteMatch struct {
+	Invite     *Invite
+	Invitee    *Invitee
+	CodeMatch  bool
+	EmailMatch bool
 }
 
 // Trust has the different scores for how much we trust a user.
@@ -93,12 +120,15 @@ type CookieSession struct {
 	Email     string
 	SessionId string
 
-	// Randomly generated string
+	// Randomly generated string (for security/encryption reasons)
 	Random string
 }
 
 func NewUser() *CurrentUser {
 	var u CurrentUser
+	u.GroupIds = make([]string, 0)
+	u.TrustMap = make(map[string]*Trust)
+	u.InvitesClaimed = make(map[string]*Invite)
 	u.MailchimpInterests = make(map[string]bool)
 	return &u
 }
@@ -196,11 +226,13 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 	}
 
 	row := db.NewStatement(`
-		SELECT id,fbUserId,email,firstName,lastName,isAdmin,karma,emailFrequency,emailThreshold,inviteCode,ignoreMathjax
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,karma,
+			emailFrequency,emailThreshold,inviteCode,ignoreMathjax
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
-	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName, &u.IsAdmin, &u.Karma,
-		&u.EmailFrequency, &u.EmailThreshold, &u.InviteCode, &u.IgnoreMathjax)
+	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+		&u.IsAdmin, &u.IsTrusted, &u.Karma, &u.EmailFrequency, &u.EmailThreshold,
+		&u.InviteCode, &u.IgnoreMathjax)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
@@ -349,24 +381,135 @@ func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.
-func LoadUserTrust(db *database.DB, userId string) (map[string]Trust, error) {
-	trustMap := make(map[string]Trust)
+func LoadUserTrust(db *database.DB, u *CurrentUser) (map[string]*Trust, error) {
+	trustMap := make(map[string]*Trust)
 
-	domainIds, err := LoadAllDomainIds(db)
+	domainIds, err := LoadAllDomainIds(db, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, domainId := range domainIds {
-		var trust Trust
-		trust.EditTrust = 0
-		trust.GeneralTrust = 0
-		trustMap[domainId] = trust
+		trustMap[domainId] = &Trust{}
 	}
 
-	// TODO: actually count up the user's trust
+	// Compute bonus trust
+	rows := db.NewStatement(`
+		SELECT domainId,bonusEditTrust
+		FROM userDomainBonusTrust
+		WHERE userId=?`).Query(u.Id)
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var domainId string
+		var bonusEditTrust int
+		err := rows.Scan(&domainId, &bonusEditTrust)
+		if err != nil {
+			return fmt.Errorf("failed to scan an invite: %v", err)
+		}
+		trustMap[domainId].EditTrust += bonusEditTrust
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return trustMap, err
+	return trustMap, nil
+}
+
+// Get invites where a certain column matches a certain query string
+func GetInvitesWhere(db *database.DB, whereColumn string, query string) (map[string]*Invite, error) {
+	invites := make(map[string]*Invite)
+	rows := database.NewQuery(`
+		SELECT i.code,i.type,i.domainId,i.createdAt,ie.email,ie.claimingUserId,ie.claimedAt
+		FROM inviteEmailPairs AS ie
+		JOIN invites AS i
+		ON (i.code=ie.code)
+		WHERE`).Add(whereColumn).Add(`=?`).ToStatement(db).Query(query)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		invite := &Invite{}
+		invitee := &Invitee{}
+		err := rows.Scan(&invite.Code, &invite.Type, &invite.DomainId, &invite.CreatedAt,
+			&invitee.Email, &invitee.ClaimingUserId, &invitee.ClaimedAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan an invite: %v", err)
+		}
+		if existingInvite, ok := invites[invite.Code]; !ok {
+			invite.Invitees = make([]*Invitee, 0)
+			invites[invite.Code] = invite
+		} else {
+			invite = existingInvite
+		}
+		invite.Invitees = append(invite.Invitees, invitee)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Error while loading domain ids WHERE %v='query': %v", whereColumn, err)
+	}
+	return invites, nil
+}
+
+// See if an invite code matches one in the db, and if the email matches
+func MatchInvite(db *database.DB, code string, userEmail string) (*InviteMatch, error) {
+	var invite Invite
+	var invitee Invitee
+	invite.Invitees = append(invite.Invitees, &invitee)
+	codeMatch := false
+	emailMatch := false
+	rows := db.NewStatement(`
+		SELECT ie.code, ie.email, ie.claimingUserId, i.domainId, i.type
+		FROM inviteEmailPairs as ie
+		JOIN invites as i
+		ON (i.code=ie.code)
+		WHERE ie.code=?`).Query(code)
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		err := rows.Scan(&invite.Code, &invitee.Email, &invitee.ClaimingUserId, &invite.DomainId, &invite.Type)
+		if err != nil {
+			return fmt.Errorf("Failed to scan row for matching invites: %v", err)
+		}
+		if invite.Code != "" {
+			codeMatch = true
+		}
+		if userEmail == invitee.Email {
+			emailMatch = true
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Can't process invites to match: %v", err)
+	}
+	inviteMatch := InviteMatch{&invite, &invitee, codeMatch, emailMatch}
+	return &inviteMatch, err
+}
+
+// ClaimCode claims the given code for the current user, and gives them the appropriate amount
+// of bonus trust.
+func ClaimCode(db *database.DB, inviteCode string, domainId string, u *CurrentUser) (int, error) {
+	// Update or insert row into inviteEmailPairs and userDomainBonusTrust
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		hashmap := make(database.InsertMap)
+		hashmap["code"] = inviteCode
+		hashmap["email"] = u.Email
+		hashmap["claimingUserId"] = u.Id
+		hashmap["claimedAt"] = database.Now()
+		statement := tx.DB.NewInsertStatement("inviteEmailPairs", hashmap, "claimingUserId", "claimedAt").WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't create invite email pair", err
+		}
+
+		hashmap = make(database.InsertMap)
+		hashmap["domainId"] = domainId
+		hashmap["bonusEditTrust"] = DefaultInviteKarma
+		hashmap["userId"] = u.Id
+		statement = db.NewInsertStatement("userDomainBonusTrust", hashmap, "bonusEditTrust").WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't set bonus trust in domain", err
+		}
+
+		return "", nil
+	})
+	if errMessage != "" {
+		return 0, fmt.Errorf("Transaction failed: %s %v", errMessage, err)
+	}
+	return DefaultInviteKarma, nil
 }
 
 func init() {
