@@ -24,15 +24,16 @@
 				<div ng-class="::{'unseen-update': !update.isVisited}"
 						ng-repeat="(index,update) in ::group.updates">
 					<arb-log-row
+						change-log="::update.changeLog"
 						by-user-id="{{::update.byUserId}}"
 						show-user-link="::(update.subscribedToId != update.byUserId)"
-						type="{{::((update.type == 'pageInfoEdit' && update.settingsChangeType != '') ? update.settingsChangeType : update.type)}}"
+						type="{{::update.changeLog.type || update.type}}"
 						mark-id="{{::update.markId}}"
 						go-to-page-id="{{::update.goToPageId}}"
 						is-related-page-alive="::update.isGoToPageAlive"
 						created-at="{{::update.createdAt}}"
-						old-settings-value="{{::update.oldSettingsValue}}"
-						new-settings-value="{{::update.newSettingsValue}}"
+						old-settings-value="{{::update.changeLog.oldSettingsValue}}"
+						new-settings-value="{{::update.changeLog.newSettingsValue}}"
 						repeated="::update.repeated"
 					></arb-log-row>
 				</div>

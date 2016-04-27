@@ -9,7 +9,7 @@ import (
 
 const (
 	// Possible likeable types
-	ChangelogLikeableType = "changelog"
+	ChangelogLikeableType = "changeLog"
 	PageLikeableType      = "page"
 )
 

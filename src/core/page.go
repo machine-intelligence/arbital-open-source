@@ -231,6 +231,7 @@ type Page struct {
 
 // ChangeLog describes a row from changeLogs table.
 type ChangeLog struct {
+	Id               int    `json:"id"`
 	UserId           string `json:"userId"`
 	Edit             int    `json:"edit"`
 	Type             string `json:"type"`
@@ -238,6 +239,8 @@ type ChangeLog struct {
 	AuxPageId        string `json:"auxPageId"`
 	OldSettingsValue string `json:"oldSettingsValue"`
 	NewSettingsValue string `json:"newSettingsValue"`
+	MyLikeValue      int    `json:"myLikeValue"`
+	LikeCount        int    `json:"likeCount"`
 }
 
 // Mastery is a page you should have mastered before you can understand another page.
@@ -873,14 +876,14 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 	for _, p := range sourcePageMap {
 		p.ChangeLogs = make([]*ChangeLog, 0)
 		rows := database.NewQuery(`
-		SELECT userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
+		SELECT id,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
 		FROM changeLogs
 		WHERE pageId=?`, p.PageId).Add(`
 			AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
 		ORDER BY createdAt DESC`).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var l ChangeLog
-			err := rows.Scan(&l.UserId, &l.Edit, &l.Type, &l.CreatedAt, &l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
+			err := rows.Scan(&l.Id, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt, &l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
 			if err != nil {
 				return fmt.Errorf("failed to scan a page log: %v", err)
 			}
@@ -896,8 +899,55 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 			userMap[log.UserId] = &User{Id: log.UserId}
 			AddPageToMap(log.AuxPageId, pageMap, TitlePlusLoadOptions)
 		}
+
+		err = LoadLikesForChangeLogs(db, userId, p.ChangeLogs)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+// Load LikeCount and MyLikeValue for a set of ChangeLogs
+func LoadLikesForChangeLogs(db *database.DB, currentUserId string, changeLogs []*ChangeLog) error {
+	if len(changeLogs) == 0 {
+		return nil
+	}
+
+	changeLogMap := make(map[int]*ChangeLog)
+	changeLogIds := make([]interface{}, 0)
+	for _, changeLog := range changeLogs {
+		changeLogMap[changeLog.Id] = changeLog
+		changeLogIds = append(changeLogIds, changeLog.Id)
+		changeLog.MyLikeValue = 0
+		changeLog.LikeCount = 0
+	}
+
+	rows := database.NewQuery(`
+		SELECT cl.id, l.userId,l.value
+		FROM likes as l
+		JOIN changeLogs as cl
+		ON cl.likeableId=l.likeableId
+		WHERE cl.id IN`).AddArgsGroup(changeLogIds).ToStatement(db).Query()
+
+	var changeLogId int
+	var value int
+	var likeUserId string
+	var changeLog *ChangeLog
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		err := rows.Scan(&changeLogId, &likeUserId, &value)
+		if err != nil {
+			return fmt.Errorf("failed to load likes for a changelog: %v", err)
+		}
+		changeLog = changeLogMap[changeLogId]
+		if likeUserId == currentUserId {
+			changeLog.MyLikeValue = value
+		} else {
+			changeLog.LikeCount += value
+		}
+		return nil
+	})
+	return err
 }
 
 type LoadEditOptions struct {

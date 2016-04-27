@@ -1,4 +1,12 @@
 <div layout="row">
+
+	<arb-likes likeable-type="changeLog"
+		likeable-id="{{::changeLog.id}}"
+		likeable="::changeLog"
+		is-stretched="true"
+		is-button="true"
+		ng-if="::(changeLog && changeLog.id)"></arb-likes>
+
 	<div ng-switch="::type">
 
 		<!-- Changes with links -->

@@ -82,9 +82,7 @@ type UpdateRow struct {
 	MarkId               string
 	IsGroupByObjectAlive bool
 	IsGoToPageAlive      bool
-	SettingsChangeType   string
-	OldSettingsValue     string
-	NewSettingsValue     string
+	ChangeLog            *ChangeLog
 }
 
 // UpdateGroupKey is what we group updateEntries by
@@ -98,17 +96,16 @@ type UpdateGroupKey struct {
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
-	UserId             string `json:"userId"`
-	ByUserId           string `json:"byUserId"`
-	Type               string `json:"type"`
-	Repeated           int    `json:"repeated"`
-	SubscribedToId     string `json:"subscribedToId"`
-	GoToPageId         string `json:"goToPageId"`
-	IsGoToPageAlive    bool   `json:"isGoToPageAlive"`
-	MarkId             string `json:"markId"`
-	SettingsChangeType string `json:"settingsChangeType"`
-	OldSettingsValue   string `json:"oldSettingsValue"`
-	NewSettingsValue   string `json:"newSettingsValue"`
+	UserId          string `json:"userId"`
+	ByUserId        string `json:"byUserId"`
+	Type            string `json:"type"`
+	Repeated        int    `json:"repeated"`
+	SubscribedToId  string `json:"subscribedToId"`
+	GoToPageId      string `json:"goToPageId"`
+	IsGoToPageAlive bool   `json:"isGoToPageAlive"`
+	MarkId          string `json:"markId"`
+	// Optional changeLog associated with this update
+	ChangeLog *ChangeLog `json:"changeLog"`
 	// True if the user has gone to the GoToPage
 	IsVisited bool   `json:"isVisited"`
 	CreatedAt string `json:"createdAt"`
@@ -149,11 +146,13 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 	}).Add(TitlePlusLoadOptions)
 
 	updateRows := make([]*UpdateRow, 0, 0)
+	changeLogs := make([]*ChangeLog, 0)
 	rows := db.NewStatement(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
 			(groupByPIs.currentEdit > 0 AND !groupByPIs.isDeleted) AS isGroupByObjectAlive,
 			(goToPageInfos.currentEdit > 0 AND !goToPageInfos.isDeleted) AS isGoToPageAlive,
+			COALESCE(changeLogs.id, 0),
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
@@ -167,13 +166,15 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 		LIMIT 100`).Query(userId)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
+		var changeLog ChangeLog
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId, &row.MarkId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive, &row.SettingsChangeType,
-			&row.OldSettingsValue, &row.NewSettingsValue)
+			&row.GoToPageId, &row.MarkId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive,
+			&changeLog.Id, &changeLog.Type, &changeLog.OldSettingsValue, &changeLog.NewSettingsValue)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
+		row.ChangeLog = &changeLog
 		AddPageToMap(row.GoToPageId, resultData.PageMap, goToPageLoadOptions)
 		AddPageToMap(row.GroupByPageId, resultData.PageMap, groupLoadOptions)
 		AddPageToMap(row.SubscribedToId, resultData.PageMap, groupLoadOptions)
@@ -190,12 +191,22 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 		} else {
 			resultData.AddMark(row.MarkId)
 		}
+		if row.ChangeLog.Id != 0 {
+			changeLogs = append(changeLogs, row.ChangeLog)
+		}
+
 		updateRows = append(updateRows, &row)
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error while loading updates: %v", err)
 	}
+
+	err = LoadLikesForChangeLogs(db, userId, changeLogs)
+	if err != nil {
+		return nil, fmt.Errorf("error while loading likes for changelogs: %v", err)
+	}
+
 	return updateRows, nil
 }
 
@@ -245,19 +256,17 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		if createNewEntry {
 			// Add new entry to the group
 			entry := &UpdateEntry{
-				UserId:             row.UserId,
-				ByUserId:           row.ByUserId,
-				Type:               row.Type,
-				Repeated:           1,
-				SubscribedToId:     row.SubscribedToId,
-				GoToPageId:         row.GoToPageId,
-				IsGoToPageAlive:    row.IsGoToPageAlive,
-				MarkId:             row.MarkId,
-				SettingsChangeType: row.SettingsChangeType,
-				OldSettingsValue:   row.OldSettingsValue,
-				NewSettingsValue:   row.NewSettingsValue,
-				CreatedAt:          row.CreatedAt,
-				IsVisited:          pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
+				UserId:          row.UserId,
+				ByUserId:        row.ByUserId,
+				Type:            row.Type,
+				Repeated:        1,
+				SubscribedToId:  row.SubscribedToId,
+				GoToPageId:      row.GoToPageId,
+				IsGoToPageAlive: row.IsGoToPageAlive,
+				MarkId:          row.MarkId,
+				CreatedAt:       row.CreatedAt,
+				IsVisited:       pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
+				ChangeLog:       row.ChangeLog,
 			}
 			if entry.MarkId != "" {
 				entry.ByUserId = ""
