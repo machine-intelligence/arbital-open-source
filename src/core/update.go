@@ -41,6 +41,7 @@ const (
 	SearchStringChangeUpdateType    = "searchStringChange"
 	AnswerChangeUpdateType          = "answerChange"
 	DeletePageUpdateType            = "deletePage"
+	UndeletePageUpdateType          = "undeletePage"
 	QuestionMergedUpdateType        = "questionMerged"
 	QuestionMergedReverseUpdateType = "questionMergedReverse"
 )

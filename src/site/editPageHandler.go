@@ -420,7 +420,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
-		// ROGTODO: send undelete update if oldPage.IsDeleted
 		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !isMinorEdit {
 			var task tasks.NewUpdateTask
@@ -428,7 +427,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
 			if oldPage.Type != core.CommentPageType {
-				task.UpdateType = core.PageEditUpdateType
+				if oldPage.IsDeleted {
+					task.UpdateType = core.UndeletePageUpdateType
+				} else {
+					task.UpdateType = core.PageEditUpdateType
+				}
 				task.GroupByPageId = data.PageId
 			} else {
 				task.UpdateType = core.CommentEditUpdateType
