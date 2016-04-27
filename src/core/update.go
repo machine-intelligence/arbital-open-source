@@ -18,20 +18,37 @@ import (
 
 const (
 	// Various types of updates a user can get.
-	TopLevelCommentUpdateType       = "topLevelComment"
-	ReplyUpdateType                 = "reply"
-	PageEditUpdateType              = "pageEdit"
-	PageInfoEditUpdateType          = "pageInfoEdit"
-	CommentEditUpdateType           = "commentEdit"
-	NewPageByUserUpdateType         = "newPageByUser"
-	NewParentUpdateType             = "newParent"
-	NewChildUpdateType              = "newChild"
-	NewTagUpdateType                = "newTag"
-	NewUsedAsTagUpdateType          = "newUsedAsTag"
-	NewRequirementUpdateType        = "newRequirement"
-	NewRequiredByUpdateType         = "newRequiredBy"
-	NewSubjectUpdateType            = "newSubject"
-	NewTeacherUpdateType            = "newTeacher"
+	TopLevelCommentUpdateType = "topLevelComment"
+	ReplyUpdateType           = "reply"
+	PageEditUpdateType        = "pageEdit"
+	PageInfoEditUpdateType    = "pageInfoEdit"
+	CommentEditUpdateType     = "commentEdit"
+	NewPageByUserUpdateType   = "newPageByUser"
+
+	NewParentUpdateType    = "newParent"
+	DeleteParentUpdateType = "deleteParent"
+
+	NewChildUpdateType    = "newChild"
+	DeleteChildUpdateType = "deleteChild"
+
+	NewTagUpdateType    = "newTag"
+	DeleteTagUpdateType = "deleteTag"
+
+	NewUsedAsTagUpdateType    = "newUsedAsTag"
+	DeleteUsedAsTagUpdateType = "deleteUsedAsTag"
+
+	NewRequirementUpdateType    = "newRequirement"
+	DeleteRequirementUpdateType = "deleteRequirement"
+
+	NewRequiredByUpdateType    = "newRequiredBy"
+	DeleteRequiredByUpdateType = "deleteRequiredBy"
+
+	NewSubjectUpdateType    = "newSubject"
+	DeleteSubjectUpdateType = "deleteSubject"
+
+	NewTeacherUpdateType    = "newTeacher"
+	DeleteTeacherUpdateType = "deleteTeacher"
+
 	AtMentionUpdateType             = "atMention"
 	AddedToGroupUpdateType          = "addedToGroup"
 	RemovedFromGroupUpdateType      = "removedFromGroup"
@@ -348,31 +365,60 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 
 // Determines which kind of update should be created for users subscribed to either the parent
 // or the child of a page pair.
-func GetUpdateTypeForPagePair(pairType string, updateIsForChild bool) (string, error) {
-	switch pairType {
-	case ParentPagePairType:
-		if updateIsForChild {
-			return NewParentUpdateType, nil
-		} else {
-			return NewChildUpdateType, nil
+func GetUpdateTypeForPagePair(pairType string, updateIsForChild bool, relationshipIsDeleted bool) (string, error) {
+	if relationshipIsDeleted {
+		switch pairType {
+		case ParentPagePairType:
+			if updateIsForChild {
+				return DeleteParentUpdateType, nil
+			} else {
+				return DeleteChildUpdateType, nil
+			}
+		case TagPagePairType:
+			if updateIsForChild {
+				return DeleteTagUpdateType, nil
+			} else {
+				return DeleteUsedAsTagUpdateType, nil
+			}
+		case RequirementPagePairType:
+			if updateIsForChild {
+				return DeleteRequirementUpdateType, nil
+			} else {
+				return DeleteRequiredByUpdateType, nil
+			}
+		case SubjectPagePairType:
+			if updateIsForChild {
+				return DeleteSubjectUpdateType, nil
+			} else {
+				return DeleteTeacherUpdateType, nil
+			}
 		}
-	case TagPagePairType:
-		if updateIsForChild {
-			return NewTagUpdateType, nil
-		} else {
-			return NewUsedAsTagUpdateType, nil
-		}
-	case RequirementPagePairType:
-		if updateIsForChild {
-			return NewRequirementUpdateType, nil
-		} else {
-			return NewRequiredByUpdateType, nil
-		}
-	case SubjectPagePairType:
-		if updateIsForChild {
-			return NewSubjectUpdateType, nil
-		} else {
-			return NewTeacherUpdateType, nil
+	} else {
+		switch pairType {
+		case ParentPagePairType:
+			if updateIsForChild {
+				return NewParentUpdateType, nil
+			} else {
+				return NewChildUpdateType, nil
+			}
+		case TagPagePairType:
+			if updateIsForChild {
+				return NewTagUpdateType, nil
+			} else {
+				return NewUsedAsTagUpdateType, nil
+			}
+		case RequirementPagePairType:
+			if updateIsForChild {
+				return NewRequirementUpdateType, nil
+			} else {
+				return NewRequiredByUpdateType, nil
+			}
+		case SubjectPagePairType:
+			if updateIsForChild {
+				return NewSubjectUpdateType, nil
+			} else {
+				return NewTeacherUpdateType, nil
+			}
 		}
 	}
 

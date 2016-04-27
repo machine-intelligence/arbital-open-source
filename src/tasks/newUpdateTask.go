@@ -164,12 +164,28 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	return 0, nil
 }
 
-func EnqueueNewRelationshipUpdate(c sessions.Context, userId string, pairType string, parentId string, childId string,
-	updateIsForChild bool) {
+func EnqueueNewParentUpdate(c sessions.Context, userId string, pageId string, pairType string, parentId string) {
+	enqueueRelationshipUpdateInternal(c, userId, pairType, parentId, pageId, true, false)
+}
+
+func EnqueueNewChildUpdate(c sessions.Context, userId string, pageId string, pairType string, childId string) {
+	enqueueRelationshipUpdateInternal(c, userId, pairType, pageId, childId, false, false)
+}
+
+func EnqueueDeleteParentUpdate(c sessions.Context, userId string, pageId string, pairType string, parentId string) {
+	enqueueRelationshipUpdateInternal(c, userId, pairType, parentId, pageId, true, true)
+}
+
+func EnqueueDeleteChildUpdate(c sessions.Context, userId string, pageId string, pairType string, childId string) {
+	enqueueRelationshipUpdateInternal(c, userId, pairType, pageId, childId, false, true)
+}
+
+func enqueueRelationshipUpdateInternal(c sessions.Context, userId string, pairType string, parentId string, childId string,
+	updateIsForChild bool, relationshipIsDeleted bool) {
 
 	var task NewUpdateTask
 	task.UserId = userId
-	updateType, err := core.GetUpdateTypeForPagePair(pairType, updateIsForChild)
+	updateType, err := core.GetUpdateTypeForPagePair(pairType, updateIsForChild, relationshipIsDeleted)
 	if err != nil {
 		c.Errorf("Couldn't get the update type for a page pair type: %v", err)
 	}

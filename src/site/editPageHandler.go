@@ -459,10 +459,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
 			// Generate updates for users who are subscribed to related pages.
 			for _, parent := range newParents {
-				tasks.EnqueueNewRelationshipUpdate(c, u.Id, parent.PairType, parent.PageId, data.PageId, false)
+				tasks.EnqueueNewChildUpdate(c, u.Id, parent.PageId, parent.PairType, data.PageId)
 			}
 			for _, child := range newChildren {
-				tasks.EnqueueNewRelationshipUpdate(c, u.Id, child.PairType, data.PageId, child.PageId, true)
+				tasks.EnqueueNewParentUpdate(c, u.Id, child.PageId, child.PairType, data.PageId)
 			}
 		}
 

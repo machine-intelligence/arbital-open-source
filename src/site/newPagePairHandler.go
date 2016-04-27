@@ -146,8 +146,8 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" &&
 		!parent.IsDeleted && !child.IsDeleted {
 
-		tasks.EnqueueNewRelationshipUpdate(c, u.Id, data.Type, parent.PageId, child.PageId, true)
-		tasks.EnqueueNewRelationshipUpdate(c, u.Id, data.Type, parent.PageId, child.PageId, false)
+		tasks.EnqueueNewParentUpdate(c, u.Id, child.PageId, data.Type, parent.PageId)
+		tasks.EnqueueNewChildUpdate(c, u.Id, parent.PageId, data.Type, child.PageId)
 
 		if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
 			// Create a task to propagate the domain change to all children
