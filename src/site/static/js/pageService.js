@@ -384,11 +384,11 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 		},
 		// Check if the user has the right permission + trust to edit this page.
 		canEdit: function() {
-			return userService.u.trustMap[""].canEditPage;
+			return userService.user.trustMap[""].canEditPage;
 		},
 		// Check if the user has the right permission + trust to delete this page.
 		canDelete: function() {
-			return userService.u.trustMap[""].canDeletePage;
+			return userService.user.trustMap[""].canDeletePage;
 		},
 		// Get page's url
 		url: function() {
