@@ -77,12 +77,10 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		params.U = u
 
 		// Load the user's trust
-		if core.IsIdValid(u.Id) {
-			err = core.LoadUserTrust(db, u)
-			if err != nil {
-				fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
-				return
-			}
+		err = core.LoadUserTrust(db, u)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
+			return
 		}
 
 		// Check permissions

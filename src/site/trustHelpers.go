@@ -18,13 +18,13 @@ func InsertUserTrustSnapshotsForPage(tx *database.Tx, u *core.CurrentUser, pageI
 
 // Insert userTrustSnapshots rows for this user for this changelog. Returns the
 // id of the snapshot created.
-func InsertUserTrustSnapshotsForChangelog(tx *database.Tx, u *core.CurrentUser, changelogId string) (int64, error) {
+func InsertUserTrustSnapshotsForChangelog(tx *database.Tx, u *core.CurrentUser, changeLogId string) (int64, error) {
 	var pageId string
 	var auxPageId string
 	row := tx.DB.NewStatement(`
 			SELECT pageId,auxPageId
 			FROM changeLogs
-			WHERE id=?`).WithTx(tx).QueryRow(changelogId)
+			WHERE id=?`).WithTx(tx).QueryRow(changeLogId)
 	_, err := row.Scan(&pageId, &auxPageId)
 	if err != nil {
 		return 0, err
@@ -55,13 +55,16 @@ func insertUserTrustSnapshots(tx *database.Tx, u *core.CurrentUser, domainIds []
 
 	// Snapshot user's trust
 	hashmaps := make(database.InsertMaps, 0)
-	for _, domainId := range domainIds {
+	for domainId, trust := range u.TrustMap {
+		if trust.GeneralTrust <= 0 && trust.EditTrust <= 0 {
+			continue
+		}
 		hashmap := make(database.InsertMap)
 		hashmap["id"] = snapshotId
 		hashmap["userId"] = u.Id
 		hashmap["domainId"] = domainId
-		hashmap["generalTrust"] = u.TrustMap[domainId].GeneralTrust
-		hashmap["editTrust"] = u.TrustMap[domainId].EditTrust
+		hashmap["generalTrust"] = trust.GeneralTrust
+		hashmap["editTrust"] = trust.EditTrust
 		hashmap["createdAt"] = database.Now()
 		hashmaps = append(hashmaps, hashmap)
 	}
