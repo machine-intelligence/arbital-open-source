@@ -169,29 +169,6 @@ func newPage(renderer pages.Renderer, tmpls []string) pages.Page {
 	return pages.Add("", renderer, pages.PageOptions{}, tmpls...)
 }
 
-// domain redirects to proper HTML domain if user arrives elsewhere.
-//
-// The need for this is e.g. for http://foo.rewards.xelaie.com/, which
-// would set a cookie for that domain but redirect to
-// http://rewards.xelaie.com after sign-in.
-func (fn handler) domain() handler {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c := sessions.NewContext(r)
-		d := fmt.Sprintf("%s://%s", r.URL.Scheme, r.URL.Host)
-		c.Debugf("domain check for %s", d)
-		if sessions.Live && d != sessions.GetDomain() {
-			// TODO: if we cared enough here, we could preserve
-			// r.URL.{Path,RawQuery} in the redirect.
-			c.Warningf("request arrived for %s, but live domain is %s. redirecting..\n", d, sessions.GetDomain())
-			c.Inc("bad_domain_visited")
-			http.Redirect(w, r, sessions.GetDomain(), http.StatusSeeOther)
-		} else {
-			fn(w, r)
-		}
-		return
-	}
-}
-
 // monitor sends counters added within the handler off to monitoring.
 func (fn handler) monitor() handler {
 	return func(w http.ResponseWriter, r *http.Request) {

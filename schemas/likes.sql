@@ -8,7 +8,7 @@ CREATE TABLE likes (
 	likeableId BIGINT NOT NULL,
 
 	/* User's trust when they made the like. FK into userTrustSnapshots */
-	trustSnapshotId BIGINT NOT NULL,
+	userTrustSnapshotId BIGINT NOT NULL,
 
 	/* Like value [-1,1]. */
 	value TINYINT NOT NULL,

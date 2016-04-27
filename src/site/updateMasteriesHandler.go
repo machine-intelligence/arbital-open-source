@@ -99,7 +99,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	}
 
 	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
-		snapshotId, err := InsertUserTrustSnapshotsForPage(tx, u, data.TaughtBy)
+		snapshotId, err := InsertUserTrustSnapshots(tx, u)
 		if err != nil {
 			return "Couldn't insert userTrustSnapshot", err
 		}

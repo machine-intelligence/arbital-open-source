@@ -49,9 +49,9 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("LikeableType has to be 'changelog' or 'page'", nil)
 	}
 
-	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Snapshot the state of the user's trust.
-		snapshotId, err := InsertUserTrustSnapshotsForLikeable(tx, u, data.LikeableType, data.Id)
+		snapshotId, err := InsertUserTrustSnapshots(tx, u)
 		if err != nil {
 			return "Couldn't insert userTrustSnapshot", err
 		}
@@ -67,9 +67,10 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["userId"] = u.Id
 		hashmap["likeableId"] = likeableId
 		hashmap["value"] = data.Value
-		hashmap["updatedAt"] = database.Now()
 		hashmap["createdAt"] = database.Now()
+		hashmap["updatedAt"] = database.Now()
 		hashmap["userTrustSnapshotId"] = snapshotId
+		params.C.Debugf("================ %+v", hashmap)
 		statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
 		if _, err := statement.WithTx(tx).Exec(); err != nil {
 			return "Couldn't update/create a like", err
@@ -77,8 +78,8 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		return "", nil
 	})
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't insert a like", err)
+	if errMessage != "" {
+		return pages.HandlerErrorFail("Couldn't insert a like: "+errMessage, err)
 	}
 
 	return pages.StatusOK(nil)

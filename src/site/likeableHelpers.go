@@ -3,7 +3,7 @@ package site
 
 import (
 	"fmt"
-	"zanaduu3/src/core"
+
 	"zanaduu3/src/database"
 )
 
@@ -58,18 +58,6 @@ func GetOrCreateLikeableId(tx *database.Tx, likeableType string, id string) (int
 	}
 
 	return likeableId, nil
-}
-
-// Insert the userTrustSnapshots for the given likeable. Returns the id of the snapshots.
-func InsertUserTrustSnapshotsForLikeable(tx *database.Tx, u *core.CurrentUser, likeableType string, id string) (int64, error) {
-	if likeableType == PageLikeableType {
-		return InsertUserTrustSnapshotsForPage(tx, u, id)
-	}
-	if likeableType == ChangelogLikeableType {
-		return InsertUserTrustSnapshotsForChangelog(tx, u, id)
-	}
-
-	return 0, fmt.Errorf("invalid likeableType")
 }
 
 // Get the name of the table and id field for the given likeableType.
