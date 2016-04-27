@@ -21,7 +21,8 @@ alter table marks add column resolvedAt datetime not null;
 alter table marks add column answeredAt datetime not null;
 
 alter table pageInfos add column likeableId bigint not null;
-alter table changelogs add column likeableId bigint not null;
+
+alter table changeLogs add column likeableId bigint not null;
 
 /* A table for keeping track of likeableIds */
 CREATE TABLE likeableIds (
@@ -78,3 +79,6 @@ CREATE TABLE userDomainBonusTrust (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 ALTER TABLE users ADD COLUMN isTrusted BOOLEAN NOT NULL;
+
+DELETE FROM updates USING updates, pageInfos AS pi WHERE pi.pageId = updates.goToPageId
+	AND pi.seeGroupId != '' AND pi.seeGroupId NOT IN (SELECT groupId FROM groupMembers AS gm WHERE gm.userId = updates.userId)

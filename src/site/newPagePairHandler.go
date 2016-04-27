@@ -128,48 +128,13 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			return "Couldn't insert pagePair", err
 		}
 
-		addRelationshipToChangelog := func(pageId string, auxPageId string, pageEdit int, auxPageEdit int, parentPPT string, tagPPT string,
-			requirementPPT string, subjectPPT string) error {
-			// Do not add to the changelog of a public page if its aux page hasn't been published (as this would leak data
-			// about a user's unpublished draft).
-			if auxPageEdit <= 0 {
-				return nil
-			}
-
-			hashmap = make(database.InsertMap)
-			hashmap["pageId"] = pageId
-			hashmap["auxPageId"] = auxPageId
-			hashmap["userId"] = u.Id
-			hashmap["edit"] = pageEdit
-			hashmap["createdAt"] = database.Now()
-			hashmap["type"] = map[string]string{
-				core.ParentPagePairType:      parentPPT,
-				core.TagPagePairType:         tagPPT,
-				core.RequirementPagePairType: requirementPPT,
-				core.SubjectPagePairType:     subjectPPT,
-			}[data.Type]
-
-			_, err := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx).Exec()
-			return err
+		err = addNewChildToChangelog(tx, u.Id, data.Type, data.ParentId, parent.Edit, data.ChildId, child.Edit, child.IsDeleted)
+		if err != nil {
+			return "Couldn't add to changelog of parent", err
 		}
-
-		// Update change log
-
-		// Don't add to the changelog of the parent if the child is unpublished
-		if child.CurrentEdit > 0 && !child.IsDeleted {
-			err = addRelationshipToChangelog(data.ParentId, data.ChildId, parent.Edit, child.Edit, core.NewChildChangeLog,
-				core.NewUsedAsTagChangeLog, core.NewRequiredByChangeLog, core.NewTeacherChangeLog)
-			if err != nil {
-				return "Couldn't insert new change log", err
-			}
-		}
-		// Don't add to the changelog of the child if the parent is unpublished
-		if parent.CurrentEdit > 0 && !parent.IsDeleted {
-			err = addRelationshipToChangelog(data.ChildId, data.ParentId, child.Edit, parent.Edit, core.NewParentChangeLog,
-				core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
-			if err != nil {
-				return "Couldn't insert new change log", err
-			}
+		err = addNewParentToChangelog(tx, u.Id, data.Type, data.ChildId, child.Edit, data.ParentId, parent.Edit, parent.IsDeleted)
+		if err != nil {
+			return "Couldn't add to changelog of child", err
 		}
 		return "", nil
 	})
@@ -177,45 +142,12 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return pages.HandlerErrorFail(errMessage, err)
 	}
 
-	// Generate updates for users who are subscribed to the parent pages.
+	// Generate updates for users who are subscribed to the parent/child pages.
 	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" &&
 		!parent.IsDeleted && !child.IsDeleted {
 
-		var task tasks.NewUpdateTask
-		if data.Type == core.ParentPagePairType {
-			task.UpdateType = core.NewParentUpdateType
-		} else if data.Type == core.TagPagePairType {
-			task.UpdateType = core.NewTagUpdateType
-		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequirementUpdateType
-		} else if data.Type == core.SubjectPagePairType {
-			task.UpdateType = core.NewSubjectUpdateType
-		}
-		task.UserId = u.Id
-		task.GroupByPageId = child.PageId
-		task.SubscribedToId = child.PageId
-		task.GoToPageId = parent.PageId
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
-
-		task = tasks.NewUpdateTask{}
-		task.UserId = u.Id
-		if data.Type == core.ParentPagePairType {
-			task.UpdateType = core.NewChildUpdateType
-		} else if data.Type == core.TagPagePairType {
-			task.UpdateType = core.NewUsedAsTagUpdateType
-		} else if data.Type == core.RequirementPagePairType {
-			task.UpdateType = core.NewRequiredByUpdateType
-		} else if data.Type == core.SubjectPagePairType {
-			task.UpdateType = core.NewTeacherUpdateType
-		}
-		task.GroupByPageId = parent.PageId
-		task.SubscribedToId = parent.PageId
-		task.GoToPageId = child.PageId
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
+		tasks.EnqueueNewRelationshipUpdate(c, u.Id, data.Type, parent.PageId, child.PageId, true)
+		tasks.EnqueueNewRelationshipUpdate(c, u.Id, data.Type, parent.PageId, child.PageId, false)
 
 		if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
 			// Create a task to propagate the domain change to all children
@@ -228,4 +160,45 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	}
 
 	return pages.StatusOK(nil)
+}
+
+// Update the changelogs of the parent for a new relationship.
+func addNewChildToChangelog(tx *database.Tx, userId string, pairType string, pageId string, pageEdit int,
+	childId string, childEdit int, childIsDeleted bool) error {
+	return addRelationshipToChangelogInternal(tx, userId, pairType, pageId, pageEdit, childId, childEdit, childIsDeleted,
+		core.NewChildChangeLog, core.NewUsedAsTagChangeLog, core.NewRequiredByChangeLog, core.NewTeacherChangeLog)
+}
+
+// Update the changelogs of the child for a new relationship.
+func addNewParentToChangelog(tx *database.Tx, userId string, pairType string, pageId string, pageEdit int,
+	parentId string, parentEdit int, parentIsDeleted bool) error {
+	return addRelationshipToChangelogInternal(tx, userId, pairType, pageId, pageEdit, parentId, parentEdit, parentIsDeleted,
+		core.NewParentChangeLog, core.NewTagChangeLog, core.NewRequirementChangeLog, core.NewSubjectChangeLog)
+}
+
+func addRelationshipToChangelogInternal(tx *database.Tx, userId string, pairType string, pageId string, pageEdit int,
+	auxPageId string, auxPageEdit int, auxPageIsDeleted bool, parentPPT string, tagPPT string, requirementPPT string,
+	subjectPPT string) error {
+	// Do not add to the changelog of a public page if its aux page hasn't been published (as this would leak data
+	// about a user's unpublished draft) or if it's deleted (editing a deleted page shouldn't affect live pages
+	// until the deleted page is published again).
+	if auxPageId != pageId && (auxPageEdit <= 0 || auxPageIsDeleted) {
+		return nil
+	}
+
+	hashmap := make(database.InsertMap)
+	hashmap["pageId"] = pageId
+	hashmap["auxPageId"] = auxPageId
+	hashmap["userId"] = userId
+	hashmap["edit"] = pageEdit
+	hashmap["createdAt"] = database.Now()
+	hashmap["type"] = map[string]string{
+		core.ParentPagePairType:      parentPPT,
+		core.TagPagePairType:         tagPPT,
+		core.RequirementPagePairType: requirementPPT,
+		core.SubjectPagePairType:     subjectPPT,
+	}[pairType]
+
+	_, err := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx).Exec()
+	return err
 }

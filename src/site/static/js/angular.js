@@ -399,6 +399,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 									$location.url(pageService.getPageUrl(page.pageId, {
 										useEditMap: true,
 										markId: $location.search().markId,
+										permalink: result.deletedPage,
 									}));
 								}
 							};
