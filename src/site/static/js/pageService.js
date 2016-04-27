@@ -382,30 +382,13 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 		isDomain: function() {
 			return this.type === 'domain';
 		},
-		// Return empty string if the user can edit this page. Otherwise a reason for
-		// why they can't.
-		getEditLevel: function() {
-			var karmaReq = 200; // TODO: fix this
-			if (userService.user.karma < karmaReq) {
-				if (userService.user.isAdmin) {
-					// Can edit but only because user is an admin.
-					return 'admin';
-				}
-				return '' + karmaReq;
-			}
-			return '';
+		// Check if the user has the right permission + trust to edit this page.
+		canEdit: function() {
+			return userService.u.trustMap[""].canEditPage;
 		},
-		// Return empty string if the user can delete this page. Otherwise a reason
-		// for why they can't.
-		getDeleteLevel: function() {
-			var karmaReq = 200; // TODO: fix this
-			if (userService.user.karma < karmaReq) {
-				if (userService.user.isAdmin) {
-					return 'admin';
-				}
-				return '' + karmaReq;
-			}
-			return '';
+		// Check if the user has the right permission + trust to delete this page.
+		canDelete: function() {
+			return userService.u.trustMap[""].canDeletePage;
 		},
 		// Get page's url
 		url: function() {
@@ -726,7 +709,6 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 			editGroupId: page.editGroupId,
 			hasVote: page.hasVote,
 			voteType: page.voteType,
-			editKarmaLock: page.editKarmaLock,
 			alias: page.alias,
 			sortChildrenBy: page.sortChildrenBy,
 			isRequisite: page.isRequisite,

@@ -45,8 +45,6 @@ CREATE TABLE pageInfos (
 	seeGroupId VARCHAR(32) NOT NULL,
 	/* If set, only this group can edit the page. FK into pages. */
 	editGroupId VARCHAR(32) NOT NULL,
-	/* Minimum amount of karma a user needs to edit this page. */
-	editKarmaLock INT NOT NULL,
 
 	/* If set, the page is locked by this user. FK into users. */
 	lockedBy VARCHAR(32) NOT NULL,

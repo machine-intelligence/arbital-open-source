@@ -18,12 +18,10 @@ CREATE TABLE users (
 	isAdmin BOOLEAN NOT NULL,
 	/* True iff the user is trusted to send invites. */
 	isTrusted BOOLEAN NOT NULL,
-	/* Amount of general karma this user has. */
-	karma INT NOT NULL,
-	/* Invite code the user used to join the website, if any. */
-	inviteCode VARCHAR(16) NOT NULL,
 	/* Date of the last updates email. */
 	updateEmailSentAt DATETIME NOT NULL,
+
+	/* ============================= Settings ====================================
 	/* How frequently to send update emails. */
 	emailFrequency VARCHAR(16) NOT NULL,
 	/* How many updates before sending an update email. */

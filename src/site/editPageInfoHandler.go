@@ -21,7 +21,6 @@ type editPageInfoData struct {
 	VoteType        string
 	SeeGroupId      string
 	EditGroupId     string
-	EditKarmaLock   int
 	Alias           string // if empty, leave the current one
 	SortChildrenBy  string
 	IsRequisite     bool
@@ -96,20 +95,16 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.SortChildrenBy != core.RecentFirstChildSortingOption &&
 		data.SortChildrenBy != core.OldestFirstChildSortingOption &&
 		data.SortChildrenBy != core.AlphabeticalChildSortingOption {
-		return pages.HandlerBadRequestFail("Invalid sort children value.", nil)
+		return pages.HandlerBadRequestFail("Invalid sort children value", nil)
 	}
 	if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
-		return pages.HandlerBadRequestFail("Invalid vote type value.", nil)
-	}
-	if data.EditKarmaLock < 0 || data.EditKarmaLock > u.MaxKarmaLock {
-		return pages.HandlerBadRequestFail("Karma value out of bounds", nil)
+		return pages.HandlerBadRequestFail("Invalid vote type value", nil)
 	}
 
 	// Make sure the user has the right permissions to edit this page
 	if oldPage.WasPublished {
-		editLevel := core.GetEditLevel(oldPage, u)
-		if editLevel != "" && editLevel != "admin" {
-			return pages.HandlerBadRequestFail("Not enough karma to edit this page.", nil)
+		if !core.GetEditLevel(oldPage, u) {
+			return pages.HandlerBadRequestFail("Not enough karma to edit this page", nil)
 		}
 	}
 
@@ -181,7 +176,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["sortChildrenBy"] = data.SortChildrenBy
 		hashmap["hasVote"] = hasVote
 		hashmap["voteType"] = data.VoteType
-		hashmap["editKarmaLock"] = data.EditKarmaLock
 		hashmap["type"] = data.Type
 		hashmap["seeGroupId"] = data.SeeGroupId
 		hashmap["editGroupId"] = data.EditGroupId
@@ -245,13 +239,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 			if data.VoteType != oldPage.VoteType {
 				changeLogId, errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
-				if errorMessage != "" {
-					return errorMessage, err
-				}
-				changeLogIds = append(changeLogIds, changeLogId)
-			}
-			if data.EditKarmaLock != oldPage.EditKarmaLock {
-				changeLogId, errorMessage, err := updateChangeLog(core.NewEditKarmaLockChangeLog, "", strconv.Itoa(oldPage.EditKarmaLock), strconv.Itoa(data.EditKarmaLock))
 				if errorMessage != "" {
 					return errorMessage, err
 				}

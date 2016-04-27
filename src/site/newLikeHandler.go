@@ -24,8 +24,7 @@ var newLikeHandler = siteHandler{
 	URI:         "/newLike/",
 	HandlerFunc: newLikeHandlerFunc,
 	Options: pages.PageOptions{
-		RequireLogin:  true,
-		LoadUserTrust: true,
+		RequireLogin: true,
 	},
 }
 

@@ -366,21 +366,6 @@
 							</div>
 						</div>
 
-						<!-- Karma edit lock -->
-						<div layout="row" ng-if="::(userService.user.maxKarmaLock > 0 && !isComment)">
-							<div flex>
-								<label>Edit karma lock</label>
-								<md-slider aria-label="Edit karma lock"
-										md-discrete
-										ng-model="page.editKarmaLock"
-										step="10" min="0" max="{{::userService.user.maxKarmaLock}}">
-								</md-slider>
-							</div>
-							<div class="md-caption" layout-margin flex>
-								Editing this page will require <span ng-bind="page.editKarmaLock"></span> karma
-							</div>
-						</div>
-
 						<!-- Page type -->
 						<div layout="row">
 							<md-input-container flex>

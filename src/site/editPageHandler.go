@@ -173,9 +173,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	// Make sure the user has the right permissions to edit this page
 	if oldPage.WasPublished {
-		editLevel := core.GetEditLevel(oldPage, u)
-		if editLevel != "" && editLevel != "admin" {
-			return pages.HandlerBadRequestFail("Not enough karma to edit this page.", nil)
+		if !core.GetEditLevel(oldPage, u) {
+			return pages.HandlerBadRequestFail("Not enough karma to edit this page", nil)
 		}
 	}
 	if isLiveEdit {

@@ -241,17 +241,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if ($scope.page.wasPublished) {
-				var editLevel = $scope.page.getEditLevel();
-				if (editLevel === 'admin') {
-					$scope.addMessage('editLevel', 'Enforcing admin priviledges', 'warning');
-				} else if (editLevel === 'comment') {
-					$scope.addMessage('editLevel', 'Can\'t edit a comment you didn\'t create', 'error', true);
-				} else if (editLevel === '') {
-				} else {
-					$scope.addMessage('editLevel', 'You don\'t have enough karma to edit this page. Required: ' +
-						$scope.page.getEditLevel(), 'error', true);
-				}
+			if ($scope.page.wasPublished && !$scope.page.canEdit()) {
+				$scope.addMessage('editLevel', 'You don\'t have enough reputation to edit this page', 'error', true);
 			}
 			// Check group permissions
 			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {

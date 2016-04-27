@@ -63,7 +63,6 @@ type PageOptions struct {
 	RequireTrusted  bool
 	MinKarma        int
 	LoadUpdateCount bool
-	LoadUserTrust   bool
 	// If true, we don't care if the user is signed in or not
 	AllowAnyone bool
 }

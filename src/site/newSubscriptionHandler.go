@@ -18,8 +18,7 @@ var newSubscriptionHandler = siteHandler{
 	URI:         "/newSubscription/",
 	HandlerFunc: newSubscriptionHandlerFunc,
 	Options: pages.PageOptions{
-		RequireLogin:  true,
-		LoadUserTrust: true,
+		RequireLogin: true,
 	},
 }
 

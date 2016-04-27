@@ -342,41 +342,14 @@ func GetNewPageUrl(alias string) string {
 	return fmt.Sprintf("/edit/%s", alias)
 }
 
-// GetEditLevel checks if the user can edit this page. Possible return values:
-// "" = user has correct permissions to perform the action
-// "admin" = user can perform the action, but only because they are an admin
-// "comment" = can't perform action because this is a comment page the user doesn't own
-// "###" = user doesn't have at least ### karma
-func GetEditLevel(p *Page, u *CurrentUser) string {
-	karmaReq := p.EditKarmaLock
-	if karmaReq < EditPageKarmaReq && p.WasPublished {
-		karmaReq = EditPageKarmaReq
-	}
-	if u.Karma < karmaReq {
-		if u.IsAdmin {
-			return "admin"
-		}
-		return fmt.Sprintf("%d", karmaReq)
-	}
-	return ""
+// GetEditLevel checks if the user can edit this page.
+func GetEditLevel(p *Page, u *CurrentUser) bool {
+	return u.TrustMap[""].CanEditPage
 }
 
-// GetDeleteLevel checks if the user can delete this page. Possible return values:
-// "" = user has correct permissions to perform the action
-// "admin" = user can perform the action, but only because they are an admin
-// "###" = user doesn't have at least ### karma
-func GetDeleteLevel(p *Page, u *CurrentUser) string {
-	karmaReq := p.EditKarmaLock
-	if karmaReq < DeletePageKarmaReq {
-		karmaReq = DeletePageKarmaReq
-	}
-	if u.Karma < karmaReq {
-		if u.IsAdmin {
-			return "admin"
-		}
-		return fmt.Sprintf("%d", karmaReq)
-	}
-	return ""
+// GetDeleteLevel checks if the user can delete this page.
+func GetDeleteLevel(p *Page, u *CurrentUser) bool {
+	return u.TrustMap[""].CanDeletePage
 }
 
 // CorrectPageType converts the page type to lowercase and checks that it's

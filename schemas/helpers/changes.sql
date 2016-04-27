@@ -81,4 +81,8 @@ CREATE TABLE userDomainBonusTrust (
 ALTER TABLE users ADD COLUMN isTrusted BOOLEAN NOT NULL;
 
 DELETE FROM updates USING updates, pageInfos AS pi WHERE pi.pageId = updates.goToPageId
-	AND pi.seeGroupId != '' AND pi.seeGroupId NOT IN (SELECT groupId FROM groupMembers AS gm WHERE gm.userId = updates.userId)
+	AND pi.seeGroupId != '' AND pi.seeGroupId NOT IN (SELECT groupId FROM groupMembers AS gm WHERE gm.userId = updates.userId);
+
+alter table users drop column inviteCode;
+alter table users drop column karma;
+alter table pageInfos drop column editKarmaLock;

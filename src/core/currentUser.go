@@ -29,18 +29,19 @@ const (
 
 const (
 	// Karma requirements to perform various actions
+	// NOTE: all the numbers are made up right now. The only real number is 200
 	CommentKarmaReq            = -5
 	LikeKarmaReq               = 0
 	PrivatePageKarmaReq        = 5
 	VoteKarmaReq               = 10
 	AddParentKarmaReq          = 20
 	CreateAliasKarmaReq        = 50
-	EditPageKarmaReq           = 0 //50 // edit wiki page
+	EditPageKarmaReq           = 200
 	DeleteParentKarmaReq       = 100
 	KarmaLockKarmaReq          = 100
 	ChangeSortChildrenKarmaReq = 100
 	ChangeAliasKarmaReq        = 200
-	DeletePageKarmaReq         = 500
+	DeletePageKarmaReq         = 200
 	DashlessAliasKarmaReq      = 1000
 
 	DefaultInviteKarma = 200
@@ -67,11 +68,8 @@ type CurrentUser struct {
 	LastName       string `json:"lastName"`
 	IsAdmin        bool   `json:"isAdmin"`
 	IsTrusted      bool   `json:"isTrusted"`
-	Karma          int    `json:"karma"`
-	MaxKarmaLock   int    `json:"maxKarmaLock"`
 	EmailFrequency string `json:"emailFrequency"`
 	EmailThreshold int    `json:"emailThreshold"`
-	InviteCode     string `json:"inviteCode"`
 	IgnoreMathjax  bool   `json:"ignoreMathjax"`
 
 	// If the user isn't logged in, this is set to their unique session id
@@ -80,7 +78,7 @@ type CurrentUser struct {
 	// Computed variables
 	UpdateCount    int                `json:"updateCount"`
 	GroupIds       []string           `json:"groupIds"`
-	TrustMap       map[string]*Trust  `json:"trust"`
+	TrustMap       map[string]*Trust  `json:"trustMap"`
 	InvitesClaimed map[string]*Invite `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
@@ -114,6 +112,9 @@ type InviteMatch struct {
 type Trust struct {
 	GeneralTrust int `json:"generalTrust"`
 	EditTrust    int `json:"editTrust"`
+
+	CanDeletePage bool `json:"canDeletePage"`
+	CanEditPage   bool `json:"canEditPage"`
 }
 
 type CookieSession struct {
@@ -143,12 +144,6 @@ func (user *CurrentUser) GetSomeId() string {
 		return user.Id
 	}
 	return user.SessionId
-}
-
-// GetMaxKarmaLock returns the highest possible karma lock a user with the
-// given amount of karma can create.
-func GetMaxKarmaLock(karma int) int {
-	return int(float64(karma) * MaxKarmaLockFraction)
 }
 
 // IsMemberOfGroup returns true iff the user is member of the given group.
@@ -226,19 +221,18 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 	}
 
 	row := db.NewStatement(`
-		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,karma,
-			emailFrequency,emailThreshold,inviteCode,ignoreMathjax
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+			emailFrequency,emailThreshold,ignoreMathjax
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
 	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.Karma, &u.EmailFrequency, &u.EmailThreshold,
-		&u.InviteCode, &u.IgnoreMathjax)
+		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
 		return nil, fmt.Errorf("Couldn't find that email in DB")
 	}
-	u.MaxKarmaLock = GetMaxKarmaLock(u.Karma)
+
 	return u, nil
 }
 
@@ -381,16 +375,14 @@ func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.
-func LoadUserTrust(db *database.DB, u *CurrentUser) (map[string]*Trust, error) {
-	trustMap := make(map[string]*Trust)
-
+func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 	domainIds, err := LoadAllDomainIds(db, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for _, domainId := range domainIds {
-		trustMap[domainId] = &Trust{}
+		u.TrustMap[domainId] = &Trust{}
 	}
 
 	// Compute bonus trust
@@ -405,14 +397,20 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) (map[string]*Trust, error) {
 		if err != nil {
 			return fmt.Errorf("failed to scan an invite: %v", err)
 		}
-		trustMap[domainId].EditTrust += bonusEditTrust
+		u.TrustMap[domainId].EditTrust += bonusEditTrust
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("Couldn't load userDomainBonusTrust: %v", err)
 	}
 
-	return trustMap, nil
+	// Now comupte permissions
+	for _, trust := range u.TrustMap {
+		trust.CanEditPage = trust.EditTrust >= EditPageKarmaReq || u.IsAdmin
+		trust.CanDeletePage = trust.EditTrust >= DeletePageKarmaReq || u.IsAdmin
+	}
+
+	return nil
 }
 
 // Get invites where a certain column matches a certain query string

@@ -182,7 +182,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["fbUserId"] = data.FbUserId
 		hashmap["createdAt"] = database.Now()
 		hashmap["lastWebsiteVisit"] = database.Now()
-		hashmap["inviteCode"] = inviteCode
 		hashmap["karma"] = karma
 		hashmap["emailFrequency"] = core.DefaultEmailFrequency
 		hashmap["emailThreshold"] = core.DefaultEmailThreshold

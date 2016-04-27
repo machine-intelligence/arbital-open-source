@@ -24,9 +24,7 @@ type updateMasteries struct {
 var updateMasteriesHandler = siteHandler{
 	URI:         "/updateMasteries/",
 	HandlerFunc: updateMasteriesHandlerFunc,
-	Options: pages.PageOptions{
-		LoadUserTrust: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 func updateMasteriesHandlerFunc(params *pages.HandlerParams) *pages.Result {

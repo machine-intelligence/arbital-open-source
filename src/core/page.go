@@ -61,7 +61,6 @@ const (
 	TurnOnVoteChangeLog         = "turnOnVote"
 	TurnOffVoteChangeLog        = "turnOffVote"
 	SetVoteTypeChangeLog        = "setVoteType"
-	NewEditKarmaLockChangeLog   = "newEditKarmaLock"
 	NewEditGroupChangeLog       = "newEditGroup"
 	SearchStringChangeChangeLog = "searchStringChange"
 	AnswerChangeChangeLog       = "answerChange"
@@ -111,7 +110,6 @@ type corePageData struct {
 	CreatedAt         string `json:"createdAt"`
 	OriginalCreatedAt string `json:"originalCreatedAt"`
 	OriginalCreatedBy string `json:"originalCreatedBy"`
-	EditKarmaLock     int    `json:"editKarmaLock"`
 	SeeGroupId        string `json:"seeGroupId"`
 	EditGroupId       string `json:"editGroupId"`
 	IsAutosave        bool   `json:"isAutosave"`
@@ -765,7 +763,7 @@ func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error 
 	// Load the page data
 	rows := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
-			length(p.text),p.metaText,pi.type,pi.editKarmaLock,pi.hasVote,pi.voteType,
+			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
 			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,pi.mergedInto,
@@ -780,7 +778,7 @@ func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error 
 		var p corePageData
 		err := rows.Scan(
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
-			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.EditKarmaLock, &p.HasVote,
+			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted, &p.MergedInto,
@@ -944,7 +942,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
-			p.createdAt,pi.editKarmaLock,pi.seeGroupId,pi.editGroupId,pi.createdAt,
+			p.createdAt,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
@@ -957,7 +955,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
-		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.EditKarmaLock, &p.SeeGroupId,
+		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.SeeGroupId,
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
 		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,

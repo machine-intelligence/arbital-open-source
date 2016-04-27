@@ -77,8 +77,8 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		params.U = u
 
 		// Load the user's trust
-		if core.IsIdValid(u.Id) && h.Options.LoadUserTrust {
-			u.TrustMap, err = core.LoadUserTrust(db, u)
+		if core.IsIdValid(u.Id) {
+			err = core.LoadUserTrust(db, u)
 			if err != nil {
 				fail(http.StatusInternalServerError, "Couldn't retrieve user trust", err)
 				return
@@ -98,7 +98,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			fail(http.StatusInternalServerError, "Have to be an admin", nil)
 			return
 		}
-		if h.Options.MinKarma != 0 && u.Karma < h.Options.MinKarma {
+		if h.Options.MinKarma != 0 && u.TrustMap[""].EditTrust < h.Options.MinKarma {
 			fail(http.StatusInternalServerError, "Not enough karma", nil)
 			return
 		}
