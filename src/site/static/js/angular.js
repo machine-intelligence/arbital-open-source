@@ -525,7 +525,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 						} else {
 							urlService.goToUrl(pageService.getEditPageUrl(postData.pageAlias));
 						}
-						return;
+						return {};
 					}
 					return {
 						title: 'Not Found',
@@ -536,7 +536,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				// If this page has been merged into another, go there
 				if (page.mergedInto) {
 					urlService.goToUrl(pageService.getPageUrl(page.mergedInto));
-					return;
+					return {};
 				}
 
 				// If the page is a user page, get the additional data about user
