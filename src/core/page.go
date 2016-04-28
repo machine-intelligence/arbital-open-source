@@ -614,7 +614,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	AddUserGroupIdsToPageMap(u, pageMap)
 
 	// Load page data
-	err = LoadPages(db, u, pageMap)
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit })
+	err = LoadPages(db, u, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadPages failed: %v", err)
 	}

@@ -32,6 +32,7 @@ type PageLoadOptions struct {
 	UnresolvedMarks         bool // all unresolved marks
 
 	// Load options for basic pages
+	Edit                      bool // because otherwise a non-published page id will be deleted from the pageMap
 	Links                     bool
 	DomainsAndEditPermissions bool
 
@@ -97,6 +98,7 @@ var (
 		DomainsAndEditPermissions: true,
 		ChangeLogs:                true,
 		SearchStrings:             true,
+		Edit:                      true,
 		Links:                     true,
 		LinkedMarkCount:           true,
 		Text:                      true,
