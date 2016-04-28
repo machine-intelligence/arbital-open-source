@@ -77,12 +77,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Load the published page.
 	var oldPage *core.Page
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u.Id, nil)
+	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
 		// Likely the page hasn't been published yet, so let's load the unpublished version.
-		oldPage, err = core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{LoadNonliveEdit: true})
+		oldPage, err = core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil || oldPage == nil {
 			return pages.HandlerErrorFail("Couldn't load the old page2", err)
 		}
@@ -131,12 +131,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	// Error checking.
+	// Make sure the user has the right permissions to edit this page
+	if !oldPage.CanEdit {
+		return pages.HandlerBadRequestFail(oldPage.CantEditMessage, nil)
+	}
 	if data.IsAutosave && data.IsSnapshot {
 		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
-	}
-	// Check the page isn't locked by someone else
-	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
-		return pages.HandlerBadRequestFail("Can't change locked page", nil)
 	}
 	// Check the group settings
 	if oldPage.SeeGroupId != seeGroupId && newEditNum != 1 {
@@ -144,12 +144,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 	if core.IsIdValid(seeGroupId) && !u.IsMemberOfGroup(seeGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
-	}
-	if core.IsIdValid(oldPage.SeeGroupId) && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
-		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
-	}
-	if core.IsIdValid(oldPage.EditGroupId) && !u.IsMemberOfGroup(oldPage.EditGroupId) {
-		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if isLiveEdit {
@@ -169,12 +163,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 		if data.AnchorOffset < 0 || data.AnchorOffset > len(data.AnchorContext) {
 			return pages.HandlerBadRequestFail("Anchor offset out of bounds", nil)
-		}
-	}
-	// Make sure the user has the right permissions to edit this page
-	if oldPage.WasPublished {
-		if !core.GetEditLevel(oldPage, u) {
-			return pages.HandlerBadRequestFail("Not enough karma to edit this page", nil)
 		}
 	}
 	if isLiveEdit {

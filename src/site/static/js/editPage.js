@@ -241,8 +241,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if ($scope.page.wasPublished && !$scope.page.canEdit()) {
-				$scope.addMessage('editLevel', 'You don\'t have enough reputation to edit this page', 'error', true);
+			if ($scope.page.wasPublished && !$scope.page.canEdit) {
+				$scope.addMessage('editLevel', $scope.page.cantEditMessage, 'error', true);
 			}
 			// Check group permissions
 			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {

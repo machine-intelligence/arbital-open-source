@@ -41,11 +41,14 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the page
-	page, err := core.LoadFullEdit(db, data.PageId, u.Id, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
+	page, err := core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	} else if page == nil {
 		return pages.HandlerErrorFail("Couldn't find page", nil)
+	}
+	if !page.CanEdit {
+		return pages.HandlerBadRequestFail(page.CantEditMessage, nil)
 	}
 
 	if page.Type == core.LensPageType {

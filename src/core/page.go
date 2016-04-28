@@ -178,6 +178,14 @@ type Page struct {
 	// Whether or not the page is used as a requirement
 	UsedAsMastery bool `json:"usedAsMastery"`
 
+	// === Permissions ===
+	// We use messages AND bools to make sure that if someone doesn't load permissions,
+	// the defaults don't allow for anything.
+	CanEdit           bool   `json:"canEdit"`
+	CantEditMessage   string `json:"cantEditMessage"`
+	CanDelete         bool   `json:"canDelete"`
+	CantDeleteMessage string `json:"cantDeleteMessage"`
+
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
 	Summaries map[string]string `json:"summaries"`
@@ -489,7 +497,14 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadLinks failed: %v", err)
 	}
 
-	// TODO: Load domains
+	// Load domains
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndEditPermissions })
+	err = LoadDomainIds(db, pageMap, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadSummaries failed: %v", err)
+	}
 
 	// Load change logs
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ChangeLogs })
@@ -599,11 +614,14 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	AddUserGroupIdsToPageMap(u, pageMap)
 
 	// Load page data
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit })
-	err = LoadPages(db, u, filteredPageMap)
+	err = LoadPages(db, u, pageMap)
 	if err != nil {
 		return fmt.Errorf("LoadPages failed: %v", err)
 	}
+
+	// Compute edit permissions
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndEditPermissions })
+	ComputeEditPermissionsForMap(filteredPageMap, u)
 
 	// Load summaries
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Summaries })
@@ -898,7 +916,7 @@ type LoadEditOptions struct {
 // If userId is given, the last edit of the given pageId will be returned. It
 // might be an autosave or a snapshot, and thus not the current live page.
 // If the page couldn't be found, (nil, nil) will be returned.
-func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptions) (*Page, error) {
+func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadEditOptions) (*Page, error) {
 	if options == nil {
 		options = &LoadEditOptions{}
 	}
@@ -937,7 +955,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 					(p.creatorId=? OR NOT (p.isSnapshot OR p.isAutosave))
 				ORDER BY IF(p.isAutosave,"z",p.createdAt) DESC
 				LIMIT 1
-			)`, pageId, userId)
+			)`, pageId, u.Id)
 	}
 	statement := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
@@ -951,7 +969,7 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 		JOIN pageInfos AS pi
 		ON (p.pageId=pi.pageId AND p.pageId=?)`, pageId).Add(`
 		WHERE`).AddPart(whereClause).Add(`AND
-			(pi.seeGroupId="" OR pi.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, userId).ToStatement(db)
+			(pi.seeGroupId="" OR pi.seeGroupId IN (SELECT groupId FROM groupMembers WHERE userId=?))`, u.Id).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
@@ -966,6 +984,12 @@ func LoadFullEdit(db *database.DB, pageId, userId string, options *LoadEditOptio
 	} else if !exists {
 		return nil, nil
 	}
+
+	err = LoadDomainIdsForPage(db, p)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load domain ids for page: %v", err)
+	}
+	ComputeEditPermissions(p, u)
 
 	p.TextLength = len(p.Text)
 	return p, nil
@@ -2016,28 +2040,40 @@ func LoadSubscriberCount(db *database.DB, currentUserId string, pageMap map[stri
 }
 
 // LoadDomainIds loads the domain ids for the given page and adds them to the map
-func LoadDomainIds(db *database.DB, u *CurrentUser, page *Page, pageMap map[string]*Page) error {
-	pageIdConstraint := database.NewQuery("")
-	if page != nil {
-		pageIdConstraint = database.NewQuery("AND pd.pageId=?", page.PageId)
+func LoadDomainIds(db *database.DB, pageMap map[string]*Page, options *LoadDataOptions) error {
+	sourcePageMap := options.ForPages
+	if len(sourcePageMap) <= 0 {
+		return nil
 	}
+	pageIds := PageIdsListFromMap(sourcePageMap)
 	rows := database.NewQuery(`
-		SELECT p.pageId
-		FROM pages AS p
-		JOIN pageDomainPairs AS pd
-		ON (p.pageId=pd.domainId)
-		WHERE p.type="domain"`).AddPart(pageIdConstraint).ToStatement(db).Query()
+		SELECT pageId,domainId
+		FROM pageDomainPairs
+		WHERE pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		err := rows.Scan(&domainId)
+		var pageId, domainId string
+		err := rows.Scan(&pageId, &domainId)
 		if err != nil {
-			return fmt.Errorf("failed to scan for a domain: %v", err)
+			return fmt.Errorf("failed to scan: %v", err)
 		}
-		page.DomainIds = append(page.DomainIds, domainId)
-		AddPageIdToMap(domainId, pageMap)
+		pageMap[pageId].DomainIds = append(pageMap[pageId].DomainIds, domainId)
+		AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
 		return nil
 	})
+
+	// Pages that are not part of any domain are part of the general ("") domain
+	for _, p := range sourcePageMap {
+		if len(p.DomainIds) <= 0 {
+			p.DomainIds = append(p.DomainIds, "")
+		}
+	}
 	return err
+}
+func LoadDomainIdsForPage(db *database.DB, page *Page) error {
+	pageMap := map[string]*Page{page.PageId: page}
+	return LoadDomainIds(db, pageMap, &LoadDataOptions{
+		ForPages: pageMap,
+	})
 }
 
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.

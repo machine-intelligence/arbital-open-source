@@ -382,14 +382,6 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 		isDomain: function() {
 			return this.type === 'domain';
 		},
-		// Check if the user has the right permission + trust to edit this page.
-		canEdit: function() {
-			return userService.user.trustMap[""].canEditPage;
-		},
-		// Check if the user has the right permission + trust to delete this page.
-		canDelete: function() {
-			return userService.user.trustMap[""].canDeletePage;
-		},
 		// Get page's url
 		url: function() {
 			return that.getPageUrl(this.pageId);

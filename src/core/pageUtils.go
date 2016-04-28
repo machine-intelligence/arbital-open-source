@@ -342,14 +342,50 @@ func GetNewPageUrl(alias string) string {
 	return fmt.Sprintf("/edit/%s", alias)
 }
 
-// GetEditLevel checks if the user can edit this page.
-func GetEditLevel(p *Page, u *CurrentUser) bool {
-	return u.TrustMap[""].CanEditPage
-}
+// ComputeEditPermissions updates the given page with whether the current user can
+// edit/delete it.
+func ComputeEditPermissions(p *Page, u *CurrentUser) {
+	// Check the page isn't locked by someone else
+	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
+		p.CantEditMessage = "Can't change locked page"
+	}
+	if IsIdValid(p.SeeGroupId) && !u.IsMemberOfGroup(p.SeeGroupId) {
+		p.CantEditMessage = "Don't have group permission to EVEN SEE this page"
+	}
+	if IsIdValid(p.EditGroupId) && !u.IsMemberOfGroup(p.EditGroupId) {
+		p.CantEditMessage = "Don't have group permission to edit this page"
+	}
 
-// GetDeleteLevel checks if the user can delete this page.
-func GetDeleteLevel(p *Page, u *CurrentUser) bool {
-	return u.TrustMap[""].CanDeletePage
+	if p.CantEditMessage == "" {
+		for _, domainId := range p.DomainIds {
+			if u.TrustMap[domainId].CanEditPage {
+				p.CanEdit = true
+				break
+			}
+		}
+		if !p.CanEdit {
+			p.CantEditMessage = "Not enough trust"
+		}
+	}
+
+	if p.CantEditMessage != "" {
+		p.CantDeleteMessage = p.CantEditMessage
+	} else {
+		for _, domainId := range p.DomainIds {
+			if u.TrustMap[domainId].CanDeletePage {
+				p.CanDelete = true
+				break
+			}
+		}
+		if !p.CanDelete {
+			p.CantDeleteMessage = "Not enough trust"
+		}
+	}
+}
+func ComputeEditPermissionsForMap(pageMap map[string]*Page, u *CurrentUser) {
+	for _, p := range pageMap {
+		ComputeEditPermissions(p, u)
+	}
 }
 
 // CorrectPageType converts the page type to lowercase and checks that it's

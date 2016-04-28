@@ -56,7 +56,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the published page.
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u.Id, nil)
+	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -69,18 +69,11 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Error checking.
-	// Check the page isn't locked by someone else
-	if oldPage.LockedUntil > database.Now() && oldPage.LockedBy != u.Id {
-		return pages.HandlerBadRequestFail("Can't change locked page", nil)
-	}
 	// Check the group settings
 	if oldPage.SeeGroupId != data.SeeGroupId && oldPage.WasPublished {
 		return pages.HandlerBadRequestFail("Editing this page in incorrect private group", nil)
 	}
 	if core.IsIdValid(data.SeeGroupId) && !u.IsMemberOfGroup(data.SeeGroupId) {
-		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
-	}
-	if core.IsIdValid(oldPage.SeeGroupId) && !u.IsMemberOfGroup(oldPage.SeeGroupId) {
 		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
 	}
 	if core.IsIdValid(oldPage.EditGroupId) && !u.IsMemberOfGroup(oldPage.EditGroupId) {
@@ -102,10 +95,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Make sure the user has the right permissions to edit this page
-	if oldPage.WasPublished {
-		if !core.GetEditLevel(oldPage, u) {
-			return pages.HandlerBadRequestFail("Not enough karma to edit this page", nil)
-		}
+	if !oldPage.CanEdit {
+		return pages.HandlerBadRequestFail(oldPage.CantEditMessage, nil)
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it

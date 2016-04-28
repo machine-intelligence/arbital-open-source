@@ -48,9 +48,7 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 	u := params.U
 
 	// Load the page
-	pageMap := make(map[string]*core.Page)
-	page := core.AddPageIdToMap(data.PageId, pageMap)
-	err := core.LoadPages(db, u, pageMap)
+	page, err := core.LoadFullEdit(db, data.PageId, u, nil)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load page", err)
 	}
@@ -67,6 +65,11 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 		if !u.IsAdmin {
 			return pages.HandlerForbiddenFail("Have to be an admin to delete someone else's comment", nil)
 		}
+	}
+
+	// Make sure the user has the right permissions to delete this page
+	if !page.CanDelete {
+		return pages.HandlerBadRequestFail(page.CantDeleteMessage, nil)
 	}
 
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {

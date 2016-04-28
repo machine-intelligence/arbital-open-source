@@ -61,7 +61,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		LoadEditWithLimit: data.EditLimit,
 		CreatedAtLimit:    data.CreatedAtLimit,
 	}
-	p, err := core.LoadFullEdit(db, pageId, u.Id, &options)
+	p, err := core.LoadFullEdit(db, pageId, u, &options)
 	if err != nil {
 		return pages.HandlerErrorFail("Error while loading full edit", err)
 	}
