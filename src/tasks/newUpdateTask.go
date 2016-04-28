@@ -164,23 +164,17 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	return 0, nil
 }
 
-func EnqueueNewParentUpdate(c sessions.Context, userId string, pageId string, pairType string, parentId string) {
-	enqueueRelationshipUpdateInternal(c, userId, pairType, parentId, pageId, true, false)
+func EnqueueNewRelationshipUpdates(c sessions.Context, userId string, pairType string, parentId string, childId string) {
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, parentId, childId, false, false)
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, parentId, childId, true, false)
 }
 
-func EnqueueNewChildUpdate(c sessions.Context, userId string, pageId string, pairType string, childId string) {
-	enqueueRelationshipUpdateInternal(c, userId, pairType, pageId, childId, false, false)
+func EnqueueDeleteRelationshipUpdates(c sessions.Context, userId string, pairType string, parentId string, childId string) {
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, parentId, childId, false, true)
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, parentId, childId, true, true)
 }
 
-func EnqueueDeleteParentUpdate(c sessions.Context, userId string, pageId string, pairType string, parentId string) {
-	enqueueRelationshipUpdateInternal(c, userId, pairType, parentId, pageId, true, true)
-}
-
-func EnqueueDeleteChildUpdate(c sessions.Context, userId string, pageId string, pairType string, childId string) {
-	enqueueRelationshipUpdateInternal(c, userId, pairType, pageId, childId, false, true)
-}
-
-func enqueueRelationshipUpdateInternal(c sessions.Context, userId string, pairType string, parentId string, childId string,
+func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string, pairType string, parentId string, childId string,
 	updateIsForChild bool, relationshipIsDeleted bool) {
 
 	var task NewUpdateTask

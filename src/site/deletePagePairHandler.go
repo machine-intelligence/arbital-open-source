@@ -121,8 +121,7 @@ func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType 
 	}
 
 	// Send updates for users subscribed to the parent or child.
-	tasks.EnqueueDeleteChildUpdate(tx.DB.C, userId, parentId, pairType, childId)
-	tasks.EnqueueDeleteParentUpdate(tx.DB.C, userId, childId, pairType, parentId)
+	tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, parentId, childId)
 
 	return "", nil
 }
