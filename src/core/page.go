@@ -2063,9 +2063,10 @@ func LoadDomainIds(db *database.DB, pageMap map[string]*Page, options *LoadDataO
 
 	// Pages that are not part of any domain are part of the general ("") domain
 	for _, p := range sourcePageMap {
-		if len(p.DomainIds) <= 0 {
-			p.DomainIds = append(p.DomainIds, "")
-		}
+		// TODO: uncomment this part when we are ready for STRICT domain checking
+		//if len(p.DomainIds) <= 0 {
+		p.DomainIds = append(p.DomainIds, "")
+		//}
 	}
 	return err
 }
