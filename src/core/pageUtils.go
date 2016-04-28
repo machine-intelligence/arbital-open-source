@@ -355,6 +355,11 @@ func ComputeEditPermissions(p *Page, u *CurrentUser) {
 	if IsIdValid(p.EditGroupId) && !u.IsMemberOfGroup(p.EditGroupId) {
 		p.CantEditMessage = "Don't have group permission to edit this page"
 	}
+	if !p.WasPublished {
+		p.CanEdit = true
+		p.CanDelete = true
+		return
+	}
 
 	if p.CantEditMessage == "" {
 		for _, domainId := range p.DomainIds {

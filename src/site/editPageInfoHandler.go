@@ -96,7 +96,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Make sure the user has the right permissions to edit this page
 	if !oldPage.CanEdit {
-		return pages.HandlerBadRequestFail(oldPage.CantEditMessage, nil)
+		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.CantEditMessage, nil)
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it

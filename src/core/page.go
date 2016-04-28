@@ -982,13 +982,13 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		&p.IsRequisite, &p.IndirectTeacher)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a page: %v", err)
-	} else if !exists {
-		return nil, nil
 	}
 
-	err = LoadDomainIdsForPage(db, p)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load domain ids for page: %v", err)
+	if exists {
+		err = LoadDomainIdsForPage(db, p)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load domain ids for page: %v", err)
+		}
 	}
 	ComputeEditPermissions(p, u)
 

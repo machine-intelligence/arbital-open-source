@@ -133,7 +133,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Error checking.
 	// Make sure the user has the right permissions to edit this page
 	if !oldPage.CanEdit {
-		return pages.HandlerBadRequestFail(oldPage.CantEditMessage, nil)
+		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.CantEditMessage, nil)
 	}
 	if data.IsAutosave && data.IsSnapshot {
 		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
