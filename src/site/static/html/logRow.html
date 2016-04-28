@@ -15,6 +15,10 @@
 			New child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
+		<span ng-switch-when="newLens">
+			New lens: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+		</span>
+
 		<span ng-switch-when="deleteChild">
 			Removed child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>

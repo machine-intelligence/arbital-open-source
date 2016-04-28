@@ -60,7 +60,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Do it!
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		return deletePagePair(tx, u.Id, parent.PageId, child.PageId, data.Type)
+		return deletePagePair(tx, u.Id, data.Type, parent, child)
 	})
 	if err != nil {
 		return pages.HandlerErrorFail(errMessage, err)
@@ -77,55 +77,24 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.StatusOK(nil)
 }
 
-// Returns whether the given parent and child are live.
-func getStatus(db *database.DB, userId string, parentId string, childId string) (bool, bool, string, error) {
-	var parentIsLive, childIsLive bool
-	rows := database.NewQuery(`
-		SELECT
-			pageId,
-			(currentEdit > 0 && !isDeleted) as isLive
-		FROM pageInfos
-		WHERE pageId IN (?, ?)`, parentId, childId).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		var isLive bool
-		err := rows.Scan(&pageId, &isLive)
-		if err != nil {
-			return err
-		}
-		if pageId == parentId {
-			parentIsLive = isLive
-		} else {
-			childIsLive = isLive
-		}
-		return nil
-	})
-	if err != nil {
-		return false, false, "Failed to look up deleted status", err
-	}
-	return parentIsLive, childIsLive, "", nil
-}
-
 // deletePagePair deletes the parent-child pagePair of the given type.
-func deletePagePair(tx *database.Tx, userId string, parentId string, childId string, pairType string) (string, error) {
+func deletePagePair(tx *database.Tx, userId string, pairType string, parent *core.Page, child *core.Page) (string, error) {
 	// Delete the pair
 	query := tx.DB.NewStatement(`
 			DELETE FROM pagePairs
 			WHERE parentId=? AND childId=? AND type=?`).WithTx(tx)
-	if _, err := query.Exec(parentId, childId, pairType); err != nil {
+	if _, err := query.Exec(parent.PageId, child.PageId, pairType); err != nil {
 		return "Couldn't delete a page pair", err
 	}
 
-	parentIsLive, childIsLive, errMessage, err := getStatus(tx.DB, userId, parentId, childId)
-	if err != nil {
-		return errMessage, err
-	}
+	childIsLive := child.Edit > 0 && !child.IsDeleted
+	parentIsLive := parent.Edit > 0 && !parent.IsDeleted
 
 	// Update change logs
 	if childIsLive {
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = parentId
-		hashmap["auxPageId"] = childId
+		hashmap["pageId"] = parent.PageId
+		hashmap["auxPageId"] = child.PageId
 		hashmap["userId"] = userId
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
@@ -142,8 +111,8 @@ func deletePagePair(tx *database.Tx, userId string, parentId string, childId str
 
 	if parentIsLive {
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = childId
-		hashmap["auxPageId"] = parentId
+		hashmap["pageId"] = child.PageId
+		hashmap["auxPageId"] = parent.PageId
 		hashmap["userId"] = userId
 		hashmap["createdAt"] = database.Now()
 		hashmap["type"] = map[string]string{
@@ -160,7 +129,7 @@ func deletePagePair(tx *database.Tx, userId string, parentId string, childId str
 
 	// Send updates for users subscribed to the parent or child.
 	if childIsLive && parentIsLive {
-		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, parentId, childId)
+		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, child.Type, parent.PageId, child.PageId)
 	}
 
 	return "", nil

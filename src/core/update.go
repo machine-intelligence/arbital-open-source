@@ -31,6 +31,10 @@ const (
 	NewChildUpdateType    = "newChild"
 	DeleteChildUpdateType = "deleteChild"
 
+	// there's no deleteLens because there's no way to undo the association between a lens and its parent page
+	// (other than deleting the lens page)
+	NewLensUpdateType = "newLens"
+
 	NewTagUpdateType    = "newTag"
 	DeleteTagUpdateType = "deleteTag"
 
@@ -365,7 +369,9 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 
 // Determines which kind of update should be created for users subscribed to either the parent
 // or the child of a page pair.
-func GetUpdateTypeForPagePair(pairType string, updateIsForChild bool, relationshipIsDeleted bool) (string, error) {
+func GetUpdateTypeForPagePair(pairType string, childPageType string, updateIsForChild bool,
+	relationshipIsDeleted bool) (string, error) {
+
 	if relationshipIsDeleted {
 		switch pairType {
 		case ParentPagePairType:
@@ -398,6 +404,8 @@ func GetUpdateTypeForPagePair(pairType string, updateIsForChild bool, relationsh
 		case ParentPagePairType:
 			if updateIsForChild {
 				return NewParentUpdateType, nil
+			} else if childPageType == LensPageType {
+				return NewLensUpdateType, nil
 			} else {
 				return NewChildUpdateType, nil
 			}

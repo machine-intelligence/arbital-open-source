@@ -39,6 +39,7 @@ const (
 	DeleteParentChangeLog       = "deleteParent"
 	NewChildChangeLog           = "newChild"
 	DeleteChildChangeLog        = "deleteChild"
+	NewLensChangeLog            = "newLens"
 	NewTagChangeLog             = "newTag"
 	DeleteTagChangeLog          = "deleteTag"
 	NewUsedAsTagChangeLog       = "newUsedAsTag"

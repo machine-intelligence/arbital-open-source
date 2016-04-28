@@ -41,6 +41,7 @@ type editPageData struct {
 type relatedPageData struct {
 	PairType    string
 	PageId      string
+	PageType    string
 	CurrentEdit int
 }
 
@@ -320,11 +321,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 			// Now that we're publishing this page, add to the changelogs of any new parents or children
 			for _, parent := range newParents {
-				addNewChildToChangelog(tx, u.Id, parent.PairType, parent.PageId, parent.CurrentEdit,
+				addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
 					data.PageId, newEditNum, false)
 			}
 			for _, child := range newChildren {
-				addNewParentToChangelog(tx, u.Id, child.PairType, child.PageId, child.CurrentEdit,
+				addNewParentToChangelog(tx, u.Id, child.PairType, child.PageType, child.PageId, child.CurrentEdit,
 					data.PageId, newEditNum, false)
 			}
 		}
@@ -458,10 +459,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Generate updates for users who are subscribed to this page or to related pages.
 		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
 			for _, parent := range newParents {
-				tasks.EnqueueNewRelationshipUpdates(c, u.Id, parent.PairType, parent.PageId, data.PageId)
+				tasks.EnqueueNewRelationshipUpdates(c, u.Id, parent.PairType, oldPage.Type, parent.PageId, data.PageId)
 			}
 			for _, child := range newChildren {
-				tasks.EnqueueNewRelationshipUpdates(c, u.Id, child.PairType, data.PageId, child.PageId)
+				tasks.EnqueueNewRelationshipUpdates(c, u.Id, child.PairType, child.PageType, data.PageId, child.PageId)
 			}
 		}
 
@@ -527,7 +528,7 @@ func getUnpublishedRelationships(db *database.DB, u *core.CurrentUser, pageId st
 
 	rows := database.NewQuery(`
 		SELECT
-			otherId, pairType, otherIsParent, pi.currentEdit AS otherCurrentEdit
+			pairType, otherId, otherIsParent, pi.type AS otherPageType, pi.currentEdit AS otherCurrentEdit
 		FROM
 			(SELECT parentId AS otherId, type AS pairType, True AS otherIsParent FROM pagePairs WHERE childId=?`, pageId).Add(`AND NOT everPublished
 			UNION
@@ -541,15 +542,17 @@ func getUnpublishedRelationships(db *database.DB, u *core.CurrentUser, pageId st
 			(pi.seeGroupId='' OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
 		)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var otherId, pairType string
+		var pairType, otherId, otherPageType string
 		var otherIsParent bool
 		var otherCurrentEdit int
-		err := rows.Scan(&otherId, &pairType, &otherIsParent, &otherCurrentEdit)
+		err := rows.Scan(&pairType, &otherId, &otherIsParent, &otherPageType, &otherCurrentEdit)
 		if err != nil {
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
 
-		otherPageData := relatedPageData{PairType: pairType, PageId: otherId, CurrentEdit: otherCurrentEdit}
+		otherPageData := relatedPageData{PairType: pairType, PageId: otherId, PageType: otherPageType,
+			CurrentEdit: otherCurrentEdit}
+
 		if otherIsParent {
 			parents = append(parents, otherPageData)
 		} else {
