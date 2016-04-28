@@ -550,8 +550,12 @@ func getUnpublishedRelationships(db *database.DB, u *core.CurrentUser, pageId st
 			return fmt.Errorf("failed to scan for page pairs: %v", err)
 		}
 
-		otherPageData := relatedPageData{PairType: pairType, PageId: otherId, PageType: otherPageType,
-			CurrentEdit: otherCurrentEdit}
+		otherPageData := relatedPageData{
+			PairType:    pairType,
+			PageId:      otherId,
+			PageType:    otherPageType,
+			CurrentEdit: otherCurrentEdit,
+		}
 
 		if otherIsParent {
 			parents = append(parents, otherPageData)
