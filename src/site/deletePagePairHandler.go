@@ -77,8 +77,37 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.StatusOK(nil)
 }
 
+// Returns whether the given parent and child are live.
+func getStatus(db *database.DB, userId string, parentId string, childId string) (bool, bool, string, error) {
+	var parentIsLive, childIsLive bool
+	rows := database.NewQuery(`
+		SELECT
+			pageId,
+			(currentEdit > 0 && !isDeleted) as isLive
+		FROM pageInfos
+		WHERE pageId IN (?, ?)`, parentId, childId).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId string
+		var isLive bool
+		err := rows.Scan(&pageId, &isLive)
+		if err != nil {
+			return err
+		}
+		if pageId == parentId {
+			parentIsLive = isLive
+		} else {
+			childIsLive = isLive
+		}
+		return nil
+	})
+	if err != nil {
+		return false, false, "Failed to look up deleted status", err
+	}
+	return parentIsLive, childIsLive, "", nil
+}
+
 // deletePagePair deletes the parent-child pagePair of the given type.
-func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType string) (string, error) {
+func deletePagePair(tx *database.Tx, userId string, parentId string, childId string, pairType string) (string, error) {
 	// Delete the pair
 	query := tx.DB.NewStatement(`
 			DELETE FROM pagePairs
@@ -87,41 +116,52 @@ func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType 
 		return "Couldn't delete a page pair", err
 	}
 
-	// Update change log
-	hashmap := make(database.InsertMap)
-	hashmap["pageId"] = parentId
-	hashmap["auxPageId"] = childId
-	hashmap["userId"] = userId
-	hashmap["createdAt"] = database.Now()
-	hashmap["type"] = map[string]string{
-		core.ParentPagePairType:      core.DeleteChildChangeLog,
-		core.TagPagePairType:         core.DeleteUsedAsTagChangeLog,
-		core.RequirementPagePairType: core.DeleteRequiredByChangeLog,
-		core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
-	}[pairType]
-	statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
-		return "Couldn't insert new child change log", err
+	parentIsLive, childIsLive, errMessage, err := getStatus(tx.DB, userId, parentId, childId)
+	if err != nil {
+		return errMessage, err
 	}
 
-	hashmap = make(database.InsertMap)
-	hashmap["pageId"] = childId
-	hashmap["auxPageId"] = parentId
-	hashmap["userId"] = userId
-	hashmap["createdAt"] = database.Now()
-	hashmap["type"] = map[string]string{
-		core.ParentPagePairType:      core.DeleteParentChangeLog,
-		core.TagPagePairType:         core.DeleteTagChangeLog,
-		core.RequirementPagePairType: core.DeleteRequirementChangeLog,
-		core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
-	}[pairType]
-	statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
-		return "Couldn't insert new child change log", err
+	// Update change logs
+	if childIsLive {
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = parentId
+		hashmap["auxPageId"] = childId
+		hashmap["userId"] = userId
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.DeleteChildChangeLog,
+			core.TagPagePairType:         core.DeleteUsedAsTagChangeLog,
+			core.RequirementPagePairType: core.DeleteRequiredByChangeLog,
+			core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
+		}[pairType]
+		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
+	}
+
+	if parentIsLive {
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = childId
+		hashmap["auxPageId"] = parentId
+		hashmap["userId"] = userId
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.DeleteParentChangeLog,
+			core.TagPagePairType:         core.DeleteTagChangeLog,
+			core.RequirementPagePairType: core.DeleteRequirementChangeLog,
+			core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
+		}[pairType]
+		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
 	}
 
 	// Send updates for users subscribed to the parent or child.
-	tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, parentId, childId)
+	if childIsLive && parentIsLive {
+		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, parentId, childId)
+	}
 
 	return "", nil
 }
