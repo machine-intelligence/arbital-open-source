@@ -463,6 +463,7 @@
 						<!-- Delete page -->
 						<arb-confirm-button button-text="Delete page"
 								button-before-confirm="true"
+								disabled="::page.isDeleted"
 								confirmed="deletePage()"></arb-confirm-button>
 					</md-content>
 				</div>
