@@ -32,7 +32,8 @@ func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData := core.NewHandlerData(params.U, true)
 
 	// Get invites a user has received and claimed
-	u.InvitesClaimed, err = core.GetInvitesWhere(db, "claimingUserId", u.Id)
+	wherePart := database.NewQuery(`WHERE ie.claimingUserId=?`, u.Id)
+	u.InvitesClaimed, err = core.LoadInvitesWhere(db, wherePart)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't get invites received", err)
 	}
@@ -60,7 +61,8 @@ func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["domains"] = domains
 
 	// Get all of the invites a user has SENT
-	returnData.ResultMap["invitesSent"], err = core.GetInvitesWhere(db, "senderId", u.Id)
+	wherePart = database.NewQuery(`WHERE i.senderId=?`, u.Id)
+	returnData.ResultMap["invitesSent"], err = core.LoadInvitesWhere(db, wherePart)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load sent invites", err)
 	}

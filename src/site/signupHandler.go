@@ -39,6 +39,7 @@ var signupHandler = siteHandler{
 }
 
 func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
 
 	decoder := json.NewDecoder(params.R.Body)
@@ -105,28 +106,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Process invite code and assign karma
 	inviteCode := strings.ToUpper(data.InviteCode)
-	karma := 0
-	var match *core.InviteMatch
-	if inviteCode != "" {
-		// Check if it matches a general code or domain code. Then process.
-		// Search for code in inviteeEmailPairs (joined with invites, to get domainId)
-		match, err = core.MatchInvite(db, inviteCode, data.Email)
-		if err != nil {
-			return pages.HandlerErrorFail("Unable to match invite code", err)
-		}
-		// If code is not in db, return as bad
-		if !match.CodeMatch {
-			return pages.HandlerErrorFail("Not an invite code", nil)
-		}
-		// If code is in claimed in db and is personal, can't be used again
-		if match.Invitee.ClaimingUserId != "" && match.Invite.Type == core.PersonalInviteType {
-			return pages.HandlerErrorFail("Single-use invite already claimed", nil)
-		}
-		// If the code matches and it's a general invite (domainId="")
-		if match.CodeMatch && match.Invite.DomainId == "" {
-			karma = core.DefaultInviteKarma
-		}
-	}
 
 	// Compute user's page alias and prevent collisions
 	cleanupRegexp := regexp.MustCompile(core.ReplaceRegexpStr)
@@ -182,7 +161,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["fbUserId"] = data.FbUserId
 		hashmap["createdAt"] = database.Now()
 		hashmap["lastWebsiteVisit"] = database.Now()
-		hashmap["karma"] = karma
 		hashmap["emailFrequency"] = core.DefaultEmailFrequency
 		hashmap["emailThreshold"] = core.DefaultEmailThreshold
 		statement := tx.DB.NewInsertStatement("users", hashmap).WithTx(tx)
@@ -200,29 +178,44 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Set the user value in params, since some internal handlers we might call
 		// will expect it to be set
-		params.U.Id = userId
-		params.U.Email = data.Email
+		u.Id = userId
+		u.Email = data.Email
 
-		// Claim invite code for user, and give them karma
-		if match.CodeMatch || match.EmailMatch {
-			_, err := core.ClaimCode(db, data.InviteCode, match.Invite.DomainId, params.U)
-			if err != nil {
-				return "Couldn't claim code for user", err
+		// The user might have some data stored under their session id
+		if u.SessionId != "" {
+			statement = database.NewQuery(`
+				UPDATE userMasteryPairs SET userId=? WHERE userId=?`, userId, u.SessionId).ToTxStatement(tx)
+			if _, err := statement.Exec(); err != nil {
+				return "Couldn't delete existing page summaries", err
+			}
+
+			statement = database.NewQuery(`
+				UPDATE userPageObjectPairs SET userId=? WHERE userId=?`, userId, u.SessionId).ToTxStatement(tx)
+			if _, err := statement.Exec(); err != nil {
+				return "Couldn't delete existing page summaries", err
 			}
 		}
 
-		// The user might have some data stored under their session id
-		if params.U.SessionId != "" {
-			statement = database.NewQuery(`
-				UPDATE userMasteryPairs SET userId=? WHERE userId=?`, userId, params.U.SessionId).ToTxStatement(tx)
-			if _, err := statement.Exec(); err != nil {
-				return "Couldn't delete existing page summaries", err
+		// Claim invite code for user, and give them karma
+		if inviteCode != "" {
+			_, err := core.ClaimCode(tx, inviteCode, u.Email, u.Id)
+			if err != nil {
+				return "Couldn't claim the invite code you entered", err
 			}
+		}
 
-			statement = database.NewQuery(`
-				UPDATE userPageObjectPairs SET userId=? WHERE userId=?`, userId, params.U.SessionId).ToTxStatement(tx)
-			if _, err := statement.Exec(); err != nil {
-				return "Couldn't delete existing page summaries", err
+		// Claim all existing invites for this user
+		wherePart := database.NewQuery(`WHERE ie.claimingUserId=0 AND ie.email=?`, u.Email)
+		inviteMap, err := core.LoadInvitesWhere(tx.DB, wherePart)
+		if err != nil {
+			return "Couldn't process existing invites", err
+		}
+		for _, invite := range inviteMap {
+			if invite.Code != inviteCode {
+				_, err = core.ClaimCode(tx, invite.Code, u.Email, u.Id)
+				if err != nil {
+					return "Couldn't claim an invite code that someone created for you", err
+				}
 			}
 		}
 

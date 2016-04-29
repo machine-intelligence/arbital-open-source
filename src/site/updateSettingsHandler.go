@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -46,39 +47,31 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Email Threshold has to be greater than 0", nil)
 	}
 
-	// Update user model from settings form
-	statement := db.NewStatement(`
+	// Begin the transaction.
+	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+		// Update user model from settings form
+		statement := db.NewStatement(`
 		UPDATE users
 		SET emailFrequency=?,emailThreshold=?,ignoreMathjax=?
-		WHERE id=?`)
-	_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, data.IgnoreMathjax, u.Id)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't update settings", err)
-	}
-
-	// If there's no newInviteCode submitted, return here
-	if data.NewInviteCodeClaimed != "" {
-		// Check if it matches a general code or domain code. Then process.
-		// Search for code in inviteeEmailPairs (joined with invites, to get domainId)
-		match, err := core.MatchInvite(db, data.NewInviteCodeClaimed, u.Email)
+		WHERE id=?`).WithTx(tx)
+		_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, data.IgnoreMathjax, u.Id)
 		if err != nil {
-			return pages.HandlerErrorFail("Unable to match invite code", err)
-		}
-		// If code is not in db, return as bad
-		if !match.CodeMatch {
-			return pages.HandlerBadRequestFail("Not an invite code", nil)
-		}
-		// If code is in claimed in db and is personal, can't be used again
-		if match.Invitee.ClaimingUserId != "" && match.Invite.Type == core.PersonalInviteType {
-			return pages.HandlerBadRequestFail("Single-use invite already claimed", nil)
+			return "Couldn't update settings", err
 		}
 
-		// Claim code for user, and send invite to UI
-		_, err = core.ClaimCode(db, data.NewInviteCodeClaimed, match.Invite.DomainId, u)
-		if err != nil {
-			return pages.HandlerBadRequestFail("Couldn't claim code", err)
+		// If there's no newInviteCode submitted, return here
+		if data.NewInviteCodeClaimed != "" {
+			// Claim code for user, and send invite to UI
+			invite, err := core.ClaimCode(tx, data.NewInviteCodeClaimed, u.Email, u.Id)
+			if err != nil {
+				return "Couldn't claim code", err
+			}
+			returnData.ResultMap["invite"] = invite
 		}
-		returnData.ResultMap["invite"] = match.Invite
+		return "", nil
+	})
+	if errMessage != "" {
+		return pages.HandlerErrorFail(errMessage, err)
 	}
 
 	return pages.StatusOK(returnData)

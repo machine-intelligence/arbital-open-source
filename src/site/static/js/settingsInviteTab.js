@@ -29,12 +29,10 @@ app.directive('arbSettingsInviteTab', function($http, pageService, userService) 
 					type: invite.type,
 					domainId:   invite.domainId,
 					domainName: pageService.getDomainName(invite.domainId),
-					isUpdate:   !!invite.isUpdate,
 					// If it's a new code, invite.code will be undefined
 					// If it's an old code that is unclaimed,
 					//    invite.claimedAt and invite.claimingUserId will be undefined
 					oldCode:    invite.code,
-					claimedAt:  invite.claimedAt,
 					claimingUserId: invite.claimingUserId
 				};
 				$http({

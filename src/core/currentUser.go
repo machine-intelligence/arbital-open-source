@@ -88,6 +88,7 @@ type CurrentUser struct {
 type Invite struct {
 	Code      string     `json:"code"`
 	Type      string     `json:"type"`
+	SenderId  string     `json:"senderId"`
 	DomainId  string     `json:"domainId"`
 	Invitees  []*Invitee `json:"invitees"`
 	CreatedAt string     `json:"createdAt"`
@@ -385,23 +386,18 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		u.TrustMap[domainId] = &Trust{}
 	}
 
-	// Compute bonus trust
-	rows := db.NewStatement(`
-		SELECT domainId,bonusEditTrust
-		FROM userDomainBonusTrust
-		WHERE userId=?`).Query(u.Id)
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var domainId string
-		var bonusEditTrust int
-		err := rows.Scan(&domainId, &bonusEditTrust)
-		if err != nil {
-			return fmt.Errorf("failed to scan an invite: %v", err)
-		}
-		u.TrustMap[domainId].EditTrust += bonusEditTrust
-		return nil
-	})
+	// NOTE: this should come last in computing trust, so that the bonus trust from
+	// an invite slowly goes away as the user accumulates real trust.
+	// Compute trust from invites
+	wherePart := database.NewQuery(`WHERE ie.claimingUserId=?`, u.Id)
+	inviteMap, err := LoadInvitesWhere(db, wherePart)
 	if err != nil {
-		return fmt.Errorf("Couldn't load userDomainBonusTrust: %v", err)
+		return fmt.Errorf("Couldn't process existing invites: %v", err)
+	}
+	for _, invite := range inviteMap {
+		if u.TrustMap[invite.DomainId].EditTrust < DefaultInviteKarma {
+			u.TrustMap[invite.DomainId].EditTrust = DefaultInviteKarma
+		}
 	}
 
 	// Now comupte permissions
@@ -414,19 +410,19 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 }
 
 // Get invites where a certain column matches a certain query string
-func GetInvitesWhere(db *database.DB, whereColumn string, query string) (map[string]*Invite, error) {
+// Returns map: inviteCode -> invite
+func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) (map[string]*Invite, error) {
 	invites := make(map[string]*Invite)
 	rows := database.NewQuery(`
-		SELECT i.code,i.type,i.domainId,i.createdAt,ie.email,ie.claimingUserId,ie.claimedAt
+		SELECT i.code,i.type,i.domainId,i.senderId,i.createdAt,ie.email,ie.claimingUserId,ie.claimedAt
 		FROM inviteEmailPairs AS ie
 		JOIN invites AS i
-		ON (i.code=ie.code)
-		WHERE`).Add(whereColumn).Add(`=?`).ToStatement(db).Query(query)
+		ON (i.code=ie.code)`).AddPart(wherePart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		invite := &Invite{}
 		invitee := &Invitee{}
-		err := rows.Scan(&invite.Code, &invite.Type, &invite.DomainId, &invite.CreatedAt,
-			&invitee.Email, &invitee.ClaimingUserId, &invitee.ClaimedAt)
+		err := rows.Scan(&invite.Code, &invite.Type, &invite.DomainId, &invite.SenderId,
+			&invite.CreatedAt, &invitee.Email, &invitee.ClaimingUserId, &invitee.ClaimedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan an invite: %v", err)
 		}
@@ -440,74 +436,45 @@ func GetInvitesWhere(db *database.DB, whereColumn string, query string) (map[str
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Error while loading domain ids WHERE %v='query': %v", whereColumn, err)
+		return nil, fmt.Errorf("Error while loading invites WHERE %v: %v", wherePart, err)
 	}
 	return invites, nil
 }
 
-// See if an invite code matches one in the db, and if the email matches
-func MatchInvite(db *database.DB, code string, userEmail string) (*InviteMatch, error) {
-	var invite Invite
-	var invitee Invitee
-	invite.Invitees = append(invite.Invitees, &invitee)
-	codeMatch := false
-	emailMatch := false
-	rows := db.NewStatement(`
-		SELECT ie.code, ie.email, ie.claimingUserId, i.domainId, i.type
-		FROM inviteEmailPairs as ie
-		JOIN invites as i
-		ON (i.code=ie.code)
-		WHERE ie.code=?`).Query(code)
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		err := rows.Scan(&invite.Code, &invitee.Email, &invitee.ClaimingUserId, &invite.DomainId, &invite.Type)
-		if err != nil {
-			return fmt.Errorf("Failed to scan row for matching invites: %v", err)
-		}
-		if invite.Code != "" {
-			codeMatch = true
-		}
-		if userEmail == invitee.Email {
-			emailMatch = true
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Can't process invites to match: %v", err)
-	}
-	inviteMatch := InviteMatch{&invite, &invitee, codeMatch, emailMatch}
-	return &inviteMatch, err
-}
-
-// ClaimCode claims the given code for the current user, and gives them the appropriate amount
+// ClaimCode claims the given code for the given user, and gives them the appropriate amount
 // of bonus trust.
-func ClaimCode(db *database.DB, inviteCode string, domainId string, u *CurrentUser) (int, error) {
-	// Update or insert row into inviteEmailPairs and userDomainBonusTrust
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		hashmap := make(database.InsertMap)
-		hashmap["code"] = inviteCode
-		hashmap["email"] = u.Email
-		hashmap["claimingUserId"] = u.Id
-		hashmap["claimedAt"] = database.Now()
-		statement := tx.DB.NewInsertStatement("inviteEmailPairs", hashmap, "claimingUserId", "claimedAt").WithTx(tx)
-		if _, err := statement.Exec(); err != nil {
-			return "Couldn't create invite email pair", err
-		}
+// If the code was claimed successfully, the Invite object is returned.
+// If the code was already claimed / couldn't be found, the Invite object is nil.
+func ClaimCode(tx *database.Tx, inviteCode string, claimingEmail string, claimingUserId string) (*Invite, error) {
+	inviteCode = strings.ToUpper(inviteCode)
 
-		hashmap = make(database.InsertMap)
-		hashmap["domainId"] = domainId
-		hashmap["bonusEditTrust"] = DefaultInviteKarma
-		hashmap["userId"] = u.Id
-		statement = db.NewInsertStatement("userDomainBonusTrust", hashmap, "bonusEditTrust").WithTx(tx)
-		if _, err := statement.Exec(); err != nil {
-			return "Couldn't set bonus trust in domain", err
-		}
-
-		return "", nil
-	})
-	if errMessage != "" {
-		return 0, fmt.Errorf("Transaction failed: %s %v", errMessage, err)
+	wherePart := database.NewQuery(`WHERE ie.code=?`, inviteCode).Add(`AND ie.email=?`, claimingEmail)
+	inviteMap, err := LoadInvitesWhere(tx.DB, wherePart)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to scan row for matching invites: %v", err)
 	}
-	return DefaultInviteKarma, nil
+	invite, ok := inviteMap[inviteCode]
+	if !ok {
+		// No valid invite found
+		return nil, nil
+	}
+	invitee := invite.Invitees[0]
+	if invitee.ClaimingUserId != "" {
+		// Invite is already claimed
+		return nil, nil
+	}
+
+	hashmap := make(database.InsertMap)
+	hashmap["code"] = inviteCode
+	hashmap["email"] = claimingEmail
+	hashmap["claimingUserId"] = claimingUserId
+	hashmap["claimedAt"] = database.Now()
+	statement := tx.DB.NewInsertStatement("inviteEmailPairs", hashmap, "claimingUserId", "claimedAt").WithTx(tx)
+	if _, err := statement.Exec(); err != nil {
+		return nil, fmt.Errorf("Couldn't create invite email pair", err)
+	}
+
+	return invite, nil
 }
 
 func init() {

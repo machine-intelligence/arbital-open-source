@@ -68,15 +68,7 @@ CREATE TABLE inviteEmailPairs (
 	claimedAt DATETIME NOT NULL,
 	PRIMARY KEY(code, email)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-CREATE TABLE userDomainBonusTrust (
-	/* Id of User. FK into users.*/
-	userId VARCHAR(32) NOT NULL,
-	/* Id of the domain the page belongs to. FK into groups. */
-	domainId VARCHAR(32) NOT NULL,
-	/* BonusTrust score a user has to edit pages in this domain */
-	bonusEditTrust BIGINT NOT NULL,
-	PRIMARY KEY(userId, domainId)
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+drop table userDomainBonusTrust;
 
 ALTER TABLE users ADD COLUMN isTrusted BOOLEAN NOT NULL;
 
