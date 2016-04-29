@@ -95,6 +95,7 @@ func init() {
 	s.HandleFunc(learnHandler.URI, handlerWrapper(learnHandler)).Methods("POST")
 	s.HandleFunc(lensHandler.URI, handlerWrapper(lensHandler)).Methods("POST")
 	s.HandleFunc(marksHandler.URI, handlerWrapper(marksHandler)).Methods("POST")
+	s.HandleFunc(moreRelationshipsHandler.URI, handlerWrapper(moreRelationshipsHandler)).Methods("POST")
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")

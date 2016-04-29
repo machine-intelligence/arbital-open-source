@@ -201,122 +201,143 @@
 
 			<!-- (2) Relationships tab -->
 			<md-tab label="Relationships" ng-disabled="::isComment">
-				<div class="editor-tab" flex>
-					<!-- Parents -->
-					<div arb-relationships class="edit-relationship-div"
-							page-id="{{::page.pageId}}"
-							type="parent"
-							force-edit-mode="true"
-							readonly="::!(isWiki || isQuestion)"></div>
 
-					<!-- Tags -->
-					<div arb-relationships class="edit-relationship-div"
-							page-id="{{::page.pageId}}"
-							type="tag"
-							force-edit-mode="true"
-							readonly="::!(isWiki || isQuestion)"></div>
-
-					<!-- Requirements -->
-					<div arb-relationships class="edit-relationship-div"
-							page-id="{{::page.pageId}}"
-							type="requirement"
-							force-edit-mode="true"
-							readonly="::!(isWiki || isLens || isQuestion)"></div>
-
-					<!-- Teaches -->
-					<div arb-relationships class="edit-relationship-div"
-							page-id="{{::page.pageId}}"
-							type="subject"
-							force-edit-mode="true"
-							readonly="::!(isWiki || isLens)"></div>
-
-					<!-- Lens ordering -->
-					<div class="edit-relationship-div" ng-if="::!isLens">
-						<div class="md-subhead">
-							<!-- HARDCODED -->
-							<arb-page-title page-id="17b"
-									is-link="true"
-									custom-page-title="Lens order"></arb-page-title>
-							<div class="md-caption">
-								Sorted from most technical to most simple. (Main lens is always the most technical.)
-							</div>
-						</div>
-						<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
-
-						<!-- List of lenses -->
-						<div data-as-sortable="::lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
-							<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
-								<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
-									<md-icon>reorder</md-icon>
-									<span>#{{pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
-									<arb-page-title page-id="{{::lensId}}" is-link="true"></arb-page-title>
+				<md-tabs class="md-primary"
+						md-selected="selectedRelationshipsTab"
+						md-stretch-tabs="{{::(gtXSmallScreen ? 'always' : 'never')}}"
+						layout="column"
+						flex>
+		
+					<!-- Primary relationships tab -->
+					<md-tab label="Primary">
+						<div class="editor-tab" flex>
+							<!-- Parents -->
+							<div arb-relationships class="edit-relationship-div"
+									page-id="{{::page.pageId}}"
+									type="parent"
+									force-edit-mode="true"
+									readonly="::!(isWiki || isQuestion)"></div>
+		
+							<!-- Tags -->
+							<div arb-relationships class="edit-relationship-div"
+									page-id="{{::page.pageId}}"
+									type="tag"
+									force-edit-mode="true"
+									readonly="::!(isWiki || isQuestion)"></div>
+		
+							<!-- Requirements -->
+							<div arb-relationships class="edit-relationship-div"
+									page-id="{{::page.pageId}}"
+									type="requirement"
+									force-edit-mode="true"
+									readonly="::!(isWiki || isLens || isQuestion)"></div>
+		
+							<!-- Teaches -->
+							<div arb-relationships class="edit-relationship-div"
+									page-id="{{::page.pageId}}"
+									type="subject"
+									force-edit-mode="true"
+									readonly="::!(isWiki || isLens)"></div>
+		
+							<!-- Lens ordering -->
+							<div class="edit-relationship-div" ng-if="::!isLens">
+								<div class="md-subhead">
+									<!-- HARDCODED -->
+									<arb-page-title page-id="17b"
+											is-link="true"
+											custom-page-title="Lens order"></arb-page-title>
+									<div class="md-caption">
+										Sorted from most technical to most simple. (Main lens is always the most technical.)
+									</div>
+								</div>
+								<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
+		
+								<!-- List of lenses -->
+								<div data-as-sortable="::lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
+									<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
+										<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
+											<md-icon>reorder</md-icon>
+											<span>#{{pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
+											<arb-page-title page-id="{{::lensId}}" is-link="true"></arb-page-title>
+										</div>
+									</div>
 								</div>
 							</div>
+		
+							<!-- List of strings (for questions) -->
+							<div ng-if="isQuestion">
+								<div class="md-subhead">
+									<arb-page-title page-id="35z"
+											is-link="true"
+											custom-page-title="'Search strings'"></arb-page-title>
+								</div>
+								<div layout="row"
+										layout-align="start center"
+										ng-repeat="(id,text) in page.searchStrings">
+									<!-- Delete button -->
+									<md-button class="md-icon-button" ng-click="deleteSearchString(id)">
+										<md-icon>delete</md-icon>
+									</md-button>
+							
+									<!-- Relationship page title -->
+									<span ng-bind="text"></span>
+								</div>
+		
+								<!-- Add a new string -->
+								<br>
+								<form layout="row" layout-align="start start" ng-submit="addSearchString()">
+									<md-input-container layout-fill>
+										<label>New search string</label>
+										<input ng-model="addSearchStringData.text">
+									</md-input-container>
+									<md-button class="md-primary" ng-click="addSearchString()">
+										Add string
+									</md-button>
+								</div>
+							</form>
+		
+							<!-- Info about how many incoming marks there are -->
+							<div ng-if="isQuestion">
+								<div class="md-subhead">
+									<arb-page-title page-id="370"
+											is-link="true"
+											custom-page-title="'Linked marks'"></arb-page-title>
+								</div>
+								<span>
+									{{pageService.pageMap[page.pageId].linkedMarkCount}} 
+									<ng-pluralize count="pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+									linked to this question.
+								</span>
+							</div>
+		
+							<br>
+		
+							<!-- Answers section -->
+							<div ng-if="isQuestion">
+								<div class="md-subhead">
+									<arb-page-title page-id="187"
+											is-link="true"
+											custom-page-title="'Answers'"></arb-page-title>
+								</div>
+								<arb-answers page-id="{{::page.pageId}}" show-delete="true"></arb-answers>
+							</div>
+		
+							<br>
+							<br>
 						</div>
-					</div>
-
-					<!-- List of strings (for questions) -->
-					<div ng-if="isQuestion">
-						<div class="md-subhead">
-							<arb-page-title page-id="35z"
-									is-link="true"
-									custom-page-title="'Search strings'"></arb-page-title>
+					</md-tab>
+		
+					<!-- Additional more tab -->
+					<md-tab label="Additional" md-on-select="loadMoreRelationships()">
+						<div class="editor-tab" flex ng-if="moreRelationshipIds">
+							<div arb-page-list
+									panel-title="Pages using this page"
+									show-created-at="true"
+									show-text-length="true"
+									page-ids="::moreRelationshipIds"></div>
 						</div>
-						<div layout="row"
-								layout-align="start center"
-								ng-repeat="(id,text) in page.searchStrings">
-							<!-- Delete button -->
-							<md-button class="md-icon-button" ng-click="deleteSearchString(id)">
-								<md-icon>delete</md-icon>
-							</md-button>
-					
-							<!-- Relationship page title -->
-							<span ng-bind="text"></span>
-						</div>
-
-						<!-- Add a new string -->
-						<br>
-						<form layout="row" layout-align="start start" ng-submit="addSearchString()">
-							<md-input-container layout-fill>
-								<label>New search string</label>
-								<input ng-model="addSearchStringData.text">
-							</md-input-container>
-							<md-button class="md-primary" ng-click="addSearchString()">
-								Add string
-							</md-button>
-						</div>
-					</form>
-
-					<!-- Info about how many incoming marks there are -->
-					<div ng-if="isQuestion">
-						<div class="md-subhead">
-							<arb-page-title page-id="370"
-									is-link="true"
-									custom-page-title="'Linked marks'"></arb-page-title>
-						</div>
-						<span>
-							{{pageService.pageMap[page.pageId].linkedMarkCount}} 
-							<ng-pluralize count="pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
-							linked to this question.
-						</span>
-					</div>
-
-					<br>
-
-					<!-- Answers section -->
-					<div ng-if="isQuestion">
-						<div class="md-subhead">
-							<arb-page-title page-id="187"
-									is-link="true"
-									custom-page-title="'Answers'"></arb-page-title>
-						</div>
-						<arb-answers page-id="{{::page.pageId}}" show-delete="true"></arb-answers>
-					</div>
-
-					<br>
-					<br>
-
-				</div>
+					</md-tab>
+				</md-tabs>
 			</md-tab>
 
 			<!-- (3) Settings tab -->
