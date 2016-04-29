@@ -69,7 +69,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.LastName = account.Surname
 
 		// Set the cookie
-		err = core.SaveEmailCookie(params.W, params.R, data.Email)
+		_, err = core.SaveCookie(params.W, params.R, data.Email)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't save a cookie", err)
 		}

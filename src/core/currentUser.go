@@ -142,24 +142,8 @@ func (user *CurrentUser) IsMemberOfGroup(groupId string) bool {
 	return isMember
 }
 
-// Store user's email in a cookie
-func SaveEmailCookie(w http.ResponseWriter, r *http.Request, email string) error {
-	s, err := sessions.GetSession(r)
-	if err != nil {
-		return fmt.Errorf("Couldn't get session: %v", err)
-	}
-
-	rand.Seed(time.Now().UnixNano())
-	s.Values[sessionKey] = CookieSession{Email: email, Random: fmt.Sprintf("%d", rand.Int63())}
-	err = s.Save(r, w)
-	if err != nil {
-		return fmt.Errorf("Failed to save user to session: %v", err)
-	}
-	return nil
-}
-
-// Store a unique id in a cookie so we can track session
-func saveSessionCookie(w http.ResponseWriter, r *http.Request) (string, error) {
+// Store a unique session id (and email if they're logged in) in a cookie so we can track the user's session
+func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, error) {
 	s, err := sessions.GetSession(r)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't get session: %v", err)
@@ -168,6 +152,7 @@ func saveSessionCookie(w http.ResponseWriter, r *http.Request) (string, error) {
 	rand.Seed(time.Now().UnixNano())
 	sessionId := fmt.Sprintf("sid:%d", rand.Int63())
 	s.Values[sessionKey] = CookieSession{
+		Email:     email,
 		SessionId: sessionId,
 		Random:    fmt.Sprintf("%d", rand.Int63()),
 	}
@@ -191,14 +176,14 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 
 	var cookie *CookieSession
 	if cookieStruct, ok := s.Values[sessionKey]; !ok {
-		sessionId, err := saveSessionCookie(w, r)
+		sessionId, err := SaveCookie(w, r, "")
 		u.SessionId = sessionId
 		return u, err
 	} else {
 		cookie = cookieStruct.(*CookieSession)
 	}
+	u.SessionId = cookie.SessionId
 	if cookie.Email == "" {
-		u.SessionId = cookie.SessionId
 		return u, err
 	}
 

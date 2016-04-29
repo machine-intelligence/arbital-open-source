@@ -692,9 +692,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	visitedValues := make([]interface{}, 0)
 	visitorId := u.GetSomeId()
 	if visitorId != "" {
-		for id, p := range pageMap {
+		for pageId, p := range pageMap {
 			if p.Text != "" {
-				visitedValues = append(visitedValues, visitorId, id, database.Now())
+				visitedValues = append(visitedValues, visitorId, u.SessionId, pageId, database.Now())
 			}
 		}
 	}
@@ -702,8 +702,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	// Add a visit to pages for which we loaded text.
 	if len(visitedValues) > 0 {
 		statement := db.NewStatement(`
-			INSERT INTO visits (userId, pageId, createdAt)
-			VALUES ` + database.ArgsPlaceholder(len(visitedValues), 3))
+			INSERT INTO visits (userId, sessionId, pageId, createdAt)
+			VALUES ` + database.ArgsPlaceholder(len(visitedValues), 4))
 		if _, err = statement.Exec(visitedValues...); err != nil {
 			return fmt.Errorf("Couldn't update visits", err)
 		}
