@@ -51,14 +51,14 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		lensIndexValues = append(lensIndexValues, pageId, index)
 	}
 
-	// Add a visit to pages for which we loaded text.
+	// Update the lens index.
 	if len(lensIndexValues) > 0 {
 		statement := db.NewStatement(`
 			INSERT INTO pageInfos (pageId, lensIndex)
 			VALUES ` + database.ArgsPlaceholder(len(lensIndexValues), 2) + `
 			ON DUPLICATE KEY UPDATE lensIndex=VALUES(lensIndex)`)
 		if _, err = statement.Exec(lensIndexValues...); err != nil {
-			return pages.HandlerErrorFail("Couldn't update visits", err)
+			return pages.HandlerErrorFail("Couldn't update a lens index", err)
 		}
 	}
 
