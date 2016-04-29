@@ -466,7 +466,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		// ROGTODO: send updates if oldPage.IsDeleted
 		// Do some stuff for a new comment.
 		if !oldPage.WasPublished && oldPage.Type == core.CommentPageType {
 			// Send updates.
