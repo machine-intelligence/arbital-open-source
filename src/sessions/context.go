@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -34,10 +33,9 @@ type change struct {
 // context represents the context of an in-flight HTTP request.
 type Context struct {
 	appengine.Context
-	URL       *url.URL // URL of the request
-	IpAddress string
-	counters  map[string]change // monitoring counters to update for current request
-	reported  bool              // whether this context has been sent to collection
+	R        *http.Request
+	counters map[string]change // monitoring counters to update for current request
+	reported bool              // whether this context has been sent to collection
 }
 
 // NewContext returns a context for the request.
@@ -54,11 +52,10 @@ func NewContext(r *http.Request) Context {
 	}
 
 	c = Context{
-		Context:   ac,
-		URL:       r.URL,
-		IpAddress: r.RemoteAddr,
-		counters:  map[string]change{},
-		reported:  false,
+		Context:  ac,
+		R:        r,
+		counters: map[string]change{},
+		reported: false,
 	}
 	ctxs.Lock()
 	ctxs.m[id] = c
@@ -80,7 +77,7 @@ func (c Context) Report() (*taskqueue.Task, error) {
 	if c.reported {
 		// Only attempt to report once per context. If this happens, it's
 		// a programming bug.
-		return nil, fmt.Errorf("context for %q already reported", c.URL)
+		return nil, fmt.Errorf("context for %q already reported", c.R.URL)
 	}
 	c.reported = true
 

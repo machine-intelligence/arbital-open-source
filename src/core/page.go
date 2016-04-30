@@ -694,7 +694,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	if visitorId != "" {
 		for pageId, p := range pageMap {
 			if p.Text != "" {
-				visitedValues = append(visitedValues, visitorId, u.SessionId, db.C.IpAddress, pageId, database.Now())
+				visitedValues = append(visitedValues, visitorId, u.SessionId, db.C.R.RemoteAddr, pageId, database.Now())
 			}
 		}
 	}
