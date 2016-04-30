@@ -98,7 +98,6 @@ var (
 		DomainsAndEditPermissions: true,
 		ChangeLogs:                true,
 		SearchStrings:             true,
-		Edit:                      true,
 		Links:                     true,
 		LinkedMarkCount:           true,
 		Text:                      true,

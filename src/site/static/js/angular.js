@@ -243,16 +243,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 					var parameter = parameters[parameterIndex];
 					args[parameter] = matches[parameterIndex + 1];
 				}
-				var pageUpdater = urlService.pageUpdater;
-				if (pageUpdater && $scope.subdomain == currentLocation.subdomain) {
-					var name = rule.name;
-					if (name) {
-						if (pageUpdater(name, args)) {
-							currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
-							return; // The current page could handle the URL by modifying itself
-						}
-					}
-				}
 				if (rule == currentLocation.rule && $scope.subdomain == currentLocation.subdomain) {
 					var currentMatches = true;
 					for (parameterIndex = 0; parameterIndex < parameters.length && currentMatches; parameterIndex++) {
@@ -264,7 +254,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 						return;
 					}
 				}
-				urlService.pageUpdater = null;
 				rule.handler(args, $scope);
 				currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
 				$('[ng-view]').empty();
