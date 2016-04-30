@@ -34,9 +34,10 @@ type change struct {
 // context represents the context of an in-flight HTTP request.
 type Context struct {
 	appengine.Context
-	URL      *url.URL          // URL of the request
-	counters map[string]change // monitoring counters to update for current request
-	reported bool              // whether this context has been sent to collection
+	URL       *url.URL // URL of the request
+	IpAddress string
+	counters  map[string]change // monitoring counters to update for current request
+	reported  bool              // whether this context has been sent to collection
 }
 
 // NewContext returns a context for the request.
@@ -53,10 +54,11 @@ func NewContext(r *http.Request) Context {
 	}
 
 	c = Context{
-		Context:  ac,
-		URL:      r.URL,
-		counters: map[string]change{},
-		reported: false,
+		Context:   ac,
+		URL:       r.URL,
+		IpAddress: r.RemoteAddr,
+		counters:  map[string]change{},
+		reported:  false,
 	}
 	ctxs.Lock()
 	ctxs.m[id] = c

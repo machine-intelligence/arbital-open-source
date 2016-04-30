@@ -75,3 +75,4 @@ alter table users drop column karma;
 alter table pageInfos drop column editKarmaLock;
 
 alter table visits add column sessionId VARCHAR(32) NOT NULL after userId;
+alter table visits add column ipAddress VARCHAR(64) NOT NULL after sessionId;
