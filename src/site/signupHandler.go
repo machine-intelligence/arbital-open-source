@@ -198,7 +198,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		params.U.Email = data.Email
 
 		// Claim invite code for user, and give them karma
-		if match.CodeMatch || match.EmailMatch {
+		if match != nil && (match.CodeMatch || match.EmailMatch) {
 			_, err := core.ClaimCode(db, data.InviteCode, match.Invite.DomainId, params.U)
 			if err != nil {
 				return "Couldn't claim code for user", err

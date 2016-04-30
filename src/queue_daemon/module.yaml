@@ -1,6 +1,6 @@
 application: zanaduu3
 module: daemon
-version: 001h
+version: 001i
 runtime: go
 api_version: go1
 manual_scaling:
