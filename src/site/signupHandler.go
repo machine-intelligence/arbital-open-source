@@ -105,7 +105,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Process invite code and assign karma
 	inviteCode := strings.ToUpper(data.InviteCode)
-	karma := 0
 	var match *core.InviteMatch
 	if inviteCode != "" {
 		// Check if it matches a general code or domain code. Then process.
@@ -121,10 +120,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// If code is in claimed in db and is personal, can't be used again
 		if match.Invitee.ClaimingUserId != "" && match.Invite.Type == core.PersonalInviteType {
 			return pages.HandlerErrorFail("Single-use invite already claimed", nil)
-		}
-		// If the code matches and it's a general invite (domainId="")
-		if match.CodeMatch && match.Invite.DomainId == "" {
-			karma = core.DefaultInviteKarma
 		}
 	}
 
@@ -182,7 +177,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["fbUserId"] = data.FbUserId
 		hashmap["createdAt"] = database.Now()
 		hashmap["lastWebsiteVisit"] = database.Now()
-		hashmap["karma"] = karma
 		hashmap["emailFrequency"] = core.DefaultEmailFrequency
 		hashmap["emailThreshold"] = core.DefaultEmailThreshold
 		statement := tx.DB.NewInsertStatement("users", hashmap).WithTx(tx)
