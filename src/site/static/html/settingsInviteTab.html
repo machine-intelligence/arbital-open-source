@@ -1,123 +1,23 @@
 <md-content layout-padding>
-	<h4 class="md-display-1 invite-header">
-		<md-icon>person</md-icon>
-		Personal invite codes
-	</h4>
-
-	<!-- Show/hide form to send a new PERSONAL invitation -->
+	<!-- Show/hide form to send a new invitation -->
 	<md-button class="md-primary"
-			ng-click="toggleCreatingPersonalInvite()"
-			aria-label="New individual invite">
-		<md-icon ng-bind="creatingPersonalInvite ? 'remove_circle': 'add_circle'"></md-icon>
-		<span ng-bind="creatingPersonalInvite ? 'Cancel': 'New individual invite code'"></span>
+			ng-click="toggleCreatingInvite()"
+			aria-label="New invite">
+		<md-icon ng-bind="creatingInvite ? 'cancel': 'add_circle'"></md-icon>
+		<span ng-bind="creatingInvite ? 'Cancel': 'Send new invite'"></span>
 	</md-button>
 
-	<!-- Form to send a new PERSONAL invitation -->
-	<form class="md-whiteframe-4dp create-code-form"
-			layout="column"
-			ng-if="creatingPersonalInvite">
+	<!-- Form to create an invitation -->
+	<form class="md-whiteframe-4dp create-code-form" layout="column" ng-if="creatingInvite">
 
-		<h4>New individual invite code</h4>
-
-		<md-input-container>
-			<label>
-				Email
-			</label>
-			<input required type="email" ng-model="email" autofocus>
-		</md-input-container>
-
-		<md-input-container>
-			<label>
-				Domain
-			</label>
-			<md-select ng-model="domainId">
-				<!-- Option for creating a general invite, gets sent to backend/db as ""-->
-				<md-option value="">No special access</md-option>
-				<!-- Option for each of the domains -->
-				<md-option ng-repeat="domain in ::domains"
-						ng-bind="::domain.longName"
-						value="{{::domain.domainId}}"></md-option>
-			</md-select>
-		</md-input-container>
-
-		<div layout-align="end center" layout="row">
-			<md-button class="md-raised md-primary"
-					type="submit"
-					ng-click="newInvite({type:'personal', domainId:domainId, emailStr:email})">
-				Send
-			</md-button>
-		</div>
-		<div class="submit-form-error md-warn" hidden></div>
-	</form>
-
-	<!-- List of PERSONAL invitations -->
-	<md-list class="md-dense">
-		<md-list-item class="md-2-line" ng-repeat="invite in invitesSent | filter:{type:'personal'}">
-
-			<!-- PERSONAL invite details -->
-			<div class="md-list-item-text" ng-if="!invite.deleted">
-				<h3 ng-bind="'Code: ' + invite.code"></h3>
-				<h3 ng-bind="'Domain: ' + pageService.getDomainName(invite.domainId)"></h3>
-				<p ng-init="invitee = invite.invitees[0]">
-					<md-icon ng-if="::!!invitee.claimingUserId" class="small-icon">done</md-icon>
-					<span ng-bind="::invitee.email"></span>
-					<md-tooltip md-direction="left" md-delay="500">
-						{{::!!invitee.claimingUserId ? 'Invite claimed' : 'Invite not yet claimed'}}
-					</md-tooltip>
-				<p>
-			</div>
-
-			<!-- Delete PERSONAL invite button -->
-			<md-button class="md-icon-button"
-					aria-label="Delete personal invite"
-					ng-click="deleteInvite(invite)"
-					ng-if="!invite.deleted">
-				<md-tooltip md-delay="500">
-					Delete personal invite code
-				</md-tooltip>
-				<md-icon class="md-primary">delete</md-icon>
-			</md-button>
-
-			<!-- Undo delete button -->
-			<md-button class="md-accent"
-					aria-label="Undo delete group invite"
-					ng-if="invite.deleted"
-					ng-click="undoDelete(invite)">
-				<md-icon>
-					undo
-				</md-icon>
-				Undo deletion of <b ng-bind="invite.code"></b>?
-			</md-button>
-		</md-list-item>
-	</md-list>
-
-	<br>
-	<md-divider></md-divider>
-
-	<h4 class="md-display-1 invite-header">
-		<md-icon>people</md-icon>
-		Group invite codes
-	</h4>
-
-	<!-- Show/hide form to send a new GROUP invitation -->
-	<md-button class="md-primary"
-			ng-click="toggleCreatingGroupInvite()"
-			aria-label="New group invite">
-		<md-icon ng-bind="creatingGroupInvite ? 'remove_circle': 'add_circle'"></md-icon>
-		<span ng-bind="creatingGroupInvite ? 'Cancel': 'New group invite code'"></span>
-	</md-button>
-
-	<!-- Form to send a new GROUP invitation -->
-	<form class="md-whiteframe-4dp create-code-form" layout="column" ng-if="creatingGroupInvite">
-
-		<h4>New group invite code</h4>
+		<h4>Send invite to these emails:</h4>
 
 		<md-input-container>
 			<label>
 				List of emails
 			</label>
 			<textarea required ng-model="emails" md-select-on-focus></textarea>
-			<div class="hint" ng-if="showHints">Comma separated</div>
+			<div class="hint">Comma separated</div>
 		</md-input-container>
 
 		<md-input-container>
@@ -127,7 +27,6 @@
 			<md-select ng-model="domainId">
 				<!-- Option for creating a general invite, gets sent to backend/db as ""-->
 				<md-option value="">No special access</md-option>
-				<!-- Option for each domainId -->
 				<md-option ng-repeat="domain in ::domains"
 						ng-bind="::domain.longName"
 						value="{{::domain.domainId}}"></md-option>
@@ -137,7 +36,7 @@
 		<div layout-align="end center" layout="row">
 			<md-button class="md-raised md-primary"
 					type="submit"
-					ng-click="newInvite({type: 'group', domainId:domainId, emailStr:emails})">
+					ng-click="newInvite(emails,domainId)">
 				Send
 			</md-button>
 		</div>
@@ -148,83 +47,21 @@
 		<div class="submit-form-error md-warn" hidden></div>
 	</form>
 
-	<!-- List of GROUP invitations -->
+	<!-- List of invitations -->
 	<md-list class="md-dense">
-		<md-list-item class="md-2-line"
-				ng-repeat="invite in invitesSent | filter:{type:'group'}"
+		<md-list-item ng-repeat="invite in invitesSent"
+				class="md-2-line"
 				layout="row">
-
-			<!-- GROUP invite details -->
-			<div class="md-list-item-text" ng-if="!invite.deleted">
-				<h3 ng-bind="'Code: ' + invite.code"></h3>
-				<h3 ng-bind="'Domain: ' + pageService.getDomainName(invite.domainId)"></h3>
-				<!-- Display the list of invited addresses -->
+			<div class="md-list-item-text">
+				<h3 ng-bind="::invite.toEmail"></h3>
 				<p>
-					<span ng-repeat="invitee in invite.invitees" class="invite-invitee">
-						<md-icon class="small-icon" ng-if="::!!invitee.claimingUserId">done</md-icon>
-						<span ng-bind="::invitee.email"></span>
-						<span ng-if="::!$last">,</span>
-						<md-tooltip md-delay="500">
-							{{::!!invitee.claimingUserId ? 'Invite claimed' : 'Invite not yet claimed'}}
-						</md-tooltip>
+					<span class="md-caption">
+						<span ng-bind="pageService.getDomainName(invite.domainId) + ' domain'"></span>
+						|
+						<span ng-bind="getInviteStatus(invite)"></span>
 					</span>
 				<p>
-				<!-- Form to add additional addresses to GROUP invite -->
-				<form ng-if="invite.adding"
-						layout="column"
-						class="md-whiteframe-4dp create-code-form">
-					<md-input-container>
-						<label ng-bind="'Add emails to invite ' + invite.code">
-						</label>
-						<textarea required ng-model="moreGroupEmails" md-select-on-focus></textarea>
-						<div class="hint" ng-if="showHints">Comma separated</div>
-					</md-input-container>
-					<div layout-align="space-around center" layout="row">
-						<md-button class="md-raised"
-								type="button"
-								ng-click="toggleAddEmails(invite)">
-							Cancel
-						</md-button>
-						<md-button class="md-raised md-primary"
-								type="submit"
-								ng-click="updateInvite(invite, moreGroupEmails)">
-							Add
-						</md-button>
-					</div>
-					<div class="submit-form-error md-warn" hidden></div>
-				</form>
 			</div>
-
-			<!-- Add email addresses to group invite -->
-			<md-button class="md-icon-button"
-					aria-label="Add addresses to group invite"
-					ng-click="toggleAddEmails(invite)"
-					ng-if="!invite.deleted && !invite.adding">
-				<md-tooltip md-tooltip="500">
-					Add invitees to invite
-				</md-tooltip>
-				<md-icon class="md-primary">add_circle</md-icon>
-			</md-button>
-
-			<!-- Delete GROUP invite button -->
-			<md-button class="md-icon-button"
-				aria-label="Delete group invite"
-				ng-click="deleteInvite(invite)"
-				ng-if="!invite.deleted && !invite.adding">
-				<md-tooltip md-tooltip="500">
-					Delete group invite code
-				</md-tooltip>
-				<md-icon class="md-primary">delete</md-icon>
-			</md-button>
-
-			<!-- Undo delete button -->
-			<md-button class="md-accent"
-				aria-label="Undo delete group invite?"
-				ng-if="invite.deleted"
-				ng-click="undoDelete(invite)">
-				<md-icon>undo</md-icon>
-				Undo deletion of <b ng-bind="invite.code"></b>?
-			</md-button>
 		</md-list-item>
 	</md-list>
 </md-content>

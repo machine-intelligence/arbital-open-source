@@ -227,10 +227,10 @@ app.directive('arbLikes', function($http, pageService, userService) {
 	return {
 		templateUrl: 'static/html/likes.html',
 		scope: {
-			// The type of likeable, such as 'changelog'.
+			// The type of likeable, such as 'changeLog'.
 			likeableType: '@',
 			// The id of the likeable object.
-			id: '@',
+			likeableId: '@',
 			// The likeable object this button corresponds to.
 			// If likeableType is 'page', we'll look it up in the pageMap.
 			likeable: '=',
@@ -244,11 +244,11 @@ app.directive('arbLikes', function($http, pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
-			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changelog')) {
+			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changeLog')) {
 				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
 			}
 			if (!$scope.likeable && $scope.likeableType == 'page') {
-				$scope.likeable = pageService.pageMap[$scope.id];
+				$scope.likeable = pageService.pageMap[$scope.likeableId];
 			}
 
 			// User clicked on the like button
@@ -257,7 +257,7 @@ app.directive('arbLikes', function($http, pageService, userService) {
 
 				var data = {
 					likeableType: $scope.likeableType,
-					id: $scope.id,
+					id: $scope.likeableId,
 					value: $scope.likeable.myLikeValue,
 				};
 				$http({method: 'POST', url: '/newLike/', data: JSON.stringify(data)})
@@ -630,6 +630,7 @@ app.directive('arbLogRow', function(pageService) {
 	return {
 		templateUrl: 'static/html/logRow.html',
 		scope: {
+			changeLog: '=', // Optional changelog associated with this row
 			pageId: '@',
 			byUserId: '@',
 			type: '@',

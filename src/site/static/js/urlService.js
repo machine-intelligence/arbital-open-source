@@ -7,12 +7,6 @@ app.service('urlService', function($http, $location, $rootScope) {
 	// This will be set to true before loading content for a second page
 	this.hasLoadedFirstPage = false;
 
-	// The current page can register a pageUpdater function to handle certain URLs by modifying itself
-	var pageUpdater = null;
-	this.setPageUpdater = function(value) {
-		pageUpdater = value;
-	};
-
 	// Map of URL patterns to handlers
 	this.urlRules = [];
 	// Add a rule to handle URL changes

@@ -43,31 +43,26 @@ alter table likes drop column pageId;
 
 alter table subscriptions drop column userTrustSnapshotId;
 
+drop table invites;
 CREATE TABLE invites (
-	/* PK: Invite's unique code. */
-	code VARCHAR(32) NOT NULL,
-	/* Type of invite: personal or group */
-	type VARCHAR(32) NOT NULL,
-	/* Id of user sending invite. FK into users.*/
-	senderId VARCHAR(32) NOT NULL,
-	/* Id of domain that this invite is for. FK into pages. */
+	/* Id of user sending invite. FK into users. */
+	fromUserId VARCHAR(32) NOT NULL,
+	/* Id of domain that this invite is for. FK into pageInfos. */
 	domainId VARCHAR(32) NOT NULL,
-	/* Date this invite was added to the table. */
+	/* Email address to send invite to. */
+	toEmail VARCHAR(100) NOT NULL,
+	/* Date this invite was created. */
 	createdAt DATETIME NOT NULL,
-
-	PRIMARY KEY(code)
-) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-CREATE TABLE inviteEmailPairs (
-	/* Invite's unique code. FK into invites */
-	code VARCHAR(32) NOT NULL,
-	/* Email address to send invite to */
-	email VARCHAR(100) NOT NULL,
-	/* Id of user claiming invite. FK into users */
-	claimingUserId VARCHAR(32) NOT NULL,
+	/* If a user claimed this invite, this is their id. FK into users. */
+	toUserId VARCHAR(32) NOT NULL,
 	/* Date this invite was claimed */
 	claimedAt DATETIME NOT NULL,
-	PRIMARY KEY(code, email)
+	/* When the invite email was sent. */
+	emailSentAt DATETIME NOT NULL,
+
+	PRIMARY KEY(fromUserId,domainId,toEmail)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+DROP TABLE inviteEmailPairs;
 drop table userDomainBonusTrust;
 
 ALTER TABLE users ADD COLUMN isTrusted BOOLEAN NOT NULL;

@@ -11,10 +11,9 @@ import (
 
 // updateSettingsData contains data given to us in the request.
 type updateSettingsData struct {
-	EmailFrequency       string `json:"emailFrequency"`
-	EmailThreshold       int    `json:"emailThreshold"`
-	NewInviteCodeClaimed string `json:"newInviteCodeClaimed"`
-	IgnoreMathjax        bool   `json:"ignoreMathJax"`
+	EmailFrequency string `json:"emailFrequency"`
+	EmailThreshold int    `json:"emailThreshold"`
+	IgnoreMathjax  bool   `json:"ignoreMathJax"`
 }
 
 var updateSettingsHandler = siteHandler{
@@ -59,15 +58,6 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return "Couldn't update settings", err
 		}
 
-		// If there's no newInviteCode submitted, return here
-		if data.NewInviteCodeClaimed != "" {
-			// Claim code for user, and send invite to UI
-			invite, err := core.ClaimCode(tx, data.NewInviteCodeClaimed, u.Email, u.Id)
-			if err != nil {
-				return "Couldn't claim code", err
-			}
-			returnData.ResultMap["invite"] = invite
-		}
 		return "", nil
 	})
 	if errMessage != "" {

@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
-	"strings"
-
 	"time"
 
 	"zanaduu3/src/database"
@@ -19,9 +17,6 @@ const (
 	WeeklyEmailFrequency      = "weekly"
 	NeverEmailFrequency       = "never"
 	ImmediatelyEmailFrequency = "immediately"
-
-	PersonalInviteType = "personal"
-	GroupInviteType    = "group"
 
 	Base31Chars             = "0123456789bcdfghjklmnpqrstvwxyz"
 	Base31CharsForFirstChar = "0123456789"
@@ -76,37 +71,23 @@ type CurrentUser struct {
 	SessionId string `json:"-"`
 
 	// Computed variables
-	UpdateCount    int                `json:"updateCount"`
-	GroupIds       []string           `json:"groupIds"`
-	TrustMap       map[string]*Trust  `json:"trustMap"`
-	InvitesClaimed map[string]*Invite `json:"invitesClaimed"`
+	UpdateCount    int               `json:"updateCount"`
+	GroupIds       []string          `json:"groupIds"`
+	TrustMap       map[string]*Trust `json:"trustMap"`
+	InvitesClaimed []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
 
-// Invite represents a code we can send to invite one or more users.
+// Invite is an invitation from a trusted user to another to participate in a domain.
 type Invite struct {
-	Code      string     `json:"code"`
-	Type      string     `json:"type"`
-	SenderId  string     `json:"senderId"`
-	DomainId  string     `json:"domainId"`
-	Invitees  []*Invitee `json:"invitees"`
-	CreatedAt string     `json:"createdAt"`
-}
-
-// Invitee is an invited user.
-type Invitee struct {
-	Email          string `json:"email"`
-	ClaimingUserId string `json:"claimingUserId"`
-	ClaimedAt      string `json:"claimedAt"`
-}
-
-// InviteMatch is the result for whether or not there exists a match for an invite code
-type InviteMatch struct {
-	Invite     *Invite
-	Invitee    *Invitee
-	CodeMatch  bool
-	EmailMatch bool
+	FromUserId  string `json:"fromUserId"`
+	DomainId    string `json:"domainId"`
+	ToEmail     string `json:"toEmail"`
+	CreatedAt   string `json:"createdAt"`
+	ToUserId    string `json:"toUserId"`
+	ClaimedAt   string `json:"claimedAt"`
+	EmailSentAt string `json:"emailSentAt"`
 }
 
 // Trust has the different scores for how much we trust a user.
@@ -130,7 +111,7 @@ func NewUser() *CurrentUser {
 	var u CurrentUser
 	u.GroupIds = make([]string, 0)
 	u.TrustMap = make(map[string]*Trust)
-	u.InvitesClaimed = make(map[string]*Invite)
+	u.InvitesClaimed = make([]*Invite, 0)
 	u.MailchimpInterests = make(map[string]bool)
 	return &u
 }
@@ -252,100 +233,6 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 	return
 }
 
-// Replace a rune at a specific index in a string
-func replaceAtIndex(in string, r rune, i int) string {
-	out := []rune(in)
-	out[i] = r
-	return string(out)
-}
-
-// Get the next highest base36 character, without vowels
-// Returns the character, and true if it wrapped around to 0
-// Since we decided that ids must begin with a digit, only allow characters 0-9 for the first character index
-func GetNextBase31Char(c sessions.Context, char rune, isFirstChar bool) (rune, bool, error) {
-	validChars := Base31Chars
-	if isFirstChar {
-		validChars = Base31CharsForFirstChar
-	}
-	index := strings.Index(validChars, strings.ToLower(string(char)))
-	if index < 0 {
-		return '0', false, fmt.Errorf("invalid character")
-	}
-	if index < len(validChars)-1 {
-		nextChar := rune(validChars[index+1])
-		return nextChar, false, nil
-	} else {
-		nextChar := rune(validChars[0])
-		return nextChar, true, nil
-	}
-}
-
-// Increment a base31 Id string
-func IncrementBase31Id(c sessions.Context, previousId string) (string, error) {
-	// Add 1 to the base36 value, skipping vowels
-	// Start at the last character in the Id string, carrying the 1 as many times as necessary
-	nextAvailableId := previousId
-	index := len(nextAvailableId) - 1
-	var newChar rune
-	var err error
-	processNextChar := true
-	for processNextChar {
-		// If we need to carry the 1 all the way to the beginning, then add a 1 at the beginning of the string
-		if index < 0 {
-			nextAvailableId = "1" + nextAvailableId
-			processNextChar = false
-		} else {
-			// Increment the character at the current index in the Id string
-			newChar, processNextChar, err = GetNextBase31Char(c, rune(nextAvailableId[index]), index == 0)
-			if err != nil {
-				return "", fmt.Errorf("Error processing id: %v", err)
-			}
-			nextAvailableId = replaceAtIndex(nextAvailableId, newChar, index)
-			index = index - 1
-		}
-	}
-
-	return nextAvailableId, nil
-}
-
-// Call GetNextAvailableId in a new transaction
-func GetNextAvailableIdInNewTransaction(db *database.DB) (string, error) {
-	return db.Transaction(func(tx *database.Tx) (string, error) {
-		return GetNextAvailableId(tx)
-	})
-}
-
-// Get the next available base36 Id string that doesn't contain vowels
-func GetNextAvailableId(tx *database.Tx) (string, error) {
-	// Query for the highest used pageId or userId
-	var highestUsedId string
-	row := database.NewQuery(`
-		SELECT MAX(pageId)
-		FROM (
-			SELECT pageId
-			FROM pageInfos
-			UNION
-			SELECT id
-			FROM users
-		) AS combined
-		WHERE char_length(pageId) = (
-			SELECT MAX(char_length(pageId))
-			FROM (
-				SELECT pageId
-				FROM pageInfos
-				UNION
-				SELECT id
-				FROM users
-			) AS combined2
-    )
-		`).ToTxStatement(tx).QueryRow()
-	_, err := row.Scan(&highestUsedId)
-	if err != nil {
-		return "", fmt.Errorf("Couldn't load id: %v", err)
-	}
-	return IncrementBase31Id(tx.DB.C, highestUsedId)
-}
-
 // LoadUpdateCount returns the number of unseen updates the given user has.
 func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 	editTypes := []string{PageEditUpdateType, CommentEditUpdateType}
@@ -389,12 +276,12 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 	// NOTE: this should come last in computing trust, so that the bonus trust from
 	// an invite slowly goes away as the user accumulates real trust.
 	// Compute trust from invites
-	wherePart := database.NewQuery(`WHERE ie.claimingUserId=?`, u.Id)
-	inviteMap, err := LoadInvitesWhere(db, wherePart)
+	wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
+	invites, err := LoadInvitesWhere(db, wherePart)
 	if err != nil {
 		return fmt.Errorf("Couldn't process existing invites: %v", err)
 	}
-	for _, invite := range inviteMap {
+	for _, invite := range invites {
 		if u.TrustMap[invite.DomainId].EditTrust < DefaultInviteKarma {
 			u.TrustMap[invite.DomainId].EditTrust = DefaultInviteKarma
 		}
@@ -409,72 +296,26 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 	return nil
 }
 
-// Get invites where a certain column matches a certain query string
-// Returns map: inviteCode -> invite
-func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) (map[string]*Invite, error) {
-	invites := make(map[string]*Invite)
+// Get invites filtered by the given condition.
+func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite, error) {
+	invites := make([]*Invite, 0)
 	rows := database.NewQuery(`
-		SELECT i.code,i.type,i.domainId,i.senderId,i.createdAt,ie.email,ie.claimingUserId,ie.claimedAt
-		FROM inviteEmailPairs AS ie
-		JOIN invites AS i
-		ON (i.code=ie.code)`).AddPart(wherePart).ToStatement(db).Query()
+		SELECT fromUserId,domainId,toEmail,createdAt,toUserId,claimedAt,emailSentAt
+		FROM invites`).AddPart(wherePart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		invite := &Invite{}
-		invitee := &Invitee{}
-		err := rows.Scan(&invite.Code, &invite.Type, &invite.DomainId, &invite.SenderId,
-			&invite.CreatedAt, &invitee.Email, &invitee.ClaimingUserId, &invitee.ClaimedAt)
+		err := rows.Scan(&invite.FromUserId, &invite.DomainId, &invite.ToEmail,
+			&invite.CreatedAt, &invite.ToUserId, &invite.ClaimedAt, &invite.EmailSentAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan an invite: %v", err)
 		}
-		if existingInvite, ok := invites[invite.Code]; !ok {
-			invite.Invitees = make([]*Invitee, 0)
-			invites[invite.Code] = invite
-		} else {
-			invite = existingInvite
-		}
-		invite.Invitees = append(invite.Invitees, invitee)
+		invites = append(invites, invite)
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Error while loading invites WHERE %v: %v", wherePart, err)
 	}
 	return invites, nil
-}
-
-// ClaimCode claims the given code for the given user, and gives them the appropriate amount
-// of bonus trust.
-// If the code was claimed successfully, the Invite object is returned.
-// If the code was already claimed / couldn't be found, the Invite object is nil.
-func ClaimCode(tx *database.Tx, inviteCode string, claimingEmail string, claimingUserId string) (*Invite, error) {
-	inviteCode = strings.ToUpper(inviteCode)
-
-	wherePart := database.NewQuery(`WHERE ie.code=?`, inviteCode).Add(`AND ie.email=?`, claimingEmail)
-	inviteMap, err := LoadInvitesWhere(tx.DB, wherePart)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to scan row for matching invites: %v", err)
-	}
-	invite, ok := inviteMap[inviteCode]
-	if !ok {
-		// No valid invite found
-		return nil, nil
-	}
-	invitee := invite.Invitees[0]
-	if invitee.ClaimingUserId != "" {
-		// Invite is already claimed
-		return nil, nil
-	}
-
-	hashmap := make(database.InsertMap)
-	hashmap["code"] = inviteCode
-	hashmap["email"] = claimingEmail
-	hashmap["claimingUserId"] = claimingUserId
-	hashmap["claimedAt"] = database.Now()
-	statement := tx.DB.NewInsertStatement("inviteEmailPairs", hashmap, "claimingUserId", "claimedAt").WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
-		return nil, fmt.Errorf("Couldn't create invite email pair", err)
-	}
-
-	return invite, nil
 }
 
 func init() {

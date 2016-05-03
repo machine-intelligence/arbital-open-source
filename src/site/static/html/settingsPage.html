@@ -52,30 +52,6 @@
 						<br>
 
 						<md-subheader class="md-hue-1">
-							Your claimed invite codes
-						</md-subheader>
-						<!--  List of claimed invite codes -->
-						<div ng-if="currentUserHasClaimedInvites()">
-							<div layout="row">
-								<div flex class="table-header">Domain</div>
-								<div flex class="table-header">Code</div>
-							</div>
-							<div layout="row" ng-repeat="invite in userService.user.invitesClaimed">
-								<div flex ng-bind="pageService.getDomainName(invite.domainId)"></div>
-								<div flex ng-bind="::invite.code"></div>
-							</div>
-						</div>
-						<!-- Add new invite code input -->
-						<md-input-container>
-							<label>
-								Claim a new invite code
-							</label>
-							<input name="newInviteCodeClaimed" ng-model="newInviteCodeClaimed">
-						</md-input-container>
-
-						<br>
-
-						<md-subheader class="md-hue-1">
 							Performance
 						</md-subheader>
 
@@ -94,7 +70,7 @@
 				</md-content>
 			</md-tab>
 
-			<md-tab label="Send invites">
+			<md-tab label="Invites">
 				<div arb-settings-invite-tab
 						domains="domains"
 						invites-sent="invitesSent"

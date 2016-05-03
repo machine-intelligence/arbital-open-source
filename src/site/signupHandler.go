@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -16,11 +15,10 @@ import (
 
 // signupHandlerData is the data received from the request.
 type signupHandlerData struct {
-	Email      string
-	FirstName  string
-	LastName   string
-	Password   string
-	InviteCode string
+	Email     string
+	FirstName string
+	LastName  string
+	Password  string
 
 	// Alternatively, signup with Facebook
 	FbAccessToken string
@@ -39,6 +37,7 @@ var signupHandler = siteHandler{
 }
 
 func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
+	c := params.C
 	u := params.U
 	db := params.DB
 
@@ -50,18 +49,18 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	if len(data.FbCodeToken) > 0 && len(data.FbRedirectUrl) > 0 {
 		// Convert FB code token to access token + user id
-		data.FbAccessToken, err = facebook.ProcessCodeToken(params.C, data.FbCodeToken, data.FbRedirectUrl)
+		data.FbAccessToken, err = facebook.ProcessCodeToken(c, data.FbCodeToken, data.FbRedirectUrl)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't process FB code token", err)
 		}
-		data.FbUserId, err = facebook.ProcessAccessToken(params.C, data.FbAccessToken)
+		data.FbUserId, err = facebook.ProcessAccessToken(c, data.FbAccessToken)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't process FB token", err)
 		}
 	}
 	if len(data.FbAccessToken) > 0 && len(data.FbUserId) >= 0 {
 		// Get data from FB
-		account, err := stormpath.CreateNewFbUser(params.C, data.FbAccessToken)
+		account, err := stormpath.CreateNewFbUser(c, data.FbAccessToken)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't create a new user", err)
 		}
@@ -104,9 +103,6 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.StatusOK(nil)
 	}
 
-	// Process invite code and assign karma
-	inviteCode := strings.ToUpper(data.InviteCode)
-
 	// Compute user's page alias and prevent collisions
 	cleanupRegexp := regexp.MustCompile(core.ReplaceRegexpStr)
 	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
@@ -136,9 +132,13 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	if len(data.Password) > 0 {
 		// Sign up the user through Stormpath
-		err = stormpath.CreateNewUser(params.C, data.FirstName, data.LastName, data.Email, data.Password)
+		err = stormpath.CreateNewUser(c, data.FirstName, data.LastName, data.Email, data.Password)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't create a new user", err)
+			// It could be that the user already has an account. Let's try to authenticate.
+			err2 := stormpath.AuthenticateUser(c, data.Email, data.Password)
+			if err2 != nil {
+				return pages.HandlerErrorFail("Couldn't create a new user", err)
+			}
 		}
 	} else {
 		// If there is no password, then the user must have signed up through a social network
@@ -196,31 +196,33 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 
-		// Claim invite code for user, and give them karma
-		if inviteCode != "" {
-			_, err := core.ClaimCode(tx, inviteCode, u.Email, u.Id)
-			if err != nil {
-				return "Couldn't claim the invite code you entered", err
-			}
+		// Signup for the user's own page
+		errMessage, err := addSubscription(tx, userId, userId)
+		if errMessage != "" {
+			return errMessage, err
+		}
+
+		// Add an update for each invite that will be claimed
+		statement = database.NewQuery(`
+			INSERT INTO updates
+			(userId,type,createdAt,groupByUserId,subscribedToId,goToPageId,byUserId,unseen)
+			SELECT ?,?,now(),fromUserId,fromUserId,domainId,fromUserId,true`, u.Id, core.InviteReceivedUpdateType).Add(`
+			FROM invites
+			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't insert updates for invites", err
 		}
 
 		// Claim all existing invites for this user
-		wherePart := database.NewQuery(`WHERE ie.claimingUserId=0 AND ie.email=?`, u.Email)
-		inviteMap, err := core.LoadInvitesWhere(tx.DB, wherePart)
-		if err != nil {
-			return "Couldn't process existing invites", err
-		}
-		for _, invite := range inviteMap {
-			if invite.Code != inviteCode {
-				_, err = core.ClaimCode(tx, invite.Code, u.Email, u.Id)
-				if err != nil {
-					return "Couldn't claim an invite code that someone created for you", err
-				}
-			}
+		statement = database.NewQuery(`
+			UPDATE invites
+			SET toUserId=?,claimedAt=?`, u.Id, database.Now()).Add(`
+			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't delete existing page summaries", err
 		}
 
-		// Signup for the user's own page
-		return addSubscription(tx, userId, userId)
+		return "", nil
 	})
 	if errMessage != "" {
 		return pages.HandlerErrorFail(errMessage, err)

@@ -164,15 +164,28 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	return 0, nil
 }
 
-func EnqueueNewRelationshipUpdate(c sessions.Context, userId string, pairType string, parentId string, childId string,
-	updateIsForChild bool) {
+func EnqueueNewRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
+	parentId string, childId string) {
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, false)
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, false)
+}
+
+func EnqueueDeleteRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
+	parentId string, childId string) {
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, true)
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, true)
+}
+
+func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string, pairType string, childPageType string,
+	parentId string, childId string, updateIsForChild bool, relationshipIsDeleted bool) {
 
 	var task NewUpdateTask
 	task.UserId = userId
-	updateType, err := core.GetUpdateTypeForPagePair(pairType, updateIsForChild)
+	updateType, err := core.GetUpdateTypeForPagePair(pairType, childPageType, updateIsForChild, relationshipIsDeleted)
 	if err != nil {
 		c.Errorf("Couldn't get the update type for a page pair type: %v", err)
 	}
+
 	task.UpdateType = updateType
 	if updateIsForChild {
 		task.GroupByPageId = childId

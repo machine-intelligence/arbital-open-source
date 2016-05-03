@@ -1,4 +1,12 @@
 <div layout="row">
+
+	<arb-likes likeable-type="changeLog"
+		likeable-id="{{::changeLog.id}}"
+		likeable="::changeLog"
+		is-stretched="true"
+		is-button="true"
+		ng-if="::(changeLog && changeLog.id)"></arb-likes>
+
 	<div ng-switch="::type">
 
 		<!-- Changes with links -->
@@ -13,6 +21,10 @@
 
 		<span ng-switch-when="newChild">
 			New child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newLens">
+			New lens: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="deleteChild">
@@ -151,6 +163,10 @@
 			Deleted page
 		</span>
 
+		<span ng-switch-when="undeletePage">
+			Republished page
+		</span>
+
 		<span ng-switch-when="newEdit">
 			New edit #{{::edit}}
 		</span>
@@ -218,6 +234,14 @@
 			removed you from
 			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
 				custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="inviteReceived">
+			Received invite to
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
+				custom-page-title="{{::pageService.pageMap[goToPageId].title}} domain"></arb-page-title>
+			from
+			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 		</span>
 
 		<!-- Marks -->

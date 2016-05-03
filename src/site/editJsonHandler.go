@@ -39,6 +39,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *pages.Result {
 	db := params.DB
 	u := params.U
+	returnData := core.NewHandlerData(params.U, false)
 
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
@@ -79,11 +80,6 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		p.PrevEdit = p.Edit
 	}
 
-	// Remove the primary page from the pageMap and add it to the editMap
-	returnData := core.NewHandlerData(params.U, false)
-	returnData.EditMap[pageId] = p
-	delete(returnData.PageMap, pageId)
-
 	// Load parents, tags, requirement, and lens pages (to display in Relationship tab)
 	core.AddPageToMap("3n", returnData.PageMap, core.TitlePlusLoadOptions)
 	core.AddPageToMap("178", returnData.PageMap, core.TitlePlusLoadOptions)
@@ -112,6 +108,9 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	p.SubjectIds = livePage.SubjectIds
 	p.ChangeLogs = livePage.ChangeLogs
 	p.SearchStrings = livePage.SearchStrings
+	returnData.EditMap[pageId] = p
+
+	// Clear change logs from the live page
 	livePage.ChangeLogs = []*core.ChangeLog{}
 
 	return pages.StatusOK(returnData)

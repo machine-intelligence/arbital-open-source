@@ -60,7 +60,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Do it!
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-		return deletePagePair(tx, u.Id, parent.PageId, child.PageId, data.Type)
+		return deletePagePair(tx, u.Id, data.Type, parent, child)
 	})
 	if err != nil {
 		return pages.HandlerErrorFail(errMessage, err)
@@ -78,46 +78,59 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 }
 
 // deletePagePair deletes the parent-child pagePair of the given type.
-func deletePagePair(tx *database.Tx, userId, parentId, childId string, pairType string) (string, error) {
+func deletePagePair(tx *database.Tx, userId string, pairType string, parent *core.Page, child *core.Page) (string, error) {
 	// Delete the pair
 	query := tx.DB.NewStatement(`
 			DELETE FROM pagePairs
 			WHERE parentId=? AND childId=? AND type=?`).WithTx(tx)
-	if _, err := query.Exec(parentId, childId, pairType); err != nil {
+	if _, err := query.Exec(parent.PageId, child.PageId, pairType); err != nil {
 		return "Couldn't delete a page pair", err
 	}
 
-	// Update change log
-	hashmap := make(database.InsertMap)
-	hashmap["pageId"] = parentId
-	hashmap["auxPageId"] = childId
-	hashmap["userId"] = userId
-	hashmap["createdAt"] = database.Now()
-	hashmap["type"] = map[string]string{
-		core.ParentPagePairType:      core.DeleteChildChangeLog,
-		core.TagPagePairType:         core.DeleteUsedAsTagChangeLog,
-		core.RequirementPagePairType: core.DeleteRequiredByChangeLog,
-		core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
-	}[pairType]
-	statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
-		return "Couldn't insert new child change log", err
+	childIsLive := child.Edit > 0 && !child.IsDeleted
+	parentIsLive := parent.Edit > 0 && !parent.IsDeleted
+
+	// Update change logs
+	if childIsLive {
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = parent.PageId
+		hashmap["auxPageId"] = child.PageId
+		hashmap["userId"] = userId
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.DeleteChildChangeLog,
+			core.TagPagePairType:         core.DeleteUsedAsTagChangeLog,
+			core.RequirementPagePairType: core.DeleteRequiredByChangeLog,
+			core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
+		}[pairType]
+		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
 	}
 
-	hashmap = make(database.InsertMap)
-	hashmap["pageId"] = childId
-	hashmap["auxPageId"] = parentId
-	hashmap["userId"] = userId
-	hashmap["createdAt"] = database.Now()
-	hashmap["type"] = map[string]string{
-		core.ParentPagePairType:      core.DeleteParentChangeLog,
-		core.TagPagePairType:         core.DeleteTagChangeLog,
-		core.RequirementPagePairType: core.DeleteRequirementChangeLog,
-		core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
-	}[pairType]
-	statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-	if _, err := statement.Exec(); err != nil {
-		return "Couldn't insert new child change log", err
+	if parentIsLive {
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = child.PageId
+		hashmap["auxPageId"] = parent.PageId
+		hashmap["userId"] = userId
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = map[string]string{
+			core.ParentPagePairType:      core.DeleteParentChangeLog,
+			core.TagPagePairType:         core.DeleteTagChangeLog,
+			core.RequirementPagePairType: core.DeleteRequirementChangeLog,
+			core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
+		}[pairType]
+		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		if _, err := statement.Exec(); err != nil {
+			return "Couldn't insert new child change log", err
+		}
 	}
+
+	// Send updates for users subscribed to the parent or child.
+	if childIsLive && parentIsLive {
+		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, child.Type, parent.PageId, child.PageId)
+	}
+
 	return "", nil
 }

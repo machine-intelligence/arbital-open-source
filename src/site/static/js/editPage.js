@@ -227,6 +227,20 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				});
 			};
 
+			$scope.moreRelationshipIds = undefined;
+			$scope.loadMoreRelationships = function() {
+				var data = {pageId: $scope.page.pageId};
+				$http({method: 'POST', url: '/json/moreRelationships/', data: JSON.stringify(data)})
+				.success(function(data) {
+					userService.processServerData(data);
+					pageService.processServerData(data);
+					$scope.moreRelationshipIds = data.result.moreRelationshipIds;
+				})
+				.error(function(data) {
+					$scope.addMessage('moreRelationships', 'Error loading more relationships: ' + data, 'error');
+				});
+			};
+
 			// =========== Error, warning, and info management system ==============
 			$scope.messages = {};
 			$scope.addMessage = function(key, text, type, permanent) {
