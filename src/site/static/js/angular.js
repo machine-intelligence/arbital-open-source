@@ -411,7 +411,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 						type: type,
 						parentIds: newParentIdString ? newParentIdString.split(',') : [],
 						success: function(newPageId) {
-							$location.path(pageService.getEditPageUrl(newPageId));
+							$location.replace().path(pageService.getEditPageUrl(newPageId));
 						},
 					});
 				}
