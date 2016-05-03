@@ -237,11 +237,11 @@
 		</span>
 
 		<span ng-switch-when="inviteReceived">
-			Received invite to
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="{{::pageService.pageMap[goToPageId].title}} domain"></arb-page-title>
-			from
+			Thanks to
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+			you can now participate in
+			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
+				custom-page-title="the {{::pageService.pageMap[goToPageId].title}} domain"></arb-page-title>
 		</span>
 
 		<!-- Marks -->

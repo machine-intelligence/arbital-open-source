@@ -50,7 +50,12 @@
 			Sign up with email
 		</md-button>
 		<div ng-if="signupSuccess">
-			Success! You should receive an email from us in a few minutes. Please click the link in it to verify your email address.
+			<div ng-if="isLive()">
+				Success! You should receive an email from us in a few minutes. Please click the link in it to verify your email address.
+			</div>
+			<div ng-if="!isLive()">
+				Success! You are ready to log in!
+			</div>
 		</div>
 	</form>
 </div>

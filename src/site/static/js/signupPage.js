@@ -43,6 +43,9 @@ app.directive('arbSignup', function($location, $http, pageService, userService) 
 					}
 				});
 			};
+
+			// Allow access to global isLive().
+			$scope.isLive = isLive;
 		},
 	};
 });

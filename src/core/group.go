@@ -98,7 +98,8 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	}
 
 	// Add user to the group.
-	if groupType == GroupPageType {
+	// NOTE: we no longer support personal private groups.
+	if groupType == GroupPageType && !isPersonalGroup {
 		hashmap = make(database.InsertMap)
 		hashmap["userId"] = userId
 		hashmap["groupId"] = groupId
@@ -130,7 +131,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	return "", nil
 }
 
-// NewGroup creates a new group and a corresponding page..
+// NewGroup creates a new group and a corresponding page.
 func NewGroup(tx *database.Tx, groupId, userId string, title, alias string) (string, error) {
 	return newInternalGroup(tx, GroupPageType, groupId, userId, title, alias, "", false)
 }
@@ -142,6 +143,6 @@ func NewDomain(tx *database.Tx, domainId, userId string, fullName, alias string)
 
 // NewUserGroup create a new person group for a user and the corresponding page.
 func NewUserGroup(tx *database.Tx, userId string, fullName, alias string) (string, error) {
-	clickbait := "Automatically generated group for " + fullName
+	clickbait := "Automatically generated page for " + fullName
 	return newInternalGroup(tx, GroupPageType, userId, userId, fullName, alias, clickbait, true)
 }

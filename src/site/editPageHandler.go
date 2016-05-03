@@ -184,7 +184,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	// Load relationships so we can send notifications on a page that had relationships but is being published for the first time.
+	// Load relationships so we can send notifications on a page that had
+	// relationships but is being published for the first time.
 	// Also send notifications if we undelete a page that has had new relationships created since it was deleted.
 	var newParents, newChildren []relatedPageData
 	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
