@@ -103,9 +103,9 @@
 			</md-menu-item>
 
 			<!-- Show unresolved marks -->
-			<md-menu-item ng-if="!loadedUnresolvedMarks && userService.userIsCool()">
-				<md-button ng-click="loadUnresolvedMarks()">
-					Show unresolved marks
+			<md-menu-item ng-if="!loadedMarks && userService.userIsCool()">
+				<md-button ng-click="loadMarks()">
+					Show all marks
 				</md-button>
 			</md-menu-item>
 

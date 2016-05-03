@@ -38,7 +38,6 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, false)
 
 	var data updateMarkData
 	decoder := json.NewDecoder(params.R.Body)
@@ -48,9 +47,10 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the mark
+	loadData := core.NewHandlerData(params.U, false)
 	mark := &core.Mark{Id: data.MarkId}
-	returnData.MarkMap[data.MarkId] = mark
-	err = core.LoadMarkData(db, returnData.PageMap, returnData.UserMap, returnData.MarkMap, u)
+	loadData.MarkMap[data.MarkId] = mark
+	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load the mark", err)
 	}
@@ -81,7 +81,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// If the mark was resolved, update the user
-	if mark.Type != core.QueryMarkType && data.ResolvedPageId != "" {
+	if mark.Type != core.QueryMarkType && mark.ResolvedBy == "" && data.ResolvedPageId != "" {
 		hashmap := make(database.InsertMap)
 		hashmap["userId"] = mark.CreatorId
 		hashmap["type"] = core.ResolvedMarkUpdateType
@@ -98,7 +98,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// If the user submitted a query mark, notify the authors
-	if mark.Type == core.QueryMarkType && data.Text != "" && data.Submit {
+	if mark.Type == core.QueryMarkType && mark.Text == "" && data.Text != "" && data.Submit {
 		var updateTask tasks.NewUpdateTask
 		updateTask.UserId = u.Id
 		updateTask.GoToPageId = mark.PageId

@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service('pageService', function($http, $location, $rootScope, $interval, userService, urlService) {
+app.service('pageService', function($http, $compile, $location, $rootScope, $interval, userService, urlService) {
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -846,8 +846,8 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 		});
 	};
 
-	// Load all unresolved marks for a given page.
-	this.loadUnresolvedMarks = function(params, success, error) {
+	// Load all marks for a given page.
+	this.loadMarks = function(params, success, error) {
 		$http({method: 'POST', url: '/json/marks/', data: JSON.stringify(params)})
 		.success(function(data, status) {
 			userService.processServerData(data);
@@ -1030,6 +1030,16 @@ app.service('pageService', function($http, $location, $rootScope, $interval, use
 		if (that.popupParams && !that.popupParams.persistent) {
 			that.hidePopup();
 		}
+	};
+
+	// Takes the same params as showPopup and {
+	//	elementText: will compile into $element
+	// }
+	this.showInfoPopup = function(params) {
+		params.info = params.info || "Info";
+		params.persistent = params.persistent || false;
+		params.timeout = params.timeout || 5000;
+		params.$element = params.$element || $compile(params.elementText)($rootScope);
 	};
 
 	// ===========================================================================

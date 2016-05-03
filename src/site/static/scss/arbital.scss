@@ -780,6 +780,11 @@ textarea {
 	}
 }
 
+// Added to a mark icon to show that it's been resolved
+.resolved-mark {
+	color: lightgray !important;
+}
+
 // Anchor text for an inline comment
 .inline-comment-highlight {
 	background-color: $primary-hue-1;

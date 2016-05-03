@@ -30,6 +30,7 @@ type PageLoadOptions struct {
 	Answers                 bool
 	UserMarks               bool // marks owned by the logged in user
 	UnresolvedMarks         bool // all unresolved marks
+	AllMarks                bool // just load all marks
 
 	// Load options for basic pages
 	Edit                      bool // because otherwise a non-published page id will be deleted from the pageMap

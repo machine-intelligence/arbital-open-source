@@ -885,6 +885,9 @@ textarea {
   .rhs-buttons .rhs-button {
     margin: 5px 5px 0px 0px !important; }
 
+.resolved-mark {
+  color: lightgray !important; }
+
 .inline-comment-highlight {
   background-color: #E0F2F1; }
 

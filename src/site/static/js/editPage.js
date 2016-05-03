@@ -2,7 +2,7 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, pageService, userService, autocompleteService, markdownService) {
+app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdToast, $mdMedia, pageService, userService, autocompleteService, markdownService) {
 	return {
 		templateUrl: 'static/html/editPage.html',
 		scope: {
@@ -389,7 +389,16 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 								pageService.updateMark({
 									markId: $location.search().markId,
 									resolvedPageId: $scope.pageId,
-								}, publishPageDone, publishPageDone);
+								}, function success() {
+									$mdToast.show({
+										template: "<md-toast><div class='md-toast-content'>You resolved the query mark.</div></md-toast>",
+										autoWrap: false,
+										parent: $("#fixed-overlay"),
+									});
+									publishPageDone();
+								}, function error() {
+									publishPageDone();
+								});
 							} else {
 								publishPageDone();
 							}

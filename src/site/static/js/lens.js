@@ -350,8 +350,8 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 			var orderRhsButtons = function() {
 				orderedInlineButtons.sort(function(a, b) {
 					// Create arrays of values which we compare, breaking ties with the next item in the array.
-					var arrayA = [a.paragraphIndex, a.anchorOffset, a.pageId, a.markId];
-					var arrayB = [b.paragraphIndex, b.anchorOffset, b.pageId, b.markId];
+					var arrayA = [a.paragraphIndex, a.anchorOffset, a.markId];
+					var arrayB = [b.paragraphIndex, b.anchorOffset, b.markId];
 					for (var i = 0; i < arrayA.length; i++) {
 						if (arrayA[i] < arrayB[i]) { return -1; }
 						if (arrayA[i] > arrayB[i]) { return 1; }
@@ -564,11 +564,11 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				}
 			};
 
-			// Show all unresolved marks on this lens.
-			scope.loadedUnresolvedMarks = false;
-			scope.loadUnresolvedMarks = function() {
-				scope.loadedUnresolvedMarks = true;
-				pageService.loadUnresolvedMarks({pageId: scope.page.pageId}, function(data) {
+			// Show all marks on this lens.
+			scope.loadedMarks = false;
+			scope.loadMarks = function() {
+				scope.loadedMarks = true;
+				pageService.loadMarks({pageId: scope.page.pageId}, function(data) {
 					for (var markId in data.marks) {
 						processMark(markId);
 					}

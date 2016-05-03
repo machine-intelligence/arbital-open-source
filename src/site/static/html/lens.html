@@ -199,12 +199,13 @@
 				ng-style="getInlineMarkIconStyle(markId)"
 				ng-mouseenter="inlineMarkIconMouseover(markId, true)"
 				ng-mouseleave="inlineMarkIconMouseover(markId, false)"
-				ng-repeat="(markId,mark) in inlineMarks">
+				ng-repeat="(markId,markParams) in inlineMarks">
 			<md-button class="md-icon-button md-raised"
 					ng-class="{'md-primary': isInlineMarkIconSelected(markId)}"
 					ng-click="toggleInlineMark(markId)"
 					aria-label="Question/objection">
 				<md-icon md-svg-icon="cursor-pointer"
+						ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
 						ng-if="::pageService.markMap[markId].type === 'query'"></md-icon>
 				<md-icon ng-if="::pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
 			</md-button>

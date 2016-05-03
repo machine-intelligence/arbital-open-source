@@ -1,4 +1,4 @@
-// marksJsonHandler.go returns specific marks for a given page.
+// marksJsonHandler.go returns marks for a given page.
 package site
 
 import (
@@ -38,7 +38,7 @@ func marksJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Load the marks
 	loadOptions := &core.PageLoadOptions{
-		UnresolvedMarks: true,
+		AllMarks: true,
 	}
 	core.AddPageToMap(data.PageId, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)

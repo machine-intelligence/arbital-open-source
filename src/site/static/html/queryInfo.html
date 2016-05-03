@@ -23,7 +23,8 @@
 		This query has been
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
-		<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
+		<arb-user-name user-id="{{mark.resolvedBy}}" ng-if="!mark.isResolvedByOwner"></arb-user-name>
+		<span ng-if="mark.isResolvedByOwner">you</span>
 		<span ng-if="mark.resolvedPageId !== ''">
 			via:
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
@@ -131,7 +132,8 @@
 		This query mark has been
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
-		<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
+		<arb-user-name user-id="{{mark.resolvedBy}}" ng-if="!mark.isResolvedByOwner"></arb-user-name>
+		<span ng-if="mark.isResolvedByOwner">the reader</span>
 		<span ng-if="mark.resolvedPageId !== ''">
 			via:
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>

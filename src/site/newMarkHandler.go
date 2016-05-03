@@ -68,8 +68,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		var requisiteSnapshotId int64
 		row := tx.DB.NewStatement(`
 			SELECT IFNULL(max(id),0)
-			FROM userRequisitePairSnapshots
-			`).WithTx(tx).QueryRow()
+			FROM userRequisitePairSnapshots`).WithTx(tx).QueryRow()
 		_, err = row.Scan(&requisiteSnapshotId)
 		if err != nil {
 			return "Couldn't load max snapshot id", err

@@ -264,8 +264,12 @@ type Mark struct {
 	Text                string `json:"text"`
 	RequisiteSnapshotId string `json:"requisiteSnapshotId"`
 	ResolvedPageId      string `json:"resolvedPageId"`
-	ResolvedBy          string `json:"resolvedBy"`
 	Answered            bool   `json:"answered"`
+
+	// If the mark was resolved by the owner, we want to display that. But that also
+	// means we can't send the ResolvedBy value to the FE, so we use IsResolveByOwner instead.
+	IsResolvedByOwner bool   `json:"isResolvedByOwner"`
+	ResolvedBy        string `json:"resolvedBy"`
 
 	// Marks are anonymous, so the only info FE gets is whether this mark is owned
 	// by the current user.
@@ -483,6 +487,16 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		})
 		if err != nil {
 			return fmt.Errorf("LoadMarkIds for unresolved marks failed: %v", err)
+		}
+
+		// Load all marks if forced to
+		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.AllMarks })
+		err = LoadMarkIds(db, u, pageMap, markMap, &LoadMarkIdsOptions{
+			ForPages:        filteredPageMap,
+			LoadResolvedToo: true,
+		})
+		if err != nil {
+			return fmt.Errorf("LoadMarkIds for all marks failed: %v", err)
 		}
 	}
 
@@ -1526,6 +1540,10 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 			return fmt.Errorf("failed to scan: %v", err)
 		}
 		mark.IsCurrentUserOwned = mark.CreatorId == u.Id
+		if mark.CreatorId == mark.ResolvedBy {
+			mark.ResolvedBy = "0"
+			mark.IsResolvedByOwner = true
+		}
 		*markMap[mark.Id] = *mark
 
 		if page, ok := pageMap[mark.PageId]; ok {

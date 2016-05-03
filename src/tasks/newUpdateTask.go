@@ -87,7 +87,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	rows = database.NewQuery(`
 		SELECT DISTINCT seeGroupId
 		FROM pageInfos
-		WHERE seeGroupId != '' AND pageId IN (?, ?)`, task.GroupByPageId, task.GoToPageId).ToStatement(db).Query()
+		WHERE seeGroupId != '' AND pageId IN (?,?)`, task.GroupByPageId, task.GoToPageId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId string
 		err := rows.Scan(&groupId)
@@ -99,8 +99,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return nil
 	})
 	if err != nil {
-		c.Errorf("Couldn't process group requirements: %v", err)
-		return -1, err
+		return -1, fmt.Errorf("Couldn't process group requirements: %v", err)
 	}
 
 	var query *database.QueryPart
