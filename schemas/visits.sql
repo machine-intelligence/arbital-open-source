@@ -5,6 +5,12 @@ CREATE TABLE visits (
 	/* If the user is logged in, user's id. FK into users. */
 	userId VARCHAR(32) NOT NULL,
 
+	/* Session id. If the user is *not* logged in, this will be the same as userId. */
+	sessionId VARCHAR(32) NOT NULL,
+
+	/* IP address of the user's computer. */
+	ipAddress VARCHAR(64) NOT NULL,
+
 	/* Page id. FK into pages. */
 	pageId VARCHAR(32) NOT NULL,
 
