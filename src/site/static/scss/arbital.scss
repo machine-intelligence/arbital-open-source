@@ -30,6 +30,15 @@ body {
 	}
 }
 
+// Applied to the "BETA" label that appears next to the logo
+.beta-label {
+	position: relative;
+	font-size: 13px;
+	left: -15px;
+	top: 20px;
+	color: #cccccc;
+}
+
 arb-markdown, [arb-markdown], .preview-area {
 	p {
 		margin-top: 0;

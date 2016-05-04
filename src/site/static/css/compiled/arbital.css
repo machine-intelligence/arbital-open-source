@@ -401,6 +401,13 @@ body {
   .facebook-button:focus {
     background-color: #8b9dc3 !important; }
 
+.beta-label {
+  position: relative;
+  font-size: 13px;
+  left: -15px;
+  top: 20px;
+  color: #cccccc; }
+
 arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0;
   overflow-x: auto;
