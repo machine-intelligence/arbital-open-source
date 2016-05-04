@@ -24,7 +24,7 @@ var marksHandler = siteHandler{
 // marksJsonHandler handles the request.
 func marksJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(params.U)
 
 	// Decode data
 	var data marksJsonData

@@ -304,7 +304,7 @@ type SearchString struct {
 
 // CommonHandlerData is what handlers fill out and return
 type CommonHandlerData struct {
-	// If set, then this packet should reset everything on the FE
+	// If set, then this packet will erase all data on the FE
 	ResetEverything bool `json:"resetEverything"`
 	// Optional user object with the current user's data
 	User *CurrentUser `json:"user"`
@@ -322,10 +322,9 @@ type CommonHandlerData struct {
 }
 
 // NewHandlerData creates and initializes a new commonHandlerData object.
-func NewHandlerData(u *CurrentUser, resetEverything bool) *CommonHandlerData {
+func NewHandlerData(u *CurrentUser) *CommonHandlerData {
 	var data CommonHandlerData
 	data.User = u
-	data.ResetEverything = resetEverything
 	data.PageMap = make(map[string]*Page)
 	data.EditMap = make(map[string]*Page)
 	data.UserMap = make(map[string]*User)
@@ -340,6 +339,11 @@ func (data CommonHandlerData) AddMark(idStr string) {
 	if _, ok := data.MarkMap[idStr]; !ok {
 		data.MarkMap[idStr] = &Mark{Id: idStr}
 	}
+}
+
+func (data CommonHandlerData) SetResetEverything() *CommonHandlerData {
+	data.ResetEverything = true
+	return &data
 }
 
 // LoadDataOption is used to set some simple loading options for loading functions

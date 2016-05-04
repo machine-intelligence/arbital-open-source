@@ -28,7 +28,7 @@ var newAnswerHandler = siteHandler{
 func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(u)
 	now := database.Now()
 
 	var data newAnswerData

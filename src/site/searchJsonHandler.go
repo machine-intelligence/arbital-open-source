@@ -115,14 +115,13 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages.Result {
 	db := params.DB
 	u := params.U
+	returnData := core.NewHandlerData(u)
 
 	// Perform search.
 	results, err := elastic.SearchPageIndex(params.C, query)
 	if err != nil {
 		return pages.HandlerErrorFail("Error with elastic search", err)
 	}
-
-	returnData := core.NewHandlerData(params.U, false)
 
 	loadOptions := (&core.PageLoadOptions{
 		Tags:     true,

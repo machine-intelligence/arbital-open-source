@@ -30,7 +30,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
 	c := params.C
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(u)
 
 	var data newSearchStringData
 	decoder := json.NewDecoder(params.R.Body)

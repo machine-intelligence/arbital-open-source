@@ -26,10 +26,9 @@ var settingsPageHandler = siteHandler{
 
 // settingsPageJsonHandler renders the settings page.
 func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
-	var err error
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Get all domains, for user to select when creating invite
 	rows := database.NewQuery(`
@@ -39,7 +38,7 @@ func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		ON (p.pageId=pi.pageId AND p.edit=pi.currentEdit)
 		WHERE type=?`, core.DomainPageType).ToStatement(db).Query()
 	domains := make(map[string]*Domain)
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var domainId, longName string
 		err := rows.Scan(&domainId, &longName)
 		if err != nil {

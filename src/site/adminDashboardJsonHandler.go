@@ -44,7 +44,7 @@ func processRows(rows *database.Rows, pageMap map[string]*core.Page, loadOptions
 func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 	var err error
 
 	// Load additional info for all pages

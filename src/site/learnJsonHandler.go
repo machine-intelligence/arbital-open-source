@@ -87,7 +87,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	c := params.C
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Decode data
 	var data learnJsonData

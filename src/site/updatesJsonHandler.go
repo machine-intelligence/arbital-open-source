@@ -18,7 +18,7 @@ var updatesHandler = siteHandler{
 func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Load the updates and populate page & user maps
 	updateRows, err := core.LoadUpdateRows(db, u, returnData, false)

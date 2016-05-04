@@ -25,7 +25,7 @@ var moreRelationshipsHandler = siteHandler{
 func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(u, false)
+	returnData := core.NewHandlerData(u)
 
 	// Decode data
 	var data moreRelationshipsJsonData

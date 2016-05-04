@@ -38,6 +38,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
+	loadData := core.NewHandlerData(u)
 
 	var data updateMarkData
 	decoder := json.NewDecoder(params.R.Body)
@@ -47,7 +48,6 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the mark
-	loadData := core.NewHandlerData(params.U, false)
 	mark := &core.Mark{Id: data.MarkId}
 	loadData.MarkMap[data.MarkId] = mark
 	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)

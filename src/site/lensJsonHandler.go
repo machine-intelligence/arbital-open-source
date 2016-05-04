@@ -22,6 +22,7 @@ var lensHandler = siteHandler{
 func lensJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
+	returnData := core.NewHandlerData(u)
 
 	// Decode data
 	var data lensJsonData
@@ -41,7 +42,6 @@ func lensJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	returnData := core.NewHandlerData(params.U, false)
 	core.AddPageToMap(pageId, returnData.PageMap, core.LensFullLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {

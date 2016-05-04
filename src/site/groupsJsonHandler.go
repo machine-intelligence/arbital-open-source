@@ -20,8 +20,7 @@ var groupsHandler = siteHandler{
 func groupsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Load the groups and members
 	rows := database.NewQuery(`

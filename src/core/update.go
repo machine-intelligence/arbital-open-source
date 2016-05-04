@@ -302,7 +302,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 		return nil, fmt.Errorf("Couldn't load user groups: %v", err)
 	}
 
-	handlerData := NewHandlerData(u, true)
+	handlerData := NewHandlerData(u)
 
 	// Load updates and populate the maps
 	resultData.UpdateRows, err = LoadUpdateRows(db, u, handlerData, true)

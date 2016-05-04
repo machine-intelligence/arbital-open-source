@@ -30,7 +30,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	c := params.C
 	u := params.U
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Decode data
 	var data primaryPageJsonData

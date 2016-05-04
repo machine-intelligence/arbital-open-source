@@ -17,8 +17,7 @@ var requisitesHandler = siteHandler{
 func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Options to load the pages with
 	pageOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)

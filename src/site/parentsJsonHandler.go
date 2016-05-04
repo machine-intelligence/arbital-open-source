@@ -21,6 +21,7 @@ var parentsHandler = siteHandler{
 // parentsJsonHandler handles the request.
 func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
+	returnData := core.NewHandlerData(params.U)
 
 	// Decode data
 	var data parentsJsonData
@@ -33,8 +34,6 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the parents
-	returnData := core.NewHandlerData(params.U, false)
-
 	loadOptions := (&core.PageLoadOptions{
 		Parents: true,
 	}).Add(core.TitlePlusLoadOptions)

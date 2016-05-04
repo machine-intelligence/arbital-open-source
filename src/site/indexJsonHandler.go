@@ -24,8 +24,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	c := params.C
-
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Manually load some pages we like
 	featuredDomains := make([]*featuredDomain, 0)

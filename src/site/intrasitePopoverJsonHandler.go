@@ -23,6 +23,7 @@ var intrasitePopoverHandler = siteHandler{
 func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
+	returnData := core.NewHandlerData(u)
 
 	// Decode data
 	var data intrasitePopoverJsonData
@@ -42,7 +43,6 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
-	returnData := core.NewHandlerData(params.U, false)
 	core.AddPageToMap(pageId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {

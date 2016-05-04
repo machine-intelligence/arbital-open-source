@@ -30,7 +30,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	c := params.C
 	u := params.U
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(u)
 
 	var data newInviteData
 	err := json.NewDecoder(params.R.Body).Decode(&data)

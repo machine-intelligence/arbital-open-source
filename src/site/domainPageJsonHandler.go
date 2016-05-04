@@ -30,6 +30,7 @@ var domainPageHandler = siteHandler{
 func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Decode data
 	var data domainPageJsonData
@@ -38,8 +39,6 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-
-	returnData := core.NewHandlerData(params.U, true)
 
 	// Get constraint
 	var constraintPart *database.QueryPart

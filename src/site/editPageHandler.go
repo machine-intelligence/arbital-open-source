@@ -70,7 +70,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	c := params.C
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(u)
 
 	if !core.IsIdValid(data.PageId) {
 		return pages.HandlerBadRequestFail("No pageId specified", nil)

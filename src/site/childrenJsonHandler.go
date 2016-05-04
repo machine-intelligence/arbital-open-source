@@ -32,7 +32,7 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Need a valid parentId", err)
 	}
 
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(params.U)
 
 	// Load the children.
 	loadOptions := (&core.PageLoadOptions{

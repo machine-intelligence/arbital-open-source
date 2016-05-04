@@ -41,6 +41,7 @@ func updateMasteriesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updateMasteries) *pages.Result {
 	db := params.DB
 	u := params.U
+	returnData := core.NewHandlerData(u)
 
 	userId := u.GetSomeId()
 	if userId == "" {
@@ -143,10 +144,8 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		return pages.StatusOK(nil)
 	}
 
-	unlockedIds := make([]string, 0)
-	returnData := core.NewHandlerData(params.U, false)
-
 	// For the previously computed candidates, check if the user can now understand them
+	unlockedIds := make([]string, 0)
 	rows := database.NewQuery(`
 		SELECT pp.childId
 		FROM pagePairs AS pp

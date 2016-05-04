@@ -18,7 +18,7 @@ var defaultHandler = siteHandler{
 func defaultJsonHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(params.U).SetResetEverything()
 	err := core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

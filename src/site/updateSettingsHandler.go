@@ -28,7 +28,6 @@ var updateSettingsHandler = siteHandler{
 func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, true)
 
 	var data updateSettingsData
 	decoder := json.NewDecoder(params.R.Body)
@@ -64,5 +63,5 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail(errMessage, err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.StatusOK(nil)
 }

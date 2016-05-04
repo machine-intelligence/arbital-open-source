@@ -26,7 +26,7 @@ type dashboardPageJsonData struct {
 func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(params.U, true)
+	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// Decode data
 	var data dashboardPageJsonData

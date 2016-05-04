@@ -34,7 +34,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	c := params.C
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(u)
 
 	var data newMarkData
 	decoder := json.NewDecoder(params.R.Body)

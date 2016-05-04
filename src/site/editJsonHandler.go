@@ -39,7 +39,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *pages.Result {
 	db := params.DB
 	u := params.U
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(u)
 
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
