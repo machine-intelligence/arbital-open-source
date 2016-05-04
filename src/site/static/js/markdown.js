@@ -23,6 +23,9 @@ var complexLinkRegexp = new RegExp(notEscaped +
 var atAliasRegexp = new RegExp(notEscaped +
 		'\\[@' + aliasMatch + '\\]' + noParen, 'g');
 
+// How long to wait before calling mathjax typeset manually
+const mathjaxTypesetDelay = 300; // ms
+
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
 app.service('markdownService', function($compile, $timeout, pageService, userService) {
@@ -463,7 +466,7 @@ app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownS
 			$pageText.html(html);
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
-			}, 300);
+			}, mathjaxTypesetDelay);
 			markdownService.processLinks(scope, $pageText);
 
 			// Highlight the anchorText for marks.

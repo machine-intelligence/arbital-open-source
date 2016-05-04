@@ -197,527 +197,536 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 		},
 		link: function(scope, element, attrs) {
 			if (scope.isSimpleEmbed) return;
-
-			// Detach some elements and append them to the body, since they will appear
-			// outside of the lens's div, and otherwise would be masked
-			var $inlineCommentsDiv = element.find('.inline-comments-div');
-			var inlineCommentButtonHeight = 40;
-			$inlineCommentsDiv.appendTo($('body'));
-			var inlineIconShiftLeft = inlineCommentButtonHeight * ($mdMedia('gt-md') ? 0.5 : 1.1);
-			scope.$on('$destroy', function() {
-				$inlineCommentsDiv.remove();
-			});
-
-			// =========================== Inline elements ===========================
-			var $markdownContainer = element.find('.lens-text-container');
-			var $markdown = element.find('.lens-text');
-			scope.inlineComments = {};
-			scope.inlineMarks = {};
-			var orderedInlineButtons = [];
-			var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
-			dmp.Match_MaxBits = 10000;
-			dmp.Match_Distance = 10000;
-
-			// Compute the raw text for each paragraph; on demand
-			var paragraphTexts = undefined;
-			var populateParagraphTexts = function() {
-				paragraphTexts = [];
-				var i = 0;
-				$markdown.children().each(function() {
-					paragraphTexts.push(getParagraphText($(this).get(0)).context);
-					i++;
-				});
-			};
-
-			// Given the anchor parameters, find the corresponding place in DOM.
-			var computeInlineHightlightParams = function(anchorContext, anchorText, anchorOffset) {
-				var results = {
-					bestParagraphNode: undefined,
-					bestParagraphIndex: 0,
-					anchorOffset: 0,
-					anchorLength: 0,
-				};
-				// Find the best paragraph
-				var bestParagraphText;
-				var bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER doesn't exist in IE
-				if (!paragraphTexts) {
-					populateParagraphTexts();
-				}
-				for (var i = 0; i < paragraphTexts.length; i++) {
-					var text = paragraphTexts[i];
-					var diffs = dmp.diff_main(text, anchorContext);
-					var score = dmp.diff_levenshtein(diffs);
-					if (score < bestScore) {
-						results.bestParagraphNode = $markdown.children().get(i);
-						bestParagraphText = text;
-						bestScore = score;
-						results.bestParagraphIndex = i;
-					}
-				}
-
-				// Check if it's a close enough match
-				if (bestScore > anchorContext.length / 2) return undefined;
-
-				// Find offset into the best paragraph
-				results.anchorOffset = dmp.match_main(bestParagraphText, anchorText, anchorOffset);
-				if (results.anchorOffset < 0) {
-					// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor
-					results.anchorOffset = 0;
-					results.anchorLength = bestParagraphText.length;
-				} else {
-					// Figure out how long the highlighted anchor should be
-					var remainingText = bestParagraphText.substring(results.anchorOffset);
-					var diffs = dmp.diff_main(remainingText, anchorText);
-					results.anchorLength = remainingText.length;
-					if (diffs.length > 0) {
-						// Note: we can potentially be more clever here and discount
-						// edits done after anchorText.length chars
-						var lastDiff = diffs[diffs.length - 1];
-						if (lastDiff[0] < 0) {
-							results.anchorLength -= lastDiff[1].length;
-						}
-					}
-				}
-				return results;
-			};
-
-			// Process a mark.
-			var processMark = function(markId) {
-				if (scope.isTinyScreen) return;
-				var mark = pageService.markMap[markId];
-				if (!mark.anchorContext || !mark.anchorText) return;
-
-				// Create the span corresponding to the anchor text
-				var highlightParams = computeInlineHightlightParams(mark.anchorContext,
-						mark.anchorText, mark.anchorOffset);
-				if (!highlightParams) return;
-				var highlightClass = 'inline-mark-' + mark.id;
-				createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
-						highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
-
-				// Add to the array of valid inline comments
-				var inlineMark = {
-					paragraphNode: highlightParams.bestParagraphNode,
-					anchorNode: $('.' + highlightClass),
-					paragraphIndex: highlightParams.bestParagraphIndex,
-					anchorOffset: highlightParams.anchorOffset,
-					markId: mark.id,
-				};
-				scope.inlineMarks[mark.id] = inlineMark;
-				orderedInlineButtons.push(inlineMark);
-			};
-
-			// Process an inline comment
-			var processInlineComment = function(commentId) {
-				if (scope.isTinyScreen) return;
-				var comment = pageService.pageMap[commentId];
-				if (!comment.anchorContext || !comment.anchorText) return;
-
-				// Create the span corresponding to the anchor text
-				var highlightParams = computeInlineHightlightParams(comment.anchorContext,
-						comment.anchorText, comment.anchorOffset);
-				if (!highlightParams) return;
-				var highlightClass = 'inline-comment-' + comment.pageId;
-				createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
-						highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
-
-				// Add to the array of valid inline comments
-				var inlineComment = {
-					paragraphNode: highlightParams.bestParagraphNode,
-					anchorNode: $('.' + highlightClass),
-					paragraphIndex: highlightParams.bestParagraphIndex,
-					anchorOffset: highlightParams.anchorOffset,
-					pageId: comment.pageId,
-				};
-				scope.inlineComments[comment.pageId] = inlineComment;
-				orderedInlineButtons.push(inlineComment);
-			};
-
-			// Process all inline comments
-			for (var n = 0; n < scope.page.commentIds.length; n++) {
-				processInlineComment(scope.page.commentIds[n]);
-			}
-			// Process all marks
-			if ($location.search().markId) {
-				processMark($location.search().markId);
-			}
-			for (var n = 0; n < scope.page.markIds.length; n++) {
-				processMark(scope.page.markIds[n]);
-			}
-
-			// Process all RHS buttons to compute their position, zIndex, etc...
-			// This fixes any potential overlapping issues.
-			var orderRhsButtons = function() {
-				orderedInlineButtons.sort(function(a, b) {
-					// Create arrays of values which we compare, breaking ties with the next item in the array.
-					var arrayA = [a.paragraphIndex, a.anchorOffset, a.markId];
-					var arrayB = [b.paragraphIndex, b.anchorOffset, b.markId];
-					for (var i = 0; i < arrayA.length; i++) {
-						if (arrayA[i] < arrayB[i]) { return -1; }
-						if (arrayA[i] > arrayB[i]) { return 1; }
-					}
-					return 0;
-				});
-				var minTop = 0;
-				for (n = 0; n < orderedInlineButtons.length; n++) {
-					var inlineButton = orderedInlineButtons[n];
-					var preferredTop = inlineButton.anchorNode.offset().top;
-					var top = Math.max(minTop, preferredTop);
-					// Use this to recompute the actual top when absolute positions are better known
-					inlineButton.topOffset = top - preferredTop;
-					inlineButton.zIndex = n;
-					// Subtract 8 pixels to allow small overlap between buttons
-					minTop = top + inlineCommentButtonHeight - 8;
-				}
-			};
-			orderRhsButtons();
-
-			// Get the style of an inline comment icon
-			scope.getInlineCommentIconStyle = function(commentId) {
-				var params = scope.inlineComments[commentId];
-				var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
-				isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments);
-				return {
-					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
-					'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
-					'visibility': isVisible ? 'visible' : 'hidden',
-					'zIndex': params.zIndex,
-				};
-			};
-			// Get the style of an inline mark icon
-			scope.getInlineMarkIconStyle = function(markId) {
-				var params = scope.inlineMarks[markId];
-				if (!params) return;
-				var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
-				return {
-					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
-					'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
-					'visibility': isVisible ? 'visible' : 'hidden',
-					'zIndex': params.zIndex,
-				};
-			};
-
-			// Return true iff the comment icon is selected
-			scope.isInlineCommentIconSelected = function(commentId) {
-				var params = scope.inlineComments[commentId];
-				return params.mouseover || params.visible;
-			};
-
-			// Return true iff the mark icon is selected
-			scope.isInlineMarkIconSelected = function(markId) {
-				var params = scope.inlineMarks[markId];
-				return params.mouseover || params.visible;
-			};
-
-			// Called when the user hovers the mouse over the inline comment icon
-			scope.inlineCommentIconMouseover = function(commentId, mouseover) {
-				var params = scope.inlineComments[commentId];
-				params.mouseover = mouseover;
-				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover || params.visible);
-			};
-
-			// Called when the user hovers the mouse over the inline mark icon
-			scope.inlineMarkIconMouseover = function(markId, mouseover) {
-				var params = scope.inlineMarks[markId];
-				if (!params) return;
-				params.mouseover = mouseover;
-				params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover || params.visible);
-			};
-
-			// Hide/show the inline comment
-			var closeInlineComment = function(commentId) {
-				var params = scope.inlineComments[commentId];
-				if (!params.container) return;
-				params.container.remove();
-				params.container = undefined;
-				params.anchorNode.toggleClass('inline-comment-highlight-hover', params.mouseover);
-				params.visible = false;
-			};
-			scope.toggleInlineComment = function(commentId) {
-				var params = scope.inlineComments[commentId];
-				params.visible = !params.visible;
-				if (params.visible) {
-					// Close other inline comments
-					for (var id in scope.inlineComments) {
-						if (id !== commentId) {
-							closeInlineComment(id);
-						}
-					}
-
-					// Create the container
-					params.container = $compile($('<arb-inline-comment' +
-						' lens-id=\'' + scope.page.pageId +
-						'\' comment-id=\'' + commentId + '\'></arb-inline-comment>'))(scope);
-					$(params.paragraphNode).after(params.container);
-				} else {
-					closeInlineComment(commentId);
-				}
-			};
-
-			// Hide/show the inline mark.
-			scope.toggleInlineMark = function(markId) {
-				var params = scope.inlineMarks[markId];
-				if (!params) return;
-				params.visible = !params.visible;
-				pageService.hidePopup();
-				if (params.visible) {
-					if (pageService.markMap[markId].type === 'query') {
-						showQueryMarkWindow(markId, false);
-					} else {
-						showEditorMarkWindow(markId, false);
-					}
-					scope.inlineMarkIconMouseover(markId, true);
-					$location.replace().search('markId', markId);
-				}
-			};
-
-			// Process creating new inline comments
-			var $inlineCommentEditPage = undefined;
-			var newInlineCommentButtonTop = 0;
-			scope.showRhsButtons = false;
-
-			// Handle text selection.
-			var cachedSelection;
-			if (userService.isTouchDevice) {
-				// On mobile it's very hard to get user's selected text. The best way Alexei found
-				// was to just check for selected text every so often.
-				$interval(function() {
-					if ($inlineCommentEditPage) return;
-					userService.lensTextSelected = !!processSelectedParagraphText();
-					if (userService.lensTextSelected) {
-						// Cache the selection we found, because we are pretty much guaranteed to
-						// lose it as soon as the user clicks on anything.
-						cachedSelection = getStartEndSelection();
-					}
-				}, 500);
-
-				// Called when the fab is clicked when text is selected.
-				scope.$on('fabClicked', function() {
-					//$('body').toggleClass('body-fix', false);
-					$mdBottomSheet.show({
-						templateUrl: 'static/html/rhsButtons.html',
-						controller: 'RhsButtonsController',
-						parent: '#fixed-overlay',
-					}).then(function(result) {
-						scope[result.func].apply(null, result.params);
-						userService.lensTextSelected = false;
-					});
-				});
-			} else {
-				var mouseUpFn = function(event) {
-					if ($inlineCommentEditPage) return;
-					// Do $timeout, because otherwise there is a bug when you double click to
-					// select a word/paragraph, then click again and the selection var is still
-					// the same (not cleared).
-					$timeout(function() {
-						scope.showRhsButtons = !!processSelectedParagraphText();
-						userService.lensTextSelected = !!processSelectedParagraphText();
-						if (scope.showRhsButtons) {
-							newInlineCommentButtonTop = event.pageY;
-						}
-					});
-				};
-				$('body').on('mouseup', mouseUpFn);
+			// Everything is on a timeout to let MathJax do its thing
+			$timeout(function() {
+				MathJax.Hub.Queue(function() {
+				// Detach some elements and append them to the body, since they will appear
+				// outside of the lens's div, and otherwise would be masked
+				var $inlineCommentsDiv = element.find('.inline-comments-div');
+				var inlineCommentButtonHeight = 40;
+				$inlineCommentsDiv.appendTo($('body'));
+				var inlineIconShiftLeft = inlineCommentButtonHeight * ($mdMedia('gt-md') ? 0.5 : 1.1);
 				scope.$on('$destroy', function() {
-					$('body').off('mouseup', mouseUpFn);
+					$inlineCommentsDiv.remove();
 				});
-			}
-
-			scope.getRhsButtonsStyle = function() {
-				return {
-					'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
-					'top': newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
-					'zIndex': orderedInlineButtons.length,
+	
+				// =========================== Inline elements ===========================
+				var $markdownContainer = element.find('.lens-text-container');
+				var $markdown = element.find('.lens-text');
+				scope.inlineComments = {};
+				scope.inlineMarks = {};
+				var orderedInlineButtons = [];
+				var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
+				dmp.Match_MaxBits = 10000;
+				dmp.Match_Distance = 10000;
+	
+				// Compute the raw text for each paragraph; on demand
+				var paragraphTexts = undefined;
+				var populateParagraphTexts = function() {
+					paragraphTexts = [];
+					var i = 0;
+					$markdown.children().each(function() {
+						paragraphTexts.push(getParagraphText($(this).get(0)).context);
+						i++;
+					});
 				};
-			};
-
-			// Create a new inline comment
-			scope.newInlineComment = function(isEditorComment) {
-				var selection = getSelectedParagraphText(cachedSelection);
-				if (!selection) return;
-				pageService.newComment({
-					parentPageId: scope.page.pageId,
-					success: function(newCommentId) {
-						var comment = pageService.editMap[newCommentId];
-						comment.anchorContext = selection.context;
-						comment.anchorText = selection.text;
-						comment.anchorOffset = selection.offset;
-						comment.isEditorComment = isEditorComment;
-						$inlineCommentEditPage = $compile($('<div arb-edit-page class=\'edit-comment-embed\'' +
-							' is-embedded=\'true\' page-id=\'' + newCommentId +
-							'\' done-fn=\'newInlineCommentDone(result)\'></div>'))(scope);
-						$(selection.paragraphNode).after($inlineCommentEditPage);
-						scope.showRhsButtons = false;
-					},
-				});
-			};
-
-			// Called when the user is done with the new inline comment
-			scope.newInlineCommentDone = function(result) {
-				$inlineCommentEditPage.remove();
-				$inlineCommentEditPage = undefined;
-				$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
-				if (!result.discard) {
-					pageService.newCommentCreated(result.pageId);
-					processInlineComment(result.pageId);
-					orderRhsButtons();
-				}
-			};
-
-			// Show all marks on this lens.
-			scope.loadedMarks = false;
-			scope.loadMarks = function() {
-				scope.loadedMarks = true;
-				pageService.loadMarks({pageId: scope.page.pageId}, function(data) {
-					for (var markId in data.marks) {
-						processMark(markId);
+	
+				// Given the anchor parameters, find the corresponding place in DOM.
+				var computeInlineHightlightParams = function(anchorContext, anchorText, anchorOffset) {
+					var results = {
+						bestParagraphNode: undefined,
+						bestParagraphIndex: 0,
+						anchorOffset: 0,
+						anchorLength: 0,
+					};
+					// Find the best paragraph
+					var bestParagraphText;
+					var bestScore = 9007199254740991; // Number.MAX_SAFE_INTEGER doesn't exist in IE
+					if (!paragraphTexts) {
+						populateParagraphTexts();
 					}
-					orderRhsButtons();
-				});
-			};
-
-			scope.isEditorFeedbackFabOpen = false;
-			scope.toggleEditorFeedbackFab = function(show) {
-				scope.isEditorFeedbackFabOpen = show;
-			};
-
-			// =========================== Inline questions ===========================
-
-			// Helper to call when a mark window has been closed.
-			var markWindowClosed = function(markId, dismiss) {
-				if (scope.$$destroyed) return;
-				if (dismiss) {
-					delete scope.inlineMarks[markId];
-					for (var n = 0; n < orderedInlineButtons.length; n++) {
-						var button = orderedInlineButtons[n];
-						if (button.markId == markId) {
-							orderedInlineButtons.splice(n, 1);
-							break;
+					for (var i = 0; i < paragraphTexts.length; i++) {
+						var text = paragraphTexts[i];
+						var diffs = dmp.diff_main(text, anchorContext);
+						var score = dmp.diff_levenshtein(diffs);
+						if (score < bestScore) {
+							results.bestParagraphNode = $markdown.children().get(i);
+							bestParagraphText = text;
+							bestScore = score;
+							results.bestParagraphIndex = i;
 						}
 					}
-					orderRhsButtons();
-				} else {
-					var params = scope.inlineMarks[markId];
-					if (params) {
-						params.visible = false;
+	
+					// Check if it's a close enough match
+					if (bestScore > anchorContext.length / 2) return undefined;
+	
+					// Find offset into the best paragraph
+					results.anchorOffset = dmp.match_main(bestParagraphText, anchorText, anchorOffset);
+					if (results.anchorOffset < 0) {
+						// Couldn't find a match within the paragraph. We'll just use paragraph as the anchor
+						results.anchorOffset = 0;
+						results.anchorLength = bestParagraphText.length;
+					} else {
+						// Figure out how long the highlighted anchor should be
+						var remainingText = bestParagraphText.substring(results.anchorOffset);
+						var diffs = dmp.diff_main(remainingText, anchorText);
+						results.anchorLength = remainingText.length;
+						if (diffs.length > 0) {
+							// Note: we can potentially be more clever here and discount
+							// edits done after anchorText.length chars
+							var lastDiff = diffs[diffs.length - 1];
+							if (lastDiff[0] < 0) {
+								results.anchorLength -= lastDiff[1].length;
+							}
+						}
+					}
+					return results;
+				};
+	
+				// Process a mark.
+				var processMark = function(markId) {
+					if (scope.isTinyScreen) return;
+					var mark = pageService.markMap[markId];
+					if (!mark.anchorContext || !mark.anchorText) return;
+	
+					// Create the span corresponding to the anchor text
+					var highlightParams = computeInlineHightlightParams(mark.anchorContext,
+							mark.anchorText, mark.anchorOffset);
+					if (!highlightParams) return;
+					var highlightClass = 'inline-mark-' + mark.id;
+					createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
+							highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
+	
+					// Add to the array of valid inline comments
+					var inlineMark = {
+						paragraphNode: highlightParams.bestParagraphNode,
+						anchorNode: $('.' + highlightClass),
+						paragraphIndex: highlightParams.bestParagraphIndex,
+						anchorOffset: highlightParams.anchorOffset,
+						markId: mark.id,
+					};
+					scope.inlineMarks[mark.id] = inlineMark;
+					orderedInlineButtons.push(inlineMark);
+				};
+	
+				// Process an inline comment
+				var processInlineComment = function(commentId) {
+					if (scope.isTinyScreen) return;
+					var comment = pageService.pageMap[commentId];
+					if (!comment.anchorContext || !comment.anchorText) return;
+	
+					// Create the span corresponding to the anchor text
+					var highlightParams = computeInlineHightlightParams(comment.anchorContext,
+							comment.anchorText, comment.anchorOffset);
+					if (!highlightParams) return;
+					var highlightClass = 'inline-comment-' + comment.pageId;
+					createInlineCommentHighlight(highlightParams.bestParagraphNode, highlightParams.anchorOffset,
+							highlightParams.anchorOffset + highlightParams.anchorLength, highlightClass);
+	
+					// Add to the array of valid inline comments
+					var inlineComment = {
+						paragraphNode: highlightParams.bestParagraphNode,
+						anchorNode: $('.' + highlightClass),
+						paragraphIndex: highlightParams.bestParagraphIndex,
+						anchorOffset: highlightParams.anchorOffset,
+						pageId: comment.pageId,
+					};
+					scope.inlineComments[comment.pageId] = inlineComment;
+					orderedInlineButtons.push(inlineComment);
+				};
+	
+				// Process all inline comments
+				for (var n = 0; n < scope.page.commentIds.length; n++) {
+					try {
+						processInlineComment(scope.page.commentIds[n]);
+					} catch (err) {
+						console.error(err);
 					}
 				}
-				$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
-				$markdown.find('.inline-comment-highlight-hover').removeClass('inline-comment-highlight-hover');
-				if ($location.search().markId == markId) {
-					// TODO: GAH! We can't erase markId here, because then we'll erase it when the user goes to edit
-					// page url with ?markId set. We should fix this with a better URL state management system.
-					//$location.replace().search("markId", undefined);
+				// Process all marks
+				if ($location.search().markId) {
+					processMark($location.search().markId);
 				}
-			};
-
-			// Show the window for editing a query mark.
-			var showQueryMarkWindow = function(markId, isNew) {
-				scope.showRhsButtons = false;
-				pageService.showPopup({
-					title: isNew ? 'New query mark' : 'Edit query mark',
-					$element: $compile('<div arb-query-info mark-id="' + markId +
-						'" is-new="::' + isNew +
-						'" in-popup="::true' +
-						'"></div>')($rootScope),
-					persistent: true,
-				}, function(result) {
-					markWindowClosed(markId, result.dismiss);
-				});
-			};
-
-			// Show the window for editing an editor mark.
-			var showEditorMarkWindow  = function(markId, isNew) {
-				scope.showRhsButtons = false;
-				pageService.showPopup({
-					title: isNew ? 'New mark' : 'Edit mark',
-					$element: $compile('<div arb-mark-info mark-id="' + markId +
-						'" is-new="::' + isNew +
-						'"></div>')($rootScope),
-					timeout: isNew ? 10000 : undefined,
-				}, function(result) {
-					markWindowClosed(markId, result.dismiss);
-				});
-			};
-
-			// Helper for creating a new mark.
-			var newMark = function(type, success) {
-				var selection = getSelectedParagraphText(cachedSelection);
-				if (!selection && type !== 'query') return;
-				pageService.newMark({
-						pageId: scope.pageId,
-						edit: scope.page.edit,
-						type: type,
-						anchorContext: selection ? selection.context : undefined,
-						anchorText: selection ? selection.text : undefined,
-						anchorOffset: selection ? selection.offset : undefined,
-					},
-					function(data) {
-						var markId = data.result.markId;
-						processMark(markId);
-						orderRhsButtons();
+				for (var n = 0; n < scope.page.markIds.length; n++) {
+					processMark(scope.page.markIds[n]);
+				}
+	
+				// Process all RHS buttons to compute their position, zIndex, etc...
+				// This fixes any potential overlapping issues.
+				var orderRhsButtons = function() {
+					orderedInlineButtons.sort(function(a, b) {
+						// Create arrays of values which we compare, breaking ties with the next item in the array.
+						var arrayA = [a.paragraphIndex, a.anchorOffset, a.markId];
+						var arrayB = [b.paragraphIndex, b.anchorOffset, b.markId];
+						for (var i = 0; i < arrayA.length; i++) {
+							if (arrayA[i] < arrayB[i]) { return -1; }
+							if (arrayA[i] > arrayB[i]) { return 1; }
+						}
+						return 0;
+					});
+					var minTop = 0;
+					for (n = 0; n < orderedInlineButtons.length; n++) {
+						var inlineButton = orderedInlineButtons[n];
+						var preferredTop = inlineButton.anchorNode.offset().top;
+						var top = Math.max(minTop, preferredTop);
+						// Use this to recompute the actual top when absolute positions are better known
+						inlineButton.topOffset = top - preferredTop;
+						inlineButton.zIndex = n;
+						// Subtract 8 pixels to allow small overlap between buttons
+						minTop = top + inlineCommentButtonHeight - 8;
+					}
+				};
+				orderRhsButtons();
+	
+				// Get the style of an inline comment icon
+				scope.getInlineCommentIconStyle = function(commentId) {
+					var params = scope.inlineComments[commentId];
+					var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
+					isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments);
+					return {
+						'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+						'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
+						'visibility': isVisible ? 'visible' : 'hidden',
+						'zIndex': params.zIndex,
+					};
+				};
+				// Get the style of an inline mark icon
+				scope.getInlineMarkIconStyle = function(markId) {
+					var params = scope.inlineMarks[markId];
+					if (!params) return;
+					var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
+					return {
+						'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+						'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
+						'visibility': isVisible ? 'visible' : 'hidden',
+						'zIndex': params.zIndex,
+					};
+				};
+	
+				// Return true iff the comment icon is selected
+				scope.isInlineCommentIconSelected = function(commentId) {
+					var params = scope.inlineComments[commentId];
+					return params.mouseover || params.visible;
+				};
+	
+				// Return true iff the mark icon is selected
+				scope.isInlineMarkIconSelected = function(markId) {
+					var params = scope.inlineMarks[markId];
+					return params.mouseover || params.visible;
+				};
+	
+				// Called when the user hovers the mouse over the inline comment icon
+				scope.inlineCommentIconMouseover = function(commentId, mouseover) {
+					var params = scope.inlineComments[commentId];
+					params.mouseover = mouseover;
+					params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover || params.visible);
+				};
+	
+				// Called when the user hovers the mouse over the inline mark icon
+				scope.inlineMarkIconMouseover = function(markId, mouseover) {
+					var params = scope.inlineMarks[markId];
+					if (!params) return;
+					params.mouseover = mouseover;
+					params.anchorNode.toggleClass('inline-comment-highlight-hover', mouseover || params.visible);
+				};
+	
+				// Hide/show the inline comment
+				var closeInlineComment = function(commentId) {
+					var params = scope.inlineComments[commentId];
+					if (!params.container) return;
+					params.container.remove();
+					params.container = undefined;
+					params.anchorNode.toggleClass('inline-comment-highlight-hover', params.mouseover);
+					params.visible = false;
+				};
+				scope.toggleInlineComment = function(commentId) {
+					var params = scope.inlineComments[commentId];
+					params.visible = !params.visible;
+					if (params.visible) {
+						// Close other inline comments
+						for (var id in scope.inlineComments) {
+							if (id !== commentId) {
+								closeInlineComment(id);
+							}
+						}
+	
+						// Create the container
+						params.container = $compile($('<arb-inline-comment' +
+							' lens-id=\'' + scope.page.pageId +
+							'\' comment-id=\'' + commentId + '\'></arb-inline-comment>'))(scope);
+						$(params.paragraphNode).after(params.container);
+					} else {
+						closeInlineComment(commentId);
+					}
+				};
+	
+				// Hide/show the inline mark.
+				scope.toggleInlineMark = function(markId) {
+					var params = scope.inlineMarks[markId];
+					if (!params) return;
+					params.visible = !params.visible;
+					pageService.hidePopup();
+					if (params.visible) {
+						if (pageService.markMap[markId].type === 'query') {
+							showQueryMarkWindow(markId, false);
+						} else {
+							showEditorMarkWindow(markId, false);
+						}
+						scope.inlineMarkIconMouseover(markId, true);
 						$location.replace().search('markId', markId);
+					}
+				};
+	
+				// Process creating new inline comments
+				var $inlineCommentEditPage = undefined;
+				var newInlineCommentButtonTop = 0;
+				scope.showRhsButtons = false;
+	
+				// Handle text selection.
+				var cachedSelection;
+				if (userService.isTouchDevice) {
+					// On mobile it's very hard to get user's selected text. The best way Alexei found
+					// was to just check for selected text every so often.
+					$interval(function() {
+						if ($inlineCommentEditPage) return;
+						userService.lensTextSelected = !!processSelectedParagraphText();
+						if (userService.lensTextSelected) {
+							// Cache the selection we found, because we are pretty much guaranteed to
+							// lose it as soon as the user clicks on anything.
+							cachedSelection = getStartEndSelection();
+						}
+					}, 500);
+	
+					// Called when the fab is clicked when text is selected.
+					scope.$on('fabClicked', function() {
+						//$('body').toggleClass('body-fix', false);
+						$mdBottomSheet.show({
+							templateUrl: 'static/html/rhsButtons.html',
+							controller: 'RhsButtonsController',
+							parent: '#fixed-overlay',
+						}).then(function(result) {
+							scope[result.func].apply(null, result.params);
+							userService.lensTextSelected = false;
+						});
+					});
+				} else {
+					var mouseUpFn = function(event) {
+						if ($inlineCommentEditPage) return;
+						// Do $timeout, because otherwise there is a bug when you double click to
+						// select a word/paragraph, then click again and the selection var is still
+						// the same (not cleared).
+						$timeout(function() {
+							scope.showRhsButtons = !!processSelectedParagraphText();
+							userService.lensTextSelected = !!processSelectedParagraphText();
+							if (scope.showRhsButtons) {
+								newInlineCommentButtonTop = event.pageY;
+							}
+						});
+					};
+					$('body').on('mouseup', mouseUpFn);
+					scope.$on('$destroy', function() {
+						$('body').off('mouseup', mouseUpFn);
+					});
+				}
+	
+				scope.getRhsButtonsStyle = function() {
+					return {
+						'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
+						'top': newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
+						'zIndex': orderedInlineButtons.length,
+					};
+				};
+	
+				// Create a new inline comment
+				scope.newInlineComment = function(isEditorComment) {
+					var selection = getSelectedParagraphText(cachedSelection);
+					if (!selection) return;
+					pageService.newComment({
+						parentPageId: scope.page.pageId,
+						success: function(newCommentId) {
+							var comment = pageService.editMap[newCommentId];
+							comment.anchorContext = selection.context;
+							comment.anchorText = selection.text;
+							comment.anchorOffset = selection.offset;
+							comment.isEditorComment = isEditorComment;
+							$inlineCommentEditPage = $compile($('<div arb-edit-page class=\'edit-comment-embed\'' +
+								' is-embedded=\'true\' page-id=\'' + newCommentId +
+								'\' done-fn=\'newInlineCommentDone(result)\'></div>'))(scope);
+							$(selection.paragraphNode).after($inlineCommentEditPage);
+							scope.showRhsButtons = false;
+						},
+					});
+				};
+	
+				// Called when the user is done with the new inline comment
+				scope.newInlineCommentDone = function(result) {
+					$inlineCommentEditPage.remove();
+					$inlineCommentEditPage = undefined;
+					$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
+					if (!result.discard) {
+						pageService.newCommentCreated(result.pageId);
+						processInlineComment(result.pageId);
+						orderRhsButtons();
+					}
+				};
+	
+				// Show all marks on this lens.
+				scope.loadedMarks = false;
+				scope.loadMarks = function() {
+					scope.loadedMarks = true;
+					pageService.loadMarks({pageId: scope.page.pageId}, function(data) {
+						for (var markId in data.marks) {
+							processMark(markId);
+						}
+						orderRhsButtons();
+					});
+				};
+	
+				scope.isEditorFeedbackFabOpen = false;
+				scope.toggleEditorFeedbackFab = function(show) {
+					scope.isEditorFeedbackFabOpen = show;
+				};
+	
+				// =========================== Inline questions ===========================
+	
+				// Helper to call when a mark window has been closed.
+				var markWindowClosed = function(markId, dismiss) {
+					if (scope.$$destroyed) return;
+					if (dismiss) {
+						delete scope.inlineMarks[markId];
+						for (var n = 0; n < orderedInlineButtons.length; n++) {
+							var button = orderedInlineButtons[n];
+							if (button.markId == markId) {
+								orderedInlineButtons.splice(n, 1);
+								break;
+							}
+						}
+						orderRhsButtons();
+					} else {
 						var params = scope.inlineMarks[markId];
 						if (params) {
-							params.visible = true;
+							params.visible = false;
 						}
-						success(data);
 					}
-				);
-			};
-
-			// Called to create a new query (question/objection) mark.
-			scope.newQueryMark = function() {
-				newMark('query', function(data) {
-					showQueryMarkWindow(data.result.markId, true);
-				});
-			};
-
-			// Called to create a new editor (confusion/spelling) mark.
-			scope.newEditorMark = function(type) {
-				newMark(type, function(data) {
-					showEditorMarkWindow(data.result.markId, true);
-				});
-			};
-
-			// Scroll down to selected markId
-			$timeout(function() {
-				var markId = $location.search().markId;
-				if (!markId) return;
-				scope.inlineMarkIconMouseover(markId, true);
-				scope.toggleInlineMark(markId);
-				var style = scope.getInlineMarkIconStyle(markId);
-				if (style) {
-					var top = style.top;
-					$('body').scrollTop(top - ($(window).height() / 2));
-				}
-			});
-
-			// We might get this event from composeFab.
-			scope.$on('newQueryMark', function() {
-				scope.newQueryMark();
-			});
-
-			// Process all embedded votes
-			$timeout(function() {
-				element.find('[embed-vote-id]').each(function(index) {
-					var $link = $(this);
-					var pageAlias = $link.attr('embed-vote-id');
-					pageService.loadIntrasitePopover(pageAlias, {
-						success: function(data, status) {
-							var pageId = pageService.pageMap[pageAlias].pageId;
-							var divId = 'embed-vote-' + pageId;
-							var $embedDiv = $compile('<div id=\'' + divId +
-								'\' class=\'md-whiteframe-2dp\' arb-vote-bar page-id=\'' + pageId +
-								'\' is-embedded=\'true\' show-meta-info=\'true\'></div>')(scope);
-							$link.replaceWith($embedDiv);
+					$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
+					$markdown.find('.inline-comment-highlight-hover').removeClass('inline-comment-highlight-hover');
+					if ($location.search().markId == markId) {
+						// TODO: GAH! We can't erase markId here, because then we'll erase it when the user goes to edit
+						// page url with ?markId set. We should fix this with a better URL state management system.
+						//$location.replace().search("markId", undefined);
+					}
+				};
+	
+				// Show the window for editing a query mark.
+				var showQueryMarkWindow = function(markId, isNew) {
+					scope.showRhsButtons = false;
+					pageService.showPopup({
+						title: isNew ? 'New query mark' : 'Edit query mark',
+						$element: $compile('<div arb-query-info mark-id="' + markId +
+							'" is-new="::' + isNew +
+							'" in-popup="::true' +
+							'"></div>')($rootScope),
+						persistent: true,
+					}, function(result) {
+						markWindowClosed(markId, result.dismiss);
+					});
+				};
+	
+				// Show the window for editing an editor mark.
+				var showEditorMarkWindow  = function(markId, isNew) {
+					scope.showRhsButtons = false;
+					pageService.showPopup({
+						title: isNew ? 'New mark' : 'Edit mark',
+						$element: $compile('<div arb-mark-info mark-id="' + markId +
+							'" is-new="::' + isNew +
+							'"></div>')($rootScope),
+						timeout: isNew ? 10000 : undefined,
+					}, function(result) {
+						markWindowClosed(markId, result.dismiss);
+					});
+				};
+	
+				// Helper for creating a new mark.
+				var newMark = function(type, success) {
+					var selection = getSelectedParagraphText(cachedSelection);
+					if (!selection && type !== 'query') return;
+					pageService.newMark({
+							pageId: scope.pageId,
+							edit: scope.page.edit,
+							type: type,
+							anchorContext: selection ? selection.context : undefined,
+							anchorText: selection ? selection.text : undefined,
+							anchorOffset: selection ? selection.offset : undefined,
 						},
-						error: function(data, status) {
-							console.error('Couldn\'t load embedded votes: ' + pageAlias);
+						function(data) {
+							var markId = data.result.markId;
+							processMark(markId);
+							orderRhsButtons();
+							$location.replace().search('markId', markId);
+							var params = scope.inlineMarks[markId];
+							if (params) {
+								params.visible = true;
+							}
+							success(data);
 						}
+					);
+				};
+	
+				// Called to create a new query (question/objection) mark.
+				scope.newQueryMark = function() {
+					newMark('query', function(data) {
+						showQueryMarkWindow(data.result.markId, true);
+					});
+				};
+	
+				// Called to create a new editor (confusion/spelling) mark.
+				scope.newEditorMark = function(type) {
+					newMark(type, function(data) {
+						showEditorMarkWindow(data.result.markId, true);
+					});
+				};
+	
+				// Scroll down to selected markId
+				$timeout(function() {
+					var markId = $location.search().markId;
+					if (!markId) return;
+					scope.inlineMarkIconMouseover(markId, true);
+					scope.toggleInlineMark(markId);
+					var style = scope.getInlineMarkIconStyle(markId);
+					if (style) {
+						var top = style.top;
+						$('body').scrollTop(top - ($(window).height() / 2));
+					}
+				});
+	
+				// We might get this event from composeFab.
+				scope.$on('newQueryMark', function() {
+					scope.newQueryMark();
+				});
+	
+				// Process all embedded votes
+				$timeout(function() {
+					element.find('[embed-vote-id]').each(function(index) {
+						var $link = $(this);
+						var pageAlias = $link.attr('embed-vote-id');
+						pageService.loadIntrasitePopover(pageAlias, {
+							success: function(data, status) {
+								var pageId = pageService.pageMap[pageAlias].pageId;
+								var divId = 'embed-vote-' + pageId;
+								var $embedDiv = $compile('<div id=\'' + divId +
+									'\' class=\'md-whiteframe-2dp\' arb-vote-bar page-id=\'' + pageId +
+									'\' is-embedded=\'true\' show-meta-info=\'true\'></div>')(scope);
+								$link.replaceWith($embedDiv);
+							},
+							error: function(data, status) {
+								console.error('Couldn\'t load embedded votes: ' + pageAlias);
+							}
+						});
 					});
 				});
-			});
+
+				});
+			}, mathjaxTypesetDelay + 100);
 		},
 	};
 });

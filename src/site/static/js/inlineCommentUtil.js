@@ -228,8 +228,6 @@ var unescapeMarkdownChars = function(s) {
 var createInlineCommentHighlight = function(paragraphNode, start, end, nodeClass) {
 	// How many characters we passed in the anchor context (which has escaped characters).
 	var charCount = 0;
-	// How many characters we passed in the actual paragraph.
-	var pCharCount = 0;
 	// Store ranges we want to highlight.
 	var ranges = [];
 	// Compute context and text.
@@ -239,12 +237,11 @@ var createInlineCommentHighlight = function(paragraphNode, start, end, nodeClass
 		var nodeWholeTextLength = node.wholeText ? node.wholeText.length : 0;
 		var range = document.createRange();
 		var nextCharCount = charCount + escapedText.length;
-		var pNextCharCount = pCharCount + nodeWholeTextLength; //or nodeText.length???
 		if (charCount <= start && nextCharCount >= end) {
 			var pStart = unescapeMarkdownChars(escapedText.substring(0, start - charCount)).length;
 			var pEnd = unescapeMarkdownChars(escapedText.substring(0, end - charCount)).length;
 			range.setStart(node, pStart);
-			range.setEnd(node, pEnd);
+			range.setEnd(node, Math.min(nodeWholeTextLength, pEnd));
 			ranges.push(range);
 		} else if (charCount <= start && nextCharCount > start) {
 			var pStart = unescapeMarkdownChars(escapedText.substring(0, start - charCount)).length;
@@ -270,7 +267,6 @@ var createInlineCommentHighlight = function(paragraphNode, start, end, nodeClass
 			ranges.push(range);
 		}
 		charCount = nextCharCount;
-		pCharCount = pNextCharCount;
 		return charCount >= end;
 	});
 	// Highlight ranges after we did DOM traversal, so that there are no
