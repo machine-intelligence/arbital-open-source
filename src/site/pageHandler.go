@@ -123,11 +123,16 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 		}
 		// Check if we have access to the private group
-		if core.IsIdValid(params.PrivateGroupId) &&
-			!u.IsMemberOfGroup(params.PrivateGroupId) &&
-			r.URL.Path != "/login/" {
-			fail(http.StatusForbidden, "Don't have access to this group", nil)
-			return
+		if core.IsIdValid(params.PrivateGroupId) {
+			if !u.IsMemberOfGroup(params.PrivateGroupId) &&
+				r.URL.Path != "/login/" {
+				fail(http.StatusForbidden, "Don't have access to this group", nil)
+				return
+			}
+			// We don't allow personal private groups for now
+			if params.PrivateGroupId == u.Id {
+				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
+			}
 		}
 
 		// Call the page's renderer

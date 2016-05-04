@@ -82,11 +82,12 @@
 		<md-divider></md-divider>
 
 		<!-- List of groups -->
-		<md-subheader ng-if="(userService.user.groupIds.length > 0)">
+		<!-- ">1" because everyone is part of their own group, but we don't show it -->
+		<md-subheader ng-if="(userService.user.groupIds.length > 1)">
 			Your Groups
 		</md-subheader>
 		<div layout="column" layout-align="start center">
-			<div ng-repeat="groupId in ::userService.user.groupIds">
+			<div ng-repeat="groupId in ::userService.user.groupIds" ng-if="::groupId!==userService.user.id">
 				<md-button aria-label="Go to domain"
 						ng-href="{{::urlService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
 						ng-bind="::(pageService.pageMap[groupId].title | shorten: 30)"></md-button>

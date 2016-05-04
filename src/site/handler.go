@@ -101,9 +101,15 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		// Check if we have access to the private group
-		if !h.Options.AllowAnyone && core.IsIdValid(params.PrivateGroupId) && !u.IsMemberOfGroup(params.PrivateGroupId) {
-			fail(http.StatusForbidden, "Don't have access to this group", nil)
-			return
+		if core.IsIdValid(params.PrivateGroupId) {
+			if !h.Options.AllowAnyone && !u.IsMemberOfGroup(params.PrivateGroupId) {
+				fail(http.StatusForbidden, "Don't have access to this group", nil)
+				return
+			}
+			// We don't allow personal private groups for now
+			if params.PrivateGroupId == u.Id {
+				fail(http.StatusForbidden, "Arbital no longer supports personal private groups", nil)
+			}
 		}
 
 		result := h.HandlerFunc(params)

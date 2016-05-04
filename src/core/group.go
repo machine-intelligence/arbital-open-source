@@ -98,8 +98,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	}
 
 	// Add user to the group.
-	// NOTE: we no longer support personal private groups.
-	if groupType == GroupPageType && !isPersonalGroup {
+	if groupType == GroupPageType {
 		hashmap = make(database.InsertMap)
 		hashmap["userId"] = userId
 		hashmap["groupId"] = groupId
