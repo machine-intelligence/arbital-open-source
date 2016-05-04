@@ -24,6 +24,7 @@ var redirectToPrimaryPageHandler = siteHandler{
 
 // redirectToPrimaryPageJsonHandler handles the request.
 func redirectToPrimaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
 
 	// Decode data
@@ -35,7 +36,7 @@ func redirectToPrimaryPageJsonHandler(params *pages.HandlerParams) *pages.Result
 	}
 
 	// Get actual page id
-	pageId, ok, err := core.LoadOldAliasToPageId(db, data.PageAlias)
+	pageId, ok, err := core.LoadOldAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}

@@ -42,6 +42,7 @@ func processRows(rows *database.Rows, pageMap map[string]*core.Page, loadOptions
 
 // adminDashboardPageJsonHandler handles the request.
 func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(params.U, true)
 	var err error
@@ -80,7 +81,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Users who commented
 	rows = database.NewQuery(`
 		SELECT year(createdAt),month(createdAt),count(distinct createdBy),-1,-1
-		FROM pageInfos
+		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		WHERE createdAt>"2015-09-00" AND pageId!=createdBy AND type=?`, core.CommentPageType).Add(`
 		GROUP BY 1,2
 		ORDER BY 1,2`).ToStatement(db).Query()
@@ -94,7 +95,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Users who created at least one page
 	rows = database.NewQuery(`
 		SELECT year(createdAt),month(createdAt),count(distinct createdBy),-1,-1
-		FROM pageInfos
+		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		WHERE createdAt>"2015-09-00" AND pageId!=createdBy AND type!=?`, core.CommentPageType).Add(`
 		GROUP BY 1,2
 		ORDER BY 1,2`).ToStatement(db).Query()
@@ -108,7 +109,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Users who created at least 5 pages in the last month
 	rows = database.NewQuery(`
 		SELECT pi.createdBy,concat(u.firstName," ",u.lastName),-1,-1,-1
-		FROM pageInfos AS pi
+		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		JOIN users AS u
 		ON (pi.createdBy=u.id)
 		WHERE TIMESTAMPDIFF(DAY,pi.createdAt,NOW())<=30 AND type!=?`, core.CommentPageType).Add(`

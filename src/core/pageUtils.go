@@ -1,4 +1,4 @@
-// page.go contains all the page stuff
+// pageUtils.go contains various helpers for dealing with pages
 package core
 
 import (
@@ -113,7 +113,6 @@ func PageIdsListFromMap(pageMap map[string]*Page) []interface{} {
 
 // StandardizeLinks converts all alias links into pageId links.
 func StandardizeLinks(db *database.DB, text string) (string, error) {
-
 	// Populate a list of all the links
 	aliasesAndIds := make([]string, 0)
 	// Track regexp matches, because ReplaceAllStringFunc doesn't support matching groups
@@ -158,7 +157,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	aliasMap := make(map[string]string)
 	rows := database.NewQuery(`
 		SELECT pageId,alias
-		FROM pageInfos
+		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		WHERE alias IN`).AddArgsGroupStr(aliasesAndIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, alias string
@@ -438,13 +437,14 @@ func IsUser(db *database.DB, userId string) bool {
 func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
 	var commentParentId string
 	var commentPrimaryPageId string
-	rows := db.NewStatement(`
+	rows := database.NewQuery(`
 		SELECT pi.pageId,pi.type
-		FROM pageInfos AS pi
+		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
 		JOIN pagePairs AS pp
 		ON (pi.pageId=pp.parentId)
-		WHERE pp.type=? AND pp.childId=? AND pi.currentEdit>0 AND NOT pi.isDeleted
-		`).Query(ParentPagePairType, pageId)
+		WHERE pp.type=?`, ParentPagePairType).Add(`
+			AND pp.childId=?`, pageId).Add(`
+		`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var parentId string
 		var pageType string
@@ -485,11 +485,11 @@ func LoadDomainsForPages(db *database.DB, pageIds ...interface{}) ([]string, err
 	domainIds := make([]string, 0)
 
 	rows := database.NewQuery(`
-		SELECT domainId
-		FROM pageInfos
-		JOIN pageDomainPairs
-		ON (pageInfos.pageId=pageDomainPairs.pageId)
-		WHERE pageInfos.pageId IN `).AddArgsGroup(pageIds).ToStatement(db).Query()
+		SELECT pdp.domainId
+		FROM`).AddPart(PageInfosTable(nil)).Add(`AS pi
+		JOIN pageDomainPairs AS pdp
+		ON (pi.pageId=pdp.pageId)
+		WHERE pi.pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var domainId string
 		err := rows.Scan(&domainId)
@@ -530,98 +530,4 @@ func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, erro
 	// We also have a "" domain for pages with no domain.
 	domainIds = append(domainIds, "")
 	return domainIds, err
-}
-
-// Replace a rune at a specific index in a string
-func replaceAtIndex(in string, r rune, i int) string {
-	out := []rune(in)
-	out[i] = r
-	return string(out)
-}
-
-// Get the next highest base36 character, without vowels
-// Returns the character, and true if it wrapped around to 0
-// Since we decided that ids must begin with a digit, only allow characters 0-9 for the first character index
-func GetNextBase31Char(c sessions.Context, char rune, isFirstChar bool) (rune, bool, error) {
-	validChars := Base31Chars
-	if isFirstChar {
-		validChars = Base31CharsForFirstChar
-	}
-	index := strings.Index(validChars, strings.ToLower(string(char)))
-	if index < 0 {
-		return '0', false, fmt.Errorf("invalid character")
-	}
-	if index < len(validChars)-1 {
-		nextChar := rune(validChars[index+1])
-		return nextChar, false, nil
-	} else {
-		nextChar := rune(validChars[0])
-		return nextChar, true, nil
-	}
-}
-
-// Increment a base31 Id string
-func IncrementBase31Id(c sessions.Context, previousId string) (string, error) {
-	// Add 1 to the base36 value, skipping vowels
-	// Start at the last character in the Id string, carrying the 1 as many times as necessary
-	nextAvailableId := previousId
-	index := len(nextAvailableId) - 1
-	var newChar rune
-	var err error
-	processNextChar := true
-	for processNextChar {
-		// If we need to carry the 1 all the way to the beginning, then add a 1 at the beginning of the string
-		if index < 0 {
-			nextAvailableId = "1" + nextAvailableId
-			processNextChar = false
-		} else {
-			// Increment the character at the current index in the Id string
-			newChar, processNextChar, err = GetNextBase31Char(c, rune(nextAvailableId[index]), index == 0)
-			if err != nil {
-				return "", fmt.Errorf("Error processing id: %v", err)
-			}
-			nextAvailableId = replaceAtIndex(nextAvailableId, newChar, index)
-			index = index - 1
-		}
-	}
-
-	return nextAvailableId, nil
-}
-
-// Call GetNextAvailableId in a new transaction
-func GetNextAvailableIdInNewTransaction(db *database.DB) (string, error) {
-	return db.Transaction(func(tx *database.Tx) (string, error) {
-		return GetNextAvailableId(tx)
-	})
-}
-
-// Get the next available base36 Id string that doesn't contain vowels
-func GetNextAvailableId(tx *database.Tx) (string, error) {
-	// Query for the highest used pageId or userId
-	var highestUsedId string
-	row := database.NewQuery(`
-		SELECT MAX(pageId)
-		FROM (
-			SELECT pageId
-			FROM pageInfos
-			UNION
-			SELECT id
-			FROM users
-		) AS combined
-		WHERE char_length(pageId) = (
-			SELECT MAX(char_length(pageId))
-			FROM (
-				SELECT pageId
-				FROM pageInfos
-				UNION
-				SELECT id
-				FROM users
-			) AS combined2
-    )
-		`).ToTxStatement(tx).QueryRow()
-	_, err := row.Scan(&highestUsedId)
-	if err != nil {
-		return "", fmt.Errorf("Couldn't load id: %v", err)
-	}
-	return IncrementBase31Id(tx.DB.C, highestUsedId)
 }

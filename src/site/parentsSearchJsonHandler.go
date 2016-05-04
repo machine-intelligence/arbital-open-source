@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"zanaduu3/src/core"
 	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
 )
@@ -19,9 +18,6 @@ var parentsSearchHandler = siteHandler{
 
 // parentsSearchJsonHandler handles the request.
 func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
-	db := params.DB
-	u := params.U
-
 	// Decode data
 	var data searchJsonData
 	decoder := json.NewDecoder(params.R.Body)
@@ -31,12 +27,6 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.Term == "" {
 		return pages.HandlerBadRequestFail("No search term specified", nil)
-	}
-
-	// Load user groups
-	err = core.LoadUserGroupIds(db, u)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
 	groupIds := []string{params.PrivateGroupId}

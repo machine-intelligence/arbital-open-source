@@ -148,10 +148,11 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 		// Check if another page is already using the alias
 		var existingPageId string
-		row := db.NewStatement(`
+		row := database.NewQuery(`
 			SELECT pageId
-			FROM pageInfos
-			WHERE currentEdit>0 AND NOT isDeleted AND pageId!=? AND alias=?`).QueryRow(data.PageId, data.Alias)
+			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			WHERE pageId!=?`, data.PageId).Add(`
+			AND alias=?`, data.Alias).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&existingPageId)
 		if err != nil {
 			return pages.HandlerErrorFail("Failed on looking for conflicting alias", err)

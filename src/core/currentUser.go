@@ -200,6 +200,10 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 		return nil, fmt.Errorf("Couldn't find that email in DB")
 	}
 
+	if err := LoadUserGroupIds(db, u); err != nil {
+		return nil, fmt.Errorf("Couldn't load group membership: %v", err)
+	}
+
 	return u, nil
 }
 

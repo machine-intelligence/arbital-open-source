@@ -83,11 +83,6 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return pages.StatusOK(nil)
 	}
 
-	// Load user groups
-	if err := core.LoadUserGroupIds(db, u); err != nil {
-		return pages.HandlerForbiddenFail("Couldn't load user groups", err)
-	}
-
 	// Load the pages
 	pageMap := make(map[string]*core.Page)
 	parent := core.AddPageIdToMap(data.ParentId, pageMap)

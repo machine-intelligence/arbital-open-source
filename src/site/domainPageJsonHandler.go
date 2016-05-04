@@ -29,6 +29,7 @@ var domainPageHandler = siteHandler{
 // domainPageJsonHandler handles the request.
 func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
+	u := params.U
 
 	// Decode data
 	var data domainPageJsonData
@@ -43,7 +44,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Get constraint
 	var constraintPart *database.QueryPart
 	if data.DomainAlias != "" {
-		domainId, ok, err := core.LoadAliasToPageId(db, data.DomainAlias)
+		domainId, ok, err := core.LoadAliasToPageId(db, u, data.DomainAlias)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't convert alias", err)
 		}
@@ -71,7 +72,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	rows := database.NewQuery(`
 		SELECT p.pageId
 		FROM pages AS p
-		JOIN pageInfos AS pi
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
 		LEFT JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
@@ -87,7 +88,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	rows = database.NewQuery(`
 		SELECT pi.pageId
 		FROM likes AS l2
-		JOIN pageInfos AS pi
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (l2.likeableId=pi.likeableId)
 		LEFT JOIN pageDomainPairs AS pd
 		ON (pi.pageId=pd.pageId)
@@ -112,7 +113,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			UNION ALL
 			/* Count recent new comments */
 			SELECT pp.parentId,sum(1) AS tally
-			FROM pageInfos AS pi
+			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			JOIN pagePairs AS pp
 			ON (pi.pageId=pp.childId)
 			WHERE DATEDIFF(now(),pi.createdAt) <= 7 AND pp.type=?`, core.ParentPagePairType).Add(`
@@ -121,7 +122,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		) AS p
 		LEFT JOIN pageDomainPairs AS pd
 		ON (p.pageId=pd.pageId)
-		JOIN pageInfos AS pi
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
 		WHERE pi.type!=?`, core.CommentPageType).AddPart(constraintPart).Add(`
 		GROUP BY 1
@@ -147,9 +148,9 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		) AS v2
 		LEFT JOIN pageDomainPairs AS pd
 		ON (v2.pageId=pd.pageId)
-		JOIN pageInfos AS pi
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (pd.pageId=pi.pageId)
-		WHERE pi.currentEdit > 0 AND NOT pi.isDeleted AND pi.hasVote`).AddPart(constraintPart).Add(`
+		WHERE pi.hasVote`).AddPart(constraintPart).Add(`
 		GROUP BY pd.pageId
 		HAVING COUNT(v2.value) > 1
 		ORDER BY VAR_POP(v2.value) DESC
