@@ -131,10 +131,10 @@ type UpdateData struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerData, forEmail bool) ([]*UpdateRow, error) {
-	emailFilter := ""
+func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, forEmail bool) ([]*UpdateRow, error) {
+	emailFilter := database.NewQuery("")
 	if forEmail {
-		emailFilter = "AND unseen AND NOT emailed"
+		emailFilter = database.NewQuery("AND unseen AND NOT emailed")
 	}
 
 	// Create group loading options
@@ -148,7 +148,7 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 
 	updateRows := make([]*UpdateRow, 0, 0)
 	changeLogs := make([]*ChangeLog, 0)
-	rows := db.NewStatement(`
+	rows := database.NewQuery(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
 			(groupByPIs.currentEdit > 0 AND !groupByPIs.isDeleted) AS isGroupByObjectAlive,
@@ -158,13 +158,16 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
 		FROM updates
-		JOIN pageInfos AS groupByPIs    ON groupByPIs.pageId IN (updates.groupByPageId, updates.groupByUserId)
-		JOIN pageInfos AS goToPageInfos ON updates.goToPageId = goToPageInfos.pageId
-		LEFT JOIN changeLogs            ON updates.changeLogId = changeLogs.id
-		WHERE updates.userId=? ` + emailFilter + `
+		JOIN`).AddPart(PageInfosTable(u)).Add(`AS groupByPIs
+		ON (groupByPIs.pageId IN (updates.groupByPageId, updates.groupByUserId))
+		JOIN`).AddPart(PageInfosTable(u)).Add(`AS goToPageInfos
+		ON (updates.goToPageId = goToPageInfos.pageId)
+		LEFT JOIN changeLogs
+		ON (updates.changeLogId = changeLogs.id)
+		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(`
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
-		LIMIT 100`).Query(userId)
+		LIMIT 100`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		var changeLog ChangeLog
@@ -203,7 +206,7 @@ func LoadUpdateRows(db *database.DB, userId string, resultData *CommonHandlerDat
 		return nil, fmt.Errorf("error while loading updates: %v", err)
 	}
 
-	err = LoadLikesForChangeLogs(db, userId, changeLogs)
+	err = LoadLikesForChangeLogs(db, u.Id, changeLogs)
 	if err != nil {
 		return nil, fmt.Errorf("error while loading likes for changelogs: %v", err)
 	}
@@ -302,7 +305,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	handlerData := NewHandlerData(u, true)
 
 	// Load updates and populate the maps
-	resultData.UpdateRows, err = LoadUpdateRows(db, u.Id, handlerData, true)
+	resultData.UpdateRows, err = LoadUpdateRows(db, u, handlerData, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
 	}

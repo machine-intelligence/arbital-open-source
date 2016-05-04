@@ -61,20 +61,19 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
+		// Create params
 		params := &pages.HandlerParams{W: w, R: r, C: c, DB: db}
-		params.PrivateGroupId, err = loadSubdomain(r, db)
-		if err != nil {
-			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
-			return
-		}
-
-		// Get user object
 		u, err := core.LoadCurrentUser(w, r, db)
 		if err != nil {
 			fail(http.StatusInternalServerError, "Couldn't load user", err)
 			return
 		}
 		params.U = u
+		params.PrivateGroupId, err = loadSubdomain(r, db, u)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
+			return
+		}
 
 		// Load the user's trust
 		err = core.LoadUserTrust(db, u)
@@ -101,13 +100,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
-		if core.IsIdValid(u.Id) {
-			// Load the groups the user belongs to.
-			if err = core.LoadUserGroupIds(db, u); err != nil {
-				fail(http.StatusInternalServerError, "Couldn't load user groups", err)
-				return
-			}
-		}
 		// Check if we have access to the private group
 		if !h.Options.AllowAnyone && core.IsIdValid(params.PrivateGroupId) && !u.IsMemberOfGroup(params.PrivateGroupId) {
 			fail(http.StatusForbidden, "Don't have access to this group", nil)
@@ -148,13 +140,13 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 }
 
 // loadSubdomain loads the id for the private group corresponding to the private group id.
-func loadSubdomain(r *http.Request, db *database.DB) (string, error) {
+func loadSubdomain(r *http.Request, db *database.DB, u *core.CurrentUser) (string, error) {
 	subdomain := strings.ToLower(mux.Vars(r)["subdomain"])
 	if subdomain == "" {
 		return "", nil
 	}
 	// Get actual page id for the group
-	privateGroupId, ok, err := core.LoadAliasToPageId(db, subdomain)
+	privateGroupId, ok, err := core.LoadAliasToPageId(db, u, subdomain)
 	if err != nil {
 		return "", fmt.Errorf("Couldn't convert subdomain to id: %v", err)
 	}

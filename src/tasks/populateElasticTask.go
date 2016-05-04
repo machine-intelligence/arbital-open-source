@@ -50,12 +50,12 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 	}
 
 	// Compute all priors.
-	rows := db.NewStatement(`
+	rows := database.NewQuery(`
 		SELECT p.pageId,pi.type,p.title,p.clickbait,p.text,pi.alias,pi.seeGroupId,p.creatorId
 		FROM pages AS p
-		JOIN pageInfos AS pi
+		JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
 		ON (p.pageId=pi.pageId)
-		WHERE isLiveEdit`).Query()
+		WHERE p.isLiveEdit`).ToStatement(db).Query()
 	err = rows.Process(populateElasticProcessPage)
 	if err != nil {
 		c.Debugf("ERROR: %v", err)

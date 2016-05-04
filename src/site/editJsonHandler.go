@@ -42,7 +42,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	returnData := core.NewHandlerData(params.U, false)
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
+	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}

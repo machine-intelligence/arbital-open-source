@@ -32,12 +32,12 @@ func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData := core.NewHandlerData(params.U, true)
 
 	// Get all domains, for user to select when creating invite
-	rows := db.NewStatement(`
+	rows := database.NewQuery(`
 		SELECT p.pageId,title
-		FROM pageInfos AS pi
+		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		JOIN pages AS p
-		ON (p.pageId=pi.pageId AND p.edit = pi.currentEdit)
-		WHERE type=?`).Query(core.DomainPageType)
+		ON (p.pageId=pi.pageId AND p.edit=pi.currentEdit)
+		WHERE type=?`, core.DomainPageType).ToStatement(db).Query()
 	domains := make(map[string]*Domain)
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var domainId, longName string

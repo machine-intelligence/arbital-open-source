@@ -91,13 +91,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 		}
 		params.DB = db
 
-		// Get subdomain info
-		params.PrivateGroupId, err = loadSubdomain(r, db)
-		if err != nil {
-			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
-			return
-		}
-
 		// Get user object
 		u, err := core.LoadCurrentUser(w, r, db)
 		if err != nil {
@@ -105,6 +98,13 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			return
 		}
 		params.U = u
+
+		// Get subdomain info
+		params.PrivateGroupId, err = loadSubdomain(r, db, u)
+		if err != nil {
+			fail(http.StatusInternalServerError, "Couldn't load subdomain", err)
+			return
+		}
 
 		// When in a subdomain, we always have to be logged in
 		if core.IsIdValid(params.PrivateGroupId) && !core.IsIdValid(u.Id) {
@@ -119,13 +119,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 						WHERE id=?`)
 			if _, err := statement.Exec(database.Now(), userId); err != nil {
 				fail(http.StatusInternalServerError, "Couldn't update users", err)
-				return
-			}
-		}
-		if core.IsIdValid(u.Id) {
-			// Load the groups the user belongs to.
-			if err = core.LoadUserGroupIds(db, u); err != nil {
-				fail(http.StatusInternalServerError, "Couldn't load user groups", err)
 				return
 			}
 		}

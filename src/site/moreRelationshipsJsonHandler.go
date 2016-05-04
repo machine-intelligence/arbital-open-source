@@ -23,8 +23,9 @@ var moreRelationshipsHandler = siteHandler{
 
 // moreRelationshipsJsonHandler handles the request.
 func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(params.U, false)
+	returnData := core.NewHandlerData(u, false)
 
 	// Decode data
 	var data moreRelationshipsJsonData
@@ -44,7 +45,7 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	rows := database.NewQuery(`
 		SELECT l.parentId
 		FROM links AS l
-		JOIN pageInfos AS pi
+		JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		ON (pi.pageId=l.childAlias OR pi.alias=l.childAlias)
 		WHERE pi.pageId=?`, data.PageId).ToStatement(db).Query()
 	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)

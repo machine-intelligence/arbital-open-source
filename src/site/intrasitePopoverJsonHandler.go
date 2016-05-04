@@ -21,6 +21,7 @@ var intrasitePopoverHandler = siteHandler{
 
 // intrasitePopoverJsonHandler handles the request.
 func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
 
 	// Decode data
@@ -32,7 +33,7 @@ func intrasitePopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
+	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}

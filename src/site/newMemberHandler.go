@@ -72,12 +72,11 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	if !found {
 		// See if data.UserInput is the alias of the user's page
-		row = db.NewStatement(`
-			SELECT pageId
-			FROM pageInfos
-			WHERE alias=?`).QueryRow(data.UserInput)
 		// The id of this page is the same as the id of the user we want
-		found, err = row.Scan(&newMemberId)
+		found, err = database.NewQuery(`
+			SELECT pageId
+			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			WHERE alias=?`, data.UserInput).ToStatement(db).QueryRow().Scan(&newMemberId)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't check for a user", err)
 		} else if !found {

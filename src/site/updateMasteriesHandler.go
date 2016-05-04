@@ -48,7 +48,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	}
 
 	allMasteries := append(append(data.AddMasteries, data.RemoveMasteries...), data.WantsMasteries...)
-	aliasMap, err := core.LoadAliasToPageIdMap(db, allMasteries)
+	aliasMap, err := core.LoadAliasToPageIdMap(db, u, allMasteries)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't translate aliases to ids", err)
 	}

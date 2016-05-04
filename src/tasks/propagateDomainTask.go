@@ -81,18 +81,21 @@ func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bo
 
 		// Compute what domains the page should have based on its parents and
 		// whether or not it's a root page for some domain
-		rows = db.NewStatement(`
-			(SELECT pd.domainId,pi.seeGroupId
-			FROM pageDomainPairs AS pd
-			JOIN pagePairs AS pp
-			ON (pp.parentId=pd.pageId AND pp.type=?)
-			JOIN pageInfos AS pi
-			ON (pd.pageId=pi.pageId AND pi.currentEdit>0 AND NOT pi.isDeleted)
-			WHERE childId=?)
-			UNION
-			(SELECT pageId,seeGroupId
-			FROM pageInfos
-			WHERE pageId=? AND currentEdit>0 AND NOT isDeleted AND type="domain")`).Query(core.ParentPagePairType, pageId, pageId)
+		rows = database.NewQuery(`
+			(
+				SELECT pd.domainId,pi.seeGroupId
+				FROM pageDomainPairs AS pd
+				JOIN pagePairs AS pp
+				ON (pp.parentId=pd.pageId AND pp.type=?)`, core.ParentPagePairType).Add(`
+				JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+				ON (pd.pageId=pi.pageId)
+				WHERE pp.childId=?`, pageId).Add(`
+			) UNION (
+				SELECT pi2.pageId,pi2.seeGroupId
+				FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi2
+				WHERE pi2.pageId=?`, pageId).Add(`
+					AND pi2.type=?`, core.DomainPageType).Add(`
+			)`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var domainId, seeGroupId string
 			if err := rows.Scan(&domainId, &seeGroupId); err != nil {

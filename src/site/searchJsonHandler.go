@@ -35,7 +35,6 @@ var searchHandler = siteHandler{
 
 // searchJsonHandler handles the request.
 func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
-	db := params.DB
 	u := params.U
 
 	// Decode data
@@ -47,12 +46,6 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.Term == "" {
 		return pages.HandlerBadRequestFail("No search term specified", nil)
-	}
-
-	// Load user groups
-	err = core.LoadUserGroupIds(db, u)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
 	groupIds := make([]string, 0)

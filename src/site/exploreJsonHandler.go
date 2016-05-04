@@ -18,6 +18,7 @@ var exploreHandler = siteHandler{
 }
 
 func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
 
 	// Decode data
@@ -33,7 +34,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if data.GroupAlias != "" {
 		var ok bool
 		var err error
-		domainId, ok, err = core.LoadAliasToPageId(db, data.GroupAlias)
+		domainId, ok, err = core.LoadAliasToPageId(db, u, data.GroupAlias)
 		if err != nil {
 			return pages.Fail("Couldn't convert alias", err)
 		}

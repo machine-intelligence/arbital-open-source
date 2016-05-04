@@ -213,15 +213,15 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 		// Load parent's title
 		parentTitle := ""
-		found, err := db.NewStatement(`
+		found, err := database.NewQuery(`
 			SELECT p.title
-			FROM pageInfos AS pi
+			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			JOIN pagePairs AS pp
 			ON (pi.pageId=pp.parentId)
 			JOIN pages AS p
 			ON (pi.pageId=p.pageId)
-			WHERE pp.type=? AND pp.childId=? AND p.isLiveEdit
-			`).QueryRow(core.ParentPagePairType, data.PageId).Scan(&parentTitle)
+			WHERE p.isLiveEdit AND pp.type=?`, core.ParentPagePairType).Add(`
+				AND pp.childId=?`, data.PageId).ToStatement(db).QueryRow().Scan(&parentTitle)
 		if err != nil {
 			return pages.HandlerErrorFail("Couldn't load lens parent", err)
 		} else if found {
@@ -527,19 +527,21 @@ func getUnpublishedRelationships(db *database.DB, u *core.CurrentUser, pageId st
 	children := make([]relatedPageData, 0)
 
 	rows := database.NewQuery(`
-		SELECT
-			pairType, otherId, otherIsParent, pi.type AS otherPageType, pi.currentEdit AS otherCurrentEdit
-		FROM
-			(SELECT parentId AS otherId, type AS pairType, True AS otherIsParent FROM pagePairs WHERE childId=?`, pageId).Add(`AND NOT everPublished
+		SELECT pairType,otherId,otherIsParent,pi.type AS otherPageType,pi.currentEdit AS otherCurrentEdit
+		FROM (
+			SELECT parentId AS otherId, type AS pairType, true AS otherIsParent
+			FROM pagePairs
+			WHERE childId=?`, pageId).Add(`AND NOT everPublished
 			UNION
-			SELECT childId AS otherId, type AS pairType, False AS otherIsParent FROM pagePairs WHERE parentId=?`, pageId).Add(`AND NOT everPublished)
-			AS others
-		JOIN pageInfos AS pi
+			SELECT childId AS otherId, type AS pairType, false AS otherIsParent
+			FROM pagePairs
+			WHERE parentId=?`, pageId).Add(`AND NOT everPublished
+		) AS others
+		JOIN`).AddPart(core.PageInfosTableAll(u)).Add(`AS pi
 		ON pi.pageId=otherId
 		WHERE (otherId=?`, pageId).Add(`) OR
 		(
-			pi.currentEdit>0 AND NOT pi.isDeleted AND
-			(pi.seeGroupId='' OR pi.seeGroupId IN`).AddIdsGroupStr(u.GroupIds).Add(`)
+			pi.currentEdit>0 AND NOT pi.isDeleted
 		)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pairType, otherId, otherPageType string

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -28,6 +29,7 @@ var primaryPageHandler = siteHandler{
 func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	c := params.C
+	u := params.U
 	returnData := core.NewHandlerData(params.U, true)
 
 	// Decode data
@@ -39,7 +41,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Get actual page id
-	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
+	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}
@@ -48,10 +50,10 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if page is a user page
-	row := db.NewStatement(`
+	row := database.NewQuery(`
 		SELECT id
 		FROM users
-		WHERE id=?`).QueryRow(pageId)
+		WHERE id=?`, pageId).ToStatement(db).QueryRow()
 	var id string
 	exists, err := row.Scan(&id)
 	if err != nil {
@@ -67,26 +69,30 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}).Add(core.TitlePlusLoadOptions)
 
 		// Load recently created by me page ids.
-		rows := db.NewStatement(`
+		rows := database.NewQuery(`
 			SELECT pi.pageId
-			FROM pageInfos AS pi
-			WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND pi.createdBy=? AND pi.seeGroupId=? AND pi.type!=?
+			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
+			WHERE pi.createdBy=?`, pageId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.type!=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
-			LIMIT ?`).Query(pageId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
+			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 		if err != nil {
 			return pages.HandlerErrorFail("error while loading recently created page ids", err)
 		}
 
 		// Load recently created by me comment ids.
-		rows = db.NewStatement(`
+		rows = database.NewQuery(`
 			SELECT p.pageId
 			FROM pages AS p
-			JOIN pageInfos AS pi
+			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId && p.edit=pi.currentEdit)
-			WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND p.creatorId=? AND pi.seeGroupId=? AND pi.type=?
+			WHERE p.creatorId=?`, pageId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.type=?`, core.CommentPageType).Add(`
 			ORDER BY pi.createdAt DESC
-			LIMIT ?`).Query(pageId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
+			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedCommentIds"], err =
 			core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
@@ -94,30 +100,34 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Load recently edited by me page ids.
-		rows = db.NewStatement(`
+		rows = database.NewQuery(`
 			SELECT p.pageId
 			FROM pages AS p
-			JOIN pageInfos AS pi
+			JOIN`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			ON (p.pageId=pi.pageId)
-			WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND p.creatorId=? AND pi.seeGroupId=? AND pi.type!=?
+			WHERE p.creatorId=?`, pageId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
 			ORDER BY MAX(p.createdAt) DESC
-			LIMIT ?`).Query(pageId, params.PrivateGroupId, core.CommentPageType, indexPanelLimit)
+			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 		if err != nil {
 			return pages.HandlerErrorFail("error while loading recently edited page ids", err)
 		}
 
 		// Load top pages by me
-		rows = db.NewStatement(`
+		rows = database.NewQuery(`
 			SELECT pi.pageId
-			FROM pageInfos AS pi
+			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			JOIN likes AS l2
 			ON (pi.likeableId=l2.likeableId)
-			WHERE pi.currentEdit>0 AND NOT pi.isDeleted AND pi.seeGroupId=? AND pi.editGroupId=? AND pi.type!=?
+			WHERE pi.editGroupId=?`, pageId).Add(`
+				AND pi.seeGroupId=?`, params.PrivateGroupId).Add(`
+				AND pi.type!=?`, core.CommentPageType).Add(`
 			GROUP BY 1
 			ORDER BY SUM(l2.value) DESC
-			LIMIT ?`).Query(params.PrivateGroupId, pageId, core.CommentPageType, indexPanelLimit)
+			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["topPagesIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
 			return pages.HandlerErrorFail("error while loading recently edited by me page ids", err)

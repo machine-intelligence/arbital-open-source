@@ -20,6 +20,7 @@ var titleHandler = siteHandler{
 
 // titleJsonHandler handles the request.
 func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
+	u := params.U
 	db := params.DB
 
 	// Decode data
@@ -32,7 +33,7 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Get actual page id
 	returnData := core.NewHandlerData(params.U, false)
-	pageId, ok, err := core.LoadAliasToPageId(db, data.PageAlias)
+	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
 	}

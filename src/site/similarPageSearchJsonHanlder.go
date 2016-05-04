@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"zanaduu3/src/core"
 	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
 )
@@ -26,9 +25,6 @@ var similarPageSearchHandler = siteHandler{
 
 // similarPageSearchJsonHandler handles the request.
 func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
-	db := params.DB
-	u := params.U
-
 	// Decode data
 	var data similarPageSearchJsonData
 	decoder := json.NewDecoder(params.R.Body)
@@ -38,12 +34,6 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	if len(data.Title) < 3 && len(data.Clickbait) < 3 && len(data.Text) < 3 {
 		return pages.StatusOK(nil)
-	}
-
-	// Load user groups
-	err = core.LoadUserGroupIds(db, u)
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load user groups", err)
 	}
 
 	groupIds := []string{"\"\"", "\"" + params.PrivateGroupId + "\""}
