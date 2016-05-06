@@ -109,9 +109,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			} else if ($scope.isComment) {
 				$scope.pageTypes = {comment: 'Comment'};
 			} else if ($scope.isWiki) {
-				$scope.pageTypes = {wiki: 'Wiki Page'};
+				$scope.pageTypes = {wiki: 'Wiki page'};
 			} else if ($scope.isLens) {
-				$scope.pageTypes = {lens: 'Lens Page'};
+				$scope.pageTypes = {lens: 'Lens page'};
 			}
 
 			// Set up group names.
@@ -127,9 +127,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Set up sort types.
 			$scope.sortTypes = {
-				likes: 'By Likes',
-				recentFirst: 'Recent First',
-				oldestFirst: 'Oldest First',
+				likes: 'By likes',
+				recentFirst: 'Recent first',
+				oldestFirst: 'Oldest first',
 				alphabetical: 'Alphabetically',
 			};
 
