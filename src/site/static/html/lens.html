@@ -60,7 +60,7 @@
 
 		<!-- Contributors -->
 		<div class="author-list md-caption page-list-span"
-				ng-if="::(page.creatorIds.length > 0 && !isSimpleEmbed &&
+				ng-if="::(page.creatorIds.length > 0 && !isSimpleEmbed && page.seeGroupId &&
 					!(page.editGroupId === page.creatorIds[0] && page.creatorIds.length == 1))">
 			<br>
 			<ng-pluralize count="::page.creatorIds.length"
