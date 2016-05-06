@@ -14,7 +14,7 @@ import (
 // It also filters out any pages that are deleted or aren't published.
 func PageInfosTable(u *CurrentUser) *database.QueryPart {
 	if u == nil {
-		return database.NewQuery(`pageInfos`)
+		return database.NewQuery(`SELECT * FROM pageInfos WHERE currentEdit>0 AND NOT isDeleted`)
 	}
 	allowedGroups := append(u.GroupIds, "")
 	return database.NewQuery(`(
