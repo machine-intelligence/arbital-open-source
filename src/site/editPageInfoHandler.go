@@ -15,17 +15,17 @@ import (
 
 // editPageInfoData contains parameters passed in.
 type editPageInfoData struct {
-	PageId          string
-	Type            string
-	HasVote         bool
-	VoteType        string
-	SeeGroupId      string
-	EditGroupId     string
-	Alias           string // if empty, leave the current one
-	SortChildrenBy  string
-	IsRequisite     bool
-	IndirectTeacher bool
-	IsEditorComment bool
+	PageId                   string
+	Type                     string
+	HasVote                  bool
+	VoteType                 string
+	SeeGroupId               string
+	EditGroupId              string
+	Alias                    string // if empty, leave the current one
+	SortChildrenBy           string
+	IsRequisite              bool
+	IndirectTeacher          bool
+	IsEditorCommentIntention bool
 }
 
 var editPageInfoHandler = siteHandler{
@@ -99,8 +99,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Make sure the user has the right permissions to edit this page
-	if !oldPage.CanEdit {
-		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.CantEditMessage, nil)
+	if !oldPage.Permissions.Edit.Has {
+		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil)
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
@@ -161,6 +161,12 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
+	// See if the user can affect isEditorComment's value
+	isEditorComment := oldPage.IsEditorComment
+	if oldPage.Permissions.DomainAccess.Has {
+		isEditorComment = data.IsEditorCommentIntention
+	}
+
 	var changeLogIds []int64
 
 	// Begin the transaction.
@@ -177,7 +183,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["editGroupId"] = data.EditGroupId
 		hashmap["isRequisite"] = data.IsRequisite
 		hashmap["indirectTeacher"] = data.IndirectTeacher
-		hashmap["isEditorComment"] = data.IsEditorComment
+		hashmap["isEditorComment"] = isEditorComment
+		hashmap["isEditorCommentIntention"] = data.IsEditorCommentIntention
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return "Couldn't update pageInfos", err

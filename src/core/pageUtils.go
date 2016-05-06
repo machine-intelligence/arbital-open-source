@@ -39,6 +39,10 @@ func NewPage(pageId string) *Page {
 	p.Members = make(map[string]*Member)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
+
+	// NOTE: we want permissions to be explicitly null so that if someone refers to them
+	// they get an error. The permissions are only set when they are also fully computed.
+	p.Permissions = nil
 	return p
 }
 
@@ -339,57 +343,6 @@ func GetNewPageUrl(alias string) string {
 		alias = fmt.Sprintf("?alias=%s", alias)
 	}
 	return fmt.Sprintf("/edit/%s", alias)
-}
-
-// ComputeEditPermissions updates the given page with whether the current user can
-// edit/delete it.
-func ComputeEditPermissions(p *Page, u *CurrentUser) {
-	// Check the page isn't locked by someone else
-	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
-		p.CantEditMessage = "Can't change locked page"
-	}
-	if IsIdValid(p.SeeGroupId) && !u.IsMemberOfGroup(p.SeeGroupId) {
-		p.CantEditMessage = "Don't have group permission to EVEN SEE this page"
-	}
-	if IsIdValid(p.EditGroupId) && !u.IsMemberOfGroup(p.EditGroupId) {
-		p.CantEditMessage = "Don't have group permission to edit this page"
-	}
-	if !p.WasPublished {
-		p.CanEdit = true
-		p.CanDelete = true
-		return
-	}
-
-	if p.CantEditMessage == "" {
-		for _, domainId := range p.DomainIds {
-			if u.TrustMap[domainId].CanEditPage {
-				p.CanEdit = true
-				break
-			}
-		}
-		if !p.CanEdit {
-			p.CantEditMessage = "Not enough trust"
-		}
-	}
-
-	if p.CantEditMessage != "" {
-		p.CantDeleteMessage = p.CantEditMessage
-	} else {
-		for _, domainId := range p.DomainIds {
-			if u.TrustMap[domainId].CanDeletePage {
-				p.CanDelete = true
-				break
-			}
-		}
-		if !p.CanDelete {
-			p.CantDeleteMessage = "Not enough trust"
-		}
-	}
-}
-func ComputeEditPermissionsForMap(pageMap map[string]*Page, u *CurrentUser) {
-	for _, p := range pageMap {
-		ComputeEditPermissions(p, u)
-	}
 }
 
 // CorrectPageType converts the page type to lowercase and checks that it's

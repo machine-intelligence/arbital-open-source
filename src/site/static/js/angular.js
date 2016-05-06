@@ -208,13 +208,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		pageService.hideNonpersistentPopup();
 	};
 
-	var $fixedOverlay = $('#fixed-overlay');
-	$scope.getFixedAnchorStyle = function() {
-		return {
-			display: $fixedOverlay.children().length > 0 ? 'initial' : 'none',
-		};
-	};
-
 	// Watch path changes and update Google Analytics
 	$scope.$watch(function() {
 		return $location.absUrl();

@@ -2,7 +2,7 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdToast, $mdMedia, pageService, userService, autocompleteService, markdownService) {
+app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, pageService, userService, autocompleteService, markdownService) {
 	return {
 		templateUrl: 'static/html/editPage.html',
 		scope: {
@@ -255,8 +255,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if ($scope.page.wasPublished && !$scope.page.canEdit) {
-				$scope.addMessage('editLevel', $scope.page.cantEditMessage, 'error', true);
+			if ($scope.page.wasPublished && !$scope.page.permissions.edit.has) {
+				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'error', true);
 			}
 			// Check group permissions
 			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {
@@ -338,7 +338,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
-					data.isEditorComment = $scope.page.isEditorComment;
+					data.isEditorCommentIntention = $scope.page.isEditorCommentIntention;
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
@@ -390,11 +390,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 									markId: $location.search().markId,
 									resolvedPageId: $scope.pageId,
 								}, function success() {
-									$mdToast.show({
-										template: "<md-toast><div class='md-toast-content'>You resolved the query mark.</div></md-toast>",
-										autoWrap: false,
-										parent: $("#fixed-overlay"),
-									});
+									pageService.showToast({text: 'You resolved the query mark.'});
 									publishPageDone();
 								}, function error() {
 									publishPageDone();

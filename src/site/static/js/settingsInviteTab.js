@@ -61,11 +61,11 @@ app.directive('arbSettingsInviteTab', function($http, $filter, pageService, user
 			// Get text describing what the current status of the invite is.
 			$scope.getInviteStatus = function(invite) {
 				if (invite.claimedAt.length > 0 && invite.claimedAt[0] !== '0') {
-					return "claimed " + $filter('relativeDateTime')(invite.claimedAt);
+					return 'claimed ' + $filter('relativeDateTime')(invite.claimedAt);
 				} else if (invite.emailSentAt.length > 0 && invite.emailSentAt[0] !== '0') {
-					return "invite sent " + $filter('relativeDateTime')(invite.emailSentAt);
-				} 
-				return "not claimed yet";
+					return 'invite sent ' + $filter('relativeDateTime')(invite.emailSentAt);
+				}
+				return 'not claimed yet';
 			};
 		},
 	};

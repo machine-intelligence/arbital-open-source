@@ -21,8 +21,9 @@ var newPageHandler = siteHandler{
 
 // newPageJsonData contains parameters passed in via the request.
 type newPageJsonData struct {
-	Type      string
-	ParentIds []string
+	Type            string
+	ParentIds       []string
+	IsEditorComment bool
 }
 
 // newPageJsonHandler handles the request.
@@ -36,10 +37,21 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
-
 	data.Type, err = core.CorrectPageType(data.Type)
 	if err != nil {
 		data.Type = core.WikiPageType
+	}
+
+	// Error checking
+	if data.IsEditorComment && data.Type != core.CommentPageType {
+		return pages.HandlerBadRequestFail("Can't set isEditorComment for non-comment pages", err)
+	}
+	// Check permissions
+	permissionError, err := core.VerifyPermissionsForList(db, data.ParentIds, u)
+	if err != nil {
+		return pages.HandlerForbiddenFail("Error verifying permissions", err)
+	} else if permissionError != "" {
+		return pages.HandlerForbiddenFail(permissionError, nil)
 	}
 
 	pageId := ""
@@ -62,6 +74,10 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		hashmap["seeGroupId"] = params.PrivateGroupId
 		hashmap["lockedBy"] = u.Id
 		hashmap["lockedUntil"] = core.GetPageQuickLockedUntilTime()
+		if data.IsEditorComment {
+			hashmap["isEditorComment"] = true
+			hashmap["isEditorCommentIntention"] = true
+		}
 		statement := db.NewInsertStatement("pageInfos", hashmap)
 		if _, err := statement.Exec(); err != nil {
 			return "", fmt.Errorf("Couldn't update pageInfos", err)
@@ -87,13 +103,11 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Add parents
 	for _, parentIdStr := range data.ParentIds {
-		if !core.IsIdValid(parentIdStr) {
-			return pages.HandlerErrorFail(fmt.Sprintf("Invalid parent id: %s", parentIdStr), nil)
-		}
 		handlerData := newPagePairData{
-			ParentId: parentIdStr,
-			ChildId:  pageId,
-			Type:     core.ParentPagePairType,
+			ParentId:             parentIdStr,
+			ChildId:              pageId,
+			Type:                 core.ParentPagePairType,
+			SkipPermissionsCheck: data.IsEditorComment,
 		}
 		result := newPagePairHandlerInternal(params, &handlerData)
 		if result.Message != "" {

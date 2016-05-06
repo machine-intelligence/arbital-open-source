@@ -60,3 +60,6 @@ alter table visits add column ipAddress VARCHAR(64) NOT NULL after sessionId;
 delete from groupMembers where userId=groupId;
 insert into groupMembers (userId,createdAt,groupId) select id,createdAt,id from users;
 alter table users drop column  inviteCode;
+
+alter table pageInfos add column isEditorCommentIntention bool not null;
+update pageInfos set isEditorCommentIntention=isEditorComment;

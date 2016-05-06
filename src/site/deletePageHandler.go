@@ -68,8 +68,8 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 	}
 
 	// Make sure the user has the right permissions to delete this page
-	if !page.CanDelete {
-		return pages.HandlerBadRequestFail(page.CantDeleteMessage, nil)
+	if !page.Permissions.Delete.Has {
+		return pages.HandlerBadRequestFail(page.Permissions.Delete.Reason, nil)
 	}
 
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {

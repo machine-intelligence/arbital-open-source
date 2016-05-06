@@ -16,6 +16,9 @@ type newPagePairData struct {
 	ParentId string
 	ChildId  string
 	Type     string
+
+	// The following parameters can be ONLY passed from internal callers
+	SkipPermissionsCheck bool `json:"-"`
 }
 
 var newPagePairHandler = siteHandler{
@@ -43,6 +46,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	c := params.C
 	db := params.DB
 	u := params.U
+	var err error
 
 	// Error checking
 	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
@@ -53,32 +57,22 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		data.Type != core.RequirementPagePairType {
 		return pages.HandlerBadRequestFail("ParentId equals ChildId", nil)
 	}
-	var err error
 	data.Type, err = core.CorrectPagePairType(data.Type)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 
 	// Load existing connections
-	existingTypes := make(map[string]bool)
-	rows := database.NewQuery(`
+	var unusedType string
+	exists, _ := database.NewQuery(`
 		SELECT type
 		FROM pagePairs
-		WHERE parentId=? and childId=?
-		`, data.ParentId, data.ChildId).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pairType string
-		err := rows.Scan(&pairType)
-		if err != nil {
-			return fmt.Errorf("Failed to scan pagePairs: %v", err)
-		}
-		existingTypes[pairType] = true
-		return nil
-	})
+		WHERE parentId=?`, data.ParentId).Add(`
+			AND childId=?`, data.ChildId).Add(`
+			AND type=?`, data.Type).ToStatement(db).QueryRow().Scan(&unusedType)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't load existing pair types", err)
-	}
-	if _, ok := existingTypes[data.Type]; ok {
+	} else if exists {
 		// We already have this type of connection
 		return pages.StatusOK(nil)
 	}
@@ -94,20 +88,21 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return pages.HandlerErrorFail("Error while loading pages", err)
 	}
 
-	// More error checking
-	// TODO: handle cases where either parent or child (or both) are unpublished
-	if parent.Alias != "" && child.Alias != "" {
-		if data.Type == core.ParentPagePairType && core.IsIdValid(parent.SeeGroupId) && parent.SeeGroupId != child.SeeGroupId {
-			return pages.HandlerErrorFail("SeeGroupId has to be the same for parent and child", nil)
+	// Error checking
+	if child.SeeGroupId != parent.SeeGroupId {
+		return pages.HandlerErrorFail("Parent and child need to have the same See Group", nil)
+	}
+	// Check edit permissions
+	if !data.SkipPermissionsCheck {
+		if data.Type == core.RequirementPagePairType || data.Type == core.TagPagePairType {
+			// We don't need permissions for the parent
+			delete(pageMap, data.ParentId)
 		}
-		if data.Type == core.RequirementPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "" {
-			return pages.HandlerErrorFail("For a public parent, all requirements have to be public", nil)
-		}
-		if data.Type == core.SubjectPagePairType && !core.IsIdValid(parent.SeeGroupId) && child.SeeGroupId != "" {
-			return pages.HandlerErrorFail("For a public parent, all subjects have to be public", nil)
-		}
-		if child.SeeGroupId != parent.SeeGroupId {
-			return pages.HandlerErrorFail("Parent and child need to have the same See Group", nil)
+		permissionError, err := core.VerifyPermissionsForMap(db, pageMap, u)
+		if err != nil {
+			return pages.HandlerForbiddenFail("Error verifying permissions", err)
+		} else if permissionError != "" {
+			return pages.HandlerForbiddenFail(permissionError, nil)
 		}
 	}
 
@@ -149,7 +144,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 		tasks.EnqueueNewRelationshipUpdates(c, u.Id, data.Type, child.Type, parent.PageId, child.PageId)
 
-		if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
+		if data.Type == core.ParentPagePairType {
 			// Create a task to propagate the domain change to all children
 			var task tasks.PropagateDomainTask
 			task.PageId = child.PageId

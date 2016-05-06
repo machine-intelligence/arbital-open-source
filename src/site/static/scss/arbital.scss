@@ -582,6 +582,7 @@ $triangle-size: 15px;
 	width: 100vw;
 	height: 100vh;
 	z-index: $fixedOverlayZ;
+	pointer-events: none;
 }
 
 .private-group-icon {

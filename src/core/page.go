@@ -96,38 +96,39 @@ type Vote struct {
 type corePageData struct {
 	// === Basic data. ===
 	// Any time we load a page, you can at least expect all this data.
-	PageId            string `json:"pageId"`
-	Edit              int    `json:"edit"`
-	PrevEdit          int    `json:"prevEdit"`
-	Type              string `json:"type"`
-	Title             string `json:"title"`
-	Clickbait         string `json:"clickbait"`
-	TextLength        int    `json:"textLength"` // number of characters
-	Alias             string `json:"alias"`
-	SortChildrenBy    string `json:"sortChildrenBy"`
-	HasVote           bool   `json:"hasVote"`
-	VoteType          string `json:"voteType"`
-	CreatorId         string `json:"creatorId"`
-	CreatedAt         string `json:"createdAt"`
-	OriginalCreatedAt string `json:"originalCreatedAt"`
-	OriginalCreatedBy string `json:"originalCreatedBy"`
-	SeeGroupId        string `json:"seeGroupId"`
-	EditGroupId       string `json:"editGroupId"`
-	IsAutosave        bool   `json:"isAutosave"`
-	IsSnapshot        bool   `json:"isSnapshot"`
-	IsLiveEdit        bool   `json:"isLiveEdit"`
-	IsMinorEdit       bool   `json:"isMinorEdit"`
-	IsRequisite       bool   `json:"isRequisite"`
-	IndirectTeacher   bool   `json:"indirectTeacher"`
-	TodoCount         int    `json:"todoCount"`
-	LensIndex         int    `json:"lensIndex"`
-	IsEditorComment   bool   `json:"isEditorComment"`
-	SnapshotText      string `json:"snapshotText"`
-	AnchorContext     string `json:"anchorContext"`
-	AnchorText        string `json:"anchorText"`
-	AnchorOffset      int    `json:"anchorOffset"`
-	MergedInto        string `json:"mergedInto"`
-	IsDeleted         bool   `json:"isDeleted"`
+	PageId                   string `json:"pageId"`
+	Edit                     int    `json:"edit"`
+	PrevEdit                 int    `json:"prevEdit"`
+	Type                     string `json:"type"`
+	Title                    string `json:"title"`
+	Clickbait                string `json:"clickbait"`
+	TextLength               int    `json:"textLength"` // number of characters
+	Alias                    string `json:"alias"`
+	SortChildrenBy           string `json:"sortChildrenBy"`
+	HasVote                  bool   `json:"hasVote"`
+	VoteType                 string `json:"voteType"`
+	CreatorId                string `json:"creatorId"`
+	CreatedAt                string `json:"createdAt"`
+	OriginalCreatedAt        string `json:"originalCreatedAt"`
+	OriginalCreatedBy        string `json:"originalCreatedBy"`
+	SeeGroupId               string `json:"seeGroupId"`
+	EditGroupId              string `json:"editGroupId"`
+	IsAutosave               bool   `json:"isAutosave"`
+	IsSnapshot               bool   `json:"isSnapshot"`
+	IsLiveEdit               bool   `json:"isLiveEdit"`
+	IsMinorEdit              bool   `json:"isMinorEdit"`
+	IsRequisite              bool   `json:"isRequisite"`
+	IndirectTeacher          bool   `json:"indirectTeacher"`
+	TodoCount                int    `json:"todoCount"`
+	LensIndex                int    `json:"lensIndex"`
+	IsEditorComment          bool   `json:"isEditorComment"`
+	IsEditorCommentIntention bool   `json:"isEditorCommentIntention"`
+	SnapshotText             string `json:"snapshotText"`
+	AnchorContext            string `json:"anchorContext"`
+	AnchorText               string `json:"anchorText"`
+	AnchorOffset             int    `json:"anchorOffset"`
+	MergedInto               string `json:"mergedInto"`
+	IsDeleted                bool   `json:"isDeleted"`
 
 	// The following data is filled on demand.
 	Text     string `json:"text"`
@@ -179,13 +180,8 @@ type Page struct {
 	// Whether or not the page is used as a requirement
 	UsedAsMastery bool `json:"usedAsMastery"`
 
-	// === Permissions ===
-	// We use messages AND bools to make sure that if someone doesn't load permissions,
-	// the defaults don't allow for anything.
-	CanEdit           bool   `json:"canEdit"`
-	CantEditMessage   string `json:"cantEditMessage"`
-	CanDelete         bool   `json:"canDelete"`
-	CantDeleteMessage string `json:"cantDeleteMessage"`
+	// What actions the current user can perform with this page
+	Permissions *Permissions `json:"permissions"`
 
 	// === Other data ===
 	// This data is included under "Full data", but can also be loaded along side "Auxillary data".
@@ -520,7 +516,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Load domains
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndEditPermissions })
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndPermissions })
 	err = LoadDomainIds(db, pageMap, &LoadDataOptions{
 		ForPages: filteredPageMap,
 	})
@@ -643,8 +639,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Compute edit permissions
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndEditPermissions })
-	ComputeEditPermissionsForMap(filteredPageMap, u)
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainsAndPermissions })
+	ComputePermissionsForMap(db.C, filteredPageMap, u)
 
 	// Load summaries
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Summaries })
@@ -806,7 +802,7 @@ func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error 
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
-			pi.lensIndex,pi.isEditorComment,pi.isRequisite,pi.indirectTeacher,
+			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isRequisite,pi.indirectTeacher,
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
@@ -819,7 +815,8 @@ func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error 
 			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
-			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsRequisite, &p.IndirectTeacher,
+			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsEditorCommentIntention,
+			&p.IsRequisite, &p.IndirectTeacher,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -1030,7 +1027,8 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		SELECT p.pageId,p.edit,p.prevEdit,pi.type,p.title,p.clickbait,p.text,p.metaText,
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.seeGroupId,pi.editGroupId,pi.createdAt,
-			pi.createdBy,pi.lensIndex,pi.isEditorComment,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
+			pi.createdBy,pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,
+			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
@@ -1043,7 +1041,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.SeeGroupId,
 		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
-		&p.IsEditorComment, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
+		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)
@@ -1059,7 +1057,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 			return nil, fmt.Errorf("Couldn't load domain ids for page: %v", err)
 		}
 	}
-	ComputeEditPermissions(p, u)
+	p.ComputePermissions(db.C, u)
 
 	p.TextLength = len(p.Text)
 	return p, nil
@@ -2125,17 +2123,18 @@ func LoadDomainIds(db *database.DB, pageMap map[string]*Page, options *LoadDataO
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
-		pageMap[pageId].DomainIds = append(pageMap[pageId].DomainIds, domainId)
-		AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
+		sourcePageMap[pageId].DomainIds = append(sourcePageMap[pageId].DomainIds, domainId)
+		if pageMap != nil {
+			AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
+		}
 		return nil
 	})
 
 	// Pages that are not part of any domain are part of the general ("") domain
 	for _, p := range sourcePageMap {
-		// TODO: uncomment this part when we are ready for STRICT domain checking
-		//if len(p.DomainIds) <= 0 {
-		p.DomainIds = append(p.DomainIds, "")
-		//}
+		if len(p.DomainIds) <= 0 {
+			p.DomainIds = append(p.DomainIds, "")
+		}
 	}
 	return err
 }

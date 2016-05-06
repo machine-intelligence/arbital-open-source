@@ -2,7 +2,7 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service('pageService', function($http, $compile, $location, $rootScope, $interval, userService, urlService) {
+app.service('pageService', function($http, $compile, $location, $mdToast, $rootScope, $interval, userService, urlService) {
 	var that = this;
 
 	// Id of the private group we are in. (Corresponds to the subdomain).
@@ -260,15 +260,10 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 					}
 				}
 			} else if (page.isComment()) {
-				for (var n = 0; n < page.parentIds.length; n++) {
-					var parent = this.pageMap[page.parentIds[n]];
-					if (!parent) continue;
-					// Make sure the parent type is the type of the parent we are looking for.
-					if (!parent.isComment()) {
-						url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
-						url += '#subpage-' + pageId;
-						break;
-					}
+				var parent = page.getCommentParent();
+				if (parent) {
+					url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
+					url += '#subpage-' + pageId;
 				}
 			}
 
@@ -381,6 +376,16 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		},
 		isDomain: function() {
 			return this.type === 'domain';
+		},
+		getCommentParent: function() {
+			console.assert(this.isComment(), 'Calling getCommentParent on a non-comment');
+			for (var n = 0; n < this.parentIds.length; n++) {
+				var p = that.pageMap[this.parentIds[n]];
+				if (!p.isComment()) {
+					return p;
+				}
+			}
+			return null;
 		},
 		// Get page's url
 		url: function() {
@@ -638,9 +643,10 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	// options {
 	//  type: type of the page to create
 	//  parentIds: optional array of parents to add to the new page
+	//  isEditorComment: if true, will create an editor-only comment
 	//	success: callback on success
 	//	error: callback on error
-	//}
+	// }
 	this.getNewPage = function(options) {
 		var success = options.success; delete options.success;
 		var error = options.error; delete options.error;
@@ -654,7 +660,8 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			if (success) success(pageId);
 		})
 		.error(function(data, status) {
-			console.log('Error getting a new page:'); console.log(data); console.log(status);
+			console.error('Error getting a new page:'); console.error(data);
+			that.showToast({text: 'Error creating new ' + options.type + ': ' + data, isError: true});
 			if (error) error(data, status);
 		});
 	};
@@ -705,7 +712,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 			sortChildrenBy: page.sortChildrenBy,
 			isRequisite: page.isRequisite,
 			indirectTeacher: page.indirectTeacher,
-			isEditorComment: page.isEditorComment,
+			isEditorCommentIntention: page.isEditorCommentIntention,
 		};
 		$http({method: 'POST', url: '/editPageInfo/', data: JSON.stringify(data)})
 		.success(function(data) {
@@ -734,27 +741,32 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		$rootScope.$apply();
 	};
 
-	// Add a new relationship between pages using the given options.
-	// options = {
+	// Add a new relationship between pages using the given params.
+	// params = {
 	//	parentId: id of the parent page
 	//	childId: id of the child page
 	//	type: type of the relationships
 	// }
-	this.newPagePair = function(options, success) {
-		$http({method: 'POST', url: '/newPagePair/', data: JSON.stringify(options)})
+	this.newPagePair = function(params, success, error) {
+		$http({method: 'POST', url: '/newPagePair/', data: JSON.stringify(params)})
 		.success(function(data, status) {
-			if (success) success();
+			if (success) success(data);
 		})
 		.error(function(data, status) {
-			console.log('Error creating new page pair:'); console.log(data); console.log(status);
+			console.error('Error creating new page pair:'); console.error(data);
+			if (error) error(data);
 		});
 	};
 	// Note: you also need to specify the type of the relationship here, sinc we
 	// don't want to accidentally delete the wrong type.
-	this.deletePagePair = function(options) {
-		$http({method: 'POST', url: '/deletePagePair/', data: JSON.stringify(options)})
+	this.deletePagePair = function(params, success, error) {
+		$http({method: 'POST', url: '/deletePagePair/', data: JSON.stringify(params)})
+		.success(function(data, status) {
+			if (success) success(data);
+		})
 		.error(function(data, status) {
-			console.log('Error deleting a page pair:'); console.log(data); console.log(status);
+			console.error('Error deleting a page pair:'); console.error(data);
+			if (error) error(data);
 		});
 	};
 
@@ -782,6 +794,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 	// options: {
 	//  parentPageId: id of the parent page
 	//	replyToId: (optional) comment id this will be a reply to
+	//	isEditorComment: if true, this will be created as an editor only comment
 	//	success: callback
 	// }
 	this.newComment = function(options) {
@@ -793,6 +806,7 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		this.getNewPage({
 			type: 'comment',
 			parentIds: parentIds,
+			isEditorComment: options.isEditorComment,
 			success: function(newCommentId) {
 				if (options.success) {
 					options.success(newCommentId);
@@ -810,15 +824,15 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		comment.originalCreatedAt = moment().format('YYYY-MM-DD HH:mm:ss');
 		this.addPageToMap(comment);
 
-		// Find the parent comment, or fall back on the parent page
-		var parent = undefined;
+		// If this comment is a reply, we add it to the parent comment. Otherwise we
+		// add it to the lens its on.
+		var parent;
 		for (var n = 0; n < comment.parentIds.length; n++) {
 			var p = this.pageMap[comment.parentIds[n]];
 			if (!parent || p.isComment()) {
 				parent = p;
 			}
 		}
-
 		parent.subpageIds.push(commentId);
 		$location.replace().url(this.getPageUrl(commentId));
 	};
@@ -1032,14 +1046,23 @@ app.service('pageService', function($http, $compile, $location, $rootScope, $int
 		}
 	};
 
-	// Takes the same params as showPopup and {
-	//	elementText: will compile into $element
+	// Show an NG toast
+	// params = {
+	//	text: text to show
+	//	isError: if true, this will be an error toast
 	// }
-	this.showInfoPopup = function(params) {
-		params.info = params.info || "Info";
-		params.persistent = params.persistent || false;
-		params.timeout = params.timeout || 5000;
-		params.$element = params.$element || $compile(params.elementText)($rootScope);
+	this.showToast = function(params) {
+		var toastClass = 'md-toast-content';
+		if (params.isError) {
+			toastClass += ' md-warn';
+		}
+		var hideDelay = Math.max(3000, params.text.length / 10 * 1000);
+		$mdToast.show({
+			template: '<md-toast><div class=\'' + toastClass + '\'>' + params.text + '</div></md-toast>',
+			autoWrap: false,
+			parent: $('#fixed-overlay'),
+			hideDelay: hideDelay,
+		});
 	};
 
 	// ===========================================================================

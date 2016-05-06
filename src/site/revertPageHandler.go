@@ -47,8 +47,8 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if page == nil {
 		return pages.HandlerErrorFail("Couldn't find page", nil)
 	}
-	if !page.CanEdit {
-		return pages.HandlerBadRequestFail("Can't revert: "+page.CantEditMessage, nil)
+	if !page.Permissions.Edit.Has {
+		return pages.HandlerBadRequestFail("Can't revert: "+page.Permissions.Edit.Reason, nil)
 	}
 
 	if page.Type == core.LensPageType {

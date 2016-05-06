@@ -749,7 +749,8 @@ arb-user-popover {
   position: fixed;
   width: 100vw;
   height: 100vh;
-  z-index: 1000; }
+  z-index: 1000;
+  pointer-events: none; }
 
 .private-group-icon {
   position: absolute;

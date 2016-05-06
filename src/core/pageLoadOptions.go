@@ -33,9 +33,9 @@ type PageLoadOptions struct {
 	AllMarks                bool // just load all marks
 
 	// Load options for basic pages
-	Edit                      bool // because otherwise a non-published page id will be deleted from the pageMap
-	Links                     bool
-	DomainsAndEditPermissions bool
+	Edit                  bool // because otherwise a non-published page id will be deleted from the pageMap
+	Links                 bool
+	DomainsAndPermissions bool
 
 	// Load options for loading a page for editing
 	ChangeLogs    bool
@@ -68,40 +68,39 @@ type PageLoadOptions struct {
 var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
-		Questions:                 true,
-		Children:                  true,
-		Parents:                   true,
-		Tags:                      true,
-		Related:                   true,
-		Lenses:                    true,
-		Requirements:              true,
-		Subjects:                  true,
-		UserMarks:                 true,
-		UnresolvedMarks:           true,
-		Answers:                   true,
-		DomainsAndEditPermissions: true,
-		ViewCount:                 true,
-		LinkedMarkCount:           true,
-		Mastery:                   true,
-		UsedAsMastery:             true,
-		Creators:                  true,
-		NextPrevIds:               true,
+		Questions:       true,
+		Children:        true,
+		Parents:         true,
+		Tags:            true,
+		Related:         true,
+		Lenses:          true,
+		Requirements:    true,
+		Subjects:        true,
+		UserMarks:       true,
+		UnresolvedMarks: true,
+		Answers:         true,
+		ViewCount:       true,
+		LinkedMarkCount: true,
+		Mastery:         true,
+		UsedAsMastery:   true,
+		Creators:        true,
+		NextPrevIds:     true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{
-		Children:                  true,
-		Parents:                   true,
-		Tags:                      true,
-		Lenses:                    true,
-		Requirements:              true,
-		Subjects:                  true,
-		Answers:                   true,
-		DomainsAndEditPermissions: true,
-		ChangeLogs:                true,
-		SearchStrings:             true,
-		Links:                     true,
-		LinkedMarkCount:           true,
-		Text:                      true,
+		Children:              true,
+		Parents:               true,
+		Tags:                  true,
+		Lenses:                true,
+		Requirements:          true,
+		Subjects:              true,
+		Answers:               true,
+		DomainsAndPermissions: true,
+		ChangeLogs:            true,
+		SearchStrings:         true,
+		Links:                 true,
+		LinkedMarkCount:       true,
+		Text:                  true,
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
@@ -118,7 +117,8 @@ var (
 	}).Add(SubpageLoadOptions)
 	// Options for loading a subpage (like a comment)
 	SubpageLoadOptions = (&PageLoadOptions{
-		Comments:        true,
+		Comments:              true,
+		DomainsAndPermissions: true,
 		Links:           true,
 		HasDraft:        true,
 		Votes:           true,

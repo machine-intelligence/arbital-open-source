@@ -518,7 +518,9 @@
 					<md-tooltip md-delay="500">Go to live view</md-tooltip>
 				</md-button>
 			</div>
-			<md-checkbox ng-model="page.isEditorComment" aria-label="Is for editors only?" ng-if="::isComment">
+			<md-checkbox ng-model="page.isEditorCommentIntention"
+					aria-label="Is for editors only?"
+					ng-if="::isComment">
 				<span ng-if="::!gtXSmallScreen">For editors</span>
 				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
 			</md-checkbox>

@@ -25,19 +25,9 @@ const (
 const (
 	// Karma requirements to perform various actions
 	// NOTE: all the numbers are made up right now. The only real number is 200
-	CommentKarmaReq            = -5
-	LikeKarmaReq               = 0
-	PrivatePageKarmaReq        = 5
-	VoteKarmaReq               = 10
-	AddParentKarmaReq          = 20
-	CreateAliasKarmaReq        = 50
-	EditPageKarmaReq           = 200
-	DeleteParentKarmaReq       = 100
-	KarmaLockKarmaReq          = 100
-	ChangeSortChildrenKarmaReq = 100
-	ChangeAliasKarmaReq        = 200
-	DeletePageKarmaReq         = 200
-	DashlessAliasKarmaReq      = 1000
+	CommentKarmaReq    = 200
+	EditPageKarmaReq   = 200
+	DeletePageKarmaReq = 200
 
 	DefaultInviteKarma = 200
 )
@@ -92,11 +82,9 @@ type Invite struct {
 
 // Trust has the different scores for how much we trust a user.
 type Trust struct {
-	GeneralTrust int `json:"generalTrust"`
-	EditTrust    int `json:"editTrust"`
-
-	CanDeletePage bool `json:"canDeletePage"`
-	CanEditPage   bool `json:"canEditPage"`
+	GeneralTrust int         `json:"generalTrust"`
+	EditTrust    int         `json:"editTrust"`
+	Permissions  Permissions `json:"permissions"`
 }
 
 type CookieSession struct {
@@ -271,15 +259,30 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		return fmt.Errorf("Couldn't process existing invites: %v", err)
 	}
 	for _, invite := range invites {
-		if u.TrustMap[invite.DomainId].EditTrust < DefaultInviteKarma {
-			u.TrustMap[invite.DomainId].EditTrust = DefaultInviteKarma
+		trust := u.TrustMap[invite.DomainId]
+		if trust.EditTrust < DefaultInviteKarma {
+			trust.EditTrust = DefaultInviteKarma
 		}
+		trust.Permissions.DomainAccess.Has = true
 	}
 
-	// Now comupte permissions
+	// Now compute permissions
 	for _, trust := range u.TrustMap {
-		trust.CanEditPage = trust.EditTrust >= EditPageKarmaReq || u.IsAdmin
-		trust.CanDeletePage = trust.EditTrust >= DeletePageKarmaReq || u.IsAdmin
+		if !trust.Permissions.DomainAccess.Has {
+			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
+		}
+		trust.Permissions.Edit.Has = trust.EditTrust >= EditPageKarmaReq
+		if !trust.Permissions.Edit.Has {
+			trust.Permissions.Edit.Reason = "Not enough reputation"
+		}
+		trust.Permissions.Delete.Has = trust.EditTrust >= DeletePageKarmaReq
+		if !trust.Permissions.Delete.Has {
+			trust.Permissions.Delete.Reason = "Not enough reputation"
+		}
+		trust.Permissions.Comment.Has = trust.EditTrust >= CommentKarmaReq
+		if !trust.Permissions.Comment.Has {
+			trust.Permissions.Comment.Reason = "Not enough reputation"
+		}
 	}
 
 	return nil

@@ -45,6 +45,18 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.StatusOK(nil)
 	}
 
+	// Check permissions
+	pageIds := []string{data.PageId}
+	for pageId, _ := range data.OrderMap {
+		pageIds = append(pageIds, pageId)
+	}
+	permissionError, err := core.VerifyPermissionsForList(db, pageIds, u)
+	if err != nil {
+		return pages.HandlerForbiddenFail("Error verifying permissions", err)
+	} else if permissionError != "" {
+		return pages.HandlerForbiddenFail(permissionError, nil)
+	}
+
 	// Computed which pages count as visited.
 	lensIndexValues := make([]interface{}, 0)
 	for pageId, index := range data.OrderMap {

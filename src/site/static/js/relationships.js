@@ -46,13 +46,16 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, pageS
 			};
 			$scope.searchResultSelected = function(result) {
 				if (!result) return;
-				var data = {
+				var params = {
 					parentId: result.pageId,
 					childId: $scope.page.pageId,
 					type: $scope.type,
 				};
-				pageService.newPagePair(data);
-				$scope.idsSource.push(data.parentId);
+				pageService.newPagePair(params, function success() {
+					$scope.idsSource.push(params.parentId);
+				}, function error(data) {
+					pageService.showToast({text: 'Error adding the relationship: ' + data, isError: true});
+				});
 			};
 
 			$scope.relatesToItself = $scope.idsSource.indexOf($scope.pageId) >= 0;
@@ -66,14 +69,17 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, pageS
 
 			// Process deleting a relationship
 			$scope.deleteRelationship = function(otherPageId) {
-				var options = {
+				var params = {
 					parentId: otherPageId,
 					childId: $scope.page.pageId,
 					type: $scope.type,
 				};
-				pageService.deletePagePair(options);
-				$scope.idsSource.splice($scope.idsSource.indexOf(options.parentId), 1);
-				$scope.relatesToItself = $scope.idsSource.indexOf($scope.pageId) >= 0;
+				pageService.deletePagePair(params, function success() {
+					$scope.idsSource.splice($scope.idsSource.indexOf(params.parentId), 1);
+					$scope.relatesToItself = $scope.idsSource.indexOf($scope.pageId) >= 0;
+				}, function error(data) {
+					pageService.showToast({text: 'Error removing the relationship: ' + data, isError: true});
+				});
 			};
 		},
 	};

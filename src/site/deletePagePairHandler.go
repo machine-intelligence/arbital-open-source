@@ -55,7 +55,15 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load pages.
 	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
+		return pages.HandlerErrorFail("Error loading pages", err)
+	}
+
+	// Error checking
+	permissionError, err := core.VerifyPermissionsForMap(db, pageMap, u)
+	if err != nil {
+		return pages.HandlerForbiddenFail("Error verifying permissions", err)
+	} else if permissionError != "" {
+		return pages.HandlerForbiddenFail(permissionError, nil)
 	}
 
 	// Do it!

@@ -12,6 +12,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.lens = pageService.pageMap[$scope.lensId];
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.page.subpageIds = $scope.page.commentIds;
 			$scope.page.subpageIds.sort(pageService.getChildSortFunc('oldestFirst'));
@@ -65,13 +66,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.deleteSubpage = function() {
 				pageService.deletePage($scope.page.pageId, function() {
 					$scope.isDeleted = true;
-					// TODO: reenable toast when we fix the bug with its positioning
-					/*$mdToast.show(
-						$mdToast.simple()
-						.textContent("Comment deleted")
-						.position("top right")
-						.hideDelay(3000)
-					);*/
+					pageService.showToast({text: 'Comment deleted'});
 				}, function(data) {
 					$scope.addMessage('delete', 'Error deleting page: ' + data, 'error');
 				});
@@ -82,6 +77,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 				pageService.newComment({
 					parentPageId: $scope.lensId,
 					replyToId: $scope.page.pageId,
+					isEditorComment: $scope.page.isEditorComment,
 					success: function(newCommentId) {
 						$scope.newReplyId = newCommentId;
 					},

@@ -17,20 +17,20 @@ import (
 
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
-	PageId          string
-	PrevEdit        int
-	Title           string
-	Clickbait       string
-	Text            string
-	MetaText        string
-	IsMinorEditStr  string
-	IsAutosave      bool
-	IsSnapshot      bool
-	SnapshotText    string
-	AnchorContext   string
-	AnchorText      string
-	AnchorOffset    int
-	IsEditorComment bool
+	PageId                   string
+	PrevEdit                 int
+	Title                    string
+	Clickbait                string
+	Text                     string
+	MetaText                 string
+	IsMinorEditStr           string
+	IsAutosave               bool
+	IsSnapshot               bool
+	SnapshotText             string
+	AnchorContext            string
+	AnchorText               string
+	AnchorOffset             int
+	IsEditorCommentIntention bool
 	// Edit that FE thinks is the current edit
 	CurrentEdit int
 
@@ -133,8 +133,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Error checking.
 	// Make sure the user has the right permissions to edit this page
-	if !oldPage.CanEdit {
-		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.CantEditMessage, nil)
+	if !oldPage.Permissions.Edit.Has {
+		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil)
 	}
 	if data.IsAutosave && data.IsSnapshot {
 		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
@@ -475,7 +475,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				task.UserId = u.Id
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
-				task.EditorsOnly = data.IsEditorComment
+				task.EditorsOnly = oldPage.IsEditorComment
 				if core.IsIdValid(commentParentId) {
 					// This is a new reply
 					task.UpdateType = core.ReplyUpdateType
