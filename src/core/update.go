@@ -151,17 +151,13 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	rows := database.NewQuery(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
-			(groupByPIs.currentEdit > 0 AND !groupByPIs.isDeleted) AS isGroupByObjectAlive,
-			(goToPageInfos.currentEdit > 0 AND !goToPageInfos.isDeleted) AS isGoToPageAlive,
+			(SELECT currentEdit > 0 AND !isDeleted FROM`).AddPart(PageInfosTableAll(u)).Add(`AS pi WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)) AS isGroupByObjectAlive,
+			COALESCE((SELECT currentEdit > 0 AND !isDeleted FROM`).AddPart(PageInfosTableAll(u)).Add(`AS pi WHERE updates.goToPageId = pageId), False) AS isGoToPageAlive,
 			COALESCE(changeLogs.id, 0),
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, '')
 		FROM updates
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS groupByPIs
-		ON (groupByPIs.pageId IN (updates.groupByPageId, updates.groupByUserId))
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS goToPageInfos
-		ON (updates.goToPageId = goToPageInfos.pageId)
 		LEFT JOIN changeLogs
 		ON (updates.changeLogId = changeLogs.id)
 		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(`
