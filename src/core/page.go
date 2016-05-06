@@ -1570,8 +1570,6 @@ type LoadChildIdsOptions struct {
 	PagePairType string
 	// Load options to set for the new pages
 	LoadOptions *PageLoadOptions
-	// Whether to skip relationships that have already had updates created for them
-	SkipPublishedRelationships bool
 }
 
 // LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
@@ -1579,11 +1577,6 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
-	}
-
-	neverPublishedFilter := ""
-	if options.SkipPublishedRelationships {
-		neverPublishedFilter = "NOT everPublished AND "
 	}
 
 	pairTypeFilter := ""
@@ -1602,7 +1595,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE`).Add(neverPublishedFilter).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE`).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON pi.pageId=pp.childId`).Add(pageTypeFilter).ToStatement(db).Query()
@@ -1742,8 +1735,6 @@ type LoadParentIdsOptions struct {
 	LoadOptions *PageLoadOptions
 	// Mastery map to populate with masteries necessary for a requirement
 	MasteryMap map[string]*Mastery
-	// Whether to skip relationships that have already had updates created for them
-	SkipPublishedRelationships bool
 }
 
 // LoadParentIds loads the page ids for all the parents of the pages in the given pageMap.
@@ -1751,11 +1742,6 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
-	}
-
-	neverPublishedFilter := ""
-	if options.SkipPublishedRelationships {
-		neverPublishedFilter = "NOT everPublished AND "
 	}
 
 	pairTypeFilter := ""
@@ -1770,7 +1756,7 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE `).Add(neverPublishedFilter).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE `).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 		ON (pi.pageId=pp.parentId)
