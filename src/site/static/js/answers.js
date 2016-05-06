@@ -26,6 +26,7 @@ app.directive('arbAnswers', function($timeout, $http, $compile, pageService, use
 					$scope.page.answers.push(data.result.newAnswer);
 				})
 				.error(function(data) {
+					that.showToast({text: 'Error creating new answer: ' + data, isError: true});
 					console.error('Couldn\'t add answer:'); console.error(data);
 				});
 			};

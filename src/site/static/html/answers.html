@@ -44,7 +44,7 @@
 		linked to this question.
 	</span>
 </span>
-<div layout="row" layout="start start" ng-if="userService.userIsCool()">
+<div layout="row" layout="start start" ng-if="page.permissions.edit.has">
 	<arb-autocomplete class="insert-autocomplete"
 			placeholder="Add an answer"
 			on-select="addAnswer(result)"
