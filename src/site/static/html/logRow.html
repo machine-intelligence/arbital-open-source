@@ -185,15 +185,17 @@
 		<span ng-switch-when="topLevelComment">
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			wrote a
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="new comment"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}"
+					is-link="true"
+					custom-page-title="new comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="reply">
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			wrote a
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="new comment reply"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}"
+					is-link="true"
+					custom-page-title="new comment reply"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="pageEdit">
@@ -211,37 +213,45 @@
 		<span ng-switch-when="commentEdit">
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			edited a
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="comment"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}"
+					is-link="true"
+					custom-page-title="comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="atMention">
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			mentioned you in a
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="comment"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}"
+					is-link="true"
+					custom-page-title="comment"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="addedToGroup">
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			added you to
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}"
+					is-link="true"
+					custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="removedFromGroup">
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			removed you from
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}"
+					is-link="true"
+					custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 		</span>
 
 		<span ng-switch-when="inviteReceived">
 			Thanks to
 			<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 			you can now participate in
-			<arb-page-title page-id="{{::goToPageId}}" is-link="true"
-				custom-page-title="the {{::pageService.pageMap[goToPageId].title}} domain"></arb-page-title>
+			<arb-page-title page-id="{{::goToPageId}}"
+					is-link="true"
+					custom-page-title="the {{::pageService.getDomainName(goToPageId)}} domain"
+					ng-if="::goToPageId"></arb-page-title>
+			<span ng-bind="the {{::pageService.getDomainName(goToPageId)}} domain"
+					ng-if="::!goToPageId"></span>
 		</span>
 
 		<!-- Marks -->
