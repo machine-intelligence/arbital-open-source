@@ -33,24 +33,29 @@ app.directive('arbSettingsInviteTab', function($http, $filter, pageService, user
 				$scope.invalidEmails = [];
 
 				for (var n = 0; n < testedEmails.valid.length; n++) {
-					let email = testedEmails.valid[n];
+					var email = testedEmails.valid[n];
 					var inviteToPost = {
 						toEmail: email,
 						domainId: domainId,
 					};
-					$http({
-						method: 'POST',
-						url: '/newInvite/',
-						data: JSON.stringify(inviteToPost),
-					})
-					.success(function(data) {
-						$scope.creatingInvite = false;
-						$scope.invitesSent.unshift(data.result.invite);
-					})
-					.error(function(data, status) {
-						console.error('Unable to create invites:'); console.log(data);
-						$scope.invalidEmails.push(email);
-					});
+					// use a self-invoking anonymous function so that the email variable in the callbacks below refers to
+					// a different value with each iteration of the for loop, rather than being a fixed reference that
+					// takes on whatever value email had when the callback was called
+					(function(_email) {
+						$http({
+							method: 'POST',
+							url: '/newInvite/',
+							data: JSON.stringify(inviteToPost),
+						})
+						.success(function(data) {
+							$scope.creatingInvite = false;
+							$scope.invitesSent.unshift(data.result.invite);
+						})
+						.error(function(data, status) {
+							console.error('Unable to create invites:'); console.log(data);
+							$scope.invalidEmails.push(_email);
+						});
+					})(email);
 				}
 			};
 
