@@ -403,14 +403,9 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	};
 
 	// Massage page's variables to be easier to deal with.
-	var setUpPage = function(page, pageMap) {
+	var setUpPage = function(page) {
 		for (var name in pageFuncs) {
 			page[name] = pageFuncs[name];
-		}
-		// Add page's alias to the map as well, both with lowercase and uppercase first letter
-		if (pageMap && page.pageId !== page.alias) {
-			pageMap[page.alias.substring(0, 1).toLowerCase() + page.alias.substring(1)] = page;
-			pageMap[page.alias.substring(0, 1).toUpperCase() + page.alias.substring(1)] = page;
 		}
 		return page;
 	};
@@ -441,7 +436,12 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		var oldPage = this.pageMap[newPage.pageId];
 		if (newPage === oldPage) return;
 		if (oldPage === undefined) {
-			this.pageMap[newPage.pageId] = setUpPage(newPage, this.pageMap);
+			this.pageMap[newPage.pageId] = setUpPage(newPage);
+			// Add page's alias to the map as well, both with lowercase and uppercase first letter
+			if (newPage.pageId !== newPage.alias) {
+				this.pageMap[newPage.alias.substring(0, 1).toLowerCase() + newPage.alias.substring(1)] = newPage;
+				this.pageMap[newPage.alias.substring(0, 1).toUpperCase() + newPage.alias.substring(1)] = newPage;
+			}
 			return;
 		}
 		// Merge each variable.

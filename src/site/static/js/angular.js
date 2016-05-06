@@ -198,7 +198,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	$scope.getErrorFunc = function(urlPageType) {
 		return function(data, status) {
 			console.error('Error /json/' + urlPageType + '/:'); console.log(data); console.log(status);
-			$('.global-error').text(data).show();
+			pageService.showToast({text: 'Couldn\'t create a new page: ' + data, isError: true});
 			document.title = 'Error - Arbital';
 		};
 	};
@@ -247,10 +247,12 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 						return;
 					}
 				}
-				rule.handler(args, $scope);
+				var handled = rule.handler(args, $scope);
+				if (!handled) {
+					$('[ng-view]').empty();
+					$scope.closePopup();
+				}
 				currentLocation = {subdomain: $scope.subdomain, rule: rule, args: args};
-				$('[ng-view]').empty();
-				$scope.closePopup();
 				return;
 			}
 		}
@@ -351,62 +353,85 @@ app.run(function($http, $location, urlService, pageService, userService) {
 	urlService.addUrlHandler('/edit/:alias?/:alias2?', {
 		name: 'EditPage',
 		handler: function(args, $scope) {
-			var pageId = args.alias;
+			var pageAlias = args.alias;
+			// Check if we are already editing this page.
+			if (pageService.primaryPage &&
+					pageService.pageMap[pageAlias].pageId === pageService.primaryPage.pageId) {
+				return true;
+			}
+
+			// Load the last edit for the pageAlias.
+			var loadEdit = function() {
+				pageService.loadEdit({
+					pageAlias: pageAlias,
+					success: $scope.getSuccessFunc(function() {
+						// Find the page in the editMap (have to search through it manually
+						// because we don't index pages by alias in editmap)
+						var page;
+						for (var pageId in pageService.editMap) {
+							page = pageService.editMap[pageId];
+							if (page.alias == pageAlias || page.pageId == pageAlias) {
+								break;
+							}
+						}
+						if ($location.search().alias) {
+							// Set page's alias
+							page.alias = $location.search().alias;
+							$location.replace().search('alias', undefined);
+						}
+
+						urlService.ensureCanonPath(pageService.getEditPageUrl(page.pageId));
+						pageService.primaryPage = page;
+
+						// Called when the user is done editing the page.
+						$scope.doneFn = function(result) {
+							var page = pageService.editMap[result.pageId];
+							if (!page.wasPublished && result.discard) {
+								$location.path('/edit/');
+							} else {
+								$location.url(pageService.getPageUrl(page.pageId, {
+									useEditMap: true,
+									markId: $location.search().markId,
+									permalink: result.deletedPage,
+								}));
+							}
+						};
+						return {
+							removeBodyFix: true,
+							title: 'Edit ' + (page.title ? page.title : 'New Page'),
+							content: $scope.newElement('<arb-edit-page class=\'full-height\' page-id=\'' + page.pageId +
+								'\' done-fn=\'doneFn(result)\' layout=\'column\'></arb-edit-page>'),
+						};
+					}),
+					error: $scope.getErrorFunc('edit'),
+				});
+			};
+
+			// Load a new page.
+			var getNewPage = function () {
+				var type = $location.search().type;
+				$location.replace().search('type', undefined);
+				var newParentIdString = $location.search().newParentId;
+				$location.replace().search('newParentId', undefined);
+				// Create a new page to edit
+				pageService.getNewPage({
+					type: type,
+					parentIds: newParentIdString ? newParentIdString.split(',') : [],
+					success: function(newPageId) {
+						$location.replace().path(pageService.getEditPageUrl(newPageId));
+					},
+					error: $scope.getErrorFunc('newPage'),
+				});
+			};
 
 			// Need to call /default/ in case we are creating a new page
 			// TODO(alexei): have /newPage/ return /default/ data along with /edit/ data
 			$http({method: 'POST', url: '/json/default/'})
 			.success($scope.getSuccessFunc(function(data) {
-				if (pageId && pageId.charAt(0) > '0' && pageId.charAt(0) <= '9') {
-					// Load the last edit
-					pageService.loadEdit({
-						pageAlias: pageId,
-						success: $scope.getSuccessFunc(function() {
-							var page = pageService.editMap[pageId];
-							if ($location.search().alias) {
-								// Set page's alias
-								page.alias = $location.search().alias;
-								$location.replace().search('alias', undefined);
-							}
-
-							urlService.ensureCanonPath(pageService.getEditPageUrl(pageId));
-							pageService.primaryPage = page;
-
-							// Called when the user is done editing the page.
-							$scope.doneFn = function(result) {
-								var page = pageService.editMap[result.pageId];
-								if (!page.wasPublished && result.discard) {
-									$location.path('/edit/');
-								} else {
-									$location.url(pageService.getPageUrl(page.pageId, {
-										useEditMap: true,
-										markId: $location.search().markId,
-										permalink: result.deletedPage,
-									}));
-								}
-							};
-							return {
-								removeBodyFix: true,
-								title: 'Edit ' + (page.title ? page.title : 'New Page'),
-								content: $scope.newElement('<arb-edit-page class=\'full-height\' page-id=\'' + pageId +
-									'\' done-fn=\'doneFn(result)\' layout=\'column\'></arb-edit-page>'),
-							};
-						}),
-						error: $scope.getErrorFunc('edit'),
-					});
+				if (pageAlias) {
+					loadEdit();
 				} else {
-					var type = $location.search().type;
-					$location.replace().search('type', undefined);
-					var newParentIdString = $location.search().newParentId;
-					$location.replace().search('newParentId', undefined);
-					// Create a new page to edit
-					pageService.getNewPage({
-						type: type,
-						parentIds: newParentIdString ? newParentIdString.split(',') : [],
-						success: function(newPageId) {
-							$location.replace().path(pageService.getEditPageUrl(newPageId));
-						},
-					});
+					getNewPage();
 				}
 				return {
 					title: 'Edit Page',
