@@ -24,7 +24,7 @@ var atAliasRegexp = new RegExp(notEscaped +
 		'\\[@' + aliasMatch + '\\]' + noParen, 'g');
 
 // How long to wait before calling mathjax typeset manually
-const mathjaxTypesetDelay = 300; // ms
+var mathjaxTypesetDelay = 300; // ms
 
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
