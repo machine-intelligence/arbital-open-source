@@ -1917,7 +1917,10 @@ func loadSiblingId(db *database.DB, u *CurrentUser, pageId string, useNextSiblin
 	var sortType string
 	var parentCount int
 	row := database.NewQuery(`
-		SELECt ifnull(max(pp.parentId),0),ifnull(max(pi.sortChildrenBy),""),count(*)
+		SELECT
+			ifnull(max(pp.parentId), 0),
+			ifnull(max(pi.sortChildrenBy), ""),
+			count(*)
 		FROM pagePairs AS pp
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON (pp.parentId=pi.pageId)
