@@ -63,3 +63,13 @@ alter table users drop column  inviteCode;
 
 alter table pageInfos add column isEditorCommentIntention bool not null;
 update pageInfos set isEditorCommentIntention=isEditorComment;
+
+update pages set text=replace(text,"||||||||||","%%%%%%%%%%");
+update pages set text=replace(text,"|||||||||","%%%%%%%%%");
+update pages set text=replace(text,"||||||||","%%%%%%%%");
+update pages set text=replace(text,"|||||||","%%%%%%%");
+update pages set text=replace(text,"||||||","%%%%%%");
+update pages set text=replace(text,"|||||","%%%%%");
+update pages set text=replace(text,"||||","%%%%");
+update pages set text=replace(text,"|||","%%%");
+update pages set text=replace(text,"||","%%");

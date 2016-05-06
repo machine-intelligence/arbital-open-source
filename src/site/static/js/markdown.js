@@ -50,36 +50,36 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process |knows-requisite([alias]):markdown| blocks.
-		var hasReqBlockRegexp = new RegExp('^(\\|+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)', 'gm');
+		// Process %knows-requisite([alias]):markdown% blocks.
+		var hasReqBlockRegexp = new RegExp('^(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function(whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
 				return '<div ng-show=\'' + (not ? '!' : '') + 'pageService.hasMastery("' + pageId + '")\'>' +
-						runBlockGamut(markdown) + '</div>';
+						runBlockGamut(markdown) + '\n\n</div>';
 			});
 		});
 
-		// Process |wants-requisite([alias]):markdown| blocks.
-		var wantsReqBlockRegexp = new RegExp('^(\\|+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)', 'gm');
+		// Process %wants-requisite([alias]):markdown% blocks.
+		var wantsReqBlockRegexp = new RegExp('^(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function(whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
 				return '<div ng-show=\'' + (not ? '!' : '') + 'pageService.wantsMastery("' + pageId + '")\'>' +
-						runBlockGamut(markdown) + '</div>';
+						runBlockGamut(markdown) + '\n\n</div>';
 			});
 		});
 
-		// Process |todo:markdown| blocks.
-		var todoBlockRegexp = new RegExp('^(\\|+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)', 'gm');
+		// Process %todo:markdown% blocks.
+		var todoBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(todoBlockRegexp, function(whole, bars, not, alias, markdown) {
 				return '';
 			});
 		});
 
-		// Process |comment:markdown| blocks.
-		var commentBlockRegexp = new RegExp('^(\\|+)comment: ?([\\s\\S]+?)\\1 *(?=\Z|\n\Z|\n\n)', 'gm');
+		// Process %comment:markdown% blocks.
+		var commentBlockRegexp = new RegExp('^(%+)comment: ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(commentBlockRegexp, function(whole, bars, not, alias, markdown) {
 				return '';
@@ -117,7 +117,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'(wants: ?[^\n]+?\n)?' +
 				'(-knows: ?[^\n]+?\n)?' +
 				'(-wants: ?[^\n]+?\n)?' +
-				'\\] *(?=\Z|\n\Z|\n\n)', 'gm');
+				'\\] *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(mcBlockRegexp, function() {
 				var result = [];
@@ -150,7 +150,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var checkboxBlockRegexp = new RegExp('^\\[checkbox: ?([^\n]+?)\n' +
 				'(knows: ?[^\n]+?\n)?' +
 				'(wants: ?[^\n]+?\n)?' +
-				'\\] *(?=\Z|\n\Z|\n\n)', 'gm');
+				'\\] *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(checkboxBlockRegexp, function(whole, text, knows, wants) {
 				var blockText = text + '\n\n' + (knows ? '- ' + knows + '\n' : '') + (wants ? '- ' + wants : '');
@@ -166,8 +166,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process |knows-requisite([alias]): markdown| spans.
-		var hasReqSpanRegexp = new RegExp(notEscaped + '(\\|+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
+		// Process %knows-requisite([alias]): markdown% spans.
+		var hasReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(hasReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
@@ -175,8 +175,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process |wants-requisite([alias]): markdown| spans.
-		var wantsReqSpanRegexp = new RegExp(notEscaped + '(\\|+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
+		// Process %wants-requisite([alias]): markdown% spans.
+		var wantsReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
 		converter.hooks.chain('preSpanGamut', function(text, run) {
 			return text.replace(wantsReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
