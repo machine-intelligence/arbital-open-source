@@ -524,7 +524,7 @@
 				<span ng-if="::!gtXSmallScreen">For editors</span>
 				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
 			</md-checkbox>
-			<span ng-if="!page.isEditorCommentIntention && !page.getCommentParent().permissions.comment.has">
+			<span ng-if="page.isComment() && !page.isEditorCommentIntention && !page.getCommentParent().permissions.comment.has">
 				<md-icon>warning</md-icon>
 				<md-tooltip md-delay="500">
 					You are new to this domain. Your comment will become public after it's approved by a moderator.

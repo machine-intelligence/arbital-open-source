@@ -41,6 +41,17 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("One of the passed page ids is invalid", nil)
 	}
 
+	page, err := core.LoadFullEdit(db, data.QuestionId, u, nil)
+	if err != nil {
+		return pages.HandlerErrorFail("Couldn't load page", err)
+	}
+	if page.Type != core.QuestionPageType {
+		return pages.HandlerBadRequestFail("Adding answer to a non-question page", nil)
+	}
+	if !page.Permissions.Edit.Has {
+		return pages.HandlerBadRequestFail(page.Permissions.Edit.Reason, nil)
+	}
+
 	var newId int64
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Add the answer
