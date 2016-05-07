@@ -89,9 +89,10 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	}
 
 	// Error checking
-	if child.SeeGroupId != parent.SeeGroupId {
+	// TODO: we can't check this right now because this breaks creating comments in private groups
+	/*if child.SeeGroupId != parent.SeeGroupId {
 		return pages.HandlerErrorFail("Parent and child need to have the same See Group", nil)
-	}
+	}*/
 	// Check edit permissions
 	if !data.SkipPermissionsCheck {
 		if data.Type == core.RequirementPagePairType || data.Type == core.TagPagePairType {

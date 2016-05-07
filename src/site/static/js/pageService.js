@@ -1057,7 +1057,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			toastClass += ' md-warn';
 		}
 		var hideDelay = Math.max(3000, params.text.length / 10 * 1000);
-		var sanitizedTest = escapeHtml(params.text);
+		var sanitizedText = escapeHtml(params.text);
 		$mdToast.show({
 			template: '<md-toast><div class=\'' + toastClass + '\'>' + sanitizedText + '</div></md-toast>',
 			autoWrap: false,
