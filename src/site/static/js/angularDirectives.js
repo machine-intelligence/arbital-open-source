@@ -632,8 +632,6 @@ app.directive('arbLogRow', function(pageService) {
 			isRelatedPageAlive: '=',
 			markId: '@',
 			createdAt: '@',
-			oldSettingsValue: '@',
-			newSettingsValue: '@',
 			repeated: '=',
 			showUserLink: '=',
 		},
