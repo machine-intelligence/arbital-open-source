@@ -168,15 +168,15 @@
 		</span>
 
 		<span ng-switch-when="newEdit">
-			New edit #{{::edit}}
+			New edit #{{::changeLog.edit}}
 		</span>
 
 		<span ng-switch-when="revertEdit">
-			Reverted to edit #{{::edit}}
+			Reverted to edit #{{::changeLog.edit}}
 		</span>
 
 		<span ng-switch-when="newSnapshot">
-			New snapshot (edit #{{::edit}})
+			New snapshot (edit #{{::changeLog.edit}})
 		</span>
 
 

@@ -634,7 +634,6 @@ app.directive('arbLogRow', function(pageService) {
 			createdAt: '@',
 			oldSettingsValue: '@',
 			newSettingsValue: '@',
-			edit: '@',
 			repeated: '=',
 			showUserLink: '=',
 		},
