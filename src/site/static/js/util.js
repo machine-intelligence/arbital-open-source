@@ -5,6 +5,21 @@ RegExp.escape = function(s) {
 	return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
+
+var escapeHtml = function(s) {
+	var entityMap = {
+		"&": "&amp;",
+		"<": "&lt;",
+		">": "&gt;",
+		'"': '&quot;',
+		"'": '&#39;',
+		"/": '&#x2F;'
+	};
+	return String(s).replace(/[&<>"'\/]/g, function (s) {
+		return entityMap[s];
+	});
+};
+
 var subdomainRegexpStr = '[A-Za-z0-9]+\\.';
 
 // Return a regex that handles all 4 possible cases for subdomains in the URL

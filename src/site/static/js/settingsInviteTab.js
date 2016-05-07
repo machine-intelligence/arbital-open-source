@@ -11,19 +11,20 @@ app.directive('arbSettingsInviteTab', function($http, $filter, pageService, user
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.alwaysTrue = true;
 
-			// Controls whether forms to create invites are shown
+			// Controls whether form to create invite is shown
 			$scope.creatingInvite = false;
-			// If user tries to submit any invalid emails in GROUP form
+			// If user tries to submit any invalid emails
 			$scope.invalidEmails = [];
-			$scope.domainId = '';
+			$scope.selectedDomains = {};
 
 			$scope.invitesSent.sort(function(a, b) {
 				return a.toEmail.localeCompare(b.toEmail);
 			});
 
-			// Create new invites for the given emails to the given domain.
-			$scope.newInvite = function(emails, domainId) {
+			// Create new invites for the given emails to the given domains.
+			$scope.newInvite = function(emails) {
 				// Test email string for validity
 				var testedEmails = cleanEmails(emails);
 				if (testedEmails.invalid.length > 0) {
@@ -32,11 +33,19 @@ app.directive('arbSettingsInviteTab', function($http, $filter, pageService, user
 				}
 				$scope.invalidEmails = [];
 
+				// Get domainIds
+				var domainIds = [];
+				for (var domainId in $scope.selectedDomains) {
+					if ($scope.selectedDomains[domainId]) {
+						domainIds.push(domainId);
+					}
+				}
+
 				for (var n = 0; n < testedEmails.valid.length; n++) {
 					var email = testedEmails.valid[n];
 					var inviteToPost = {
 						toEmail: email,
-						domainId: domainId,
+						domainIds: domainIds,
 					};
 					// use a self-invoking anonymous function so that the email variable in the callbacks below refers to
 					// a different value with each iteration of the for loop, rather than being a fixed reference that
@@ -49,7 +58,9 @@ app.directive('arbSettingsInviteTab', function($http, $filter, pageService, user
 						})
 						.success(function(data) {
 							$scope.creatingInvite = false;
-							$scope.invitesSent.unshift(data.result.invite);
+							for (var domainId in data.result.inviteMap) {
+								$scope.invitesSent.unshift(data.result.inviteMap[domainId]);
+							}
 						})
 						.error(function(data, status) {
 							console.error('Unable to create invites:'); console.log(data);

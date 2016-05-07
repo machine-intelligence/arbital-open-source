@@ -20,23 +20,22 @@
 			<div class="hint">Comma separated</div>
 		</md-input-container>
 
-		<md-input-container>
-			<label>
-				Domain
-			</label>
-			<md-select ng-model="domainId">
-				<!-- Option for creating a general invite, gets sent to backend/db as ""-->
-				<md-option value="">No special access</md-option>
-				<md-option ng-repeat="domain in ::domains"
-						ng-bind="::domain.longName"
-						value="{{::domain.domainId}}"></md-option>
-			</md-select>
-		</md-input-container>
+		<md-checkbox ng-model="alwaysTrue"
+				aria-label="General"
+				ng-disabled="true">
+			<span>General (no specific domain)</span>
+		</md-checkbox>
+		<p>Specific domains:</p>
+		<md-checkbox ng-model="selectedDomains[domain.domainId]"
+				aria-label="{{::domain.longName}}"
+				ng-repeat="domain in ::domains">
+			<span ng-bind="::domain.longName"></span>
+		</md-checkbox>
 
 		<div layout-align="end center" layout="row">
 			<md-button class="md-raised md-primary"
 					type="submit"
-					ng-click="newInvite(emails,domainId)">
+					ng-click="newInvite(emails)">
 				Send
 			</md-button>
 		</div>

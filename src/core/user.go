@@ -37,7 +37,7 @@ func IdsListFromUserMap(userMap map[string]*User) []interface{} {
 }
 
 // LoadUsers loads User information (like name) for each user in the given map.
-func LoadUsers(db *database.DB, userMap map[string]*User, userId string) error {
+func LoadUsers(db *database.DB, userMap map[string]*User, currentUserId string) error {
 	if len(userMap) <= 0 {
 		return nil
 	}
@@ -55,7 +55,7 @@ func LoadUsers(db *database.DB, userMap map[string]*User, userId string) error {
 		) AS u
 		LEFT JOIN (
 			SELECT *
-			FROM subscriptions WHERE userId=?`, userId).Add(`
+			FROM subscriptions WHERE userId=?`, currentUserId).Add(`
 		) AS s
 		ON (u.id=s.toId)`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -68,4 +68,10 @@ func LoadUsers(db *database.DB, userMap map[string]*User, userId string) error {
 		return nil
 	})
 	return err
+}
+func LoadUser(db *database.DB, userId string, currentUserId string) (*User, error) {
+	user := &User{Id: userId}
+	userMap := map[string]*User{userId: user}
+	err := LoadUsers(db, userMap, currentUserId)
+	return user, err
 }
