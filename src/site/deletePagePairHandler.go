@@ -99,6 +99,9 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 	parentIsLive := parent.Edit > 0 && !parent.IsDeleted
 
 	// Update change logs
+	var newChildChangeLogId int64
+	var newParentChangeLogId int64
+
 	if childIsLive {
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = parent.PageId
@@ -112,8 +115,13 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 			core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
 		}[pairType]
 		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		if _, err := statement.Exec(); err != nil {
+		result, err := statement.Exec()
+		if err != nil {
 			return "Couldn't insert new child change log", err
+		}
+		newChildChangeLogId, err = result.LastInsertId()
+		if err != nil {
+			return "Couldn't get changeLogId", err
 		}
 	}
 
@@ -130,14 +138,20 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 			core.SubjectPagePairType:     core.DeleteSubjectChangeLog,
 		}[pairType]
 		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		if _, err := statement.Exec(); err != nil {
+		result, err := statement.Exec()
+		if err != nil {
 			return "Couldn't insert new child change log", err
+		}
+		newParentChangeLogId, err = result.LastInsertId()
+		if err != nil {
+			return "Couldn't get changeLogId", err
 		}
 	}
 
 	// Send updates for users subscribed to the parent or child.
 	if childIsLive && parentIsLive {
-		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, child.Type, parent.PageId, child.PageId)
+		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, child.Type,
+			parent.PageId, child.PageId, newParentChangeLogId, newChildChangeLogId)
 	}
 
 	return "", nil

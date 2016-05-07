@@ -32,7 +32,7 @@ type NewUpdateTask struct {
 	// comment someone made.
 	GoToPageId string
 
-	// Only set if UpdateType is 'pageInfoEdit'. Id is a FK into changeLogs table.
+	// Optional. FK into changeLogs table.
 	ChangeLogId int64
 
 	// Only set if UpdateType is for a mark. Id is a FK into marks table.
@@ -164,22 +164,25 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 }
 
 func EnqueueNewRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string) {
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, false)
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, false)
+	parentId string, childId string, newParentChangeLogId int64, newChildChangeLogId int64) {
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, false, newChildChangeLogId)
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, false, newParentChangeLogId)
 }
 
 func EnqueueDeleteRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string) {
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, true)
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, true)
+	parentId string, childId string, removedParentChangeLogId int64, removedChildChangeLogId int64) {
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, true, removedChildChangeLogId)
+	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, true, removedParentChangeLogId)
 }
 
 func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string, updateIsForChild bool, relationshipIsDeleted bool) {
+	parentId string, childId string, updateIsForChild bool, relationshipIsDeleted bool, changeLogId int64) {
 
 	var task NewUpdateTask
 	task.UserId = userId
+	if changeLogId != 0 {
+		task.ChangeLogId = changeLogId
+	}
 	updateType, err := core.GetUpdateTypeForPagePair(pairType, childPageType, updateIsForChild, relationshipIsDeleted)
 	if err != nil {
 		c.Errorf("Couldn't get the update type for a page pair type: %v", err)

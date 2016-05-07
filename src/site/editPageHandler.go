@@ -244,6 +244,14 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
+	// The id of the changeLog for this edit
+	var editChangeLogId int64
+	// Whether we created a changeLog for this edit
+	var createEditChangeLog bool
+	// The ids of the changeLogs for updated relationships
+	newChildChangeLogIdMap := make(map[string]int64)
+	newParentChangeLogIdMap := make(map[string]int64)
+
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		if isLiveEdit {
@@ -320,14 +328,22 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				return "Couldn't set everPublished on pagePairs", err
 			}
 
-			// Now that we're publishing this page, add to the changelogs of any new parents or children
+			// Now that we're publishing this page, create changeLogs for new relationships
 			for _, parent := range newParents {
-				addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
+				newChildChangeLogId, err := addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
 					data.PageId, newEditNum, false)
+				if err != nil {
+					return "Couldn't create changeLog for new child", err
+				}
+				newChildChangeLogIdMap[parent.PageId] = newChildChangeLogId
 			}
 			for _, child := range newChildren {
-				addNewParentToChangelog(tx, u.Id, child.PairType, child.PageType, child.PageId, child.CurrentEdit,
+				newParentChangeLogId, err := addNewParentToChangelog(tx, u.Id, child.PairType, child.PageType, child.PageId, child.CurrentEdit,
 					data.PageId, newEditNum, false)
+				if err != nil {
+					return "Couldn't create changeLog for new parent", err
+				}
+				newParentChangeLogIdMap[child.PageId] = newParentChangeLogId
 			}
 		}
 
@@ -358,8 +374,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			return "Couldn't update pageInfos", err
 		}
 
-		// Update change logs
-		updateChangeLogs := true
+		// Update change logs. We only create a changeLog for some types of edits.
+		createEditChangeLog = true
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["edit"] = newEditNum
@@ -374,16 +390,21 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		} else if isLiveEdit {
 			hashmap["type"] = core.NewEditChangeLog
 		} else {
-			updateChangeLogs = false
+			createEditChangeLog = false
 		}
-		if updateChangeLogs {
+		if createEditChangeLog {
 			statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-			if _, err = statement.Exec(); err != nil {
+			result, err := statement.Exec()
+			if err != nil {
 				return "Couldn't insert new child change log", err
+			}
+			editChangeLogId, err = result.LastInsertId()
+			if err != nil {
+				return "Couldn't get id of changeLog", err
 			}
 		}
 
-		// Add subscription.
+		// Subscribe this user to the page that they just edited.
 		if isLiveEdit && !oldPage.WasPublished {
 			hashmap = make(map[string]interface{})
 			hashmap["userId"] = u.Id
@@ -428,6 +449,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.UserId = u.Id
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
+			if createEditChangeLog {
+				task.ChangeLogId = editChangeLogId
+			}
 			if oldPage.Type != core.CommentPageType {
 				if oldPage.IsDeleted {
 					task.UpdateType = core.UndeletePageUpdateType
@@ -452,30 +476,38 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GroupByUserId = u.Id
 			task.SubscribedToId = u.Id
 			task.GoToPageId = data.PageId
+			if createEditChangeLog {
+				task.ChangeLogId = editChangeLogId
+			}
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
 		}
 
-		// Generate updates for users who are subscribed to this page or to related pages.
+		// Generate "new relationship" updates for users who are subscribed to this page or to related pages.
 		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
 			for _, parent := range newParents {
-				tasks.EnqueueNewRelationshipUpdates(c, u.Id, parent.PairType, oldPage.Type, parent.PageId, data.PageId)
+				tasks.EnqueueNewRelationshipUpdates(c, u.Id, parent.PairType, oldPage.Type, parent.PageId, data.PageId,
+					newParentChangeLogIdMap[parent.PageId], 0)
 			}
 			for _, child := range newChildren {
-				tasks.EnqueueNewRelationshipUpdates(c, u.Id, child.PairType, child.PageType, data.PageId, child.PageId)
+				tasks.EnqueueNewRelationshipUpdates(c, u.Id, child.PairType, child.PageType, data.PageId, child.PageId,
+					0, newChildChangeLogIdMap[child.PageId])
 			}
 		}
 
 		// Do some stuff for a new comment.
 		if !oldPage.WasPublished && oldPage.Type == core.CommentPageType {
-			// Send updates.
+			// Send "new comment" updates.
 			if !isMinorEdit {
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.GroupByPageId = commentPrimaryPageId
 				task.GoToPageId = data.PageId
 				task.EditorsOnly = oldPage.IsEditorComment
+				if createEditChangeLog {
+					task.ChangeLogId = editChangeLogId
+				}
 				if core.IsIdValid(commentParentId) {
 					// This is a new reply
 					task.UpdateType = core.ReplyUpdateType

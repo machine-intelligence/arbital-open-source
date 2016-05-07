@@ -106,6 +106,10 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		}
 	}
 
+	// Ids of the changelogs created for this pagePair
+	var newChildChangeLogId int64
+	var newParentChangeLogId int64
+
 	// Do it!
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Create new page pair
@@ -119,15 +123,15 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		}
 
 		if child.Edit > 0 && !child.IsDeleted {
-			err = addNewChildToChangelog(tx, u.Id, data.Type, child.Type, data.ParentId, parent.Edit, data.ChildId, child.Edit,
-				child.IsDeleted)
+			newChildChangeLogId, err = addNewChildToChangelog(tx, u.Id, data.Type, child.Type, data.ParentId, parent.Edit,
+				data.ChildId, child.Edit, child.IsDeleted)
 			if err != nil {
 				return "Couldn't add to changelog of parent", err
 			}
 		}
 		if parent.Edit > 0 && !parent.IsDeleted {
-			err = addNewParentToChangelog(tx, u.Id, data.Type, child.Type, data.ChildId, child.Edit, data.ParentId, parent.Edit,
-				parent.IsDeleted)
+			newParentChangeLogId, err = addNewParentToChangelog(tx, u.Id, data.Type, child.Type, data.ChildId, child.Edit,
+				data.ParentId, parent.Edit, parent.IsDeleted)
 			if err != nil {
 				return "Couldn't add to changelog of child", err
 			}
@@ -142,7 +146,8 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if parent.Type != core.CommentPageType && parent.Alias != "" && child.Alias != "" &&
 		!parent.IsDeleted && !child.IsDeleted {
 
-		tasks.EnqueueNewRelationshipUpdates(c, u.Id, data.Type, child.Type, parent.PageId, child.PageId)
+		tasks.EnqueueNewRelationshipUpdates(c, u.Id, data.Type, child.Type, parent.PageId, child.PageId, newParentChangeLogId,
+			newChildChangeLogId)
 
 		if data.Type == core.ParentPagePairType {
 			// Create a task to propagate the domain change to all children
@@ -159,7 +164,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 // Update the changelogs of the parent for a new relationship.
 func addNewChildToChangelog(tx *database.Tx, userId string, pairType string, childPageType string, pageId string,
-	pageEdit int, childId string, childEdit int, childIsDeleted bool) error {
+	pageEdit int, childId string, childEdit int, childIsDeleted bool) (int64, error) {
 
 	return addRelationshipToChangelogInternal(tx, userId, pairType, childPageType, pageId, pageEdit, childId, childEdit,
 		childIsDeleted, false)
@@ -167,7 +172,7 @@ func addNewChildToChangelog(tx *database.Tx, userId string, pairType string, chi
 
 // Update the changelogs of the child for a new relationship.
 func addNewParentToChangelog(tx *database.Tx, userId string, pairType string, childPageType string, pageId string,
-	pageEdit int, parentId string, parentEdit int, parentIsDeleted bool) error {
+	pageEdit int, parentId string, parentEdit int, parentIsDeleted bool) (int64, error) {
 
 	return addRelationshipToChangelogInternal(tx, userId, pairType, childPageType, pageId, pageEdit, parentId, parentEdit,
 		parentIsDeleted, true)
@@ -207,18 +212,18 @@ func getChangeLogTypeForPagePair(pairType string, childPageType string, changeLo
 }
 
 func addRelationshipToChangelogInternal(tx *database.Tx, userId string, pairType string, childPageType string, pageId string,
-	pageEdit int, auxPageId string, auxPageEdit int, auxPageIsDeleted bool, changeLogEntryIsForChild bool) error {
+	pageEdit int, auxPageId string, auxPageEdit int, auxPageIsDeleted bool, changeLogEntryIsForChild bool) (int64, error) {
 
 	// Do not add to the changelog of a public page if its aux page hasn't been published (as this would leak data
 	// about a user's unpublished draft) or if it's deleted (editing a deleted page shouldn't affect live pages
 	// until the deleted page is published again).
 	if auxPageId != pageId && (auxPageEdit <= 0 || auxPageIsDeleted) {
-		return nil
+		return 0, nil
 	}
 
 	entryType, err := getChangeLogTypeForPagePair(pairType, childPageType, changeLogEntryIsForChild)
 	if err != nil {
-		return fmt.Errorf("Could not get changelog type for relationship: %v", err)
+		return 0, fmt.Errorf("Could not get changelog type for relationship: %v", err)
 	}
 
 	hashmap := make(database.InsertMap)
@@ -229,6 +234,13 @@ func addRelationshipToChangelogInternal(tx *database.Tx, userId string, pairType
 	hashmap["createdAt"] = database.Now()
 	hashmap["type"] = entryType
 
-	_, err = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx).Exec()
-	return err
+	result, err := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx).Exec()
+	if err != nil {
+		return 0, fmt.Errorf("Could not insert changeLog: %v", err)
+	}
+	changeLogId, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("Could not get changeLogId: %v", err)
+	}
+	return changeLogId, err
 }
