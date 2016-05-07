@@ -643,10 +643,16 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	AddUserGroupIdsToPageMap(u, pageMap)
 
 	// Load page data
-	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit })
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit && !p.LoadOptions.IncludeDeleted })
 	err = LoadPages(db, u, filteredPageMap)
 	if err != nil {
 		return fmt.Errorf("LoadPages failed: %v", err)
+	}
+
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit && p.LoadOptions.IncludeDeleted })
+	err = LoadPagesWithDeleted(db, u, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadPagesWithDeleted failed: %v", err)
 	}
 
 	// Compute edit permissions
@@ -794,6 +800,15 @@ func LoadPageObjects(db *database.DB, u *CurrentUser, pageMap map[string]*Page, 
 
 // LoadPages loads the given pages.
 func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
+	return loadPagesInternal(db, u, pageMap, false)
+}
+
+// LoadPagesWithDeleted loads the given pages, even if they are deleted.
+func LoadPagesWithDeleted(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
+	return loadPagesInternal(db, u, pageMap, true)
+}
+
+func loadPagesInternal(db *database.DB, u *CurrentUser, pageMap map[string]*Page, loadDeletedPages bool) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -808,6 +823,13 @@ func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error 
 	}
 	textSelect := database.NewQuery(`IF(p.pageId IN`).AddIdsGroup(textIds).Add(`,p.text,"") AS text`)
 
+	var pageInfosTable *database.QueryPart
+	if loadDeletedPages {
+		pageInfosTable = PageInfosTableWithDeleted(u)
+	} else {
+		pageInfosTable = PageInfosTable(u)
+	}
+
 	// Load the page data
 	rows := database.NewQuery(`
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
@@ -817,7 +839,7 @@ func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error 
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
+		JOIN`).AddPart(pageInfosTable).Add(`AS pi
 		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
 		WHERE p.pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -921,7 +943,7 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 		// Process change logs
 		for _, log := range p.ChangeLogs {
 			userMap[log.UserId] = &User{Id: log.UserId}
-			AddPageToMap(log.AuxPageId, pageMap, TitlePlusLoadOptions)
+			AddPageToMap(log.AuxPageId, pageMap, TitlePlusIncludeDeletedLoadOptions)
 		}
 
 		err = LoadLikesForChangeLogs(db, userId, p.ChangeLogs)
@@ -1581,8 +1603,6 @@ type LoadChildIdsOptions struct {
 	PagePairType string
 	// Load options to set for the new pages
 	LoadOptions *PageLoadOptions
-	// Whether to skip relationships that have already had updates created for them
-	SkipPublishedRelationships bool
 }
 
 // LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
@@ -1590,11 +1610,6 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
-	}
-
-	neverPublishedFilter := ""
-	if options.SkipPublishedRelationships {
-		neverPublishedFilter = "NOT everPublished AND "
 	}
 
 	pairTypeFilter := ""
@@ -1613,7 +1628,7 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE`).Add(neverPublishedFilter).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE`).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON pi.pageId=pp.childId`).Add(pageTypeFilter).ToStatement(db).Query()
@@ -1753,8 +1768,6 @@ type LoadParentIdsOptions struct {
 	LoadOptions *PageLoadOptions
 	// Mastery map to populate with masteries necessary for a requirement
 	MasteryMap map[string]*Mastery
-	// Whether to skip relationships that have already had updates created for them
-	SkipPublishedRelationships bool
 }
 
 // LoadParentIds loads the page ids for all the parents of the pages in the given pageMap.
@@ -1762,11 +1775,6 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 	sourcePageMap := options.ForPages
 	if len(sourcePageMap) <= 0 {
 		return nil
-	}
-
-	neverPublishedFilter := ""
-	if options.SkipPublishedRelationships {
-		neverPublishedFilter = "NOT everPublished AND "
 	}
 
 	pairTypeFilter := ""
@@ -1781,7 +1789,7 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 		FROM (
 			SELECT id,parentId,childId,type
 			FROM pagePairs
-			WHERE `).Add(neverPublishedFilter).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIds).Add(`
+			WHERE `).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIds).Add(`
 		) AS pp
 		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 		ON (pi.pageId=pp.parentId)
@@ -1942,7 +1950,10 @@ func loadSiblingId(db *database.DB, u *CurrentUser, pageId string, useNextSiblin
 	var sortType string
 	var parentCount int
 	row := database.NewQuery(`
-		SELECt ifnull(max(pp.parentId),0),ifnull(max(pi.sortChildrenBy),""),count(*)
+		SELECT
+			ifnull(max(pp.parentId), 0),
+			ifnull(max(pi.sortChildrenBy), ""),
+			count(*)
 		FROM pagePairs AS pp
 		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
 		ON (pp.parentId=pi.pageId)

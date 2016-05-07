@@ -63,6 +63,9 @@ type PageLoadOptions struct {
 	// Options for what data to load after the page's data has been loaded
 	NextPrevIds bool
 	PageObjects bool
+
+	// Load the page even if it's deleted
+	IncludeDeleted bool
 }
 
 // Here we define some commonly used loadOptions templates.
@@ -145,6 +148,10 @@ var (
 	// Options for loading an answer
 	AnswerLoadOptions = (&PageLoadOptions{
 		SubpageCounts: true,
+	}).Add(TitlePlusLoadOptions)
+	// Options for loading the title of a possibly-deleted page
+	TitlePlusIncludeDeletedLoadOptions = (&PageLoadOptions{
+		IncludeDeleted: true,
 	}).Add(TitlePlusLoadOptions)
 	// Options for loading a page to display the title + some additional info.
 	TitlePlusLoadOptions = &PageLoadOptions{

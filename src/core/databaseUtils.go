@@ -13,29 +13,37 @@ import (
 // It filters all the pages to make sure the current can actually access them.
 // It also filters out any pages that are deleted or aren't published.
 func PageInfosTable(u *CurrentUser) *database.QueryPart {
-	if u == nil {
-		return database.NewQuery(`pageInfos`)
-	}
-	allowedGroups := append(u.GroupIds, "")
-	return database.NewQuery(`(
-		SELECT *
-		FROM pageInfos
-		WHERE seeGroupId IN`).AddArgsGroupStr(allowedGroups).Add(`
-			AND currentEdit>0 AND NOT isDeleted
-	)`)
+	return pageInfosTableInternal(u, false, false)
+}
+
+// Like PageInfosTable but allows for deleted pages.
+func PageInfosTableWithDeleted(u *CurrentUser) *database.QueryPart {
+	return pageInfosTableInternal(u, false, true)
 }
 
 // Like PageInfosTable but allows for autosaves, snapshots, and deleted pages.
 func PageInfosTableAll(u *CurrentUser) *database.QueryPart {
-	if u == nil {
+	return pageInfosTableInternal(u, true, true)
+}
+
+// pageInfosTableInternal is a wrapper for loading data from the pageInfos table.
+func pageInfosTableInternal(u *CurrentUser, includeUnpublished bool, includeDeleted bool) *database.QueryPart {
+	if u == nil && includeUnpublished && includeDeleted {
 		return database.NewQuery(`pageInfos`)
 	}
-	allowedGroups := append(u.GroupIds, "")
-	return database.NewQuery(`(
-		SELECT *
-		FROM pageInfos
-		WHERE seeGroupId IN`).AddArgsGroupStr(allowedGroups).Add(`
-	)`)
+
+	q := database.NewQuery(`(SELECT * FROM pageInfos WHERE true`)
+	if u != nil {
+		allowedGroups := append(u.GroupIds, "")
+		q.Add(`AND seeGroupId IN`).AddArgsGroupStr(allowedGroups)
+	}
+	if !includeUnpublished {
+		q.Add(`AND currentEdit>0`)
+	}
+	if !includeDeleted {
+		q.Add(`AND not isDeleted`)
+	}
+	return q.Add(`)`)
 }
 
 // Replace a rune at a specific index in a string

@@ -80,19 +80,19 @@
 		</span>
 
 		<span ng-switch-when="searchStringChange">
-			<span ng-if="::newSettingsValue">
-				Search string added: <span ng-bind="::newSettingsValue"></span>
+			<span ng-if="::changeLog.newSettingsValue">
+				Search string added: <span ng-bind="::changeLog.newSettingsValue"></span>
 			</span>
-			<span ng-if="::oldSettingsValue">
-				Search string removed: <span ng-bind="::oldSettingsValue"></span>
+			<span ng-if="::changeLog.oldSettingsValue">
+				Search string removed: <span ng-bind="::changeLog.oldSettingsValue"></span>
 			</span>
 		</span>
 
 		<span ng-switch-when="answerChange">
-			<span ng-if="::newSettingsValue">
+			<span ng-if="::changeLog.newSettingsValue">
 				Answer added: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-			<span ng-if="::oldSettingsValue">
+			<span ng-if="::changeLog.oldSettingsValue">
 				Answer removed: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
 		</span>
@@ -110,36 +110,36 @@
 
 		<span ng-switch-when="newAlias">
 			Alias changed
-			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::oldSettingsValue}}"</span>
-			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::newSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::changeLog.oldSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::changeLog.newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newSortChildrenBy">
 			Child sort order changed
-			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::oldSettingsValue}}"</span>
-			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::newSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::changeLog.oldSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::changeLog.newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="setVoteType">
 			Vote type changed
-			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::oldSettingsValue}}"</span>
-			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::newSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::changeLog.oldSettingsValue}}"</span>
+			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::changeLog.newSettingsValue}}"</span>
 		</span>
 
 		<span ng-switch-when="newEditGroup">
 			Edit group changed
 			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from:
 				<!-- old edit group -->
-				<span ng-if="::(oldSettingsValue == '')">none</span>
-				<span ng-if="::(oldSettingsValue != '')">
-					<arb-page-title page-id="{{::oldSettingsValue}}" is-link="true"></arb-page-title>
+				<span ng-if="::(changeLog.oldSettingsValue == '')">none</span>
+				<span ng-if="::(changeLog.oldSettingsValue != '')">
+					<arb-page-title page-id="{{::changeLog.oldSettingsValue}}" is-link="true"></arb-page-title>
 				</span>
 			</span>
 			<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to:
 				<!-- new edit group -->
-				<span ng-if="::(newSettingsValue == '')">none</span>
-				<span ng-if="::(newSettingsValue != '')">
-					<arb-page-title page-id="{{::newSettingsValue}}" is-link="true"></arb-page-title>
+				<span ng-if="::(changeLog.newSettingsValue == '')">none</span>
+				<span ng-if="::(changeLog.newSettingsValue != '')">
+					<arb-page-title page-id="{{::changeLog.newSettingsValue}}" is-link="true"></arb-page-title>
 				</span>
 			</span>
 		</span>
@@ -168,15 +168,15 @@
 		</span>
 
 		<span ng-switch-when="newEdit">
-			New edit #{{::edit}}
+			New edit #{{::changeLog.edit}}
 		</span>
 
 		<span ng-switch-when="revertEdit">
-			Reverted to edit #{{::edit}}
+			Reverted to edit #{{::changeLog.edit}}
 		</span>
 
 		<span ng-switch-when="newSnapshot">
-			New snapshot (edit #{{::edit}})
+			New snapshot (edit #{{::changeLog.edit}})
 		</span>
 
 

@@ -138,25 +138,21 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	}
 
 	// Create group loading options
-	groupLoadOptions := (&PageLoadOptions{
-		LastVisit:    true,
-		IsSubscribed: true,
-	}).Add(TitlePlusLoadOptions)
-	goToPageLoadOptions := (&PageLoadOptions{
-		LastVisit: true,
-	}).Add(TitlePlusLoadOptions)
+	groupLoadOptions := (&PageLoadOptions{IsSubscribed: true}).Add(TitlePlusIncludeDeletedLoadOptions)
+	goToPageLoadOptions := TitlePlusIncludeDeletedLoadOptions
 
 	updateRows := make([]*UpdateRow, 0, 0)
 	changeLogs := make([]*ChangeLog, 0)
 	rows := database.NewQuery(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
-			(SELECT currentEdit > 0 AND !isDeleted FROM`).AddPart(PageInfosTableAll(u)).Add(`AS pi WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)) AS isGroupByObjectAlive,
-			COALESCE((SELECT currentEdit > 0 AND !isDeleted FROM`).AddPart(PageInfosTableAll(u)).Add(`AS pi WHERE updates.goToPageId = pageId), False) AS isGoToPageAlive,
+			(SELECT !isDeleted FROM`).AddPart(PageInfosTableWithDeleted(u)).Add(`AS pi WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)) AS isGroupByObjectAlive,
+			COALESCE((SELECT !isDeleted FROM`).AddPart(PageInfosTableWithDeleted(u)).Add(`AS pi WHERE updates.goToPageId = pageId), False) AS isGoToPageAlive,
 			COALESCE(changeLogs.id, 0),
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
-			COALESCE(changeLogs.newSettingsValue, '')
+			COALESCE(changeLogs.newSettingsValue, ''),
+			COALESCE(changeLogs.edit, 0)
 		FROM updates
 		LEFT JOIN changeLogs
 		ON (updates.changeLogId = changeLogs.id)
@@ -170,7 +166,8 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
 			&row.GoToPageId, &row.MarkId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive,
-			&changeLog.Id, &changeLog.Type, &changeLog.OldSettingsValue, &changeLog.NewSettingsValue)
+			&changeLog.Id, &changeLog.Type, &changeLog.OldSettingsValue, &changeLog.NewSettingsValue,
+			&changeLog.Edit)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
