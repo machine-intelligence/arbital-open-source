@@ -35,16 +35,15 @@ func pageInfosTableInternal(u *CurrentUser, includeUnpublished bool, includeDele
 	q := database.NewQuery(`(SELECT * FROM pageInfos WHERE true`)
 	if u != nil {
 		allowedGroups := append(u.GroupIds, "")
-		q = q.Add(`AND seeGroupId IN`).AddArgsGroupStr(allowedGroups)
+		q.Add(`AND seeGroupId IN`).AddArgsGroupStr(allowedGroups)
 	}
 	if !includeUnpublished {
-		q = q.Add(`AND currentEdit>0`)
+		q.Add(`AND currentEdit>0`)
 	}
 	if !includeDeleted {
-		q = q.Add(`AND not isDeleted`)
+		q.Add(`AND not isDeleted`)
 	}
-	q = q.Add(`)`)
-	return q
+	return q.Add(`)`)
 }
 
 // Replace a rune at a specific index in a string
