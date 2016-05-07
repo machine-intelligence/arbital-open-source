@@ -31,6 +31,7 @@ type PageLoadOptions struct {
 	UserMarks               bool // marks owned by the logged in user
 	UnresolvedMarks         bool // all unresolved marks
 	AllMarks                bool // just load all marks
+	DomainMembership        bool // which domains does this user belong to
 
 	// Load options for basic pages
 	Edit                  bool // because otherwise a non-published page id will be deleted from the pageMap
@@ -68,23 +69,24 @@ type PageLoadOptions struct {
 var (
 	// Options for loading the primary page
 	PrimaryPageLoadOptions = (&PageLoadOptions{
-		Questions:       true,
-		Children:        true,
-		Parents:         true,
-		Tags:            true,
-		Related:         true,
-		Lenses:          true,
-		Requirements:    true,
-		Subjects:        true,
-		UserMarks:       true,
-		UnresolvedMarks: true,
-		Answers:         true,
-		ViewCount:       true,
-		LinkedMarkCount: true,
-		Mastery:         true,
-		UsedAsMastery:   true,
-		Creators:        true,
-		NextPrevIds:     true,
+		Questions:        true,
+		Children:         true,
+		Parents:          true,
+		Tags:             true,
+		Related:          true,
+		Lenses:           true,
+		Requirements:     true,
+		Subjects:         true,
+		UserMarks:        true,
+		UnresolvedMarks:  true,
+		DomainMembership: true,
+		Answers:          true,
+		ViewCount:        true,
+		LinkedMarkCount:  true,
+		Mastery:          true,
+		UsedAsMastery:    true,
+		Creators:         true,
+		NextPrevIds:      true,
 	}).Add(SubpageLoadOptions)
 	// Options for full page edit
 	PrimaryEditLoadOptions = (&PageLoadOptions{

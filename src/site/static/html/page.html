@@ -20,6 +20,18 @@
 			<div arb-next-prev page-id="{{::page.pageId}}" whiteframe="::true"></div>
 		</div>
 
+		<!-- For user page, display what domains this user has access to -->
+		<div class="page-list-span"
+				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
+				ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
+			<span>Domains this user has access to:</span>
+			<span ng-repeat="(index, domainId) in ::page.domainMembershipIds">
+				<span class="comma" ng-if="index > 0">,</span>
+				<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
+				<span ng-if="::!domainId">General</span>
+			</span>
+		</div>
+
 		<!-- Parents -->
 		<div class="page-list-span"
 				flex-order="{{::(isTinyScreen ? 1 : 0)}}"

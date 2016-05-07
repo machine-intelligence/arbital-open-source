@@ -201,6 +201,8 @@ type Page struct {
 	ChildIds       []string `json:"childIds"`
 	ParentIds      []string `json:"parentIds"`
 	MarkIds        []string `json:"markIds"`
+	// For user pages, this is the domains user has access to
+	DomainMembershipIds []string `json:"domainMembershipIds"`
 
 	// Answers associated with this page, if it's a question page.
 	Answers []*Answer `json:"answers"`
@@ -504,6 +506,15 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	err = LoadMarkData(db, pageMap, userMap, markMap, u)
 	if err != nil {
 		return fmt.Errorf("LoadMarkData failed: %v", err)
+	}
+
+	// Load what domains these users belong to
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.DomainMembership })
+	err = LoadDomainMemberships(db, pageMap, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
+	if err != nil {
+		return fmt.Errorf("LoadDomainMemberships failed: %v", err)
 	}
 
 	// Load links
@@ -2143,6 +2154,32 @@ func LoadDomainIdsForPage(db *database.DB, page *Page) error {
 	return LoadDomainIds(db, pageMap, &LoadDataOptions{
 		ForPages: pageMap,
 	})
+}
+
+// LoadDomainMemberships loads which domains the users belong to
+func LoadDomainMemberships(db *database.DB, pageMap map[string]*Page, options *LoadDataOptions) error {
+	sourcePageMap := options.ForPages
+	if len(sourcePageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(sourcePageMap)
+	rows := database.NewQuery(`
+		SELECT toUserId,domainId
+		FROM invites
+		WHERE toUserId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var userId, domainId string
+		err := rows.Scan(&userId, &domainId)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		sourcePageMap[userId].DomainMembershipIds = append(sourcePageMap[userId].DomainMembershipIds, domainId)
+		if pageMap != nil {
+			AddPageToMap(domainId, pageMap, TitlePlusLoadOptions)
+		}
+		return nil
+	})
+	return err
 }
 
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.

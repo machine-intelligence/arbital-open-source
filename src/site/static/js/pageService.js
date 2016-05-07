@@ -377,6 +377,9 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		isDomain: function() {
 			return this.type === 'domain';
 		},
+		isUser: function() {
+			return this.pageId in userService.userMap;
+		},
 		getCommentParent: function() {
 			console.assert(this.isComment(), 'Calling getCommentParent on a non-comment');
 			for (var n = 0; n < this.parentIds.length; n++) {
