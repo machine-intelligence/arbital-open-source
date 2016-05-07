@@ -40,6 +40,11 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		RedLinkCount: true,
 	}).Add(core.TitlePlusLoadOptions)
 
+	_, err = core.LoadAllDomainIds(db, returnData.PageMap)
+	if err != nil {
+		return pages.HandlerErrorFail("Error while loading domain ids", err)
+	}
+
 	// Load recently created by me comment ids
 	rows := database.NewQuery(`
 		SELECT p.pageId

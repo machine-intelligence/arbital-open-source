@@ -7,6 +7,18 @@
 		</h2>
 	</div>
 
+	<!-- Show domain permissions -->
+	<div ng-repeat="(domainId,trust) in userService.user.trustMap"
+			ng-if="::trust.permissions.domainAccess.has">
+		<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
+		<span ng-if="::!domainId">General</span>
+		domain permissions:
+		<span ng-if="::trust.permissions.edit.has">Edit pages,</span>
+		<span ng-if="::trust.permissions.delete.has">Delete pages,</span>
+		<span ng-if="::trust.permissions.comment.has">Comment.</span>
+	</div>
+	<br>
+
 	<div arb-page-list panel-title="Recently created and edited pages"
 			show-created-at="true"
 			show-last-edit="true"

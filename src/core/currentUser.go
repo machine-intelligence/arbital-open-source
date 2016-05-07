@@ -82,9 +82,11 @@ type Invite struct {
 
 // Trust has the different scores for how much we trust a user.
 type Trust struct {
-	GeneralTrust int         `json:"generalTrust"`
-	EditTrust    int         `json:"editTrust"`
-	Permissions  Permissions `json:"permissions"`
+	Permissions Permissions `json:"permissions"`
+
+	// Note that we don't want to send the trust numbers to the FE.
+	GeneralTrust int `json:"-"`
+	EditTrust    int `json:"-"`
 }
 
 type CookieSession struct {
