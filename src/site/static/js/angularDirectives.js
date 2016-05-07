@@ -616,12 +616,6 @@ app.directive('arbNextPrev', function($location, pageService, userService) {
 app.directive('arbChangeLogEntry', function() {
 	return {
 		templateUrl: 'static/html/changeLogEntry.html',
-		scope: {
-			pageId: '@',
-			changeLog: '=',
-		},
-		controller: function($scope) {
-		},
 	};
 });
 

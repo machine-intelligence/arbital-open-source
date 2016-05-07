@@ -59,16 +59,17 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Create the data to pass to the edit page handler
 	editData := &editPageData{
-		PageId:        page.PageId,
-		PrevEdit:      page.PrevEdit,
-		Title:         page.Title,
-		Clickbait:     page.Clickbait,
-		Text:          page.Text,
-		MetaText:      page.MetaText,
-		AnchorContext: page.AnchorContext,
-		AnchorText:    page.AnchorText,
-		AnchorOffset:  page.AnchorOffset,
-		RevertToEdit:  data.EditNum,
+		PageId:                   page.PageId,
+		PrevEdit:                 page.PrevEdit,
+		Title:                    page.Title,
+		Clickbait:                page.Clickbait,
+		Text:                     page.Text,
+		MetaText:                 page.MetaText,
+		AnchorContext:            page.AnchorContext,
+		AnchorText:               page.AnchorText,
+		AnchorOffset:             page.AnchorOffset,
+		IsEditorCommentIntention: page.IsEditorCommentIntention,
+		RevertToEdit:             data.EditNum,
 	}
 	return editPageInternalHandler(params, editData)
 }

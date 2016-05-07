@@ -495,7 +495,7 @@
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">
-						<arb-change-log-entry page-id="{{::page.pageId}}" change-log="::changeLog" flex></arb-change-log-entry>
+						<arb-change-log-entry flex></arb-change-log-entry>
 						<md-divider ng-if="::!$last"></md-divider>
 					</md-list-item>
 				</md-list>

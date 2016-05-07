@@ -91,7 +91,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// If the client think the current edit is X, but it's actually Y where X!=Y
 	// (e.g. if someone else published a new version since we started editing), then
-	if oldPage.WasPublished && data.CurrentEdit != oldPage.Edit {
+	if oldPage.WasPublished && data.RevertToEdit == 0 && data.CurrentEdit != oldPage.Edit {
 		// Notify the client with an error
 		returnData.ResultMap["obsoleteEdit"] = oldPage
 		// And save a snapshot
