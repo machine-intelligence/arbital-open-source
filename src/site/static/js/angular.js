@@ -355,7 +355,8 @@ app.run(function($http, $location, urlService, pageService, userService) {
 		handler: function(args, $scope) {
 			var pageAlias = args.alias;
 			// Check if we are already editing this page.
-			if (pageService.primaryPage &&
+			// TODO: this is kind of hacky. We need a better solution (I hope React will help us with this).
+			if (pageService.primaryPage && pageService.primaryPage.pageId in pageService.editMap &&
 					pageService.pageMap[pageAlias].pageId === pageService.primaryPage.pageId) {
 				return true;
 			}
