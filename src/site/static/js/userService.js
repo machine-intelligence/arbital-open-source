@@ -22,7 +22,7 @@ app.service('userService', function($http, $location, $rootScope) {
 
 	// Check if we can let this user do stuff.
 	this.userIsCool = function() {
-		return this.user && ('' in this.user.trustMap) && this.user.trustMap[''].editTrust >= 200;
+		return this.user && ('' in this.user.trustMap) && this.user.trustMap[''].permissions.edit.has;
 	};
 
 	// Return a user's full name.
