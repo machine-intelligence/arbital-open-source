@@ -68,7 +68,7 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 
 	domainsDesc := "outside of specific domains"
 	if len(pageMap) > 0 {
-		domainsDesc := "in "
+		domainsDesc = "in "
 		for index, domainId := range task.DomainIds {
 			if index > 0 {
 				domainsDesc += ", "
