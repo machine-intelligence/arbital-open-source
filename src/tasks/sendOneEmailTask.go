@@ -60,6 +60,7 @@ func (task SendOneEmailTask) Execute(db *database.DB) (delay int, err error) {
 
 	// if emailData is nil, that means there is no update to send, so just return
 	if emailData == nil {
+		c.Debugf("Nothing to send")
 		return
 	}
 

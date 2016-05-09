@@ -306,6 +306,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	// Check to make sure there are enough updates
 	resultData.UpdateCount = len(resultData.UpdateRows)
 	if resultData.UpdateCount < u.EmailThreshold {
+		db.C.Debugf("Not enough updates to send the email: %d < %d", resultData.UpdateCount, u.EmailThreshold)
 		return nil, nil
 	}
 	resultData.UpdateGroups = ConvertUpdateRowsToGroups(resultData.UpdateRows, handlerData.PageMap)
