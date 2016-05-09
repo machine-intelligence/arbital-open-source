@@ -44,7 +44,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					createdAtLimit: earliest,
 					skipProcessDataStep: true,
 					success: function(data, status) {
-						$scope.diffHtml = diffService.getDiffHtml(data[$scope.page.pageId].text, $scope.page.text);
+						$scope.diffHtml = diffService.getDiffHtml($scope.page.text, data[$scope.page.pageId].text);
 					},
 				});
 			};
