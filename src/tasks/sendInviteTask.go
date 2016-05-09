@@ -66,18 +66,17 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Couldn't load domain info: %v", err)
 	}
 
-	domainsDesc := "outside of specific domains"
+	domainsDesc := ""
 	if len(pageMap) > 0 {
-		domainsDesc = "in "
 		for index, domainId := range task.DomainIds {
 			if index > 0 {
-				domainsDesc += ", "
+				if index == len(task.DomainIds)-1 {
+					domainsDesc += " and "
+				} else {
+					domainsDesc += ", "
+				}
 			}
 			domainsDesc += pageMap[domainId].Title
-		}
-		domainsDesc += " domain"
-		if len(pageMap) > 1 {
-			domainsDesc += "s"
 		}
 	}
 
@@ -87,7 +86,7 @@ Hello!
 
 %s just sent you an invite to Arbital, an ambitious effort to solve online discussion.
 
-This invite gives you the permission to create and edit pages %s.
+This invite gives you the permission to create and edit %s pages.
 
 Visit https://arbital.com/signup to create your account.
 
