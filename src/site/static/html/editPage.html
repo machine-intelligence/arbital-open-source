@@ -640,6 +640,18 @@
 			</div>
 			<div flex></div>
 			<div layout-margin>
+				<md-button class="md-raised" ng-click="toggleExpandDiff()" ng-if="::fullView">
+					<span ng-if="!diffExpanded">
+						<md-tooltip md-delay="500">Expand unchanged paragraphs</md-tooltip>
+						Expand
+					</span>
+					<span ng-if="diffExpanded">
+						<md-tooltip md-delay="500">Collapse unchanged paragraphs</md-tooltip>
+						Collapse
+					</span>
+				</md-button>
+			</div>
+			<div layout-margin>
 				<md-button class="md-raised" ng-click="refreshDiff()" ng-if="::fullView">
 					<md-tooltip md-delay="500">Refresh the diff</md-tooltip>
 					Refresh

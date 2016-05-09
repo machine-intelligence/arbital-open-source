@@ -2,7 +2,8 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive for the actual DOM elements which allows the user to edit a page.
-app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, pageService, userService, autocompleteService, markdownService) {
+app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia,
+	pageService, userService, autocompleteService, markdownService, diffService) {
 	return {
 		templateUrl: 'static/html/editPage.html',
 		scope: {
@@ -501,13 +502,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// otherDiff stores the edit we load for diffing.
 			$scope.otherDiff = undefined;
 			$scope.diffHtml = undefined;
+			$scope.diffExpanded = false;
 			// Refresh the diff edit text.
 			$scope.refreshDiff = function() {
-				var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
-				var diffs = dmp.diff_main($scope.otherDiff.text, $scope.page.text);
-				dmp.diff_cleanupSemantic(diffs);
-				$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, '');
+				$scope.diffHtml = diffService.getDiffHtml($scope.otherDiff.text, $scope.page.text, $scope.diffExpanded);
 			};
+			$scope.toggleExpandDiff = function() {
+				$scope.diffExpanded = !$scope.diffExpanded;
+				$scope.refreshDiff();
+			}
 			// Process click event for diffing edits
 			$scope.showDiff = function(editNum) {
 				// Load the edit from the server
