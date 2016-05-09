@@ -46,6 +46,41 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 						var diffs = dmp.diff_main(data[$scope.page.pageId].text, $scope.page.text);
 						dmp.diff_cleanupSemantic(diffs);
+
+						// Replace unchanged paragraphs with "..."
+						diffs = diffs.map(function(diff, index) {
+							// Ignore diffs that contain changes
+							if (diff[0] != 0) {
+								return diff;
+							}
+
+							var diffString = diff[1];
+							var breakBreakString = '\n\n';
+
+							// Ignore diffs with only one instance of '\n\n'
+							if (diffString.split(breakBreakString).length < 3) {
+								return diff;
+							}
+
+							// Begin collapsing at the first instance of '\n\n', unless this is the first diff
+							var beginCollapse = diffString.indexOf(breakBreakString) + breakBreakString.length;
+							if (index == 0) {
+								beginCollapse = 0;
+							}
+
+							// End collapsing at the last instance of '\n\n', unless this is the last diff
+							var endCollapse = diffString.lastIndexOf(breakBreakString);
+							if (index == diffs.length - 1) {
+								diffString.length;
+							}
+
+							// Keep the bit before the first '↵↵' and the last '↵↵'. Replace the rest with '...'
+							diffString = diffString.substring(0, beginCollapse) + '...' +
+								diffString.substring(endCollapse);
+
+							return [0, diffString];
+						});
+
 						$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, '');
 					},
 				});
