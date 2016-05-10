@@ -5,7 +5,7 @@ app.directive('arbReadModePage', function() {
 	return {
 		templateUrl: 'static/html/readModePage.html',
 		scope: {
-			hotPages: '=',
+			hotPageIds: '=',
 		},
 	};
 });

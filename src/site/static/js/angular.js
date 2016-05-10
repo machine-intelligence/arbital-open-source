@@ -611,10 +611,10 @@ app.run(function($http, $location, urlService, pageService, userService) {
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/readMode/'})
 			.success($scope.getSuccessFunc(function(data) {
-				$scope.hotPages = data.result.hotPages;
+				$scope.hotPageIds = data.result.hotPageIds;
 				return {
 					title: 'Read',
-					content: $scope.newElement('<arb-read-mode-page hot-pages=\'::hotPages\'></arb-read-mode-page>'),
+					content: $scope.newElement('<arb-read-mode-page hot-page-ids=\'::hotPageIds\'></arb-read-mode-page>'),
 				};
 			}))
 			.error($scope.getErrorFunc('readMode'));
