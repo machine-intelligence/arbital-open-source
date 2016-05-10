@@ -461,6 +461,8 @@ arb-primary-page > .capped-body-width {
   max-width: 1100px; }
 arb-admin-dashboard-page > .capped-body-width {
   max-width: 900px; }
+arb-hot-stuff > .capped-body-width {
+  max-width: 1100px; }
 
 .discussion-container {
   margin: 20px 0; }
