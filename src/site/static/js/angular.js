@@ -454,7 +454,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('groups'));
 		},
 	});
-	urlService.addUrlHandler('/learn/:pageAlias?/:pageAlias2?', {
+	urlService.addUrlHandler('/learn/:pageAlias?', {
 		name: 'LearnPage',
 		handler: function(args, $scope) {
 			// Get the primary page data

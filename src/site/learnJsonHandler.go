@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -100,11 +101,11 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Aliases might have various prefixes. Process them.
-	pageAliases := make([]string, len(data.PageAliases), len(data.PageAliases))
+	pageAliases := make([]string, 0)
 	aliasOptionsMap := make(map[string]*learnOption)
-	for n, alias := range data.PageAliases {
+	for _, alias := range data.PageAliases {
 		option := &learnOption{MustBeWanted: data.OnlyWanted}
-		actualAlias := alias
+		actualAlias := strings.ToLower(alias)
 		for {
 			char := actualAlias[0]
 			if char == '@' {
@@ -116,7 +117,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 			actualAlias = actualAlias[1:]
 		}
-		pageAliases[n] = actualAlias
+		pageAliases = append(pageAliases, actualAlias)
 		aliasOptionsMap[actualAlias] = option
 	}
 

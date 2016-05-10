@@ -2184,6 +2184,9 @@ func LoadDomainMemberships(db *database.DB, pageMap map[string]*Page, options *L
 // LoadAliasToPageIdMap loads the mapping from aliases to page ids.
 func LoadAliasToPageIdMap(db *database.DB, u *CurrentUser, aliases []string) (map[string]string, error) {
 	aliasToIdMap := make(map[string]string)
+	if len(aliases) <= 0 {
+		return aliasToIdMap, nil
+	}
 
 	strictAliases := make([]string, 0)
 	strictPageIds := make([]string, 0)
@@ -2196,48 +2199,45 @@ func LoadAliasToPageIdMap(db *database.DB, u *CurrentUser, aliases []string) (ma
 	}
 
 	var query *database.Stmt
+	// TODO: refactor these queries into one query + additional parts
+	if len(strictPageIds) <= 0 {
+		query = database.NewQuery(`
+				SELECT pageId,alias
+				FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
+				WHERE alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db)
+	} else if len(strictAliases) <= 0 {
+		query = database.NewQuery(`
+				SELECT pageId,alias
+				FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
+				WHERE pageId IN`).AddArgsGroupStr(strictPageIds).ToStatement(db)
+	} else {
+		query = database.NewQuery(`
+				SELECT pageId,alias
+				FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
+				WHERE pageId IN`).AddArgsGroupStr(strictPageIds).Add(`
+					OR alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db)
+	}
 
-	if len(strictPageIds) > 0 || len(strictAliases) > 0 {
-		if len(strictPageIds) <= 0 {
-			query = database.NewQuery(`
-			SELECT pageId,alias
-			FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-			WHERE alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db)
-		} else if len(strictAliases) <= 0 {
-			query = database.NewQuery(`
-			SELECT pageId,alias
-			FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-			WHERE pageId IN`).AddArgsGroupStr(strictPageIds).ToStatement(db)
-		} else {
-			query = database.NewQuery(`
-			SELECT pageId,alias
-			FROM`).AddPart(PageInfosTable(u)).Add(`AS pi
-			WHERE pageId IN`).AddArgsGroupStr(strictPageIds).Add(`
-				OR alias IN`).AddArgsGroupStr(strictAliases).ToStatement(db)
-		}
-
-		rows := query.Query()
-
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var pageId string
-			var alias string
-			err := rows.Scan(&pageId, &alias)
-			if err != nil {
-				return fmt.Errorf("failed to scan: %v", err)
-			}
-			aliasToIdMap[strings.ToLower(alias)] = pageId
-			aliasToIdMap[strings.ToLower(pageId)] = pageId
-			return nil
-		})
+	rows := query.Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId string
+		var alias string
+		err := rows.Scan(&pageId, &alias)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't convert pageId=>alias", err)
+			return fmt.Errorf("failed to scan: %v", err)
 		}
+		aliasToIdMap[strings.ToLower(alias)] = pageId
+		aliasToIdMap[strings.ToLower(pageId)] = pageId
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't convert pageId=>alias", err)
+	}
 
-		// The query only gets results for when the page is published
-		// We also want to return the pageIds even if they aren't for valid pages
-		for _, pageId := range strictPageIds {
-			aliasToIdMap[strings.ToLower(pageId)] = strings.ToLower(pageId)
-		}
+	// The query only gets results for when the page is published
+	// We also want to return the pageIds even if they aren't for valid pages
+	for _, pageId := range strictPageIds {
+		aliasToIdMap[strings.ToLower(pageId)] = strings.ToLower(pageId)
 	}
 	return aliasToIdMap, nil
 }
