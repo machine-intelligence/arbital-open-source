@@ -18,7 +18,7 @@ var InitMathjax = (function() {
 	//
 	HUB.Queue(function() {
 		ready = true;
-		HUB.processUpdateTime = 50;  // reduce update time so that we can cancel easier
+		HUB.processUpdateTime = 10;  // reduce update time so that we can cancel easier
 	});
 
 	//
@@ -142,12 +142,17 @@ var InitMathjax = (function() {
 			preview = document.getElementById('wmd-preview' + wmdId);
 		}
 		HUB.Config({
-			'HTML-CSS': {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}}, // reduce chunk for more frequent updates
+			'HTML-CSS': {
+				EqnChunk: 10,
+				EqnChunkFactor: 1,
+				EqChunkDelay: 500,
+				linebreaks: {automatic: true},
+			}, // reduce chunk for more frequent updates
 			SVG: {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}},
 			tex2jax: {
 				inlineMath: [[inlineDelim, inlineDelim]],
 				displayMath: [[blockDelim, blockDelim]],
-				processEscapes: true
+				processEscapes: true,
 			},
 			showProcessingMessages: false,
 		});
