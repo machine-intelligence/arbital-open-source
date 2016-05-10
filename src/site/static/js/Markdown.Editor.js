@@ -289,6 +289,7 @@
 	// and 8) and ONLY on button clicks.  Keyboard shortcuts work
 	// normally since the focus never leaves the textarea.
 	function PanelCollection(postfix) {
+		this.postfix = postfix;
 		this.buttonBar = doc.getElementById('wmd-button-bar' + postfix);
 		this.preview = doc.getElementById('wmd-preview' + postfix);
 		this.input = doc.getElementById('wmd-input' + postfix);
@@ -1209,7 +1210,7 @@
 			var $buttonBar = $(panels.buttonBar);
 
 			var makeButton = function(id, title, xShift, textOp) {
-				var button = $buttonBar.find('.' + id).get(0);
+				var button = $("body").find('.' + id + panels.postfix).get(0);
 				button.id = id + postfix;
 				if (textOp) button.textOp = textOp;
 				setupButton(button, true);
@@ -1219,10 +1220,13 @@
 			buttons.bold = makeButton('wmd-bold-button', getString('bold'), '0px', bindCommand('doBold'));
 			buttons.italic = makeButton('wmd-italic-button', getString('italic'), '-20px', bindCommand('doItalic'));
 			buttons.link = makeButton('wmd-link-button', getString('link'), '-40px', bindCommand(function(chunk, postProcessing) {
-				return this.doLinkOrImage(chunk, postProcessing, false);
+				return this.doWrap(chunk, postProcessing, 'link');
 			}));
 			buttons.intralink = makeButton('wmd-intralink-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
-				return this.doIntraLink(chunk, postProcessing);
+				return this.doIntraLink(chunk, postProcessing, false);
+			}));
+			buttons.atMention = makeButton('wmd-at-mention-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doIntraLink(chunk, postProcessing, true);
 			}));
 			buttons.newPage = makeButton('wmd-new-page-button', getString('newpage'), '-60px', bindCommand(function(chunk, postProcessing) {
 				return this.doNewPage(chunk, postProcessing, 'wiki');
@@ -1236,7 +1240,16 @@
 			buttons.quote = makeButton('wmd-quote-button', getString('quote'), '-80px', bindCommand('doBlockquote'));
 			buttons.code = makeButton('wmd-code-button', getString('code'), '-100px', bindCommand('doCode'));
 			buttons.image = makeButton('wmd-image-button', getString('image'), '-120px', bindCommand(function(chunk, postProcessing) {
-				return this.doLinkOrImage(chunk, postProcessing, true);
+				return this.doWrap(chunk, postProcessing, 'image');
+			}));
+			buttons.condition = makeButton('wmd-condition-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'condition');
+			}));
+			buttons.summary = makeButton('wmd-summary-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'summary');
+			}));
+			buttons.multipleChoice = makeButton('wmd-multiple-choice-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'multipleChoice');
 			}));
 			buttons.olist = makeButton('wmd-olist-button', getString('olist'), '-140px', bindCommand(function(chunk, postProcessing) {
 				this.doList(chunk, postProcessing, true);
@@ -1485,7 +1498,7 @@
 		});
 	}
 
-	commandProto.doLinkOrImage = function(chunk, postProcessing, isImage) {
+	commandProto.doWrap = function(chunk, postProcessing, wrapType) {
 
 		chunk.trimWhitespace();
 		chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
@@ -1508,56 +1521,64 @@
 			var that = this;
 			// The function to be executed when you enter a link and press OK or Cancel.
 			// Marks up the link and adds the ref.
-			var linkEnteredCallback = function(link) {
-				if (link) {
-					// (						  $1
-					//	 [^\\]				  anything that's not a backslash
-					//	 (?:\\\\)*			  an even number (this includes zero) of backslashes
-					// )
-					// (?=						followed by
-					//	 [[\]]				  an opening or closing bracket
-					// )
-					//
-					// In other words, a non-escaped bracket. These have to be escaped now to make sure they
-					// don't count as the end of the link or similar.
-					// Note that the actual bracket has to be a lookahead, because (in case of to subsequent brackets),
-					// the bracket in one match may be the "not a backslash" character in the next match, so it
-					// should not be consumed by the first match.
-					// The "prepend a space and finally remove it" steps makes sure there is a "not a backslash" at the
-					// start of the string, so this also works if the selection begins with a bracket. We cannot solve
-					// this by anchoring with ^, because in the case that the selection starts with two brackets, this
-					// would mean a zero-width match at the start. Since zero-width matches advance the string position,
-					// the first bracket could then not act as the "not a backslash" for the second.
-					chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
-					chunk.startTag = isImage ? '![' : '[';
-					chunk.endTag = '](' + link + ')';
-
-					if (!chunk.selection) {
-						if (isImage) {
-							chunk.selection = that.getString('imagedescription');
-						} else {
-							chunk.selection = that.getString('linkdescription');
-						}
-					}
+			var linkEnteredCallback = function(startTag, selection, endTag) {
+				// (						  $1
+				//	 [^\\]				  anything that's not a backslash
+				//	 (?:\\\\)*			  an even number (this includes zero) of backslashes
+				// )
+				// (?=						followed by
+				//	 [[\]]				  an opening or closing bracket
+				// )
+				//
+				// In other words, a non-escaped bracket. These have to be escaped now to make sure they
+				// don't count as the end of the link or similar.
+				// Note that the actual bracket has to be a lookahead, because (in case of to subsequent brackets),
+				// the bracket in one match may be the "not a backslash" character in the next match, so it
+				// should not be consumed by the first match.
+				// The "prepend a space and finally remove it" steps makes sure there is a "not a backslash" at the
+				// start of the string, so this also works if the selection begins with a bracket. We cannot solve
+				// this by anchoring with ^, because in the case that the selection starts with two brackets, this
+				// would mean a zero-width match at the start. Since zero-width matches advance the string position,
+				// the first bracket could then not act as the "not a backslash" for the second.
+				chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
+				chunk.startTag = startTag;
+				chunk.endTag = endTag;
+				if (!chunk.selection) {
+					chunk.selection = selection;
 				}
 				// NOTE: for some reason this doubles up the link
 				//postProcessing();
 			};
 
-			if (isImage) {
+			if (wrapType == 'image') {
 				if (!this.hooks.insertImageDialog(linkEnteredCallback)) {
-					linkEnteredCallback('https://arbital.com/static/images/default-image-link.png');
-					//ui.prompt(this.getString("imagedialogtitle"), this.getString("imagedialog"), linkEnteredCallback);
+					linkEnteredCallback('![', that.getString('imagedescription'),
+							'](https://arbital.com/static/images/default-image-link.png)');
 				}
+			} else if (wrapType == 'condition') {
+				linkEnteredCallback('%%%knows-requisite([math]): ', 'conditional text *with* markdown', '%%%\n\n');
+			} else if (wrapType == 'summary') {
+				linkEnteredCallback('[summary: ', 'summary text *with* markdown', ']\n\n');
+			} else if (wrapType == 'multipleChoice') {
+				var suffix = [
+					'a: Answer 1 ("knows" will set the requisites when the user picks that answer)',
+					'knows: [bayes_rule],[bayes_rule_odds]',
+					'b: Answer 2 ("wants" will set the requisites as wanted when the user picks that answer)',
+					'wants: [bayes_rule],[bayes_rule_odds]',
+					'c: Answer 3 ("-knows" will set the requisites as not known when the user picks that answer)',
+					'-knows: [bayes_rule],[bayes_rule_odds]',
+					'd: Answer 4 ("-wants" will set the requisites as not wanted when the user picks that answer)',
+					'-wants: [bayes_rule],[bayes_rule_odds]',
+					];
+				linkEnteredCallback('[multiple-choice(questionAlias): ', 'Multiple choice question?\n', suffix.join('\n') + '\n]\n\n');
 			} else {
-				linkEnteredCallback('https://arbital.com');
-				//ui.prompt(this.getString("linkdialogtitle"), this.getString("linkdialog"), linkEnteredCallback);
+				linkEnteredCallback('[', that.getString('linkdescription'), '](https://arbital.com)');
 			}
 			return true;
 		}
 	};
 
-	commandProto.doIntraLink = function(chunk, postProcessing) {
+	commandProto.doIntraLink = function(chunk, postProcessing, isAtMention) {
 
 		chunk.trimWhitespace();
 		chunk.findTags(/\s*\[\[/, /\]\]\(\(.*?\)\)/);
@@ -1606,11 +1627,11 @@
 					// would mean a zero-width match at the start. Since zero-width matches advance the string position,
 					// the first bracket could then not act as the "not a backslash" for the second.
 					chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
-					chunk.startTag = '[' + link + ' ';
+					chunk.startTag = '[' + (isAtMention ? '@' : '') + link + ' ';
 					chunk.endTag = ']';
 
 					if (!chunk.selection) {
-						chunk.startTag = '[';
+						chunk.startTag = '[' + (isAtMention ? '@' : '');
 						chunk.selection = link;
 					}
 				}
@@ -1725,20 +1746,6 @@
 
 		chunk.selection = chunk.selection.replace(/^(\s|>)+$/, '');
 		chunk.selection = chunk.selection || this.getString('quoteexample');
-
-		// The original code uses a regular expression to find out how much of the
-		// text *directly before* the selection already was a blockquote:
-
-		/*
-		if (chunk.before) {
-			chunk.before = chunk.before.replace(/\n?$/, "\n");
-		}
-		chunk.before = chunk.before.replace(/(((\n|^)(\n[ \t]*)*>(.+\n)*.*)+(\n[ \t]*)*$)/,
-		function (totalMatch) {
-			chunk.startTag = totalMatch;
-			return "";
-		});
-		*/
 
 		// This comes down to:
 		// Go backwards as many lines a possible, such that each line

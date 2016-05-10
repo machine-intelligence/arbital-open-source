@@ -699,7 +699,7 @@ ins {
 	border-bottom: silver 1px solid;
 	min-height: 36px; // otherwise it collapses for some reason
 
-	.md-button {
+	.md-button, .md-menu {
 		width: 25px;
 		min-width: 25px;
 		margin: 0;
@@ -707,7 +707,7 @@ ins {
 	}
 
 	@media (min-width: 1500px) {
-		.md-button {
+		.md-button, .md-menu {
 			width: 34px;
 			min-width: 34px;
 			margin: 0;

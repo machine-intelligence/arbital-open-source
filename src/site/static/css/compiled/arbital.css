@@ -830,13 +830,13 @@ ins {
   background-color: white;
   border-bottom: silver 1px solid;
   min-height: 36px; }
-  .wmd-button-bar .md-button {
+  .wmd-button-bar .md-button, .wmd-button-bar .md-menu {
     width: 25px;
     min-width: 25px;
     margin: 0;
     padding: 0 0px; }
   @media (min-width: 1500px) {
-    .wmd-button-bar .md-button {
+    .wmd-button-bar .md-button, .wmd-button-bar .md-menu {
       width: 34px;
       min-width: 34px;
       margin: 0;

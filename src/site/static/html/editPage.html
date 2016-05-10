@@ -69,77 +69,125 @@
 							<md-tooltip md-delay="500">Snapshot</md-tooltip>
 						</md-button>
 						<div class="separator"></div>
-						<md-button class="wmd-bold-button">
+						<md-button class="wmd-bold-button{{::page.pageId}}">
 							<md-icon>format_bold</md-icon>
 							<md-tooltip md-delay="500">**Bold** | Ctrl+B</md-tooltip>
 						</md-button>
-						<md-button class="wmd-italic-button">
+						<md-button class="wmd-italic-button{{::page.pageId}}">
 							<md-icon>format_italic</md-icon>
 							<md-tooltip md-delay="500">*Italics* | Ctrl+I</md-tooltip>
 						</md-button>
 						<div class="separator"></div>
-						<md-button class="wmd-link-button">
+						<md-button class="wmd-link-button{{::page.pageId}}">
 							<md-icon>insert_link</md-icon>
 							<md-tooltip md-delay="500">[hyper](link) | Ctrl+L</md-tooltip>
 						</md-button>
-						<md-button class="wmd-intralink-button">
+						<md-button class="wmd-intralink-button{{::page.pageId}}">
 							<md-icon md-svg-icon="link_variant"></md-icon>
 							<md-tooltip md-delay="500">[Intrasite link] | Ctrl+;</md-tooltip>
 						</md-button>
-						<div layout="row" ng-show="::gtSmallScreen">
-							<div class="separator" ng-show="::!insideDialog"></div>
-							<md-button class="wmd-new-page-button" ng-show="::!insideDialog">
-								<md-icon>note_add</md-icon>
-								<md-tooltip md-delay="500">[New page link] | Ctrl+P</md-tooltip>
-							</md-button>
-							<md-button class="wmd-new-child-button" ng-show="::!(insideDialog || !isWiki)">
-								<md-icon>child_care</md-icon>
-								<md-tooltip md-delay="500">[New child link] | Ctrl+Shift+P</md-tooltip>
-							</md-button>
-							<md-button class="wmd-new-sibling-button" ng-show="::!(insideDialog || !isWiki)">
-								<md-icon>people</md-icon>
-								<md-tooltip md-delay="500">[New sibling link] | Ctrl+Shift+S</md-tooltip>
-							</md-button>
+						<md-button class="wmd-at-mention-button{{::page.pageId}}" ng-show="::gtSmallScreen">
+							<md-icon>person</md-icon>
+							<md-tooltip md-delay="500">[@Mention]</md-tooltip>
+						</md-button>
+
+							<!-- Menu with all the Arbital specific stuff -->
+						<div layout="row" ng-show="::gtSmallScreen && !insideDialog">
+							<div class="separator"></div>
+							<md-menu>
+								<md-button ng-click="$mdOpenMenu($event)" aria-label="New page options">
+									<md-icon>note_add</md-icon>
+									<md-tooltip md-delay="500">New page</md-tooltip>
+								</md-button>
+								<md-menu-content>
+									<md-menu-item>
+										<md-button class="wmd-new-page-button{{::page.pageId}}">
+											<md-icon>note_add</md-icon>
+											[New page link] | Ctrl+P
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-new-child-button{{::page.pageId}}" ng-show="::isWiki">
+											<md-icon>child_care</md-icon>
+											[New child link] | Ctrl+Shift+P
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-new-sibling-button{{::page.pageId}}" ng-show="::isWiki">
+											<md-icon>people</md-icon>
+											[New sibling link] | Ctrl+Shift+S
+										</md-button>
+									</md-menu-item>
+								</md-menu-content>
+							</md-menu>
 						</div>
 						<div layout="row" ng-show="::gtXSmallScreen">
 							<div class="separator"></div>
-							<md-button class="wmd-quote-button">
+							<md-button class="wmd-quote-button{{::page.pageId}}">
 								<md-icon>format_quote</md-icon>
 								<md-tooltip md-delay="500">&gt; Blockquote | Ctrl+Q</md-tooltip>
 							</md-button>
-							<md-button class="wmd-code-button">
+							<md-button class="wmd-code-button{{::page.pageId}}">
 								<md-icon>format_clear</md-icon>
 								<md-tooltip md-delay="500">`Preformatted` | Ctrl+K</md-tooltip>
 							</md-button>
-							<md-button class="wmd-image-button">
+							<md-button class="wmd-image-button{{::page.pageId}}">
 								<md-icon>insert_photo</md-icon>
 								<md-tooltip md-delay="500">![image](url) | Ctrl+G</md-tooltip>
 							</md-button>
+
+							<!-- Menu with all the Arbital specific stuff -->
+							<md-menu ng-show="::gtSmallScreen && !isComment">
+								<md-button ng-click="$mdOpenMenu($event)" aria-label="Arbital options">
+									<md-icon>more_vert</md-icon>
+									<md-tooltip md-delay="500">Arbital extensions</md-tooltip>
+								</md-button>
+								<md-menu-content>
+									<md-menu-item>
+										<md-button class="wmd-condition-button{{::page.pageId}}">
+											<md-icon>assignment_ind</md-icon>
+											%conditional text%
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-summary-button{{::page.pageId}}">
+											<md-icon>note</md-icon>
+											[summary: text]
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-multiple-choice-button{{::page.pageId}}">
+											<md-icon>dns</md-icon>
+											[multiple-choice: text]
+										</md-button>
+									</md-menu-item>
+								</md-menu-content>
+							</md-menu>
 						</div>
 						<div class="separator"></div>
-						<md-button class="wmd-olist-button">
+						<md-button class="wmd-olist-button{{::page.pageId}}">
 							<md-icon>format_list_numbered</md-icon>
 							<md-tooltip md-delay="500">1. Numbered list | Ctrl+O</md-tooltip>
 						</md-button>
-						<md-button class="wmd-ulist-button">
+						<md-button class="wmd-ulist-button{{::page.pageId}}">
 							<md-icon>format_list_bulleted</md-icon>
 							<md-tooltip md-delay="500">* Bullet list | Ctrl+U</md-tooltip>
 						</md-button>
-						<md-button class="wmd-heading-button">
+						<md-button class="wmd-heading-button{{::page.pageId}}">
 							<md-icon md-svg-icon="format_header_pound"></md-icon>
 							<md-tooltip md-delay="500"># Heading | Ctrl+H</md-tooltip>
 						</md-button>
 						<div layout="row" ng-show="::gtXSmallScreen">
-							<md-button class="wmd-hr-button" ng-show="::gtSmallScreen">
+							<md-button class="wmd-hr-button{{::page.pageId}}" ng-show="::gtSmallScreen">
 								<md-icon>remove</md-icon>
 								<md-tooltip md-delay="500">--- Line | Ctrl+E</md-tooltip>
 							</md-button>
 							<div class="separator"></div>
-							<md-button class="wmd-undo-button">
+							<md-button class="wmd-undo-button{{::page.pageId}}">
 								<md-icon>undo</md-icon>
 								<md-tooltip md-delay="500">Undo | Ctrl+Z</md-tooltip>
 							</md-button>
-							<md-button class="wmd-redo-button">
+							<md-button class="wmd-redo-button{{::page.pageId}}">
 								<md-icon>redo</md-icon>
 								<md-tooltip md-delay="500">Redo | Ctrl+Shift+Z</md-tooltip>
 							</md-button>
