@@ -454,20 +454,6 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('groups'));
 		},
 	});
-	urlService.addUrlHandler('/hotstuff/', {
-		name: 'HotStuff',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/hotstuff/'})
-			.success($scope.getSuccessFunc(function(data) {
-				$scope.hotPages = data.result.hotPages;
-				return {
-					title: 'Hot Stuff',
-					content: $scope.newElement('<arb-hot-stuff hot-pages=\'::hotPages\'></arb-hot-stuff>'),
-				};
-			}))
-			.error($scope.getErrorFunc('hotStuff'));
-		},
-	});
 	urlService.addUrlHandler('/learn/:pageAlias?/:pageAlias2?', {
 		name: 'LearnPage',
 		handler: function(args, $scope) {
@@ -618,6 +604,20 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				};
 			}))
 			.error($scope.getErrorFunc('redirectToPrimaryPage'));
+		},
+	});
+	urlService.addUrlHandler('/read/', {
+		name: 'ReadModePage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/readMode/'})
+			.success($scope.getSuccessFunc(function(data) {
+				$scope.hotPages = data.result.hotPages;
+				return {
+					title: 'Read',
+					content: $scope.newElement('<arb-read-mode-page hot-pages=\'::hotPages\'></arb-read-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('readMode'));
 		},
 	});
 	urlService.addUrlHandler('/requisites/', {

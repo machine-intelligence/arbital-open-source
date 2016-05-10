@@ -1,4 +1,4 @@
-// hotStuffHandler.go serves the hot stuff page.
+// readModePageJsonHandler.go serves the /read page.
 package site
 
 import (
@@ -9,12 +9,10 @@ import (
 	"zanaduu3/src/pages"
 )
 
-var hotStuffHandler = siteHandler{
-	URI:         "/json/hotstuff/",
-	HandlerFunc: hotStuffHandlerFunc,
-	Options: pages.PageOptions{
-		AllowAnyone: true,
-	},
+var readModePageJsonHandler = siteHandler{
+	URI:         "/json/readMode/",
+	HandlerFunc: readModePageHandlerFunc,
+	Options:     pages.PageOptions{},
 }
 
 type HotPageData struct {
@@ -23,7 +21,7 @@ type HotPageData struct {
 	CreatedAt string `json:"createdAt"`
 }
 
-func hotStuffHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func readModePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
@@ -54,8 +52,7 @@ func getHotPages(db *database.DB, u *core.CurrentUser) ([]HotPageData, error) {
 	var hotPages []HotPageData
 
 	rows := database.NewQuery(`
-		SELECT
-			pageId, createdBy, createdAt
+		SELECT pageId, createdBy, createdAt
 		FROM`).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		WHERE pi.type IN ('wiki', 'lens', 'domain', 'question')
 		ORDER BY createdAt DESC
