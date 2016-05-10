@@ -387,14 +387,16 @@ app.run(function($http, $location, urlService, pageService, userService) {
 						// Called when the user is done editing the page.
 						$scope.doneFn = function(result) {
 							var page = pageService.editMap[result.pageId];
-							if (!page.wasPublished && result.discard) {
-								$location.path('/edit/');
-							} else {
+							// if the page is (now / still) live, go (to / back to) it
+							if (!result.discard) {
 								$location.url(pageService.getPageUrl(page.pageId, {
 									useEditMap: true,
 									markId: $location.search().markId,
-									permalink: result.deletedPage,
 								}));
+							} else {
+								// if the page is deleted or unpublished, go home
+								// TODO: ideally we should navigate to whatever page we came from before opening the editor
+								$location.path('/');
 							}
 						};
 						return {
