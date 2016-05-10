@@ -34,6 +34,8 @@
 						created-at="{{::update.createdAt}}"
 						repeated="::update.repeated"
 					></arb-log-row>
+
+					<div ng-if="::update.type == 'pageEdit'" ng-bind-html="::update.diffHtml"></div>
 				</div>
 			</div><!--panel-body-->
 
