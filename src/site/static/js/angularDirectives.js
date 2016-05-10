@@ -520,8 +520,7 @@ app.directive('arbUserCheck', function($compile, $mdToast, pageService, userServ
 		restrict: 'A',
 		controller: function($scope) {
 			$scope.showUserCheckToast = function(message) {
-				// TODO: restore when we figure out the bug with $mdToast
-				//$mdToast.show($mdToast.simple().textContent(message));
+				pageService.showToast({text: message, isError: true});
 			};
 		},
 		compile: function compile(element, attrs) {

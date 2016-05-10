@@ -121,9 +121,7 @@ func ComputePermissionsForMap(c sessions.Context, pageMap map[string]*Page, u *C
 }
 
 // Verify that the user has edit permissions for all the pages in the map.
-// TODO: get rid of this and verify permissions per page, with potential helpers,
-// e.g. CanCreatePagePair
-func VerifyPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *CurrentUser) (string, error) {
+func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *CurrentUser) (string, error) {
 	filteredPageMap := filterPageMap(pageMap, func(p *Page) bool { return len(p.DomainIds) <= 0 })
 	err := LoadDomainIds(db, nil, &LoadDataOptions{
 		ForPages: filteredPageMap,
@@ -139,10 +137,101 @@ func VerifyPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *Curre
 	}
 	return "", nil
 }
-func VerifyPermissionsForList(db *database.DB, pageIds []string, u *CurrentUser) (string, error) {
+func VerifyEditPermissionsForList(db *database.DB, pageIds []string, u *CurrentUser) (string, error) {
 	pageMap := make(map[string]*Page)
 	for _, pageId := range pageIds {
 		AddPageIdToMap(pageId, pageMap)
 	}
-	return VerifyPermissionsForMap(db, pageMap, u)
+	return VerifyEditPermissionsForMap(db, pageMap, u)
+}
+
+// =========================== Relationships ==================================
+
+// Check if the given user can affect a relationship between the two pages.
+func CanAffectRelationship(c sessions.Context, parent *Page, child *Page, relationshipType string) (string, error) {
+	// No intragroup links allowed.
+	if child.SeeGroupId != parent.SeeGroupId {
+		return "Parent and child need to have the same See Group", nil
+	}
+
+	// Check if this is a pairing we support
+	if relationshipType == ParentPagePairType && !isParentRelationshipSupported(parent, child) {
+		return "Parent relationship between these pages is not supported", nil
+	} else if relationshipType == TagPagePairType && !isTagRelationshipSupported(parent, child) {
+		return "Tag relationship between these pages is not supported", nil
+	} else if relationshipType == RequirementPagePairType && !isRequirementRelationshipSupported(parent, child) {
+		return "Requirement relationship between these pages is not supported", nil
+	} else if relationshipType == SubjectPagePairType && !isSubjectRelationshipSupported(parent, child) {
+		return "Subject relationship between these pages is not supported", nil
+	}
+
+	// Check if the user has the right permissions
+	if relationshipType == ParentPagePairType && !hasParentRelationshipPermissions(parent, child) {
+		return "Don't have permission to create a parent relationship between these pages", nil
+	} else if relationshipType == TagPagePairType && !hasTagRelationshipPermissions(parent, child) {
+		return "Don't have permission to create a tag relationship between these pages", nil
+	} else if relationshipType == RequirementPagePairType && !hasRequirementRelationshipPermissions(parent, child) {
+		return "Don't have permission to create a requirement relationship between these pages", nil
+	} else if relationshipType == SubjectPagePairType && !hasSubjectRelationshipPermissions(parent, child) {
+		return "Don't have permission to create a subject relationship between these pages", nil
+	}
+	return "", nil
+}
+
+// Check if a parent relationship between the two pages would be valid.
+func isParentRelationshipSupported(parent *Page, child *Page) bool {
+	if child.Type == CommentPageType {
+		return true
+	}
+	parentOk := parent.Type == DomainPageType || parent.Type == GroupPageType ||
+		parent.Type == QuestionPageType || parent.Type == WikiPageType
+	childOk := child.Type == LensPageType || child.Type == QuestionPageType || child.Type == WikiPageType
+	return parentOk && childOk
+}
+
+// Check if a tag relationship between the two pages would be valid.
+func isTagRelationshipSupported(parent *Page, child *Page) bool {
+	return child.Type != CommentPageType && parent.Type != CommentPageType
+}
+
+// Check if a requirement relationship between the two pages would be valid.
+func isRequirementRelationshipSupported(parent *Page, child *Page) bool {
+	if child.Type == CommentPageType || parent.Type == CommentPageType {
+		return false
+	}
+	childOk := child.Type == DomainPageType || child.Type == LensPageType || child.Type == WikiPageType
+	return childOk
+}
+
+// Check if a subject relationship between the two pages would be valid.
+func isSubjectRelationshipSupported(parent *Page, child *Page) bool {
+	if child.Type == CommentPageType || parent.Type == CommentPageType {
+		return false
+	}
+	parentOk := parent.Type == DomainPageType || parent.Type == LensPageType || parent.Type == WikiPageType
+	childOk := child.Type == DomainPageType || child.Type == LensPageType || child.Type == WikiPageType
+	return parentOk && childOk
+}
+
+// Check if the current user can create a parent relationship between the two pages.
+func hasParentRelationshipPermissions(parent *Page, child *Page) bool {
+	if child.Type == CommentPageType {
+		return parent.Permissions.Comment.Has || child.IsEditorComment
+	}
+	return parent.Permissions.Edit.Has && child.Permissions.Edit.Has
+}
+
+// Check if the current user can create a tag relationship between the two pages.
+func hasTagRelationshipPermissions(parent *Page, child *Page) bool {
+	return child.Permissions.Edit.Has
+}
+
+// Check if the current user can create a requirement relationship between the two pages.
+func hasRequirementRelationshipPermissions(parent *Page, child *Page) bool {
+	return child.Permissions.Edit.Has
+}
+
+// Check if the current user can create a subject relationship between the two pages.
+func hasSubjectRelationshipPermissions(parent *Page, child *Page) bool {
+	return child.Permissions.Edit.Has && parent.Permissions.Edit.Has
 }

@@ -437,7 +437,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	};
 	this.addPageToMap = function(newPage) {
 		var oldPage = this.pageMap[newPage.pageId];
-		if (newPage === oldPage) return;
+		if (newPage === oldPage) return oldPage;
 		if (oldPage === undefined) {
 			this.pageMap[newPage.pageId] = setUpPage(newPage);
 			// Add page's alias to the map as well, both with lowercase and uppercase first letter
@@ -445,12 +445,13 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 				this.pageMap[newPage.alias.substring(0, 1).toLowerCase() + newPage.alias.substring(1)] = newPage;
 				this.pageMap[newPage.alias.substring(0, 1).toUpperCase() + newPage.alias.substring(1)] = newPage;
 			}
-			return;
+			return newPage;
 		}
 		// Merge each variable.
 		for (var k in oldPage) {
 			oldPage[k] = smartMerge(oldPage[k], newPage[k]);
 		}
+		return oldPage;
 	};
 
 	// Remove page with the given pageId from the global pageMap.
@@ -824,8 +825,12 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		if (comment.isEditorComment) {
 			userService.showEditorComments = true;
 		}
+		comment = this.addPageToMap(comment);
+		// HACK: set the comment's data to make sure it's displayed correctly
+		// TODO: actually fetch the newly created comment from the server
 		comment.originalCreatedAt = moment().format('YYYY-MM-DD HH:mm:ss');
-		this.addPageToMap(comment);
+		comment.permissions.comment.has = true;
+		comment.isSubscribed = true;
 
 		// If this comment is a reply, we add it to the parent comment. Otherwise we
 		// add it to the lens its on.

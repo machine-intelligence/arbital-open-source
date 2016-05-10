@@ -50,7 +50,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	for pageId, _ := range data.OrderMap {
 		pageIds = append(pageIds, pageId)
 	}
-	permissionError, err := core.VerifyPermissionsForList(db, pageIds, u)
+	permissionError, err := core.VerifyEditPermissionsForList(db, pageIds, u)
 	if err != nil {
 		return pages.HandlerForbiddenFail("Error verifying permissions", err)
 	} else if permissionError != "" {

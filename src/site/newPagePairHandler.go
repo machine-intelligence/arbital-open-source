@@ -16,9 +16,6 @@ type newPagePairData struct {
 	ParentId string
 	ChildId  string
 	Type     string
-
-	// The following parameters can be ONLY passed from internal callers
-	SkipPermissionsCheck bool `json:"-"`
 }
 
 var newPagePairHandler = siteHandler{
@@ -77,34 +74,36 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return pages.StatusOK(nil)
 	}
 
-	// Load the pages
-	pageMap := make(map[string]*core.Page)
-	parent := core.AddPageIdToMap(data.ParentId, pageMap)
-	child := core.AddPageIdToMap(data.ChildId, pageMap)
-
 	// Load pages.
-	err = core.LoadPages(db, u, pageMap)
+	parent, err := core.LoadFullEdit(db, data.ParentId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading pages", err)
+		return pages.HandlerErrorFail("Error while loading parent page", err)
+	} else if parent == nil {
+		parent, err = core.LoadFullEdit(db, data.ParentId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
+		if err != nil {
+			return pages.HandlerErrorFail("Error while loading parent page (2)", err)
+		} else if parent == nil {
+			return pages.HandlerErrorFail("Parent page doesn't exist", nil)
+		}
+	}
+	child, err := core.LoadFullEdit(db, data.ChildId, u, nil)
+	if err != nil {
+		return pages.HandlerErrorFail("Error while loading child page", err)
+	} else if child == nil {
+		child, err = core.LoadFullEdit(db, data.ChildId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
+		if err != nil {
+			return pages.HandlerErrorFail("Error while loading child page (2)", err)
+		} else if child == nil {
+			return pages.HandlerErrorFail("Child page doesn't exist", nil)
+		}
 	}
 
-	// Error checking
-	// TODO: we can't check this right now because this breaks creating comments in private groups
-	/*if child.SeeGroupId != parent.SeeGroupId {
-		return pages.HandlerErrorFail("Parent and child need to have the same See Group", nil)
-	}*/
 	// Check edit permissions
-	if !data.SkipPermissionsCheck {
-		if data.Type == core.RequirementPagePairType || data.Type == core.TagPagePairType {
-			// We don't need permissions for the parent
-			delete(pageMap, data.ParentId)
-		}
-		permissionError, err := core.VerifyPermissionsForMap(db, pageMap, u)
-		if err != nil {
-			return pages.HandlerForbiddenFail("Error verifying permissions", err)
-		} else if permissionError != "" {
-			return pages.HandlerForbiddenFail(permissionError, nil)
-		}
+	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)
+	if err != nil {
+		return pages.HandlerErrorFail("Error verifying permissions", err)
+	} else if permissionError != "" {
+		return pages.HandlerForbiddenFail(permissionError, nil)
 	}
 
 	// Ids of the changelogs created for this pagePair

@@ -86,7 +86,7 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	var requiredGroupMemberships []string
 	rows = database.NewQuery(`
 		SELECT DISTINCT seeGroupId
-		FROM`).AddPart(core.PageInfosTableWithDeleted(nil)).Add(`AS pi
+		FROM`).AddPart(core.PageInfosTableWithOptions(nil, &core.PageInfosOptions{Deleted: true})).Add(`AS pi
 		WHERE seeGroupId != '' AND pageId IN (?,?)`, task.GroupByPageId, task.GoToPageId).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var groupId string

@@ -143,11 +143,20 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 
 	updateRows := make([]*UpdateRow, 0, 0)
 	changeLogs := make([]*ChangeLog, 0)
+
 	rows := database.NewQuery(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
-			(SELECT !isDeleted FROM`).AddPart(PageInfosTableWithDeleted(u)).Add(`AS pi WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)) AS isGroupByObjectAlive,
-			COALESCE((SELECT !isDeleted FROM`).AddPart(PageInfosTableWithDeleted(u)).Add(`AS pi WHERE updates.goToPageId = pageId), False) AS isGoToPageAlive,
+			(
+				SELECT !isDeleted
+				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
+				WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)
+			) AS isGroupByObjectAlive,
+			COALESCE((
+				SELECT !isDeleted
+				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
+				WHERE updates.goToPageId = pageId), false
+			) AS isGoToPageAlive,
 			COALESCE(changeLogs.id, 0),
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),

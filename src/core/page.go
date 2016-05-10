@@ -650,9 +650,9 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return !p.LoadOptions.Edit && p.LoadOptions.IncludeDeleted })
-	err = LoadPagesWithDeleted(db, u, filteredPageMap)
+	err = LoadPagesWithOptions(db, u, filteredPageMap, PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true}))
 	if err != nil {
-		return fmt.Errorf("LoadPagesWithDeleted failed: %v", err)
+		return fmt.Errorf("LoadPages (deleted) failed: %v", err)
 	}
 
 	// Compute edit permissions
@@ -800,15 +800,10 @@ func LoadPageObjects(db *database.DB, u *CurrentUser, pageMap map[string]*Page, 
 
 // LoadPages loads the given pages.
 func LoadPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
-	return loadPagesInternal(db, u, pageMap, false)
+	return LoadPagesWithOptions(db, u, pageMap, PageInfosTable(u))
 }
 
-// LoadPagesWithDeleted loads the given pages, even if they are deleted.
-func LoadPagesWithDeleted(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
-	return loadPagesInternal(db, u, pageMap, true)
-}
-
-func loadPagesInternal(db *database.DB, u *CurrentUser, pageMap map[string]*Page, loadDeletedPages bool) error {
+func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*Page, pageInfosTable *database.QueryPart) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -822,13 +817,6 @@ func loadPagesInternal(db *database.DB, u *CurrentUser, pageMap map[string]*Page
 		}
 	}
 	textSelect := database.NewQuery(`IF(p.pageId IN`).AddIdsGroup(textIds).Add(`,p.text,"") AS text`)
-
-	var pageInfosTable *database.QueryPart
-	if loadDeletedPages {
-		pageInfosTable = PageInfosTableWithDeleted(u)
-	} else {
-		pageInfosTable = PageInfosTable(u)
-	}
 
 	// Load the page data
 	rows := database.NewQuery(`

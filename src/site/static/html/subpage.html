@@ -86,7 +86,7 @@
 					aria-label="Reply to comment"
 					ng-click="newReply()"
 					ng-disabled="newReplyId"
-					arb-user-check="cool"
+					arb-user-check=""
 					ng-if="page.permissions.comment.has && !parentSubpageId && page.subpageIds.length <= 0">
 				<md-icon>reply</md-icon>
 				Reply
@@ -109,7 +109,7 @@
 				<md-button class="md-primary"
 						aria-label="Reply to thread"
 						ng-click="newReply()"
-						arb-user-check="cool"
+						arb-user-check=""
 						ng-if="page.permissions.comment.has && !newReplyId && page.subpageIds.length > 0">
 					<md-icon>reply</md-icon>
 					New Reply

@@ -15,7 +15,6 @@ var newPageHandler = siteHandler{
 	HandlerFunc: newPageJsonHandler,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 
@@ -45,13 +44,6 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Error checking
 	if data.IsEditorComment && data.Type != core.CommentPageType {
 		return pages.HandlerBadRequestFail("Can't set isEditorComment for non-comment pages", err)
-	}
-	// Check permissions
-	permissionError, err := core.VerifyPermissionsForList(db, data.ParentIds, u)
-	if err != nil {
-		return pages.HandlerForbiddenFail("Error verifying permissions", err)
-	} else if permissionError != "" {
-		return pages.HandlerForbiddenFail(permissionError, nil)
 	}
 
 	pageId := ""
@@ -104,10 +96,9 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Add parents
 	for _, parentIdStr := range data.ParentIds {
 		handlerData := newPagePairData{
-			ParentId:             parentIdStr,
-			ChildId:              pageId,
-			Type:                 core.ParentPagePairType,
-			SkipPermissionsCheck: data.IsEditorComment,
+			ParentId: parentIdStr,
+			ChildId:  pageId,
+			Type:     core.ParentPagePairType,
 		}
 		result := newPagePairHandlerInternal(params, &handlerData)
 		if result.Message != "" {

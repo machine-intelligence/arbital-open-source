@@ -33,7 +33,6 @@ var editPageInfoHandler = siteHandler{
 	HandlerFunc: editPageInfoHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 
@@ -96,6 +95,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
 		return pages.HandlerBadRequestFail("Invalid vote type value", nil)
+	}
+	if data.IsEditorCommentIntention && data.Type != core.CommentPageType {
+		return pages.HandlerBadRequestFail("Can't set editor-comment for non-comments", nil)
 	}
 
 	// Make sure the user has the right permissions to edit this page

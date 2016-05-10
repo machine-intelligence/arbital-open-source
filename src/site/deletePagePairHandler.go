@@ -47,21 +47,34 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Incorrect type", err)
 	}
 
-	// Load the pages
-	pageMap := make(map[string]*core.Page)
-	parent := core.AddPageIdToMap(data.ParentId, pageMap)
-	child := core.AddPageIdToMap(data.ChildId, pageMap)
-
 	// Load pages.
-	err = core.LoadPages(db, u, pageMap)
+	parent, err := core.LoadFullEdit(db, data.ParentId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Error loading pages", err)
+		return pages.HandlerErrorFail("Error while loading parent page", err)
+	} else if parent == nil {
+		parent, err = core.LoadFullEdit(db, data.ParentId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
+		if err != nil {
+			return pages.HandlerErrorFail("Error while loading parent page (2)", err)
+		} else if parent == nil {
+			return pages.HandlerErrorFail("Parent page doesn't exist", nil)
+		}
+	}
+	child, err := core.LoadFullEdit(db, data.ChildId, u, nil)
+	if err != nil {
+		return pages.HandlerErrorFail("Error while loading child page", err)
+	} else if child == nil {
+		child, err = core.LoadFullEdit(db, data.ChildId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
+		if err != nil {
+			return pages.HandlerErrorFail("Error while loading child page (2)", err)
+		} else if child == nil {
+			return pages.HandlerErrorFail("Child page doesn't exist", nil)
+		}
 	}
 
-	// Error checking
-	permissionError, err := core.VerifyPermissionsForMap(db, pageMap, u)
+	// Check edit permissions
+	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)
 	if err != nil {
-		return pages.HandlerForbiddenFail("Error verifying permissions", err)
+		return pages.HandlerErrorFail("Error verifying permissions", err)
 	} else if permissionError != "" {
 		return pages.HandlerForbiddenFail(permissionError, nil)
 	}
