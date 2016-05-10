@@ -2,7 +2,8 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive to show a lens' content
-app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope, pageService, userService) {
+app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope,
+	pageService, userService, diffService) {
 	return {
 		templateUrl: 'static/html/lens.html',
 		scope: {
@@ -43,10 +44,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					createdAtLimit: earliest,
 					skipProcessDataStep: true,
 					success: function(data, status) {
-						var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
-						var diffs = dmp.diff_main(data[$scope.page.pageId].text, $scope.page.text);
-						dmp.diff_cleanupSemantic(diffs);
-						$scope.diffHtml = dmp.diff_prettyHtml(diffs).replace(/&para;/g, '');
+						$scope.diffHtml = diffService.getDiffHtml($scope.page.text, data[$scope.page.pageId].text);
 					},
 				});
 			};
