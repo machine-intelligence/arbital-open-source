@@ -606,6 +606,20 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('redirectToPrimaryPage'));
 		},
 	});
+	urlService.addUrlHandler('/read/', {
+		name: 'ReadModePage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/readMode/'})
+			.success($scope.getSuccessFunc(function(data) {
+				$scope.hotPageIds = data.result.hotPageIds;
+				return {
+					title: 'Read',
+					content: $scope.newElement('<arb-read-mode-page hot-page-ids=\'::hotPageIds\'></arb-read-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('readMode'));
+		},
+	});
 	urlService.addUrlHandler('/requisites/', {
 		name: 'RequisitesPage',
 		handler: function(args, $scope) {

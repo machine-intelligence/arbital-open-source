@@ -20,24 +20,26 @@
 			</md-subheader>
 
 			<!-- Panel body -->
-			<div class="list" layout="column" layout-padding>
-				<div ng-class="::{'unseen-update': !update.isVisited}"
-						ng-repeat="(index,update) in ::group.updates">
-					<arb-log-row
-						change-log="::update.changeLog"
-						by-user-id="{{::update.byUserId}}"
-						show-user-link="::(update.subscribedToId != update.byUserId)"
-						type="{{::update.type}}"
-						mark-id="{{::update.markId}}"
-						go-to-page-id="{{::update.goToPageId}}"
-						is-related-page-alive="::update.isGoToPageAlive"
-						created-at="{{::update.createdAt}}"
-						repeated="::update.repeated"
-					></arb-log-row>
+			<md-list>
+				<md-list-item ng-repeat="(index,update) in ::group.updates">
+					<div ng-class="::{'unseen-update': !update.isVisited}" flex>
+						<arb-log-row
+							change-log="::update.changeLog"
+							by-user-id="{{::update.byUserId}}"
+							show-user-link="::(update.subscribedToId != update.byUserId)"
+							type="{{::update.type}}"
+							mark-id="{{::update.markId}}"
+							go-to-page-id="{{::update.goToPageId}}"
+							is-related-page-alive="::update.isGoToPageAlive"
+							created-at="{{::update.createdAt}}"
+							repeated="::update.repeated"
+						></arb-log-row>
 
-					<div ng-if="::update.type == 'pageEdit'" ng-bind-html="::update.diffHtml"></div>
-				</div>
-			</div><!--panel-body-->
+						<div ng-if="::update.type == 'pageEdit'" ng-bind-html="::update.diffHtml"></div>
+					</div>
+					<md-divider ng-if="::!$last"></md-divider>
+				</md-list-item>
+			</md-list>
 
 		</div>
 

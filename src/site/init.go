@@ -64,6 +64,7 @@ func init() {
 	s.HandleFunc(fmt.Sprintf("/learn/{pageId:%s}/", core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/learn/{pageAlias:%s}/{pageAlias2:%s}/", core.AliasRegexpStr, core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/read/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}/", core.AliasRegexpStr),
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
@@ -100,6 +101,7 @@ func init() {
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
+	s.HandleFunc(readModePageJsonHandler.URI, handlerWrapper(readModePageJsonHandler)).Methods("POST")
 	s.HandleFunc(redirectToPrimaryPageHandler.URI, handlerWrapper(redirectToPrimaryPageHandler)).Methods("POST")
 	s.HandleFunc(requisitesHandler.URI, handlerWrapper(requisitesHandler)).Methods("POST")
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")
