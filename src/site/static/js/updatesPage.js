@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Updates page.
-app.directive('arbUpdates', function($compile, $location, $rootScope, pageService, userService) {
+app.directive('arbUpdates', function($compile, $location, $rootScope, pageService, userService, diffService) {
 	return {
 		templateUrl: 'static/html/updatesPage.html',
 		scope: {
@@ -17,6 +17,37 @@ app.directive('arbUpdates', function($compile, $location, $rootScope, pageServic
 				}
 				if (b.mostRecentDate === a.mostRecentDate) return 0;
 				return b.mostRecentDate < a.mostRecentDate ? -1 : 1;
+			});
+
+			// Load diffs for the pageEdit updates.
+			$scope.updateGroups.forEach(function(updateGroup) {
+				updateGroup.updates.forEach(function(update) {
+					if (update.type == 'pageEdit' && update.changeLog && update.changeLog.edit) {
+						var thisEditText;
+						var prevEditText;
+
+						function loadEditAndMaybeMakeDiff(edit, successFn) {
+							pageService.loadEdit({
+								pageAlias: updateGroup.key.groupByPageId,
+								specificEdit: edit,
+								skipProcessDataStep: true,
+								success: function(data, status) {
+									successFn(data[updateGroup.key.groupByPageId])
+									if (thisEditText && prevEditText) {
+										update.diffHtml = diffService.getDiffHtml(thisEditText, prevEditText);
+									}
+								},
+							});
+						}
+
+						loadEditAndMaybeMakeDiff(update.changeLog.edit, function(edit) {
+							thisEditText = edit.text;
+						});
+						loadEditAndMaybeMakeDiff(update.changeLog.edit - update.repeated, function(edit) {
+							prevEditText = edit.text;
+						});
+					}
+				});
 			});
 		},
 	};
