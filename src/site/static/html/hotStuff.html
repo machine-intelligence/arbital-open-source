@@ -3,7 +3,7 @@
 	<div layout="column">
 		<div class="arb-page-list md-whiteframe-1dp">
 			<md-list>
-				<md-list-item ng-repeat="pageId in ::pageIds">
+				<md-list-item ng-repeat="pageId in ::hotPageIds">
 					<div layout="row" layout-align="start start" flex>
 						<arb-likes likeable-type="page" likeable-id="{{::pageId}}"></arb-likes>
 						<arb-page-title page-id="{{::pageId}}"

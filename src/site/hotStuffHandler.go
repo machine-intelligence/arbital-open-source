@@ -19,8 +19,12 @@ func hotStuffHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
-	core.AddPageToMap("1y", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("11x", returnData.PageMap, core.TitlePlusLoadOptions)
+	hotPageIds := []string{"1y", "11x"}
+	returnData.ResultMap["hotPageIds"] = hotPageIds
+
+	for _, pageId := range hotPageIds {
+		core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+	}
 
 	// Load pages.
 	err := core.ExecuteLoadPipeline(db, returnData)

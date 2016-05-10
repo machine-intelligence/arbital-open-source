@@ -459,9 +459,10 @@ app.run(function($http, $location, urlService, pageService, userService) {
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/hotstuff/'})
 			.success($scope.getSuccessFunc(function(data) {
+				$scope.hotPageIds = data.result.hotPageIds;
 				return {
 					title: 'Hot Stuff',
-					content: $scope.newElement('<arb-hot-stuff></arb-hot-stuff>'),
+					content: $scope.newElement('<arb-hot-stuff hot-page-ids=\'::hotPageIds\'></arb-hot-stuff>'),
 				};
 			}))
 			.error($scope.getErrorFunc('hotStuff'));

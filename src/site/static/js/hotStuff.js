@@ -4,8 +4,8 @@
 app.directive('arbHotStuff', function() {
 	return {
 		templateUrl: 'static/html/hotStuff.html',
-		controller: function($scope) {
-			$scope.pageIds = ['11x', '1y'];
+		scope: {
+			hotPageIds: '=',
 		},
 	};
 });
