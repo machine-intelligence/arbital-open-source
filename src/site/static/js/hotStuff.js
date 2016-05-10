@@ -5,7 +5,7 @@ app.directive('arbHotStuff', function() {
 	return {
 		templateUrl: 'static/html/hotStuff.html',
 		scope: {
-			hotPageIds: '=',
+			hotPages: '=',
 		},
 	};
 });

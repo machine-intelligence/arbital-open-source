@@ -3,13 +3,18 @@
 	<div layout="column">
 		<div class="arb-page-list md-whiteframe-1dp">
 			<md-list>
-				<md-list-item ng-repeat="pageId in ::hotPageIds">
+				<md-list-item ng-repeat="pageData in ::hotPages">
 					<div layout="row" layout-align="start start" flex>
-						<arb-likes likeable-type="page" likeable-id="{{::pageId}}"></arb-likes>
-						<arb-page-title page-id="{{::pageId}}"
+						<arb-likes likeable-type="page" likeable-id="{{::pageData.pageId}}"></arb-likes>
+						<arb-page-title page-id="{{::pageData.pageId}}"
 								is-link="true"
 								show-clickbait="true"
 								flex="100"></arb-page-title>
+						<div flex></div>
+						<span class="nowrap">
+							<arb-user-name user-id="{{::pageData.createdBy}}"></arb-user-name>
+							<span class="nowrap" ng-bind="::(pageData.createdAt | relativeDateTime)"></span>
+						</span>
 					</div>
 					<md-divider ng-if="::!$last"></md-divider>
 				</md-list-item>

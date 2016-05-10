@@ -17,20 +17,27 @@ var hotStuffHandler = siteHandler{
 	},
 }
 
+type HotPageData struct {
+	PageId    string `json:"pageId"`
+	CreatedBy string `json:"createdBy"`
+	CreatedAt string `json:"createdAt"`
+}
+
 func hotStuffHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
 	// figure out which pages are to show as exciting and hot!
-	hotPageIds, err := getHotPageIds(db, u)
+	hotPages, err := getHotPages(db, u)
 	if err != nil {
 		return pages.HandlerErrorFail("failed to load hot page ids", err)
 	}
 
 	// add the hot pages to the map
-	for _, pageId := range hotPageIds {
-		core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+	hotPageLoadOptions := (&core.PageLoadOptions{Creators: true}).Add(core.TitlePlusLoadOptions)
+	for _, data := range hotPages {
+		core.AddPageToMap(data.PageId, returnData.PageMap, hotPageLoadOptions)
 	}
 
 	// load the pages
@@ -39,29 +46,29 @@ func hotStuffHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["hotPageIds"] = hotPageIds
+	returnData.ResultMap["hotPages"] = hotPages
 	return pages.StatusOK(returnData)
 }
 
-func getHotPageIds(db *database.DB, u *core.CurrentUser) ([]string, error) {
-	var hotPageIds []string
+func getHotPages(db *database.DB, u *core.CurrentUser) ([]HotPageData, error) {
+	var hotPages []HotPageData
 
 	rows := database.NewQuery(`
 		SELECT
-			pageId
+			pageId, createdBy, createdAt
 		FROM`).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		WHERE pi.type IN ('wiki', 'lens', 'domain', 'question')
 		ORDER BY createdAt DESC
 		LIMIT 100`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId string
-		err := rows.Scan(&pageId)
+		var data HotPageData
+		err := rows.Scan(&data.PageId, &data.CreatedBy, &data.CreatedAt)
 		if err != nil {
 			return fmt.Errorf("failed to scan for hot pages: %v", err)
 		}
-		hotPageIds = append(hotPageIds, pageId)
+		hotPages = append(hotPages, data)
 		return nil
 	})
 
-	return hotPageIds, err
+	return hotPages, err
 }
