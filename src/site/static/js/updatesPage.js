@@ -19,6 +19,10 @@ app.directive('arbUpdates', function($compile, $location, $rootScope, pageServic
 				return b.mostRecentDate < a.mostRecentDate ? -1 : 1;
 			});
 
+			$scope.toggleDiff = function(update) {
+				update.showDiff = !update.showDiff;
+			};
+
 			// Load diffs for the pageEdit updates.
 			$scope.updateGroups.forEach(function(updateGroup) {
 				updateGroup.updates.forEach(function(update) {

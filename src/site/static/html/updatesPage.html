@@ -35,7 +35,14 @@
 							repeated="::update.repeated"
 						></div>
 
-						<div ng-if="::update.type == 'pageEdit'" ng-bind-html="::update.diffHtml"></div>
+						<div ng-if="::update.type == 'pageEdit'">
+							<md-button ng-click="toggleDiff(update)">
+								{{update.showDiff ? 'Hide diff' : 'Show diff'}}
+							</md-button>
+							<div ng-if="update.showDiff">
+								<span ng-bind-html="::update.diffHtml"></span>
+							</div>
+						 </div>
 					</div>
 					<md-divider ng-if="::!$last"></md-divider>
 				</md-list-item>
