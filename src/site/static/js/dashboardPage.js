@@ -5,7 +5,7 @@ app.directive('arbDashboardPage', function(pageService, userService) {
 	return {
 		templateUrl: 'static/html/dashboardPage.html',
 		scope: {
-			idsMap: '=',
+			data: '='
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
