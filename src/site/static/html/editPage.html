@@ -144,12 +144,6 @@
 								</md-button>
 								<md-menu-content>
 									<md-menu-item>
-										<md-button class="wmd-condition-button{{::page.pageId}}">
-											<md-icon>assignment_ind</md-icon>
-											%conditional text%
-										</md-button>
-									</md-menu-item>
-									<md-menu-item>
 										<md-button class="wmd-summary-button{{::page.pageId}}">
 											<md-icon>note</md-icon>
 											[summary: text]
@@ -159,6 +153,18 @@
 										<md-button class="wmd-multiple-choice-button{{::page.pageId}}">
 											<md-icon>dns</md-icon>
 											[multiple-choice: text]
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-condition-button{{::page.pageId}}">
+											<md-icon>assignment_ind</md-icon>
+											%conditional text%
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-hidden-text-button{{::page.pageId}}">
+											<md-icon>flip_to_back</md-icon>
+											%hidden: text%
 										</md-button>
 									</md-menu-item>
 								</md-menu-content>

@@ -86,6 +86,15 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
+		// Process %hidden: text% blocks.
+		var hiddenBlockRegexp = new RegExp('^(%+)hidden\\(([\\s\\S]+?)\\): ?([\\s\\S]+?)\n\\1 *(?=\Z|\n)', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(hiddenBlockRegexp, function(whole, bars, buttonText, text) {
+				var blockText = text + '\n\n';
+				return '<arb-hidden-text button-text=\'' + buttonText + '\'>' + runBlockGamut(blockText) + '\n\n</arb-hidden-text>';
+			});
+		});
+
 		// Process [multiple-choice(objectAlias): text
 		// a: text
 		// knows: [alias1],[alias2]...

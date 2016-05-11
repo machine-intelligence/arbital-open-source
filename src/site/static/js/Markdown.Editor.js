@@ -1251,6 +1251,9 @@
 			buttons.multipleChoice = makeButton('wmd-multiple-choice-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
 				return this.doWrap(chunk, postProcessing, 'multipleChoice');
 			}));
+			buttons.hiddenText = makeButton('wmd-hidden-text-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'hiddenText');
+			}));
 			buttons.olist = makeButton('wmd-olist-button', getString('olist'), '-140px', bindCommand(function(chunk, postProcessing) {
 				this.doList(chunk, postProcessing, true);
 			}));
@@ -1559,6 +1562,8 @@
 				linkEnteredCallback('%%%knows-requisite([math]): ', 'conditional text *with* markdown', '%%%\n\n');
 			} else if (wrapType == 'summary') {
 				linkEnteredCallback('[summary: ', 'summary text *with* markdown', ']\n\n');
+			} else if (wrapType == 'hiddenText') {
+				linkEnteredCallback('%%hidden(Show solution): ', 'Solution *markdown* text', '%%\n\n');
 			} else if (wrapType == 'multipleChoice') {
 				var suffix = [
 					'a: Answer 1 ("knows" will set the requisites when the user picks that answer)',

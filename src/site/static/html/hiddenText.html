@@ -1,0 +1,9 @@
+<div>
+	<md-button class="md-primary md-raised"
+			ng-bind="buttonText"
+			ng-click="reveal()"
+			aria-label="{{buttonText}}"
+			ng-if="!revealed">
+	</md-button>
+	<ng-transclude ng-show="revealed"></ng-transclude>
+</div>
