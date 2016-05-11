@@ -461,8 +461,6 @@ arb-primary-page > .capped-body-width {
   max-width: 1100px; }
 arb-admin-dashboard-page > .capped-body-width {
   max-width: 900px; }
-arb-read-mode-page > .capped-body-width {
-  max-width: 900px; }
 
 .discussion-container {
   margin: 20px 0; }
@@ -985,5 +983,8 @@ arb-settings-page .create-code-form {
   transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
   /* Set our own color */
   color: grey; }
+
+arb-log-row, [arb-log-row] {
+  padding-left: 10px; }
 
 /*# sourceMappingURL=arbital.css.map */

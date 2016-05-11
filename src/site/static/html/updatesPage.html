@@ -23,7 +23,7 @@
 			<md-list>
 				<md-list-item ng-repeat="(index,update) in ::group.updates">
 					<div ng-class="::{'unseen-update': !update.isVisited}" flex>
-						<arb-log-row
+						<div arb-log-row
 							change-log="::update.changeLog"
 							by-user-id="{{::update.byUserId}}"
 							show-user-link="::(update.subscribedToId != update.byUserId)"
@@ -33,7 +33,7 @@
 							is-related-page-alive="::update.isGoToPageAlive"
 							created-at="{{::update.createdAt}}"
 							repeated="::update.repeated"
-						></arb-log-row>
+						></div>
 
 						<div ng-if="::update.type == 'pageEdit'" ng-bind-html="::update.diffHtml"></div>
 					</div>

@@ -931,3 +931,7 @@ arb-settings-page {
 	/* Set our own color */
 	color: grey;
 }
+
+arb-log-row, [arb-log-row] {
+	padding-left: 10px;
+}
