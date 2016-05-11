@@ -16,7 +16,7 @@ func editPageRenderer(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 
-	// If it's not a page id but an alias, the redirect
+	// If it's not a page id but an alias, then redirect
 	pageAlias := mux.Vars(params.R)["alias"]
 	if len(pageAlias) > 0 {
 		// Get page id
