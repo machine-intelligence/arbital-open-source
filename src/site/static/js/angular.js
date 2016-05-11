@@ -514,6 +514,19 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
+	urlService.addUrlHandler('/newsletter/', {
+		name: 'NewsletterPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/newsletter/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Newsletter',
+					content: $scope.newElement('<arb-newsletter></arb-newsletter>'),
+				};
+			}))
+			.error($scope.getErrorFunc('newsletter'));
+		},
+	});
 	urlService.addUrlHandler('/p/:alias/:alias2?', {
 		name: 'PrimaryPage',
 		handler: function(args, $scope) {

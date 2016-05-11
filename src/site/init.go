@@ -64,6 +64,7 @@ func init() {
 	s.HandleFunc(fmt.Sprintf("/learn/{pageId:%s}/", core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/learn/{pageAlias:%s}/{pageAlias2:%s}/", core.AliasRegexpStr, core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/newsletter/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/read/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}/", core.AliasRegexpStr),
@@ -79,7 +80,6 @@ func init() {
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/user/{alias:%s}/{alias2:%s}/", core.AliasRegexpStr, core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/_test_/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/verifyEmail/", pageHandlerWrapper(&verifyEmailPage)).Methods("GET", "HEAD")
 
 	// JSON handlers (API)
@@ -98,6 +98,7 @@ func init() {
 	s.HandleFunc(marksHandler.URI, handlerWrapper(marksHandler)).Methods("POST")
 	s.HandleFunc(moreRelationshipsHandler.URI, handlerWrapper(moreRelationshipsHandler)).Methods("POST")
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
+	s.HandleFunc(newsletterHandler.URI, handlerWrapper(newsletterHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")

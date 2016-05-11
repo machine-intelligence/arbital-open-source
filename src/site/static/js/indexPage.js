@@ -13,34 +13,6 @@ app.directive('arbIndex', function($http, pageService, userService) {
 			// HARDCODED
 			$scope.page = pageService.pageMap['1k0'];
 			$scope.showingText = $scope.page.isNewPage() || !userService.user.id;
-			$scope.alreadySubscribed = true;
-
-			var interestMap = userService.user.mailchimpInterests;
-			if (Object.keys(interestMap).length <= 0) {
-				interestMap = {
-					'7ec5d431b0': true,
-					'7b38bc3921': false,
-				};
-				$scope.alreadySubscribed = false;
-			}
-
-			$scope.subscribeData = {
-				email: userService.user.email,
-				interests: interestMap,
-			};
-			$scope.subscribed = false;
-			$scope.subscribeToList = function() {
-				$http({method: 'POST', url: '/mailchimpSignup/', data: JSON.stringify($scope.subscribeData)})
-				.success(function(data) {
-					$scope.subscribed = true;
-					$scope.subscribeError = undefined;
-					$scope.$digest();
-				})
-				.error(function(data) {
-					$scope.subscribeError = data;
-					$scope.$digest();
-				});
-			};
 		},
 	};
 });
