@@ -122,16 +122,16 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			return "Couldn't insert pagePair", err
 		}
 
-		if child.Edit > 0 && !child.IsDeleted {
+		if child.WasPublished && !child.IsDeleted {
 			newChildChangeLogId, err = addNewChildToChangelog(tx, u.Id, data.Type, child.Type, data.ParentId, parent.Edit,
-				data.ChildId, child.Edit, child.IsDeleted)
+				data.ChildId, child.WasPublished, child.IsDeleted)
 			if err != nil {
 				return "Couldn't add to changelog of parent", err
 			}
 		}
-		if parent.Edit > 0 && !parent.IsDeleted {
+		if parent.WasPublished && !parent.IsDeleted {
 			newParentChangeLogId, err = addNewParentToChangelog(tx, u.Id, data.Type, child.Type, data.ChildId, child.Edit,
-				data.ParentId, parent.Edit, parent.IsDeleted)
+				data.ParentId, parent.WasPublished, parent.IsDeleted)
 			if err != nil {
 				return "Couldn't add to changelog of child", err
 			}
@@ -164,17 +164,17 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 // Update the changelogs of the parent for a new relationship.
 func addNewChildToChangelog(tx *database.Tx, userId string, pairType string, childPageType string, pageId string,
-	pageEdit int, childId string, childEdit int, childIsDeleted bool) (int64, error) {
+	pageEdit int, childId string, childWasPublished bool, childIsDeleted bool) (int64, error) {
 
-	return addRelationshipToChangelogInternal(tx, userId, pairType, childPageType, pageId, pageEdit, childId, childEdit,
+	return addRelationshipToChangelogInternal(tx, userId, pairType, childPageType, pageId, pageEdit, childId, childWasPublished,
 		childIsDeleted, false)
 }
 
 // Update the changelogs of the child for a new relationship.
 func addNewParentToChangelog(tx *database.Tx, userId string, pairType string, childPageType string, pageId string,
-	pageEdit int, parentId string, parentEdit int, parentIsDeleted bool) (int64, error) {
+	pageEdit int, parentId string, parentWasPublished bool, parentIsDeleted bool) (int64, error) {
 
-	return addRelationshipToChangelogInternal(tx, userId, pairType, childPageType, pageId, pageEdit, parentId, parentEdit,
+	return addRelationshipToChangelogInternal(tx, userId, pairType, childPageType, pageId, pageEdit, parentId, parentWasPublished,
 		parentIsDeleted, true)
 }
 
@@ -212,12 +212,12 @@ func getChangeLogTypeForPagePair(pairType string, childPageType string, changeLo
 }
 
 func addRelationshipToChangelogInternal(tx *database.Tx, userId string, pairType string, childPageType string, pageId string,
-	pageEdit int, auxPageId string, auxPageEdit int, auxPageIsDeleted bool, changeLogEntryIsForChild bool) (int64, error) {
+	pageEdit int, auxPageId string, auxPageWasPublished bool, auxPageIsDeleted bool, changeLogEntryIsForChild bool) (int64, error) {
 
 	// Do not add to the changelog of a public page if its aux page hasn't been published (as this would leak data
 	// about a user's unpublished draft) or if it's deleted (editing a deleted page shouldn't affect live pages
 	// until the deleted page is published again).
-	if auxPageId != pageId && (auxPageEdit <= 0 || auxPageIsDeleted) {
+	if auxPageId != pageId && (!auxPageWasPublished || auxPageIsDeleted) {
 		return 0, nil
 	}
 	// Don't add changelog entries for the parents of new comments
