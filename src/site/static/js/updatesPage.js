@@ -32,7 +32,7 @@ app.directive('arbUpdates', function($compile, $location, $rootScope, pageServic
 								specificEdit: edit,
 								skipProcessDataStep: true,
 								success: function(data, status) {
-									successFn(data[updateGroup.key.groupByPageId])
+									successFn(data[updateGroup.key.groupByPageId]);
 									if (thisEditText && prevEditText) {
 										update.diffHtml = diffService.getDiffHtml(thisEditText, prevEditText);
 									}

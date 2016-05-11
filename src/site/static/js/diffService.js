@@ -51,5 +51,5 @@ app.service('diffService', function() {
 
 			return [0, diffString];
 		});
-	}
+	};
 });

@@ -510,7 +510,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.toggleExpandDiff = function() {
 				$scope.diffExpanded = !$scope.diffExpanded;
 				$scope.refreshDiff();
-			}
+			};
 			// Process click event for diffing edits
 			$scope.showDiff = function(editNum) {
 				// Load the edit from the server

@@ -18,6 +18,7 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, pa
 
 			// Compute which marks to show.
 			var computeMarkIds = function() {
+				console.log('COMPUTE');
 				$scope.markIds = $scope.page.markIds.filter(function(markId) {
 					var mark = pageService.markMap[markId];
 					if ($location.search().markId === markId) return true;
@@ -25,7 +26,16 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, pa
 					return mark.type === 'query' && mark.text.length > 0 && !mark.resolvedBy;
 				});
 			};
-			computeMarkIds();
+
+			$scope.$watch(function() {
+				return $scope.page.markIds.length;
+			}, function() {
+				computeMarkIds();
+			});
+
+			$scope.newQuery = function() {
+				$rootScope.$broadcast('newQueryMark');
+			};
 
 			// Called to show a popup for the given mark.
 			$scope.bringUpMark = function(markId) {

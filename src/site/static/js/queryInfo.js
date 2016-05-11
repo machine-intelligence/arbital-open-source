@@ -33,6 +33,12 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 					function(data) {
 						if (submit) {
 							$scope.hidePopup();
+							if ($scope.mark.pageId in pageService.pageMap) {
+								var markParent = pageService.pageMap[$scope.mark.pageId];
+								if (markParent.markIds.indexOf($scope.markId) < 0) {
+									markParent.markIds.push($scope.markId);
+								}
+							}
 						}
 					}
 				);

@@ -411,7 +411,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			};
 
 			// Load a new page.
-			var getNewPage = function () {
+			var getNewPage = function() {
 				var type = $location.search().type;
 				$location.replace().search('type', undefined);
 				var newParentIdString = $location.search().newParentId;

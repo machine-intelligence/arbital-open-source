@@ -5,17 +5,16 @@ RegExp.escape = function(s) {
 	return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
-
 var escapeHtml = function(s) {
 	var entityMap = {
-		"&": "&amp;",
-		"<": "&lt;",
-		">": "&gt;",
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
 		'"': '&quot;',
-		"'": '&#39;',
-		"/": '&#x2F;'
+		'\'': '&#39;',
+		'/': '&#x2F;'
 	};
-	return String(s).replace(/[&<>"'\/]/g, function (s) {
+	return String(s).replace(/[&<>"'\/]/g, function(s) {
 		return entityMap[s];
 	});
 };
