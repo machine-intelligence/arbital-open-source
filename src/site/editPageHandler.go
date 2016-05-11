@@ -330,7 +330,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			// Now that we're publishing this page, create changeLogs for new relationships
 			for _, parent := range newParents {
 				newChildChangeLogId, err := addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
-					data.PageId, newEditNum, false)
+					data.PageId, true, false)
 				if err != nil {
 					return "Couldn't create changeLog for new child", err
 				}
@@ -338,7 +338,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 			for _, child := range newChildren {
 				newParentChangeLogId, err := addNewParentToChangelog(tx, u.Id, child.PairType, child.PageType, child.PageId, child.CurrentEdit,
-					data.PageId, newEditNum, false)
+					data.PageId, true, false)
 				if err != nil {
 					return "Couldn't create changeLog for new parent", err
 				}
