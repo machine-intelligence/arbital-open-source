@@ -320,10 +320,10 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			// Get the data
 			$http({method: 'POST', url: '/json/dashboardPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
-				$scope.dashboardPageIdsMap = data.result;
+				$scope.data = data.result;
 				return {
 					title: 'Your dashboard',
-					content: $scope.newElement('<arb-dashboard-page ids-map=\'::dashboardPageIdsMap\'></arb-dashboard-page>'),
+					content: $scope.newElement('<arb-dashboard-page data=\'::data\'></arb-dashboard-page>'),
 				};
 			}))
 			.error($scope.getErrorFunc('dashboardPage'));

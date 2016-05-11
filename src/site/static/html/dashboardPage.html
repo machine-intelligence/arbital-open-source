@@ -8,15 +8,83 @@
 	</div>
 
 	<!-- Show domain permissions -->
+	<h3>
+		Your permissions
+	</h3>
 	<div ng-repeat="(domainId,trust) in userService.user.trustMap"
 			ng-if="::trust.permissions.domainAccess.has">
 		<arb-page-title page-id="{{::domainId}}" is-link="true" ng-if="::domainId"></arb-page-title>
 		<span ng-if="::!domainId">General</span>
-		domain permissions:
+		domain:
 		<span ng-if="::trust.permissions.edit.has">Edit pages,</span>
 		<span ng-if="::trust.permissions.delete.has">Delete pages,</span>
-		<span ng-if="::trust.permissions.comment.has">Comment.</span>
+		<span ng-if="::trust.permissions.comment.has">Comment</span>
 	</div>
+	<br>
+
+	<!-- Stats bar -->
+	<div class="md-primary md-hue-1 stats-bar" ng-if="userService.userIsCool()">
+		<div layout="row">
+
+			<!-- Created pages -->
+			<div layout="column" layout-align="start center" flex="25">
+				<h4>
+					{{::data.numWikiPages + data.numLensPages}} pages
+				</h4>
+				<div class="md-caption">
+					{{::data.numUsersTaught}} readers learned {{::data.numReqsTaught}} requisites
+				</div>
+				<div class="md-caption">
+					{{::data.wikiLikes + data.lensLikes}} likes
+				</div>
+				<!--<div class="md-caption">
+					{{::data.numCommentThreads}} comment threads
+				</div>-->
+			</div>
+
+			<!-- Created comments -->
+			<div layout="column" layout-align="start center" flex="25">
+				<h4>
+					{{::data.numComments}} comments
+				</h4>
+				<div class="md-caption">
+					{{::data.commentLikes}} likes
+				</div>
+				<div class="md-caption">
+					{{::data.numReplies}} replies
+				</div>
+			</div>
+
+			<!-- Created edits -->
+			<div layout="column" layout-align="start center" flex="25">
+				<h4>
+					{{::data.numEdits}} edits
+				</h4>
+				<div class="md-caption">
+					{{::data.numPagesEdited}} pages
+				</div>
+				<div class="md-caption">
+					{{::data.editLikes}} likes
+				</div>
+			</div>
+
+			<!-- Created questions -->
+			<div layout="column" layout-align="start center" flex="25">
+				<h4>
+					{{::data.numQuestions + data.numAnswers}} Q&As
+				</h4>
+				<div class="md-caption">
+					{{::data.numQuestions}} questions
+				</div>
+				<div class="md-caption">
+					{{::data.numAnswers}} answers
+				</div>
+			</div>
+			<div flex></div>
+		</div>
+		<br>
+	</div>
+
 	<br>
 
 	<div arb-page-list panel-title="Recently created and edited pages"
@@ -25,22 +93,22 @@
 			show-red-link-count="true"
 			show-text-length="true"
 			show-quick-edit-link="true"
-			page-ids="::idsMap.recentlyEditedIds"></div>
+			page-ids="::data.recentlyEditedIds"></div>
 	<div arb-page-list panel-title="Recently created comments"
 			show-created-at="true"
-			page-ids="::idsMap.recentlyCreatedCommentIds"></div>
+			page-ids="::data.recentlyCreatedCommentIds"></div>
 	<div arb-page-list panel-title="Pages with most TODOs"
 			is-public="no"
 			show-last-edit="true"
 			show-red-link-count="true"
 			show-text-length="true"
 			show-quick-edit-link="true"
-			page-ids="::idsMap.mostTodosIds"></div>
+			page-ids="::data.mostTodosIds"></div>
 	<div arb-page-list panel-title="Pages with drafts"
 			is-public="no"
 			show-last-edit="true"
 			use-edit-map="true"
 			hide-likes="true"
 			show-quick-edit="true"
-			page-ids="::idsMap.pagesWithDraftIds"></div>
+			page-ids="::data.pagesWithDraftIds"></div>
 </div>
