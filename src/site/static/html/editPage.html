@@ -554,12 +554,13 @@
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
 			<div layout="column" ng-if="::!isEmbedded">
-				<md-button ng-if="::page.isDeleted" ng-href="/" class="md-primary md-hue-1 md-raised">
+				<!-- TODO: ideally we should navigate to whatever page we came from before opening the editor -->
+				<md-button ng-if="::(page.isDeleted || !page.wasPublished)" ng-href="/" class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
 					Home
 					<md-tooltip md-delay="500">Go home</md-tooltip>
 				</md-button>
-				<md-button ng-if="::!page.isDeleted" ng-href="{{::pageService.getPageUrl(page.pageId)}}"
+				<md-button ng-if="::(!page.isDeleted && page.wasPublished)" ng-href="{{::pageService.getPageUrl(page.pageId)}}"
 					class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
 					Back
