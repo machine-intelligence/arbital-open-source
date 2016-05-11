@@ -16,6 +16,11 @@ const (
 	// Helpers for matching our markdown extensions
 	SpacePrefix   = "(^| |\n)"
 	NoParenSuffix = "($|[^(])"
+
+	// String that can be used inside a regexp to match an a page alias or id
+	AliasRegexpStr          = "[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*"
+	SubdomainAliasRegexpStr = "[A-Za-z0-9_]*"
+	ReplaceRegexpStr        = "[^A-Za-z0-9_]" // used for replacing non-alias characters
 )
 
 // NewPage returns a pointer to a new page object created with the given page id
@@ -375,6 +380,11 @@ func IsIdValid(pageId string) bool {
 		return true
 	}
 	return false
+}
+
+// Check if the given alias is valid
+func IsAliasValid(alias string) bool {
+	return regexp.MustCompile("^" + AliasRegexpStr + "$").MatchString(alias)
 }
 
 func IsUser(db *database.DB, userId string) bool {

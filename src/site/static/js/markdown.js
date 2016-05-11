@@ -214,7 +214,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'\\[ ([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(spaceTextRegexp, function(whole, prefix, text) {
-				var editUrl = pageService.getEditPageUrl('0', {includeHost: true});
+				var editUrl = pageService.getNewPageUrl({includeHost: true});
 				return prefix + '[' + text + '](' + editUrl + ')';
 			});
 		});

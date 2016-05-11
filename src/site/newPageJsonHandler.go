@@ -23,13 +23,11 @@ type newPageJsonData struct {
 	Type            string
 	ParentIds       []string
 	IsEditorComment bool
+	Alias           string
 }
 
 // newPageJsonHandler handles the request.
 func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
-	db := params.DB
-	u := params.U
-
 	// Decode data
 	var data newPageJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
@@ -40,24 +38,37 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		data.Type = core.WikiPageType
 	}
+	return newPageJsonInternalHandler(params, &data)
+}
+
+func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonData) *pages.Result {
+	db := params.DB
+	u := params.U
+
+	if data.Alias != "" && !core.IsAliasValid(data.Alias) {
+		return pages.HandlerBadRequestFail("Invalid alias", nil)
+	}
 
 	// Error checking
 	if data.IsEditorComment && data.Type != core.CommentPageType {
-		return pages.HandlerBadRequestFail("Can't set isEditorComment for non-comment pages", err)
+		return pages.HandlerBadRequestFail("Can't set isEditorComment for non-comment pages", nil)
 	}
 
 	pageId := ""
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
-
+		var err error
 		pageId, err = core.GetNextAvailableId(tx)
 		if err != nil {
 			return "", fmt.Errorf("Couldn't get next available Id", err)
+		}
+		if data.Alias == "" {
+			data.Alias = pageId
 		}
 
 		// Update pageInfos
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
-		hashmap["alias"] = pageId
+		hashmap["alias"] = data.Alias
 		hashmap["sortChildrenBy"] = core.LikesChildSortingOption
 		hashmap["type"] = data.Type
 		hashmap["maxEdit"] = 1

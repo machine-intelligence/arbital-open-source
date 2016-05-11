@@ -45,14 +45,18 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
 		return pages.HandlerErrorFail("Couldn't convert alias", err)
-	}
-	if !ok {
-		// No alias found. Assume user is trying to create a new page with an alias.
-		newPageId, err := core.GetNextAvailableIdInNewTransaction(db)
-		if err != nil {
-			return pages.HandlerErrorFail("Couldn't get next available Id", err)
+	} else if !ok {
+		if core.IsIdValid(data.PageAlias) {
+			// We tried to load an edit by id, but it wasn't found
+			return pages.HandlerErrorFail("No such page found", err)
+		} else {
+			// We tried to load an edit by alias, it wasn't found, but we can create a
+			// new page with that alias.
+			return newPageJsonInternalHandler(params, &newPageJsonData{
+				Type:  core.WikiPageType,
+				Alias: data.PageAlias,
+			})
 		}
-		return pages.RedirectWith(core.GetEditPageUrl(newPageId) + "?alias=" + data.PageAlias)
 	}
 
 	// Load full edit for one page.

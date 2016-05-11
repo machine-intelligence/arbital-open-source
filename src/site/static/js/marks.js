@@ -18,7 +18,6 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, pa
 
 			// Compute which marks to show.
 			var computeMarkIds = function() {
-				console.log('COMPUTE');
 				$scope.markIds = $scope.page.markIds.filter(function(markId) {
 					var mark = pageService.markMap[markId];
 					if ($location.search().markId === markId) return true;

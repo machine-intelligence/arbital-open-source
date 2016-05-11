@@ -320,6 +320,19 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		return url;
 	};
 
+	// Get url to create a new page.
+	// options {
+	//	 includeHost: if true, include "https://" + host in the url
+	// }
+	this.getNewPageUrl = function(options) {
+		options = options || {};
+		var url = '/edit/';
+		if (options.includeHost) {
+			url = urlService.getDomainUrl() + url;
+		}
+		return url;
+	};
+
 	// Get url to the user page.
 	this.getUserUrl = function(userId, options) {
 		options = options || {};
