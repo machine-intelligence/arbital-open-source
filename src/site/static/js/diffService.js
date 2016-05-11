@@ -1,4 +1,5 @@
 'use strict';
+// jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Service for creating diffs.
 app.service('diffService', function() {
