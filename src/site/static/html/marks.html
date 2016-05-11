@@ -3,7 +3,7 @@
 <div layout="column">
 	<md-toolbar class="md-hue-2">
 		<div class="md-toolbar-tools">
-			<h1>Queries ({{markIds.length}})</h1>
+			<h1>Questions/objections ({{markIds.length}})</h1>
 
 			<div flex></div>
 			<!-- Menu with all the other stuff -->
@@ -30,7 +30,7 @@
 			<span ng-if="isPageCreator">You can help these readers by resolving their queries.</span>
 		</p>
 		<p ng-if="markIds.length <= 0">
-			No marks yet.
+			No questions/objections yet.
 		</p>
 		<div ng-repeat="markId in markIds"
 				ng-init="mark = pageService.markMap[markId]">

@@ -25,6 +25,7 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, pa
 					return mark.type === 'query' && mark.text.length > 0 && !mark.resolvedBy;
 				});
 			};
+			computeMarkIds();
 
 			$scope.$watch(function() {
 				return $scope.page.markIds.length;
