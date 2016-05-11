@@ -220,6 +220,10 @@ func addRelationshipToChangelogInternal(tx *database.Tx, userId string, pairType
 	if auxPageId != pageId && (auxPageEdit <= 0 || auxPageIsDeleted) {
 		return 0, nil
 	}
+	// Don't add changelog entries for the parents of new comments
+	if childPageType == core.CommentPageType && !changeLogEntryIsForChild {
+		return 0, nil
+	}
 
 	entryType, err := getChangeLogTypeForPagePair(pairType, childPageType, changeLogEntryIsForChild)
 	if err != nil {
