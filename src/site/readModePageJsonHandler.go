@@ -2,10 +2,16 @@
 package site
 
 import (
+	"encoding/json"
+
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
+
+type readModeJsonData struct {
+	NumPagesToLoad int
+}
 
 var readModePageJsonHandler = siteHandler{
 	URI:         "/json/readMode/",
@@ -18,8 +24,19 @@ func readModePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
-	// figure out which pages are to show as exciting and hot!
-	hotPageIds, err := loadHotPageIds(db, u, returnData.PageMap)
+	// Decode data
+	var data readModeJsonData
+	err := json.NewDecoder(params.R.Body).Decode(&data)
+	if err != nil {
+		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+	}
+
+	// figure out which pages to show as exciting and hot!
+	numPagesToLoad := data.NumPagesToLoad
+	if numPagesToLoad == 0 {
+		numPagesToLoad = 25
+	}
+	hotPageIds, err := loadHotPageIds(db, u, returnData.PageMap, numPagesToLoad)
 	if err != nil {
 		return pages.HandlerErrorFail("failed to load hot page ids", err)
 	}
@@ -34,13 +51,13 @@ func readModePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.StatusOK(returnData)
 }
 
-func loadHotPageIds(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page) ([]string, error) {
+func loadHotPageIds(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page, numPagesToLoad int) ([]string, error) {
 	rows := database.NewQuery(`
 		SELECT pageId
 		FROM`).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		WHERE pi.type IN ('wiki', 'lens', 'domain', 'question')
 		ORDER BY createdAt DESC
-		LIMIT 100`).ToStatement(db).Query()
+		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()
 
 	pageOptions := (&core.PageLoadOptions{SubpageCounts: true}).Add(core.TitlePlusLoadOptions)
 	return core.LoadPageIds(rows, pageMap, pageOptions)
