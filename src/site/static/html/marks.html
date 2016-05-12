@@ -35,7 +35,9 @@
 		<div ng-repeat="markId in markIds"
 				ng-init="mark = pageService.markMap[markId]">
 			<div layout="row"
+					layout-sm="column"
 					layout-align="start center"
+					layout-align-sm="start start"
 					ng-if="userService.showAllMarks || mark.isCurrentUserOwned">
 				<div>
 					<md-button class="md-primary md-icon-button" ng-click="bringUpMark(mark.id)">
@@ -48,10 +50,8 @@
 					<strong ng-bind="mark.text"></strong>
 				</div>
 				<div flex></div>
-				<div>
-					<span>
-						created <span ng-bind="::(mark.createdAt | relativeDateTime)"></span>
-					</span>
+				<div class="nowrap md-caption">
+					created <span ng-bind="::(mark.createdAt | relativeDateTime)"></span>
 				</div>
 			</div>
 		</div>
