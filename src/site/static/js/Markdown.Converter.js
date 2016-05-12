@@ -364,8 +364,8 @@ else
 			// "paragraphs" that are wrapped in non-block-level tags, such as anchors,
 			// phrase emphasis, and spans. The list of tags we're looking for is
 			// hard-coded:
-			var block_tags_a = 'arb-checkbox|arb-hidden-text|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del';
-			var block_tags_b = 'arb-checkbox|arb-hidden-text|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math';
+			//var block_tags_a = 'arb-checkbox|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del';
+			//var block_tags_b = 'arb-checkbox|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math';
 
 			// First, look for nested blocks, e.g.:
 			//   <div>
@@ -395,7 +395,7 @@ else
 			                )                       // attacklab: there are sentinel newlines at end of document
 			            /gm,function(){...}};
 			            */
-			text = text.replace(/^(<(arb-checkbox|arb-hidden-text|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del)\b[^\r]*?\n<\/\2>[ \t]*(?=\n+))/gm, hashMatch);
+			text = text.replace(/^(<(arb-checkbox|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del)\b[^\r]*?\n<\/\2>[ \t]*(?=\n+))/gm, hashMatch);
 
 			//
 			// Now match more liberally, simply from `\n<tag>` to `</tag>\n`
@@ -415,7 +415,7 @@ else
 			                )                       // attacklab: there are sentinel newlines at end of document
 			            /gm,function(){...}};
 			            */
-			text = text.replace(/^(<(arb-checkbox|arb-hidden-text|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math)\b[^\r]*?.*<\/\2>[ \t]*(?=\n+)\n)/gm, hashMatch);
+			text = text.replace(/^(<(arb-checkbox|arb-multiple-choice|arb-table-of-contents|p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math)\b[^\r]*?.*<\/\2>[ \t]*(?=\n+)\n)/gm, hashMatch);
 
 			// Special case just for <hr />. It was easier to make a special case than
 			// to make the other regex more complicated.

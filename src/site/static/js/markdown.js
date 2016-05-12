@@ -91,7 +91,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hiddenBlockRegexp, function(whole, bars, buttonText, text) {
 				var blockText = text + '\n\n';
-				return '<arb-hidden-text button-text=\'' + buttonText + '\'>' + runBlockGamut(blockText) + '\n\n</arb-hidden-text>';
+				return '<div arb-hidden-text button-text=\'' + buttonText + '\'>' + runBlockGamut(blockText) + '\n\n</div>';
 			});
 		});
 
