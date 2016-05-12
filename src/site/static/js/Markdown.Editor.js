@@ -1559,11 +1559,11 @@
 							'](https://arbital.com/static/images/default-image-link.png)');
 				}
 			} else if (wrapType == 'condition') {
-				linkEnteredCallback('%%%knows-requisite([math]): ', 'conditional text *with* markdown', '%%%\n\n');
+				linkEnteredCallback('%%%knows-requisite([math]):\n', 'conditional text *with* markdown', '\n%%%\n\n');
 			} else if (wrapType == 'summary') {
 				linkEnteredCallback('[summary: ', 'summary text *with* markdown', ']\n\n');
 			} else if (wrapType == 'hiddenText') {
-				linkEnteredCallback('%%hidden(Show solution): ', 'Solution *markdown* text', '%%\n\n');
+				linkEnteredCallback('%%hidden(Show solution):\n', 'Solution *markdown* text', '\n%%\n\n');
 			} else if (wrapType == 'multipleChoice') {
 				var suffix = [
 					'a: Answer 1 ("knows" will set the requisites when the user picks that answer)',
