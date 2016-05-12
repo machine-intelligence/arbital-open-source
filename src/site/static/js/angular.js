@@ -624,15 +624,14 @@ app.run(function($http, $location, urlService, pageService, userService) {
 	urlService.addUrlHandler('/read/', {
 		name: 'ReadModePage',
 		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/readMode/'})
+			$http({method: 'POST', url: '/json/default/'})
 			.success($scope.getSuccessFunc(function(data) {
-				$scope.hotPageIds = data.result.hotPageIds;
 				return {
 					title: 'Read',
-					content: $scope.newElement('<arb-read-mode-page hot-page-ids=\'::hotPageIds\'></arb-read-mode-page>'),
+					content: $scope.newElement('<arb-read-mode-page></arb-read-mode-page>'),
 				};
 			}))
-			.error($scope.getErrorFunc('readMode'));
+			.error($scope.getErrorFunc('default'));
 		},
 	});
 	urlService.addUrlHandler('/requisites/', {

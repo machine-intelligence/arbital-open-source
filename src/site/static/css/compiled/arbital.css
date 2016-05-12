@@ -461,6 +461,8 @@ arb-primary-page > .capped-body-width {
   max-width: 1100px; }
 arb-admin-dashboard-page > .capped-body-width {
   max-width: 900px; }
+arb-read-mode-panel > .capped-body-width {
+  max-width: 900px; }
 arb-newsletter > .capped-body-width {
   max-width: 900px; }
 
