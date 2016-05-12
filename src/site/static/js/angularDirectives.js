@@ -558,8 +558,6 @@ app.directive('arbRequisiteButton', function(pageService, userService) {
 			hideCheckbox: '=',
 			// If true, don't show the page title
 			hideTitle: '=',
-			// If true, allow the user to toggle into a "want" state
-			allowWants: '=',
 			// If true, show requisite's clickbait
 			showClickbait: '=',
 			// If true, clicking the checkbox won't close the menu this button is in
@@ -581,11 +579,7 @@ app.directive('arbRequisiteButton', function(pageService, userService) {
 			// Toggle whether or not the user has a mastery
 			$scope.toggleRequirement = function() {
 				if (pageService.hasMastery($scope.requisiteId)) {
-					if ($scope.allowWants) {
-						pageService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
-					} else {
-						pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
-					}
+					pageService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
 				} else if (pageService.wantsMastery($scope.requisiteId)) {
 					pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
 				} else {

@@ -10,15 +10,15 @@
 			ng-show="!hideCheckbox">
 		<md-icon ng-show="pageService.hasMastery(requisiteId)">
 			check_box
-			<md-tooltip>Click to mark as wanted</md-tooltip>
+			<md-tooltip md-delay="500">Click to mark as wanted</md-tooltip>
 		</md-icon>
 		<md-icon ng-show="pageService.wantsMastery(requisiteId)">
 			bookmark
-			<md-tooltip>Click to mark as not known</md-tooltip>
+			<md-tooltip md-delay="500">Click to mark as not known</md-tooltip>
 		</md-icon>
 		<md-icon ng-show="pageService.nullMastery(requisiteId)">
 			check_box_outline_blank
-			<md-tooltip>Click to mark as known</md-tooltip>
+			<md-tooltip md-delay="500">Click to mark as known</md-tooltip>
 		</md-icon>
 	</md-button>
 	<span ng-if="hideCheckbox">&bull;</span>

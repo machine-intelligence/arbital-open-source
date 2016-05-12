@@ -10,8 +10,6 @@ app.directive('arbMasteryList', function($timeout, $http, pageService, userServi
 			hideCheckboxes: '=',
 			// If true, show the requisites the user has first
 			showHasFirst: '=',
-			// If true, allow the user to toggle through want states
-			allowWants: '=',
 			// If true, recursively show requirements for each mastery
 			showRequirements: '=',
 			// If true, show clickbait for all the masteries
