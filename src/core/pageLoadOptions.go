@@ -45,6 +45,7 @@ type PageLoadOptions struct {
 	// Options for what data to load for the page itself
 	HasDraft        bool
 	Likes           bool
+	IndividualLikes bool // load each user who liked
 	ViewCount       bool
 	Votes           bool
 	LastVisit       bool
@@ -126,6 +127,7 @@ var (
 		DomainsAndPermissions: true,
 		Links:           true,
 		HasDraft:        true,
+		IndividualLikes: true,
 		Votes:           true,
 		SubscriberCount: true,
 		IsSubscribed:    true,

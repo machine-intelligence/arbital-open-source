@@ -198,6 +198,8 @@ type Page struct {
 	MarkIds        []string `json:"markIds"`
 	// For user pages, this is the domains user has access to
 	DomainMembershipIds []string `json:"domainMembershipIds"`
+	// List of user ids who liked this page
+	IndividualLikes []string `json:"individualLikes"`
 
 	// Answers associated with this page, if it's a question page.
 	Answers []*Answer `json:"answers"`
@@ -557,7 +559,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load (dis)likes
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.Likes })
-	err = LoadLikes(db, u, filteredPageMap)
+	individualLikesPageMap := filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.IndividualLikes })
+	err = LoadLikes(db, u, filteredPageMap, individualLikesPageMap, userMap)
 	if err != nil {
 		return fmt.Errorf("LoadLikes failed: %v", err)
 	}
@@ -1098,7 +1101,7 @@ func LoadPageIds(rows *database.Rows, pageMap map[string]*Page, loadOptions *Pag
 }
 
 // LoadLikes loads likes corresponding to the given pages and updates the pages.
-func LoadLikes(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
+func LoadLikes(db *database.DB, u *CurrentUser, pageMap map[string]*Page, individualLikesPageMap map[string]*Page, userMap map[string]*User) error {
 	if len(pageMap) <= 0 {
 		return nil
 	}
@@ -1133,6 +1136,12 @@ func LoadLikes(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error 
 				page.LikeScore--
 			}
 			page.DislikeCount++
+		}
+
+		// Store the like itself for pages that want it
+		if page, ok := individualLikesPageMap[pageId]; ok {
+			page.IndividualLikes = append(page.IndividualLikes, userId)
+			AddUserIdToMap(userId, userMap)
 		}
 		return nil
 	})

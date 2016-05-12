@@ -275,6 +275,11 @@ md-tooltip .md-content {
   font-size: 12px;
   font-weight: bold; }
 
+md-tooltip.unlimited .md-content {
+  height: auto !important; }
+  md-tooltip.unlimited .md-content span {
+    white-space: pre; }
+
 md-list {
   padding-top: 0;
   padding-bottom: 0; }
@@ -460,8 +465,6 @@ arb-settings-page > .capped-body-width {
 arb-primary-page > .capped-body-width {
   max-width: 1100px; }
 arb-admin-dashboard-page > .capped-body-width {
-  max-width: 900px; }
-arb-read-mode-panel > .capped-body-width {
   max-width: 900px; }
 arb-newsletter > .capped-body-width {
   max-width: 900px; }

@@ -350,6 +350,15 @@ md-tooltip .md-content {
 	font-weight: bold;
 }
 
+md-tooltip.unlimited {
+	.md-content {
+		height: auto !important;
+		span {
+			white-space: pre;
+		}
+	}
+}
+
 md-list {
 	// Remove padding, so that when the list is empty, it doesn't take up space
 	padding-top: 0;

@@ -17,6 +17,21 @@ type User struct {
 	IsSubscribed bool `json:"isSubscribed"`
 }
 
+// AddUserIdToMap adds a new user with the given user id to the map if it's not
+// in the map already.
+// Returns the new/existing user.
+func AddUserIdToMap(userId string, userMap map[string]*User) *User {
+	if !IsIdValid(userId) {
+		return nil
+	}
+	if u, ok := userMap[userId]; ok {
+		return u
+	}
+	u := &User{Id: userId}
+	userMap[userId] = u
+	return u
+}
+
 // FullName returns user's first and last name.
 func (u *User) FullName() string {
 	return fmt.Sprintf("%s %s", u.FirstName, u.LastName)

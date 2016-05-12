@@ -251,6 +251,11 @@ app.directive('arbLikes', function($http, pageService, userService) {
 				$scope.likeable = pageService.pageMap[$scope.likeableId];
 			}
 
+			// Sort individual likes by name.
+			$scope.likeable.individualLikes.sort(function(userId1, userId2) {
+				return userService.getFullName(userId1).localeCompare(userService.getFullName(userId2));
+			});
+
 			// User clicked on the like button
 			$scope.likeClick = function() {
 				$scope.likeable.myLikeValue = Math.min(1, 1 - $scope.likeable.myLikeValue);

@@ -97,7 +97,7 @@ type CookieSession struct {
 	Random string
 }
 
-func NewUser() *CurrentUser {
+func NewCurrentUser() *CurrentUser {
 	var u CurrentUser
 	u.GroupIds = make([]string, 0)
 	u.TrustMap = make(map[string]*Trust)
@@ -162,7 +162,7 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get session: %v", err)
 	}
-	u := NewUser()
+	u := NewCurrentUser()
 
 	var cookie *CookieSession
 	if cookieStruct, ok := s.Values[sessionKey]; !ok {
@@ -207,7 +207,7 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 	if err != nil {
 		return
 	} else if userPtr == nil {
-		userPtr = NewUser()
+		userPtr = NewCurrentUser()
 	}
 	return
 }

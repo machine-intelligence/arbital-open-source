@@ -41,6 +41,8 @@ func NewPage(pageId string) *Page {
 	p.ChildIds = make([]string, 0)
 	p.ParentIds = make([]string, 0)
 	p.MarkIds = make([]string, 0)
+	p.DomainMembershipIds = make([]string, 0)
+	p.IndividualLikes = make([]string, 0)
 	p.Members = make(map[string]*Member)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -49,21 +51,6 @@ func NewPage(pageId string) *Page {
 	// they get an error. The permissions are only set when they are also fully computed.
 	p.Permissions = nil
 	return p
-}
-
-// AddPageIdToMap adds a new page with the given page id to the map if it's not
-// in the map already.
-// Returns the new/existing page.
-func AddPageIdToMap(pageId string, pageMap map[string]*Page) *Page {
-	if !IsIdValid(pageId) {
-		return nil
-	}
-	if p, ok := pageMap[pageId]; ok {
-		return p
-	}
-	p := NewPage(pageId)
-	pageMap[pageId] = p
-	return AddPageToMap(pageId, pageMap, EmptyLoadOptions)
 }
 
 // AddPageToMap adds a new page with the given page id to the map if it's not
@@ -81,6 +68,9 @@ func AddPageToMap(pageId string, pageMap map[string]*Page, loadOptions *PageLoad
 	p.LoadOptions = *loadOptions
 	pageMap[pageId] = p
 	return p
+}
+func AddPageIdToMap(pageId string, pageMap map[string]*Page) *Page {
+	return AddPageToMap(pageId, pageMap, EmptyLoadOptions)
 }
 
 // AddUserToMap adds a new user with the given user id to the map if it's not
