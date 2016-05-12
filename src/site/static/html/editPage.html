@@ -460,14 +460,14 @@
 						</div>
 
 						<!-- Show/hide vote -->
-						<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki)">
+						<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki && userService.user.isAdmin)">
 							<md-switch ng-model="page.hasVote">
 								Show the {{::page.lockedVoteType}} voting bar
 							</md-switch>
 						</div>
 
 						<!-- Vote type -->
-						<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment)">
+						<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment && userService.user.isAdmin)">
 							<md-input-container flex>
 								<label>Voting</label>
 								<md-select ng-model="page.voteType">
