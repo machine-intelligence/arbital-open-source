@@ -1,14 +1,8 @@
-<div layout="column" class="capped-body-width user-page-panel md-whiteframe-1dp" >
-	<div arb-page-list
-			panel-title="Recommended Reading"
-			show-created-at="true",
-			show-comment-count="true",
-			show-text-length="true"
-			page-ids="::hotPageIds"></div>
-	<md-button ng-if="includeSeeMoreLink" ng-href="/read"
-		class="md-primary md-hue-1 md-raised">
-		<md-icon>arrow_forward</md-icon>
-		More
-		<md-tooltip md-delay="500">View more recommended pages</md-tooltip>
-	</md-button>
-</div>
+<arb-list-panel title="New"
+	items="hotPageIds"
+	num-to-display="numToDisplay"
+	more-link="/read">
+	<md-list-item ng-repeat="pageId in ::hotPageIds | limitTo:numToDisplay">
+		<arb-page-row></arb-page-row>
+	</md-list-item>
+</arb-list-panel>

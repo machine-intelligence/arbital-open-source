@@ -1,0 +1,19 @@
+<md-card ng-if="::items.length != 0" class="capped-body-width">
+	<md-toolbar class="md-hue-2">
+		<div class="md-toolbar-tools">
+			<span ng-bind="::title" ng-if="!(numToDisplay)" flex></span>
+			<a ng-bind="::title" ng-if="numToDisplay" ng-href="{{::moreLink}}" flex></a>
+		</div>
+	</md-toolbar>
+
+	<div ng-transclude></div>
+
+	<md-toolbar layout="row" layout-align="end center"
+		class="layout-align-end-center layout-row list-panel-footer md-hue-1">
+		<md-button ng-if="moreLink && items.length > numToDisplay"
+			ng-href="{{::moreLink}}"
+			class="md-primary">
+			<md-icon>arrow_forward</md-icon>See all
+		</md-button>
+	</md-toolbar>
+</md-card>

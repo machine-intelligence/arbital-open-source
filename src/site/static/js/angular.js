@@ -296,10 +296,9 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				// Get the index page data
 				$http({method: 'POST', url: '/json/index/'})
 				.success($scope.getSuccessFunc(function(data) {
-					$scope.featuredDomains = data.result.featuredDomains;
 					return {
 						title: '',
-						content: $scope.newElement('<arb-index featured-domains=\'::featuredDomains\'></arb-index>'),
+						content: $scope.newElement('<arb-index></arb-index>'),
 					};
 				}))
 				.error($scope.getErrorFunc('index'));

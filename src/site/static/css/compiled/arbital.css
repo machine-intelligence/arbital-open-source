@@ -470,6 +470,8 @@ arb-read-mode-panel > .capped-body-width {
   max-width: 900px; }
 arb-newsletter > .capped-body-width {
   max-width: 900px; }
+arb-list-panel > .capped-body-width {
+  max-width: 900px; }
 
 .discussion-container {
   margin: 20px 0; }
@@ -625,6 +627,9 @@ arb-likes, .likes-in-autocomplete {
 
 [arb-page-list], .arb-page-list {
   margin-bottom: 4vw; }
+
+arb-list-panel .list-panel-footer {
+  min-height: 0vh; }
 
 arb-page-title, [arb-page-title] {
   line-height: normal; }

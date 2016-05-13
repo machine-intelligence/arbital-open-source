@@ -640,3 +640,10 @@ app.directive('arbLogRow', function(pageService) {
 		},
 	};
 });
+
+// Exists to share the template for a row in a md-list of pages
+app.directive('arbPageRow', function() {
+	return {
+		templateUrl: 'static/html/pageRow.html'
+	};
+});
