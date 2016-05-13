@@ -108,8 +108,8 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 		return "Couldn't delete a page pair", err
 	}
 
-	childIsLive := child.Edit > 0 && !child.IsDeleted
-	parentIsLive := parent.Edit > 0 && !parent.IsDeleted
+	childIsLive := child.WasPublished && !child.IsDeleted
+	parentIsLive := parent.WasPublished && !parent.IsDeleted
 
 	// Update change logs
 	var newChildChangeLogId int64
