@@ -22,20 +22,16 @@
 			</div>
 		</div>
 
-		<!-- Lens suggestion -->
-		<div class="lens-suggestion">
-			<div ng-if="::simplerLens">
-				If you have trouble understanding this lens, try a simpler one:
+		<!-- Learn / simpler lens suggestion -->
+		<div class="lens-suggestion" ng-show="!meetsAllRequirements()">
+			<a ng-href="/learn/{{::page.alias}}">
+				Learn the requisites
+			</a>
+			<span ng-if="::simplerLens">
+				or try a simpler lens:
 				<a ng-href="{{::pageService.getPageUrl(simplerLens.pageId)}}"
 						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
-			</div>
-			<!-- Learn this suggestion -->
-			<div ng-if="isSimplestLens && !pageService.path" ng-show="!meetsAllRequirements()">
-				<md-button class="md-primary md-raised" ng-href="/learn/{{::page.alias}}">
-					Learn this...
-					<md-tooltip md-delay="500">Learn all the requirements for this page</md-tooltip>
-				</md-button>
-			</div>
+			</span>
 		</div>
 	</div>
 
