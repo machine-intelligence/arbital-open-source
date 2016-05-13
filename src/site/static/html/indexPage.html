@@ -1,2 +1,8 @@
-<arb-read-mode-panel></arb-read-mode-panel>
+<!-- If the user is not logged in, show the full list of new stuff -->
+<arb-read-mode-panel ng-if="userService.user.id == ''"></arb-read-mode-panel>
+
+<!-- If the user is logged in, show various panels -->
+<span ng-if="userService.user.id !== ''">
+	<arb-read-mode-panel></arb-read-mode-panel>
+</span>
 

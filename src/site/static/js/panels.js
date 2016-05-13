@@ -27,7 +27,7 @@ app.directive('arbReadModePanel', function($http, userService, pageService) {
 			numToDisplay: '='
 		},
 		controller: function($scope) {
-			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({numPagesToLoad: $scope.numPagesToShow})})
+			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({})})
 				.success(function(data) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
