@@ -111,6 +111,7 @@ var (
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{
 		Questions:       true,
+		Tags:            true,
 		SubpageCounts:   true,
 		Requirements:    true,
 		Subjects:        true,
