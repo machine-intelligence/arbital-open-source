@@ -91,6 +91,27 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	};
 	refreshAutoupdates();
 
+	// Check to see if we should show the popup.
+	$scope.closePopup = function() {
+		pageService.hideNonpersistentPopup();
+	};
+
+	// Watch path changes and update Google Analytics
+	$scope.$watch(function() {
+		return $location.absUrl();
+	}, function() {
+		ga('send', 'pageview', $location.absUrl());
+	});
+
+	var $fixedOverlay = $("#fixed-overlay");
+	$scope.$watch(function() {
+		return $fixedOverlay.children().length;
+	}, function() {
+		// Toggle pointer-events setting based on whether or not we have md-scroll-mask on.
+		// This is used to prevent body scrolling when mdBottomSheet is showing.
+		$fixedOverlay.css("pointer-events", $fixedOverlay.find(".md-scroll-mask").length == 0 ? "none" : "auto");
+	});
+
 	// Returns an object containing a compiled element and its scope
 	$scope.newElement = function(html, parentScope) {
 		if (!parentScope) parentScope = $scope;
@@ -202,18 +223,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			document.title = 'Error - Arbital';
 		};
 	};
-
-	// Check to see if we should show the popup.
-	$scope.closePopup = function() {
-		pageService.hideNonpersistentPopup();
-	};
-
-	// Watch path changes and update Google Analytics
-	$scope.$watch(function() {
-		return $location.absUrl();
-	}, function() {
-		ga('send', 'pageview', $location.absUrl());
-	});
 
 	// The URL rule match for the current page
 	var currentLocation = {};
