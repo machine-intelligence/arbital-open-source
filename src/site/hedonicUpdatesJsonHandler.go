@@ -31,7 +31,6 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
-	u.Id = "2"
 
 	// Decode data
 	var data hedonicUpdatesJsonData
