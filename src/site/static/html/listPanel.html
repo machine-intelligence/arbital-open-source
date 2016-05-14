@@ -10,6 +10,9 @@
 
 	<md-toolbar layout="row" layout-align="end center"
 		class="layout-align-end-center layout-row list-panel-footer md-hue-1">
+		<span class="md-caption" ng-if="items.length > numToDisplay">
+			+ {{items.length - numToDisplay}} more
+		</span>
 		<md-button ng-if="moreLink && items.length > numToDisplay"
 			ng-href="{{::moreLink}}"
 			class="md-primary">

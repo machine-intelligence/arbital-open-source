@@ -39,7 +39,7 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 
-	// Load new likes on my pages, edits, and comments
+	// Load new likes on my pages and comments
 	returnData.ResultMap["newLikes"], err = loadNewLikes(db, u, returnData.PageMap)
 	if err != nil {
 		return pages.HandlerBadRequestFail("Error loading new likes", err)
@@ -59,7 +59,7 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 	newLikesMap := make(map[string]*NewLikesRow, 0)
 
 	rows := database.NewQuery(`
-		SELECT u.firstName,u.lastName,pi.pageId,l.createdAt,l.value
+		SELECT u.Id,u.firstName,u.lastName,pi.pageId,l.createdAt,l.value
 		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		JOIN likes AS l
 	    ON pi.likeableId=l.likeableId
@@ -68,18 +68,19 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 		WHERE pi.createdBy=?
 		LIMIT 100`, u.Id).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var likerId string
 		var firstName string
 		var lastName string
 		var pageId string
 		var createdAt string
 		var likeValue int
 
-		err := rows.Scan(&firstName, &lastName, &pageId, &createdAt, &likeValue)
+		err := rows.Scan(&likerId, &firstName, &lastName, &pageId, &createdAt, &likeValue)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 
-		if likeValue != 1 {
+		if likeValue != 1 || likerId == u.Id {
 			return nil
 		}
 

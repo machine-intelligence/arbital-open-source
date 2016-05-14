@@ -642,6 +642,19 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
+	urlService.addUrlHandler('/achievements/', {
+		name: 'AchievementsPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Achievements',
+					content: $scope.newElement('<arb-achievements-page></arb-achievements-page'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
 	urlService.addUrlHandler('/requisites/', {
 		name: 'RequisitesPage',
 		handler: function(args, $scope) {

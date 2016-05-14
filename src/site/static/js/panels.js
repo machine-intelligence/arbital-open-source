@@ -32,10 +32,9 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
 					$scope.newLikes = Object.keys(data.result.newLikes).map(function(key) {
-						return data.result.newLikes[key];
-					});
-					$scope.newLikes.sort(function(a, b) {
-						return new Date(a.createdAt) < new Date(b.createdAt);
+						var newLikeRow = data.result.newLikes[key];
+						newLikeRow.createdAt = new Date(newLikeRow.createdAt);
+						return newLikeRow;
 					});
 				});
 		},
