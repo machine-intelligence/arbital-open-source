@@ -58,11 +58,10 @@ type Page struct {
 // PageOptions specify various requirements we need to check for the page.
 // NOTE: make sure that default values are okay for all pages.
 type PageOptions struct {
-	AdminOnly       bool
-	RequireLogin    bool
-	RequireTrusted  bool
-	MinKarma        int
-	LoadUpdateCount bool
+	AdminOnly      bool
+	RequireLogin   bool
+	RequireTrusted bool
+	MinKarma       int
 	// If true, we don't care if the user is signed in or not
 	AllowAnyone bool
 }

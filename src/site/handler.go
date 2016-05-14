@@ -118,16 +118,16 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			return
 		}
 
-		if core.IsIdValid(u.Id) && h.Options.LoadUpdateCount {
-			// Load updates count. (Loading it afterwards since it could be affected by the page)
-			u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
-			if err != nil {
-				fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
-				return
-			}
-		}
-
 		if result.Data != nil {
+			if core.IsIdValid(u.Id) && result.Data.(*core.CommonHandlerData).ResetEverything {
+				// Load updates count. (Loading it afterwards since it could be affected by the page)
+				u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
+				if err != nil {
+					fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
+					return
+				}
+			}
+
 			w.Header().Set("Content-type", "application/json")
 			// Return the pages in JSON format.
 			jsonData, err := json.Marshal(result.Data)

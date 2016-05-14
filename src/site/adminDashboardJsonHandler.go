@@ -13,8 +13,7 @@ var adminDashboardPageHandler = siteHandler{
 	URI:         "/json/adminDashboardPage/",
 	HandlerFunc: adminDashboardPageJsonHandler,
 	Options: pages.PageOptions{
-		LoadUpdateCount: true,
-		AdminOnly:       true,
+		AdminOnly: true,
 	},
 }
 

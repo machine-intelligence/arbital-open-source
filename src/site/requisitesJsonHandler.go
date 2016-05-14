@@ -9,9 +9,7 @@ import (
 var requisitesHandler = siteHandler{
 	URI:         "/json/requisites/",
 	HandlerFunc: requisitesJsonHandler,
-	Options: pages.PageOptions{
-		LoadUpdateCount: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {

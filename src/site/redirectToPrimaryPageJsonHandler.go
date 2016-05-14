@@ -17,9 +17,7 @@ type redirectToPrimaryPageJsonData struct {
 var redirectToPrimaryPageHandler = siteHandler{
 	URI:         "/json/redirectToPrimaryPage/",
 	HandlerFunc: redirectToPrimaryPageJsonHandler,
-	Options: pages.PageOptions{
-		LoadUpdateCount: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // redirectToPrimaryPageJsonHandler handles the request.

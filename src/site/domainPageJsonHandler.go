@@ -21,9 +21,7 @@ type domainPageJsonData struct {
 var domainPageHandler = siteHandler{
 	URI:         "/json/domainPage/",
 	HandlerFunc: domainPageJsonHandler,
-	Options: pages.PageOptions{
-		LoadUpdateCount: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // domainPageJsonHandler handles the request.

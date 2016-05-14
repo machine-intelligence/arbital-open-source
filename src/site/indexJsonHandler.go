@@ -14,9 +14,7 @@ type featuredDomain struct {
 var indexHandler = siteHandler{
 	URI:         "/json/index/",
 	HandlerFunc: indexJsonHandler,
-	Options: pages.PageOptions{
-		LoadUpdateCount: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 func indexJsonHandler(params *pages.HandlerParams) *pages.Result {

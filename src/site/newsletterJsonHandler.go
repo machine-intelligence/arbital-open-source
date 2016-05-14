@@ -10,9 +10,7 @@ import (
 var newsletterHandler = siteHandler{
 	URI:         "/json/newsletter/",
 	HandlerFunc: newsletterJsonHandler,
-	Options: pages.PageOptions{
-		LoadUpdateCount: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 func newsletterJsonHandler(params *pages.HandlerParams) *pages.Result {

@@ -14,8 +14,7 @@ var dashboardPageHandler = siteHandler{
 	URI:         "/json/dashboardPage/",
 	HandlerFunc: dashboardPageJsonHandler,
 	Options: pages.PageOptions{
-		RequireLogin:    true,
-		LoadUpdateCount: true,
+		RequireLogin: true,
 	},
 }
 

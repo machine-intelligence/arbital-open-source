@@ -19,8 +19,7 @@ var settingsPageHandler = siteHandler{
 	URI:         "/json/settingsPage/",
 	HandlerFunc: settingsPageJsonHandler,
 	Options: pages.PageOptions{
-		LoadUpdateCount: true,
-		RequireLogin:    true,
+		RequireLogin: true,
 	},
 }
 
