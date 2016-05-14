@@ -2,8 +2,13 @@
 <arb-read-mode-panel ng-if="userService.user.id == ''"></arb-read-mode-panel>
 
 <!-- If the user is logged in, show various panels -->
-<span ng-if="userService.user.id !== ''">
-	<arb-new-hedons-panel num-to-display="5"></arb-new-hedons-panel>
-	<arb-read-mode-panel></arb-read-mode-panel>
-</span>
+<md-content ng-if="userService.user.id !== ''"
+	layout-xs="column" layout="row" class="md-padding">
+	<div flex-xs flex-gt-xs="65" layout="column">
+		<arb-read-mode-panel></arb-read-mode-panel>
+	</div>
+	<div flex-xs flex-gt-xs="35" layout="column">
+		<arb-new-hedons-panel num-to-display="5"></arb-new-hedons-panel>
+	</div>
+</md-content>
 

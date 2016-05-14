@@ -10,7 +10,8 @@ app.directive('arbListPanel', function($http, pageService, userService) {
 			title: '@',
 			moreLink: '@',
 			items: '=',
-			numToDisplay: '='
+			numToDisplay: '=',
+			isFullPage: '='
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -24,7 +25,8 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 	return {
 		templateUrl: 'static/html/newHedonsPanel.html',
 		scope: {
-			numToDisplay: '='
+			numToDisplay: '=',
+			isFullPage: '='
 		},
 		controller: function($scope) {
 			$http({method: 'POST', url: '/json/hedons/', data: JSON.stringify({})})
@@ -37,6 +39,19 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 						return newLikeRow;
 					});
 				});
+
+			$scope.getNames = function(newLikeRow) {
+				var names = newLikeRow.names;
+				if (names.length == 1) {
+					return names[0];
+				}
+
+				if (names.length == 2) {
+					return names[0] + ' and ' + names[1]
+				}
+
+				return names[0] + ', ' + names[1] + ', and ' + (names.length - 2) + ' other people ';
+			};
 		},
 	};
 });
@@ -46,7 +61,8 @@ app.directive('arbReadModePanel', function($http, userService, pageService) {
 	return {
 		templateUrl: 'static/html/readModePanel.html',
 		scope: {
-			numToDisplay: '='
+			numToDisplay: '=',
+			isFullPage: '='
 		},
 		controller: function($scope) {
 			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({})})

@@ -1,4 +1,4 @@
-<md-card ng-if="items.length != 0" class="capped-body-width">
+<md-card ng-if="items.length != 0" ng-class="{'capped-body-width': isFullPage}">
 	<md-toolbar class="md-hue-2" ng-if="::title">
 		<div class="md-toolbar-tools">
 			<span ng-bind="::title" ng-if="!(numToDisplay)" flex></span>
