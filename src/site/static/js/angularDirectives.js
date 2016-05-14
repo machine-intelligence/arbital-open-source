@@ -252,7 +252,7 @@ app.directive('arbLikes', function($http, pageService, userService) {
 			}
 
 			// Sort individual likes by name.
-			if ($scope.likeable.individualLikes) {
+			if ($scope.likeable && $scope.likeable.individualLikes) {
 				$scope.likeable.individualLikes.sort(function(userId1, userId2) {
 					return userService.getFullName(userId1).localeCompare(userService.getFullName(userId2));
 				});
@@ -260,6 +260,8 @@ app.directive('arbLikes', function($http, pageService, userService) {
 
 			// User clicked on the like button
 			$scope.likeClick = function() {
+				if (!$scope.likeable) return;
+
 				$scope.likeable.myLikeValue = Math.min(1, 1 - $scope.likeable.myLikeValue);
 
 				var data = {
