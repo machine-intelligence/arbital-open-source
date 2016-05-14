@@ -1,0 +1,26 @@
+<arb-list-panel
+	items="newLikes"
+	title="Stats"
+	num-to-display="numToDisplay">
+	<md-list role="list" class="ng-scope">
+		<md-list-item role="listitem" ng-repeat="newLike in ::newLikes | limitTo:numToDisplay">
+			<div layout="column"
+				layout-gt-sm="row"
+				layout-align-gt-sm="start center"
+				flex>
+				<ng-pluralize count="newLike.names.length"
+					when="{
+						'1': '{{newLike.names[0]}} liked ',
+						'2': '{{newLike.names[0]}} and {{newLike.names[1]}} liked ',
+						'other': '{} people liked '
+					}"></ng-pluralize>
+				&nbsp;
+				<arb-page-title page-id="{{newLike.pageId}}"
+					is-link="true"
+					flex></arb-page-title>
+				{{newLike.createdAt}}
+			</div>
+		</md-list-item>
+		<md-divider ng-if="::!$last"></md-divider>
+	</md-list>
+</arb-list-panel>

@@ -150,6 +150,10 @@ span.md-warn {
   color: darkgray;
   line-height: normal; }
 
+md-divider {
+    border-top-color: rgba(0,0,0,0.07);
+}
+
 .md-body-2 {
   font-weight: 700; }
 

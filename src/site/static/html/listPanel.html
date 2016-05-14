@@ -1,5 +1,5 @@
-<md-card ng-if="::items.length != 0" class="capped-body-width">
-	<md-toolbar class="md-hue-2">
+<md-card ng-if="items.length != 0" class="capped-body-width">
+	<md-toolbar class="md-hue-2" ng-if="::title">
 		<div class="md-toolbar-tools">
 			<span ng-bind="::title" ng-if="!(numToDisplay)" flex></span>
 			<a ng-bind="::title" ng-if="numToDisplay" ng-href="{{::moreLink}}" flex></a>

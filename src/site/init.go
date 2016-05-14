@@ -91,6 +91,7 @@ func init() {
 	s.HandleFunc(editHandler.URI, handlerWrapper(editHandler)).Methods("POST")
 	s.HandleFunc(exploreHandler.URI, handlerWrapper(exploreHandler)).Methods("POST")
 	s.HandleFunc(groupsHandler.URI, handlerWrapper(groupsHandler)).Methods("POST")
+	s.HandleFunc(hedonicUpdatesJsonHandler.URI, handlerWrapper(hedonicUpdatesJsonHandler)).Methods("POST")
 	s.HandleFunc(indexHandler.URI, handlerWrapper(indexHandler)).Methods("POST")
 	s.HandleFunc(intrasitePopoverHandler.URI, handlerWrapper(intrasitePopoverHandler)).Methods("POST")
 	s.HandleFunc(learnHandler.URI, handlerWrapper(learnHandler)).Methods("POST")
