@@ -2,7 +2,10 @@
 	items="hotPageIds"
 	num-to-display="numToDisplay"
 	more-link="/read">
-	<md-list-item ng-repeat="pageId in ::hotPageIds | limitTo:numToDisplay">
-		<arb-page-row></arb-page-row>
-	</md-list-item>
+	<md-list>
+		<md-list-item ng-repeat="pageId in ::hotPageIds | limitTo:numToDisplay">
+			<arb-page-row></arb-page-row>
+			<md-divider ng-if="::!$last"></md-divider>
+		</md-list-item>
+	</md-list>
 </arb-list-panel>
