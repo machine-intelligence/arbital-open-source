@@ -35,7 +35,7 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 					pageService.processServerData(data);
 					$scope.newLikes = Object.keys(data.result.newLikes).map(function(key) {
 						var newLikeRow = data.result.newLikes[key];
-						newLikeRow.createdAt = new Date(newLikeRow.createdAt);
+						newLikeRow.createdAtDate = new Date(newLikeRow.createdAt);
 						return newLikeRow;
 					});
 				});

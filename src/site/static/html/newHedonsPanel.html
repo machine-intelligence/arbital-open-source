@@ -5,8 +5,8 @@
 	is-full-page="isFullPage"
 	num-to-display="numToDisplay">
 	<md-list role="list" class="ng-scope">
-		<md-list-item role="listitem" ng-repeat="newLike in newLikes | orderBy:'-createdAt' | limitTo:numToDisplay">
-			<div layout="column"
+		<md-list-item role="listitem" ng-repeat="newLike in newLikes | orderBy:'-createdAtDate' | limitTo:numToDisplay">
+			<div layout="row"
 				layout-gt-sm="row"
 				layout-align-gt-sm="start center"
 				flex>
@@ -17,7 +17,10 @@
 						flex></arb-page-title>
 				</span>
 			</div>
+			<div class="md-caption" layout="row" layout-gt-xs="row" layout-align="start center">
+				<span ng-bind="::(newLike.createdAt | relativeDateTime)"></span>
+			</div>
+			<md-divider ng-if="::!$last"></md-divider>
 		</md-list-item>
-		<md-divider ng-if="::!$last"></md-divider>
 	</md-list>
 </arb-list-panel>

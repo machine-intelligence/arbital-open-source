@@ -66,6 +66,7 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 	    JOIN users AS u
 	    ON l.userId=u.id
 		WHERE pi.createdBy=?
+		ORDER BY l.createdAt DESC
 		LIMIT 100`, u.Id).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var likerId string
