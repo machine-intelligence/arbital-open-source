@@ -475,9 +475,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GroupByUserId = u.Id
 			task.SubscribedToId = u.Id
 			task.GoToPageId = data.PageId
-			if createEditChangeLog {
-				task.ChangeLogId = editChangeLogId
-			}
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}

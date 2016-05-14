@@ -1,11 +1,21 @@
 <div layout="row">
 
-	<arb-likes likeable-type="changeLog"
-		likeable-id="{{::changeLog.id}}"
-		likeable="::changeLog"
-		is-stretched="true"
-		is-button="true"
-		ng-if="::(changeLog && changeLog.id)"></arb-likes>
+	<div ng-switch="::type">
+		<div ng-switch-when="newPageByUser">
+			<arb-likes likeable-type="page"
+				likeable-id="{{::goToPageId}}"
+				is-stretched="true"
+				is-button="true"></arb-likes>
+		</div>
+		<div ng-switch-default>
+			<arb-likes likeable-type="changeLog"
+				likeable-id="{{::changeLog.id}}"
+				likeable="::changeLog"
+				is-stretched="true"
+				is-button="true"
+				ng-if="::(changeLog && changeLog.id)"></arb-likes>
+		</div>
+	</div>
 
 	<div ng-switch="::type">
 
