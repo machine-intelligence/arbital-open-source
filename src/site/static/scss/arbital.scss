@@ -585,10 +585,12 @@ $triangle-size: 15px;
 // Fixed full-screen overlay that we use for showing $mdBottomSheet
 #fixed-overlay {
 	position: fixed;
-	width: 100vw;
-	height: 100vh;
+	left: 0;
+	bottom: 0;
+	width: 0;
+	height: 0;
+	overflow: visible;
 	z-index: $fixedOverlayZ;
-	pointer-events: none;
 }
 
 .private-group-icon {
@@ -789,7 +791,6 @@ textarea {
 // Div holding the RHS buttons (inline comment, confused mark)
 .rhs-buttons {
 	position: absolute;
-	z-index: $inlineCommentIconZ;
 
 	.rhs-button {
 		margin: 5px 5px 0px 0px !important;

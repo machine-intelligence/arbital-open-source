@@ -468,7 +468,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 							if (pageService.markMap[markId].type === 'query') {
 								showQueryMarkWindow(markId, false);
 							} else {
-								showEditorMarkWindow(markId, false);
+								showEditorMarkWindow(markId);
 							}
 							scope.inlineMarkIconMouseover(markId, true);
 							$location.replace().search('markId', markId);
@@ -530,12 +530,12 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						return {
 							'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 							'top': newInlineCommentButtonTop - inlineCommentButtonHeight / 2,
-							'zIndex': orderedInlineButtons.length,
+							'zIndex': orderedInlineButtons.length + 2,
 						};
 					};
 
 					// Create a new inline comment
-					scope.newInlineComment = function(isEditorComment) {
+					scope.newInlineComment = function() {
 						var selection = getSelectedParagraphText(cachedSelection);
 						if (!selection) return;
 						pageService.newComment({
@@ -545,7 +545,6 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 								comment.anchorContext = selection.context;
 								comment.anchorText = selection.text;
 								comment.anchorOffset = selection.offset;
-								comment.isEditorComment = isEditorComment;
 								$inlineCommentEditPage = $compile($('<div arb-edit-page class=\'edit-comment-embed\'' +
 									' is-embedded=\'true\' page-id=\'' + newCommentId +
 									'\' done-fn=\'newInlineCommentDone(result)\'></div>'))(scope);
@@ -599,10 +598,12 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 								}
 							}
 							orderRhsButtons();
-						} else {
+						}
+						if (markId in scope.inlineMarks) {
 							var params = scope.inlineMarks[markId];
 							if (params) {
 								params.visible = false;
+								params.mouseover = false;
 							}
 						}
 						$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
@@ -630,14 +631,13 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					};
 
 					// Show the window for editing an editor mark.
-					var showEditorMarkWindow  = function(markId, isNew) {
+					var showEditorMarkWindow  = function(markId) {
 						scope.showRhsButtons = false;
 						pageService.showPopup({
-							title: isNew ? 'New mark' : 'Edit mark',
+							title: 'Edit mark',
 							$element: $compile('<div arb-mark-info mark-id="' + markId +
-								'" is-new="::' + isNew +
+								'" is-new="::false' +
 								'"></div>')($rootScope),
-							timeout: isNew ? 10000 : undefined,
 						}, function(result) {
 							markWindowClosed(markId, result.dismiss);
 						});
@@ -645,7 +645,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 
 					// Helper for creating a new mark.
 					var newMark = function(type, success) {
-						var selection = getSelectedParagraphText(cachedSelection);
+						var selection = getSelectedParagraphText(cachedSelection, type != 'query');
 						if (!selection && type !== 'query') return;
 						pageService.newMark({
 								pageId: scope.pageId,
@@ -659,9 +659,8 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 								var markId = data.result.markId;
 								processMark(markId);
 								orderRhsButtons();
-								$location.replace().search('markId', markId);
 								var params = scope.inlineMarks[markId];
-								if (params) {
+								if (params && type == 'query') {
 									params.visible = true;
 								}
 								success(data);
@@ -679,7 +678,20 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					// Called to create a new editor (confusion/spelling) mark.
 					scope.newEditorMark = function(type) {
 						newMark(type, function(data) {
-							showEditorMarkWindow(data.result.markId, true);
+							window.getSelection().removeAllRanges();
+							scope.showRhsButtons = false;
+
+							scope.toastCallback = function() {
+								showEditorMarkWindow(data.result.markId);
+							};
+							pageService.showToast({
+								text: 'Thanks for your feedback!',
+								scope: scope,
+								normalButton: {
+									text: 'Edit',
+									callbackText: "toastCallback()",
+								},
+							});
 						});
 					};
 

@@ -107,9 +107,11 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	$scope.$watch(function() {
 		return $fixedOverlay.children().length;
 	}, function() {
-		// Toggle pointer-events setting based on whether or not we have md-scroll-mask on.
-		// This is used to prevent body scrolling when mdBottomSheet is showing.
-		$fixedOverlay.css("pointer-events", $fixedOverlay.find(".md-scroll-mask").length == 0 ? "none" : "auto");
+		// If we have md-scroll-mask on, we want the fixedOverlay to occupy entire screen
+		// so that the mdBottomSheet UI is displayed fully.
+		var hasScrollMask = $fixedOverlay.find(".md-scroll-mask").length > 0;
+		$fixedOverlay.css("width", hasScrollMask ? "100vw" : '0');
+		$fixedOverlay.css("height", hasScrollMask ? "100vh" : '0');
 	});
 
 	// Returns an object containing a compiled element and its scope

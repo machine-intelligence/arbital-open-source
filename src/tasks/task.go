@@ -25,9 +25,8 @@ type QueueTask interface {
 
 // TaskOptions specify how to add a task to the queue.
 type TaskOptions struct {
-	// Optional vars.
 	Name  string
-	Delay time.Duration
+	Delay int // seconds
 }
 
 // Add the task to the queue.
@@ -47,7 +46,7 @@ func Enqueue(c sessions.Context, task QueueTask, options *TaskOptions) error {
 		Method:  "PULL",
 		Payload: buffer.Bytes(),
 		Tag:     task.Tag(),
-		Delay:   options.Delay,
+		Delay:   time.Duration(options.Delay) * time.Second,
 	}
 	if options.Name != "" {
 		newTask.Name = options.Name

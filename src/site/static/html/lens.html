@@ -6,20 +6,18 @@
 			ng-if="!isSimpleEmbed && showRequirementsPanel">
 		<div>
 			<span class="md-subhead" ng-class="{'md-accent': !meetsAllRequirements()}">
-				<md-icon>assignment</md-icon>
 				This lens relies on:
 			</span>
 			<span arb-mastery-list ids-source="::page.requirementIds" is-span="true"></span>
 
-			<div>
-				<!-- Mark as done button -->
-				<md-button class="md-primary"
-						ng-click="toggleRequirements()"
-						aria-label="Toggle requirements"
-						ng-if="::(page.requirementIds.length > 1)">
-					<span ng-bind="meetsAllRequirements() ? 'Nevermind, I don\'t know these' : 'I already know these'"></span>
-				</md-button>
-			</div>
+			<!-- Mark all as known -->
+			<md-button class="md-icon-button small-button md-primary"
+					ng-click="toggleRequirements()"
+					aria-label="Toggle requirements"
+					ng-if="::(page.requirementIds.length > 1)">
+				<md-icon>done_all</md-icon>
+				<md-tooltip md-delay="500">Toggle all</md-tooltip>
+			</md-button>
 		</div>
 
 		<!-- Learn / simpler lens suggestion -->
@@ -121,21 +119,13 @@
 	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
 
 	<!-- Inline comments container -->
-	<div class="inline-comments-div" ng-show="!isSimpleEmbed">
+	<div class="inline-comments-div" ng-show="::!isSimpleEmbed">
 		<!-- Absolutely positioned RHS buttons -->
 		<div class="rhs-buttons"
 				ng-style="getRhsButtonsStyle()"
 				layout="column"
 				layout-gt-md="row"
 				ng-show="showRhsButtons">
-
-			<md-button class="rhs-button md-icon-button md-accent md-raised"
-					ng-click="newInlineComment(false)"
-					arb-user-check="cool"
-					aria-label="New inline comment">
-				<md-tooltip md-delay="500" md-direction="top">New discussion comment (ALT+CTRL+M)</md-tooltip>
-				<md-icon>comment</md-icon>
-			</md-button>
 
 			<!-- FAB for editor feedback -->
 			<md-fab-speed-dial class="md-scale editor-feedback-fab"
@@ -145,34 +135,31 @@
 					ng-mouseleave="toggleEditorFeedbackFab(false)">
 				<md-fab-trigger>
 					<md-button class="rhs-button md-fab md-mini"
-							ng-click="newInlineComment(true)"
 							arb-user-check="cool"
-							aria-label="New editor feedback">
-						<md-tooltip md-delay="500" md-direction="top">New editor feedback (ALT+CTRL+U)</md-tooltip>
-						<md-icon>rate_review</md-icon>
+							aria-label="Menu">
+						<md-icon>add</md-icon>
 					</md-button>
 				</md-fab-trigger>
-				<md-fab-actions>
-					<md-button class="md-raised"
-							ng-click="newEditorMark('confusion')"
-							aria-label="This is confusing">
-						This is confusing
-					</md-button>
-					<md-button class="md-raised"
-							ng-click="newEditorMark('typo')"
+				<md-fab-actions ng-class="{'md-whiteframe-4dp white-background': isEditorFeedbackFabOpen}">
+					<md-button ng-click="newEditorMark('typo')"
 							aria-label="Spelling/grammar">
+						<md-icon>rate_review</md-icon>
 						Spelling/grammar
+					</md-button>
+					<md-button ng-click="newQueryMark()"
+							arb-user-check="cool"
+							aria-label="Question/objection">
+						<md-icon md-svg-icon="cursor-pointer"></md-icon>
+						Question/objection
+					</md-button>
+					<md-button ng-click="newInlineComment()"
+							arb-user-check="cool"
+							aria-label="Comment">
+						<md-icon>comment</md-icon>
+						Comment
 					</md-button>
 				</md-fab-actions>
 			</md-fab-speed-dial>
-
-			<md-button class="rhs-button md-icon-button md-accent md-raised"
-					ng-click="newQueryMark()"
-					arb-user-check="cool"
-					aria-label="Question/objection">
-				<md-tooltip md-delay="500" md-direction="top">New question/objection (ALT+CTRL+U)</md-tooltip>
-				<md-icon md-svg-icon="cursor-pointer"></md-icon>
-			</md-button>
 		</div>
 
 		<!-- All the inline comment icons -->
@@ -202,7 +189,8 @@
 				<md-icon md-svg-icon="cursor-pointer"
 						ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
 						ng-if="::pageService.markMap[markId].type === 'query'"></md-icon>
-				<md-icon ng-if="::pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
+				<md-icon ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
+						ng-if="::pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
 			</md-button>
 		</div>
 	</div>
