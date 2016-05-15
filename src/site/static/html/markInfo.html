@@ -4,7 +4,6 @@
 
 <!-- New mark 'thank you' and explanation -->
 <div ng-if="::isNew">
-	<md-icon class="green-font">check_circle</md-icon>
 	Thanks for your feedback! It will be delivered anonymously to the page's authors.
 	<span ng-switch="::mark.type">
 		<span ng-switch-when="confusion">
@@ -58,14 +57,17 @@
 <div layout="row"
 		layout-align="space-around center"
 		ng-if="!mark.isCurrentUserOwned && !mark.resolvedPageId">
-	<md-button ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+	<md-button class="md-primary"
+			ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
 		<md-icon>edit</md-icon>
 		Edit page
 	</md-button>
 	<md-button class="md-primary" ng-click="resolveWith(mark.pageId)">
+		<md-icon>done</md-icon>
 		Fixed
 	</md-button>
 	<md-button class="md-warn" ng-click="dismissMark(markId)" ng-if="!mark.resolvedBy">
+		<md-icon>clear</md-icon>
 		Dismiss
 	</md-button>
 </div>

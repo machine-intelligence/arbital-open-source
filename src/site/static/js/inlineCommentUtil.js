@@ -52,7 +52,7 @@ var highlightRange = function(range, nodeClass) {
 // Return {context: paragraph text, text: selected text} object or null based
 // on current user text selection.
 // cachedSelection - if set, will use this selection instead of the current one
-var getSelectedParagraphText = function(cachedSelection) {
+var getSelectedParagraphText = function(cachedSelection, skipHighlight) {
 	var selection = cachedSelection || getStartEndSelection();
 	if (!selection) return null;
 
@@ -60,12 +60,12 @@ var getSelectedParagraphText = function(cachedSelection) {
 	var paragraphNode = getParagraphNode(selection.startContainer);
 	if (!paragraphNode) return null;
 
-	return getParagraphText(paragraphNode, selection);
+	return getParagraphText(paragraphNode, selection, skipHighlight);
 };
 
 // Return {context: paragraph text, text: selected text} object or null based
 // on the given selection.
-var getParagraphText = function(paragraphNode, selection) {
+var getParagraphText = function(paragraphNode, selection, skipHighlight) {
 	var result = {text: '', context: '', offset: 0, paragraphNode: paragraphNode};
 	// Whether the nodes we are visiting right now are inside the selection
 	var insideText = false;
@@ -129,8 +129,10 @@ var getParagraphText = function(paragraphNode, selection) {
 	});
 	// Highlight ranges after we did DOM traversal, so that there are no
 	// modifications during the traversal.
-	for (var i = 0; i < ranges.length; i++) {
-		highlightRange(ranges[i]);
+	if (!skipHighlight) {
+		for (var i = 0; i < ranges.length; i++) {
+			highlightRange(ranges[i]);
+		}
 	}
 	return result;
 };

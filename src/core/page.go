@@ -259,6 +259,7 @@ type Mark struct {
 	Text                string `json:"text"`
 	RequisiteSnapshotId string `json:"requisiteSnapshotId"`
 	ResolvedPageId      string `json:"resolvedPageId"`
+	IsSubmitted         bool   `json:"isSubmitted"`
 	Answered            bool   `json:"answered"`
 
 	// If the mark was resolved by the owner, we want to display that. But that also
@@ -467,8 +468,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadAnswers failed: %v", err)
 	}
 
-	// Load user's marks
 	if u.Id != "" {
+		// Load user's marks
 		filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.UserMarks })
 		err = LoadMarkIds(db, u, pageMap, markMap, &LoadMarkIdsOptions{
 			ForPages:              filteredPageMap,
@@ -1502,10 +1503,13 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 		return nil
 	}
 
-	userConstraint := database.NewQuery(``)
+	// Only load the marks the current user created
+	constraint := database.NewQuery(``)
 	if options.CurrentUserConstraint {
-		userConstraint = database.NewQuery(`AND m.creatorId=?`, u.Id)
+		constraint = database.NewQuery(`AND m.creatorId=?`, u.Id)
 	}
+
+	// Only load for pages in which current user is an author
 	pageIdsPart := database.NewQuery(``).AddArgsGroup(pageIds)
 	if options.EditorConstraint {
 		pageIdsPart = database.NewQuery(`(
@@ -1515,17 +1519,19 @@ func LoadMarkIds(db *database.DB, u *CurrentUser, pageMap map[string]*Page, mark
 				AND NOT p.isSnapshot AND NOT p.isAutosave
 				AND p.creatorId=?`, u.Id).Add(`
 		)`)
+		constraint.Add(`AND m.isSubmitted`)
 	}
-	resolvedConstraint := database.NewQuery(`AND m.resolvedBy=""`)
-	if options.LoadResolvedToo {
-		resolvedConstraint = database.NewQuery(``)
+
+	// Whether or not to load marks that have been resolved
+	if !options.LoadResolvedToo {
+		constraint.Add(`AND m.resolvedBy=""`)
 	}
 
 	rows := database.NewQuery(`
 		SELECT m.id
 		FROM marks AS m
 		WHERE m.pageId IN`).AddPart(pageIdsPart).Add(`
-			`).AddPart(userConstraint).AddPart(resolvedConstraint).ToStatement(db).Query()
+			`).AddPart(constraint).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var markId string
 		err := rows.Scan(&markId)
@@ -1552,7 +1558,7 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 
 	rows := db.NewStatement(`
 		SELECT id,type,pageId,creatorId,createdAt,anchorContext,anchorText,anchorOffset,
-			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered
+			text,requisiteSnapshotId,resolvedPageId,resolvedBy,answered,isSubmitted
 		FROM marks
 		WHERE id IN` + database.InArgsPlaceholder(len(markIds))).Query(markIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -1560,7 +1566,8 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 		mark := &Mark{}
 		err := rows.Scan(&mark.Id, &mark.Type, &mark.PageId, &mark.CreatorId, &mark.CreatedAt,
 			&mark.AnchorContext, &mark.AnchorText, &mark.AnchorOffset, &mark.Text,
-			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered)
+			&mark.RequisiteSnapshotId, &mark.ResolvedPageId, &mark.ResolvedBy, &mark.Answered,
+			&mark.IsSubmitted)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}

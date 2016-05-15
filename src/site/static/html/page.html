@@ -69,7 +69,7 @@
 							custom-page-title="{{::(lensId === page.pageId ? 'Main' : pageService.pageMap[lensId].lensTitle())}}"></arb-page-title>
 					<md-icon class="md-primary" ng-if="!hasAllReqs(lensId)">
 						<md-tooltip>You don't have all the requisites for this lens</md-tooltip>
-						assignment_late
+						warning
 					</md-icon>
 				</md-button>
 			</div>

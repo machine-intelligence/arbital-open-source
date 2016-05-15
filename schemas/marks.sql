@@ -17,6 +17,9 @@ CREATE TABLE marks (
 	requisiteSnapshotId BIGINT NOT NULL,
 	/* Optional text associated with this mark. */
 	text MEDIUMTEXT NOT NULL,
+	/* Set to true when mark owner submitted the mark and it
+		can be shown to authors. */
+	isSubmitted BOOLEAN NOT NULL,
 
 	/* Text of the paragraph the anchor is in. */
 	anchorContext MEDIUMTEXT NOT NULL,

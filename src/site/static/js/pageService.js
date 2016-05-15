@@ -880,6 +880,16 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			if (error) error(data);
 		});
 	};
+	this.resolveMark = function(params, success, error) {
+		$http({method: 'POST', url: '/resolveMark/', data: JSON.stringify(params)})
+		.success(function(data, status) {
+			if (success) success(data);
+		})
+		.error(function(data, status) {
+			console.error('Error resolving a mark:'); console.error(data);
+			if (error) error(data);
+		});
+	};
 
 	// Load all marks for a given page.
 	this.loadMarks = function(params, success, error) {
@@ -1070,6 +1080,8 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// Show an NG toast
 	// params = {
 	//	text: text to show
+	//	scope: scope to assign to the md-toast,
+	//	normalButton: {text: button text, callbackText: function to call if clicked}
 	//	isError: if true, this will be an error toast
 	// }
 	this.showToast = function(params) {
@@ -1078,11 +1090,22 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			toastClass += ' md-warn';
 		}
 		var hideDelay = Math.max(3000, params.text.length / 10 * 1000);
-		var sanitizedText = escapeHtml(params.text);
+		if (params.normalButton) {
+			hideDelay += 3000;
+		}
+		var templateHtml = '<md-toast><div class=\'' + toastClass + '\'>';
+		templateHtml += '<span flex>' + escapeHtml(params.text) + '</span>';
+		if (params.normalButton) {
+			templateHtml += '<md-button class="md-action" ng-click="' + params.normalButton.callbackText + '">';
+			templateHtml += escapeHtml(params.normalButton.text) + '</md-button>';
+		}
+		templateHtml += '</div></md-toast>';
 		$mdToast.show({
-			template: '<md-toast><div class=\'' + toastClass + '\'>' + sanitizedText + '</div></md-toast>',
+			template: templateHtml,
 			autoWrap: false,
 			parent: $('#fixed-overlay'),
+			scope: params.scope,
+			preserveScope: !!params.scope,
 			hideDelay: hideDelay,
 		});
 	};

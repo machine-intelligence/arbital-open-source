@@ -4,7 +4,7 @@
 		What is your question/objection?
 	</div>
 	
-	<div ng-if="!isNew">
+	<div ng-if="mark.isSubmitted">
 		You created this query
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 	</div>
@@ -14,7 +14,7 @@
 			ng-if="!isOnPage && mark.anchorContext"></blockquote>
 
 	<!-- Show query's text -->
-	<div ng-if="!isNew && mark.text.length > 0">
+	<div ng-if="mark.isSubmitted || potentialResolvedPageId">
 		Query text: <strong ng-bind="::mark.text"></strong>
 	</div>
 
@@ -43,31 +43,10 @@
 			ng-if="!inPopup">
 		View this query mark on the page
 	</a>
-
-	<!-- Accept/reject answer -->
-	<div ng-if="potentialResolvedPageId">
-		<div>
-			Did this page answer your question/objection?
-		</div>
-	
-		<!-- Bottom buttons -->
-		<div layout="row">
-			<md-button ng-click="resolveSuggestion(false)" aria-label="Reject response">
-				No
-			</md-button>
-			<div flex></div>
-			<md-button class="md-primary"
-					ng-click="resolveSuggestion(true)"
-					aria-label="Accept response">
-				Yes
-			</md-button>
-		</div>
-	</div>
 	
 	<div ng-if="!potentialResolvedPageId">
 		<!-- Query text input -->
-		<md-input-container class="full-width" ng-if="mark.text.length <= 0 || !mark.resolvedBy">
-			<label ng-if="::!isNew">Update query text</label>
+		<md-input-container class="full-width" ng-if="!mark.isSubmitted">
 			<textarea ng-model="mark.text"
 				md-maxlength="1000"
 				autofocus
@@ -104,8 +83,28 @@
 			<md-button class="md-primary"
 					ng-click="updateMarkText(true)"
 					aria-label="Submit query"
-					ng-if="!mark.resolvedBy">
+					ng-if="!mark.resolvedBy && !mark.isSubmitted">
 				Submit
+			</md-button>
+		</div>
+	</div>
+
+	<!-- Accept/reject answer -->
+	<div ng-if="potentialResolvedPageId">
+		<div>
+			Did this page answer your question/objection?
+		</div>
+	
+		<!-- Bottom buttons -->
+		<div layout="row">
+			<md-button ng-click="resolveSuggestion(false)" aria-label="Reject response">
+				No
+			</md-button>
+			<div flex></div>
+			<md-button class="md-primary"
+					ng-click="resolveSuggestion(true)"
+					aria-label="Accept response">
+				Yes
 			</md-button>
 		</div>
 	</div>
@@ -113,18 +112,18 @@
 
 <!-- Show this if this marked is NOT owned by the logged in user -->
 <div ng-if="::!mark.isCurrentUserOwned">
-	<span ng-if="isOnPage()">
+	<div ng-if="::mark.text.length > 0">
+		User's query: <strong ng-bind="::mark.text"></strong>
+	</div>
+
+	<div ng-if="isOnPage()">
 		This question/objection was created 
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
-	</span>
+	</div>
 
 	<div ng-if="!isOnPage() && mark.anchorContext">
 		The reader highlighted the following section:
 		<blockquote arb-markdown mark-id="{{::mark.id}}"></blockquote>
-	</div>
-
-	<div ng-if="::mark.text.length > 0">
-		Query text: <strong ng-bind="::mark.text"></strong>
 	</div>
 
 	<!-- Resolved -->
@@ -133,7 +132,8 @@
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
 		<arb-user-name user-id="{{mark.resolvedBy}}" ng-if="!mark.isResolvedByOwner"></arb-user-name>
-		<span ng-if="mark.isResolvedByOwner">the reader</span>
+		<span ng-if="mark.isResolvedByOwner && mark.resolvedBy != userService.user.id">the reader</span>
+		<span ng-if="mark.resolvedBy == userService.user.id">you</span>
 		<span ng-if="mark.resolvedPageId !== ''">
 			via:
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
@@ -155,20 +155,23 @@
 
 	<!-- Bottom buttons -->
 	<div ng-if="!mark.resolvedPageId">
-		<div>
-			Help this reader by resolving this query:
-		</div>
-		<div layout="row" layout-align="space-around center">
-			<md-button ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+		<div layout="{{inPopup ? 'column': 'row'}}"
+				layout-align="{{inPopup ? 'start start' : 'space-around center'}}">
+			<md-button class="md-primary"
+					ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+				<md-icon>edit</md-icon>
 				Edit page
 			</md-button>
-			<md-button ng-click="showLinkToQuestion()">
+			<md-button class="md-primary" ng-click="showLinkToQuestion()">
+				<md-icon>done</md-icon>
 				Link to existing question
 			</md-button>
-			<md-button ng-href="/edit?markId={{::markId}}">
+			<md-button class="md-primary" ng-href="/edit?markId={{::markId}}">
+				<md-icon>help</md-icon>
 				Link to new question
 			</md-button>
 			<md-button class="md-warn" ng-click="dismissMark(markId)" ng-if="!mark.resolvedBy">
+				<md-icon>clear</md-icon>
 				Dismiss
 			</md-button>
 		</div>

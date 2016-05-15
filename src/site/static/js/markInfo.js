@@ -18,20 +18,20 @@ app.directive('arbMarkInfo', function($interval, pageService, userService, autoc
 
 			// Call to resolve the mark with the given page.
 			$scope.resolveWith = function(pageId) {
-				pageService.updateMark({
+				pageService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: $scope.mark.pageId,
 				});
 				$scope.mark.resolvedPageId = pageId;
 				$scope.mark.resolvedBy = userService.user.id;
-				$scope.hidePopup();
+				$scope.hidePopup({dismiss: true});
 			};
 
 			// Called when an author wants to resolve the mark.
 			$scope.dismissMark = function() {
-				pageService.updateMark({
+				pageService.resolveMark({
 					markId: $scope.markId,
-					dismiss: true,
+					resolvedPageId: '',
 				});
 				$scope.mark.resolvedPageId = '';
 				$scope.mark.resolvedBy = userService.user.id;

@@ -45,6 +45,7 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 				if (submit) {
 					$scope.mark.resolvedPageId = '';
 					$scope.mark.resolvedBy = '';
+					$scope.mark.isSubmitted = true;
 				}
 			};
 
@@ -73,7 +74,7 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 
 			// Call to resolve the mark with the given page.
 			$scope.resolveWith = function(pageId) {
-				pageService.updateMark({
+				pageService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: pageId,
 					text: $scope.mark.text,
@@ -119,10 +120,9 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 
 			// Called when an author wants to resolve the mark.
 			$scope.dismissMark = function() {
-				pageService.updateMark({
+				pageService.resolveMark({
 					markId: $scope.markId,
 					text: $scope.mark.text,
-					dismiss: true,
 				});
 				$scope.mark.resolvedPageId = '';
 				$scope.mark.resolvedBy = userService.user.id;

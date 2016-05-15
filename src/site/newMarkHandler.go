@@ -11,11 +11,16 @@ import (
 	"zanaduu3/src/tasks"
 )
 
+const (
+	markAutoProcessDelay = 5 * 60 // seconds
+)
+
 // newMarkData contains data given to us in the request.
 type newMarkData struct {
 	PageId        string
 	Type          string
 	Edit          int
+	Text          string
 	AnchorContext string
 	AnchorText    string
 	AnchorOffset  int
@@ -31,10 +36,10 @@ var newMarkHandler = siteHandler{
 
 // newMarkHandlerFunc handles requests to create/update a prior like.
 func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	c := params.C
 	db := params.DB
 	u := params.U
 	returnData := core.NewHandlerData(u)
+	now := database.Now()
 
 	var data newMarkData
 	decoder := json.NewDecoder(params.R.Body)
@@ -59,33 +64,38 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerErrorFail("Load masteries failed: %v", err)
 	}
 
-	now := database.Now()
 	var markId int64
+	// Set to true if this mark is automatically processed within a few minutes
+	autoProcessed := data.Type == core.TypoMarkType || data.Type == core.ConfusionMarkType
 
 	// Begin the transaction.
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
 		// Compute snapshot id we can use
 		var requisiteSnapshotId int64
-		row := tx.DB.NewStatement(`
+		if data.Type != core.TypoMarkType {
+			row := tx.DB.NewStatement(`
 			SELECT IFNULL(max(id),0)
 			FROM userRequisitePairSnapshots`).WithTx(tx).QueryRow()
-		_, err = row.Scan(&requisiteSnapshotId)
-		if err != nil {
-			return "Couldn't load max snapshot id", err
+			_, err = row.Scan(&requisiteSnapshotId)
+			if err != nil {
+				return "Couldn't load max snapshot id", err
+			}
+			requisiteSnapshotId++
 		}
-		requisiteSnapshotId++
 
 		// Create a new mark
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
 		hashmap["type"] = data.Type
 		hashmap["edit"] = data.Edit
+		hashmap["text"] = data.Text
 		hashmap["creatorId"] = u.Id
 		hashmap["createdAt"] = now
-		hashmap["requisiteSnapshotId"] = requisiteSnapshotId
 		hashmap["anchorContext"] = data.AnchorContext
 		hashmap["anchorText"] = data.AnchorText
 		hashmap["anchorOffset"] = data.AnchorOffset
+		hashmap["requisiteSnapshotId"] = requisiteSnapshotId
+		hashmap["isSubmitted"] = autoProcessed
 		statement := tx.DB.NewInsertStatement("marks", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {
@@ -126,16 +136,9 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	markIdStr := fmt.Sprintf("%d", markId)
 
 	// Enqueue a task that will create relevant updates for this mark event
-	if data.Type != core.QueryMarkType {
-		var updateTask tasks.NewUpdateTask
-		updateTask.UserId = u.Id
-		updateTask.GoToPageId = data.PageId
-		updateTask.SubscribedToId = data.PageId
-		updateTask.UpdateType = core.NewMarkUpdateType
-		updateTask.GroupByPageId = data.PageId
-		updateTask.MarkId = markIdStr
-		updateTask.EditorsOnly = true
-		if err := tasks.Enqueue(c, &updateTask, nil); err != nil {
+	if autoProcessed {
+		err = EnqueueNewMarkUpdateTask(params, markIdStr, data.PageId, markAutoProcessDelay)
+		if err != nil {
 			return pages.HandlerErrorFail("Couldn't enqueue an updateTask", err)
 		}
 	}
@@ -151,4 +154,20 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["markId"] = markIdStr
 
 	return pages.StatusOK(returnData)
+}
+
+func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageId string, delay int) error {
+	var updateTask tasks.NewUpdateTask
+	updateTask.UserId = params.U.Id
+	updateTask.GoToPageId = pageId
+	updateTask.SubscribedToId = pageId
+	updateTask.UpdateType = core.NewMarkUpdateType
+	updateTask.GroupByPageId = pageId
+	updateTask.MarkId = markId
+	updateTask.EditorsOnly = true
+	options := &tasks.TaskOptions{Delay: delay}
+	if err := tasks.Enqueue(params.C, &updateTask, options); err != nil {
+		return fmt.Errorf("Couldn't enqueue an updateTask: %v", err)
+	}
+	return nil
 }

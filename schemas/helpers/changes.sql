@@ -76,3 +76,5 @@ update pages set text=replace(text,"||","%%");
 
 DELETE FROM changeLogs USING changeLogs, pageInfos AS commentInfos WHERE commentInfos.type='comment'
 	AND changeLogs.type='newChild' AND commentInfos.pageId=changeLogs.auxPageId;
+alter table marks add column isSubmitted boolean not null;
+update marks set isSubmitted=1;

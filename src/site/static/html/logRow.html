@@ -266,17 +266,14 @@
 			<div arb-mark-info
 					mark-id="{{::markId}}"
 					ng-if="pageService.markMap[markId].type !== 'query'"></div>
-			<br>
 		</div>
 
 		<div ng-switch-when="answeredMark">
 			<div arb-query-info mark-id="{{::markId}}"></div>
-			<br>
 		</div>
 
 		<div ng-switch-when="resolvedMark">
 			<div arb-mark-info mark-id="{{::markId}}"></div>
-			<br>
 		</div>
 
 		<!-- Unknown -->
