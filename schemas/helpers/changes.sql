@@ -32,12 +32,12 @@ CREATE TABLE likeableIds (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table likes add column likeableId bigint not null;
-START TRANSACTION;
-SET @likeableId=0;
-update pageInfos set likeableId=@likeableId:=@likeableId+1;
-insert into likeableIds (id) select likeableId from pageInfos;
-update likes join pageInfos on pageInfos.pageId=likes.pageId set likes.likeableId=pageInfos.likeableId;
-COMMIT;
+-- START TRANSACTION;
+-- SET @likeableId=0;
+-- update pageInfos set likeableId=@likeableId:=@likeableId+1;
+-- insert into likeableIds (id) select likeableId from pageInfos;
+-- update likes join pageInfos on pageInfos.pageId=likes.pageId set likes.likeableId=pageInfos.likeableId;
+-- COMMIT;
 alter table likes drop primary key, add primary key (userId, likeableId);
 alter table likes drop column pageId;
 
