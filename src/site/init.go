@@ -104,7 +104,7 @@ func init() {
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
-	s.HandleFunc(readModePageJsonHandler.URI, handlerWrapper(readModePageJsonHandler)).Methods("POST")
+	s.HandleFunc(readModeJsonHandler.URI, handlerWrapper(readModeJsonHandler)).Methods("POST")
 	s.HandleFunc(redirectToPrimaryPageHandler.URI, handlerWrapper(redirectToPrimaryPageHandler)).Methods("POST")
 	s.HandleFunc(requisitesHandler.URI, handlerWrapper(requisitesHandler)).Methods("POST")
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")

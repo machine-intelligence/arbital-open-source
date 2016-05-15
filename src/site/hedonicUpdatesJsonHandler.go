@@ -30,7 +30,7 @@ var hedonicUpdatesJsonHandler = siteHandler{
 func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(u).SetResetEverything()
+	returnData := core.NewHandlerData(u)
 
 	// Decode data
 	var data hedonicUpdatesJsonData

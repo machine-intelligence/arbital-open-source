@@ -1,4 +1,4 @@
-// readModePageJsonHandler.go serves the /read page.
+// readModeJsonHandler.go serves the /read panel.
 package site
 
 import (
@@ -13,16 +13,16 @@ type readModeJsonData struct {
 	NumPagesToLoad int
 }
 
-var readModePageJsonHandler = siteHandler{
+var readModeJsonHandler = siteHandler{
 	URI:         "/json/readMode/",
-	HandlerFunc: readModePageHandlerFunc,
+	HandlerFunc: readModeHandlerFunc,
 	Options:     pages.PageOptions{},
 }
 
-func readModePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
-	returnData := core.NewHandlerData(u).SetResetEverything()
+	returnData := core.NewHandlerData(u)
 
 	// Decode data
 	var data readModeJsonData
