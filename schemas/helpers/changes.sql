@@ -32,12 +32,12 @@ CREATE TABLE likeableIds (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table likes add column likeableId bigint not null;
-START TRANSACTION;
-SET @likeableId=0;
-update pageInfos set likeableId=@likeableId:=@likeableId+1;
-insert into likeableIds (id) select likeableId from pageInfos;
-update likes join pageInfos on pageInfos.pageId=likes.pageId set likes.likeableId=pageInfos.likeableId;
-COMMIT;
+-- START TRANSACTION;
+-- SET @likeableId=0;
+-- update pageInfos set likeableId=@likeableId:=@likeableId+1;
+-- insert into likeableIds (id) select likeableId from pageInfos;
+-- update likes join pageInfos on pageInfos.pageId=likes.pageId set likes.likeableId=pageInfos.likeableId;
+-- COMMIT;
 alter table likes drop primary key, add primary key (userId, likeableId);
 alter table likes drop column pageId;
 
@@ -78,3 +78,12 @@ DELETE FROM changeLogs USING changeLogs, pageInfos AS commentInfos WHERE comment
 	AND changeLogs.type='newChild' AND commentInfos.pageId=changeLogs.auxPageId;
 alter table marks add column isSubmitted boolean not null;
 update marks set isSubmitted=1;
+
+/* A table for keeping track of the last time the user saw various things */
+CREATE TABLE lastViews (
+	/* Id of the likeable. */
+	userId varchar(32) NOT NULL,
+	lastAchievementsView datetime NOT NULL,
+	lastReadModeView datetime NOT NULL,
+	PRIMARY KEY(userId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

@@ -5,13 +5,15 @@
 	is-full-page="isFullPage"
 	num-to-display="numToDisplay">
 	<md-list role="list" class="ng-scope">
-		<md-list-item role="listitem" ng-repeat="newLike in newLikes | orderBy:'-createdAtDate' | limitTo:numToDisplay">
+		<md-list-item role="listitem" class="panel-list-item"
+			ng-repeat="newLike in newLikes | orderBy:'-createdAt' | limitTo:numToDisplay"
+			ng-class="{'new-row': newLike.newSinceLastView}">
 			<div layout="row"
 				layout-gt-sm="row"
 				layout-align-gt-sm="start center"
 				flex>
 				<span>
-					{{getNames(newLike)}} liked
+					{{getNames(newLike)}}
 					<arb-page-title page-id="{{newLike.pageId}}"
 						is-link="true"
 						flex></arb-page-title>

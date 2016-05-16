@@ -34,23 +34,24 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
 					$scope.newLikes = Object.keys(data.result.newLikes).map(function(key) {
-						var newLikeRow = data.result.newLikes[key];
-						newLikeRow.createdAtDate = new Date(newLikeRow.createdAt);
-						return newLikeRow;
+						return data.result.newLikes[key];
 					});
 				});
 
 			$scope.getNames = function(newLikeRow) {
 				var names = newLikeRow.names;
 				if (names.length == 1) {
-					return names[0];
+					return names[0] + ' likes ';
 				}
 
 				if (names.length == 2) {
-					return names[0] + ' and ' + names[1]
+					return names[0] + ' and ' + names[1] + ' like '
 				}
 
-				return names[0] + ', ' + names[1] + ', and ' + (names.length - 2) + ' other people ';
+				var numExtraPeople = names.length - 2;
+				var namesString = names[0] + ', ' + names[1] + ', and ' + numExtraPeople + ' other ';
+				namesString = namesString + ((numExtraPeople == 1) ? 'person' : 'people') + ' like ';
+				return namesString
 			};
 		},
 	};
