@@ -216,6 +216,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			return pages.Fail("Couldn't load lens's parent", err)
 		}
 		data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
+	} else if oldPage.Type == core.CommentPageType {
+		if len(data.Text) > 30 {
+			data.Title = fmt.Sprintf("\"%s...\"", data.Text[:27])
+		} else {
+			data.Title = fmt.Sprintf("\"%s\"", data.Text)
+		}
 	}
 
 	isMinorEdit := data.IsMinorEditStr == "on"
