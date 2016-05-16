@@ -32,6 +32,9 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 			$scope.rowTemplate = 'hedons';
 			$scope.title = 'Achievements';
 			$scope.moreLink = "/achievements";
+			$scope.listItemIsNew = function(listItem) {
+				return listItem.createdAt > $scope.lastView;
+			};
 
 			$http({method: 'POST', url: '/json/hedons/', data: JSON.stringify({})})
 				.success(function(data) {
@@ -88,6 +91,9 @@ app.directive('arbReadModePanel', function($http, userService, pageService) {
 			$scope.rowTemplate = 'page';
 			$scope.title = 'New reading';
 			$scope.moreLink = "/read";
+			$scope.listItemIsNew = function(pageId) {
+				return pageService.pageMap[pageId].createdAt > $scope.lastView;
+			};
 
 			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({})})
 				.success(function(data) {

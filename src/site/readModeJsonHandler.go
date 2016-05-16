@@ -48,8 +48,6 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error updating last read mode view", err)
 	}
 
-	returnData.ResultMap[LastReadModeView] = "2016-05-03 20:11:42"
-
 	// load the pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {

@@ -52,8 +52,6 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error updating last achievements view", err)
 	}
 
-	// returnData.ResultMap[LastAchievementsView] = "2016-05-03 20:11:42"
-
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
