@@ -150,10 +150,6 @@ span.md-warn {
   color: darkgray;
   line-height: normal; }
 
-md-divider {
-    border-top-color: rgba(0,0,0,0.07);
-}
-
 .md-body-2 {
   font-weight: 700; }
 
@@ -474,10 +470,6 @@ arb-read-mode-panel > .capped-body-width {
   max-width: 900px; }
 arb-newsletter > .capped-body-width {
   max-width: 900px; }
-arb-read-mode-page > .capped-body-width {
-  max-width: 900px; }
-arb-list-panel > .capped-body-width {
-  max-width: 900px; }
 
 .discussion-container {
   margin: 20px 0; }
@@ -513,13 +505,8 @@ arb-list-panel > .capped-body-width {
   margin-top: 7px;
   margin-bottom: 7px; }
 
-.unseen-update,
-arb-list-panel md-list-item.new-row {
-  border-left: #E0F2F1 10px solid; }
-
-arb-list-panel md-list-item.panels-list-item.ng-class {
-  margin-top: 0vh;
-  padding-top: 1vh; }
+.unseen-update {
+  border-left: #E0F2F1 5px solid; }
 
 #mc-signup .subscribe-header {
   margin-bottom: 0; }
@@ -609,6 +596,10 @@ a:not(.md-button) {
     a:not(.md-button)[page-id].red-todo-text, a:not(.md-button)[user-id].red-todo-text {
       background-color: #ffdddd; }
 
+.conditional-block {
+  background-color: rgba(0, 0, 255, 0.2);
+  padding: 10px 15px 10px 15px; }
+
 #footer {
   font-size: 12px;
   opacity: 0.5;
@@ -638,9 +629,6 @@ arb-likes, .likes-in-autocomplete {
 
 [arb-page-list], .arb-page-list {
   margin-bottom: 4vw; }
-
-arb-list-panel .list-panel-footer {
-  min-height: 0vh; }
 
 arb-page-title, [arb-page-title] {
   line-height: normal; }

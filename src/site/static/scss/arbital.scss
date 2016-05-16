@@ -361,6 +361,11 @@ a:not(.md-button) {
 	}
 }
 
+.conditional-block {
+	background-color: rgba(0,0,255,0.2);
+	padding: 10px 15px 10px 15px;
+}
+
 #footer {
 	font-size: 12px;
 	opacity: 0.5;
