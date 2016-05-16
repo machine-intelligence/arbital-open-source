@@ -82,8 +82,7 @@ func Add(uri string, render Renderer, options PageOptions, tmpls ...string) Page
 type Result struct {
 	Data                interface{}      // Data to render the page.
 	ResponseCode        int              // HTTP response code.
-	Err                 error            // Error, or nil.
-	Message             string           // Error string we can display to the user
+	Err                 sessions.Error   // Error, or nil.
 	next                string           // Next uri, if applicable.
 	funcMap             template.FuncMap // Functions map
 	additionalTemplates []string         // Optional additional templates used to compile the page
@@ -108,46 +107,22 @@ func (r *Result) AddAdditionalTemplates(tmpls []string) *Result {
 }
 
 // StatusOK returns http.StatusOK with given data passed to the template.
-func StatusOK(data interface{}) *Result {
+func Success(data interface{}) *Result {
 	return &Result{
 		ResponseCode: http.StatusOK,
 		Data:         data,
 	}
 }
 
-// StatusFail is used when we want to return the page, but mark it as failed.
-func StatusFail(data interface{}) *Result {
+// StatusFailErr when the handler failed
+func FailWith(err sessions.Error) *Result {
 	return &Result{
 		ResponseCode: http.StatusInternalServerError,
-		Data:         data,
+		Err:          err,
 	}
 }
-
-// Fail returns a Result that indicates failure to render.
 func Fail(message string, err error) *Result {
-	return &Result{
-		ResponseCode: http.StatusBadRequest,
-		Message:      message,
-		Err:          err,
-	}
-}
-
-// HandlerFail is used by handler to indicate that they failed to execute.
-func HandlerFail(status int, message string, err error) *Result {
-	return &Result{
-		ResponseCode: status,
-		Message:      message,
-		Err:          err,
-	}
-}
-func HandlerForbiddenFail(message string, err error) *Result {
-	return HandlerFail(http.StatusForbidden, message, err)
-}
-func HandlerBadRequestFail(message string, err error) *Result {
-	return HandlerFail(http.StatusBadRequest, message, err)
-}
-func HandlerErrorFail(message string, err error) *Result {
-	return HandlerFail(http.StatusInternalServerError, message, err)
+	return FailWith(sessions.NewError(message, err))
 }
 
 // RedirectWith returns a Result indicating to redirect to another URI.
@@ -157,6 +132,11 @@ func RedirectWith(uri string) *Result {
 		next:         uri,
 		Data:         uri,
 	}
+}
+
+func (r *Result) Status(status int) *Result {
+	r.ResponseCode = status
+	return r
 }
 
 // ShowError redirects to the index page with the "error" param set to

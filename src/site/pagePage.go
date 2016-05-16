@@ -63,7 +63,7 @@ func pageRenderer(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load page", err)
 	}
 
-	return pages.StatusOK(map[string]string{
+	return pages.Success(map[string]string{
 		"Title":       p.Title,
 		"Url":         "https://" + params.R.Host + params.R.RequestURI,
 		"Description": p.Clickbait,

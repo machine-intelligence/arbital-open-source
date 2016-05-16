@@ -80,7 +80,7 @@ func (task SendInviteTask) Execute(db *database.DB) (delay int, err error) {
 		}
 	}
 
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		bodyText := fmt.Sprintf(`
 Hello!
 
@@ -108,15 +108,15 @@ We're excited to have you with us!
 			err = mail.Send(c, msg)
 			if err != nil {
 				c.Inc("email_send_fail")
-				return "Couldn't send email", err
+				return sessions.NewError("Couldn't send email", err)
 			}
 		} else {
 			// If not live, then do nothing, for now
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return -1, fmt.Errorf(errMessage, err)
+	if err2 != nil {
+		return -1, sessions.ToError(err2)
 	}
 
 	c.Inc("invite_send_success")

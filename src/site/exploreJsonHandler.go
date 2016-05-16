@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -27,7 +28,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// Get actual domain id
@@ -45,7 +46,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	} else if core.IsIdValid(params.PrivateGroupId) {
 		domainId = params.PrivateGroupId
 	} else {
-		return pages.HandlerBadRequestFail("No domain specified", nil)
+		return pages.Fail("No domain specified", nil).Status(http.StatusBadRequest)
 	}
 
 	returnData.ResultMap["rootPageId"] = domainId
@@ -62,8 +63,8 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

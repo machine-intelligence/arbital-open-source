@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -32,10 +33,10 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data updateMemberData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.GroupId) || !core.IsIdValid(data.UserId) {
-		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
+		return pages.Fail("GroupId and UserId have to be set", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check to see if this user can add members.
@@ -47,9 +48,9 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		`).QueryRow(u.Id, data.GroupId)
 	found, err := row.Scan(&canAdmin)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for a group member", err)
+		return pages.Fail("Couldn't check for a group member", err)
 	} else if !found {
-		return pages.HandlerForbiddenFail("You don't have the permission to add a user", nil)
+		return pages.Fail("You don't have the permission to add a user", nil).Status(http.StatusForbidden)
 	}
 
 	// Check if the target user exists and get their permissions
@@ -61,9 +62,9 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		`).QueryRow(data.UserId, data.GroupId)
 	found, err = row.Scan(&targetCanAdmin)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for target group member", err)
+		return pages.Fail("Couldn't check for target group member", err)
 	} else if !found {
-		return pages.HandlerForbiddenFail("Target member not found", nil)
+		return pages.Fail("Target member not found", nil).Status(http.StatusForbidden)
 	}
 
 	// Admin's can't change property on non-admin.
@@ -79,7 +80,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmap["canAdmin"] = data.CanAdmin
 	statement := db.NewReplaceStatement("groupMembers", hashmap)
 	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update a member", err)
+		return pages.Fail("Couldn't update a member", err)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -28,7 +29,7 @@ func updatePageObjectHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data updatePageObject
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	return updatePageObjectInternalHandlerFunc(params, &data)
@@ -39,14 +40,14 @@ func updatePageObjectInternalHandlerFunc(params *pages.HandlerParams, data *upda
 	u := params.U
 
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Invalid page id", nil)
+		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if data.Object == "" {
-		return pages.HandlerBadRequestFail("Object alias isn't set", nil)
+		return pages.Fail("Object alias isn't set", nil).Status(http.StatusBadRequest)
 	}
 	userId := u.GetSomeId()
 	if userId == "" {
-		return pages.HandlerBadRequestFail("No user id or session id", nil)
+		return pages.Fail("No user id or session id", nil).Status(http.StatusBadRequest)
 	}
 
 	hashmap := make(map[string]interface{})
@@ -59,8 +60,8 @@ func updatePageObjectInternalHandlerFunc(params *pages.HandlerParams, data *upda
 	hashmap["updatedAt"] = database.Now()
 	statement := db.NewInsertStatement("userPageObjectPairs", hashmap, "edit", "value", "updatedAt")
 	if _, err := statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update a page object", err)
+		return pages.Fail("Couldn't update a page object", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

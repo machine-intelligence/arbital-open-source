@@ -47,7 +47,7 @@ func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return nil
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading domain ids", err)
+		return pages.Fail("Error while loading domain ids", err)
 	}
 	returnData.ResultMap["domains"] = domains
 
@@ -55,17 +55,17 @@ func settingsPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	wherePart := database.NewQuery(`WHERE fromUserId=?`, u.Id)
 	returnData.ResultMap["invitesSent"], err = core.LoadInvitesWhere(db, wherePart)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load sent invites", err)
+		return pages.Fail("Couldn't load sent invites", err)
 	}
 
 	_, err = core.LoadAllDomainIds(db, returnData.PageMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load domain ids", err)
+		return pages.Fail("Couldn't load domain ids", err)
 	}
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -38,7 +39,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	// Load the mark
@@ -46,9 +47,9 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	loadData.MarkMap[data.MarkId] = mark
 	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load the mark", err)
+		return pages.Fail("Couldn't load the mark", err)
 	} else if mark.Type == "" {
-		return pages.HandlerBadRequestFail("No such mark", nil)
+		return pages.Fail("No such mark", nil).Status(http.StatusBadRequest)
 	}
 
 	if mark.CreatorId != u.Id {
@@ -70,7 +71,7 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	statement := db.NewInsertStatement("marks", hashmap, hashmap.GetKeys()...)
 	_, err = statement.Exec()
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't update the mark", err)
+		return pages.Fail("Couldn't update the mark", err)
 	}
 
 	// If the mark was resolved for the first time, update the user mark owner
@@ -86,9 +87,9 @@ func resolveMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement := db.NewInsertStatement("updates", hashmap)
 		_, err = statement.Exec()
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't insert update", err)
+			return pages.Fail("Couldn't insert update", err)
 		}
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

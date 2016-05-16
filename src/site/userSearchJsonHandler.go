@@ -5,6 +5,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"zanaduu3/src/core"
@@ -24,10 +25,10 @@ func userSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerErrorFail("Error decoding JSON", err)
+		return pages.Fail("Error decoding JSON", err)
 	}
 	if data.Term == "" {
-		return pages.HandlerBadRequestFail("No search term specified", nil)
+		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
 	groupIds := []string{"\"\""}

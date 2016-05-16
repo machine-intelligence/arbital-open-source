@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -60,7 +61,7 @@ func editPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	return editPageInternalHandler(params, &data)
 }
@@ -72,19 +73,19 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	returnData := core.NewHandlerData(u)
 
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("No pageId specified", nil)
+		return pages.Fail("No pageId specified", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load the published page.
 	var oldPage *core.Page
 	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load the old page", err)
+		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
 		// Likely the page hasn't been published yet, so let's load the unpublished version.
 		oldPage, err = core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil || oldPage == nil {
-			return pages.HandlerErrorFail("Couldn't load the old page2", err)
+			return pages.Fail("Couldn't load the old page2", err)
 		}
 	}
 
@@ -108,7 +109,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		`).QueryRow(data.PageId, u.Id)
 	_, err = row.Scan(&myLastAutosaveEdit)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load additional page info", err)
+		return pages.Fail("Couldn't load additional page info", err)
 	}
 
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
@@ -133,43 +134,43 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Error checking.
 	// Make sure the user has the right permissions to edit this page
 	if !oldPage.Permissions.Edit.Has {
-		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil)
+		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 	if data.IsAutosave && data.IsSnapshot {
-		return pages.HandlerBadRequestFail("Can't set autosave and snapshot", nil)
+		return pages.Fail("Can't set autosave and snapshot", nil).Status(http.StatusBadRequest)
 	}
 	// Check the group settings
 	if oldPage.SeeGroupId != seeGroupId && newEditNum != 1 {
-		return pages.HandlerBadRequestFail("Editing this page in incorrect private group", nil)
+		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	if core.IsIdValid(seeGroupId) && !u.IsMemberOfGroup(seeGroupId) {
-		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
+		return pages.Fail("Don't have group permission to EVEN SEE this page", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if isLiveEdit {
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
-			return pages.HandlerBadRequestFail("Need title", nil)
+			return pages.Fail("Need title", nil).Status(http.StatusBadRequest)
 		}
 		if len(data.Text) <= 0 && oldPage.Type != core.QuestionPageType {
-			return pages.HandlerBadRequestFail("Need text", nil)
+			return pages.Fail("Need text", nil).Status(http.StatusBadRequest)
 		}
 	}
 	if !data.IsAutosave {
 		if data.AnchorContext == "" && data.AnchorText != "" {
-			return pages.HandlerBadRequestFail("Anchor context isn't set", nil)
+			return pages.Fail("Anchor context isn't set", nil).Status(http.StatusBadRequest)
 		}
 		if data.AnchorContext != "" && data.AnchorText == "" {
-			return pages.HandlerBadRequestFail("Anchor text isn't set", nil)
+			return pages.Fail("Anchor text isn't set", nil).Status(http.StatusBadRequest)
 		}
 		if data.AnchorOffset < 0 || data.AnchorOffset > len(data.AnchorContext) {
-			return pages.HandlerBadRequestFail("Anchor offset out of bounds", nil)
+			return pages.Fail("Anchor offset out of bounds", nil).Status(http.StatusBadRequest)
 		}
 	}
 	if isLiveEdit {
 		// Process meta text
 		_, err := core.ParseMetaText(data.MetaText)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't unmarshal meta-text", err)
+			return pages.Fail("Couldn't unmarshal meta-text", err)
 		}
 	}
 
@@ -179,7 +180,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if isLiveEdit && oldPage.Type == core.CommentPageType {
 		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageId)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't load comment's parents", err)
+			return pages.Fail("Couldn't load comment's parents", err)
 		}
 	}
 
@@ -190,7 +191,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
 		newParents, newChildren, err = getUnpublishedRelationships(db, u, data.PageId)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't get new parents and children for page", err)
+			return pages.Fail("Couldn't get new parents and children for page", err)
 		}
 	}
 
@@ -198,7 +199,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 	data.Text, err = core.StandardizeLinks(db, data.Text)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't standardize links", err)
+		return pages.Fail("Couldn't standardize links", err)
 	}
 	data.MetaText = strings.Replace(data.MetaText, "\r\n", "\n", -1)
 	if !data.IsSnapshot {
@@ -208,7 +209,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Compute title
 	if oldPage.Type == core.LensPageType {
 		if strings.ContainsAny(data.Title, ":") {
-			return pages.HandlerBadRequestFail(`Lens title can't include ":" character`, nil)
+			return pages.Fail(`Lens title can't include ":" character`, nil).Status(http.StatusBadRequest)
 		}
 		// Load parent's title
 		parentTitle := ""
@@ -222,7 +223,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			WHERE p.isLiveEdit AND pp.type=?`, core.ParentPagePairType).Add(`
 				AND pp.childId=?`, data.PageId).ToStatement(db).QueryRow().Scan(&parentTitle)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't load lens parent", err)
+			return pages.Fail("Couldn't load lens parent", err)
 		} else if found {
 			data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
 		}
@@ -239,7 +240,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			data.AnchorContext == oldPage.AnchorContext &&
 			data.AnchorText == oldPage.AnchorText &&
 			data.AnchorOffset == oldPage.AnchorOffset {
-			return pages.StatusOK(returnData)
+			return pages.Success(returnData)
 		}
 	}
 
@@ -252,13 +253,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	newParentChangeLogIdMap := make(map[string]int64)
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		if isLiveEdit {
 			// Handle isLiveEdit and clearing previous isLiveEdit if necessary
 			if oldPage.WasPublished {
 				statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
 				if _, err = statement.Exec(data.PageId); err != nil {
-					return "Couldn't update isLiveEdit for old edits", err
+					return sessions.NewError("Couldn't update isLiveEdit for old edits", err)
 				}
 			}
 		}
@@ -285,7 +286,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["anchorOffset"] = data.AnchorOffset
 		statement := tx.DB.NewInsertStatement("pages", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
-			return "Couldn't insert a new page", err
+			return sessions.NewError("Couldn't insert a new page", err)
 		}
 
 		// Update summaries
@@ -294,7 +295,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			statement = database.NewQuery(`
 				DELETE FROM pageSummaries WHERE pageId=?`, data.PageId).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
-				return "Couldn't delete existing page summaries", err
+				return sessions.NewError("Couldn't delete existing page summaries", err)
 			}
 
 			_, summaryValues := core.ExtractSummaries(data.PageId, data.Text)
@@ -302,7 +303,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				INSERT INTO pageSummaries (pageId,name,text)
 				VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3)).WithTx(tx)
 			if _, err := statement.Exec(summaryValues...); err != nil {
-				return "Couldn't insert page summaries", err
+				return sessions.NewError("Couldn't insert page summaries", err)
 			}
 		}
 
@@ -314,7 +315,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
 					AND pagePairs.childId=?`, data.PageId).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
-				return "Couldn't set everPublished on pagePairs", err
+				return sessions.NewError("Couldn't set everPublished on pagePairs", err)
 			}
 
 			// set pagePairs.everPublished where the current page is the parent (and the child is already published)
@@ -324,7 +325,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
 					AND pagePairs.parentId=?`, data.PageId).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
-				return "Couldn't set everPublished on pagePairs", err
+				return sessions.NewError("Couldn't set everPublished on pagePairs", err)
 			}
 
 			// Now that we're publishing this page, create changeLogs for new relationships
@@ -332,7 +333,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				newChildChangeLogId, err := addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
 					data.PageId, true, false)
 				if err != nil {
-					return "Couldn't create changeLog for new child", err
+					return sessions.NewError("Couldn't create changeLog for new child", err)
 				}
 				newChildChangeLogIdMap[parent.PageId] = newChildChangeLogId
 			}
@@ -340,7 +341,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 				newParentChangeLogId, err := addNewParentToChangelog(tx, u.Id, child.PairType, child.PageType, child.PageId, child.CurrentEdit,
 					data.PageId, true, false)
 				if err != nil {
-					return "Couldn't create changeLog for new parent", err
+					return sessions.NewError("Couldn't create changeLog for new parent", err)
 				}
 				newParentChangeLogIdMap[child.PageId] = newParentChangeLogId
 			}
@@ -370,7 +371,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 		statement = tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
-			return "Couldn't update pageInfos", err
+			return sessions.NewError("Couldn't update pageInfos", err)
 		}
 
 		// Update change logs. We only create a changeLog for some types of edits.
@@ -395,11 +396,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 			result, err := statement.Exec()
 			if err != nil {
-				return "Couldn't insert new child change log", err
+				return sessions.NewError("Couldn't insert new child change log", err)
 			}
 			editChangeLogId, err = result.LastInsertId()
 			if err != nil {
-				return "Couldn't get id of changeLog", err
+				return sessions.NewError("Couldn't get id of changeLog", err)
 			}
 		}
 
@@ -414,7 +415,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			hashmap["createdAt"] = database.Now()
 			statement = tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
 			if _, err = statement.Exec(); err != nil {
-				return "Couldn't add a subscription", err
+				return sessions.NewError("Couldn't add a subscription", err)
 			}
 		}
 
@@ -422,13 +423,13 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if isLiveEdit {
 			err = core.UpdatePageLinks(tx, data.PageId, data.Text, sessions.GetDomain())
 			if err != nil {
-				return "Couldn't update links", err
+				return sessions.NewError("Couldn't update links", err)
 			}
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// === Once the transaction has succeeded, we can't really fail on anything
@@ -547,7 +548,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 // Find all the relationships a given page is a part of, where the other page is published (and not deleted), but

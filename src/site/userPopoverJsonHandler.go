@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -28,7 +29,7 @@ func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// Load data
@@ -37,8 +38,8 @@ func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap(data.UserId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		pages.HandlerErrorFail("Pipeline error", err)
+		pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

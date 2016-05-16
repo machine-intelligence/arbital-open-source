@@ -30,10 +30,10 @@ func similarPageSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerErrorFail("Error decoding JSON", err)
+		return pages.Fail("Error decoding JSON", err)
 	}
 	if len(data.Title) < 3 && len(data.Clickbait) < 3 && len(data.Text) < 3 {
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	groupIds := []string{"\"\"", "\"" + params.PrivateGroupId + "\""}

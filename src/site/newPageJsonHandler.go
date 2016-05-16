@@ -3,11 +3,12 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 var newPageHandler = siteHandler{
@@ -32,7 +33,7 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var data newPageJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	data.Type, err = core.CorrectPageType(data.Type)
 	if err != nil {
@@ -46,20 +47,20 @@ func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonDa
 	u := params.U
 
 	if data.Alias != "" && !core.IsAliasValid(data.Alias) {
-		return pages.HandlerBadRequestFail("Invalid alias", nil)
+		return pages.Fail("Invalid alias", nil).Status(http.StatusBadRequest)
 	}
 
 	// Error checking
 	if data.IsEditorComment && data.Type != core.CommentPageType {
-		return pages.HandlerBadRequestFail("Can't set isEditorComment for non-comment pages", nil)
+		return pages.Fail("Can't set isEditorComment for non-comment pages", nil).Status(http.StatusBadRequest)
 	}
 
 	pageId := ""
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		var err error
 		pageId, err = core.GetNextAvailableId(tx)
 		if err != nil {
-			return "", fmt.Errorf("Couldn't get next available Id", err)
+			return sessions.NewError("Couldn't get next available Id", err)
 		}
 		if data.Alias == "" {
 			data.Alias = pageId
@@ -83,7 +84,7 @@ func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonDa
 		}
 		statement := db.NewInsertStatement("pageInfos", hashmap)
 		if _, err := statement.Exec(); err != nil {
-			return "", fmt.Errorf("Couldn't update pageInfos", err)
+			return sessions.NewError("Couldn't update pageInfos", err)
 		}
 
 		// Update pages
@@ -96,12 +97,12 @@ func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonDa
 		hashmap["createdAt"] = database.Now()
 		statement = db.NewInsertStatement("pages", hashmap)
 		if _, err := statement.Exec(); err != nil {
-			return "", fmt.Errorf("Couldn't update pages", err)
+			return sessions.NewError("Couldn't update pages", err)
 		}
-		return "", err
+		return nil
 	})
-	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// Add parents
@@ -112,7 +113,7 @@ func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonDa
 			Type:     core.ParentPagePairType,
 		}
 		result := newPagePairHandlerInternal(params, &handlerData)
-		if result.Message != "" {
+		if result.Err != nil {
 			return result
 		}
 	}

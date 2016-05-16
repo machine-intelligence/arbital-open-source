@@ -113,8 +113,8 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 		}
 
 		result := h.HandlerFunc(params)
-		if result.ResponseCode != http.StatusOK && result.ResponseCode != http.StatusSeeOther {
-			fail(result.ResponseCode, result.Message, result.Err)
+		if result.Err != nil {
+			fail(result.ResponseCode, result.Err.Message, result.Err.Err)
 			return
 		}
 

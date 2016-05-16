@@ -4,10 +4,12 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -45,23 +47,23 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Invalid page id", nil)
+		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if data.Type != core.QueryMarkType && data.Type != core.TypoMarkType && data.Type != core.ConfusionMarkType {
-		return pages.HandlerBadRequestFail("Invalid mark type", nil)
+		return pages.Fail("Invalid mark type", nil).Status(http.StatusBadRequest)
 	}
 	if data.Type != core.QueryMarkType && data.AnchorContext == "" {
-		return pages.HandlerBadRequestFail("No anchor context is set", nil)
+		return pages.Fail("No anchor context is set", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load what requirements the user has met
 	masteryMap := make(map[string]*core.Mastery)
 	err = core.LoadMasteries(db, u, masteryMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Load masteries failed: %v", err)
+		return pages.Fail("Load masteries failed: %v", err)
 	}
 
 	var markId int64
@@ -69,7 +71,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	autoProcessed := data.Type == core.TypoMarkType || data.Type == core.ConfusionMarkType
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Compute snapshot id we can use
 		var requisiteSnapshotId int64
 		if data.Type != core.TypoMarkType {
@@ -78,7 +80,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			FROM userRequisitePairSnapshots`).WithTx(tx).QueryRow()
 			_, err = row.Scan(&requisiteSnapshotId)
 			if err != nil {
-				return "Couldn't load max snapshot id", err
+				return sessions.NewError("Couldn't load max snapshot id", err)
 			}
 			requisiteSnapshotId++
 		}
@@ -99,11 +101,11 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement := tx.DB.NewInsertStatement("marks", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {
-			return "Couldn't insert an new mark", err
+			return sessions.NewError("Couldn't insert an new mark", err)
 		}
 		markId, err = resp.LastInsertId()
 		if err != nil {
-			return "Couldn't get inserted id", err
+			return sessions.NewError("Couldn't get inserted id", err)
 		}
 
 		// Snapshot user's requisites
@@ -124,14 +126,14 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			if len(hashmaps) > 0 {
 				statement = tx.DB.NewMultipleInsertStatement("userRequisitePairSnapshots", hashmaps)
 				if _, err := statement.WithTx(tx).Exec(); err != nil {
-					return "Couldn't insert into userRequisitePairSnapshots", err
+					return sessions.NewError("Couldn't insert into userRequisitePairSnapshots", err)
 				}
 			}
 		}
-		return "", nil
+		return nil
 	})
-	if err != nil {
-		return pages.HandlerErrorFail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 	markIdStr := fmt.Sprintf("%d", markId)
 
@@ -139,7 +141,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if autoProcessed {
 		err = EnqueueNewMarkUpdateTask(params, markIdStr, data.PageId, markAutoProcessDelay)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue an updateTask", err)
+			return pages.Fail("Couldn't enqueue an updateTask", err)
 		}
 	}
 
@@ -148,12 +150,12 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["markId"] = markIdStr
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageId string, delay int) error {

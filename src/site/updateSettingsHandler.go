@@ -3,10 +3,12 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 // updateSettingsData contains data given to us in the request.
@@ -33,35 +35,35 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if data.EmailFrequency != core.DailyEmailFrequency &&
 		data.EmailFrequency != core.WeeklyEmailFrequency &&
 		data.EmailFrequency != core.NeverEmailFrequency &&
 		data.EmailFrequency != core.ImmediatelyEmailFrequency {
-		return pages.HandlerBadRequestFail("EmailFrequency value is invalid", nil)
+		return pages.Fail("EmailFrequency value is invalid", nil).Status(http.StatusBadRequest)
 	}
 	if data.EmailThreshold <= 0 {
-		return pages.HandlerBadRequestFail("Email Threshold has to be greater than 0", nil)
+		return pages.Fail("Email Threshold has to be greater than 0", nil).Status(http.StatusBadRequest)
 	}
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update user model from settings form
 		statement := db.NewStatement(`
-		UPDATE users
-		SET emailFrequency=?,emailThreshold=?,ignoreMathjax=?
-		WHERE id=?`).WithTx(tx)
+			UPDATE users
+			SET emailFrequency=?,emailThreshold=?,ignoreMathjax=?
+			WHERE id=?`).WithTx(tx)
 		_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, data.IgnoreMathjax, u.Id)
 		if err != nil {
-			return "Couldn't update settings", err
+			return sessions.NewError("Couldn't update settings", err)
 		}
 
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

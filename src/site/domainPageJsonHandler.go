@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -35,7 +36,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// Get constraint
@@ -43,17 +44,17 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if data.DomainAlias != "" {
 		domainId, ok, err := core.LoadAliasToPageId(db, u, data.DomainAlias)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't convert alias", err)
+			return pages.Fail("Couldn't convert alias", err)
 		}
 		if !ok {
-			return pages.HandlerErrorFail(fmt.Sprintf("Couldn't find the domain: %s", data.DomainAlias), nil)
+			return pages.Fail(fmt.Sprintf("Couldn't find the domain: %s", data.DomainAlias), nil)
 		}
 		core.AddPageToMap(domainId, returnData.PageMap, core.PrimaryPageLoadOptions)
 		constraintPart = database.NewQuery("AND pd.domainId=?", domainId)
 		returnData.ResultMap["domainId"] = domainId
 	} else {
 		if !core.IsIdValid(params.PrivateGroupId) {
-			return pages.HandlerBadRequestFail("Need domain alias or need to be in a private domain", err)
+			return pages.Fail("Need domain alias or need to be in a private domain", err).Status(http.StatusBadRequest)
 		}
 		core.AddPageToMap(params.PrivateGroupId, returnData.PageMap, core.PrimaryPageLoadOptions)
 		constraintPart = database.NewQuery("AND pi.seeGroupId=?", params.PrivateGroupId)
@@ -78,7 +79,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading recently created page ids", err)
+		return pages.Fail("error while loading recently created page ids", err)
 	}
 
 	// Load most liked page ids.
@@ -95,7 +96,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["mostLikedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading most liked page ids", err)
+		return pages.Fail("error while loading most liked page ids", err)
 	}
 
 	// Load hot page ids (recent comments + edits).
@@ -127,7 +128,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["hotIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading recently edited page ids", err)
+		return pages.Fail("error while loading recently edited page ids", err)
 	}
 
 	// Load most controversial page ids.
@@ -154,14 +155,14 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["mostControversialIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading most controversial page ids", err)
+		return pages.Fail("error while loading most controversial page ids", err)
 	}
 
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

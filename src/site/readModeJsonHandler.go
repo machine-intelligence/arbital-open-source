@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -28,7 +29,7 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data readModeJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// figure out which pages to show as exciting and hot!
@@ -38,17 +39,17 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	hotPageIds, err := loadHotPageIds(db, u, returnData.PageMap, numPagesToLoad)
 	if err != nil {
-		return pages.HandlerErrorFail("failed to load hot page ids", err)
+		return pages.Fail("failed to load hot page ids", err)
 	}
 
 	// load the pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["hotPageIds"] = hotPageIds
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 func loadHotPageIds(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page, numPagesToLoad int) ([]string, error) {

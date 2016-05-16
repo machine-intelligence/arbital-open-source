@@ -6,6 +6,7 @@ import (
 
 	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
+	"zanaduu3/src/sessions"
 )
 
 type Member struct {
@@ -41,7 +42,7 @@ func AddUserGroupIdsToPageMap(u *CurrentUser, pageMap map[string]*Page) {
 }
 
 // newInternalGroup creates a new group. For internal use only.
-func newInternalGroup(tx *database.Tx, groupType string, groupId, userId string, title, alias, clickbait string, isPersonalGroup bool) (string, error) {
+func newInternalGroup(tx *database.Tx, groupType string, groupId, userId string, title, alias, clickbait string, isPersonalGroup bool) sessions.Error {
 	userGroupStr := "group"
 	if isPersonalGroup {
 		userGroupStr = "user"
@@ -66,7 +67,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	hashmap["isLiveEdit"] = true
 	statement := tx.DB.NewInsertStatement("pages", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
-		return "Couldn't create a new page", err
+		return sessions.NewError("Couldn't create a new page", err)
 	}
 
 	// Add new group to pageInfos.
@@ -84,7 +85,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	}
 	statement = tx.DB.NewInsertStatement("pageInfos", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
-		return "Couldn't create a new page", err
+		return sessions.NewError("Couldn't create a new page", err)
 	}
 
 	// Add a summary for the page
@@ -94,7 +95,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	hashmap["text"] = text
 	statement = tx.DB.NewInsertStatement("pageSummaries", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
-		return "Couldn't create a new page summary", err
+		return sessions.NewError("Couldn't create a new page summary", err)
 	}
 
 	// Add user to the group.
@@ -109,7 +110,7 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 		}
 		statement = tx.DB.NewInsertStatement("groupMembers", hashmap).WithTx(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't add user to the group", err
+			return sessions.NewError("Couldn't add user to the group", err)
 		}
 	}
 
@@ -125,23 +126,23 @@ If you are the owner, click [here to edit](%s).`, title, userGroupStr, url)
 	}
 	err := elastic.AddPageToIndex(tx.DB.C, doc)
 	if err != nil {
-		return "Failed to update index", err
+		return sessions.NewError("Failed to update index", err)
 	}
-	return "", nil
+	return nil
 }
 
 // NewGroup creates a new group and a corresponding page.
-func NewGroup(tx *database.Tx, groupId, userId string, title, alias string) (string, error) {
+func NewGroup(tx *database.Tx, groupId, userId string, title, alias string) sessions.Error {
 	return newInternalGroup(tx, GroupPageType, groupId, userId, title, alias, "", false)
 }
 
 // NewDomain create a new domain and a corresponding page.
-func NewDomain(tx *database.Tx, domainId, userId string, fullName, alias string) (string, error) {
+func NewDomain(tx *database.Tx, domainId, userId string, fullName, alias string) sessions.Error {
 	return newInternalGroup(tx, DomainPageType, domainId, userId, fullName, alias, "", false)
 }
 
 // NewUserGroup create a new person group for a user and the corresponding page.
-func NewUserGroup(tx *database.Tx, userId string, fullName, alias string) (string, error) {
+func NewUserGroup(tx *database.Tx, userId string, fullName, alias string) sessions.Error {
 	clickbait := "Automatically generated page for " + fullName
 	return newInternalGroup(tx, GroupPageType, userId, userId, fullName, alias, clickbait, true)
 }

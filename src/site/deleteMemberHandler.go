@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -33,10 +34,10 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.GroupId) || !core.IsIdValid(data.UserId) {
-		return pages.HandlerBadRequestFail("GroupId and UserId have to be set", nil)
+		return pages.Fail("GroupId and UserId have to be set", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check to see if this user can add members.
@@ -48,9 +49,9 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		`).QueryRow(u.Id, data.GroupId)
 	found, err := row.Scan(&canAdmin)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for a group member", err)
+		return pages.Fail("Couldn't check for a group member", err)
 	} else if !found {
-		return pages.HandlerForbiddenFail("You don't have the permission to remove a user", nil)
+		return pages.Fail("You don't have the permission to remove a user", nil).Status(http.StatusForbidden)
 	}
 
 	// Check if the target user exists and get their permissions
@@ -62,14 +63,14 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		`).QueryRow(data.UserId, data.GroupId)
 	found, err = row.Scan(&targetCanAdmin)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for target group member", err)
+		return pages.Fail("Couldn't check for target group member", err)
 	} else if !found {
-		return pages.HandlerForbiddenFail("Target member not found", nil)
+		return pages.Fail("Target member not found", nil).Status(http.StatusForbidden)
 	}
 
 	// Non-admins can't delete admins.
 	if !canAdmin && targetCanAdmin {
-		return pages.HandlerForbiddenFail("Non-admins can't remove admins", nil)
+		return pages.Fail("Non-admins can't remove admins", nil).Status(http.StatusForbidden)
 	}
 
 	// Check to see if the proposed member exists.
@@ -77,7 +78,7 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		DELETE FROM groupMembers
 		WHERE userId=? AND groupId=?`)
 	if _, err := statement.Exec(data.UserId, data.GroupId); err != nil {
-		return pages.HandlerErrorFail("Couldn't delete the group member", err)
+		return pages.Fail("Couldn't delete the group member", err)
 	}
 
 	// Create a task to do further processing
@@ -90,5 +91,5 @@ func deleteMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

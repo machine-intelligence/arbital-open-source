@@ -108,9 +108,16 @@ func IncrementBase31Id(c sessions.Context, previousId string) (string, error) {
 
 // Call GetNextAvailableId in a new transaction
 func GetNextAvailableIdInNewTransaction(db *database.DB) (string, error) {
-	return db.Transaction(func(tx *database.Tx) (string, error) {
-		return GetNextAvailableId(tx)
+	var id string
+	err := db.Transaction(func(tx *database.Tx) sessions.Error {
+		var err error
+		id, err = GetNextAvailableId(tx)
+		return sessions.PassThrough(err)
 	})
+	if err != nil {
+		return "", err.Err
+	}
+	return id, nil
 }
 
 // Get the next available base36 Id string that doesn't contain vowels

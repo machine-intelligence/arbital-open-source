@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -29,26 +30,26 @@ func titleJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't convert alias", err)
+		return pages.Fail("Couldn't convert alias", err)
 	}
 	if !ok {
 		// Don't fail because sometimes the editor calls this with bad aliases, but
 		// we don't want to generated messages on the FE
-		return pages.StatusOK(returnData)
+		return pages.Success(returnData)
 	}
 
 	// Load data
 	core.AddPageIdToMap(pageId, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		pages.HandlerErrorFail("Pipeline error", err)
+		pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

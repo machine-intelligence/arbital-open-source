@@ -5,6 +5,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 	"strings"
 
 	"zanaduu3/src/core"
@@ -37,18 +38,18 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data revertPageData
 	err := decoder.Decode(&data)
 	if err != nil || !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	// Load the page
 	page, err := core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load page", err)
+		return pages.Fail("Couldn't load page", err)
 	} else if page == nil {
-		return pages.HandlerErrorFail("Couldn't find page", nil)
+		return pages.Fail("Couldn't find page", nil)
 	}
 	if !page.Permissions.Edit.Has {
-		return pages.HandlerBadRequestFail("Can't revert: "+page.Permissions.Edit.Reason, nil)
+		return pages.Fail("Can't revert: "+page.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
 	if page.Type == core.LensPageType {

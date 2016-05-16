@@ -60,7 +60,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		"Year", "Month", "Count",
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading MAUs", err)
+		return pages.Fail("Error while loading MAUs", err)
 	}
 
 	// Visits
@@ -74,7 +74,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		"Year", "Month", "Count",
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading visits", err)
+		return pages.Fail("Error while loading visits", err)
 	}
 
 	// Users who commented
@@ -88,7 +88,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		"Year", "Month", "Count",
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading commenters", err)
+		return pages.Fail("Error while loading commenters", err)
 	}
 
 	// Users who created at least one page
@@ -102,7 +102,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		"Year", "Month", "Count",
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading page-creators", err)
+		return pages.Fail("Error while loading page-creators", err)
 	}
 
 	// Users who created at least 5 pages in the last month
@@ -118,7 +118,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		"UserId", "UserName",
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading page-creators", err)
+		return pages.Fail("Error while loading page-creators", err)
 	}
 
 	// New users
@@ -132,14 +132,14 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		"Year", "Month", "Count",
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading page-creators", err)
+		return pages.Fail("Error while loading page-creators", err)
 	}
 
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

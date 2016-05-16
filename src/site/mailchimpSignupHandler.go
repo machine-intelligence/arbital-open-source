@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/mailchimp"
 	"zanaduu3/src/pages"
@@ -25,10 +26,10 @@ func mailchimpSignupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data mailchimpSignupHandlerData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if len(data.Email) <= 0 {
-		return pages.HandlerBadRequestFail("Email have to be specified", nil)
+		return pages.Fail("Email have to be specified", nil).Status(http.StatusBadRequest)
 	}
 
 	account := &mailchimp.Account{
@@ -39,7 +40,7 @@ func mailchimpSignupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Execute request
 	err = mailchimp.SubscribeUser(params.C, account)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't subscribe user", err)
+		return pages.Fail("Couldn't subscribe user", err)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

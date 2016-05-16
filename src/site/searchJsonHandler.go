@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -42,10 +43,10 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerErrorFail("Error decoding JSON", err)
+		return pages.Fail("Error decoding JSON", err)
 	}
 	if data.Term == "" {
-		return pages.HandlerBadRequestFail("No search term specified", nil)
+		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
 	groupIds := make([]string, 0)
@@ -120,7 +121,7 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 	// Perform search.
 	results, err := elastic.SearchPageIndex(params.C, query)
 	if err != nil {
-		return pages.HandlerErrorFail("Error with elastic search", err)
+		return pages.Fail("Error with elastic search", err)
 	}
 
 	loadOptions := (&core.PageLoadOptions{
@@ -136,7 +137,7 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages", err)
+		return pages.Fail("error while loading pages", err)
 	}
 
 	// Adjust results' scores
@@ -182,5 +183,5 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 		results.Hits.Hits = results.Hits.Hits[0:len(results.Hits.Hits)]
 	}
 	returnData.ResultMap["search"] = results.Hits
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

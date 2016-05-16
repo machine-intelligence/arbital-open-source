@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -94,10 +95,10 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var data learnJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	if len(data.PageAliases) <= 0 {
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// Aliases might have various prefixes. Process them.
@@ -124,7 +125,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Convert aliases to page ids
 	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, u, pageAliases)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading group members", err)
+		return pages.Fail("error while loading group members", err)
 	}
 
 	// Populate the data structures we need keyed on page id (instead of alias)
@@ -133,7 +134,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	for _, alias := range pageAliases {
 		pageId := aliasToIdMap[alias]
 		if !core.IsIdValid(pageId) {
-			return pages.HandlerBadRequestFail(fmt.Sprintf("Invalid page id: %s", pageId), nil)
+			return pages.Fail(fmt.Sprintf("Invalid page id: %s", pageId), nil).Status(http.StatusBadRequest)
 		}
 		pageIds = append(pageIds, pageId)
 		optionsMap[pageId] = aliasOptionsMap[alias]
@@ -158,7 +159,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while checking if already knows", err)
+			return pages.Fail("Error while checking if already knows", err)
 		}
 	}
 
@@ -232,7 +233,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading tutors", err)
+			return pages.Fail("Error while loading tutors", err)
 		}
 		// If we haven't found a tutor for a page we want to learn, we'll pretend
 		// that the page can teach itself.
@@ -282,7 +283,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading requirements", err)
+			return pages.Fail("Error while loading requirements", err)
 		}
 		if maxCount >= 15 {
 			c.Warningf("Max count is close to maximum: %d", maxCount)
@@ -294,14 +295,14 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["tutorMap"] = tutorMap
 	returnData.ResultMap["requirementMap"] = requirementMap
 	returnData.ResultMap["pageIds"] = pageIds
 	returnData.ResultMap["optionsMap"] = optionsMap
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 func computeLearningPath(pl logger.Logger,

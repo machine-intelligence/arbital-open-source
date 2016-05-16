@@ -4,10 +4,12 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 // updateMasteries contains the data we get in the request.
@@ -32,7 +34,7 @@ func updateMasteriesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data updateMasteries
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	return updateMasteriesInternalHandlerFunc(params, &data)
@@ -45,13 +47,13 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 
 	userId := u.GetSomeId()
 	if userId == "" {
-		return pages.HandlerBadRequestFail("No user id or session id", nil)
+		return pages.Fail("No user id or session id", nil).Status(http.StatusBadRequest)
 	}
 
 	allMasteries := append(append(data.AddMasteries, data.RemoveMasteries...), data.WantsMasteries...)
 	aliasMap, err := core.LoadAliasToPageIdMap(db, u, allMasteries)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't translate aliases to ids", err)
+		return pages.Fail("Couldn't translate aliases to ids", err)
 	}
 
 	subjectIds := make(map[string]bool)
@@ -95,14 +97,14 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading potential unlocked ids", err)
+			return pages.Fail("Error while loading potential unlocked ids", err)
 		}
 	}
 
-	_, err = db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		snapshotId, err := InsertUserTrustSnapshots(tx, u)
 		if err != nil {
-			return "Couldn't insert userTrustSnapshot", err
+			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
 		}
 
 		hashmaps := make(database.InsertMaps, 0)
@@ -131,17 +133,16 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 
 		statement := tx.DB.NewMultipleInsertStatement("userMasteryPairs", hashmaps, "has", "wants", "updatedAt", "taughtBy", "userTrustSnapshotId")
 		if _, err := statement.WithTx(tx).Exec(); err != nil {
-			return "Failed to insert masteries", err
+			return sessions.NewError("Failed to insert masteries", err)
 		}
-		return "", nil
+		return nil
 	})
-
-	if err != nil {
-		return pages.HandlerErrorFail("Couldn't update masteries", err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	if len(candidateIds) <= 0 {
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// For the previously computed candidates, check if the user can now understand them
@@ -167,18 +168,17 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		return nil
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading unlocked ids", err)
+		return pages.Fail("Error while loading unlocked ids", err)
 	}
 
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["unlockedIds"] = unlockedIds
-	return pages.StatusOK(returnData)
-
+	return pages.Success(returnData)
 }
 
 func getHashmapForMasteryInsert(masteryId string, userId string, has bool, wants bool, taughtBy string, snapshotId int64) database.InsertMap {

@@ -27,14 +27,14 @@ func requisitesJsonHandler(params *pages.HandlerParams) *pages.Result {
 		WHERE userId=?`).Query(u.GetSomeId())
 	_, err := core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading masteries", err)
+		return pages.Fail("Error while loading masteries", err)
 	}
 
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
