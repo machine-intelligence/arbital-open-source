@@ -321,7 +321,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// NOTE: not using $location, because we need port number
 		var pageRe = new RegExp('^(?:https?:\/\/)?(?:www\.)?' + // match http and www stuff
 			getHostMatchRegex(window.location.host) + // match the url host part
-			'\/(?:p|edit)\/' + aliasMatch + // [1] capture page alias
+			'\/(?:p|edit)\/' + aliasMatch + '?' + // [1] capture page alias
 			'\/?' + // optional ending /
 			'(.*)'); // optional other stuff
 
@@ -333,46 +333,54 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			'\/?' + // optional ending /
 			'(.*)'); // optional other stuff
 
+		var processPageLink = function($element, href, pageAlias, searchParams) {
+			if (href == $element.text()) {
+				// This is a normal link and we should leave it as such
+				return;
+			}
+			pageAlias = pageAlias || '';
+			// Check if we are embedding a vote
+			if (searchParams.indexOf('embedVote') > 0) {
+				$element.attr('embed-vote-id', pageAlias).addClass('red-link');
+			} else if (pageAlias && pageAlias in pageService.pageMap) {
+				$element.addClass('intrasite-link').attr('page-id', pageAlias);
+				$element.attr('page-id', pageService.pageMap[pageAlias].pageId);
+				if (pageService.pageMap[pageAlias].isDeleted) {
+					// Link to a deleted page.
+					$element.addClass('red-link');
+				} else {
+					// Normal healthy link!
+				}
+			} else {
+				// Mark as red link
+				$element.addClass('intrasite-link red-link').attr('page-id', pageAlias);
+				$element.attr('href', $element.attr('href').replace(/\/p\//, '/edit/'));
+				if (refreshFunc && pageAlias === '') {
+					$element.addClass('red-todo-text');
+				}
+				if (refreshFunc && !(pageAlias in failedPageAliases)) {
+					// Try to load the page
+					pageService.loadTitle(pageAlias, {
+						silentFail: true,
+						success: function() {
+							if (pageAlias in pageService.pageMap) {
+								refreshFunc();
+							} else {
+								failedPageAliases[pageAlias] = true;
+							}
+						}
+					});
+				}
+			}
+		};
+
 		$pageText.find('a').each(function(index, element) {
 			var $element = $(element);
 			var parts = $element.attr('href').match(pageRe);
-			if (parts !== null)	{
-				var pageAlias = parts[1];
-
-				if (!$element.hasClass('intrasite-link')) {
-					$element.addClass('intrasite-link').attr('page-id', pageAlias);
-					// Check if we are embedding a vote
-					if (parts[2].indexOf('embedVote') > 0) {
-						$element.attr('embed-vote-id', pageAlias).addClass('red-link');
-					} else if (pageAlias in pageService.pageMap) {
-						$element.attr('page-id', pageService.pageMap[pageAlias].pageId);
-						if (pageService.pageMap[pageAlias].isDeleted) {
-							// Link to a deleted page.
-							$element.addClass('red-link');
-						} else {
-							// Normal healthy link!
-						}
-					} else {
-						// Mark as red link
-						$element.attr('href', $element.attr('href').replace(/\/p\//, '/edit/'));
-						$element.addClass('red-link');
-						if (refreshFunc && pageAlias === '') {
-							$element.addClass('red-todo-text');
-						}
-						if (refreshFunc && !(pageAlias in failedPageAliases)) {
-							pageService.loadTitle(pageAlias, {
-								silentFail: true,
-								success: function() {
-									if (pageAlias in pageService.pageMap) {
-										refreshFunc();
-									} else {
-										failedPageAliases[pageAlias] = true;
-									}
-								}
-							});
-						}
-					}
-				}
+			console.log($element.attr('href'));
+			console.log($element.text());
+			if (parts !== null && !$element.hasClass('intrasite-link')) {
+				processPageLink($element, parts[0], parts[1], parts[2]);
 			}
 
 			parts = $element.attr('href').match(userRe);

@@ -2,7 +2,10 @@
 <arb-read-mode-panel ng-if="userService.user.id == ''"></arb-read-mode-panel>
 
 <!-- If the user is logged in, show various panels -->
-<md-content ng-if="userService.user.id !== ''" layout="column" layout-gt-sm="row" class="md-padding">
+<md-content layout="column"
+		layout-gt-sm="row"
+		class="md-padding"
+		ng-if="userService.user.id !== ''">
 	<div flex-sm flex-gt-sm="60" layout="column">
 		<arb-read-mode-panel></arb-read-mode-panel>
 	</div>
