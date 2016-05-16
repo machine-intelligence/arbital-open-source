@@ -428,6 +428,27 @@ func GetCommentParents(db *database.DB, pageId string) (string, string, error) {
 	return commentParentId, commentPrimaryPageId, nil
 }
 
+func GetPrimaryParentTitle(db *database.DB, u *CurrentUser, pageId string) (string, error) {
+	parentTitle := ""
+	found, err := database.NewQuery(`
+		SELECT primaryParents.title
+		FROM`).AddPart(PageInfosTable(u)).Add(`AS primaryParentInfos
+		JOIN pagePairs AS pp
+		ON primaryParentInfos.pageId=pp.parentId
+		JOIN pages AS primaryParents
+		ON primaryParentInfos.pageId=primaryParents.pageId
+		WHERE primaryParentInfos.type!=?`, CommentPageType).Add(`
+			AND primaryParents.isLiveEdit AND pp.type=?`, ParentPagePairType).Add(`
+			AND pp.childId=?`, pageId).ToStatement(db).QueryRow().Scan(&parentTitle)
+	if err != nil {
+		return "", fmt.Errorf("Couldn't load primary parent", err)
+	} else if !found {
+		return "", fmt.Errorf("Couldn't find a primary parent")
+	} else {
+		return parentTitle, nil
+	}
+}
+
 // Look up the domains that this page is in
 func LoadDomainsForPage(db *database.DB, pageId string) ([]string, error) {
 	return LoadDomainsForPages(db, pageId)

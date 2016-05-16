@@ -211,22 +211,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if strings.ContainsAny(data.Title, ":") {
 			return pages.Fail(`Lens title can't include ":" character`, nil).Status(http.StatusBadRequest)
 		}
-		// Load parent's title
-		parentTitle := ""
-		found, err := database.NewQuery(`
-			SELECT p.title
-			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-			JOIN pagePairs AS pp
-			ON (pi.pageId=pp.parentId)
-			JOIN pages AS p
-			ON (pi.pageId=p.pageId)
-			WHERE p.isLiveEdit AND pp.type=?`, core.ParentPagePairType).Add(`
-				AND pp.childId=?`, data.PageId).ToStatement(db).QueryRow().Scan(&parentTitle)
+		parentTitle, err := core.GetPrimaryParentTitle(db, u, data.PageId)
 		if err != nil {
-			return pages.Fail("Couldn't load lens parent", err)
-		} else if found {
-			data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
+			return pages.Fail("Couldn't load lens's parent", err)
 		}
+		data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
 	}
 
 	isMinorEdit := data.IsMinorEditStr == "on"
