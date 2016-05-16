@@ -78,3 +78,12 @@ DELETE FROM changeLogs USING changeLogs, pageInfos AS commentInfos WHERE comment
 	AND changeLogs.type='newChild' AND commentInfos.pageId=changeLogs.auxPageId;
 alter table marks add column isSubmitted boolean not null;
 update marks set isSubmitted=1;
+
+/* A table for keeping track of the last time the user saw various things */
+CREATE TABLE lastViews (
+	/* Id of the likeable. */
+	userId varchar(32) NOT NULL,
+	lastAchievementsView datetime NOT NULL,
+	lastReadModeView datetime NOT NULL,
+	PRIMARY KEY(userId)
+) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
