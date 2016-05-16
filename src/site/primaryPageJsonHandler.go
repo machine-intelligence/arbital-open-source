@@ -41,10 +41,10 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't convert alias", err)
+		return pages.Fail("Couldn't convert alias", err)
 	}
 	if !ok {
-		return pages.HandlerErrorFail("Couldn't find page", err)
+		return pages.Fail("Couldn't find page", err)
 	}
 
 	// Check if page is a user page
@@ -77,7 +77,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyCreatedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 		if err != nil {
-			return pages.HandlerErrorFail("error while loading recently created page ids", err)
+			return pages.Fail("error while loading recently created page ids", err)
 		}
 
 		// Load recently created by me comment ids.
@@ -94,7 +94,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		returnData.ResultMap["recentlyCreatedCommentIds"], err =
 			core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
-			return pages.HandlerErrorFail("error while loading recently created page ids", err)
+			return pages.Fail("error while loading recently created page ids", err)
 		}
 
 		// Load recently edited by me page ids.
@@ -111,7 +111,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 		if err != nil {
-			return pages.HandlerErrorFail("error while loading recently edited page ids", err)
+			return pages.Fail("error while loading recently edited page ids", err)
 		}
 
 		// Load top pages by me
@@ -128,7 +128,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 		returnData.ResultMap["topPagesIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 		if err != nil {
-			return pages.HandlerErrorFail("error while loading recently edited by me page ids", err)
+			return pages.Fail("error while loading recently edited by me page ids", err)
 		}
 
 		returnData.UserMap[pageId] = &core.User{Id: pageId}
@@ -141,8 +141,8 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

@@ -60,8 +60,8 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

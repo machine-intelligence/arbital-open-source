@@ -24,5 +24,5 @@ func defaultJsonHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

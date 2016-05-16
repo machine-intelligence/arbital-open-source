@@ -57,12 +57,12 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load the published page.
 	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load the old page", err)
+		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
 		// Likely the page hasn't been published yet, so let's load the unpublished version.
 		oldPage, err = core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil || oldPage == nil {
-			return pages.HandlerErrorFail("Couldn't load the old page2", err)
+			return pages.Fail("Couldn't load the old page2", err)
 		}
 	}
 
@@ -135,7 +135,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if data.Alias != data.PageId {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
-			return pages.HandlerErrorFail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
+			return pages.Fail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
 		}
 
 		// Prefix alias with the group alias, if appropriate
@@ -143,7 +143,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			tempPageMap := map[string]*core.Page{data.SeeGroupId: core.NewPage(data.SeeGroupId)}
 			err = core.LoadPages(db, u, tempPageMap)
 			if err != nil {
-				return pages.HandlerErrorFail("Couldn't load the see group", err)
+				return pages.Fail("Couldn't load the see group", err)
 			}
 			data.Alias = fmt.Sprintf("%s.%s", tempPageMap[data.SeeGroupId].Alias, data.Alias)
 		}
@@ -157,9 +157,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			AND alias=?`, data.Alias).ToStatement(db).QueryRow()
 		exists, err := row.Scan(&existingPageId)
 		if err != nil {
-			return pages.HandlerErrorFail("Failed on looking for conflicting alias", err)
+			return pages.Fail("Failed on looking for conflicting alias", err)
 		} else if exists {
-			return pages.HandlerErrorFail(fmt.Sprintf("Alias '%s' is already in use by: %s", data.Alias, existingPageId), nil)
+			return pages.Fail(fmt.Sprintf("Alias '%s' is already in use by: %s", data.Alias, existingPageId), nil)
 		}
 	}
 
@@ -261,7 +261,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(fmt.Sprintf("Transaction failed: %s", errMessage), err)
+		return pages.Fail(fmt.Sprintf("Transaction failed: %s", errMessage), err)
 	}
 
 	// === Once the transaction has succeeded, we can't really fail on anything
@@ -292,5 +292,5 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

@@ -46,7 +46,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	loadData.MarkMap[data.MarkId] = mark
 	err = core.LoadMarkData(db, loadData.PageMap, loadData.UserMap, loadData.MarkMap, u)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load the mark", err)
+		return pages.Fail("Couldn't load the mark", err)
 	} else if mark.Type == "" {
 		return pages.HandlerBadRequestFail("No such mark", nil)
 	}
@@ -66,16 +66,16 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	statement := db.NewInsertStatement("marks", hashmap, hashmap.GetKeys()...)
 	_, err = statement.Exec()
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't update the mark", err)
+		return pages.Fail("Couldn't update the mark", err)
 	}
 
 	// If the mark has just been submitted, queue the updates
 	if data.Submit && !mark.IsSubmitted {
 		err = EnqueueNewMarkUpdateTask(params, data.MarkId, mark.PageId, 0)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue an updateTask", err)
+			return pages.Fail("Couldn't enqueue an updateTask", err)
 		}
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

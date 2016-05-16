@@ -42,7 +42,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Page id isn't specified", err)
 	}
 	if len(data.OrderMap) <= 0 {
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// Check permissions
@@ -70,7 +70,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			VALUES ` + database.ArgsPlaceholder(len(lensIndexValues), 2) + `
 			ON DUPLICATE KEY UPDATE lensIndex=VALUES(lensIndex)`)
 		if _, err = statement.Exec(lensIndexValues...); err != nil {
-			return pages.HandlerErrorFail("Couldn't update a lens index", err)
+			return pages.Fail("Couldn't update a lens index", err)
 		}
 	}
 
@@ -85,5 +85,5 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

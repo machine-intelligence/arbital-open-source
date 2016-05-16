@@ -43,11 +43,11 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't convert alias", err)
+		return pages.Fail("Couldn't convert alias", err)
 	} else if !ok {
 		if core.IsIdValid(data.PageAlias) {
 			// We tried to load an edit by id, but it wasn't found
-			return pages.HandlerErrorFail("No such page found", err)
+			return pages.Fail("No such page found", err)
 		} else {
 			// We tried to load an edit by alias, it wasn't found, but we can create a
 			// new page with that alias.
@@ -67,10 +67,10 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 	p, err := core.LoadFullEdit(db, pageId, u, &options)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading full edit", err)
+		return pages.Fail("Error while loading full edit", err)
 	}
 	if p == nil {
-		return pages.HandlerErrorFail("Exact page not found", err)
+		return pages.Fail("Exact page not found", err)
 	}
 	if p.SeeGroupId != params.PrivateGroupId {
 		if core.IsIdValid(p.SeeGroupId) {
@@ -97,7 +97,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	// We need to copy some data from the loaded live version to the edit
@@ -116,5 +116,5 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	// Clear change logs from the live page
 	livePage.ChangeLogs = []*core.ChangeLog{}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

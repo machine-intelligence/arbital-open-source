@@ -40,10 +40,10 @@ func parentsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap(data.ChildId, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load pages", err)
+		return pages.Fail("Couldn't load pages", err)
 	}
 	// Remove the child, since we only want to return parents.
 	delete(returnData.PageMap, data.ChildId)
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

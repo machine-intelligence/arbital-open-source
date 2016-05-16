@@ -23,7 +23,7 @@ var (
 // loaded from an sql query.
 type ProcessRowCallback func(db *DB, rows *Rows) error
 
-type TransactionCallback func(tx *Tx) (string, error)
+type TransactionCallback func(tx *Tx) sessions.Error
 
 // InsertMap is map: DB column name -> value, which together corresponds to one row entry.
 type InsertMap map[string]interface{}
@@ -292,23 +292,23 @@ func (row *Row) Scan(outArgs ...interface{}) (bool, error) {
 // Transaction calls the given callback with the transaction that will be
 // commited when the callback returns.
 // If an error occurs, the transaction is rolled back.
-func (db *DB) Transaction(f TransactionCallback) (string, error) {
+func (db *DB) Transaction(f TransactionCallback) sessions.Error {
 	tx, err := db.db.Begin()
 	if err != nil {
-		return "Couldn't create transaction", err
+		return sessions.NewError("Couldn't create transaction", err)
 	}
 
-	message, err := f(&Tx{tx: tx, DB: db})
-	if message != "" {
+	err2 := f(&Tx{tx: tx, DB: db})
+	if err2 != nil {
 		tx.Rollback()
-		return message, err
+		return err2
 	}
 
 	// Commit transaction.
 	err = tx.Commit()
 	if err != nil {
 		tx.Rollback()
-		return "Couldn't commit transaction", err
+		return sessions.NewError("Couldn't commit transaction", err)
 	}
-	return "", nil
+	return nil
 }

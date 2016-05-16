@@ -79,8 +79,8 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail("Couldn't insert a like: "+errMessage, err)
+		return pages.Fail("Couldn't insert a like: "+errMessage, err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

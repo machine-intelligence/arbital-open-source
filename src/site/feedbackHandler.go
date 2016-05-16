@@ -44,5 +44,5 @@ func feedbackHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

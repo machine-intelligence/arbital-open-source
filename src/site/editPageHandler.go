@@ -79,12 +79,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	var oldPage *core.Page
 	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load the old page", err)
+		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
 		// Likely the page hasn't been published yet, so let's load the unpublished version.
 		oldPage, err = core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil || oldPage == nil {
-			return pages.HandlerErrorFail("Couldn't load the old page2", err)
+			return pages.Fail("Couldn't load the old page2", err)
 		}
 	}
 
@@ -108,7 +108,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		`).QueryRow(data.PageId, u.Id)
 	_, err = row.Scan(&myLastAutosaveEdit)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load additional page info", err)
+		return pages.Fail("Couldn't load additional page info", err)
 	}
 
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
@@ -169,7 +169,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Process meta text
 		_, err := core.ParseMetaText(data.MetaText)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't unmarshal meta-text", err)
+			return pages.Fail("Couldn't unmarshal meta-text", err)
 		}
 	}
 
@@ -179,7 +179,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if isLiveEdit && oldPage.Type == core.CommentPageType {
 		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageId)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't load comment's parents", err)
+			return pages.Fail("Couldn't load comment's parents", err)
 		}
 	}
 
@@ -190,7 +190,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
 		newParents, newChildren, err = getUnpublishedRelationships(db, u, data.PageId)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't get new parents and children for page", err)
+			return pages.Fail("Couldn't get new parents and children for page", err)
 		}
 	}
 
@@ -198,7 +198,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 	data.Text, err = core.StandardizeLinks(db, data.Text)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't standardize links", err)
+		return pages.Fail("Couldn't standardize links", err)
 	}
 	data.MetaText = strings.Replace(data.MetaText, "\r\n", "\n", -1)
 	if !data.IsSnapshot {
@@ -222,7 +222,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			WHERE p.isLiveEdit AND pp.type=?`, core.ParentPagePairType).Add(`
 				AND pp.childId=?`, data.PageId).ToStatement(db).QueryRow().Scan(&parentTitle)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't load lens parent", err)
+			return pages.Fail("Couldn't load lens parent", err)
 		} else if found {
 			data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
 		}
@@ -239,7 +239,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			data.AnchorContext == oldPage.AnchorContext &&
 			data.AnchorText == oldPage.AnchorText &&
 			data.AnchorOffset == oldPage.AnchorOffset {
-			return pages.StatusOK(returnData)
+			return pages.Success(returnData)
 		}
 	}
 
@@ -428,7 +428,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	// === Once the transaction has succeeded, we can't really fail on anything
@@ -547,7 +547,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 // Find all the relationships a given page is a part of, where the other page is published (and not deleted), but

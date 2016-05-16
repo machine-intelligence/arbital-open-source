@@ -43,9 +43,9 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load the page
 	page, err := core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadSpecificEdit: data.EditNum})
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load page", err)
+		return pages.Fail("Couldn't load page", err)
 	} else if page == nil {
-		return pages.HandlerErrorFail("Couldn't find page", nil)
+		return pages.Fail("Couldn't find page", nil)
 	}
 	if !page.Permissions.Edit.Has {
 		return pages.HandlerBadRequestFail("Can't revert: "+page.Permissions.Edit.Reason, nil)

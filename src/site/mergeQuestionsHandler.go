@@ -46,7 +46,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	intoQuestion := core.AddPageIdToMap(data.IntoQuestionId, pageMap)
 	err = core.LoadPages(db, u, pageMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load questions", err)
+		return pages.Fail("Couldn't load questions", err)
 	}
 	if question.Type != core.QuestionPageType {
 		return pages.HandlerBadRequestFail("QuestionId isn't a question", nil)
@@ -89,7 +89,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return deletePageTx(tx, params, deletePageData, question)
 	})
 	if err != nil {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	// Generate "merge" update for users who are subscribed to either of the questions
@@ -110,5 +110,5 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

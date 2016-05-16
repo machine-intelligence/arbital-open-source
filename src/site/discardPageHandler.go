@@ -41,7 +41,7 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		DELETE FROM pages
 		WHERE pageId=? AND creatorId=? AND isAutosave`)
 	if _, err = statement.Exec(data.PageId, u.Id); err != nil {
-		return pages.HandlerErrorFail("Couldn't discard a page", err)
+		return pages.Fail("Couldn't discard a page", err)
 	}
 
 	// Update pageInfos
@@ -50,7 +50,7 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmap["lockedUntil"] = database.Now()
 	statement = db.NewInsertStatement("pageInfos", hashmap, "lockedUntil")
 	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't change lock", err)
+		return pages.Fail("Couldn't change lock", err)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

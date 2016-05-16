@@ -59,8 +59,8 @@ func updatePageObjectInternalHandlerFunc(params *pages.HandlerParams, data *upda
 	hashmap["updatedAt"] = database.Now()
 	statement := db.NewInsertStatement("userPageObjectPairs", hashmap, "edit", "value", "updatedAt")
 	if _, err := statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update a page object", err)
+		return pages.Fail("Couldn't update a page object", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

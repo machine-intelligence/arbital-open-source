@@ -41,18 +41,18 @@ func loginHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	err = stormpath.AuthenticateUser(params.C, data.Email, data.Password)
 	if err != nil {
-		return pages.HandlerErrorFail("Invalid email or password", err)
+		return pages.Fail("Invalid email or password", err)
 	}
 
 	// Set the cookie
 	_, err = core.SaveCookie(params.W, params.R, data.Email)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't save a cookie", err)
+		return pages.Fail("Couldn't save a cookie", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }
 
 func logoutHandlerFunc(params *pages.HandlerParams) *pages.Result {
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

@@ -3,12 +3,13 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/elastic"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -35,10 +36,10 @@ func deletePageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data deletePageData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("PageId isn't set", nil)
+		return pages.Fail("PageId isn't set", nil).Status(http.StatusBadRequest)
 	}
 	return deletePageInternalHandlerFunc(params, &data)
 }
@@ -50,52 +51,52 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 	// Load the page
 	page, err := core.LoadFullEdit(db, data.PageId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load page", err)
+		return pages.Fail("Couldn't load page", err)
 	}
 	if page.IsDeleted || page.Type == "" {
 		// Looks like there is no need to delete this page.
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 	if page.Type == core.GroupPageType || page.Type == core.DomainPageType {
 		if !u.IsAdmin {
-			return pages.HandlerForbiddenFail("Have to be an admin to delete a group/domain", nil)
+			return pages.Fail("Have to be an admin to delete a group/domain", nil).Status(http.StatusForbidden)
 		}
 	}
 	if page.Type == core.CommentPageType && u.Id != page.CreatorId {
 		if !u.IsAdmin {
-			return pages.HandlerForbiddenFail("Have to be an admin to delete someone else's comment", nil)
+			return pages.Fail("Have to be an admin to delete someone else's comment", nil).Status(http.StatusForbidden)
 		}
 	}
 
 	// Make sure the user has the right permissions to delete this page
 	if !page.Permissions.Delete.Has {
-		return pages.HandlerBadRequestFail(page.Permissions.Delete.Reason, nil)
+		return pages.Fail(page.Permissions.Delete.Reason, nil).Status(http.StatusBadRequest)
 	}
 
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		data.GenerateUpdate = true
 		return deletePageTx(tx, params, data, page)
 	})
-	if errMessage != "" {
-		return pages.HandlerErrorFail(fmt.Sprintf("Transaction failed: %s", errMessage), err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }
 
-func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePageData, page *core.Page) (string, error) {
+func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePageData, page *core.Page) sessions.Error {
 	c := params.C
 
 	// Clear the current edit in pages
 	statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
 	if _, err := statement.Exec(data.PageId); err != nil {
-		return "Couldn't update isLiveEdit for old edits", err
+		return sessions.NewError("Couldn't update isLiveEdit for old edits", err)
 	}
 
 	// Set isDeleted in pageInfos
 	statement = tx.DB.NewStatement("UPDATE pageInfos SET isDeleted=true WHERE pageId=?").WithTx(tx)
 	if _, err := statement.Exec(data.PageId); err != nil {
-		return "Couldn't set isDeleted for deleted page", err
+		return sessions.NewError("Couldn't set isDeleted for deleted page", err)
 	}
 
 	// Update change log
@@ -106,14 +107,14 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 	hashmap["type"] = core.DeletePageChangeLog
 	statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 	if _, err := statement.Exec(); err != nil {
-		return "Couldn't update change logs", err
+		return sessions.NewError("Couldn't update change logs", err)
 	}
 
 	// Delete it from the elastic index
 	if page.WasPublished {
 		err := elastic.DeletePageFromIndex(c, data.PageId)
 		if err != nil {
-			return "Failed to update index", err
+			return sessions.NewError("Failed to update index", err)
 		}
 	}
 
@@ -140,5 +141,5 @@ func deletePageTx(tx *database.Tx, params *pages.HandlerParams, data *deletePage
 		}
 	}
 
-	return "", nil
+	return nil
 }

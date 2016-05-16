@@ -78,7 +78,7 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	// Update Elastic
@@ -89,5 +89,5 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	returnData.ResultMap["searchStringId"] = fmt.Sprintf("%d", newId)
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

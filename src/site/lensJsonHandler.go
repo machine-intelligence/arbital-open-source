@@ -35,18 +35,18 @@ func lensJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Get actual page id
 	pageId, ok, err := core.LoadAliasToPageId(db, u, data.PageAlias)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't convert alias", err)
+		return pages.Fail("Couldn't convert alias", err)
 	}
 	if !ok {
-		return pages.HandlerErrorFail("Couldn't find page", err)
+		return pages.Fail("Couldn't find page", err)
 	}
 
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.LensFullLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		pages.HandlerErrorFail("Pipeline error", err)
+		pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

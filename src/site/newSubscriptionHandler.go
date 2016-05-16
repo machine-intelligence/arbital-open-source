@@ -41,9 +41,9 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return addSubscription(tx, u.Id, data.PageId)
 	})
 	if errorMessage != "" {
-		return pages.HandlerErrorFail(errorMessage, err)
+		return pages.Fail(errorMessage, err)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }
 
 func addSubscription(tx *database.Tx, userId string, toPageId string) (string, error) {

@@ -42,7 +42,7 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	searchString, err := core.LoadSearchString(db, data.Id)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load the search string", err)
+		return pages.Fail("Couldn't load the search string", err)
 	}
 
 	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
@@ -67,8 +67,8 @@ func deleteSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

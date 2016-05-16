@@ -52,12 +52,12 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		LIMIT 1`).QueryRow(database.Now(), u.Id, task.PageId)
 	oldVoteExists, err = row.Scan(&oldVoteId, &oldVoteValue, &oldVoteAge)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for a recent vote", err)
+		return pages.Fail("Couldn't check for a recent vote", err)
 	}
 
 	// If previous vote is exactly the same, don't do anything.
 	if oldVoteExists && oldVoteValue == task.Value {
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// Check to see if we have a recent vote by this user for this page.
@@ -68,7 +68,7 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("votes", hashmap, "value", "createdAt")
 		if _, err = statement.Exec(); err != nil {
-			return pages.HandlerErrorFail("Couldn't update a vote", err)
+			return pages.Fail("Couldn't update a vote", err)
 		}
 	} else {
 		// Insert new vote.
@@ -79,8 +79,8 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("votes", hashmap)
 		if _, err = statement.Exec(); err != nil {
-			return pages.HandlerErrorFail("Couldn't add a vote", err)
+			return pages.Fail("Couldn't add a vote", err)
 		}
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

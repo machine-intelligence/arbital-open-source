@@ -39,7 +39,7 @@ func mailchimpSignupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Execute request
 	err = mailchimp.SubscribeUser(params.C, account)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't subscribe user", err)
+		return pages.Fail("Couldn't subscribe user", err)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

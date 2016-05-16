@@ -101,7 +101,7 @@ func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonDa
 		return "", err
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	// Add parents

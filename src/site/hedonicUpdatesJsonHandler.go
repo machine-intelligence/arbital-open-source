@@ -48,10 +48,10 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page) ([]*NewLikesRow, error) {

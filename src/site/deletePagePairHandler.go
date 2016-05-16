@@ -50,31 +50,31 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load pages.
 	parent, err := core.LoadFullEdit(db, data.ParentId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading parent page", err)
+		return pages.Fail("Error while loading parent page", err)
 	} else if parent == nil {
 		parent, err = core.LoadFullEdit(db, data.ParentId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading parent page (2)", err)
+			return pages.Fail("Error while loading parent page (2)", err)
 		} else if parent == nil {
-			return pages.HandlerErrorFail("Parent page doesn't exist", nil)
+			return pages.Fail("Parent page doesn't exist", nil)
 		}
 	}
 	child, err := core.LoadFullEdit(db, data.ChildId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading child page", err)
+		return pages.Fail("Error while loading child page", err)
 	} else if child == nil {
 		child, err = core.LoadFullEdit(db, data.ChildId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading child page (2)", err)
+			return pages.Fail("Error while loading child page (2)", err)
 		} else if child == nil {
-			return pages.HandlerErrorFail("Child page doesn't exist", nil)
+			return pages.Fail("Child page doesn't exist", nil)
 		}
 	}
 
 	// Check edit permissions
 	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)
 	if err != nil {
-		return pages.HandlerErrorFail("Error verifying permissions", err)
+		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
 		return pages.HandlerForbiddenFail(permissionError, nil)
 	}
@@ -84,7 +84,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return deletePagePair(tx, u.Id, data.Type, parent, child)
 	})
 	if err != nil {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
@@ -95,7 +95,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }
 
 // deletePagePair deletes the parent-child pagePair of the given type.

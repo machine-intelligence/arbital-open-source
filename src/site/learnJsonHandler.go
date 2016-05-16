@@ -97,7 +97,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.HandlerBadRequestFail("Couldn't decode request", err)
 	}
 	if len(data.PageAliases) <= 0 {
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// Aliases might have various prefixes. Process them.
@@ -124,7 +124,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Convert aliases to page ids
 	aliasToIdMap, err := core.LoadAliasToPageIdMap(db, u, pageAliases)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading group members", err)
+		return pages.Fail("error while loading group members", err)
 	}
 
 	// Populate the data structures we need keyed on page id (instead of alias)
@@ -158,7 +158,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while checking if already knows", err)
+			return pages.Fail("Error while checking if already knows", err)
 		}
 	}
 
@@ -232,7 +232,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading tutors", err)
+			return pages.Fail("Error while loading tutors", err)
 		}
 		// If we haven't found a tutor for a page we want to learn, we'll pretend
 		// that the page can teach itself.
@@ -282,7 +282,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading requirements", err)
+			return pages.Fail("Error while loading requirements", err)
 		}
 		if maxCount >= 15 {
 			c.Warningf("Max count is close to maximum: %d", maxCount)
@@ -294,14 +294,14 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["tutorMap"] = tutorMap
 	returnData.ResultMap["requirementMap"] = requirementMap
 	returnData.ResultMap["pageIds"] = pageIds
 	returnData.ResultMap["optionsMap"] = optionsMap
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 func computeLearningPath(pl logger.Logger,

@@ -6,6 +6,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
+	"zanaduu3/src/sessions"
 )
 
 const (
@@ -82,25 +83,25 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 		return
 	}
 
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update the answered marks
 		statement := database.NewQuery(`
 			UPDATE marks
 			SET answered=true,answeredAt=NOW()
 			WHERE id IN`).AddArgsGroupStr(markIds).ToTxStatement(tx)
 		if _, err = statement.Exec(); err != nil {
-			return "Failed to load update marks: %v", err
+			return sessions.NewError("Failed to load update marks", err)
 		}
 
 		// Insert all the updates
 		statement = tx.DB.NewMultipleInsertStatement("updates", hashmaps)
 		if _, err := statement.WithTx(tx).Exec(); err != nil {
-			return "Couldn't insert into updates", err
+			return sessions.NewError("Couldn't insert into updates", err)
 		}
-		return "", nil
+		return nil
 	})
-	if err != nil {
-		return -1, fmt.Errorf("%s: %v", errMessage, err)
+	if err2 != nil {
+		return -1, sessions.ToError(err2)
 	}
 
 	return

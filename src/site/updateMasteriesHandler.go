@@ -51,7 +51,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	allMasteries := append(append(data.AddMasteries, data.RemoveMasteries...), data.WantsMasteries...)
 	aliasMap, err := core.LoadAliasToPageIdMap(db, u, allMasteries)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't translate aliases to ids", err)
+		return pages.Fail("Couldn't translate aliases to ids", err)
 	}
 
 	subjectIds := make(map[string]bool)
@@ -95,7 +95,7 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 			return nil
 		})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading potential unlocked ids", err)
+			return pages.Fail("Error while loading potential unlocked ids", err)
 		}
 	}
 
@@ -137,11 +137,11 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 	})
 
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't update masteries", err)
+		return pages.Fail("Couldn't update masteries", err)
 	}
 
 	if len(candidateIds) <= 0 {
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// For the previously computed candidates, check if the user can now understand them
@@ -167,17 +167,17 @@ func updateMasteriesInternalHandlerFunc(params *pages.HandlerParams, data *updat
 		return nil
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading unlocked ids", err)
+		return pages.Fail("Error while loading unlocked ids", err)
 	}
 
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["unlockedIds"] = unlockedIds
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 
 }
 

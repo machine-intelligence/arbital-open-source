@@ -68,40 +68,40 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			AND childId=?`, data.ChildId).Add(`
 			AND type=?`, data.Type).ToStatement(db).QueryRow().Scan(&unusedType)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load existing pair types", err)
+		return pages.Fail("Couldn't load existing pair types", err)
 	} else if exists {
 		// We already have this type of connection
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// Load pages.
 	parent, err := core.LoadFullEdit(db, data.ParentId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading parent page", err)
+		return pages.Fail("Error while loading parent page", err)
 	} else if parent == nil {
 		parent, err = core.LoadFullEdit(db, data.ParentId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading parent page (2)", err)
+			return pages.Fail("Error while loading parent page (2)", err)
 		} else if parent == nil {
-			return pages.HandlerErrorFail("Parent page doesn't exist", nil)
+			return pages.Fail("Parent page doesn't exist", nil)
 		}
 	}
 	child, err := core.LoadFullEdit(db, data.ChildId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading child page", err)
+		return pages.Fail("Error while loading child page", err)
 	} else if child == nil {
 		child, err = core.LoadFullEdit(db, data.ChildId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
 		if err != nil {
-			return pages.HandlerErrorFail("Error while loading child page (2)", err)
+			return pages.Fail("Error while loading child page (2)", err)
 		} else if child == nil {
-			return pages.HandlerErrorFail("Child page doesn't exist", nil)
+			return pages.Fail("Child page doesn't exist", nil)
 		}
 	}
 
 	// Check edit permissions
 	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)
 	if err != nil {
-		return pages.HandlerErrorFail("Error verifying permissions", err)
+		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
 		return pages.HandlerForbiddenFail(permissionError, nil)
 	}
@@ -139,7 +139,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return "", nil
 	})
 	if err != nil {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	// Generate updates for users who are subscribed to the parent/child pages.
@@ -159,7 +159,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		}
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }
 
 // Update the changelogs of the parent for a new relationship.

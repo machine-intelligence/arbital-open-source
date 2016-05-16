@@ -22,13 +22,13 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load the updates and populate page & user maps
 	updateRows, err := core.LoadUpdateRows(db, u, returnData, false)
 	if err != nil {
-		return pages.HandlerErrorFail("failed to load updates", err)
+		return pages.Fail("failed to load updates", err)
 	}
 
 	// Load data
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	// Now that we have loaded last visit time for all pages,
@@ -41,7 +41,7 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 		SET unseen=FALSE
 		WHERE userId=?`)
 	if _, err = statement.Exec(u.Id); err != nil {
-		return pages.HandlerErrorFail("Couldn't mark updates seen", err)
+		return pages.Fail("Couldn't mark updates seen", err)
 	}
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

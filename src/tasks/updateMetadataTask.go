@@ -70,7 +70,7 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 	}
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update pages table
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
@@ -79,14 +79,14 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 		hashmap["todoCount"] = core.ExtractTodoCount(text)
 		statement := tx.DB.NewInsertStatement("pages", hashmap, "text", "todoCount").WithTx(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't update pages table", err
+			return sessions.NewError("Couldn't update pages table", err)
 		}
 
 		// Delete old page summaries
 		statement = database.NewQuery(`
 			DELETE FROM pageSummaries WHERE pageId=?`, pageId).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't delete existing page summaries", err
+			return sessions.NewError("Couldn't delete existing page summaries", err)
 		}
 
 		// Add new page summaries
@@ -95,18 +95,18 @@ func updateMetadata(db *database.DB, rows *database.Rows) error {
 			INSERT INTO pageSummaries (pageId,name,text)
 			VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3)).WithTx(tx)
 		if _, err := statement.Exec(summaryValues...); err != nil {
-			return "Couldn't insert page summaries", err
+			return sessions.NewError("Couldn't insert page summaries", err)
 		}
 
 		// Update page links table
 		err := core.UpdatePageLinks(tx, pageId, text, sessions.GetDomain())
 		if err != nil {
-			return "Couldn't update links", err
+			return sessions.NewError("Couldn't update links", err)
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return fmt.Errorf("%s: %v", errMessage, err)
+	if err2 != nil {
+		return sessions.ToError(err2)
 	}
 
 	return nil
@@ -121,7 +121,7 @@ func updatePageInfos(db *database.DB, rows *database.Rows) error {
 	}
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update pageInfos summary
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = pageId
@@ -130,12 +130,12 @@ func updatePageInfos(db *database.DB, rows *database.Rows) error {
 		hashmap["createdAt"] = createdAt
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, "currentEdit", "maxEdit", "createdAt").WithTx(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't update pageInfos table", err
+			return sessions.NewError("Couldn't update pageInfos table", err)
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return fmt.Errorf("%s: %v", errMessage, err)
+	if err2 != nil {
+		return sessions.ToError(err2)
 	}
 
 	return nil

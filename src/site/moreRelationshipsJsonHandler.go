@@ -50,14 +50,14 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		WHERE pi.pageId=?`, data.PageId).ToStatement(db).Query()
 	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading links", err)
+		return pages.Fail("error while loading links", err)
 	}
 
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

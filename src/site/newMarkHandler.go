@@ -61,7 +61,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	masteryMap := make(map[string]*core.Mastery)
 	err = core.LoadMasteries(db, u, masteryMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Load masteries failed: %v", err)
+		return pages.Fail("Load masteries failed: %v", err)
 	}
 
 	var markId int64
@@ -131,7 +131,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if err != nil {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 	markIdStr := fmt.Sprintf("%d", markId)
 
@@ -139,7 +139,7 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if autoProcessed {
 		err = EnqueueNewMarkUpdateTask(params, markIdStr, data.PageId, markAutoProcessDelay)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue an updateTask", err)
+			return pages.Fail("Couldn't enqueue an updateTask", err)
 		}
 	}
 
@@ -148,12 +148,12 @@ func newMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["markId"] = markIdStr
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 func EnqueueNewMarkUpdateTask(params *pages.HandlerParams, markId string, pageId string, delay int) error {

@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -31,7 +32,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var data dashboardPageJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// Options to load the pages with
@@ -41,7 +42,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	_, err = core.LoadAllDomainIds(db, returnData.PageMap)
 	if err != nil {
-		return pages.HandlerErrorFail("Error while loading domain ids", err)
+		return pages.Fail("Error while loading domain ids", err)
 	}
 
 	// Load recently created by me comment ids
@@ -58,7 +59,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["recentlyCreatedCommentIds"], err =
 		core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading recently created page ids", err)
+		return pages.Fail("error while loading recently created page ids", err)
 	}
 
 	// Load recently created and edited by me page ids
@@ -75,7 +76,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["recentlyEditedIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading recently edited page ids", err)
+		return pages.Fail("error while loading recently edited page ids", err)
 	}
 
 	pagesWithDraftIds := make([]string, 0)
@@ -114,7 +115,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return nil
 	})
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading pages with drafts ids", err)
+		return pages.Fail("error while loading pages with drafts ids", err)
 	}
 	returnData.ResultMap["pagesWithDraftIds"] = pagesWithDraftIds
 
@@ -137,21 +138,21 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		LIMIT ?`, indexPanelLimit).ToStatement(db).Query()
 	returnData.ResultMap["mostTodosIds"], err = core.LoadPageIds(rows, returnData.PageMap, pageOptions)
 	if err != nil {
-		return pages.HandlerErrorFail("error while loading most todos page ids", err)
+		return pages.Fail("error while loading most todos page ids", err)
 	}
 
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	err = loadStats(db, returnData.ResultMap, u)
 	if err != nil {
-		return pages.HandlerErrorFail("error loading stats", err)
+		return pages.Fail("error loading stats", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }
 
 func loadStats(db *database.DB, resultMap map[string]interface{}, u *core.CurrentUser) error {

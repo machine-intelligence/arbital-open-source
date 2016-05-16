@@ -37,8 +37,8 @@ func userPopoverJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap(data.UserId, returnData.PageMap, core.IntrasitePopoverLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		pages.HandlerErrorFail("Pipeline error", err)
+		pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

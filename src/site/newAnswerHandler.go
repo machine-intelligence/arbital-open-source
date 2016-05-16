@@ -43,7 +43,7 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	page, err := core.LoadFullEdit(db, data.QuestionId, u, nil)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load page", err)
+		return pages.Fail("Couldn't load page", err)
 	}
 	if page.Type != core.QuestionPageType {
 		return pages.HandlerBadRequestFail("Adding answer to a non-question page", nil)
@@ -86,19 +86,19 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	// Load pages.
 	core.AddPageToMap(data.AnswerPageId, returnData.PageMap, core.AnswerLoadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
 	returnData.ResultMap["newAnswer"], err = core.LoadAnswer(db, fmt.Sprintf("%d", newId))
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load the new answer", err)
+		return pages.Fail("Couldn't load the new answer", err)
 	}
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

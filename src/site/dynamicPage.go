@@ -11,5 +11,5 @@ var (
 
 // dynamicPageRenderer renders the dynamic page.
 func dynamicPageRenderer(params *pages.HandlerParams) *pages.Result {
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

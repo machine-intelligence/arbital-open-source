@@ -42,7 +42,7 @@ func deleteSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		DELETE FROM subscriptions
 		WHERE userId=? AND toId=?`, u.Id, data.PageId)
 	if _, err := query.ToStatement(db).Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't delete a subscription", err)
+		return pages.Fail("Couldn't delete a subscription", err)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

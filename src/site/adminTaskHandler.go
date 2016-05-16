@@ -21,28 +21,28 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if task == "fixText" {
 		var task tasks.FixTextTask
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+			return pages.Fail("Couldn't enqueue a task", err)
 		}
 	} else if task == "populateElastic" {
 		var task tasks.PopulateElasticTask
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+			return pages.Fail("Couldn't enqueue a task", err)
 		}
 	} else if task == "updateMetadata" {
 		var task tasks.UpdateMetadataTask
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+			return pages.Fail("Couldn't enqueue a task", err)
 		}
 	} else if task == "propagateDomain" {
 		var task tasks.PropagateDomainTask
 		task.PageId = params.R.FormValue("pageId")
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+			return pages.Fail("Couldn't enqueue a task", err)
 		}
 	} else if task == "resetPasswords" {
 		var task tasks.ResetPasswordsTask
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+			return pages.Fail("Couldn't enqueue a task", err)
 		}
 	} else if task == "sendInvite" {
 		var task tasks.SendInviteTask
@@ -50,10 +50,10 @@ func adminTaskHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.ToEmail = "alexei.andreev@gmail.com"
 		task.DomainIds = []string{"1lw", "2v", "3d"}
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			return pages.HandlerErrorFail("Couldn't enqueue a task", err)
+			return pages.Fail("Couldn't enqueue a task", err)
 		}
 	} else {
-		return pages.HandlerErrorFail("Unknown ?task var", nil)
+		return pages.Fail("Unknown ?task var", nil)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

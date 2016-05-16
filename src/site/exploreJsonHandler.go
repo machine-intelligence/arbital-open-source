@@ -62,8 +62,8 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load pages.
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

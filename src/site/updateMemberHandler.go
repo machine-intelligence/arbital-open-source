@@ -47,7 +47,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		`).QueryRow(u.Id, data.GroupId)
 	found, err := row.Scan(&canAdmin)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for a group member", err)
+		return pages.Fail("Couldn't check for a group member", err)
 	} else if !found {
 		return pages.HandlerForbiddenFail("You don't have the permission to add a user", nil)
 	}
@@ -61,7 +61,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		`).QueryRow(data.UserId, data.GroupId)
 	found, err = row.Scan(&targetCanAdmin)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for target group member", err)
+		return pages.Fail("Couldn't check for target group member", err)
 	} else if !found {
 		return pages.HandlerForbiddenFail("Target member not found", nil)
 	}
@@ -79,7 +79,7 @@ func updateMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmap["canAdmin"] = data.CanAdmin
 	statement := db.NewReplaceStatement("groupMembers", hashmap)
 	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't update a member", err)
+		return pages.Fail("Couldn't update a member", err)
 	}
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

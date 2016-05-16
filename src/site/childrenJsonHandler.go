@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -26,10 +27,10 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var data childrenJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.ParentId) {
-		return pages.HandlerBadRequestFail("Need a valid parentId", err)
+		return pages.Fail("Need a valid parentId", nil).Status(http.StatusBadRequest)
 	}
 
 	returnData := core.NewHandlerData(params.U)
@@ -43,10 +44,10 @@ func childrenJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap(data.ParentId, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Pipeline error", err)
+		return pages.Fail("Pipeline error", err)
 	}
 	// Remove parent, since we only want to return children.
 	delete(returnData.PageMap, data.ParentId)
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

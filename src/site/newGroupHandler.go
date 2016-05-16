@@ -56,7 +56,7 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return core.NewGroup(tx, groupId, u.Id, data.Name, data.Alias)
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
 	if data.IsDomain {
@@ -68,5 +68,5 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

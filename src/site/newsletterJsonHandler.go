@@ -22,9 +22,9 @@ func newsletterJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if u.Email != "" {
 		u.MailchimpInterests, err = mailchimp.GetInterests(c, u.Email)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't load mailchimp subscriptions", err)
+			return pages.Fail("Couldn't load mailchimp subscriptions", err)
 		}
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

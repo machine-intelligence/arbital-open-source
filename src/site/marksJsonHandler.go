@@ -43,7 +43,7 @@ func marksJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageToMap(data.PageId, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load pages", err)
+		return pages.Fail("Couldn't load pages", err)
 	}
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

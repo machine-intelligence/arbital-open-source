@@ -57,7 +57,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		WHERE email=?`).QueryRow(data.ToEmail)
 	_, err = row.Scan(&inviteeUserId)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't retrieve a user", err)
+		return pages.Fail("Couldn't retrieve a user", err)
 	}
 
 	// Create invite map
@@ -79,13 +79,13 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		AND toEmail=?`, data.ToEmail)
 	existingInvites, err := core.LoadInvitesWhere(db, wherePart)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't load sent invites", err)
+		return pages.Fail("Couldn't load sent invites", err)
 	}
 	for _, existingInvite := range existingInvites {
 		delete(inviteMap, existingInvite.DomainId)
 	}
 	if len(inviteMap) <= 0 {
-		return pages.StatusOK(returnData)
+		return pages.Success(returnData)
 	}
 
 	// Begin the transaction.
@@ -144,8 +144,8 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
-	return pages.StatusOK(returnData)
+	return pages.Success(returnData)
 }

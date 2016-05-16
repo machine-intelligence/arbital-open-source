@@ -53,7 +53,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		`).QueryRow(u.Id, data.GroupId)
 	found, err = row.Scan(&blank)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for a group member", err)
+		return pages.Fail("Couldn't check for a group member", err)
 	} else if !found {
 		return pages.HandlerForbiddenFail("You don't have the permission to add a user", nil)
 	}
@@ -67,7 +67,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		WHERE id=? OR email=?`).QueryRow(data.UserInput, data.UserInput)
 	found, err = row.Scan(&newMemberId)
 	if err != nil {
-		return pages.HandlerErrorFail("Couldn't check for a user", err)
+		return pages.Fail("Couldn't check for a user", err)
 	}
 
 	if !found {
@@ -78,9 +78,9 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 			WHERE alias=?`, data.UserInput).ToStatement(db).QueryRow().Scan(&newMemberId)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't check for a user", err)
+			return pages.Fail("Couldn't check for a user", err)
 		} else if !found {
-			return pages.HandlerErrorFail("Couldn't find the user", nil)
+			return pages.Fail("Couldn't find the user", nil)
 		}
 	}
 
@@ -91,7 +91,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	hashmap["createdAt"] = database.Now()
 	statement := db.NewInsertStatement("groupMembers", hashmap)
 	if _, err = statement.Exec(); err != nil {
-		return pages.HandlerErrorFail("Couldn't add a member", err)
+		return pages.Fail("Couldn't add a member", err)
 	}
 
 	// Create a task to do further processing
@@ -104,5 +104,5 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }

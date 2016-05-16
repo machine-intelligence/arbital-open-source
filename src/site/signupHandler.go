@@ -51,18 +51,18 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Convert FB code token to access token + user id
 		data.FbAccessToken, err = facebook.ProcessCodeToken(c, data.FbCodeToken, data.FbRedirectUrl)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't process FB code token", err)
+			return pages.Fail("Couldn't process FB code token", err)
 		}
 		data.FbUserId, err = facebook.ProcessAccessToken(c, data.FbAccessToken)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't process FB token", err)
+			return pages.Fail("Couldn't process FB token", err)
 		}
 	}
 	if len(data.FbAccessToken) > 0 && len(data.FbUserId) >= 0 {
 		// Get data from FB
 		account, err := stormpath.CreateNewFbUser(c, data.FbAccessToken)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't create a new user", err)
+			return pages.Fail("Couldn't create a new user", err)
 		}
 		data.Email = account.Email
 		data.FirstName = account.GivenName
@@ -71,7 +71,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Set the cookie
 		_, err = core.SaveCookie(params.W, params.R, data.Email)
 		if err != nil {
-			return pages.HandlerErrorFail("Couldn't save a cookie", err)
+			return pages.Fail("Couldn't save a cookie", err)
 		}
 	} else if len(data.Email) > 0 && len(data.FirstName) > 0 && len(data.LastName) > 0 && len(data.Password) > 0 {
 		// Valid request
@@ -87,7 +87,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		FROM users
 		WHERE email=?`).QueryRow(data.Email).Scan(&existingId, &existingFbUserId)
 	if err != nil {
-		return pages.HandlerErrorFail("Error checking for existing user", err)
+		return pages.Fail("Error checking for existing user", err)
 	}
 	if exists {
 		if existingFbUserId != data.FbUserId {
@@ -97,10 +97,10 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			hashmap["fbUserId"] = data.FbUserId
 			statement := db.NewInsertStatement("users", hashmap, "fbUserId")
 			if _, err := statement.Exec(); err != nil {
-				return pages.HandlerErrorFail("Couldn't update user's record", err)
+				return pages.Fail("Couldn't update user's record", err)
 			}
 		}
-		return pages.StatusOK(nil)
+		return pages.Success(nil)
 	}
 
 	// Compute user's page alias and prevent collisions
@@ -123,7 +123,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				WHERE type=?`, core.GroupPageType).Add(`
 				AND alias=?`, alias).ToStatement(db).QueryRow().Scan(&ignore)
 		if err != nil {
-			return pages.HandlerErrorFail("Error checking for existing alias", err)
+			return pages.Fail("Error checking for existing alias", err)
 		}
 		if !exists {
 			break
@@ -138,7 +138,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			// It could be that the user already has an account. Let's try to authenticate.
 			err2 := stormpath.AuthenticateUser(c, data.Email, data.Password)
 			if err2 != nil {
-				return pages.HandlerErrorFail("Couldn't create a new user", err)
+				return pages.Fail("Couldn't create a new user", err)
 			}
 		}
 	} else {
@@ -226,8 +226,8 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return "", nil
 	})
 	if errMessage != "" {
-		return pages.HandlerErrorFail(errMessage, err)
+		return pages.Fail(errMessage, err)
 	}
 
-	return pages.StatusOK(nil)
+	return pages.Success(nil)
 }
