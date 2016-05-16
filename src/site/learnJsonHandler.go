@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -94,7 +95,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var data learnJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	if len(data.PageAliases) <= 0 {
 		return pages.Success(nil)
@@ -133,7 +134,7 @@ func learnJsonHandler(params *pages.HandlerParams) *pages.Result {
 	for _, alias := range pageAliases {
 		pageId := aliasToIdMap[alias]
 		if !core.IsIdValid(pageId) {
-			return pages.HandlerBadRequestFail(fmt.Sprintf("Invalid page id: %s", pageId), nil)
+			return pages.Fail(fmt.Sprintf("Invalid page id: %s", pageId), nil).Status(http.StatusBadRequest)
 		}
 		pageIds = append(pageIds, pageId)
 		optionsMap[pageId] = aliasOptionsMap[alias]

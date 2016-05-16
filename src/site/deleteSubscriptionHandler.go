@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -32,10 +33,10 @@ func deleteSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Page id has to be set", err)
+		return pages.Fail("Page id has to be set", err).Status(http.StatusBadRequest)
 	}
 
 	query := database.NewQuery(`

@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -38,7 +39,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	// Load the mark
@@ -48,7 +49,7 @@ func updateMarkHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't load the mark", err)
 	} else if mark.Type == "" {
-		return pages.HandlerBadRequestFail("No such mark", nil)
+		return pages.Fail("No such mark", nil).Status(http.StatusBadRequest)
 	}
 
 	// Update existing mark

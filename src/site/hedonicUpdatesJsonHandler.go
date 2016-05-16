@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -36,13 +37,13 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data hedonicUpdatesJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// Load new likes on my pages and comments
 	returnData.ResultMap["newLikes"], err = loadNewLikes(db, u, returnData.PageMap)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Error loading new likes", err)
+		return pages.Fail("Error loading new likes", err).Status(http.StatusBadRequest)
 	}
 
 	// Load pages

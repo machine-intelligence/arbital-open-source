@@ -4,10 +4,12 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 // newAnswerData contains data given to us in the request.
@@ -35,10 +37,10 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.QuestionId) || !core.IsIdValid(data.AnswerPageId) {
-		return pages.HandlerBadRequestFail("One of the passed page ids is invalid", nil)
+		return pages.Fail("One of the passed page ids is invalid", nil).Status(http.StatusBadRequest)
 	}
 
 	page, err := core.LoadFullEdit(db, data.QuestionId, u, nil)
@@ -46,14 +48,14 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load page", err)
 	}
 	if page.Type != core.QuestionPageType {
-		return pages.HandlerBadRequestFail("Adding answer to a non-question page", nil)
+		return pages.Fail("Adding answer to a non-question page", nil).Status(http.StatusBadRequest)
 	}
 	if !page.Permissions.Edit.Has {
-		return pages.HandlerBadRequestFail(page.Permissions.Edit.Reason, nil)
+		return pages.Fail(page.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
 	var newId int64
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Add the answer
 		hashmap := make(database.InsertMap)
 		hashmap["questionId"] = data.QuestionId
@@ -63,12 +65,12 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement := db.NewInsertStatement("answers", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {
-			return "Couldn't insert into DB", err
+			return sessions.NewError("Couldn't insert into DB", err)
 		}
 
 		newId, err = resp.LastInsertId()
 		if err != nil {
-			return "Couldn't get inserted id", err
+			return sessions.NewError("Couldn't get inserted id", err)
 		}
 
 		// Update change logs
@@ -81,12 +83,12 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["newSettingsValue"] = "new"
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
-			return "Couldn't add to changeLogs", err
+			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// Load pages.

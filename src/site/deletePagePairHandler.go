@@ -3,10 +3,12 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -37,14 +39,14 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data deletePagePairData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
-		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", err)
+		return pages.Fail("ParentId and ChildId have to be set", err).Status(http.StatusBadRequest)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Incorrect type", err)
+		return pages.Fail("Incorrect type", err).Status(http.StatusBadRequest)
 	}
 
 	// Load pages.
@@ -76,15 +78,15 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
-		return pages.HandlerForbiddenFail(permissionError, nil)
+		return pages.Fail(permissionError, nil).Status(http.StatusForbidden)
 	}
 
 	// Do it!
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		return deletePagePair(tx, u.Id, data.Type, parent, child)
 	})
-	if err != nil {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	if data.Type == core.ParentPagePairType || data.Type == core.TagPagePairType {
@@ -99,13 +101,13 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 }
 
 // deletePagePair deletes the parent-child pagePair of the given type.
-func deletePagePair(tx *database.Tx, userId string, pairType string, parent *core.Page, child *core.Page) (string, error) {
+func deletePagePair(tx *database.Tx, userId string, pairType string, parent *core.Page, child *core.Page) sessions.Error {
 	// Delete the pair
 	query := tx.DB.NewStatement(`
 			DELETE FROM pagePairs
 			WHERE parentId=? AND childId=? AND type=?`).WithTx(tx)
 	if _, err := query.Exec(parent.PageId, child.PageId, pairType); err != nil {
-		return "Couldn't delete a page pair", err
+		return sessions.NewError("Couldn't delete a page pair", err)
 	}
 
 	childIsLive := child.WasPublished && !child.IsDeleted
@@ -130,11 +132,11 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		result, err := statement.Exec()
 		if err != nil {
-			return "Couldn't insert new child change log", err
+			return sessions.NewError("Couldn't insert new child change log", err)
 		}
 		newChildChangeLogId, err = result.LastInsertId()
 		if err != nil {
-			return "Couldn't get changeLogId", err
+			return sessions.NewError("Couldn't get changeLogId", err)
 		}
 	}
 
@@ -153,11 +155,11 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		result, err := statement.Exec()
 		if err != nil {
-			return "Couldn't insert new child change log", err
+			return sessions.NewError("Couldn't insert new child change log", err)
 		}
 		newParentChangeLogId, err = result.LastInsertId()
 		if err != nil {
-			return "Couldn't get changeLogId", err
+			return sessions.NewError("Couldn't get changeLogId", err)
 		}
 	}
 
@@ -167,5 +169,5 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 			parent.PageId, child.PageId, newParentChangeLogId, newChildChangeLogId)
 	}
 
-	return "", nil
+	return nil
 }

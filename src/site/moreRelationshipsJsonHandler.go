@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -32,10 +33,10 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Invalid page id", nil)
+		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load additional info for all pages

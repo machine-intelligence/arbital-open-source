@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/pages"
 	"zanaduu3/src/tasks"
@@ -30,10 +31,10 @@ func feedbackHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data feedbackData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if data.Text == "" {
-		return pages.HandlerBadRequestFail("No text specified", nil)
+		return pages.Fail("No text specified", nil).Status(http.StatusBadRequest)
 	}
 
 	var task tasks.SendFeedbackEmailTask

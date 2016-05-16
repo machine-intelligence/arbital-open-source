@@ -3,10 +3,12 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 // newSubscriptionData contains the data we get in the request.
@@ -31,22 +33,22 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data newSubscriptionData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Page id has to be set", err)
+		return pages.Fail("Page id has to be set", err).Status(http.StatusBadRequest)
 	}
 
-	errorMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		return addSubscription(tx, u.Id, data.PageId)
 	})
-	if errorMessage != "" {
-		return pages.Fail(errorMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 	return pages.Success(nil)
 }
 
-func addSubscription(tx *database.Tx, userId string, toPageId string) (string, error) {
+func addSubscription(tx *database.Tx, userId string, toPageId string) sessions.Error {
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = userId
 	hashmap["toId"] = toPageId
@@ -54,7 +56,7 @@ func addSubscription(tx *database.Tx, userId string, toPageId string) (string, e
 	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
 	_, err := statement.Exec()
 	if err != nil {
-		return "Couldn't subscribe", err
+		return sessions.NewError("Couldn't subscribe", err)
 	}
-	return "", nil
+	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 	"sort"
 	"strings"
 
@@ -45,7 +46,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error decoding JSON", err)
 	}
 	if data.Term == "" {
-		return pages.HandlerBadRequestFail("No search term specified", nil)
+		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
 	groupIds := make([]string, 0)

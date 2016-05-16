@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -30,10 +31,10 @@ func marksJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var data marksJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Need a valid pageId", err)
+		return pages.Fail("Need a valid pageId", err).Status(http.StatusBadRequest)
 	}
 
 	// Load the marks

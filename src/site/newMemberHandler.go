@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -34,13 +35,13 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data newMemberData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.GroupId) {
-		return pages.HandlerBadRequestFail("GroupId has to be set", nil)
+		return pages.Fail("GroupId has to be set", nil).Status(http.StatusBadRequest)
 	}
 	if data.UserInput == "" {
-		return pages.HandlerBadRequestFail("Must provide an identifier for the new user", nil)
+		return pages.Fail("Must provide an identifier for the new user", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check to see if this user can add members.
@@ -55,7 +56,7 @@ func newMemberHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't check for a group member", err)
 	} else if !found {
-		return pages.HandlerForbiddenFail("You don't have the permission to add a user", nil)
+		return pages.Fail("You don't have the permission to add a user", nil).Status(http.StatusForbidden)
 	}
 
 	var newMemberId string

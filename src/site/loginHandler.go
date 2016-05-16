@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -33,10 +34,10 @@ func loginHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data loginHandlerData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if len(data.Email) <= 0 || len(data.Password) <= 0 {
-		return pages.HandlerBadRequestFail("Email and password have to be specified", nil)
+		return pages.Fail("Email and password have to be specified", nil).Status(http.StatusBadRequest)
 	}
 
 	err = stormpath.AuthenticateUser(params.C, data.Email, data.Password)

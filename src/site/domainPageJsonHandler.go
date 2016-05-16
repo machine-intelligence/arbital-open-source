@@ -4,6 +4,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -35,7 +36,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
 	// Get constraint
@@ -53,7 +54,7 @@ func domainPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		returnData.ResultMap["domainId"] = domainId
 	} else {
 		if !core.IsIdValid(params.PrivateGroupId) {
-			return pages.HandlerBadRequestFail("Need domain alias or need to be in a private domain", err)
+			return pages.Fail("Need domain alias or need to be in a private domain", err).Status(http.StatusBadRequest)
 		}
 		core.AddPageToMap(params.PrivateGroupId, returnData.PageMap, core.PrimaryPageLoadOptions)
 		constraintPart = database.NewQuery("AND pi.seeGroupId=?", params.PrivateGroupId)

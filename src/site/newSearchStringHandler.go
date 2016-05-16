@@ -4,10 +4,12 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -36,17 +38,17 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Invalid page id", nil)
+		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if len(data.Text) <= 0 {
-		return pages.HandlerBadRequestFail("Invalid text", nil)
+		return pages.Fail("Invalid text", nil).Status(http.StatusBadRequest)
 	}
 
 	var newId int64
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Add the new search string
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = data.PageId
@@ -56,12 +58,12 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement := db.NewInsertStatement("searchStrings", hashmap).WithTx(tx)
 		resp, err := statement.Exec()
 		if err != nil {
-			return "Couldn't insert into DB", err
+			return sessions.NewError("Couldn't insert into DB", err)
 		}
 
 		newId, err = resp.LastInsertId()
 		if err != nil {
-			return "Couldn't get inserted id", err
+			return sessions.NewError("Couldn't get inserted id", err)
 		}
 
 		// Update change logs
@@ -73,12 +75,12 @@ func newSearchStringHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["newSettingsValue"] = data.Text
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
-			return "Couldn't add to changeLogs", err
+			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// Update Elastic

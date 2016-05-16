@@ -3,10 +3,12 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -38,25 +40,25 @@ func newGroupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if data.Name == "" {
-		return pages.HandlerBadRequestFail("Name has to be set", nil)
+		return pages.Fail("Name has to be set", nil).Status(http.StatusBadRequest)
 	}
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		groupId, err := core.GetNextAvailableId(tx)
 		if err != nil {
-			return "Couldn't get next available Id", err
+			return sessions.NewError("Couldn't get next available Id", err)
 		}
 		if data.IsDomain {
 			return core.NewDomain(tx, groupId, u.Id, data.Name, data.Alias)
 		}
 		return core.NewGroup(tx, groupId, u.Id, data.Name, data.Alias)
 	})
-	if errMessage != "" {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	if data.IsDomain {

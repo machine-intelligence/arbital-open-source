@@ -41,7 +41,7 @@ func reportMonitoring(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.Success {
+	if resp.StatusCode != http.StatusOK {
 		c.Errorf("failed to report monitoring: %q from API %q\n", resp.Status, monitoringAPI)
 		return
 	}

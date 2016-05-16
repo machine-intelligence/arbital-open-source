@@ -5,6 +5,7 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"zanaduu3/src/elastic"
@@ -26,7 +27,7 @@ func parentsSearchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error decoding JSON", err)
 	}
 	if data.Term == "" {
-		return pages.HandlerBadRequestFail("No search term specified", nil)
+		return pages.Fail("No search term specified", nil).Status(http.StatusBadRequest)
 	}
 
 	groupIds := []string{params.PrivateGroupId}

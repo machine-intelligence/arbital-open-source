@@ -3,10 +3,12 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -35,15 +37,15 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data newInviteData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	for _, domainId := range data.DomainIds {
 		if !core.IsIdValid(domainId) {
-			return pages.HandlerBadRequestFail("One of the domainIds is invalid", nil)
+			return pages.Fail("One of the domainIds is invalid", nil).Status(http.StatusBadRequest)
 		}
 	}
 	if data.ToEmail == "" {
-		return pages.HandlerBadRequestFail("No invite email given", nil)
+		return pages.Fail("No invite email given", nil).Status(http.StatusBadRequest)
 	}
 
 	// Always send an invite to the general domain
@@ -89,7 +91,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 
 		inviteDomainIds := make([]string, 0)
 		for domainId, invite := range inviteMap {
@@ -110,7 +112,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 			statement := db.NewInsertStatement("invites", hashmap).WithTx(tx)
 			if _, err = statement.Exec(); err != nil {
-				return "Couldn't add row to invites table", err
+				return sessions.NewError("Couldn't add row to invites table", err)
 			}
 
 			// If the user already exists, send them an update
@@ -126,7 +128,7 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["unseen"] = true
 				statement := db.NewInsertStatement("updates", hashmap).WithTx(tx)
 				if _, err = statement.Exec(); err != nil {
-					return "Couldn't add a new update for the invitee", err
+					return sessions.NewError("Couldn't add a new update for the invitee", err)
 				}
 			}
 		}
@@ -138,13 +140,13 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			task.ToEmail = data.ToEmail
 			task.DomainIds = inviteDomainIds
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
-				return "Couldn't enqueue a task", err
+				return sessions.NewError("Couldn't enqueue a task", err)
 			}
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	return pages.Success(returnData)

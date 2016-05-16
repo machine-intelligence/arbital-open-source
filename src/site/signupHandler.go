@@ -4,12 +4,14 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"regexp"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/facebook"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/stormpath"
 )
 
@@ -45,7 +47,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data signupHandlerData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if len(data.FbCodeToken) > 0 && len(data.FbRedirectUrl) > 0 {
 		// Convert FB code token to access token + user id
@@ -76,7 +78,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if len(data.Email) > 0 && len(data.FirstName) > 0 && len(data.LastName) > 0 && len(data.Password) > 0 {
 		// Valid request
 	} else {
-		return pages.HandlerBadRequestFail("A required field is not set.", nil)
+		return pages.Fail("A required field is not set.", nil).Status(http.StatusBadRequest)
 	}
 
 	// Check if this user already exists.
@@ -108,7 +110,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	aliasBase := fmt.Sprintf("%s%s", data.FirstName, data.LastName)
 	aliasBase = cleanupRegexp.ReplaceAllLiteralString(aliasBase, "")
 	if len(aliasBase) <= 3 {
-		return pages.HandlerBadRequestFail("Not enough good characters for an alias", nil)
+		return pages.Fail("Not enough good characters for an alias", nil).Status(http.StatusBadRequest)
 	} else if '0' <= aliasBase[0] && aliasBase[0] <= '9' {
 		// Only ids can start with numbers
 		aliasBase = "a" + aliasBase
@@ -146,11 +148,11 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 
 		userId, err := core.GetNextAvailableId(tx)
 		if err != nil {
-			return "", fmt.Errorf("Couldn't get last insert id for new user: %v", err)
+			return sessions.NewError("Couldn't get last insert id for new user", err)
 		}
 
 		// Create new user
@@ -167,14 +169,14 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		statement := tx.DB.NewInsertStatement("users", hashmap).WithTx(tx)
 		_, err = statement.Exec()
 		if err != nil {
-			return "Couldn't update user's record", err
+			return sessions.NewError("Couldn't update user's record", err)
 		}
 
 		// Create new group for the user.
 		fullName := fmt.Sprintf("%s %s", data.FirstName, data.LastName)
-		errorMessage, err := core.NewUserGroup(tx, userId, fullName, alias)
-		if errorMessage != "" {
-			return errorMessage, err
+		err2 := core.NewUserGroup(tx, userId, fullName, alias)
+		if err2 != nil {
+			return err2
 		}
 
 		// Set the user value in params, since some internal handlers we might call
@@ -187,20 +189,20 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			statement = database.NewQuery(`
 				UPDATE userMasteryPairs SET userId=? WHERE userId=?`, userId, u.SessionId).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
-				return "Couldn't delete existing page summaries", err
+				return sessions.NewError("Couldn't delete existing page summaries", err)
 			}
 
 			statement = database.NewQuery(`
 				UPDATE userPageObjectPairs SET userId=? WHERE userId=?`, userId, u.SessionId).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
-				return "Couldn't delete existing page summaries", err
+				return sessions.NewError("Couldn't delete existing page summaries", err)
 			}
 		}
 
 		// Signup for the user's own page
-		errMessage, err := addSubscription(tx, userId, userId)
-		if errMessage != "" {
-			return errMessage, err
+		err2 = addSubscription(tx, userId, userId)
+		if err2 != nil {
+			return err2
 		}
 
 		// Add an update for each invite that will be claimed
@@ -211,7 +213,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			FROM invites
 			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't insert updates for invites", err
+			return sessions.NewError("Couldn't insert updates for invites", err)
 		}
 
 		// Claim all existing invites for this user
@@ -220,13 +222,13 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			SET toUserId=?,claimedAt=?`, u.Id, database.Now()).Add(`
 			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't delete existing page summaries", err
+			return sessions.NewError("Couldn't delete existing page summaries", err)
 		}
 
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	return pages.Success(nil)

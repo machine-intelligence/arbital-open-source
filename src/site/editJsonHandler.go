@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
@@ -30,7 +31,7 @@ func editJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var data editJsonData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode request", err)
+		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 	return editJsonInternalHandler(params, &data)
 }
@@ -74,9 +75,9 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	}
 	if p.SeeGroupId != params.PrivateGroupId {
 		if core.IsIdValid(p.SeeGroupId) {
-			return pages.HandlerBadRequestFail("Trying to edit a private page. Go to the corresponding group", err)
+			return pages.Fail("Trying to edit a private page. Go to the corresponding group", err).Status(http.StatusBadRequest)
 		} else {
-			return pages.HandlerBadRequestFail("Trying to edit a public page. Go to arbital.com", err)
+			return pages.Fail("Trying to edit a public page. Go to arbital.com", err).Status(http.StatusBadRequest)
 		}
 	}
 	if !p.IsAutosave && !p.IsSnapshot {

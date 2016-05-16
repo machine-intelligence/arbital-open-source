@@ -3,10 +3,12 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 const (
@@ -37,29 +39,29 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if data.LikeableType == PageLikeableType && !core.IsIdValid(data.Id) {
-		return pages.HandlerBadRequestFail("Invalid page id", nil)
+		return pages.Fail("Invalid page id", nil).Status(http.StatusBadRequest)
 	}
 	if data.Value < -1 || data.Value > 1 {
-		return pages.HandlerBadRequestFail("Value has to be -1, 0, or 1", nil)
+		return pages.Fail("Value has to be -1, 0, or 1", nil).Status(http.StatusBadRequest)
 	}
 	if !(data.LikeableType == ChangelogLikeableType || data.LikeableType == PageLikeableType) {
-		return pages.HandlerBadRequestFail("LikeableType has to be 'changelog' or 'page'", nil)
+		return pages.Fail("LikeableType has to be 'changelog' or 'page'", nil).Status(http.StatusBadRequest)
 	}
 
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Snapshot the state of the user's trust.
 		snapshotId, err := InsertUserTrustSnapshots(tx, u)
 		if err != nil {
-			return "Couldn't insert userTrustSnapshot", err
+			return sessions.NewError("Couldn't insert userTrustSnapshot", err)
 		}
 
 		// Get the likeableId of this likeable.
 		likeableId, err := GetOrCreateLikeableId(tx, data.LikeableType, data.Id)
 		if err != nil {
-			return "Couldn't get the likeableId", err
+			return sessions.NewError("Couldn't get the likeableId", err)
 		}
 
 		// Create/update the like.
@@ -70,16 +72,15 @@ func newLikeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["createdAt"] = database.Now()
 		hashmap["updatedAt"] = database.Now()
 		hashmap["userTrustSnapshotId"] = snapshotId
-		params.C.Debugf("================ %+v", hashmap)
 		statement := db.NewInsertStatement("likes", hashmap, "value", "updatedAt", "userTrustSnapshotId")
 		if _, err := statement.WithTx(tx).Exec(); err != nil {
-			return "Couldn't update/create a like", err
+			return sessions.NewError("Couldn't update/create a like", err)
 		}
 
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.Fail("Couldn't insert a like: "+errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	return pages.Success(nil)

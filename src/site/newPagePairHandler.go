@@ -4,10 +4,12 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -33,7 +35,7 @@ func newPagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data newPagePairData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	return newPagePairHandlerInternal(params, &data)
@@ -47,16 +49,16 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 	// Error checking
 	if !core.IsIdValid(data.ParentId) || !core.IsIdValid(data.ChildId) {
-		return pages.HandlerBadRequestFail("ParentId and ChildId have to be set", nil)
+		return pages.Fail("ParentId and ChildId have to be set", nil).Status(http.StatusBadRequest)
 	}
 	if data.ParentId == data.ChildId &&
 		data.Type != core.SubjectPagePairType &&
 		data.Type != core.RequirementPagePairType {
-		return pages.HandlerBadRequestFail("ParentId equals ChildId", nil)
+		return pages.Fail("ParentId equals ChildId", nil).Status(http.StatusBadRequest)
 	}
 	data.Type, err = core.CorrectPagePairType(data.Type)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Incorrect type", err)
+		return pages.Fail("Incorrect type", err).Status(http.StatusBadRequest)
 	}
 
 	// Load existing connections
@@ -103,7 +105,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if err != nil {
 		return pages.Fail("Error verifying permissions", err)
 	} else if permissionError != "" {
-		return pages.HandlerForbiddenFail(permissionError, nil)
+		return pages.Fail(permissionError, nil).Status(http.StatusForbidden)
 	}
 
 	// Ids of the changelogs created for this pagePair
@@ -111,7 +113,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	var newParentChangeLogId int64
 
 	// Do it!
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Create new page pair
 		hashmap := make(database.InsertMap)
 		hashmap["parentId"] = data.ParentId
@@ -119,35 +121,35 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		hashmap["type"] = data.Type
 		statement := tx.DB.NewInsertStatement("pagePairs", hashmap, "parentId").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
-			return "Couldn't insert pagePair", err
+			return sessions.NewError("Couldn't insert pagePair", err)
 		}
 
 		if child.WasPublished && !child.IsDeleted {
 			newChildChangeLogId, err = addNewChildToChangelog(tx, u.Id, data.Type, child.Type, data.ParentId, parent.Edit,
 				data.ChildId, child.WasPublished, child.IsDeleted)
 			if err != nil {
-				return "Couldn't add to changelog of parent", err
+				return sessions.NewError("Couldn't add to changelog of parent", err)
 			}
 		}
 		if parent.WasPublished && !parent.IsDeleted {
 			newParentChangeLogId, err = addNewParentToChangelog(tx, u.Id, data.Type, child.Type, data.ChildId, child.Edit,
 				data.ParentId, parent.WasPublished, parent.IsDeleted)
 			if err != nil {
-				return "Couldn't add to changelog of child", err
+				return sessions.NewError("Couldn't add to changelog of child", err)
 			}
 		}
-		return "", nil
+		return nil
 	})
-	if err != nil {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// Generate updates for users who are subscribed to the parent/child pages.
 	if parent.Type != core.CommentPageType && child.Type != core.CommentPageType &&
 		parent.Alias != "" && child.Alias != "" && parent.IsDeleted && !child.IsDeleted {
 
-		tasks.EnqueueNewRelationshipUpdates(c, u.Id, data.Type, child.Type, parent.PageId, child.PageId, newParentChangeLogId,
-			newChildChangeLogId)
+		tasks.EnqueueNewRelationshipUpdates(c, u.Id, data.Type, child.Type, parent.PageId, child.PageId,
+			newParentChangeLogId, newChildChangeLogId)
 
 		if data.Type == core.ParentPagePairType {
 			// Create a task to propagate the domain change to all children

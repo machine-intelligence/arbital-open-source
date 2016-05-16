@@ -3,6 +3,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -33,10 +34,10 @@ func newVoteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var task newVoteData
 	err := decoder.Decode(&task)
 	if err != nil || !core.IsIdValid(task.PageId) {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if task.Value < 0 || task.Value > 100 {
-		return pages.HandlerBadRequestFail("Value has to be [0, 100]", nil)
+		return pages.Fail("Value has to be [0, 100]", nil).Status(http.StatusBadRequest)
 	}
 
 	// Get the last vote.

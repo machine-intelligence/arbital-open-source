@@ -4,6 +4,7 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
@@ -33,7 +34,7 @@ func discardPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data discardPageData
 	err := decoder.Decode(&data)
 	if err != nil || !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	// Delete the edit

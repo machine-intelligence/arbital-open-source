@@ -3,10 +3,12 @@ package site
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -34,10 +36,10 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var data mergeQuestionsData
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 	if !core.IsIdValid(data.QuestionId) || !core.IsIdValid(data.IntoQuestionId) {
-		return pages.HandlerBadRequestFail("One of the ids is invalid", nil)
+		return pages.Fail("One of the ids is invalid", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load the page
@@ -49,20 +51,20 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't load questions", err)
 	}
 	if question.Type != core.QuestionPageType {
-		return pages.HandlerBadRequestFail("QuestionId isn't a question", nil)
+		return pages.Fail("QuestionId isn't a question", nil).Status(http.StatusBadRequest)
 	}
 	if intoQuestion.Type != core.QuestionPageType {
-		return pages.HandlerBadRequestFail("IntoQuestionId isn't a question", nil)
+		return pages.Fail("IntoQuestionId isn't a question", nil).Status(http.StatusBadRequest)
 	}
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		statement := database.NewQuery(`
 			UPDATE answers
 			SET questionId=?`, data.IntoQuestionId).Add(`
 			WHERE questionId=?`, data.QuestionId).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't update answers", err
+			return sessions.NewError("Couldn't update answers", err)
 		}
 
 		statement = database.NewQuery(`
@@ -70,7 +72,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			SET resolvedPageId=?`, data.IntoQuestionId).Add(`
 			WHERE resolvedPageId=?`, data.QuestionId).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't update answers", err
+			return sessions.NewError("Couldn't update answers", err)
 		}
 
 		statement = database.NewQuery(`
@@ -78,7 +80,7 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			SET mergedInto=?`, data.IntoQuestionId).Add(`
 			WHERE pageId=?`, data.QuestionId).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {
-			return "Couldn't update pageInfos", err
+			return sessions.NewError("Couldn't update pageInfos", err)
 		}
 
 		// Delete the question page
@@ -88,8 +90,8 @@ func mergeQuestionsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 		return deletePageTx(tx, params, deletePageData, question)
 	})
-	if err != nil {
-		return pages.Fail(errMessage, err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// Generate "merge" update for users who are subscribed to either of the questions

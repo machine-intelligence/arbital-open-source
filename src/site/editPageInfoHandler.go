@@ -4,12 +4,14 @@ package site
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -47,11 +49,11 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	decoder := json.NewDecoder(params.R.Body)
 	err := decoder.Decode(&data)
 	if err != nil {
-		return pages.HandlerBadRequestFail("Couldn't decode json", err)
+		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
 	if !core.IsIdValid(data.PageId) {
-		return pages.HandlerBadRequestFail("No pageId specified", nil)
+		return pages.Fail("No pageId specified", nil).Status(http.StatusBadRequest)
 	}
 
 	// Load the published page.
@@ -74,35 +76,35 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Error checking.
 	// Check the group settings
 	if oldPage.SeeGroupId != data.SeeGroupId && oldPage.WasPublished {
-		return pages.HandlerBadRequestFail("Editing this page in incorrect private group", nil)
+		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
 	if core.IsIdValid(data.SeeGroupId) && !u.IsMemberOfGroup(data.SeeGroupId) {
-		return pages.HandlerBadRequestFail("Don't have group permission to EVEN SEE this page", nil)
+		return pages.Fail("Don't have group permission to EVEN SEE this page", nil).Status(http.StatusBadRequest)
 	}
 	if core.IsIdValid(oldPage.EditGroupId) && !u.IsMemberOfGroup(oldPage.EditGroupId) {
-		return pages.HandlerBadRequestFail("Don't have group permission to edit this page", nil)
+		return pages.Fail("Don't have group permission to edit this page", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	data.Type, err = core.CorrectPageType(data.Type)
 	if err != nil {
-		return pages.HandlerBadRequestFail(err.Error(), nil)
+		return pages.Fail(err.Error(), nil).Status(http.StatusBadRequest)
 	}
 	if data.SortChildrenBy != core.LikesChildSortingOption &&
 		data.SortChildrenBy != core.RecentFirstChildSortingOption &&
 		data.SortChildrenBy != core.OldestFirstChildSortingOption &&
 		data.SortChildrenBy != core.AlphabeticalChildSortingOption {
-		return pages.HandlerBadRequestFail("Invalid sort children value", nil)
+		return pages.Fail("Invalid sort children value", nil).Status(http.StatusBadRequest)
 	}
 	if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
-		return pages.HandlerBadRequestFail("Invalid vote type value", nil)
+		return pages.Fail("Invalid vote type value", nil).Status(http.StatusBadRequest)
 	}
 	if data.IsEditorCommentIntention && data.Type != core.CommentPageType {
-		return pages.HandlerBadRequestFail("Can't set editor-comment for non-comments", nil)
+		return pages.Fail("Can't set editor-comment for non-comments", nil).Status(http.StatusBadRequest)
 	}
 
 	// Make sure the user has the right permissions to edit this page
 	if !oldPage.Permissions.Edit.Has {
-		return pages.HandlerBadRequestFail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil)
+		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
@@ -127,7 +129,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Make sure alias is valid
 	if strings.ToLower(data.Alias) == "www" {
-		return pages.HandlerBadRequestFail("Alias can't be 'www'", nil)
+		return pages.Fail("Alias can't be 'www'", nil).Status(http.StatusBadRequest)
 	} else if data.Type == core.GroupPageType || data.Type == core.DomainPageType {
 		data.Alias = oldPage.Alias
 	} else if data.Alias == "" {
@@ -172,7 +174,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	var changeLogIds []int64
 
 	// Begin the transaction.
-	errMessage, err := db.Transaction(func(tx *database.Tx) (string, error) {
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update pageInfos
 		hashmap := make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
@@ -189,12 +191,12 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["isEditorCommentIntention"] = data.IsEditorCommentIntention
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, hashmap.GetKeys()...).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
-			return "Couldn't update pageInfos", err
+			return sessions.NewError("Couldn't update pageInfos", err)
 		}
 
 		// Update change logs
 		if oldPage.WasPublished {
-			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (int64, string, error) {
+			updateChangeLog := func(changeType string, auxPageId string, oldSettingsValue string, newSettingsValue string) (int64, sessions.Error) {
 
 				hashmap = make(database.InsertMap)
 				hashmap["pageId"] = data.PageId
@@ -208,26 +210,26 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
 				result, err := statement.Exec()
 				if err != nil {
-					return 0, fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err
+					return 0, sessions.NewError(fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err)
 				}
 				changeLogId, err := result.LastInsertId()
 				if err != nil {
-					return 0, fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err
+					return 0, sessions.NewError(fmt.Sprintf("Couldn't insert new child change log for %s", changeType), err)
 				}
-				return changeLogId, "", nil
+				return changeLogId, nil
 			}
 
 			if data.Alias != oldPage.Alias {
-				changeLogId, errorMessage, err := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias)
-				if errorMessage != "" {
-					return errorMessage, err
+				changeLogId, err2 := updateChangeLog(core.NewAliasChangeLog, "", oldPage.Alias, data.Alias)
+				if err2 != nil {
+					return err2
 				}
 				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if data.SortChildrenBy != oldPage.SortChildrenBy {
-				changeLogId, errorMessage, err := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy)
-				if errorMessage != "" {
-					return errorMessage, err
+				changeLogId, err2 := updateChangeLog(core.NewSortChildrenByChangeLog, "", oldPage.SortChildrenBy, data.SortChildrenBy)
+				if err2 != nil {
+					return err2
 				}
 				changeLogIds = append(changeLogIds, changeLogId)
 			}
@@ -236,32 +238,32 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				if !hasVote {
 					changeType = core.TurnOffVoteChangeLog
 				}
-				changeLogId, errorMessage, err := updateChangeLog(changeType, "", strconv.FormatBool(oldPage.HasVote), strconv.FormatBool(hasVote))
-				if errorMessage != "" {
-					return errorMessage, err
+				changeLogId, err2 := updateChangeLog(changeType, "", strconv.FormatBool(oldPage.HasVote), strconv.FormatBool(hasVote))
+				if err2 != nil {
+					return err2
 				}
 				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if data.VoteType != oldPage.VoteType {
-				changeLogId, errorMessage, err := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
-				if errorMessage != "" {
-					return errorMessage, err
+				changeLogId, err2 := updateChangeLog(core.SetVoteTypeChangeLog, "", oldPage.VoteType, data.VoteType)
+				if err2 != nil {
+					return err2
 				}
 				changeLogIds = append(changeLogIds, changeLogId)
 			}
 			if data.EditGroupId != oldPage.EditGroupId {
-				changeLogId, errorMessage, err := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupId, oldPage.EditGroupId, data.EditGroupId)
-				if errorMessage != "" {
-					return errorMessage, err
+				changeLogId, err2 := updateChangeLog(core.NewEditGroupChangeLog, data.EditGroupId, oldPage.EditGroupId, data.EditGroupId)
+				if err2 != nil {
+					return err2
 				}
 				changeLogIds = append(changeLogIds, changeLogId)
 			}
 
 		}
-		return "", nil
+		return nil
 	})
-	if errMessage != "" {
-		return pages.Fail(fmt.Sprintf("Transaction failed: %s", errMessage), err)
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// === Once the transaction has succeeded, we can't really fail on anything
