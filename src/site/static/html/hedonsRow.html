@@ -1,0 +1,13 @@
+<div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
+	<div layout="row" layout-align-gt-sm="start center" flex>
+		<span>
+			{{getNames(newLike)}}
+			<arb-page-title page-id="{{newLike.pageId}}"
+				is-link="true"
+				flex></arb-page-title>
+		</span>
+	</div>
+	<div class="md-caption" layout="row" layout-align="start center">
+		<span ng-bind="::(newLike.createdAt | relativeDateTime)"></span>
+	</div>
+</div>

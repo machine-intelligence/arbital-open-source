@@ -517,8 +517,13 @@ arb-newsletter > .capped-body-width {
   margin-top: 7px;
   margin-bottom: 7px; }
 
-.unseen-update {
-  border-left: #E0F2F1 5px solid; }
+.unseen-update,
+arb-list-panel md-list-item.new-row {
+  border-left: #E0F2F1 10px solid; }
+
+arb-list-panel md-list-item.panels-list-item.ng-class {
+  margin-top: 0vh;
+  padding-top: 1vh; }
 
 #mc-signup .subscribe-header {
   margin-bottom: 0; }
