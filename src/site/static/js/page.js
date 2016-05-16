@@ -85,11 +85,6 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				}
 			};
 
-			// Check if this page is selected via URL hash
-			$scope.isSelected = function() {
-				return $location.hash() === 'subpage-' + $scope.page.pageId;
-			};
-
 			// Toggle between show delete answer buttons
 			$scope.showDeleteAnswer = false;
 			$scope.toggleDeleteAnswers = function() {

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a subpage.
-app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $mdMedia, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, pageService, userService, autocompleteService, RecursionHelper) {
 	return {
 		templateUrl: 'static/html/subpage.html',
 		scope: {
@@ -19,6 +19,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.isCollapsed = false;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
+			// TODO: This should be refactored into getPageUrl
 			var url = pageService.getPageUrl($scope.lensId);
 			var hashIndex = url.indexOf('#');
 			if (hashIndex > 0) {
@@ -99,7 +100,18 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			};
 		},
 		compile: function(element) {
-			return RecursionHelper.compile(element);
+			var link = RecursionHelper.compile(element);
+			var recursivePostLink = link.post;
+			link.post = function(scope, element, attrs) {
+				// Scroll to the subpage if it's the current hash
+				if ($location.hash() == "subpage-" + scope.pageId) {
+					$timeout(function() {
+						$anchorScroll();
+					});
+				}
+				recursivePostLink(scope, element, attrs);
+			};
+			return link;
 		}
 	};
 });

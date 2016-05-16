@@ -183,7 +183,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 					$timeout(function() {
 						result.content.element.removeClass('reveal-after-render-parent');
 						$loadingBar.hide();
-						$anchorScroll();
 					}, 50);
 				};
 
