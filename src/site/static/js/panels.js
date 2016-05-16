@@ -11,7 +11,7 @@ app.directive('arbListPanel', function($http, pageService, userService) {
 			moreLink: '@',
 			items: '=',
 			numToDisplay: '=',
-			isFullPage: '='
+			isFullPage: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -23,21 +23,40 @@ app.directive('arbListPanel', function($http, pageService, userService) {
 // arb-new-hedons-panel directive displays a list of new hedonic updates
 app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 	return {
-		templateUrl: 'static/html/newHedonsPanel.html',
+		templateUrl: 'static/html/listPanel.html',
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '='
 		},
 		controller: function($scope) {
+			$scope.rowTemplate = 'hedons';
+			$scope.title = 'Achievements';
+			$scope.moreLink = "/achievements";
+
 			$http({method: 'POST', url: '/json/hedons/', data: JSON.stringify({})})
 				.success(function(data) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
-					$scope.newLikes = Object.keys(data.result.newLikes).map(function(key) {
+					$scope.items = Object.keys(data.result.newLikes).map(function(key) {
 						return data.result.newLikes[key];
 					});
+					$scope.lastView = data.result.lastAchievementsView;
 				});
 
+
+		},
+	};
+});
+
+// arb-hedons-row is the directive for a row of the arb-hedons-panel
+app.directive('arbHedonsRow', function() {
+	return {
+		templateUrl: 'static/html/hedonsRow.html',
+		replace: true,
+		scope: {
+			newLike: '=',
+		},
+		controller: function($scope) {
 			$scope.getNames = function(newLikeRow) {
 				var names = newLikeRow.names;
 				if (names.length == 1) {
@@ -60,18 +79,34 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 // arb-read-mode-panel directive displays a list of things to read in a panel
 app.directive('arbReadModePanel', function($http, userService, pageService) {
 	return {
-		templateUrl: 'static/html/readModePanel.html',
+		templateUrl: 'static/html/listPanel.html',
 		scope: {
 			numToDisplay: '=',
-			isFullPage: '='
+			isFullPage: '=',
 		},
 		controller: function($scope) {
+			$scope.rowTemplate = 'page';
+			$scope.title = 'New reading';
+			$scope.moreLink = "/read";
+
 			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({})})
 				.success(function(data) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
-					$scope.hotPageIds = data.result.hotPageIds;
+					$scope.items = data.result.hotPageIds;
+					$scope.lastView = data.result.lastReadModeView;
 				});
 		},
+	};
+});
+
+// Exists to share the template for a row in a md-list of pages
+app.directive('arbPageRow', function() {
+	return {
+		templateUrl: 'static/html/pageRow.html',
+		scope: {
+			pageId: '=',
+		},
+		replace: true,
 	};
 });

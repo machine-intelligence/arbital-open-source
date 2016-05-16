@@ -14,11 +14,10 @@ import (
 type hedonicUpdatesJsonData struct{}
 
 type NewLikesRow struct {
-	Names            []string `json:"names"`
-	PageId           string   `json:"pageId"`
-	ForEdit          bool     `json:"forEdit"`
-	CreatedAt        string   `json:"createdAt"`
-	NewSinceLastView bool     `json:"newSinceLastView"`
+	Names     []string `json:"names"`
+	PageId    string   `json:"pageId"`
+	ForEdit   bool     `json:"forEdit"`
+	CreatedAt string   `json:"createdAt"`
 }
 
 var hedonicUpdatesJsonHandler = siteHandler{
@@ -41,31 +40,19 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
-	// Load lastAchievementsView for this user
-	var lastView string
-	row := database.NewQuery(`
-		SELECT lastAchievementsView
-		FROM lastViews
-		WHERE userId=?`, u.Id).ToStatement(db).QueryRow()
-	_, err = row.Scan(&lastView)
-	if err != nil {
-		return pages.Fail("Couldn't load lastAchievementsView", err).Status(http.StatusBadRequest)
-	}
-
-	// Update lastAchievementsView for this user
-	hashmap := make(map[string]interface{})
-	hashmap["userId"] = u.Id
-	hashmap["lastAchievementsView"] = database.Now()
-	statement := db.NewInsertStatement("lastViews", hashmap, "lastAchievementsView")
-	if _, err := statement.Exec(); err != nil {
-		return pages.Fail("Couldn't update lastAchievementsView", err).Status(http.StatusBadRequest)
-	}
-
 	// Load new likes on my pages and comments
-	returnData.ResultMap["newLikes"], err = loadNewLikes(db, u, returnData.PageMap, lastView)
+	returnData.ResultMap["newLikes"], err = loadNewLikes(db, u, returnData.PageMap)
 	if err != nil {
-		return pages.Fail("Error loading new likes", err).Status(http.StatusBadRequest)
+		return pages.Fail("Error loading new likes", err)
 	}
+
+	// Load and update lastAchievementsView for this user
+	returnData.ResultMap[LastAchievementsView], err = LoadAndUpdateLastView(db, u, LastAchievementsView)
+	if err != nil {
+		return pages.Fail("Error updating last achievements view", err)
+	}
+
+	// returnData.ResultMap[LastAchievementsView] = "2016-05-03 20:11:42"
 
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
@@ -76,7 +63,7 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
-func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page, lastView string) ([]*NewLikesRow, error) {
+func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page) ([]*NewLikesRow, error) {
 	newLikesRows := make([]*NewLikesRow, 0)
 	newLikesMap := make(map[string]*NewLikesRow, 0)
 
@@ -111,9 +98,8 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 			newLikesRow = newLikesMap[pageId]
 		} else {
 			newLikesRow = &NewLikesRow{
-				PageId:           pageId,
-				CreatedAt:        createdAt,
-				NewSinceLastView: createdAt > lastView,
+				PageId:    pageId,
+				CreatedAt: createdAt,
 			}
 			newLikesMap[pageId] = newLikesRow
 			newLikesRows = append(newLikesRows, newLikesRow)
