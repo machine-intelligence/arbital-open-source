@@ -78,6 +78,28 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
+// Where the preview for the editor goes
+.preview-area {
+	padding: 0 15px;
+	background-color: white;
+
+	.editor-block {
+		padding: 10px 15px 5px 15px;
+	}
+	
+	.todo-text {
+		background-color: rgba(255,0,0,0.15);
+	}
+	
+	.conditional-text {
+		background-color: rgba(0,255,0,0.15);
+	}
+	
+	.info-text {
+		background-color: rgba(0,0,255,0.15);
+	}
+}
+
 // Cap the width of some pages, so they look nicer
 .capped-body-width {
 	&, & #footer {
@@ -359,11 +381,6 @@ a:not(.md-button) {
 			background-color: #ffdddd;
 		};
 	}
-}
-
-.conditional-block {
-	background-color: rgba(0,0,255,0.2);
-	padding: 10px 15px 10px 15px;
 }
 
 #footer {
@@ -750,12 +767,6 @@ ins {
 
 textarea {
 	resize: none;
-}
-
-// Where the preview for the editor goes
-.preview-area {
-	padding: 0 15px;
-	background-color: white;
 }
 
 // Contents of editors tabs (but not the tab with the textarea)

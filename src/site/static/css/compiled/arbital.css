@@ -434,6 +434,18 @@ arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
 arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
   margin-bottom: 0; }
 
+.preview-area {
+  padding: 0 15px;
+  background-color: white; }
+  .preview-area .editor-block {
+    padding: 10px 15px 5px 15px; }
+  .preview-area .todo-text {
+    background-color: rgba(255, 0, 0, 0.15); }
+  .preview-area .conditional-text {
+    background-color: rgba(0, 255, 0, 0.15); }
+  .preview-area .info-text {
+    background-color: rgba(0, 0, 255, 0.15); }
+
 .capped-body-width, .capped-body-width #footer {
   display: block;
   margin-left: auto;
@@ -595,10 +607,6 @@ a:not(.md-button) {
         color: #B71C1C; }
     a:not(.md-button)[page-id].red-todo-text, a:not(.md-button)[user-id].red-todo-text {
       background-color: #ffdddd; }
-
-.conditional-block {
-  background-color: rgba(0, 0, 255, 0.2);
-  padding: 10px 15px 10px 15px; }
 
 #footer {
   font-size: 12px;
@@ -873,10 +881,6 @@ ins {
 
 textarea {
   resize: none; }
-
-.preview-area {
-  padding: 0 15px;
-  background-color: white; }
 
 .editor-tab {
   padding: 10px 20px 0px 20px; }

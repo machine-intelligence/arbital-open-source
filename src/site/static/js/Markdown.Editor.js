@@ -1543,7 +1543,9 @@
 				// this by anchoring with ^, because in the case that the selection starts with two brackets, this
 				// would mean a zero-width match at the start. Since zero-width matches advance the string position,
 				// the first bracket could then not act as the "not a backslash" for the second.
-				chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
+				if (wrapType == 'image' || wrapType == 'link') {
+					chunk.selection = (' ' + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, '$1\\').substr(1);
+				}
 				chunk.startTag = startTag;
 				chunk.endTag = endTag;
 				if (!chunk.selection) {

@@ -57,7 +57,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
 				var div = '<div ng-show=\'' + (not ? '!' : '') + 'pageService.hasMastery("' + pageId + '")\'>';
 				if (isEditor) {
-					div = '<div class=\'conditional-block\'>';
+					div = '<div class=\'conditional-text editor-block\'>';
 				}
 				return div + runBlockGamut(markdown) + '\n\n</div>';
 			});
@@ -68,15 +68,21 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function(whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return '<div ng-show=\'' + (not ? '!' : '') + 'pageService.wantsMastery("' + pageId + '")\'>' +
-						runBlockGamut(markdown) + '\n\n</div>';
+				var div = '<div ng-show=\'' + (not ? '!' : '') + 'pageService.wantsMastery("' + pageId + '")\'>';
+				if (isEditor) {
+					div = '<div class=\'conditional-text editor-block\'>';
+				}
+				return div + runBlockGamut(markdown) + '\n\n</div>';
 			});
 		});
 
 		// Process %todo:markdown% blocks.
 		var todoBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
-			return text.replace(todoBlockRegexp, function(whole, bars, not, alias, markdown) {
+			return text.replace(todoBlockRegexp, function(whole, bars, markdown) {
+				if (isEditor) {
+					return '<div class=\'todo-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
+				}
 				return '';
 			});
 		});
@@ -84,7 +90,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// Process %comment:markdown% blocks.
 		var commentBlockRegexp = new RegExp('^(%+)comment: ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
-			return text.replace(commentBlockRegexp, function(whole, bars, not, alias, markdown) {
+			return text.replace(commentBlockRegexp, function(whole, bars, markdown) {
+				if (isEditor) {
+					return '<div class=\'info-text editor-block\'>' + runBlockGamut(markdown) + '\n\n</div>';
+				}
 				return '';
 			});
 		});
@@ -183,7 +192,11 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(hasReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return prefix + '<span ng-show=\'' + (not ? '!' : '') + 'pageService.hasMastery("' + pageId + '")\'>' + markdown + '</span>';
+				var span = '<span ng-show=\'' + (not ? '!' : '') + 'pageService.hasMastery("' + pageId + '")\'>';
+				if (isEditor) {
+					span = '<span class=\'conditional-text\'>';
+				}
+				return prefix + span  + markdown + '</span>';
 			});
 		});
 
@@ -192,7 +205,11 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preSpanGamut', function(text, run) {
 			return text.replace(wantsReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				return prefix + '<span ng-show=\'' + (not ? '!' : '') + 'pageService.wantsMastery("' + pageId + '")\'>' + markdown + '</span>';
+				var span = '<span ng-show=\'' + (not ? '!' : '') + 'pageService.wantsMastery("' + pageId + '")\'>';
+				if (isEditor) {
+					span = '<span class=\'conditional-text\'>';
+				}
+				return prefix + span + markdown + '</span>';
 			});
 		});
 
@@ -201,6 +218,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'\\[todo: ?([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(todoSpanRegexp, function(whole, prefix, text) {
+				if (isEditor) {
+					return prefix + '<span class=\'todo-text\'>';
+				}
 				return prefix;
 			});
 		});
@@ -210,6 +230,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'\\[comment: ?([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(commentSpanRegexp, function(whole, prefix, text) {
+				if (isEditor) {
+					return prefix + '<span class=\'info-text\'>';
+				}
 				return prefix;
 			});
 		});
@@ -380,8 +403,6 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		$pageText.find('a').each(function(index, element) {
 			var $element = $(element);
 			var parts = $element.attr('href').match(pageRe);
-			console.log($element.attr('href'));
-			console.log($element.text());
 			if (parts !== null && !$element.hasClass('intrasite-link')) {
 				processPageLink($element, parts[0], parts[1], parts[2]);
 			}
