@@ -51,7 +51,7 @@ func (task SendFeedbackEmailTask) Execute(db *database.DB) (delay int, err error
 		// Create mail message
 		msg := &mail.Message{
 			Sender:  "alexei@arbital.com",
-			To:      []string{"alexei@arbital.com"},
+			To:      []string{"alexei@arbital.com", "eric@arbital.com", "steph@arbital.com"},
 			Cc:      []string{task.UserEmail},
 			Subject: fmt.Sprintf("Arbital feedback (user #%s)", task.UserId),
 			Body:    task.Text,
