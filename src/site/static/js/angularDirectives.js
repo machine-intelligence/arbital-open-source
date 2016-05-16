@@ -213,9 +213,6 @@ app.directive('arbPageTitle', function(pageService, userService) {
 				if ($scope.customPageTitle) {
 					return $scope.customPageTitle;
 				}
-				if ($scope.page.isComment()) {
-					return '*Comment*';
-				}
 				return $scope.page.title;
 			};
 		},

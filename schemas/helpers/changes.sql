@@ -87,3 +87,10 @@ CREATE TABLE lastViews (
 	lastReadModeView datetime NOT NULL,
 	PRIMARY KEY(userId)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+UPDATE
+	pages AS comments, pageInfos AS commentInfos
+SET
+	comments.title = concat('"', CASE WHEN char_length(comments.text) > 30 THEN concat(substr(comments.text,1,27), '...') ELSE comments.text END, '"')
+WHERE
+	comments.pageId=commentInfos.pageId AND commentInfos.type='comment' AND comments.isLiveEdit;
