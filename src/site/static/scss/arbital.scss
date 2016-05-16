@@ -958,3 +958,9 @@ arb-settings-page {
 arb-log-row, [arb-log-row] {
 	padding-left: 10px;
 }
+
+.spaced-buttons {
+	.md-button {
+		margin-right: 15px;
+	}
+}

@@ -1005,4 +1005,7 @@ arb-settings-page .create-code-form {
 arb-log-row, [arb-log-row] {
   padding-left: 10px; }
 
+.spaced-buttons .md-button {
+  margin-right: 15px; }
+
 /*# sourceMappingURL=arbital.css.map */

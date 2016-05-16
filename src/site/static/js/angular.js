@@ -136,6 +136,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	$scope.getSuccessFunc = function(callback) {
 		return function(data) {
 			// Sometimes we don't get data.
+			pageService.primaryPage = undefined;
 			if (data) {
 				console.log('Dynamic request data:'); console.log(data);
 				userService.processServerData(data);

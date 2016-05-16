@@ -131,9 +131,10 @@
 		This query mark has been
 		<strong ng-bind="mark.resolvedPageId === '' ? 'dismissed' : 'resolved'"></strong>
 		by
-		<arb-user-name user-id="{{mark.resolvedBy}}" ng-if="!mark.isResolvedByOwner"></arb-user-name>
-		<span ng-if="mark.isResolvedByOwner && mark.resolvedBy != userService.user.id">the reader</span>
 		<span ng-if="mark.resolvedBy == userService.user.id">you</span>
+		<arb-user-name user-id="{{mark.resolvedBy}}"
+				ng-if="mark.resolvedBy != userService.user.id && !mark.isResolvedByOwner"></arb-user-name>
+		<span ng-if="mark.resolvedBy != userService.user.id && mark.isResolvedByOwner">the reader</span>
 		<span ng-if="mark.resolvedPageId !== ''">
 			via:
 			<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
@@ -155,20 +156,23 @@
 
 	<!-- Bottom buttons -->
 	<div ng-if="!mark.resolvedPageId">
-		<div layout="{{inPopup ? 'column': 'row'}}"
-				layout-align="{{inPopup ? 'start start' : 'space-around center'}}">
-			<md-button class="md-primary"
+		<div class="spaced-buttons"
+				layout="{{inPopup ? 'column': 'row'}}"
+				layout-align="{{inPopup ? 'start start' : 'start center'}}">
+			<md-button ng-class="{'md-primary': !mark.resolvedBy}"
 					ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
 				<md-icon>edit</md-icon>
 				Edit page
 			</md-button>
-			<md-button class="md-primary" ng-click="showLinkToQuestion()">
-				<md-icon>done</md-icon>
-				Link to existing question
+			<md-button ng-class="{'md-primary': !mark.resolvedBy}"
+					ng-click="showLinkToQuestion()">
+				<md-icon>link</md-icon>
+				Link to question
 			</md-button>
-			<md-button class="md-primary" ng-href="/edit?markId={{::markId}}">
-				<md-icon>help</md-icon>
-				Link to new question
+			<md-button ng-class="{'md-primary': !mark.resolvedBy}"
+					ng-click="resolveWith(mark.pageId)">
+				<md-icon>done</md-icon>
+				Resolve
 			</md-button>
 			<md-button class="md-warn" ng-click="dismissMark(markId)" ng-if="!mark.resolvedBy">
 				<md-icon>clear</md-icon>
@@ -180,11 +184,17 @@
 	<!-- User can search for a matching question. -->
 	<!-- NOTE: we can't use ng-if with autocomplete, because then when autocomplete
 		goes away, it'll leave an md-scoll-mask in place. -->
-	<div ng-show="showQuestionInput">
-		<arb-autocomplete do-autofocus="::true"
+	<div layout="row" layout-align="start center" ng-show="showQuestionInput">
+		<div arb-autocomplete
+				do-autofocus="::true"
 				placeholder="Search for existing question"
 				on-select="questionResultSelected(result)"
-				page-type="{{::'question'}}"></arb-autocomplete>
+				page-type="{{::'question'}}"
+				flex></div>
+		<md-button class="md-primary" ng-href="/edit?markId={{::markId}}">
+			<md-icon>help</md-icon>
+			New question page
+		</md-button>
 	</div>
 
 	<div ng-if="questionLinked">
