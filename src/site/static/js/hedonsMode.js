@@ -1,7 +1,7 @@
 'use strict';
 
-// arb-new-hedons-panel directive displays a list of new hedonic updates
-app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
+// arb-hedons-mode-panel directive displays a list of new hedonic updates
+app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 	return {
 		templateUrl: 'static/html/listPanel.html',
 		scope: {
@@ -56,10 +56,10 @@ app.directive('arbHedonsRow', function(pageService) {
 	};
 });
 
-// arb-achievements-page hosts the arb-achievements-panel
-app.directive('arbAchievementsPage', function($http, pageService, userService) {
+// arb-hedons-mode-page is for displaying the entire /achievements page
+app.directive('arbHedonsModePage', function($http, pageService, userService) {
 	return {
-		templateUrl: 'static/html/achievements.html',
+		templateUrl: 'static/html/hedonsModePage.html',
 		scope: {
 		},
 	};

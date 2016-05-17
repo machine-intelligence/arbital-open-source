@@ -286,7 +286,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.success($scope.getSuccessFunc(function(data) {
 				return {
 					title: 'Achievements',
-					content: $scope.newElement('<arb-achievements-page></arb-achievements-page'),
+					content: $scope.newElement('<arb-hedons-mode-page></arb-hedons-mode-page'),
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
@@ -299,7 +299,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 			.success($scope.getSuccessFunc(function(data) {
 				return {
 					title: 'Discussions',
-					content: $scope.newElement('<arb-discussions-page></arb-discussions-page'),
+					content: $scope.newElement('<arb-discussion-mode-page></arb-discussion-mode-page'),
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
