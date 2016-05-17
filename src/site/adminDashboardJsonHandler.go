@@ -51,13 +51,14 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Monthly active users
 	rows := database.NewQuery(`
-		SELECT year(createdAt),month(createdAt),count(distinct userId),-1,-1
-		FROM visits
-		WHERE createdAt>"2015-09-00" AND NOT userId LIKE "sid%"
-		GROUP BY 1,2
-		ORDER BY 1,2`).ToStatement(db).Query()
+		SELECT year(v.createdAt), month(v.createdAt), count(distinct u.id), count(distinct v.userId), count(distinct v.ipAddress)
+		FROM visits AS v
+		LEFT JOIN users as u ON v.userId=u.id
+		WHERE v.createdAt>"2015-09-00"
+		GROUP BY 1, 2
+		ORDER BY 1 DESC, 2 DESC`).ToStatement(db).Query()
 	returnData.ResultMap["monthly_active_users"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
-		"Year", "Month", "Count",
+		"Year", "Month", "Registered Users", "Sessions", "IP Addresses",
 	})
 	if err != nil {
 		return pages.Fail("Error while loading MAUs", err)
@@ -65,11 +66,11 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Visits
 	rows = database.NewQuery(`
-		SELECT year(createdAt),month(createdAt),count(*),-1,-1
+		SELECT year(createdAt), month(createdAt), count(*), -1, -1
 		FROM visits
 		WHERE createdAt>"2015-09-00"
-		GROUP BY 1,2
-		ORDER BY 1,2`).ToStatement(db).Query()
+		GROUP BY 1, 2
+		ORDER BY 1 DESC, 2 DESC`).ToStatement(db).Query()
 	returnData.ResultMap["visit_count"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
 		"Year", "Month", "Count",
 	})
@@ -79,11 +80,11 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 
 	// Users who commented
 	rows = database.NewQuery(`
-		SELECT year(createdAt),month(createdAt),count(distinct createdBy),-1,-1
+		SELECT year(createdAt), month(createdAt), count(distinct createdBy), -1, -1
 		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		WHERE createdAt>"2015-09-00" AND pageId!=createdBy AND type=?`, core.CommentPageType).Add(`
-		GROUP BY 1,2
-		ORDER BY 1,2`).ToStatement(db).Query()
+		GROUP BY 1, 2
+		ORDER BY 1 DESC, 2 DESC`).ToStatement(db).Query()
 	returnData.ResultMap["users_with_a_comment"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
 		"Year", "Month", "Count",
 	})
@@ -97,7 +98,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
 		WHERE createdAt>"2015-09-00" AND pageId!=createdBy AND type!=?`, core.CommentPageType).Add(`
 		GROUP BY 1,2
-		ORDER BY 1,2`).ToStatement(db).Query()
+		ORDER BY 1 DESC, 2 DESC`).ToStatement(db).Query()
 	returnData.ResultMap["users_who_created_at_least_one_page"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
 		"Year", "Month", "Count",
 	})
@@ -127,7 +128,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 		FROM users
 		WHERE createdAt>"2015-09-00"
 		GROUP BY 1,2
-		ORDER BY 1,2`).ToStatement(db).Query()
+		ORDER BY 1 DESC, 2 DESC`).ToStatement(db).Query()
 	returnData.ResultMap["new_users"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
 		"Year", "Month", "Count",
 	})

@@ -2,6 +2,9 @@
 
 // Popover service is used to display the intrasite popover.
 app.service('popoverService', function($rootScope, $compile, $timeout, pageService, userService) {
+	// TODO: enable popovers on mobile again once we can make them good
+	if (userService.isTouchDevice) return;
+
 	var that = this;
 
 	var showDelay = 400; // milliseconds
