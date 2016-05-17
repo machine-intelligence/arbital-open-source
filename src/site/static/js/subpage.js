@@ -104,7 +104,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			var recursivePostLink = link.post;
 			link.post = function(scope, element, attrs) {
 				// Scroll to the subpage if it's the current hash
-				if ($location.hash() == "subpage-" + scope.pageId) {
+				if ($location.hash() == 'subpage-' + scope.pageId) {
 					$timeout(function() {
 						$anchorScroll();
 					});

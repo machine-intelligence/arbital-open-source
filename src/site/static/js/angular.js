@@ -103,15 +103,15 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		ga('send', 'pageview', $location.absUrl());
 	});
 
-	var $fixedOverlay = $("#fixed-overlay");
+	var $fixedOverlay = $('#fixed-overlay');
 	$scope.$watch(function() {
 		return $fixedOverlay.children().length;
 	}, function() {
 		// If we have md-scroll-mask on, we want the fixedOverlay to occupy entire screen
 		// so that the mdBottomSheet UI is displayed fully.
-		var hasScrollMask = $fixedOverlay.find(".md-scroll-mask").length > 0;
-		$fixedOverlay.css("width", hasScrollMask ? "100vw" : '0');
-		$fixedOverlay.css("height", hasScrollMask ? "100vh" : '0');
+		var hasScrollMask = $fixedOverlay.find('.md-scroll-mask').length > 0;
+		$fixedOverlay.css('width', hasScrollMask ? '100vw' : '0');
+		$fixedOverlay.css('height', hasScrollMask ? '100vh' : '0');
 	});
 
 	// Returns an object containing a compiled element and its scope

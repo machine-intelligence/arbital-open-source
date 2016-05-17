@@ -11,7 +11,7 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 		controller: function($scope) {
 			$scope.rowTemplate = 'hedons';
 			$scope.title = 'Achievements';
-			$scope.moreLink = "/achievements";
+			$scope.moreLink = '/achievements';
 
 			$http({method: 'POST', url: '/json/hedons/', data: JSON.stringify({})})
 				.success(function(data) {

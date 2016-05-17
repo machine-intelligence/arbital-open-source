@@ -24,7 +24,7 @@ app.directive('arbReadModePanel', function($http, userService, pageService) {
 		controller: function($scope) {
 			$scope.rowTemplate = 'page';
 			$scope.title = 'New reading';
-			$scope.moreLink = "/read";
+			$scope.moreLink = '/read';
 
 			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({})})
 				.success(function(data) {

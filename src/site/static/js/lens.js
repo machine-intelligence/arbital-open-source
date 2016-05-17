@@ -689,7 +689,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 								scope: scope,
 								normalButton: {
 									text: 'Edit',
-									callbackText: "toastCallback()",
+									callbackText: 'toastCallback()',
 								},
 							});
 						});
