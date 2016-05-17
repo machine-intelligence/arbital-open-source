@@ -38,7 +38,6 @@ app.directive('arbDiscussionModePanel', function($http, userService, pageService
 						return pageService.pageMap[commentId];
 					});
 					$scope.lastView = data.result.lastDiscussionModeView;
-					console.log($scope.lastView);
 				});
 		},
 	};
