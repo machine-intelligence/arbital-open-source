@@ -706,10 +706,8 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	// Load all the users
 	userMap[u.Id] = &User{Id: u.Id}
 	for _, p := range pageMap {
-		if p.LoadOptions.Text || p.LoadOptions.Summaries {
-			AddUserIdToMap(p.PageCreatorId, userMap)
-			AddUserIdToMap(p.EditCreatorId, userMap)
-		}
+		AddUserIdToMap(p.PageCreatorId, userMap)
+		AddUserIdToMap(p.EditCreatorId, userMap)
 		if IsIdValid(p.LockedBy) {
 			AddUserIdToMap(p.LockedBy, userMap)
 		}
