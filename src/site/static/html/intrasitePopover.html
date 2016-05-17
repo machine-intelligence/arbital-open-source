@@ -5,7 +5,10 @@
 	<div class="popover-body md-whiteframe-8dp">
 		<md-toolbar>
 			<div class="md-toolbar-tools">
-				<arb-page-title page-id="{{::page.pageId}}" is-link="true" ng-if="::page"></arb-page-title>
+				<arb-page-title page-id="{{::page.pageId}}"
+						is-link="true"
+						custom-page-title="{{::page.isComment() ? 'Comment': undefined}}"
+						ng-if="::page"></arb-page-title>
 				<span ng-if="::!page">Not found</span>
 			</div>
 		</md-toolbar>

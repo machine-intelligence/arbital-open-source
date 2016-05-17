@@ -8,7 +8,7 @@
 				flex></arb-page-title>
 			<span ng-if="::pageService.pageMap[newLike.pageId].isComment()">
 				on
-				<arb-page-title page-id="{{::pageService.pageMap[newLike.pageId].getCommentParent().pageId}}"
+				<arb-page-title page-id="{{::pageService.pageMap[newLike.pageId].getCommentParentPage().pageId}}"
 					is-link="true"
 					flex></arb-page-title>
 			</span>

@@ -62,7 +62,7 @@ func deletePageInternalHandlerFunc(params *pages.HandlerParams, data *deletePage
 			return pages.Fail("Have to be an admin to delete a group/domain", nil).Status(http.StatusForbidden)
 		}
 	}
-	if page.Type == core.CommentPageType && u.Id != page.CreatorId {
+	if page.Type == core.CommentPageType && u.Id != page.PageCreatorId {
 		if !u.IsAdmin {
 			return pages.Fail("Have to be an admin to delete someone else's comment", nil).Status(http.StatusForbidden)
 		}

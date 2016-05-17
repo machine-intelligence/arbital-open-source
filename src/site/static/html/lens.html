@@ -61,7 +61,7 @@
 					when="{'one': 'Contributor:', 'other': 'Contributors:'}"></ng-pluralize>
 			<span ng-repeat="(index, creatorId) in ::page.creatorIds">
 				<span class="comma" ng-if="::(index > 0)">,</span>
-				<arb-user-name ng-class="::{bold: creatorId === page.originalCreatedBy}"
+				<arb-user-name ng-class="::{bold: creatorId === page.pageCreatorId}"
 						user-id="{{::creatorId}}"></arb-user-name>
 			</span>
 		</div>
