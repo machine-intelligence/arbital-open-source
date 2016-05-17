@@ -260,7 +260,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 					}
 				}
 			} else if (page.isComment()) {
-				var parent = page.getCommentParent();
+				var parent = page.getCommentParentPage();
 				if (parent) {
 					url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
 					url += '#subpage-' + pageId;
@@ -363,14 +363,17 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		// Check if the user has never visited this page before.
 		isNewPage: function() {
 			if (!userService.user || userService.user.id === '') return false;
-			return this.creatorId != userService.user.id &&
-				(this.lastVisit === '' || this.originalCreatedAt >= this.lastVisit);
+			return this.pageCreatorId != userService.user.id &&
+				(this.lastVisit === '' || this.pageCreatedAt >= this.lastVisit);
 		},
 		// Check if the page has been updated since the last time the user saw it.
 		isUpdatedPage: function() {
 			if (!userService.user || userService.user.id === '') return false;
-			return this.creatorId != userService.user.id &&
-				this.lastVisit !== '' && this.createdAt >= this.lastVisit && this.lastVisit > this.originalCreatedAt;
+			// TODO: this is actually hard to compute correctly, because we don't want to show the change
+			// if the user updated the page themselves, but there could have been a prior change
+			// by someone else that they haven't seen.
+			return this.editCreatorId != userService.user.id &&
+				this.lastVisit !== '' && this.editCreatedAt >= this.lastVisit && this.lastVisit > this.pageCreatedAt;
 		},
 		isWiki: function() {
 			return this.type === 'wiki';
@@ -393,8 +396,8 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		isUser: function() {
 			return this.pageId in userService.userMap;
 		},
-		getCommentParent: function() {
-			console.assert(this.isComment(), 'Calling getCommentParent on a non-comment');
+		getCommentParentPage: function() {
+			console.assert(this.isComment(), 'Calling getCommentParentPage on a non-comment');
 			for (var n = 0; n < this.parentIds.length; n++) {
 				var p = that.pageMap[this.parentIds[n]];
 				if (!p.isComment()) {
@@ -402,6 +405,17 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 				}
 			}
 			return null;
+		},
+		// Return the top level comment for the thread this comment is in.
+		getTopLevelComment: function() {
+			console.assert(this.isComment(), 'Calling getTopLevelComment on a non-comment');
+			for (var n = 0; n < this.parentIds.length; n++) {
+				var p = that.pageMap[this.parentIds[n]];
+				if (p.isComment()) {
+					return p;
+				}
+			}
+			return this;
 		},
 		// Get page's url
 		url: function() {
@@ -506,11 +520,11 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			};
 		} else if (sortChildrenBy === 'recentFirst') {
 			return function(aId, bId) {
-				return pageMap[bId].originalCreatedAt.localeCompare(pageMap[aId].originalCreatedAt);
+				return pageMap[bId].pageCreatedAt.localeCompare(pageMap[aId].pageCreatedAt);
 			};
 		} else if (sortChildrenBy === 'oldestFirst') {
 			return function(aId, bId) {
-				return pageMap[aId].originalCreatedAt.localeCompare(pageMap[bId].originalCreatedAt);
+				return pageMap[aId].pageCreatedAt.localeCompare(pageMap[bId].pageCreatedAt);
 			};
 		} else {
 			if (sortChildrenBy !== 'likes') {
@@ -519,7 +533,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			return function(aId, bId) {
 				var diff = pageMap[bId].likeScore() - pageMap[aId].likeScore();
 				if (diff === 0) {
-					return pageMap[bId].createdAt > pageMap[aId].createdAt;
+					return pageMap[bId].pageCreatedAt > pageMap[aId].pageCreatedAt;
 				}
 				return diff;
 			};
@@ -841,7 +855,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		comment = this.addPageToMap(comment);
 		// HACK: set the comment's data to make sure it's displayed correctly
 		// TODO: actually fetch the newly created comment from the server
-		comment.originalCreatedAt = moment().format('YYYY-MM-DD HH:mm:ss');
+		comment.pageCreatedAt = moment().format('YYYY-MM-DD HH:mm:ss');
 		comment.permissions.comment.has = true;
 		comment.isSubscribed = true;
 

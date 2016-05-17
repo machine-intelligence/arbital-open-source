@@ -270,11 +270,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 			if ($scope.page.wasPublished && $scope.page.isAutosave) {
 				$scope.addMessage('nonLiveEdit', 'Loaded an autosave which was last updated ' +
-					$filter('relativeDateTime')(pageService.primaryPage.createdAt), 'warning');
+					$filter('relativeDateTime')(pageService.primaryPage.editCreatedAt), 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
 				$scope.addMessage('nonLiveEdit', 'Loaded a snapshot which was last updated ' +
-					$filter('relativeDateTime')(pageService.primaryPage.createdAt), 'warning');
+					$filter('relativeDateTime')(pageService.primaryPage.editCreatedAt), 'warning');
 			}
 			// Check if we loaded a live edit, but the user has a draft
 			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {
@@ -348,7 +348,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						if (newEdit) {
 							// A new edit has been published while the user has been editing.
 							$scope.freezeEdit = true;
-							var message = 'User (id=' + newEdit.creatorId + ') published a new version. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
+							var message = 'User (id=' + newEdit.editCreatorId + ') published a new version. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
 							$scope.addMessage('obsoleteEdit', message, 'error');
 						}
 						if (isAutosave) {

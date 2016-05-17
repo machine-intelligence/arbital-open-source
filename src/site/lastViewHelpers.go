@@ -8,9 +8,9 @@ import (
 
 const (
 	// Possible views
-	LastAchievementsView = "lastAchievementsView"
-	LastReadModeView     = "lastReadModeView"
-	LastDiscussionView   = "lastDiscussionView"
+	LastAchievementsModeView = "lastAchievementsModeView"
+	LastReadModeView         = "lastReadModeView"
+	LastDiscussionModeView   = "lastDiscussionModeView"
 )
 
 // Both load and update the last time the user loaded the given view.

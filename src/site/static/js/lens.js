@@ -35,8 +35,8 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				if ($scope.diffHtml) return;
 
 				var earliest = $scope.page.lastVisit;
-				if (moment($scope.page.createdAt).isBefore(earliest)) {
-					earliest = $scope.page.createdAt;
+				if (moment($scope.page.editCreatedAt).isBefore(earliest)) {
+					earliest = $scope.page.editCreatedAt;
 				}
 				// Load the edit from the server.
 				pageService.loadEdit({

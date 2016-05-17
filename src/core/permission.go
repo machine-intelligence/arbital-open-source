@@ -54,7 +54,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// Check if the user is editing their own comment
 	if !p.Permissions.Edit.Has {
-		p.Permissions.Edit.Has = p.Type == CommentPageType && p.CreatorId == u.Id
+		p.Permissions.Edit.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
 	}
 	if !p.Permissions.Edit.Has {
 		p.Permissions.Edit.Reason = "Not enough reputation to edit this page"
@@ -79,7 +79,7 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// Check if the user is deleting their own comment
 	if !p.Permissions.Delete.Has {
-		p.Permissions.Delete.Has = p.Type == CommentPageType && p.CreatorId == u.Id
+		p.Permissions.Delete.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
 	}
 	if !p.Permissions.Delete.Has {
 		p.Permissions.Delete.Reason = "Not enough reputation to delete this page"
@@ -100,7 +100,7 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 	}
 	// Check if this page is a comment owned by the user, which means they can reply
 	if !p.Permissions.Comment.Has {
-		p.Permissions.Comment.Has = p.Type == CommentPageType && p.CreatorId == u.Id
+		p.Permissions.Comment.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
 	}
 	if !p.Permissions.Comment.Has {
 		p.Permissions.Comment.Reason = "Not enough reputation to comment"
