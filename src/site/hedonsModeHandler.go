@@ -13,11 +13,18 @@ import (
 
 type hedonsModeData struct{}
 
-type NewLikesRow struct {
-	Names     []string `json:"names"`
-	PageId    string   `json:"pageId"`
-	ForEdit   bool     `json:"forEdit"`
-	CreatedAt string   `json:"createdAt"`
+const (
+	// Possible types for hedons rows
+	LikesRowType   = "likes"
+	ReqsTaughtType = "reqsTaught"
+)
+
+type HedonsRow struct {
+	Type         string   `json:"type"`
+	CreatedAt    string   `json:"createdAt"`
+	Names        []string `json:"names"`
+	PageId       string   `json:"pageId"`
+	RequisiteIds []string `json:"requisiteIds"` // Only present if type == ReqsTaughtType
 }
 
 var hedonsModeHandler = siteHandler{
@@ -41,10 +48,18 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load new likes on my pages and comments
-	returnData.ResultMap["newLikes"], err = loadNewLikes(db, u, returnData.PageMap)
+	likesRows, err := loadReceivedLikes(db, u, returnData.PageMap)
 	if err != nil {
 		return pages.Fail("Error loading new likes", err)
 	}
+
+	// Load requisites taught
+	reqsTaughtRows, err := loadRequisitesTaught(db, u, returnData.PageMap)
+	if err != nil {
+		return pages.Fail("Error loading requisites taught", err)
+	}
+
+	returnData.ResultMap["hedons"] = append(likesRows, reqsTaughtRows...)
 
 	// Load and update lastAchievementsView for this user
 	returnData.ResultMap[LastAchievementsView], err = LoadAndUpdateLastView(db, u, LastAchievementsView)
@@ -64,9 +79,8 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
-func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page) ([]*NewLikesRow, error) {
-	newLikesRows := make([]*NewLikesRow, 0)
-	newLikesMap := make(map[string]*NewLikesRow, 0)
+func loadReceivedLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page) ([]*HedonsRow, error) {
+	hedonsRowMap := make(map[string]*HedonsRow, 0)
 
 	rows := database.NewQuery(`
 		SELECT u.Id,u.firstName,u.lastName,pi.pageId,pi.type,l.createdAt,l.value
@@ -76,6 +90,7 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 	    JOIN users AS u
 	    ON l.userId=u.id
 		WHERE pi.createdBy=?
+			AND l.value=1
 		ORDER BY l.createdAt DESC`, u.Id).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var likerId string
@@ -91,20 +106,19 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 
-		if likeValue != 1 || likerId == u.Id {
+		if likerId == u.Id {
 			return nil
 		}
 
-		var newLikesRow *NewLikesRow
-		if _, ok := newLikesMap[pageId]; ok {
-			newLikesRow = newLikesMap[pageId]
+		var hedonsRow *HedonsRow
+		if _, ok := hedonsRowMap[pageId]; ok {
+			hedonsRow = hedonsRowMap[pageId]
 		} else {
-			newLikesRow = &NewLikesRow{
+			hedonsRow = &HedonsRow{
 				PageId:    pageId,
 				CreatedAt: createdAt,
 			}
-			newLikesMap[pageId] = newLikesRow
-			newLikesRows = append(newLikesRows, newLikesRow)
+			hedonsRowMap[pageId] = hedonsRow
 
 			loadOptions := core.TitlePlusLoadOptions
 			if pageType == core.CommentPageType {
@@ -113,7 +127,7 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 			core.AddPageToMap(pageId, pageMap, loadOptions)
 		}
 
-		newLikesRow.Names = append(newLikesRow.Names, firstName+" "+lastName)
+		hedonsRow.Names = append(hedonsRow.Names, firstName+" "+lastName)
 
 		return nil
 	})
@@ -121,5 +135,73 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 		return nil, err
 	}
 
-	return newLikesRows, nil
+	hedonsRows := make([]*HedonsRow, 0, len(hedonsRowMap))
+	for _, row := range hedonsRowMap {
+		hedonsRows = append(hedonsRows, row)
+	}
+
+	return hedonsRows, nil
+}
+
+// Load all the requisites taught by this user.
+func loadRequisitesTaught(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page) ([]*HedonsRow, error) {
+	hedonsRowMap := make(map[string]*HedonsRow, 0)
+
+	rows := database.NewQuery(`
+	    SELECT u.Id,u.firstName,u.lastName,pi.pageId,ump.masteryId,ump.updatedAt
+	    FROM userMasteryPairs AS ump
+	    JOIN `).AddPart(core.PageInfosTable(u)).Add(` AS pi
+	    ON ump.taughtBy=pi.pageId
+	    JOIN users AS u
+	    ON ump.userId=u.id
+	    WHERE pi.createdBy=?
+			AND ump.has=1
+		ORDER BY ump.updatedAt DESC`, u.Id).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var learnerId string
+		var firstName string
+		var lastName string
+		var taughtById string
+		var masteryId string
+		var createdAt string
+
+		err := rows.Scan(&learnerId, &firstName, &lastName, &taughtById, &masteryId, &createdAt)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+
+		if learnerId == u.Id {
+			return nil
+		}
+
+		var hedonsRow *HedonsRow
+		if _, ok := hedonsRowMap[taughtById]; ok {
+			hedonsRow = hedonsRowMap[taughtById]
+		} else {
+			hedonsRow = &HedonsRow{
+				PageId:    taughtById,
+				CreatedAt: createdAt,
+			}
+			hedonsRowMap[taughtById] = hedonsRow
+
+			loadOptions := core.TitlePlusLoadOptions
+			core.AddPageToMap(taughtById, pageMap, loadOptions)
+			core.AddPageToMap(masteryId, pageMap, loadOptions)
+		}
+
+		hedonsRow.Names = append(hedonsRow.Names, firstName+" "+lastName)
+		hedonsRow.RequisiteIds = append(hedonsRow.RequisiteIds, masteryId)
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	hedonsRows := make([]*HedonsRow, 0, len(hedonsRowMap))
+	for _, row := range hedonsRowMap {
+		hedonsRows = append(hedonsRows, row)
+	}
+
+	return hedonsRows, nil
 }
