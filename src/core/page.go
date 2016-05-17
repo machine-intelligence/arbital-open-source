@@ -718,6 +718,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	}
 
 	// Computed which pages count as visited.
+	// TODO: refactor this code to use multiple-maps insert wrapper
 	visitedValues := make([]interface{}, 0)
 	visitorId := u.GetSomeId()
 	if visitorId != "" {

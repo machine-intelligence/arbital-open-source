@@ -69,6 +69,9 @@ func loadHotPageIds(db *database.DB, u *core.CurrentUser, pageMap map[string]*co
 		ORDER BY createdAt DESC
 		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()
 
-	pageOptions := (&core.PageLoadOptions{SubpageCounts: true}).Add(core.TitlePlusLoadOptions)
+	pageOptions := (&core.PageLoadOptions{
+		SubpageCounts: true,
+		AnswerCounts:  true,
+	}).Add(core.TitlePlusLoadOptions)
 	return core.LoadPageIds(rows, pageMap, pageOptions)
 }
