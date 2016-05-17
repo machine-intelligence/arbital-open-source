@@ -1,4 +1,4 @@
-// Handles queries for hedonic updates (like 'Alexei liked your page').
+// Handles queries for hedons updates (like 'Alexei liked your page').
 package site
 
 import (
@@ -11,7 +11,7 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type hedonicUpdatesData struct{}
+type hedonsModeData struct{}
 
 type NewLikesRow struct {
 	Names     []string `json:"names"`
@@ -20,21 +20,21 @@ type NewLikesRow struct {
 	CreatedAt string   `json:"createdAt"`
 }
 
-var hedonicUpdatesHandler = siteHandler{
+var hedonsModeHandler = siteHandler{
 	URI:         "/json/hedons/",
-	HandlerFunc: hedonicUpdatesHandlerFunc,
+	HandlerFunc: hedonsModeHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
-func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data hedonicUpdatesData
+	var data hedonsModeData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)

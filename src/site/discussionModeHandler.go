@@ -1,4 +1,4 @@
-// discussionPanelHandler.go serves the /discussion panel.
+// discussionModeHandler.go serves the /discussion panel.
 package site
 
 import (
@@ -9,23 +9,23 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type discussionPanelData struct {
+type discussionModeData struct {
 	NumPagesToLoad int
 }
 
-var discussionPanelHandler = siteHandler{
-	URI:         "/json/discussionPanel/",
-	HandlerFunc: discussionPanelHandlerFunc,
+var discussionModeHandler = siteHandler{
+	URI:         "/json/discussionMode/",
+	HandlerFunc: discussionModeHandlerFunc,
 	Options:     pages.PageOptions{},
 }
 
-func discussionPanelHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func discussionModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data discussionPanelData
+	var data discussionModeData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
