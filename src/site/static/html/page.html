@@ -128,10 +128,10 @@
 
 		<!-- Discussion section -->
 		<div class="discussion-container" flex-order="4" ng-if="::!isSimpleEmbed">
-			<arb-discussion ng-repeat="lensId in ::page.lensIds"
+			<arb-page-discussion ng-repeat="lensId in ::page.lensIds"
 					class="reveal-after-render"
 					page-id="{{::lensId}}"
-					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-discussion>
+					ng-if="isLoaded(lensId) && lensId === selectedLens.pageId"></arb-page-discussion>
 		</div>
 	</div>
 </div>
