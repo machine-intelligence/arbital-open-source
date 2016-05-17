@@ -32,9 +32,6 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 			$scope.rowTemplate = 'hedons';
 			$scope.title = 'Achievements';
 			$scope.moreLink = "/achievements";
-			$scope.listItemIsNew = function(listItem) {
-				return listItem.createdAt > $scope.lastView;
-			};
 
 			$http({method: 'POST', url: '/json/hedons/', data: JSON.stringify({})})
 				.success(function(data) {
@@ -52,7 +49,7 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 });
 
 // arb-hedons-row is the directive for a row of the arb-hedons-panel
-app.directive('arbHedonsRow', function() {
+app.directive('arbHedonsRow', function(pageService) {
 	return {
 		templateUrl: 'static/html/hedonsRow.html',
 		replace: true,
@@ -60,6 +57,8 @@ app.directive('arbHedonsRow', function() {
 			newLike: '=',
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
+
 			$scope.getNames = function(newLikeRow) {
 				var names = newLikeRow.names;
 				if (names.length == 1) {
@@ -91,15 +90,14 @@ app.directive('arbReadModePanel', function($http, userService, pageService) {
 			$scope.rowTemplate = 'page';
 			$scope.title = 'New reading';
 			$scope.moreLink = "/read";
-			$scope.listItemIsNew = function(pageId) {
-				return pageService.pageMap[pageId].createdAt > $scope.lastView;
-			};
 
 			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({})})
 				.success(function(data) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
-					$scope.items = data.result.hotPageIds;
+					$scope.items = data.result.hotPageIds.map(function(pageId) {
+						return pageService.pageMap[pageId];
+					});
 					$scope.lastView = data.result.lastReadModeView;
 				});
 		},
@@ -111,7 +109,16 @@ app.directive('arbPageRow', function() {
 	return {
 		templateUrl: 'static/html/pageRow.html',
 		scope: {
-			pageId: '=',
+			page: '=',
+			hideLikes: '=',
+			showLastEdit: '=',
+			showCreatedAt: '=',
+			showQuickEdit: '=',
+			showRedLinkCount: '=',
+			showCommentCount: '=',
+			showTextLength: '=',
+			// If set, we'll pull the page from the editMap instead of pageMap
+			useEditMap: '=',
 		},
 		replace: true,
 	};

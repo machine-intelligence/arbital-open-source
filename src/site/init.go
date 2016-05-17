@@ -89,7 +89,7 @@ func init() {
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
 	s.HandleFunc(dashboardPageHandler.URI, handlerWrapper(dashboardPageHandler)).Methods("POST")
 	s.HandleFunc(defaultHandler.URI, handlerWrapper(defaultHandler)).Methods("POST")
-	s.HandleFunc(discussionHandler.URI, handlerWrapper(discussionHandler)).Methods("POST")
+	s.HandleFunc(discussionPanelHandler.URI, handlerWrapper(discussionPanelHandler)).Methods("POST")
 	s.HandleFunc(domainPageHandler.URI, handlerWrapper(domainPageHandler)).Methods("POST")
 	s.HandleFunc(editHandler.URI, handlerWrapper(editHandler)).Methods("POST")
 	s.HandleFunc(exploreHandler.URI, handlerWrapper(exploreHandler)).Methods("POST")

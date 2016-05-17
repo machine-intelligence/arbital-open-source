@@ -1,10 +1,17 @@
 <div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
 	<div layout="row" layout-align-gt-sm="start center" flex>
 		<span>
-			{{getNames(newLike)}}
-			<arb-page-title page-id="{{newLike.pageId}}"
+			{{::getNames(newLike)}}
+			<span ng-if="::pageService.pageMap[newLike.pageId].isComment()">your comment:</span>
+			<arb-page-title page-id="{{::newLike.pageId}}"
 				is-link="true"
 				flex></arb-page-title>
+			<span ng-if="::pageService.pageMap[newLike.pageId].isComment()">
+				on
+				<arb-page-title page-id="{{::pageService.pageMap[newLike.pageId].getCommentParent().pageId}}"
+					is-link="true"
+					flex></arb-page-title>
+			</span>
 		</span>
 	</div>
 	<div class="md-caption" layout="row" layout-align="start center">

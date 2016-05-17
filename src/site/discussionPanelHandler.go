@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -36,10 +35,10 @@ func discussionPanelHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load all comments which have a parent to which you are subscribed
-	returnData.ResultMap["pageIds"], err = loadDiscussions(db, u, returnData.PageMap, numPagesToLoad)
-	if err != nil {
-		return pages.Fail("failed to load hot page ids", err)
-	}
+	//returnData.ResultMap["pageIds"], err = loadDiscussions(db, u, returnData.PageMap, numPagesToLoad)
+	//if err != nil {
+	//return pages.Fail("failed to load hot page ids", err)
+	//}
 
 	// Load and update LastDiscussionView for this user
 	returnData.ResultMap[LastDiscussionView], err = LoadAndUpdateLastView(db, u, LastDiscussionView)
@@ -56,7 +55,7 @@ func discussionPanelHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(returnData)
 }
 
-func loadDiscussions(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page, numPagesToLoad int) ([]string, error) {
+/*func loadDiscussions(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page, numPagesToLoad int) ([]string, error) {
 	childrenIds := make([]string, 0)
 	pageOptions := (&core.PageLoadOptions{SubpageCounts: true}).Add(core.TitlePlusLoadOptions)
 	rows := database.NewQuery(`
@@ -85,4 +84,4 @@ func loadDiscussions(db *database.DB, u *core.CurrentUser, pageMap map[string]*c
 	}
 
 	return nil
-}
+}*/

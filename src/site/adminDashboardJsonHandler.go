@@ -47,7 +47,7 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	var err error
 
 	// Load additional info for all pages
-	pageOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
+	pageOptions := core.TitlePlusLoadOptions
 
 	// Monthly active users
 	rows := database.NewQuery(`
