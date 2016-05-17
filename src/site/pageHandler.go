@@ -150,13 +150,6 @@ func pageHandlerWrapper(p *pages.Page) http.HandlerFunc {
 			}
 		}
 
-		// Load updates count. (Loading it afterwards since it could be affected by the page)
-		u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
-		if err != nil {
-			fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
-			return
-		}
-
 		p.ServeHTTP(w, r, result)
 		c.Inc(fmt.Sprintf("%s-success", r.URL.Path))
 	}
