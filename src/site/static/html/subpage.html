@@ -9,7 +9,7 @@
 		<span class="separator" ng-if="::!parentSubpageId"></span>
 
 		<!-- User name -->
-		<arb-user-name user-id="{{::page.creatorId}}"></arb-user-name>
+		<arb-user-name user-id="{{::page.pageCreatorId}}"></arb-user-name>
 
 		<!-- Collapse button -->
 		<div layout="column" flex>
@@ -27,7 +27,7 @@
 			<md-menu-content>
 
 				<!-- Edit comment -->
-				<md-menu-item ng-if="::(page.creatorId === userService.user.id)">
+				<md-menu-item ng-if="::(page.pageCreatorId === userService.user.id)">
 					<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
 							aria-label="Edit comment"
 							ng-disabled="editing"
@@ -44,7 +44,7 @@
 				</md-menu-item>
 
 				<!-- Mark comment as for editors only -->
-				<md-menu-item ng-if="(page.creatorId === userService.user.id || userService.user.isAdmin) && !page.isEditorComment">
+				<md-menu-item ng-if="(page.pageCreatorId === userService.user.id || userService.user.isAdmin) && !page.isEditorComment">
 					<md-button ng-click="showToEditorsOnly()"
 							ng-disabled="editing"
 							aria-label="Show to editors only">
@@ -53,7 +53,7 @@
 				</md-menu-item>
 
 				<!-- Delete comment -->
-				<md-menu-item ng-if="page.creatorId === userService.user.id || userService.user.isAdmin">
+				<md-menu-item ng-if="page.pageCreatorId === userService.user.id || userService.user.isAdmin">
 					<md-button ng-click="deleteSubpage()"
 							ng-disabled="editing"
 							aria-label="Delete comment">
@@ -92,7 +92,7 @@
 				Reply
 			</md-button>
 			<span flex></span>
-			<span class="md-caption" ng-bind="::(page.originalCreatedAt | relativeDateTime)"></span>
+			<span class="md-caption" ng-bind="::(page.pageCreatedAt | relativeDateTime)"></span>
 		</div>
 
 		<!-- Indented reply section -->

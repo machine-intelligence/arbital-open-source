@@ -102,10 +102,10 @@ type corePageData struct {
 	SortChildrenBy           string `json:"sortChildrenBy"`
 	HasVote                  bool   `json:"hasVote"`
 	VoteType                 string `json:"voteType"`
-	CreatorId                string `json:"creatorId"`
-	CreatedAt                string `json:"createdAt"`
-	OriginalCreatedAt        string `json:"originalCreatedAt"`
-	OriginalCreatedBy        string `json:"originalCreatedBy"`
+	EditCreatorId            string `json:"editCreatorId"`
+	EditCreatedAt            string `json:"editCreatedAt"`
+	PageCreatedAt            string `json:"pageCreatedAt"`
+	PageCreatorId            string `json:"pageCreatorId"`
 	SeeGroupId               string `json:"seeGroupId"`
 	EditGroupId              string `json:"editGroupId"`
 	IsAutosave               bool   `json:"isAutosave"`
@@ -707,10 +707,11 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	userMap[u.Id] = &User{Id: u.Id}
 	for _, p := range pageMap {
 		if p.LoadOptions.Text || p.LoadOptions.Summaries {
-			userMap[p.CreatorId] = &User{Id: p.CreatorId}
+			AddUserIdToMap(p.PageCreatorId, userMap)
+			AddUserIdToMap(p.EditCreatorId, userMap)
 		}
 		if IsIdValid(p.LockedBy) {
-			userMap[p.LockedBy] = &User{Id: p.LockedBy}
+			AddUserIdToMap(p.LockedBy, userMap)
 		}
 	}
 	err = LoadUsers(db, userMap, u.Id)
@@ -832,9 +833,9 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var p corePageData
 		err := rows.Scan(
-			&p.PageId, &p.Edit, &p.PrevEdit, &p.CreatorId, &p.CreatedAt, &p.Title, &p.Clickbait,
+			&p.PageId, &p.Edit, &p.PrevEdit, &p.EditCreatorId, &p.EditCreatedAt, &p.Title, &p.Clickbait,
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
-			&p.VoteType, &p.Alias, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.SortChildrenBy,
+			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsEditorCommentIntention,
 			&p.IsRequisite, &p.IndirectTeacher,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted, &p.MergedInto,
@@ -1058,9 +1059,9 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		WHERE`).AddPart(whereClause).ToStatement(db)
 	row := statement.QueryRow()
 	exists, err := row.Scan(&p.PageId, &p.Edit, &p.PrevEdit, &p.Type, &p.Title, &p.Clickbait,
-		&p.Text, &p.MetaText, &p.Alias, &p.CreatorId, &p.SortChildrenBy,
-		&p.HasVote, &p.VoteType, &p.CreatedAt, &p.SeeGroupId,
-		&p.EditGroupId, &p.OriginalCreatedAt, &p.OriginalCreatedBy, &p.LensIndex,
+		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorId, &p.SortChildrenBy,
+		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeGroupId,
+		&p.EditGroupId, &p.PageCreatedAt, &p.PageCreatorId, &p.LensIndex,
 		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,

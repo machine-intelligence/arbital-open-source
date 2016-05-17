@@ -109,7 +109,7 @@ func dashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 			title = "*Untitled*"
 		}
 		page.Title = title
-		page.CreatedAt = createdAt
+		page.EditCreatedAt = createdAt
 		page.WasPublished = wasPublished
 		page.IsDeleted = isDeleted
 		return nil

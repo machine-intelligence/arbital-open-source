@@ -34,11 +34,11 @@
 		</div>
 		<div style="white-space: nowrap" ng-if="::showLastEdit">
 			<span class="separator"></span>
-			edited <span ng-bind="::(page.createdAt | relativeDateTime)"></span>
+			edited <span ng-bind="::(page.editCreatedAt | relativeDateTime)"></span>
 		</div>
 		<div style="white-space: nowrap" ng-if="::showCreatedAt">
 			<span class="separator"></span>
-			created <span ng-bind="::(page.originalCreatedAt | relativeDateTime)"></span>
+			created <span ng-bind="::(page.pageCreatedAt | relativeDateTime)"></span>
 		</div>
 		<div style="white-space: nowrap" ng-if="::(page.type === 'question')">
 			<span class="separator"></span>
