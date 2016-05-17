@@ -71,7 +71,9 @@ func loadDiscussions(db *database.DB, u *core.CurrentUser, pageMap map[string]*c
 		JOIN subscriptions AS s
 		ON (pp.parentId=s.toId)
 		WHERE s.userId=?`, u.Id).Add(`
+			AND pi.createdBy!=?`, u.Id).Add(`
 			AND pi.type=?`, core.CommentPageType).Add(`
+			AND NOT pi.isEditorComment
 		GROUP BY pp.childId
 		ORDER BY pi.createdAt DESC
 		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()

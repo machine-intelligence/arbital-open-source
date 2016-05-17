@@ -638,6 +638,13 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		loadPage(pageAlias, options);
 	};
 
+	// Get data to display a comment thread.
+	this.loadCommentThread = function(commentId, options) {
+		options = options || {};
+		options.url = '/commentThread/';
+		loadPage(commentId, options);
+	};
+
 	// Load edit.
 	// options {
 	//   pageAlias: pageAlias to load
@@ -869,7 +876,11 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			}
 		}
 		parent.subpageIds.push(commentId);
-		$location.replace().url(this.getPageUrl(commentId));
+		// Only change the URL if we are on the actual lens page, since there are
+		// ways to create new comments from other locations (e.g. discussion mode)
+		if (that.primaryPage && that.primaryPage.pageId == comment.getCommentParentPage().pageId) {
+			$location.replace().url(this.getPageUrl(commentId));
+		}
 	};
 
 	// Create a new mark.

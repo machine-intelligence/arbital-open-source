@@ -87,6 +87,7 @@ func init() {
 	// JSON handlers (API)
 	s.HandleFunc(adminDashboardPageHandler.URI, handlerWrapper(adminDashboardPageHandler)).Methods("POST")
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
+	s.HandleFunc(commentThreadHandler.URI, handlerWrapper(commentThreadHandler)).Methods("POST")
 	s.HandleFunc(dashboardPageHandler.URI, handlerWrapper(dashboardPageHandler)).Methods("POST")
 	s.HandleFunc(defaultHandler.URI, handlerWrapper(defaultHandler)).Methods("POST")
 	s.HandleFunc(deleteAnswerHandler.URI, handlerWrapper(deleteAnswerHandler)).Methods("POST")
