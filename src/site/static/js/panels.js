@@ -52,7 +52,7 @@ app.directive('arbNewHedonsPanel', function($http, userService, pageService) {
 });
 
 // arb-hedons-row is the directive for a row of the arb-hedons-panel
-app.directive('arbHedonsRow', function() {
+app.directive('arbHedonsRow', function(pageService) {
 	return {
 		templateUrl: 'static/html/hedonsRow.html',
 		replace: true,
@@ -60,6 +60,8 @@ app.directive('arbHedonsRow', function() {
 			newLike: '=',
 		},
 		controller: function($scope) {
+			$scope.pageService = pageService;
+
 			$scope.getNames = function(newLikeRow) {
 				var names = newLikeRow.names;
 				if (names.length == 1) {

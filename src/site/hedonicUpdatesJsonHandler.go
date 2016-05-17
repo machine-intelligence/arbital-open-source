@@ -66,7 +66,7 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 	newLikesMap := make(map[string]*NewLikesRow, 0)
 
 	rows := database.NewQuery(`
-		SELECT u.Id,u.firstName,u.lastName,pi.pageId,l.createdAt,l.value
+		SELECT u.Id,u.firstName,u.lastName,pi.pageId,pi.type,l.createdAt,l.value
 		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		JOIN likes AS l
 	    ON pi.likeableId=l.likeableId
@@ -79,10 +79,11 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 		var firstName string
 		var lastName string
 		var pageId string
+		var pageType string
 		var createdAt string
 		var likeValue int
 
-		err := rows.Scan(&likerId, &firstName, &lastName, &pageId, &createdAt, &likeValue)
+		err := rows.Scan(&likerId, &firstName, &lastName, &pageId, &pageType, &createdAt, &likeValue)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
@@ -101,7 +102,12 @@ func loadNewLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*core
 			}
 			newLikesMap[pageId] = newLikesRow
 			newLikesRows = append(newLikesRows, newLikesRow)
-			core.AddPageToMap(pageId, pageMap, core.TitlePlusLoadOptions)
+
+			loadOptions := core.TitlePlusLoadOptions
+			if pageType == core.CommentPageType {
+				loadOptions.Add(&core.PageLoadOptions{Parents: true})
+			}
+			core.AddPageToMap(pageId, pageMap, loadOptions)
 		}
 
 		newLikesRow.Names = append(newLikesRow.Names, firstName+" "+lastName)
