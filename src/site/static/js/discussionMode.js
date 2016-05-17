@@ -44,7 +44,7 @@ app.directive('arbDiscussionModePanel', function($http, userService, pageService
 });
 
 // arb-discussion-mode-row is the directive for a row of the arb-discussion-mode-panel
-app.directive('arbDiscussionModeRow', function(pageService, userService) {
+app.directive('arbDiscussionModeRow', function($location, pageService, userService) {
 	return {
 		templateUrl: 'static/html/discussionModeRow.html',
 		replace: true,
@@ -55,6 +55,19 @@ app.directive('arbDiscussionModeRow', function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
+			$scope.threadExpanded = false;
+			$scope.threadLoaded = false;
+
+			$scope.toggleThread = function() {
+				$scope.threadExpanded = !$scope.threadExpanded;
+				if ($scope.threadExpanded && !$scope.threadLoaded) {
+					pageService.loadCommentThread($scope.topLevelComment.pageId, {
+						success: function() {
+							$scope.threadLoaded = true;
+						},
+					});
+				}
+			};
 		},
 	};
 });

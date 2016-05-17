@@ -14,22 +14,23 @@ const (
 )
 
 // Both load and update the last time the user loaded the given view.
-func LoadAndUpdateLastView(db *database.DB, u *core.CurrentUser, view string) (string, error) {
+func LoadAndUpdateLastView(db *database.DB, u *core.CurrentUser, viewName string) (string, error) {
 	var lastView string
 	row := database.NewQuery(`
-		SELECT ?
+		SELECT viewedAt
 		FROM lastViews
-		WHERE userId=?`, view, u.Id).ToStatement(db).QueryRow()
+		WHERE userId=?`, u.Id).Add(`
+			AND viewName=?`, viewName).ToStatement(db).QueryRow()
 	_, err := row.Scan(&lastView)
-	return lastView, err
 	if err != nil {
 		return "", err
 	}
 
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = u.Id
-	hashmap[view] = database.Now()
-	statement := db.NewInsertStatement("lastViews", hashmap, view)
+	hashmap["viewName"] = viewName
+	hashmap["viewedAt"] = database.Now()
+	statement := db.NewInsertStatement("lastViews", hashmap, "viewedAt")
 	_, err = statement.Exec()
 	if err != nil {
 		return "", err
