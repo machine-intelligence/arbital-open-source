@@ -65,7 +65,7 @@ func loadHotPageIds(db *database.DB, u *core.CurrentUser, pageMap map[string]*co
 	rows := database.NewQuery(`
 		SELECT pageId
 		FROM`).AddPart(core.PageInfosTable(u)).Add(` AS pi
-		WHERE pi.type IN ('wiki', 'lens', 'domain', 'question')
+		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
 		ORDER BY createdAt DESC
 		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()
 

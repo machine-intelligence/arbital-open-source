@@ -520,6 +520,26 @@ app.directive('arbPageList', function(pageService, userService) {
 	};
 });
 
+// Exists to share the template for a row in a md-list of pages
+app.directive('arbPageRow', function() {
+	return {
+		templateUrl: 'static/html/pageRow.html',
+		scope: {
+			page: '=',
+			hideLikes: '=',
+			showLastEdit: '=',
+			showCreatedAt: '=',
+			showQuickEdit: '=',
+			showRedLinkCount: '=',
+			showCommentCount: '=',
+			showTextLength: '=',
+			// If set, we'll pull the page from the editMap instead of pageMap
+			useEditMap: '=',
+		},
+		replace: true,
+	};
+});
+
 // Directive for checking if the user meets the necessary permissions
 app.directive('arbUserCheck', function($compile, $mdToast, pageService, userService) {
 	return {

@@ -6,13 +6,13 @@
 		</div>
 	</md-toolbar>
 
-	<md-list role="list" class="ng-scope">
+	<md-list class="ng-scope">
 		<md-list-item ng-repeat="listItem in items | orderBy:'-createdAt' | limitTo:numToDisplay"
 				class="panel-list-item"
 				ng-class="{'unseen-update': listItem.createdAt > lastView}">
 
 			<div ng-switch="::rowTemplate" flex>
-				<arb-page-row page-id="listItem" ng-switch-when="page"></arb-page-row>
+				<arb-page-row page="listItem" ng-switch-when="page"></arb-page-row>
 				<arb-hedons-row new-like="listItem" ng-switch-when="hedons"></arb-hedons-row>
 				<arb-discussion-row item="listItem" ng-switch-when="discussion"></arb-discussion-row>
 			</div>

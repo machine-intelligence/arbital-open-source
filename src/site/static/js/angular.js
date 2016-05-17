@@ -279,6 +279,32 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 
 app.run(function($http, $location, urlService, pageService, userService) {
 	// Set up mapping from URL path to specific controllers
+	urlService.addUrlHandler('/achievements/', {
+		name: 'AchievementsPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Achievements',
+					content: $scope.newElement('<arb-achievements-page></arb-achievements-page'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
+	urlService.addUrlHandler('/discussion/', {
+		name: 'DiscussionPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Discussions',
+					content: $scope.newElement('<arb-discussions-page></arb-discussions-page'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
 	urlService.addUrlHandler('/', {
 		name: 'IndexPage',
 		handler: function(args, $scope) {
@@ -640,19 +666,6 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				return {
 					title: 'Read',
 					content: $scope.newElement('<arb-read-mode-page></arb-read-mode-page>'),
-				};
-			}))
-			.error($scope.getErrorFunc('default'));
-		},
-	});
-	urlService.addUrlHandler('/achievements/', {
-		name: 'AchievementsPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/default/'})
-			.success($scope.getSuccessFunc(function(data) {
-				return {
-					title: 'Achievements',
-					content: $scope.newElement('<arb-achievements-page></arb-achievements-page'),
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
