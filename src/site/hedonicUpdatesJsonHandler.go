@@ -11,7 +11,7 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type hedonicUpdatesJsonData struct{}
+type hedonicUpdatesData struct{}
 
 type NewLikesRow struct {
 	Names     []string `json:"names"`
@@ -20,7 +20,7 @@ type NewLikesRow struct {
 	CreatedAt string   `json:"createdAt"`
 }
 
-var hedonicUpdatesJsonHandler = siteHandler{
+var hedonicUpdatesHandler = siteHandler{
 	URI:         "/json/hedons/",
 	HandlerFunc: hedonicUpdatesHandlerFunc,
 	Options: pages.PageOptions{
@@ -34,7 +34,7 @@ func hedonicUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data hedonicUpdatesJsonData
+	var data hedonicUpdatesData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)

@@ -1,30 +1,36 @@
-<md-card ng-if="items.length != 0" ng-class="{'capped-body-width': isFullPage}">
+<md-card ng-class="{'capped-body-width': isFullPage}" ng-if="items.length != 0">
 	<md-toolbar class="md-hue-2" ng-if="::title">
 		<div class="md-toolbar-tools">
-			<span ng-bind="::title" ng-if="!(numToDisplay)" flex></span>
-			<a ng-bind="::title" ng-if="numToDisplay" ng-href="{{::moreLink}}" flex></a>
+			<span ng-bind="::title" flex ng-if="!(numToDisplay)"></span>
+			<a ng-bind="::title" ng-href="{{::moreLink}}" flex ng-if="numToDisplay"></a>
 		</div>
 	</md-toolbar>
 
 	<md-list role="list" class="ng-scope">
-		<md-list-item role="listitem" class="panel-list-item"
-			ng-repeat="listItem in items | orderBy:'-createdAt' | limitTo:numToDisplay"
-			ng-class="{'unseen-update': listItemIsNew(listItem)}">
-			<arb-page-row ng-if="rowTemplate == 'page'" page-Id="listItem"></arb-page-row>
-			<arb-hedons-row ng-if="rowTemplate == 'hedons'" new-like="listItem"></arb-hedons-row>
+		<md-list-item ng-repeat="listItem in items | orderBy:'-createdAt' | limitTo:numToDisplay"
+				class="panel-list-item"
+				ng-class="{'unseen-update': listItemIsNew(listItem)}">
+
+			<div ng-switch="::rowTemplate" flex>
+				<arb-page-row page-id="listItem" ng-switch-when="page"></arb-page-row>
+				<arb-hedons-row new-like="listItem" ng-switch-when="hedons"></arb-hedons-row>
+				<arb-discussion-row item="listItem" ng-switch-when="discussion"></arb-discussion-row>
+			</div>
+
 			<md-divider ng-if="::!$last"></md-divider>
 		</md-list-item>
 	</md-list>
 
-	<md-toolbar layout="row" layout-align="end center" ng-if="moreLink && items.length > numToDisplay"
-		class="layout-align-end-center layout-row list-panel-footer md-hue-1">
+	<md-toolbar layout="row"
+			layout-align="end center"
+			class="layout-align-end-center layout-row list-panel-footer md-hue-1"
+			ng-if="moreLink && items.length > numToDisplay">
 		<span class="md-caption" ng-if="items.length > numToDisplay">
 			+ {{items.length - numToDisplay}} more
 		</span>
-		<md-button
-			ng-href="{{::moreLink}}"
-			class="md-primary">
-			<md-icon>arrow_forward</md-icon>See all
+		<md-button ng-href="{{::moreLink}}" class="md-primary">
+			<md-icon>arrow_forward</md-icon>
+			See all
 		</md-button>
 	</md-toolbar>
 </md-card>

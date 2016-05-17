@@ -10,6 +10,7 @@ const (
 	// Possible views
 	LastAchievementsView = "lastAchievementsView"
 	LastReadModeView     = "lastReadModeView"
+	LastDiscussionView   = "lastDiscussionView"
 )
 
 // Both load and update the last time the user loaded the given view.

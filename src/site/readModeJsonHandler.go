@@ -1,4 +1,4 @@
-// readModeJsonHandler.go serves the /read panel.
+// readModeHandler.go serves the /read panel.
 package site
 
 import (
@@ -10,11 +10,11 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type readModeJsonData struct {
+type readModeData struct {
 	NumPagesToLoad int
 }
 
-var readModeJsonHandler = siteHandler{
+var readModeHandler = siteHandler{
 	URI:         "/json/readMode/",
 	HandlerFunc: readModeHandlerFunc,
 	Options:     pages.PageOptions{},
@@ -26,7 +26,7 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data readModeJsonData
+	var data readModeData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
