@@ -9,8 +9,8 @@
 	<md-list role="list" class="ng-scope">
 		<md-list-item role="listitem" class="panel-list-item"
 			ng-repeat="listItem in items | orderBy:'-createdAt' | limitTo:numToDisplay"
-			ng-class="{'unseen-update': listItemIsNew(listItem)}">
-			<arb-page-row ng-if="rowTemplate == 'page'" page-Id="listItem"></arb-page-row>
+			ng-class="{'unseen-update': listItem.createdAt > lastView}">
+			<arb-page-row ng-if="rowTemplate == 'page'" page="listItem"></arb-page-row>
 			<arb-hedons-row ng-if="rowTemplate == 'hedons'" new-like="listItem"></arb-hedons-row>
 			<md-divider ng-if="::!$last"></md-divider>
 		</md-list-item>

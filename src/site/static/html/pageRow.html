@@ -1,12 +1,11 @@
-<div ng-init="page=getPage(pageId)"
-		layout="column"
+<div layout="column"
 		layout-gt-sm="row"
 		layout-align-gt-sm="start center"
 		flex>
 	<!-- First row -->
 	<div layout="row" layout-align="start start" flex>
-		<arb-likes likeable-type="page" likeable-id="{{::pageId}}" ng-if="::!hideLikes"></arb-likes>
-		<arb-page-title page-id="{{::pageId}}"
+		<arb-likes likeable-type="page" likeable-id="{{::page.pageId}}" ng-if="::!hideLikes"></arb-likes>
+		<arb-page-title page-id="{{::page.pageId}}"
 				is-link="true"
 				show-clickbait="true"
 				use-edit-map="::useEditMap"
@@ -14,7 +13,7 @@
 	</div>
 	<!-- Second row -->
 	<div class="md-caption" layout-gt-xs="row" layout-align="start center">
-		<md-button ng-href="{{::pageService.getEditPageUrl(pageId)}}"
+		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
 				class="md-icon-button"
 				ng-if="::showQuickEdit">
 			<md-icon>create</md-icon>
