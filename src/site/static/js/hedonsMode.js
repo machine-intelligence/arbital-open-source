@@ -17,7 +17,9 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 				.success(function(data) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
-					$scope.items = data.result.hedons;
+					$scope.items = data.result.hedons.sort(function(a, b) {
+						a.createdAt > b.createdAt
+					});
 					$scope.lastView = data.result.lastAchievementsView;
 				});
 		},
