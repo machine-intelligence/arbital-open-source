@@ -5,8 +5,10 @@
 			{{::getNames(hedonsRow)}}
 
 			<span ng-switch-when="likes">
-				<span ng-if="::hedonsRow.names.length > 1">like</span>
-				<span ng-if="::hedonsRow.names.length == 1">likes</span>
+				<ng-pluralize count="::hedonsRow.names.length"
+					when="{'1': ' likes ',
+						   'other': ' like }">
+				</ng-pluralize>
 
 				<span ng-if="::pageService.pageMap[hedonsRow.pageId].isComment()">your comment:</span>
 				<arb-page-title page-id="{{::hedonsRow.pageId}}"
