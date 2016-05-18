@@ -17,9 +17,21 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 				.success(function(data) {
 					userService.processServerData(data);
 					pageService.processServerData(data);
-					$scope.items = data.result.hedons.sort(function(a, b) {
-						a.createdAt > b.createdAt
+
+					$scope.items = data.result.hedons.map(function(hedonsRow) {
+						hedonsRow.names = Object.keys(hedonsRow.names);
+						if (hedonsRow.requisiteIds) {
+							hedonsRow.requisites = Object.keys(hedonsRow.requisiteIds).map(function(reqId) {
+								return pageService.pageMap[reqId].title;
+							});
+						}
+						return hedonsRow;
 					});
+
+					$scope.items = $scope.items.sort(function(a, b) {
+						return new Date(b.newActivityAt) - new Date(a.newActivityAt);
+					});
+
 					$scope.lastView = data.result.lastAchievementsView;
 				});
 		},
@@ -32,25 +44,31 @@ app.directive('arbHedonsRow', function(pageService) {
 		templateUrl: 'static/html/hedonsRow.html',
 		replace: true,
 		scope: {
-			newLike: '=',
+			hedonsRow: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 
-			$scope.getNames = function(newLikeRow) {
-				var names = newLikeRow.names;
-				if (names.length == 1) {
-					return names[0] + ' likes ';
+			$scope.getNames = function(hedonsRow) {
+				return $scope.formatListForDisplay(hedonsRow.names, 'person', 'people');
+			};
+
+			$scope.getReqs = function(hedonsRow) {
+				return $scope.formatListForDisplay(hedonsRow.requisites, 'requisite', 'requisites');
+			};
+
+			$scope.formatListForDisplay = function(list, singularThing, pluralThing) {
+				if (list.length == 1) {
+					return list[0];
 				}
 
-				if (names.length == 2) {
-					return names[0] + ' and ' + names[1] + ' like ';
+				if (list.length == 2) {
+					return list[0] + ' and ' + list[1];
 				}
 
-				var numExtraPeople = names.length - 2;
-				var namesString = names[0] + ', ' + names[1] + ', and ' + numExtraPeople + ' other ';
-				namesString = namesString + ((numExtraPeople == 1) ? 'person' : 'people') + ' like ';
-				return namesString;
+				var numExtra = list.length - 2;
+				return list[0] + ', ' + list[1] + ', and ' + numExtra + ' other ' +
+					((numExtra == 1) ? singularThing : pluralThing);
 			};
 		},
 	};
