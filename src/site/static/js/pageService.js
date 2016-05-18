@@ -871,7 +871,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		comment = this.addPageToMap(comment);
 		// HACK: set the comment's data to make sure it's displayed correctly
 		// TODO: actually fetch the newly created comment from the server
-		comment.pageCreatedAt = moment().format('YYYY-MM-DD HH:mm:ss');
+		comment.pageCreatedAt = moment().utc().format('YYYY-MM-DD HH:mm:ss');
 		comment.permissions.comment.has = true;
 		comment.isSubscribed = true;
 
