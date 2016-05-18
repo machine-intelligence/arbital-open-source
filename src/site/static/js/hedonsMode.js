@@ -31,7 +31,7 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 					});
 
 					$scope.items = $scope.items.sort(function(a, b) {
-						return new Date(b.newActivityAt) - new Date(a.newActivityAt);
+						return b.newActivityAt > a.newActivityAt ? 1 : -1;
 					});
 
 					$scope.lastView = data.result.lastAchievementsView;

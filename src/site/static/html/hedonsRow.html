@@ -6,8 +6,7 @@
 
 			<span ng-switch-when="likes">
 				<ng-pluralize count="::hedonsRow.names.length"
-					when="{'1': ' likes ',
-						   'other': ' like '}">
+					when="{'1': 'likes', 'other': 'like'}">
 				</ng-pluralize>
 
 				<span ng-if="::pageService.pageMap[hedonsRow.pageId].isComment()">your comment:</span>

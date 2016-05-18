@@ -162,10 +162,6 @@ func loadRequisitesTaught(db *database.DB, u *core.CurrentUser, pageMap map[stri
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 
-		if learnerId == u.Id {
-			return nil
-		}
-
 		hedonsRow, ok := hedonsRowMap[taughtById]
 		if !ok {
 			hedonsRow = &HedonsRow{
