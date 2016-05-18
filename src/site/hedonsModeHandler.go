@@ -67,9 +67,6 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error updating last achievements view", err)
 	}
 
-	// Uncomment this to test the feature.
-	// returnData.ResultMap[LastAchievementsView] = "2016-05-03 20:11:42"
-
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
@@ -89,13 +86,11 @@ func loadReceivedLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]
 		ON pi.likeableId=l.likeableId
 		JOIN users AS u
 		ON l.userId=u.id
-		WHERE pi.createdBy=?`, u.Id).Add(` AND l.value=1 AND l.userId!=?`, u.Id).Add(`
+		WHERE pi.createdBy=?`, u.Id).Add(`
+			AND l.value=1 AND l.userId!=?`, u.Id).Add(`
 		ORDER BY l.updatedAt DESC`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var likerId string
-		var pageId string
-		var pageType string
-		var updatedAt string
+		var likerId, pageId, pageType, updatedAt string
 		var likeValue int
 
 		err := rows.Scan(&likerId, &pageId, &pageType, &updatedAt, &likeValue)
@@ -109,7 +104,7 @@ func loadReceivedLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]
 				PageId:        pageId,
 				NewActivityAt: updatedAt,
 				Type:          LikesRowType,
-				UserIdsMap:    make(map[string]bool, 0),
+				UserIdsMap:    make(map[string]bool),
 			}
 			hedonsRowMap[pageId] = hedonsRow
 
@@ -122,7 +117,6 @@ func loadReceivedLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]
 
 		core.AddUserIdToMap(likerId, userMap)
 		hedonsRow.UserIdsMap[likerId] = true
-
 		return nil
 	})
 	if err != nil {
@@ -148,14 +142,11 @@ func loadRequisitesTaught(db *database.DB, u *core.CurrentUser, pageMap map[stri
 		ON ump.taughtBy=pi.pageId
 		JOIN users AS u
 		ON ump.userId=u.id
-		WHERE pi.createdBy=?`, u.Id).Add(` AND ump.has=1 AND ump.userId!=?`, u.Id).Add(`
+		WHERE pi.createdBy=?`, u.Id).Add(`
+			AND ump.has=1 AND ump.userId!=?`, u.Id).Add(`
 		ORDER BY ump.updatedAt DESC`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var learnerId string
-		var learnerName string
-		var taughtById string
-		var masteryId string
-		var updatedAt string
+		var learnerId, taughtById, masteryId, updatedAt string
 
 		err := rows.Scan(&learnerId, &taughtById, &masteryId, &updatedAt)
 		if err != nil {
@@ -168,8 +159,8 @@ func loadRequisitesTaught(db *database.DB, u *core.CurrentUser, pageMap map[stri
 				PageId:          taughtById,
 				NewActivityAt:   updatedAt,
 				Type:            ReqsTaughtType,
-				UserIdsMap:      make(map[string]bool, 0),
-				RequisiteIdsMap: make(map[string]bool, 0),
+				UserIdsMap:      make(map[string]bool),
+				RequisiteIdsMap: make(map[string]bool),
 			}
 			hedonsRowMap[taughtById] = hedonsRow
 		}
@@ -177,9 +168,8 @@ func loadRequisitesTaught(db *database.DB, u *core.CurrentUser, pageMap map[stri
 		core.AddPageToMap(taughtById, pageMap, core.TitlePlusLoadOptions)
 		core.AddPageToMap(masteryId, pageMap, core.TitlePlusLoadOptions)
 		core.AddUserIdToMap(learnerId, userMap)
-		hedonsRow.UserIdsMap[learnerName] = true
+		hedonsRow.UserIdsMap[learnerId] = true
 		hedonsRow.RequisiteIdsMap[masteryId] = true
-
 		return nil
 	})
 	if err != nil {
