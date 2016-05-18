@@ -1,0 +1,39 @@
+<div flex>
+	<div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
+		<div layout="row" layout-align-gt-sm="start center" flex>
+			<span ng-switch="::hedonsRow.type">
+				<!-- Names of people -->
+				{{::getNames(hedonsRow)}}
+
+				<span ng-switch-when="likes">
+					<ng-pluralize count="::hedonsRow.names.length"
+						when="{'1': 'likes', 'other': 'like'}">
+					</ng-pluralize>
+
+					<span ng-if="::hedonsRow.changeLog.id">your edit to</span>
+
+					<span ng-if="::pageService.pageMap[hedonsRow.pageId].isComment()">your comment:</span>
+					<arb-page-title page-id="{{::hedonsRow.pageId}}"
+						is-link="true"></arb-page-title>
+					<span ng-if="::pageService.pageMap[hedonsRow.pageId].isComment()">
+						on
+						<arb-page-title page-id="{{::pageService.pageMap[hedonsRow.pageId].getCommentParentPage().pageId}}"
+							is-link="true"></arb-page-title>
+					</span>
+				</span>
+
+				<span ng-switch-when="reqsTaught">
+					learned <!-- uncomment if we decide to show which requisites were learned {{::getReqs(hedonsRow)}} --> from
+					<arb-page-title page-id="{{::hedonsRow.pageId}}"
+						is-link="true"></arb-page-title>
+				</span>
+			</span>
+		</div>
+		<div class="md-caption" layout="row" layout-align="start center">
+			<span ng-bind="::(hedonsRow.newActivityAt | relativeDateTime)"></span>
+		</div>
+	</div>
+	<div ng-if="::hedonsRow.changeLog.id">
+		<arb-edit-diff change-log="::hedonsRow.changeLog"></arb-edit-diff>
+	</div>
+</div>

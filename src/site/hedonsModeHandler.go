@@ -42,13 +42,19 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error loading new likes", err)
 	}
 
+	// Load new likes on my edits
+	changeLikesRows, err := loadChangeLikesModeRows(db, returnData, data.NumPagesToLoad)
+	if err != nil {
+		return pages.Fail("Error loading change likes", err)
+	}
+
 	// Load requisites taught
 	reqsTaughtRows, err := loadReqsTaughtModeRows(db, returnData, data.NumPagesToLoad)
 	if err != nil {
 		return pages.Fail("Error loading requisites taught", err)
 	}
 
-	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, reqsTaughtRows)
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, changeLikesRows, reqsTaughtRows)
 
 	// Load and update lastAchievementsView for this user
 	returnData.ResultMap["lastView"], err = LoadAndUpdateLastView(db, u, LastAchievementsModeView)

@@ -48,8 +48,9 @@ type markModeRow struct {
 // Row to show which users like a page
 type likesModeRow struct {
 	modeRowData
-	PageId  string   `json:"pageId"`
-	UserIds []string `json:"userIds"`
+	PageId    string          `json:"pageId"`
+	ChangeLog *core.ChangeLog `json:"changeLog"` // Optional changeLog.
+	UserIds   []string        `json:"userIds"`
 }
 
 // Row to show which users learned some requisites
@@ -70,7 +71,7 @@ type ModeRows []modeRow
 
 func (a ModeRows) Len() int           { return len(a) }
 func (a ModeRows) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ModeRows) Less(i, j int) bool { return a[i].GetActivityDate() < a[j].GetActivityDate() }
+func (a ModeRows) Less(i, j int) bool { return a[i].GetActivityDate() > a[j].GetActivityDate() }
 
 // Take a list of dateObjects, combine them into one list, sorted by date, and then
 // return "limit" most recent ones.
@@ -166,21 +167,21 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 	hedonsRowMap := make(map[string]*likesModeRow)
 
 	rows := database.NewQuery(`
-		SELECT u.Id,pi.pageId,pi.type,l.updatedAt,l.value
+		SELECT u.id,pi.pageId,pi.type,l.updatedAt
 		FROM `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		JOIN likes AS l
 		ON pi.likeableId=l.likeableId
 		JOIN users AS u
 		ON l.userId=u.id
 		WHERE pi.createdBy=?`, returnData.User.Id).Add(`
-			AND l.value=1 AND l.userId!=?`, returnData.User.Id).Add(`
+			AND l.userId!=?`, returnData.User.Id).Add(`
+			AND l.value=1 
 		ORDER BY l.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var likerId, pageId, pageType, updatedAt string
-		var likeValue int
 
-		err := rows.Scan(&likerId, &pageId, &pageType, &updatedAt, &likeValue)
+		err := rows.Scan(&likerId, &pageId, &pageType, &updatedAt)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
@@ -217,12 +218,63 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 	return modeRows, nil
 }
 
+func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	hedonsRowMap := make(map[int]*likesModeRow, 0)
+
+	rows := database.NewQuery(`
+		SELECT l.userId,cl.pageId,l.updatedAt,cl.id,cl.pageId,cl.type,cl.oldSettingsValue,cl.newSettingsValue,cl.edit
+		FROM likes as l
+		JOIN changeLogs as cl
+		ON cl.likeableId=l.likeableId
+		WHERE cl.userId=?`, returnData.User.Id).Add(`
+			AND l.value=1 AND l.userId!=?`, returnData.User.Id).Add(`
+			AND cl.type=?`, core.NewEditChangeLog).Add(`
+		ORDER BY l.updatedAt DESC`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var likerId, pageId, updatedAt string
+		var changeLog core.ChangeLog
+
+		err := rows.Scan(&likerId, &pageId, &updatedAt,
+			&changeLog.Id, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
+			&changeLog.NewSettingsValue, &changeLog.Edit)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+
+		row, ok := hedonsRowMap[changeLog.Id]
+		if !ok {
+			row = &likesModeRow{
+				modeRowData: modeRowData{RowType: LikesModeRowType, ActivityDate: updatedAt},
+				PageId:      pageId,
+				ChangeLog:   &changeLog,
+				UserIds:     make([]string, 0),
+			}
+			hedonsRowMap[changeLog.Id] = row
+		}
+
+		core.AddPageToMap(pageId, returnData.PageMap, core.TitlePlusLoadOptions)
+		core.AddUserIdToMap(likerId, returnData.UserMap)
+		row.UserIds = append(row.UserIds, likerId)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	hedonsRows := make(ModeRows, 0)
+	for _, row := range hedonsRowMap {
+		hedonsRows = append(hedonsRows, row)
+	}
+
+	return hedonsRows, nil
+}
+
 // Load all the requisites taught by this user.
 func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
 	hedonsRowMap := make(map[string]*reqsTaughtModeRow)
 
 	rows := database.NewQuery(`
-		SELECT u.Id,pi.pageId,ump.masteryId,ump.updatedAt
+		SELECT u.id,pi.pageId,ump.masteryId,ump.updatedAt
 		FROM userMasteryPairs AS ump
 		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		ON ump.taughtBy=pi.pageId
