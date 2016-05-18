@@ -149,13 +149,13 @@ func loadRequisitesTaught(db *database.DB, u *core.CurrentUser, pageMap map[stri
 	hedonsRowMap := make(map[string]*HedonsRow, 0)
 
 	rows := database.NewQuery(`
-	    SELECT u.Id,CONCAT(u.firstName," ",u.lastName),pi.pageId,ump.masteryId,ump.updatedAt
-	    FROM userMasteryPairs AS ump
-	    JOIN `).AddPart(core.PageInfosTable(u)).Add(` AS pi
-	    ON ump.taughtBy=pi.pageId
-	    JOIN users AS u
-	    ON ump.userId=u.id
-	    WHERE pi.createdBy=?
+		SELECT u.Id,CONCAT(u.firstName," ",u.lastName),pi.pageId,ump.masteryId,ump.updatedAt
+		FROM userMasteryPairs AS ump
+		JOIN `).AddPart(core.PageInfosTable(u)).Add(` AS pi
+		ON ump.taughtBy=pi.pageId
+		JOIN users AS u
+		ON ump.userId=u.id
+		WHERE pi.createdBy=?
 			AND ump.has=1
 		ORDER BY ump.updatedAt DESC`, u.Id).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
