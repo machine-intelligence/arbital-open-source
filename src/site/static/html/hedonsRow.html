@@ -9,6 +9,8 @@
 					when="{'1': 'likes', 'other': 'like'}">
 				</ng-pluralize>
 
+				<span ng-if="::hedonsRow.changeLog.id">your change to</span>
+
 				<span ng-if="::pageService.pageMap[hedonsRow.pageId].isComment()">your comment:</span>
 				<arb-page-title page-id="{{::hedonsRow.pageId}}"
 					is-link="true"></arb-page-title>
