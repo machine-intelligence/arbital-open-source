@@ -35,7 +35,10 @@ func commentThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the comments.
-	core.AddPageToMap(data.CommentId, returnData.PageMap, core.SubpageLoadOptions)
+	loadOptions := (&core.PageLoadOptions{
+		Parents: true,
+	}).Add(core.SubpageLoadOptions)
+	core.AddPageToMap(data.CommentId, returnData.PageMap, loadOptions)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
