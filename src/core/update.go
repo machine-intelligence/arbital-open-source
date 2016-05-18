@@ -168,7 +168,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		FROM updates
 		LEFT JOIN changeLogs
 		ON (updates.changeLogId = changeLogs.id)
-		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(`
+		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(` AND updates.dismissed!=true
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
 		LIMIT 100`).ToStatement(db).Query()

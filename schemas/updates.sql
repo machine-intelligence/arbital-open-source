@@ -18,6 +18,8 @@ CREATE TABLE updates (
 	createdAt DATETIME NOT NULL,
 	/* Whether the user has seen this update. */
 	unseen BOOLEAN NOT NULL,
+	/* Whether the user has dismissed this update. */
+	dismissed BOOLEAN NOT NULL,
 	/* True if this update has been emailed out. */
 	emailed BOOLEAN NOT NULL,
 	/* One of these has to be set. Updates will be grouped by this key and show up
