@@ -86,9 +86,9 @@ func loadReceivedLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]
 		SELECT u.Id,CONCAT(u.firstName," ",u.lastName),pi.pageId,pi.type,l.updatedAt,l.value
 		FROM `).AddPart(core.PageInfosTable(u)).Add(` AS pi
 		JOIN likes AS l
-	    ON pi.likeableId=l.likeableId
-	    JOIN users AS u
-	    ON l.userId=u.id
+		ON pi.likeableId=l.likeableId
+		JOIN users AS u
+		ON l.userId=u.id
 		WHERE pi.createdBy=?
 			AND l.value=1
 		ORDER BY l.updatedAt DESC`, u.Id).ToStatement(db).Query()
