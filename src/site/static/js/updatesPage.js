@@ -19,11 +19,11 @@ app.directive('arbUpdates', function($http, pageService, userService) {
 				return b.mostRecentDate < a.mostRecentDate ? -1 : 1;
 			});
 
-			$scope.dismissUpdate = function(update) {
+			$scope.dismissUpdate = function(update, updateGroup, index) {
 				$http({method: 'POST', url: '/dismissUpdate/', data: JSON.stringify({
 					id: update.id
 				})}).success(function(data) {
-					alert('remove the update from the list, yo');
+					updateGroup.splice(index, 1);
 				});
 			};
 		},

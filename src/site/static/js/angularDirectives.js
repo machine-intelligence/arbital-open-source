@@ -653,7 +653,8 @@ app.directive('arbLogRow', function(pageService) {
 			createdAt: '@',
 			repeated: '=',
 			showUserLink: '=',
-			onClear: '&',
+			showDismissIcon: '=',
+			onDismiss: '&',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
