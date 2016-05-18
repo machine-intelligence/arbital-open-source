@@ -7,26 +7,23 @@
 			<span ng-switch-when="likes">
 				<ng-pluralize count="::hedonsRow.names.length"
 					when="{'1': ' likes ',
-						   'other': ' like }">
+						   'other': ' like '}">
 				</ng-pluralize>
 
 				<span ng-if="::pageService.pageMap[hedonsRow.pageId].isComment()">your comment:</span>
 				<arb-page-title page-id="{{::hedonsRow.pageId}}"
-					is-link="true"
-					flex></arb-page-title>
+					is-link="true"></arb-page-title>
 				<span ng-if="::pageService.pageMap[hedonsRow.pageId].isComment()">
 					on
 					<arb-page-title page-id="{{::pageService.pageMap[hedonsRow.pageId].getCommentParentPage().pageId}}"
-						is-link="true"
-						flex></arb-page-title>
+						is-link="true"></arb-page-title>
 				</span>
 			</span>
 
 			<span ng-switch-when="reqsTaught">
 				learned <!-- uncomment if we decide to show which requisites were learned {{::getReqs(hedonsRow)}} --> from
 				<arb-page-title page-id="{{::hedonsRow.pageId}}"
-					is-link="true"
-					flex></arb-page-title>
+					is-link="true"></arb-page-title>
 			</span>
 		</span>
 	</div>

@@ -19,9 +19,11 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 					pageService.processServerData(data);
 
 					$scope.items = data.result.hedons.map(function(hedonsRow) {
-						hedonsRow.names = Object.keys(hedonsRow.names);
-						if (hedonsRow.requisiteIds) {
-							hedonsRow.requisites = Object.keys(hedonsRow.requisiteIds).map(function(reqId) {
+						hedonsRow.names = Object.keys(hedonsRow.userIdsMap).map(function(userId) {
+							return userService.getFullName(userId);
+						});
+						if (hedonsRow.requisiteIdsMap) {
+							hedonsRow.requisites = Object.keys(hedonsRow.requisiteIdsMap).map(function(reqId) {
 								return pageService.pageMap[reqId].title;
 							});
 						}
