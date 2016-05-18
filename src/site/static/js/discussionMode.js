@@ -55,19 +55,6 @@ app.directive('arbDiscussionModeRow', function($location, pageService, userServi
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
-			$scope.threadExpanded = false;
-			$scope.threadLoaded = false;
-
-			$scope.toggleThread = function() {
-				$scope.threadExpanded = !$scope.threadExpanded;
-				if ($scope.threadExpanded && !$scope.threadLoaded) {
-					pageService.loadCommentThread($scope.topLevelComment.pageId, {
-						success: function() {
-							$scope.threadLoaded = true;
-						},
-					});
-				}
-			};
 		},
 	};
 });

@@ -25,19 +25,5 @@
 		</div>
 	</div>
 
-	<!-- Toggle thread button -->
-	<md-button class="md-primary"
-			ng-click="toggleThread()"
-			aria-label="Toggle thread"
-			ng-bind="threadExpanded ? 'Collapse thread': 'Expand thread'">
-	</md-button>
-
-	<!-- Comment thread -->
-	<div ng-if="threadExpanded">
-		<md-progress-circular md-mode="indeterminate" ng-if="!threadLoaded"></md-progress-circular>
-		<div arb-subpage class="reveal-after-render"
-				lens-id="{{::topLevelComment.getCommentParentPage().pageId}}"
-				page-id="{{::topLevelComment.pageId}}"
-				ng-if="threadLoaded"></div>
-	</div>
+	<arb-collapsable-comment-thread comment-id="{{::topLevelComment.pageId}}"></arb-collapsable-comment-thread>
 </div>

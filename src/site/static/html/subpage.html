@@ -2,7 +2,7 @@
 		layout="column"
 		class="subpage-content full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-if="!isDeleted && (!page.isEditorComment || userService.showEditorComments)">
+		ng-if="!isDeleted && (!page.isEditorComment || pageService.getShowEditorComments())">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center">
 		<md-icon ng-if="::!parentSubpageId">comment</md-icon>

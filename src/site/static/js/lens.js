@@ -54,7 +54,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 				var count = 0;
 				for (var n = 0; n < $scope.page.commentIds.length; n++) {
 					var commentId = $scope.page.commentIds[n];
-					count += (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments) ? 1 : 0;
+					count += (!pageService.pageMap[commentId].isEditorComment || pageService.getShowEditorComments()) ? 1 : 0;
 				}
 				return count;
 			};
@@ -380,7 +380,7 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 					scope.getInlineCommentIconStyle = function(commentId) {
 						var params = scope.inlineComments[commentId];
 						var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
-						isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments);
+						isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || pageService.getShowEditorComments());
 						return {
 							'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 							'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,

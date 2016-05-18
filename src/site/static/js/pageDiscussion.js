@@ -32,20 +32,20 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, pageS
 			};
 
 			// Track (globally) whether or not to show editor comments.
-			userService.showEditorComments = $scope.page.creatorIds.indexOf(userService.user.id) >= 0;
-			if (!userService.showEditorComments && $location.hash()) {
+			pageService.setShowEditorComments($scope.page.creatorIds.indexOf(userService.user.id) >= 0);
+			if (!pageService.getShowEditorComments() && $location.hash()) {
 				// If hash points to a subpage for editors, show it
 				var matches = (new RegExp('^subpage-' + aliasMatch + '$')).exec($location.hash());
 				if (matches) {
 					var page = pageService.pageMap[matches[1]];
 					if (page) {
-						userService.showEditorComments = page.isEditorComment;
+						pageService.setShowEditorComments(page.isEditorComment);
 					}
 				}
 			}
 
 			$scope.toggleEditorComments = function() {
-				userService.showEditorComments = !userService.showEditorComments;
+				pageService.setShowEditorComments(!pageService.getShowEditorComments());
 			};
 
 			// Compute how many visible comments there are.
@@ -53,7 +53,7 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, pageS
 				var count = 0;
 				for (var n = 0; n < $scope.page.commentIds.length; n++) {
 					var commentId = $scope.page.commentIds[n];
-					count += (!pageService.pageMap[commentId].isEditorComment || userService.showEditorComments) ? 1 : 0;
+					count += (!pageService.pageMap[commentId].isEditorComment || pageService.getShowEditorComments()) ? 1 : 0;
 				}
 				return count;
 			};

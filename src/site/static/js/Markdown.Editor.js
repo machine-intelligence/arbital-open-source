@@ -1048,7 +1048,7 @@
 					case 'k':
 						doClick(buttons.code);
 						break;
-					case 'g':
+					case 'm':
 						doClick(buttons.image);
 						break;
 					case 'o':
