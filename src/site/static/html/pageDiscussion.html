@@ -15,7 +15,7 @@
 					<!-- Toggle seeing editor comments -->
 					<md-menu-item>
 						<md-button ng-click="toggleEditorComments()">
-							{{userService.showEditorComments ? 'Hide' : 'Show'}} editor comments
+							{{pageService.getShowEditorComments() ? 'Hide' : 'Show'}} editor comments
 						</md-button>
 					</md-menu-item>
 				</md-menu-content>

@@ -11,6 +11,15 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// Primary page is the one with its id in the url
 	this.primaryPage = undefined;
 
+	// Should we show editor comments for the currently selected lens.
+	var showEditorComments = false;
+	this.getShowEditorComments = function() {
+		return showEditorComments || !this.primaryPage;
+	};
+	this.setShowEditorComments = function(value) {
+		showEditorComments = value;
+	};
+
 	// All loaded pages.
 	this.pageMap = {};
 
@@ -857,7 +866,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	this.newCommentCreated = function(commentId) {
 		var comment = this.editMap[commentId];
 		if (comment.isEditorComment) {
-			userService.showEditorComments = true;
+			this.setShowEditorComments(true);
 		}
 		comment = this.addPageToMap(comment);
 		// HACK: set the comment's data to make sure it's displayed correctly

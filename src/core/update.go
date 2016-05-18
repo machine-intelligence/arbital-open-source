@@ -139,7 +139,9 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 
 	// Create group loading options
 	groupLoadOptions := (&PageLoadOptions{IsSubscribed: true}).Add(TitlePlusIncludeDeletedLoadOptions)
-	goToPageLoadOptions := TitlePlusIncludeDeletedLoadOptions
+	goToPageLoadOptions := (&PageLoadOptions{
+		Parents: true, // to show comment threads properly
+	}).Add(TitlePlusIncludeDeletedLoadOptions)
 
 	updateRows := make([]*UpdateRow, 0, 0)
 	changeLogs := make([]*ChangeLog, 0)

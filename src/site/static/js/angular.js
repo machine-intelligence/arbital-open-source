@@ -169,6 +169,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				$('.global-error').text(result.error).show();
 				document.title = 'Error - Arbital';
 			}
+			
 			if (result.content) {
 				// Only show the element after it and all the children have been fully compiled and linked
 				result.content.element.addClass('reveal-after-render-parent');
