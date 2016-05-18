@@ -160,6 +160,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 				WHERE updates.goToPageId = pageId), false
 			) AS isGoToPageAlive,
 			COALESCE(changeLogs.id, 0),
+			COALESCE(changeLogs.pageId, 0),
 			COALESCE(changeLogs.type, ''),
 			COALESCE(changeLogs.oldSettingsValue, ''),
 			COALESCE(changeLogs.newSettingsValue, ''),
@@ -177,8 +178,8 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
 			&row.GoToPageId, &row.MarkId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive,
-			&changeLog.Id, &changeLog.Type, &changeLog.OldSettingsValue, &changeLog.NewSettingsValue,
-			&changeLog.Edit)
+			&changeLog.Id, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
+			&changeLog.NewSettingsValue, &changeLog.Edit)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
