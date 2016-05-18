@@ -1,0 +1,6 @@
+<md-button ng-click="toggleDiff()"
+	ng-bind="showDiff ? 'Hide diff' : 'Show diff'">
+</md-button>
+<div ng-if="showDiff">
+	<span ng-bind-html="::diffHtml"></span>
+</div>
