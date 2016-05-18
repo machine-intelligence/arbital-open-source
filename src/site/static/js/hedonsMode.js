@@ -26,7 +26,7 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 });
 
 // arb-likes-row is the directive for showing who liked current user's stuff
-app.directive('arbLikesRow', function(pageService, userService) {
+app.directive('arbLikesModeRow', function(pageService, userService) {
 	return {
 		templateUrl: 'static/html/likesModeRow.html',
 		scope: {
@@ -35,7 +35,7 @@ app.directive('arbLikesRow', function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.userNames = formatUserNamesForDisplay($scope.modeRow.userIds.map(function(userId) {
+			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
 				return userService.getFullName(userId);
 			}));
 		},
@@ -43,7 +43,7 @@ app.directive('arbLikesRow', function(pageService, userService) {
 });
 
 // arb-reqs-taught-row is the directive for showing who learned current user's reqs
-app.directive('arbReqsTaughtRow', function(pageService, userService) {
+app.directive('arbReqsTaughtModeRow', function(pageService, userService) {
 	return {
 		templateUrl: 'static/html/reqsTaughtModeRow.html',
 		scope: {
@@ -52,10 +52,10 @@ app.directive('arbReqsTaughtRow', function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.userNames = formatUserNamesForDisplay($scope.modeRow.userIds.map(function(userId) {
+			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
 				return userService.getFullName(userId);
 			}));
-			$scope.reqNames = formatReqsNamesForDisplay($scope.modeRow.requisiteIds.map(function(pageMap) {
+			$scope.reqNames = formatReqsForDisplay($scope.modeRow.requisiteIds.map(function(pageMap) {
 				return pageService.pageMap[pageMap].title;
 			}));
 		},

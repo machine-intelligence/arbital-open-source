@@ -185,10 +185,10 @@ var formatListForDisplay = function(list, singularThing, pluralThing) {
 		((numExtra == 1) ? singularThing : pluralThing);
 };
 
-var formatUserNamesForDisplay = function(list) {
+var formatUsersForDisplay = function(list) {
 	return formatListForDisplay(list, 'person', 'people');
 };
 
-var formatReqsNamesForDisplay = function(list) {
+var formatReqsForDisplay = function(list) {
 	return formatListForDisplay(list, 'requisite', 'requisites');
 };

@@ -506,10 +506,10 @@ func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, erro
 	return domainIds, err
 }
 
-// Return true iff the id is in the list
-func IsIdInList(id string, list []string) bool {
+// Return true iff the string is in the list
+func IsStringInList(str string, list []string) bool {
 	for _, listId := range list {
-		if id == listId {
+		if str == listId {
 			return true
 		}
 	}

@@ -73,8 +73,8 @@ func (a ModeRows) Len() int           { return len(a) }
 func (a ModeRows) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ModeRows) Less(i, j int) bool { return a[i].GetActivityDate() > a[j].GetActivityDate() }
 
-// Take a list of dateObjects, combine them into one list, sorted by date, and then
-// return "limit" most recent ones.
+// Take a list of ModeRows, combine them into one list, sorted by date, and then
+// return at most "limit" most recent rows.
 func combineModeRows(limit int, listOfRows ...ModeRows) ModeRows {
 	allRows := make(ModeRows, 0)
 	for _, rows := range listOfRows {
@@ -306,10 +306,10 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 		core.AddPageToMap(taughtById, returnData.PageMap, core.TitlePlusLoadOptions)
 		core.AddPageToMap(masteryId, returnData.PageMap, core.TitlePlusLoadOptions)
 		core.AddUserIdToMap(learnerId, returnData.UserMap)
-		if !core.IsIdInList(learnerId, row.UserIds) {
+		if !core.IsStringInList(learnerId, row.UserIds) {
 			row.UserIds = append(row.UserIds, learnerId)
 		}
-		if !core.IsIdInList(masteryId, row.RequisiteIds) {
+		if !core.IsStringInList(masteryId, row.RequisiteIds) {
 			row.RequisiteIds = append(row.RequisiteIds, masteryId)
 		}
 		return nil
