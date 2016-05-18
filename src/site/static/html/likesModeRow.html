@@ -1,0 +1,21 @@
+<div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
+	<div flex>
+		<!-- Names of people -->
+		{{::userNames}}
+
+		<ng-pluralize count="::modeRow.userIds.length" when="{'1': 'likes', 'other': 'like'}">
+		</ng-pluralize>
+
+		<span ng-if="::pageService.pageMap[modeRow.pageId].isComment()">your comment:</span>
+		<arb-page-title page-id="{{::modeRow.pageId}}"
+			is-link="true"></arb-page-title>
+		<span ng-if="::pageService.pageMap[modeRow.pageId].isComment()">
+			on
+			<arb-page-title page-id="{{::pageService.pageMap[modeRow.pageId].getCommentParentPage().pageId}}"
+				is-link="true"></arb-page-title>
+		</span>
+	</div>
+	<div class="md-caption" layout="row" layout-align="start center">
+		<span ng-bind="::(modeRow.activityDate | relativeDateTime)"></span>
+	</div>
+</div>

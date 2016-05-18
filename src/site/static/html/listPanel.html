@@ -1,4 +1,5 @@
-<md-card ng-class="{'capped-body-width': isFullPage}" ng-if="items.length != 0">
+<md-card ng-class="{'capped-body-width': isFullPage}" ng-if="modeRows.length != 0">
+	<!-- Header -->
 	<md-toolbar class="md-hue-2" ng-if="::title">
 		<div class="md-toolbar-tools">
 			<span ng-bind="::title" flex ng-if="!(numToDisplay)"></span>
@@ -6,31 +7,36 @@
 		</div>
 	</md-toolbar>
 
+	<!-- List of mode rows -->
 	<md-list class="ng-scope">
-		<md-list-item ng-repeat="listItem in items | limitTo:numToDisplay track by $index"
+		<md-list-item ng-repeat="modeRow in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay track by $index"
 				class="panel-list-item"
-				ng-class="{'unseen-update': listItem.pageCreatedAt > lastView}">
+				ng-class="{'unseen-update': modeRow.activityDate > lastView}">
 
-			<div ng-switch="::rowTemplate" flex>
-				<arb-page-row page="listItem" ng-switch-when="page"></arb-page-row>
-				<arb-hedons-row hedons-row="listItem" ng-switch-when="hedons"></arb-hedons-row>
-				<arb-discussion-mode-row comment="listItem" ng-switch-when="discussion"></arb-discussion-mode-row>
+			<div ng-switch="::modeRow.rowType" flex>
+				<arb-page-row page-id="{{::modeRow.pageId}}" ng-switch-when="page"></arb-page-row>
+				<arb-likes-row mode-row="modeRow" ng-switch-when="likes"></arb-likes-row>
+				<arb-reqs-taught-row mode-row="modeRow" ng-switch-when="reqsTaught"></arb-reqs-taught-row>
+				<div arb-mark-info mark-id="{{::modeRow.markId}}" ng-switch-when="mark"></div>
+				<div arb-query-info mark-id="{{::modeRow.markId}}" ng-switch-when="query"></div>
+				<arb-comment-mode-row mode-row="modeRow" ng-switch-when="comment"></arb-discussion-mode-row>
 			</div>
 
 			<md-divider ng-if="::!$last"></md-divider>
 		</md-list-item>
 	</md-list>
 
+	<!-- Footer -->
 	<md-toolbar layout="row"
 			layout-align="end center"
 			class="layout-align-end-center layout-row list-panel-footer md-hue-1"
-			ng-if="moreLink && items.length > numToDisplay">
-		<span class="md-caption" ng-if="items.length > numToDisplay">
-			+ {{items.length - numToDisplay}} more
-		</span>
-		<md-button ng-href="{{::moreLink}}" class="md-primary">
-			<md-icon>arrow_forward</md-icon>
-			See all
-		</md-button>
+			ng-if="moreLink && modeRows.length > numToDisplay">
+		<div class="md-toolbar-tools">
+			<div flex></div>
+			<md-button ng-href="{{::moreLink}}">
+				See more
+				<md-icon>arrow_forward</md-icon>
+			</md-button>
+		</div>
 	</md-toolbar>
 </md-card>

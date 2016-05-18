@@ -165,3 +165,30 @@ var isValidEmail = function(email) {
 	var re = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
 	return re.test(email);
 };
+
+// Return a string which prints one of:
+// 1) X1
+// 2) X2 and X3
+// 3) X1, X2, and # other things
+// depending on the number of things in the list.
+var formatListForDisplay = function(list, singularThing, pluralThing) {
+	if (list.length == 1) {
+		return list[0];
+	}
+
+	if (list.length == 2) {
+		return list[0] + ' and ' + list[1];
+	}
+
+	var numExtra = list.length - 2;
+	return list[0] + ', ' + list[1] + ', and ' + numExtra + ' other ' +
+		((numExtra == 1) ? singularThing : pluralThing);
+};
+
+var formatUserNamesForDisplay = function(list) {
+	return formatListForDisplay(list, 'person', 'people');
+};
+
+var formatReqsNamesForDisplay = function(list) {
+	return formatListForDisplay(list, 'requisite', 'requisites');
+};

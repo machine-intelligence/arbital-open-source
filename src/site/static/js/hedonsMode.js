@@ -9,69 +9,55 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 			isFullPage: '='
 		},
 		controller: function($scope) {
-			$scope.rowTemplate = 'hedons';
+			$scope.pageService = pageService;
+			$scope.userService = userService;
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
 
-			$http({method: 'POST', url: '/json/hedons/', data: JSON.stringify({})})
-				.success(function(data) {
-					userService.processServerData(data);
-					pageService.processServerData(data);
-
-					$scope.items = data.result.hedons.map(function(hedonsRow) {
-						hedonsRow.names = Object.keys(hedonsRow.userIdsMap).map(function(userId) {
-							return userService.getFullName(userId);
-						});
-						if (hedonsRow.requisiteIdsMap) {
-							hedonsRow.requisites = Object.keys(hedonsRow.requisiteIdsMap).map(function(reqId) {
-								return pageService.pageMap[reqId].title;
-							});
-						}
-						return hedonsRow;
-					});
-
-					$scope.items = $scope.items.sort(function(a, b) {
-						return b.newActivityAt > a.newActivityAt ? 1 : -1;
-					});
-
-					$scope.lastView = data.result.lastAchievementsView;
-				});
+			pageService.loadModeData('/json/hedons/', {
+					numPagesToLoad: $scope.numToDisplay,
+				},
+				function(data) {
+					$scope.modeRows = data.result.modeRows;
+					$scope.lastView = data.result.lastView;
+			});
 		},
 	};
 });
 
-// arb-hedons-row is the directive for a row of the arb-hedons-panel
-app.directive('arbHedonsRow', function(pageService) {
+// arb-likes-row is the directive for showing who liked current user's stuff
+app.directive('arbLikesRow', function(pageService, userService) {
 	return {
-		templateUrl: 'static/html/hedonsRow.html',
-		replace: true,
+		templateUrl: 'static/html/likesModeRow.html',
 		scope: {
-			hedonsRow: '=',
+			modeRow: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.userNames = formatUserNamesForDisplay($scope.modeRow.userIds.map(function(userId) {
+				return userService.getFullName(userId);
+			}));
+		},
+	};
+});
 
-			$scope.getNames = function(hedonsRow) {
-				return $scope.formatListForDisplay(hedonsRow.names, 'person', 'people');
-			};
-
-			$scope.getReqs = function(hedonsRow) {
-				return $scope.formatListForDisplay(hedonsRow.requisites, 'requisite', 'requisites');
-			};
-
-			$scope.formatListForDisplay = function(list, singularThing, pluralThing) {
-				if (list.length == 1) {
-					return list[0];
-				}
-
-				if (list.length == 2) {
-					return list[0] + ' and ' + list[1];
-				}
-
-				var numExtra = list.length - 2;
-				return list[0] + ', ' + list[1] + ', and ' + numExtra + ' other ' +
-					((numExtra == 1) ? singularThing : pluralThing);
-			};
+// arb-reqs-taught-row is the directive for showing who learned current user's reqs
+app.directive('arbReqsTaughtRow', function(pageService, userService) {
+	return {
+		templateUrl: 'static/html/reqsTaughtModeRow.html',
+		scope: {
+			modeRow: '=',
+		},
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.userNames = formatUserNamesForDisplay($scope.modeRow.userIds.map(function(userId) {
+				return userService.getFullName(userId);
+			}));
+			$scope.reqNames = formatReqsNamesForDisplay($scope.modeRow.requisiteIds.map(function(pageMap) {
+				return pageService.pageMap[pageMap].title;
+			}));
 		},
 	};
 });

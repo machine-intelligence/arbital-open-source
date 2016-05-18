@@ -939,6 +939,21 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		});
 	};
 
+	// Load data for one of the mode panels
+	this.loadModeData = function(modeUrl, params, success) {
+		$http({method: 'POST', url: modeUrl, data: JSON.stringify(params)})
+			.success(function(data) {
+				console.log(modeUrl + ' data:'); console.log(data);
+				userService.processServerData(data);
+				that.processServerData(data);
+				if (success) success(data);
+			})
+			.error(function(data) {
+				console.error('Error getting data from ' + modeUrl); console.error(data);
+				that.showToast({text: 'Error getting data from ' + modeUrl + ': ' + data, isError: true});
+			});
+	};
+
 	// Return "has", "wants", or "" depending on the current status of the given mastery.
 	this.getMasteryStatus = function(masteryId) {
 		var has = false;
