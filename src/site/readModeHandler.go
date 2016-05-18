@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -31,25 +30,23 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
+	if data.NumPagesToLoad <= 0 {
+		data.NumPagesToLoad = DefaultModeRowCount
+	}
 
 	// figure out which pages to show as exciting and hot!
-	numPagesToLoad := data.NumPagesToLoad
-	if numPagesToLoad == 0 {
-		numPagesToLoad = 25
-	}
-	hotPageIds, err := loadHotPageIds(db, u, returnData.PageMap, numPagesToLoad)
+	hotPageIds, err := loadHotPagesModeRows(db, returnData, data.NumPagesToLoad)
 	if err != nil {
 		return pages.Fail("failed to load hot page ids", err)
 	}
 
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, hotPageIds)
+
 	// Load and update LastReadModeView for this user
-	returnData.ResultMap[LastReadModeView], err = LoadAndUpdateLastView(db, u, LastReadModeView)
+	returnData.ResultMap["lastView"], err = LoadAndUpdateLastView(db, u, LastReadModeView)
 	if err != nil {
 		return pages.Fail("Error updating last read mode view", err)
 	}
-
-	// Uncomment this to test the feature.
-	// returnData.ResultMap[LastReadModeView] = "2016-05-14 20:11:42"
 
 	// load the pages
 	err = core.ExecuteLoadPipeline(db, returnData)
@@ -57,21 +54,5 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Pipeline error", err)
 	}
 
-	returnData.ResultMap["hotPageIds"] = hotPageIds
 	return pages.Success(returnData)
-}
-
-func loadHotPageIds(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page, numPagesToLoad int) ([]string, error) {
-	rows := database.NewQuery(`
-		SELECT pageId
-		FROM`).AddPart(core.PageInfosTable(u)).Add(` AS pi
-		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
-		ORDER BY createdAt DESC
-		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()
-
-	pageOptions := (&core.PageLoadOptions{
-		SubpageCounts: true,
-		AnswerCounts:  true,
-	}).Add(core.TitlePlusLoadOptions)
-	return core.LoadPageIds(rows, pageMap, pageOptions)
 }

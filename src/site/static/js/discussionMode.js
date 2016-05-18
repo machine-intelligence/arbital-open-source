@@ -24,36 +24,31 @@ app.directive('arbDiscussionModePanel', function($http, userService, pageService
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-
-			$scope.rowTemplate = 'discussion';
 			$scope.title = 'Discussion';
 			$scope.moreLink = '/discussion';
 
-			$http({method: 'POST', url: '/json/discussionMode/', data: JSON.stringify({})})
-				.success(function(data) {
-					console.log('/json/discussionMode/ data:'); console.log(data);
-					userService.processServerData(data);
-					pageService.processServerData(data);
-					$scope.items = data.result.commentIds.map(function(commentId) {
-						return pageService.pageMap[commentId];
-					});
-					$scope.lastView = data.result.lastDiscussionModeView;
-				});
+			pageService.loadModeData('/json/discussionMode/', {
+					numPagesToLoad: $scope.numToDisplay,
+				},
+				function(data) {
+					$scope.modeRows = data.result.modeRows;
+					$scope.lastView = data.result.lastView;
+			});
 		},
 	};
 });
 
-// arb-discussion-mode-row is the directive for a row of the arb-discussion-mode-panel
-app.directive('arbDiscussionModeRow', function($location, pageService, userService) {
+// arb-comment-mode-row is the directive for a row of the arb-discussion-mode-panel
+app.directive('arbCommentModeRow', function($location, pageService, userService) {
 	return {
-		templateUrl: 'static/html/discussionModeRow.html',
-		replace: true,
+		templateUrl: 'static/html/commentModeRow.html',
 		scope: {
-			comment: '=',
+			modeRow: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			$scope.comment = pageService.pageMap[$scope.modeRow.commentId];
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
 		},
 	};

@@ -22,20 +22,18 @@ app.directive('arbReadModePanel', function($http, userService, pageService) {
 			isFullPage: '=',
 		},
 		controller: function($scope) {
-			$scope.rowTemplate = 'page';
+			$scope.pageService = pageService;
+			$scope.userService = userService;
 			$scope.title = 'New reading';
 			$scope.moreLink = '/read';
 
-			$http({method: 'POST', url: '/json/readMode/', data: JSON.stringify({})})
-				.success(function(data) {
-					userService.processServerData(data);
-					pageService.processServerData(data);
-					$scope.items = data.result.hotPageIds.map(function(pageId) {
-						return pageService.pageMap[pageId];
-					});
-					$scope.lastView = data.result.lastReadModeView;
-				});
+			pageService.loadModeData('/json/readMode/', {
+					numPagesToLoad: $scope.numToDisplay,
+				},
+				function(data) {
+					$scope.modeRows = data.result.modeRows;
+					$scope.lastView = data.result.lastView;
+			});
 		},
 	};
 });
-
