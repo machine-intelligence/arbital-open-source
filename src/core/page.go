@@ -227,6 +227,7 @@ type Page struct {
 // ChangeLog describes a row from changeLogs table.
 type ChangeLog struct {
 	Id               int    `json:"id"`
+	PageId           string `json:"pageId"`
 	UserId           string `json:"userId"`
 	Edit             int    `json:"edit"`
 	Type             string `json:"type"`

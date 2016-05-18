@@ -57,7 +57,7 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	hedons = append(hedons, pageLikesRows...)
 
-	// Load new likes on my changeLogs
+	// Load new likes on my edits
 	changeLikesRows, err := loadChangeLikes(db, u, returnData.PageMap, returnData.UserMap)
 	if err != nil {
 		return pages.Fail("Error loading new likes", err)
@@ -143,19 +143,21 @@ func loadChangeLikes(db *database.DB, u *core.CurrentUser, pageMap map[string]*c
 	hedonsRowMap := make(map[int]*HedonsRow, 0)
 
 	rows := database.NewQuery(`
-		SELECT l.userId,cl.pageId,l.updatedAt,cl.id,cl.type,cl.oldSettingsValue,cl.newSettingsValue,cl.edit
+		SELECT l.userId,cl.pageId,l.updatedAt,cl.id,cl.pageId,cl.type,cl.oldSettingsValue,cl.newSettingsValue,cl.edit
 		FROM likes as l
 		JOIN changeLogs as cl
 		ON cl.likeableId=l.likeableId
 		WHERE cl.userId=?`, u.Id).Add(`
 			AND l.value=1 AND l.userId!=?`, u.Id).Add(`
+			AND cl.type=?`, core.NewEditChangeLog).Add(`
 		ORDER BY l.updatedAt DESC`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var likerId, pageId, updatedAt string
 		var changeLog core.ChangeLog
 
 		err := rows.Scan(&likerId, &pageId, &updatedAt,
-			&changeLog.Id, &changeLog.Type, &changeLog.OldSettingsValue, &changeLog.NewSettingsValue, &changeLog.Edit)
+			&changeLog.Id, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
+			&changeLog.NewSettingsValue, &changeLog.Edit)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}

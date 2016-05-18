@@ -36,12 +36,7 @@
 						></div>
 
 						<div ng-if="::update.type == 'pageEdit'">
-							<md-button ng-click="toggleDiff(update)">
-								{{update.showDiff ? 'Hide diff' : 'Show diff'}}
-							</md-button>
-							<div ng-if="update.showDiff">
-								<span ng-bind-html="::update.diffHtml"></span>
-							</div>
+							<arb-edit-diff change-log="::update.changeLog" num-edits="::update.repeated"></arb-edit-diff>
 						 </div>
 					</div>
 					<md-divider ng-if="::!$last"></md-divider>
