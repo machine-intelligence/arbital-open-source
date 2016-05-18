@@ -1,6 +1,8 @@
 <md-button ng-click="toggleDiff()"
-	ng-bind="showDiff ? 'Hide diff' : 'Show diff'">
+	ng-bind="showDiff ? 'Hide diff' : 'Show diff'"
+	ng-if="::changeLog.edit">
 </md-button>
 <div ng-if="showDiff">
+	<md-progress-circular md-mode="indeterminate" ng-if="!diffHtml"></md-progress-circular>
 	<span ng-bind-html="::diffHtml"></span>
 </div>

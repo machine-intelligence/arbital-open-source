@@ -20,6 +20,15 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, pageServi
 
 			$scope.toggleDiff = function(update) {
 				$scope.showDiff = !$scope.showDiff;
+
+				if ($scope.showDiff && !$scope.diffHtml) {
+					$scope.loadEditAndMaybeMakeDiff($scope.changeLog, $scope.changeLog.edit, function(edit) {
+						$scope.thisEditText = edit.text;
+					});
+					$scope.loadEditAndMaybeMakeDiff($scope.changeLog, $scope.changeLog.edit - $scope.numEdits, function(edit) {
+						$scope.prevEditText = edit.text;
+					});
+				}
 			};
 
 			$scope.loadEditAndMaybeMakeDiff = function(changeLog, edit, successFn) {
@@ -35,13 +44,6 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, pageServi
 					},
 				});
 			};
-
-			$scope.loadEditAndMaybeMakeDiff($scope.changeLog, $scope.changeLog.edit, function(edit) {
-				$scope.thisEditText = edit.text;
-			});
-			$scope.loadEditAndMaybeMakeDiff($scope.changeLog, $scope.changeLog.edit - $scope.numEdits, function(edit) {
-				$scope.prevEditText = edit.text;
-			});
 		},
 	};
 });
