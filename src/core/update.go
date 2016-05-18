@@ -70,7 +70,7 @@ const (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
-	Id                   string
+	Id                   int
 	UserId               string
 	ByUserId             string
 	CreatedAt            string
@@ -97,6 +97,7 @@ type UpdateGroupKey struct {
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
+	Id              int    `json:"id"`
 	UserId          string `json:"userId"`
 	ByUserId        string `json:"byUserId"`
 	Type            string `json:"type"`
@@ -265,6 +266,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		if createNewEntry {
 			// Add new entry to the group
 			entry := &UpdateEntry{
+				Id:              row.Id,
 				UserId:          row.UserId,
 				ByUserId:        row.ByUserId,
 				Type:            row.Type,

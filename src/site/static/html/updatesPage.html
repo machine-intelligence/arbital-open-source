@@ -22,7 +22,6 @@
 			<!-- Panel body -->
 			<md-list>
 				<md-list-item ng-repeat="(index,update) in ::group.updates">
-					{{update.id}}
 					<div ng-class="::{'unseen-update': !update.isVisited}" flex>
 						<div arb-log-row
 							change-log="::update.changeLog"
