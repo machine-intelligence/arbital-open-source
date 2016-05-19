@@ -96,6 +96,19 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		return that.pageMap[that.getCurrentPageId()];
 	};
 
+	// Returns the page from the correct map
+	this.getPageFromSomeMap = function(pageId, useEditMap) {
+		var map;
+		if (pageId in that.deletedPagesMap) {
+			map = that.deletedPagesMap;
+		} else if (useEditMap) {
+			map = that.editMap;
+		} else {
+			map = that.pageMap;
+		}
+		return map[pageId];
+	};
+
 	// Update the masteryMap. Execution happens in the order options are listed.
 	// options = {
 	//		delete: set these masteries to "doesn't know"
@@ -277,7 +290,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		var options = options || {};
 		var url = '/p/' + pageId + '/';
 		var alreadyIncludedHost = false;
-		var page = options.useEditMap ? that.editMap[pageId] : that.pageMap[pageId];
+		var page = that.getPageFromSomeMap(pageId, options.useEditMap);
 
 		if (page) {
 			var pageId = page.pageId;
@@ -857,7 +870,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId, useEditMap) {
-		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
+		var page = that.getPageFromSomeMap(pageId, useEditMap);
 		if (!page) {
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
@@ -866,7 +879,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showPrivate = function(pageId, useEditMap) {
-		var page = (useEditMap ? this.editMap : this.pageMap)[pageId];
+		var page = that.getPageFromSomeMap(pageId, useEditMap);
 		if (!page) {
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
