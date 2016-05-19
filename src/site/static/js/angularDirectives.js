@@ -198,7 +198,7 @@ app.directive('arbPageTitle', function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.page = pageService.getPage($scope.pageId, $scope.useEditMap);
+			$scope.page = pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
@@ -503,7 +503,7 @@ app.directive('arbPageList', function(pageService, userService) {
 			$scope.userService = userService;
 
 			$scope.getPage = function(pageId) {
-				return pageService.getPage(pageId, $scope.useEditMap);
+				return pageService.getPageFromSomeMap(pageId, $scope.useEditMap);
 			};
 		},
 	};
@@ -530,7 +530,7 @@ app.directive('arbPageRow', function(pageService, userService) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
 
-			$scope.page = pageService.getPage($scope.pageId, $scope.useEditMap);
+			$scope.page = pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 		},
 	};
 });

@@ -60,7 +60,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	};
 
 	// Returns the page from the correct map
-	this.getPage = function(pageId, useEditMap) {
+	this.getPageFromSomeMap = function(pageId, useEditMap) {
 		var map;
 		if (pageId in that.deletedPagesMap) {
 			map = that.deletedPagesMap;
@@ -253,7 +253,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		var options = options || {};
 		var url = '/p/' + pageId + '/';
 		var alreadyIncludedHost = false;
-		var page = that.getPage(pageId, options.useEditMap);
+		var page = that.getPageFromSomeMap(pageId, options.useEditMap);
 
 		if (page) {
 			var pageId = page.pageId;
@@ -833,7 +833,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId, useEditMap) {
-		var page = that.getPage(pageId, useEditMap);
+		var page = that.getPageFromSomeMap(pageId, useEditMap);
 		if (!page) {
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
@@ -842,7 +842,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showPrivate = function(pageId, useEditMap) {
-		var page = that.getPage(pageId, useEditMap);
+		var page = that.getPageFromSomeMap(pageId, useEditMap);
 		if (!page) {
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
