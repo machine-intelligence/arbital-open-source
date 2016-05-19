@@ -1,6 +1,6 @@
 <div>
 	<div layout="row">
-	
+
 		<div ng-switch="::type">
 			<div ng-switch-when="newPageByUser"></div>
 			<div ng-switch-when="topLevelComment"></div>
@@ -14,79 +14,79 @@
 					ng-if="::(changeLog && changeLog.id)"></arb-likes>
 			</div>
 		</div>
-	
+
 		<div ng-switch="::type" flex>
-	
+
 			<!-- Changes with links -->
-	
+
 			<span ng-switch-when="newParent">
 				New parent: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteParent">
 				Removed parent: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newChild">
 				New child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newLens">
 				New lens: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteChild">
 				Removed child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newTag">
 				New tag: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteTag">
 				Removed tag: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newUsedAsTag">
 				Used as tag for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteUsedAsTag">
 				Not a tag for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newRequirement">
 				New requirement: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteRequirement">
 				Removed requirement: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newRequiredBy">
 				Required for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteRequiredBy">
 				Not required for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newSubject">
 				Teaches: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteSubject">
 				Doesn't teach: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="newTeacher">
 				Taught by: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="deleteTeacher">
 				Not taught by: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="searchStringChange">
 				<span ng-if="::changeLog.newSettingsValue">
 					Search string added: <span ng-bind="::changeLog.newSettingsValue"></span>
@@ -95,7 +95,7 @@
 					Search string removed: <span ng-bind="::changeLog.oldSettingsValue"></span>
 				</span>
 			</span>
-	
+
 			<span ng-switch-when="answerChange">
 				<span ng-if="::changeLog.newSettingsValue">
 					Answer added: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
@@ -104,37 +104,37 @@
 					Answer removed: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 			</span>
-	
+
 			<span ng-switch-when="questionMerged">
 				This question has been merged into <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="questionMergedReverse">
 				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				question was merged into this.
 			</span>
-	
-	
+
+
 			<!-- Settings changes -->
-	
+
 			<span ng-switch-when="newAlias">
 				Alias changed
 				<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::changeLog.oldSettingsValue}}"</span>
 				<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::changeLog.newSettingsValue}}"</span>
 			</span>
-	
+
 			<span ng-switch-when="newSortChildrenBy">
 				Child sort order changed
 				<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::changeLog.oldSettingsValue}}"</span>
 				<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::changeLog.newSettingsValue}}"</span>
 			</span>
-	
+
 			<span ng-switch-when="setVoteType">
 				Vote type changed
 				<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::changeLog.oldSettingsValue}}"</span>
 				<br><span>&nbsp;&nbsp;&nbsp;&nbsp;to: "{{::changeLog.newSettingsValue}}"</span>
 			</span>
-	
+
 			<span ng-switch-when="newEditGroup">
 				Edit group changed
 				<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from:
@@ -152,69 +152,69 @@
 					</span>
 				</span>
 			</span>
-	
+
 			<span ng-switch-when="turnOnVote">
 				Probability bar shown
 			</span>
-	
+
 			<span ng-switch-when="turnOffVote">
 				Probability bar hidden
 			</span>
-	
+
 			<span ng-switch-when="pageInfoEdit">
 				Settings changed
 			</span>
-	
-	
+
+
 			<!-- Edits and snapshots -->
-	
+
 			<span ng-switch-when="deletePage">
 				Deleted page
 			</span>
-	
+
 			<span ng-switch-when="undeletePage">
 				Republished page
 			</span>
-	
+
 			<span ng-switch-when="newEdit">
 				New edit #{{::changeLog.edit}}
 			</span>
-	
+
 			<span ng-switch-when="revertEdit">
 				Reverted to edit #{{::changeLog.edit}}
 			</span>
-	
+
 			<span ng-switch-when="newSnapshot">
 				New snapshot (edit #{{::changeLog.edit}})
 			</span>
-	
-	
+
+
 			<!-- Updates -->
-	
+
 			<span ng-switch-when="topLevelComment">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				wrote a new comment:
 				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="reply">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				wrote a new reply:
 				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="pageEdit">
 				Edited
 				<span ng-if="::(repeated > 1)">
 					{{::repeated}} times
 				</span>
 			</span>
-	
+
 			<span ng-switch-when="newPageByUser">
 				Created a new page:
 				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="commentEdit">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				edited a
@@ -222,7 +222,7 @@
 						is-link="true"
 						custom-page-title="comment"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="atMention">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				mentioned you in a
@@ -230,7 +230,7 @@
 						is-link="true"
 						custom-page-title="comment"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="addedToGroup">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				added you to
@@ -238,7 +238,7 @@
 						is-link="true"
 						custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="removedFromGroup">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				removed you from
@@ -246,7 +246,7 @@
 						is-link="true"
 						custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 			</span>
-	
+
 			<span ng-switch-when="inviteReceived">
 				Thanks to
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
@@ -258,9 +258,9 @@
 				<span ng-bind="the {{::pageService.getDomainName(goToPageId)}} domain"
 						ng-if="::!goToPageId"></span>
 			</span>
-	
+
 			<!-- Marks -->
-	
+
 			<div ng-switch-when="newMark">
 				<div arb-query-info
 					mark-id="{{::markId}}"
@@ -269,23 +269,23 @@
 						mark-id="{{::markId}}"
 						ng-if="pageService.markMap[markId].type !== 'query'"></div>
 			</div>
-	
+
 			<div ng-switch-when="answeredMark">
 				<div arb-query-info mark-id="{{::markId}}"></div>
 			</div>
-	
+
 			<div ng-switch-when="resolvedMark">
 				<div arb-mark-info mark-id="{{::markId}}"></div>
 			</div>
-	
+
 			<!-- Unknown -->
-	
+
 			<span ng-switch-default class="md-warn">
 				Unknown activity type: {{::type}}
 			</span>
-	
+
 		</div>
-	
+
 		<div>
 			<!-- Link to the user who performed the action (if we haven't already) -->
 			<span ng-switch="::type">
@@ -299,10 +299,14 @@
 					<arb-user-name user-id="{{::byUserId}}" ng-if="::showUserLink && !!byUserId"></arb-user-name>
 				</span>
 			</span>
-	
-			<span class="nowrap" ng-bind="::(createdAt | relativeDateTime)"></span>
+
+			<span class="md-caption nowrap" ng-bind="::(createdAt | relativeDateTime)"></span>
+			<md-button class="md-icon-button" ng-click="onDismiss()" ng-if="showDismissIcon">
+				<md-icon>close</md-icon>
+				<md-tooltip md-delay="500">Dismiss</md-tooltip>
+			</md-button>
 		</div>
-	
+
 	</div>
 
 	<!-- Additional stuff -->
@@ -310,7 +314,7 @@
 			<span ng-switch-when="topLevelComment">
 				<div arb-collapsable-comment-thread comment-id="{{::goToPageId}}"></div>
 			</span>
-	
+
 			<span ng-switch-when="reply">
 				<div arb-collapsable-comment-thread
 						comment-id="{{::pageService.pageMap[goToPageId].getTopLevelComment().pageId}}"></div>

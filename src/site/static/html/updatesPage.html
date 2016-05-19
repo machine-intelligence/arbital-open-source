@@ -1,6 +1,8 @@
 <div class="capped-body-width">
 	<div layout="column" layout-margin>
-		<div class="md-whiteframe-1dp" ng-repeat="(index,group) in ::updateGroups">
+		<div class="md-whiteframe-1dp"
+				ng-repeat="(index,group) in ::updateGroups"
+				ng-if="group.updates.length > 0">
 
 			<!-- Panel header -->
 			<md-subheader ng-class="::{'md-accent md-hue-1': group.key.unseen}">
@@ -21,7 +23,7 @@
 
 			<!-- Panel body -->
 			<md-list>
-				<md-list-item ng-repeat="(index,update) in ::group.updates">
+				<md-list-item ng-repeat="(index,update) in group.updates">
 					<div ng-class="::{'unseen-update': !update.isVisited}" flex>
 						<div arb-log-row
 							change-log="::update.changeLog"
@@ -33,6 +35,8 @@
 							is-related-page-alive="::update.isGoToPageAlive"
 							created-at="{{::update.createdAt}}"
 							repeated="::update.repeated"
+							show-dismiss-icon="::true"
+							on-dismiss="dismissUpdate(update, group.updates, index)"
 						></div>
 
 						<div ng-if="::update.type == 'pageEdit'">
