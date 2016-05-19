@@ -97,6 +97,7 @@ type UpdateGroupKey struct {
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
+	Id              string `json:"id"`
 	UserId          string `json:"userId"`
 	ByUserId        string `json:"byUserId"`
 	Type            string `json:"type"`
@@ -169,6 +170,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		LEFT JOIN changeLogs
 		ON (updates.changeLogId = changeLogs.id)
 		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(`
+			AND updates.dismissed!=true
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
 		LIMIT 100`).ToStatement(db).Query()
@@ -265,6 +267,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		if createNewEntry {
 			// Add new entry to the group
 			entry := &UpdateEntry{
+				Id:              row.Id,
 				UserId:          row.UserId,
 				ByUserId:        row.ByUserId,
 				Type:            row.Type,

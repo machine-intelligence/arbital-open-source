@@ -98,6 +98,7 @@ func init() {
 	s.HandleFunc(deleteSubscriptionHandler.URI, handlerWrapper(deleteSubscriptionHandler)).Methods("POST")
 	s.HandleFunc(discardPageHandler.URI, handlerWrapper(discardPageHandler)).Methods("POST")
 	s.HandleFunc(discussionModeHandler.URI, handlerWrapper(discussionModeHandler)).Methods("POST")
+	s.HandleFunc(dismissUpdateHandler.URI, handlerWrapper(dismissUpdateHandler)).Methods("POST")
 	s.HandleFunc(domainPageHandler.URI, handlerWrapper(domainPageHandler)).Methods("POST")
 	s.HandleFunc(editHandler.URI, handlerWrapper(editHandler)).Methods("POST")
 	s.HandleFunc(editPageHandler.URI, handlerWrapper(editPageHandler)).Methods("POST")

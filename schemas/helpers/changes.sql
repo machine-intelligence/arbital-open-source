@@ -96,3 +96,5 @@ CREATE TABLE lastViews (
 	viewedAt DATETIME NOT NULL,
 	PRIMARY KEY(userId,viewName)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+alter table updates add column dismissed boolean not null;
