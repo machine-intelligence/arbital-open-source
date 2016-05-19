@@ -12,8 +12,8 @@ app.directive('arbUpdates', function($http, pageService, userService) {
 			$scope.userService = userService;
 
 			$scope.updateGroups.sort(function(a, b) {
-				if (b.key.unseen !== a.key.unseen) {
-					return (b.key.unseen ? 1 : 0) - (a.key.unseen ? 1 : 0);
+				if (b.key.seen !== a.key.seen) {
+					return (b.key.seen ? 0 : 1) - (a.key.seen ? 0 : 1);
 				}
 				if (b.mostRecentDate === a.mostRecentDate) return 0;
 				return b.mostRecentDate < a.mostRecentDate ? -1 : 1;

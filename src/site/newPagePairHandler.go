@@ -119,7 +119,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		hashmap["parentId"] = data.ParentId
 		hashmap["childId"] = data.ChildId
 		hashmap["type"] = data.Type
-		statement := tx.DB.NewInsertStatement("pagePairs", hashmap, "parentId").WithTx(tx)
+		statement := tx.DB.NewInsertStatement("pagePairs", hashmap).WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't insert pagePair", err)
 		}
@@ -146,10 +146,13 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 	// Generate updates for users who are subscribed to the parent/child pages.
 	if parent.Type != core.CommentPageType && child.Type != core.CommentPageType &&
-		parent.Alias != "" && child.Alias != "" && parent.IsDeleted && !child.IsDeleted {
+		parent.Alias != "" && child.Alias != "" && !parent.IsDeleted && !child.IsDeleted {
 
-		tasks.EnqueueNewRelationshipUpdates(c, u.Id, data.Type, child.Type, parent.PageId, child.PageId,
+		err := tasks.EnqueueRelationshipUpdates(c, u.Id, parent.PageId, child.PageId,
 			newParentChangeLogId, newChildChangeLogId)
+		if err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
 
 		if data.Type == core.ParentPagePairType {
 			// Create a task to propagate the domain change to all children

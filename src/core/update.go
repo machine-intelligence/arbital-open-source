@@ -20,38 +20,14 @@ const (
 	// Various types of updates a user can get.
 	TopLevelCommentUpdateType = "topLevelComment"
 	ReplyUpdateType           = "reply"
+	ChangeLogUpdateType       = "changeLog"
 	PageEditUpdateType        = "pageEdit"
 	PageInfoEditUpdateType    = "pageInfoEdit"
-	CommentEditUpdateType     = "commentEdit"
 	NewPageByUserUpdateType   = "newPageByUser"
-
-	NewParentUpdateType    = "newParent"
-	DeleteParentUpdateType = "deleteParent"
-
-	NewChildUpdateType    = "newChild"
-	DeleteChildUpdateType = "deleteChild"
 
 	// there's no deleteLens because there's no way to undo the association between a lens and its parent page
 	// (other than deleting the lens page)
 	NewLensUpdateType = "newLens"
-
-	NewTagUpdateType    = "newTag"
-	DeleteTagUpdateType = "deleteTag"
-
-	NewUsedAsTagUpdateType    = "newUsedAsTag"
-	DeleteUsedAsTagUpdateType = "deleteUsedAsTag"
-
-	NewRequirementUpdateType    = "newRequirement"
-	DeleteRequirementUpdateType = "deleteRequirement"
-
-	NewRequiredByUpdateType    = "newRequiredBy"
-	DeleteRequiredByUpdateType = "deleteRequiredBy"
-
-	NewSubjectUpdateType    = "newSubject"
-	DeleteSubjectUpdateType = "deleteSubject"
-
-	NewTeacherUpdateType    = "newTeacher"
-	DeleteTeacherUpdateType = "deleteTeacher"
 
 	AtMentionUpdateType             = "atMention"
 	AddedToGroupUpdateType          = "addedToGroup"
@@ -60,10 +36,6 @@ const (
 	NewMarkUpdateType               = "newMark"
 	ResolvedMarkUpdateType          = "resolvedMark"
 	AnsweredMarkUpdateType          = "answeredMark"
-	SearchStringChangeUpdateType    = "searchStringChange"
-	AnswerChangeUpdateType          = "answerChange"
-	DeletePageUpdateType            = "deletePage"
-	UndeletePageUpdateType          = "undeletePage"
 	QuestionMergedUpdateType        = "questionMerged"
 	QuestionMergedReverseUpdateType = "questionMergedReverse"
 )
@@ -77,7 +49,7 @@ type UpdateRow struct {
 	Type                 string
 	GroupByPageId        string
 	GroupByUserId        string
-	Unseen               bool
+	Seen                 bool
 	SubscribedToId       string
 	GoToPageId           string
 	MarkId               string
@@ -88,11 +60,10 @@ type UpdateRow struct {
 
 // UpdateGroupKey is what we group updateEntries by
 type UpdateGroupKey struct {
-	GroupByPageId string `json:"groupByPageId"`
-	GroupByUserId string `json:"groupByUserId"`
-	// True if this is the first time the user is seeing this update
-	Unseen               bool `json:"unseen"`
-	IsGroupByObjectAlive bool `json:"isGroupByObjectAlive"`
+	GroupByPageId        string `json:"groupByPageId"`
+	GroupByUserId        string `json:"groupByUserId"`
+	Seen                 bool   `json:"seen"`
+	IsGroupByObjectAlive bool   `json:"isGroupByObjectAlive"`
 }
 
 // UpdateEntry corresponds to one update entry we'll display.
@@ -135,7 +106,7 @@ type UpdateData struct {
 func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, forEmail bool) ([]*UpdateRow, error) {
 	emailFilter := database.NewQuery("")
 	if forEmail {
-		emailFilter = database.NewQuery("AND unseen AND NOT emailed")
+		emailFilter = database.NewQuery("AND NOT seen AND NOT emailed")
 	}
 
 	// Create group loading options
@@ -148,7 +119,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 	changeLogs := make([]*ChangeLog, 0)
 
 	rows := database.NewQuery(`
-		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.unseen,
+		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.seen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
 			(
 				SELECT !isDeleted
@@ -178,7 +149,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		var row UpdateRow
 		var changeLog ChangeLog
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
-			&row.Unseen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
+			&row.Seen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
 			&row.GoToPageId, &row.MarkId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive,
 			&changeLog.Id, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
 			&changeLog.NewSettingsValue, &changeLog.Edit)
@@ -231,7 +202,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		key := UpdateGroupKey{
 			GroupByPageId:        row.GroupByPageId,
 			GroupByUserId:        row.GroupByUserId,
-			Unseen:               row.Unseen,
+			Seen:                 row.Seen,
 			IsGroupByObjectAlive: row.IsGroupByObjectAlive,
 		}
 
@@ -250,7 +221,7 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		}
 
 		createNewEntry := true
-		if row.Type == PageEditUpdateType || row.Type == CommentEditUpdateType {
+		if row.Type == PageEditUpdateType {
 			// Check if this kind of update already exists
 			for _, entry := range group.Updates {
 				if entry.Type == row.Type && entry.SubscribedToId == row.SubscribedToId &&
@@ -387,70 +358,4 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	resultData.UpdateEmailText = buffer.String()
 
 	return resultData, nil
-}
-
-// Determines which kind of update should be created for users subscribed to either the parent
-// or the child of a page pair.
-func GetUpdateTypeForPagePair(pairType string, childPageType string, updateIsForChild bool,
-	relationshipIsDeleted bool) (string, error) {
-
-	if relationshipIsDeleted {
-		switch pairType {
-		case ParentPagePairType:
-			if updateIsForChild {
-				return DeleteParentUpdateType, nil
-			} else {
-				return DeleteChildUpdateType, nil
-			}
-		case TagPagePairType:
-			if updateIsForChild {
-				return DeleteTagUpdateType, nil
-			} else {
-				return DeleteUsedAsTagUpdateType, nil
-			}
-		case RequirementPagePairType:
-			if updateIsForChild {
-				return DeleteRequirementUpdateType, nil
-			} else {
-				return DeleteRequiredByUpdateType, nil
-			}
-		case SubjectPagePairType:
-			if updateIsForChild {
-				return DeleteSubjectUpdateType, nil
-			} else {
-				return DeleteTeacherUpdateType, nil
-			}
-		}
-	} else {
-		switch pairType {
-		case ParentPagePairType:
-			if updateIsForChild {
-				return NewParentUpdateType, nil
-			} else if childPageType == LensPageType {
-				return NewLensUpdateType, nil
-			} else {
-				return NewChildUpdateType, nil
-			}
-		case TagPagePairType:
-			if updateIsForChild {
-				return NewTagUpdateType, nil
-			} else {
-				return NewUsedAsTagUpdateType, nil
-			}
-		case RequirementPagePairType:
-			if updateIsForChild {
-				return NewRequirementUpdateType, nil
-			} else {
-				return NewRequiredByUpdateType, nil
-			}
-		case SubjectPagePairType:
-			if updateIsForChild {
-				return NewSubjectUpdateType, nil
-			} else {
-				return NewTeacherUpdateType, nil
-			}
-		}
-	}
-
-	return "", fmt.Errorf("Unexpected pagePair type")
 }

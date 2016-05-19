@@ -9,6 +9,7 @@ import (
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 )
 
 // deleteAnswerData contains data given to us in the request.
@@ -27,6 +28,7 @@ var deleteAnswerHandler = siteHandler{
 // deleteAnswerHandlerFunc handles requests to create/update a like.
 func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
+	c := params.C
 	db := params.DB
 
 	var data deleteAnswerData
@@ -60,9 +62,27 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["auxPageId"] = answer.AnswerPageId
 		hashmap["oldSettingsValue"] = "old"
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		if _, err = statement.Exec(); err != nil {
+		resp, err := statement.Exec()
+		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
 		}
+		changeLogId, err := resp.LastInsertId()
+		if err != nil {
+			return sessions.NewError("Couldn't get changeLog id", err)
+		}
+
+		// Insert updates
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.GoToPageId = answer.QuestionId
+		task.SubscribedToId = answer.QuestionId
+		task.UpdateType = core.ChangeLogUpdateType
+		task.GroupByPageId = answer.QuestionId
+		task.ChangeLogId = changeLogId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task: %v", err)
+		}
+
 		return nil
 	})
 	if err2 != nil {

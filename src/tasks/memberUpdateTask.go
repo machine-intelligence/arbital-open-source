@@ -55,7 +55,6 @@ func (task MemberUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	hashmap["groupByPageId"] = task.GroupId
 	hashmap["goToPageId"] = task.GroupId
 	hashmap["createdAt"] = database.Now()
-	hashmap["unseen"] = true
 	statement := db.NewInsertStatement("updates", hashmap)
 	if _, err = statement.Exec(); err != nil {
 		return -1, fmt.Errorf("Couldn't create new update: %v", err)

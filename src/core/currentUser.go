@@ -212,15 +212,15 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 	return
 }
 
-// LoadUpdateCount returns the number of unseen updates the given user has.
+// LoadUpdateCount returns the number of not seen updates the given user has.
 func LoadUpdateCount(db *database.DB, userId string) (int, error) {
-	editTypes := []string{PageEditUpdateType, CommentEditUpdateType}
+	editTypes := []string{PageEditUpdateType, PageInfoEditUpdateType}
 
 	var editUpdateCount int
 	row := database.NewQuery(`
 		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
 		FROM updates
-		WHERE unseen AND userId=?`, userId).Add(`
+		WHERE NOT seen AND userId=?`, userId).Add(`
 			AND type IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
 	_, err := row.Scan(&editUpdateCount)
 	if err != nil {
@@ -231,7 +231,7 @@ func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 	row = database.NewQuery(`
 		SELECT COUNT(*)
 		FROM updates
-		WHERE unseen AND userId=?`, userId).Add(`
+		WHERE NOT seen AND userId=?`, userId).Add(`
 			AND type NOT IN`).AddArgsGroupStr(editTypes).ToStatement(db).QueryRow()
 	_, err = row.Scan(&nonEditUpdateCount)
 	if err != nil {

@@ -161,10 +161,6 @@
 													{{else if eq .Type "deleteTeacher"}}
 														Deleted "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "commentEdit"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> edited a
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>
-														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "atMention"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> mentioned you in a
 														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment</a>

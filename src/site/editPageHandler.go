@@ -439,25 +439,18 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Generate "edit" update for users who are subscribed to this page.
-		if oldPage.WasPublished && !isMinorEdit {
+		if oldPage.WasPublished && !isMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
-			if createEditChangeLog {
-				task.ChangeLogId = editChangeLogId
-			}
-			if oldPage.Type != core.CommentPageType {
-				if oldPage.IsDeleted {
-					task.UpdateType = core.UndeletePageUpdateType
-				} else {
-					task.UpdateType = core.PageEditUpdateType
-				}
-				task.GroupByPageId = data.PageId
+			task.ChangeLogId = editChangeLogId
+			if oldPage.IsDeleted {
+				task.UpdateType = core.ChangeLogUpdateType
 			} else {
-				task.UpdateType = core.CommentEditUpdateType
-				task.GroupByPageId = commentPrimaryPageId
+				task.UpdateType = core.PageEditUpdateType
 			}
+			task.GroupByPageId = data.PageId
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
@@ -482,12 +475,18 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Generate "new relationship" updates for users who are subscribed to this page or to related pages.
 		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
 			for _, parent := range newParents {
-				tasks.EnqueueNewRelationshipUpdates(c, u.Id, parent.PairType, oldPage.Type, parent.PageId, data.PageId,
+				err := tasks.EnqueueRelationshipUpdates(c, u.Id, parent.PageId, data.PageId,
 					newParentChangeLogIdMap[parent.PageId], 0)
+				if err != nil {
+					c.Errorf("Couldn't enqueue a task: %v", err)
+				}
 			}
 			for _, child := range newChildren {
-				tasks.EnqueueNewRelationshipUpdates(c, u.Id, child.PairType, child.PageType, data.PageId, child.PageId,
+				err := tasks.EnqueueRelationshipUpdates(c, u.Id, data.PageId, child.PageId,
 					0, newChildChangeLogIdMap[child.PageId])
+				if err != nil {
+					c.Errorf("Couldn't enqueue a task: %v", err)
+				}
 			}
 		}
 
