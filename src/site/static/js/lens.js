@@ -58,7 +58,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 				$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
 					toId: $scope.pageId,
-					isSubscribed: $scope.page.isSubscribed,
 					asMaintainer: $scope.page.isSubscribedAsMaintainer,
 				})});
 			};
