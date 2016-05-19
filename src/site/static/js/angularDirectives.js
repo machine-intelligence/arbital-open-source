@@ -285,21 +285,25 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// Check if the data is loaded
-			$scope.isSubscribed = function() {
+			$scope.isSubscribed = function(asMaintainer) {
+				var property = asMaintainer ? 'isSubscribedAsMaintainer' : 'isSubscribed';
 				if (!$scope.isUser) {
 					if (!($scope.pageId in pageService.pageMap)) console.log($scope.pageId);
-					return pageService.pageMap[$scope.pageId].isSubscribed;
+					return pageService.pageMap[$scope.pageId][property];
 				} else {
-					return userService.userMap[$scope.pageId].isSubscribed;
+					return userService.userMap[$scope.pageId][property];
 				}
 			};
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
+				var newSubscribedValue = !$scope.isSubscribed();
 				if (!$scope.isUser) {
-					pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
+					pageService.pageMap[$scope.pageId].isSubscribed = newSubscribedValue;
+					pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
 				} else {
-					userService.userMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
+					userService.userMap[$scope.pageId].isSubscribed = newSubscribedValue;
+					userService.userMap[$scope.pageId].isSubscribedAsMaintainer = false;
 				}
 				var data = {
 					pageId: $scope.pageId,
