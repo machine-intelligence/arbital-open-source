@@ -4,7 +4,7 @@
 			ng-click="subscribeClick()">
 		<md-icon ng-class="{on: isSubscribed()}">visibility</md-icon>
 		<span ng-if="::isStretched">Subscribe</span>
-		<md-icon ng-class="{on: isSubscribedAsMaintainer()}" ng-if="isSubscribed(true)">build</md-icon>
+		<md-icon class="on" ng-if="isSubscribed(true)">build</md-icon>
 		<md-tooltip md-delay="500" ng-if="!isSubscribed()">
 			Receive updates for comments on this page
 		</md-tooltip>
