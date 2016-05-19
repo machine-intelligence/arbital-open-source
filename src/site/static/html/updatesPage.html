@@ -1,6 +1,8 @@
 <div class="capped-body-width">
 	<div layout="column" layout-margin>
-		<div class="md-whiteframe-1dp" ng-repeat="(index,group) in ::updateGroups" ng-if="group.updates.length > 0">
+		<div class="md-whiteframe-1dp"
+				ng-repeat="(index,group) in ::updateGroups"
+				ng-if="group.updates.length > 0">
 
 			<!-- Panel header -->
 			<md-subheader ng-class="::{'md-accent md-hue-1': group.key.unseen}">

@@ -70,7 +70,7 @@ const (
 
 // UpdateRow is a row from updates table
 type UpdateRow struct {
-	Id                   int
+	Id                   string
 	UserId               string
 	ByUserId             string
 	CreatedAt            string
@@ -97,7 +97,7 @@ type UpdateGroupKey struct {
 
 // UpdateEntry corresponds to one update entry we'll display.
 type UpdateEntry struct {
-	Id              int    `json:"id"`
+	Id              string `json:"id"`
 	UserId          string `json:"userId"`
 	ByUserId        string `json:"byUserId"`
 	Type            string `json:"type"`
@@ -169,7 +169,8 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		FROM updates
 		LEFT JOIN changeLogs
 		ON (updates.changeLogId = changeLogs.id)
-		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(` AND updates.dismissed!=true
+		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(`
+			AND updates.dismissed!=true
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
 		LIMIT 100`).ToStatement(db).Query()
