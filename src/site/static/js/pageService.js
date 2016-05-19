@@ -48,6 +48,43 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// This object is set when the user is learning / on a path.
 	this.path = undefined;
 
+	// Mathjax text -> rendered html string cache
+	// mathjax expression -> {
+	//   html: rendered html
+	//   style: computed style for the div / span
+	// }
+	var mathjaxCache = {};
+	var mathjaxRecency = {}; // key -> timestamp
+
+	// Update the timestamp on a cached mathjax.
+	this.getMathjaxCacheValue = function(text) {
+		if (!(text in mathjaxCache)) return null;
+		mathjaxRecency[text] = new Date().getTime();
+		return mathjaxCache[text];
+	};
+
+	// Add the given {text: value} pair to mathjax cache.
+	this.cacheMathjax = function(text, value) {
+		mathjaxCache[text] = value;
+		mathjaxRecency[text] = new Date().getTime();
+
+		var cacheSize = 0;
+		var minTime = new Date().getTime();
+		var minKey;
+		for (var key in mathjaxRecency) {
+			var time = mathjaxRecency[key];
+			if (minTime > time) {
+				minTime = time;
+				minKey = key;
+			}
+			cacheSize++;
+		}
+		if (cacheSize > 100) {
+			delete mathjaxRecency[minKey];
+			delete mathjaxCache[minKey];
+		}
+	};
+
 	// Returns the id of the current page, if there is one.
 	this.getCurrentPageId = function() {
 		return $location.search().l ||

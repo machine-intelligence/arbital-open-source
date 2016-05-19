@@ -435,7 +435,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   margin-bottom: 0; }
 
 .preview-area {
-  padding: 0 15px;
+  padding: 0 15px 40vh;
   background-color: white; }
   .preview-area .editor-block {
     padding: 10px 15px 5px 15px; }
