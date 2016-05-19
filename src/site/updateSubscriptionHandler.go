@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
@@ -42,7 +43,7 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Delete the subscription
 		query := database.NewQuery(`
 			DELETE FROM subscriptions
-			WHERE userId=? AND toId=?`, u.Id, data.PageId)
+			WHERE userId=? AND toId=?`, u.Id, data.ToId)
 		if _, err := query.ToStatement(db).Exec(); err != nil {
 			return pages.Fail("Couldn't delete a subscription", err)
 		}
