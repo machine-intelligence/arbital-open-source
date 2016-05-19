@@ -98,3 +98,5 @@ CREATE TABLE lastViews (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table updates add column dismissed boolean not null;
+alter table subscriptions add column asMaintainer boolean not null;
+update subscriptions join pageInfos on subscriptions.toId=pageInfos.pageId set subscriptions.asMaintainer=true where pageInfos.createdBy=subscriptions.userId;

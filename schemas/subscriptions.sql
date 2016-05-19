@@ -7,6 +7,9 @@ CREATE TABLE subscriptions (
 	/* Id of the thing (user, page, etc...) the user is subscribed to. FK into pages. */
 	toId VARCHAR(32) NOT NULL,
 
+	/* Whether the user is subscribed as a maintainer of the thing. */
+	asMaintainer BOOLEAN NOT NULL,
+
 	/* When this subscription was created. */
 	createdAt DATETIME NOT NULL,
 

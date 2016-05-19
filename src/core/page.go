@@ -137,11 +137,12 @@ type Page struct {
 
 	// === Auxillary data. ===
 	// For some pages we load additional data.
-	IsSubscribed    bool `json:"isSubscribed"`
-	SubscriberCount int  `json:"subscriberCount"`
-	LikeCount       int  `json:"likeCount"`
-	DislikeCount    int  `json:"dislikeCount"`
-	MyLikeValue     int  `json:"myLikeValue"`
+	IsSubscribed             bool `json:"isSubscribed"`
+	IsSubscribedAsMaintainer bool `json:"isSubscribedAsMaintainer"`
+	SubscriberCount          int  `json:"subscriberCount"`
+	LikeCount                int  `json:"likeCount"`
+	DislikeCount             int  `json:"dislikeCount"`
+	MyLikeValue              int  `json:"myLikeValue"`
 	// Computed from LikeCount and DislikeCount
 	LikeScore int `json:"likeScore"`
 	ViewCount int `json:"viewCount"`
@@ -2089,16 +2090,18 @@ func LoadSubscriptions(db *database.DB, currentUserId string, pageMap map[string
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT toId
+		SELECT toId,asMaintainer
 		FROM subscriptions
 		WHERE userId=?`, currentUserId).Add(`AND toId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var toPageId string
-		err := rows.Scan(&toPageId)
+		var asMaintainer bool
+		err := rows.Scan(&toPageId, &asMaintainer)
 		if err != nil {
 			return fmt.Errorf("Failed to scan for a subscription: %v", err)
 		}
 		pageMap[toPageId].IsSubscribed = true
+		pageMap[toPageId].IsSubscribedAsMaintainer = asMaintainer
 		return nil
 	})
 	return err

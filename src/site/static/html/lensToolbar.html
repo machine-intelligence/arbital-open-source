@@ -5,7 +5,7 @@
 	<!-- Like -->
 	<div layout="column" layout-align="start center" flex="25">
 		<arb-likes class="no-right-margin"
-				likeable-type="page" 
+				likeable-type="page"
 				likeable-id="{{::page.pageId}}"
 				is-stretched="true"
 				is-button="true"></arb-likes>
@@ -78,6 +78,18 @@
 			</span>
 		</md-button>
 		<md-menu-content>
+
+			<!-- Toggle subscription as maintainer -->
+			<md-menu-item>
+				<md-button ng-click="toggleMaintainerSub()"
+						aria-label="Toggle subscribe as maintainer"
+						arb-user-check="cool">
+					{{page.isSubscribedAsMaintainer ? 'Unsubscribe' : 'Subscribe'}} as maintainer
+					<md-tooltip md-delay="500">
+						Get updates for edits and marks on this page
+					</md-tooltip>
+				</md-button>
+			</md-menu-item>
 
 			<!-- Permalink -->
 			<md-menu-item>

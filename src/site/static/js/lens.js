@@ -2,7 +2,7 @@
 // jscs:disable requireCamelCaseOrUpperCaseIdentifiers
 
 // Directive to show a lens' content
-app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope,
+app.directive('arbLens', function($http, $location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope,
 	pageService, userService, diffService) {
 	return {
 		templateUrl: 'static/html/lens.html',
@@ -47,6 +47,20 @@ app.directive('arbLens', function($location, $compile, $timeout, $interval, $mdM
 						$scope.diffHtml = diffService.getDiffHtml($scope.page.text, data[$scope.page.pageId].text);
 					},
 				});
+			};
+
+			// Process click on "Subscribe as maintainer"
+			$scope.toggleMaintainerSub = function() {
+				$scope.page.isSubscribedAsMaintainer = !$scope.page.isSubscribedAsMaintainer;
+				if ($scope.page.isSubscribedAsMaintainer) {
+					$scope.page.isSubscribed = true;
+				}
+
+				$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
+					toId: $scope.pageId,
+					isSubscribed: $scope.page.isSubscribed,
+					asMaintainer: $scope.page.isSubscribedAsMaintainer,
+				})});
 			};
 
 			// Compute how many visible comments there are.
