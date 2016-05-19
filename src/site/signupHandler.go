@@ -200,7 +200,7 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		}
 
 		// Signup for the user's own page
-		err2 = addSubscription(tx, userId, userId)
+		err2 = addSubscription(tx, userId, userId, true)
 		if err2 != nil {
 			return err2
 		}

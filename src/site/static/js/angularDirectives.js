@@ -273,8 +273,6 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 		templateUrl: 'static/html/subscribe.html',
 		scope: {
 			pageId: '@',
-			// If true, subscribe to a user, not a page
-			isUser: '=',
 			// If true, the button is not an icon button, but is a normal button with a label
 			isStretched: '=',
 			showSubscriberCount: '=',
@@ -284,29 +282,27 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 			$scope.userService = userService;
 			$scope.page = pageService.pageMap[$scope.pageId];
 
-			// Check if the data is loaded
 			$scope.isSubscribed = function() {
-				if (!$scope.isUser) {
-					if (!($scope.pageId in pageService.pageMap)) console.log($scope.pageId);
-					return pageService.pageMap[$scope.pageId].isSubscribed;
-				} else {
-					return userService.userMap[$scope.pageId].isSubscribed;
-				}
+				return pageService.pageMap[$scope.pageId].isSubscribed;
+			};
+
+			$scope.isSubscribedAsMaintainer = function() {
+				return pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer;
 			};
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
-				if (!$scope.isUser) {
-					pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
-				} else {
-					userService.userMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
-				}
-				var data = {
-					pageId: $scope.pageId,
-				};
-				var url = $scope.isSubscribed() ? '/newSubscription/' : '/deleteSubscription/';
-				$http({method: 'POST', url: url, data: JSON.stringify(data)})
-				.error(function(data, status) {
+				pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
+				pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
+				$http({
+					method: 'POST',
+					url: '/updateSubscription/',
+					data: JSON.stringify({
+						toId: $scope.pageId,
+						isSubscribed: $scope.isSubscribed(),
+						asMaintainer: false,
+					})
+				}).error(function(data, status) {
 					console.error('Error changing a subscription:'); console.log(data); console.log(status);
 				});
 			};

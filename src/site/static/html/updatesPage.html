@@ -16,7 +16,7 @@
 				<!-- Header when grouping by user -->
 				<div layout="row" layout-align="start center" ng-if="::(group.key.groupByUserId !== '')">
 					<arb-user-name user-id="{{::group.key.groupByUserId}}" flex></arb-user-name>
-					<arb-subscribe page-id="{{::group.key.groupByUserId}}" is-user="true"
+					<arb-subscribe page-id="{{::group.key.groupByUserId}}"
 						ng-if="::(!parentSubpageId && group.key.isGroupByObjectAlive)"></arb-subscribe>
 				</div>
 			</md-subheader>
