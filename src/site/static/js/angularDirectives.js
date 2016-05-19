@@ -524,6 +524,7 @@ app.directive('arbPageList', function(pageService, userService) {
 app.directive('arbPageRow', function(pageService, userService) {
 	return {
 		templateUrl: 'static/html/pageRow.html',
+		replace: true,
 		scope: {
 			pageId: '@',
 			hideLikes: '=',
