@@ -135,9 +135,11 @@ var InitMathjax = (function() {
 	//  Create a preview refresh hook to handle starting MathJax.
 	//
 	function prepareWmdForMathJax(converterObject, editorObject, wmdId) {
-		/*converterObject.hooks.chain('preConversion',removeMath);
-		converterObject.hooks.chain('postConversion',replaceMath);
-		if (editorObject) {
+		if (!editorObject) {
+			converterObject.hooks.chain('preConversion',removeMath);
+			converterObject.hooks.chain('postConversion',replaceMath);
+		}
+		/*if (editorObject) {
 			editorObject.hooks.chain('onPreviewRefresh', UpdateMJ);
 			preview = document.getElementById('wmd-preview' + wmdId);
 		}*/

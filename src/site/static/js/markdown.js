@@ -39,15 +39,18 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var converter = Markdown.getSanitizingConverter();
 
 		// Process $$$mathjax$$$ blocks.
-		var mathjaxBlockRegexp = new RegExp('^(~D~D~D[\\s\\S]+?~D~D~D) *(?=\Z|\n)', 'gm');
-		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
-			return text.replace(mathjaxBlockRegexp, function(whole, mathjaxText) {
-				if (isEditor) {
-					return '<div arb-math-compiler>' + mathjaxText + '</div>';
-				}
-				return whole;
+		if (isEditor) {
+			var mathjaxBlockRegexp = new RegExp('^(~D~D~D[\\s\\S]+?~D~D~D) *(?=\Z|\n)', 'gm');
+			converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+				return text.replace(mathjaxBlockRegexp, function(whole, mathjaxText) {
+					var encodedText = encodeURIComponent(mathjaxText);
+					var key = '$$$' + encodedText.substring(6, encodedText.length - 6) + '$$$';
+					var cachedValue = pageService.getMathjaxCacheValue(key);
+					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
+					return '<div ' + style + 'class=\'MathJax_Display\' arb-math-compiler=\'' + encodedText + '\'></div>';
+				});
 			});
-		});
+		}
 
 		// Process [summary(optional):markdown] blocks.
 		var summaryBlockRegexp = new RegExp('^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)', 'gm');
@@ -197,6 +200,16 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				return '<arb-table-of-contents page-id=\'' + pageId + '\'></arb-table-of-contents>';
 			});
 		});
+
+		// Process $$mathjax$$ spans.
+		if (isEditor) {
+			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D~D[\\s\\S]+?~D~D)', 'g');
+			converter.hooks.chain('preSpanGamut', function(text) {
+				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
+					return prefix + '<span arb-math-compiler=\'' + encodeURIComponent(mathjaxText) + '\'></span>';
+				});
+			});
+		}
 
 		// Process %knows-requisite([alias]): markdown% spans.
 		var hasReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
@@ -454,6 +467,33 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		$pageText.children().each(function(index) {
 			$compile($(this))(scope);
 		});
+		if (refreshFunc) {
+			$pageText.find('[arb-math-compiler]').each(function() {
+				var $element = $(this);
+				var encodedMathjaxText = $element.attr('arb-math-compiler');
+				console.log(encodedMathjaxText);
+				var cacheMathjaxDom = function() {
+					if ($element.closest('body').length <= 0) {
+						return;
+					}
+					pageService.cacheMathjax(encodedMathjaxText, {
+						html: $element.html(),
+						style: 'width:' + $element.css('width') + ';height:' + $element.css('height'),
+					});
+				};
+				
+				// Read from cache
+				var cachedValue = pageService.getMathjaxCacheValue(encodedMathjaxText);
+				if (cachedValue) {
+					$element.html(cachedValue.html);
+				} else {
+					$element.text(decodeURIComponent(encodedMathjaxText));
+					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
+					MathJax.Hub.Queue(cacheMathjaxDom);
+				}
+				$element.removeClass('MathJax_Display').removeAttr('style');
+			});
+		}
 	};
 
 	this.createConverter = function(pageId) {

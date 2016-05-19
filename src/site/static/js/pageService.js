@@ -49,20 +49,39 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	this.path = undefined;
 
 	// Mathjax text -> rendered html string cache
-	this.mathjaxCache = {};
+	// mathjax expression -> {
+	//   html: rendered html
+	//   style: computed style for the div / span
+	// }
+	var mathjaxCache = {};
 	var mathjaxRecency = {}; // key -> timestamp
 
 	// Update the timestamp on a cached mathjax.
-	this.touchMathjaxCache(text) {
+	this.getMathjaxCacheValue = function(text) {
+		if (!(text in mathjaxCache)) return null;
 		mathjaxRecency[text] = new Date().getTime();
+		return mathjaxCache[text];
 	};
 
-	// Add the given {text: html} pair to mathjax cache.
-	this.cacheMathjax(text, html) {
-		this.mathjaxCache[text] = html;
-		this.touchMathjaxCache(text);
-		if (mathjaxRecency.size > 100) {
-			console.log("000");
+	// Add the given {text: value} pair to mathjax cache.
+	this.cacheMathjax = function(text, value) {
+		mathjaxCache[text] = value;
+		mathjaxRecency[text] = new Date().getTime();
+
+		var cacheSize = 0;
+		var minTime = new Date().getTime();
+		var minKey;
+		for (var key in mathjaxRecency) {
+			var time = mathjaxRecency[key];
+			if (minTime > time) {
+				minTime = time;
+				minKey = key;
+			}
+			cacheSize++;
+		}
+		if (cacheSize > 100) {
+			delete mathjaxRecency[minKey];
+			delete mathjaxCache[minKey];
 		}
 	};
 
