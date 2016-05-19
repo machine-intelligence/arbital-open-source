@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -32,12 +31,12 @@ func dismissUpdateHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Dismiss the update
-	hashmap := make(database.InsertMap)
-	hashmap["id"] = data.UpdateId
-	hashmap["dismissed"] = true
-	statement := db.NewInsertStatement("updates", hashmap, "dismissed")
-	if _, err := statement.Exec(); err != nil {
-		return pages.Fail("Couldn't dismiss the update", err)
+	statement := db.NewStatement(`
+		UPDATE updates
+		SET dismissed=TRUE
+		WHERE id=?`)
+	if _, err := statement.Exec(data.UpdateId); err != nil {
+		return pages.Fail("Couldn't dismiss update", err)
 	}
 
 	return pages.Success(nil)
