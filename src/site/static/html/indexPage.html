@@ -1,21 +1,17 @@
 <!-- If the user is not logged in, show the full list of new stuff -->
-<arb-read-mode-page ng-if="userService.user.id == ''"></arb-read-mode-page>
+<div arb-read-mode-page ng-if="userService.user.id == ''"></div>
 
 <!-- If the user is logged in, show various panels -->
 <md-content layout="column"
 		layout-gt-sm="row"
 		class="md-padding"
 		ng-if="userService.user.id !== ''">
-	<div flex-sm flex-gt-sm="60" layout="column">
-		<arb-read-mode-panel></arb-read-mode-panel>
+	<div flex>
+		<div arb-read-mode-panel></div>
 	</div>
-	<div flex-sm flex-gt-sm="40">
-		<div layout="column">
-			<arb-hedons-mode-panel num-to-display="5"></arb-hedons-mode-panel>
-		</div>
-		<div layout="column">
-			<arb-discussion-mode-panel num-to-display="5"></arb-discussion-mode-panel>
-		</div>
+	<div flex>
+		<div arb-hedons-mode-panel num-to-display="5"></div>
+		<div arb-discussion-mode-panel num-to-display="5"></div>
 	</div>
 </md-content>
 

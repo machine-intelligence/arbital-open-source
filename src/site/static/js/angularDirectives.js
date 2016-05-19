@@ -521,11 +521,11 @@ app.directive('arbPageList', function(pageService, userService) {
 });
 
 // Exists to share the template for a row in a md-list of pages
-app.directive('arbPageRow', function() {
+app.directive('arbPageRow', function(pageService, userService) {
 	return {
 		templateUrl: 'static/html/pageRow.html',
 		scope: {
-			page: '=',
+			pageId: '@',
 			hideLikes: '=',
 			showLastEdit: '=',
 			showCreatedAt: '=',
@@ -536,7 +536,11 @@ app.directive('arbPageRow', function() {
 			// If set, we'll pull the page from the editMap instead of pageMap
 			useEditMap: '=',
 		},
-		replace: true,
+		controller: function($scope) {
+			$scope.pageService = pageService;
+			$scope.userService = userService;
+			$scope.page = pageService.pageMap[$scope.pageId];
+		},
 	};
 });
 

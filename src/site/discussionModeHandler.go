@@ -3,11 +3,9 @@ package site
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -32,18 +30,26 @@ func discussionModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if data.NumPagesToLoad == 0 {
-		data.NumPagesToLoad = 25
+	if data.NumPagesToLoad <= 0 {
+		data.NumPagesToLoad = DefaultModeRowCount
 	}
 
 	// Load all comments of interest
-	returnData.ResultMap["commentIds"], err = loadDiscussions(db, u, returnData.PageMap, data.NumPagesToLoad)
+	commentRows, err := loadCommentModeRows(db, returnData, data.NumPagesToLoad)
 	if err != nil {
-		return pages.Fail("failed to load hot page ids", err)
+		return pages.Fail("failed to load comment ids", err)
 	}
 
+	// Load all marks of interest
+	markRows, err := loadMarkModeRows(db, returnData, data.NumPagesToLoad)
+	if err != nil {
+		return pages.Fail("failed to load mark ids", err)
+	}
+
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, commentRows, markRows)
+
 	// Load and update LastDiscussionView for this user
-	returnData.ResultMap[LastDiscussionModeView], err = LoadAndUpdateLastView(db, u, LastDiscussionModeView)
+	returnData.ResultMap["lastView"], err = LoadAndUpdateLastView(db, u, LastDiscussionModeView)
 	if err != nil {
 		return pages.Fail("Error updating last read mode view", err)
 	}
@@ -55,42 +61,4 @@ func discussionModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	return pages.Success(returnData)
-}
-
-func loadDiscussions(db *database.DB, u *core.CurrentUser, pageMap map[string]*core.Page, numPagesToLoad int) ([]string, error) {
-	commentIds := make([]string, 0)
-	parentPageOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
-	childPageOptions := (&core.PageLoadOptions{
-		Parents: true,
-	}).Add(core.TitlePlusLoadOptions)
-	rows := database.NewQuery(`
-		SELECT pp.parentId,pp.childId
-		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		JOIN pagePairs AS pp
-		ON (pp.childId=pi.pageId)
-		JOIN subscriptions AS s
-		ON (pp.parentId=s.toId)
-		WHERE s.userId=?`, u.Id).Add(`
-			AND pi.createdBy!=?`, u.Id).Add(`
-			AND pi.type=?`, core.CommentPageType).Add(`
-			AND NOT pi.isEditorComment
-		GROUP BY pp.childId
-		ORDER BY pi.createdAt DESC
-		LIMIT ?`, numPagesToLoad).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId string
-		err := rows.Scan(&parentId, &childId)
-		if err != nil {
-			return fmt.Errorf("Failed to scan: %v", err)
-		}
-		commentIds = append(commentIds, childId)
-		core.AddPageToMap(parentId, pageMap, parentPageOptions)
-		core.AddPageToMap(childId, pageMap, childPageOptions)
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Error reading rows: %v", err)
-	}
-
-	return commentIds, nil
 }

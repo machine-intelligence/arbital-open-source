@@ -53,7 +53,7 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 			$scope.responses = [];
 			var lastTerm = $scope.mark.resolvedBy ? $scope.mark.text : '';
 			var findSimilarFunc = function() {
-				if (!$scope.mark.isCurrentUserOwned) return;
+				if (!$scope.mark.isCurrentUserOwned || !$scope.inPopup) return;
 				if ($scope.mark.text === lastTerm || $scope.mark.text.length <= 0) return;
 				lastTerm = $scope.mark.text;
 				var data = {
