@@ -198,15 +198,7 @@ app.directive('arbPageTitle', function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			var map;
-			if ($scope.pageId in pageService.deletedPagesMap) {
-				map = pageService.deletedPagesMap;
-			} else if ($scope.useEditMap) {
-				map = pageService.editMap;
-			} else {
-				map = pageService.pageMap;
-			}
-			$scope.page = map[$scope.pageId];
+			$scope.page = pageService.getPage($scope.pageId, $scope.useEditMap);
 			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
@@ -511,10 +503,7 @@ app.directive('arbPageList', function(pageService, userService) {
 			$scope.userService = userService;
 
 			$scope.getPage = function(pageId) {
-				if ($scope.useEditMap) {
-					return pageService.editMap[pageId];
-				}
-				return pageService.pageMap[pageId];
+				return pageService.getPage(pageId, $scope.useEditMap);
 			};
 		},
 	};
@@ -539,7 +528,8 @@ app.directive('arbPageRow', function(pageService, userService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
+
+			$scope.page = pageService.getPage($scope.pageId, $scope.useEditMap);
 		},
 	};
 });
