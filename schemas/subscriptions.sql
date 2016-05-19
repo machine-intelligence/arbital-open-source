@@ -8,7 +8,7 @@ CREATE TABLE subscriptions (
 	toId VARCHAR(32) NOT NULL,
 
 	/* Whether the user is subscribed as a maintainer of the thing. */
-	asMaintainer boolean NOT NULL,
+	asMaintainer BOOLEAN NOT NULL,
 
 	/* When this subscription was created. */
 	createdAt DATETIME NOT NULL,

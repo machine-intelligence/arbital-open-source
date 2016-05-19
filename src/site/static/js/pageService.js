@@ -784,23 +784,6 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		});
 	};
 
-	// (Un)subscribe a user to a page.
-	this.subscribeTo = function($target) {
-		var $target = $(event.target);
-		$target.toggleClass('on');
-		var data = {
-			pageId: $target.attr('page-id'),
-		};
-		var isSubscribed = $target.hasClass('on');
-		$.ajax({
-			type: 'POST',
-			url: isSubscribed ? '/newSubscription/' : '/deleteSubscription/',
-			data: JSON.stringify(data),
-		});
-		this.pageMap[data.pageId].isSubscribed = isSubscribed;
-		$rootScope.$apply();
-	};
-
 	// Add a new relationship between pages using the given params.
 	// params = {
 	//	parentId: id of the parent page
