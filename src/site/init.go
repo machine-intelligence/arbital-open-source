@@ -148,6 +148,7 @@ func init() {
 	s.HandleFunc(updateMemberHandler.URI, handlerWrapper(updateMemberHandler)).Methods("POST")
 	s.HandleFunc(updatePageObjectHandler.URI, handlerWrapper(updatePageObjectHandler)).Methods("POST")
 	s.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")
+	s.HandleFunc(updateSubscriptionHandler.URI, handlerWrapper(updateSubscriptionHandler)).Methods("POST")
 	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
 	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")
