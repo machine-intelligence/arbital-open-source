@@ -297,12 +297,11 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
-				var newSubscribedValue = !$scope.isSubscribed();
 				if (!$scope.isUser) {
-					pageService.pageMap[$scope.pageId].isSubscribed = newSubscribedValue;
+					pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();;
 					pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
 				} else {
-					userService.userMap[$scope.pageId].isSubscribed = newSubscribedValue;
+					userService.userMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();;
 					userService.userMap[$scope.pageId].isSubscribedAsMaintainer = false;
 				}
 				var data = {

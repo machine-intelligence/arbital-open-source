@@ -40,7 +40,7 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		return addSubscription(tx, u.Id, data.PageId)
+		return addSubscription(tx, u.Id, data.PageId, false)
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
@@ -48,12 +48,13 @@ func newSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	return pages.Success(nil)
 }
 
-func addSubscription(tx *database.Tx, userId string, toPageId string) sessions.Error {
+func addSubscription(tx *database.Tx, userId string, toPageId string, asMaintainer bool) sessions.Error {
 	hashmap := make(map[string]interface{})
 	hashmap["userId"] = userId
 	hashmap["toId"] = toPageId
 	hashmap["createdAt"] = database.Now()
-	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
+	hashmap["asMaintainer"] = asMaintainer
+	statement := tx.DB.NewInsertStatement("subscriptions", hashmap, "userId", "asMaintainer").WithTx(tx)
 	_, err := statement.Exec()
 	if err != nil {
 		return sessions.NewError("Couldn't subscribe", err)

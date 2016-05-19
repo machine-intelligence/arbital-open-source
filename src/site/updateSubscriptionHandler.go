@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 type updateSubscriptionData struct {
@@ -32,12 +34,11 @@ func updateSubscriptionHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
 
-	statement := db.NewStatement(`
-		UPDATE subscriptions
-		SET asMaintainer=?
-		WHERE userId=? AND toId=?`)
-	if _, err := statement.Exec(data.AsMaintainer, u.Id, data.ToId); err != nil {
-		return pages.Fail("Couldn't update a subscription", err)
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
+		return addSubscription(tx, u.Id, data.ToId, data.AsMaintainer)
+	})
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	return pages.Success(nil)
