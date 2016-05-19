@@ -22,9 +22,10 @@ app.directive('arbUpdates', function($http, pageService, userService) {
 			$scope.dismissUpdate = function(update, updateGroup, index) {
 				$http({method: 'POST', url: '/dismissUpdate/', data: JSON.stringify({
 					id: update.id
-				})}).success(function(data) {
-					updateGroup.splice(index, 1);
-				});
+				})});
+
+				// Remove this update from the list
+				updateGroup.splice(index, 1);
 			};
 		},
 	};
