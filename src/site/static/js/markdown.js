@@ -468,31 +468,35 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			$compile($(this))(scope);
 		});
 		if (refreshFunc) {
-			$pageText.find('[arb-math-compiler]').each(function() {
-				var $element = $(this);
-				var encodedMathjaxText = $element.attr('arb-math-compiler');
-				console.log(encodedMathjaxText);
-				var cacheMathjaxDom = function() {
-					if ($element.closest('body').length <= 0) {
-						return;
+			$timeout.cancel(scope._mathRenderPromise);
+			scope._mathRenderPromise = $timeout(function() {
+				$pageText.find('[arb-math-compiler]').each(function() {
+					var $element = $(this);
+					var encodedMathjaxText = $element.attr('arb-math-compiler');
+					var cacheMathjaxDom = function() {
+						if ($element.closest('body').length <= 0) {
+							return;
+						}
+						pageService.cacheMathjax(encodedMathjaxText, {
+							html: $element.html(),
+							style: 'width:' + $element.css('width') + ';height:' + $element.css('height'),
+						});
+					};
+					
+					// Read from cache
+					var cachedValue = pageService.getMathjaxCacheValue(encodedMathjaxText);
+					if (cachedValue) {
+						$element.html(cachedValue.html);
+					} else {
+						$element.text(decodeURIComponent(encodedMathjaxText));
+						$timeout(function() {
+							MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
+							MathJax.Hub.Queue(cacheMathjaxDom);
+						});
 					}
-					pageService.cacheMathjax(encodedMathjaxText, {
-						html: $element.html(),
-						style: 'width:' + $element.css('width') + ';height:' + $element.css('height'),
-					});
-				};
-				
-				// Read from cache
-				var cachedValue = pageService.getMathjaxCacheValue(encodedMathjaxText);
-				if (cachedValue) {
-					$element.html(cachedValue.html);
-				} else {
-					$element.text(decodeURIComponent(encodedMathjaxText));
-					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
-					MathJax.Hub.Queue(cacheMathjaxDom);
-				}
-				$element.removeClass('MathJax_Display').removeAttr('style');
-			});
+					$element.removeClass('MathJax_Display').removeAttr('style');
+				});
+			}, scope._mathRenderPromise ? 500 : 0);
 		}
 	};
 
