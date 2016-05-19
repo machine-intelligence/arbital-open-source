@@ -99,4 +99,4 @@ CREATE TABLE lastViews (
 
 alter table updates add column dismissed boolean not null;
 alter table subscriptions add column asMaintainer boolean not null;
-update subscriptions set asMaintainer=true;
+update subscriptions join pageInfos on subscriptions.toId=pageInfos.pageId set subscriptions.asMaintainer=true where pageInfos.createdBy=subscriptions.userId;
