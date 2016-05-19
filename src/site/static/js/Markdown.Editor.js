@@ -889,7 +889,7 @@
 
 		var setPanelScrollTops = function() {
 			if (panels.preview) {
-				panels.preview.scrollTop = (panels.preview.scrollHeight - panels.preview.clientHeight) * getScaleFactor(panels.preview);
+				//panels.preview.scrollTop = (panels.preview.scrollHeight - panels.preview.clientHeight) * getScaleFactor(panels.preview);
 			}
 		};
 
