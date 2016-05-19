@@ -38,6 +38,17 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
+		// Process $$$mathjax$$$ blocks.
+		var mathjaxBlockRegexp = new RegExp('^(~D~D~D[\\s\\S]+?~D~D~D) *(?=\Z|\n)', 'gm');
+		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
+			return text.replace(mathjaxBlockRegexp, function(whole, mathjaxText) {
+				if (isEditor) {
+					return '<div arb-math-compiler>' + mathjaxText + '</div>';
+				}
+				return whole;
+			});
+		});
+
 		// Process [summary(optional):markdown] blocks.
 		var summaryBlockRegexp = new RegExp('^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
