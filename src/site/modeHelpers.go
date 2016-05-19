@@ -133,11 +133,11 @@ func loadCommentModeRows(db *database.DB, returnData *core.CommonHandlerData, li
 func loadMarkModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 	rows := database.NewQuery(`
-		SELECT id,type,IF(answeredAt="",resolvedAt,answeredAt)
+		SELECT id,type,IF(answered,answeredAt,resolvedAt)
 		FROM marks
 		WHERE creatorId=?`, returnData.User.Id).Add(`
 			AND resolvedAt!=""
-		ORDER BY 2 DESC
+		ORDER BY 3 DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var markId, markType, activityDate string
