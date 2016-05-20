@@ -140,6 +140,7 @@ type Page struct {
 	IsSubscribed             bool `json:"isSubscribed"`
 	IsSubscribedAsMaintainer bool `json:"isSubscribedAsMaintainer"`
 	SubscriberCount          int  `json:"subscriberCount"`
+	MaintainerCount          int  `json:"maintainerCount"`
 	LikeCount                int  `json:"likeCount"`
 	DislikeCount             int  `json:"dislikeCount"`
 	MyLikeValue              int  `json:"myLikeValue"`
@@ -2114,18 +2115,20 @@ func LoadSubscriberCount(db *database.DB, currentUserId string, pageMap map[stri
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT toId,count(*)
+		SELECT toId,COUNT(*),SUM(asMaintainer)
 		FROM subscriptions
-		WHERE userId!=?`, currentUserId).Add(`AND toId IN`).AddArgsGroup(pageIds).Add(`
+		WHERE userId!=?`, currentUserId).Add(`
+			AND toId IN`).AddArgsGroup(pageIds).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var toPageId string
-		var count int
-		err := rows.Scan(&toPageId, &count)
+		var subscriberCount, maintainerCount int
+		err := rows.Scan(&toPageId, &subscriberCount, &maintainerCount)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a subscription: %v", err)
 		}
-		pageMap[toPageId].SubscriberCount = count
+		pageMap[toPageId].SubscriberCount = subscriberCount
+		pageMap[toPageId].MaintainerCount = maintainerCount
 		return nil
 	})
 	return err
