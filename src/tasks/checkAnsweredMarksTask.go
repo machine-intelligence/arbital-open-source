@@ -69,7 +69,6 @@ func (task CheckAnsweredMarksTask) Execute(db *database.DB) (delay int, err erro
 			hashmap["goToPageId"] = markPageId
 			hashmap["markId"] = markId
 			hashmap["createdAt"] = database.Now()
-			hashmap["unseen"] = true
 			hashmaps = append(hashmaps, hashmap)
 		}
 

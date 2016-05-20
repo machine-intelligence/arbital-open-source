@@ -91,7 +91,6 @@ func (task AtMentionUpdateTask) Execute(db *database.DB) (delay int, err error) 
 		hashmap["groupByUserId"] = task.GroupByUserId
 		hashmap["goToPageId"] = task.GoToPageId
 		hashmap["createdAt"] = database.Now()
-		hashmap["unseen"] = true
 		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {
 			c.Inc("new_update_fail")

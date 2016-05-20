@@ -125,7 +125,6 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 				hashmap["subscribedToId"] = u.Id
 				hashmap["goToPageId"] = domainId
 				hashmap["byUserId"] = u.Id
-				hashmap["unseen"] = true
 				statement := db.NewInsertStatement("updates", hashmap).WithTx(tx)
 				if _, err = statement.Exec(); err != nil {
 					return sessions.NewError("Couldn't add a new update for the invitee", err)

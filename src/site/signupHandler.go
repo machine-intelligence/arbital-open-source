@@ -208,8 +208,8 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Add an update for each invite that will be claimed
 		statement = database.NewQuery(`
 			INSERT INTO updates
-			(userId,type,createdAt,groupByUserId,subscribedToId,goToPageId,byUserId,unseen)
-			SELECT ?,?,now(),fromUserId,fromUserId,domainId,fromUserId,true`, u.Id, core.InviteReceivedUpdateType).Add(`
+			(userId,type,createdAt,groupByUserId,subscribedToId,goToPageId,byUserId)
+			SELECT ?,?,now(),fromUserId,fromUserId,domainId,fromUserId`, u.Id, core.InviteReceivedUpdateType).Add(`
 			FROM invites
 			WHERE toEmail=?`, u.Email).ToTxStatement(tx)
 		if _, err := statement.Exec(); err != nil {

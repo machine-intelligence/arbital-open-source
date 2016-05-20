@@ -165,8 +165,11 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 
 	// Send updates for users subscribed to the parent or child.
 	if childIsLive && parentIsLive {
-		tasks.EnqueueDeleteRelationshipUpdates(tx.DB.C, userId, pairType, child.Type,
+		err := tasks.EnqueueRelationshipUpdates(tx.DB.C, userId,
 			parent.PageId, child.PageId, newParentChangeLogId, newChildChangeLogId)
+		if err != nil {
+			return sessions.NewError("Couldn't enqueue relationship updates", err)
+		}
 	}
 
 	return nil

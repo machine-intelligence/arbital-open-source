@@ -149,7 +149,6 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		hashmap["changeLogId"] = task.ChangeLogId
 		hashmap["markId"] = task.MarkId
 		hashmap["createdAt"] = database.Now()
-		hashmap["unseen"] = true
 		statement := db.NewInsertStatement("updates", hashmap)
 		if _, err = statement.Exec(); err != nil {
 			return fmt.Errorf("Couldn't create new update: %v", err)
@@ -163,32 +162,26 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	return 0, nil
 }
 
-func EnqueueNewRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string, newParentChangeLogId int64, newChildChangeLogId int64) {
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, false, newChildChangeLogId)
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, false, newParentChangeLogId)
+func EnqueueRelationshipUpdates(c sessions.Context, userId string,
+	parentId string, childId string, parentChangeLogId int64, childChangeLogId int64) error {
+	err := enqueueRelationshipUpdatesInternal(c, userId, parentId, childId, false, childChangeLogId)
+	if err != nil {
+		return err
+	}
+	// Note: we can't return an error if the second task fails, since the caller might
+	// rollback a transaction
+	// TODO: use GAE's function to enqueue multiple tasks at once
+	enqueueRelationshipUpdatesInternal(c, userId, parentId, childId, true, parentChangeLogId)
+	return nil
 }
 
-func EnqueueDeleteRelationshipUpdates(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string, removedParentChangeLogId int64, removedChildChangeLogId int64) {
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, false, true, removedChildChangeLogId)
-	enqueueRelationshipUpdatesInternal(c, userId, pairType, childPageType, parentId, childId, true, true, removedParentChangeLogId)
-}
-
-func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string, pairType string, childPageType string,
-	parentId string, childId string, updateIsForChild bool, relationshipIsDeleted bool, changeLogId int64) {
+func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string,
+	parentId string, childId string, updateIsForChild bool, changeLogId int64) error {
 
 	var task NewUpdateTask
 	task.UserId = userId
-	if changeLogId != 0 {
-		task.ChangeLogId = changeLogId
-	}
-	updateType, err := core.GetUpdateTypeForPagePair(pairType, childPageType, updateIsForChild, relationshipIsDeleted)
-	if err != nil {
-		c.Errorf("Couldn't get the update type for a page pair type: %v", err)
-	}
-
-	task.UpdateType = updateType
+	task.ChangeLogId = changeLogId
+	task.UpdateType = core.ChangeLogUpdateType
 	if updateIsForChild {
 		task.GroupByPageId = childId
 		task.SubscribedToId = childId
@@ -198,7 +191,5 @@ func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string, pairT
 		task.SubscribedToId = parentId
 		task.GoToPageId = childId
 	}
-	if err := Enqueue(c, &task, nil); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
-	}
+	return Enqueue(c, &task, nil)
 }

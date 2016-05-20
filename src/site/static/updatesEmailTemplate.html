@@ -137,9 +137,6 @@
 														New tag: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
 													{{else if eq .Type "newUsedAsTag"}}
 														This page now tags: <a href="{{GetPageUrl .GoToPageId}}">{{GetPageTitle .GoToPageId}}</a>
-													{{else if eq .Type "commentEdit"}}
-														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> edited a
-														<a href="{{GetPageUrl .GoToPageId}}">comment</a>.
 													{{else if eq .Type "atMention"}}
 														<a href="{{GetUserUrl .ByUserId}}">{{GetUserName .ByUserId}}</a> mentioned you in a
 														<a href="{{GetPageUrl .GoToPageId}}">comment</a>.

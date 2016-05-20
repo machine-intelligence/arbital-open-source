@@ -10,6 +10,7 @@ import (
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 	"zanaduu3/src/sessions"
+	"zanaduu3/src/tasks"
 )
 
 // newAnswerData contains data given to us in the request.
@@ -30,6 +31,7 @@ var newAnswerHandler = siteHandler{
 func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	u := params.U
+	c := params.C
 	returnData := core.NewHandlerData(u)
 	now := database.Now()
 
@@ -82,8 +84,26 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hashmap["auxPageId"] = data.AnswerPageId
 		hashmap["newSettingsValue"] = "new"
 		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		if _, err = statement.Exec(); err != nil {
+		resp, err = statement.Exec()
+		if err != nil {
 			return sessions.NewError("Couldn't add to changeLogs", err)
+		}
+		changeLogId, err := resp.LastInsertId()
+		if err != nil {
+			return sessions.NewError("Couldn't get changeLog id", err)
+		}
+
+		// Insert updates
+		var task tasks.NewUpdateTask
+		task.UserId = u.Id
+		task.GoToPageId = data.QuestionId
+		task.SubscribedToId = data.QuestionId
+		task.UpdateType = core.ChangeLogUpdateType
+		task.GroupByPageId = data.QuestionId
+		task.ChangeLogId = changeLogId
+		task.EditorsOnly = true
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task: %v", err)
 		}
 		return nil
 	})
