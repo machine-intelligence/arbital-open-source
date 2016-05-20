@@ -169,7 +169,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				$('.global-error').text(result.error).show();
 				document.title = 'Error - Arbital';
 			}
-			
+
 			if (result.content) {
 				// Only show the element after it and all the children have been fully compiled and linked
 				result.content.element.addClass('reveal-after-render-parent');
@@ -431,12 +431,34 @@ app.run(function($http, $location, urlService, pageService, userService) {
 									useEditMap: true,
 									markId: $location.search().markId,
 								}));
+
+								if (!pageService.pageMap[result.pageId].isSubscribedAsMaintainer) {
+									pageService.showToast({
+										text: 'Maintain this page?',
+										scope: $scope,
+										normalButton: {
+											text: 'Subscribe',
+											callbackText: 'subscribeAsMaintainer()',
+										},
+									});
+								}
 							} else {
 								// if the page is deleted or unpublished, go home
 								// TODO: ideally we should navigate to whatever page we came from before opening the editor
 								$location.path('/');
 							}
 						};
+
+						$scope.subscribeAsMaintainer = function() {
+							$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
+								toId: page.pageId,
+								isSubscribed: true,
+								asMaintainer: true,
+							})});
+							pageService.pageMap[page.pageId].isSubscribed = true;
+							pageService.pageMap[page.pageId].isSubscribedAsMaintainer = true;
+						};
+
 						return {
 							removeBodyFix: true,
 							title: 'Edit ' + (page.title ? page.title : 'New Page'),

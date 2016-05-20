@@ -356,6 +356,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 							$scope.page.lockedUntil = moment.utc().add(30, 'm').format('YYYY-MM-DD HH:mm:ss');
 						}
 						$scope.isPageDirty = isAutosave;
+
 						if (callback) callback();
 					})
 					.error(function(data) {

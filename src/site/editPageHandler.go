@@ -399,18 +399,15 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		// Subscribe this user to the page that they just edited.
+		// Subscribe this user to the page that they just created.
 		if isLiveEdit && !oldPage.WasPublished {
-			hashmap = make(map[string]interface{})
-			hashmap["userId"] = u.Id
-			hashmap["toId"] = data.PageId
+			toId := data.PageId
 			if oldPage.Type == core.CommentPageType && core.IsIdValid(commentParentId) {
-				hashmap["toId"] = commentParentId // subscribe to the parent comment
+				toId = commentParentId // subscribe to the parent comment
 			}
-			hashmap["createdAt"] = database.Now()
-			statement = tx.DB.NewInsertStatement("subscriptions", hashmap, "userId").WithTx(tx)
-			if _, err = statement.Exec(); err != nil {
-				return sessions.NewError("Couldn't add a subscription", err)
+			err2 := addSubscription(tx, u.Id, toId, true)
+			if err2 != nil {
+				return err2
 			}
 		}
 
