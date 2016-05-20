@@ -15,11 +15,20 @@
 			You will receive updates for comments, edits, and marks on this page
 		</md-tooltip>
 	</md-button>
-	<ng-pluralize class="md-caption"
-			count="page.subscriberCount + (isSubscribed() ? 1 : 0)" when="{
-				'0': 'No subscribers',
-				'one': '1 subscriber',
-				'other': '{} subscribers'}"
-			ng-if="::showSubscriberCount">
-	</ng-pluralize>
+	<span layout="row">
+		<ng-pluralize class="md-caption"
+				count="page.subscriberCount + (isSubscribed() ? 1 : 0)" when="{
+					'0': 'No subscribers',
+					'one': '1 subscriber',
+					'other': '{} subscribers'}"
+				ng-if="::showSubscriberCount">
+		</ng-pluralize>&nbsp;
+		<ng-pluralize class="md-caption"
+				count="page.maintainerCount + (isSubscribedAsMaintainer() ? 1 : 0)" when="{
+					'0': ' and no maintainers',
+					'one': ' and 1 maintainer',
+					'other': ' and {} maintainers'}"
+				ng-if="::showSubscriberCount && userService.userIsCool()">
+		</ng-pluralize>
+	</span>
 </div>
