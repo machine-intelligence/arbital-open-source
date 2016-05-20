@@ -43,20 +43,19 @@ type PageLoadOptions struct {
 	SearchStrings bool
 
 	// Options for what data to load for the page itself
-	HasDraft                 bool
-	Likes                    bool
-	IndividualLikes          bool // load each user who liked
-	ViewCount                bool
-	Votes                    bool
-	LastVisit                bool
-	IsSubscribed             bool
-	IsSubscribedAsMaintainer bool
-	SubscriberCount          bool
-	LinkedMarkCount          bool
-	RedLinkCount             bool
-	Mastery                  bool
-	UsedAsMastery            bool
-	Creators                 bool
+	HasDraft        bool
+	Likes           bool
+	IndividualLikes bool // load each user who liked
+	ViewCount       bool
+	Votes           bool
+	LastVisit       bool
+	IsSubscribed    bool
+	SubscriberCount bool
+	LinkedMarkCount bool
+	RedLinkCount    bool
+	Mastery         bool
+	UsedAsMastery   bool
+	Creators        bool
 
 	// Options for what fields to load from pages table
 	Text      bool
@@ -108,6 +107,7 @@ var (
 		Links:                 true,
 		LinkedMarkCount:       true,
 		Text:                  true,
+		IsSubscribed:          true,
 	}).Add(EmptyLoadOptions)
 	// Options for loading a full lens
 	LensFullLoadOptions = (&PageLoadOptions{

@@ -1,6 +1,6 @@
 <div layout="column" layout-align="start center">
 	<md-button arb-user-check
-			ng-class="::{'md-icon-button': !isStretched}"
+			ng-class="::{'md-icon-button': !isStretched && !isSubscribedAsMaintainer()}"
 			ng-click="subscribeClick()">
 		<md-icon ng-class="{on: isSubscribed()}">visibility</md-icon>
 		<span ng-if="::isStretched">Subscribe</span>
