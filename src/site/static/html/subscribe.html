@@ -28,7 +28,7 @@
 					'0': ' and no maintainers',
 					'one': ' and 1 maintainer',
 					'other': ' and {} maintainers'}"
-				ng-if="::showSubscriberCount && userService.userIsCool()">
+				ng-if="::showSubscriberCount && page.permissions.edit.has">
 		</ng-pluralize>
 	</span>
 </div>
