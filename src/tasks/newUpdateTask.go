@@ -24,13 +24,13 @@ type NewUpdateTask struct {
 	// user id, group id, domain id)
 	SubscribedToId string
 
-	// If it is an editors only comment, only notify editors
-	EditorsOnly bool
-
 	// Go to destination. One of these has to be set. This is where we'll direct
 	// the user if they want to see more info about this update, e.g. to see the
 	// comment someone made.
 	GoToPageId string
+
+	// If set the update will shown only to maintainers.
+	ForceMaintainersOnly bool
 
 	// Optional. FK into changeLogs table.
 	ChangeLogId int64
@@ -105,18 +105,21 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	var query *database.QueryPart
 	// Iterate through all users who are subscribed to this page/comment.
 	// If it is an editors only comment, only select editor ids.
-	if task.EditorsOnly {
-		query = database.NewQuery(`
+	query = database.NewQuery(`
 			SELECT DISTINCT s.userId
 			FROM subscriptions AS s
 			JOIN pages as p
 			ON s.userId = p.creatorId
 			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId)
+	if !task.ForceMaintainersOnly && (task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
+		task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
+		task.UpdateType == core.AddedToGroupUpdateType || task.UpdateType == core.RemovedFromGroupUpdateType ||
+		task.UpdateType == core.InviteReceivedUpdateType || task.UpdateType == core.ResolvedMarkUpdateType ||
+		task.UpdateType == core.AnsweredMarkUpdateType) {
+		// This update can be shown to all users who are subsribed
 	} else {
-		query = database.NewQuery(`
-			SELECT s.userId
-			FROM subscriptions AS s
-			WHERE s.toId=?`, task.SubscribedToId)
+		// This update is only for authors who explicitly opted into maintaining the page
+		query = query.Add(`AND s.asMaintainer`)
 	}
 	if len(requiredGroupMemberships) > 0 {
 		query = query.Add(`AND
