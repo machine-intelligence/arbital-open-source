@@ -79,6 +79,7 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		task.UpdateType = core.ChangeLogUpdateType
 		task.GroupByPageId = answer.QuestionId
 		task.ChangeLogId = changeLogId
+		task.EditorsOnly = true
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task: %v", err)
 		}
