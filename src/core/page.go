@@ -2115,15 +2115,14 @@ func LoadSubscriberCount(db *database.DB, currentUserId string, pageMap map[stri
 	}
 	pageIds := PageIdsListFromMap(pageMap)
 	rows := database.NewQuery(`
-		SELECT toId,COUNT(*),SUM(asMaintainer=true)
+		SELECT toId,COUNT(*),SUM(asMaintainer)
 		FROM subscriptions
 		WHERE userId!=?`, currentUserId).Add(`
 			AND toId IN`).AddArgsGroup(pageIds).Add(`
 		GROUP BY 1`).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var toPageId string
-		var subscriberCount int
-		var maintainerCount int
+		var subscriberCount, maintainerCount int
 		err := rows.Scan(&toPageId, &subscriberCount, &maintainerCount)
 		if err != nil {
 			return fmt.Errorf("failed to scan for a subscription: %v", err)
