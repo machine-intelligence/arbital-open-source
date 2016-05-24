@@ -483,6 +483,9 @@ arb-read-mode-panel > .capped-body-width {
 arb-newsletter > .capped-body-width {
   max-width: 900px; }
 
+.dense-panel md-toolbar {
+  min-height: 0px; !important }
+
 .discussion-container {
   margin: 20px 0; }
 

@@ -159,6 +159,12 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
+.dense-panel {
+	md-toolbar {
+		min-height: 0px;
+	}
+}
+
 .discussion-container {
 	margin: 20px 0;
 }
