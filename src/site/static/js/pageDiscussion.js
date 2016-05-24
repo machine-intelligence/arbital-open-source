@@ -16,7 +16,6 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, pageS
 			$scope.newCommentClick = function() {
 				pageService.newComment({
 					parentPageId: $scope.pageId,
-					isEditorComment: !$scope.page.permissions.comment.has,
 					success: function(newCommentId) {
 						$scope.newCommentId = newCommentId;
 					},

@@ -886,7 +886,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		this.getNewPage({
 			type: 'comment',
 			parentIds: parentIds,
-			isEditorComment: options.isEditorComment,
+			isEditorComment: !this.pageMap[options.parentPageId].permissions.comment.has,
 			success: function(newCommentId) {
 				if (options.success) {
 					options.success(newCommentId);
