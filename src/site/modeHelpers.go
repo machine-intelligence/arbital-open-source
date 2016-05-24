@@ -333,11 +333,25 @@ func loadHotPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, l
 		AnswerCounts:  true,
 	}).Add(core.TitlePlusLoadOptions)
 
+	// For now, we want to only suggest pages in the math domain, or other domains you're explicitly
+	// subscribed to.
+	mathDomainId := "1lw"
+
+	subscribedDomains := database.NewQuery(`
+		SELECT subs.toId
+		FROM subscriptions AS subs
+		JOIN pageInfos AS pi
+		ON subs.toId=pi.pageId
+		WHERE subs.userId=?`, returnData.User.Id).Add(`
+		AND pi.type=?`, core.DomainPageType)
+
 	rows := database.NewQuery(`
-		SELECT pageId,createdAt
+		SELECT DISTINCT pi.pageId, pi.createdAt
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
 		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
-		ORDER BY createdAt DESC
+			AND (pdp.domainId=?`, mathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
+		ORDER BY pi.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, activityDate string

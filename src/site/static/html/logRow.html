@@ -1,5 +1,5 @@
 <div>
-	<div layout="row">
+	<div layout="row" layout-xs="column">
 
 		<div ng-switch="::type" ng-if="::(changeLog && changeLog.id)">
 			<div ng-switch-when="newPageByUser"></div>
@@ -279,7 +279,8 @@
 
 		</div>
 
-		<div>
+		<!-- RHS of the row -->
+		<div layout="row" layout-align="end center">
 			<!-- Link to the user who performed the action (if we haven't already) -->
 			<span ng-switch="::type">
 				<span ng-switch-when="pageEdit"></span>
@@ -290,6 +291,7 @@
 				<span ng-switch-when="removedFromGroup"></span>
 				<span ng-switch-default>
 					<arb-user-name user-id="{{::byUserId}}" ng-if="::showUserLink && !!byUserId"></arb-user-name>
+					&nbsp;
 				</span>
 			</span>
 
