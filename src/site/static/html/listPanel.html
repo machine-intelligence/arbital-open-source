@@ -1,4 +1,4 @@
-<md-card ng-class="{'capped-body-width': isFullPage}" ng-if="modeRows.length != 0">
+<md-card ng-class="{'capped-body-width': isFullPage, 'dense-panel': !isFullPage}" ng-if="modeRows.length != 0">
 	<!-- Header -->
 	<md-toolbar class="md-hue-2" ng-if="::title">
 		<div class="md-toolbar-tools">
@@ -28,15 +28,12 @@
 
 	<!-- Footer -->
 	<md-toolbar layout="row"
-			layout-align="end center"
-			class="layout-align-end-center layout-row list-panel-footer md-hue-1"
-			ng-if="moreLink && modeRows.length > numToDisplay">
-		<div class="md-toolbar-tools">
-			<div flex></div>
-			<md-button ng-href="{{::moreLink}}">
-				See more
+			layout-align="start center"
+			class="layout-align-end-center layout-row md-hue-1"
+			ng-if="moreLink && !isFullPage">
+			<md-button ng-href="{{::moreLink}}" flex>
+				See all
 				<md-icon>arrow_forward</md-icon>
 			</md-button>
-		</div>
 	</md-toolbar>
 </md-card>

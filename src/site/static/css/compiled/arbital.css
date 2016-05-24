@@ -485,6 +485,9 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-newsletter > .capped-body-width {
     max-width: 900px; }
 
+.dense-panel md-toolbar {
+  min-height: 0px; }
+
 .discussion-container {
   margin: 20px 0; }
 
