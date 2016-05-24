@@ -32,20 +32,20 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 		return -1, err
 	}
 
-	c.Debugf("==== POPULATE ELASTIC START ====")
-	defer c.Debugf("==== POPULATE ELASTIC COMPLETED ====")
+	c.Infof("==== POPULATE ELASTIC START ====")
+	defer c.Infof("==== POPULATE ELASTIC COMPLETED ====")
 
 	// Delete the index
 	err = elastic.DeletePageIndex(c)
 	if err != nil {
 		// This could happen if we didn't have an index to start with, so we'll go on.
-		c.Debugf("Couldn't delete page index: %v", err)
+		c.Infof("Couldn't delete page index: %v", err)
 	}
 
 	// Create the index
 	err = elastic.CreatePageIndex(c)
 	if err != nil {
-		c.Debugf("Couldn't create page index: %v", err)
+		c.Infof("Couldn't create page index: %v", err)
 		return 0, err
 	}
 
@@ -58,7 +58,7 @@ func (task PopulateElasticTask) Execute(db *database.DB) (delay int, err error) 
 		WHERE p.isLiveEdit`).ToStatement(db).Query()
 	err = rows.Process(populateElasticProcessPage)
 	if err != nil {
-		c.Debugf("ERROR: %v", err)
+		c.Errorf("ERROR: %v", err)
 		// Error or not, we don't want to rerun this.
 	}
 	return 0, err

@@ -34,7 +34,7 @@ func (task UpdateElasticPageTask) Execute(db *database.DB) (int, error) {
 		return -1, err
 	}
 
-	c.Debugf("Updaing elastic page: %s", task.PageId)
+	c.Infof("Updaing elastic page: %s", task.PageId)
 
 	// Compute all priors.
 	rows := database.NewQuery(`

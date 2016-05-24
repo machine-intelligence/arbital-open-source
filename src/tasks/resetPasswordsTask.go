@@ -32,8 +32,8 @@ func (task ResetPasswordsTask) Execute(db *database.DB) (delay int, err error) {
 		return 0, err
 	}
 
-	c.Debugf("==== RESET PASSWORDS START ====")
-	defer c.Debugf("==== RESET PASSWORDS COMPLETED ====")
+	c.Infof("==== RESET PASSWORDS START ====")
+	defer c.Infof("==== RESET PASSWORDS COMPLETED ====")
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -44,7 +44,7 @@ func (task ResetPasswordsTask) Execute(db *database.DB) (delay int, err error) {
 		WHERE NOT resetEmailSent AND firstName!=""`).Query()
 	err = rows.Process(resetPasswordsProcessPage)
 	if err != nil {
-		c.Debugf("ERROR: %v", err)
+		c.Errorf("ERROR: %v", err)
 		// Error or not, we don't want to rerun this.
 	}
 	return 0, err

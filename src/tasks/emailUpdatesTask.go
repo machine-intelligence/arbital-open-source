@@ -36,15 +36,15 @@ func (task EmailUpdatesTask) Execute(db *database.DB) (delay int, err error) {
 		return
 	}
 
-	c.Debugf("==== EMAIL UPDATES START ====")
-	defer c.Debugf("==== EMAIL UPDATES COMPLETED ====")
+	c.Infof("==== EMAIL UPDATES START ====")
+	defer c.Infof("==== EMAIL UPDATES COMPLETED ====")
 
 	// For all the users that don't want emails, set their updates to 'emailed'
 	statement := db.NewStatement(`
 		UPDATE updates
 		SET emailed=true
 		WHERE userId IN (
-			SELECT userId
+			SELECT id
 			FROM users
 			WHERE emailFrequency=?
 		)`)

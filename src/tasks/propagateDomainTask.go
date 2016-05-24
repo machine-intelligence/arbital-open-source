@@ -41,8 +41,8 @@ func (task PropagateDomainTask) Execute(db *database.DB) (delay int, err error) 
 		return -1, err
 	}
 
-	c.Debugf("==== PROPAGATE DOMAIN START ====")
-	defer c.Debugf("==== PROPAGATE DOMAIN COMPLETED ====")
+	c.Infof("==== PROPAGATE DOMAIN START ====")
+	defer c.Infof("==== PROPAGATE DOMAIN COMPLETED ====")
 
 	// Process the first page.
 	// Map of pageId -> whether or not we processed the children

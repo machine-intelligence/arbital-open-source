@@ -106,7 +106,7 @@ type UpdateData struct {
 func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, forEmail bool) ([]*UpdateRow, error) {
 	emailFilter := database.NewQuery("")
 	if forEmail {
-		emailFilter = database.NewQuery("AND NOT seen AND NOT emailed")
+		emailFilter = database.NewQuery("AND NOT updates.seen AND NOT updates.emailed")
 	}
 
 	// Create group loading options
@@ -141,7 +141,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		LEFT JOIN changeLogs
 		ON (updates.changeLogId = changeLogs.id)
 		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(`
-			AND updates.dismissed!=true
+			AND NOT updates.dismissed
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
 		LIMIT 100`).ToStatement(db).Query()
@@ -266,6 +266,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 
 	resultData = &UpdateData{}
 
+	// TODO: replace this with a helper function (like loadUserFromDb)
 	u := &CurrentUser{}
 	row := db.NewStatement(`
 		SELECT id,email,emailFrequency,emailThreshold
