@@ -56,7 +56,9 @@
 </div>
 <div class="spaced-buttons"
 		layout="row"
+		layout-xs="column"
 		layout-align="start center"
+		layout-align-xs="start start"
 		ng-if="!mark.isCurrentUserOwned && !mark.resolvedPageId">
 	<md-button class="md-primary"
 			ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">

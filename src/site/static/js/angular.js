@@ -110,7 +110,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		// If we have md-scroll-mask on, we want the fixedOverlay to occupy entire screen
 		// so that the mdBottomSheet UI is displayed fully.
 		var hasScrollMask = $fixedOverlay.find('.md-scroll-mask').length > 0;
-		$fixedOverlay.css('width', hasScrollMask ? '100vw' : '0');
 		$fixedOverlay.css('height', hasScrollMask ? '100vh' : '0');
 	});
 

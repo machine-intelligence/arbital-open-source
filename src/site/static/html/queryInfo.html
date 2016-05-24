@@ -158,7 +158,9 @@
 	<div ng-if="!mark.resolvedPageId">
 		<div class="spaced-buttons"
 				layout="{{inPopup ? 'column': 'row'}}"
-				layout-align="{{inPopup ? 'start start' : 'start center'}}">
+				layout-xs="column"
+				layout-align="{{inPopup ? 'start start' : 'start center'}}"
+				layout-align-xs="start start">
 			<md-button ng-class="{'md-primary': !mark.resolvedBy}"
 					ng-href="{{::pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
 				<md-icon>edit</md-icon>

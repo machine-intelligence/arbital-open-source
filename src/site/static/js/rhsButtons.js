@@ -7,18 +7,13 @@ app.controller('RhsButtonsController', function($scope, $mdMedia, $mdBottomSheet
 	$scope.isTinyScreen = !$mdMedia('gt-xs');
 
 	$scope.newInlineComment = function(isEditorComment) {
-		$mdBottomSheet.hide({func: 'newInlineComment', params: [isEditorComment]});
+		$mdBottomSheet.hide({func: 'newInlineComment'});
 	};
 	$scope.newEditorMark = function(markType) {
 		$mdBottomSheet.hide({func: 'newEditorMark', params: [markType]});
 	};
 	$scope.newQueryMark = function() {
 		$mdBottomSheet.hide({func: 'newQueryMark'});
-	};
-
-	$scope.isSubmenu = false;
-	$scope.showEditorFeedbackSubmenu = function() {
-		$scope.isSubmenu = true;
 	};
 });
 
