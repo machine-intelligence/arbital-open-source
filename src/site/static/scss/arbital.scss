@@ -463,6 +463,12 @@ arb-requisite-button, [arb-requisite-button] {
 	padding: 5px 0;
 }
 
+md-toast {
+	md-icon {
+		color: white;
+	}
+}
+
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {

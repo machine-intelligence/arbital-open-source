@@ -1163,7 +1163,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// params = {
 	//	text: text to show
 	//	scope: scope to assign to the md-toast,
-	//	normalButton: {text: button text, callbackText: function to call if clicked}
+	//	normalButton: {text: button text, icon: the icon to show on the button, callbackText: function to call if clicked}
 	//	isError: if true, this will be an error toast
 	// }
 	this.showToast = function(params) {
@@ -1179,7 +1179,11 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		templateHtml += '<span flex>' + escapeHtml(params.text) + '</span>';
 		if (params.normalButton) {
 			templateHtml += '<md-button class="md-action" ng-click="' + params.normalButton.callbackText + '">';
-			templateHtml += escapeHtml(params.normalButton.text) + '</md-button>';
+			templateHtml += '<span>' + escapeHtml(params.normalButton.text) + '</span>';
+			if (params.normalButton.icon) {
+				templateHtml += '&nbsp;<md-icon>' + escapeHtml(params.normalButton.icon) + '</md-icon>'
+			}
+			templateHtml += '</md-button>';
 		}
 		templateHtml += '</div></md-toast>';
 		$mdToast.show({
