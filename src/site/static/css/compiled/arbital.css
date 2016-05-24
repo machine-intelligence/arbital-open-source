@@ -626,7 +626,8 @@ a:not(.md-button) {
 
 .feedback-textarea {
   width: 40vw;
-  height: 50vh; }
+  height: 50vh;
+  min-width: 300px; }
 
 arb-likes, .likes-in-autocomplete {
   white-space: nowrap;
