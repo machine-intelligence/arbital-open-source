@@ -438,6 +438,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 										scope: $scope,
 										normalButton: {
 											text: 'Subscribe',
+											icon: 'build',
 											callbackText: 'subscribeAsMaintainer()',
 										},
 									});
@@ -457,6 +458,11 @@ app.run(function($http, $location, urlService, pageService, userService) {
 							})});
 							pageService.pageMap[page.pageId].isSubscribed = true;
 							pageService.pageMap[page.pageId].isSubscribedAsMaintainer = true;
+
+							pageService.showToast({
+								text: 'Subscribed as maintainer',
+								scope: $scope,
+							});
 						};
 
 						return {
