@@ -589,6 +589,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// REturn true iff any of the pageInfo values changed.
 			$scope.pageInfoChanged = function() {
+				if (!$scope.page.wasPublished) return false;
 				var originalPageInfo = pageService.pageMap[$scope.pageId].getPageInfo();
 				var newPageInfo = $scope.page.getPageInfo();
 				return !angular.equals(originalPageInfo, newPageInfo);
