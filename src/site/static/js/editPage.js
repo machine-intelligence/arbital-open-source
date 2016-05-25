@@ -113,6 +113,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.pageTypes = {wiki: 'Wiki page'};
 			} else if ($scope.isLens) {
 				$scope.pageTypes = {lens: 'Lens page'};
+				$scope.lensParent = pageService.pageMap[$scope.page.parentIds[0]];
 			}
 
 			// Set up group names.

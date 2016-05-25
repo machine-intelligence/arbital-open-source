@@ -17,8 +17,9 @@
 				<div flex>
 					<div class="editor-tab" layout="column">
 						<md-input-container>
-							<label>Title</label>
-							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" autofocus>
+							<label ng-if="::!isLens">Title</label>
+							<label ng-if="::isLens">Lens title</label>
+							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" aria-label="Title" autofocus>
 						</md-input-container>
 						<md-input-container>
 							<label>Clickbait</label>
@@ -653,7 +654,10 @@
 
 		<!-- Live preview -->
 		<md-content class="preview-area" flex ng-show="(fullView || inPreview) && !otherDiff && !sideEdit">
-			<div class="md-display-3" ng-bind="page.title"></div>
+			<div class="md-display-3" ng-if="page.title != '' || page.text != ''">
+				<span ng-bind="::lensParent.title + ': '" ng-if="::lensParent"></span>
+				<span ng-bind="page.title"></span>
+			</div>
 			<div class="md-caption" ng-if="page.title === '' && page.text === ''">
 				<div class="md-display-3">Live preview</div>
 			</div>
