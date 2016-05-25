@@ -480,10 +480,13 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 1100px; }
   arb-admin-dashboard-page > .capped-body-width {
     max-width: 900px; }
-  arb-read-mode-panel > .capped-body-width {
-    max-width: 900px; }
   arb-newsletter > .capped-body-width {
     max-width: 900px; }
+
+.full-page-panel {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto; }
 
 .dense-panel md-toolbar {
   min-height: 0px; }
