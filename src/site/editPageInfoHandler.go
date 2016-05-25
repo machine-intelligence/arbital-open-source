@@ -285,7 +285,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			task.UserId = u.Id
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
-			task.UpdateType = core.PageInfoEditUpdateType
+			task.UpdateType = core.ChangeLogUpdateType
 			task.GroupByPageId = data.PageId
 			task.ChangeLogId = changeLogId
 			if err := tasks.Enqueue(c, &task, nil); err != nil {

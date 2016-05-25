@@ -113,10 +113,9 @@
 					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 					question was merged into this.
 				</span>
-			</span>
 	
-			<!-- Settings changes -->
-			<span ng-switch-when="pageInfoEdit" ng-switch="::changeLog.type" flex>
+				<!-- Settings changes -->
+
 				<span ng-switch-when="newAlias">
 					Alias changed
 					<br><span>&nbsp;&nbsp;&nbsp;&nbsp;from: "{{::changeLog.oldSettingsValue}}"</span>
