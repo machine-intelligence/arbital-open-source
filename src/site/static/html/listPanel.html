@@ -14,7 +14,11 @@
 				ng-class="{'unseen-update': modeRow.activityDate > lastView}">
 
 			<div ng-switch="::modeRow.rowType" flex>
-				<arb-page-row page-id="{{::modeRow.pageId}}" ng-switch-when="page"></arb-page-row>
+				<arb-page-row page-id="{{::modeRow.pageId}}"
+						show-created-at="true"
+						show-comment-count="true"
+						show-text-length="true"
+						ng-switch-when="page"></arb-page-row>
 				<arb-likes-mode-row mode-row="modeRow" ng-switch-when="likes"></arb-likes-mode-row>
 				<arb-reqs-taught-mode-row mode-row="modeRow" ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
 				<div arb-mark-info mark-id="{{::modeRow.markId}}" ng-switch-when="mark"></div>
