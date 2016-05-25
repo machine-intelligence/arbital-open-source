@@ -1,10 +1,10 @@
 <div layout="column" layout-align="start center">
 	<md-button arb-user-check
-			ng-class="::{'md-icon-button': !isStretched && !isSubscribedAsMaintainer()}"
+			ng-class="::{'md-icon-button': !isStretched}"
 			ng-click="subscribeClick()">
-		<md-icon ng-class="{on: isSubscribed()}">visibility</md-icon>
-		<span ng-if="::isStretched">Subscribe</span>
+		<md-icon ng-class="{on: isSubscribed()}" ng-if="!isSubscribedAsMaintainer()">visibility</md-icon>
 		<md-icon class="on" ng-if="isSubscribedAsMaintainer()">build</md-icon>
+		<span ng-if="::isStretched">Subscribe</span>
 		<md-tooltip md-delay="500" ng-if="!isSubscribed()">
 			Receive updates for comments on this page
 		</md-tooltip>
@@ -15,20 +15,20 @@
 			You will receive updates for comments, edits, and marks on this page
 		</md-tooltip>
 	</md-button>
-	<span layout="row">
+	<span layout="row" ng-if="::showSubscriberCount">
 		<ng-pluralize class="md-caption"
 				count="page.subscriberCount + (isSubscribed() ? 1 : 0)" when="{
 					'0': 'No subscribers',
 					'one': '1 subscriber',
-					'other': '{} subscribers'}"
-				ng-if="::showSubscriberCount">
-		</ng-pluralize>&nbsp;
+					'other': '{} subscribers'}">
+		</ng-pluralize>
+		&nbsp;
 		<ng-pluralize class="md-caption"
 				count="page.maintainerCount + (isSubscribedAsMaintainer() ? 1 : 0)" when="{
 					'0': ' and no maintainers',
 					'one': ' and 1 maintainer',
 					'other': ' and {} maintainers'}"
-				ng-if="::showSubscriberCount && page.permissions.edit.has">
+				ng-if="::page.permissions.edit.has">
 		</ng-pluralize>
 	</span>
 </div>
