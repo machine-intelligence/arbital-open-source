@@ -81,7 +81,7 @@
 			<arb-likes likeable-type="page" likeable-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
 			<arb-subscribe page-id="{{::page.pageId}}"
 					show-subscriber-count="::!isTinyScreen"
-					ng-if="::!parentSubpageId"></arb-subscribe>
+					ng-if="::!parentSubpageId && (page.editCreatorId != userService.user.id)"></arb-subscribe>
 			<md-button class="md-primary"
 					aria-label="Reply to comment"
 					ng-click="newReply()"
