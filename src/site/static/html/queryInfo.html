@@ -11,7 +11,7 @@
 
 	<blockquote arb-markdown
 			mark-id="{{::mark.id}}"
-			ng-if="!isOnPage && mark.anchorContext"></blockquote>
+			ng-if="!isOnPage() && mark.anchorContext"></blockquote>
 
 	<!-- Show query's text -->
 	<div ng-if="mark.isSubmitted || potentialResolvedPageId">
@@ -147,12 +147,14 @@
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
-	<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
-			page-id="{{::mark.pageId}}"
-			class="intrasite-link"
-			ng-if="!isOnPage()">
-		View this query mark on the page
-	</a>
+	<div>
+		<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+				page-id="{{::mark.pageId}}"
+				class="intrasite-link"
+				ng-if="!isOnPage()">
+			View this query mark on the page
+		</a>
+	</div>
 
 	<!-- Bottom buttons -->
 	<div ng-if="!mark.resolvedPageId">
