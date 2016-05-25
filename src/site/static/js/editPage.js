@@ -586,6 +586,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.savePageInfo = function(callback) {
 				pageService.savePageInfo($scope.page, callback);
 			};
+
+			// REturn true iff any of the pageInfo values changed.
+			$scope.pageInfoChanged = function() {
+				var originalPageInfo = pageService.pageMap[$scope.pageId].getPageInfo();
+				var newPageInfo = $scope.page.getPageInfo();
+				return !angular.equals(originalPageInfo, newPageInfo);
+			};
 		},
 		link: function(scope, element, attrs) {
 			// Do autosave every so often.
