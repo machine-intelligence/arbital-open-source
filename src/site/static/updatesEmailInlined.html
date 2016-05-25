@@ -122,44 +122,16 @@
 														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>
 														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "pageEdit"}}
-														This page has been edited
+														This page's text was edited
 														{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>{{end}}
 														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}
 														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "pageInfoEdit"}}
-														Page's settings were edited.
+													{{else if eq .Type "changeLog"}}
+														Page was edited by
+														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "newPageByUser"}}
 														Created a new page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newParent"}}
-														New parent page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newChild"}}
-														New child page: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newRequirement"}}
-														New requirement: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newRequiredBy"}}
-														This page is now a requirement for: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newTag"}}
-														New tag: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newUsedAsTag"}}
-														This page now tags: <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newSubject"}}
-														New "teaches requisite": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "deleteSubject"}}
-														Deleted "teaches requisite": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "newTeacher"}}
-														New "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														({{RelativeDateTime .CreatedAt}})
-													{{else if eq .Type "deleteTeacher"}}
-														Deleted "taught by": <a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
 														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "atMention"}}
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> mentioned you in a
@@ -177,8 +149,10 @@
 														A confusion mark has been created.
 													{{else if eq .Type "answeredMark"}}
 														Your confusion mark has been answered.
+													{{else if eq .Type "inviteReceived"}}
+														You can now participate in one of the domains.
 													{{else}}
-														Something else ({{.Type}}) happened.
+														{{.Type}} event happened.
 													{{end}}
 												</div>
 											{{end}}
