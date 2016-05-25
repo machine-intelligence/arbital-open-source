@@ -102,6 +102,8 @@ arb-markdown, [arb-markdown], .preview-area {
 
 // Cap the width of some pages, so they look nicer
 .capped-body-width {
+	padding-bottom: 100px;
+
 	&, & #footer {
 		display: block;
 		margin-left: auto;
@@ -622,7 +624,7 @@ $triangle-size: 15px;
 	position: fixed;
 	left: 0;
 	bottom: 0;
-	width: 0;
+	width: 100vw;
 	height: 0;
 	overflow: visible;
 	z-index: $fixedOverlayZ;

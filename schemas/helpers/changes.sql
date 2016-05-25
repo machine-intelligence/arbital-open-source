@@ -108,3 +108,4 @@ alter table updates drop column unseen;
 
 alter table subscriptions add column asMaintainer boolean not null;
 update subscriptions join pageInfos on subscriptions.toId=pageInfos.pageId set subscriptions.asMaintainer=true where pageInfos.createdBy=subscriptions.userId;
+update updates set type="changeLog" where type="pageInfoEdit";

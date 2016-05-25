@@ -22,7 +22,6 @@ const (
 	ReplyUpdateType           = "reply"
 	ChangeLogUpdateType       = "changeLog"
 	PageEditUpdateType        = "pageEdit"
-	PageInfoEditUpdateType    = "pageInfoEdit"
 	NewPageByUserUpdateType   = "newPageByUser"
 
 	// there's no deleteLens because there's no way to undo the association between a lens and its parent page

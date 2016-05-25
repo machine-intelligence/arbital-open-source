@@ -214,7 +214,7 @@ func LoadCurrentUser(w http.ResponseWriter, r *http.Request, db *database.DB) (u
 
 // LoadUpdateCount returns the number of not seen updates the given user has.
 func LoadUpdateCount(db *database.DB, userId string) (int, error) {
-	editTypes := []string{PageEditUpdateType, PageInfoEditUpdateType}
+	editTypes := []string{PageEditUpdateType}
 
 	var editUpdateCount int
 	row := database.NewQuery(`

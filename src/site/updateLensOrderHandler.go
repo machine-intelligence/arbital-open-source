@@ -77,7 +77,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Generate updates for users who are subscribed to the primary page
 	var task tasks.NewUpdateTask
-	task.UpdateType = core.PageInfoEditUpdateType
+	task.UpdateType = core.ChangeLogUpdateType
 	task.UserId = u.Id
 	task.GroupByPageId = data.PageId
 	task.SubscribedToId = data.PageId
