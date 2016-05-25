@@ -27,13 +27,10 @@
 	</md-list>
 
 	<!-- Footer -->
-	<md-toolbar layout="row"
-			layout-align="start center"
-			class="layout-align-end-center layout-row md-hue-1"
-			ng-if="moreLink && !isFullPage">
-			<md-button ng-href="{{::moreLink}}" flex>
-				See all
-				<md-icon>arrow_forward</md-icon>
-			</md-button>
-	</md-toolbar>
+	<div layout="column" ng-if="moreLink && !isFullPage">
+		<md-button class="md-primary md-raised md-hue-1" ng-href="{{::moreLink}}">
+			See all
+			<md-icon>arrow_forward</md-icon>
+		</md-button>
+	</div>
 </md-card>
