@@ -6,7 +6,7 @@
 			flex-order="{{::buttonFlexOrder}}"
 			ng-if="::buttonText">
 		<span ng-bind="::buttonText"></span>
-		<md-tooltip ng-bind="::tooltipText" ng-if="::tooltipText"></md-tooltip>
+		<md-tooltip md-delay="500" ng-if="::tooltipText">{{tooltipText}}</md-tooltip>
 	</md-button>
 	<md-button aria-label="{{::buttonText}}"
 			class="md-primary md-hue-1 md-icon-button"
@@ -14,7 +14,7 @@
 			ng-disabled="disabled"
 			flex-order="{{::buttonFlexOrder}}"
 			ng-if="::!buttonText">
-		<md-tooltip ng-bind="::tooltipText" ng-if="::tooltipText"></md-tooltip>
+		<md-tooltip md-delay="500" ng-if="::tooltipText">{{tooltipText}}</md-tooltip>
 		<md-icon>delete</md-icon>
 	</md-button>
 
