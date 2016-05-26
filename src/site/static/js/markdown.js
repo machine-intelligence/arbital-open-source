@@ -2,7 +2,7 @@
 
 var notEscaped = '(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))';
 var noParen = '(?=$|[^(])';
-var nakedAliasMatch = '\\-?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*';
+var nakedAliasMatch = '[\\-\\+]?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*';
 var aliasMatch = '(' + nakedAliasMatch + ')';
 var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
 
@@ -307,18 +307,20 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			return text.replace(simpleLinkRegexp, function(whole, prefix, alias) {
 				var firstAliasChar = alias.substring(0, 1);
 				var trimmedAlias = alias;
-				if (firstAliasChar == '-') {
+				if (firstAliasChar == '-' || firstAliasChar == '+') {
 					trimmedAlias = alias.substring(1);
 				}
 				var page = pageService.pageMap[trimmedAlias];
 				if (page) {
 					var url = pageService.getPageUrl(page.pageId, {includeHost: true});
 					// Match the page title's case to the alias's case
-					if (firstAliasChar == '-') {
-						return prefix + '[' + page.title.substring(0, 1).toLowerCase() + page.title.substring(1) + '](' + url + ')';
+					var casedTitle;
+					if (firstAliasChar == '+') {
+						casedTitle = page.title.substring(0, 1).toUpperCase() + page.title.substring(1);
 					} else {
-						return prefix + '[' + page.title.substring(0, 1).toUpperCase() + page.title.substring(1) + '](' + url + ')';
+						casedTitle = page.title.substring(0, 1).toLowerCase() + page.title.substring(1);
 					}
+					return prefix + '[' + casedTitle + '](' + url + ')';
 				} else {
 					var url = pageService.getPageUrl(trimmedAlias, {includeHost: true});
 					return prefix + '[' + trimmedAlias + '](' + url + ')';

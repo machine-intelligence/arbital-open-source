@@ -171,6 +171,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						if (page) {
 							return prefix + '[-' + page.alias + ']';
 						}
+					} else if (alias.substring(0, 1) == '+') {
+						var page = pageService.pageMap[alias.substring(1)];
+						if (page) {
+							return prefix + '[+' + page.alias + ']';
+						}
 					} else {
 						var page = pageService.pageMap[alias];
 						if (page) {
