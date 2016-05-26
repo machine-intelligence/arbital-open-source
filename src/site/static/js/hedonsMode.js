@@ -11,6 +11,7 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 		controller: function($scope) {
 			$scope.pageService = pageService;
 			$scope.userService = userService;
+			userService.user.newAchievementCount = 0;
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
 

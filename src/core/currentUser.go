@@ -61,10 +61,11 @@ type CurrentUser struct {
 	SessionId string `json:"-"`
 
 	// Computed variables
-	UpdateCount    int               `json:"updateCount"`
-	GroupIds       []string          `json:"groupIds"`
-	TrustMap       map[string]*Trust `json:"trustMap"`
-	InvitesClaimed []*Invite         `json:"invitesClaimed"`
+	UpdateCount         int               `json:"updateCount"`
+	NewAchievementCount int               `json:"newAchievementCount"`
+	GroupIds            []string          `json:"groupIds"`
+	TrustMap            map[string]*Trust `json:"trustMap"`
+	InvitesClaimed      []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
@@ -239,6 +240,64 @@ func LoadUpdateCount(db *database.DB, userId string) (int, error) {
 	}
 
 	return editUpdateCount + nonEditUpdateCount, err
+}
+
+// Load the number of new achievements for this user
+func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
+	lastAchievementsView, err := LoadLastView(db, user, LastAchievementsModeView)
+	if err != nil {
+		return -1, err
+	}
+
+	var newLikeCount int
+	row := database.NewQuery(`
+		SELECT COUNT(*)
+		FROM `).AddPart(PageInfosTable(user)).Add(` AS pi
+		JOIN likes AS l
+		ON pi.likeableId=l.likeableId
+		JOIN users AS u
+		ON l.userId=u.id
+		WHERE pi.createdBy=?`, user.Id).Add(`
+			AND l.userId!=?`, user.Id).Add(`
+			AND l.value=1
+			AND l.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
+	_, err = row.Scan(&newLikeCount)
+	if err != nil {
+		return -1, err
+	}
+
+	var newChangeLogLikeCount int
+	row = database.NewQuery(`
+		SELECT COUNT(*)
+		FROM likes as l
+		JOIN changeLogs as cl
+		ON cl.likeableId=l.likeableId
+		WHERE cl.userId=?`, user.Id).Add(`
+			AND l.value=1 AND l.userId!=?`, user.Id).Add(`
+			AND cl.type=?`, NewEditChangeLog).Add(`
+			AND l.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
+	_, err = row.Scan(&newChangeLogLikeCount)
+	if err != nil {
+		return -1, err
+	}
+
+	var newTaughtCount int
+	row = database.NewQuery(`
+		SELECT COUNT(*)
+		FROM userMasteryPairs AS ump
+		JOIN `).AddPart(PageInfosTable(user)).Add(` AS pi
+		ON ump.taughtBy=pi.pageId
+		JOIN users AS u
+		ON ump.userId=u.id
+		WHERE pi.createdBy=?`, user.Id).Add(`
+			AND ump.has=1 AND ump.userId!=?`, user.Id).Add(`
+			AND ump.updatedAt>?`, lastAchievementsView).ToStatement(db).QueryRow()
+	_, err = row.Scan(&newTaughtCount)
+	if err != nil {
+		return -1, err
+	}
+
+	return newLikeCount + newTaughtCount + newChangeLogLikeCount, nil
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.

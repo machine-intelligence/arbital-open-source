@@ -1,5 +1,6 @@
 <div layout="column" layout-align="start center">
 	<md-button arb-user-check
+			aria-label="subscribe"
 			ng-class="::{'md-icon-button': !isStretched}"
 			ng-click="subscribeClick()">
 		<md-icon ng-class="{on: isSubscribed()}" ng-if="!isSubscribedAsMaintainer()">visibility</md-icon>

@@ -23,13 +23,23 @@
 
 		<!-- Updates -->
 		<md-button href="/updates/"
-				ng-class="{'md-icon-button': userService.user.updateCount <= 0}"
 				aria-label="Your updates"
+				class="md-icon-button"
 				ng-if="userService.user.id !== ''">
 			<md-icon ng-if="userService.user.updateCount <= 0">notifications_none</md-icon>
-			<md-icon class="md-accent md-hue-3" ng-if="userService.user.updateCount > 0">notifications</md-icon>
+			<md-icon class="md-accent md-hue-3 md-raised" ng-if="userService.user.updateCount > 0">notifications</md-icon>
 			<span ng-bind="userService.user.updateCount" ng-if="userService.user.updateCount > 0"></span>
-		</md-button>
+		</md-button>&nbsp;
+
+		<!-- Achievement updates -->
+		<md-button href="/achievements/"
+				aria-label="Your achievements"
+				class="md-icon-button"
+				ng-if="userService.user.id !== ''">
+			<md-icon ng-if="userService.user.newAchievementCount <= 0">public</md-icon>
+			<md-icon class="md-accent md-hue-3 md-raised" ng-if="userService.user.newAchievementCount > 0">public</md-icon>
+			<span ng-bind="userService.user.newAchievementCount" ng-if="userService.user.newAchievementCount > 0"></span>
+		</md-button>&nbsp;
 
 		<!-- Login/signup buttons -->
 		<md-button ng-href="{{getSignupUrl()}}"
