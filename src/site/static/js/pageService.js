@@ -489,6 +489,22 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			var parts = this.title.split(':');
 			return parts[parts.length - 1].trim();
 		},
+		// Return "pageInfo" component of the page.
+		getPageInfo: function() {
+			return {
+				pageId: this.pageId,
+				alias: this.alias,
+				type: this.type,
+				seeGroupId: this.seeGroupId,
+				editGroupId: this.editGroupId,
+				hasVote: this.hasVote,
+				voteType: this.voteType,
+				sortChildrenBy: this.sortChildrenBy,
+				isRequisite: this.isRequisite,
+				indirectTeacher: this.indirectTeacher,
+				isEditorCommentIntention: this.isEditorCommentIntention,
+			};
+		},
 	};
 
 	// Massage page's variables to be easier to deal with.
@@ -798,25 +814,12 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 
 	// Save page's info.
 	this.savePageInfo = function(page, callback) {
-		var data = {
-			pageId: page.pageId,
-			type: page.type,
-			seeGroupId: page.seeGroupId,
-			editGroupId: page.editGroupId,
-			hasVote: page.hasVote,
-			voteType: page.voteType,
-			alias: page.alias,
-			sortChildrenBy: page.sortChildrenBy,
-			isRequisite: page.isRequisite,
-			indirectTeacher: page.indirectTeacher,
-			isEditorCommentIntention: page.isEditorCommentIntention,
-		};
-		$http({method: 'POST', url: '/editPageInfo/', data: JSON.stringify(data)})
+		$http({method: 'POST', url: '/editPageInfo/', data: JSON.stringify(page.getPageInfo())})
 		.success(function(data) {
 			if (callback) callback();
 		})
 		.error(function(data) {
-			console.error('Error /editPageInfo/ :'); console.error(data);
+			console.error('Error /editPageInfo/:'); console.error(data);
 			if (callback) callback(data);
 		});
 	};

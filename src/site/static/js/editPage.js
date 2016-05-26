@@ -113,6 +113,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.pageTypes = {wiki: 'Wiki page'};
 			} else if ($scope.isLens) {
 				$scope.pageTypes = {lens: 'Lens page'};
+				$scope.lensParent = pageService.pageMap[$scope.page.parentIds[0]];
 			}
 
 			// Set up group names.
@@ -585,6 +586,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// callback is called with a potential error message when the server replies
 			$scope.savePageInfo = function(callback) {
 				pageService.savePageInfo($scope.page, callback);
+			};
+
+			// REturn true iff any of the pageInfo values changed.
+			$scope.pageInfoChanged = function() {
+				if (!$scope.page.wasPublished) return false;
+				var originalPageInfo = pageService.pageMap[$scope.pageId].getPageInfo();
+				var newPageInfo = $scope.page.getPageInfo();
+				return !angular.equals(originalPageInfo, newPageInfo);
 			};
 		},
 		link: function(scope, element, attrs) {

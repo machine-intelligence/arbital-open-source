@@ -1,4 +1,4 @@
-<md-card ng-class="{'capped-body-width': isFullPage, 'dense-panel': !isFullPage}" ng-if="modeRows.length != 0">
+<md-card ng-class="{'full-page-panel': isFullPage, 'dense-panel': !isFullPage}" ng-if="modeRows.length != 0">
 	<!-- Header -->
 	<md-toolbar class="md-hue-2" ng-if="::title">
 		<div class="md-toolbar-tools">
@@ -14,7 +14,11 @@
 				ng-class="{'unseen-update': modeRow.activityDate > lastView}">
 
 			<div ng-switch="::modeRow.rowType" flex>
-				<arb-page-row page-id="{{::modeRow.pageId}}" ng-switch-when="page"></arb-page-row>
+				<arb-page-row page-id="{{::modeRow.pageId}}"
+						show-created-at="true"
+						show-comment-count="true"
+						show-text-length="true"
+						ng-switch-when="page"></arb-page-row>
 				<arb-likes-mode-row mode-row="modeRow" ng-switch-when="likes"></arb-likes-mode-row>
 				<arb-reqs-taught-mode-row mode-row="modeRow" ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
 				<div arb-mark-info mark-id="{{::modeRow.markId}}" ng-switch-when="mark"></div>
@@ -27,6 +31,7 @@
 	</md-list>
 
 	<!-- Footer -->
+<<<<<<< HEAD
 	<md-toolbar layout="row"
 			layout-align="start center"
 			class="layout-align-end-center layout-row md-hue-1"
@@ -36,4 +41,12 @@
 				<md-icon>arrow_forward</md-icon>
 			</md-button>
 	</md-toolbar>
+=======
+	<div layout="column" ng-if="moreLink && !isFullPage">
+		<md-button class="md-primary md-raised md-hue-1" ng-href="{{::moreLink}}">
+			See all
+			<md-icon>arrow_forward</md-icon>
+		</md-button>
+	</div>
+>>>>>>> master
 </md-card>

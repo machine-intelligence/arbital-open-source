@@ -45,7 +45,7 @@
 			<md-icon>font_download</md-icon>
 			<span ng-bind="::page.answerCount"></span>
 		</div>
-		<div style="white-space: nowrap" ng-if="::(showCommentCount && page.type !== 'question')">
+		<div style="white-space: nowrap" ng-if="::showCommentCount && page.commentCount > 0">
 			<span class="separator"></span>
 			<md-icon>comment</md-icon>
 			<span ng-bind="::page.commentCount"></span>

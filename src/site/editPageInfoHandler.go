@@ -137,7 +137,7 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	} else if data.Alias != data.PageId {
 		// Check if the alias matches the strict regexp
 		if !core.StrictAliasRegexp.MatchString(data.Alias) {
-			return pages.Fail("Invalid alias. Can only contain letters and digits. It cannot be a number.", nil)
+			return pages.Fail("Invalid alias. Can only contain letters, digits, and underscores. It also cannot start with a digit.", nil)
 		}
 
 		// Prefix alias with the group alias, if appropriate

@@ -17,8 +17,9 @@
 				<div flex>
 					<div class="editor-tab" layout="column">
 						<md-input-container>
-							<label>Title</label>
-							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" autofocus>
+							<label ng-if="::!isLens">Title</label>
+							<label ng-if="::isLens">Lens title</label>
+							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" aria-label="Title" autofocus>
 						</md-input-container>
 						<md-input-container>
 							<label>Clickbait</label>
@@ -580,7 +581,7 @@
 				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
 			</md-checkbox>
 			<span ng-if="page.isComment() && !page.isEditorCommentIntention && !page.getCommentParentPage().permissions.comment.has">
-				<md-icon>warning</md-icon>
+				<md-icon>info</md-icon>
 				<md-tooltip md-delay="500">
 					You are new to this domain. Your comment will become public after it's approved by a moderator.
 				</md-tooltip>
@@ -624,6 +625,10 @@
 					<md-tooltip md-delay="500" ng-if="::!isComment">Make this version live</md-tooltip>
 					{{::(page.isDeleted ? 'Republish' : 'Publish')}}
 				</md-button>
+				<span ng-if="pageInfoChanged()">
+					<md-tooltip md-delay="500" md-direction="top">Page settings aren't autosaved</md-tooltip>
+					<md-icon>warning</md-icon>
+				</span>
 			</div>
 		</div>
 	</div>
@@ -649,7 +654,10 @@
 
 		<!-- Live preview -->
 		<md-content class="preview-area" flex ng-show="(fullView || inPreview) && !otherDiff && !sideEdit">
-			<div class="md-display-3" ng-bind="page.title"></div>
+			<div class="md-display-3" ng-if="page.title != '' || page.text != ''">
+				<span ng-bind="::lensParent.title + ': '" ng-if="::lensParent"></span>
+				<span ng-bind="page.title"></span>
+			</div>
 			<div class="md-caption" ng-if="page.title === '' && page.text === ''">
 				<div class="md-display-3">Live preview</div>
 			</div>

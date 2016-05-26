@@ -3,7 +3,7 @@
 	<div ng-if="isNew">
 		What is your question/objection?
 	</div>
-	
+
 	<div ng-if="mark.isSubmitted">
 		You created this query
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
@@ -11,7 +11,7 @@
 
 	<blockquote arb-markdown
 			mark-id="{{::mark.id}}"
-			ng-if="!isOnPage && mark.anchorContext"></blockquote>
+			ng-if="!isOnPage() && mark.anchorContext"></blockquote>
 
 	<!-- Show query's text -->
 	<div ng-if="mark.isSubmitted || potentialResolvedPageId">
@@ -37,13 +37,10 @@
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
-	<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
-			page-id="{{::mark.pageId}}"
-			class="intrasite-link"
-			ng-if="!inPopup">
+	<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}">
 		View this query mark on the page
 	</a>
-	
+
 	<div ng-if="!potentialResolvedPageId">
 		<!-- Query text input -->
 		<md-input-container class="full-width" ng-if="!mark.isSubmitted">
@@ -56,7 +53,7 @@
 			To avoid confusing the system, make sure this is your question/objection and not someone else's.
 			<br>
 		</div>
-		
+
 		<!-- Potential questions / answers -->
 		<md-list>
 			<md-subheader class="md-primary md-hue-1 md-no-sticky" ng-if="responses.length > 0">
@@ -94,7 +91,7 @@
 		<div>
 			Did this page answer your question/objection?
 		</div>
-	
+
 		<!-- Bottom buttons -->
 		<div layout="row">
 			<md-button ng-click="resolveSuggestion(false)" aria-label="Reject response">
@@ -117,7 +114,7 @@
 	</div>
 
 	<div ng-if="isOnPage()">
-		This question/objection was created 
+		This question/objection was created
 		<span ng-bind="::(mark.createdAt | relativeDateTime)"></span>.
 	</div>
 
@@ -147,12 +144,14 @@
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
-	<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
-			page-id="{{::mark.pageId}}"
-			class="intrasite-link"
-			ng-if="!isOnPage()">
-		View this query mark on the page
-	</a>
+	<div>
+		<a ng-href="{{::pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+				page-id="{{::mark.pageId}}"
+				class="intrasite-link"
+				ng-if="!isOnPage()">
+			View this query mark on the page
+		</a>
+	</div>
 
 	<!-- Bottom buttons -->
 	<div ng-if="!mark.resolvedPageId">
