@@ -754,7 +754,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 		name: 'UpdatesPage',
 		handler: function(args, $scope) {
 			var postData = {};
-			// Get the explore data
+			// Get the updates data
 			$http({method: 'POST', url: '/json/updates/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
 				$scope.updateGroups = data.result.updateGroups;

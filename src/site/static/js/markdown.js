@@ -65,7 +65,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %knows-requisite([alias]):markdown% blocks.
-		var hasReqBlockRegexp = new RegExp('^(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
+		var hasReqBlockRegexp = new RegExp('^(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function(whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
@@ -78,7 +78,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %wants-requisite([alias]):markdown% blocks.
-		var wantsReqBlockRegexp = new RegExp('^(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
+		var wantsReqBlockRegexp = new RegExp('^(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function(whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
@@ -91,7 +91,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %todo:markdown% blocks.
-		var todoBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
+		var todoBlockRegexp = new RegExp('^(%+)todo: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(todoBlockRegexp, function(whole, bars, markdown) {
 				if (isEditor) {
@@ -102,7 +102,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %comment:markdown% blocks.
-		var commentBlockRegexp = new RegExp('^(%+)comment: ?([\\s\\S]+?\n)\\1 *(?=\Z|\n)', 'gm');
+		var commentBlockRegexp = new RegExp('^(%+)comment: ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(commentBlockRegexp, function(whole, bars, markdown) {
 				if (isEditor) {
@@ -113,7 +113,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process %hidden: text% blocks.
-		var hiddenBlockRegexp = new RegExp('^(%+)hidden\\(([\\s\\S]+?)\\): ?([\\s\\S]+?)\n\\1 *(?=\Z|\n)', 'gm');
+		var hiddenBlockRegexp = new RegExp('^(%+)hidden\\(([\\s\\S]+?)\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hiddenBlockRegexp, function(whole, bars, buttonText, text) {
 				var blockText = text + '\n\n';
