@@ -122,6 +122,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			if core.IsIdValid(u.Id) && result.Data.(*core.CommonHandlerData).ResetEverything {
 				// Load updates count. (Loading it afterwards since it could be affected by the page)
 				u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
+				u.NewAchievementCount, err = core.LoadNewAchievementCount(db, u)
 				if err != nil {
 					fail(http.StatusInternalServerError, "Couldn't retrieve updates count", err)
 					return

@@ -43,7 +43,7 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, hotPageIds)
 
 	// Load and update LastReadModeView for this user
-	returnData.ResultMap["lastView"], err = LoadAndUpdateLastView(db, u, LastReadModeView)
+	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastReadModeView)
 	if err != nil {
 		return pages.Fail("Error updating last read mode view", err)
 	}

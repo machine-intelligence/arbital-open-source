@@ -57,7 +57,7 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, changeLikesRows, reqsTaughtRows)
 
 	// Load and update lastAchievementsView for this user
-	returnData.ResultMap["lastView"], err = LoadAndUpdateLastView(db, u, LastAchievementsModeView)
+	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastAchievementsModeView)
 	if err != nil {
 		return pages.Fail("Error updating last achievements view", err)
 	}

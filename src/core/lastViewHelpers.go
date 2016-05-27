@@ -1,8 +1,7 @@
 // Contains helpers for lastViews.
-package site
+package core
 
 import (
-	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 )
 
@@ -13,8 +12,8 @@ const (
 	LastDiscussionModeView   = "lastDiscussionModeView"
 )
 
-// Both load and update the last time the user loaded the given view.
-func LoadAndUpdateLastView(db *database.DB, u *core.CurrentUser, viewName string) (string, error) {
+// Just load the last time the user loaded the given view.
+func LoadLastView(db *database.DB, u *CurrentUser, viewName string) (string, error) {
 	var lastView string
 	row := database.NewQuery(`
 		SELECT viewedAt
@@ -22,6 +21,16 @@ func LoadAndUpdateLastView(db *database.DB, u *core.CurrentUser, viewName string
 		WHERE userId=?`, u.Id).Add(`
 			AND viewName=?`, viewName).ToStatement(db).QueryRow()
 	_, err := row.Scan(&lastView)
+	if err != nil {
+		return "", err
+	}
+
+	return lastView, nil
+}
+
+// Both load and update the last time the user loaded the given view.
+func LoadAndUpdateLastView(db *database.DB, u *CurrentUser, viewName string) (string, error) {
+	lastView, err := LoadLastView(db, u, viewName)
 	if err != nil {
 		return "", err
 	}
