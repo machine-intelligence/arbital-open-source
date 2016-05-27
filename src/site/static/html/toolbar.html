@@ -27,7 +27,7 @@
 				class="md-icon-button"
 				ng-if="userService.user.id !== ''">
 			<md-icon ng-if="userService.user.updateCount <= 0">notifications_none</md-icon>
-			<md-icon class="md-accent md-hue-3 md-raised" ng-if="userService.user.updateCount > 0">notifications</md-icon>
+			<md-icon class="md-accent md-hue-3" ng-if="userService.user.updateCount > 0">notifications</md-icon>
 			<span ng-bind="userService.user.updateCount" ng-if="userService.user.updateCount > 0"></span>
 		</md-button>&nbsp;
 
