@@ -37,7 +37,7 @@
 				class="md-icon-button"
 				ng-if="userService.user.id !== ''">
 			<md-icon ng-if="userService.user.newAchievementCount <= 0">public</md-icon>
-			<md-icon class="md-accent md-hue-3 md-raised" ng-if="userService.user.newAchievementCount > 0">public</md-icon>
+			<md-icon class="md-accent md-hue-3" ng-if="userService.user.newAchievementCount > 0">public</md-icon>
 			<span ng-bind="userService.user.newAchievementCount" ng-if="userService.user.newAchievementCount > 0"></span>
 		</md-button>&nbsp;
 

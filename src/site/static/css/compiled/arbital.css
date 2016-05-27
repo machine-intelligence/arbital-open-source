@@ -483,14 +483,11 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-newsletter > .capped-body-width {
     max-width: 900px; }
 
-<<<<<<< HEAD
-=======
 .full-page-panel {
   max-width: 900px;
   margin-left: auto;
   margin-right: auto; }
 
->>>>>>> master
 .dense-panel md-toolbar {
   min-height: 0px; }
 
