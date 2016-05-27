@@ -484,7 +484,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 900px; }
 
 .white-circle-background {
-  background: #E0F2F1;
+  background: white;
   border-radius: 100px; }
 
 .full-page-panel {
