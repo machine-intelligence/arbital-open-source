@@ -741,7 +741,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						});
 					});
 				});
-			}, mathjaxTypesetDelay + 100);
+			});
 		},
 	};
 });
