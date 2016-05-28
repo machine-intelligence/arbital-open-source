@@ -33,9 +33,9 @@
 		</md-button>&nbsp;
 
 		<!-- Achievement updates -->
-		<md-button href="/achievements/"
+		<md-button ng-click="showAchievements($event)"
 				aria-label="Your achievements"
-				class="md-icon-button"
+				class="md-icon-button achievements-icon"
 				ng-if="userService.user.id !== ''">
 			<md-icon ng-if="userService.user.newAchievementCount <= 0">sentiment_satisfied</md-icon>
 			<md-icon class="md-accent md-hue-3 white-circle-background"
