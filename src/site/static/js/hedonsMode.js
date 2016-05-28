@@ -6,7 +6,8 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 		templateUrl: 'static/html/listPanel.html',
 		scope: {
 			numToDisplay: '=',
-			isFullPage: '='
+			isFullPage: '=',
+			hideTitle: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
