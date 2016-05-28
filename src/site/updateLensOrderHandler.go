@@ -8,6 +8,7 @@ import (
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 	"zanaduu3/src/tasks"
 )
 
@@ -64,21 +65,45 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		lensIndexValues = append(lensIndexValues, pageId, index)
 	}
 
-	// Update the lens index.
-	if len(lensIndexValues) > 0 {
+	// Begin the transaction.
+	var changeLogId int64
+	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
+		// Update the lens index.
 		statement := db.NewStatement(`
 			INSERT INTO pageInfos (pageId, lensIndex)
 			VALUES ` + database.ArgsPlaceholder(len(lensIndexValues), 2) + `
-			ON DUPLICATE KEY UPDATE lensIndex=VALUES(lensIndex)`)
+			ON DUPLICATE KEY UPDATE lensIndex=VALUES(lensIndex)`).WithTx(tx)
 		if _, err = statement.Exec(lensIndexValues...); err != nil {
-			return pages.Fail("Couldn't update a lens index", err)
+			return sessions.NewError("Couldn't update a lens index", err)
 		}
+
+		// Create changelogs entry
+		hashmap := make(database.InsertMap)
+		hashmap["pageId"] = data.PageId
+		hashmap["userId"] = u.Id
+		hashmap["createdAt"] = database.Now()
+		hashmap["type"] = core.LensOrderChangedChangeLog
+		statement = tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
+		result, err := statement.Exec()
+		if err != nil {
+			return sessions.NewError("Couldn't insert changeLog", err)
+		}
+		changeLogId, err = result.LastInsertId()
+		if err != nil {
+			return sessions.NewError("Couldn't get new changeLog id", err)
+		}
+
+		return nil
+	})
+	if err2 != nil {
+		return pages.FailWith(err2)
 	}
 
 	// Generate updates for users who are subscribed to the primary page
 	var task tasks.NewUpdateTask
 	task.UpdateType = core.ChangeLogUpdateType
 	task.UserId = u.Id
+	task.ChangeLogId = changeLogId
 	task.GroupByPageId = data.PageId
 	task.SubscribedToId = data.PageId
 	task.GoToPageId = data.PageId

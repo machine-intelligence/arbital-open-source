@@ -65,6 +65,7 @@ const (
 	NewEditGroupChangeLog       = "newEditGroup"
 	SearchStringChangeChangeLog = "searchStringChange"
 	AnswerChangeChangeLog       = "answerChange"
+	LensOrderChangedChangeLog   = "lensOrderChanged"
 
 	// Mark types
 	QueryMarkType     = "query"

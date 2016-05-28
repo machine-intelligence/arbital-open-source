@@ -212,15 +212,8 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			// Everything is on a timeout to let MathJax do its thing
 			$timeout(function() {
 				MathJax.Hub.Queue(function() {
-					// Detach some elements and append them to the body, since they will appear
-					// outside of the lens's div, and otherwise would be masked
-					var $inlineCommentsDiv = element.find('.inline-comments-div');
 					var inlineCommentButtonHeight = 40;
-					$inlineCommentsDiv.appendTo($('body'));
 					var inlineIconShiftLeft = inlineCommentButtonHeight * ($mdMedia('gt-md') ? 0.5 : 1.1);
-					scope.$on('$destroy', function() {
-						$inlineCommentsDiv.remove();
-					});
 
 					// =========================== Inline elements ===========================
 					var $markdownContainer = element.find('.lens-text-container');
@@ -748,7 +741,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						});
 					});
 				});
-			}, mathjaxTypesetDelay + 100);
+			});
 		},
 	};
 });

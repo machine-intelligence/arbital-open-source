@@ -136,7 +136,7 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 		// Find directly encoded urls
 		regexp.MustCompile("(/p(?:ages)?/)(" + AliasRegexpStr + ")"),
 		// Find ids and aliases using [alias optional text] syntax.
-		regexp.MustCompile("(\\[\\-?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
+		regexp.MustCompile("(\\[[\\-\\+]?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
 		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))"),
 		// Find ids and aliases using [vote: alias] syntax.
@@ -216,7 +216,7 @@ func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress 
 	// Find directly encoded urls
 	extractLinks(regexp.MustCompile(regexp.QuoteMeta(configAddress) + "/p(?:ages)?/(" + AliasRegexpStr + ")"))
 	// Find ids and aliases using [alias optional text] syntax.
-	extractLinks(regexp.MustCompile("\\[\\-?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
+	extractLinks(regexp.MustCompile("\\[[\\-\\+]?(" + AliasRegexpStr + ")(?: [^\\]]*?)?\\](?:[^(]|$)"))
 	// Find ids and aliases using [text](alias) syntax.
 	extractLinks(regexp.MustCompile("\\[.+?\\]\\((" + AliasRegexpStr + ")\\)"))
 	// Find ids and aliases using [vote: alias] syntax.
