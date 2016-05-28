@@ -68,6 +68,10 @@ func (task NewUpdateTask) IsValid() error {
 		return fmt.Errorf("GoToPageId has to be set")
 	}
 
+	if task.UpdateType == core.ChangeLogUpdateType && task.ChangeLogId <= 0 {
+		return fmt.Errorf("No changeLogId set for a ChangeLogUpdateType")
+	}
+
 	return nil
 }
 
@@ -180,7 +184,6 @@ func EnqueueRelationshipUpdates(c sessions.Context, userId string,
 
 func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string,
 	parentId string, childId string, updateIsForChild bool, changeLogId int64) error {
-
 	var task NewUpdateTask
 	task.UserId = userId
 	task.ChangeLogId = changeLogId
