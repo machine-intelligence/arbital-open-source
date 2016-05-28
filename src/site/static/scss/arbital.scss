@@ -42,9 +42,6 @@ body {
 arb-markdown, [arb-markdown], .preview-area {
 	p {
 		margin-top: 0;
-		// Allow scrollbars when paragraphs (sometimes caused by long MathJax equations) don't fit on the screen
-		overflow-x: auto;
-		overflow-y: hidden;
 
 		&:empty {
 			margin: 0;
@@ -715,10 +712,6 @@ ins {
 				border-radius: 0;
 			}
 		}
-	}
-
-	& > .page-lens-body {
-		overflow: hidden;
 	}
 }
 

@@ -414,9 +414,7 @@ body {
   color: #cccccc; }
 
 arb-markdown p, [arb-markdown] p, .preview-area p {
-  margin-top: 0;
-  overflow-x: auto;
-  overflow-y: hidden; }
+  margin-top: 0; }
   arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
     margin: 0; }
 arb-markdown img, [arb-markdown] img, .preview-area img {
@@ -846,8 +844,6 @@ ins {
         border: #00796B 2px solid;
         border-bottom: none;
         border-radius: 0; }
-  .page-tabs > .page-lens-body {
-    overflow: hidden; }
 
 .prevent-horizontal-scroll {
   overflow-x: hidden; }
