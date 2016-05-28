@@ -34,11 +34,19 @@ func commentThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Need a valid commentId", nil).Status(http.StatusBadRequest)
 	}
 
+	_, commentPrimaryPageId, err := core.GetCommentParents(db, data.CommentId)
+	if err != nil {
+		return pages.Fail("Couldn't load comment's parents", err)
+	}
+
 	// Load the comments.
 	loadOptions := (&core.PageLoadOptions{
 		Parents: true,
 	}).Add(core.SubpageLoadOptions)
 	core.AddPageToMap(data.CommentId, returnData.PageMap, loadOptions)
+	core.AddPageToMap(commentPrimaryPageId, returnData.PageMap, (&core.PageLoadOptions{
+		DomainsAndPermissions: true,
+	}).Add(core.TitlePlusLoadOptions))
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
