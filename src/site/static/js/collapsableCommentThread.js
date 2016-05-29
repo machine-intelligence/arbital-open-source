@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a comment thread that's collapsed behind a button
-app.directive('arbCollapsableCommentThread', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, arb, autocompleteService, RecursionHelper) {
+app.directive('arbCollapsableCommentThread', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, arb, RecursionHelper) {
 	return {
 		templateUrl: 'static/html/collapsableCommentThread.html',
 		scope: {
@@ -9,8 +9,7 @@ app.directive('arbCollapsableCommentThread', function($compile, $timeout, $locat
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.comment = pageService.pageMap[$scope.commentId];
+			$scope.comment = arb.pageService.pageMap[$scope.commentId];
 			$scope.threadExpanded = false;
 			$scope.threadLoaded = false;
 
@@ -19,7 +18,7 @@ app.directive('arbCollapsableCommentThread', function($compile, $timeout, $locat
 				if (!$scope.threadExpanded || $scope.threadLoaded) {
 					return;
 				}
-				pageService.loadCommentThread($scope.comment.pageId, {
+				arb.pageService.loadCommentThread($scope.comment.pageId, {
 					success: function() {
 						$scope.threadLoaded = true;
 					},

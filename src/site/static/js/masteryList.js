@@ -21,22 +21,21 @@ app.directive('arbMasteryList', function($timeout, $http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 
 			// Filter non-existing page ids out
 			$scope.idsSource = $scope.idsSource.filter(function(pageId) {
-				return (pageId in pageService.pageMap) && !pageService.pageMap[pageId].isDeleted;
+				return (pageId in arb.pageService.pageMap) && !arb.pageService.pageMap[pageId].isDeleted;
 			});
 
 			// Sort requirements
 			$scope.idsSource.sort(function(a, b) {
-				var result = (pageService.hasMastery(a) ? 1 : 0) - (pageService.hasMastery(b) ? 1 : 0);
+				var result = (arb.pageService.hasMastery(a) ? 1 : 0) - (arb.pageService.hasMastery(b) ? 1 : 0);
 				if ($scope.showHasFirst) result = -result;
 				if (result !== 0) return result;
-				result = (pageService.wantsMastery(a) ? 1 : 0) - (pageService.wantsMastery(b) ? 1 : 0);
+				result = (arb.pageService.wantsMastery(a) ? 1 : 0) - (arb.pageService.wantsMastery(b) ? 1 : 0);
 				if ($scope.showHasFirst) result = -result;
 				if (result !== 0) return result;
-				return pageService.pageMap[a].title.localeCompare(pageService.pageMap[b].title);
+				return arb.pageService.pageMap[a].title.localeCompare(arb.pageService.pageMap[b].title);
 			});
 
 			// Called when one of the requisites is changed.
@@ -47,4 +46,3 @@ app.directive('arbMasteryList', function($timeout, $http, arb) {
 		},
 	};
 });
-

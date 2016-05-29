@@ -8,10 +8,9 @@ app.directive('arbNewsletter', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 			$scope.alreadySubscribed = true;
 
-			var interestMap = userService.user.mailchimpInterests;
+			var interestMap = arb.userService.user.mailchimpInterests;
 			if (Object.keys(interestMap).length <= 0) {
 				interestMap = {
 					'7ec5d431b0': true,
@@ -21,7 +20,7 @@ app.directive('arbNewsletter', function($http, arb) {
 			}
 
 			$scope.subscribeData = {
-				email: userService.user.email,
+				email: arb.userService.user.email,
 				interests: interestMap,
 			};
 			$scope.subscribed = false;

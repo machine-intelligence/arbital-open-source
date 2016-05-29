@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the entire primary page.
-app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb, autocompleteService) {
+app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb) {
 	return {
 		templateUrl: 'static/html/primaryPage.html',
 		scope: {
@@ -9,10 +9,9 @@ app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb, aut
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.page = pageService.primaryPage;
-			$scope.page.childIds.sort(pageService.getChildSortFunc($scope.page.sortChildrenBy));
-			$scope.page.relatedIds.sort(pageService.getChildSortFunc('likes'));
+			$scope.page = arb.pageService.primaryPage;
+			$scope.page.childIds.sort(arb.pageService.getChildSortFunc($scope.page.sortChildrenBy));
+			$scope.page.relatedIds.sort(arb.pageService.getChildSortFunc('likes'));
 		},
 	};
 });

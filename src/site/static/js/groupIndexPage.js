@@ -10,9 +10,8 @@ app.directive('arbGroupIndex', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.page = pageService.pageMap[$scope.groupId];
-			$scope.showingText = $scope.page.isNewPage() || !userService.user.id;
+			$scope.page = arb.pageService.pageMap[$scope.groupId];
+			$scope.showingText = $scope.page.isNewPage() || !arb.userService.user.id;
 			$scope.showText = function() {
 				$scope.showingText = true;
 			};

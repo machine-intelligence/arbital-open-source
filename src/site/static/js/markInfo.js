@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a window for creating/editing a mark
-app.directive('arbMarkInfo', function($interval, arb, autocompleteService) {
+app.directive('arbMarkInfo', function($interval, arb) {
 	return {
 		templateUrl: 'static/html/markInfo.html',
 		scope: {
@@ -12,29 +12,28 @@ app.directive('arbMarkInfo', function($interval, arb, autocompleteService) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.mark = pageService.markMap[$scope.markId];
-			$scope.isOnPage = $scope.mark.pageId == pageService.getCurrentPageId();
+			$scope.mark = arb.pageService.markMap[$scope.markId];
+			$scope.isOnPage = $scope.mark.pageId == arb.pageService.getCurrentPageId();
 
 			// Call to resolve the mark with the given page.
 			$scope.resolveWith = function(pageId) {
-				pageService.resolveMark({
+				arb.pageService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: $scope.mark.pageId,
 				});
 				$scope.mark.resolvedPageId = pageId;
-				$scope.mark.resolvedBy = userService.user.id;
+				$scope.mark.resolvedBy = arb.userService.user.id;
 				$scope.hidePopup({dismiss: true});
 			};
 
 			// Called when an author wants to resolve the mark.
 			$scope.dismissMark = function() {
-				pageService.resolveMark({
+				arb.pageService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: '',
 				});
 				$scope.mark.resolvedPageId = '';
-				$scope.mark.resolvedBy = userService.user.id;
+				$scope.mark.resolvedBy = arb.userService.user.id;
 				$scope.hidePopup({dismiss: true});
 			};
 		},
@@ -42,7 +41,7 @@ app.directive('arbMarkInfo', function($interval, arb, autocompleteService) {
 			// Hide current event window, if it makes sense.
 			scope.hidePopup = function(result) {
 				if (scope.isOnPage) {
-					pageService.hidePopup(result);
+					arb.pageService.hidePopup(result);
 				}
 			};
 		},

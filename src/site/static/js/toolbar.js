@@ -2,7 +2,7 @@
 
 // toolbar directive displays the toolbar at the top of each page
 app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $compile, $rootScope, $timeout,
-		$q, $mdMedia, arb, autocompleteService, urlService) {
+		$q, $mdMedia, arb) {
 	return {
 		templateUrl: 'static/html/toolbar.html',
 		scope: {
@@ -11,18 +11,16 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.urlService = urlService;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
 			$scope.doAutofocus = function() {
-				return !userService.isTouchDevice && !urlService.hasLoadedFirstPage;
+				return !arb.userService.isTouchDevice && !arb.urlService.hasLoadedFirstPage;
 			};
 
 			// Called when a search result is selected
 			$scope.searchResultSelected = function(result) {
 				if (result) {
-					urlService.goToUrl(pageService.getPageUrl(result.pageId));
+					arb.urlService.goToUrl(arb.pageService.getPageUrl(result.pageId));
 				}
 			};
 
@@ -49,7 +47,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 
 			$scope.showAchievements = function(ev) {
 				if (!$mdMedia('gt-sm')) {
-					urlService.goToUrl('/achievements/');
+					arb.urlService.goToUrl('/achievements/');
 					return;
 				}
 

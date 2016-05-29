@@ -6,7 +6,6 @@ app.directive('arbIndex', function($http, arb) {
 		templateUrl: 'static/html/indexPage.html',
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 		},
 	};
 });

@@ -3,7 +3,7 @@
 
 // Directive to show a lens' content
 app.directive('arbLens', function($http, $location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope,
-	arb, diffService) {
+	arb) {
 	return {
 		templateUrl: 'static/html/lens.html',
 		scope: {
@@ -14,14 +14,14 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 		controller: function($scope) {
 			$scope.arb = arb;
 			
-			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.page = arb.pageService.pageMap[$scope.pageId];
 			if ($scope.lensParentId) {
-				$scope.lensParentPage = pageService.pageMap[$scope.lensParentId];
+				$scope.lensParentPage = arb.pageService.pageMap[$scope.lensParentId];
 			}
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
 
-			$scope.mastery = pageService.masteryMap[$scope.pageId];
+			$scope.mastery = arb.pageService.masteryMap[$scope.pageId];
 			if (!$scope.mastery) {
 				$scope.mastery = {has: false};
 			}
@@ -39,12 +39,12 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					earliest = $scope.page.editCreatedAt;
 				}
 				// Load the edit from the server.
-				pageService.loadEdit({
+				arb.pageService.loadEdit({
 					pageAlias: $scope.page.pageId,
 					createdAtLimit: earliest,
 					skipProcessDataStep: true,
 					success: function(data, status) {
-						$scope.diffHtml = diffService.getDiffHtml($scope.page.text, data[$scope.page.pageId].text);
+						$scope.diffHtml = arb.diffService.getDiffHtml($scope.page.text, data[$scope.page.pageId].text);
 					},
 				});
 			};
@@ -68,7 +68,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				var count = 0;
 				for (var n = 0; n < $scope.page.commentIds.length; n++) {
 					var commentId = $scope.page.commentIds[n];
-					count += (!pageService.pageMap[commentId].isEditorComment || pageService.getShowEditorComments()) ? 1 : 0;
+					count += (!arb.pageService.pageMap[commentId].isEditorComment || arb.pageService.getShowEditorComments()) ? 1 : 0;
 				}
 				return count;
 			};
@@ -85,16 +85,16 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			// ============ Masteries ====================
 
 			// Compute subject ids that the user hasn't learned yet.
-			$scope.subjectIds = $scope.page.subjectIds.filter(function(id) { return !pageService.hasMastery(id); });
+			$scope.subjectIds = $scope.page.subjectIds.filter(function(id) { return !arb.pageService.hasMastery(id); });
 
 			// Check if the user meets all requirements
 			$scope.meetsAllRequirements = function(pageId) {
 				var page = $scope.page;
 				if (pageId) {
-					page = pageService.pageMap[pageId];
+					page = arb.pageService.pageMap[pageId];
 				}
 				for (var n = 0; n < page.requirementIds.length; n++) {
-					if (!pageService.hasMastery(page.requirementIds[n])) {
+					if (!arb.pageService.hasMastery(page.requirementIds[n])) {
 						return false;
 					}
 				}
@@ -109,7 +109,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			// Check if the user knows all the subjects
 			$scope.knowsAllSubjects = function() {
 				for (var n = 0; n < $scope.subjectIds.length; n++) {
-					if (!pageService.hasMastery($scope.subjectIds[n])) {
+					if (!arb.pageService.hasMastery($scope.subjectIds[n])) {
 						return false;
 					}
 				}
@@ -120,9 +120,9 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			// Toggle all requirements
 			$scope.toggleRequirements = function() {
 				if ($scope.meetsAllRequirements()) {
-					pageService.updateMasteryMap({delete: $scope.page.requirementIds});
+					arb.pageService.updateMasteryMap({delete: $scope.page.requirementIds});
 				} else {
-					pageService.updateMasteryMap({knows: $scope.page.requirementIds});
+					arb.pageService.updateMasteryMap({knows: $scope.page.requirementIds});
 				}
 			};
 
@@ -132,25 +132,25 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				if (continuePath) {
 					callback = function() {
 						$timeout.cancel(callbackPromise);
-						if (pageService.path.nextPageId) {
+						if (arb.pageService.path.nextPageId) {
 							// Go to the next page.
-							$location.url(pageService.getPageUrl(pageService.path.nextPageId));
+							$location.url(arb.pageService.getPageUrl(arb.pageService.path.nextPageId));
 						} else {
 							// This is the end of the path.
-							pageService.abandonPath();
+							arb.pageService.abandonPath();
 						}
 					};
 					// Make sure we execute the callback if we don't hear back from the server.
 					var callbackPromise = $timeout(callback, 500);
 				}
 				if ($scope.knowsAllSubjects()) {
-					pageService.updateMasteryMap({delete: $scope.subjectIds, callback: callback});
+					arb.pageService.updateMasteryMap({delete: $scope.subjectIds, callback: callback});
 				} else {
-					pageService.updateMasteryMap({knows: $scope.subjectIds, callback: callback});
+					arb.pageService.updateMasteryMap({knows: $scope.subjectIds, callback: callback});
 				}
 			};
 
-			var primaryPage = pageService.pageMap[$scope.lensParentId];
+			var primaryPage = arb.pageService.pageMap[$scope.lensParentId];
 			var simplestLensId = primaryPage.lensIds[primaryPage.lensIds.length - 1];
 			$scope.isSimplestLens = $scope.page.pageId === simplestLensId;
 
@@ -158,7 +158,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;
 				for (var n = $scope.page.lensIndex + 1; n < primaryPage.lensIds.length; n++) {
-					var lens = pageService.pageMap[primaryPage.lensIds[n]];
+					var lens = arb.pageService.pageMap[primaryPage.lensIds[n]];
 					if ($scope.meetsAllRequirements(lens.pageId)) {
 						simplerLensId = lens.pageId;
 						break;
@@ -169,7 +169,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					simplerLensId = simplestLensId;
 				}
 				if (simplerLensId) {
-					$scope.simplerLens = pageService.pageMap[simplerLensId];
+					$scope.simplerLens = arb.pageService.pageMap[simplerLensId];
 				}
 			}
 
@@ -192,10 +192,10 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			// Check if the user can use the "yup, i got everything, let's continue" button.
 			$scope.canQuickContinue = true;
 			$scope.showQuickContinue = function() {
-				return $scope.canQuickContinue && pageService.path && pageService.path.onPath;
+				return $scope.canQuickContinue && arb.pageService.path && arb.pageService.path.onPath;
 			};
 			$scope.getQuickContinueText = function() {
-				if (pageService.path.nextPageId) {
+				if (arb.pageService.path.nextPageId) {
 					return 'Yes, I got this. Let\'s continue!';
 				}
 				return 'Yes, I got this. Now, I\'m all done!';
@@ -291,7 +291,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// Process a mark.
 					var processMark = function(markId) {
 						if (scope.isTinyScreen) return;
-						var mark = pageService.markMap[markId];
+						var mark = arb.pageService.markMap[markId];
 						if (!mark.anchorContext || !mark.anchorText) return;
 
 						// Create the span corresponding to the anchor text
@@ -317,7 +317,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// Process an inline comment
 					var processInlineComment = function(commentId) {
 						if (scope.isTinyScreen) return;
-						var comment = pageService.pageMap[commentId];
+						var comment = arb.pageService.pageMap[commentId];
 						if (!comment.anchorContext || !comment.anchorText) return;
 
 						// Create the span corresponding to the anchor text
@@ -387,7 +387,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					scope.getInlineCommentIconStyle = function(commentId) {
 						var params = scope.inlineComments[commentId];
 						var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
-						isVisible = isVisible && (!pageService.pageMap[commentId].isEditorComment || pageService.getShowEditorComments());
+						isVisible = isVisible && (!arb.pageService.pageMap[commentId].isEditorComment || arb.pageService.getShowEditorComments());
 						return {
 							'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 							'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
@@ -470,9 +470,9 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						var params = scope.inlineMarks[markId];
 						if (!params) return;
 						params.visible = !params.visible;
-						pageService.hidePopup();
+						arb.pageService.hidePopup();
 						if (params.visible) {
-							if (pageService.markMap[markId].type === 'query') {
+							if (arb.pageService.markMap[markId].type === 'query') {
 								showQueryMarkWindow(markId, false);
 							} else {
 								showEditorMarkWindow(markId);
@@ -489,13 +489,13 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 					// Handle text selection.
 					var cachedSelection;
-					if (userService.isTouchDevice) {
+					if (arb.userService.isTouchDevice) {
 						// On mobile it's very hard to get user's selected text. The best way Alexei found
 						// was to just check for selected text every so often.
 						$interval(function() {
 							if ($inlineCommentEditPage) return;
-							userService.lensTextSelected = !!processSelectedParagraphText();
-							if (userService.lensTextSelected) {
+							arb.userService.lensTextSelected = !!processSelectedParagraphText();
+							if (arb.userService.lensTextSelected) {
 								// Cache the selection we found, because we are pretty much guaranteed to
 								// lose it as soon as the user clicks on anything.
 								cachedSelection = getStartEndSelection();
@@ -510,7 +510,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 								parent: '#fixed-overlay',
 							}).then(function(result) {
 								scope[result.func].apply(null, result.params);
-								userService.lensTextSelected = false;
+								arb.userService.lensTextSelected = false;
 							});
 						});
 					} else {
@@ -521,7 +521,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 							// the same (not cleared).
 							$timeout(function() {
 								scope.showRhsButtons = !!processSelectedParagraphText();
-								userService.lensTextSelected = !!processSelectedParagraphText();
+								arb.userService.lensTextSelected = !!processSelectedParagraphText();
 								if (scope.showRhsButtons) {
 									newInlineCommentButtonTop = event.pageY;
 								}
@@ -545,10 +545,10 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					scope.newInlineComment = function() {
 						var selection = getSelectedParagraphText(cachedSelection);
 						if (!selection) return;
-						pageService.newComment({
+						arb.pageService.newComment({
 							parentPageId: scope.page.pageId,
 							success: function(newCommentId) {
-								var comment = pageService.editMap[newCommentId];
+								var comment = arb.pageService.editMap[newCommentId];
 								comment.anchorContext = selection.context;
 								comment.anchorText = selection.text;
 								comment.anchorOffset = selection.offset;
@@ -567,7 +567,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						$inlineCommentEditPage = undefined;
 						$markdown.find('.inline-comment-highlight').removeClass('inline-comment-highlight');
 						if (!result.discard) {
-							pageService.newCommentCreated(result.pageId);
+							arb.pageService.newCommentCreated(result.pageId);
 							processInlineComment(result.pageId);
 							orderRhsButtons();
 						}
@@ -577,7 +577,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					scope.loadedMarks = false;
 					scope.loadMarks = function() {
 						scope.loadedMarks = true;
-						pageService.loadMarks({pageId: scope.page.pageId}, function(data) {
+						arb.pageService.loadMarks({pageId: scope.page.pageId}, function(data) {
 							for (var markId in data.marks) {
 								processMark(markId);
 							}
@@ -625,7 +625,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// Show the window for editing a query mark.
 					var showQueryMarkWindow = function(markId, isNew) {
 						scope.showRhsButtons = false;
-						pageService.showPopup({
+						arb.pageService.showPopup({
 							title: isNew ? 'New query mark' : 'Edit query mark',
 							$element: $compile('<div arb-query-info mark-id="' + markId +
 								'" is-new="::' + isNew +
@@ -640,7 +640,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// Show the window for editing an editor mark.
 					var showEditorMarkWindow  = function(markId) {
 						scope.showRhsButtons = false;
-						pageService.showPopup({
+						arb.pageService.showPopup({
 							title: 'Edit mark',
 							$element: $compile('<div arb-mark-info mark-id="' + markId +
 								'" is-new="::false' +
@@ -654,7 +654,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					var newMark = function(type, success) {
 						var selection = getSelectedParagraphText(cachedSelection, type != 'query');
 						if (!selection && type !== 'query') return;
-						pageService.newMark({
+						arb.pageService.newMark({
 								pageId: scope.pageId,
 								edit: scope.page.edit,
 								type: type,
@@ -691,7 +691,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 							scope.toastCallback = function() {
 								showEditorMarkWindow(data.result.markId);
 							};
-							pageService.showToast({
+							arb.pageService.showToast({
 								text: 'Thanks for your feedback!',
 								scope: scope,
 								normalButton: {
@@ -725,9 +725,9 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						element.find('[embed-vote-id]').each(function(index) {
 							var $link = $(this);
 							var pageAlias = $link.attr('embed-vote-id');
-							pageService.loadIntrasitePopover(pageAlias, {
+							arb.pageService.loadIntrasitePopover(pageAlias, {
 								success: function(data, status) {
-									var pageId = pageService.pageMap[pageAlias].pageId;
+									var pageId = arb.pageService.pageMap[pageAlias].pageId;
 									var divId = 'embed-vote-' + pageId;
 									var $embedDiv = $compile('<div id=\'' + divId +
 										'\' class=\'md-whiteframe-2dp\' arb-vote-bar page-id=\'' + pageId +

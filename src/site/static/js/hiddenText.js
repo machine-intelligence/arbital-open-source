@@ -10,9 +10,8 @@ app.directive('arbHiddenText', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.revealed = false;
 
+			$scope.revealed = false;
 			$scope.reveal = function() {
 				$scope.revealed = true;
 			};

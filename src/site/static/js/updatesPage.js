@@ -9,7 +9,6 @@ app.directive('arbUpdates', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 
 			$scope.updateGroups.sort(function(a, b) {
 				if (b.key.seen !== a.key.seen) {

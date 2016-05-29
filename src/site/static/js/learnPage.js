@@ -24,7 +24,7 @@ app.directive('arbLearnPage', function($location, $compile, arb) {
 
 			// Check to see if the given page has "Just a Requisite" (22t) tag.
 			var isJustARequisite = function(pageId) {
-				return pageService.pageMap[pageId].taggedAsIds.indexOf('22t') >= 0;
+				return arb.pageService.pageMap[pageId].taggedAsIds.indexOf('22t') >= 0;
 			};
 
 			// Figure our the order of pages through which to take the user
@@ -79,7 +79,7 @@ app.directive('arbLearnPage', function($location, $compile, arb) {
 				Cookies.set('path', path);
 				if (redirect) {
 					// Start them off with the first page
-					$location.url(pageService.getPageUrl($scope.readIds[0]));
+					$location.url(arb.pageService.getPageUrl($scope.readIds[0]));
 				}
 			};
 

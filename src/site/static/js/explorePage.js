@@ -9,7 +9,6 @@ app.directive('arbExplorePage', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 		},
 	};
 });

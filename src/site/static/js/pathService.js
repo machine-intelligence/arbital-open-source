@@ -1,7 +1,7 @@
 'use strict';
 
 // Takes care of all path related functionality
-app.service('pathService', function($http, $compile, $location, $mdToast, $rootScope, $interval, userService, urlService) {
+app.service('pathService', function($http, $compile, $location, $mdToast, $rootScope, $interval) {
 	var that = this;
 
 	// This object is set when the user is learning / on a path.

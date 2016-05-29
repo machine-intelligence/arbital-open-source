@@ -42,7 +42,7 @@ app.service('markdownService', function($compile, $timeout, arb) {
 				return text.replace(mathjaxBlockRegexp, function(whole, mathjaxText) {
 					var encodedText = encodeURIComponent(mathjaxText);
 					var key = '$$$' + encodedText.substring(6, encodedText.length - 6) + '$$$';
-					var cachedValue = pageService.getMathjaxCacheValue(key);
+					var cachedValue = arb.pageService.getMathjaxCacheValue(key);
 					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
 					return '<div ' + style + 'class=\'MathJax_Display\' arb-math-compiler=\'' + encodedText + '\'></div>';
 				});
@@ -65,8 +65,8 @@ app.service('markdownService', function($compile, $timeout, arb) {
 		var hasReqBlockRegexp = new RegExp('^(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function(whole, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var div = '<div ng-show=\'' + (not ? '!' : '') + 'pageService.hasMastery("' + pageId + '")\'>';
+				var pageId = (alias in arb.pageService.pageMap) ? arb.pageService.pageMap[alias].pageId : alias;
+				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.pageService.hasMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					div = '<div class=\'conditional-text editor-block\'>';
 				}
@@ -78,8 +78,8 @@ app.service('markdownService', function($compile, $timeout, arb) {
 		var wantsReqBlockRegexp = new RegExp('^(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function(whole, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var div = '<div ng-show=\'' + (not ? '!' : '') + 'pageService.wantsMastery("' + pageId + '")\'>';
+				var pageId = (alias in arb.pageService.pageMap) ? arb.pageService.pageMap[alias].pageId : alias;
+				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.pageService.wantsMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					div = '<div class=\'conditional-text editor-block\'>';
 				}
@@ -212,8 +212,8 @@ app.service('markdownService', function($compile, $timeout, arb) {
 		var hasReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(hasReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var span = '<span ng-show=\'' + (not ? '!' : '') + 'pageService.hasMastery("' + pageId + '")\'>';
+				var pageId = (alias in arb.pageService.pageMap) ? arb.pageService.pageMap[alias].pageId : alias;
+				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.pageService.hasMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
 				}
@@ -225,8 +225,8 @@ app.service('markdownService', function($compile, $timeout, arb) {
 		var wantsReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
 		converter.hooks.chain('preSpanGamut', function(text, run) {
 			return text.replace(wantsReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var span = '<span ng-show=\'' + (not ? '!' : '') + 'pageService.wantsMastery("' + pageId + '")\'>';
+				var pageId = (alias in arb.pageService.pageMap) ? arb.pageService.pageMap[alias].pageId : alias;
+				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.pageService.wantsMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
 				}
@@ -261,7 +261,7 @@ app.service('markdownService', function($compile, $timeout, arb) {
 		// Process [vote:alias] spans.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(voteEmbedRegexp, function(whole, prefix, alias) {
-				return prefix + '[Embedded ' + alias + ' vote. ](' + pageService.getPageUrl(alias, {includeHost: true}) + '/?embedVote=1)';
+				return prefix + '[Embedded ' + alias + ' vote. ](' + arb.pageService.getPageUrl(alias, {includeHost: true}) + '/?embedVote=1)';
 			});
 		});
 
@@ -270,7 +270,7 @@ app.service('markdownService', function($compile, $timeout, arb) {
 				'\\[ ([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(spaceTextRegexp, function(whole, prefix, text) {
-				var editUrl = pageService.getNewPageUrl({includeHost: true});
+				var editUrl = arb.pageService.getNewPageUrl({includeHost: true});
 				return prefix + '[' + text + '](' + editUrl + ')';
 			});
 		});
@@ -285,12 +285,12 @@ app.service('markdownService', function($compile, $timeout, arb) {
 				}
 				matches = alias.match(aliasMatch);
 				if (matches && matches[0] == alias) {
-					var page = pageService.pageMap[alias];
+					var page = arb.pageService.pageMap[alias];
 					if (page) {
-						var url = pageService.getPageUrl(page.pageId, {includeHost: true});
+						var url = arb.pageService.getPageUrl(page.pageId, {includeHost: true});
 						return prefix + '[' + text + '](' + url + ')';
 					} else {
-						var url = pageService.getPageUrl(alias, {includeHost: true});
+						var url = arb.pageService.getPageUrl(alias, {includeHost: true});
 						return prefix + '[' + text + '](' + url + ')';
 					}
 				} else {
@@ -307,9 +307,9 @@ app.service('markdownService', function($compile, $timeout, arb) {
 				if (firstAliasChar == '-' || firstAliasChar == '+') {
 					trimmedAlias = alias.substring(1);
 				}
-				var page = pageService.pageMap[trimmedAlias];
+				var page = arb.pageService.pageMap[trimmedAlias];
 				if (page) {
-					var url = pageService.getPageUrl(page.pageId, {includeHost: true});
+					var url = arb.pageService.getPageUrl(page.pageId, {includeHost: true});
 					// Match the page title's case to the alias's case
 					var casedTitle;
 					if (firstAliasChar == '+') {
@@ -319,7 +319,7 @@ app.service('markdownService', function($compile, $timeout, arb) {
 					}
 					return prefix + '[' + casedTitle + '](' + url + ')';
 				} else {
-					var url = pageService.getPageUrl(trimmedAlias, {includeHost: true});
+					var url = arb.pageService.getPageUrl(trimmedAlias, {includeHost: true});
 					return prefix + '[' + trimmedAlias + '](' + url + ')';
 				}
 			});
@@ -328,12 +328,12 @@ app.service('markdownService', function($compile, $timeout, arb) {
 		// Convert [@alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(atAliasRegexp, function(whole, prefix, alias) {
-				var page = pageService.pageMap[alias];
+				var page = arb.pageService.pageMap[alias];
 				if (page) {
-					var url = pageService.getUserUrl(page.pageId, {includeHost: true});
+					var url = arb.pageService.getUserUrl(page.pageId, {includeHost: true});
 					return prefix + '[' + page.title + '](' + url + ')';
 				} else {
-					var url = pageService.getUserUrl(alias, {includeHost: true});
+					var url = arb.pageService.getUserUrl(alias, {includeHost: true});
 					return prefix + '[' + alias + '](' + url + ')';
 				}
 			});
@@ -342,7 +342,7 @@ app.service('markdownService', function($compile, $timeout, arb) {
 		if (isEditor) {
 			// Setup the editor stuff.
 			var editor = new Markdown.Editor(converter, pageId);
-			if (!userService.user.ignoreMathjax) {
+			if (!arb.userService.user.ignoreMathjax) {
 				InitMathjax(converter, editor, pageId);
 			}
 			converter.hooks.chain('postConversion', function(text) {
@@ -391,10 +391,10 @@ app.service('markdownService', function($compile, $timeout, arb) {
 			// Check if we are embedding a vote
 			if (searchParams.indexOf('embedVote') > 0) {
 				$element.attr('embed-vote-id', pageAlias).addClass('red-link');
-			} else if (pageAlias && pageAlias in pageService.pageMap) {
+			} else if (pageAlias && pageAlias in arb.pageService.pageMap) {
 				$element.addClass('intrasite-link').attr('page-id', pageAlias);
-				$element.attr('page-id', pageService.pageMap[pageAlias].pageId);
-				if (pageService.pageMap[pageAlias].isDeleted) {
+				$element.attr('page-id', arb.pageService.pageMap[pageAlias].pageId);
+				if (arb.pageService.pageMap[pageAlias].isDeleted) {
 					// Link to a deleted page.
 					$element.addClass('red-link');
 				} else {
@@ -409,10 +409,10 @@ app.service('markdownService', function($compile, $timeout, arb) {
 				}
 				if (refreshFunc && !(pageAlias in failedPageAliases)) {
 					// Try to load the page
-					pageService.loadTitle(pageAlias, {
+					arb.pageService.loadTitle(pageAlias, {
 						silentFail: true,
 						success: function() {
-							if (pageAlias in pageService.pageMap) {
+							if (pageAlias in arb.pageService.pageMap) {
 								refreshFunc();
 							} else {
 								failedPageAliases[pageAlias] = true;
@@ -436,15 +436,15 @@ app.service('markdownService', function($compile, $timeout, arb) {
 
 				if (!$element.hasClass('user-link')) {
 					$element.addClass('user-link').attr('user-id', userAlias);
-					if (userAlias in pageService.pageMap) {
+					if (userAlias in arb.pageService.pageMap) {
 					} else {
 						// Mark as red link
 						$element.addClass('red-link');
 						if (refreshFunc && !(userAlias in failedPageAliases)) {
-							pageService.loadTitle(userAlias, {
+							arb.pageService.loadTitle(userAlias, {
 								silentFail: true,
 								success: function() {
-									if (userAlias in pageService.pageMap) {
+									if (userAlias in arb.pageService.pageMap) {
 										refreshFunc();
 									} else {
 										failedPageAliases[userAlias] = true;
@@ -457,7 +457,7 @@ app.service('markdownService', function($compile, $timeout, arb) {
 			}
 		});
 
-		var index = 1; // start with 1, because masteryMap is at 0 (see pageService.js)
+		var index = 1; // start with 1, because masteryMap is at 0 (see arb.pageService.js)
 		$pageText.find('arb-multiple-choice,arb-checkbox').each(function() {
 			$(this).attr('index', index++);
 		});
@@ -476,14 +476,14 @@ app.service('markdownService', function($compile, $timeout, arb) {
 						if ($element.closest('body').length <= 0) {
 							return;
 						}
-						pageService.cacheMathjax(encodedMathjaxText, {
+						arb.pageService.cacheMathjax(encodedMathjaxText, {
 							html: $element.html(),
 							style: 'width:' + $element.css('width') + ';height:' + $element.css('height'),
 						});
 					};
 
 					// Read from cache
-					var cachedValue = pageService.getMathjaxCacheValue(encodedMathjaxText);
+					var cachedValue = arb.pageService.getMathjaxCacheValue(encodedMathjaxText);
 					if (cachedValue) {
 						$element.html(cachedValue.html);
 					} else {
@@ -510,7 +510,7 @@ app.service('markdownService', function($compile, $timeout, arb) {
 });
 
 // Directive for rendering markdown text.
-app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownService) {
+app.directive('arbMarkdown', function($compile, $timeout, arb) {
 	return {
 		scope: {
 			// One of these ids has to be set.
@@ -522,8 +522,8 @@ app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownS
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = !!$scope.pageId ? pageService.pageMap[$scope.pageId] : undefined;
-			$scope.mark = !!$scope.markId ? pageService.markMap[$scope.markId] : undefined;
+			$scope.page = !!$scope.pageId ? arb.pageService.pageMap[$scope.pageId] : undefined;
+			$scope.mark = !!$scope.markId ? arb.pageService.markMap[$scope.markId] : undefined;
 		},
 		link: function(scope, element, attrs) {
 			element.addClass('markdown-text reveal-after-render');
@@ -536,7 +536,7 @@ app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownS
 			// Convert page text to html.
 			// Note: converter takes pageId, which might not be set if we are displaying
 			// a mark, but it should be ok, since the mark doesn't have most markdown features.
-			var converter = markdownService.createConverter(scope.pageId);
+			var converter = arb.markdownService.createConverter(scope.pageId);
 			if (scope.page) {
 				var html =  scope.page.text;
 				if (scope.page.anchorText) {
@@ -561,7 +561,7 @@ app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownS
 			$pageText.html(html);
 			window.setTimeout(function() {
 				MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
-				MathJax.Hub.Queue(['processLinks', markdownService, scope, $pageText]);
+				MathJax.Hub.Queue(['processLinks', arb.markdownService, scope, $pageText]);
 				// Highlight the anchorText for marks.
 				MathJax.Hub.Queue(function() {
 					if (scope.mark) {

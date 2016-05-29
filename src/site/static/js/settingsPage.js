@@ -10,7 +10,6 @@ app.directive('arbSettingsPage', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 
 			// Set up frequency types.
 			$scope.frequencyTypes = {
@@ -23,9 +22,9 @@ app.directive('arbSettingsPage', function($http, arb) {
 			// Process settings form submission.
 			$scope.submitForm = function(event) {
 				var data = {
-					emailFrequency: userService.user.emailFrequency,
-					emailThreshold: userService.user.emailThreshold,
-					ignoreMathjax: userService.user.ignoreMathjax,
+					emailFrequency: arb.userService.user.emailFrequency,
+					emailThreshold: arb.userService.user.emailThreshold,
+					ignoreMathjax: arb.userService.user.ignoreMathjax,
 				};
 				submitForm($(event.currentTarget), '/updateSettings/', data, function(r) {
 					$scope.submitted = true;

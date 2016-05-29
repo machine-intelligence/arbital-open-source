@@ -1,7 +1,7 @@
 'use strict';
 
 // arb-hedons-mode-panel directive displays a list of new hedonic updates
-app.directive('arbHedonsModePanel', function($http, userService, pageService) {
+app.directive('arbHedonsModePanel', function($http, arb) {
 	return {
 		templateUrl: 'static/html/listPanel.html',
 		scope: {
@@ -12,11 +12,11 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			
-			userService.user.newAchievementCount = 0;
+			arb.userService.user.newAchievementCount = 0;
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
 
-			pageService.loadModeData('/json/hedons/', {
+			arb.pageService.loadModeData('/json/hedons/', {
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {
@@ -38,7 +38,7 @@ app.directive('arbLikesModeRow', function(arb) {
 			$scope.arb = arb;
 			
 			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
-				return userService.getFullName(userId);
+				return arb.userService.getFullName(userId);
 			}));
 		},
 	};
@@ -55,10 +55,10 @@ app.directive('arbReqsTaughtModeRow', function(arb) {
 			$scope.arb = arb;
 			
 			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
-				return userService.getFullName(userId);
+				return arb.userService.getFullName(userId);
 			}));
 			$scope.reqNames = formatReqsForDisplay($scope.modeRow.requisiteIds.map(function(pageMap) {
-				return pageService.pageMap[pageMap].title;
+				return arb.pageService.pageMap[pageMap].title;
 			}));
 		},
 	};
@@ -69,6 +69,9 @@ app.directive('arbHedonsModePage', function($http, arb) {
 	return {
 		templateUrl: 'static/html/hedonsModePage.html',
 		scope: {
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
 		},
 	};
 });

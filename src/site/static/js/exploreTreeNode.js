@@ -2,21 +2,22 @@
 
 // exploreTreeNode displays the corresponding page and its node children
 // recursively, allowing the user to recursively explore the page tree.
-app.directive('arbExploreTreeNode', function(RecursionHelper, pageService) {
+app.directive('arbExploreTreeNode', function(RecursionHelper, arb) {
 	return {
 		templateUrl: '/static/html/exploreTreeNode.html',
 		scope: {
 			pageId: '@',
 		},
 		controller: function($scope) {
-			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.arb = arb;
+			$scope.page = arb.pageService.pageMap[$scope.pageId];
 			$scope.pageIds = $scope.page.childIds.concat($scope.page.lensIds);
 			$scope.showChildren = true;
 
 			// Sort children.
 			$scope.pageIds.sort(function(aId, bId) {
-				var pageA = pageService.pageMap[aId];
-				var pageB = pageService.pageMap[bId];
+				var pageA = arb.pageService.pageMap[aId];
+				var pageB = arb.pageService.pageMap[bId];
 				var varsA = [pageA.isLens() ? 0 : 1, pageA.hasChildren ? 0 : 1, pageA.title];
 				var varsB = [pageB.isLens() ? 0 : 1, pageB.hasChildren ? 0 : 1, pageB.title];
 				for (var n = 0; n < varsA.length; n++) {

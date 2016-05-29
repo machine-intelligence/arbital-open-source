@@ -8,10 +8,9 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 		},
 		link: function(scope, element, attrs) {
 			scope.arb = arb;
-			scope.userService = userService;
-			scope.page = pageService.pageMap[scope.pageId];
+			scope.page = arb.pageService.pageMap[scope.pageId];
 			scope.isTinyScreen = !$mdMedia('gt-xs');
-			var userId = userService.user.id;
+			var userId = arb.userService.user.id;
 
 			// Value of the current user's vote
 			scope.userVoteValue = undefined;
@@ -68,7 +67,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 			for (var i = 0; i < scope.page.votes.length; i++) {
 				var vote = scope.page.votes[i];
 				var bucket = scope.voteBuckets[scope.typeHelper.getBucketIndex(vote.value)];
-				if (vote.userId === userService.user.id) {
+				if (vote.userId === arb.userService.user.id) {
 					scope.userVoteValue = vote.value;
 				} else {
 					bucket.votes.push({userId: vote.userId, value: vote.value, createdAt: vote.createdAt});
@@ -127,7 +126,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 				scope.isHovering = !leave;
 			};
 			scope.voteMouseClick = function(event, leave) {
-				if (userService.user.id !== '') {
+				if (arb.userService.user.id !== '') {
 					scope.userVoteValue = scope.offsetToValue(event.pageX);
 					postNewVote();
 				}

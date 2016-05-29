@@ -4,16 +4,17 @@
 app.service('arb', function(autocompleteService, diffService, markService, masteryService, pageService, pathService, popoverService, stateService, userService, urlService) {
 	var that = this;
 
-	that.autocompleteService = autocompleteService;
-	that.diffService = diffService;
-	that.markService = markService;
-	that.masteryService = masteryService;
-	that.pageService = pageService;
-	that.pathService = pathService;
-	that.popoverService = popoverService;
+	that.autocompleteService = arb.autocompleteService;
+	that.diffService = arb.diffService;
+	that.markService = arb.markService;
+	that.markdownService = arb.markdownService;
+	that.masteryService = arb.masteryService;
+	that.pageService = arb.pageService;
+	that.pathService = arb.pathService;
+	that.popoverService = arb.popoverService;
 	that.stateService = stateService.
-	that.userService = userService;
-	that.urlService = urlService;
+	that.userService = arb.userService;
+	that.urlService = arb.urlService;
 
 	this.isTouchDevice = 'ontouchstart' in window || // works in most browsers
 		(navigator.MaxTouchPoints > 0) ||

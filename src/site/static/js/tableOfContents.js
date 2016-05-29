@@ -10,7 +10,6 @@ app.directive('arbTableOfContents', function($timeout, $http, $compile, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 			$scope.showToc = true;
 			$scope.toc = [];
 		},

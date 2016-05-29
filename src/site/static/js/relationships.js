@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for editing the parents, tags, requirements, or subjects.
-app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb, autocompleteService) {
+app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) {
 	return {
 		templateUrl: 'static/html/relationships.html',
 		scope: {
@@ -11,8 +11,7 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb, 
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.page = pageService.editMap[$scope.pageId];
+			$scope.page = arb.pageService.editMap[$scope.pageId];
 
 			// Helper variables
 			$scope.isParentType = $scope.type === 'parent';
@@ -39,7 +38,7 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb, 
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
 				var deferred = $q.defer();
-				autocompleteService.parentsSource({term: text}, function(results) {
+				arb.autocompleteService.parentsSource({term: text}, function(results) {
 					deferred.resolve(results);
 				});
 				return deferred.promise;
@@ -51,10 +50,10 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb, 
 					childId: $scope.page.pageId,
 					type: $scope.type,
 				};
-				pageService.newPagePair(params, function success() {
+				arb.pageService.newPagePair(params, function success() {
 					$scope.idsSource.push(params.parentId);
 				}, function error(data) {
-					pageService.showToast({text: 'Error adding the relationship: ' + data, isError: true});
+					arb.pageService.showToast({text: 'Error adding the relationship: ' + data, isError: true});
 				});
 			};
 
@@ -74,11 +73,11 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb, 
 					childId: $scope.page.pageId,
 					type: $scope.type,
 				};
-				pageService.deletePagePair(params, function success() {
+				arb.pageService.deletePagePair(params, function success() {
 					$scope.idsSource.splice($scope.idsSource.indexOf(params.parentId), 1);
 					$scope.relatesToItself = $scope.idsSource.indexOf($scope.pageId) >= 0;
 				}, function error(data) {
-					pageService.showToast({text: 'Error removing the relationship: ' + data, isError: true});
+					arb.pageService.showToast({text: 'Error removing the relationship: ' + data, isError: true});
 				});
 			};
 		},

@@ -10,7 +10,6 @@ app.directive('arbUserPage', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 		},
 	};
 });

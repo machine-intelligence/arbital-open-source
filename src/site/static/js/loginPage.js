@@ -10,7 +10,6 @@ app.directive('arbLogin', function($location, $http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 			$scope.formData = {};
 
 			$scope.formSubmit = function(event) {
@@ -21,7 +20,7 @@ app.directive('arbLogin', function($location, $http, arb) {
 			};
 
 			$scope.loginWithFb = function() {
-				userService.fbLogin(function(response) {
+				arb.userService.fbLogin(function(response) {
 					if (response.status === 'connected') {
 						var data = {
 							fbAccessToken: response.authResponse.accessToken,

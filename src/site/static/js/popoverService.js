@@ -1,7 +1,7 @@
 'use strict';
 
 // Popover service is used to display the intrasite popover.
-app.service('popoverService', function($rootScope, $compile, $timeout, arb) {
+app.service('popoverService', function($rootScope, $compile, $timeout, pageService, userService, stateService) {
 	// TODO: enable popovers on mobile again once we can make them good
 	if (userService.isTouchDevice) return;
 
@@ -152,7 +152,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, arb) {
 				var userId = $target.attr('user-id');
 				var page = pageService.pageMap[userId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
-					arb.userService.loadUserPopover(userId);
+					userService.loadUserPopover(userId);
 				}
 			}
 		}
@@ -204,7 +204,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, arb) {
 	});
 
 	// On mobile, we want to intercept the click.
-	if (userService.isTouchDevice) {
+	if (stateService.isTouchDevice) {
 		var touchDeviceLinkClick = function(event, linkType) {
 			var $target = $(event.currentTarget);
 			if ($target.is($currentTarget)) {

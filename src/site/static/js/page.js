@@ -11,18 +11,18 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 		controller: function($scope) {
 			$scope.arb = arb;
 			
-			$scope.page = pageService.pageMap[$scope.pageId];
-			$scope.mastery = pageService.masteryMap[$scope.pageId];
+			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.mastery = arb.pageService.masteryMap[$scope.pageId];
 			$scope.questionIds = $scope.page.questionIds || [];
 			$scope.isTinyScreen = !$mdMedia('gt-sm');
 			$scope.isSingleColumn = !$mdMedia('gt-md');
-			$scope.isUser = !!userService.userMap[$scope.pageId];
+			$scope.isUser = !!arb.userService.userMap[$scope.pageId];
 
 			// Check if the user has all the requisites for the given lens
 			$scope.hasAllReqs = function(lensId) {
-				var reqs = pageService.pageMap[lensId].requirementIds;
+				var reqs = arb.pageService.pageMap[lensId].requirementIds;
 				for (var n = 0; n < reqs.length; n++) {
-					if (!pageService.hasMastery(reqs[n])) {
+					if (!arb.pageService.hasMastery(reqs[n])) {
 						return false;
 					}
 				}
@@ -31,7 +31,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 
 			// Sort lenses (from most technical to least)
 			$scope.page.lensIds.sort(function(a, b) {
-				return pageService.pageMap[a].lensIndex - pageService.pageMap[b].lensIndex;
+				return arb.pageService.pageMap[a].lensIndex - arb.pageService.pageMap[b].lensIndex;
 			});
 			$scope.page.lensIds.unshift($scope.page.pageId);
 
@@ -40,7 +40,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
 					return $location.search().l;
-				} else if (pageService.path && pageService.path.onPath) {
+				} else if (arb.pageService.path && arb.pageService.path.onPath) {
 					// The learning list specified this page specifically
 					return $scope.page.pageId;
 				}
@@ -71,15 +71,15 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			// Check if the given lens is loaded.
 			$scope.isLoaded = function(lensId) {
 				// Note that questions might have empty text.
-				return lensId in pageService.pageMap && (pageService.pageMap[lensId].text.length > 0 || pageService.pageMap[lensId].isQuestion());
+				return lensId in arb.pageService.pageMap && (arb.pageService.pageMap[lensId].text.length > 0 || arb.pageService.pageMap[lensId].isQuestion());
 			};
 
 			// Called when there is a click inside the tabs
 			$scope.tabsClicked = function($event, lensId) {
 				// Check if there was a CTRL+click on a tab
 				if ($event.ctrlKey) {
-					console.log(pageService.getPageUrl(lensId));
-					window.open(pageService.getPageUrl(lensId, {permalink: true}), '_blank');
+					console.log(arb.pageService.getPageUrl(lensId));
+					window.open(arb.pageService.getPageUrl(lensId, {permalink: true}), '_blank');
 				} else {
 					$scope.tabSelect(lensId);
 				}
@@ -109,7 +109,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					if (scope.selectedLens || lensId !== scope.pageId) {
 						$location.search('l', lensId);
 					}
-					scope.selectedLens = pageService.pageMap[lensId];
+					scope.selectedLens = arb.pageService.pageMap[lensId];
 					// A new lens became visible. Sometimes this happens when the user is going through
 					// a path and clicks "Next" at the bottom of the page. In this case we need to
 					// scroll upwards to have them start reading this lens
@@ -125,10 +125,10 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 						switchToLens(lensId);
 					});
 				} else {
-					pageService.loadLens(lensId);
+					arb.pageService.loadLens(lensId);
 					// Switch to the loaded lens. If we couldn't load the specified lens (e.g. if it doesn't exist),
 					// then just go to the main lens.
-					switchToLens(lensId in pageService.pageMap ? lensId : scope.pageId);
+					switchToLens(lensId in arb.pageService.pageMap ? lensId : scope.pageId);
 				}
 			};
 			scope.tabSelect(scope.computeSelectedLensId());

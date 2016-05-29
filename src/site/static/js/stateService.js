@@ -66,6 +66,11 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 	this.addPostDataCallback = function(key, fn) {
 		postDataCallbacks[key] = fn;
 	};
+	this.processServerData = function(data) {
+		for (var key in postDataCallbacks) {
+			postDataCallbacks[key](data);
+		}
+	};
 
 	// Load data from the server and process it.
 	// options = {
@@ -76,9 +81,7 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 			.success(function(data) {
 				console.log(url + ' data:'); console.dir(data);
 				if (options.callCallbacks) {
-					for (var key in postDataCallbacks) {
-						postDataCallbacks[key](data);
-					}
+					that.processServerData(data);
 				}
 				if (successFn) {
 					successFn(data);

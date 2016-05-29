@@ -9,7 +9,6 @@ app.directive('arbDashboardPage', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 		},
 	};
 });

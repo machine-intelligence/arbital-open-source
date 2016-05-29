@@ -1,7 +1,7 @@
 'use strict';
 
 // Takes care of all popup and toast related functionality
-app.service('popupService', function($http, $compile, $location, $mdToast, $rootScope, $interval, userService, urlService) {
+app.service('popupService', function($http, $compile, $location, $mdToast, $rootScope, $interval) {
 	var that = this;
 
 	var $popupDiv = $('#popup-div');
