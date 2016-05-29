@@ -8,17 +8,17 @@
 			ng-attr-md-prevent-menu-close="{{::preventMenuClose}}"
 			aria-label="Toggle"
 			ng-show="!hideCheckbox">
-		<md-icon ng-show="pageService.hasMastery(requisiteId)">
+		<md-icon ng-show="arb.pageService.hasMastery(requisiteId)">
 			check_box
-			<md-tooltip ng-if="!userService.isTouchDevice">Click to mark as wanted</md-tooltip>
+			<md-tooltip ng-if="!arb.userService.isTouchDevice">Click to mark as wanted</md-tooltip>
 		</md-icon>
-		<md-icon ng-show="pageService.wantsMastery(requisiteId)">
+		<md-icon ng-show="arb.pageService.wantsMastery(requisiteId)">
 			bookmark
-			<md-tooltip ng-if="!userService.isTouchDevice">Click to mark as not known</md-tooltip>
+			<md-tooltip ng-if="!arb.userService.isTouchDevice">Click to mark as not known</md-tooltip>
 		</md-icon>
-		<md-icon ng-show="pageService.nullMastery(requisiteId)">
+		<md-icon ng-show="arb.pageService.nullMastery(requisiteId)">
 			check_box_outline_blank
-			<md-tooltip ng-if="!userService.isTouchDevice">Click to mark as known</md-tooltip>
+			<md-tooltip ng-if="!arb.userService.isTouchDevice">Click to mark as known</md-tooltip>
 		</md-icon>
 	</md-button>
 	<span ng-if="hideCheckbox">&bull;</span>

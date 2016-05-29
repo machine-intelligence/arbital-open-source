@@ -1,16 +1,16 @@
 <!-- Top toolbar appearing on every page -->
-<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': pageService.privateGroupId !== ''}"
+<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': arb.pageService.privateGroupId !== ''}"
 		ng-if="!hide">
 	<div class="md-toolbar-tools">
-		<a ng-href="http://{{urlService.getTopLevelDomain()}}">
+		<a ng-href="http://{{arb.urlService.getTopLevelDomain()}}">
 			<md-icon md-svg-icon="arbital_logo" class="arbital-logo"></md-icon>
 			<span class="beta-label">BETA</span>
 		</a>
 
 		<a href="/"
 				layout-margin
-				ng-bind="::(pageService.pageMap[pageService.privateGroupId].title | shorten: 30)"
-				ng-if="pageService.privateGroupId !== ''"></a>
+				ng-bind="::(arb.pageService.pageMap[arb.pageService.privateGroupId].title | shorten: 30)"
+				ng-if="arb.pageService.privateGroupId !== ''"></a>
 
 		<!-- Search -->
 		<span flex></span>
@@ -25,32 +25,32 @@
 		<md-button href="/updates/"
 				aria-label="Your updates"
 				class="md-icon-button"
-				ng-if="userService.user.id !== ''">
-			<md-icon ng-if="userService.user.updateCount <= 0">notifications_none</md-icon>
+				ng-if="arb.userService.user.id !== ''">
+			<md-icon ng-if="arb.userService.user.updateCount <= 0">notifications_none</md-icon>
 			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="userService.user.updateCount > 0">notifications</md-icon>
-			<span ng-bind="userService.user.updateCount" ng-if="userService.user.updateCount > 0"></span>
+				ng-if="arb.userService.user.updateCount > 0">notifications</md-icon>
+			<span ng-bind="arb.userService.user.updateCount" ng-if="arb.userService.user.updateCount > 0"></span>
 		</md-button>&nbsp;
 
 		<!-- Achievement updates -->
 		<md-button ng-click="showAchievements($event)"
 				aria-label="Your achievements"
 				class="md-icon-button achievements-icon"
-				ng-if="userService.user.id !== ''">
-			<md-icon ng-if="userService.user.newAchievementCount <= 0">sentiment_satisfied</md-icon>
+				ng-if="arb.userService.user.id !== ''">
+			<md-icon ng-if="arb.userService.user.newAchievementCount <= 0">sentiment_satisfied</md-icon>
 			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="userService.user.newAchievementCount > 0">sentiment_very_satisfied</md-icon>
-			<span ng-bind="userService.user.newAchievementCount" ng-if="userService.user.newAchievementCount > 0"></span>
+				ng-if="arb.userService.user.newAchievementCount > 0">sentiment_very_satisfied</md-icon>
+			<span ng-bind="arb.userService.user.newAchievementCount" ng-if="arb.userService.user.newAchievementCount > 0"></span>
 		</md-button>&nbsp;
 
 		<!-- Login/signup buttons -->
 		<md-button ng-href="{{getSignupUrl()}}"
-				ng-if="userService.user.id === ''">
+				ng-if="arb.userService.user.id === ''">
 			Sign Up
 		</md-button>
 		<md-button ng-click="toggleRightMenu()"
 				aria-label="Log in"
-				ng-if="userService.user.id === ''">
+				ng-if="arb.userService.user.id === ''">
 			Log In
 		</md-button>
 
@@ -58,7 +58,7 @@
 		<md-button class="md-icon-button"
 				ng-click="toggleRightMenu()"
 				aria-label="Main menu"
-				ng-if="userService.user.id !== ''">
+				ng-if="arb.userService.user.id !== ''">
 			<md-icon>menu</md-icon>
     </md-button>
 	</div>
@@ -72,10 +72,10 @@
 <md-progress-linear md-mode="query" hide></md-progress-linear>
 
 <!-- Right sidenav slide out; only if the user is logged in -->
-<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="userService.user.id !== ''">
+<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="arb.userService.user.id !== ''">
 	<md-toolbar>
 		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
-			<div class="sidenav-email" ng-bind="::userService.user.email"></div>
+			<div class="sidenav-email" ng-bind="::arb.userService.user.email"></div>
 			<md-button class="md-icon-button"
 					ng-click="toggleRightMenu()">
 				<md-icon>arrow_forward</md-icon>
@@ -95,14 +95,14 @@
 
 		<!-- List of groups -->
 		<!-- ">1" because everyone is part of their own group, but we don't show it -->
-		<md-subheader ng-if="(userService.user.groupIds.length > 1)">
+		<md-subheader ng-if="(arb.userService.user.groupIds.length > 1)">
 			Your Groups
 		</md-subheader>
 		<div layout="column" layout-align="start center">
-			<div ng-repeat="groupId in ::userService.user.groupIds" ng-if="::groupId!==userService.user.id">
+			<div ng-repeat="groupId in ::arb.userService.user.groupIds" ng-if="::groupId!==arb.userService.user.id">
 				<md-button aria-label="Go to domain"
-						ng-href="{{::urlService.getDomainUrl(pageService.pageMap[groupId].alias)}}"
-						ng-bind="::(pageService.pageMap[groupId].title | shorten: 30)"></md-button>
+						ng-href="{{::arb.urlService.getDomainUrl(arb.pageService.pageMap[groupId].alias)}}"
+						ng-bind="::(arb.pageService.pageMap[groupId].title | shorten: 30)"></md-button>
 			</div>
 		</div>
 		<md-divider></md-divider>
@@ -112,7 +112,7 @@
 </md-sidenav>
 
 <!-- Right sidenav slide out; only if the user is logged out -->
-<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="!userService.user.id !== ''">
+<md-sidenav class="md-sidenav-right md-whiteframe-6dp" md-component-id="right" ng-if="!arb.userService.user.id !== ''">
 	<md-toolbar>
 		<h1 class="md-toolbar-tools" layout="row" layout-align="space-between center">
 			<span>Log In</span>

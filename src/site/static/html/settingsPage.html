@@ -11,7 +11,7 @@
 				<md-content layout-margin>
 					<form ng-submit="submitForm($event)" layout="column" layout-margin>
 						<div>
-							Your email: {{userService.user.email}}
+							Your email: {{arb.userService.user.email}}
 						</div>
 
 						<!-- Email frequency -->
@@ -19,7 +19,7 @@
 							<label>
 								Email frequency
 							</label>
-							<md-select ng-model="userService.user.emailFrequency">
+							<md-select ng-model="arb.userService.user.emailFrequency">
 								<md-option ng-repeat="(type,label) in ::frequencyTypes" value="{{::type}}">
 									{{::label}}
 								</md-option>
@@ -27,16 +27,16 @@
 						</md-input-container>
 
 						<!-- Email threshold -->
-						<md-input-container ng-if="userService.user.emailFrequency === 'daily' ||
-								userService.user.emailFrequency === 'weekly'">
+						<md-input-container ng-if="arb.userService.user.emailFrequency === 'daily' ||
+								arb.userService.user.emailFrequency === 'weekly'">
 							<label>
 								Email threshold
 							</label>
-							<input type="number" min="0" name="emailThreshold" ng-model="userService.user.emailThreshold">
+							<input type="number" min="0" name="emailThreshold" ng-model="arb.userService.user.emailThreshold">
 						</md-input-container>
 
 						<!-- Explain email settings to the user in a readable format -->
-						<div ng-switch="userService.user.emailFrequency">
+						<div ng-switch="arb.userService.user.emailFrequency">
 							<span ng-switch-when="never">
 								You'll never get update emails.
 							</span>
@@ -44,7 +44,7 @@
 								You'll receive an email as soon as there is a new update.
 							</span>
 							<span ng-switch-default>
-								You will receive a {{userService.user.emailFrequency}} email when you have more than {{userService.user.emailThreshold}} unread updates.
+								You will receive a {{arb.userService.user.emailFrequency}} email when you have more than {{arb.userService.user.emailThreshold}} unread updates.
 							</span>
 						</div>
 
@@ -56,7 +56,7 @@
 						</md-subheader>
 
 						<!-- Ignore MathJax -->
-						<md-checkbox ng-model="userService.user.ignoreMathjax">
+						<md-checkbox ng-model="arb.userService.user.ignoreMathjax">
 							Ignore MathJax in live preview
 						</md-checkbox>
 
@@ -74,8 +74,8 @@
 				<div arb-settings-invite-tab
 						domains="domains"
 						invites-sent="invitesSent"
-						ng-if="::userService.user.isTrusted"></div>
-				<div layout-padding ng-if="::!userService.user.isTrusted">
+						ng-if="::arb.userService.user.isTrusted"></div>
+				<div layout-padding ng-if="::!arb.userService.user.isTrusted">
 					You haven't unlocked this feature yet.
 				</div>
 			</md-tab>

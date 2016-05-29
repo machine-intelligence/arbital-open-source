@@ -229,7 +229,7 @@
 				added you to
 				<arb-page-title page-id="{{::goToPageId}}"
 						is-link="true"
-						custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
+						custom-page-title="the {{::arb.pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 			</span>
 
 			<span ng-switch-when="removedFromGroup">
@@ -237,7 +237,7 @@
 				removed you from
 				<arb-page-title page-id="{{::goToPageId}}"
 						is-link="true"
-						custom-page-title="the {{::pageService.pageMap[goToPageId].title}} group"></arb-page-title>
+						custom-page-title="the {{::arb.pageService.pageMap[goToPageId].title}} group"></arb-page-title>
 			</span>
 
 			<span ng-switch-when="inviteReceived">
@@ -246,9 +246,9 @@
 				you can now participate in
 				<arb-page-title page-id="{{::goToPageId}}"
 						is-link="true"
-						custom-page-title="the {{::pageService.getDomainName(goToPageId)}} domain"
+						custom-page-title="the {{::arb.pageService.getDomainName(goToPageId)}} domain"
 						ng-if="::goToPageId"></arb-page-title>
-				<span ng-bind="the {{::pageService.getDomainName(goToPageId)}} domain"
+				<span ng-bind="the {{::arb.pageService.getDomainName(goToPageId)}} domain"
 						ng-if="::!goToPageId"></span>
 			</span>
 
@@ -257,10 +257,10 @@
 			<div ng-switch-when="newMark">
 				<div arb-query-info
 					mark-id="{{::markId}}"
-					ng-if="pageService.markMap[markId].type === 'query'"></div>
+					ng-if="arb.pageService.markMap[markId].type === 'query'"></div>
 				<div arb-mark-info
 						mark-id="{{::markId}}"
-						ng-if="pageService.markMap[markId].type !== 'query'"></div>
+						ng-if="arb.pageService.markMap[markId].type !== 'query'"></div>
 			</div>
 
 			<div ng-switch-when="answeredMark">
@@ -312,7 +312,7 @@
 
 		<span ng-switch-when="reply">
 			<div arb-collapsable-comment-thread
-					comment-id="{{::pageService.pageMap[goToPageId].getTopLevelComment().pageId}}"></div>
+					comment-id="{{::arb.pageService.pageMap[goToPageId].getTopLevelComment().pageId}}"></div>
 		</span>
 	</div>
 </div>

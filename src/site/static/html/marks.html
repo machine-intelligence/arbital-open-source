@@ -15,7 +15,7 @@
 					<!-- Toggle seeing all unresolved marks -->
 					<md-menu-item>
 						<md-button ng-click="toggleAllMarks()">
-							{{userService.showAllMarks ? 'Hide' : 'Show'}} all marks
+							{{arb.userService.showAllMarks ? 'Hide' : 'Show'}} all marks
 						</md-button>
 					</md-menu-item>
 				</md-menu-content>
@@ -25,12 +25,12 @@
 
 	<div class="md-whiteframe-1dp dynamic-hor-padding">
 		<div ng-repeat="markId in markIds"
-				ng-init="mark = pageService.markMap[markId]">
+				ng-init="mark = arb.pageService.markMap[markId]">
 			<div layout="column"
 					layout-gt-sm="row"
 					layout-align="start start"
 					layout-align-gt-sm="start center"
-					ng-if="userService.showAllMarks || mark.isCurrentUserOwned">
+					ng-if="arb.userService.showAllMarks || mark.isCurrentUserOwned">
 				<div>
 					<md-button class="md-primary md-icon-button" ng-click="bringUpMark(mark.id)">
 						<md-icon>launch</md-icon>

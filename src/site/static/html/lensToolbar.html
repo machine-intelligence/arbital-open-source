@@ -36,12 +36,12 @@
 
 	<!-- Edit -->
 	<div layout="column" layout-align="start center" flex="25">
-		<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
+		<md-button ng-href="{{::arb.pageService.getEditPageUrl(page.pageId)}}"
 				ng-class="::{'md-icon-button': isTinyScreen}"
 				arb-user-check="cool">
 			<md-icon>create</md-icon>
 			<span ng-if="::!isTinyScreen">Edit</span>
-			<md-tooltip md-delay="500" ng-if="::!page.permissions.edit.has && userService.userIsCool()">
+			<md-tooltip md-delay="500" ng-if="::!page.permissions.edit.has && arb.userService.userIsCool()">
 				{{::page.cantEditMessage}}
 			</md-tooltip>
 		</md-button>
@@ -57,7 +57,7 @@
 
 	<!-- Link -->
 	<div>
-		<md-button ng-href="{{::(pageService.getPageUrl(pageService.primaryPage.pageId) + '#page-' + page.pageId)}}"
+		<md-button ng-href="{{::(arb.pageService.getPageUrl(arb.pageService.primaryPage.pageId) + '#page-' + page.pageId)}}"
 				ng-if="::(page.type == 'answer')">
 			<md-icon>link</md-icon>
 			<span ng-if="::!isTinyScreen">Link</span>
@@ -93,7 +93,7 @@
 
 			<!-- Permalink -->
 			<md-menu-item>
-				<md-button ng-href="{{pageService.getPageUrl(page.pageId, {permalink: true})}}">
+				<md-button ng-href="{{arb.pageService.getPageUrl(page.pageId, {permalink: true})}}">
 					Permalink
 				</md-button>
 			</md-menu-item>
@@ -118,7 +118,7 @@
 			</md-menu-item>
 
 			<!-- Show unresolved marks -->
-			<md-menu-item ng-if="!loadedMarks && userService.userIsCool()">
+			<md-menu-item ng-if="!loadedMarks && arb.userService.userIsCool()">
 				<md-button ng-click="loadMarks()">
 					Show all marks
 				</md-button>

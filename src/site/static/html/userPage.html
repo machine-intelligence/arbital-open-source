@@ -8,14 +8,14 @@
 				ng-if="::userId"></div>
     <div arb-page-list panel-title="Recently created pages"
 				show-created-at="true"
-				show-red-link-count="::(userId === userService.user.id)"
-				show-text-length="::(userId === userService.user.id)"
+				show-red-link-count="::(userId === arb.userService.user.id)"
+				show-text-length="::(userId === arb.userService.user.id)"
 				page-ids="::userPageData.recentlyCreatedIds"
 				ng-if="::userId"></div>
     <div arb-page-list panel-title="Recently edited"
 				show-last-edit="true"
-				show-red-link-count="::(userId === userService.user.id)"
-				show-text-length="::(userId === userService.user.id)"
+				show-red-link-count="::(userId === arb.userService.user.id)"
+				show-text-length="::(userId === arb.userService.user.id)"
 				show-quick-edit-link="true"
 				page-ids="::userPageData.recentlyEditedIds"
 				ng-if="::userId"></div>

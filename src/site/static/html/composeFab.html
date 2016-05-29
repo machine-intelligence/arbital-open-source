@@ -3,19 +3,19 @@
 		class="md-scale md-fab-bottom-right"
 		ng-mouseenter="toggle(true, true)"
 		ng-mouseleave="toggle(false, true)"
-		ng-if="!hideFab && userService.userIsCool()">
+		ng-if="!hideFab && arb.userService.userIsCool()">
 	<md-fab-trigger>
 		<md-button ng-click="fabClicked($event)" class="md-fab">
 			<md-icon class="fab-icon" ng-if="!showInlineVersion()">add</md-icon>
 			<md-icon class="fab-icon" ng-if="showInlineVersion()">add_box</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">Quick menu</md-tooltip>
 		</md-button>
-		<md-icon class="private-group-icon" ng-if="pageService.privateGroupId !== ''">
+		<md-icon class="private-group-icon" ng-if="arb.pageService.privateGroupId !== ''">
 			lock
 			<md-tooltip md-autohide="true" md-direction="left">Private domain</md-tooltip>
 		</md-icon>
 	</md-fab-trigger>
-	<md-fab-actions ng-if="isOpen && !(userService.isTouchDevice && userService.lensTextSelected)">
+	<md-fab-actions ng-if="isOpen && !(arb.userService.isTouchDevice && arb.userService.lensTextSelected)">
 		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="editPageUrl">
 			<md-icon>create</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">Edit this page (ALT+CTRL+E)</md-tooltip>
@@ -36,7 +36,7 @@
 			<md-icon>help</md-icon>
 			<md-tooltip md-delay="500" md-direction="left">New question page</md-tooltip>
 		</md-button>
-		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="pageService.primaryPage">
+		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="arb.pageService.primaryPage">
 			<md-icon md-svg-icon="cursor_pointer"></md-icon>
 			<md-tooltip md-delay="500" md-direction="left">New question/objection (ALT+CTRL+Q)</md-tooltip>
 		</md-button>
