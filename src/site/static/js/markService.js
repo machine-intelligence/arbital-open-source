@@ -19,7 +19,7 @@ app.service('markService', function(stateService) {
 			this.smartAddToMap(this.markMap, markData[id], id);
 		}
 	};
-	stateService.addFetchDataCallback('markService', postDataCallback);
+	stateService.addPostDataCallback('markService', postDataCallback);
 
 	// Create a new mark.
 	this.newMark = function(params, successFn, errorFn) {

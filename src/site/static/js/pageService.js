@@ -53,7 +53,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			this.addPageToEditMap(editData[id]);
 		}
 	};
-	stateService.addFetchDataCallback('pageService', postDataCallback);
+	stateService.addPostDataCallback('pageService', postDataCallback);
 
 	// Returns the id of the current page, if there is one.
 	this.getCurrentPageId = function() {
@@ -366,7 +366,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		var error = options.error; delete options.error;
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
-		stateService.postDataWithOptions('/json/edit/,
+		stateService.postDataWithOptions('/json/edit/',
 				{pageAlias: pageAlias},
 				{callCallbacks: options.skipProcessDataStep},
 				success, error);

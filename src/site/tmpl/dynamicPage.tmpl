@@ -7,6 +7,10 @@
 	<!-- Setting base href for ngRoute -->
 	<base href="/">
 
+	<meta charset="utf-8">
+	<!-- Prevent scaling -->
+	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'>
+
 	<!-- Open graph settings -->
 	<meta property="og:title" content="{{.Title}}"/>
 	<meta property="og:url" content="{{.Url}}"/>
@@ -14,21 +18,60 @@
 	<meta property="og:type" content="article"/>
 	<meta property="fb:app_id" content="1064531780272247"/>
 
-	{{template "style"}}
-	{{template "scripts"}}
+	<!-- 3rd party style sheets -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.0.9/angular-material.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" type="text/css">
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:100,300,400,700" rel="stylesheet" type="text/css">
+	
+	<!-- Our style sheets -->
+	<link href="/static/css/compiled/arbital.css" rel="stylesheet">
+
+	<!-- 3rd party scripts -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-resource.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-sanitize.min.js"></script>
+	<script src="/static/js/lib/angular-recursion.min.js"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.0.9/angular-material.min.js"></script>
+	
+	<script src="/static/js/Markdown.Converter.js"></script>
+	<script src="/static/js/Markdown.Editor.js"></script>
+	<script src="/static/js/Markdown.Sanitizer.js"></script>
+	
+	<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+	<script src="/static/js/lib/diff_match_patch.min.js"></script>
+	<script src="/static/js/lib/moment.min.js"></script>
+	<script src="/static/js/lib/ng-sortable.min.js"></script>
+	<script src="/static/js/lib/js.cookie.js"></script>
 
 	<!-- General scripts -->
+	<script src="/static/js/angular.js"></script>
+
+	<script src="/static/js/autocompleteService.js"></script>
+	<script src="/static/js/diffService.js"></script>
+	<script src="/static/js/markService.js"></script>
+	<script src="/static/js/markdownService.js"></script>
+	<script src="/static/js/masteryService.js"></script>
+	<script src="/static/js/pageService.js"></script>
+	<script src="/static/js/pathService.js"></script>
+	<script src="/static/js/popoverService.js"></script>
+	<script src="/static/js/popupService.js"></script>
+	<script src="/static/js/stateService.js"></script>
+	<script src="/static/js/urlService.js"></script>
+	<script src="/static/js/userService.js"></script>
+	<script src="/static/js/arbService.js"></script>
+
+	<script src="/static/js/arbitalController.js"></script>
 	<script src="/static/js/util.js"></script>
 	<script src="/static/js/inlineCommentUtil.js"></script>
 	<script src="/static/js/mathjax.js"></script>
-	<script src="/static/js/angular.js"></script>
-	<script src="/static/js/pageService.js"></script>
-	<script src="/static/js/userService.js"></script>
-	<script src="/static/js/urlService.js"></script>
-	<script src="/static/js/autocompleteService.js"></script>
-	<script src="/static/js/popoverService.js"></script>
-	<script src="/static/js/diffService.js"></script>
-	<script src="/static/js/angularDirectives.js"></script>
+	<script src="/static/js/arbDirectives.js"></script>
 	<script src="/static/js/markdown.js"></script>
 	<script src="/static/js/toolbar.js"></script>
 	<script src="/static/js/voteBar.js"></script>

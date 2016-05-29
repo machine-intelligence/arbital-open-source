@@ -26,7 +26,7 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 			stateService.smartAddToMap(this.masteryMap, masteryData[id], id);
 		}
 	};
-	stateService.addFetchDataCallback('stateService', postDataCallback);
+	stateService.addPostDataCallback('masteryService', postDataCallback);
 
 	// Update the masteryMap. Execution happens in the order options are listed.
 	// options = {

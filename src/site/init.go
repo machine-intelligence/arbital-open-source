@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	dynamicTmpls = []string{"tmpl/scripts.tmpl", "tmpl/style.tmpl", "tmpl/dynamicPage.tmpl"}
+	dynamicTmpls = []string{"tmpl/dynamicPage.tmpl"}
 )
 
 // notFoundHandler serves HTTP 404 when no matching handler is registered.

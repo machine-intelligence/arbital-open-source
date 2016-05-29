@@ -36,4 +36,4 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 		}
 		Cookies.set('path', that.path);
 	});
-};
+});

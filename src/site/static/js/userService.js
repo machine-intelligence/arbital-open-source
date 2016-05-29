@@ -18,7 +18,7 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 		}
 		$.extend(that.userMap, data.users);
 	};
-	stateService.addFetchDataCallback('userService', postDataCallback);
+	stateService.addPostDataCallback('userService', postDataCallback);
 
 	// Check if we can let this user do stuff.
 	this.userIsCool = function() {
