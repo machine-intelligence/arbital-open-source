@@ -22,7 +22,7 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 				function(data) {
 					$scope.modeRows = data.result.modeRows;
 					$scope.lastView = data.result.lastView;
-			});
+				});
 		},
 	};
 });

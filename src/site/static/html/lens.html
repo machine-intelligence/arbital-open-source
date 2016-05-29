@@ -148,7 +148,7 @@
 					</md-button>
 					<md-button ng-click="newQueryMark()"
 							aria-label="Question/objection">
-						<md-icon md-svg-icon="cursor-pointer"></md-icon>
+						<md-icon md-svg-icon="cursor_pointer"></md-icon>
 						Question/objection
 					</md-button>
 					<md-button ng-click="newInlineComment()"
@@ -184,7 +184,7 @@
 					ng-class="{'md-primary': isInlineMarkIconSelected(markId)}"
 					ng-click="toggleInlineMark(markId)"
 					aria-label="Question/objection">
-				<md-icon md-svg-icon="cursor-pointer"
+				<md-icon md-svg-icon="cursor_pointer"
 						ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
 						ng-if="::pageService.markMap[markId].type === 'query'"></md-icon>
 				<md-icon ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
