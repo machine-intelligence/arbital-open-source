@@ -8,8 +8,8 @@ app.directive('arbAdminDashboardPage', function(arb) {
 			data: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 		},
 	};
 });

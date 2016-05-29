@@ -9,8 +9,8 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb, diff
 			numEdits: '=', // Optional number of edits to group together in this diff. Defaults to 1.
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			$scope.showDiff = false;
 

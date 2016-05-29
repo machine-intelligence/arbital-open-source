@@ -7,8 +7,8 @@ app.directive('arbGroupsPage', function(arb, autocompleteService, $timeout, $htt
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.newGroupForm = {};
 
 			// Populate the groupMap with the groups the user belongs to

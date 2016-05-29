@@ -9,8 +9,8 @@ app.directive('arbLogin', function($location, $http, arb) {
 			isEmbedded: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.formData = {};
 
 			$scope.formSubmit = function(event) {

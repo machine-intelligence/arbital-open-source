@@ -10,8 +10,8 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			currentUrl: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.urlService = urlService;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 

@@ -10,8 +10,8 @@ app.directive('arbAnswers', function($timeout, $http, $compile, arb) {
 			showDelete: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// Called from autocomplete when a new answer should be added.

@@ -9,8 +9,8 @@ app.directive('arbHiddenText', function(arb) {
 			buttonText: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.revealed = false;
 
 			$scope.reveal = function() {

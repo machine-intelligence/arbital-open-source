@@ -7,8 +7,8 @@ app.directive('arbRequisitesPage', function(arb) {
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			$scope.masteryList = [];
 			for (var id in pageService.masteryMap) {

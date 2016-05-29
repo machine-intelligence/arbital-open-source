@@ -9,8 +9,8 @@ app.directive('arbTableOfContents', function($timeout, $http, $compile, arb) {
 			pageId: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.showToc = true;
 			$scope.toc = [];
 		},

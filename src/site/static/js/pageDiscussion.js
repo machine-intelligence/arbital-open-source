@@ -6,8 +6,8 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb, 
 			pageId: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.page.subpageIds = $scope.page.commentIds || [];
 			$scope.page.subpageIds.sort(pageService.getChildSortFunc('likes'));

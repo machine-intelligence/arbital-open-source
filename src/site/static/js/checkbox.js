@@ -9,8 +9,8 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			index: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.choice = false;
 			$scope.knows = [];
 			$scope.wants = [];

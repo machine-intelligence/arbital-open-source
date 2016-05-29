@@ -5,8 +5,8 @@ app.directive('arbIndex', function($http, arb) {
 	return {
 		templateUrl: 'static/html/indexPage.html',
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 		},
 	};
 });

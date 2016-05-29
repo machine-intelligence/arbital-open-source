@@ -12,8 +12,8 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			isSimpleEmbed: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.pageMap[$scope.pageId];
 			if ($scope.lensParentId) {
 				$scope.lensParentPage = pageService.pageMap[$scope.lensParentId];

@@ -9,8 +9,8 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			isSimpleEmbed: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.mastery = pageService.masteryMap[$scope.pageId];
 			$scope.questionIds = $scope.page.questionIds || [];

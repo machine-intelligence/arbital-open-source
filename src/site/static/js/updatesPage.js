@@ -8,8 +8,8 @@ app.directive('arbUpdates', function($http, arb) {
 			updateGroups: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			$scope.updateGroups.sort(function(a, b) {
 				if (b.key.seen !== a.key.seen) {

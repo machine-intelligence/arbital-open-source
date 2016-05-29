@@ -10,8 +10,8 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 			hideTitle: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			userService.user.newAchievementCount = 0;
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
@@ -35,8 +35,8 @@ app.directive('arbLikesModeRow', function(arb) {
 			modeRow: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
 				return userService.getFullName(userId);
 			}));
@@ -52,8 +52,8 @@ app.directive('arbReqsTaughtModeRow', function(arb) {
 			modeRow: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
 				return userService.getFullName(userId);
 			}));

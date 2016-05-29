@@ -17,8 +17,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			doneFn: '&',
 		},
 		controller: function($scope) {
-			$scope.userService = userService;
-			$scope.pageService = pageService;
+			
+			$scope.arb = arb;
 			$scope.page = pageService.editMap[$scope.pageId];
 			$scope.fullView = !$scope.isEmbedded && $mdMedia('gt-md');
 			$scope.gtXSmallScreen = $mdMedia('gt-xs');

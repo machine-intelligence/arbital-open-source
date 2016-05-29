@@ -11,8 +11,8 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 			objectAlias: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.choice = '';
 			$scope.knows = {};
 			$scope.wants = {};

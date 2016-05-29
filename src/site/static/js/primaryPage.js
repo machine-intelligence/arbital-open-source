@@ -8,8 +8,8 @@ app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb, aut
 			noFooter: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.primaryPage;
 			$scope.page.childIds.sort(pageService.getChildSortFunc($scope.page.sortChildrenBy));
 			$scope.page.relatedIds.sort(pageService.getChildSortFunc('likes'));

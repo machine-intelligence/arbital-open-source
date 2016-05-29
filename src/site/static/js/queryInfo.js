@@ -13,8 +13,8 @@ app.directive('arbQueryInfo', function($interval, arb, autocompleteService) {
 			inPopup: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.mark = pageService.markMap[$scope.markId];
 			$scope.potentialResolvedPageId = undefined;
 

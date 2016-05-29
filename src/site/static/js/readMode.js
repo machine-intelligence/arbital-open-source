@@ -7,8 +7,8 @@ app.directive('arbReadModePage', function($http, arb) {
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 		},
 	};
 });
@@ -22,8 +22,8 @@ app.directive('arbReadModePanel', function($http, userService, pageService) {
 			isFullPage: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.title = 'New';
 			$scope.moreLink = '/read';
 

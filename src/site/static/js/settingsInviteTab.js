@@ -9,8 +9,8 @@ app.directive('arbSettingsInviteTab', function($http, $filter, arb) {
 			invitesSent: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.alwaysTrue = true;
 
 			// Controls whether form to create invite is shown

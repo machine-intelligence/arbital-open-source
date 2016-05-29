@@ -2,8 +2,8 @@
 
 // Directive for rhsButtons that appear in $mdBottomSheet
 app.controller('RhsButtonsController', function($scope, $mdMedia, $mdBottomSheet, arb) {
-	$scope.pageService = pageService;
-	$scope.userService = userService;
+	$scope.arb = arb;
+	
 	$scope.isTinyScreen = !$mdMedia('gt-xs');
 
 	$scope.newInlineComment = function(isEditorComment) {

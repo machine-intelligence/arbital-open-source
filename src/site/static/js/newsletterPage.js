@@ -7,8 +7,8 @@ app.directive('arbNewsletter', function($http, arb) {
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.alreadySubscribed = true;
 
 			var interestMap = userService.user.mailchimpInterests;

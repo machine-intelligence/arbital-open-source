@@ -8,8 +8,8 @@ app.directive('arbExplorePage', function($http, arb) {
 			pageId: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 		},
 	};
 });

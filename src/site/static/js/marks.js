@@ -8,8 +8,8 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, ar
 			pageId: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.pageMap[$scope.pageId];
 
 			// Track (globally) whether or not to show all marks.

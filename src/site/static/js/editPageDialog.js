@@ -1,7 +1,7 @@
 // EditPageDialogController is used for editing a page in an mdDialog
 app.controller('EditPageDialogController', function($scope, $mdDialog, $timeout, userService, pageService, parentIds, resumePageId) {
-	$scope.pageService = pageService;
-	$scope.userService = userService;
+	$scope.arb = arb;
+	
 
 	// Load the page edit
 	$scope.loadPageEdit = function(pageId) {

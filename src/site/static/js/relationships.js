@@ -10,8 +10,8 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb, 
 			readonly: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.editMap[$scope.pageId];
 
 			// Helper variables

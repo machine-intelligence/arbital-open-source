@@ -7,7 +7,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 			isEmbedded: '=',
 		},
 		link: function(scope, element, attrs) {
-			scope.pageService = pageService;
+			scope.arb = arb;
 			scope.userService = userService;
 			scope.page = pageService.pageMap[scope.pageId];
 			scope.isTinyScreen = !$mdMedia('gt-xs');

@@ -9,8 +9,8 @@ app.directive('arbSettingsPage', function($http, arb) {
 			invitesSent: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			// Set up frequency types.
 			$scope.frequencyTypes = {

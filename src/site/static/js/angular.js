@@ -80,8 +80,8 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 // NOTE: we need to include popoverService, so that it can initialize itself
 app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, $interval, $http, $compile, $anchorScroll, $mdDialog, userService, pageService, popoverService, urlService) {
 	$scope.urlService = urlService;
-	$scope.pageService = pageService;
-	$scope.userService = userService;
+	$scope.arb = arb;
+	
 
 	// Refresh all the fields that need to be updated every so often.
 	var refreshAutoupdates = function() {

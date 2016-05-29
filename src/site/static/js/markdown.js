@@ -521,7 +521,7 @@ app.directive('arbMarkdown', function($compile, $timeout, pageService, markdownS
 			summaryName: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
+			$scope.arb = arb;
 			$scope.page = !!$scope.pageId ? pageService.pageMap[$scope.pageId] : undefined;
 			$scope.mark = !!$scope.markId ? pageService.markMap[$scope.markId] : undefined;
 		},

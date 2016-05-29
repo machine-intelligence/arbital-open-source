@@ -20,8 +20,8 @@ app.directive('arbMasteryList', function($timeout, $http, arb) {
 			unlockedFn: '&',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			// Filter non-existing page ids out
 			$scope.idsSource = $scope.idsSource.filter(function(pageId) {

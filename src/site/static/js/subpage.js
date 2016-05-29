@@ -10,8 +10,8 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			parentSubpageId: '@',  // id of the parent subpage, if there is one
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.lens = pageService.pageMap[$scope.lensId];
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.page.subpageIds = $scope.page.commentIds;

@@ -11,8 +11,8 @@ app.directive('arbMarkInfo', function($interval, arb, autocompleteService) {
 			isNew: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.mark = pageService.markMap[$scope.markId];
 			$scope.isOnPage = $scope.mark.pageId == pageService.getCurrentPageId();
 

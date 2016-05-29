@@ -12,8 +12,8 @@ app.directive('arbLearnPage', function($location, $compile, arb) {
 			continueLearning: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			// Ordered list of page ids in the generated learn
 			$scope.readIds = [];
 			// If a requisite can't be learned (probably because there is no page that
@@ -109,8 +109,8 @@ app.directive('arbLearnPart', function(arb, RecursionHelper) {
 	return {
 		templateUrl: 'static/html/learnPart.html',
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.requirement = $scope.requirementMap[$scope.pageId];
 			$scope.tutor = $scope.requirement.bestTutorId ? $scope.tutorMap[$scope.requirement.bestTutorId] : undefined;
 		},

@@ -8,8 +8,8 @@ app.directive('arbUserName', function(arb) {
 			userId: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.user = userService.userMap[$scope.userId];
 		},
 	};
@@ -25,8 +25,8 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 			arrowOffset: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.pageMap[$scope.pageId];
 			$scope.summaries = [];
 			$scope.getArrowStyle = function() {
@@ -110,8 +110,8 @@ app.directive('arbUserPopover', function($timeout, arb) {
 			arrowOffset: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.user = userService.userMap[$scope.userId];
 			$scope.page = pageService.pageMap[$scope.userId];
 			$scope.summaries = [];
@@ -196,8 +196,8 @@ app.directive('arbPageTitle', function(arb) {
 			useEditMap: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
 
@@ -230,8 +230,8 @@ app.directive('arbLikes', function($http, arb) {
 			isButton: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changeLog')) {
 				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
@@ -278,8 +278,8 @@ app.directive('arbSubscribe', function($http, arb) {
 			showSubscriberCount: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.page = pageService.pageMap[$scope.pageId];
 
 			$scope.isSubscribed = function() {
@@ -317,8 +317,8 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
 			$scope.isOpen = false;
@@ -423,8 +423,8 @@ app.directive('arbAutocomplete', function($timeout, $q, arb, autocompleteService
 			onSelect: '&',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			// Called to get search results from the server
 			$scope.getSearchResults = function(text) {
@@ -495,8 +495,8 @@ app.directive('arbPageList', function(arb) {
 			useEditMap: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			$scope.getPage = function(pageId) {
 				return pageService.getPageFromSomeMap(pageId, $scope.useEditMap);
@@ -523,8 +523,8 @@ app.directive('arbPageRow', function(arb) {
 			useEditMap: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			$scope.page = pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 		},
@@ -576,8 +576,8 @@ app.directive('arbRequisiteButton', function(arb) {
 			unlockedFn: '&',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			var unlockedCallback = undefined;
 			if ($scope.unlockedFn) {
@@ -612,8 +612,8 @@ app.directive('arbNextPrev', function($location, arb) {
 			whiteframe: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 
 			$scope.stopLearning = function() {
 				pageService.abandonPath();
@@ -648,7 +648,7 @@ app.directive('arbLogRow', function(pageService) {
 			onDismiss: '&',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
+			$scope.arb = arb;
 		},
 	};
 });

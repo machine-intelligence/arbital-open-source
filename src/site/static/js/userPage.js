@@ -9,8 +9,8 @@ app.directive('arbUserPage', function(arb) {
 			userPageData: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
+			
 		},
 	};
 });
