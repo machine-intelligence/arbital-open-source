@@ -147,7 +147,7 @@ app.directive('arbUserPopover', function($timeout, pageService, userService) {
 
 			processPageSummaries();
 			if (!scope.isLoaded) {
-				pageService.loadUserPopover(scope.userId);
+				arb.userService.loadUserPopover(scope.userId);
 				// NOTE: we set up a watch instead of doing something on a success callback,
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.

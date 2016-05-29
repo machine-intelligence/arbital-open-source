@@ -1,7 +1,7 @@
 'use strict';
 
 // User service.
-app.service('userService', function($http, $location, $rootScope) {
+app.service('userService', function($http, $location, $rootScope, stateService) {
 	var that = this;
 
 	// Logged in user.
@@ -10,12 +10,15 @@ app.service('userService', function($http, $location, $rootScope) {
 	// Map of all user objects.
 	this.userMap = {};
 
-	// Should we show all marks for the currently selected lens. By default we just
-	// show the current user's.
-	this.showAllMarks = false;
-
-	// Set to true when user has some text selected.
-	this.lensTextSelected = false;
+	// Call this to process data we received from the server.
+	var postDataCallback = function(data) {
+		if (data.resetEverything) {
+			this.userMap = {};
+			this.user = data.user;
+		}
+		$.extend(that.userMap, data.users);
+	};
+	stateService.addFetchDataCallback('userService', postDataCallback);
 
 	// Check if we can let this user do stuff.
 	this.userIsCool = function() {
@@ -28,19 +31,6 @@ app.service('userService', function($http, $location, $rootScope) {
 		if (!user) console.error('User not found: ' + userId);
 		return user.firstName + ' ' + user.lastName;
 	};
-
-	// Call this to process data we received from the server.
-	this.processServerData = function(data) {
-		if (data.resetEverything) {
-			this.userMap = {};
-			this.user = data.user;
-		}
-		$.extend(that.userMap, data.users);
-	};
-
-	this.isTouchDevice = 'ontouchstart' in window || // works in most browsers
-		(navigator.MaxTouchPoints > 0) ||
-		(navigator.msMaxTouchPoints > 0);
 
 	// Sign into FB and call the callback with the response.
 	this.fbLogin = function(callback) {
@@ -98,4 +88,21 @@ app.service('userService', function($http, $location, $rootScope) {
 			console.error('Error FB signup:'); console.log(data); console.log(status);
 		});
 	}
+
+	// Get data to display a popover for the user with the given alias.
+	var loadingUserPopovers = {};
+	this.loadUserPopover = function(userId, successFn, errorFn) {
+		if (userId in loadingUserPopovers) {
+			return;
+		}
+		loadingUserPopovers[userId] = true;
+
+		var createCallback = function(continuationFn) {
+			return function(data) {
+				delete loadingUserPopovers[userId];
+				continuationFn(data);
+			};
+		};
+		stateService.postData('/json/userPopover/', {userId: userId}, createCallback(successFn), createCallback(errorFn));
+	};
 });

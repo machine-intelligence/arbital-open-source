@@ -152,7 +152,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 				var userId = $target.attr('user-id');
 				var page = pageService.pageMap[userId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
-					pageService.loadUserPopover(userId);
+					arb.userService.loadUserPopover(userId);
 				}
 			}
 		}
