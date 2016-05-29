@@ -1184,7 +1184,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			templateHtml += '<md-button class="md-action" ng-click="' + params.normalButton.callbackText + '">';
 			templateHtml += '<span>' + escapeHtml(params.normalButton.text) + '</span>';
 			if (params.normalButton.icon) {
-				templateHtml += '&nbsp;<md-icon>' + escapeHtml(params.normalButton.icon) + '</md-icon>'
+				templateHtml += '&nbsp;<md-icon>' + escapeHtml(params.normalButton.icon) + '</md-icon>';
 			}
 			templateHtml += '</md-button>';
 		}

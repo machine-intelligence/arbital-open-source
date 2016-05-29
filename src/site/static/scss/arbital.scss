@@ -175,6 +175,17 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
+.popover-panel {
+	md-list {
+		height: 400px;
+		overflow-y: scroll;
+	}
+	md-card {
+		margin: 0px;
+	}
+	width: 600px;
+}
+
 .discussion-container {
 	margin: 20px 0;
 }

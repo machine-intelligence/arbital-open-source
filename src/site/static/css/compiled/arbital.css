@@ -495,6 +495,14 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
 .dense-panel md-toolbar {
   min-height: 0px; }
 
+.popover-panel {
+  width: 600px; }
+  .popover-panel md-list {
+    height: 400px;
+    overflow-y: scroll; }
+  .popover-panel md-card {
+    margin: 0px; }
+
 .discussion-container {
   margin: 20px 0; }
 

@@ -426,7 +426,7 @@ app.run(function($http, $location, urlService, pageService, userService) {
 						$scope.doneFn = function(result) {
 							var page = pageService.editMap[result.pageId];
 							// if the page is (now / still) live, go (to / back to) it
-							if ((page.wasPublished && !result.deletedPage ) || !result.discard) {
+							if ((page.wasPublished && !result.deletedPage) || !result.discard) {
 								$location.url(pageService.getPageUrl(page.pageId, {
 									useEditMap: true,
 									markId: $location.search().markId,

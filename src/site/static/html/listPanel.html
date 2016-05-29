@@ -1,6 +1,6 @@
-<md-card ng-class="{'full-page-panel': isFullPage, 'dense-panel': !isFullPage}" ng-if="modeRows.length != 0">
+<md-card ng-class="{'full-page-panel': isFullPage, 'dense-panel': !isFullPage}" ng-if="modeRows && modeRows.length != 0">
 	<!-- Header -->
-	<md-toolbar class="md-hue-2" ng-if="::title">
+	<md-toolbar class="md-hue-2" ng-if="::title && !hideTitle">
 		<div class="md-toolbar-tools">
 			<span ng-bind="::title" flex ng-if="::isFullPage"></span>
 			<a ng-bind="::title" ng-href="{{::moreLink}}" flex ng-if="::!isFullPage"></a>

@@ -6,7 +6,8 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 		templateUrl: 'static/html/listPanel.html',
 		scope: {
 			numToDisplay: '=',
-			isFullPage: '='
+			isFullPage: '=',
+			hideTitle: '=',
 		},
 		controller: function($scope) {
 			$scope.pageService = pageService;
@@ -21,7 +22,7 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 				function(data) {
 					$scope.modeRows = data.result.modeRows;
 					$scope.lastView = data.result.lastView;
-			});
+				});
 		},
 	};
 });

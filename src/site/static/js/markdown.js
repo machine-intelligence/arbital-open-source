@@ -481,7 +481,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 							style: 'width:' + $element.css('width') + ';height:' + $element.css('height'),
 						});
 					};
-					
+
 					// Read from cache
 					var cachedValue = pageService.getMathjaxCacheValue(encodedMathjaxText);
 					if (cachedValue) {

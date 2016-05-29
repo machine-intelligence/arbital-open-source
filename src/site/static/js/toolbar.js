@@ -1,7 +1,8 @@
 'use strict';
 
 // toolbar directive displays the toolbar at the top of each page
-app.directive('arbToolbar', function($mdSidenav, $http, $location, $compile, $rootScope, $timeout, $q, $mdMedia, pageService, userService, autocompleteService, urlService) {
+app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $compile, $rootScope, $timeout,
+		$q, $mdMedia, pageService, userService, autocompleteService, urlService) {
 	return {
 		templateUrl: 'static/html/toolbar.html',
 		scope: {
@@ -45,6 +46,29 @@ app.directive('arbToolbar', function($mdSidenav, $http, $location, $compile, $ro
 				$scope.hide = $location.path().indexOf('/edit') === 0;
 			});
 			$scope.hide = $location.path().indexOf('/edit') === 0;
+
+			$scope.showAchievements = function(ev) {
+				if (!$mdMedia('gt-sm')) {
+					urlService.goToUrl('/achievements/');
+					return;
+				}
+
+				var position = $mdPanel.newPanelPosition()
+					.relativeTo('.achievements-icon')
+					.addPanelPosition($mdPanel.xPosition.ALIGN_END, $mdPanel.yPosition.BELOW);
+				var config = {
+					template: '<arb-hedons-mode-panel hide-title="true" num-to-display="100">' +
+						'</arb-hedons-mode-panel>',
+					position: position,
+					panelClass: 'popover-panel',
+					openFrom: ev,
+					clickOutsideToClose: true,
+					escapeToClose: true,
+					focusOnOpen: false,
+					zIndex: 200000
+				};
+				$mdPanel.open(config);
+			};
 		},
 	};
 });
