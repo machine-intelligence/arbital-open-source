@@ -1,0 +1,37 @@
+<!-- A recursive tree node to display corresponding page and node's children. -->
+<div class="page-panel">
+	<div layout="row" layout-align="start center">
+			<md-button class="md-icon-button"
+					ng-click="toggleNode($event)"
+					aria-label="Toggle children"
+					ng-if="showCollapseArrow()">
+				<md-icon ng-if="showChildren">expand_more</md-icon>
+				<md-icon ng-if="!showChildren">chevron_right</md-icon>
+			</md-button>
+
+			<div class="explore-bullet" ng-switch="::page.type" ng-if="!showCollapseArrow()">
+				<span ng-switch-when="lens">
+					<md-icon>lens</md-icon>
+					<md-tooltip>Lens page<md-tooltip>
+				</span>
+				<span ng-switch-when="question">
+					<md-icon>help_outline</md-icon>
+					<md-tooltip>Question page<md-tooltip>
+				</span>
+				<span ng-switch-default>
+					<md-icon md-svg-icon="file_outline"></md-icon>
+					<md-tooltip>Page<md-tooltip>
+				</span>
+			</div>
+		<div class="explore-page-div" flex>
+			<arb-page-row page-id="{{::pageId}}"
+					show-red-link-count="::true"
+					show-comment-count="::true"
+					show-text-length="::true"></arb-page-row>
+		</div>
+	</div>
+	<div class="explore-children-div" ng-show="showChildren">
+		<md-progress-circular md-mode="indeterminate" ng-if="isLoadingChildren()"></md-progress-circular>
+		<arb-explore-tree-node ng-repeat="pageId in pageIds" page-id="{{::pageId}}"></arb-explore-tree-node>
+	</div>
+</div>

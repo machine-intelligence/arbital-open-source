@@ -66,8 +66,9 @@ app.config(function($locationProvider, $mdIconProvider, $mdThemingProvider) {
 		.icon('comment_plus_outline', 'static/icons/comment-plus-outline.svg')
 		.icon('comment_question_outline', 'static/icons/comment-question-outline.svg')
 		.icon('facebook_box', 'static/icons/facebook-box.svg')
+		.icon('file_outline', 'static/icons/file-outline.svg')
 		.icon('format_header_pound', 'static/icons/format-header-pound.svg')
-		.icon('cursor-pointer', 'static/icons/cursor-pointer.svg')
+		.icon('cursor_pointer', 'static/icons/cursor-pointer.svg')
 		.icon('link_variant', 'static/icons/link-variant.svg')
 		.icon('thumb_up_outline', 'static/icons/thumb-up-outline.svg')
 		.icon('thumb_down_outline', 'static/icons/thumb-down-outline.svg');
@@ -279,32 +280,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 
 app.run(function($http, $location, urlService, pageService, userService) {
 	// Set up mapping from URL path to specific controllers
-	urlService.addUrlHandler('/achievements/', {
-		name: 'AchievementsPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/default/'})
-			.success($scope.getSuccessFunc(function(data) {
-				return {
-					title: 'Achievements',
-					content: $scope.newElement('<arb-hedons-mode-page></arb-hedons-mode-page'),
-				};
-			}))
-			.error($scope.getErrorFunc('default'));
-		},
-	});
-	urlService.addUrlHandler('/discussion/', {
-		name: 'DiscussionPage',
-		handler: function(args, $scope) {
-			$http({method: 'POST', url: '/json/default/'})
-			.success($scope.getSuccessFunc(function(data) {
-				return {
-					title: 'Discussions',
-					content: $scope.newElement('<arb-discussion-mode-page></arb-discussion-mode-page'),
-				};
-			}))
-			.error($scope.getErrorFunc('default'));
-		},
-	});
 	urlService.addUrlHandler('/', {
 		name: 'IndexPage',
 		handler: function(args, $scope) {
@@ -331,6 +306,19 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				}))
 				.error($scope.getErrorFunc('index'));
 			}
+		},
+	});
+	urlService.addUrlHandler('/achievements/', {
+		name: 'AchievementsPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Achievements',
+					content: $scope.newElement('<arb-hedons-mode-page></arb-hedons-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
 		},
 	});
 	urlService.addUrlHandler('/adminDashboard/', {
@@ -363,6 +351,19 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				};
 			}))
 			.error($scope.getErrorFunc('dashboardPage'));
+		},
+	});
+	urlService.addUrlHandler('/discussion/', {
+		name: 'DiscussionPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Discussions',
+					content: $scope.newElement('<arb-discussion-mode-page></arb-discussion-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
 		},
 	});
 	urlService.addUrlHandler('/domains/:alias', {
@@ -506,6 +507,21 @@ app.run(function($http, $location, urlService, pageService, userService) {
 				};
 			}))
 			.error($scope.getErrorFunc('default'));
+		},
+	});
+	urlService.addUrlHandler('/explore/:pageAlias', {
+		name: 'ExplorePage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/explore/', data: JSON.stringify({pageAlias: args.pageAlias})})
+			.success($scope.getSuccessFunc(function(data) {
+				var page = pageService.pageMap[data.result.pageId];
+				return {
+					title: 'Explore ' + page.title,
+					content: $scope.newElement('<arb-explore-page page-id=\'' + data.result.pageId +
+						'\'></arb-explore-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('explore'));
 		},
 	});
 	urlService.addUrlHandler('/groups/', {

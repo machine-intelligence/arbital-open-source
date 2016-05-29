@@ -153,6 +153,9 @@ arb-markdown, [arb-markdown], .preview-area {
 	arb-newsletter > & {
 		max-width: 900px;
 	}
+	arb-explore-page > & {
+		max-width: 1100px;
+	}
 }
 
 .white-circle-background {
@@ -979,4 +982,21 @@ arb-log-row, [arb-log-row] {
 	.md-button {
 		margin-right: 15px;
 	}
+}
+
+.explore-bullet {
+	position: relative;
+	left: 8px;
+	min-width: 40px;
+	color: lightgray;
+}
+
+.explore-page-div {
+	margin-top: 10px;
+}
+
+.explore-children-div {
+	border-left: lightgray 4px solid;
+	padding-left: 10px;
+	margin-left: 16px;
 }

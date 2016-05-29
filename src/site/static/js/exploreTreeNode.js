@@ -1,0 +1,57 @@
+"use strict";
+
+// exploreTreeNode displays the corresponding page and it's node children
+// recursively, allowing the user to recursively explore the page tree.
+app.directive("arbExploreTreeNode", function(RecursionHelper, pageService) {
+	return {
+		templateUrl: "/static/html/exploreTreeNode.html",
+		scope: {
+			pageId: '@',
+		},
+		controller: function ($scope) {
+			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.pageIds = $scope.page.childIds.concat($scope.page.lensIds);
+			$scope.showChildren = true;
+
+			// Sort children.
+			$scope.pageIds.sort(function(aId, bId) {
+				var pageA = pageService.pageMap[aId];
+				var pageB = pageService.pageMap[bId];
+				var varsA = [pageA.isLens(), !pageA.hasChildren, pageA.title];
+				var varsB = [pageB.isLens(), !pageB.hasChildren, pageB.title];
+				for (var n = 0; n < varsA.length; n++) {
+					if (varsA[n] == varsB[n]) continue;
+					return varsA[n] < varsB[n];
+				}
+				return 0;
+			});
+		
+			// Toggle the node's children visibility.
+			$scope.toggleNode = function(event) {
+				$scope.showChildren = !$scope.showChildren;
+			};
+			// Return true iff the corresponding page is loading children.
+			$scope.isLoadingChildren = function() {
+				return $scope.page.isLoadingChildren;
+			};
+		
+			// Return true if we should show the collapse arrow button for this page.
+			$scope.showCollapseArrow = function() {
+				return $scope.page.hasChildren;
+			};
+
+			$scope.getExploreIcon = function() {
+				if ($scope.page.isLens()) return "lens";
+				if ($scope.page.isQuestion()) return "help_outline";
+				return "";
+			};
+
+			$scope.getExploreSvgIcon = function() {
+				return "file_outline";
+			};
+		},
+		compile: function(element) {
+			return RecursionHelper.compile(element);
+		},
+	};
+});
