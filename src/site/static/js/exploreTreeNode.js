@@ -1,6 +1,6 @@
 "use strict";
 
-// exploreTreeNode displays the corresponding page and it's node children
+// exploreTreeNode displays the corresponding page and its node children
 // recursively, allowing the user to recursively explore the page tree.
 app.directive("arbExploreTreeNode", function(RecursionHelper, pageService) {
 	return {
