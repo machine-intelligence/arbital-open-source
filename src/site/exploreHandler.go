@@ -59,9 +59,9 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}).Add(core.TitlePlusLoadOptions)
 	core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
 
-	// Load page ids recursively
-	currentPageIds := []string{pageId}
-	for len(currentPageIds) > 0 {
+	// Load all children of the pageId, then load all the grand-children, etc. recursively
+	parentIdsToProcess := []string{pageId}
+	for len(parentIdsToProcess) > 0 {
 		rows := database.NewQuery(`
 			SELECT pp.childId
 			FROM pagePairs AS pp
@@ -69,8 +69,8 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ON (pi.pageId=pp.childId)
 			WHERE pp.type=?`, core.ParentPagePairType).Add(`
 				AND pi.type!=?`, core.CommentPageType).Add(`
-				AND pp.parentId IN`).AddArgsGroupStr(currentPageIds).ToStatement(db).Query()
-		currentPageIds = make([]string, 0)
+				AND pp.parentId IN`).AddArgsGroupStr(parentIdsToProcess).ToStatement(db).Query()
+		parentIdsToProcess = make([]string, 0)
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var pageId string
 			err := rows.Scan(&pageId)
@@ -79,7 +79,7 @@ func exploreJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 			_, ok := returnData.PageMap[pageId]
 			if !ok && len(returnData.PageMap) < ExploreMaxPagesToLoad {
-				currentPageIds = append(currentPageIds, pageId)
+				parentIdsToProcess = append(parentIdsToProcess, pageId)
 				core.AddPageToMap(pageId, returnData.PageMap, loadOptions)
 			}
 			return nil
