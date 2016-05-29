@@ -17,11 +17,11 @@ app.directive("arbExploreTreeNode", function(RecursionHelper, pageService) {
 			$scope.pageIds.sort(function(aId, bId) {
 				var pageA = pageService.pageMap[aId];
 				var pageB = pageService.pageMap[bId];
-				var varsA = [pageA.isLens(), !pageA.hasChildren, pageA.title];
-				var varsB = [pageB.isLens(), !pageB.hasChildren, pageB.title];
+				var varsA = [pageA.isLens()?0:1, pageA.hasChildren?0:1, pageA.title];
+				var varsB = [pageB.isLens()?0:1, pageB.hasChildren?0:1, pageB.title];
 				for (var n = 0; n < varsA.length; n++) {
 					if (varsA[n] == varsB[n]) continue;
-					return varsA[n] < varsB[n];
+					return varsA[n] < varsB[n] ? -1 : 1;
 				}
 				return 0;
 			});
