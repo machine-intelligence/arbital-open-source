@@ -1,7 +1,7 @@
 'use strict';
 
 // arbNewsletter directive displays a way for the user to edit their newsletter preferences
-app.directive('arbNewsletter', function($http, pageService, userService) {
+app.directive('arbNewsletter', function($http, arb) {
 	return {
 		templateUrl: 'static/html/newsletterPage.html',
 		scope: {

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the learn page.
-app.directive('arbLearnPage', function($location, $compile, pageService, userService) {
+app.directive('arbLearnPage', function($location, $compile, arb) {
 	return {
 		templateUrl: 'static/html/learnPage.html',
 		scope: {
@@ -105,7 +105,7 @@ app.directive('arbLearnPage', function($location, $compile, pageService, userSer
 });
 
 // Directive for a recursive part of a learn.
-app.directive('arbLearnPart', function(pageService, userService, RecursionHelper) {
+app.directive('arbLearnPart', function(arb, RecursionHelper) {
 	return {
 		templateUrl: 'static/html/learnPart.html',
 		controller: function($scope) {

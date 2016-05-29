@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Settings page.
-app.directive('arbSettingsInviteTab', function($http, $filter, pageService, userService) {
+app.directive('arbSettingsInviteTab', function($http, $filter, arb) {
 	return {
 		templateUrl: 'static/html/settingsInviteTab.html',
 		scope: {

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a subpage.
-app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, arb, autocompleteService, RecursionHelper) {
 	return {
 		templateUrl: 'static/html/subpage.html',
 		scope: {
@@ -117,7 +117,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 });
 
 // Directive for container holding an inline comment
-app.directive('arbInlineComment', function($compile, $timeout, $location, $mdToast, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive('arbInlineComment', function($compile, $timeout, $location, $mdToast, arb, autocompleteService, RecursionHelper) {
 	return {
 		templateUrl: 'static/html/inlineComment.html',
 		scope: {

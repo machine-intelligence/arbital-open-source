@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a window for creating/editing a query
-app.directive('arbQueryInfo', function($interval, pageService, userService, autocompleteService) {
+app.directive('arbQueryInfo', function($interval, arb, autocompleteService) {
 	return {
 		templateUrl: 'static/html/queryInfo.html',
 		scope: {

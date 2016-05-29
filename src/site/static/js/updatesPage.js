@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Updates page.
-app.directive('arbUpdates', function($http, pageService, userService) {
+app.directive('arbUpdates', function($http, arb) {
 	return {
 		templateUrl: 'static/html/updatesPage.html',
 		scope: {

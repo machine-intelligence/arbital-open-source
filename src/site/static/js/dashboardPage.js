@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Dashboard page.
-app.directive('arbDashboardPage', function(pageService, userService) {
+app.directive('arbDashboardPage', function(arb) {
 	return {
 		templateUrl: 'static/html/dashboardPage.html',
 		scope: {

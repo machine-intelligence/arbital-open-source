@@ -3,7 +3,7 @@
 
 // Directive for the actual DOM elements which allows the user to edit a page.
 app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia,
-	pageService, userService, autocompleteService, markdownService, diffService) {
+	arb, autocompleteService, markdownService, diffService) {
 	return {
 		templateUrl: 'static/html/editPage.html',
 		scope: {

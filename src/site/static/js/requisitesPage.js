@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Requisites page.
-app.directive('arbRequisitesPage', function(pageService, userService) {
+app.directive('arbRequisitesPage', function(arb) {
 	return {
 		templateUrl: 'static/html/requisitesPage.html',
 		scope: {

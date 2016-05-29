@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a diff for a newEdit changeLog.
-app.directive('arbEditDiff', function($compile, $location, $rootScope, pageService, userService, diffService) {
+app.directive('arbEditDiff', function($compile, $location, $rootScope, arb, diffService) {
 	return {
 		templateUrl: 'static/html/editDiff.html',
 		scope: {

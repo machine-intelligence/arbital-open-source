@@ -1,5 +1,5 @@
 // Directive to show the discussion section for a page
-app.directive('arbPageDiscussion', function($compile, $location, $timeout, pageService, userService, autocompleteService) {
+app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb, autocompleteService) {
 	return {
 		templateUrl: 'static/html/pageDiscussion.html',
 		scope: {

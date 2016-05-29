@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for multiple choice
-app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 	return {
 		templateUrl: 'static/html/multipleChoice.html',
 		transclude: true,

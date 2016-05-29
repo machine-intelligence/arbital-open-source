@@ -1,7 +1,7 @@
 'use strict';
 
 // userName directive displayes a user's name.
-app.directive('arbUserName', function(pageService, userService) {
+app.directive('arbUserName', function(arb) {
 	return {
 		templateUrl: 'static/html/userName.html',
 		scope: {
@@ -16,7 +16,7 @@ app.directive('arbUserName', function(pageService, userService) {
 });
 
 // intrasitePopover contains the popover body html.
-app.directive('arbIntrasitePopover', function($timeout, pageService, userService) {
+app.directive('arbIntrasitePopover', function($timeout, arb) {
 	return {
 		templateUrl: 'static/html/intrasitePopover.html',
 		scope: {
@@ -101,7 +101,7 @@ app.directive('arbIntrasitePopover', function($timeout, pageService, userService
 });
 
 // userPopover contains the popover body html.
-app.directive('arbUserPopover', function($timeout, pageService, userService) {
+app.directive('arbUserPopover', function($timeout, arb) {
 	return {
 		templateUrl: 'static/html/userPopover.html',
 		scope: {
@@ -177,7 +177,7 @@ app.directive('arbUserPopover', function($timeout, pageService, userService) {
 });
 
 // pageTitle displays page's title with optional meta info.
-app.directive('arbPageTitle', function(pageService, userService) {
+app.directive('arbPageTitle', function(arb) {
 	return {
 		templateUrl: 'static/html/pageTitle.html',
 		scope: {
@@ -212,7 +212,7 @@ app.directive('arbPageTitle', function(pageService, userService) {
 });
 
 // likes displays the likes button(s) for a page.
-app.directive('arbLikes', function($http, pageService, userService) {
+app.directive('arbLikes', function($http, arb) {
 	return {
 		templateUrl: 'static/html/likes.html',
 		scope: {
@@ -268,7 +268,7 @@ app.directive('arbLikes', function($http, pageService, userService) {
 });
 
 // subscribe directive displays the button for subscribing to a page.
-app.directive('arbSubscribe', function($http, pageService, userService) {
+app.directive('arbSubscribe', function($http, arb) {
 	return {
 		templateUrl: 'static/html/subscribe.html',
 		scope: {
@@ -311,7 +311,7 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, pageService, userService) {
+app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, arb) {
 	return {
 		templateUrl: 'static/html/composeFab.html',
 		scope: {
@@ -409,7 +409,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 });
 
 // autocomplete searches for relevant pages as you do the search
-app.directive('arbAutocomplete', function($timeout, $q, pageService, userService, autocompleteService) {
+app.directive('arbAutocomplete', function($timeout, $q, arb, autocompleteService) {
 	return {
 		templateUrl: 'static/html/autocomplete.html',
 		scope: {
@@ -478,7 +478,7 @@ app.directive('arbConfirmButton', function() {
 });
 
 // Directive for the User page panel
-app.directive('arbPageList', function(pageService, userService) {
+app.directive('arbPageList', function(arb) {
 	return {
 		templateUrl: 'static/html/pageList.html',
 		scope: {
@@ -506,7 +506,7 @@ app.directive('arbPageList', function(pageService, userService) {
 });
 
 // Exists to share the template for a row in a md-list of pages
-app.directive('arbPageRow', function(pageService, userService) {
+app.directive('arbPageRow', function(arb) {
 	return {
 		templateUrl: 'static/html/pageRow.html',
 		replace: true,
@@ -532,7 +532,7 @@ app.directive('arbPageRow', function(pageService, userService) {
 });
 
 // Directive for checking if the user meets the necessary permissions
-app.directive('arbUserCheck', function($compile, $mdToast, pageService, userService) {
+app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 	return {
 		restrict: 'A',
 		controller: function($scope) {
@@ -559,7 +559,7 @@ app.directive('arbUserCheck', function($compile, $mdToast, pageService, userServ
 });
 
 // Directive for a button to toggle requisite state
-app.directive('arbRequisiteButton', function(pageService, userService) {
+app.directive('arbRequisiteButton', function(arb) {
 	return {
 		templateUrl: 'static/html/requisiteButton.html',
 		scope: {
@@ -601,7 +601,7 @@ app.directive('arbRequisiteButton', function(pageService, userService) {
 });
 
 // Directive for displaying next/prev buttons when learning.
-app.directive('arbNextPrev', function($location, pageService, userService) {
+app.directive('arbNextPrev', function($location, arb) {
 	return {
 		templateUrl: 'static/html/nextPrev.html',
 		scope: {

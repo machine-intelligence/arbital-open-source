@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Login page.
-app.directive('arbLogin', function($location, $http, pageService, userService) {
+app.directive('arbLogin', function($location, $http, arb) {
 	return {
 		templateUrl: 'static/html/loginPage.html',
 		scope: {

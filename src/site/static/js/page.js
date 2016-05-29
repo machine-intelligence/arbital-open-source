@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a standard Arbital page.
-app.directive('arbPage', function($http, $location, $compile, $timeout, $interval, $mdMedia, pageService, userService) {
+app.directive('arbPage', function($http, $location, $compile, $timeout, $interval, $mdMedia, arb) {
 	return {
 		templateUrl: 'static/html/page.html',
 		scope: {

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Groups page.
-app.directive('arbGroupsPage', function(pageService, userService, autocompleteService, $timeout, $http) {
+app.directive('arbGroupsPage', function(arb, autocompleteService, $timeout, $http) {
 	return {
 		templateUrl: 'static/html/groupsPage.html',
 		scope: {

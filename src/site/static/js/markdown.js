@@ -25,7 +25,7 @@ var atAliasRegexp = new RegExp(notEscaped +
 
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.service('markdownService', function($compile, $timeout, pageService, userService) {
+app.service('markdownService', function($compile, $timeout, arb) {
 	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
 	var failedPageAliases = {};
 

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a window for creating/editing a mark
-app.directive('arbMarkInfo', function($interval, pageService, userService, autocompleteService) {
+app.directive('arbMarkInfo', function($interval, arb, autocompleteService) {
 	return {
 		templateUrl: 'static/html/markInfo.html',
 		scope: {

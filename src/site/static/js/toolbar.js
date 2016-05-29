@@ -2,7 +2,7 @@
 
 // toolbar directive displays the toolbar at the top of each page
 app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $compile, $rootScope, $timeout,
-		$q, $mdMedia, pageService, userService, autocompleteService, urlService) {
+		$q, $mdMedia, arb, autocompleteService, urlService) {
 	return {
 		templateUrl: 'static/html/toolbar.html',
 		scope: {

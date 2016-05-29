@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the list of answers
-app.directive('arbAnswers', function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbAnswers', function($timeout, $http, $compile, arb) {
 	return {
 		templateUrl: 'static/html/answers.html',
 		scope: {

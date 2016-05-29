@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Signup page.
-app.directive('arbSignup', function($location, $http, pageService, userService) {
+app.directive('arbSignup', function($location, $http, arb) {
 	return {
 		templateUrl: 'static/html/signupPage.html',
 		scope: {

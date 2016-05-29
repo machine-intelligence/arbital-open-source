@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for hidden text (usually for homework problems)
-app.directive('arbHiddenText', function(pageService, userService) {
+app.directive('arbHiddenText', function(arb) {
 	return {
 		templateUrl: 'static/html/hiddenText.html',
 		transclude: true,

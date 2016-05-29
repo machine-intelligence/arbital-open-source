@@ -1,5 +1,5 @@
 // Directive for showing a vote bar.
-app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, pageService, userService) {
+app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 	return {
 		templateUrl: 'static/html/voteBar.html',
 		scope: {

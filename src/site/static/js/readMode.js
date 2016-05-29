@@ -1,7 +1,7 @@
 'use strict';
 
 // arb-read-mode-page hosts the arb-read-mode-panel
-app.directive('arbReadModePage', function($http, pageService, userService) {
+app.directive('arbReadModePage', function($http, arb) {
 	return {
 		templateUrl: 'static/html/readModePage.html',
 		scope: {

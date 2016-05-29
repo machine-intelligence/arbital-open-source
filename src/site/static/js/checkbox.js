@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for a checkbox
-app.directive('arbCheckbox', function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 	return {
 		templateUrl: 'static/html/checkbox.html',
 		transclude: true,

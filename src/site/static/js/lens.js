@@ -3,7 +3,7 @@
 
 // Directive to show a lens' content
 app.directive('arbLens', function($http, $location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope,
-	pageService, userService, diffService) {
+	arb, diffService) {
 	return {
 		templateUrl: 'static/html/lens.html',
 		scope: {

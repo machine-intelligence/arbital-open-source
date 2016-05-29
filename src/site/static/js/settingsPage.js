@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Settings page.
-app.directive('arbSettingsPage', function($http, pageService, userService) {
+app.directive('arbSettingsPage', function($http, arb) {
 	return {
 		templateUrl: 'static/html/settingsPage.html',
 		scope: {

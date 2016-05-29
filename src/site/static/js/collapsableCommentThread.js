@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a comment thread that's collapsed behind a button
-app.directive('arbCollapsableCommentThread', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, pageService, userService, autocompleteService, RecursionHelper) {
+app.directive('arbCollapsableCommentThread', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, arb, autocompleteService, RecursionHelper) {
 	return {
 		templateUrl: 'static/html/collapsableCommentThread.html',
 		scope: {

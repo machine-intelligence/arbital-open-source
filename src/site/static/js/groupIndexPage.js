@@ -1,7 +1,7 @@
 'use strict';
 
 // arb-group-index directive displays a set of links to pages
-app.directive('arbGroupIndex', function(pageService, userService) {
+app.directive('arbGroupIndex', function(arb) {
 	return {
 		templateUrl: 'static/html/groupIndexPage.html',
 		scope: {

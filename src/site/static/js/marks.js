@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive to show the marks section for a page
-app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, pageService, userService) {
+app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, arb) {
 	return {
 		templateUrl: 'static/html/marks.html',
 		scope: {

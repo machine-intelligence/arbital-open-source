@@ -28,7 +28,7 @@ app.directive('arbHedonsModePanel', function($http, userService, pageService) {
 });
 
 // arb-likes-row is the directive for showing who liked current user's stuff
-app.directive('arbLikesModeRow', function(pageService, userService) {
+app.directive('arbLikesModeRow', function(arb) {
 	return {
 		templateUrl: 'static/html/likesModeRow.html',
 		scope: {
@@ -45,7 +45,7 @@ app.directive('arbLikesModeRow', function(pageService, userService) {
 });
 
 // arb-reqs-taught-row is the directive for showing who learned current user's reqs
-app.directive('arbReqsTaughtModeRow', function(pageService, userService) {
+app.directive('arbReqsTaughtModeRow', function(arb) {
 	return {
 		templateUrl: 'static/html/reqsTaughtModeRow.html',
 		scope: {
@@ -65,7 +65,7 @@ app.directive('arbReqsTaughtModeRow', function(pageService, userService) {
 });
 
 // arb-hedons-mode-page is for displaying the entire /achievements page
-app.directive('arbHedonsModePage', function($http, pageService, userService) {
+app.directive('arbHedonsModePage', function($http, arb) {
 	return {
 		templateUrl: 'static/html/hedonsModePage.html',
 		scope: {
