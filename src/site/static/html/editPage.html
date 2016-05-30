@@ -540,7 +540,8 @@
 						<arb-confirm-button button-text="Delete page"
 								button-before-confirm="true"
 								disabled="::page.isDeleted"
-								confirmed="deletePage()"></arb-confirm-button>
+								confirmed="deletePage()"
+								ng-if="::page.wasPublished"></arb-confirm-button>
 					</md-content>
 				</div>
 			</md-tab>
