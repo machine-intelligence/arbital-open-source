@@ -289,6 +289,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				}
 				matches = alias.match(aliasMatch);
 				if (matches && matches[0] == alias) {
+					var firstAliasChar = alias.substring(0, 1);
+					if (firstAliasChar == '-' || firstAliasChar == '+') {
+						alias = alias.substring(1);
+					}
 					var page = pageService.pageMap[alias];
 					if (page) {
 						var url = urlService.getPageUrl(page.pageId, {includeHost: true});
