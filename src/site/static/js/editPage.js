@@ -390,7 +390,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
 							} else if ($location.search().markId) {
 								// Update the mark as resolved
-								arb.pageService.resolveMark({
+								arb.markService.resolveMark({
 									markId: $location.search().markId,
 									resolvedPageId: $scope.pageId,
 								}, function success() {

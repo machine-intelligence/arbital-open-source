@@ -37,7 +37,8 @@
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
-	<a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}">
+	<a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}"
+			ng-if="!isOnPage()">
 		View this query mark on the page
 	</a>
 

@@ -576,7 +576,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				scope.loadedMarks = false;
 				scope.loadMarks = function() {
 					scope.loadedMarks = true;
-					arb.pageService.loadMarks({pageId: scope.page.pageId}, function(data) {
+					arb.markService.loadMarks({pageId: scope.page.pageId}, function(data) {
 						for (var markId in data.marks) {
 							processMark(markId);
 						}
@@ -653,7 +653,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				var newMark = function(type, success) {
 					var selection = getSelectedParagraphText(cachedSelection, type != 'query');
 					if (!selection && type !== 'query') return;
-					arb.pageService.newMark({
+					arb.markService.newMark({
 							pageId: scope.pageId,
 							edit: scope.page.edit,
 							type: type,

@@ -24,7 +24,7 @@ app.directive('arbQueryInfo', function($interval, arb) {
 
 			// Update mark's text.
 			$scope.updateMarkText = function(submit) {
-				arb.pageService.updateMark({
+				arb.markService.updateMark({
 						markId: $scope.markId,
 						text: $scope.mark.text,
 						submit: submit,
@@ -73,7 +73,7 @@ app.directive('arbQueryInfo', function($interval, arb) {
 
 			// Call to resolve the mark with the given page.
 			$scope.resolveWith = function(pageId) {
-				arb.pageService.resolveMark({
+				arb.markService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: pageId,
 					text: $scope.mark.text,
@@ -119,7 +119,7 @@ app.directive('arbQueryInfo', function($interval, arb) {
 
 			// Called when an author wants to resolve the mark.
 			$scope.dismissMark = function() {
-				arb.pageService.resolveMark({
+				arb.markService.resolveMark({
 					markId: $scope.markId,
 					text: $scope.mark.text,
 				});
