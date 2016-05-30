@@ -38,7 +38,7 @@
 			<div flex></div>
 			<div layout="row" layout-align="start center">
 				<span class="separator"></span>
-				<md-button ng-href="{{::pageService.getPageUrl(page.pageId, {permalink:true, discussionHash: true})}}">
+				<md-button ng-href="{{::arb.urlService.getPageUrl(page.pageId, {permalink:true, discussionHash: true})}}">
 					<md-icon>comment</md-icon>
 					<span ng-bind="::page.commentCount"></span>
 					<md-tooltip>Comment count</md-tooltip>

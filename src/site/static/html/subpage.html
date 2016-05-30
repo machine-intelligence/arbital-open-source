@@ -2,7 +2,7 @@
 		layout="column"
 		class="subpage-content full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-if="!isDeleted && (!page.isEditorComment || pageService.getShowEditorComments())">
+		ng-if="!isDeleted && (!page.isEditorComment || arb.stateService.getShowEditorComments())">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center">
 		<md-icon ng-if="::!parentSubpageId">comment</md-icon>
@@ -27,8 +27,8 @@
 			<md-menu-content>
 
 				<!-- Edit comment -->
-				<md-menu-item ng-if="::(page.pageCreatorId === userService.user.id)">
-					<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}"
+				<md-menu-item ng-if="::(page.pageCreatorId === arb.userService.user.id)">
+					<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
 							aria-label="Edit comment"
 							ng-disabled="editing"
 							ng-click="editSubpage($event)">
@@ -44,7 +44,7 @@
 				</md-menu-item>
 
 				<!-- Mark comment as for editors only -->
-				<md-menu-item ng-if="(page.pageCreatorId === userService.user.id || userService.user.isAdmin) && !page.isEditorComment">
+				<md-menu-item ng-if="(page.pageCreatorId === arb.userService.user.id || arb.userService.user.isAdmin) && !page.isEditorComment">
 					<md-button ng-click="showToEditorsOnly()"
 							ng-disabled="editing"
 							aria-label="Show to editors only">
@@ -53,7 +53,7 @@
 				</md-menu-item>
 
 				<!-- Delete comment -->
-				<md-menu-item ng-if="page.pageCreatorId === userService.user.id || userService.user.isAdmin">
+				<md-menu-item ng-if="page.pageCreatorId === arb.userService.user.id || arb.userService.user.isAdmin">
 					<md-button ng-click="deleteSubpage()"
 							ng-disabled="editing"
 							aria-label="Delete comment">
@@ -81,7 +81,7 @@
 			<arb-likes likeable-type="page" likeable-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
 			<arb-subscribe page-id="{{::page.pageId}}"
 					show-subscriber-count="::!isTinyScreen"
-					ng-if="::!parentSubpageId && (page.editCreatorId != userService.user.id)"></arb-subscribe>
+					ng-if="::!parentSubpageId && (page.editCreatorId != arb.userService.user.id)"></arb-subscribe>
 			<md-button class="md-primary"
 					aria-label="Reply to comment"
 					ng-click="newReply()"

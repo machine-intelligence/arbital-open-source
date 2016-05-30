@@ -42,7 +42,7 @@
 				show-clickbait="true"
 				ng-if="!(otherPageId === pageId && isSubjectType && !page.wasPublished)"></arb-page-title>
 
-		<span ng-bind="pageService.editMap[pageId].title ? pageService.editMap[pageId].title : '*Untitled*'"
+		<span ng-bind="arb.pageService.editMap[pageId].title ? arb.pageService.editMap[pageId].title : '*Untitled*'"
 				ng-if="otherPageId === pageId && isSubjectType && !page.wasPublished"></span>
 	</div>
 

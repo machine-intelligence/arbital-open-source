@@ -1,4 +1,4 @@
-<div class="intrasite-popover" ng-class="::{'touch-device': userService.isTouchDevice}">
+<div class="intrasite-popover" ng-class="::{'touch-device': arb.userService.isTouchDevice}">
 	<div class="top-triangle-track" ng-if="::(direction === 'down')">
 		<div class="triangle-up" ng-style="::getArrowStyle()"></div>
 	</div>
@@ -43,7 +43,7 @@
 			<div flex></div>
 			<div layout="row" layout-align="start center">
 				<span class="separator"></span>
-				<md-button ng-href="{{::pageService.getPageUrl(page.pageId, {permalink:true, discussionHash: true})}}">
+				<md-button ng-href="{{::arb.urlService.getPageUrl(page.pageId, {permalink:true, discussionHash: true})}}">
 					<md-icon>comment</md-icon>
 					<span ng-bind="::page.commentCount"></span>
 					<md-tooltip>Comment count</md-tooltip>
@@ -51,7 +51,7 @@
 			</div>
 			<div layout="row" layout-align="start center" ng-if="::(page.type === 'question')">
 				<span class="separator"></span>
-				<md-button ng-href="{{::pageService.getPageUrl(page.pageId, {permalink:true, answersHash: true})}}">
+				<md-button ng-href="{{::arb.urlService.getPageUrl(page.pageId, {permalink:true, answersHash: true})}}">
 					<md-icon>font_download</md-icon>
 					<span ng-bind="::page.answerCount"></span>
 					<md-tooltip>Answer count</md-tooltip>

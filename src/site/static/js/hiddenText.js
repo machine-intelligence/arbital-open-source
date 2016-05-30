@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for hidden text (usually for homework problems)
-app.directive('arbHiddenText', function(pageService, userService) {
+app.directive('arbHiddenText', function(arb) {
 	return {
 		templateUrl: 'static/html/hiddenText.html',
 		transclude: true,
@@ -9,10 +9,9 @@ app.directive('arbHiddenText', function(pageService, userService) {
 			buttonText: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.revealed = false;
+			$scope.arb = arb;
 
+			$scope.revealed = false;
 			$scope.reveal = function() {
 				$scope.revealed = true;
 			};

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Login page.
-app.directive('arbLogin', function($location, $http, pageService, userService) {
+app.directive('arbLogin', function($location, $http, arb) {
 	return {
 		templateUrl: 'static/html/loginPage.html',
 		scope: {
@@ -9,8 +9,7 @@ app.directive('arbLogin', function($location, $http, pageService, userService) {
 			isEmbedded: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.formData = {};
 
 			$scope.formSubmit = function(event) {
@@ -21,7 +20,7 @@ app.directive('arbLogin', function($location, $http, pageService, userService) {
 			};
 
 			$scope.loginWithFb = function() {
-				userService.fbLogin(function(response) {
+				arb.userService.fbLogin(function(response) {
 					if (response.status === 'connected') {
 						var data = {
 							fbAccessToken: response.authResponse.accessToken,

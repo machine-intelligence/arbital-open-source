@@ -30,7 +30,7 @@
 				<!-- Know to show where the user will vote -->
 				<div class="new-vote-div"
 						ng-style="{left: valueToOffset(newVoteValue)}"
-						ng-if="isHovering && userService.user.id !== ''">
+						ng-if="isHovering && arb.userService.user.id !== ''">
 					<div class="new-vote-knob md-whiteframe-4dp"></div>
 					<div class="md-body-2 new-vote-knob-hor" ng-bind="typeHelper.toString(newVoteValue)"></div>
 				</div>

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for multiple choice
-app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageService, userService) {
+app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 	return {
 		templateUrl: 'static/html/multipleChoice.html',
 		transclude: true,
@@ -11,8 +11,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 			objectAlias: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.choice = '';
 			$scope.knows = {};
 			$scope.wants = {};
@@ -21,12 +20,12 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 
 			// Called when a user makes a choice
 			$scope.choiceChanged = function() {
-				pageService.setQuestionAnswer($scope.index,
+				arb.masteryService.setQuestionAnswer($scope.index,
 						$scope.knows[$scope.choice], $scope.wants[$scope.choice],
 						$scope.delKnows[$scope.choice], $scope.delWants[$scope.choice],
 						{
 							pageId: $scope.pageId,
-							edit: pageService.pageMap[$scope.pageId].edit,
+							edit: arb.pageService.pageMap[$scope.pageId].edit,
 							object: $scope.objectAlias,
 							value: $scope.choice,
 						});
@@ -75,7 +74,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 			$compile($ul)(scope);
 
 			// If the user has answered this question before, let's restore the answer.
-			var pageObject = pageService.getPageObject(scope.pageId, scope.objectAlias);
+			var pageObject = arb.masteryService.getPageObject(scope.pageId, scope.objectAlias);
 			if (pageObject) {
 
 				// Since user's requisites might have changed since they answered this question,
@@ -91,7 +90,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 					var knowsList = scope.knows[possibleAnswer];
 					if (knowsList) {
 						for (var n = 0; n < knowsList.length; n++) {
-							if (!pageService.hasMastery(knowsList[n])) {
+							if (!arb.masteryService.hasMastery(knowsList[n])) {
 								isAnswerValid = false;
 								break;
 							}
@@ -101,7 +100,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 					var wantsList = scope.wants[possibleAnswer];
 					if (wantsList) {
 						for (var n = 0; n < wantsList.length; n++) {
-							if (!pageService.getMasteryStatus(wantsList[n])) {
+							if (!arb.masteryService.getMasteryStatus(wantsList[n])) {
 								isAnswerValid = false;
 								break;
 							}
@@ -111,7 +110,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 					var delKnowsList = scope.delKnows[possibleAnswer];
 					if (delKnowsList) {
 						for (var n = 0; n < delKnowsList.length; n++) {
-							if (pageService.hasMastery(delKnowsList[n])) {
+							if (arb.masteryService.hasMastery(delKnowsList[n])) {
 								isAnswerValid = false;
 								break;
 							}
@@ -121,7 +120,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 					var delWantsList = scope.delWants[possibleAnswer];
 					if (delWantsList) {
 						for (var n = 0; n < delWantsList.length; n++) {
-							if (pageService.wantsMastery(delWantsList[n])) {
+							if (arb.masteryService.wantsMastery(delWantsList[n])) {
 								isAnswerValid = false;
 								break;
 							}
@@ -148,4 +147,3 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, pageServi
 		},
 	};
 });
-

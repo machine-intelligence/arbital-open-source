@@ -200,7 +200,7 @@
 							</md-button>
 						</div>
 						<div flex></div>
-						<md-button ng-href="{{::pageService.getEditPageUrl(page.pageId)}}" ng-show="::(isEmbedded && !insideDialog)">
+						<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}" ng-show="::(isEmbedded && !insideDialog)">
 							<md-icon>fullscreen</md-icon>
 							<md-tooltip md-delay="500">Go to full-windowed edit page</md-tooltip>
 						</md-button>
@@ -312,7 +312,7 @@
 									<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
 										<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
 											<md-icon>reorder</md-icon>
-											<span>#{{pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
+											<span>#{{arb.pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
 											<arb-page-title page-id="{{::lensId}}" is-link="true"></arb-page-title>
 										</div>
 									</div>
@@ -359,8 +359,8 @@
 											custom-page-title="'Linked marks'"></arb-page-title>
 								</div>
 								<span>
-									{{pageService.pageMap[page.pageId].linkedMarkCount}} 
-									<ng-pluralize count="pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+									{{arb.pageService.pageMap[page.pageId].linkedMarkCount}} 
+									<ng-pluralize count="arb.pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 									linked to this question.
 								</span>
 							</div>
@@ -410,7 +410,7 @@
 							<div class="md-caption" layout-margin flex>
 								<div>Unique name for this page, e.g. "human_health"</div>
 								<div ng-if="page.seeGroupId != ''">
-									This alias will be prefixed with "{{pageService.pageMap[page.seeGroupId].alias}}."
+									This alias will be prefixed with "{{arb.pageService.pageMap[page.seeGroupId].alias}}."
 									because it's part of the private domain
 								</div>
 							</div>
@@ -461,14 +461,14 @@
 						</div>
 
 						<!-- Show/hide vote -->
-						<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki && userService.user.isAdmin)">
+						<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki && arb.userService.user.isAdmin)">
 							<md-switch ng-model="page.hasVote">
 								Show the {{::page.lockedVoteType}} voting bar
 							</md-switch>
 						</div>
 
 						<!-- Vote type -->
-						<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment && userService.user.isAdmin)">
+						<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment && arb.userService.user.isAdmin)">
 							<md-input-container flex>
 								<label>Voting</label>
 								<md-select ng-model="page.voteType">
@@ -567,7 +567,7 @@
 					Home
 					<md-tooltip md-delay="500">Go home</md-tooltip>
 				</md-button>
-				<md-button ng-if="::(!page.isDeleted && page.wasPublished)" ng-href="{{::pageService.getPageUrl(page.pageId)}}"
+				<md-button ng-if="::(!page.isDeleted && page.wasPublished)" ng-href="{{::arb.urlService.getPageUrl(page.pageId)}}"
 					class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
 					Back

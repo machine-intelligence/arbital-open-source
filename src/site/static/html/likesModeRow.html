@@ -7,13 +7,13 @@
 			<ng-pluralize count="::modeRow.userIds.length" when="{'1': 'likes', 'other': 'like'}">
 			</ng-pluralize>
 	
-			<span ng-if="::pageService.pageMap[modeRow.pageId].isComment()">your comment:</span>
+			<span ng-if="::arb.pageService.pageMap[modeRow.pageId].isComment()">your comment:</span>
 			<span ng-if="::modeRow.changeLog.id">your edit to</span>
 			<arb-page-title page-id="{{::modeRow.pageId}}"
 				is-link="true"></arb-page-title>
-			<span ng-if="::pageService.pageMap[modeRow.pageId].isComment()">
+			<span ng-if="::arb.pageService.pageMap[modeRow.pageId].isComment()">
 				on
-				<arb-page-title page-id="{{::pageService.pageMap[modeRow.pageId].getCommentParentPage().pageId}}"
+				<arb-page-title page-id="{{::arb.pageService.pageMap[modeRow.pageId].getCommentParentPage().pageId}}"
 					is-link="true"></arb-page-title>
 			</span>
 		</div>

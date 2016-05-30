@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a window for creating/editing a query
-app.directive('arbQueryInfo', function($interval, pageService, userService, autocompleteService) {
+app.directive('arbQueryInfo', function($interval, arb) {
 	return {
 		templateUrl: 'static/html/queryInfo.html',
 		scope: {
@@ -13,19 +13,18 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 			inPopup: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.mark = pageService.markMap[$scope.markId];
+			$scope.arb = arb;
+			$scope.mark = arb.markService.markMap[$scope.markId];
 			$scope.potentialResolvedPageId = undefined;
 
 			// Return true if the user is on the page where the mark was created.
 			$scope.isOnPage = function() {
-				return $scope.mark.pageId == pageService.getCurrentPageId();
+				return $scope.mark.pageId == arb.pageService.getCurrentPageId();
 			};
 
 			// Update mark's text.
 			$scope.updateMarkText = function(submit) {
-				pageService.updateMark({
+				arb.pageService.updateMark({
 						markId: $scope.markId,
 						text: $scope.mark.text,
 						submit: submit,
@@ -33,8 +32,8 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 					function(data) {
 						if (submit) {
 							$scope.hidePopup();
-							if ($scope.mark.pageId in pageService.pageMap) {
-								var markParent = pageService.pageMap[$scope.mark.pageId];
+							if ($scope.mark.pageId in arb.pageService.pageMap) {
+								var markParent = arb.pageService.pageMap[$scope.mark.pageId];
 								if (markParent.markIds.indexOf($scope.markId) < 0) {
 									markParent.markIds.push($scope.markId);
 								}
@@ -59,7 +58,7 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 				var data = {
 					term: $scope.mark.text,
 				};
-				autocompleteService.performSearch(data, function(data) {
+				arb.autocompleteService.performSearch(data, function(data) {
 					$scope.responses.length = 0;
 					for (var n = 0; n < data.length; n++) {
 						var pageId = data[n].pageId;
@@ -74,14 +73,14 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 
 			// Call to resolve the mark with the given page.
 			$scope.resolveWith = function(pageId) {
-				pageService.resolveMark({
+				arb.pageService.resolveMark({
 					markId: $scope.markId,
 					resolvedPageId: pageId,
 					text: $scope.mark.text,
 					submit: true,
 				});
 				$scope.mark.resolvedPageId = pageId;
-				$scope.mark.resolvedBy = userService.user.id;
+				$scope.mark.resolvedBy = arb.userService.user.id;
 			};
 
 			// Called when the user clicks one of the suggested links
@@ -120,12 +119,12 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 
 			// Called when an author wants to resolve the mark.
 			$scope.dismissMark = function() {
-				pageService.resolveMark({
+				arb.pageService.resolveMark({
 					markId: $scope.markId,
 					text: $scope.mark.text,
 				});
 				$scope.mark.resolvedPageId = '';
-				$scope.mark.resolvedBy = userService.user.id;
+				$scope.mark.resolvedBy = arb.userService.user.id;
 				$scope.hidePopup({dismiss: true});
 			};
 		},
@@ -133,7 +132,7 @@ app.directive('arbQueryInfo', function($interval, pageService, userService, auto
 			// Hide current popup, if it makes sense.
 			scope.hidePopup = function(result) {
 				if (scope.inPopup) {
-					pageService.hidePopup(result);
+					arb.popupService.hidePopup(result);
 				}
 			};
 		},
