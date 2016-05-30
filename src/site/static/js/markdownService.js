@@ -338,10 +338,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			return text.replace(atAliasRegexp, function(whole, prefix, alias) {
 				var page = pageService.pageMap[alias];
 				if (page) {
-					var url = pageService.getUserUrl(page.pageId, {includeHost: true});
+					var url = urlService.getUserUrl(page.pageId, {includeHost: true});
 					return prefix + '[' + page.title + '](' + url + ')';
 				} else {
-					var url = pageService.getUserUrl(alias, {includeHost: true});
+					var url = urlService.getUserUrl(alias, {includeHost: true});
 					return prefix + '[' + alias + '](' + url + ')';
 				}
 			});

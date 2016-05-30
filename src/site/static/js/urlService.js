@@ -63,11 +63,16 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 		} else {
 			subdomain = '';
 		}
+		subdomain = subdomain.toLowerCase();
 		if (isLive()) {
 			return 'https://' + subdomain + this.getTopLevelDomain();
 		} else {
 			return 'http://' + subdomain + this.getTopLevelDomain();
 		}
+	};
+
+	this.getCurrentDomainUrl = function() {
+		return window.location.origin;
 	};
 
 	// Make sure the URL path is in the given canonical form, otherwise silently change
@@ -86,7 +91,7 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 	this.goToUrl = function(url, replace) {
 		var differentHost = false;
 		if (url.indexOf('http') === 0) {
-			var domainUrl = this.getDomainUrl();
+			var domainUrl = this.getCurrentDomainUrl();
 			if (url.indexOf(domainUrl) !== 0) {
 				differentHost = true;
 			} else {
