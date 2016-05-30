@@ -194,23 +194,16 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	return text, nil
 }
 
-// UpdatePageLinks updates the links table for the given page by parsing the text.
-func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress string) error {
-	// Delete old links.
-	statement := tx.DB.NewStatement("DELETE FROM links WHERE parentId=?").WithTx(tx)
-	_, err := statement.Exec(pageId)
-	if err != nil {
-		return fmt.Errorf("Couldn't delete old links: %v", err)
-	}
-
+// Extract all links from the given page text.
+func ExtractPageLinks(text string, configAddress string) []string {
 	// NOTE: these regexps are waaaay too simplistic and don't account for the
 	// entire complexity of Markdown, like 4 spaces, backticks, and escaped
 	// brackets / parens.
-	aliasesAndIds := make([]string, 0)
+	linkMap := make(map[string]bool)
 	extractLinks := func(exp *regexp.Regexp) {
 		submatches := exp.FindAllStringSubmatch(text, -1)
 		for _, submatch := range submatches {
-			aliasesAndIds = append(aliasesAndIds, submatch[1])
+			linkMap[submatch[1]] = true
 		}
 	}
 	// Find directly encoded urls
@@ -223,6 +216,24 @@ func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress 
 	extractLinks(regexp.MustCompile("\\[vote: ?(" + AliasRegexpStr + ")\\]"))
 	// Find ids and aliases using [@alias] syntax.
 	extractLinks(regexp.MustCompile("\\[@?(" + AliasRegexpStr + ")\\]"))
+
+	aliasesAndIds := make([]string, 0)
+	for alias, _ := range linkMap {
+		aliasesAndIds = append(aliasesAndIds, alias)
+	}
+	return aliasesAndIds
+}
+
+// UpdatePageLinks updates the links table for the given page by parsing the text.
+func UpdatePageLinks(tx *database.Tx, pageId string, text string, configAddress string) error {
+	// Delete old links.
+	statement := tx.DB.NewStatement("DELETE FROM links WHERE parentId=?").WithTx(tx)
+	_, err := statement.Exec(pageId)
+	if err != nil {
+		return fmt.Errorf("Couldn't delete old links: %v", err)
+	}
+
+	aliasesAndIds := ExtractPageLinks(text, configAddress)
 	if len(aliasesAndIds) > 0 {
 		// Populate linkTuples
 		linkMap := make(map[string]bool) // track which aliases we already added to the list

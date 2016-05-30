@@ -595,9 +595,12 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				arb.pageService.savePageInfo($scope.page, callback);
 			};
 
-			// REturn true iff any of the pageInfo values changed.
+			// Return true iff any of the pageInfo values changed.
 			$scope.pageInfoChanged = function() {
 				if (!$scope.page.wasPublished) return false;
+				// TODO: the page won't be in the pageMap if it's deleted. Ideally we have a better
+				// workaround for this.
+				if (!($scope.pageId in arb.pageService.pageMap)) return true;
 				var originalPageInfo = arb.pageService.pageMap[$scope.pageId].getPageInfo();
 				var newPageInfo = $scope.page.getPageInfo();
 				return !angular.equals(originalPageInfo, newPageInfo);
