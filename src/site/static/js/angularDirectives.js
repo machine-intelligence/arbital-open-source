@@ -311,7 +311,8 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, pageService, userService) {
+app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, pageService,
+		userService, urlService) {
 	return {
 		templateUrl: 'static/html/composeFab.html',
 		scope: {
@@ -321,7 +322,8 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.userService = userService;
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
-			$scope.isOpen = false;
+			$scope.a = {};
+			$scope.a.isOpen = false;
 
 			// Returns true if user has text selected on a touch device, and we should show
 			// a special fab.
@@ -329,19 +331,33 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				return userService.isTouchDevice && userService.lensTextSelected;
 			};
 
-			// Toggle FAB children
-			$scope.toggle = function(show, hovering) {
-				if (userService.isTouchDevice) return false;
-				$scope.isOpen = show;
-				return false;
+			$scope.showTooltips = function() {
+				return userService.isTouchDevice && $scope.a.isOpen;
+			};
+
+			$scope.mouseEnter = function() {
+				if (userService.isTouchDevice) return;
+				$scope.a.isOpen = true;
+			};
+
+			$scope.mouseLeave = function() {
+				if (userService.isTouchDevice) return;
+				$scope.a.isOpen = false;
 			};
 
 			// Called when the FAB is clicked
 			$scope.fabClicked = function(event) {
-				if (!$scope.showInlineVersion()) return true;
-				$rootScope.$broadcast('fabClicked');
-				$scope.isOpen = false;
-				return false;
+				// If we want to make an inline repsonse, do that.
+				if ($scope.showInlineVersion()) {
+					$rootScope.$broadcast('fabClicked');
+					return;
+				}
+
+				// Otherwise, do the "new page" action and close the FAB.
+				if ($scope.a.isOpen) {
+					$scope.a.isOpen && urlService.goToUrl('/edit/');
+					$scope.a.isOpen = false;
+				}
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
