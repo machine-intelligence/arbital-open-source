@@ -338,7 +338,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					data.snapshotText = $scope.page.snapshotText;
 				}
 				if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
-					shouldFindSimilar = true;
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
@@ -472,23 +471,29 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// =========== Find similar pages ==============
-			var shouldFindSimilar = false;
+			var searchingForSimilarPages = false;
+			var prevSimilarData = {};
 			$scope.similarPages = [];
 			var findSimilarFunc = function() {
-				if ($scope.page.wasPublished) return;
-				if (!shouldFindSimilar || $scope.isComment) return;
-				// Don't search, if we don't have the first tab selected
+				if (searchingForSimilarPages) return;
 				if ($scope.selectedTab != 0) return;
-				shouldFindSimilar = false;
+				if ($scope.page.wasPublished) return;
+				if ($scope.isComment) return;
+
 				var data = {
 					title: $scope.page.title,
 					// Cutting off text at the last 4k characters, so Elastic doesn't choke
 					text: $scope.page.text.length > 4000 ? $scope.page.text.slice(-4000) : $scope.page.text,
 					clickbait: $scope.page.clickbait,
-					// TODO: probably shouldn't worry about page type here
-					pageType: $scope.page.type,
 				};
+				if (JSON.stringify(data) == JSON.stringify(prevSimilarData)) {
+					return;
+				}
+
+				searchingForSimilarPages = true;
+				prevSimilarData = data;
 				arb.autocompleteService.findSimilarPages(data, function(data) {
+					searchingForSimilarPages = false;
 					$scope.similarPages.length = 0;
 					for (var n = 0; n < data.length; n++) {
 						var pageId = data[n].pageId;
@@ -497,7 +502,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					}
 				});
 			};
-			var similarInterval = $interval(findSimilarFunc, 3000);
+			var similarInterval = $interval(findSimilarFunc, 500);
 			$scope.$on('$destroy', function() {
 				$interval.cancel(similarInterval);
 			});
