@@ -14,7 +14,7 @@
 		<div ng-if="::topLevelComment !== comment" flex>
 			<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
 			replied to
-			<span ng-bind="::topLevelComment.pageCreatorId == userService.user.id ? 'your' : 'a'"></span>
+			<span ng-bind="::topLevelComment.pageCreatorId == arb.userService.user.id ? 'your' : 'a'"></span>
 			comment
 			<arb-page-title page-id="{{::topLevelComment.pageId}}" is-link="true"></arb-page-title>:
 			<arb-page-title page-id="{{::comment.pageId}}" is-link="true"></arb-page-title>

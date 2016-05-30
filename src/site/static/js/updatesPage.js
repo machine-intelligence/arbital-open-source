@@ -1,15 +1,14 @@
 'use strict';
 
 // Directive for the Updates page.
-app.directive('arbUpdates', function($http, pageService, userService) {
+app.directive('arbUpdates', function($http, arb) {
 	return {
 		templateUrl: 'static/html/updatesPage.html',
 		scope: {
 			updateGroups: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			$scope.updateGroups.sort(function(a, b) {
 				if (b.key.seen !== a.key.seen) {

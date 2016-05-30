@@ -7,6 +7,7 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/pages"
+	"zanaduu3/src/sessions"
 )
 
 var editHandler = siteHandler{
@@ -84,15 +85,28 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		p.PrevEdit = p.Edit
 	}
 
+	// If it's an autosave or a snapshot, we can't count on all links to be loaded,
+	// since they are not stored in the links table. So we manually extract them.
+	if p.IsAutosave || p.IsSnapshot {
+		linkAliases := core.ExtractPageLinks(p.Text, sessions.GetDomain())
+		aliasToIdMap, err := core.LoadAliasToPageIdMap(db, u, linkAliases)
+		if err != nil {
+			return pages.Fail("Couldn't load links", err)
+		}
+		for _, pageId := range aliasToIdMap {
+			core.AddPageIdToMap(pageId, returnData.PageMap)
+		}
+	}
+
 	// Load parents, tags, requirement, and lens pages (to display in Relationship tab)
-	core.AddPageToMap("3n", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("178", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("1ln", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("17b", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("35z", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("370", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("187", returnData.PageMap, core.TitlePlusLoadOptions)
-	core.AddPageToMap("185", returnData.PageMap, core.TitlePlusLoadOptions)
+	core.AddPageIdToMap("3n", returnData.PageMap)
+	core.AddPageIdToMap("178", returnData.PageMap)
+	core.AddPageIdToMap("1ln", returnData.PageMap)
+	core.AddPageIdToMap("17b", returnData.PageMap)
+	core.AddPageIdToMap("35z", returnData.PageMap)
+	core.AddPageIdToMap("370", returnData.PageMap)
+	core.AddPageIdToMap("187", returnData.PageMap)
+	core.AddPageIdToMap("185", returnData.PageMap)
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)

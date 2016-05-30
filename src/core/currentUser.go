@@ -311,6 +311,10 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		u.TrustMap[domainId] = &Trust{}
 	}
 
+	if u.Id == "" {
+		return nil
+	}
+
 	// NOTE: this should come last in computing trust, so that the bonus trust from
 	// an invite slowly goes away as the user accumulates real trust.
 	// Compute trust from invites

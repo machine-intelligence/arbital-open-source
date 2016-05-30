@@ -480,6 +480,8 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 900px; }
   arb-newsletter > .capped-body-width {
     max-width: 900px; }
+  arb-explore-page > .capped-body-width {
+    max-width: 1100px; }
 
 .white-circle-background {
   background: white;
@@ -1027,5 +1029,19 @@ arb-log-row, [arb-log-row] {
 
 .spaced-buttons .md-button {
   margin-right: 15px; }
+
+.explore-bullet {
+  position: relative;
+  left: 8px;
+  min-width: 40px;
+  color: lightgray; }
+
+.explore-page-div {
+  margin-top: 10px; }
+
+.explore-children-div {
+  border-left: lightgray 4px solid;
+  padding-left: 10px;
+  margin-left: 16px; }
 
 /*# sourceMappingURL=arbital.css.map */

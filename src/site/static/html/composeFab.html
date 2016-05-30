@@ -3,7 +3,7 @@
 		md-direction="up"
 		ng-mouseenter="mouseEnter()"
 		ng-mouseleave="mouseLeave()"
-		ng-if="!hideFab && userService.userIsCool()">
+		ng-if="!hideFab && arb.userService.userIsCool()">
 	<md-fab-trigger>
 		<md-button ng-click="fabClicked($event)" class="md-fab">
 			<!-- When text is highlighted on mobile -->
@@ -17,7 +17,7 @@
 			<md-icon class="fab-icon" ng-if="!showInlineVersion() && a.isOpen">note_add</md-icon>
 			<md-tooltip md-direction="left" ng-if="a.isOpen" md-visible="showTooltips">New page (ALT+CTRL+P)</md-tooltip>
 		</md-button>
-		<md-icon class="private-group-icon" ng-if="pageService.privateGroupId !== ''">
+		<md-icon class="private-group-icon" ng-if="arb.stateService.privateGroupId !== ''">
 			lock
 			<md-tooltip md-autohide="true" md-direction="left">Private domain</md-tooltip>
 		</md-icon>
@@ -39,8 +39,8 @@
 			<md-icon>help</md-icon>
 			<md-tooltip md-direction="left" md-visible="showTooltips">New question page</md-tooltip>
 		</md-button>
-		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="pageService.primaryPage">
-			<md-icon md-svg-icon="cursor-pointer"></md-icon>
+		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="arb.pageService.primaryPage">
+			<md-icon md-svg-icon="cursor_pointer"></md-icon>
 			<md-tooltip md-direction="left" md-visible="showTooltips">New question/objection (ALT+CTRL+Q)</md-tooltip>
 		</md-button>
 		<md-button ng-click="newFeedback($event)" class="md-fab md-raised md-mini md-accent">

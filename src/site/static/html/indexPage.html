@@ -1,11 +1,11 @@
 <!-- If the user is not logged in, show the full list of new stuff -->
-<div arb-read-mode-page ng-if="userService.user.id == ''"></div>
+<div arb-read-mode-page ng-if="arb.userService.user.id == ''"></div>
 
 <!-- If the user is logged in, show various panels -->
 <md-content layout="column"
 		layout-gt-sm="row"
 		class="md-padding"
-		ng-if="userService.user.id !== ''">
+		ng-if="arb.userService.user.id !== ''">
 	<div flex>
 		<div arb-read-mode-panel></div>
 	</div>

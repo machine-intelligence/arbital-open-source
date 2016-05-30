@@ -1,23 +1,22 @@
 'use strict';
 
 // Directive for the Requisites page.
-app.directive('arbRequisitesPage', function(pageService, userService) {
+app.directive('arbRequisitesPage', function(arb) {
 	return {
 		templateUrl: 'static/html/requisitesPage.html',
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			$scope.masteryList = [];
-			for (var id in pageService.masteryMap) {
+			for (var id in arb.masteryService.masteryMap) {
 				$scope.masteryList.push(id);
 			}
 
 			// Set all requisites to "not known"
 			$scope.resetAll = function() {
-				pageService.updateMasteryMap({delete: $scope.masteryList});
+				arb.masteryService.updateMasteryMap({delete: $scope.masteryList});
 			};
 		},
 	};

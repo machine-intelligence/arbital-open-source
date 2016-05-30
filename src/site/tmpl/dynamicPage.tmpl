@@ -7,6 +7,10 @@
 	<!-- Setting base href for ngRoute -->
 	<base href="/">
 
+	<meta charset="utf-8">
+	<!-- Prevent scaling -->
+	<meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'>
+
 	<!-- Open graph settings -->
 	<meta property="og:title" content="{{.Title}}"/>
 	<meta property="og:url" content="{{.Url}}"/>
@@ -14,64 +18,105 @@
 	<meta property="og:type" content="article"/>
 	<meta property="fb:app_id" content="1064531780272247"/>
 
-	{{template "style"}}
-	{{template "scripts"}}
+	<!-- 3rd party style sheets -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.0.9/angular-material.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" type="text/css">
+	<link href="https://fonts.googleapis.com/css?family=Roboto+Slab:100,300,400,700" rel="stylesheet" type="text/css">
+	
+	<!-- Our style sheets -->
+	<link href="/static/css/compiled/arbital.css?{{.VersionId}}" rel="stylesheet">
+
+	<!-- 3rd party scripts -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-resource.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-sanitize.min.js"></script>
+	<script src="/static/js/lib/angular-recursion.min.js"></script>
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.0.9/angular-material.min.js"></script>
+	
+	<script src="/static/js/Markdown.Converter.js?{{.VersionId}}"></script>
+	<script src="/static/js/Markdown.Editor.js?{{.VersionId}}"></script>
+	<script src="/static/js/Markdown.Sanitizer.js?{{.VersionId}}"></script>
+	
+	<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+	<script src="/static/js/lib/diff_match_patch.min.js"></script>
+	<script src="/static/js/lib/moment.min.js"></script>
+	<script src="/static/js/lib/ng-sortable.min.js"></script>
+	<script src="/static/js/lib/js.cookie.js"></script>
 
 	<!-- General scripts -->
-	<script src="/static/js/util.js"></script>
-	<script src="/static/js/inlineCommentUtil.js"></script>
-	<script src="/static/js/mathjax.js"></script>
-	<script src="/static/js/angular.js"></script>
-	<script src="/static/js/pageService.js"></script>
-	<script src="/static/js/userService.js"></script>
-	<script src="/static/js/urlService.js"></script>
-	<script src="/static/js/autocompleteService.js"></script>
-	<script src="/static/js/popoverService.js"></script>
-	<script src="/static/js/diffService.js"></script>
-	<script src="/static/js/angularDirectives.js"></script>
-	<script src="/static/js/markdown.js"></script>
-	<script src="/static/js/toolbar.js"></script>
-	<script src="/static/js/voteBar.js"></script>
-	<script src="/static/js/page.js"></script>
-	<script src="/static/js/lens.js"></script>
-	<script src="/static/js/editPageDialog.js"></script>
-	<script src="/static/js/feedbackDialog.js"></script>
-	<script src="/static/js/pageDiscussion.js"></script>
-	<script src="/static/js/subpage.js"></script>
-	<script src="/static/js/relationships.js"></script>
-	<script src="/static/js/masteryList.js"></script>
-	<script src="/static/js/multipleChoice.js"></script>
-	<script src="/static/js/checkbox.js"></script>
-	<script src="/static/js/tableOfContents.js"></script>
-	<script src="/static/js/queryInfo.js"></script>
-	<script src="/static/js/markInfo.js"></script>
-	<script src="/static/js/answers.js"></script>
-	<script src="/static/js/marks.js"></script>
-	<script src="/static/js/rhsButtons.js"></script>
-	<script src="/static/js/hiddenText.js"></script>
-	<script src="/static/js/collapsableCommentThread.js"></script>
-	<script src="/static/js/editDiff.js"></script>
+	<script src="/static/js/angular.js?{{.VersionId}}"></script>
+
+	<script src="/static/js/autocompleteService.js?{{.VersionId}}"></script>
+	<script src="/static/js/diffService.js?{{.VersionId}}"></script>
+	<script src="/static/js/markService.js?{{.VersionId}}"></script>
+	<script src="/static/js/markdownService.js?{{.VersionId}}"></script>
+	<script src="/static/js/masteryService.js?{{.VersionId}}"></script>
+	<script src="/static/js/pageService.js?{{.VersionId}}"></script>
+	<script src="/static/js/pathService.js?{{.VersionId}}"></script>
+	<script src="/static/js/popoverService.js?{{.VersionId}}"></script>
+	<script src="/static/js/popupService.js?{{.VersionId}}"></script>
+	<script src="/static/js/stateService.js?{{.VersionId}}"></script>
+	<script src="/static/js/urlService.js?{{.VersionId}}"></script>
+	<script src="/static/js/userService.js?{{.VersionId}}"></script>
+	<script src="/static/js/arbService.js?{{.VersionId}}"></script>
+
+	<script src="/static/js/arbitalController.js?{{.VersionId}}"></script>
+	<script src="/static/js/util.js?{{.VersionId}}"></script>
+	<script src="/static/js/inlineCommentUtil.js?{{.VersionId}}"></script>
+	<script src="/static/js/mathjax.js?{{.VersionId}}"></script>
+	<script src="/static/js/arbDirectives.js?{{.VersionId}}"></script>
+	<script src="/static/js/markdown.js?{{.VersionId}}"></script>
+	<script src="/static/js/toolbar.js?{{.VersionId}}"></script>
+	<script src="/static/js/voteBar.js?{{.VersionId}}"></script>
+	<script src="/static/js/page.js?{{.VersionId}}"></script>
+	<script src="/static/js/lens.js?{{.VersionId}}"></script>
+	<script src="/static/js/editPageDialog.js?{{.VersionId}}"></script>
+	<script src="/static/js/feedbackDialog.js?{{.VersionId}}"></script>
+	<script src="/static/js/pageDiscussion.js?{{.VersionId}}"></script>
+	<script src="/static/js/subpage.js?{{.VersionId}}"></script>
+	<script src="/static/js/relationships.js?{{.VersionId}}"></script>
+	<script src="/static/js/masteryList.js?{{.VersionId}}"></script>
+	<script src="/static/js/multipleChoice.js?{{.VersionId}}"></script>
+	<script src="/static/js/checkbox.js?{{.VersionId}}"></script>
+	<script src="/static/js/tableOfContents.js?{{.VersionId}}"></script>
+	<script src="/static/js/queryInfo.js?{{.VersionId}}"></script>
+	<script src="/static/js/markInfo.js?{{.VersionId}}"></script>
+	<script src="/static/js/answers.js?{{.VersionId}}"></script>
+	<script src="/static/js/marks.js?{{.VersionId}}"></script>
+	<script src="/static/js/rhsButtons.js?{{.VersionId}}"></script>
+	<script src="/static/js/hiddenText.js?{{.VersionId}}"></script>
+	<script src="/static/js/collapsableCommentThread.js?{{.VersionId}}"></script>
+	<script src="/static/js/editDiff.js?{{.VersionId}}"></script>
+	<script src="/static/js/exploreTreeNode.js?{{.VersionId}}"></script>
 
 	<!-- Page specific scripts -->
-	<script src="/static/js/primaryPage.js"></script>
-	<script src="/static/js/editPage.js"></script>
-	<script src="/static/js/hedonsMode.js"></script>
-	<script src="/static/js/indexPage.js"></script>
-	<script src="/static/js/groupIndexPage.js"></script>
-	<script src="/static/js/updatesPage.js"></script>
-	<script src="/static/js/groupsPage.js"></script>
-	<script src="/static/js/userPage.js"></script>
-	<script src="/static/js/dashboardPage.js"></script>
-	<script src="/static/js/loginPage.js"></script>
-	<script src="/static/js/signupPage.js"></script>
-	<script src="/static/js/requisitesPage.js"></script>
-	<script src="/static/js/learnPage.js"></script>
-	<script src="/static/js/settingsPage.js"></script>
-	<script src="/static/js/settingsInviteTab.js"></script>
-	<script src="/static/js/adminDashboardPage.js"></script>
-	<script src="/static/js/readMode.js"></script>
-	<script src="/static/js/discussionMode.js"></script>
-	<script src="/static/js/newsletterPage.js"></script>
+	<script src="/static/js/primaryPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/editPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/hedonsMode.js?{{.VersionId}}"></script>
+	<script src="/static/js/indexPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/groupIndexPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/updatesPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/groupsPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/userPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/dashboardPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/loginPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/signupPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/requisitesPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/learnPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/settingsPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/settingsInviteTab.js?{{.VersionId}}"></script>
+	<script src="/static/js/adminDashboardPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/readMode.js?{{.VersionId}}"></script>
+	<script src="/static/js/discussionMode.js?{{.VersionId}}"></script>
+	<script src="/static/js/newsletterPage.js?{{.VersionId}}"></script>
+	<script src="/static/js/explorePage.js?{{.VersionId}}"></script>
 
 	<!-- Google Analytics -->
 	<script>
@@ -113,21 +158,21 @@
 	<!-- Persistent popup -->
 	<div id="popup-div"
 			class="md-whiteframe-6dp"
-			ng-show="pageService.popupParams">
-			<!--ng-style="{opacity: pageService.popupPercentLeft / 100}"-->
+			ng-show="arb.popupService.popupParams">
+			<!--ng-style="{opacity: arb.popupService.popupPercentLeft / 100}"-->
 
 		<md-toolbar class="md-hue-3">
 			<div class="md-toolbar-tools md-primary md-hue-2">
 				<span id="popup-header"></span>
 				<span flex></span>
-				<md-button class="md-icon-button" ng-click="pageService.hidePopup()">
+				<md-button class="md-icon-button" ng-click="arb.popupService.hidePopup()">
 					<md-icon>close</md-icon>
 				</md-button>
 			</div>
 		</md-toolbar>
 		<!--<md-progress-linear md-mode="determinate"
-				ng-value="pageService.popupPercentLeft"
-				ng-if="pageService.popupPercentLeft"></md-progress-linear>-->
+				ng-value="arb.popupService.popupPercentLeft"
+				ng-if="arb.popupService.popupPercentLeft"></md-progress-linear>-->
 
 		<div id="popup-body" layout-margin>
 		</div>

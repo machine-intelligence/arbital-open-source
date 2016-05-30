@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for showing a diff for a newEdit changeLog.
-app.directive('arbEditDiff', function($compile, $location, $rootScope, pageService, userService, diffService) {
+app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 	return {
 		templateUrl: 'static/html/editDiff.html',
 		scope: {
@@ -9,11 +9,9 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, pageServi
 			numEdits: '=', // Optional number of edits to group together in this diff. Defaults to 1.
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			$scope.showDiff = false;
-
 			$scope.toggleDiff = function(update) {
 				$scope.showDiff = !$scope.showDiff;
 
@@ -31,28 +29,28 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, pageServi
 				// Makes the diffHtml once both thisEditText and prevEditText have been loaded.
 				function makeDiffIfBothTextsLoaded() {
 					if (thisEditText && prevEditText) {
-						$scope.diffHtml = diffService.getDiffHtml(thisEditText, prevEditText);
+						$scope.diffHtml = arb.diffService.getDiffHtml(thisEditText, prevEditText);
 					}
 				}
 
 				// Load thisEditText.
-				pageService.loadEdit({
+				arb.pageService.loadEdit({
 					pageAlias: pageId,
 					specificEdit: thisEditNum,
 					skipProcessDataStep: true,
 					success: function(data) {
-						thisEditText = data[pageId].text;
+						thisEditText = data.edits[pageId].text;
 						makeDiffIfBothTextsLoaded();
 					},
 				});
 
 				// Load prevEditText.
-				pageService.loadEdit({
+				arb.pageService.loadEdit({
 					pageAlias: pageId,
 					specificEdit: prevEditNum,
 					skipProcessDataStep: true,
 					success: function(data) {
-						prevEditText = data[pageId].text;
+						prevEditText = data.edits[pageId].text;
 						makeDiffIfBothTextsLoaded();
 					},
 				});

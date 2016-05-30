@@ -1,22 +1,21 @@
 'use strict';
 
 // userName directive displayes a user's name.
-app.directive('arbUserName', function(pageService, userService) {
+app.directive('arbUserName', function(arb) {
 	return {
 		templateUrl: 'static/html/userName.html',
 		scope: {
 			userId: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.user = userService.userMap[$scope.userId];
+			$scope.arb = arb;
+			$scope.user = arb.userService.userMap[$scope.userId];
 		},
 	};
 });
 
 // intrasitePopover contains the popover body html.
-app.directive('arbIntrasitePopover', function($timeout, pageService, userService) {
+app.directive('arbIntrasitePopover', function($timeout, arb) {
 	return {
 		templateUrl: 'static/html/intrasitePopover.html',
 		scope: {
@@ -25,9 +24,8 @@ app.directive('arbIntrasitePopover', function($timeout, pageService, userService
 			arrowOffset: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.arb = arb;
+			$scope.page = arb.pageService.pageMap[$scope.pageId];
 			$scope.summaries = [];
 			$scope.getArrowStyle = function() {
 				return {'left': +$scope.arrowOffset};
@@ -72,18 +70,18 @@ app.directive('arbIntrasitePopover', function($timeout, pageService, userService
 			processPageSummaries();
 			if (!scope.isLoaded) {
 				// Fetch page summaries from the server.
-				pageService.loadIntrasitePopover(scope.pageId);
+				arb.pageService.loadIntrasitePopover(scope.pageId);
 				// NOTE: we set up a watch instead of doing something on a success callback,
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
 				var destroyWatcher = scope.$watch(function() {
-					return scope.pageId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.pageId].summaries).length : 0;
+					return scope.pageId in arb.pageService.pageMap ? Object.keys(arb.pageService.pageMap[scope.pageId].summaries).length : 0;
 				}, function() {
 					if (isDestroyed) {
 						destroyWatcher();
 						return;
 					}
-					scope.page = pageService.pageMap[scope.pageId];
+					scope.page = arb.pageService.pageMap[scope.pageId];
 					processPageSummaries();
 					if (scope.isLoaded) {
 						destroyWatcher();
@@ -101,7 +99,7 @@ app.directive('arbIntrasitePopover', function($timeout, pageService, userService
 });
 
 // userPopover contains the popover body html.
-app.directive('arbUserPopover', function($timeout, pageService, userService) {
+app.directive('arbUserPopover', function($timeout, arb) {
 	return {
 		templateUrl: 'static/html/userPopover.html',
 		scope: {
@@ -110,10 +108,9 @@ app.directive('arbUserPopover', function($timeout, pageService, userService) {
 			arrowOffset: '@',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.user = userService.userMap[$scope.userId];
-			$scope.page = pageService.pageMap[$scope.userId];
+			$scope.arb = arb;
+			$scope.user = arb.userService.userMap[$scope.userId];
+			$scope.page = arb.pageService.pageMap[$scope.userId];
 			$scope.summaries = [];
 
 			$scope.getArrowStyle = function() {
@@ -147,19 +144,19 @@ app.directive('arbUserPopover', function($timeout, pageService, userService) {
 
 			processPageSummaries();
 			if (!scope.isLoaded) {
-				pageService.loadUserPopover(scope.userId);
+				arb.userService.loadUserPopover(scope.userId);
 				// NOTE: we set up a watch instead of doing something on a success callback,
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
 				var destroyWatcher = scope.$watch(function() {
-					return scope.userId in pageService.pageMap ? Object.keys(pageService.pageMap[scope.userId].summaries).length : 0;
+					return scope.userId in arb.pageService.pageMap ? Object.keys(arb.pageService.pageMap[scope.userId].summaries).length : 0;
 				}, function() {
 					if (isDestroyed) {
 						destroyWatcher();
 						return;
 					}
-					scope.user = userService.userMap[scope.userId];
-					scope.page = pageService.pageMap[scope.userId];
+					scope.user = arb.userService.userMap[scope.userId];
+					scope.page = arb.pageService.pageMap[scope.userId];
 					processPageSummaries();
 					if (scope.isLoaded) {
 						destroyWatcher();
@@ -177,7 +174,7 @@ app.directive('arbUserPopover', function($timeout, pageService, userService) {
 });
 
 // pageTitle displays page's title with optional meta info.
-app.directive('arbPageTitle', function(pageService, userService) {
+app.directive('arbPageTitle', function(arb) {
 	return {
 		templateUrl: 'static/html/pageTitle.html',
 		scope: {
@@ -196,10 +193,9 @@ app.directive('arbPageTitle', function(pageService, userService) {
 			useEditMap: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.page = pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
-			$scope.pageUrl = $scope.customLink ? $scope.customLink : pageService.getPageUrl($scope.page.pageId);
+			$scope.arb = arb;
+			$scope.page = arb.pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
+			$scope.pageUrl = $scope.customLink ? $scope.customLink : arb.urlService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
 				if ($scope.customPageTitle) {
@@ -212,7 +208,7 @@ app.directive('arbPageTitle', function(pageService, userService) {
 });
 
 // likes displays the likes button(s) for a page.
-app.directive('arbLikes', function($http, pageService, userService) {
+app.directive('arbLikes', function($http, arb) {
 	return {
 		templateUrl: 'static/html/likes.html',
 		scope: {
@@ -230,20 +226,19 @@ app.directive('arbLikes', function($http, pageService, userService) {
 			isButton: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changeLog')) {
 				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
 			}
 			if (!$scope.likeable && $scope.likeableType == 'page') {
-				$scope.likeable = pageService.pageMap[$scope.likeableId];
+				$scope.likeable = arb.pageService.pageMap[$scope.likeableId];
 			}
 
 			// Sort individual likes by name.
 			if ($scope.likeable && $scope.likeable.individualLikes) {
 				$scope.likeable.individualLikes.sort(function(userId1, userId2) {
-					return userService.getFullName(userId1).localeCompare(userService.getFullName(userId2));
+					return arb.userService.getFullName(userId1).localeCompare(arb.userService.getFullName(userId2));
 				});
 			}
 
@@ -268,7 +263,7 @@ app.directive('arbLikes', function($http, pageService, userService) {
 });
 
 // subscribe directive displays the button for subscribing to a page.
-app.directive('arbSubscribe', function($http, pageService, userService) {
+app.directive('arbSubscribe', function($http, arb) {
 	return {
 		templateUrl: 'static/html/subscribe.html',
 		scope: {
@@ -278,22 +273,21 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 			showSubscriberCount: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-			$scope.page = pageService.pageMap[$scope.pageId];
+			$scope.arb = arb;
+			$scope.page = arb.pageService.pageMap[$scope.pageId];
 
 			$scope.isSubscribed = function() {
-				return pageService.pageMap[$scope.pageId].isSubscribed;
+				return arb.pageService.pageMap[$scope.pageId].isSubscribed;
 			};
 
 			$scope.isSubscribedAsMaintainer = function() {
-				return pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer;
+				return arb.pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer;
 			};
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
-				pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
-				pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
+				arb.pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
+				arb.pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
 				$http({
 					method: 'POST',
 					url: '/updateSubscription/',
@@ -311,15 +305,13 @@ app.directive('arbSubscribe', function($http, pageService, userService) {
 });
 
 // composeFab is the FAB button in the bottom right corner used for creating new pages
-app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, pageService,
-		userService, urlService) {
+app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, arb) {
 	return {
 		templateUrl: 'static/html/composeFab.html',
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
 			$scope.a = {};
@@ -328,20 +320,20 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			// Returns true if user has text selected on a touch device, and we should show
 			// a special fab.
 			$scope.showInlineVersion = function() {
-				return userService.isTouchDevice && userService.lensTextSelected;
+				return arb.userService.isTouchDevice && arb.userService.lensTextSelected;
 			};
 
 			$scope.showTooltips = function() {
-				return userService.isTouchDevice && $scope.a.isOpen;
+				return arb.userService.isTouchDevice && $scope.a.isOpen;
 			};
 
 			$scope.mouseEnter = function() {
-				if (userService.isTouchDevice) return;
+				if (arb.userService.isTouchDevice) return;
 				$scope.a.isOpen = true;
 			};
 
 			$scope.mouseLeave = function() {
-				if (userService.isTouchDevice) return;
+				if (arb.userService.isTouchDevice) return;
 				$scope.a.isOpen = false;
 			};
 
@@ -355,7 +347,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 
 				// Otherwise, do the "new page" action and close the FAB.
 				if ($scope.a.isOpen) {
-					$scope.a.isOpen && urlService.goToUrl('/edit/');
+					$scope.a.isOpen && arb.urlService.goToUrl('/edit/');
 					$scope.a.isOpen = false;
 				}
 			};
@@ -367,24 +359,24 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				$scope.editPageUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
-				if (pageService.primaryPage) {
-					var type = pageService.primaryPage.type;
+				if (arb.pageService.primaryPage) {
+					var type = arb.pageService.primaryPage.type;
 					if (type === 'wiki' || type === 'group' || type === 'domain') {
-						$scope.questionUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId + '&type=question';
-						$scope.lensUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId + '&type=lens';
-						$scope.childUrl = '/edit/?newParentId=' + pageService.primaryPage.pageId;
+						$scope.questionUrl = '/edit/?newParentId=' + arb.pageService.primaryPage.pageId + '&type=question';
+						$scope.lensUrl = '/edit/?newParentId=' + arb.pageService.primaryPage.pageId + '&type=lens';
+						$scope.childUrl = '/edit/?newParentId=' + arb.pageService.primaryPage.pageId;
 					}
 					if ($location.search().l) {
-						$scope.editPageUrl = pageService.getEditPageUrl($location.search().l);
+						$scope.editPageUrl = arb.urlService.getEditPageUrl($location.search().l);
 					} else {
-						$scope.editPageUrl = pageService.getEditPageUrl(pageService.primaryPage.pageId);
+						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.pageService.primaryPage.pageId);
 					}
 				}
 			};
 			computeUrls();
 			$scope.$watch(function() {
 				// Note: can't use an object, so we just hack together a string
-				return (pageService.primaryPage ? pageService.primaryPage.pageId : 'none') + $location.absUrl();
+				return (arb.pageService.primaryPage ? arb.pageService.primaryPage.pageId : 'none') + $location.absUrl();
 			}, function() {
 				computeUrls();
 			});
@@ -408,11 +400,11 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
-					if (event.keyCode == 80) $location.url('/edit/'); // P
-					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
-					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
-					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
-					else if (event.keyCode == 81 && pageService.primaryPage) $scope.newQueryMark(); // Q
+					if (event.keyCode == 80) arb.urlService.goToUrl('/edit/'); // P
+					else if (event.keyCode == 69 && $scope.editPageUrl) arb.urlService.goToUrl($scope.editPageUrl); // E
+					else if (event.keyCode == 67 && $scope.childUrl) arb.urlService.goToUrl($scope.childUrl); // C
+					else if (event.keyCode == 78 && $scope.lensUrl) arb.urlService.goToUrl($scope.lensUrl); // N
+					else if (event.keyCode == 81 && arb.pageService.primaryPage) $scope.newQueryMark(); // Q
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});
 			});
@@ -425,7 +417,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 });
 
 // autocomplete searches for relevant pages as you do the search
-app.directive('arbAutocomplete', function($timeout, $q, pageService, userService, autocompleteService) {
+app.directive('arbAutocomplete', function($timeout, $q, arb) {
 	return {
 		templateUrl: 'static/html/autocomplete.html',
 		scope: {
@@ -439,14 +431,13 @@ app.directive('arbAutocomplete', function($timeout, $q, pageService, userService
 			onSelect: '&',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			// Called to get search results from the server
 			$scope.getSearchResults = function(text) {
 				if (!text) return [];
 				var deferred = $q.defer();
-				autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
+				arb.autocompleteService.performSearch({term: text, pageType: $scope.pageType}, function(results) {
 					deferred.resolve(results);
 				});
 				return deferred.promise;
@@ -472,7 +463,7 @@ app.directive('arbAutocomplete', function($timeout, $q, pageService, userService
 });
 
 // confirmButton is a button that ask for a confirmation when you press it
-app.directive('arbConfirmButton', function() {
+app.directive('arbConfirmButton', function(arb) {
 	return {
 		templateUrl: 'static/html/confirmButton.html',
 		scope: {
@@ -483,6 +474,7 @@ app.directive('arbConfirmButton', function() {
 			confirmed: '&',
 		},
 		controller: function($scope) {
+			$scope.arb = arb;
 			$scope.confirming = false;
 			$scope.buttonFlexOrder = $scope.buttonBeforeConfirm ? -1 : 1;
 
@@ -494,7 +486,7 @@ app.directive('arbConfirmButton', function() {
 });
 
 // Directive for the User page panel
-app.directive('arbPageList', function(pageService, userService) {
+app.directive('arbPageList', function(arb) {
 	return {
 		templateUrl: 'static/html/pageList.html',
 		scope: {
@@ -511,18 +503,17 @@ app.directive('arbPageList', function(pageService, userService) {
 			useEditMap: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			$scope.getPage = function(pageId) {
-				return pageService.getPageFromSomeMap(pageId, $scope.useEditMap);
+				return arb.pageService.getPageFromSomeMap(pageId, $scope.useEditMap);
 			};
 		},
 	};
 });
 
 // Exists to share the template for a row in a md-list of pages
-app.directive('arbPageRow', function(pageService, userService) {
+app.directive('arbPageRow', function(arb) {
 	return {
 		templateUrl: 'static/html/pageRow.html',
 		replace: true,
@@ -539,30 +530,28 @@ app.directive('arbPageRow', function(pageService, userService) {
 			useEditMap: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
-
-			$scope.page = pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
+			$scope.arb = arb;
+			$scope.page = arb.pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 		},
 	};
 });
 
 // Directive for checking if the user meets the necessary permissions
-app.directive('arbUserCheck', function($compile, $mdToast, pageService, userService) {
+app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 	return {
 		restrict: 'A',
 		controller: function($scope) {
 			$scope.showUserCheckToast = function(message) {
-				pageService.showToast({text: message, isError: true});
+				arb.popupService.showToast({text: message, isError: true});
 			};
 		},
 		compile: function compile(element, attrs) {
 			var check = attrs.arbUserCheck;
 			var failMessage = '';
-			if (!userService.user || userService.user.id === '') {
+			if (!arb.userService.user || arb.userService.user.id === '') {
 				failMessage = 'Login required';
 			} else if (check === 'cool') {
-				if (!userService.userIsCool()) {
+				if (!arb.userService.userIsCool()) {
 					failMessage = 'You have a limited account';
 				}
 			}
@@ -575,7 +564,7 @@ app.directive('arbUserCheck', function($compile, $mdToast, pageService, userServ
 });
 
 // Directive for a button to toggle requisite state
-app.directive('arbRequisiteButton', function(pageService, userService) {
+app.directive('arbRequisiteButton', function(arb) {
 	return {
 		templateUrl: 'static/html/requisiteButton.html',
 		scope: {
@@ -592,8 +581,7 @@ app.directive('arbRequisiteButton', function(pageService, userService) {
 			unlockedFn: '&',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			var unlockedCallback = undefined;
 			if ($scope.unlockedFn) {
@@ -604,12 +592,12 @@ app.directive('arbRequisiteButton', function(pageService, userService) {
 
 			// Toggle whether or not the user has a mastery
 			$scope.toggleRequirement = function() {
-				if (pageService.hasMastery($scope.requisiteId)) {
-					pageService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
-				} else if (pageService.wantsMastery($scope.requisiteId)) {
-					pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
+				if (arb.masteryService.hasMastery($scope.requisiteId)) {
+					arb.masteryService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
+				} else if (arb.masteryService.wantsMastery($scope.requisiteId)) {
+					arb.masteryService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
 				} else {
-					pageService.updateMasteryMap({knows: [$scope.requisiteId], callback: unlockedCallback});
+					arb.masteryService.updateMasteryMap({knows: [$scope.requisiteId], callback: unlockedCallback});
 				}
 			};
 		},
@@ -617,7 +605,7 @@ app.directive('arbRequisiteButton', function(pageService, userService) {
 });
 
 // Directive for displaying next/prev buttons when learning.
-app.directive('arbNextPrev', function($location, pageService, userService) {
+app.directive('arbNextPrev', function($location, arb) {
 	return {
 		templateUrl: 'static/html/nextPrev.html',
 		scope: {
@@ -628,11 +616,10 @@ app.directive('arbNextPrev', function($location, pageService, userService) {
 			whiteframe: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 
 			$scope.stopLearning = function() {
-				pageService.abandonPath();
+				arb.pathService.abandonPath();
 			};
 		},
 	};
@@ -646,7 +633,7 @@ app.directive('arbChangeLogEntry', function() {
 });
 
 // Shared by the changelog and the updates page.
-app.directive('arbLogRow', function(pageService) {
+app.directive('arbLogRow', function(arb) {
 	return {
 		templateUrl: 'static/html/logRow.html',
 		scope: {
@@ -664,7 +651,7 @@ app.directive('arbLogRow', function(pageService) {
 			onDismiss: '&',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
+			$scope.arb = arb;
 		},
 	};
 });

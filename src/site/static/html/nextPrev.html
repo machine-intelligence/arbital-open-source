@@ -4,18 +4,18 @@
 		layout-align-xs="center center"
 		class="next-prev-nav"
 		ng-class="::{'md-whiteframe-1dp': whiteframe}"
-		ng-if="pageService.path">
+		ng-if="arb.pathService.path">
 
 	<!-- Show this when the user is on path. -->
 	<div layout="row"
 			layout-align="start center"
-			ng-if="pageService.path.onPath">
-		<md-button ng-href="{{pageService.getPageUrl(pageService.path.prevPageId)}}"
+			ng-if="arb.pathService.path.onPath">
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.pathService.path.prevPageId)}}"
 				class="special"
-				ng-class="{'intrasite-link': pageService.path.prevPageId}"
-				page-id="{{pageService.path.prevPageId}}"
-				ng-disabled="!pageService.path.prevPageId">
-			<md-tooltip md-delay="500" ng-if="!pageService.path.prevPageId">No previous page</md-tooltip>
+				ng-class="{'intrasite-link': arb.pathService.path.prevPageId}"
+				page-id="{{arb.pathService.path.prevPageId}}"
+				ng-disabled="!arb.pathService.path.prevPageId">
+			<md-tooltip md-delay="500" ng-if="!arb.pathService.path.prevPageId">No previous page</md-tooltip>
 			<md-icon>chevron_left</md-icon>
 			<span>Prev</span>
 		</md-button>
@@ -23,27 +23,27 @@
 			<md-tooltip md-delay="500">See the current list</md-tooltip>
 			<md-icon>book</md-icon>
 		</md-button>
-		<md-button ng-href="{{pageService.getPageUrl(pageService.path.nextPageId)}}"
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.pathService.path.nextPageId)}}"
 				class="intrasite-link special"
 				ng-class="{'md-raised': extraInfo}"
-				page-id="{{pageService.path.nextPageId}}"
-				ng-disabled="!pageService.path.nextPageId"
-				ng-if="pageService.path.nextPageId">
-			<md-tooltip md-delay="500" ng-show="!pageService.path.nextPageId">No next page</md-tooltip>
+				page-id="{{arb.pathService.path.nextPageId}}"
+				ng-disabled="!arb.pathService.path.nextPageId"
+				ng-if="arb.pathService.path.nextPageId">
+			<md-tooltip md-delay="500" ng-show="!arb.pathService.path.nextPageId">No next page</md-tooltip>
 			<span ng-bind="extraInfo ? 'Continue reading' : 'Next'"></span>
 			<md-icon>chevron_right</md-icon>
 		</md-button>
 		<md-button class="special"
 				ng-class="{'md-raised': extraInfo}"
 				ng-click="stopLearning()"
-				ng-if="!pageService.path.nextPageId">
+				ng-if="!arb.pathService.path.nextPageId">
 			Done
 		</md-button>
 	</div>
 	
 	<!-- Show this when the user is no longer on path. -->
-	<div layout="row" layout-align="start center" ng-if="!pageService.path.onPath">
-		<md-button ng-href="{{pageService.getPageUrl(pageService.path.currentPageId)}}"
+	<div layout="row" layout-align="start center" ng-if="!arb.pathService.path.onPath">
+		<md-button ng-href="{{arb.urlService.getPageUrl(arb.pathService.path.currentPageId)}}"
 				class="special"
 				ng-class="{'md-raised': extraInfo}">
 			<md-icon>chevron_left</md-icon>

@@ -1,7 +1,7 @@
 'use strict';
 
 // Directive for the Settings page.
-app.directive('arbSettingsInviteTab', function($http, $filter, pageService, userService) {
+app.directive('arbSettingsInviteTab', function($http, $filter, arb) {
 	return {
 		templateUrl: 'static/html/settingsInviteTab.html',
 		scope: {
@@ -9,8 +9,7 @@ app.directive('arbSettingsInviteTab', function($http, $filter, pageService, user
 			invitesSent: '=',
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.alwaysTrue = true;
 
 			// Controls whether form to create invite is shown

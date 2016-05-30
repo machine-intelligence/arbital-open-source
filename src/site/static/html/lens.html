@@ -27,7 +27,7 @@
 			</a>
 			<span ng-if="::simplerLens">
 				or try a simpler lens:
-				<a ng-href="{{::pageService.getPageUrl(simplerLens.pageId)}}"
+				<a ng-href="{{::arb.urlService.getPageUrl(simplerLens.pageId)}}"
 						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
 			</span>
 		</div>
@@ -40,9 +40,9 @@
 			Owner:
 			<arb-page-title page-id="{{::page.editGroupId}}"
 					is-link="true"
-					ng-if="::!userService.userMap[page.editGroupId]"></arb-page-title>
+					ng-if="::!arb.userService.userMap[page.editGroupId]"></arb-page-title>
 			<arb-user-name user-id="{{::page.editGroupId}}"
-					ng-if="::userService.userMap[page.editGroupId]"></arb-user-name>
+					ng-if="::arb.userService.userMap[page.editGroupId]"></arb-user-name>
 		</div>
 
 		<arb-markdown class="lens-text"
@@ -67,7 +67,7 @@
 		</div>
 
 		<hr ng-if="(!isSimpleEmbed && subjectIds.length > 0) ||
-				(pageService.pageMap[lensParentId].nextPageId !== '' || pageService.pageMap[lensParentId].prevPageId !== '')">
+				(arb.pageService.pageMap[lensParentId].nextPageId !== '' || arb.pageService.pageMap[lensParentId].prevPageId !== '')">
 		<div layout-gt-xs="row" layout-align="start end">
 			<!-- Subjects taught -->
 			<div flex ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
@@ -148,7 +148,7 @@
 					</md-button>
 					<md-button ng-click="newQueryMark()"
 							aria-label="Question/objection">
-						<md-icon md-svg-icon="cursor-pointer"></md-icon>
+						<md-icon md-svg-icon="cursor_pointer"></md-icon>
 						Question/objection
 					</md-button>
 					<md-button ng-click="newInlineComment()"
@@ -184,11 +184,11 @@
 					ng-class="{'md-primary': isInlineMarkIconSelected(markId)}"
 					ng-click="toggleInlineMark(markId)"
 					aria-label="Question/objection">
-				<md-icon md-svg-icon="cursor-pointer"
-						ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
-						ng-if="::pageService.markMap[markId].type === 'query'"></md-icon>
-				<md-icon ng-class="{'resolved-mark': pageService.markMap[markId].resolvedBy!=''}"
-						ng-if="::pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
+				<md-icon md-svg-icon="cursor_pointer"
+						ng-class="{'resolved-mark': arb.markService.markMap[markId].resolvedBy!=''}"
+						ng-if="::arb.markService.markMap[markId].type === 'query'"></md-icon>
+				<md-icon ng-class="{'resolved-mark': arb.markService.markMap[markId].resolvedBy!=''}"
+						ng-if="::arb.markService.markMap[markId].type !== 'query'">rate_review</md-icon>
 			</md-button>
 		</div>
 	</div>

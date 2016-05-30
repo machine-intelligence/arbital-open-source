@@ -1,14 +1,13 @@
 'use strict';
 
 // Directive for the Signup page.
-app.directive('arbSignup', function($location, $http, pageService, userService) {
+app.directive('arbSignup', function($location, $http, arb) {
 	return {
 		templateUrl: 'static/html/signupPage.html',
 		scope: {
 		},
 		controller: function($scope) {
-			$scope.pageService = pageService;
-			$scope.userService = userService;
+			$scope.arb = arb;
 			$scope.formData = {};
 
 			$scope.formSubmit = function(event) {
@@ -25,7 +24,7 @@ app.directive('arbSignup', function($location, $http, pageService, userService) 
 			};
 
 			$scope.signupWithFb = function() {
-				userService.fbLogin(function(response) {
+				arb.userService.fbLogin(function(response) {
 					if (response.status === 'connected') {
 						var data = {
 							fbAccessToken: response.authResponse.accessToken,

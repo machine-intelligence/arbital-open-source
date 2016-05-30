@@ -1,7 +1,6 @@
 // FeedbackDialogController is used for submitting feedback via mdDialog.
-app.controller('FeedbackDialogController', function($scope, $mdDialog, $timeout, $http, userService, pageService) {
-	$scope.pageService = pageService;
-	$scope.userService = userService;
+app.controller('FeedbackDialogController', function($scope, $mdDialog, $timeout, $http, arb) {
+	$scope.arb = arb;
 
 	// Submit feedback
 	$scope.submitFn = function() {
