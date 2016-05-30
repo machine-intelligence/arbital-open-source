@@ -10,9 +10,8 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
 			$scope.page = arb.pageService.pageMap[$scope.pageId];
-			$scope.mastery = arb.pageService.masteryMap[$scope.pageId];
+			$scope.mastery = arb.masteryService.masteryMap[$scope.pageId];
 			$scope.questionIds = $scope.page.questionIds || [];
 			$scope.isTinyScreen = !$mdMedia('gt-sm');
 			$scope.isSingleColumn = !$mdMedia('gt-md');
@@ -22,7 +21,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.hasAllReqs = function(lensId) {
 				var reqs = arb.pageService.pageMap[lensId].requirementIds;
 				for (var n = 0; n < reqs.length; n++) {
-					if (!arb.pageService.hasMastery(reqs[n])) {
+					if (!arb.masteryService.hasMastery(reqs[n])) {
 						return false;
 					}
 				}
@@ -40,7 +39,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				if ($location.search().l) {
 					// Lens is explicitly specified in the URL
 					return $location.search().l;
-				} else if (arb.pageService.path && arb.pageService.path.onPath) {
+				} else if (arb.pathService.path && arb.pathService.path.onPath) {
 					// The learning list specified this page specifically
 					return $scope.page.pageId;
 				}
@@ -78,8 +77,8 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.tabsClicked = function($event, lensId) {
 				// Check if there was a CTRL+click on a tab
 				if ($event.ctrlKey) {
-					console.log(arb.pageService.getPageUrl(lensId));
-					window.open(arb.pageService.getPageUrl(lensId, {permalink: true}), '_blank');
+					console.log(arb.urlService.getPageUrl(lensId));
+					window.open(arb.urlService.getPageUrl(lensId, {permalink: true}), '_blank');
 				} else {
 					$scope.tabSelect(lensId);
 				}

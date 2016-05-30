@@ -14,7 +14,7 @@ app.directive('arbQueryInfo', function($interval, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.mark = arb.pageService.markMap[$scope.markId];
+			$scope.mark = arb.markService.markMap[$scope.markId];
 			$scope.potentialResolvedPageId = undefined;
 
 			// Return true if the user is on the page where the mark was created.
@@ -132,7 +132,7 @@ app.directive('arbQueryInfo', function($interval, arb) {
 			// Hide current popup, if it makes sense.
 			scope.hidePopup = function(result) {
 				if (scope.inPopup) {
-					arb.pageService.hidePopup(result);
+					arb.popupService.hidePopup(result);
 				}
 			};
 		},

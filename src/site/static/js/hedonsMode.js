@@ -16,7 +16,7 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
 
-			arb.pageService.loadModeData('/json/hedons/', {
+			arb.stateService.postData('/json/hedons/', {
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {

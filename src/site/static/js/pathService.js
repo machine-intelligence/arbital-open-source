@@ -1,7 +1,7 @@
 'use strict';
 
 // Takes care of all path related functionality
-app.service('pathService', function($http, $compile, $location, $mdToast, $rootScope, $interval) {
+app.service('pathService', function($http, $compile, $location, $mdToast, $rootScope, $interval, pageService) {
 	var that = this;
 
 	// This object is set when the user is learning / on a path.
@@ -15,14 +15,14 @@ app.service('pathService', function($http, $compile, $location, $mdToast, $rootS
 
 	// Update the path variables.
 	$rootScope.$watch(function() {
-		return $location.absUrl() + '|' + (that.primaryPage ? that.primaryPage.pageId : '');
+		return $location.absUrl() + '|' + (pageService.primaryPage ? pageService.primaryPage.pageId : '');
 	}, function() {
 		that.path = undefined;
 		that.path = Cookies.getJSON('path');
-		if (!that.path || !that.primaryPage) return;
+		if (!that.path || !pageService.primaryPage) return;
 
 		// Check if the user is learning
-		var currentPageId = that.getCurrentPageId();
+		var currentPageId = pageService.getCurrentPageId();
 		var pathPageIds = that.path.readIds;
 		var currentIndex = pathPageIds.indexOf(currentPageId);
 		if (currentIndex >= 0) {

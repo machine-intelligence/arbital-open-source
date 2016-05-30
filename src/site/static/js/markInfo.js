@@ -12,7 +12,7 @@ app.directive('arbMarkInfo', function($interval, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.mark = arb.pageService.markMap[$scope.markId];
+			$scope.mark = arb.markService.markMap[$scope.markId];
 			$scope.isOnPage = $scope.mark.pageId == arb.pageService.getCurrentPageId();
 
 			// Call to resolve the mark with the given page.
@@ -41,7 +41,7 @@ app.directive('arbMarkInfo', function($interval, arb) {
 			// Hide current event window, if it makes sense.
 			scope.hidePopup = function(result) {
 				if (scope.isOnPage) {
-					arb.pageService.hidePopup(result);
+					arb.popupService.hidePopup(result);
 				}
 			};
 		},

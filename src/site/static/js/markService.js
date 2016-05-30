@@ -10,13 +10,13 @@ app.service('markService', function(stateService) {
 	// Call this to process data we received from the server.
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
-			this.markMap = {};
+			that.markMap = {};
 		}
 
 		// Populate marks map.
 		var markData = data.marks;
 		for (var id in markData) {
-			this.smartAddToMap(this.markMap, markData[id], id);
+			stateService.smartAddToMap(that.markMap, markData[id], id);
 		}
 	};
 	stateService.addPostDataCallback('markService', postDataCallback);

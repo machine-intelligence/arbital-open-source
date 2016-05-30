@@ -1,6 +1,7 @@
 'use strict';
 
 // Manages common state for services
+// NOTE: stateService should be includable by any service that relies on any kind of app state
 app.service('stateService', function($http, $compile, $location, $mdToast, $rootScope, $interval, popupService) {
 	var that = this;
 
@@ -41,10 +42,10 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 		return !!v;
 	};
 	this.smartMerge = function(oldV, newV) {
-		if (isValueTruthy(newV)) {
-			return newV;
+		if (!isValueTruthy(newV)) {
+			return oldV;
 		}
-		return oldV;
+		return newV;
 	};
 	// Use our smart merge technique to add a new object to existing object map.
 	this.smartAddToMap = function(map, newObject, newObjectId) {
@@ -99,10 +100,10 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 			});
 	};
 	this.postData = function(url, params, successFn, errorFn) {
-		postDataWithOptions(url, params, {callCallbacks: true}, successFn, errorFn);
+		that.postDataWithOptions(url, params, {callCallbacks: true}, successFn, errorFn);
 	};
 	this.postDataWithoutProcessing = function(url, params, successFn, errorFn) {
-		postDataWithOptions(url, params, {callCallbacks: false}, successFn, errorFn);
+		that.postDataWithOptions(url, params, {callCallbacks: false}, successFn, errorFn);
 	};
 
 	// ========================== Mathjax caching ===============================

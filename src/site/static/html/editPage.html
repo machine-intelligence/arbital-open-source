@@ -200,7 +200,7 @@
 							</md-button>
 						</div>
 						<div flex></div>
-						<md-button ng-href="{{::arb.pageService.getEditPageUrl(page.pageId)}}" ng-show="::(isEmbedded && !insideDialog)">
+						<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}" ng-show="::(isEmbedded && !insideDialog)">
 							<md-icon>fullscreen</md-icon>
 							<md-tooltip md-delay="500">Go to full-windowed edit page</md-tooltip>
 						</md-button>
@@ -567,7 +567,7 @@
 					Home
 					<md-tooltip md-delay="500">Go home</md-tooltip>
 				</md-button>
-				<md-button ng-if="::(!page.isDeleted && page.wasPublished)" ng-href="{{::arb.pageService.getPageUrl(page.pageId)}}"
+				<md-button ng-if="::(!page.isDeleted && page.wasPublished)" ng-href="{{::arb.urlService.getPageUrl(page.pageId)}}"
 					class="md-primary md-hue-1 md-raised">
 					<md-icon>arrow_back</md-icon>
 					Back

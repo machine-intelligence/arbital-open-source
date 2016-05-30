@@ -2,7 +2,7 @@
 		layout="column"
 		class="subpage-content full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-if="!isDeleted && (!page.isEditorComment || arb.pageService.getShowEditorComments())">
+		ng-if="!isDeleted && (!page.isEditorComment || arb.stateService.getShowEditorComments())">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center">
 		<md-icon ng-if="::!parentSubpageId">comment</md-icon>
@@ -28,7 +28,7 @@
 
 				<!-- Edit comment -->
 				<md-menu-item ng-if="::(page.pageCreatorId === arb.userService.user.id)">
-					<md-button ng-href="{{::arb.pageService.getEditPageUrl(page.pageId)}}"
+					<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
 							aria-label="Edit comment"
 							ng-disabled="editing"
 							ng-click="editSubpage($event)">

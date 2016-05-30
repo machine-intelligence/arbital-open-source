@@ -114,7 +114,7 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 		var options = options || {};
 		var url = '/p/' + pageId + '/';
 		var alreadyIncludedHost = false;
-		var page = that.getPageFromSomeMap(pageId, options.useEditMap);
+		var page = pageService.getPageFromSomeMap(pageId, options.useEditMap);
 
 		if (page) {
 			var pageId = page.pageId;
@@ -145,7 +145,7 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 			} else if (page.isComment()) {
 				var parent = page.getCommentParentPage();
 				if (parent) {
-					url = this.getPageUrl(parent.pageId, {permalink: options.permalink});
+					url = that.getPageUrl(parent.pageId, {permalink: options.permalink});
 					url += '#subpage-' + pageId;
 				}
 			}

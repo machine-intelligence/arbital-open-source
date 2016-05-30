@@ -29,10 +29,10 @@ app.directive('arbMasteryList', function($timeout, $http, arb) {
 
 			// Sort requirements
 			$scope.idsSource.sort(function(a, b) {
-				var result = (arb.pageService.hasMastery(a) ? 1 : 0) - (arb.pageService.hasMastery(b) ? 1 : 0);
+				var result = (arb.masteryService.hasMastery(a) ? 1 : 0) - (arb.masteryService.hasMastery(b) ? 1 : 0);
 				if ($scope.showHasFirst) result = -result;
 				if (result !== 0) return result;
-				result = (arb.pageService.wantsMastery(a) ? 1 : 0) - (arb.pageService.wantsMastery(b) ? 1 : 0);
+				result = (arb.masteryService.wantsMastery(a) ? 1 : 0) - (arb.masteryService.wantsMastery(b) ? 1 : 0);
 				if ($scope.showHasFirst) result = -result;
 				if (result !== 0) return result;
 				return arb.pageService.pageMap[a].title.localeCompare(arb.pageService.pageMap[b].title);

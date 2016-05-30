@@ -39,7 +39,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 					specificEdit: thisEditNum,
 					skipProcessDataStep: true,
 					success: function(data) {
-						thisEditText = data[pageId].text;
+						thisEditText = data.edits[pageId].text;
 						makeDiffIfBothTextsLoaded();
 					},
 				});
@@ -50,7 +50,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 					specificEdit: prevEditNum,
 					skipProcessDataStep: true,
 					success: function(data) {
-						prevEditText = data[pageId].text;
+						prevEditText = data.edits[pageId].text;
 						makeDiffIfBothTextsLoaded();
 					},
 				});

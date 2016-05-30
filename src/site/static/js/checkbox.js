@@ -17,7 +17,7 @@ app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 			// Called when a user toggles the choice
 			$scope.toggleChoice = function() {
 				$scope.choice = !$scope.choice;
-				arb.pageService.setQuestionAnswer($scope.index, $scope.choice,
+				arb.masteryService.setQuestionAnswer($scope.index, $scope.choice,
 					$scope.choice ? $scope.knows : [], $scope.choice ? $scope.wants : []);
 			};
 		},

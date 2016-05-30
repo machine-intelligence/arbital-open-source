@@ -36,7 +36,7 @@
 
 	<!-- Edit -->
 	<div layout="column" layout-align="start center" flex="25">
-		<md-button ng-href="{{::arb.pageService.getEditPageUrl(page.pageId)}}"
+		<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
 				ng-class="::{'md-icon-button': isTinyScreen}"
 				arb-user-check="cool">
 			<md-icon>create</md-icon>
@@ -57,7 +57,7 @@
 
 	<!-- Link -->
 	<div>
-		<md-button ng-href="{{::(arb.pageService.getPageUrl(arb.pageService.primaryPage.pageId) + '#page-' + page.pageId)}}"
+		<md-button ng-href="{{::(arb.urlService.getPageUrl(arb.pageService.primaryPage.pageId) + '#page-' + page.pageId)}}"
 				ng-if="::(page.type == 'answer')">
 			<md-icon>link</md-icon>
 			<span ng-if="::!isTinyScreen">Link</span>
@@ -93,7 +93,7 @@
 
 			<!-- Permalink -->
 			<md-menu-item>
-				<md-button ng-href="{{arb.pageService.getPageUrl(page.pageId, {permalink: true})}}">
+				<md-button ng-href="{{arb.urlService.getPageUrl(page.pageId, {permalink: true})}}">
 					Permalink
 				</md-button>
 			</md-menu-item>

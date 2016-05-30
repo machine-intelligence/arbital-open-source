@@ -27,7 +27,7 @@
 			</a>
 			<span ng-if="::simplerLens">
 				or try a simpler lens:
-				<a ng-href="{{::arb.pageService.getPageUrl(simplerLens.pageId)}}"
+				<a ng-href="{{::arb.urlService.getPageUrl(simplerLens.pageId)}}"
 						ng-bind="::('&quot;' + simplerLens.lensTitle() + '&quot;')"></a>.
 			</span>
 		</div>
@@ -185,10 +185,10 @@
 					ng-click="toggleInlineMark(markId)"
 					aria-label="Question/objection">
 				<md-icon md-svg-icon="cursor_pointer"
-						ng-class="{'resolved-mark': arb.pageService.markMap[markId].resolvedBy!=''}"
-						ng-if="::arb.pageService.markMap[markId].type === 'query'"></md-icon>
-				<md-icon ng-class="{'resolved-mark': arb.pageService.markMap[markId].resolvedBy!=''}"
-						ng-if="::arb.pageService.markMap[markId].type !== 'query'">rate_review</md-icon>
+						ng-class="{'resolved-mark': arb.markService.markMap[markId].resolvedBy!=''}"
+						ng-if="::arb.markService.markMap[markId].type === 'query'"></md-icon>
+				<md-icon ng-class="{'resolved-mark': arb.markService.markMap[markId].resolvedBy!=''}"
+						ng-if="::arb.markService.markMap[markId].type !== 'query'">rate_review</md-icon>
 			</md-button>
 		</div>
 	</div>

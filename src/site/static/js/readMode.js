@@ -25,7 +25,7 @@ app.directive('arbReadModePanel', function($http, arb) {
 			$scope.title = 'New';
 			$scope.moreLink = '/read';
 
-			arb.pageService.loadModeData('/json/readMode/', {
+			arb.stateService.postData('/json/readMode/', {
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {

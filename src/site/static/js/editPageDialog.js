@@ -9,9 +9,6 @@ app.controller('EditPageDialogController', function($scope, $mdDialog, $timeout,
 			success: function() {
 				$scope.pageId = pageId;
 			},
-			error: function(error) {
-				// TODO
-			},
 		});
 	};
 

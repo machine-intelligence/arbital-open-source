@@ -158,21 +158,21 @@
 	<!-- Persistent popup -->
 	<div id="popup-div"
 			class="md-whiteframe-6dp"
-			ng-show="pageService.popupParams">
-			<!--ng-style="{opacity: pageService.popupPercentLeft / 100}"-->
+			ng-show="arb.popupService.popupParams">
+			<!--ng-style="{opacity: arb.popupService.popupPercentLeft / 100}"-->
 
 		<md-toolbar class="md-hue-3">
 			<div class="md-toolbar-tools md-primary md-hue-2">
 				<span id="popup-header"></span>
 				<span flex></span>
-				<md-button class="md-icon-button" ng-click="pageService.hidePopup()">
+				<md-button class="md-icon-button" ng-click="arb.popupService.hidePopup()">
 					<md-icon>close</md-icon>
 				</md-button>
 			</div>
 		</md-toolbar>
 		<!--<md-progress-linear md-mode="determinate"
-				ng-value="pageService.popupPercentLeft"
-				ng-if="pageService.popupPercentLeft"></md-progress-linear>-->
+				ng-value="arb.popupService.popupPercentLeft"
+				ng-if="arb.popupService.popupPercentLeft"></md-progress-linear>-->
 
 		<div id="popup-body" layout-margin>
 		</div>

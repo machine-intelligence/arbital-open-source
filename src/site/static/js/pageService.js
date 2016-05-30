@@ -17,40 +17,29 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// All loaded edits. (These are the pages we will be editing.)
 	this.editMap = {};
 
-	// All page objects currently loaded
-	// pageId -> {object -> {object data}}
-	this.pageObjectMap = {};
-
 	// Call this to process data we received from the server.
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
-			this.pageMap = {};
-			this.deletedPagesMap = {};
-			this.editMap = {};
-			this.pageObjectMap = {};
-		}
-
-		// Populate page object map.
-		var pageObjectData = data.pageObjects;
-		for (var id in pageObjectData) {
-			this.smartAddToMap(this.pageObjectMap, pageObjectData[id], id);
+			that.pageMap = {};
+			that.deletedPagesMap = {};
+			that.editMap = {};
 		}
 
 		var pageData = data.pages;
 		for (var id in pageData) {
 			var page = pageData[id];
 			if (page.isDeleted) {
-				this.addPageToDeletedPagesMap(pageData[id]);
+				that.addPageToDeletedPagesMap(pageData[id]);
 			} else if (page.isLiveEdit) {
-				this.addPageToMap(pageData[id]);
+				that.addPageToMap(pageData[id]);
 			} else {
-				this.addPageToEditMap(pageData[id]);
+				that.addPageToEditMap(pageData[id]);
 			}
 		}
 
 		var editData = data.edits;
 		for (var id in editData) {
-			this.addPageToEditMap(editData[id]);
+			that.addPageToEditMap(editData[id]);
 		}
 	};
 	stateService.addPostDataCallback('pageService', postDataCallback);
@@ -77,32 +66,6 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			map = that.pageMap;
 		}
 		return map[pageId];
-	};
-
-	// Compute the status of the given masteries and update the server
-	// options = {
-	//	pageId: id of the page
-	//	edit: current edit of the page
-	//	object: page object's alias
-	//	value: page object's value
-	// }
-	this.updatePageObject = function(options) {
-		if (!(options.pageId in this.pageObjectMap)) {
-			this.pageObjectMap[options.pageId] = {};
-		}
-		this.pageObjectMap[options.pageId][options.object] = options;
-
-		$http({method: 'POST', url: '/updatePageObject/', data: JSON.stringify(options)})
-		.error(function(data, status) {
-			console.error('Failed to update page object:'); console.log(data); console.log(status);
-		});
-	};
-
-	// Return the corresponding page object, or undefined if not found.
-	this.getPageObject = function(pageId, objectAlias) {
-		var objectMap = this.pageObjectMap[pageId];
-		if (!objectMap) return undefined;
-		return objectMap[objectAlias];
 	};
 
 	// These functions will be added to each page object.
@@ -367,7 +330,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
 		stateService.postDataWithOptions('/json/edit/',
-				{pageAlias: pageAlias},
+				{pageAlias: options.pageAlias},
 				{callCallbacks: options.skipProcessDataStep},
 				success, error);
 	};
@@ -383,7 +346,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	this.getNewPage = function(options) {
 		var successFn = options.success; delete options.success;
 		var errorFn = options.error; delete options.error;
-		stateService.postDataWithOptions('/json/newPage/',
+		stateService.postData('/json/newPage/',
 			options,
 			function(data) {
 				var pageId = Object.keys(data.edits)[0];

@@ -10,13 +10,13 @@ app.directive('arbRequisitesPage', function(arb) {
 			$scope.arb = arb;
 
 			$scope.masteryList = [];
-			for (var id in arb.pageService.masteryMap) {
+			for (var id in arb.masteryService.masteryMap) {
 				$scope.masteryList.push(id);
 			}
 
 			// Set all requisites to "not known"
 			$scope.resetAll = function() {
-				arb.pageService.updateMasteryMap({delete: $scope.masteryList});
+				arb.masteryService.updateMasteryMap({delete: $scope.masteryList});
 			};
 		},
 	};

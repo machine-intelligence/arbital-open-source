@@ -41,7 +41,7 @@
 </div>
 
 <!-- Link to the mark on the page itself -->
-<a ng-href="{{::arb.pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+<a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}"
 		page-id="{{::mark.pageId}}"
 		class="intrasite-link"
 		ng-if="::!isOnPage">
@@ -61,7 +61,7 @@
 		layout-align-xs="start start"
 		ng-if="!mark.isCurrentUserOwned && !mark.resolvedPageId">
 	<md-button class="md-primary"
-			ng-href="{{::arb.pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+			ng-href="{{::arb.urlService.getEditPageUrl(mark.pageId, {markId: markId})}}">
 		<md-icon>edit</md-icon>
 		Edit page
 	</md-button>

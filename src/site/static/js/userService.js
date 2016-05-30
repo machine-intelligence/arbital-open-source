@@ -13,8 +13,8 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 	// Call this to process data we received from the server.
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
-			this.userMap = {};
-			this.user = data.user;
+			that.userMap = {};
+			that.user = data.user;
 		}
 		$.extend(that.userMap, data.users);
 	};
@@ -100,7 +100,7 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 		var createCallback = function(continuationFn) {
 			return function(data) {
 				delete loadingUserPopovers[userId];
-				continuationFn(data);
+				if (continuationFn) continuationFn(data);
 			};
 		};
 		stateService.postData('/json/userPopover/', {userId: userId}, createCallback(successFn), createCallback(errorFn));

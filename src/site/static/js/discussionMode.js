@@ -25,7 +25,7 @@ app.directive('arbDiscussionModePanel', function($http, arb) {
 			$scope.title = 'Discussion';
 			$scope.moreLink = '/discussion';
 
-			arb.stateService.fetchData('/json/discussionMode/', {
+			arb.stateService.postData('/json/discussionMode/', {
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {

@@ -15,7 +15,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 
 	// Check to see if we should show the popup.
 	$scope.closePopup = function() {
-		arb.pageService.hideNonpersistentPopup();
+		arb.popupService.hideNonpersistentPopup();
 	};
 
 	// Watch path changes and update Google Analytics
@@ -60,7 +60,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			arb.pageService.primaryPage = undefined;
 			if (data) {
 				console.log('Dynamic request data:'); console.log(data);
-				arb.stateService.procesServerData(data);
+				arb.stateService.processServerData(data);
 			}
 
 			// Because the subdomain could have any case, we need to find the alias
@@ -69,7 +69,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				for (var pageAlias in arb.pageService.pageMap) {
 					if ($scope.subdomain.toUpperCase() === pageAlias.toUpperCase()) {
 						$scope.subdomain = pageAlias;
-						arb.pageService.privateGroupId = arb.pageService.pageMap[pageAlias].pageId;
+						arb.stateService.privateGroupId = arb.pageService.pageMap[pageAlias].pageId;
 						break;
 					}
 				}
@@ -142,7 +142,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	$scope.getErrorFunc = function(urlPageType) {
 		return function(data, status) {
 			console.error('Error /json/' + urlPageType + '/:'); console.log(data); console.log(status);
-			arb.pageService.showToast({text: 'Couldn\'t create a new page: ' + data, isError: true});
+			arb.popupService.showToast({text: 'Couldn\'t create a new page: ' + data, isError: true});
 			document.title = 'Error - Arbital';
 		};
 	};

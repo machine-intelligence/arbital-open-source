@@ -79,7 +79,7 @@ app.directive('arbLearnPage', function($location, $compile, arb) {
 				Cookies.set('path', path);
 				if (redirect) {
 					// Start them off with the first page
-					$location.url(arb.pageService.getPageUrl($scope.readIds[0]));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl($scope.readIds[0]));
 				}
 			};
 

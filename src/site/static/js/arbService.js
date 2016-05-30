@@ -1,7 +1,7 @@
 'use strict';
 
 // Contains all the services.
-app.service('arb', function(autocompleteService, diffService, markService, markdownService, masteryService, pageService, pathService, popoverService, stateService, userService, urlService) {
+app.service('arb', function(autocompleteService, diffService, markService, markdownService, masteryService, pageService, pathService, popoverService, popupService, stateService, userService, urlService) {
 	var that = this;
 
 	that.autocompleteService = autocompleteService;
@@ -12,6 +12,7 @@ app.service('arb', function(autocompleteService, diffService, markService, markd
 	that.pageService = pageService;
 	that.pathService = pathService;
 	that.popoverService = popoverService;
+	that.popupService = popupService;
 	that.stateService = stateService;
 	that.userService = userService;
 	that.urlService = urlService;

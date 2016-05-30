@@ -53,6 +53,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				arb.markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
 					$timeout(function() {
 						arb.markdownService.processLinks($scope, $wmdPreview, refreshFunc);
+						arb.markdownService.compileChildren($scope, $wmdPreview, refreshFunc);
 					});
 				});
 			});
@@ -203,7 +204,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				};
 				$http({method: 'POST', url: '/revertPage/', data: JSON.stringify(data)})
 				.success(function(data) {
-					$location.url(arb.pageService.getPageUrl($scope.page.pageId));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl($scope.page.pageId));
 				})
 				.error(function(data) {
 					$scope.addMessage('revert', 'Error reverting: ' + data, 'error');
@@ -225,7 +226,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				};
 				$http({method: 'POST', url: '/mergeQuestions/', data: JSON.stringify(data)})
 				.success(function(data) {
-					$location.url(arb.pageService.getPageUrl($scope.mergeCandidate.pageId));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl($scope.mergeCandidate.pageId));
 				})
 				.error(function(data) {
 					$scope.addMessage('merge', 'Error merging: ' + data, 'error');
@@ -235,15 +236,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.moreRelationshipIds = undefined;
 			$scope.loadMoreRelationships = function() {
 				var data = {pageId: $scope.page.pageId};
-				$http({method: 'POST', url: '/json/moreRelationships/', data: JSON.stringify(data)})
-				.success(function(data) {
-					arb.userService.processServerData(data);
-					arb.pageService.processServerData(data);
-					$scope.moreRelationshipIds = data.result.moreRelationshipIds;
-				})
-				.error(function(data) {
-					$scope.addMessage('moreRelationships', 'Error loading more relationships: ' + data, 'error');
-				});
+				arb.stateService.postData('/json/moreRelationships/', data,
+					function success(data) {
+						$scope.moreRelationshipIds = data.result.moreRelationshipIds;
+					}, function error(data) {
+						$scope.addMessage('moreRelationships', 'Error loading more relationships: ' + data, 'error');
+					}
+				);
 			};
 
 			// =========== Error, warning, and info management system ==============
@@ -396,7 +395,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 									markId: $location.search().markId,
 									resolvedPageId: $scope.pageId,
 								}, function success() {
-									arb.pageService.showToast({text: 'You resolved the query mark.'});
+									arb.popupService.showToast({text: 'You resolved the query mark.'});
 									publishPageDone();
 								}, function error() {
 									publishPageDone();
@@ -524,7 +523,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					specificEdit: editNum,
 					skipProcessDataStep: true,
 					success: function(data, status) {
-						$scope.otherDiff = data[$scope.page.pageId];
+						$scope.otherDiff = data.edits[$scope.page.pageId];
 						$scope.otherDiff.text = $scope.convertPageIdsToAliases($scope.otherDiff.text);
 						$scope.refreshDiff();
 						$scope.selectedTab = 1;
@@ -547,7 +546,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					specificEdit: editNum,
 					skipProcessDataStep: true,
 					success: function(data, status) {
-						$scope.sideEdit = data[$scope.page.pageId];
+						$scope.sideEdit = data.edits[$scope.page.pageId];
 						$scope.sideEdit.text = $scope.convertPageIdsToAliases($scope.sideEdit.text);
 						$scope.selectedTab = 1;
 					},

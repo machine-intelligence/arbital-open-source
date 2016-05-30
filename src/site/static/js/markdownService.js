@@ -1,8 +1,31 @@
 'use strict';
 
+var notEscaped = '(^|\\\\`|\\\\\\[|(?:[^A-Za-z0-9_`[\\\\]|\\\\\\\\))';
+var noParen = '(?=$|[^(])';
+var nakedAliasMatch = '[\\-\\+]?[A-Za-z0-9_]+\\.?[A-Za-z0-9_]*';
+var aliasMatch = '(' + nakedAliasMatch + ')';
+var anyUrlMatch = /\b((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))/i;
+
+// [vote: alias]
+var voteEmbedRegexp = new RegExp(notEscaped +
+		'\\[vote: ?' + aliasMatch + '\\]' + noParen, 'g');
+// [alias/url text]
+var forwardLinkRegexp = new RegExp(notEscaped +
+		'\\[([^ \\]]+?) (?![^\\]]*?\\\\\\])([^\\]]+?)\\]' + noParen, 'g');
+// [alias]
+var simpleLinkRegexp = new RegExp(notEscaped +
+		'\\[' + aliasMatch + '\\]' + noParen, 'g');
+// [text](alias)
+var complexLinkRegexp = new RegExp(notEscaped +
+		'\\[([^\\]]+?)\\]' + // match [Text]
+		'\\(' + aliasMatch + '\\)', 'g'); // match (Alias)
+// [@alias]
+var atAliasRegexp = new RegExp(notEscaped +
+		'\\[@' + aliasMatch + '\\]' + noParen, 'g');
+
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
-app.service('markdownService', function($compile, $timeout, pageService, userService) {
+app.service('markdownService', function($compile, $timeout, pageService, userService, urlService, stateService) {
 	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
 	var failedPageAliases = {};
 
@@ -19,7 +42,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				return text.replace(mathjaxBlockRegexp, function(whole, mathjaxText) {
 					var encodedText = encodeURIComponent(mathjaxText);
 					var key = '$$$' + encodedText.substring(6, encodedText.length - 6) + '$$$';
-					var cachedValue = pageService.getMathjaxCacheValue(key);
+					var cachedValue = stateService.getMathjaxCacheValue(key);
 					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
 					return '<div ' + style + 'class=\'MathJax_Display\' arb-math-compiler=\'' + encodedText + '\'></div>';
 				});
@@ -43,7 +66,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function(whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.pageService.hasMastery("' + pageId + '")\'>';
+				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.hasMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					div = '<div class=\'conditional-text editor-block\'>';
 				}
@@ -56,7 +79,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function(whole, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.pageService.wantsMastery("' + pageId + '")\'>';
+				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.wantsMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					div = '<div class=\'conditional-text editor-block\'>';
 				}
@@ -180,7 +203,11 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D~D[\\s\\S]+?~D~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
-					return prefix + '<span arb-math-compiler=\'' + encodeURIComponent(mathjaxText) + '\'></span>';
+					var encodedText = encodeURIComponent(mathjaxText);
+					var key = '$$' + encodedText.substring(4, encodedText.length - 4) + '$$';
+					var cachedValue = stateService.getMathjaxCacheValue(key);
+					var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
+					return prefix + '<span ' + style + 'arb-math-compiler=\'' + encodeURIComponent(mathjaxText) + '\'></span>';
 				});
 			});
 		}
@@ -190,7 +217,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(hasReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.pageService.hasMastery("' + pageId + '")\'>';
+				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.hasMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
 				}
@@ -203,7 +230,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preSpanGamut', function(text, run) {
 			return text.replace(wantsReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
 				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
-				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.pageService.wantsMastery("' + pageId + '")\'>';
+				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.wantsMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
 				}
@@ -238,7 +265,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// Process [vote:alias] spans.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(voteEmbedRegexp, function(whole, prefix, alias) {
-				return prefix + '[Embedded ' + alias + ' vote. ](' + pageService.getPageUrl(alias, {includeHost: true}) + '/?embedVote=1)';
+				return prefix + '[Embedded ' + alias + ' vote. ](' + urlService.getPageUrl(alias, {includeHost: true}) + '/?embedVote=1)';
 			});
 		});
 
@@ -247,7 +274,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'\\[ ([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(spaceTextRegexp, function(whole, prefix, text) {
-				var editUrl = pageService.getNewPageUrl({includeHost: true});
+				var editUrl = urlService.getNewPageUrl({includeHost: true});
 				return prefix + '[' + text + '](' + editUrl + ')';
 			});
 		});
@@ -264,10 +291,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				if (matches && matches[0] == alias) {
 					var page = pageService.pageMap[alias];
 					if (page) {
-						var url = pageService.getPageUrl(page.pageId, {includeHost: true});
+						var url = urlService.getPageUrl(page.pageId, {includeHost: true});
 						return prefix + '[' + text + '](' + url + ')';
 					} else {
-						var url = pageService.getPageUrl(alias, {includeHost: true});
+						var url = urlService.getPageUrl(alias, {includeHost: true});
 						return prefix + '[' + text + '](' + url + ')';
 					}
 				} else {
@@ -286,7 +313,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				}
 				var page = pageService.pageMap[trimmedAlias];
 				if (page) {
-					var url = pageService.getPageUrl(page.pageId, {includeHost: true});
+					var url = urlService.getPageUrl(page.pageId, {includeHost: true});
 					// Match the page title's case to the alias's case
 					var casedTitle;
 					if (firstAliasChar == '+') {
@@ -296,7 +323,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					}
 					return prefix + '[' + casedTitle + '](' + url + ')';
 				} else {
-					var url = pageService.getPageUrl(trimmedAlias, {includeHost: true});
+					var url = urlService.getPageUrl(trimmedAlias, {includeHost: true});
 					return prefix + '[' + trimmedAlias + '](' + url + ')';
 				}
 			});
@@ -438,29 +465,38 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		$pageText.find('arb-multiple-choice,arb-checkbox').each(function() {
 			$(this).attr('index', index++);
 		});
+	};
+
+	// Compile all the children of arb-markdown
+	this.compileChildren = function(scope, $pageText, refreshFunc) {
 		// NOTE: have to compile children individually because otherwise there is a bug
 		// with intrasite popovers in preview.
 		$pageText.children().each(function(index) {
 			$compile($(this))(scope);
 		});
 		if (refreshFunc) {
+			if (scope._stopCompiling) return;
 			$timeout.cancel(scope._mathRenderPromise);
 			scope._mathRenderPromise = $timeout(function() {
+				scope._stopCompiling = true;
 				$pageText.find('[arb-math-compiler]').each(function() {
 					var $element = $(this);
 					var encodedMathjaxText = $element.attr('arb-math-compiler');
+
+					// Once the element is fully rendered, cache its entire DOM structure
 					var cacheMathjaxDom = function() {
-						if ($element.closest('body').length <= 0) {
+						var $contentElement = $element.find('.MathJax');
+						if ($element.closest('body').length <= 0 || $contentElement.length <= 0) {
 							return;
 						}
-						pageService.cacheMathjax(encodedMathjaxText, {
+						stateService.cacheMathjax(encodedMathjaxText, {
 							html: $element.html(),
-							style: 'width:' + $element.css('width') + ';height:' + $element.css('height'),
+							style: 'width:' + $contentElement.css('width') + ';height:' + $contentElement.css('height'),
 						});
 					};
 
-					// Read from cache
-					var cachedValue = pageService.getMathjaxCacheValue(encodedMathjaxText);
+					// Try to read from cache
+					var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
 					if (cachedValue) {
 						$element.html(cachedValue.html);
 					} else {
@@ -471,6 +507,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 						});
 					}
 					$element.removeClass('MathJax_Display').removeAttr('style');
+				});
+				MathJax.Hub.Queue(function() {
+					scope._stopCompiling = false;
 				});
 			}, scope._mathRenderPromise ? 500 : 0);
 		}

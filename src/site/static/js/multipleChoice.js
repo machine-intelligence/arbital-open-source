@@ -20,7 +20,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 
 			// Called when a user makes a choice
 			$scope.choiceChanged = function() {
-				arb.pageService.setQuestionAnswer($scope.index,
+				arb.masteryService.setQuestionAnswer($scope.index,
 						$scope.knows[$scope.choice], $scope.wants[$scope.choice],
 						$scope.delKnows[$scope.choice], $scope.delWants[$scope.choice],
 						{
@@ -74,7 +74,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 			$compile($ul)(scope);
 
 			// If the user has answered this question before, let's restore the answer.
-			var pageObject = arb.pageService.getPageObject(scope.pageId, scope.objectAlias);
+			var pageObject = arb.masteryService.getPageObject(scope.pageId, scope.objectAlias);
 			if (pageObject) {
 
 				// Since user's requisites might have changed since they answered this question,
@@ -90,7 +90,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 					var knowsList = scope.knows[possibleAnswer];
 					if (knowsList) {
 						for (var n = 0; n < knowsList.length; n++) {
-							if (!arb.pageService.hasMastery(knowsList[n])) {
+							if (!arb.masteryService.hasMastery(knowsList[n])) {
 								isAnswerValid = false;
 								break;
 							}
@@ -100,7 +100,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 					var wantsList = scope.wants[possibleAnswer];
 					if (wantsList) {
 						for (var n = 0; n < wantsList.length; n++) {
-							if (!arb.pageService.getMasteryStatus(wantsList[n])) {
+							if (!arb.masteryService.getMasteryStatus(wantsList[n])) {
 								isAnswerValid = false;
 								break;
 							}
@@ -110,7 +110,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 					var delKnowsList = scope.delKnows[possibleAnswer];
 					if (delKnowsList) {
 						for (var n = 0; n < delKnowsList.length; n++) {
-							if (arb.pageService.hasMastery(delKnowsList[n])) {
+							if (arb.masteryService.hasMastery(delKnowsList[n])) {
 								isAnswerValid = false;
 								break;
 							}
@@ -120,7 +120,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 					var delWantsList = scope.delWants[possibleAnswer];
 					if (delWantsList) {
 						for (var n = 0; n < delWantsList.length; n++) {
-							if (arb.pageService.wantsMastery(delWantsList[n])) {
+							if (arb.masteryService.wantsMastery(delWantsList[n])) {
 								isAnswerValid = false;
 								break;
 							}

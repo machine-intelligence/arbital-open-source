@@ -19,7 +19,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
 			// TODO: This should be refactored into getPageUrl
-			var url = arb.pageService.getPageUrl($scope.lensId);
+			var url = arb.urlService.getPageUrl($scope.lensId);
 			var hashIndex = url.indexOf('#');
 			if (hashIndex > 0) {
 				url = url.slice(0, hashIndex);
@@ -66,7 +66,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.deleteSubpage = function() {
 				arb.pageService.deletePage($scope.page.pageId, function() {
 					$scope.isDeleted = true;
-					arb.pageService.showToast({text: 'Comment deleted'});
+					arb.popupService.showToast({text: 'Comment deleted'});
 				}, function(data) {
 					$scope.addMessage('delete', 'Error deleting page: ' + data, 'error');
 				});

@@ -195,7 +195,7 @@ app.directive('arbPageTitle', function(arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
-			$scope.pageUrl = $scope.customLink ? $scope.customLink : arb.pageService.getPageUrl($scope.page.pageId);
+			$scope.pageUrl = $scope.customLink ? $scope.customLink : arb.urlService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
 				if ($scope.customPageTitle) {
@@ -352,9 +352,9 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 						$scope.childUrl = '/edit/?newParentId=' + arb.pageService.primaryPage.pageId;
 					}
 					if ($location.search().l) {
-						$scope.editPageUrl = arb.pageService.getEditPageUrl($location.search().l);
+						$scope.editPageUrl = arb.urlService.getEditPageUrl($location.search().l);
 					} else {
-						$scope.editPageUrl = arb.pageService.getEditPageUrl(arb.pageService.primaryPage.pageId);
+						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.pageService.primaryPage.pageId);
 					}
 				}
 			};
@@ -385,10 +385,10 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
-					if (event.keyCode == 80) $location.url('/edit/'); // P
-					else if (event.keyCode == 69 && $scope.editPageUrl) $location.url($scope.editPageUrl); // E
-					else if (event.keyCode == 67 && $scope.childUrl) $location.url($scope.childUrl); // C
-					else if (event.keyCode == 78 && $scope.lensUrl) $location.url($scope.lensUrl); // N
+					if (event.keyCode == 80) arb.urlService.goToUrl('/edit/'); // P
+					else if (event.keyCode == 69 && $scope.editPageUrl) arb.urlService.goToUrl($scope.editPageUrl); // E
+					else if (event.keyCode == 67 && $scope.childUrl) arb.urlService.goToUrl($scope.childUrl); // C
+					else if (event.keyCode == 78 && $scope.lensUrl) arb.urlService.goToUrl($scope.lensUrl); // N
 					else if (event.keyCode == 81 && arb.pageService.primaryPage) $scope.newQueryMark(); // Q
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});
@@ -527,7 +527,7 @@ app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 		restrict: 'A',
 		controller: function($scope) {
 			$scope.showUserCheckToast = function(message) {
-				arb.pageService.showToast({text: message, isError: true});
+				arb.popupService.showToast({text: message, isError: true});
 			};
 		},
 		compile: function compile(element, attrs) {
@@ -577,12 +577,12 @@ app.directive('arbRequisiteButton', function(arb) {
 
 			// Toggle whether or not the user has a mastery
 			$scope.toggleRequirement = function() {
-				if (arb.pageService.hasMastery($scope.requisiteId)) {
-					arb.pageService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
-				} else if (arb.pageService.wantsMastery($scope.requisiteId)) {
-					arb.pageService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
+				if (arb.masteryService.hasMastery($scope.requisiteId)) {
+					arb.masteryService.updateMasteryMap({wants: [$scope.requisiteId], callback: unlockedCallback});
+				} else if (arb.masteryService.wantsMastery($scope.requisiteId)) {
+					arb.masteryService.updateMasteryMap({delete: [$scope.requisiteId], callback: unlockedCallback});
 				} else {
-					arb.pageService.updateMasteryMap({knows: [$scope.requisiteId], callback: unlockedCallback});
+					arb.masteryService.updateMasteryMap({knows: [$scope.requisiteId], callback: unlockedCallback});
 				}
 			};
 		},
@@ -604,7 +604,7 @@ app.directive('arbNextPrev', function($location, arb) {
 			$scope.arb = arb;
 
 			$scope.stopLearning = function() {
-				arb.pageService.abandonPath();
+				arb.pathService.abandonPath();
 			};
 		},
 	};

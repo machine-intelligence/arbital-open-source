@@ -217,7 +217,7 @@ app.run(function($http, $location, arb) {
 							$location.replace().search('alias', undefined);
 						}
 
-						arb.urlService.ensureCanonPath(arb.pageService.getEditPageUrl(page.pageId));
+						arb.urlService.ensureCanonPath(arb.urlService.getEditPageUrl(page.pageId));
 						arb.pageService.primaryPage = page;
 
 						// Called when the user is done editing the page.
@@ -225,13 +225,13 @@ app.run(function($http, $location, arb) {
 							var page = arb.pageService.editMap[result.pageId];
 							// if the page is (now / still) live, go (to / back to) it
 							if ((page.wasPublished && !result.deletedPage) || !result.discard) {
-								$location.url(arb.pageService.getPageUrl(page.pageId, {
+								arb.urlService.goToUrl(arb.urlService.getPageUrl(page.pageId, {
 									useEditMap: true,
 									markId: $location.search().markId,
 								}));
 
 								if (!arb.pageService.pageMap[result.pageId].isSubscribedAsMaintainer) {
-									arb.pageService.showToast({
+									arb.popupService.showToast({
 										text: 'Maintain this page?',
 										scope: $scope,
 										normalButton: {
@@ -257,7 +257,7 @@ app.run(function($http, $location, arb) {
 							arb.pageService.pageMap[page.pageId].isSubscribed = true;
 							arb.pageService.pageMap[page.pageId].isSubscribedAsMaintainer = true;
 
-							arb.pageService.showToast({
+							arb.popupService.showToast({
 								text: 'Subscribed as maintainer',
 								scope: $scope,
 							});
@@ -285,7 +285,7 @@ app.run(function($http, $location, arb) {
 					type: type,
 					parentIds: newParentIdString ? newParentIdString.split(',') : [],
 					success: function(newPageId) {
-						$location.replace().path(arb.pageService.getEditPageUrl(newPageId));
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId));
 					},
 					error: $scope.getErrorFunc('newPage'),
 				});
@@ -348,8 +348,8 @@ app.run(function($http, $location, arb) {
 				postData.pageAliases.push(args.pageAlias);
 			} else if ($location.search().path) {
 				postData.pageAliases = postData.pageAliases.concat($location.search().path.split(','));
-			} else if (arb.pageService.path) {
-				postData.pageAliases = arb.pageService.path.pageIds;
+			} else if (arb.pathService.path) {
+				postData.pageAliases = arb.pathService.path.pageIds;
 				continueLearning = true;
 			}
 
@@ -423,9 +423,9 @@ app.run(function($http, $location, arb) {
 					page = arb.pageService.deletedPagesMap[postData.pageAlias];
 					if (page) {
 						if (page.mergedInto) {
-							arb.urlService.goToUrl(arb.pageService.getPageUrl(page.mergedInto));
+							arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
 						} else {
-							arb.urlService.goToUrl(arb.pageService.getEditPageUrl(postData.pageAlias));
+							arb.urlService.goToUrl(arb.urlService.getEditPageUrl(postData.pageAlias));
 						}
 						return {};
 					}
@@ -437,7 +437,7 @@ app.run(function($http, $location, arb) {
 
 				// If this page has been merged into another, go there
 				if (page.mergedInto) {
-					arb.urlService.goToUrl(arb.pageService.getPageUrl(page.mergedInto));
+					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
 					return {};
 				}
 
@@ -453,16 +453,11 @@ app.run(function($http, $location, arb) {
 				}
 
 				if (page.isLens() || page.isComment()) {
-					// Redirect to the primary page, but preserve all search variables
-					var search = $location.search();
-					$location.replace().url(arb.pageService.getPageUrl(page.pageId));
-					for (var k in search) {
-						$location.search(k, search[k]);
-					}
+					arb.urlService.goToUrl(arb.urlService.getPageUrl(page.pageId), true);
 					return {};
 				}
 
-				arb.urlService.ensureCanonPath(arb.pageService.getPageUrl(page.pageId));
+				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId));
 				arb.pageService.primaryPage = page;
 				return {
 					title: page.title,
@@ -488,12 +483,7 @@ app.run(function($http, $location, arb) {
 						error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
 					};
 				}
-				// Redirect to the primary page, but preserve all search variables
-				var search = $location.search();
-				$location.replace().url(arb.pageService.getPageUrl(pageId));
-				for (var k in search) {
-					$location.search(k, search[k]);
-				}
+				arb.urlService.goToUrl(arb.urlService.getPageUrl(pageId), true);
 				return {
 				};
 			}))

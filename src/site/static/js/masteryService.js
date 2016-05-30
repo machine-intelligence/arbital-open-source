@@ -1,7 +1,7 @@
 'use strict';
 
 // Manages masteries
-app.service('masteryService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService) {
+app.service('masteryService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService, pageService) {
 	var that = this;
 
 	// All loaded masteries.
@@ -13,17 +13,28 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 	// Array is sorted by the order in which the questions appear in the text.
 	this.masteryMapList = [this.masteryMap];
 
+	// All page objects currently loaded
+	// pageId -> {object -> {object data}}
+	this.pageObjectMap = {};
+
 	// This is called when we get data from the server.
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
-			this.masteryMap = {};
-			this.masteryMapList = [this.masteryMap];
+			that.masteryMap = {};
+			that.masteryMapList = [that.masteryMap];
+			that.pageObjectMap = {};
 		}
 
 		// Populate materies map.
 		var masteryData = data.masteries;
 		for (var id in masteryData) {
-			stateService.smartAddToMap(this.masteryMap, masteryData[id], id);
+			stateService.smartAddToMap(that.masteryMap, masteryData[id], id);
+		}
+
+		// Populate page object map.
+		var pageObjectData = data.pageObjects;
+		for (var id in pageObjectData) {
+			stateService.smartAddToMap(that.pageObjectMap, pageObjectData[id], id);
 		}
 	};
 	stateService.addPostDataCallback('masteryService', postDataCallback);
@@ -99,7 +110,7 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 			addMasteries: addMasteries,
 			// Note: this is a bit hacky. We should probably pass computeUnlocked explicitly
 			computeUnlocked: !!callback,
-			taughtBy: that.getCurrentPageId(),
+			taughtBy: pageService.getCurrentPageId(),
 		};
 		if (callback) {
 			stateService.postData('/updateMasteries/', data, callback);
@@ -199,5 +210,31 @@ app.service('masteryService', function($http, $compile, $location, $mdToast, $ro
 		this.masteryMapList[qIndex] = masteryMap;
 		this.pushMasteriesToServer(affectedMasteryIds);
 		this.updatePageObject(updatePageObjectOptions);
+	};
+
+	// Propate object state to the server
+	// options = {
+	//	pageId: id of the page
+	//	edit: current edit of the page
+	//	object: page object's alias
+	//	value: page object's value
+	// }
+	this.updatePageObject = function(options) {
+		if (!(options.pageId in this.pageObjectMap)) {
+			this.pageObjectMap[options.pageId] = {};
+		}
+		this.pageObjectMap[options.pageId][options.object] = options;
+
+		$http({method: 'POST', url: '/updatePageObject/', data: JSON.stringify(options)})
+		.error(function(data, status) {
+			console.error('Failed to update page object:'); console.log(data); console.log(status);
+		});
+	};
+
+	// Return the corresponding page object, or undefined if not found.
+	this.getPageObject = function(pageId, objectAlias) {
+		var objectMap = this.pageObjectMap[pageId];
+		if (!objectMap) return undefined;
+		return objectMap[objectAlias];
 	};
 });

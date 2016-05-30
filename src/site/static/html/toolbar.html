@@ -1,5 +1,5 @@
 <!-- Top toolbar appearing on every page -->
-<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': arb.pageService.privateGroupId !== ''}"
+<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': arb.stateService.privateGroupId !== ''}"
 		ng-if="!hide">
 	<div class="md-toolbar-tools">
 		<a ng-href="http://{{arb.urlService.getTopLevelDomain()}}">
@@ -9,8 +9,8 @@
 
 		<a href="/"
 				layout-margin
-				ng-bind="::(arb.pageService.pageMap[arb.pageService.privateGroupId].title | shorten: 30)"
-				ng-if="arb.pageService.privateGroupId !== ''"></a>
+				ng-bind="::(arb.pageService.pageMap[arb.stateService.privateGroupId].title | shorten: 30)"
+				ng-if="arb.stateService.privateGroupId !== ''"></a>
 
 		<!-- Search -->
 		<span flex></span>

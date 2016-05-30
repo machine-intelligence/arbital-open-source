@@ -1,7 +1,7 @@
 <div>
 	<span arb-requisite-button requisite-id="{{::requirement.pageId}}"></span>
 </div>
-<div ng-if="!arb.pageService.hasMastery(requirement.pageId)">
+<div ng-if="!arb.masteryService.hasMastery(requirement.pageId)">
 	<div class="which-part" ng-if="::tutor">
 		You can learn it from
 		<arb-page-title page-id="{{requirement.bestTutorId}}" is-link="true"></arb-page-title>

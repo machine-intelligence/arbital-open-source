@@ -53,7 +53,7 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 				arb.pageService.newPagePair(params, function success() {
 					$scope.idsSource.push(params.parentId);
 				}, function error(data) {
-					arb.pageService.showToast({text: 'Error adding the relationship: ' + data, isError: true});
+					arb.popupService.showToast({text: 'Error adding the relationship: ' + data, isError: true});
 				});
 			};
 
@@ -77,7 +77,7 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 					$scope.idsSource.splice($scope.idsSource.indexOf(params.parentId), 1);
 					$scope.relatesToItself = $scope.idsSource.indexOf($scope.pageId) >= 0;
 				}, function error(data) {
-					arb.pageService.showToast({text: 'Error removing the relationship: ' + data, isError: true});
+					arb.popupService.showToast({text: 'Error removing the relationship: ' + data, isError: true});
 				});
 			};
 		},

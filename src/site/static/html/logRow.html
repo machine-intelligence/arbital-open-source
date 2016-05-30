@@ -257,10 +257,10 @@
 			<div ng-switch-when="newMark">
 				<div arb-query-info
 					mark-id="{{::markId}}"
-					ng-if="arb.pageService.markMap[markId].type === 'query'"></div>
+					ng-if="arb.markService.markMap[markId].type === 'query'"></div>
 				<div arb-mark-info
 						mark-id="{{::markId}}"
-						ng-if="arb.pageService.markMap[markId].type !== 'query'"></div>
+						ng-if="arb.markService.markMap[markId].type !== 'query'"></div>
 			</div>
 
 			<div ng-switch-when="answeredMark">

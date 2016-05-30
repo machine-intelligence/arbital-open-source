@@ -19,7 +19,7 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, ar
 			var computeMarkIds = function() {
 				if ($scope.$$destroyed) return;
 				$scope.markIds = $scope.page.markIds.filter(function(markId) {
-					var mark = arb.pageService.markMap[markId];
+					var mark = arb.markService.markMap[markId];
 					if ($location.search().markId === markId) return true;
 					if (!mark.isCurrentUserOwned && !arb.userService.showAllMarks) return false;
 					return mark.type === 'query' && mark.text.length > 0 && !mark.resolvedBy;
@@ -39,7 +39,7 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, ar
 
 			// Called to show a popup for the given mark.
 			$scope.bringUpMark = function(markId) {
-				arb.pageService.showPopup({
+				arb.popupService.showPopup({
 					title: 'Edit query mark',
 					$element: $compile('<div arb-query-info mark-id="' + markId +
 						'" in-popup="::true' +
@@ -53,7 +53,7 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, ar
 			// Check if ?markId is set and we need to take care of it.
 			var searchMarkId = $location.search().markId;
 			if (searchMarkId && $scope.markIds.indexOf(searchMarkId) >= 0) {
-				var mark = arb.pageService.markMap[searchMarkId];
+				var mark = arb.markService.markMap[searchMarkId];
 				if (!mark.anchorContext) {
 					// The mark is not attached, so it can only be managed through the marks section
 					$scope.bringUpMark(searchMarkId);

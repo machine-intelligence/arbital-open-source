@@ -37,7 +37,7 @@
 		<arb-page-title page-id="{{mark.resolvedPageId}}" is-link="true"></arb-page-title>
 	</div>
 
-	<a ng-href="{{::arb.pageService.getPageUrl(mark.pageId, {markId: markId})}}">
+	<a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}">
 		View this query mark on the page
 	</a>
 
@@ -145,7 +145,7 @@
 	</div>
 
 	<div>
-		<a ng-href="{{::arb.pageService.getPageUrl(mark.pageId, {markId: markId})}}"
+		<a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}"
 				page-id="{{::mark.pageId}}"
 				class="intrasite-link"
 				ng-if="!isOnPage()">
@@ -161,7 +161,7 @@
 				layout-align="{{inPopup ? 'start start' : 'start center'}}"
 				layout-align-xs="start start">
 			<md-button ng-class="{'md-primary': !mark.resolvedBy}"
-					ng-href="{{::arb.pageService.getEditPageUrl(mark.pageId, {markId: markId})}}">
+					ng-href="{{::arb.urlService.getEditPageUrl(mark.pageId, {markId: markId})}}">
 				<md-icon>edit</md-icon>
 				Edit page
 			</md-button>
@@ -200,7 +200,7 @@
 
 	<div ng-if="questionLinked">
 		Thanks! Consider
-		<a ng-href="{{::arb.pageService.getEditPageUrl(mark.resolvedPageId)}}">editing the question page</a>
+		<a ng-href="{{::arb.urlService.getEditPageUrl(mark.resolvedPageId)}}">editing the question page</a>
 		to include a new search string or tag.
 	</div>
 </div>
