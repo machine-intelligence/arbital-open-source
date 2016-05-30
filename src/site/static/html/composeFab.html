@@ -4,18 +4,19 @@
 		ng-mouseenter="mouseEnter()"
 		ng-mouseleave="mouseLeave()"
 		ng-if="!hideFab && arb.userService.userIsCool()">
-	<md-fab-trigger>
-		<md-button ng-click="fabClicked($event)" class="md-fab">
-			<!-- When text is highlighted on mobile -->
+	<md-fab-trigger>butt: {{arb.stateService.lensTextSelected}}
+		<md-button ng-click="triggerClicked($event)" class="md-fab" >
+			<!-- When closed and not in the special inline response mode for mobile. -->
+			<md-icon class="fab-icon" ng-if="!a.isOpen && !showInlineVersion()">add</md-icon>
+
+			<!-- When closed and in the special inline response mode for mobile. -->
 			<md-icon class="fab-icon" ng-if="showInlineVersion()">add_box</md-icon>
+			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="a.isOpen">New inline response</md-tooltip>
 
-			<!-- When closed -->
-			<md-icon class="fab-icon" ng-if="!showInlineVersion() && !a.isOpen">add</md-icon>
-			<md-tooltip md-direction="left" ng-if="!showInlineVersion() && !a.isOpen">Quick menu</md-tooltip>
-
-			<!-- When open -->
-			<md-icon class="fab-icon" ng-if="!showInlineVersion() && a.isOpen">note_add</md-icon>
-			<md-tooltip md-direction="left" ng-if="a.isOpen" md-visible="showTooltips">New page (ALT+CTRL+P)</md-tooltip>
+			<!-- When open. -->
+			<md-icon class="fab-icon" ng-if="a.isOpen">note_add</md-icon>
+			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="a.isOpen">New page (ALT+CTRL+P)</md-tooltip>
+		</md-button>
 		</md-button>
 		<md-icon class="private-group-icon" ng-if="arb.stateService.privateGroupId !== ''">
 			lock

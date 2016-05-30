@@ -315,41 +315,50 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
 			$scope.a = {};
-			$scope.a.isOpen = false;
+			// $scope.a.isOpen = false;
+			$scope.showTooltips = arb.isTouchDevice;
 
 			// Returns true if user has text selected on a touch device, and we should show
 			// a special fab.
 			$scope.showInlineVersion = function() {
-				return arb.userService.isTouchDevice && arb.userService.lensTextSelected;
-			};
-
-			$scope.showTooltips = function() {
-				return arb.userService.isTouchDevice && $scope.a.isOpen;
+				return arb.isTouchDevice && arb.stateService.lensTextSelected;
 			};
 
 			$scope.mouseEnter = function() {
-				if (arb.userService.isTouchDevice) return;
+				if (arb.isTouchDevice) return;
 				$scope.a.isOpen = true;
 			};
 
 			$scope.mouseLeave = function() {
-				if (arb.userService.isTouchDevice) return;
+				if (arb.isTouchDevice) return;
 				$scope.a.isOpen = false;
 			};
 
-			// Called when the FAB is clicked
-			$scope.fabClicked = function(event) {
-				// If we want to make an inline repsonse, do that.
+			$scope.initiateInlineResponse = function() {
+				$rootScope.$broadcast('fabClicked');
+			};
+
+			$scope.triggerClicked = function($event) {
+				// If we're in the "inline response" mode, kick off the response.
 				if ($scope.showInlineVersion()) {
 					$rootScope.$broadcast('fabClicked');
-					return;
 				}
 
-				// Otherwise, do the "new page" action and close the FAB.
+				// If it's open, execute the "New page" click.
 				if ($scope.a.isOpen) {
-					$scope.a.isOpen && arb.urlService.goToUrl('/edit/');
-					$scope.a.isOpen = false;
+					arb.urlService.goToUrl('/edit/');
 				}
+
+				// Toggle the menu.
+				$scope.a.isOpen = !$scope.a.isOpen;
+
+				// Prevent angular material from doing its stuff.
+				$event.stopPropagation();
+			};
+
+			$scope.newPageTriggerClicked = function($event) {
+				arb.urlService.goToUrl('/edit/');
+				$scope.triggerClicked($event);
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
