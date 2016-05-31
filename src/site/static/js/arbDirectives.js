@@ -468,7 +468,11 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 				var $input = element.find("input");
 				$input.on('blur', function(event) {
 					if (scope.ignoreNextResult) return;
-					if (scope.onBlur) scope.onBlur();
+					// Make sure that if the user clicked one of the results, we don't count
+					// it as a blur event.
+					if (scope.onBlur && $(event.relatedTarget).closest('md-virtual-repeat-container').length <= 0) {
+						scope.onBlur();
+					}
 				});
 			});
 		},
