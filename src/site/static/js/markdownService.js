@@ -114,7 +114,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hiddenBlockRegexp, function(whole, bars, buttonText, text) {
 				var blockText = text + '\n\n';
-				return '<div arb-hidden-text button-text=\'' + buttonText + '\'>' + runBlockGamut(blockText) + '\n\n</div>';
+				var blockText = runBlockGamut(blockText);
+				if (isEditor) {
+					var html = '\n\n<div class=\'hidden-text\'>' + blockText + '\n\n</div>';
+				} else {
+					var html = '<div arb-hidden-text button-text=\'' + buttonText + '\'>' + blockText  + '\n\n</div>';
+				}
+				return html;
 			});
 		});
 

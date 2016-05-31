@@ -1044,4 +1044,7 @@ arb-log-row, [arb-log-row] {
   padding-left: 10px;
   margin-left: 16px; }
 
+.hidden-text {
+  border: gray 1px dashed; }
+
 /*# sourceMappingURL=arbital.css.map */
