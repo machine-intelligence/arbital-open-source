@@ -144,13 +144,13 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			// Prefetch the data
 			if (targetCandidateLinkType == linkTypeIntrasite) {
 				var pageId = $target.attr('page-id');
-				var page = pageService.pageMap[pageId];
+				var page = stateService.pageMap[pageId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
 					pageService.loadIntrasitePopover(pageId);
 				}
 			} else {
 				var userId = $target.attr('user-id');
-				var page = pageService.pageMap[userId];
+				var page = stateService.pageMap[userId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
 					userService.loadUserPopover(userId);
 				}

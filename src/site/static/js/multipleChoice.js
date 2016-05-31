@@ -25,7 +25,7 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 						$scope.delKnows[$scope.choice], $scope.delWants[$scope.choice],
 						{
 							pageId: $scope.pageId,
-							edit: arb.pageService.pageMap[$scope.pageId].edit,
+							edit: arb.stateService.pageMap[$scope.pageId].edit,
 							object: $scope.objectAlias,
 							value: $scope.choice,
 						});

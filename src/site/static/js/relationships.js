@@ -11,7 +11,7 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.editMap[$scope.pageId];
+			$scope.page = arb.stateService.editMap[$scope.pageId];
 
 			// Helper variables
 			$scope.isParentType = $scope.type === 'parent';

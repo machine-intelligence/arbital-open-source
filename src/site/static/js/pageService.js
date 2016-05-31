@@ -2,27 +2,15 @@
 
 // pages stores all the loaded pages and provides multiple helper functions for
 // working with pages.
-app.service('pageService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService, userService) {
+app.service('pageService', function($http, $compile, $location, $mdToast, $rootScope, $interval, stateService, userService, urlService) {
 	var that = this;
-
-	// Primary page is the one with its id in the url
-	this.primaryPage = undefined;
-
-	// All loaded pages.
-	this.pageMap = {};
-
-	// All loaded deleted pages.
-	this.deletedPagesMap = {};
-
-	// All loaded edits. (These are the pages we will be editing.)
-	this.editMap = {};
 
 	// Call this to process data we received from the server.
 	var postDataCallback = function(data) {
 		if (data.resetEverything) {
-			that.pageMap = {};
-			that.deletedPagesMap = {};
-			that.editMap = {};
+			stateService.pageMap = {};
+			stateService.deletedPagesMap = {};
+			stateService.editMap = {};
 		}
 
 		var pageData = data.pages;
@@ -47,25 +35,12 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// Returns the id of the current page, if there is one.
 	this.getCurrentPageId = function() {
 		return $location.search().l ||
-			(that.primaryPage ? that.primaryPage.pageId : '');
+			(stateService.primaryPage ? stateService.primaryPage.pageId : '');
 	};
 
 	// Returns the current page
 	this.getCurrentPage = function() {
-		return that.pageMap[that.getCurrentPageId()];
-	};
-
-	// Returns the page from the correct map
-	this.getPageFromSomeMap = function(pageId, useEditMap) {
-		var map;
-		if (pageId in that.deletedPagesMap) {
-			map = that.deletedPagesMap;
-		} else if (useEditMap) {
-			map = that.editMap;
-		} else {
-			map = that.pageMap;
-		}
-		return map[pageId];
+		return stateService.pageMap[that.getCurrentPageId()];
 	};
 
 	// These functions will be added to each page object.
@@ -112,7 +87,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		getCommentParentPage: function() {
 			console.assert(this.isComment(), 'Calling getCommentParentPage on a non-comment');
 			for (var n = 0; n < this.parentIds.length; n++) {
-				var p = that.pageMap[this.parentIds[n]];
+				var p = stateService.pageMap[this.parentIds[n]];
 				if (!p.isComment()) {
 					return p;
 				}
@@ -123,7 +98,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		getTopLevelComment: function() {
 			console.assert(this.isComment(), 'Calling getTopLevelComment on a non-comment');
 			for (var n = 0; n < this.parentIds.length; n++) {
-				var p = that.pageMap[this.parentIds[n]];
+				var p = stateService.pageMap[this.parentIds[n]];
 				if (p.isComment()) {
 					return p;
 				}
@@ -132,11 +107,11 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		},
 		// Get page's url
 		url: function() {
-			return that.getPageUrl(this.pageId);
+			return urlService.getPageUrl(this.pageId);
 		},
 		// Get url to edit the page
 		editUrl: function() {
-			return that.getEditPageUrl(this.pageId);
+			return urlService.getEditPageUrl(this.pageId);
 		},
 		// Return just the title to display for a lens.
 		lensTitle: function() {
@@ -169,14 +144,14 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		return page;
 	};
 	this.addPageToMap = function(newPage) {
-		var oldPage = this.pageMap[newPage.pageId];
+		var oldPage = stateService.pageMap[newPage.pageId];
 		if (newPage === oldPage) return oldPage;
 		if (oldPage === undefined) {
-			this.pageMap[newPage.pageId] = setUpPage(newPage);
+			stateService.pageMap[newPage.pageId] = setUpPage(newPage);
 			// Add page's alias to the map as well, both with lowercase and uppercase first letter
 			if (newPage.pageId !== newPage.alias) {
-				this.pageMap[newPage.alias.substring(0, 1).toLowerCase() + newPage.alias.substring(1)] = newPage;
-				this.pageMap[newPage.alias.substring(0, 1).toUpperCase() + newPage.alias.substring(1)] = newPage;
+				stateService.pageMap[newPage.alias.substring(0, 1).toLowerCase() + newPage.alias.substring(1)] = newPage;
+				stateService.pageMap[newPage.alias.substring(0, 1).toUpperCase() + newPage.alias.substring(1)] = newPage;
 			}
 			return newPage;
 		}
@@ -189,26 +164,26 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 
 	// Remove page with the given pageId from the global pageMap.
 	this.removePageFromMap = function(pageId) {
-		delete this.pageMap[pageId];
+		delete stateService.pageMap[pageId];
 	};
 
 	// Add the given page to the global editMap.
 	this.addPageToEditMap = function(page) {
-		this.editMap[page.pageId] = setUpPage(page);
+		stateService.editMap[page.pageId] = setUpPage(page);
 	};
 
 	this.addPageToDeletedPagesMap = function(page) {
-		this.deletedPagesMap[page.pageId] = setUpPage(page);
+		stateService.deletedPagesMap[page.pageId] = setUpPage(page);
 	};
 
 	// Remove page with the given pageId from the global editMap;
 	this.removePageFromEditMap = function(pageId) {
-		delete this.editMap[pageId];
+		delete stateService.editMap[pageId];
 	};
 
 	// Return function for sorting children ids.
 	this.getChildSortFunc = function(sortChildrenBy) {
-		var pageMap = this.pageMap;
+		var pageMap = stateService.pageMap;
 		if (sortChildrenBy === 'alphabetical') {
 			return function(aId, bId) {
 				var aTitle = pageMap[aId].title;
@@ -423,7 +398,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// TODO: make these into page functions?
 	// Return true iff we should show that this page is public.
 	this.showPublic = function(pageId, useEditMap) {
-		var page = that.getPageFromSomeMap(pageId, useEditMap);
+		var page = stateService.getPageFromSomeMap(pageId, useEditMap);
 		if (!page) {
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
@@ -432,7 +407,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	};
 	// Return true iff we should show that this page belongs to a group.
 	this.showPrivate = function(pageId, useEditMap) {
-		var page = that.getPageFromSomeMap(pageId, useEditMap);
+		var page = stateService.getPageFromSomeMap(pageId, useEditMap);
 		if (!page) {
 			console.error('Couldn\'t find pageId: ' + pageId);
 			return false;
@@ -456,7 +431,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		this.getNewPage({
 			type: 'comment',
 			parentIds: parentIds,
-			isEditorComment: !this.pageMap[options.parentPageId].permissions.comment.has,
+			isEditorComment: !stateService.pageMap[options.parentPageId].permissions.comment.has,
 			success: function(newCommentId) {
 				if (options.success) {
 					options.success(newCommentId);
@@ -467,7 +442,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 
 	// Called when the user created a new comment.
 	this.newCommentCreated = function(commentId) {
-		var comment = this.editMap[commentId];
+		var comment = stateService.editMap[commentId];
 		if (comment.isEditorComment) {
 			this.setShowEditorComments(true);
 		}
@@ -482,7 +457,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		// add it to the lens its on.
 		var parent;
 		for (var n = 0; n < comment.parentIds.length; n++) {
-			var p = this.pageMap[comment.parentIds[n]];
+			var p = stateService.pageMap[comment.parentIds[n]];
 			if (!parent || p.isComment()) {
 				parent = p;
 			}
@@ -490,8 +465,8 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		parent.subpageIds.push(commentId);
 		// Only change the URL if we are on the actual lens page, since there are
 		// ways to create new comments from other locations (e.g. discussion mode)
-		if (that.primaryPage && that.primaryPage.pageId == comment.getCommentParentPage().pageId) {
-			$location.replace().url(this.getPageUrl(commentId));
+		if (stateService.primaryPage && stateService.primaryPage.pageId == comment.getCommentParentPage().pageId) {
+			urlService.goToUrl(urlService.getPageUrl(commentId))
 		}
 	};
 
@@ -500,6 +475,6 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		if (domainId === '') {
 			return 'General';
 		}
-		return this.pageMap[domainId].title;
+		return stateService.pageMap[domainId].title;
 	};
 });

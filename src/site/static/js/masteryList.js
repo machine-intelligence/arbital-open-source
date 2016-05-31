@@ -24,7 +24,7 @@ app.directive('arbMasteryList', function($timeout, $http, arb) {
 
 			// Filter non-existing page ids out
 			$scope.idsSource = $scope.idsSource.filter(function(pageId) {
-				return (pageId in arb.pageService.pageMap) && !arb.pageService.pageMap[pageId].isDeleted;
+				return (pageId in arb.stateService.pageMap) && !arb.stateService.pageMap[pageId].isDeleted;
 			});
 
 			// Sort requirements
@@ -35,7 +35,7 @@ app.directive('arbMasteryList', function($timeout, $http, arb) {
 				result = (arb.masteryService.wantsMastery(a) ? 1 : 0) - (arb.masteryService.wantsMastery(b) ? 1 : 0);
 				if ($scope.showHasFirst) result = -result;
 				if (result !== 0) return result;
-				return arb.pageService.pageMap[a].title.localeCompare(arb.pageService.pageMap[b].title);
+				return arb.stateService.pageMap[a].title.localeCompare(arb.stateService.pageMap[b].title);
 			});
 
 			// Called when one of the requisites is changed.

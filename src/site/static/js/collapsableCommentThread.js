@@ -9,7 +9,7 @@ app.directive('arbCollapsableCommentThread', function($compile, $timeout, $locat
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.comment = arb.pageService.pageMap[$scope.commentId];
+			$scope.comment = arb.stateService.pageMap[$scope.commentId];
 			$scope.threadExpanded = false;
 			$scope.threadLoaded = false;
 

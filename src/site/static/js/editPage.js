@@ -17,7 +17,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.editMap[$scope.pageId];
+			$scope.page = arb.stateService.editMap[$scope.pageId];
 			$scope.fullView = !$scope.isEmbedded && $mdMedia('gt-md');
 			$scope.gtXSmallScreen = $mdMedia('gt-xs');
 			$scope.gtSmallScreen = $mdMedia('gt-sm');
@@ -72,14 +72,14 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Lens sort listeners (using ng-sortable library)
 			$scope.page.lensIds.sort(function(a, b) {
-				return arb.pageService.pageMap[a].lensIndex - arb.pageService.pageMap[b].lensIndex;
+				return arb.stateService.pageMap[a].lensIndex - arb.stateService.pageMap[b].lensIndex;
 			});
 			$scope.lensSortListeners = {
 				orderChanged: function(event) {
 					var data = {pageId: $scope.page.pageId, orderMap: {}};
 					for (var n = 0; n < $scope.page.lensIds.length; n++) {
 						var pageId = $scope.page.lensIds[n];
-						arb.pageService.pageMap[pageId].lensIndex = n + 1;
+						arb.stateService.pageMap[pageId].lensIndex = n + 1;
 						data.orderMap[pageId] = n + 1;
 					}
 					$http({method: 'POST', url: '/updateLensOrder/', data: JSON.stringify(data)})
@@ -113,7 +113,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.pageTypes = {wiki: 'Wiki page'};
 			} else if ($scope.isLens) {
 				$scope.pageTypes = {lens: 'Lens page'};
-				$scope.lensParent = arb.pageService.pageMap[$scope.page.parentIds[0]];
+				$scope.lensParent = arb.stateService.pageMap[$scope.page.parentIds[0]];
 			}
 
 			// Set up group names.
@@ -122,7 +122,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			if (groupIds) {
 				for (var i in groupIds) {
 					var groupId = groupIds[i];
-					var groupName = arb.pageService.pageMap[groupId].title;
+					var groupName = arb.stateService.pageMap[groupId].title;
 					$scope.groupOptions[groupId] = groupName;
 				}
 			}
@@ -148,43 +148,43 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.convertPageIdsToAliases = function(textToConvert) {
 				// Convert all links with pageIds to alias links.
 				return textToConvert.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
-					var page = arb.pageService.pageMap[alias];
+					var page = arb.stateService.pageMap[alias];
 					if (page) {
 						return prefix + '[' + text + '](' + page.alias + ')';
 					}
 					return whole;
 					/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
-						var page = arb.pageService.pageMap[alias];
+						var page = arb.stateService.pageMap[alias];
 						if (page) {
 						return prefix + '[vote: ' + page.alias + ']';
 						}
 						return whole;*/
 				}).replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
-					var page = arb.pageService.pageMap[alias];
+					var page = arb.stateService.pageMap[alias];
 					if (page) {
 						return prefix + '[' + page.alias + ' ' + text + ']';
 					}
 					return whole;
 				}).replace(simpleLinkRegexp, function(whole, prefix, alias) {
 					if (alias.substring(0, 1) == '-') {
-						var page = arb.pageService.pageMap[alias.substring(1)];
+						var page = arb.stateService.pageMap[alias.substring(1)];
 						if (page) {
 							return prefix + '[-' + page.alias + ']';
 						}
 					} else if (alias.substring(0, 1) == '+') {
-						var page = arb.pageService.pageMap[alias.substring(1)];
+						var page = arb.stateService.pageMap[alias.substring(1)];
 						if (page) {
 							return prefix + '[+' + page.alias + ']';
 						}
 					} else {
-						var page = arb.pageService.pageMap[alias];
+						var page = arb.stateService.pageMap[alias];
 						if (page) {
 							return prefix + '[' + page.alias + ']';
 						}
 					}
 					return whole;
 				}).replace(atAliasRegexp, function(whole, prefix, alias) {
-					var page = arb.pageService.pageMap[alias];
+					var page = arb.stateService.pageMap[alias];
 					if (page) {
 						return prefix + '[@' + page.alias + ']';
 					}
@@ -216,7 +216,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.mergeCandidate = undefined;
 			$scope.selectedMergeQuestion = function(result) {
 				if (result.pageId == $scope.page.pageId) return;
-				$scope.mergeCandidate = arb.pageService.pageMap[result.pageId];
+				$scope.mergeCandidate = arb.stateService.pageMap[result.pageId];
 			};
 
 			// Called when the user wants to merge this question.
@@ -266,7 +266,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Check group permissions
 			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {
 				$scope.addMessage('editGroup', 'You need to be part of ' +
-					arb.pageService.pageMap[$scope.page.editGroupId].title + ' group to edit this page', 'error', true);
+					arb.stateService.pageMap[$scope.page.editGroupId].title + ' group to edit this page', 'error', true);
 			}
 			// Check if you've loaded an edit that's not currently live
 			if ($scope.page.edit !== $scope.page.currentEdit && $scope.isNormalEdit) {
@@ -274,11 +274,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 			if ($scope.page.wasPublished && $scope.page.isAutosave) {
 				$scope.addMessage('nonLiveEdit', 'Loaded an autosave which was last updated ' +
-					$filter('relativeDateTime')(arb.pageService.primaryPage.editCreatedAt), 'warning');
+					$filter('relativeDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
 				$scope.addMessage('nonLiveEdit', 'Loaded a snapshot which was last updated ' +
-					$filter('relativeDateTime')(arb.pageService.primaryPage.editCreatedAt), 'warning');
+					$filter('relativeDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			// Check if we loaded a live edit, but the user has a draft
 			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {
@@ -601,8 +601,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				if (!$scope.page.wasPublished) return false;
 				// TODO: the page won't be in the pageMap if it's deleted. Ideally we have a better
 				// workaround for this.
-				if (!($scope.pageId in arb.pageService.pageMap)) return true;
-				var originalPageInfo = arb.pageService.pageMap[$scope.pageId].getPageInfo();
+				if (!($scope.pageId in arb.stateService.pageMap)) return true;
+				var originalPageInfo = arb.stateService.pageMap[$scope.pageId].getPageInfo();
 				var newPageInfo = $scope.page.getPageInfo();
 				return !angular.equals(originalPageInfo, newPageInfo);
 			};

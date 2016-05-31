@@ -22,7 +22,7 @@
 			<div class="md-caption" layout-gt-xs="row" layout-align="start center">
 				<div style="white-space: nowrap">
 					<span class="separator"></span>
-					<span ng-bind="::(arb.pageService.pageMap[answer.answerPageId].textLength | numSuffix)"></span> characters
+					<span ng-bind="::(arb.stateService.pageMap[answer.answerPageId].textLength | numSuffix)"></span> characters
 				</div>
 				<div style="white-space: nowrap">
 					<span class="separator"></span>
@@ -31,7 +31,7 @@
 				<div style="white-space: nowrap">
 					<span class="separator"></span>
 					<md-icon>comment</md-icon>
-					<span ng-bind="::arb.pageService.pageMap[answer.answerPageId].commentCount"></span>
+					<span ng-bind="::arb.stateService.pageMap[answer.answerPageId].commentCount"></span>
 				</div>
 			</div>
 		</div>

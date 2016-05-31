@@ -5,7 +5,7 @@
 	<div class="which-part" ng-if="::tutor">
 		You can learn it from
 		<arb-page-title page-id="{{requirement.bestTutorId}}" is-link="true"></arb-page-title>
-		(<span ng-bind="arb.pageService.pageMap[requirement.bestTutorId].textLength | numSuffix"></span> characters)
+		(<span ng-bind="arb.stateService.pageMap[requirement.bestTutorId].textLength | numSuffix"></span> characters)
 		<md-menu>
 			<md-button ng-click="$mdOpenMenu($event)" class="small-button md-icon-button" aria-label="Change tutor">
 				<md-icon>call_split</md-icon>
@@ -14,7 +14,7 @@
 				<md-menu-item ng-repeat="tutorId in ::requirement.tutorIds">
 					<md-button ng-click="changeTutor(requirement.pageId, tutorId)" aria-label="Change tutor">
 						<md-icon ng-if="tutorId === requirement.bestTutorId">done</md-icon>
-						<span ng-bind="::arb.pageService.pageMap[tutorId].title"></span>
+						<span ng-bind="::arb.stateService.pageMap[tutorId].title"></span>
 						<span ng-bind="::'(' + tutorMap[tutorId].cost + ')'"><span>
 					</md-button>
 				</md-menu-item>

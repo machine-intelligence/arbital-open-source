@@ -32,8 +32,8 @@ app.directive('arbQueryInfo', function($interval, arb) {
 					function(data) {
 						if (submit) {
 							$scope.hidePopup();
-							if ($scope.mark.pageId in arb.pageService.pageMap) {
-								var markParent = arb.pageService.pageMap[$scope.mark.pageId];
+							if ($scope.mark.pageId in arb.stateService.pageMap) {
+								var markParent = arb.stateService.pageMap[$scope.mark.pageId];
 								if (markParent.markIds.indexOf($scope.markId) < 0) {
 									markParent.markIds.push($scope.markId);
 								}

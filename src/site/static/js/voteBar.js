@@ -8,7 +8,7 @@ app.directive('arbVoteBar', function($http, $compile, $timeout, $mdMedia, arb) {
 		},
 		link: function(scope, element, attrs) {
 			scope.arb = arb;
-			scope.page = arb.pageService.pageMap[scope.pageId];
+			scope.page = arb.stateService.pageMap[scope.pageId];
 			scope.isTinyScreen = !$mdMedia('gt-xs');
 			var userId = arb.userService.user.id;
 

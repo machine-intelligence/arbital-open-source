@@ -313,7 +313,7 @@
 									<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
 										<div class="md-primary md-hue-1 md-whiteframe-1dp" data-as-sortable-item-handle>
 											<md-icon>reorder</md-icon>
-											<span>#{{arb.pageService.pageMap[lensId].lensIndex}}&nbsp;</span>
+											<span>#{{arb.stateService.pageMap[lensId].lensIndex}}&nbsp;</span>
 											<arb-page-title page-id="{{::lensId}}" is-link="true"></arb-page-title>
 										</div>
 									</div>
@@ -360,8 +360,8 @@
 											custom-page-title="'Linked marks'"></arb-page-title>
 								</div>
 								<span>
-									{{arb.pageService.pageMap[page.pageId].linkedMarkCount}} 
-									<ng-pluralize count="arb.pageService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
+									{{arb.stateService.pageMap[page.pageId].linkedMarkCount}} 
+									<ng-pluralize count="arb.stateService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 									linked to this question.
 								</span>
 							</div>
@@ -411,7 +411,7 @@
 							<div class="md-caption" layout-margin flex>
 								<div>Unique name for this page, e.g. "human_health"</div>
 								<div ng-if="page.seeGroupId != ''">
-									This alias will be prefixed with "{{arb.pageService.pageMap[page.seeGroupId].alias}}."
+									This alias will be prefixed with "{{arb.stateService.pageMap[page.seeGroupId].alias}}."
 									because it's part of the private domain
 								</div>
 							</div>

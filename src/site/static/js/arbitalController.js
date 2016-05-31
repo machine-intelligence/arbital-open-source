@@ -90,7 +90,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	$scope.getSuccessFunc = function(callback) {
 		return function(data) {
 			// Sometimes we don't get data.
-			arb.pageService.primaryPage = undefined;
+			arb.stateService.primaryPage = undefined;
 			if (data) {
 				console.log('Dynamic request data:'); console.log(data);
 				arb.stateService.processServerData(data);
@@ -99,10 +99,10 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			// Because the subdomain could have any case, we need to find the alias
 			// in the loaded map so we can get the alias with correct case
 			if ($scope.subdomain) {
-				for (var pageAlias in arb.pageService.pageMap) {
+				for (var pageAlias in arb.stateService.pageMap) {
 					if ($scope.subdomain.toUpperCase() === pageAlias.toUpperCase()) {
 						$scope.subdomain = pageAlias;
-						arb.stateService.privateGroupId = arb.pageService.pageMap[pageAlias].pageId;
+						arb.stateService.privateGroupId = arb.stateService.pageMap[pageAlias].pageId;
 						break;
 					}
 				}

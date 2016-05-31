@@ -14,7 +14,7 @@ app.directive('arbGroupsPage', function($timeout, $http, arb) {
 			$scope.groupMap = {};
 			for (var n = 0; n < $scope.arb.userService.user.groupIds.length; n++) {
 				var groupId = $scope.arb.userService.user.groupIds[n];
-				$scope.groupMap[groupId] = arb.pageService.pageMap[groupId];
+				$scope.groupMap[groupId] = arb.stateService.pageMap[groupId];
 			}
 
 			// Process removing user from a group.

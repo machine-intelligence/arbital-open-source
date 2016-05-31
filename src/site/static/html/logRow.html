@@ -229,7 +229,7 @@
 				added you to
 				<arb-page-title page-id="{{::goToPageId}}"
 						is-link="true"
-						custom-page-title="the {{::arb.pageService.pageMap[goToPageId].title}} group"></arb-page-title>
+						custom-page-title="the {{::arb.stateService.pageMap[goToPageId].title}} group"></arb-page-title>
 			</span>
 
 			<span ng-switch-when="removedFromGroup">
@@ -237,7 +237,7 @@
 				removed you from
 				<arb-page-title page-id="{{::goToPageId}}"
 						is-link="true"
-						custom-page-title="the {{::arb.pageService.pageMap[goToPageId].title}} group"></arb-page-title>
+						custom-page-title="the {{::arb.stateService.pageMap[goToPageId].title}} group"></arb-page-title>
 			</span>
 
 			<span ng-switch-when="inviteReceived">
@@ -312,7 +312,7 @@
 
 		<span ng-switch-when="reply">
 			<div arb-collapsable-comment-thread
-					comment-id="{{::arb.pageService.pageMap[goToPageId].getTopLevelComment().pageId}}"></div>
+					comment-id="{{::arb.stateService.pageMap[goToPageId].getTopLevelComment().pageId}}"></div>
 		</span>
 	</div>
 </div>

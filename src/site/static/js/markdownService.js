@@ -65,7 +65,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var hasReqBlockRegexp = new RegExp('^(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(hasReqBlockRegexp, function(whole, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				var pageId = (alias in stateService.pageMap) ? stateService.pageMap[alias].pageId : alias;
 				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.hasMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					div = '<div class=\'conditional-text editor-block\'>';
@@ -78,7 +78,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var wantsReqBlockRegexp = new RegExp('^(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\1 *(?=\Z|\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 			return text.replace(wantsReqBlockRegexp, function(whole, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				var pageId = (alias in stateService.pageMap) ? stateService.pageMap[alias].pageId : alias;
 				var div = '<div ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.wantsMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					div = '<div class=\'conditional-text editor-block\'>';
@@ -222,7 +222,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var hasReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(hasReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				var pageId = (alias in stateService.pageMap) ? stateService.pageMap[alias].pageId : alias;
 				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.hasMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
@@ -235,7 +235,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var wantsReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)wants-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
 		converter.hooks.chain('preSpanGamut', function(text, run) {
 			return text.replace(wantsReqSpanRegexp, function(whole, prefix, bars, not, alias, markdown) {
-				var pageId = (alias in pageService.pageMap) ? pageService.pageMap[alias].pageId : alias;
+				var pageId = (alias in stateService.pageMap) ? stateService.pageMap[alias].pageId : alias;
 				var span = '<span ng-show=\'' + (not ? '!' : '') + 'arb.masteryService.wantsMastery("' + pageId + '")\'>';
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
@@ -299,7 +299,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					if (firstAliasChar == '-' || firstAliasChar == '+') {
 						alias = alias.substring(1);
 					}
-					var page = pageService.pageMap[alias];
+					var page = stateService.pageMap[alias];
 					if (page) {
 						var url = urlService.getPageUrl(page.pageId, {includeHost: true});
 						return prefix + '[' + text + '](' + url + ')';
@@ -321,7 +321,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				if (firstAliasChar == '-' || firstAliasChar == '+') {
 					trimmedAlias = alias.substring(1);
 				}
-				var page = pageService.pageMap[trimmedAlias];
+				var page = stateService.pageMap[trimmedAlias];
 				if (page) {
 					var url = urlService.getPageUrl(page.pageId, {includeHost: true});
 					// Match the page title's case to the alias's case
@@ -342,7 +342,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// Convert [@alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(atAliasRegexp, function(whole, prefix, alias) {
-				var page = pageService.pageMap[alias];
+				var page = stateService.pageMap[alias];
 				if (page) {
 					var url = urlService.getUserUrl(page.pageId, {includeHost: true});
 					return prefix + '[' + page.title + '](' + url + ')';
@@ -405,10 +405,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			// Check if we are embedding a vote
 			if (searchParams.indexOf('embedVote') > 0) {
 				$element.attr('embed-vote-id', pageAlias).addClass('red-link');
-			} else if (pageAlias && pageAlias in pageService.pageMap) {
+			} else if (pageAlias && pageAlias in stateService.pageMap) {
 				$element.addClass('intrasite-link').attr('page-id', pageAlias);
-				$element.attr('page-id', pageService.pageMap[pageAlias].pageId);
-				if (pageService.pageMap[pageAlias].isDeleted) {
+				$element.attr('page-id', stateService.pageMap[pageAlias].pageId);
+				if (stateService.pageMap[pageAlias].isDeleted) {
 					// Link to a deleted page.
 					$element.addClass('red-link');
 				} else {
@@ -426,7 +426,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					pageService.loadTitle(pageAlias, {
 						silentFail: true,
 						success: function() {
-							if (pageAlias in pageService.pageMap) {
+							if (pageAlias in stateService.pageMap) {
 								refreshFunc();
 							} else {
 								failedPageAliases[pageAlias] = true;
@@ -450,7 +450,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 				if (!$element.hasClass('user-link')) {
 					$element.addClass('user-link').attr('user-id', userAlias);
-					if (userAlias in pageService.pageMap) {
+					if (userAlias in stateService.pageMap) {
 					} else {
 						// Mark as red link
 						$element.addClass('red-link');
@@ -458,7 +458,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 							pageService.loadTitle(userAlias, {
 								silentFail: true,
 								success: function() {
-									if (userAlias in pageService.pageMap) {
+									if (userAlias in stateService.pageMap) {
 										refreshFunc();
 									} else {
 										failedPageAliases[userAlias] = true;

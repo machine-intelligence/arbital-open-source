@@ -13,7 +13,7 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = !!$scope.pageId ? arb.pageService.pageMap[$scope.pageId] : undefined;
+			$scope.page = !!$scope.pageId ? arb.stateService.pageMap[$scope.pageId] : undefined;
 			$scope.mark = !!$scope.markId ? arb.markService.markMap[$scope.markId] : undefined;
 		},
 		link: function(scope, element, attrs) {

@@ -67,7 +67,7 @@
 		</div>
 
 		<hr ng-if="(!isSimpleEmbed && subjectIds.length > 0) ||
-				(arb.pageService.pageMap[lensParentId].nextPageId !== '' || arb.pageService.pageMap[lensParentId].prevPageId !== '')">
+				(arb.stateService.pageMap[lensParentId].nextPageId !== '' || arb.stateService.pageMap[lensParentId].prevPageId !== '')">
 		<div layout-gt-xs="row" layout-align="start end">
 			<!-- Subjects taught -->
 			<div flex ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
