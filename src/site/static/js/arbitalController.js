@@ -18,29 +18,31 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	// http://stackoverflow.com/questions/5802467/prevent-scrolling-of-parent-element
 	if (!arb.isTouchDevice) {
 		$(document).on('DOMMouseScroll mousewheel', '.prevent-scroll-leak', function(ev) {
-	    var $this = $(this),
-        scrollTop = this.scrollTop,
-        scrollHeight = this.scrollHeight,
-        height = $this.innerHeight(),
-        delta = (ev.type == 'DOMMouseScroll' ?  ev.originalEvent.detail * -40 : ev.originalEvent.wheelDelta),
-        up = delta > 0;
+			var $this = $(this),
+				scrollTop = this.scrollTop,
+				scrollHeight = this.scrollHeight,
+				height = $this.innerHeight(),
+				delta = (ev.type == 'DOMMouseScroll' ?	ev.originalEvent.detail * -40 : ev.originalEvent.wheelDelta),
+				up = delta > 0;
+			// Don't prevent body scrolling if there is no scroll bar
+			if (scrollHeight <= this.clientHeight) return true;	
 	
-	    var prevent = function() {
-        ev.stopPropagation();
-        ev.preventDefault();
-        ev.returnValue = false;
-        return false;
-	    }
+			var prevent = function() {
+				ev.stopPropagation();
+				ev.preventDefault();
+				ev.returnValue = false;
+				return false;
+			}
 	
-	    if (!up && -delta > scrollHeight - height - scrollTop) {
-	       // Scrolling down, but this will take us past the bottom.
-	       $this.scrollTop(scrollHeight);
-	       return prevent();
-	    } else if (up && delta > scrollTop) {
-	       // Scrolling up, but this will take us past the top.
-	       $this.scrollTop(0);
-	       return prevent();
-	    }
+			if (!up && -delta > scrollHeight - height - scrollTop) {
+				 // Scrolling down, but this will take us past the bottom.
+				 $this.scrollTop(scrollHeight);
+				 return prevent();
+			} else if (up && delta > scrollTop) {
+				 // Scrolling up, but this will take us past the top.
+				 $this.scrollTop(0);
+				 return prevent();
+			}
 		});
 	}
 
@@ -81,9 +83,9 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 
 	// Returns a function we can use as success handler for POST requests for dynamic data.
 	// callback - returns {
-	//   title: title to set for the window
-	//   element: optional jQuery element to add dynamically to the body
-	//   error: optional error message to print
+	//	 title: title to set for the window
+	//	 element: optional jQuery element to add dynamically to the body
+	//	 error: optional error message to print
 	// }
 	$scope.getSuccessFunc = function(callback) {
 		return function(data) {
