@@ -24,6 +24,7 @@ app.directive('arbSettingsPage', function($http, arb) {
 				var data = {
 					emailFrequency: arb.userService.user.emailFrequency,
 					emailThreshold: arb.userService.user.emailThreshold,
+					showAdvancedEditorMode: arb.userService.user.showAdvancedEditorMode,
 					ignoreMathjax: arb.userService.user.ignoreMathjax,
 				};
 				submitForm($(event.currentTarget), '/updateSettings/', data, function(r) {

@@ -16,6 +16,11 @@
 			<md-tab label="Title" ng-disabled="::(isComment)">
 				<div flex>
 					<div class="editor-tab" layout="column">
+						<div ng-if="::!showAdvancedMode">
+							Want to learn about creating pages on Arbital?
+							<arb-page-title page-id="3hs" is-link="true" custom-page-title="Read the author's guide."></arb-page-title>
+						</div>
+
 						<md-input-container>
 							<label ng-if="::!isLens">Title</label>
 							<label ng-if="::isLens">Lens title</label>
@@ -25,7 +30,7 @@
 							<label>Clickbait</label>
 							<input ng-model="page.clickbait" md-maxlength="200">
 						</md-input-container>
-						<md-input-container>
+						<md-input-container ng-if="::showAdvancedMode">
 							<label>Alias</label>
 							<input ng-model="page.alias" md-maxlength="50">
 						</md-input-container>
@@ -255,7 +260,7 @@
 			</md-tab>
 
 			<!-- (2) Relationships tab -->
-			<md-tab label="Relationships" ng-disabled="::isComment">
+			<md-tab label="Relationships" ng-disabled="::isComment" ng-if="::showAdvancedMode">
 
 				<md-tabs class="md-primary"
 						md-selected="selectedRelationshipsTab"
@@ -396,7 +401,7 @@
 			</md-tab>
 
 			<!-- (3) Settings tab -->
-			<md-tab label="Settings" ng-disabled="::isComment || isGroup">
+			<md-tab label="Settings" ng-disabled="::isComment || isGroup" ng-if="::showAdvancedMode">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<!-- Alias -->
@@ -547,7 +552,7 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog" ng-disabled="::(isComment)">
+			<md-tab label="Changelog" ng-disabled="::(isComment)" ng-if="::showAdvancedMode">
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">

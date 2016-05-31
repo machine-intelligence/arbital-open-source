@@ -107,6 +107,7 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 	core.AddPageIdToMap("370", returnData.PageMap)
 	core.AddPageIdToMap("187", returnData.PageMap)
 	core.AddPageIdToMap("185", returnData.PageMap)
+	core.AddPageIdToMap("3hs", returnData.PageMap)
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)

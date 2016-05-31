@@ -30,6 +30,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// we notice that a new edit has been published.)
 			$scope.freezeEdit = false;
 			$scope.maxQuestionTextLength = 1000;
+			$scope.showAdvancedMode = arb.userService.user.hasDomainInvite || arb.userService.user.showAdvancedEditorMode;
 
 			// If the alias contains a subdomain, then remove it
 			var periodIndex = $scope.page.alias.indexOf('.');

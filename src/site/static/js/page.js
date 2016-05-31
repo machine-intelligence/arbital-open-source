@@ -89,6 +89,10 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.toggleDeleteAnswers = function() {
 				$scope.showDeleteAnswer = !$scope.showDeleteAnswer;
 			};
+
+			// Submit this page to a domain (currently just math)
+			$scope.submitToDomain = function() {
+			};
 		},
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.

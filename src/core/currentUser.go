@@ -46,16 +46,17 @@ var (
 // Note: this structure is also stored in a cookie.
 type CurrentUser struct {
 	// DB variables
-	Id             string `json:"id"`
-	FbUserId       string `json:"fbUserId"`
-	Email          string `json:"email"`
-	FirstName      string `json:"firstName"`
-	LastName       string `json:"lastName"`
-	IsAdmin        bool   `json:"isAdmin"`
-	IsTrusted      bool   `json:"isTrusted"`
-	EmailFrequency string `json:"emailFrequency"`
-	EmailThreshold int    `json:"emailThreshold"`
-	IgnoreMathjax  bool   `json:"ignoreMathjax"`
+	Id                     string `json:"id"`
+	FbUserId               string `json:"fbUserId"`
+	Email                  string `json:"email"`
+	FirstName              string `json:"firstName"`
+	LastName               string `json:"lastName"`
+	IsAdmin                bool   `json:"isAdmin"`
+	IsTrusted              bool   `json:"isTrusted"`
+	EmailFrequency         string `json:"emailFrequency"`
+	EmailThreshold         int    `json:"emailThreshold"`
+	IgnoreMathjax          bool   `json:"ignoreMathjax"`
+	ShowAdvancedEditorMode bool   `json:"showAdvancedEditorMode"`
 
 	// If the user isn't logged in, this is set to their unique session id
 	SessionId string `json:"-"`
@@ -65,7 +66,9 @@ type CurrentUser struct {
 	NewAchievementCount int               `json:"newAchievementCount"`
 	GroupIds            []string          `json:"groupIds"`
 	TrustMap            map[string]*Trust `json:"trustMap"`
-	InvitesClaimed      []*Invite         `json:"invitesClaimed"`
+	// True iff the user is a member of at least one domain
+	HasDomainInvite bool      `json:"hasDomainInvite"`
+	InvitesClaimed  []*Invite `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
@@ -180,11 +183,12 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 
 	row := db.NewStatement(`
 		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
-			emailFrequency,emailThreshold,ignoreMathjax
+			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
 	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax)
+		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
@@ -332,7 +336,7 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 	}
 
 	// Now compute permissions
-	for _, trust := range u.TrustMap {
+	for domainId, trust := range u.TrustMap {
 		if !trust.Permissions.DomainAccess.Has {
 			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
 		}
@@ -347,6 +351,9 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		trust.Permissions.Comment.Has = trust.EditTrust >= CommentKarmaReq
 		if !trust.Permissions.Comment.Has {
 			trust.Permissions.Comment.Reason = "Not enough reputation"
+		}
+		if domainId != "" && trust.Permissions.DomainAccess.Has {
+			u.HasDomainInvite = true
 		}
 	}
 
