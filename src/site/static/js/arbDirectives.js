@@ -335,10 +335,6 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				$scope.data.isOpen = false;
 			};
 
-			$scope.initiateInlineResponse = function() {
-				$rootScope.$broadcast('fabClicked');
-			};
-
 			$scope.triggerClicked = function($event) {
 				// If we're in the "inline response" mode, kick off the response.
 				if ($scope.showInlineVersion()) {
@@ -355,11 +351,6 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 
 				// Prevent angular material from doing its stuff.
 				$event.stopPropagation();
-			};
-
-			$scope.newPageTriggerClicked = function($event) {
-				arb.urlService.goToUrl('/edit/');
-				$scope.triggerClicked($event);
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
