@@ -314,27 +314,44 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.arb = arb;
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
-			$scope.isOpen = false;
+			$scope.data = {
+				isOpen: false,
+			};
+			$scope.showTooltips = arb.isTouchDevice;
 
 			// Returns true if user has text selected on a touch device, and we should show
 			// a special fab.
 			$scope.showInlineVersion = function() {
-				return arb.userService.isTouchDevice && arb.userService.lensTextSelected;
+				return arb.isTouchDevice && arb.stateService.lensTextSelected;
 			};
 
-			// Toggle FAB children
-			$scope.toggle = function(show, hovering) {
-				if (arb.userService.isTouchDevice) return false;
-				$scope.isOpen = show;
-				return false;
+			$scope.mouseEnter = function() {
+				if (arb.isTouchDevice) return;
+				$scope.data.isOpen = true;
 			};
 
-			// Called when the FAB is clicked
-			$scope.fabClicked = function(event) {
-				if (!$scope.showInlineVersion()) return true;
-				$rootScope.$broadcast('fabClicked');
-				$scope.isOpen = false;
-				return false;
+			$scope.mouseLeave = function() {
+				if (arb.isTouchDevice) return;
+				$scope.data.isOpen = false;
+			};
+
+			$scope.triggerClicked = function($event) {
+				// Prevent angular material from doing its stuff.
+				$event.stopPropagation();
+
+				// If we're in the "inline response" mode, kick off the response.
+				if ($scope.showInlineVersion()) {
+					$rootScope.$broadcast('fabClicked');
+					return;
+				}
+
+				// If it's open, execute the "New page" click.
+				if ($scope.data.isOpen) {
+					arb.urlService.goToUrl('/edit/');
+				}
+
+				// Toggle the menu.
+				$scope.data.isOpen = !$scope.data.isOpen;
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones

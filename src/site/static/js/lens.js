@@ -13,7 +13,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
+
 			$scope.page = arb.pageService.pageMap[$scope.pageId];
 			if ($scope.lensParentId) {
 				$scope.lensParentPage = arb.pageService.pageMap[$scope.lensParentId];
@@ -493,8 +493,8 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// was to just check for selected text every so often.
 					$interval(function() {
 						if ($inlineCommentEditPage) return;
-						arb.userService.lensTextSelected = !!processSelectedParagraphText();
-						if (arb.userService.lensTextSelected) {
+						arb.stateService.lensTextSelected = !!processSelectedParagraphText();
+						if (arb.stateService.lensTextSelected) {
 							// Cache the selection we found, because we are pretty much guaranteed to
 							// lose it as soon as the user clicks on anything.
 							cachedSelection = getStartEndSelection();
@@ -509,7 +509,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 							parent: '#fixed-overlay',
 						}).then(function(result) {
 							scope[result.func].apply(null, result.params);
-							arb.userService.lensTextSelected = false;
+							arb.stateService.lensTextSelected = false;
 						});
 					});
 				} else {
@@ -520,7 +520,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						// the same (not cleared).
 						$timeout(function() {
 							scope.showRhsButtons = !!processSelectedParagraphText();
-							arb.userService.lensTextSelected = !!processSelectedParagraphText();
+							arb.stateService.lensTextSelected = !!processSelectedParagraphText();
 							if (scope.showRhsButtons) {
 								newInlineCommentButtonTop = event.pageY;
 							}
