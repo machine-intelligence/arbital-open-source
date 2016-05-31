@@ -29,6 +29,23 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
 	var failedPageAliases = {};
 
+	// Trim + or - from beginning of the alias.
+	var trimAlias = function(alias) {
+		var firstAliasChar = alias.substring(0, 1);
+		if (firstAliasChar == '-' || firstAliasChar == '+') {
+			return alias.substring(1);
+		}
+		return alias;
+	};
+
+	// If prefix is '+', capitalize the first letter of text. Otherwise lowercase it.
+	var getCasedText = function(text, prefix) {
+		if (prefix == '+') {
+			return text.substring(0, 1).toUpperCase() + text.substring(1);
+		}
+		return text.substring(0, 1).toLowerCase() + text.substring(1);
+	};
+
 	// Pass in a pageId to create an editor for that page
 	var createConverter = function(isEditor, pageId, postConversionCallback) {
 		// NOTE: not using $location, because we need port number
@@ -295,10 +312,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				}
 				matches = alias.match(aliasMatch);
 				if (matches && matches[0] == alias) {
-					var firstAliasChar = alias.substring(0, 1);
-					if (firstAliasChar == '-' || firstAliasChar == '+') {
-						alias = alias.substring(1);
-					}
+					alias = trimAlias(alias);
 					var page = stateService.pageMap[alias];
 					if (page) {
 						var url = urlService.getPageUrl(page.pageId, {includeHost: true});
@@ -317,24 +331,16 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(simpleLinkRegexp, function(whole, prefix, alias) {
 				var firstAliasChar = alias.substring(0, 1);
-				var trimmedAlias = alias;
-				if (firstAliasChar == '-' || firstAliasChar == '+') {
-					trimmedAlias = alias.substring(1);
-				}
+				var trimmedAlias = trimAlias(alias);
 				var page = stateService.pageMap[trimmedAlias];
 				if (page) {
 					var url = urlService.getPageUrl(page.pageId, {includeHost: true});
 					// Match the page title's case to the alias's case
-					var casedTitle;
-					if (firstAliasChar == '+') {
-						casedTitle = page.title.substring(0, 1).toUpperCase() + page.title.substring(1);
-					} else {
-						casedTitle = page.title.substring(0, 1).toLowerCase() + page.title.substring(1);
-					}
+					var casedTitle = getCasedText(page.title, firstAliasChar);
 					return prefix + '[' + casedTitle + '](' + url + ')';
 				} else {
 					var url = urlService.getPageUrl(trimmedAlias, {includeHost: true});
-					return prefix + '[' + trimmedAlias + '](' + url + ')';
+					return prefix + '[' + alias + '](' + url + ')';
 				}
 			});
 		});
@@ -420,6 +426,16 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				$element.attr('href', $element.attr('href').replace(/\/p\//, '/edit/'));
 				if (refreshFunc && pageAlias === '') {
 					$element.addClass('red-todo-text');
+				} else {
+					var redLinkText = $element.text();
+					if (pageAlias == trimAlias(redLinkText)) {
+						var possibleModifier = $element.text().substring(0, 1);
+						if (possibleModifier == '+' || possibleModifier == '-') {
+							redLinkText = getCasedText(pageAlias, possibleModifier);
+						}
+						// Convert underscores to spaces for red [alias] links
+						$element.text(redLinkText.replace(/_/g, ' '));
+					}
 				}
 				if (refreshFunc && !(pageAlias in failedPageAliases)) {
 					// Try to load the page
