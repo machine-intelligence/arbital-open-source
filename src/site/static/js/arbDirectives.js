@@ -315,7 +315,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
 			$scope.data = {
-				isOpen: false
+				isOpen: false,
 			};
 			$scope.showTooltips = arb.isTouchDevice;
 
@@ -336,9 +336,13 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			};
 
 			$scope.triggerClicked = function($event) {
+				// Prevent angular material from doing its stuff.
+				$event.stopPropagation();
+
 				// If we're in the "inline response" mode, kick off the response.
 				if ($scope.showInlineVersion()) {
 					$rootScope.$broadcast('fabClicked');
+					return;
 				}
 
 				// If it's open, execute the "New page" click.
@@ -348,9 +352,6 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 
 				// Toggle the menu.
 				$scope.data.isOpen = !$scope.data.isOpen;
-
-				// Prevent angular material from doing its stuff.
-				$event.stopPropagation();
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
