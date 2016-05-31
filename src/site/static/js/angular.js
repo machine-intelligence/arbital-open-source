@@ -87,7 +87,7 @@ app.run(function($http, $location, arb) {
 				.success($scope.getSuccessFunc(function(data) {
 					$scope.indexPageIdsMap = data.result;
 					return {
-						title: arb.pageService.pageMap[$scope.subdomain].title + ' - Private Domain',
+						title: arb.stateService.pageMap[$scope.subdomain].title + ' - Private Domain',
 						content: $scope.newElement('<arb-group-index group-id=\'' + data.result.domainId +
 							'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
 					};
@@ -175,9 +175,9 @@ app.run(function($http, $location, arb) {
 			$http({method: 'POST', url: '/json/domainPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
 				$scope.indexPageIdsMap = data.result;
-				var groupId = arb.pageService.pageMap[arb.pageService.domainAlias].pageId;
+				var groupId = arb.stateService.pageMap[arb.pageService.domainAlias].pageId;
 				return {
-					title: arb.pageService.pageMap[groupId].title,
+					title: arb.stateService.pageMap[groupId].title,
 					content: $scope.newElement('<arb-group-index group-id=\'' + groupId +
 						'\' ids-map=\'::indexPageIdsMap\'></arb-group-index>'),
 				};
@@ -191,8 +191,8 @@ app.run(function($http, $location, arb) {
 			var pageAlias = args.alias;
 			// Check if we are already editing this page.
 			// TODO: this is kind of hacky. We need a better solution (I hope React will help us with this).
-			var primaryPage = arb.pageService.primaryPage;
-			if (primaryPage && primaryPage.pageId in arb.pageService.editMap &&
+			var primaryPage = arb.stateService.primaryPage;
+			if (primaryPage && primaryPage.pageId in arb.stateService.editMap &&
 					(primaryPage.pageId == pageAlias || primaryPage.alias == pageAlias)) {
 				return true;
 			}
@@ -205,8 +205,8 @@ app.run(function($http, $location, arb) {
 						// Find the page in the editMap (have to search through it manually
 						// because we don't index pages by alias in editmap)
 						var page;
-						for (var pageId in arb.pageService.editMap) {
-							page = arb.pageService.editMap[pageId];
+						for (var pageId in arb.stateService.editMap) {
+							page = arb.stateService.editMap[pageId];
 							if (page.alias == pageAlias || page.pageId == pageAlias) {
 								break;
 							}
@@ -218,11 +218,11 @@ app.run(function($http, $location, arb) {
 						}
 
 						arb.urlService.ensureCanonPath(arb.urlService.getEditPageUrl(page.pageId));
-						arb.pageService.primaryPage = page;
+						arb.stateService.primaryPage = page;
 
 						// Called when the user is done editing the page.
 						$scope.doneFn = function(result) {
-							var page = arb.pageService.editMap[result.pageId];
+							var page = arb.stateService.editMap[result.pageId];
 							// if the page is (now / still) live, go (to / back to) it
 							if ((page.wasPublished && !result.deletedPage) || !result.discard) {
 								arb.urlService.goToUrl(arb.urlService.getPageUrl(page.pageId, {
@@ -230,7 +230,7 @@ app.run(function($http, $location, arb) {
 									markId: $location.search().markId,
 								}));
 
-								if (!arb.pageService.pageMap[result.pageId].isSubscribedAsMaintainer) {
+								if (!arb.stateService.pageMap[result.pageId].isSubscribedAsMaintainer) {
 									arb.popupService.showToast({
 										text: 'Maintain this page?',
 										scope: $scope,
@@ -254,8 +254,8 @@ app.run(function($http, $location, arb) {
 								isSubscribed: true,
 								asMaintainer: true,
 							})});
-							arb.pageService.pageMap[page.pageId].isSubscribed = true;
-							arb.pageService.pageMap[page.pageId].isSubscribedAsMaintainer = true;
+							arb.stateService.pageMap[page.pageId].isSubscribed = true;
+							arb.stateService.pageMap[page.pageId].isSubscribedAsMaintainer = true;
 
 							arb.popupService.showToast({
 								text: 'Subscribed as maintainer',
@@ -312,7 +312,7 @@ app.run(function($http, $location, arb) {
 		handler: function(args, $scope) {
 			$http({method: 'POST', url: '/json/explore/', data: JSON.stringify({pageAlias: args.pageAlias})})
 			.success($scope.getSuccessFunc(function(data) {
-				var page = arb.pageService.pageMap[data.result.pageId];
+				var page = arb.stateService.pageMap[data.result.pageId];
 				return {
 					title: 'Explore ' + page.title,
 					content: $scope.newElement('<arb-explore-page page-id=\'' + data.result.pageId +
@@ -357,7 +357,7 @@ app.run(function($http, $location, arb) {
 			.success($scope.getSuccessFunc(function(data) {
 				var primaryPage = undefined;
 				if (args.pageAlias) {
-					primaryPage = arb.pageService.pageMap[args.pageAlias];
+					primaryPage = arb.stateService.pageMap[args.pageAlias];
 					arb.urlService.ensureCanonPath('/learn/' + primaryPage.alias);
 				}
 
@@ -416,11 +416,11 @@ app.run(function($http, $location, arb) {
 			};
 			$http({method: 'POST', url: '/json/primaryPage/', data: JSON.stringify(postData)})
 			.success($scope.getSuccessFunc(function(data) {
-				var page = arb.pageService.pageMap[postData.pageAlias];
+				var page = arb.stateService.pageMap[postData.pageAlias];
 				var pageTemplate = '<arb-primary-page></arb-primary-page>';
 
 				if (!page) {
-					page = arb.pageService.deletedPagesMap[postData.pageAlias];
+					page = arb.stateService.deletedPagesMap[postData.pageAlias];
 					if (page) {
 						if (page.mergedInto) {
 							arb.urlService.goToUrl(arb.urlService.getPageUrl(page.mergedInto));
@@ -458,7 +458,7 @@ app.run(function($http, $location, arb) {
 				}
 
 				arb.urlService.ensureCanonPath(arb.urlService.getPageUrl(page.pageId));
-				arb.pageService.primaryPage = page;
+				arb.stateService.primaryPage = page;
 				return {
 					title: page.title,
 					content: $scope.newElement(pageTemplate),

@@ -13,10 +13,10 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			if ($scope.lensParentId) {
-				$scope.lensParentPage = arb.pageService.pageMap[$scope.lensParentId];
+				$scope.lensParentPage = arb.stateService.pageMap[$scope.lensParentId];
 			}
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
@@ -68,7 +68,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				var count = 0;
 				for (var n = 0; n < $scope.page.commentIds.length; n++) {
 					var commentId = $scope.page.commentIds[n];
-					count += (!arb.pageService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments()) ? 1 : 0;
+					count += (!arb.stateService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments()) ? 1 : 0;
 				}
 				return count;
 			};
@@ -91,7 +91,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			$scope.meetsAllRequirements = function(pageId) {
 				var page = $scope.page;
 				if (pageId) {
-					page = arb.pageService.pageMap[pageId];
+					page = arb.stateService.pageMap[pageId];
 				}
 				for (var n = 0; n < page.requirementIds.length; n++) {
 					if (!arb.masteryService.hasMastery(page.requirementIds[n])) {
@@ -150,7 +150,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				}
 			};
 
-			var primaryPage = arb.pageService.pageMap[$scope.lensParentId];
+			var primaryPage = arb.stateService.pageMap[$scope.lensParentId];
 			var simplestLensId = primaryPage.lensIds[primaryPage.lensIds.length - 1];
 			$scope.isSimplestLens = $scope.page.pageId === simplestLensId;
 
@@ -158,7 +158,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			if ($scope.showRequirementsPanel) {
 				var simplerLensId = undefined;
 				for (var n = $scope.page.lensIndex + 1; n < primaryPage.lensIds.length; n++) {
-					var lens = arb.pageService.pageMap[primaryPage.lensIds[n]];
+					var lens = arb.stateService.pageMap[primaryPage.lensIds[n]];
 					if ($scope.meetsAllRequirements(lens.pageId)) {
 						simplerLensId = lens.pageId;
 						break;
@@ -169,7 +169,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					simplerLensId = simplestLensId;
 				}
 				if (simplerLensId) {
-					$scope.simplerLens = arb.pageService.pageMap[simplerLensId];
+					$scope.simplerLens = arb.stateService.pageMap[simplerLensId];
 				}
 			}
 
@@ -316,7 +316,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				// Process an inline comment
 				var processInlineComment = function(commentId) {
 					if (scope.isTinyScreen) return;
-					var comment = arb.pageService.pageMap[commentId];
+					var comment = arb.stateService.pageMap[commentId];
 					if (!comment.anchorContext || !comment.anchorText) return;
 
 					// Create the span corresponding to the anchor text
@@ -386,7 +386,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				scope.getInlineCommentIconStyle = function(commentId) {
 					var params = scope.inlineComments[commentId];
 					var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
-					isVisible = isVisible && (!arb.pageService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments());
+					isVisible = isVisible && (!arb.stateService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments());
 					return {
 						'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 						'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
@@ -488,13 +488,13 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 				// Handle text selection.
 				var cachedSelection;
-				if (arb.userService.isTouchDevice) {
+				if (arb.isTouchDevice) {
 					// On mobile it's very hard to get user's selected text. The best way Alexei found
 					// was to just check for selected text every so often.
 					$interval(function() {
 						if ($inlineCommentEditPage) return;
-						arb.userService.lensTextSelected = !!processSelectedParagraphText();
-						if (arb.userService.lensTextSelected) {
+						arb.stateService.lensTextSelected = !!processSelectedParagraphText();
+						if (arb.stateService.lensTextSelected) {
 							// Cache the selection we found, because we are pretty much guaranteed to
 							// lose it as soon as the user clicks on anything.
 							cachedSelection = getStartEndSelection();
@@ -509,7 +509,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 							parent: '#fixed-overlay',
 						}).then(function(result) {
 							scope[result.func].apply(null, result.params);
-							arb.userService.lensTextSelected = false;
+							arb.stateService.lensTextSelected = false;
 						});
 					});
 				} else {
@@ -520,7 +520,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						// the same (not cleared).
 						$timeout(function() {
 							scope.showRhsButtons = !!processSelectedParagraphText();
-							arb.userService.lensTextSelected = !!processSelectedParagraphText();
+							arb.stateService.lensTextSelected = !!processSelectedParagraphText();
 							if (scope.showRhsButtons) {
 								newInlineCommentButtonTop = event.pageY;
 							}
@@ -547,7 +547,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					arb.pageService.newComment({
 						parentPageId: scope.page.pageId,
 						success: function(newCommentId) {
-							var comment = arb.pageService.editMap[newCommentId];
+							var comment = arb.stateService.editMap[newCommentId];
 							comment.anchorContext = selection.context;
 							comment.anchorText = selection.text;
 							comment.anchorOffset = selection.offset;
@@ -726,7 +726,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						var pageAlias = $link.attr('embed-vote-id');
 						arb.pageService.loadIntrasitePopover(pageAlias, {
 							success: function(data, status) {
-								var pageId = arb.pageService.pageMap[pageAlias].pageId;
+								var pageId = arb.stateService.pageMap[pageAlias].pageId;
 								var divId = 'embed-vote-' + pageId;
 								var $embedDiv = $compile('<div id=\'' + divId +
 									'\' class=\'md-whiteframe-2dp\' arb-vote-bar page-id=\'' + pageId +
@@ -742,7 +742,10 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			};
 
 			// Everything is on a timeout to let MathJax do its thing
-			$timeout(function() {
+			// TODO: refactor this to be less insane
+			// We have to do a double timeout because markdown.js does a double timeout
+			// before enqueing MathJax Typeset.
+			$timeout(function() { $timeout(function() {
 				MathJax.Hub.Queue(function() {
 					// Wrap this in a try block, to make sure that any errors don't mess up MathJax
 					try {
@@ -751,7 +754,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						console.error(err);
 					}
 				});
-			});
+			}); });
 		},
 	};
 });

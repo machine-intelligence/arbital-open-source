@@ -12,12 +12,12 @@
 
 					<span ng-if="::hedonsRow.changeLog.id">your edit to</span>
 
-					<span ng-if="::arb.pageService.pageMap[hedonsRow.pageId].isComment()">your comment:</span>
+					<span ng-if="::arb.stateService.pageMap[hedonsRow.pageId].isComment()">your comment:</span>
 					<arb-page-title page-id="{{::hedonsRow.pageId}}"
 						is-link="true"></arb-page-title>
-					<span ng-if="::arb.pageService.pageMap[hedonsRow.pageId].isComment()">
+					<span ng-if="::arb.stateService.pageMap[hedonsRow.pageId].isComment()">
 						on
-						<arb-page-title page-id="{{::arb.pageService.pageMap[hedonsRow.pageId].getCommentParentPage().pageId}}"
+						<arb-page-title page-id="{{::arb.stateService.pageMap[hedonsRow.pageId].getCommentParentPage().pageId}}"
 							is-link="true"></arb-page-title>
 					</span>
 				</span>

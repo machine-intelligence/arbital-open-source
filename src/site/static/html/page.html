@@ -80,7 +80,7 @@
 						ng-class="{'active-tab': lensId == selectedLens.pageId}"
 						aria-label="Switch tab">
 					<arb-page-title page-id="{{::lensId}}"
-							custom-page-title="{{::(lensId === page.pageId ? 'Main' : arb.pageService.pageMap[lensId].lensTitle())}}"></arb-page-title>
+							custom-page-title="{{::(lensId === page.pageId ? 'Main' : arb.stateService.pageMap[lensId].lensTitle())}}"></arb-page-title>
 					<md-icon class="md-primary" ng-if="!hasAllReqs(lensId)">
 						<md-tooltip>You don't have all the requisites for this lens</md-tooltip>
 						warning

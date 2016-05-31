@@ -1,7 +1,7 @@
 'use strict';
 
 // arb.urlService handles working with URLs
-app.service('urlService', function($http, $location, $rootScope, pageService) {
+app.service('urlService', function($http, $location, $rootScope, stateService) {
 	var that = this;
 
 	// This will be set to true before loading content for a second page
@@ -118,15 +118,14 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 	this.getPageUrl = function(pageId, options) {
 		var options = options || {};
 		var url = '/p/' + pageId + '/';
-		var alreadyIncludedHost = false;
-		var page = pageService.getPageFromSomeMap(pageId, options.useEditMap);
+		var page = stateService.getPageFromSomeMap(pageId, options.useEditMap);
 
 		if (page) {
 			var pageId = page.pageId;
 			var pageAlias = page.alias;
 			// Make sure the page's alias is scoped to its group
 			if (page.seeGroupId && page.pageId != page.alias) {
-				var groupAlias = pageService.pageMap[page.seeGroupId].alias;
+				var groupAlias = stateService.pageMap[page.seeGroupId].alias;
 				if (pageAlias.indexOf('.') == -1) {
 					pageAlias = groupAlias + '.' + pageAlias;
 				}
@@ -140,7 +139,7 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 			// Check page's type to see if we need a special url
 			if (page.isLens()) {
 				for (var n = 0; n < page.parentIds.length; n++) {
-					var parent = pageService.pageMap[page.parentIds[n]];
+					var parent = stateService.pageMap[page.parentIds[n]];
 					if (parent) {
 						url = that.getBaseUrl('p', options.permalink ? parent.pageId : parent.alias, parent.alias);
 						url += '?l=' + pageId;
@@ -156,13 +155,12 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 			}
 
 			// Check if we should set the domain
-			if (page.seeGroupId != that.privateGroupId) {
+			if (page.seeGroupId != stateService.privateGroupId) {
 				if (page.seeGroupId !== '') {
-					url = that.getDomainUrl(pageService.pageMap[page.seeGroupId].alias) + url;
+					url = that.getDomainUrl(stateService.pageMap[page.seeGroupId].alias) + url;
 				} else {
 					url = that.getDomainUrl() + url;
 				}
-				alreadyIncludedHost = true;
 			}
 
 			// Add markId argument
@@ -178,7 +176,8 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 				url += '#answers';
 			}
 		}
-		if (options.includeHost && !alreadyIncludedHost) {
+		var urlAlreadyHasDomain = url.length > 4 && url.substring(0,4) == 'http';
+		if (options.includeHost && !urlAlreadyHasDomain) {
 			url = that.getDomainUrl() + url;
 		}
 		return url;
@@ -192,8 +191,8 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 	this.getEditPageUrl = function(pageId, options) {
 		options = options || {};
 		var url = '';
-		if (pageId in pageService.pageMap) {
-			url = that.getBaseUrl('edit', pageId, pageService.pageMap[pageId].alias);
+		if (pageId in stateService.pageMap) {
+			url = that.getBaseUrl('edit', pageId, stateService.pageMap[pageId].alias);
 		} else {
 			url = '/edit/' + pageId + '/';
 		}
@@ -225,8 +224,8 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 	this.getUserUrl = function(userId, options) {
 		options = options || {};
 		var url = '';
-		if (userId in pageService.pageMap) {
-			url = that.getBaseUrl('p', userId, pageService.pageMap[userId].alias);
+		if (userId in stateService.pageMap) {
+			url = that.getBaseUrl('p', userId, stateService.pageMap[userId].alias);
 		} else {
 			url = '/p/' + userId;
 		}

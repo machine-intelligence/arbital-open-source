@@ -9,7 +9,7 @@
 
 		<a href="/"
 				layout-margin
-				ng-bind="::(arb.pageService.pageMap[arb.stateService.privateGroupId].title | shorten: 30)"
+				ng-bind="::(arb.stateService.pageMap[arb.stateService.privateGroupId].title | shorten: 30)"
 				ng-if="arb.stateService.privateGroupId !== ''"></a>
 
 		<!-- Search -->
@@ -101,8 +101,8 @@
 		<div layout="column" layout-align="start center">
 			<div ng-repeat="groupId in ::arb.userService.user.groupIds" ng-if="::groupId!==arb.userService.user.id">
 				<md-button aria-label="Go to domain"
-						ng-href="{{::arb.urlService.getDomainUrl(arb.pageService.pageMap[groupId].alias)}}"
-						ng-bind="::(arb.pageService.pageMap[groupId].title | shorten: 30)"></md-button>
+						ng-href="{{::arb.urlService.getDomainUrl(arb.stateService.pageMap[groupId].alias)}}"
+						ng-bind="::(arb.stateService.pageMap[groupId].title | shorten: 30)"></md-button>
 			</div>
 		</div>
 		<md-divider></md-divider>

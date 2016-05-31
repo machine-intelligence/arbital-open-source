@@ -11,7 +11,7 @@ app.directive('arbAnswers', function($timeout, $http, $compile, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
 			// Called from autocomplete when a new answer should be added.
 			$scope.addAnswer = function(result) {

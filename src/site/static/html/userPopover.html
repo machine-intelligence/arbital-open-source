@@ -21,7 +21,7 @@
 			<md-tab ng-repeat="summary in ::summaries" label="{{::summary.name}}">
 				<md-tab-body>
 					<div layout="column">
-						<md-content class="popover-tab-body" layout="column" layout-padding>
+						<md-content class="prevent-scroll-leak popover-tab-body" layout="column" layout-padding>
 							<arb-markdown class="popover-text-container"
 									page-id="{{::userId}}"
 									summary-name="{{::summary.name}}"></arb-markdown>

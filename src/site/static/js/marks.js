@@ -9,7 +9,7 @@ app.directive('arbMarks', function($compile, $location, $timeout, $rootScope, ar
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
 			// Track (globally) whether or not to show all marks.
 			$scope.isPageCreator = $scope.page.creatorIds.indexOf(arb.userService.user.id) >= 0;

@@ -11,8 +11,8 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.lens = arb.pageService.pageMap[$scope.lensId];
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.lens = arb.stateService.pageMap[$scope.lensId];
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.page.subpageIds = $scope.page.commentIds;
 			$scope.page.subpageIds.sort(arb.pageService.getChildSortFunc('oldestFirst'));
 			$scope.isCollapsed = false;

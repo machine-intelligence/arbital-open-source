@@ -57,7 +57,7 @@
 
 	<!-- Link -->
 	<div>
-		<md-button ng-href="{{::(arb.urlService.getPageUrl(arb.pageService.primaryPage.pageId) + '#page-' + page.pageId)}}"
+		<md-button ng-href="{{::(arb.urlService.getPageUrl(arb.stateService.primaryPage.pageId) + '#page-' + page.pageId)}}"
 				ng-if="::(page.type == 'answer')">
 			<md-icon>link</md-icon>
 			<span ng-if="::!isTinyScreen">Link</span>

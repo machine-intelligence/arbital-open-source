@@ -7,7 +7,7 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.page.subpageIds = $scope.page.commentIds || [];
 			$scope.page.subpageIds.sort(arb.pageService.getChildSortFunc('likes'));
 
@@ -35,7 +35,7 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 				// If hash points to a subpage for editors, show it
 				var matches = (new RegExp('^subpage-' + aliasMatch + '$')).exec($location.hash());
 				if (matches) {
-					var page = arb.pageService.pageMap[matches[1]];
+					var page = arb.stateService.pageMap[matches[1]];
 					if (page) {
 						arb.stateService.setShowEditorComments(page.isEditorComment);
 					}
@@ -51,7 +51,7 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 				var count = 0;
 				for (var n = 0; n < $scope.page.commentIds.length; n++) {
 					var commentId = $scope.page.commentIds[n];
-					count += (!arb.pageService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments()) ? 1 : 0;
+					count += (!arb.stateService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments()) ? 1 : 0;
 				}
 				return count;
 			};

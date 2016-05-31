@@ -1,5 +1,9 @@
 'use strict';
 
+var isTouchDevice = 'ontouchstart' in window || // works in most browsers
+	(navigator.MaxTouchPoints > 0) ||
+	(navigator.msMaxTouchPoints > 0);
+
 // Contains all the services.
 app.service('arb', function(autocompleteService, diffService, markService, markdownService, masteryService, pageService, pathService, popoverService, popupService, stateService, userService, urlService) {
 	var that = this;
@@ -17,7 +21,5 @@ app.service('arb', function(autocompleteService, diffService, markService, markd
 	that.userService = userService;
 	that.urlService = urlService;
 
-	this.isTouchDevice = 'ontouchstart' in window || // works in most browsers
-		(navigator.MaxTouchPoints > 0) ||
-		(navigator.msMaxTouchPoints > 0);
+	this.isTouchDevice = isTouchDevice;
 });

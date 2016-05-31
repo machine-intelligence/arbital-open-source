@@ -14,7 +14,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
 			$scope.doAutofocus = function() {
-				return !arb.userService.isTouchDevice && !arb.urlService.hasLoadedFirstPage;
+				return !arb.isTouchDevice && !arb.urlService.hasLoadedFirstPage;
 			};
 
 			// Called when a search result is selected
@@ -63,7 +63,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					clickOutsideToClose: true,
 					escapeToClose: true,
 					focusOnOpen: false,
-					zIndex: 200000
+					zIndex: 200000,
 				};
 				$mdPanel.open(config);
 			};

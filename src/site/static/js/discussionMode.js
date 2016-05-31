@@ -45,7 +45,7 @@ app.directive('arbCommentModeRow', function($location, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.comment = arb.pageService.pageMap[$scope.modeRow.commentId];
+			$scope.comment = arb.stateService.pageMap[$scope.modeRow.commentId];
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
 		},
 	};

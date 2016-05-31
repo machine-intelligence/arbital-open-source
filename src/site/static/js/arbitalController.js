@@ -13,6 +13,39 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	};
 	refreshAutoupdates();
 
+
+	// Don't allow the body to scroll when scrolling a popover tab body
+	// http://stackoverflow.com/questions/5802467/prevent-scrolling-of-parent-element
+	if (!arb.isTouchDevice) {
+		$(document).on('DOMMouseScroll mousewheel', '.prevent-scroll-leak', function(ev) {
+			var $this = $(this),
+				scrollTop = this.scrollTop,
+				scrollHeight = this.scrollHeight,
+				height = $this.innerHeight(),
+				delta = (ev.type == 'DOMMouseScroll' ?	ev.originalEvent.detail * -40 : ev.originalEvent.wheelDelta),
+				up = delta > 0;
+			// Don't prevent body scrolling if there is no scroll bar
+			if (scrollHeight <= this.clientHeight) return true;	
+	
+			var prevent = function() {
+				ev.stopPropagation();
+				ev.preventDefault();
+				ev.returnValue = false;
+				return false;
+			}
+	
+			if (!up && -delta > scrollHeight - height - scrollTop) {
+				 // Scrolling down, but this will take us past the bottom.
+				 $this.scrollTop(scrollHeight);
+				 return prevent();
+			} else if (up && delta > scrollTop) {
+				 // Scrolling up, but this will take us past the top.
+				 $this.scrollTop(0);
+				 return prevent();
+			}
+		});
+	}
+
 	// Check to see if we should show the popup.
 	$scope.closePopup = function() {
 		arb.popupService.hideNonpersistentPopup();
@@ -50,14 +83,14 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 
 	// Returns a function we can use as success handler for POST requests for dynamic data.
 	// callback - returns {
-	//   title: title to set for the window
-	//   element: optional jQuery element to add dynamically to the body
-	//   error: optional error message to print
+	//	 title: title to set for the window
+	//	 element: optional jQuery element to add dynamically to the body
+	//	 error: optional error message to print
 	// }
 	$scope.getSuccessFunc = function(callback) {
 		return function(data) {
 			// Sometimes we don't get data.
-			arb.pageService.primaryPage = undefined;
+			arb.stateService.primaryPage = undefined;
 			if (data) {
 				console.log('Dynamic request data:'); console.log(data);
 				arb.stateService.processServerData(data);
@@ -66,10 +99,10 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 			// Because the subdomain could have any case, we need to find the alias
 			// in the loaded map so we can get the alias with correct case
 			if ($scope.subdomain) {
-				for (var pageAlias in arb.pageService.pageMap) {
+				for (var pageAlias in arb.stateService.pageMap) {
 					if ($scope.subdomain.toUpperCase() === pageAlias.toUpperCase()) {
 						$scope.subdomain = pageAlias;
-						arb.stateService.privateGroupId = arb.pageService.pageMap[pageAlias].pageId;
+						arb.stateService.privateGroupId = arb.stateService.pageMap[pageAlias].pageId;
 						break;
 					}
 				}

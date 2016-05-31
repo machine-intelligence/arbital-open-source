@@ -25,7 +25,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.summaries = [];
 			$scope.getArrowStyle = function() {
 				return {'left': +$scope.arrowOffset};
@@ -75,13 +75,13 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
 				var destroyWatcher = scope.$watch(function() {
-					return scope.pageId in arb.pageService.pageMap ? Object.keys(arb.pageService.pageMap[scope.pageId].summaries).length : 0;
+					return scope.pageId in arb.stateService.pageMap ? Object.keys(arb.stateService.pageMap[scope.pageId].summaries).length : 0;
 				}, function() {
 					if (isDestroyed) {
 						destroyWatcher();
 						return;
 					}
-					scope.page = arb.pageService.pageMap[scope.pageId];
+					scope.page = arb.stateService.pageMap[scope.pageId];
 					processPageSummaries();
 					if (scope.isLoaded) {
 						destroyWatcher();
@@ -110,7 +110,7 @@ app.directive('arbUserPopover', function($timeout, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.user = arb.userService.userMap[$scope.userId];
-			$scope.page = arb.pageService.pageMap[$scope.userId];
+			$scope.page = arb.stateService.pageMap[$scope.userId];
 			$scope.summaries = [];
 
 			$scope.getArrowStyle = function() {
@@ -149,14 +149,14 @@ app.directive('arbUserPopover', function($timeout, arb) {
 				// because the request might have been issued by another code already, and
 				// in that case our callback wouldn't be called.
 				var destroyWatcher = scope.$watch(function() {
-					return scope.userId in arb.pageService.pageMap ? Object.keys(arb.pageService.pageMap[scope.userId].summaries).length : 0;
+					return scope.userId in arb.stateService.pageMap ? Object.keys(arb.stateService.pageMap[scope.userId].summaries).length : 0;
 				}, function() {
 					if (isDestroyed) {
 						destroyWatcher();
 						return;
 					}
 					scope.user = arb.userService.userMap[scope.userId];
-					scope.page = arb.pageService.pageMap[scope.userId];
+					scope.page = arb.stateService.pageMap[scope.userId];
 					processPageSummaries();
 					if (scope.isLoaded) {
 						destroyWatcher();
@@ -194,7 +194,7 @@ app.directive('arbPageTitle', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
+			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 			$scope.pageUrl = $scope.customLink ? $scope.customLink : arb.urlService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
@@ -232,7 +232,7 @@ app.directive('arbLikes', function($http, arb) {
 				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
 			}
 			if (!$scope.likeable && $scope.likeableType == 'page') {
-				$scope.likeable = arb.pageService.pageMap[$scope.likeableId];
+				$scope.likeable = arb.stateService.pageMap[$scope.likeableId];
 			}
 
 			// Sort individual likes by name.
@@ -274,20 +274,20 @@ app.directive('arbSubscribe', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
 			$scope.isSubscribed = function() {
-				return arb.pageService.pageMap[$scope.pageId].isSubscribed;
+				return arb.stateService.pageMap[$scope.pageId].isSubscribed;
 			};
 
 			$scope.isSubscribedAsMaintainer = function() {
-				return arb.pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer;
+				return arb.stateService.pageMap[$scope.pageId].isSubscribedAsMaintainer;
 			};
 
 			// User clicked on the subscribe button
 			$scope.subscribeClick = function() {
-				arb.pageService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
-				arb.pageService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
+				arb.stateService.pageMap[$scope.pageId].isSubscribed = !$scope.isSubscribed();
+				arb.stateService.pageMap[$scope.pageId].isSubscribedAsMaintainer = false;
 				$http({
 					method: 'POST',
 					url: '/updateSubscription/',
@@ -314,27 +314,44 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.arb = arb;
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
-			$scope.isOpen = false;
+			$scope.data = {
+				isOpen: false,
+			};
+			$scope.showTooltips = arb.isTouchDevice;
 
 			// Returns true if user has text selected on a touch device, and we should show
 			// a special fab.
 			$scope.showInlineVersion = function() {
-				return arb.userService.isTouchDevice && arb.userService.lensTextSelected;
+				return arb.isTouchDevice && arb.stateService.lensTextSelected;
 			};
 
-			// Toggle FAB children
-			$scope.toggle = function(show, hovering) {
-				if (arb.userService.isTouchDevice) return false;
-				$scope.isOpen = show;
-				return false;
+			$scope.mouseEnter = function() {
+				if (arb.isTouchDevice) return;
+				$scope.data.isOpen = true;
 			};
 
-			// Called when the FAB is clicked
-			$scope.fabClicked = function(event) {
-				if (!$scope.showInlineVersion()) return true;
-				$rootScope.$broadcast('fabClicked');
-				$scope.isOpen = false;
-				return false;
+			$scope.mouseLeave = function() {
+				if (arb.isTouchDevice) return;
+				$scope.data.isOpen = false;
+			};
+
+			$scope.triggerClicked = function($event) {
+				// Prevent angular material from doing its stuff.
+				$event.stopPropagation();
+
+				// If we're in the "inline response" mode, kick off the response.
+				if ($scope.showInlineVersion()) {
+					$rootScope.$broadcast('fabClicked');
+					return;
+				}
+
+				// If it's open, execute the "New page" click.
+				if ($scope.data.isOpen) {
+					arb.urlService.goToUrl('/edit/');
+				}
+
+				// Toggle the menu.
+				$scope.data.isOpen = !$scope.data.isOpen;
 			};
 
 			// Compute what the urls should be on the compose buttons, and which ones
@@ -344,24 +361,24 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				$scope.editPageUrl = undefined;
 				$scope.childUrl = undefined;
 				$scope.lensUrl = undefined;
-				if (arb.pageService.primaryPage) {
-					var type = arb.pageService.primaryPage.type;
+				if (arb.stateService.primaryPage) {
+					var type = arb.stateService.primaryPage.type;
 					if (type === 'wiki' || type === 'group' || type === 'domain') {
-						$scope.questionUrl = '/edit/?newParentId=' + arb.pageService.primaryPage.pageId + '&type=question';
-						$scope.lensUrl = '/edit/?newParentId=' + arb.pageService.primaryPage.pageId + '&type=lens';
-						$scope.childUrl = '/edit/?newParentId=' + arb.pageService.primaryPage.pageId;
+						$scope.questionUrl = '/edit/?newParentId=' + arb.stateService.primaryPage.pageId + '&type=question';
+						$scope.lensUrl = '/edit/?newParentId=' + arb.stateService.primaryPage.pageId + '&type=lens';
+						$scope.childUrl = '/edit/?newParentId=' + arb.stateService.primaryPage.pageId;
 					}
 					if ($location.search().l) {
 						$scope.editPageUrl = arb.urlService.getEditPageUrl($location.search().l);
 					} else {
-						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.pageService.primaryPage.pageId);
+						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.stateService.primaryPage.pageId);
 					}
 				}
 			};
 			computeUrls();
 			$scope.$watch(function() {
 				// Note: can't use an object, so we just hack together a string
-				return (arb.pageService.primaryPage ? arb.pageService.primaryPage.pageId : 'none') + $location.absUrl();
+				return (arb.stateService.primaryPage ? arb.stateService.primaryPage.pageId : 'none') + $location.absUrl();
 			}, function() {
 				computeUrls();
 			});
@@ -389,7 +406,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 					else if (event.keyCode == 69 && $scope.editPageUrl) arb.urlService.goToUrl($scope.editPageUrl); // E
 					else if (event.keyCode == 67 && $scope.childUrl) arb.urlService.goToUrl($scope.childUrl); // C
 					else if (event.keyCode == 78 && $scope.lensUrl) arb.urlService.goToUrl($scope.lensUrl); // N
-					else if (event.keyCode == 81 && arb.pageService.primaryPage) $scope.newQueryMark(); // Q
+					else if (event.keyCode == 81 && arb.stateService.primaryPage) $scope.newQueryMark(); // Q
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});
 			});
@@ -414,6 +431,8 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			pageType: '@',
 			// Function to call when a result is selected / user cancels selection
 			onSelect: '&',
+			// Function to call when input loses focus
+			onBlur: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -443,6 +462,19 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 					$scope.searchText = '';
 				}
 			};
+		},
+		link: function(scope, element, attrs) {
+			$timeout(function() {
+				var $input = element.find("input");
+				$input.on('blur', function(event) {
+					if (scope.ignoreNextResult) return;
+					// Make sure that if the user clicked one of the results, we don't count
+					// it as a blur event.
+					if (scope.onBlur && $(event.relatedTarget).closest('md-virtual-repeat-container').length <= 0) {
+						scope.onBlur();
+					}
+				});
+			});
 		},
 	};
 });
@@ -491,7 +523,7 @@ app.directive('arbPageList', function(arb) {
 			$scope.arb = arb;
 
 			$scope.getPage = function(pageId) {
-				return arb.pageService.getPageFromSomeMap(pageId, $scope.useEditMap);
+				return arb.stateService.getPageFromSomeMap(pageId, $scope.useEditMap);
 			};
 		},
 	};
@@ -516,7 +548,7 @@ app.directive('arbPageRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
+			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
 		},
 	};
 });

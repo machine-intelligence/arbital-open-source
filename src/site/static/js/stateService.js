@@ -5,6 +5,18 @@
 app.service('stateService', function($http, $compile, $location, $mdToast, $rootScope, $interval, popupService) {
 	var that = this;
 
+	// Primary page is the one with its id in the url
+	this.primaryPage = undefined;
+
+	// All loaded pages.
+	this.pageMap = {};
+
+	// All loaded deleted pages.
+	this.deletedPagesMap = {};
+
+	// All loaded edits. (These are the pages we will be editing.)
+	this.editMap = {};
+
 	// Id of the private group we are in. (Corresponds to the subdomain).
 	this.privateGroupId = '';
 
@@ -22,6 +34,19 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 	};
 	this.setShowEditorComments = function(value) {
 		showEditorComments = value;
+	};
+
+	// Returns the page from the correct map
+	this.getPageFromSomeMap = function(pageId, useEditMap) {
+		var map;
+		if (pageId in that.deletedPagesMap) {
+			map = that.deletedPagesMap;
+		} else if (useEditMap) {
+			map = that.editMap;
+		} else {
+			map = that.pageMap;
+		}
+		return map[pageId];
 	};
 
 	// Add the given page to the global pageMap. If the page with the same id

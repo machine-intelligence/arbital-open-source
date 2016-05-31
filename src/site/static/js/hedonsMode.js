@@ -58,7 +58,7 @@ app.directive('arbReqsTaughtModeRow', function(arb) {
 				return arb.userService.getFullName(userId);
 			}));
 			$scope.reqNames = formatReqsForDisplay($scope.modeRow.requisiteIds.map(function(pageMap) {
-				return arb.pageService.pageMap[pageMap].title;
+				return arb.stateService.pageMap[pageMap].title;
 			}));
 		},
 	};

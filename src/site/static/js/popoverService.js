@@ -3,7 +3,7 @@
 // Popover service is used to display the intrasite popover.
 app.service('popoverService', function($rootScope, $compile, $timeout, pageService, userService, stateService) {
 	// TODO: enable popovers on mobile again once we can make them good
-	if (userService.isTouchDevice) return;
+	if (isTouchDevice) return;
 
 	var that = this;
 
@@ -78,7 +78,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 
 		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
 		left = Math.min(left, $('body').width() - popoverWidth - awayFromEdge);
-		if (userService.isTouchDevice) left = 0;
+		if (isTouchDevice) left = 0;
 		var arrowOffset = mousePageX - left;
 
 		// Create the popover
@@ -103,7 +103,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		}
 		$popoverElement.css('left', left)
 		.css('position', '') // IE fix, because it sets position to "relative"
-		.width(userService.isTouchDevice ? $('body').width() : popoverWidth)
+		.width(isTouchDevice ? $('body').width() : popoverWidth)
 		.on('mouseenter', function(event) {
 			popoverHovering = true;
 			updateTimeout();
@@ -144,13 +144,13 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			// Prefetch the data
 			if (targetCandidateLinkType == linkTypeIntrasite) {
 				var pageId = $target.attr('page-id');
-				var page = pageService.pageMap[pageId];
+				var page = stateService.pageMap[pageId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
 					pageService.loadIntrasitePopover(pageId);
 				}
 			} else {
 				var userId = $target.attr('user-id');
-				var page = pageService.pageMap[userId];
+				var page = stateService.pageMap[userId];
 				if (!page || Object.keys(page.summaries).length <= 0) {
 					userService.loadUserPopover(userId);
 				}
@@ -204,7 +204,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	});
 
 	// On mobile, we want to intercept the click.
-	if (stateService.isTouchDevice) {
+	if (isTouchDevice) {
 		var touchDeviceLinkClick = function(event, linkType) {
 			var $target = $(event.currentTarget);
 			if ($target.is($currentTarget)) {
@@ -236,20 +236,6 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 			shutItDown();
 		});
 	}
-
-	// Don't allow the body to scroll when scrolling a popover tab body
-	$('body').on('mousewheel DOMMouseScroll', '.popover-tab-body', function(event) {
-		// Don't prevent body scrolling if there is no scroll bar
-		if (this.scrollHeight <= this.clientHeight) return true;
-
-		var delta = event.wheelDelta || (event.originalEvent && event.originalEvent.wheelDelta) || -event.detail;
-		var bottomOverflow = this.scrollTop + this.offsetHeight >= this.scrollHeight - 2;
-		var topOverflow = this.scrollTop <= 0;
-
-		if ((delta < 0 && bottomOverflow) || (delta > 0 && topOverflow)) {
-			event.preventDefault();
-		}
-	});
 
 	$rootScope.$on('$locationChangeStart', function(event) {
 		shutItDown();

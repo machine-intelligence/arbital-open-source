@@ -10,14 +10,14 @@ app.directive('arbExploreTreeNode', function(RecursionHelper, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.page = arb.pageService.pageMap[$scope.pageId];
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
 			$scope.pageIds = $scope.page.childIds.concat($scope.page.lensIds);
 			$scope.showChildren = true;
 
 			// Sort children.
 			$scope.pageIds.sort(function(aId, bId) {
-				var pageA = arb.pageService.pageMap[aId];
-				var pageB = arb.pageService.pageMap[bId];
+				var pageA = arb.stateService.pageMap[aId];
+				var pageB = arb.stateService.pageMap[bId];
 				var varsA = [pageA.isLens() ? 0 : 1, pageA.hasChildren ? 0 : 1, pageA.title];
 				var varsB = [pageB.isLens() ? 0 : 1, pageB.hasChildren ? 0 : 1, pageB.title];
 				for (var n = 0; n < varsA.length; n++) {

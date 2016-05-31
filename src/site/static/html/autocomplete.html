@@ -16,7 +16,7 @@
 		md-autoselect
 		placeholder="{{::placeholder}}">
 	<md-item-template>
-		<div layout="row" layout="start center" ng-if="arb.pageService.pageMap[result.page.pageId]">
+		<div layout="row" layout="start center" ng-if="arb.stateService.pageMap[result.page.pageId]">
 			<!--<arb-likes likeable-type="page" likeable-id="{{result.pageId}}"></arb-likes>-->
 			<div class="likes-in-autocomplete" layout="row" layout="start end">
 				<md-icon class="like-icon on no-margins" ng-show="result.page.myLikeValue > 0">thumb_up</md-icon>
@@ -27,7 +27,7 @@
 			<div layout="column" flex>
 				<div layout="row" layout-align="start center">
 					<md-icon class="no-margins" ng-if="arb.pageService.showPrivate(result.page.pageId)">
-						<md-tooltip>This page belongs to {{arb.pageService.pageMap[page.seeGroupId].title}} group</md-tooltip>
+						<md-tooltip>This page belongs to {{arb.stateService.pageMap[page.seeGroupId].title}} group</md-tooltip>
 						lock
 					</md-icon>
 					<md-icon class="no-margins" ng-if="arb.pageService.showPublic(result.page.pageId)">

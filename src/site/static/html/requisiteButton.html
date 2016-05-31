@@ -10,15 +10,15 @@
 			ng-show="!hideCheckbox">
 		<md-icon ng-show="arb.masteryService.hasMastery(requisiteId)">
 			check_box
-			<md-tooltip ng-if="!arb.userService.isTouchDevice">Click to mark as wanted</md-tooltip>
+			<md-tooltip ng-if="!arb.isTouchDevice">Click to mark as wanted</md-tooltip>
 		</md-icon>
 		<md-icon ng-show="arb.masteryService.wantsMastery(requisiteId)">
 			bookmark
-			<md-tooltip ng-if="!arb.userService.isTouchDevice">Click to mark as not known</md-tooltip>
+			<md-tooltip ng-if="!arb.isTouchDevice">Click to mark as not known</md-tooltip>
 		</md-icon>
 		<md-icon ng-show="arb.masteryService.nullMastery(requisiteId)">
 			check_box_outline_blank
-			<md-tooltip ng-if="!arb.userService.isTouchDevice">Click to mark as known</md-tooltip>
+			<md-tooltip ng-if="!arb.isTouchDevice">Click to mark as known</md-tooltip>
 		</md-icon>
 	</md-button>
 	<span ng-if="hideCheckbox">&bull;</span>
