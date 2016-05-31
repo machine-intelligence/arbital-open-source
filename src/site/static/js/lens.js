@@ -742,7 +742,10 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 			};
 
 			// Everything is on a timeout to let MathJax do its thing
-			$timeout(function() {
+			// TODO: refactor this to be less insane
+			// We have to do a double timeout because markdown.js does a double timeout
+			// before enqueing MathJax Typeset.
+			$timeout(function() { $timeout(function() {
 				MathJax.Hub.Queue(function() {
 					// Wrap this in a try block, to make sure that any errors don't mess up MathJax
 					try {
@@ -751,7 +754,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						console.error(err);
 					}
 				});
-			});
+			}); });
 		},
 	};
 });
