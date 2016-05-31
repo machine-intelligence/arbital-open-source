@@ -1,7 +1,7 @@
 'use strict';
 
 // arb.urlService handles working with URLs
-app.service('urlService', function($http, $location, $rootScope, pageService) {
+app.service('urlService', function($http, $location, $rootScope, pageService, stateService) {
 	var that = this;
 
 	// This will be set to true before loading content for a second page
@@ -118,7 +118,6 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 	this.getPageUrl = function(pageId, options) {
 		var options = options || {};
 		var url = '/p/' + pageId + '/';
-		var alreadyIncludedHost = false;
 		var page = pageService.getPageFromSomeMap(pageId, options.useEditMap);
 
 		if (page) {
@@ -156,13 +155,12 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 			}
 
 			// Check if we should set the domain
-			if (page.seeGroupId != that.privateGroupId) {
+			if (page.seeGroupId != stateService.privateGroupId) {
 				if (page.seeGroupId !== '') {
 					url = that.getDomainUrl(pageService.pageMap[page.seeGroupId].alias) + url;
 				} else {
 					url = that.getDomainUrl() + url;
 				}
-				alreadyIncludedHost = true;
 			}
 
 			// Add markId argument
@@ -178,7 +176,8 @@ app.service('urlService', function($http, $location, $rootScope, pageService) {
 				url += '#answers';
 			}
 		}
-		if (options.includeHost && !alreadyIncludedHost) {
+		var urlAlreadyHasDomain = url.length > 4 && url.substring(0,4) == 'http';
+		if (options.includeHost && !urlAlreadyHasDomain) {
 			url = that.getDomainUrl() + url;
 		}
 		return url;

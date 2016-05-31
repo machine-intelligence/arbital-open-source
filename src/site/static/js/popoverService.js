@@ -237,20 +237,6 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		});
 	}
 
-	// Don't allow the body to scroll when scrolling a popover tab body
-	$('body').on('mousewheel DOMMouseScroll', '.popover-tab-body', function(event) {
-		// Don't prevent body scrolling if there is no scroll bar
-		if (this.scrollHeight <= this.clientHeight) return true;
-
-		var delta = event.wheelDelta || (event.originalEvent && event.originalEvent.wheelDelta) || -event.detail;
-		var bottomOverflow = this.scrollTop + this.offsetHeight >= this.scrollHeight - 2;
-		var topOverflow = this.scrollTop <= 0;
-
-		if ((delta < 0 && bottomOverflow) || (delta > 0 && topOverflow)) {
-			event.preventDefault();
-		}
-	});
-
 	$rootScope.$on('$locationChangeStart', function(event) {
 		shutItDown();
 	});

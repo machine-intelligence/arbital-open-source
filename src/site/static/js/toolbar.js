@@ -63,7 +63,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					clickOutsideToClose: true,
 					escapeToClose: true,
 					focusOnOpen: false,
-					zIndex: 200000
+					zIndex: 200000,
 				};
 				$mdPanel.open(config);
 			};
