@@ -27,7 +27,7 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 	};
 });
 
-// arb-likes-row is the directive for showing who liked current user's stuff
+// arb-likes-mode-row is the directive for showing who liked current user's stuff
 app.directive('arbLikesModeRow', function(arb) {
 	return {
 		templateUrl: 'static/html/likesModeRow.html',
@@ -44,7 +44,7 @@ app.directive('arbLikesModeRow', function(arb) {
 	};
 });
 
-// arb-reqs-taught-row is the directive for showing who learned current user's reqs
+// arb-reqs-taught-mode-row is the directive for showing who learned current user's reqs
 app.directive('arbReqsTaughtModeRow', function(arb) {
 	return {
 		templateUrl: 'static/html/reqsTaughtModeRow.html',
