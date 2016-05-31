@@ -488,7 +488,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 
 				// Handle text selection.
 				var cachedSelection;
-				if (arb.userService.isTouchDevice) {
+				if (arb.isTouchDevice) {
 					// On mobile it's very hard to get user's selected text. The best way Alexei found
 					// was to just check for selected text every so often.
 					$interval(function() {

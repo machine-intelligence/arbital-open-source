@@ -3,7 +3,7 @@
 // Popover service is used to display the intrasite popover.
 app.service('popoverService', function($rootScope, $compile, $timeout, pageService, userService, stateService) {
 	// TODO: enable popovers on mobile again once we can make them good
-	if (userService.isTouchDevice) return;
+	if (isTouchDevice) return;
 
 	var that = this;
 
@@ -78,7 +78,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 
 		var left = Math.max(0, mousePageX - popoverWidth / 2 - awayFromEdge) + awayFromEdge;
 		left = Math.min(left, $('body').width() - popoverWidth - awayFromEdge);
-		if (userService.isTouchDevice) left = 0;
+		if (isTouchDevice) left = 0;
 		var arrowOffset = mousePageX - left;
 
 		// Create the popover
@@ -103,7 +103,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 		}
 		$popoverElement.css('left', left)
 		.css('position', '') // IE fix, because it sets position to "relative"
-		.width(userService.isTouchDevice ? $('body').width() : popoverWidth)
+		.width(isTouchDevice ? $('body').width() : popoverWidth)
 		.on('mouseenter', function(event) {
 			popoverHovering = true;
 			updateTimeout();
@@ -204,7 +204,7 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 	});
 
 	// On mobile, we want to intercept the click.
-	if (stateService.isTouchDevice) {
+	if (isTouchDevice) {
 		var touchDeviceLinkClick = function(event, linkType) {
 			var $target = $(event.currentTarget);
 			if ($target.is($currentTarget)) {
