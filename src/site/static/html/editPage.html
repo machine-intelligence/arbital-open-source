@@ -55,6 +55,7 @@
 						<arb-autocomplete class="insert-autocomplete"
 								placeholder="Search for a page to link"
 								on-select="insertLinkSelect(result)"
+								on-blur="insertLinkSelect()"
 								flex></arb-autocomplete>
 					</div>
 
@@ -227,7 +228,7 @@
 							ng-model="page.text"
 							autofocus
 							flex
-							ng-disabled="showInsertLink || freezeEdit"
+							ng-disabled="freezeEdit"
 							ng-if="::!isQuestion"></textarea>
 
 					<div class="prevent-horizontal-scroll" layout="column" flex ng-if="::isQuestion">

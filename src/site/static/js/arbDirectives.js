@@ -431,6 +431,8 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 			pageType: '@',
 			// Function to call when a result is selected / user cancels selection
 			onSelect: '&',
+			// Function to call when input loses focus
+			onBlur: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -460,6 +462,15 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 					$scope.searchText = '';
 				}
 			};
+		},
+		link: function(scope, element, attrs) {
+			$timeout(function() {
+				var $input = element.find("input");
+				$input.on('blur', function(event) {
+					if (scope.ignoreNextResult) return;
+					if (scope.onBlur) scope.onBlur();
+				});
+			});
 		},
 	};
 });
