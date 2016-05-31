@@ -1,21 +1,21 @@
 <md-fab-speed-dial class="md-fling md-fab-bottom-right"
-		md-open="a.isOpen"
+		md-open="data.isOpen"
 		md-direction="up"
 		ng-mouseenter="mouseEnter()"
 		ng-mouseleave="mouseLeave()"
 		ng-if="!hideFab && arb.userService.userIsCool()">
-	<md-fab-trigger>butt: {{arb.stateService.lensTextSelected}}
+	<md-fab-trigger>
 		<md-button ng-click="triggerClicked($event)" class="md-fab" >
 			<!-- When closed and not in the special inline response mode for mobile. -->
-			<md-icon class="fab-icon" ng-if="!a.isOpen && !showInlineVersion()">add</md-icon>
+			<md-icon class="fab-icon" ng-if="!data.isOpen && !showInlineVersion()">add</md-icon>
 
 			<!-- When closed and in the special inline response mode for mobile. -->
 			<md-icon class="fab-icon" ng-if="showInlineVersion()">add_box</md-icon>
-			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="a.isOpen">New inline response</md-tooltip>
+			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="data.isOpen">New inline response</md-tooltip>
 
 			<!-- When open. -->
-			<md-icon class="fab-icon" ng-if="a.isOpen">note_add</md-icon>
-			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="a.isOpen">New page (ALT+CTRL+P)</md-tooltip>
+			<md-icon class="fab-icon" ng-if="data.isOpen">note_add</md-icon>
+			<md-tooltip md-direction="left" md-visible="showTooltips" ng-if="data.isOpen">New page (ALT+CTRL+P)</md-tooltip>
 		</md-button>
 		</md-button>
 		<md-icon class="private-group-icon" ng-if="arb.stateService.privateGroupId !== ''">
@@ -23,7 +23,7 @@
 			<md-tooltip md-autohide="true" md-direction="left">Private domain</md-tooltip>
 		</md-icon>
 	</md-fab-trigger>
-	<md-fab-actions ng-if="a.isOpen">
+	<md-fab-actions ng-if="data.isOpen">
 		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="editPageUrl">
 			<md-icon>create</md-icon>
 			<md-tooltip md-direction="left" md-visible="showTooltips">Edit this page (ALT+CTRL+E)</md-tooltip>

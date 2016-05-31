@@ -314,8 +314,9 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$scope.arb = arb;
 			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
-			$scope.a = {};
-			// $scope.a.isOpen = false;
+			$scope.data = {
+				isOpen: false
+			};
 			$scope.showTooltips = arb.isTouchDevice;
 
 			// Returns true if user has text selected on a touch device, and we should show
@@ -326,12 +327,12 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 
 			$scope.mouseEnter = function() {
 				if (arb.isTouchDevice) return;
-				$scope.a.isOpen = true;
+				$scope.data.isOpen = true;
 			};
 
 			$scope.mouseLeave = function() {
 				if (arb.isTouchDevice) return;
-				$scope.a.isOpen = false;
+				$scope.data.isOpen = false;
 			};
 
 			$scope.initiateInlineResponse = function() {
@@ -345,12 +346,12 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				}
 
 				// If it's open, execute the "New page" click.
-				if ($scope.a.isOpen) {
+				if ($scope.data.isOpen) {
 					arb.urlService.goToUrl('/edit/');
 				}
 
 				// Toggle the menu.
-				$scope.a.isOpen = !$scope.a.isOpen;
+				$scope.data.isOpen = !$scope.data.isOpen;
 
 				// Prevent angular material from doing its stuff.
 				$event.stopPropagation();
