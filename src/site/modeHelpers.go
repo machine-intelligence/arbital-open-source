@@ -18,6 +18,7 @@ const (
 	QueryModeRowType      = "query"
 	LikesModeRowType      = "likes"
 	ReqsTaughtModeRowType = "reqsTaught"
+	DraftModeRowType      = "draft"
 )
 
 type modeRowData struct {
@@ -175,7 +176,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 		ON l.userId=u.id
 		WHERE pi.createdBy=?`, returnData.User.Id).Add(`
 			AND l.userId!=?`, returnData.User.Id).Add(`
-			AND l.value=1 
+			AND l.value=1
 		ORDER BY l.updatedAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -366,6 +367,54 @@ func loadHotPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, l
 		modeRows = append(modeRows, row)
 
 		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return modeRows, nil
+}
+
+func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	modeRows := make(ModeRows, 0)
+	pageLoadOptions := (&core.PageLoadOptions{
+		SubpageCounts: true,
+		AnswerCounts:  true,
+	}).Add(core.TitlePlusLoadOptions)
+
+	rows := database.NewQuery(`
+		SELECT p.pageId,p.title,p.createdAt,pi.currentEdit>0,pi.isDeleted
+		FROM pages AS p
+		JOIN`).AddPart(core.PageInfosTableAll(returnData.User)).Add(`AS pi
+		ON (p.pageId = pi.pageId)
+		WHERE p.creatorId=?`, returnData.User.Id).Add(`
+			AND pi.type!=?`, core.CommentPageType).Add(`
+			AND p.edit>pi.currentEdit AND (p.text!="" OR p.title!="")
+		GROUP BY p.pageId
+		ORDER BY p.createdAt DESC
+		LIMIT ?`, limit).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, title, createdAt string
+		var wasPublished, isDeleted bool
+		err := rows.Scan(&pageId, &title, &createdAt, &wasPublished, &isDeleted)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		row := &pageModeRow{
+			modeRowData: modeRowData{RowType: DraftModeRowType, ActivityDate: createdAt},
+			PageId:      pageId,
+		}
+		modeRows = append(modeRows, row)
+		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
+
+		page := core.AddPageIdToMap(pageId, returnData.EditMap)
+		if title == "" {
+			title = "*Untitled*"
+		}
+		page.Title = title
+		page.EditCreatedAt = createdAt
+		page.WasPublished = wasPublished
+		page.IsDeleted = isDeleted
 		return nil
 	})
 	if err != nil {
