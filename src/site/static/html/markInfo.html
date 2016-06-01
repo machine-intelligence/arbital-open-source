@@ -37,7 +37,11 @@
 <!-- Resolved -->
 <div ng-if="mark.resolvedBy">
 	This mark has been resolved by
-	<arb-user-name user-id="{{mark.resolvedBy}}"></arb-user-name>
+	<arb-user-name user-id="{{mark.resolvedBy}}" ng-if="!mark.isResolvedByOwner"></arb-user-name>
+	<span ng-if="mark.isResolvedByOwner">
+		<span ng-if="mark.isCurrentUserOwned">you</span>
+		<span ng-if="mark.isCurrentUserOwned">the mark creator</span>
+	</span>
 </div>
 
 <!-- Link to the mark on the page itself -->

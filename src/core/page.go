@@ -105,8 +105,8 @@ type corePageData struct {
 	VoteType                 string `json:"voteType"`
 	EditCreatorId            string `json:"editCreatorId"`
 	EditCreatedAt            string `json:"editCreatedAt"`
-	PageCreatedAt            string `json:"pageCreatedAt"`
 	PageCreatorId            string `json:"pageCreatorId"`
+	PageCreatedAt            string `json:"pageCreatedAt"`
 	SeeGroupId               string `json:"seeGroupId"`
 	EditGroupId              string `json:"editGroupId"`
 	IsAutosave               bool   `json:"isAutosave"`
@@ -199,10 +199,14 @@ type Page struct {
 	ChildIds       []string `json:"childIds"`
 	ParentIds      []string `json:"parentIds"`
 	MarkIds        []string `json:"markIds"`
+	// TODO: shouldn't DomainMembershipIds be inside the user object?
 	// For user pages, this is the domains user has access to
 	DomainMembershipIds []string `json:"domainMembershipIds"`
 	// List of user ids who liked this page
 	IndividualLikes []string `json:"individualLikes"`
+
+	// All domains this page has been submitted to (map key: domainId)
+	DomainSubmissions map[string]*PageToDomainSubmission `json:"domainSubmissions"`
 
 	// Answers associated with this page, if it's a question page.
 	Answers []*Answer `json:"answers"`
@@ -282,6 +286,15 @@ type PageObject struct {
 	Edit   int    `json:"edit"`
 	Object string `json:"object"`
 	Value  string `json:"value"`
+}
+
+// Information about a page which was submitted to a domain
+type PageToDomainSubmission struct {
+	PageId      string `json:"pageId"`
+	DomainId    string `json:"domainId"`
+	CreatedAt   string `json:"createdAt"`
+	SubmitterId string `json:"submitterId"`
+	ApproverId  string `json:"approverId"`
 }
 
 // Answer is attached to a question page, and points to another page that
@@ -461,6 +474,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadParentIds for subjects failed: %v", err)
+	}
+
+	// Load domains the pages have been submitted to
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SubmittedTo })
+	err = LoadPageToDomainSubmissions(db, filteredPageMap, userMap)
+	if err != nil {
+		return fmt.Errorf("LoadPageToDomainSubmissions failed: %v", err)
 	}
 
 	// Load answers
@@ -1438,6 +1458,48 @@ func LoadLinks(db *database.DB, u *CurrentUser, pageMap map[string]*Page, option
 	return nil
 }
 
+// LoadPageToDomainSubmissions loads information about domains the pages have been submitted to
+func LoadPageToDomainSubmissions(db *database.DB, pageMap map[string]*Page, userMap map[string]*User) error {
+	pageIds := PageIdsListFromMap(pageMap)
+	if len(pageIds) <= 0 {
+		return nil
+	}
+
+	rows := database.NewQuery(`
+		SELECT pageId,domainId,createdAt,submitterId,approverId
+		FROM pageToDomainSubmissions
+		WHERE pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var submission PageToDomainSubmission
+		err := rows.Scan(&submission.PageId, &submission.DomainId, &submission.CreatedAt,
+			&submission.SubmitterId, &submission.ApproverId)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		AddUserToMap(submission.SubmitterId, userMap)
+		AddUserToMap(submission.ApproverId, userMap)
+		pageMap[submission.PageId].DomainSubmissions[submission.DomainId] = &submission
+		return nil
+	})
+	return err
+}
+
+// LoadPageToDomainSubmission loads information about a specific page that was submitted to a specific domain
+func LoadPageToDomainSubmission(db *database.DB, pageId, domainId string) (*PageToDomainSubmission, error) {
+	row := database.NewQuery(`
+		SELECT pageId,domainId,createdAt,submitterId,approverId
+		FROM pageToDomainSubmissions
+		WHERE pageId=?`, pageId).Add(`
+			AND domainId=?`, domainId).ToStatement(db).QueryRow()
+	var submission PageToDomainSubmission
+	_, err := row.Scan(&submission.PageId, &submission.DomainId, &submission.CreatedAt,
+		&submission.SubmitterId, &submission.ApproverId)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to scan: %v", err)
+	}
+	return &submission, nil
+}
+
 // LoadAnswers loads the answers for the given pages, and adds the corresponding pages to the pageMap.
 func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
 	if options == nil {
@@ -1455,9 +1517,9 @@ func LoadAnswers(db *database.DB, pageMap map[string]*Page, userMap map[string]*
 	}
 
 	rows := db.NewStatement(`
-		SELECT id,questionId,answerPageId,userId,createdAt
-		FROM answers
-		WHERE questionId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
+	SELECT id,questionId,answerPageId,userId,createdAt
+	FROM answers
+	WHERE questionId IN ` + database.InArgsPlaceholder(len(pageIds))).Query(pageIds...)
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var answer Answer
 		err := rows.Scan(&answer.Id, &answer.QuestionId, &answer.AnswerPageId, &answer.UserId, &answer.CreatedAt)
@@ -2158,13 +2220,6 @@ func LoadDomainIds(db *database.DB, pageMap map[string]*Page, options *LoadDataO
 		}
 		return nil
 	})
-
-	// Pages that are not part of any domain are part of the general ("") domain
-	for _, p := range sourcePageMap {
-		if len(p.DomainIds) <= 0 {
-			p.DomainIds = append(p.DomainIds, "")
-		}
-	}
 	return err
 }
 func LoadDomainIdsForPage(db *database.DB, page *Page) error {

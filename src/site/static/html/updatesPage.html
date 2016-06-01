@@ -26,6 +26,7 @@
 				<md-list-item ng-repeat="(index,update) in group.updates">
 					<div ng-class="::{'unseen-update': !update.isVisited}" flex>
 						<div arb-log-row
+							update="::update"
 							change-log="::update.changeLog"
 							by-user-id="{{::update.byUserId}}"
 							show-user-link="::(update.subscribedToId != update.byUserId)"

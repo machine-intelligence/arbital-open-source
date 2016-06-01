@@ -105,4 +105,15 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 		};
 		stateService.postData('/json/userPopover/', {userId: userId}, createCallback(successFn), createCallback(errorFn));
 	};
+
+	// Push user's settings to the server
+	this.updateSettings = function(successFn, errorFn) {
+		var data = {
+			emailFrequency: that.user.emailFrequency,
+			emailThreshold: that.user.emailThreshold,
+			showAdvancedEditorMode: that.user.showAdvancedEditorMode,
+			ignoreMathjax: that.user.ignoreMathjax,
+		};
+		stateService.postData('/updateSettings/', data, successFn, errorFn);
+	};
 });

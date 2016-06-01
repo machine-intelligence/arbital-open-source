@@ -18,11 +18,13 @@ import (
 
 const (
 	// Various types of updates a user can get.
-	TopLevelCommentUpdateType = "topLevelComment"
-	ReplyUpdateType           = "reply"
-	ChangeLogUpdateType       = "changeLog"
-	PageEditUpdateType        = "pageEdit"
-	NewPageByUserUpdateType   = "newPageByUser"
+	TopLevelCommentUpdateType        = "topLevelComment"
+	ReplyUpdateType                  = "reply"
+	ChangeLogUpdateType              = "changeLog"
+	PageEditUpdateType               = "pageEdit"
+	NewPageByUserUpdateType          = "newPageByUser"
+	PageToDomainSubmissionUpdateType = "pageToDomainSubmission"
+	PageToDomainAcceptedUpdateType   = "pageToDomainAccepted"
 
 	// there's no deleteLens because there's no way to undo the association between a lens and its parent page
 	// (other than deleting the lens page)
@@ -159,6 +161,9 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		AddPageToMap(row.GoToPageId, resultData.PageMap, goToPageLoadOptions)
 		AddPageToMap(row.GroupByPageId, resultData.PageMap, groupLoadOptions)
 		AddPageToMap(row.SubscribedToId, resultData.PageMap, groupLoadOptions)
+		if row.Type == PageToDomainSubmissionUpdateType {
+			AddPageToMap(row.GoToPageId, resultData.PageMap, &PageLoadOptions{SubmittedTo: true})
+		}
 
 		resultData.UserMap[row.UserId] = &User{Id: row.UserId}
 		if IsIdValid(row.ByUserId) {

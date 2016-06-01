@@ -8,6 +8,9 @@ CREATE TABLE pageToDomainSubmissions (
 	createdAt DATETIME NOT NULL,
 	/* Id of the user who submitted. FK into users. */
 	submitterId VARCHAR(32) NOT NULL,
+
+	/* When this submission was approved. */
+	approvedAt DATETIME NOT NULL,
 	/* Id of the user who approved the submission. FK into users. */
 	approverId VARCHAR(32) NOT NULL,
 

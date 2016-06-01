@@ -25,7 +25,6 @@ var updateLensOrderHandler = siteHandler{
 	HandlerFunc: updateLensOrderHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 

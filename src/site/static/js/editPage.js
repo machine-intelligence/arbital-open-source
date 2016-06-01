@@ -30,7 +30,20 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// we notice that a new edit has been published.)
 			$scope.freezeEdit = false;
 			$scope.maxQuestionTextLength = 1000;
-			$scope.showAdvancedMode = arb.userService.user.hasDomainInvite || arb.userService.user.showAdvancedEditorMode;
+
+			// Whether the editor should be in advanced mode.
+			$scope.showAdvancedMode = function() {
+				return arb.userService.user.isDomainMember || arb.userService.user.showAdvancedEditorMode;
+			}
+
+			// Called when the advanced mode view is toggled
+			$scope.advancedModeToggled = function() {
+				arb.userService.updateSettings();
+				if ($scope.showAdvancedMode()) {
+					// Keep the user on the settings tab
+					$scope.selectedTab = 3;
+				}
+			};
 
 			// If the alias contains a subdomain, then remove it
 			var periodIndex = $scope.page.alias.indexOf('.');

@@ -95,10 +95,6 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			fail(http.StatusInternalServerError, "Have to be an admin", nil)
 			return
 		}
-		if h.Options.MinKarma != 0 && u.TrustMap[""].EditTrust < h.Options.MinKarma {
-			fail(http.StatusInternalServerError, "Not enough karma", nil)
-			return
-		}
 
 		// Check if we have access to the private group
 		if core.IsIdValid(params.PrivateGroupId) {

@@ -31,27 +31,45 @@
 			</span>
 		</div>
 
-		<!-- Unlisted -->
+		<!-- Unlisted page -->
 		<div class="page-list-span md-whiteframe-1dp md-accent md-hue-1"
 				layout-padding
-				ng-if="page.domainIds[0] == '' && !isSimpleEmbed">
-			<span>
+				layout="row"
+				layout-align="start center"
+				ng-if="page.domainIds.length <= 0 && !isSimpleEmbed">
+			<!-- Hasn't been submitted -->
+			<div ng-if="page.domainSubmissionsCount() <= 0">
 				This page is
-				<arb-page-title page-id="14z" is-link="true" custom-page-title="unlisted!"></arb-page-title>
-			</span>
-			<md-button class="md-primary"
-					ng-click="submitToDomain()"
-					ng-if="page.isSubscribedAsMaintainer">
-				Submit to math domain
-			</md-button>
+				<arb-page-title page-id="14z" is-link="true" custom-page-title="unlisted."></arb-page-title>
+				<md-button class="md-primary md-raised"
+						ng-click="submitToDomain()"
+						ng-if="page.permissions.edit.has">
+					Submit to math domain
+				</md-button>
+			</div>
+			<!-- Has been submitted -->
+			<div ng-if="page.domainSubmissionsCount() > 0">
+				<span ng-if="page.domainSubmissions['1lw'].approverId == ''">
+					This page has been submitted to Math domain and is pending approval.
+				</span>
+				<md-button class='md-primary md-raised'
+						ng-click="arb.pageService.approvePageToDomain(page.pageId, '1lw')"
+						ng-if="page.domainSubmissions['1lw'].approverId == '' && arb.userService.user.trustMap['1lw'].permissions.edit.has">
+					Approve
+				</md-button>
+				<span ng-if="page.domainSubmissions['1lw'].approverId != ''">
+					<arb-user-name user-id="{{::page.domainSubmissions['1lw'].approverId}}"></arb-user-name>
+					added this page to the math domain, but the page is now orphaned.
+				</span>
+			</div>
 		</div>
 
 		<!-- Parents -->
 		<div class="page-list-span"
 				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
-				ng-if="::(page.parentIds.length > 0 && !isSimpleEmbed)">
+				ng-if="page.parentIds.length > 0 && !isSimpleEmbed">
 			<span>Parents:</span>
-			<span ng-repeat="(index, parentId) in ::page.parentIds">
+			<span ng-repeat="(index, parentId) in page.parentIds">
 				<span class="comma" ng-if="index > 0">,</span>
 				<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
 			</span>

@@ -655,6 +655,7 @@ app.directive('arbLogRow', function(arb) {
 		templateUrl: 'static/html/logRow.html',
 		scope: {
 			changeLog: '=', // Optional changelog associated with this row
+			update: '=', // if this is shown in the updates page, this is the update object
 			pageId: '@',
 			byUserId: '@',
 			type: '@',

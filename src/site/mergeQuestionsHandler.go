@@ -23,7 +23,6 @@ var mergeQuestionsHandler = siteHandler{
 	HandlerFunc: mergeQuestionsHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 

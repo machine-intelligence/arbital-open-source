@@ -43,6 +43,7 @@ func NewPage(pageId string) *Page {
 	p.MarkIds = make([]string, 0)
 	p.DomainMembershipIds = make([]string, 0)
 	p.IndividualLikes = make([]string, 0)
+	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
 	p.Members = make(map[string]*Member)
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
@@ -512,8 +513,6 @@ func LoadAllDomainIds(db *database.DB, pageMap map[string]*Page) ([]string, erro
 		}
 		return nil
 	})
-	// We also have a "" domain for pages with no domain.
-	domainIds = append(domainIds, "")
 	return domainIds, err
 }
 

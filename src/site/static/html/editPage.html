@@ -16,8 +16,8 @@
 			<md-tab label="Title" ng-disabled="::(isComment)">
 				<div flex>
 					<div class="editor-tab" layout="column">
-						<div ng-if="::!showAdvancedMode">
-							Want to learn about creating pages on Arbital?
+						<div ng-if="!showAdvancedMode()">
+							New to editing pages?
 							<arb-page-title page-id="3hs" is-link="true" custom-page-title="Read the author's guide."></arb-page-title>
 						</div>
 
@@ -30,7 +30,7 @@
 							<label>Clickbait</label>
 							<input ng-model="page.clickbait" md-maxlength="200">
 						</md-input-container>
-						<md-input-container ng-if="::showAdvancedMode">
+						<md-input-container ng-if="showAdvancedMode()">
 							<label>Alias</label>
 							<input ng-model="page.alias" md-maxlength="50">
 						</md-input-container>
@@ -261,7 +261,7 @@
 			</md-tab>
 
 			<!-- (2) Relationships tab -->
-			<md-tab label="Relationships" ng-disabled="::isComment" ng-if="::showAdvancedMode">
+			<md-tab label="Relationships" ng-disabled="::isComment" ng-if="showAdvancedMode()">
 
 				<md-tabs class="md-primary"
 						md-selected="selectedRelationshipsTab"
@@ -401,144 +401,158 @@
 				</md-tabs>
 			</md-tab>
 
-			<!-- (3) Settings tab -->
-			<md-tab label="Settings" ng-disabled="::isComment || isGroup" ng-if="::showAdvancedMode">
+			<!-- (3) Settings tab (advanced) -->
+			<md-tab label="Settings" ng-disabled="::isComment || isGroup">
 				<div layout="column" flex>
+					<md-content class="editor-tab">
+					</md-content>
+
 					<md-content class="editor-tab" flex>
-						<!-- Alias -->
-						<div layout="row" ng-if="::(!isComment && !isGroup)">
-							<div layout="column" flex>
-								<md-input-container>
-									<label>Alias</label>
-									<input ng-model="page.alias" md-maxlength="50">
-								</md-input-container>
-							</div>
-							<div class="md-caption" layout-margin flex>
-								<div>Unique name for this page, e.g. "human_health"</div>
-								<div ng-if="page.seeGroupId != ''">
-									This alias will be prefixed with "{{arb.stateService.pageMap[page.seeGroupId].alias}}."
-									because it's part of the private domain
+						<div ng-if="::!showAdvancedMode()">
+							<!-- Advanced mode toggle -->
+							<md-checkbox ng-model="arb.userService.user.showAdvancedEditorMode"
+									ng-change="advancedModeToggled()"
+									ng-if="!arb.userService.user.hasDomainInvite">
+								Show advanced settings
+							</md-checkbox>
+						</div>
+
+						<div ng-if="showAdvancedMode()">
+							<!-- Alias -->
+							<div layout="row" ng-if="::(!isComment && !isGroup)">
+								<div layout="column" flex>
+									<md-input-container>
+										<label>Alias</label>
+										<input ng-model="page.alias" md-maxlength="50">
+									</md-input-container>
+								</div>
+								<div class="md-caption" layout-margin flex>
+									<div>Unique name for this page, e.g. "linear_algebra"</div>
+									<div ng-if="page.seeGroupId != ''">
+										This alias will be prefixed with "{{arb.stateService.pageMap[page.seeGroupId].alias}}."
+										because it's part of the private domain
+									</div>
 								</div>
 							</div>
-						</div>
-
-						<!-- See group id -->
-						<div layout="row" ng-if="::!page.wasPublished">
-							<md-input-container flex>
-								<label>See group</label>
-								<md-select ng-model="page.seeGroupId">
-									<md-option ng-repeat="(key,value) in ::groupOptions" value="{{::key}}" ng-bind="::value"></md-option>
-								</md-select>
-							</md-input-container>
-							<div class="md-caption" layout-margin flex>
-								Group that can see this page. If not set, anyone can see it
+	
+							<!-- See group id -->
+							<div layout="row" ng-if="::!page.wasPublished">
+								<md-input-container flex>
+									<label>See group</label>
+									<md-select ng-model="page.seeGroupId">
+										<md-option ng-repeat="(key,value) in ::groupOptions" value="{{::key}}" ng-bind="::value"></md-option>
+									</md-select>
+								</md-input-container>
+								<div class="md-caption" layout-margin flex>
+									Group that can see this page. If not set, anyone can see it
+								</div>
 							</div>
-						</div>
-
-						<!-- Edit group id -->
-						<div layout="row">
-							<md-input-container flex>
-								<label>Edit group</label>
-								<md-select ng-model="page.editGroupId">
-									<md-option ng-repeat="(key,value) in ::groupOptions" value="{{::key}}" ng-bind="::value"></md-option>
-								</md-select>
-							</md-input-container>
-							<div class="md-caption" layout-margin flex>
-								Group that can edit this page. If not set, anyone can edit it
+	
+							<!-- Edit group id -->
+							<div layout="row">
+								<md-input-container flex>
+									<label>Edit group</label>
+									<md-select ng-model="page.editGroupId">
+										<md-option ng-repeat="(key,value) in ::groupOptions" value="{{::key}}" ng-bind="::value"></md-option>
+									</md-select>
+								</md-input-container>
+								<div class="md-caption" layout-margin flex>
+									Group that can edit this page. If not set, anyone can edit it
+								</div>
 							</div>
-						</div>
-
-						<!-- Page type -->
-						<div layout="row">
-							<md-input-container flex>
-								<label>Page type</label>
-								<md-select ng-model="page.type" required="true">
-									<md-option ng-repeat="(key,value) in ::pageTypes" value="{{::key}}" ng-bind="::value"></md-option>
-								</md-select>
-							</md-input-container>
-							<div class="md-caption" layout-margin flex>
-								<span ng-if="::isWiki">
-									Standard wiki page
-								</span>
-								<span ng-if="::isLens">
-									A lens page is used to present the same material as another page but with a different emphasis
-								</span>
+	
+							<!-- Page type -->
+							<div layout="row">
+								<md-input-container flex>
+									<label>Page type</label>
+									<md-select ng-model="page.type" required="true">
+										<md-option ng-repeat="(key,value) in ::pageTypes" value="{{::key}}" ng-bind="::value"></md-option>
+									</md-select>
+								</md-input-container>
+								<div class="md-caption" layout-margin flex>
+									<span ng-if="::isWiki">
+										Standard wiki page
+									</span>
+									<span ng-if="::isLens">
+										A lens page is used to present the same material as another page but with a different emphasis
+									</span>
+								</div>
 							</div>
-						</div>
-
-						<!-- Show/hide vote -->
-						<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki && arb.userService.user.isAdmin)">
-							<md-switch ng-model="page.hasVote">
-								Show the {{::page.lockedVoteType}} voting bar
-							</md-switch>
-						</div>
-
-						<!-- Vote type -->
-						<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment && arb.userService.user.isAdmin)">
-							<md-input-container flex>
-								<label>Voting</label>
-								<md-select ng-model="page.voteType">
-									<md-option ng-repeat="(key,value) in ::voteTypes" value="{{::key}}">
-										{{::value}}
-									</md-option>
-								</md-select>
-							</md-input-container>
-							<div layout-margin flex>
-								<!-- TODO: helpful notes -->
+	
+							<!-- Show/hide vote -->
+							<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki && arb.userService.user.isAdmin)">
+								<md-switch ng-model="page.hasVote">
+									Show the {{::page.lockedVoteType}} voting bar
+								</md-switch>
 							</div>
-						</div>
-
-						<!-- Sort children option -->
-						<div layout="row" layout-align="start center" ng-if="::!isSecondary">
-							<md-input-container flex>
-								<label>Sort children</label>
-								<md-select ng-model="page.sortChildrenBy">
-									<md-option ng-repeat="(key,value) in ::sortTypes" value="{{::key}}">
-										{{::value}}
-									</md-option>
-								</md-select>
-							</md-input-container>
-							<div class="md-caption" layout-margin flex>
-								How to sort the children of this page
-								<!-- TODO: helpful notes about specific types -->
+	
+							<!-- Vote type -->
+							<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment && arb.userService.user.isAdmin)">
+								<md-input-container flex>
+									<label>Voting</label>
+									<md-select ng-model="page.voteType">
+										<md-option ng-repeat="(key,value) in ::voteTypes" value="{{::key}}">
+											{{::value}}
+										</md-option>
+									</md-select>
+								</md-input-container>
+								<div layout-margin flex>
+									<!-- TODO: helpful notes -->
+								</div>
 							</div>
-						</div>
-
-						<!-- Is requisite -->
-						<div layout="row" layout-margin ng-if="::isWiki">
-							<md-switch ng-model="page.isRequisite">
-								This page is used as a requisite
-							</md-switch>
-						</div>
-
-						<!-- Indirect teacher -->
-						<div layout="row" layout-margin ng-if="::isWiki">
-							<md-switch ng-model="page.indirectTeacher">
-								This page teaches its requisites indirectly
-							</md-switch>
-						</div>
-
-						<!-- Merge question -->
-						<div layout="row" layout-margin ng-if="::isQuestion && !page.isDeleted">
-							<div flex>
-								<arb-autocomplete class="insert-autocomplete"
-										placeholder="Find the question to merge into"
-										on-select="selectedMergeQuestion(result)"
-										do-autofocus="false"
-										flex
-										page-type="question"
-										ng-show="!mergeCandidate"></arb-autocomplete>
-								<arb-page-title page-id="{{::mergeCandidate.pageId}}"
-										is-link="true"
-										show-clickbait="true"
-										ng-if="mergeCandidate"></arb-page-title>
-								<arb-confirm-button button-text="Merge"
-										button-before-confirm="true"
-										confirmed="mergeQuestion()"
-										ng-if="mergeCandidate"></arb-confirm-button>
+	
+							<!-- Sort children option -->
+							<div layout="row" layout-align="start center" ng-if="::!isSecondary">
+								<md-input-container flex>
+									<label>Sort children</label>
+									<md-select ng-model="page.sortChildrenBy">
+										<md-option ng-repeat="(key,value) in ::sortTypes" value="{{::key}}">
+											{{::value}}
+										</md-option>
+									</md-select>
+								</md-input-container>
+								<div class="md-caption" layout-margin flex>
+									How to sort the children of this page
+									<!-- TODO: helpful notes about specific types -->
+								</div>
 							</div>
-							<div class="md-caption" flex>
-								This will merge all answers and search strings into the selected question. This question will be deleted.
+	
+							<!-- Is requisite -->
+							<div layout="row" layout-margin ng-if="::isWiki">
+								<md-switch ng-model="page.isRequisite">
+									This page is used as a requisite
+								</md-switch>
+							</div>
+	
+							<!-- Indirect teacher -->
+							<div layout="row" layout-margin ng-if="::isWiki">
+								<md-switch ng-model="page.indirectTeacher">
+									This page teaches its requisites indirectly
+								</md-switch>
+							</div>
+	
+							<!-- Merge question -->
+							<div layout="row" layout-margin ng-if="::isQuestion && !page.isDeleted">
+								<div flex>
+									<arb-autocomplete class="insert-autocomplete"
+											placeholder="Find the question to merge into"
+											on-select="selectedMergeQuestion(result)"
+											do-autofocus="false"
+											flex
+											page-type="question"
+											ng-show="!mergeCandidate"></arb-autocomplete>
+									<arb-page-title page-id="{{::mergeCandidate.pageId}}"
+											is-link="true"
+											show-clickbait="true"
+											ng-if="mergeCandidate"></arb-page-title>
+									<arb-confirm-button button-text="Merge"
+											button-before-confirm="true"
+											confirmed="mergeQuestion()"
+											ng-if="mergeCandidate"></arb-confirm-button>
+								</div>
+								<div class="md-caption" flex>
+									This will merge all answers and search strings into the selected question. This question will be deleted.
+								</div>
 							</div>
 						</div>
 
@@ -553,7 +567,7 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog" ng-disabled="::(isComment)" ng-if="::showAdvancedMode">
+			<md-tab label="Changelog" ng-disabled="::(isComment)" ng-if="showAdvancedMode()">
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">

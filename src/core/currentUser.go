@@ -62,13 +62,13 @@ type CurrentUser struct {
 	SessionId string `json:"-"`
 
 	// Computed variables
+	// Set to true if the user is a member of at least one domain
+	IsDomainMember      bool              `json:"isDomainMember"`
 	UpdateCount         int               `json:"updateCount"`
 	NewAchievementCount int               `json:"newAchievementCount"`
 	GroupIds            []string          `json:"groupIds"`
 	TrustMap            map[string]*Trust `json:"trustMap"`
-	// True iff the user is a member of at least one domain
-	HasDomainInvite bool      `json:"hasDomainInvite"`
-	InvitesClaimed  []*Invite `json:"invitesClaimed"`
+	InvitesClaimed      []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
@@ -315,28 +315,29 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		u.TrustMap[domainId] = &Trust{}
 	}
 
-	if u.Id == "" {
-		return nil
-	}
+	if u.Id != "" {
+		// TODO: load all sources of trust
 
-	// NOTE: this should come last in computing trust, so that the bonus trust from
-	// an invite slowly goes away as the user accumulates real trust.
-	// Compute trust from invites
-	wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
-	invites, err := LoadInvitesWhere(db, wherePart)
-	if err != nil {
-		return fmt.Errorf("Couldn't process existing invites: %v", err)
-	}
-	for _, invite := range invites {
-		trust := u.TrustMap[invite.DomainId]
-		if trust.EditTrust < DefaultInviteKarma {
-			trust.EditTrust = DefaultInviteKarma
+		// NOTE: this should come last in computing trust, so that the bonus trust from
+		// an invite slowly goes away as the user accumulates real trust.
+		// Compute trust from invites
+		wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
+		invites, err := LoadInvitesWhere(db, wherePart)
+		if err != nil {
+			return fmt.Errorf("Couldn't process existing invites: %v", err)
 		}
-		trust.Permissions.DomainAccess.Has = true
+		for _, invite := range invites {
+			trust := u.TrustMap[invite.DomainId]
+			if trust.EditTrust < DefaultInviteKarma {
+				trust.EditTrust = DefaultInviteKarma
+			}
+			trust.Permissions.DomainAccess.Has = true
+			u.IsDomainMember = true
+		}
 	}
 
 	// Now compute permissions
-	for domainId, trust := range u.TrustMap {
+	for _, trust := range u.TrustMap {
 		if !trust.Permissions.DomainAccess.Has {
 			trust.Permissions.DomainAccess.Reason = "You don't have access to this domain"
 		}
@@ -351,9 +352,6 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		trust.Permissions.Comment.Has = trust.EditTrust >= CommentKarmaReq
 		if !trust.Permissions.Comment.Has {
 			trust.Permissions.Comment.Reason = "Not enough reputation"
-		}
-		if domainId != "" && trust.Permissions.DomainAccess.Has {
-			u.HasDomainInvite = true
 		}
 	}
 
