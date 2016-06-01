@@ -25,6 +25,7 @@
 				<div arb-mark-info mark-id="{{::modeRow.markId}}" ng-switch-when="mark"></div>
 				<div arb-query-info mark-id="{{::modeRow.markId}}" ng-switch-when="query"></div>
 				<arb-comment-mode-row mode-row="modeRow" ng-switch-when="comment"></arb-comment-mode-row>
+				<arb-draft-row mode-row="modeRow" ng-switch-when="draft"></arb-draft-row>
 			</div>
 
 			<md-divider ng-if="::!$last"></md-divider>
