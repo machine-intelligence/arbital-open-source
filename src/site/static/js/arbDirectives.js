@@ -670,6 +670,7 @@ app.directive('arbLogRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.goToPage = $scope.goToPageId ? arb.stateService.pageMap[$scope.goToPageId] : undefined;
 		},
 	};
 });

@@ -474,7 +474,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		}
 	};
 
-	// Delete the page with the given pageId.
+	// Approve the page that was submitted to the given domain.
 	this.approvePageToDomain = function(pageId, domainId, successFn, errorFn) {
 		var data = {
 			pageId: pageId,

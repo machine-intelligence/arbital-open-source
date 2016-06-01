@@ -94,6 +94,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.submitToDomain = function() {
 				var data = {
 					pageId: $scope.pageId,
+					domainId: '1lw',
 				};
 				arb.stateService.postData('/json/newPageToDomainSubmission/', data, function successFn(data) {
 					var submission = data.result.submission;

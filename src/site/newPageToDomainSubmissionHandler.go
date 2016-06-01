@@ -14,7 +14,8 @@ import (
 
 // updateSettingsData contains data given to us in the request.
 type newPageToDomainSubmissionData struct {
-	PageId string `json:"pageId"`
+	PageId   string `json:"pageId"`
+	DomainId string `json:"domainId"`
 }
 
 var newPageToDomainSubmissionHandler = siteHandler{
@@ -47,7 +48,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 		// Create new invite
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = data.PageId
-		hashmap["domainId"] = "1lw"
+		hashmap["domainId"] = data.DomainId
 		hashmap["submitterId"] = u.Id
 		hashmap["createdAt"] = database.Now()
 		statement := db.NewInsertStatement("pageToDomainSubmissions", hashmap).WithTx(tx)
@@ -59,7 +60,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 		var task tasks.DomainWideNewUpdateTask
 		task.UserId = u.Id
 		task.UpdateType = core.PageToDomainSubmissionUpdateType
-		task.DomainId = "1lw"
+		task.DomainId = data.DomainId
 		task.GoToPageId = data.PageId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			return sessions.NewError("Couldn't enqueue a task", err)
@@ -70,7 +71,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 		return pages.FailWith(err2)
 	}
 
-	returnData.ResultMap["submission"], err = core.LoadPageToDomainSubmission(db, data.PageId, "1lw")
+	returnData.ResultMap["submission"], err = core.LoadPageToDomainSubmission(db, data.PageId, data.DomainId)
 	if err != nil {
 		return pages.Fail("Couldn't load submission", err)
 	}

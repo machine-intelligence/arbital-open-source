@@ -231,6 +231,37 @@ type Page struct {
 	Members map[string]*Member `json:"members"`
 }
 
+// NewPage returns a pointer to a new page object created with the given page id
+func NewPage(pageId string) *Page {
+	p := &Page{corePageData: corePageData{PageId: pageId}}
+	p.Votes = make([]*Vote, 0)
+	p.Summaries = make(map[string]string)
+	p.CreatorIds = make([]string, 0)
+	p.CommentIds = make([]string, 0)
+	p.QuestionIds = make([]string, 0)
+	p.LensIds = make([]string, 0)
+	p.TaggedAsIds = make([]string, 0)
+	p.RelatedIds = make([]string, 0)
+	p.RequirementIds = make([]string, 0)
+	p.SubjectIds = make([]string, 0)
+	p.DomainIds = make([]string, 0)
+	p.ChangeLogs = make([]*ChangeLog, 0)
+	p.ChildIds = make([]string, 0)
+	p.ParentIds = make([]string, 0)
+	p.MarkIds = make([]string, 0)
+	p.DomainMembershipIds = make([]string, 0)
+	p.IndividualLikes = make([]string, 0)
+	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
+	p.Answers = make([]*Answer, 0)
+	p.SearchStrings = make(map[string]string)
+	p.Members = make(map[string]*Member)
+
+	// NOTE: we want permissions to be explicitly null so that if someone refers to them
+	// they get an error. The permissions are only set when they are also fully computed.
+	p.Permissions = nil
+	return p
+}
+
 // ChangeLog describes a row from changeLogs table.
 type ChangeLog struct {
 	Id               int    `json:"id"`
@@ -294,6 +325,7 @@ type PageToDomainSubmission struct {
 	DomainId    string `json:"domainId"`
 	CreatedAt   string `json:"createdAt"`
 	SubmitterId string `json:"submitterId"`
+	ApprovedAt  string `json:"approvedAt"`
 	ApproverId  string `json:"approverId"`
 }
 
@@ -1466,13 +1498,13 @@ func LoadPageToDomainSubmissions(db *database.DB, pageMap map[string]*Page, user
 	}
 
 	rows := database.NewQuery(`
-		SELECT pageId,domainId,createdAt,submitterId,approverId
+		SELECT pageId,domainId,createdAt,submitterId,approvedAt,approverId
 		FROM pageToDomainSubmissions
 		WHERE pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var submission PageToDomainSubmission
 		err := rows.Scan(&submission.PageId, &submission.DomainId, &submission.CreatedAt,
-			&submission.SubmitterId, &submission.ApproverId)
+			&submission.SubmitterId, &submission.ApprovedAt, &submission.ApproverId)
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
@@ -1487,13 +1519,13 @@ func LoadPageToDomainSubmissions(db *database.DB, pageMap map[string]*Page, user
 // LoadPageToDomainSubmission loads information about a specific page that was submitted to a specific domain
 func LoadPageToDomainSubmission(db *database.DB, pageId, domainId string) (*PageToDomainSubmission, error) {
 	row := database.NewQuery(`
-		SELECT pageId,domainId,createdAt,submitterId,approverId
+		SELECT pageId,domainId,createdAt,submitterId,approvedAt,approverId
 		FROM pageToDomainSubmissions
 		WHERE pageId=?`, pageId).Add(`
 			AND domainId=?`, domainId).ToStatement(db).QueryRow()
 	var submission PageToDomainSubmission
 	_, err := row.Scan(&submission.PageId, &submission.DomainId, &submission.CreatedAt,
-		&submission.SubmitterId, &submission.ApproverId)
+		&submission.SubmitterId, &submission.ApprovedAt, &submission.ApproverId)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to scan: %v", err)
 	}

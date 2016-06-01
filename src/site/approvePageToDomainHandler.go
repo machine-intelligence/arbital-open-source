@@ -49,7 +49,10 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error loading the page", err)
 	} else if oldPage == nil {
 		return pages.Fail("Couldn't find the page", nil)
-	} else if oldPage.Permissions.DomainAccess.Has {
+	}
+
+	// Check permissions
+	if !u.TrustMap[data.DomainId].Permissions.DomainAccess.Has {
 		return pages.Fail("You don't have access to the domain", nil)
 	}
 

@@ -23,37 +23,6 @@ const (
 	ReplaceRegexpStr        = "[^A-Za-z0-9_]" // used for replacing non-alias characters
 )
 
-// NewPage returns a pointer to a new page object created with the given page id
-func NewPage(pageId string) *Page {
-	p := &Page{corePageData: corePageData{PageId: pageId}}
-	p.Votes = make([]*Vote, 0)
-	p.Summaries = make(map[string]string)
-	p.CreatorIds = make([]string, 0)
-	p.CommentIds = make([]string, 0)
-	p.QuestionIds = make([]string, 0)
-	p.LensIds = make([]string, 0)
-	p.TaggedAsIds = make([]string, 0)
-	p.RelatedIds = make([]string, 0)
-	p.RequirementIds = make([]string, 0)
-	p.SubjectIds = make([]string, 0)
-	p.DomainIds = make([]string, 0)
-	p.ChangeLogs = make([]*ChangeLog, 0)
-	p.ChildIds = make([]string, 0)
-	p.ParentIds = make([]string, 0)
-	p.MarkIds = make([]string, 0)
-	p.DomainMembershipIds = make([]string, 0)
-	p.IndividualLikes = make([]string, 0)
-	p.DomainSubmissions = make(map[string]*PageToDomainSubmission)
-	p.Members = make(map[string]*Member)
-	p.Answers = make([]*Answer, 0)
-	p.SearchStrings = make(map[string]string)
-
-	// NOTE: we want permissions to be explicitly null so that if someone refers to them
-	// they get an error. The permissions are only set when they are also fully computed.
-	p.Permissions = nil
-	return p
-}
-
 // AddPageToMap adds a new page with the given page id to the map if it's not
 // in the map already.
 // Returns the new/existing page.

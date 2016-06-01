@@ -49,7 +49,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		}
 		return
 	}
-	// If it's a comment, only hte creator can edit it
+	// If it's a comment, only the creator can edit it
 	if p.Type == CommentPageType {
 		p.Permissions.Edit.Has = p.PageCreatorId == u.Id
 		if !p.Permissions.Edit.Has {
@@ -57,7 +57,7 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		}
 		return
 	}
-	// If the page is part of the general domain, only the creator and XX users
+	// If the page is part of the general domain, only the creator and domain members
 	// can edit it.
 	if len(p.DomainIds) <= 0 {
 		p.Permissions.Edit.Has = p.PageCreatorId == u.Id || u.IsDomainMember
