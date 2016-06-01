@@ -310,7 +310,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 
 		stateService.postDataWithOptions('/json/edit/',
 				{pageAlias: options.pageAlias},
-				{callCallbacks: options.skipProcessDataStep},
+				{callCallbacks: !options.skipProcessDataStep},
 				success, error);
 	};
 
@@ -448,7 +448,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	this.newCommentCreated = function(commentId) {
 		var comment = stateService.editMap[commentId];
 		if (comment.isEditorComment) {
-			this.setShowEditorComments(true);
+			stateService.setShowEditorComments(true);
 		}
 		comment = this.addPageToMap(comment);
 		// HACK: set the comment's data to make sure it's displayed correctly
@@ -466,7 +466,9 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 				parent = p;
 			}
 		}
-		parent.subpageIds.push(commentId);
+		if (parent.subpageIds.indexOf(commentId) < 0) {
+			parent.subpageIds.push(commentId);
+		}
 		// Only change the URL if we are on the actual lens page, since there are
 		// ways to create new comments from other locations (e.g. discussion mode)
 		if (stateService.primaryPage && stateService.primaryPage.pageId == comment.getCommentParentPage().pageId) {
