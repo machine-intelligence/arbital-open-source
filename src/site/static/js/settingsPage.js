@@ -21,16 +21,8 @@ app.directive('arbSettingsPage', function($http, arb) {
 
 			// Process settings form submission.
 			$scope.submitForm = function(event) {
-				var data = {
-					emailFrequency: arb.userService.user.emailFrequency,
-					emailThreshold: arb.userService.user.emailThreshold,
-					ignoreMathjax: arb.userService.user.ignoreMathjax,
-				};
-				submitForm($(event.currentTarget), '/updateSettings/', data, function(r) {
+				arb.userService.updateSettings(function successFn() {
 					$scope.submitted = true;
-					$scope.$apply();
-				}, function(err) {
-					console.error('ERROR while updating settings:', err);
 				});
 			};
 		},

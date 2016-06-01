@@ -21,7 +21,6 @@ var newVoteHandler = siteHandler{
 	HandlerFunc: newVoteHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 

@@ -20,9 +20,9 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 	};
 	stateService.addPostDataCallback('userService', postDataCallback);
 
-	// Check if we can let this user do stuff.
-	this.userIsCool = function() {
-		return this.user && ('' in this.user.trustMap) && this.user.trustMap[''].permissions.edit.has;
+	// Check if the user is logged in.
+	this.userIsLoggedIn = function() {
+		return this.user && this.user.id != '';
 	};
 
 	// Return a user's full name.
@@ -104,5 +104,16 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 			};
 		};
 		stateService.postData('/json/userPopover/', {userId: userId}, createCallback(successFn), createCallback(errorFn));
+	};
+
+	// Push user's settings to the server
+	this.updateSettings = function(successFn, errorFn) {
+		var data = {
+			emailFrequency: that.user.emailFrequency,
+			emailThreshold: that.user.emailThreshold,
+			showAdvancedEditorMode: that.user.showAdvancedEditorMode,
+			ignoreMathjax: that.user.ignoreMathjax,
+		};
+		stateService.postData('/updateSettings/', data, successFn, errorFn);
 	};
 });

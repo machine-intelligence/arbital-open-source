@@ -52,13 +52,21 @@
 						<br>
 
 						<md-subheader class="md-hue-1">
-							Performance
+							Editor
 						</md-subheader>
 
-						<!-- Ignore MathJax -->
-						<md-checkbox ng-model="arb.userService.user.ignoreMathjax">
-							Ignore MathJax in live preview
-						</md-checkbox>
+						<div>
+							<!-- Show advanced mode -->
+							<md-checkbox ng-model="arb.userService.user.showAdvancedEditorMode"
+									ng-if="!arb.userService.user.hasDomainInvite">
+								Show advanced settings in the editor mode
+							</md-checkbox>
+	
+							<!-- Ignore MathJax -->
+							<md-checkbox ng-model="arb.userService.user.ignoreMathjax">
+								Ignore MathJax in live preview
+							</md-checkbox>
+						</div>
 
 						<md-progress-circular md-mode="indeterminate" toggle-on-submit hide></md-progress-circular>
 						<div layout-align="end center" layout="row">

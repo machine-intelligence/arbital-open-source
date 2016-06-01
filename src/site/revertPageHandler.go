@@ -25,7 +25,6 @@ var revertPageHandler = siteHandler{
 	HandlerFunc: revertPageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 

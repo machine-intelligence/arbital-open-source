@@ -41,7 +41,7 @@
 				arb-user-check="cool">
 			<md-icon>create</md-icon>
 			<span ng-if="::!isTinyScreen">Edit</span>
-			<md-tooltip md-delay="500" ng-if="::!page.permissions.edit.has && arb.userService.userIsCool()">
+			<md-tooltip md-delay="500" ng-if="::!page.permissions.edit.has && arb.userService.userIsLoggedIn()">
 				{{::page.cantEditMessage}}
 			</md-tooltip>
 		</md-button>
@@ -118,7 +118,7 @@
 			</md-menu-item>
 
 			<!-- Show unresolved marks -->
-			<md-menu-item ng-if="!loadedMarks && arb.userService.userIsCool()">
+			<md-menu-item ng-if="!loadedMarks && arb.userService.userIsLoggedIn()">
 				<md-button ng-click="loadMarks()">
 					Show all marks
 				</md-button>

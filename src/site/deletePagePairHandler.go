@@ -24,7 +24,6 @@ var deletePagePairHandler = siteHandler{
 	HandlerFunc: deletePagePairHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 

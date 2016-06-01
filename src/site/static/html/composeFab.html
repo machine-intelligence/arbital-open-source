@@ -3,7 +3,7 @@
 		md-direction="up"
 		ng-mouseenter="mouseEnter()"
 		ng-mouseleave="mouseLeave()"
-		ng-if="!hideFab && arb.userService.userIsCool()">
+		ng-if="!hideFab && arb.userService.userIsLoggedIn()">
 	<md-fab-trigger>
 		<md-button ng-click="triggerClicked($event)" class="md-fab" >
 			<!-- When closed and not in the special inline response mode for mobile. -->

@@ -85,6 +85,7 @@ func init() {
 
 	// JSON handlers (API)
 	s.HandleFunc(adminDashboardPageHandler.URI, handlerWrapper(adminDashboardPageHandler)).Methods("POST")
+	s.HandleFunc(approvePageToDomainHandler.URI, handlerWrapper(approvePageToDomainHandler)).Methods("POST")
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
 	s.HandleFunc(commentThreadHandler.URI, handlerWrapper(commentThreadHandler)).Methods("POST")
 	s.HandleFunc(continueWritingModeHandler.URI, handlerWrapper(continueWritingModeHandler)).Methods("POST")
@@ -123,6 +124,7 @@ func init() {
 	s.HandleFunc(newMarkHandler.URI, handlerWrapper(newMarkHandler)).Methods("POST")
 	s.HandleFunc(newMemberHandler.URI, handlerWrapper(newMemberHandler)).Methods("POST")
 	s.HandleFunc(newPageHandler.URI, handlerWrapper(newPageHandler)).Methods("POST")
+	s.HandleFunc(newPageToDomainSubmissionHandler.URI, handlerWrapper(newPageToDomainSubmissionHandler)).Methods("POST")
 	s.HandleFunc(newPagePairHandler.URI, handlerWrapper(newPagePairHandler)).Methods("POST")
 	s.HandleFunc(newSearchStringHandler.URI, handlerWrapper(newSearchStringHandler)).Methods("POST")
 	s.HandleFunc(newVoteHandler.URI, handlerWrapper(newVoteHandler)).Methods("POST")

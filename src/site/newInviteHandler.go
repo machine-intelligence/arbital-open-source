@@ -48,9 +48,6 @@ func newInviteHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("No invite email given", nil).Status(http.StatusBadRequest)
 	}
 
-	// Always send an invite to the general domain
-	data.DomainIds = append(data.DomainIds, "")
-
 	// Check to see if the invitee is already a user in our DB
 	var inviteeUserId string
 	row := db.NewStatement(`
