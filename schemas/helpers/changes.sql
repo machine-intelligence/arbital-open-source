@@ -13,6 +13,7 @@ update subscriptions join pageInfos on subscriptions.toId=pageInfos.pageId set s
 update updates set type="changeLog" where type="pageInfoEdit";
 
 alter table users add column showAdvancedEditorMode bool not null;
+delete from invites where domainId="";
 CREATE TABLE pageToDomainSubmissions (
 	/* Id of the submitted page. FK into pageInfos. */
 	pageId VARCHAR(32) NOT NULL,
