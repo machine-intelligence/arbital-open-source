@@ -84,6 +84,10 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		isUser: function() {
 			return this.pageId in userService.userMap;
 		},
+		// Return number of domainSubmissions values
+		domainSubmissionsCount: function() {
+			return Object.keys(this.domainSubmissions).length;
+		},
 		getCommentParentPage: function() {
 			console.assert(this.isComment(), 'Calling getCommentParentPage on a non-comment');
 			for (var n = 0; n < this.parentIds.length; n++) {
@@ -468,6 +472,22 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		if (stateService.primaryPage && stateService.primaryPage.pageId == comment.getCommentParentPage().pageId) {
 			urlService.goToUrl(urlService.getPageUrl(commentId))
 		}
+	};
+
+	// Approve the page that was submitted to the given domain.
+	this.approvePageToDomain = function(pageId, domainId, successFn, errorFn) {
+		var data = {
+			pageId: pageId,
+			domainId: domainId,
+		};
+		stateService.postData('/json/approvePageToDomain/', data, function(data) {
+			var page = stateService.pageMap[pageId];
+			if (page.domainIds.indexOf(data.domainId) < 0) {
+				// The page is now part of the domain, even though it hasn't propagated yet
+				page.domainIds.push(data.domainId);
+			}
+			if (successFn) successFn(data);
+		}, errorFn);
 	};
 
 	// Look up the long version of a domain's name from id

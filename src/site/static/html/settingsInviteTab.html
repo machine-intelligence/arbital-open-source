@@ -20,11 +20,6 @@
 			<div class="hint">Comma separated</div>
 		</md-input-container>
 
-		<md-checkbox ng-model="alwaysTrue"
-				aria-label="General"
-				ng-disabled="true">
-			<span>General (no specific domain)</span>
-		</md-checkbox>
 		<p>Specific domains:</p>
 		<md-checkbox ng-model="selectedDomains[domain.domainId]"
 				aria-label="{{::domain.longName}}"

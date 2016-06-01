@@ -230,7 +230,8 @@ app.run(function($http, $location, arb) {
 									markId: $location.search().markId,
 								}));
 
-								if (!arb.stateService.pageMap[result.pageId].isSubscribedAsMaintainer) {
+								if (result.pageId in arb.stateService.pageMap &&
+										!arb.stateService.pageMap[result.pageId].isSubscribedAsMaintainer) {
 									arb.popupService.showToast({
 										text: 'Maintain this page?',
 										scope: $scope,

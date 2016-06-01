@@ -565,12 +565,8 @@ app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 		compile: function compile(element, attrs) {
 			var check = attrs.arbUserCheck;
 			var failMessage = '';
-			if (!arb.userService.user || arb.userService.user.id === '') {
+			if (!arb.userService.userIsLoggedIn()) {
 				failMessage = 'Login required';
-			} else if (check === 'cool') {
-				if (!arb.userService.userIsCool()) {
-					failMessage = 'You have a limited account';
-				}
 			}
 			if (failMessage) {
 				element.prepend(angular.element('<md-tooltip md-direction="top">' + failMessage + '</md-tooltip>'));
@@ -655,6 +651,7 @@ app.directive('arbLogRow', function(arb) {
 		templateUrl: 'static/html/logRow.html',
 		scope: {
 			changeLog: '=', // Optional changelog associated with this row
+			update: '=', // if this is shown in the updates page, this is the update object
 			pageId: '@',
 			byUserId: '@',
 			type: '@',
@@ -669,6 +666,7 @@ app.directive('arbLogRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.goToPage = $scope.goToPageId ? arb.stateService.pageMap[$scope.goToPageId] : undefined;
 		},
 	};
 });

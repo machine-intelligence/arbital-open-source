@@ -13,9 +13,10 @@ import (
 
 // updateSettingsData contains data given to us in the request.
 type updateSettingsData struct {
-	EmailFrequency string `json:"emailFrequency"`
-	EmailThreshold int    `json:"emailThreshold"`
-	IgnoreMathjax  bool   `json:"ignoreMathJax"`
+	EmailFrequency         string `json:"emailFrequency"`
+	EmailThreshold         int    `json:"emailThreshold"`
+	IgnoreMathjax          bool   `json:"ignoreMathJax"`
+	ShowAdvancedEditorMode bool   `json:"showAdvancedEditorMode"`
 }
 
 var updateSettingsHandler = siteHandler{
@@ -49,14 +50,16 @@ func updateSettingsHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		// Update user model from settings form
-		statement := db.NewStatement(`
-			UPDATE users
-			SET emailFrequency=?,emailThreshold=?,ignoreMathjax=?
-			WHERE id=?`).WithTx(tx)
-		_, err = statement.Exec(data.EmailFrequency, data.EmailThreshold, data.IgnoreMathjax, u.Id)
+		hashmap := make(database.InsertMap)
+		hashmap["id"] = u.Id
+		hashmap["emailFrequency"] = data.EmailFrequency
+		hashmap["emailThreshold"] = data.EmailThreshold
+		hashmap["showAdvancedEditorMode"] = data.ShowAdvancedEditorMode
+		hashmap["ignoreMathjax"] = data.IgnoreMathjax
+		statement := db.NewInsertStatement("users", hashmap, hashmap.GetKeys()...)
+		_, err = statement.Exec()
 		if err != nil {
-			return sessions.NewError("Couldn't update settings", err)
+			return sessions.NewError("Couldn't update the mark", err)
 		}
 
 		return nil

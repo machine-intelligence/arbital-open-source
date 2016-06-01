@@ -28,6 +28,9 @@ CREATE TABLE users (
 	emailThreshold INT(11) NOT NULL,
 	/* If true, don't do a live preview of MathJax. */
 	ignoreMathjax BOOL NOT NULL,
+	/* If true, show the advanced editor mode for new users. */
+	showAdvancedEditorMode BOOL NOT NULL,
+
 	UNIQUE (email),
 	PRIMARY KEY(id)
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;

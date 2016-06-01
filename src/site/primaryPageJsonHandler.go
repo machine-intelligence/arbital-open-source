@@ -136,6 +136,7 @@ func primaryPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load data
+	core.AddPageIdToMap("14z", returnData.PageMap)
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryPageLoadOptions)
 	if data.MarkId != "" {
 		returnData.AddMark(data.MarkId)

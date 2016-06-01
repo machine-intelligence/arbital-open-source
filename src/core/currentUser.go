@@ -46,21 +46,24 @@ var (
 // Note: this structure is also stored in a cookie.
 type CurrentUser struct {
 	// DB variables
-	Id             string `json:"id"`
-	FbUserId       string `json:"fbUserId"`
-	Email          string `json:"email"`
-	FirstName      string `json:"firstName"`
-	LastName       string `json:"lastName"`
-	IsAdmin        bool   `json:"isAdmin"`
-	IsTrusted      bool   `json:"isTrusted"`
-	EmailFrequency string `json:"emailFrequency"`
-	EmailThreshold int    `json:"emailThreshold"`
-	IgnoreMathjax  bool   `json:"ignoreMathjax"`
+	Id                     string `json:"id"`
+	FbUserId               string `json:"fbUserId"`
+	Email                  string `json:"email"`
+	FirstName              string `json:"firstName"`
+	LastName               string `json:"lastName"`
+	IsAdmin                bool   `json:"isAdmin"`
+	IsTrusted              bool   `json:"isTrusted"`
+	EmailFrequency         string `json:"emailFrequency"`
+	EmailThreshold         int    `json:"emailThreshold"`
+	IgnoreMathjax          bool   `json:"ignoreMathjax"`
+	ShowAdvancedEditorMode bool   `json:"showAdvancedEditorMode"`
 
 	// If the user isn't logged in, this is set to their unique session id
 	SessionId string `json:"-"`
 
 	// Computed variables
+	// Set to true if the user is a member of at least one domain
+	IsDomainMember      bool              `json:"isDomainMember"`
 	UpdateCount         int               `json:"updateCount"`
 	NewAchievementCount int               `json:"newAchievementCount"`
 	GroupIds            []string          `json:"groupIds"`
@@ -180,11 +183,12 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 
 	row := db.NewStatement(`
 		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
-			emailFrequency,emailThreshold,ignoreMathjax
+			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
 	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
-		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax)
+		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
@@ -311,24 +315,25 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		u.TrustMap[domainId] = &Trust{}
 	}
 
-	if u.Id == "" {
-		return nil
-	}
+	if u.Id != "" {
+		// TODO: load all sources of trust
 
-	// NOTE: this should come last in computing trust, so that the bonus trust from
-	// an invite slowly goes away as the user accumulates real trust.
-	// Compute trust from invites
-	wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
-	invites, err := LoadInvitesWhere(db, wherePart)
-	if err != nil {
-		return fmt.Errorf("Couldn't process existing invites: %v", err)
-	}
-	for _, invite := range invites {
-		trust := u.TrustMap[invite.DomainId]
-		if trust.EditTrust < DefaultInviteKarma {
-			trust.EditTrust = DefaultInviteKarma
+		// NOTE: this should come last in computing trust, so that the bonus trust from
+		// an invite slowly goes away as the user accumulates real trust.
+		// Compute trust from invites
+		wherePart := database.NewQuery(`WHERE toUserId=?`, u.Id)
+		invites, err := LoadInvitesWhere(db, wherePart)
+		if err != nil {
+			return fmt.Errorf("Couldn't process existing invites: %v", err)
 		}
-		trust.Permissions.DomainAccess.Has = true
+		for _, invite := range invites {
+			trust := u.TrustMap[invite.DomainId]
+			if trust.EditTrust < DefaultInviteKarma {
+				trust.EditTrust = DefaultInviteKarma
+			}
+			trust.Permissions.DomainAccess.Has = true
+			u.IsDomainMember = true
+		}
 	}
 
 	// Now compute permissions

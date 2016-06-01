@@ -21,7 +21,6 @@ var discardPageHandler = siteHandler{
 	HandlerFunc: discardPageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
-		MinKarma:     200,
 	},
 }
 

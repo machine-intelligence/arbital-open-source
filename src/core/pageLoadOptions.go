@@ -27,6 +27,7 @@ type PageLoadOptions struct {
 	Lenses                  bool
 	Requirements            bool
 	Subjects                bool
+	SubmittedTo             bool
 	Answers                 bool
 	UserMarks               bool // marks owned by the logged in user
 	UnresolvedMarks         bool // all unresolved marks
@@ -81,6 +82,7 @@ var (
 		Lenses:           true,
 		Requirements:     true,
 		Subjects:         true,
+		SubmittedTo:      true,
 		UserMarks:        true,
 		UnresolvedMarks:  true,
 		DomainMembership: true,
@@ -116,6 +118,7 @@ var (
 		SubpageCounts:   true,
 		Requirements:    true,
 		Subjects:        true,
+		SubmittedTo:     true,
 		UserMarks:       true,
 		UnresolvedMarks: true,
 		ViewCount:       true,

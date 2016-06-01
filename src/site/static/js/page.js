@@ -89,6 +89,18 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 			$scope.toggleDeleteAnswers = function() {
 				$scope.showDeleteAnswer = !$scope.showDeleteAnswer;
 			};
+
+			// Submit this page to a domain (currently just math)
+			$scope.submitToDomain = function() {
+				var data = {
+					pageId: $scope.pageId,
+					domainId: '1lw',
+				};
+				arb.stateService.postData('/json/newPageToDomainSubmission/', data, function successFn(data) {
+					var submission = data.result.submission;
+					$scope.page.domainSubmissions[submission.domainId] = submission;
+				});
+			};
 		},
 		link: function(scope, element, attrs) {
 			// Manage switching between lenses, including loading the necessary data.
