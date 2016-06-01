@@ -565,12 +565,8 @@ app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 		compile: function compile(element, attrs) {
 			var check = attrs.arbUserCheck;
 			var failMessage = '';
-			if (!arb.userService.user || arb.userService.user.id === '') {
+			if (!arb.userService.userIsLoggedIn()) {
 				failMessage = 'Login required';
-			} else if (check === 'cool') {
-				if (!arb.userService.userIsCool()) {
-					failMessage = 'You have a limited account';
-				}
 			}
 			if (failMessage) {
 				element.prepend(angular.element('<md-tooltip md-direction="top">' + failMessage + '</md-tooltip>'));

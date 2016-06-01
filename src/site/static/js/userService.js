@@ -20,8 +20,8 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 	};
 	stateService.addPostDataCallback('userService', postDataCallback);
 
-	// Check if we can let this user do stuff.
-	this.userIsCool = function() {
+	// Check if the user is logged in.
+	this.userIsLoggedIn = function() {
 		return this.user && this.user.id != '';
 	};
 

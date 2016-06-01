@@ -199,7 +199,8 @@ type Page struct {
 	ChildIds       []string `json:"childIds"`
 	ParentIds      []string `json:"parentIds"`
 	MarkIds        []string `json:"markIds"`
-	// TODO: shouldn't DomainMembershipIds be inside the user object?
+	// TODO: eventually move this to the user object (once we have load
+	// options + pipeline for users)
 	// For user pages, this is the domains user has access to
 	DomainMembershipIds []string `json:"domainMembershipIds"`
 	// List of user ids who liked this page
