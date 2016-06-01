@@ -39,7 +39,6 @@ func continueWritingModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Load my drafts
 	draftRows, err := loadDraftRows(db, returnData, data.NumPagesToLoad)
 	if err != nil {
-		db.C.Debugf("===", err)
 		return pages.Fail("Error loading drafts", err)
 	}
 
