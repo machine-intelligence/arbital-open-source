@@ -164,8 +164,11 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 
 			$('body').toggleClass('body-fix', !result.removeBodyFix);
 
-			if (result.title) {
-				document.title = result.title + ' - Arbital';
+			if (result.title !== undefined) {
+				if (result.title !== '') {
+					result.title += ' - ';
+				}
+				document.title = result.title + 'Arbital';
 			}
 		};
 	};

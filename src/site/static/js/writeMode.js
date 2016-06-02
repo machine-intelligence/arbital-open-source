@@ -39,7 +39,7 @@ app.directive('arbDraftRow', function(arb) {
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbTaggedForEditRow', function(arb) {
 	return {
-		templateUrl: 'static/html/taggedforEditRow.html',
+		templateUrl: 'static/html/taggedForEditRow.html',
 		scope: {
 			modeRow: '=',
 		},

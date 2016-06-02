@@ -286,7 +286,7 @@ app.run(function($http, $location, arb) {
 					type: type,
 					parentIds: newParentIdString ? newParentIdString.split(',') : [],
 					success: function(newPageId) {
-						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId));
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId), true);
 					},
 					error: $scope.getErrorFunc('newPage'),
 				});
