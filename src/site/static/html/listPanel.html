@@ -10,7 +10,7 @@
 	</md-toolbar>
 
 	<!-- List of mode rows -->
-	<md-list class="prevent-scroll-leak ng-scope">
+	<md-list class="full-height prevent-scroll-leak">
 		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay"
 				class="panel-list-item"
 				ng-class="{'unseen-update': modeRow.activityDate > lastView}">
