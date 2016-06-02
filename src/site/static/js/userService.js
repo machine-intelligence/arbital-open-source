@@ -25,6 +25,11 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 		return this.user && this.user.id != '';
 	};
 
+	// Check if the user is a maintainer for any pages.
+	this.userIsMaintainer = function() {
+		return this.user && this.user.isMaintainer;
+	}
+
 	// Return a user's full name.
 	this.getFullName = function(userId) {
 		var user = this.userMap[userId];

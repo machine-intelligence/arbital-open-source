@@ -10,6 +10,7 @@ const (
 	LastAchievementsModeView = "lastAchievementsModeView"
 	LastReadModeView         = "lastReadModeView"
 	LastDiscussionModeView   = "lastDiscussionModeView"
+	LastMaintenanceModeView  = "lastMaintenanceModeView"
 )
 
 // Just load the last time the user loaded the given view.

@@ -20,6 +20,7 @@ const (
 	ReqsTaughtModeRowType    = "reqsTaught"
 	DraftModeRowType         = "draft"
 	TaggedforEditModeRowType = "taggedForEdit"
+	MaintenanceUpdateRowType = "maintenanceUpdate"
 )
 
 type modeRowData struct {
@@ -67,6 +68,11 @@ type reqsTaughtModeRow struct {
 type pageModeRow struct {
 	modeRowData
 	PageId string `json:"pageId"`
+}
+
+type maintenanceUpdateRow struct {
+	modeRowData
+	Update *core.UpdateEntry `json:"update"`
 }
 
 type ModeRows []modeRow
@@ -477,4 +483,46 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		return nil, err
 	}
 	return modeRows, nil
+}
+
+func loadMaintenanceUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	modeRows := make(ModeRows, 0)
+
+	maintenanceUpdateTypes := core.GetMaintenanceUpdateTypes()
+
+	updateRows, err := core.LoadUpdateRows(db, u, returnData, false, maintenanceUpdateTypes, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load updates: %v", err)
+	}
+
+	for _, ur := range updateRows {
+		mr := &maintenanceUpdateRow{
+			modeRowData: modeRowData{RowType: MaintenanceUpdateRowType, ActivityDate: ur.CreatedAt},
+			Update:      getUpdateEntryFromUpdateRow(ur, returnData.PageMap),
+		}
+		modeRows = append(modeRows, mr)
+	}
+	return modeRows, nil
+}
+
+func getUpdateEntryFromUpdateRow(row *core.UpdateRow, pageMap map[string]*core.Page) *core.UpdateEntry {
+	entry := &core.UpdateEntry{
+		Id:              row.Id,
+		UserId:          row.UserId,
+		ByUserId:        row.ByUserId,
+		Type:            row.Type,
+		Repeated:        1,
+		SubscribedToId:  row.SubscribedToId,
+		GoToPageId:      row.GoToPageId,
+		IsGoToPageAlive: row.IsGoToPageAlive,
+		MarkId:          row.MarkId,
+		CreatedAt:       row.CreatedAt,
+		IsVisited:       pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
+		ChangeLog:       row.ChangeLog,
+	}
+	if entry.MarkId != "" {
+		entry.ByUserId = ""
+	}
+
+	return entry
 }
