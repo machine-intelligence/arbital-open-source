@@ -20,6 +20,8 @@ const (
 	ReqsTaughtModeRowType    = "reqsTaught"
 	DraftModeRowType         = "draft"
 	TaggedforEditModeRowType = "taggedForEdit"
+
+	requestForEditTagParentPageId = "3zj"
 )
 
 type modeRowData struct {
@@ -444,7 +446,10 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 	}).Add(core.TitlePlusLoadOptions)
 
 	// Tags that mean a page should be edited
-	tagsForEdit := []string{"3rk", "15s", "3wq", "3x5", "4v", "72"}
+	tagsForEdit, err := core.LoadMetaTags(db, requestForEditTagParentPageId)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load meta tags: %v", err)
+	}
 
 	rows := database.NewQuery(`
 		SELECT pi.alias,p.createdAt
@@ -459,7 +464,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		GROUP BY pi.alias
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, createdAt string
 		err := rows.Scan(&pageId, &createdAt)
 		if err != nil {
