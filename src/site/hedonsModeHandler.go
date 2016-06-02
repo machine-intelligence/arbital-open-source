@@ -1,4 +1,4 @@
-// Handles queries for hedons updates (like 'Alexei liked your page').
+// hedonsModeHandler.go serves the /achievements panel (which displays hedons updates, such as, 'Alexei liked your page').
 package site
 
 import (

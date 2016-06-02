@@ -35,7 +35,7 @@ func updatesJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// go through all the update rows and group them.
 	returnData.ResultMap["updateGroups"] = core.ConvertUpdateRowsToGroups(updateRows, returnData.PageMap)
 
-	// Zero out all counts.
+	// Mark updates as seen.
 	statement := db.NewStatement(`
 		UPDATE updates
 		SET seen=TRUE

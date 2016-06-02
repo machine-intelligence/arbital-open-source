@@ -1,4 +1,4 @@
-// Handles queries for maintenance updates (like 'Alexei edited your page').
+// maintenanceModeHandler.go serves the /maintain panel (which displays maintenance updates, such as, 'Alexei edited your page').
 package site
 
 import (
@@ -61,7 +61,7 @@ func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		updateIds = append(updateIds, row.(*maintenanceUpdateRow).Update.Id)
 	}
 
-	// Zero out all counts.
+	// Mark updates as seen.
 	statement := database.NewQuery(`
 		UPDATE updates
 		SET seen=TRUE
