@@ -151,6 +151,12 @@
 								</md-button>
 								<md-menu-content>
 									<md-menu-item>
+										<md-button class="wmd-note-button{{::page.pageId}}">
+											<md-icon>help_outline</md-icon>
+											%note: text%
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
 										<md-button class="wmd-summary-button{{::page.pageId}}">
 											<md-icon>note</md-icon>
 											[summary: text]
@@ -172,6 +178,12 @@
 										<md-button class="wmd-hidden-text-button{{::page.pageId}}">
 											<md-icon>flip_to_back</md-icon>
 											%hidden: text%
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-table-of-contents-button{{::page.pageId}}">
+											<md-icon>view_headline</md-icon>
+											[toc:]
 										</md-button>
 									</md-menu-item>
 								</md-menu-content>

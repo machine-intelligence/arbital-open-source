@@ -34,7 +34,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Whether the editor should be in advanced mode.
 			$scope.showAdvancedMode = function() {
 				return arb.userService.user.isDomainMember || arb.userService.user.showAdvancedEditorMode;
-			}
+			};
 
 			// Called when the advanced mode view is toggled
 			$scope.advancedModeToggled = function() {
@@ -83,7 +83,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Called when user selects a page from insert link input
 			$scope.insertLinkSelect = function(result) {
-				console.log("INSERT");
+				console.log('INSERT');
 				if (!$scope.insertLinkCallback) return;
 				var result = result;
 				$scope.showInsertLink = false;

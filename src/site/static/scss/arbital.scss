@@ -587,19 +587,18 @@ md-toast {
 }
 
 // Intrasite popover
-arb-intrasite-popover {
-	position: absolute;
-	z-index: $popoverZ;
-}
-
-// User popover
-arb-user-popover {
+arb-intrasite-popover, arb-user-popover, arb-text-popover {
 	position: absolute;
 	z-index: $popoverZ;
 }
 
 .popover-tab-body {
 	max-height: 32vh;
+
+	&.toolbarless-version {
+		padding: 10px;
+		overflow-y: auto;
+	}
 }
 
 .popover-body {
@@ -618,6 +617,10 @@ $triangle-size: 15px;
 		border-left: $triangle-size solid transparent;
 		border-right: $triangle-size solid transparent;
 		border-bottom: $triangle-size solid $primary-color;
+
+		&.toolbarless-version {
+			border-bottom: $triangle-size solid whitesmoke;
+		}
 	}
 }
 
@@ -632,6 +635,10 @@ $triangle-size: 15px;
 		border-left: $triangle-size solid transparent;
 		border-right: $triangle-size solid transparent;
 		border-top: $triangle-size solid whitesmoke;
+
+		&.toolbarless-version {
+			border-top: $triangle-size solid whitesmoke;
+		}
 	}
 }
 
@@ -1018,4 +1025,15 @@ arb-log-row, [arb-log-row] {
 
 .hidden-text {
 	border: gray 1px dashed;
+}
+
+.markdown-note {
+	display: inline-block;
+	position: relative;
+	top: -5px;
+	background-color: $primary-hue-1;
+	color: $primary-color;
+	min-width: 20px;
+	text-align: center;
+	border-radius: 15px;
 }

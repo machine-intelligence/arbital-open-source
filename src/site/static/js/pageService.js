@@ -472,7 +472,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		// Only change the URL if we are on the actual lens page, since there are
 		// ways to create new comments from other locations (e.g. discussion mode)
 		if (stateService.primaryPage && stateService.primaryPage.pageId == comment.getCommentParentPage().pageId) {
-			urlService.goToUrl(urlService.getPageUrl(commentId))
+			urlService.goToUrl(urlService.getPageUrl(commentId));
 		}
 	};
 

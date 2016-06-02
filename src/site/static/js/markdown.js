@@ -23,27 +23,29 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 			// Note: converter takes pageId, which might not be set if we are displaying
 			// a mark, but it should be ok, since the mark doesn't have most markdown features.
 			var converter = arb.markdownService.createConverter(scope.pageId);
+			var text = '';
 			if (scope.page) {
-				var html = scope.page.text;
-				if (scope.page.anchorText) {
-					html = '>' + scope.page.anchorText + '\n\n' + html;
-				}
-			} else if (scope.mark) {
-				var html = scope.mark.anchorContext;
-			}
-			if (scope.summaryName) {
-				html = scope.page.summaries[scope.summaryName];
-				html = html || scope.page.summaries['Summary']; // jscs:ignore requireDotNotation
-				if (!html) {
-					// Take the first one.
-					for (var key in scope.page.summaries) {
-						html = scope.page.summaries[key];
-						break;
+				if (scope.summaryName) {
+					text = scope.page.summaries[scope.summaryName];
+					text = text || scope.page.summaries['Summary']; // jscs:ignore requireDotNotation
+					if (!text) {
+						// Take the first one.
+						for (var key in scope.page.summaries) {
+							text = scope.page.summaries[key];
+							break;
+						}
+					}
+				} else {
+					text = scope.page.text;
+					if (scope.page.anchorText) {
+						text = '>' + scope.page.anchorText + '\n\n' + text;
 					}
 				}
+			} else if (scope.mark) {
+				text = scope.mark.anchorContext;
 			}
 
-			var html = converter.makeHtml(html);
+			var html = converter.makeHtml(text);
 			var $pageText = element;
 			$pageText.html(html);
 			$timeout(function() {
