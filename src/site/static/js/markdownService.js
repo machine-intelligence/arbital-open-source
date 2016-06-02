@@ -52,13 +52,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
-		// Process $$$mathjax$$$ blocks.
+		// Process $$mathjax$$ blocks.
 		if (isEditor) {
-			var mathjaxBlockRegexp = new RegExp('^(~D~D~D[\\s\\S]+?~D~D~D) *(?=\Z|\n)', 'gm');
+			var mathjaxBlockRegexp = new RegExp('^(~D~D[\\s\\S]+?~D~D) *(?=\Z|\n)', 'gm');
 			converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
 				return text.replace(mathjaxBlockRegexp, function(whole, mathjaxText) {
 					var encodedText = encodeURIComponent(mathjaxText);
-					var key = '$$$' + encodedText.substring(6, encodedText.length - 6) + '$$$';
+					var key = '$$' + encodedText.substring(6, encodedText.length - 6) + '$$';
 					var cachedValue = stateService.getMathjaxCacheValue(key);
 					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
 					return '<div ' + style + 'class=\'MathJax_Display\' arb-math-compiler=\'' + encodedText + '\'></div>';
@@ -221,13 +221,13 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process $$mathjax$$ spans.
+		// Process $mathjax$ spans.
 		if (isEditor) {
-			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D~D[\\s\\S]+?~D~D)', 'g');
+			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]+?~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
 					var encodedText = encodeURIComponent(mathjaxText);
-					var key = '$$' + encodedText.substring(4, encodedText.length - 4) + '$$';
+					var key = '$' + encodedText.substring(4, encodedText.length - 4) + '$';
 					var cachedValue = stateService.getMathjaxCacheValue(key);
 					var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
 					return prefix + '<span ' + style + 'arb-math-compiler=\'' + encodeURIComponent(mathjaxText) + '\'></span>';

@@ -5,8 +5,8 @@ var InitMathjax = (function() {
 	var ready   = false;  // true after initial typeset is complete
 	var pending = false;  // true when MathJax has been requested
 	var preview = null;   // the preview container
-	var inlineDelim = '$$';  // the inline math delimiter
-	var blockDelim = '$$$';  // the block math delimeter
+	var inlineDelim = '$';  // the inline math delimiter
+	var blockDelim = '$$';  // the block math delimeter
 
 	var blocks, start, end, last, braces; // used in searching for math
 	var math;                             // stores math until markdone is done
