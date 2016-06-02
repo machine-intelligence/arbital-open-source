@@ -51,6 +51,7 @@ func processTask(c sessions.Context) error {
 		tasks.SendOneEmailTask{},
 		tasks.TickTask{},
 		tasks.UpdateElasticPageTask{},
+		tasks.UpdateFeaturedPagesTask{},
 		tasks.UpdateMetadataTask{},
 	}
 	taskPrototypeMap := make(map[string]tasks.QueueTask)
@@ -122,6 +123,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	err = tasks.Enqueue(c, &checkMarksTask, &tasks.TaskOptions{Name: checkMarksTask.Tag()})
 	if err != nil {
 		c.Debugf("CheckAnsweredMarksTask enqueue error: %v", err)
+	}
+	var updateFeaturedPagesTask tasks.UpdateFeaturedPagesTask
+	err = tasks.Enqueue(c, &updateFeaturedPagesTask, &tasks.TaskOptions{Name: updateFeaturedPagesTask.Tag()})
+	if err != nil {
+		c.Debugf("UpdateFeaturedPagesTask enqueue error: %v", err)
 	}
 
 	for true {

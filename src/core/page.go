@@ -1765,6 +1765,23 @@ func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, opt
 	return err
 }
 
+// Given a parent page that collects meta tags, load all its children.
+func LoadMetaTags(db *database.DB, parentId string) ([]string, error) {
+	pageMap := make(map[string]*Page)
+	page := AddPageIdToMap(parentId, pageMap)
+	options := &LoadChildIdsOptions{
+		ForPages:     pageMap,
+		Type:         WikiPageType,
+		PagePairType: ParentPagePairType,
+		LoadOptions:  EmptyLoadOptions,
+	}
+	err := LoadChildIds(db, pageMap, nil, options)
+	if err != nil {
+		return nil, err
+	}
+	return page.TaggedAsIds, nil
+}
+
 // LoadSubpageCounts loads the number of various types of children the pages have
 func LoadSubpageCounts(db *database.DB, u *CurrentUser, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {

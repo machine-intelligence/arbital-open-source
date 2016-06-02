@@ -207,11 +207,14 @@ span.md-warn {
 	}
 }
 
-md-list-item, md-list-item.md-no-proxy, md-list-item.ng-scope, md-list-item.md-no-proxy.ng-scope {
-	min-height: 0;
-	margin-top: 10px;
-	margin-bottom: 10px;
-	padding: 5px 16px 10px 16px;
+md-list-item {
+	min-height: 0 !important;
+	margin-bottom: 10px !important;
+	padding: 5px 16px 10px 16px !important;
+}
+
+md-list-item + md-list-item {
+	margin-top: 10px !important;
 }
 
 .md-toolbar-tools {
