@@ -424,6 +424,7 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 	return modeRows, nil
 }
 
+// Load pages that are tagged to be edited, such as with "Stub" or "Work in progress"
 func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 	pageLoadOptions := (&core.PageLoadOptions{
@@ -440,7 +441,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		FROM pagePairs AS pp
 		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		ON pi.pageId=pp.childId
-		JOIN pages as p
+		JOIN pages AS p
 		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
 		WHERE pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
