@@ -23,6 +23,16 @@ app.directive('arbMaintenanceModePanel', function($http, arb) {
 					$scope.modeRows = data.result.modeRows;
 					$scope.lastView = data.result.lastView;
 				});
+
+			$scope.dismissRow = function(allRows, index) {
+				var update = allRows[index].update;
+				$http({method: 'POST', url: '/dismissUpdate/', data: JSON.stringify({
+					id: update.id
+				})});
+
+				// Remove this update from the list
+				allRows.splice(index, 1);
+			};
 		},
 	};
 });
@@ -33,6 +43,7 @@ app.directive('arbMaintenanceUpdateRow', function(arb) {
 		templateUrl: 'static/html/maintenanceUpdateRow.html',
 		scope: {
 			modeRow: '=',
+			onDismiss: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -47,8 +58,6 @@ app.directive('arbMaintenanceUpdateRow', function(arb) {
 			$scope.createdAt = $scope.modeRow.update.createdAt;
 			$scope.repeated = $scope.modeRow.update.repeated;
 			$scope.showDismissIcon = true;
-			// ROGTODO: handle dismiss
-			// $scope.onDismiss = dismissUpdate(update, group.updates, index)
 		},
 	};
 });
