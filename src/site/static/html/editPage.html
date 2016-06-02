@@ -619,15 +619,15 @@
 				<div ng-if="publishing">
 					Publishing...
 				</div>
-				<div ng-if="selectedTab == 2">All relationship changes are published instantly</div>
+				<div ng-if="selectedTab == 2 && page.wasPublished">All relationship changes are published instantly</div>
 			</div>
 
 			<arb-confirm-button button-text="Discard"
 					confirmed="discardPage()"
 					disabled="publishing || snapshotting"
 					tooltip-text="Discard the autosave"
-					ng-if="selectedTab != 2 && isPageDirty && !freezeEdit"></arb-confirm-button>
-			<div ng-if="!fullView && !inPreview && (selectedTab != 2) && !freezeEdit">
+					ng-if="isPublishButtonVisible() && isPageDirty"></arb-confirm-button>
+			<div ng-if="isPublishButtonVisible() && !fullView && !inPreview">
 				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="togglePreview(true)"
 						ng-disabled="publishing || snapshotting">
@@ -635,7 +635,7 @@
 					Preview
 				</md-button>
 			</div>
-			<div ng-if="selectedTab != 2 && !freezeEdit">
+			<div ng-if="isPublishButtonVisible()">
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
 						ng-disabled="publishing || snapshotting">
