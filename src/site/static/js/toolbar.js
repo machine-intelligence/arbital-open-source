@@ -67,6 +67,30 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 				};
 				$mdPanel.open(config);
 			};
+
+			$scope.showMaintenanceUpdates = function(ev) {
+				console.log('in showMaintenanceUpdates');
+				if (!$mdMedia('gt-sm')) {
+					arb.urlService.goToUrl('/maintain/');
+					return;
+				}
+
+				var position = $mdPanel.newPanelPosition()
+					.relativeTo('.maintenance-updates-icon')
+					.addPanelPosition($mdPanel.xPosition.ALIGN_END, $mdPanel.yPosition.BELOW);
+				var config = {
+					template: '<arb-maintenance-mode-panel hide-title="true" num-to-display="100">' +
+						'</arb-maintenance-mode-panel>',
+					position: position,
+					panelClass: 'popover-panel',
+					openFrom: ev,
+					clickOutsideToClose: true,
+					escapeToClose: true,
+					focusOnOpen: false,
+					zIndex: 200000
+				};
+				$mdPanel.open(config);
+			};
 		},
 	};
 });
