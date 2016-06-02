@@ -503,14 +503,14 @@ func loadMaintenanceUpdateRows(db *database.DB, u *core.CurrentUser, returnData 
 	for _, ur := range updateRows {
 		mr := &maintenanceUpdateRow{
 			modeRowData: modeRowData{RowType: MaintenanceUpdateRowType, ActivityDate: ur.CreatedAt},
-			Update:      getUpdateEntryFromUpdateRow(ur),
+			Update:      getUpdateEntryFromUpdateRow(ur, returnData.PageMap),
 		}
 		modeRows = append(modeRows, mr)
 	}
 	return modeRows, nil
 }
 
-func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
+func getUpdateEntryFromUpdateRow(row *core.UpdateRow, pageMap map[string]*core.Page) *core.UpdateEntry {
 	entry := &core.UpdateEntry{
 		Id:              row.Id,
 		UserId:          row.UserId,
@@ -522,10 +522,8 @@ func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
 		IsGoToPageAlive: row.IsGoToPageAlive,
 		MarkId:          row.MarkId,
 		CreatedAt:       row.CreatedAt,
-		// ROGTODO: fix IsVisited
-		// IsVisited:       pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
-		IsVisited: false,
-		ChangeLog: row.ChangeLog,
+		IsVisited:       pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
+		ChangeLog:       row.ChangeLog,
 	}
 	if entry.MarkId != "" {
 		entry.ByUserId = ""

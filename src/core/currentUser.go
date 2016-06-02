@@ -64,6 +64,7 @@ type CurrentUser struct {
 	// Computed variables
 	// Set to true if the user is a member of at least one domain
 	IsDomainMember         bool              `json:"isDomainMember"`
+	IsMaintainer           bool              `json:"isMaintainer"`
 	UpdateCount            int               `json:"updateCount"`
 	NewAchievementCount    int               `json:"newAchievementCount"`
 	MaintenanceUpdateCount int               `json:"maintenanceUpdateCount"`
@@ -305,15 +306,23 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	return newLikeCount + newTaughtCount + newChangeLogLikeCount, nil
 }
 
-func LoadMaintenanceUpdateCount(db *database.DB, userId string) (int, error) {
+func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeAll bool) (int, error) {
 	maintenanceUpdateTypes := GetMaintenanceUpdateTypes()
+
+	var filterCondition string
+	if includeAll {
+		filterCondition = "true"
+	} else {
+		filterCondition = "NOT seen AND NOT dismissed"
+	}
 
 	var maintenanceUpdateCount int
 	row := database.NewQuery(`
-		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
+		SELECT COUNT(*)
 		FROM updates
-		WHERE NOT seen AND userId=?`, userId).Add(`
-			AND type IN`).AddArgsGroupStr(maintenanceUpdateTypes).ToStatement(db).QueryRow()
+		WHERE userId=?`, userId).Add(`
+			AND type IN`).AddArgsGroupStr(maintenanceUpdateTypes).Add(`
+			AND`).Add(filterCondition).ToStatement(db).QueryRow()
 	_, err := row.Scan(&maintenanceUpdateCount)
 	if err != nil {
 		return -1, err
@@ -352,6 +361,13 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 			trust.Permissions.DomainAccess.Has = true
 			u.IsDomainMember = true
 		}
+
+		// load whether the user has any as-maintainer subscriptions
+		isMaintainer, err := LoadIsMaintainer(db, u)
+		if err != nil {
+			return fmt.Errorf("Couldn't process maintenance subscriptions: %v", err)
+		}
+		u.IsMaintainer = isMaintainer
 	}
 
 	// Now compute permissions
@@ -396,6 +412,15 @@ func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite
 		return nil, fmt.Errorf("Error while loading invites WHERE %v: %v", wherePart, err)
 	}
 	return invites, nil
+}
+
+func LoadIsMaintainer(db *database.DB, u *CurrentUser) (bool, error) {
+	lifetimeMaintenanceUpdateCount, err := LoadMaintenanceUpdateCount(db, u.Id, true)
+	if err != nil {
+		return false, fmt.Errorf("Error while retrieving maintenance update count: %v", err)
+	}
+
+	return lifetimeMaintenanceUpdateCount > 0, nil
 }
 
 func init() {
