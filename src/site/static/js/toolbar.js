@@ -69,7 +69,6 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			};
 
 			$scope.showMaintenanceUpdates = function(ev) {
-				console.log('in showMaintenanceUpdates');
 				if (!$mdMedia('gt-sm')) {
 					arb.urlService.goToUrl('/maintain/');
 					return;

@@ -362,10 +362,10 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 			u.IsDomainMember = true
 		}
 
-		// load whether the user has any as-maintainer subscriptions
+		// load whether the user has ever had any maintenance updates
 		isMaintainer, err := LoadIsMaintainer(db, u)
 		if err != nil {
-			return fmt.Errorf("Couldn't process maintenance subscriptions: %v", err)
+			return fmt.Errorf("Couldn't process maintenance updates: %v", err)
 		}
 		u.IsMaintainer = isMaintainer
 	}
