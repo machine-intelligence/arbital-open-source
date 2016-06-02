@@ -1254,6 +1254,12 @@
 			buttons.hiddenText = makeButton('wmd-hidden-text-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
 				return this.doWrap(chunk, postProcessing, 'hiddenText');
 			}));
+			buttons. = makeButton('wmd-hidden-text-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'hiddenText');
+			}));
+			buttons.tableOfContents = makeButton('wmd-table-of-contents-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'tableOfContents');
+			}));
 			buttons.olist = makeButton('wmd-olist-button', getString('olist'), '-140px', bindCommand(function(chunk, postProcessing) {
 				this.doList(chunk, postProcessing, true);
 			}));
@@ -1566,6 +1572,8 @@
 				linkEnteredCallback('[summary: ', 'summary text *with* markdown', ']\n\n');
 			} else if (wrapType == 'hiddenText') {
 				linkEnteredCallback('%%hidden(Show solution):\n', 'Solution *markdown* text', '\n%%\n\n');
+			} else if (wrapType == 'tableOfContents') {
+				linkEnteredCallback('[toc:', '', ']\n\n');
 			} else if (wrapType == 'multipleChoice') {
 				var suffix = [
 					'a: Answer 1 ("knows" will set the requisites when the user picks that answer)',
