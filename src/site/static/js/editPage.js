@@ -45,9 +45,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				}
 			};
 
+			$scope.getRelationshipTabIndex = function() {
+				return $scope.showAdvancedMode() ? 2 : -1;
+			};
+
 			// Return true if we should show the publish button.
 			$scope.isPublishButtonVisible = function() {
-				return ($scope.selectedTab != 2 || !$scope.page.wasPublished) && !$scope.freezeEdit;
+				return ($scope.selectedTab != $scope.getRelationshipTabIndex() || !$scope.page.wasPublished) && !$scope.freezeEdit;
 			};
 
 			// If the alias contains a subdomain, then remove it

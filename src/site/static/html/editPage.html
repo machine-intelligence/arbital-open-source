@@ -619,7 +619,9 @@
 				<div ng-if="publishing">
 					Publishing...
 				</div>
-				<div ng-if="selectedTab == 2 && page.wasPublished">All relationship changes are published instantly</div>
+				<div ng-if="selectedTab == getRelationshipTabIndex() && page.wasPublished">
+					All relationship changes are published instantly
+				</div>
 			</div>
 
 			<arb-confirm-button button-text="Discard"
