@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
+	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -55,5 +56,19 @@ func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Pipeline error", err)
 	}
 
+	updateIds := make([]string, 0)
+	for _, row := range rows {
+		updateIds = append(updateIds, row.(*maintenanceUpdateRow).Update.Id)
+	}
+
+	// Zero out all counts.
+	statement := database.NewQuery(`
+		UPDATE updates
+		SET seen=TRUE
+		WHERE userId=?`, u.Id).Add(`
+			AND id IN`).AddArgsGroupStr(updateIds).ToStatement(db)
+	if _, err = statement.Exec(); err != nil {
+		return pages.Fail("Couldn't mark updates seen", err)
+	}
 	return pages.Success(returnData)
 }

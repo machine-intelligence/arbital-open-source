@@ -27,8 +27,7 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 
 	// Check if the user is a maintainer for any pages.
 	this.userIsMaintainer = function() {
-		// ROGTODO: do something real here
-		return true;
+		return this.user && this.user.isMaintainer;
 	}
 
 	// Return a user's full name.
