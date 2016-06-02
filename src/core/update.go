@@ -364,3 +364,13 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 
 	return resultData, nil
 }
+
+func GetMaintenanceUpdateTypes() []string {
+	return []string{
+		PageEditUpdateType,
+		NewLensUpdateType,
+		ChangeLogUpdateType,
+		QuestionMergedUpdateType,
+		QuestionMergedReverseUpdateType,
+	}
+}
