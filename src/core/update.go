@@ -104,10 +104,19 @@ type UpdateData struct {
 
 // LoadUpdateRows loads all the updates for the given user, populating the
 // given maps.
-func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, forEmail bool) ([]*UpdateRow, error) {
+func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerData, forEmail bool, updateTypes []string, limit int) ([]*UpdateRow, error) {
 	emailFilter := database.NewQuery("")
 	if forEmail {
 		emailFilter = database.NewQuery("AND NOT updates.seen AND NOT updates.emailed")
+	}
+
+	updateTypeFilter := database.NewQuery("")
+	if len(updateTypes) > 0 {
+		updateTypeFilter = database.NewQuery("AND updates.type IN").AddArgsGroupStr(updateTypes)
+	}
+
+	if limit <= 0 {
+		limit = 100
 	}
 
 	// Create group loading options
@@ -141,11 +150,11 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		FROM updates
 		LEFT JOIN changeLogs
 		ON (updates.changeLogId = changeLogs.id)
-		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).Add(`
+		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`
 			AND NOT updates.dismissed
 		GROUP BY updates.id
 		ORDER BY updates.createdAt DESC
-		LIMIT 100`).ToStatement(db).Query()
+		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
 		var changeLog ChangeLog
@@ -289,7 +298,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	handlerData := NewHandlerData(u)
 
 	// Load updates and populate the maps
-	resultData.UpdateRows, err = LoadUpdateRows(db, u, handlerData, true)
+	resultData.UpdateRows, err = LoadUpdateRows(db, u, handlerData, true, make([]string, 0), -1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
 	}
