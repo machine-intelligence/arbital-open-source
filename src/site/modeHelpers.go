@@ -440,7 +440,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		SELECT pi.alias,p.createdAt
 		FROM pagePairs AS pp
 		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
-		ON pi.pageId=pp.childId
+		ON (pi.pageId=pp.childId)
 		JOIN pages AS p
 		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
 		WHERE pp.type=?`, core.TagPagePairType).Add(`

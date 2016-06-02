@@ -602,7 +602,7 @@ app.directive('arbTag', function(arb) {
 			tagId: '@',
 		},
 		controller: function($scope) {
-			$scope.tagName = arb.stateService.getPageFromSomeMap($scope.tagId).title;
+			$scope.tagName = arb.stateService.getPage($scope.tagId);
 		},
 	};
 });

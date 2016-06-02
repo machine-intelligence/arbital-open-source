@@ -507,10 +507,10 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     margin: 0px; }
 
 .chip {
-  background: darkgrey;
+  background: #555555;
   border-radius: 5px;
   color: white;
-  padding: 2px; }
+  padding: 2px 6px; }
 
 .discussion-container {
   margin: 20px 0; }
