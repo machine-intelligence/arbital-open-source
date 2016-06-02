@@ -46,17 +46,34 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			$scope.hide = $location.path().indexOf('/edit') === 0;
 
 			$scope.showAchievements = function(ev) {
+				showPanel(
+					ev,
+					'/achievements/',
+					'.achievements-icon',
+					'<arb-hedons-mode-panel hide-title="true" num-to-display="100"></arb-hedons-mode-panel>'
+				);
+			};
+
+			$scope.showMaintenanceUpdates = function(ev) {
+				showPanel(
+					ev,
+					'/maintain/',
+					'.maintenance-updates-icon',
+					'<arb-maintenance-mode-panel hide-title="true" num-to-display="100"></arb-maintenance-mode-panel>'
+				);
+			};
+
+			var showPanel = function(ev, fullPageUrl, relPosElement, panelTemplate) {
 				if (!$mdMedia('gt-sm')) {
-					arb.urlService.goToUrl('/achievements/');
+					arb.urlService.goToUrl(fullPageUrl);
 					return;
 				}
 
 				var position = $mdPanel.newPanelPosition()
-					.relativeTo('.achievements-icon')
+					.relativeTo(relPosElement)
 					.addPanelPosition($mdPanel.xPosition.ALIGN_END, $mdPanel.yPosition.BELOW);
 				var config = {
-					template: '<arb-hedons-mode-panel hide-title="true" num-to-display="100">' +
-						'</arb-hedons-mode-panel>',
+					template: panelTemplate,
 					position: position,
 					panelClass: 'popover-panel',
 					openFrom: ev,
@@ -66,30 +83,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					zIndex: 200000,
 				};
 				$mdPanel.open(config);
-			};
-
-			$scope.showMaintenanceUpdates = function(ev) {
-				if (!$mdMedia('gt-sm')) {
-					arb.urlService.goToUrl('/maintain/');
-					return;
-				}
-
-				var position = $mdPanel.newPanelPosition()
-					.relativeTo('.maintenance-updates-icon')
-					.addPanelPosition($mdPanel.xPosition.ALIGN_END, $mdPanel.yPosition.BELOW);
-				var config = {
-					template: '<arb-maintenance-mode-panel hide-title="true" num-to-display="100">' +
-						'</arb-maintenance-mode-panel>',
-					position: position,
-					panelClass: 'popover-panel',
-					openFrom: ev,
-					clickOutsideToClose: true,
-					escapeToClose: true,
-					focusOnOpen: false,
-					zIndex: 200000
-				};
-				$mdPanel.open(config);
-			};
+			}
 		},
 	};
 });
