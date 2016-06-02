@@ -328,7 +328,8 @@ func loadReqsTaughtModeRows(db *database.DB, returnData *core.CommonHandlerData,
 	return modeRows, nil
 }
 
-func loadHotPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+// Internal to this file
+func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int, pageInfoField string) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 	pageLoadOptions := (&core.PageLoadOptions{
 		SubpageCounts: true,
@@ -348,12 +349,13 @@ func loadHotPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, l
 		AND pi.type=?`, core.DomainPageType)
 
 	rows := database.NewQuery(`
-		SELECT DISTINCT pi.pageId, pi.createdAt
+		SELECT DISTINCT pi.pageId, pi.`+pageInfoField+`
 		FROM`).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
 		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
+			AND pi.`+pageInfoField+`!=0
 			AND (pdp.domainId=?`, mathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
-		ORDER BY pi.createdAt DESC
+		ORDER BY pi.`+pageInfoField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId, activityDate string
@@ -374,6 +376,14 @@ func loadHotPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, l
 		return nil, err
 	}
 	return modeRows, nil
+}
+
+func loadFeaturedPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadReadPagesModeRows(db, returnData, limit, "featuredAt")
+}
+
+func loadNewPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadReadPagesModeRows(db, returnData, limit, "createdAt")
 }
 
 func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {

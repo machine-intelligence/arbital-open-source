@@ -1,17 +1,30 @@
-<!-- If the user is not logged in, show the full list of new stuff -->
-<div arb-read-mode-page ng-if="arb.userService.user.id == ''"></div>
+<div layout="column" layout-gt-md="row">
 
-<!-- If the user is logged in, show various panels -->
-<md-content layout="column"
-		layout-gt-sm="row"
-		class="md-padding"
-		ng-if="arb.userService.user.id !== ''">
-	<div flex>
-		<div arb-read-mode-panel></div>
+	<!-- Left half -->
+	<div class="index-page-half" flex>
+		<div class="tab-panel-header" layout="row" layout-align="start end">
+			<div class="tab-panel-title">Read</div>
+			<div flex></div>
+			<md-button href="#"
+					class="tab-panel-tab"
+					ng-class="{'md-raised md-primary': readTab==0}"
+					ng-click="selectReadTab(0)">
+				Featured
+			</md-button>
+			<md-button href="#"
+					class="tab-panel-tab"
+					ng-class="{'md-raised md-primary': readTab==1}"
+					ng-click="selectReadTab(1)">
+				New
+			</md-button>
+		</div>
+		<div arb-read-mode-panel hide-title="::true" type="featured" ng-if="readTab==0"></div>
+		<div arb-read-mode-panel hide-title="::true" type="new" ng-if="readTab==1"></div>
 	</div>
-	<div flex>
+
+	<!-- Right half -->
+	<div class="index-page-half" flex ng-if="arb.userService.userIsLoggedIn()">
 		<div arb-discussion-mode-panel num-to-display="5"></div>
 		<div arb-continue-writing-mode-panel num-to-display="5"></div>
 	</div>
-</md-content>
-
+</div>

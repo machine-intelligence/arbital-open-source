@@ -37,6 +37,9 @@ CREATE TABLE pageInfos (
 	/* If set, this page has been merged into the mergedInto page id. FK into pageInfos. */
 	mergedInto VARCHAR(32) NOT NULL,
 
+	/* When this page has been added to the Featured section */
+	featuredAt DATETIME NOT NULL,
+
 	/* === Permission settings === */
 	/* see: who can see the page */
 	/* act: who can perform actions on the page (e.g. vote, comment) */

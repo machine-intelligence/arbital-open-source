@@ -19,13 +19,15 @@ app.directive('arbReadModePanel', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
+			hideTitle: '=',
+			type: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.title = 'New';
-			$scope.moreLink = '/read';
 
 			arb.stateService.postData('/json/readMode/', {
+					type: $scope.type,
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {

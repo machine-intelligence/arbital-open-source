@@ -6,6 +6,12 @@ app.directive('arbIndex', function($http, arb) {
 		templateUrl: 'static/html/indexPage.html',
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.readTab = 0;
+			$scope.writeTab = 0;
+
+			$scope.selectReadTab = function(tab) {
+				$scope.readTab = tab;
+			};
 		},
 	};
 });
