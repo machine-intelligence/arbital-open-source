@@ -13,35 +13,34 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	};
 	refreshAutoupdates();
 
-
 	// Don't allow the body to scroll when scrolling a popover tab body
 	// http://stackoverflow.com/questions/5802467/prevent-scrolling-of-parent-element
 	if (!arb.isTouchDevice) {
 		$(document).on('DOMMouseScroll mousewheel', '.prevent-scroll-leak', function(ev) {
-			var $this = $(this),
-				scrollTop = this.scrollTop,
-				scrollHeight = this.scrollHeight,
-				height = $this.innerHeight(),
-				delta = (ev.type == 'DOMMouseScroll' ?	ev.originalEvent.detail * -40 : ev.originalEvent.wheelDelta),
-				up = delta > 0;
+			var $this = $(this);
+			var scrollTop = this.scrollTop;
+			var scrollHeight = this.scrollHeight;
+			var height = $this.innerHeight();
+			var delta = (ev.type == 'DOMMouseScroll' ?	ev.originalEvent.detail * -40 : ev.originalEvent.wheelDelta);
+			var up = delta > 0;
 			// Don't prevent body scrolling if there is no scroll bar
-			if (scrollHeight <= this.clientHeight) return true;	
-	
+			if (scrollHeight <= this.clientHeight) return true;
+
 			var prevent = function() {
 				ev.stopPropagation();
 				ev.preventDefault();
 				ev.returnValue = false;
 				return false;
-			}
-	
+			};
+
 			if (!up && -delta > scrollHeight - height - scrollTop) {
-				 // Scrolling down, but this will take us past the bottom.
-				 $this.scrollTop(scrollHeight);
-				 return prevent();
+				// Scrolling down, but this will take us past the bottom.
+				$this.scrollTop(scrollHeight);
+				return prevent();
 			} else if (up && delta > scrollTop) {
-				 // Scrolling up, but this will take us past the top.
-				 $this.scrollTop(0);
-				 return prevent();
+				// Scrolling up, but this will take us past the top.
+				$this.scrollTop(0);
+				return prevent();
 			}
 		});
 	}
@@ -230,5 +229,4 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 	// Resolve URL of initial page load
 	resolveUrl();
 });
-
 

@@ -56,10 +56,10 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 
 			// Called when the user is done editing the subpage
 			$scope.editDone = function(result) {
-				$scope.editing = false;
 				if (!result.discard) {
 					arb.pageService.newCommentCreated(result.pageId);
 				}
+				$scope.editing = false;
 			};
 
 			// Called when the user wants to delete the subpage

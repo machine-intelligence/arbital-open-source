@@ -413,6 +413,9 @@ body {
   top: 20px;
   color: #cccccc; }
 
+.like-button {
+  min-width: 0 !important; }
+
 arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0; }
   arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
@@ -755,16 +758,15 @@ md-toast md-icon {
   font-size: 18px;
   line-height: 24px; }
 
-arb-intrasite-popover {
-  position: absolute;
-  z-index: 60; }
-
-arb-user-popover {
+arb-intrasite-popover, arb-user-popover, arb-text-popover {
   position: absolute;
   z-index: 60; }
 
 .popover-tab-body {
   max-height: 32vh; }
+  .popover-tab-body.toolbarless-version {
+    padding: 10px;
+    overflow-y: auto; }
 
 .popover-body {
   background-color: whitesmoke; }
@@ -779,6 +781,8 @@ arb-user-popover {
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
     border-bottom: 15px solid #009688; }
+    .top-triangle-track .triangle-up.toolbarless-version {
+      border-bottom: 15px solid whitesmoke; }
 
 .bottom-triangle-track {
   position: relative;
@@ -790,6 +794,8 @@ arb-user-popover {
     border-left: 15px solid transparent;
     border-right: 15px solid transparent;
     border-top: 15px solid whitesmoke; }
+    .bottom-triangle-track .triangle-down.toolbarless-version {
+      border-top: 15px solid whitesmoke; }
 
 .page-title-icon {
   font-size: 43px;
@@ -1052,5 +1058,15 @@ arb-log-row, [arb-log-row] {
 
 .hidden-text {
   border: gray 1px dashed; }
+
+.markdown-note {
+  display: inline-block;
+  position: relative;
+  top: -5px;
+  background-color: #E0F2F1;
+  color: #009688;
+  min-width: 20px;
+  text-align: center;
+  border-radius: 15px; }
 
 /*# sourceMappingURL=arbital.css.map */

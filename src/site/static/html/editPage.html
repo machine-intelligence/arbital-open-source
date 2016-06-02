@@ -151,6 +151,12 @@
 								</md-button>
 								<md-menu-content>
 									<md-menu-item>
+										<md-button class="wmd-note-button{{::page.pageId}}">
+											<md-icon>help_outline</md-icon>
+											%note: text%
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
 										<md-button class="wmd-summary-button{{::page.pageId}}">
 											<md-icon>note</md-icon>
 											[summary: text]
@@ -172,6 +178,12 @@
 										<md-button class="wmd-hidden-text-button{{::page.pageId}}">
 											<md-icon>flip_to_back</md-icon>
 											%hidden: text%
+										</md-button>
+									</md-menu-item>
+									<md-menu-item>
+										<md-button class="wmd-table-of-contents-button{{::page.pageId}}">
+											<md-icon>view_headline</md-icon>
+											[toc:]
 										</md-button>
 									</md-menu-item>
 								</md-menu-content>
@@ -247,7 +259,7 @@
 								aria-label="Question text"></textarea>
 						</md-input-container>
 						<div>
-							Note that Arbital 
+							Note that Arbital
 							<arb-page-title page-id="185"
 									is-link="true"
 									custom-page-title="questions"></arb-page-title>
@@ -268,7 +280,7 @@
 						md-stretch-tabs="{{::(gtXSmallScreen ? 'always' : 'never')}}"
 						layout="column"
 						flex>
-		
+
 					<!-- Primary relationships tab -->
 					<md-tab label="Primary">
 						<div class="editor-tab" flex>
@@ -278,28 +290,28 @@
 									type="parent"
 									force-edit-mode="true"
 									readonly="::!(isWiki || isQuestion)"></div>
-		
+
 							<!-- Tags -->
 							<div arb-relationships class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="tag"
 									force-edit-mode="true"
 									readonly="::!(isWiki || isLens || isQuestion)"></div>
-		
+
 							<!-- Requirements -->
 							<div arb-relationships class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="requirement"
 									force-edit-mode="true"
 									readonly="::!(isWiki || isLens || isQuestion)"></div>
-		
+
 							<!-- Teaches -->
 							<div arb-relationships class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="subject"
 									force-edit-mode="true"
 									readonly="::!(isWiki || isLens)"></div>
-		
+
 							<!-- Lens ordering -->
 							<div class="edit-relationship-div" ng-if="::!isLens">
 								<div class="md-subhead">
@@ -312,7 +324,7 @@
 									</div>
 								</div>
 								<div class="md-caption" ng-if="page.lensIds.length <= 0">This page has no lenses.</div>
-		
+
 								<!-- List of lenses -->
 								<div data-as-sortable="::lensSortListeners" data-ng-model="page.lensIds" ng-if="page.lensIds.length > 0">
 									<div data-ng-repeat="lensId in page.lensIds" data-as-sortable-item>
@@ -324,7 +336,7 @@
 									</div>
 								</div>
 							</div>
-		
+
 							<!-- List of strings (for questions) -->
 							<div ng-if="isQuestion">
 								<div class="md-subhead">
@@ -339,11 +351,11 @@
 									<md-button class="md-icon-button" ng-click="deleteSearchString(id)">
 										<md-icon>delete</md-icon>
 									</md-button>
-							
+
 									<!-- Relationship page title -->
 									<span ng-bind="text"></span>
 								</div>
-		
+
 								<!-- Add a new string -->
 								<br>
 								<form layout="row" layout-align="start start" ng-submit="addSearchString()">
@@ -356,7 +368,7 @@
 									</md-button>
 								</div>
 							</form>
-		
+
 							<!-- Info about how many incoming marks there are -->
 							<div ng-if="isQuestion">
 								<div class="md-subhead">
@@ -365,14 +377,14 @@
 											custom-page-title="'Linked marks'"></arb-page-title>
 								</div>
 								<span>
-									{{arb.stateService.pageMap[page.pageId].linkedMarkCount}} 
+									{{arb.stateService.pageMap[page.pageId].linkedMarkCount}}
 									<ng-pluralize count="arb.stateService.pageMap[page.pageId].linkedMarkCount" when="{'0': 'marks are', 'one': 'mark is', 'other': 'marks are'}"></ng-pluralize>
 									linked to this question.
 								</span>
 							</div>
-		
+
 							<br>
-		
+
 							<!-- Answers section -->
 							<div ng-if="isQuestion">
 								<div class="md-subhead">
@@ -382,12 +394,12 @@
 								</div>
 								<arb-answers page-id="{{::page.pageId}}" show-delete="true"></arb-answers>
 							</div>
-		
+
 							<br>
 							<br>
 						</div>
 					</md-tab>
-		
+
 					<!-- Additional more tab -->
 					<md-tab label="Additional" md-on-select="loadMoreRelationships()">
 						<div class="editor-tab" flex ng-if="moreRelationshipIds">
@@ -431,7 +443,7 @@
 									</div>
 								</div>
 							</div>
-	
+
 							<!-- See group id -->
 							<div layout="row" ng-if="::!page.wasPublished">
 								<md-input-container flex>
@@ -444,7 +456,7 @@
 									Group that can see this page. If not set, anyone can see it
 								</div>
 							</div>
-	
+
 							<!-- Edit group id -->
 							<div layout="row">
 								<md-input-container flex>
@@ -457,7 +469,7 @@
 									Group that can edit this page. If not set, anyone can edit it
 								</div>
 							</div>
-	
+
 							<!-- Page type -->
 							<div layout="row">
 								<md-input-container flex>
@@ -475,14 +487,14 @@
 									</span>
 								</div>
 							</div>
-	
+
 							<!-- Show/hide vote -->
 							<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki && arb.userService.user.isAdmin)">
 								<md-switch ng-model="page.hasVote">
 									Show the {{::page.lockedVoteType}} voting bar
 								</md-switch>
 							</div>
-	
+
 							<!-- Vote type -->
 							<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment && arb.userService.user.isAdmin)">
 								<md-input-container flex>
@@ -497,7 +509,7 @@
 									<!-- TODO: helpful notes -->
 								</div>
 							</div>
-	
+
 							<!-- Sort children option -->
 							<div layout="row" layout-align="start center" ng-if="::!isSecondary">
 								<md-input-container flex>
@@ -513,21 +525,21 @@
 									<!-- TODO: helpful notes about specific types -->
 								</div>
 							</div>
-	
+
 							<!-- Is requisite -->
 							<div layout="row" layout-margin ng-if="::isWiki">
 								<md-switch ng-model="page.isRequisite">
 									This page is used as a requisite
 								</md-switch>
 							</div>
-	
+
 							<!-- Indirect teacher -->
 							<div layout="row" layout-margin ng-if="::isWiki">
 								<md-switch ng-model="page.indirectTeacher">
 									This page teaches its requisites indirectly
 								</md-switch>
 							</div>
-	
+
 							<!-- Merge question -->
 							<div layout="row" layout-margin ng-if="::isQuestion && !page.isDeleted">
 								<div flex>
@@ -619,15 +631,17 @@
 				<div ng-if="publishing">
 					Publishing...
 				</div>
-				<div ng-if="selectedTab == 2">All relationship changes are published instantly</div>
+				<div ng-if="selectedTab == getRelationshipTabIndex() && page.wasPublished">
+					All relationship changes are published instantly
+				</div>
 			</div>
 
 			<arb-confirm-button button-text="Discard"
 					confirmed="discardPage()"
 					disabled="publishing || snapshotting"
 					tooltip-text="Discard the autosave"
-					ng-if="selectedTab != 2 && isPageDirty && !freezeEdit"></arb-confirm-button>
-			<div ng-if="!fullView && !inPreview && (selectedTab != 2) && !freezeEdit">
+					ng-if="isPublishButtonVisible() && isPageDirty"></arb-confirm-button>
+			<div ng-if="isPublishButtonVisible() && !fullView && !inPreview">
 				<md-button class="md-primary md-hue-1 md-raised"
 						ng-click="togglePreview(true)"
 						ng-disabled="publishing || snapshotting">
@@ -635,7 +649,7 @@
 					Preview
 				</md-button>
 			</div>
-			<div ng-if="selectedTab != 2 && !freezeEdit">
+			<div ng-if="isPublishButtonVisible()">
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
 						ng-disabled="publishing || snapshotting">

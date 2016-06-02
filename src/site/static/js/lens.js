@@ -750,7 +750,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// Wrap this in a try block, to make sure that any errors don't mess up MathJax
 					try {
 						processInlineEverything();
-					} catch(err) {
+					} catch (err) {
 						console.error(err);
 					}
 				});

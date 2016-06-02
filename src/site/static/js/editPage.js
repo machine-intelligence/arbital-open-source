@@ -34,7 +34,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Whether the editor should be in advanced mode.
 			$scope.showAdvancedMode = function() {
 				return arb.userService.user.isDomainMember || arb.userService.user.showAdvancedEditorMode;
-			}
+			};
 
 			// Called when the advanced mode view is toggled
 			$scope.advancedModeToggled = function() {
@@ -43,6 +43,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					// Keep the user on the settings tab
 					$scope.selectedTab = 3;
 				}
+			};
+
+			$scope.getRelationshipTabIndex = function() {
+				return $scope.showAdvancedMode() ? 2 : -1;
+			};
+
+			// Return true if we should show the publish button.
+			$scope.isPublishButtonVisible = function() {
+				return ($scope.selectedTab != $scope.getRelationshipTabIndex() || !$scope.page.wasPublished) && !$scope.freezeEdit;
 			};
 
 			// If the alias contains a subdomain, then remove it
@@ -74,7 +83,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Called when user selects a page from insert link input
 			$scope.insertLinkSelect = function(result) {
-				console.log("INSERT");
+				console.log('INSERT');
 				if (!$scope.insertLinkCallback) return;
 				var result = result;
 				$scope.showInsertLink = false;

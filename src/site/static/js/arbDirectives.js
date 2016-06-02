@@ -173,6 +173,42 @@ app.directive('arbUserPopover', function($timeout, arb) {
 	};
 });
 
+// textPopover contains the popover body html.
+app.directive('arbTextPopover', function($timeout, arb) {
+	return {
+		templateUrl: 'static/html/textPopover.html',
+		scope: {
+			encodedHtml: '@',
+			direction: '@',
+			arrowOffset: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.getArrowStyle = function() {
+				return {'left': +$scope.arrowOffset};
+			};
+		},
+		link: function(scope, element, attrs) {
+			element.find('.popover-tab-body').html(decodeURIComponent(scope.encodedHtml));
+		},
+	};
+});
+
+// arb-text-popover-anchor is the thing you can hover over to get a text popover
+app.directive('arbTextPopoverAnchor', function($timeout, arb) {
+	return {
+		scope: {
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+		},
+		link: function(scope, element, attrs) {
+			element.attr('encoded-html', encodeURIComponent(element.html()));
+			element.text('?');
+		},
+	};
+});
+
 // pageTitle displays page's title with optional meta info.
 app.directive('arbPageTitle', function(arb) {
 	return {
@@ -227,6 +263,9 @@ app.directive('arbLikes', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+
+			// For now, just allow people to like from anywhere
+			$scope.isButton = true;
 
 			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changeLog')) {
 				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
@@ -465,7 +504,7 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 		},
 		link: function(scope, element, attrs) {
 			$timeout(function() {
-				var $input = element.find("input");
+				var $input = element.find('input');
 				$input.on('blur', function(event) {
 					if (scope.ignoreNextResult) return;
 					// Make sure that if the user clicked one of the results, we don't count
