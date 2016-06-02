@@ -42,7 +42,13 @@ func continueWritingModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error loading drafts", err)
 	}
 
-	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, draftRows)
+	// Load my pages tagged for edit
+	taggedForEditRows, err := loadTaggedForEditRows(db, returnData, data.NumPagesToLoad)
+	if err != nil {
+		return pages.Fail("Error loading drafts", err)
+	}
+
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, draftRows, taggedForEditRows)
 
 	// Load pages
 	err = core.ExecuteLoadPipeline(db, returnData)

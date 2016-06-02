@@ -36,6 +36,11 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 		showEditorComments = value;
 	};
 
+	// Get the page from the pageMap
+	this.getPage = function(pageId) {
+		return that.pageMap[pageId];
+	};
+
 	// Returns the page from the correct map
 	this.getPageFromSomeMap = function(pageId, useEditMap) {
 		var map;

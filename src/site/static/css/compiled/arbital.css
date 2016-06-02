@@ -511,6 +511,12 @@ arb-index {
   .popover-panel md-card {
     margin: 0px; }
 
+.chip {
+  background: #555555;
+  border-radius: 5px;
+  color: white;
+  padding: 2px 6px; }
+
 .discussion-container {
   margin: 20px 0; }
 

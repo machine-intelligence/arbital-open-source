@@ -12,13 +12,14 @@ import (
 const (
 	DefaultModeRowCount = 25
 
-	PageModeRowType       = "page"
-	CommentModeRowType    = "comment"
-	MarkModeRowType       = "mark"
-	QueryModeRowType      = "query"
-	LikesModeRowType      = "likes"
-	ReqsTaughtModeRowType = "reqsTaught"
-	DraftModeRowType      = "draft"
+	PageModeRowType          = "page"
+	CommentModeRowType       = "comment"
+	MarkModeRowType          = "mark"
+	QueryModeRowType         = "query"
+	LikesModeRowType         = "likes"
+	ReqsTaughtModeRowType    = "reqsTaught"
+	DraftModeRowType         = "draft"
+	TaggedforEditModeRowType = "taggedForEdit"
 )
 
 type modeRowData struct {
@@ -425,6 +426,51 @@ func loadDraftRows(db *database.DB, returnData *core.CommonHandlerData, limit in
 		page.EditCreatedAt = createdAt
 		page.WasPublished = wasPublished
 		page.IsDeleted = isDeleted
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return modeRows, nil
+}
+
+// Load pages that are tagged to be edited, such as with "Stub" or "Work in progress"
+func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	modeRows := make(ModeRows, 0)
+	pageLoadOptions := (&core.PageLoadOptions{
+		SubpageCounts: true,
+		Tags:          true,
+		AnswerCounts:  true,
+	}).Add(core.TitlePlusLoadOptions)
+
+	// Tags that mean a page should be edited
+	tagsForEdit := []string{"3rk", "15s", "3wq", "3x5", "4v", "72"}
+
+	rows := database.NewQuery(`
+		SELECT pi.alias,p.createdAt
+		FROM pagePairs AS pp
+		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
+		ON (pi.pageId=pp.childId)
+		JOIN pages AS p
+		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
+		WHERE pp.type=?`, core.TagPagePairType).Add(`
+			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
+			AND pi.createdBy=?`, returnData.User.Id).Add(`
+		GROUP BY pi.alias
+		ORDER BY p.createdAt DESC
+		LIMIT ?`, limit).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId, createdAt string
+		err := rows.Scan(&pageId, &createdAt)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		row := &pageModeRow{
+			modeRowData: modeRowData{RowType: TaggedforEditModeRowType, ActivityDate: createdAt},
+			PageId:      pageId,
+		}
+		modeRows = append(modeRows, row)
+		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
 		return nil
 	})
 	if err != nil {
