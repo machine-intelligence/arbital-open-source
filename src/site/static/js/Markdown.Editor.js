@@ -1254,8 +1254,8 @@
 			buttons.hiddenText = makeButton('wmd-hidden-text-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
 				return this.doWrap(chunk, postProcessing, 'hiddenText');
 			}));
-			buttons. = makeButton('wmd-hidden-text-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
-				return this.doWrap(chunk, postProcessing, 'hiddenText');
+			buttons.noteText = makeButton('wmd-note-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
+				return this.doWrap(chunk, postProcessing, 'note');
 			}));
 			buttons.tableOfContents = makeButton('wmd-table-of-contents-button', getString('intralink'), '-60px', bindCommand(function(chunk, postProcessing) {
 				return this.doWrap(chunk, postProcessing, 'tableOfContents');
@@ -1572,6 +1572,8 @@
 				linkEnteredCallback('[summary: ', 'summary text *with* markdown', ']\n\n');
 			} else if (wrapType == 'hiddenText') {
 				linkEnteredCallback('%%hidden(Show solution):\n', 'Solution *markdown* text', '\n%%\n\n');
+			} else if (wrapType == 'note') {
+				linkEnteredCallback('%%note:', 'Fun *markdown* text', '%%');
 			} else if (wrapType == 'tableOfContents') {
 				linkEnteredCallback('[toc:', '', ']\n\n');
 			} else if (wrapType == 'multipleChoice') {

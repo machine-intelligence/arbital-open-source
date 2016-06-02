@@ -173,6 +173,42 @@ app.directive('arbUserPopover', function($timeout, arb) {
 	};
 });
 
+// textPopover contains the popover body html.
+app.directive('arbTextPopover', function($timeout, arb) {
+	return {
+		templateUrl: 'static/html/textPopover.html',
+		scope: {
+			encodedHtml: '@',
+			direction: '@',
+			arrowOffset: '@',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.getArrowStyle = function() {
+				return {'left': +$scope.arrowOffset};
+			};
+		},
+		link: function(scope, element, attrs) {
+			element.find('.popover-tab-body').html(decodeURIComponent(scope.encodedHtml));
+		},
+	};
+});
+
+// arb-text-popover-anchor is the thing you can hover over to get a text popover
+app.directive('arbTextPopoverAnchor', function($timeout, arb) {
+	return {
+		scope: {
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+		},
+		link: function(scope, element, attrs) {
+			element.attr('encoded-html', encodeURIComponent(element.html()));
+			element.text('?');
+		},
+	};
+});
+
 // pageTitle displays page's title with optional meta info.
 app.directive('arbPageTitle', function(arb) {
 	return {

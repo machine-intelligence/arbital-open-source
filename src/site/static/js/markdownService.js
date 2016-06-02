@@ -235,6 +235,17 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		}
 
+		// Process %note: markdown% spans.
+		var noteSpanRegexp = new RegExp(notEscaped + '(%+)note: ?([\\s\\S]+?)\\2', 'g');
+		converter.hooks.chain('preSpanGamut', function(text) {
+			return text.replace(noteSpanRegexp, function(whole, prefix, bars, markdown) {
+				if (isEditor) {
+					return prefix + '<span class=\'conditional-text\'>' + markdown + '</span>';
+				}
+				return prefix + '<span class=\'markdown-note\' arb-text-popover-anchor>' + markdown + '</span>';
+			});
+		});
+
 		// Process %knows-requisite([alias]): markdown% spans.
 		var hasReqSpanRegexp = new RegExp(notEscaped + '(%+)(!?)knows-requisite\\(\\[' + aliasMatch + '\\]\\): ?([\\s\\S]+?)\\2', 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
@@ -244,7 +255,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				if (isEditor) {
 					span = '<span class=\'conditional-text\'>';
 				}
-				return prefix + span  + markdown + '</span>';
+				return prefix + span + markdown + '</span>';
 			});
 		});
 
