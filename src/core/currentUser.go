@@ -63,12 +63,13 @@ type CurrentUser struct {
 
 	// Computed variables
 	// Set to true if the user is a member of at least one domain
-	IsDomainMember      bool              `json:"isDomainMember"`
-	UpdateCount         int               `json:"updateCount"`
-	NewAchievementCount int               `json:"newAchievementCount"`
-	GroupIds            []string          `json:"groupIds"`
-	TrustMap            map[string]*Trust `json:"trustMap"`
-	InvitesClaimed      []*Invite         `json:"invitesClaimed"`
+	IsDomainMember         bool              `json:"isDomainMember"`
+	UpdateCount            int               `json:"updateCount"`
+	NewAchievementCount    int               `json:"newAchievementCount"`
+	MaintenanceUpdateCount int               `json:"maintenanceUpdateCount"`
+	GroupIds               []string          `json:"groupIds"`
+	TrustMap               map[string]*Trust `json:"trustMap"`
+	InvitesClaimed         []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
@@ -302,6 +303,23 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	}
 
 	return newLikeCount + newTaughtCount + newChangeLogLikeCount, nil
+}
+
+func LoadMaintenanceUpdateCount(db *database.DB, userId string) (int, error) {
+	maintenanceUpdateTypes := GetMaintenanceUpdateTypes()
+
+	var maintenanceUpdateCount int
+	row := database.NewQuery(`
+		SELECT COUNT(DISTINCT type, subscribedToId, byUserId)
+		FROM updates
+		WHERE NOT seen AND userId=?`, userId).Add(`
+			AND type IN`).AddArgsGroupStr(maintenanceUpdateTypes).ToStatement(db).QueryRow()
+	_, err := row.Scan(&maintenanceUpdateCount)
+	if err != nil {
+		return -1, err
+	}
+
+	return maintenanceUpdateCount, err
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.
