@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	updateFeaturedPagesPeriod = 1 * 60 * 60 // 1 hour
-	minLengthToBeFeatured     = 2000        // characters
-	suppressingTagsPageId     = "3zb"
+	updateFeaturedPagesPeriod   = 1 * 60 * 60 // 1 hour
+	minLengthToBeFeatured       = 2000        // characters
+	suppressingTagsParentPageId = "3zb"
 )
 
 // UpdateFeaturedPagesTask is the object that's put into the daemon queue.
@@ -42,7 +42,7 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	defer c.Infof("==== UPDATE FEATURED PAGES COMPLETED ====")
 
 	// Load which tags suppress a page from being featured
-	suppressingTagIds, err := core.LoadMetaTags(db, suppressingTagsPageId)
+	suppressingTagIds, err := core.LoadMetaTags(db, suppressingTagsParentPageId)
 	if err != nil {
 		return 0, fmt.Errorf("Couldn't load meta tags: %v", err)
 	}
@@ -72,15 +72,15 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		// Check if this tag supresses the page from being featured
-		suppressingTag := false
+		isSuppressingTag := false
 		if tagId.Valid {
-			_, suppressingTag = suppressingTagsMap[tagId.String]
+			_, isSuppressingTag = suppressingTagsMap[tagId.String]
 		}
 		shouldFeature, exists := shouldFeatureMap[pageId]
 		if !exists {
 			shouldFeature = true
 		}
-		shouldFeatureMap[pageId] = shouldFeature && !suppressingTag
+		shouldFeatureMap[pageId] = shouldFeature && !isSuppressingTag
 		return nil
 	})
 	if err != nil {
