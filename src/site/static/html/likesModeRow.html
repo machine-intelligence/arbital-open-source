@@ -3,10 +3,10 @@
 		<div flex>
 			<!-- Names of people -->
 			{{::userNames}}
-	
+
 			<ng-pluralize count="::modeRow.userIds.length" when="{'1': 'likes', 'other': 'like'}">
 			</ng-pluralize>
-	
+
 			<span ng-if="::arb.stateService.pageMap[modeRow.pageId].isComment()">your comment:</span>
 			<span ng-if="::modeRow.changeLog.id">your edit to</span>
 			<arb-page-title page-id="{{::modeRow.pageId}}"
