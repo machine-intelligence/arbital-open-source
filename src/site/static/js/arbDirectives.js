@@ -504,7 +504,7 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 		},
 		link: function(scope, element, attrs) {
 			$timeout(function() {
-				var $input = element.find("input");
+				var $input = element.find('input');
 				$input.on('blur', function(event) {
 					if (scope.ignoreNextResult) return;
 					// Make sure that if the user clicked one of the results, we don't count

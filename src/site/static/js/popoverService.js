@@ -9,7 +9,8 @@ app.service('popoverService', function($rootScope, $compile, $timeout, pageServi
 
 	var showDelay = 400; // milliseconds
 	var hideDelay = 300; // milliseconds
-	var smallPopoverWidth = 400, largePopoverWidth = 600; // pixels
+	var smallPopoverWidth = 400; // pixels
+	var largePopoverWidth = 600; // pixels
 	var awayFromEdge = 20; // min distance from edge of the screen in pixels
 
 	var mousePageX;
