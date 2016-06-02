@@ -22,71 +22,71 @@
 				<span ng-switch-when="newParent">
 					New parent: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteParent">
 					Removed parent: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newChild">
 					New child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newLens">
 					New lens: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteChild">
 					Removed child: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newTag">
 					New tag: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteTag">
 					Removed tag: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newUsedAsTag">
 					Used as tag for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteUsedAsTag">
 					Not a tag for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newRequirement">
 					New requirement: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteRequirement">
 					Removed requirement: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newRequiredBy">
 					Required for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteRequiredBy">
 					Not required for: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newSubject">
 					Teaches: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteSubject">
 					Doesn't teach: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="newTeacher">
 					Taught by: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="deleteTeacher">
 					Not taught by: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="searchStringChange">
 					<span ng-if="::changeLog.newSettingsValue">
 						Search string added: <span ng-bind="::changeLog.newSettingsValue"></span>
@@ -95,7 +95,7 @@
 						Search string removed: <span ng-bind="::changeLog.oldSettingsValue"></span>
 					</span>
 				</span>
-	
+
 				<span ng-switch-when="answerChange">
 					<span ng-if="::changeLog.newSettingsValue">
 						Answer added: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
@@ -104,11 +104,11 @@
 						Answer removed: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 					</span>
 				</span>
-	
+
 				<span ng-switch-when="questionMerged">
 					This question has been merged into <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				</span>
-	
+
 				<span ng-switch-when="questionMergedReverse">
 					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 					question was merged into this.
@@ -117,7 +117,7 @@
 				<span ng-switch-when="lensOrderChanged">
 					Lens order was changed.
 				</span>
-	
+
 				<!-- Settings changes -->
 
 				<span ng-switch-when="newAlias">
@@ -125,19 +125,19 @@
 					from "{{::changeLog.oldSettingsValue}}"
 					to "{{::changeLog.newSettingsValue}}"
 				</span>
-	
+
 				<span ng-switch-when="newSortChildrenBy">
 					Child sort order changed
 					from "{{::changeLog.oldSettingsValue}}"
 					to "{{::changeLog.newSettingsValue}}"
 				</span>
-	
+
 				<span ng-switch-when="setVoteType">
 					Vote type changed
 					from "{{::changeLog.oldSettingsValue}}"
 					to "{{::changeLog.newSettingsValue}}"
 				</span>
-	
+
 				<span ng-switch-when="newEditGroup">
 					Edit group changed from
 					<!-- old edit group -->
@@ -152,41 +152,41 @@
 						<arb-page-title page-id="{{::changeLog.newSettingsValue}}" is-link="true"></arb-page-title>
 					</span>
 				</span>
-	
+
 				<span ng-switch-when="turnOnVote">
 					Probability bar shown
 				</span>
-	
+
 				<span ng-switch-when="turnOffVote">
 					Probability bar hidden
 				</span>
-	
+
 				<span ng-switch-when="pageInfoEdit">
 					Settings changed
 				</span>
-	
+
 				<!-- Edits and snapshots -->
-	
+
 				<span ng-switch-when="deletePage">
 					Deleted page
 				</span>
-	
+
 				<span ng-switch-when="undeletePage">
 					Republished page
 				</span>
-	
+
 				<span ng-switch-when="newEdit">
 					New edit #{{::changeLog.edit}}
 				</span>
-	
+
 				<span ng-switch-when="revertEdit">
 					Reverted to edit #{{::changeLog.edit}}
 				</span>
-	
+
 				<span ng-switch-when="newSnapshot">
 					New snapshot (edit #{{::changeLog.edit}})
 				</span>
-	
+
 			</span>
 
 			<!-- Updates -->
@@ -266,7 +266,7 @@
 						Approve
 					</md-button>
 					<span ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
-						This submission has been approved by 
+						This submission has been approved by
 						<arb-user-name user-id="{{::goToPage.domainSubmissions[update.subscribedToId].approverId}}"></arb-user-name>
 					</span>
 				</div>

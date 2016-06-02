@@ -9,7 +9,7 @@ CREATE TABLE pagePairs (
 	/* Child page id. Part of the FK into pages. */
 	childId VARCHAR(32) NOT NULL,
 
-	/* Type of the relationship. 
+	/* Type of the relationship.
 		parent: parentId is a parent of childId
 		tag: parentId is a tag of childId
 		requirement: parentId is a requirement of childId

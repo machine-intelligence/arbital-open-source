@@ -145,7 +145,7 @@ var InitMathjax = (function() {
 		}*/
 		HUB.Config({
 			// reduce chunk for more frequent updates
-			'HTML-CSS': {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}}, 
+			'HTML-CSS': {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}},
 			SVG: {EqnChunk: 10, EqnChunkFactor: 1, linebreaks: {automatic: true}},
 			tex2jax: {
 				inlineMath: [[inlineDelim, inlineDelim]],

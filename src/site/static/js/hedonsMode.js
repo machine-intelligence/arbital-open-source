@@ -11,7 +11,7 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
+
 			arb.userService.user.newAchievementCount = 0;
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
@@ -36,7 +36,7 @@ app.directive('arbLikesModeRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
+
 			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
 				return arb.userService.getFullName(userId);
 			}));
@@ -53,7 +53,7 @@ app.directive('arbReqsTaughtModeRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			
+
 			$scope.userNames = formatUsersForDisplay($scope.modeRow.userIds.map(function(userId) {
 				return arb.userService.getFullName(userId);
 			}));

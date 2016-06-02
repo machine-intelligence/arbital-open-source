@@ -25,15 +25,15 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				delta = (ev.type == 'DOMMouseScroll' ?	ev.originalEvent.detail * -40 : ev.originalEvent.wheelDelta),
 				up = delta > 0;
 			// Don't prevent body scrolling if there is no scroll bar
-			if (scrollHeight <= this.clientHeight) return true;	
-	
+			if (scrollHeight <= this.clientHeight) return true;
+
 			var prevent = function() {
 				ev.stopPropagation();
 				ev.preventDefault();
 				ev.returnValue = false;
 				return false;
 			}
-	
+
 			if (!up && -delta > scrollHeight - height - scrollTop) {
 				 // Scrolling down, but this will take us past the bottom.
 				 $this.scrollTop(scrollHeight);
