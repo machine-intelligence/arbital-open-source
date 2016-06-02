@@ -446,6 +446,7 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		WHERE pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
 			AND pi.createdBy=?`, returnData.User.Id).Add(`
+		GROUP BY pi.alias
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
