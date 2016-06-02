@@ -65,6 +65,7 @@ func init() {
 	s.HandleFunc(fmt.Sprintf("/learn/{pageId:%s}/", core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/learn/{pageAlias:%s}/{pageAlias2:%s}/", core.AliasRegexpStr, core.AliasRegexpStr), pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/maintain/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/newsletter/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/read/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")

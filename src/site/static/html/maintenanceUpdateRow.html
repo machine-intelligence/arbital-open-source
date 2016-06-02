@@ -1,5 +1,5 @@
 <div>
-	<div layout="row" layout-xs="column">
+	<div layout="row" layout-xs="column" layout-align="space-between center">
 
 		<div ng-if="::(changeLog && changeLog.id)">
 			<arb-likes likeable-type="changeLog"
@@ -238,7 +238,7 @@
 
 			<!-- Updates -->
 
-			<span ng-switch-when="pageEdit" layout="column">
+			<span ng-switch-when="pageEdit">
 				<span>
 					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 					edited
@@ -246,7 +246,9 @@
 						{{::repeated}} times
 					</span>
 				</span>
-				<arb-edit-diff change-log="::changeLog" num-edits="::repeated"></arb-edit-diff>
+				<span>
+					<arb-edit-diff change-log="::changeLog" num-edits="::repeated"></arb-edit-diff>
+				</span>
 			</span>
 
 			<!-- Unknown -->
