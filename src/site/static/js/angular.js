@@ -394,6 +394,19 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
+	arb.urlService.addUrlHandler('/maintain/', {
+		name: 'MaintainPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Maintain',
+					content: $scope.newElement('<arb-maintenance-mode-page></arb-maintenance-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
 	arb.urlService.addUrlHandler('/newsletter/', {
 		name: 'NewsletterPage',
 		handler: function(args, $scope) {
