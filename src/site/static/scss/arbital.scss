@@ -162,6 +162,10 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
+arb-index {
+	margin-top: 20px;
+}
+
 .white-circle-background {
 	background: white;
 	border-radius: 100px;
@@ -1036,4 +1040,29 @@ arb-log-row, [arb-log-row] {
 	min-width: 20px;
 	text-align: center;
 	border-radius: 15px;
+}
+
+.list-panel {
+	md-list {
+		padding-top: 5px;
+	}
+}
+
+@media (min-width: 1100px) {
+	.index-page-half {
+		margin: 0 20px;
+	}
+}
+
+.tab-panel-header {
+	border-bottom: $primary-color 3px solid;
+}
+
+.tab-panel-title {
+	font-size: 25px;
+}
+
+.tab-panel-tab {
+	box-shadow: none !important;
+	border-radius: 0 !important;
 }

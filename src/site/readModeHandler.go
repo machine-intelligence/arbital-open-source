@@ -9,8 +9,14 @@ import (
 	"zanaduu3/src/pages"
 )
 
+const (
+	FeaturedReadModeType = "featured"
+	NewReadModeType      = "new"
+)
+
 type readModeData struct {
 	NumPagesToLoad int
+	Type           string
 }
 
 var readModeHandler = siteHandler{
@@ -34,13 +40,17 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.NumPagesToLoad = DefaultModeRowCount
 	}
 
-	// figure out which pages to show as exciting and hot!
-	hotPageIds, err := loadHotPagesModeRows(db, returnData, data.NumPagesToLoad)
-	if err != nil {
-		return pages.Fail("failed to load hot page ids", err)
+	// Load the page ids
+	var pageIds ModeRows
+	if data.Type == FeaturedReadModeType {
+		pageIds, err = loadFeaturedPagesModeRows(db, returnData, data.NumPagesToLoad)
+	} else if data.Type == NewReadModeType {
+		pageIds, err = loadNewPagesModeRows(db, returnData, data.NumPagesToLoad)
 	}
-
-	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, hotPageIds)
+	if err != nil {
+		return pages.Fail("failed to load page ids", err)
+	}
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, pageIds)
 
 	// Load and update LastReadModeView for this user
 	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastReadModeView)
@@ -48,7 +58,7 @@ func readModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error updating last read mode view", err)
 	}
 
-	// load the pages
+	// Load the pages
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
