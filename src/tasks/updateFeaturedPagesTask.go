@@ -2,7 +2,6 @@
 package tasks
 
 import (
-	"database/sql"
 	"fmt"
 
 	"zanaduu3/src/core"
@@ -46,17 +45,13 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 	if err != nil {
 		return 0, fmt.Errorf("Couldn't load meta tags: %v", err)
 	}
-	suppressingTagsMap := make(map[string]bool)
-	for _, tagId := range suppressingTagIds {
-		suppressingTagsMap[tagId] = true
-	}
 
-	// Whether the given page should be featured
-	shouldFeatureMap := make(map[string]bool)
+	// Which pages should be featured
+	featuredPageIds := make([]string, 0)
 
 	// Load all pages that haven't been featured yet
 	rows := database.NewQuery(`
-		SELECT pi.pageId,pp.parentId
+		SELECT pi.pageId
 		FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
 		JOIN pages AS p
 		ON (pi.pageId=p.pageId)
@@ -64,39 +59,23 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 		ON (pp.childId=pi.pageId)
 		WHERE p.isLiveEdit AND length(p.text)>=?`, minLengthToBeFeatured).Add(`
 			AND pi.seeGroupId="" AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
-			AND pp.type=?`, core.TagPagePairType).ToStatement(db).Query()
+			AND pp.type=?`, core.TagPagePairType).Add(`
+		GROUP BY 1
+		HAVING SUM(pp.parentId IN`).AddArgsGroupStr(suppressingTagIds).Add(`) <= 0`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId string
-		var tagId sql.NullString
-		if err := rows.Scan(&pageId, &tagId); err != nil {
+		if err := rows.Scan(&pageId); err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
-		// Check if this tag supresses the page from being featured
-		isSuppressingTag := false
-		if tagId.Valid {
-			_, isSuppressingTag = suppressingTagsMap[tagId.String]
-		}
-		shouldFeature, exists := shouldFeatureMap[pageId]
-		if !exists {
-			shouldFeature = true
-		}
-		shouldFeatureMap[pageId] = shouldFeature && !isSuppressingTag
+		featuredPageIds = append(featuredPageIds, pageId)
 		return nil
 	})
 	if err != nil {
 		return 0, fmt.Errorf("Failed to load featured page candidates: %v", err)
 	}
 
-	if len(shouldFeatureMap) <= 0 {
+	if len(featuredPageIds) <= 0 {
 		return
-	}
-
-	// Compute the pages that should be featured
-	featuredPageIds := make([]string, 0)
-	for pageId, shouldFeature := range shouldFeatureMap {
-		if shouldFeature {
-			featuredPageIds = append(featuredPageIds, pageId)
-		}
 	}
 	c.Infof("New featured pages: %+v", featuredPageIds)
 

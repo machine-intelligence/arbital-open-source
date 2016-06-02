@@ -1779,7 +1779,7 @@ func LoadMetaTags(db *database.DB, parentId string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return page.TaggedAsIds, nil
+	return page.ChildIds, nil
 }
 
 // LoadSubpageCounts loads the number of various types of children the pages have
