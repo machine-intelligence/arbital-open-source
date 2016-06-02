@@ -33,8 +33,15 @@ app.directive('arbDraftRow', function(arb) {
 		scope: {
 			modeRow: '=',
 		},
-		controller: function($scope) {
-			$scope.arb = arb;
+	};
+});
+
+// arb-draft-mode-row is the directive for showing a user's draft
+app.directive('arbTaggedForEditRow', function(arb) {
+	return {
+		templateUrl: 'static/html/taggedforEditRow.html',
+		scope: {
+			modeRow: '=',
 		},
 	};
 });

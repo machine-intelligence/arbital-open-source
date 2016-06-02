@@ -582,12 +582,27 @@ app.directive('arbPageRow', function(arb) {
 			showRedLinkCount: '=',
 			showCommentCount: '=',
 			showTextLength: '=',
+			markAsDraft: '=',
+			showTags: '=',
 			// If set, we'll pull the page from the editMap instead of pageMap
 			useEditMap: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
+		},
+	};
+});
+
+app.directive('arbTag', function(arb) {
+	return {
+		template: '<span class="chip">{{tagName}}</span>',
+		replace: true,
+		scope: {
+			tagId: '@',
+		},
+		controller: function($scope) {
+			$scope.tagName = arb.stateService.getPage($scope.tagId);
 		},
 	};
 });
