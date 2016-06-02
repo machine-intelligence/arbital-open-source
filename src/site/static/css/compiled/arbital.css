@@ -503,6 +503,12 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   .popover-panel md-card {
     margin: 0px; }
 
+.chip {
+  background: darkgrey;
+  border-radius: 5px;
+  color: white;
+  padding: 2px; }
+
 .discussion-container {
   margin: 20px 0; }
 

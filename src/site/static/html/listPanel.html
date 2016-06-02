@@ -1,4 +1,5 @@
 <md-card ng-class="{'full-page-panel': isFullPage, 'dense-panel': !isFullPage}"
+		class="list-panel"
 		ng-if="modeRows && modeRows.length != 0">
 	<!-- Header -->
 	<md-toolbar class="md-hue-2" ng-if="::title && !hideTitle">
@@ -26,6 +27,7 @@
 				<div arb-query-info mark-id="{{::modeRow.markId}}" ng-switch-when="query"></div>
 				<arb-comment-mode-row mode-row="modeRow" ng-switch-when="comment"></arb-comment-mode-row>
 				<arb-draft-row mode-row="modeRow" ng-switch-when="draft"></arb-draft-row>
+				<arb-tagged-for-edit-row mode-row="modeRow" ng-switch-when="taggedForEdit"></arb-tagged-for-edit-row>
 			</div>
 
 			<md-divider ng-if="::!$last"></md-divider>

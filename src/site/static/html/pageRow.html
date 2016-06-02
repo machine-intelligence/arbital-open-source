@@ -13,6 +13,14 @@
 	</div>
 	<!-- Second row -->
 	<div class="md-caption" layout-gt-xs="row" layout-align="start center">
+		<span class="chip" ng-if="markAsDraft">
+			Draft
+		</span>
+		<span ng-if="showTags">
+			<span ng-repeat="tag in page.taggedAsIds">
+				<arb-tag tag-id="{{::tag}}"></arb-tag>
+			</span>
+		</span>
 		<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
 				class="md-icon-button"
 				ng-if="::showQuickEdit">
