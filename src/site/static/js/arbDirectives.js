@@ -228,6 +228,9 @@ app.directive('arbLikes', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
+			// For now, just allow people to like from anywhere
+			$scope.isButton = true;
+
 			if (!($scope.likeableType == 'page' || $scope.likeableType == 'changeLog')) {
 				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
 			}

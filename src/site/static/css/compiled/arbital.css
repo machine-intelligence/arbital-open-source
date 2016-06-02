@@ -413,6 +413,9 @@ body {
   top: 20px;
   color: #cccccc; }
 
+.like-button {
+  min-width: 0 !important; }
+
 arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0; }
   arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
