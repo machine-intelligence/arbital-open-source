@@ -69,7 +69,7 @@
 				</md-menu-item>
 
 				<!-- Delete comment -->
-				<md-menu-item ng-if="page.pageCreatorId === arb.userService.user.id || arb.userService.user.isAdmin">
+				<md-menu-item ng-if="page.permissions.delete.has">
 					<md-button ng-click="deleteSubpage()"
 							ng-disabled="editing"
 							aria-label="Delete comment">
