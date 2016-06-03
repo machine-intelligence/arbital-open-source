@@ -51,7 +51,9 @@ app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) 
 				var count = 0;
 				for (var n = 0; n < $scope.page.commentIds.length; n++) {
 					var commentId = $scope.page.commentIds[n];
-					count += (!arb.stateService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments()) ? 1 : 0;
+					var comment = arb.stateService.pageMap[commentId];
+					if (comment.isResolved || comment.isDeleted) continue;
+					count += (comment.isEditorComment && !arb.stateService.getShowEditorComments()) ? 0 : 1;
 				}
 				return count;
 			};
