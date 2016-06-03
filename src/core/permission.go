@@ -27,6 +27,19 @@ type Permission struct {
 	Reason string `json:"reason"`
 }
 
+func (p *Page) computeDomainPermissions(c sessions.Context, u *CurrentUser) {
+	if len(p.DomainIds) <= 0 {
+		p.Permissions.DomainAccess.Has = true
+		return
+	}
+	for _, domainId := range p.DomainIds {
+		if u.TrustMap[domainId].Permissions.DomainAccess.Has {
+			p.Permissions.DomainAccess.Has = true
+		}
+	}
+	p.Permissions.DomainAccess.Reason = "You are not a member of the domain(s) this page belongs to"
+}
+
 func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	// Check the page isn't locked by someone else
 	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
@@ -87,7 +100,7 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Delete.Reason = p.Permissions.Edit.Reason
 		return
 	}
-	// If it's a comment, only the creator can edit it
+	// If it's a comment, only the creator can delete it
 	if p.Type == CommentPageType {
 		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.IsAdmin
 		if !p.Permissions.Delete.Has {
@@ -121,16 +134,17 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Comment.Reason = "Can't comment on an unpublished page"
 		return
 	}
+	// Anyone who can edit the page can also comment
+	if p.Permissions.Edit.Has {
+		p.Permissions.Comment.Has = true
+		return
+	}
 	// Compute whether the user can comment via any of the domains
 	for _, domainId := range p.DomainIds {
 		if u.TrustMap[domainId].Permissions.Comment.Has {
 			p.Permissions.Comment.Has = true
 			return
 		}
-	}
-	// Check if this page is a comment owned by the user, which means they can reply
-	if !p.Permissions.Comment.Has {
-		p.Permissions.Comment.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
 	}
 	if !p.Permissions.Comment.Has {
 		p.Permissions.Comment.Reason = "Not enough reputation to comment"
@@ -140,6 +154,8 @@ func (p *Page) computeCommentPermissions(c sessions.Context, u *CurrentUser) {
 // ComputePermissions computes all the permissions for the given page.
 func (p *Page) ComputePermissions(c sessions.Context, u *CurrentUser) {
 	p.Permissions = &Permissions{}
+	// Order is important
+	p.computeDomainPermissions(c, u)
 	p.computeEditPermissions(c, u)
 	p.computeDeletePermissions(c, u)
 	p.computeCommentPermissions(c, u)
