@@ -12,7 +12,7 @@ app.directive('arbResponseModePanel', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			arb.userService.user.actionyUpdateCount = 0;
+			arb.userService.user.newNotificationCount = 0;
 			$scope.title = 'Notifications';
 			$scope.moreLink = '/notifications';
 
