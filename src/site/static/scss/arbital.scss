@@ -43,6 +43,15 @@ body {
 	min-width: 0 !important;
 }
 
+.nice-blockquote {
+	border-left: lightgray 7px solid;
+	padding-left: 10px;
+	margin-left: 2px;
+	p {
+		padding: 10px 0;
+	}
+}
+
 arb-markdown, [arb-markdown], .preview-area {
 	p {
 		margin-top: 0;
@@ -66,12 +75,7 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 
 	blockquote {
-		border-left: lightgray 7px solid;
-		padding-left: 10px;
-		margin-left: 2px;
-		p {
-			padding: 10px 0;
-		}
+		@extend .nice-blockquote;
 	}
 
 	& > :last-child {
@@ -1078,4 +1082,8 @@ arb-log-row, [arb-log-row] {
 .mathjax-div {
 	// Copied from .MathJax_Display
 	margin: 1em 0;
+}
+
+.query-info-button-div {
+	min-width: 200px;
 }

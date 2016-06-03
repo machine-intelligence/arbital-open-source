@@ -22,6 +22,11 @@ app.directive('arbQueryInfo', function($interval, arb) {
 				return $scope.mark.pageId == arb.pageService.getCurrentPageId();
 			};
 
+			// Whether or not to show which text the user selected
+			$scope.showAnchor = function() {
+				return !$scope.isOnPage() && $scope.mark.anchorContext;
+			};
+
 			// Update mark's text.
 			$scope.updateMarkText = function(submit) {
 				arb.markService.updateMark({

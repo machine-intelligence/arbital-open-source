@@ -418,6 +418,13 @@ body {
 .like-button {
   min-width: 0 !important; }
 
+.nice-blockquote, arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
+  border-left: lightgray 7px solid;
+  padding-left: 10px;
+  margin-left: 2px; }
+  .nice-blockquote p, arb-markdown blockquote p, [arb-markdown] blockquote p, .preview-area blockquote p {
+    padding: 10px 0; }
+
 arb-markdown p, [arb-markdown] p, .preview-area p {
   margin-top: 0; }
   arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
@@ -428,12 +435,6 @@ arb-markdown ul, arb-markdown ol, [arb-markdown] ul, [arb-markdown] ol, .preview
   padding-left: 1.5em; }
 arb-markdown li p, [arb-markdown] li p, .preview-area li p {
   overflow: inherit; }
-arb-markdown blockquote, [arb-markdown] blockquote, .preview-area blockquote {
-  border-left: lightgray 7px solid;
-  padding-left: 10px;
-  margin-left: 2px; }
-  arb-markdown blockquote p, [arb-markdown] blockquote p, .preview-area blockquote p {
-    padding: 10px 0; }
 arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
   margin-bottom: 0; }
 
@@ -1093,5 +1094,8 @@ arb-log-row, [arb-log-row] {
 
 .mathjax-div {
   margin: 1em 0; }
+
+.query-info-button-div {
+  min-width: 200px; }
 
 /*# sourceMappingURL=arbital.css.map */
