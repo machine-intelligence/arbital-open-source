@@ -55,13 +55,16 @@ func (task UpdateFeaturedPagesTask) Execute(db *database.DB) (delay int, err err
 		FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
 		JOIN pages AS p
 		ON (pi.pageId=p.pageId)
+		JOIN pageDomainPairs AS pdp /*Has to be part of a domain*/
+		ON (pi.pageId=pdp.pageId)
 		LEFT JOIN pagePairs AS pp
-		ON (pp.childId=pi.pageId)
+		ON (pi.pageId=pp.childId)
 		WHERE p.isLiveEdit AND length(p.text)>=?`, minLengthToBeFeatured).Add(`
 			AND pi.seeGroupId="" AND pi.featuredAt=0 AND pi.type!=?`, core.CommentPageType).Add(`
-			AND pp.type=?`, core.TagPagePairType).Add(`
 		GROUP BY 1
-		HAVING SUM(pp.parentId IN`).AddArgsGroupStr(suppressingTagIds).Add(`) <= 0`).ToStatement(db).Query()
+		HAVING IFNULL(SUM(pp.type=?`, core.TagPagePairType).Add(`
+				AND pp.parentId IN`).AddArgsGroupStr(suppressingTagIds).Add(`
+			),0) <= 0`).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var pageId string
 		if err := rows.Scan(&pageId); err != nil {
