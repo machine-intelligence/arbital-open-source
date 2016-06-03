@@ -62,8 +62,7 @@ app.directive('arbMaintenanceUpdateRow', function(arb) {
 	};
 });
 
-
-// arb-maintenance-mode-page is for displaying the entire /achievements page
+// arb-maintenance-mode-page is for displaying the entire /maintain page
 app.directive('arbMaintenanceModePage', function($http, arb) {
 	return {
 		templateUrl: 'static/html/maintenanceModePage.html',
