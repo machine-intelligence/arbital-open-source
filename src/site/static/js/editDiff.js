@@ -10,51 +10,55 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-
 			$scope.showDiff = false;
+
+			if (!$scope.changeLog.edit) return;
+
 			$scope.toggleDiff = function(update) {
 				$scope.showDiff = !$scope.showDiff;
+			}
 
-				if (!$scope.showDiff || $scope.diffHtml) {
-					return;
+			// Prepare to show the diff
+			var pageId = $scope.changeLog.pageId;
+			var thisEditNum = $scope.changeLog.edit;
+			var prevEditNum = thisEditNum - ($scope.numEdits || 1);
+
+			var thisEditText;
+			var prevEditText;
+
+			// Makes the diffHtml once both thisEditText and prevEditText have been loaded.
+			var makeDiffIfBothTextsLoaded = function() {
+				if (thisEditText && prevEditText) {
+					$scope.diffHtml = arb.diffService.getDiffHtml(thisEditText, prevEditText);
+
+					// Default to showing short diffs
+					$scope.showDiff = $scope.diffHtml.length < 500;
 				}
+			}
 
-				var pageId = $scope.changeLog.pageId;
-				var thisEditNum = $scope.changeLog.edit;
-				var prevEditNum = thisEditNum - ($scope.numEdits || 1);
+			// Load thisEditText.
+			arb.pageService.loadEdit({
+				pageAlias: pageId,
+				specificEdit: thisEditNum,
+				skipProcessDataStep: true,
+				convertPageIdsToAliases: true,
+				success: function(data) {
+					thisEditText = data.edits[pageId].text;
+					makeDiffIfBothTextsLoaded();
+				},
+			});
 
-				var thisEditText;
-				var prevEditText;
-
-				// Makes the diffHtml once both thisEditText and prevEditText have been loaded.
-				function makeDiffIfBothTextsLoaded() {
-					if (thisEditText && prevEditText) {
-						$scope.diffHtml = arb.diffService.getDiffHtml(thisEditText, prevEditText);
-					}
-				}
-
-				// Load thisEditText.
-				arb.pageService.loadEdit({
-					pageAlias: pageId,
-					specificEdit: thisEditNum,
-					skipProcessDataStep: true,
-					success: function(data) {
-						thisEditText = data.edits[pageId].text;
-						makeDiffIfBothTextsLoaded();
-					},
-				});
-
-				// Load prevEditText.
-				arb.pageService.loadEdit({
-					pageAlias: pageId,
-					specificEdit: prevEditNum,
-					skipProcessDataStep: true,
-					success: function(data) {
-						prevEditText = data.edits[pageId].text;
-						makeDiffIfBothTextsLoaded();
-					},
-				});
-			};
+			// Load prevEditText.
+			arb.pageService.loadEdit({
+				pageAlias: pageId,
+				specificEdit: prevEditNum,
+				skipProcessDataStep: true,
+				convertPageIdsToAliases: true,
+				success: function(data) {
+					prevEditText = data.edits[pageId].text;
+					makeDiffIfBothTextsLoaded();
+				},
+			});
 		},
 	};
 });
