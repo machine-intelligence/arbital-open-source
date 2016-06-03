@@ -12,6 +12,10 @@ app.directive('arbIndex', function($http, arb) {
 			$scope.selectReadTab = function(tab) {
 				$scope.readTab = tab;
 			};
+
+			$scope.selectWriteTab = function(tab) {
+				$scope.writeTab = tab;
+			};
 		},
 	};
 });

@@ -1,7 +1,7 @@
 'use strict';
 
 // arb-continue-writing-mode-panel directive displays a list of things that prompt a user
-// to continue writing: their drafts, stubs, recent pages
+// to continue writing, like their drafts or stubs
 app.directive('arbContinueWritingModePanel', function($http, arb) {
 	return {
 		templateUrl: 'static/html/listPanel.html',
@@ -14,9 +14,33 @@ app.directive('arbContinueWritingModePanel', function($http, arb) {
 			$scope.arb = arb;
 
 			$scope.title = 'Continue writing';
-			$scope.moreLink = '/dashboard/';
 
 			arb.stateService.postData('/json/continueWriting/', {
+					numPagesToLoad: $scope.numToDisplay,
+				},
+				function(data) {
+					$scope.modeRows = data.result.modeRows;
+				});
+		},
+	};
+});
+
+// arb-write-mode-panel displays a list of things that prompt a user
+// to contribute new content, like redlinks and requests
+app.directive('arbWriteModePanel', function($http, arb) {
+	return {
+		templateUrl: 'static/html/listPanel.html',
+		scope: {
+			numToDisplay: '=',
+			isFullPage: '=',
+			hideTitle: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+
+			$scope.title = 'Write new';
+
+			arb.stateService.postData('/json/writeNew/', {
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {
