@@ -563,7 +563,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		$pageText.find('[arb-math-compiler]').each(function() {
 			scope._mathQueue.push($(this));
 		});
-		scope._processMathQueue(scope._currentMathCounter);
+		$timeout.cancel(scope._mathRenderPromise);
+		scope._mathRenderPromise = $timeout(function() {
+			scope._processMathQueue(scope._currentMathCounter);
+		}, scope._mathRenderPromise ? 500 : 0);
 	};
 
 	this.createConverter = function(pageId) {
