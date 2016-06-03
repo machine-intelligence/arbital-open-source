@@ -27,7 +27,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 			var prevEditText;
 
 			// Makes the diffHtml once both thisEditText and prevEditText have been loaded.
-			function makeDiffIfBothTextsLoaded() {
+			var makeDiffIfBothTextsLoaded = function() {
 				if (thisEditText && prevEditText) {
 					$scope.diffHtml = arb.diffService.getDiffHtml(thisEditText, prevEditText);
 
@@ -43,7 +43,6 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 				skipProcessDataStep: true,
 				convertPageIdsToAliases: true,
 				success: function(data) {
-					if (!data.edits) return;
 					thisEditText = data.edits[pageId].text;
 					makeDiffIfBothTextsLoaded();
 				},
@@ -56,7 +55,6 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 				skipProcessDataStep: true,
 				convertPageIdsToAliases: true,
 				success: function(data) {
-					if (!data.edits) return;
 					prevEditText = data.edits[pageId].text;
 					makeDiffIfBothTextsLoaded();
 				},
