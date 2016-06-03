@@ -309,7 +309,12 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		var skipProcessDataStep = options.skipProcessDataStep; delete options.skipProcessDataStep;
 
 		stateService.postDataWithOptions('/json/edit/',
-				{pageAlias: options.pageAlias},
+				{
+					pageAlias: options.pageAlias,
+					specificEdit: options.specificEdit,
+					editLimit: options.editLimit,
+					createdAtLimit: options.createdAtLimit,
+				},
 				{callCallbacks: !options.skipProcessDataStep},
 				success, error);
 	};
