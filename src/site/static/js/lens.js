@@ -317,6 +317,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				var processInlineComment = function(commentId) {
 					if (scope.isTinyScreen) return;
 					var comment = arb.stateService.pageMap[commentId];
+					if (comment.isResolved) return;
 					if (!comment.anchorContext || !comment.anchorText) return;
 
 					// Create the span corresponding to the anchor text
@@ -386,7 +387,9 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				scope.getInlineCommentIconStyle = function(commentId) {
 					var params = scope.inlineComments[commentId];
 					var isVisible = element.closest('.reveal-after-render-parent').length <= 0;
-					isVisible = isVisible && (!arb.stateService.pageMap[commentId].isEditorComment || arb.stateService.getShowEditorComments());
+					var comment = arb.stateService.pageMap[commentId];
+					isVisible = isVisible && (!comment.isEditorComment || arb.stateService.getShowEditorComments());
+					isVisible = isVisible && !comment.isResolved;
 					return {
 						'left': $markdownContainer.offset().left + $markdownContainer.outerWidth() - inlineIconShiftLeft,
 						'top': params.anchorNode.offset().top - inlineCommentButtonHeight / 2 + params.topOffset,
