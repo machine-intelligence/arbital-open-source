@@ -47,7 +47,7 @@
 		<md-button ng-click="showMaintenanceUpdates($event)"
 				aria-label="Your maintenance updates"
 				class="md-icon-button maintenance-updates-icon"
-				ng-if="arb.userService.user.id !== '' && arb.userService.userIsMaintainer()">
+				ng-if="arb.userService.user.id !== '' && arb.userService.userHasReceivedMaintenanceUpdates()">
 			<md-icon ng-if="arb.userService.user.maintenanceUpdateCount <= 0">build</md-icon>
 			<md-icon class="md-accent md-hue-3 white-circle-background"
 				ng-if="arb.userService.user.maintenanceUpdateCount > 0">build</md-icon>
