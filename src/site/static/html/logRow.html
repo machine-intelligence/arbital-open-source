@@ -208,7 +208,7 @@
 				marked
 				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 				comment thread as resolved
-				<div>
+				<div ng-if="arb.stateService.pageMap[goToPageId].isResolved">
 					<md-button ng-click="arb.pageService.resolveThread(goToPageId, true)">
 						Reopen
 					</md-button>

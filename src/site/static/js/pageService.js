@@ -483,7 +483,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			unresolve: unresolve,
 		};
 		stateService.postData('/json/resolveThread/', data, function(data) {
-			 stateService.pageMap[commentId].isResolved = true;
+			 stateService.pageMap[commentId].isResolved = !unresolve;
 		});
 	};
 
