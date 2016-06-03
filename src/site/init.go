@@ -138,6 +138,7 @@ func init() {
 	s.HandleFunc(redirectToPrimaryPageHandler.URI, handlerWrapper(redirectToPrimaryPageHandler)).Methods("POST")
 	s.HandleFunc(requisitesHandler.URI, handlerWrapper(requisitesHandler)).Methods("POST")
 	s.HandleFunc(resolveMarkHandler.URI, handlerWrapper(resolveMarkHandler)).Methods("POST")
+	s.HandleFunc(resolveThreadHandler.URI, handlerWrapper(resolveThreadHandler)).Methods("POST")
 	s.HandleFunc(revertPageHandler.URI, handlerWrapper(revertPageHandler)).Methods("POST")
 	s.HandleFunc(searchHandler.URI, handlerWrapper(searchHandler)).Methods("POST")
 	s.HandleFunc(settingsPageHandler.URI, handlerWrapper(settingsPageHandler)).Methods("POST")

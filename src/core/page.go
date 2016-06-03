@@ -119,6 +119,7 @@ type corePageData struct {
 	LensIndex                int    `json:"lensIndex"`
 	IsEditorComment          bool   `json:"isEditorComment"`
 	IsEditorCommentIntention bool   `json:"isEditorCommentIntention"`
+	IsResolved               bool   `json:"isResolved"`
 	SnapshotText             string `json:"snapshotText"`
 	AnchorContext            string `json:"anchorContext"`
 	AnchorText               string `json:"anchorText"`
@@ -879,7 +880,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
-			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isRequisite,pi.indirectTeacher,
+			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,pi.isRequisite,pi.indirectTeacher,
 			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
@@ -893,7 +894,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsEditorCommentIntention,
-			&p.IsRequisite, &p.IndirectTeacher,
+			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -1105,7 +1106,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,
-			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
+			pi.isResolved,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
@@ -1118,7 +1119,8 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		&p.Text, &p.MetaText, &p.Alias, &p.EditCreatorId, &p.SortChildrenBy,
 		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeGroupId,
 		&p.EditGroupId, &p.PageCreatedAt, &p.PageCreatorId, &p.LensIndex,
-		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
+		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved,
+		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)

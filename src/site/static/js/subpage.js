@@ -95,7 +95,13 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			// Called to set the comment's isEditorComment
 			$scope.showToEditorsOnly = function() {
 				$scope.page.isEditorComment = true;
+				$scope.page.isEditorCommentIntention = true;
 				arb.pageService.savePageInfo($scope.page);
+			};
+
+			// Resolve the comment thread
+			$scope.resolveThread = function() {
+				arb.pageService.resolveThread($scope.pageId);
 			};
 		},
 		compile: function(element) {
