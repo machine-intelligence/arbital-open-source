@@ -118,6 +118,7 @@ func handlerWrapper(h siteHandler) http.HandlerFunc {
 			if core.IsIdValid(u.Id) && result.Data.(*core.CommonHandlerData).ResetEverything {
 				// Load updates count. (Loading it afterwards since it could be affected by the page)
 				u.UpdateCount, err = core.LoadUpdateCount(db, u.Id)
+				u.NewNotificationCount, err = core.LoadNotificationCount(db, u.Id, false)
 				u.NewAchievementCount, err = core.LoadNewAchievementCount(db, u)
 				u.MaintenanceUpdateCount, err = core.LoadMaintenanceUpdateCount(db, u.Id, false)
 				if err != nil {

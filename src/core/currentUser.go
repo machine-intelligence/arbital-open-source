@@ -66,6 +66,7 @@ type CurrentUser struct {
 	IsDomainMember                bool              `json:"isDomainMember"`
 	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
 	UpdateCount                   int               `json:"updateCount"`
+	NewNotificationCount          int               `json:"newNotificationCount"`
 	NewAchievementCount           int               `json:"newAchievementCount"`
 	MaintenanceUpdateCount        int               `json:"maintenanceUpdateCount"`
 	GroupIds                      []string          `json:"groupIds"`
@@ -306,29 +307,35 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	return newLikeCount + newTaughtCount + newChangeLogLikeCount, nil
 }
 
-func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeAll bool) (int, error) {
-	maintenanceUpdateTypes := GetMaintenanceUpdateTypes()
+func LoadNotificationCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetNotificationUpdateTypes(), includeOldAndDismissed)
+}
 
+func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetMaintenanceUpdateTypes(), includeOldAndDismissed)
+}
+
+func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []string, includeOldAndDismissed bool) (int, error) {
 	var filterCondition string
-	if includeAll {
+	if includeOldAndDismissed {
 		filterCondition = "true"
 	} else {
 		filterCondition = "NOT seen AND NOT dismissed"
 	}
 
-	var maintenanceUpdateCount int
+	var updateCount int
 	row := database.NewQuery(`
 		SELECT COUNT(*)
 		FROM updates
 		WHERE userId=?`, userId).Add(`
-			AND type IN`).AddArgsGroupStr(maintenanceUpdateTypes).Add(`
+			AND type IN`).AddArgsGroupStr(updateTypes).Add(`
 			AND`).Add(filterCondition).ToStatement(db).QueryRow()
-	_, err := row.Scan(&maintenanceUpdateCount)
+	_, err := row.Scan(&updateCount)
 	if err != nil {
 		return -1, err
 	}
 
-	return maintenanceUpdateCount, err
+	return updateCount, err
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.
