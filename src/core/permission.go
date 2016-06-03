@@ -87,16 +87,29 @@ func (p *Page) computeDeletePermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Delete.Reason = p.Permissions.Edit.Reason
 		return
 	}
+	// If it's a comment, only the creator can edit it
+	if p.Type == CommentPageType {
+		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.IsAdmin
+		if !p.Permissions.Delete.Has {
+			p.Permissions.Delete.Reason = "Can't delete a comment you didn't create"
+		}
+		return
+	}
+	// If the page is part of the general domain, only the creator and domain members
+	// can edit it.
+	if len(p.DomainIds) <= 0 {
+		p.Permissions.Delete.Has = p.PageCreatorId == u.Id || u.IsDomainMember
+		if !p.Permissions.Delete.Has {
+			p.Permissions.Delete.Reason = "Only the creator and domain members can delete an unlisted page"
+		}
+		return
+	}
 	// Compute whether the user can delete via any of the domains
 	for _, domainId := range p.DomainIds {
 		if u.TrustMap[domainId].Permissions.Delete.Has {
 			p.Permissions.Delete.Has = true
 			return
 		}
-	}
-	// Check if the user is deleting their own comment
-	if !p.Permissions.Delete.Has {
-		p.Permissions.Delete.Has = p.Type == CommentPageType && p.PageCreatorId == u.Id
 	}
 	if !p.Permissions.Delete.Has {
 		p.Permissions.Delete.Reason = "Not enough reputation to delete this page"
