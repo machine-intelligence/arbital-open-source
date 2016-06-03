@@ -63,14 +63,14 @@ type CurrentUser struct {
 
 	// Computed variables
 	// Set to true if the user is a member of at least one domain
-	IsDomainMember         bool              `json:"isDomainMember"`
-	IsMaintainer           bool              `json:"isMaintainer"`
-	UpdateCount            int               `json:"updateCount"`
-	NewAchievementCount    int               `json:"newAchievementCount"`
-	MaintenanceUpdateCount int               `json:"maintenanceUpdateCount"`
-	GroupIds               []string          `json:"groupIds"`
-	TrustMap               map[string]*Trust `json:"trustMap"`
-	InvitesClaimed         []*Invite         `json:"invitesClaimed"`
+	IsDomainMember                bool              `json:"isDomainMember"`
+	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
+	UpdateCount                   int               `json:"updateCount"`
+	NewAchievementCount           int               `json:"newAchievementCount"`
+	MaintenanceUpdateCount        int               `json:"maintenanceUpdateCount"`
+	GroupIds                      []string          `json:"groupIds"`
+	TrustMap                      map[string]*Trust `json:"trustMap"`
+	InvitesClaimed                []*Invite         `json:"invitesClaimed"`
 	// If set, these are the lists the user is subscribed to via mailchimp
 	MailchimpInterests map[string]bool `json:"mailchimpInterests"`
 }
@@ -363,11 +363,11 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 		}
 
 		// load whether the user has ever had any maintenance updates
-		isMaintainer, err := LoadIsMaintainer(db, u)
+		hasReceivedMaintenanceUpdates, err := LoadHasReceivedMaintenanceUpdates(db, u)
 		if err != nil {
 			return fmt.Errorf("Couldn't process maintenance updates: %v", err)
 		}
-		u.IsMaintainer = isMaintainer
+		u.HasReceivedMaintenanceUpdates = hasReceivedMaintenanceUpdates
 	}
 
 	// Now compute permissions
@@ -414,7 +414,7 @@ func LoadInvitesWhere(db *database.DB, wherePart *database.QueryPart) ([]*Invite
 	return invites, nil
 }
 
-func LoadIsMaintainer(db *database.DB, u *CurrentUser) (bool, error) {
+func LoadHasReceivedMaintenanceUpdates(db *database.DB, u *CurrentUser) (bool, error) {
 	lifetimeMaintenanceUpdateCount, err := LoadMaintenanceUpdateCount(db, u.Id, true)
 	if err != nil {
 		return false, fmt.Errorf("Error while retrieving maintenance update count: %v", err)
