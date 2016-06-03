@@ -294,14 +294,14 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 
 	// Load edit.
 	// options {
-	//   pageAlias: pageAlias to load
-	//   specificEdit: load page with this edit number
-	//	 editLimit: only load edits lower than this number
-	//	 createdAtLimit: only load edits that were created before this date
-	//	 skipProcessDataStep: if true, we don't process the data we get from the server
-	//   convertPageIdsToAliases: false by default
-	//   success: callback on success
-	//   error: callback on error
+	// 	pageAlias: pageAlias to load
+	// 	specificEdit: load page with this edit number
+	// 	editLimit: only load edits lower than this number
+	// 	createdAtLimit: only load edits that were created before this date
+	// 	skipProcessDataStep: if true, we don't process the data we get from the server
+	// 	convertPageIdsToAliases: false by default
+	// 	success: callback on success
+	// 	error: callback on error
 	// }
 	this.loadEdit = function(options) {
 		// Set up options.
