@@ -1084,7 +1084,8 @@ arb-log-row, [arb-log-row] {
   border-bottom: #009688 3px solid; }
 
 .tab-panel-title {
-  font-size: 25px; }
+  font-size: 25px;
+  margin-left: 5px; }
 
 .tab-panel-tab {
   box-shadow: none !important;

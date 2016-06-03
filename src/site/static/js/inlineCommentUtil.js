@@ -157,9 +157,9 @@ var	recursivelyVisitChildren = function(node, callback) {
 	} else if (node.parentNode.id && node.parentNode.id.match(/^MathJax-Element-[0-9]+$/)) {
 		childLength = 0;
 		if (node.parentNode.type && node.parentNode.type.indexOf('mode=display') >= 0) {
-			text = '$$$' + text + '$$$';
-		} else {
 			text = '$$' + text + '$$';
+		} else {
+			text = '$' + text + '$';
 		}
 	} else if (childLength === 0) {
 		needsEscaping = true;
