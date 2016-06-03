@@ -299,6 +299,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	//	 editLimit: only load edits lower than this number
 	//	 createdAtLimit: only load edits that were created before this date
 	//	 skipProcessDataStep: if true, we don't process the data we get from the server
+	//   convertPageIdsToAliases: false by default
 	//   success: callback on success
 	//   error: callback on error
 	// }
@@ -316,8 +317,62 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 					createdAtLimit: options.createdAtLimit,
 				},
 				{callCallbacks: !options.skipProcessDataStep},
-				success, error);
+				function(data) {
+					if (options.convertPageIdsToAliases) {
+						data.edits[options.pageAlias].text = that.convertPageIdsToAliases(data.edits[options.pageAlias].text);
+					}
+					success(data);
+				},
+				error);
 	};
+
+	this.convertPageIdsToAliases = function(textToConvert) {
+		// Convert all links with pageIds to alias links.
+		return textToConvert.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
+			var page = stateService.pageMap[alias];
+			if (page) {
+				return prefix + '[' + text + '](' + page.alias + ')';
+			}
+			return whole;
+			/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
+				var page = stateService.pageMap[alias];
+				if (page) {
+				return prefix + '[vote: ' + page.alias + ']';
+				}
+				return whole;*/
+		}).replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
+			var page = stateService.pageMap[alias];
+			if (page) {
+				return prefix + '[' + page.alias + ' ' + text + ']';
+			}
+			return whole;
+		}).replace(simpleLinkRegexp, function(whole, prefix, alias) {
+			if (alias.substring(0, 1) == '-') {
+				var page = stateService.pageMap[alias.substring(1)];
+				if (page) {
+					return prefix + '[-' + page.alias + ']';
+				}
+			} else if (alias.substring(0, 1) == '+') {
+				var page = stateService.pageMap[alias.substring(1)];
+				if (page) {
+					return prefix + '[+' + page.alias + ']';
+				}
+			} else {
+				var page = stateService.pageMap[alias];
+				if (page) {
+					return prefix + '[' + page.alias + ']';
+				}
+			}
+			return whole;
+		}).replace(atAliasRegexp, function(whole, prefix, alias) {
+			var page = stateService.pageMap[alias];
+			if (page) {
+				return prefix + '[@' + page.alias + ']';
+			}
+			return whole;
+		});
+	};
+
 
 	// Get a new page from the server.
 	// options {

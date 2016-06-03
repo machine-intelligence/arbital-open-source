@@ -168,54 +168,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.lockExists = $scope.page.lockedBy != '' && moment.utc($scope.page.lockedUntil).isAfter(moment.utc());
 			$scope.lockedByAnother = $scope.lockExists && $scope.page.lockedBy !== arb.userService.user.id;
 
-			$scope.convertPageIdsToAliases = function(textToConvert) {
-				// Convert all links with pageIds to alias links.
-				return textToConvert.replace(complexLinkRegexp, function(whole, prefix, text, alias) {
-					var page = arb.stateService.pageMap[alias];
-					if (page) {
-						return prefix + '[' + text + '](' + page.alias + ')';
-					}
-					return whole;
-					/*}).replace(voteEmbedRegexp, function (whole, prefix, alias) {
-						var page = arb.stateService.pageMap[alias];
-						if (page) {
-						return prefix + '[vote: ' + page.alias + ']';
-						}
-						return whole;*/
-				}).replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
-					var page = arb.stateService.pageMap[alias];
-					if (page) {
-						return prefix + '[' + page.alias + ' ' + text + ']';
-					}
-					return whole;
-				}).replace(simpleLinkRegexp, function(whole, prefix, alias) {
-					if (alias.substring(0, 1) == '-') {
-						var page = arb.stateService.pageMap[alias.substring(1)];
-						if (page) {
-							return prefix + '[-' + page.alias + ']';
-						}
-					} else if (alias.substring(0, 1) == '+') {
-						var page = arb.stateService.pageMap[alias.substring(1)];
-						if (page) {
-							return prefix + '[+' + page.alias + ']';
-						}
-					} else {
-						var page = arb.stateService.pageMap[alias];
-						if (page) {
-							return prefix + '[' + page.alias + ']';
-						}
-					}
-					return whole;
-				}).replace(atAliasRegexp, function(whole, prefix, alias) {
-					var page = arb.stateService.pageMap[alias];
-					if (page) {
-						return prefix + '[@' + page.alias + ']';
-					}
-					return whole;
-				});
-			};
-
-			$scope.page.text = $scope.convertPageIdsToAliases($scope.page.text);
+			$scope.page.text = arb.pageService.convertPageIdsToAliases($scope.page.text);
 			if ($scope.isLens) {
 				$scope.page.title = $scope.page.lensTitle();
 			}
@@ -551,9 +504,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					pageAlias: $scope.page.pageId,
 					specificEdit: editNum,
 					skipProcessDataStep: true,
+					convertPageIdsToAliases: true,
 					success: function(data, status) {
 						$scope.otherDiff = data.edits[$scope.page.pageId];
-						$scope.otherDiff.text = $scope.convertPageIdsToAliases($scope.otherDiff.text);
 						$scope.refreshDiff();
 						$scope.selectedTab = 1;
 					},
@@ -574,9 +527,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					pageAlias: $scope.page.pageId,
 					specificEdit: editNum,
 					skipProcessDataStep: true,
+					convertPageIdsToAliases: true,
 					success: function(data, status) {
 						$scope.sideEdit = data.edits[$scope.page.pageId];
-						$scope.sideEdit.text = $scope.convertPageIdsToAliases($scope.sideEdit.text);
 						$scope.selectedTab = 1;
 					},
 				});

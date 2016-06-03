@@ -24,7 +24,6 @@ var maintenanceModeHandler = siteHandler{
 
 func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
-	//u.Id = "32"
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 

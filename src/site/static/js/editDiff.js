@@ -41,6 +41,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 				pageAlias: pageId,
 				specificEdit: thisEditNum,
 				skipProcessDataStep: true,
+				convertPageIdsToAliases: true,
 				success: function(data) {
 					if (!data.edits) return;
 					thisEditText = data.edits[pageId].text;
@@ -53,6 +54,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 				pageAlias: pageId,
 				specificEdit: prevEditNum,
 				skipProcessDataStep: true,
+				convertPageIdsToAliases: true,
 				success: function(data) {
 					if (!data.edits) return;
 					prevEditText = data.edits[pageId].text;
