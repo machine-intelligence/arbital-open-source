@@ -52,20 +52,6 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
 
-		// Process $$mathjax$$ blocks.
-		if (isEditor) {
-			var mathjaxBlockRegexp = new RegExp('^(~D~D[\\s\\S]+?~D~D) *(?=\Z|\n)', 'gm');
-			converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
-				return text.replace(mathjaxBlockRegexp, function(whole, mathjaxText) {
-					var encodedText = encodeURIComponent(mathjaxText);
-					var key = '$$' + encodedText.substring(6, encodedText.length - 6) + '$$';
-					var cachedValue = stateService.getMathjaxCacheValue(key);
-					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
-					return '<div ' + style + 'class=\'MathJax_Display\' arb-math-compiler=\'' + encodedText + '\'></div>';
-				});
-			});
-		}
-
 		// Process [summary(optional):markdown] blocks.
 		var summaryBlockRegexp = new RegExp('^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)', 'gm');
 		converter.hooks.chain('preBlockGamut', function(text, runBlockGamut) {
@@ -223,14 +209,25 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 		// Process $mathjax$ spans.
 		if (isEditor) {
+			var mathjaxSpan2Regexp = new RegExp(notEscaped + '(~D~D[\\s\\S]+?~D~D)', 'g');
+			converter.hooks.chain('preSpanGamut', function(text) {
+				return text.replace(mathjaxSpan2Regexp, function(whole, prefix, mathjaxText) {
+					var encodedText = encodeURIComponent(mathjaxText);
+					var key = '$$' + encodedText.substring(4, encodedText.length - 4) + '$$';
+					var cachedValue = stateService.getMathjaxCacheValue(key);
+					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
+					return prefix + '<div ' + style + 'class=\'MathJax_Display\' arb-math-compiler="' + encodedText + '"></div>';
+				});
+			});
 			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]+?~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
+					if (mathjaxText.substring(0, 4) == "~D~D") return whole;
 					var encodedText = encodeURIComponent(mathjaxText);
-					var key = '$' + encodedText.substring(4, encodedText.length - 4) + '$';
+					var key = '$' + encodedText.substring(2, encodedText.length - 2) + '$';
 					var cachedValue = stateService.getMathjaxCacheValue(key);
 					var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
-					return prefix + '<span ' + style + 'arb-math-compiler=\'' + encodeURIComponent(mathjaxText) + '\'></span>';
+					return prefix + '<span ' + style + 'arb-math-compiler="' + encodedText + '"></span>';
 				});
 			});
 		}
@@ -512,6 +509,18 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			$compile($(this))(scope);
 		});
 		if (refreshFunc) {
+			// Go through all mathjax elements, and if we already cached it, then display it
+			$pageText.find('[arb-math-compiler]').each(function() {
+				var $element = $(this);
+				var encodedMathjaxText = $element.attr('arb-math-compiler');
+				// Try to read from cache
+				var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
+				if (cachedValue) {
+					$element.html(cachedValue.html);
+					$element.removeClass('MathJax_Display').removeAttr('style');
+				}
+			});
+
 			if (scope._stopCompiling) return;
 			$timeout.cancel(scope._mathRenderPromise);
 			scope._mathRenderPromise = $timeout(function() {
@@ -534,9 +543,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 					// Try to read from cache
 					var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
-					if (cachedValue) {
-						$element.html(cachedValue.html);
-					} else {
+					if (!cachedValue) {
 						$element.text(decodeURIComponent(encodedMathjaxText));
 						$timeout(function() {
 							MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
