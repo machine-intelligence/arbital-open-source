@@ -501,7 +501,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 	}
 
 	rows := database.NewQuery(`
-		SELECT pi.alias,p.createdAt
+		SELECT pi.pageId,p.createdAt
 		FROM pagePairs AS pp
 		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
 		ON (pi.pageId=pp.childId)
@@ -510,7 +510,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		WHERE pp.type=?`, core.TagPagePairType).Add(`
 			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
 			AND pi.createdBy=?`, returnData.User.Id).Add(`
-		GROUP BY pi.alias
+		GROUP BY pi.pageId
 		ORDER BY p.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
