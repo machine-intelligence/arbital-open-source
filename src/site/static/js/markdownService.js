@@ -216,7 +216,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					var key = '$$' + encodedText.substring(4, encodedText.length - 4) + '$$';
 					var cachedValue = stateService.getMathjaxCacheValue(key);
 					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
-					return prefix + '<div ' + style + 'class=\'MathJax_Display\' arb-math-compiler="' + encodedText + '"></div>';
+					return prefix + '<div ' + style + 'class=\'mathjax-div\' arb-math-compiler="' + encodedText + '">&nbsp;</div>';
 				});
 			});
 			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]+?~D)', 'g');
@@ -227,7 +227,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					var key = '$' + encodedText.substring(2, encodedText.length - 2) + '$';
 					var cachedValue = stateService.getMathjaxCacheValue(key);
 					var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
-					return prefix + '<span ' + style + 'arb-math-compiler="' + encodedText + '"></span>';
+					return prefix + '<span ' + style + 'arb-math-compiler="' + encodedText + '">&nbsp;</span>';
 				});
 			});
 		}
@@ -509,6 +509,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			$compile($(this))(scope);
 		});
 		if (refreshFunc) {
+			if (scope._stopCompiling) return;
+			$timeout.cancel(scope._mathRenderPromise);
+
 			// Go through all mathjax elements, and if we already cached it, then display it
 			$pageText.find('[arb-math-compiler]').each(function() {
 				var $element = $(this);
@@ -517,12 +520,11 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
 				if (cachedValue) {
 					$element.html(cachedValue.html);
-					$element.removeClass('MathJax_Display').removeAttr('style');
+					$element.removeAttr('style');
 				}
 			});
 
-			if (scope._stopCompiling) return;
-			$timeout.cancel(scope._mathRenderPromise);
+			// Go through all elements after a delay, and render them for real if necessary
 			scope._mathRenderPromise = $timeout(function() {
 				scope._stopCompiling = true;
 				$pageText.find('[arb-math-compiler]').each(function() {
@@ -531,13 +533,18 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 					// Once the element is fully rendered, cache its entire DOM structure
 					var cacheMathjaxDom = function() {
-						var $contentElement = $element.find('.MathJax');
+						var $contentElement = $element.find('.MathJax_Display');
+						if ($contentElement.length <= 0) {
+							$contentElement = $element.find('.MathJax');
+						}
 						if ($element.closest('body').length <= 0 || $contentElement.length <= 0) {
 							return;
 						}
+
 						stateService.cacheMathjax(encodedMathjaxText, {
 							html: $element.html(),
-							style: 'width:' + $contentElement.css('width') + ';height:' + $contentElement.css('height'),
+							style: 'width:' + $contentElement.width() + 'px;' +
+								'height:' + $contentElement.height() + 'px',
 						});
 					};
 
@@ -550,7 +557,6 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 							MathJax.Hub.Queue(cacheMathjaxDom);
 						});
 					}
-					$element.removeClass('MathJax_Display').removeAttr('style');
 				});
 				MathJax.Hub.Queue(function() {
 					scope._stopCompiling = false;
