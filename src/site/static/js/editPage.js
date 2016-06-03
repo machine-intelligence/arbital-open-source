@@ -119,23 +119,18 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Setup all the settings
-			$scope.isWiki = $scope.page.isWiki();
-			$scope.isQuestion = $scope.page.isQuestion();
-			$scope.isComment = $scope.page.isComment();
-			$scope.isLens = $scope.page.isLens();
-			$scope.isGroup = $scope.page.isGroup() || $scope.page.isDomain();
 			$scope.forceExpandSimilarPagesCount = 10;
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
 			// Set up page types.
-			if ($scope.isQuestion) {
+			if ($scope.page.isQuestion()) {
 				$scope.pageTypes = {question: 'Question'};
-			} else if ($scope.isComment) {
+			} else if ($scope.page.isComment()) {
 				$scope.pageTypes = {comment: 'Comment'};
-			} else if ($scope.isWiki) {
-				$scope.pageTypes = {wiki: 'Wiki page'};
-			} else if ($scope.isLens) {
-				$scope.pageTypes = {lens: 'Lens page'};
+			} else if ($scope.page.isWiki() || $scope.page.isLens()) {
+				$scope.pageTypes = {wiki: 'Wiki page', lens: 'Lens page'};
+			}
+			if ($scope.page.isLens()) {
 				$scope.lensParent = arb.stateService.pageMap[$scope.page.parentIds[0]];
 			}
 
@@ -216,7 +211,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			$scope.page.text = $scope.convertPageIdsToAliases($scope.page.text);
-			if ($scope.isLens) {
+			if ($scope.page.isLens()) {
 				$scope.page.title = $scope.page.lensTitle();
 			}
 
@@ -344,7 +339,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
 				};
-				if ($scope.isQuestion) {
+				if ($scope.page.isQuestion()) {
 					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;
 				}
 				if ($scope.page.anchorContext) {
@@ -502,7 +497,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				if (searchingForSimilarPages) return;
 				if ($scope.selectedTab != 0) return;
 				if ($scope.page.wasPublished) return;
-				if ($scope.isComment) return;
+				if ($scope.page.isComment()) return;
 
 				var data = {
 					title: $scope.page.title,
@@ -667,7 +662,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					$divs.on('scroll', syncScroll);
 				}
 
-				if (scope.isComment) {
+				if (scope.page.isComment()) {
 					// Scroll to show the entire edit page element and focus on the input.
 					var editorTop = element.offset().top + element.height() - $(window).height() + 80;
 					$('html, body').animate({

@@ -118,7 +118,13 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		hasVote = data.VoteType != ""
 	}
 	if oldPage.WasPublished {
-		data.Type = oldPage.Type
+		if (data.Type == core.WikiPageType || data.Type == core.LensPageType) &&
+			(oldPage.Type == core.WikiPageType || oldPage.Type == core.LensPageType) {
+			// Allow type changing from wiki <-> lens
+		} else {
+			// Don't allow type changing
+			data.Type = oldPage.Type
+		}
 	}
 	// Enforce SortChildrenBy
 	if data.Type == core.CommentPageType {
