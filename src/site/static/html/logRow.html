@@ -279,7 +279,8 @@
 							ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId == ''">
 						Approve
 					</md-button>
-					<span ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
+					<!-- Check that goToPage exists, because it might have been deleted -->
+					<span ng-if="goToPage && goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
 						This submission has been approved by
 						<arb-user-name user-id="{{::goToPage.domainSubmissions[update.subscribedToId].approverId}}"></arb-user-name>
 					</span>
