@@ -508,61 +508,62 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		$pageText.children().each(function(index) {
 			$compile($(this))(scope);
 		});
-		if (refreshFunc) {
-			if (scope._stopCompiling) return;
-			$timeout.cancel(scope._mathRenderPromise);
 
-			// Go through all mathjax elements, and if we already cached it, then display it
-			$pageText.find('[arb-math-compiler]').each(function() {
-				var $element = $(this);
+		if (!refreshFunc) return;
+		// For the editor, we do the whole song and dance to make MathJax preview really fast
+
+		// If first time around, set up the functions
+		if (scope._currentMathCounter === undefined) {
+			scope._currentMathCounter = 0;
+
+			// Called when a mathjax item has been processed via MathJax
+			scope._mathItemProcessed = function($element, encodedMathjaxText, currentMathCounter) {
+				if (currentMathCounter != scope._currentMathCounter) return;
+				var $contentElement = $element.find('.MathJax_Display');
+				if ($contentElement.length <= 0) {
+					$contentElement = $element.find('.MathJax');
+				}
+				if ($element.closest('body').length <= 0 || $contentElement.length <= 0) {
+					return;
+				}
+
+				stateService.cacheMathjax(encodedMathjaxText, {
+					html: $element.html(),
+					style: 'width:' + $contentElement.width() + 'px;' +
+						'height:' + $contentElement.height() + 'px',
+				});
+			};
+
+			// Take one element from queue and process it. Once done, continue processing
+			// the queue if there are items.
+			scope._processMathQueue = function(currentMathCounter) {
+				if (currentMathCounter != scope._currentMathCounter) return;
+				if (scope._mathQueue.length <= 0) return;
+				var $element = scope._mathQueue.shift();
 				var encodedMathjaxText = $element.attr('arb-math-compiler');
+				
 				// Try to read from cache
 				var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
 				if (cachedValue) {
 					$element.html(cachedValue.html);
 					$element.removeAttr('style');
+					scope._processMathQueue(currentMathCounter);
+				} else {
+					$element.text(decodeURIComponent(encodedMathjaxText));
+					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
+					MathJax.Hub.Queue(['_mathItemProcessed', scope, $element, encodedMathjaxText, currentMathCounter]);
+					MathJax.Hub.Queue(['_processMathQueue', scope, currentMathCounter]);
 				}
-			});
-
-			// Go through all elements after a delay, and render them for real if necessary
-			scope._mathRenderPromise = $timeout(function() {
-				scope._stopCompiling = true;
-				$pageText.find('[arb-math-compiler]').each(function() {
-					var $element = $(this);
-					var encodedMathjaxText = $element.attr('arb-math-compiler');
-
-					// Once the element is fully rendered, cache its entire DOM structure
-					var cacheMathjaxDom = function() {
-						var $contentElement = $element.find('.MathJax_Display');
-						if ($contentElement.length <= 0) {
-							$contentElement = $element.find('.MathJax');
-						}
-						if ($element.closest('body').length <= 0 || $contentElement.length <= 0) {
-							return;
-						}
-
-						stateService.cacheMathjax(encodedMathjaxText, {
-							html: $element.html(),
-							style: 'width:' + $contentElement.width() + 'px;' +
-								'height:' + $contentElement.height() + 'px',
-						});
-					};
-
-					// Try to read from cache
-					var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
-					if (!cachedValue) {
-						$element.text(decodeURIComponent(encodedMathjaxText));
-						$timeout(function() {
-							MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
-							MathJax.Hub.Queue(cacheMathjaxDom);
-						});
-					}
-				});
-				MathJax.Hub.Queue(function() {
-					scope._stopCompiling = false;
-				});
-			}, scope._mathRenderPromise ? 500 : 0);
+			};
 		}
+		scope._mathQueue = [];
+		scope._currentMathCounter++;
+
+		// Go through all mathjax elements, and queue them up
+		$pageText.find('[arb-math-compiler]').each(function() {
+			scope._mathQueue.push($(this));
+		});
+		scope._processMathQueue(scope._currentMathCounter);
 	};
 
 	this.createConverter = function(pageId) {
