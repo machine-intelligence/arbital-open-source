@@ -270,12 +270,11 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		});
 
 		// Process [todo:text] spans.
-		var todoSpanRegexp = new RegExp(notEscaped +
-				'\\[todo: ?([^\\]]+?)\\]' + noParen, 'g');
+		var todoSpanRegexp = new RegExp(notEscaped + '\\[todo: ?([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(todoSpanRegexp, function(whole, prefix, text) {
 				if (isEditor) {
-					return prefix + '<span class=\'todo-text\'>';
+					return prefix + '<span class=\'todo-text\'>' + text + '</span>';
 				}
 				return prefix;
 			});
