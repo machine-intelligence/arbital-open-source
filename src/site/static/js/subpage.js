@@ -97,6 +97,11 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 				$scope.page.isEditorComment = true;
 				arb.pageService.savePageInfo($scope.page);
 			};
+
+			// Resolve the comment thread
+			$scope.resolveThread = function() {
+				arb.pageService.resolveThread($scope.pageId);
+			};
 		},
 		compile: function(element) {
 			var link = RecursionHelper.compile(element);

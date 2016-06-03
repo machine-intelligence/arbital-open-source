@@ -35,6 +35,7 @@ const (
 	RemovedFromGroupUpdateType      = "removedFromGroup"
 	InviteReceivedUpdateType        = "inviteReceived"
 	NewMarkUpdateType               = "newMark"
+	ResolvedThreadUpdateType        = "resolvedThread"
 	ResolvedMarkUpdateType          = "resolvedMark"
 	AnsweredMarkUpdateType          = "answeredMark"
 	QuestionMergedUpdateType        = "questionMerged"

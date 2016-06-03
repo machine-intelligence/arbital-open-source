@@ -121,6 +121,12 @@
 														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a> wrote a
 														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">new comment reply</a>
 														({{RelativeDateTime .CreatedAt}})
+													{{else if eq .Type "resolvedThread"}}
+														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
+														marked a
+														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">comment thread</a>
+														as resolved
+														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "pageEdit"}}
 														This page's text was edited
 														{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>{{end}}
