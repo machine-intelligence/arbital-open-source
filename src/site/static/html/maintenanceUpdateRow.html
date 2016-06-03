@@ -246,9 +246,6 @@
 						{{::repeated}} times
 					</span>
 				</span>
-				<span>
-					<arb-edit-diff change-log="::changeLog" num-edits="::repeated"></arb-edit-diff>
-				</span>
 			</span>
 
 			<!-- Unknown -->
@@ -275,5 +272,9 @@
 			</md-button>
 		</div>
 
+	</div>
+
+	<div ng-if="::type == 'pageEdit'">
+		<arb-edit-diff change-log="::changeLog" num-edits="::repeated"></arb-edit-diff>
 	</div>
 </div>
