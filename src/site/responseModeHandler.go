@@ -1,4 +1,4 @@
-// maintenanceModeHandler.go serves the /maintain panel (which displays maintenance updates, such as, 'Alexei edited your page').
+// responseModeHandler.go serves the /notifications panel (which displays notifications, such as, 'Alexei replied to your comment').
 package site
 
 import (
@@ -10,25 +10,25 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type maintenanceModeData struct {
+type responseModeData struct {
 	NumPagesToLoad int
 }
 
-var maintenanceModeHandler = siteHandler{
-	URI:         "/json/maintain/",
-	HandlerFunc: maintenanceModeHandlerFunc,
+var responseModeHandler = siteHandler{
+	URI:         "/json/notifications/",
+	HandlerFunc: responseModeHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
-func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func responseModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data maintenanceModeData
+	var data responseModeData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
@@ -37,17 +37,17 @@ func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.NumPagesToLoad = DefaultModeRowCount
 	}
 
-	rows, err := loadMaintenanceUpdateRows(db, u, returnData, data.NumPagesToLoad)
+	rows, err := loadNotificationRows(db, u, returnData, data.NumPagesToLoad)
 	if err != nil {
-		return pages.Fail("Error loading maintenance updates", err)
+		return pages.Fail("Error loading notifications", err)
 	}
 
 	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, rows)
 
-	// Load and update lastMaintenanceModeView for this user
-	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastMaintenanceModeView)
+	// Load and update lastResponseModeView for this user
+	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastResponseModeView)
 	if err != nil {
-		return pages.Fail("Error updating last maintenance mode view", err)
+		return pages.Fail("Error updating last response mode view", err)
 	}
 
 	// Load pages
@@ -58,7 +58,7 @@ func maintenanceModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	updateIds := make([]string, 0)
 	for _, row := range rows {
-		updateIds = append(updateIds, row.(*maintenanceUpdateRow).Update.Id)
+		updateIds = append(updateIds, row.(*notificationRow).Update.Id)
 	}
 
 	// Mark updates as seen.

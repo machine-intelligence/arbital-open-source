@@ -8,9 +8,10 @@ import (
 const (
 	// Possible views
 	LastAchievementsModeView = "lastAchievementsModeView"
-	LastReadModeView         = "lastReadModeView"
 	LastDiscussionModeView   = "lastDiscussionModeView"
 	LastMaintenanceModeView  = "lastMaintenanceModeView"
+	LastReadModeView         = "lastReadModeView"
+	LastResponseModeView     = "lastResponseModeView"
 )
 
 // Just load the last time the user loaded the given view.

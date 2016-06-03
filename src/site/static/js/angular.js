@@ -420,6 +420,19 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('newsletter'));
 		},
 	});
+	arb.urlService.addUrlHandler('/notifications/', {
+		name: 'NotificationsPage',
+		handler: function(args, $scope) {
+			$http({method: 'POST', url: '/json/default/'})
+			.success($scope.getSuccessFunc(function(data) {
+				return {
+					title: 'Notifications',
+					content: $scope.newElement('<arb-response-mode-page></arb-response-mode-page>'),
+				};
+			}))
+			.error($scope.getErrorFunc('default'));
+		},
+	});
 	arb.urlService.addUrlHandler('/p/:alias/:alias2?', {
 		name: 'PrimaryPage',
 		handler: function(args, $scope) {

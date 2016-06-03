@@ -33,6 +33,11 @@
 					ng-switch-when="maintenanceUpdate"
 					on-dismiss="dismissRow(modeRows, index)"
 				></arb-maintenance-update-row>
+				<arb-notification-row
+					mode-row="::modeRow"
+					ng-switch-when="notification"
+					on-dismiss="dismissRow(modeRows, index)"
+				></arb-notification-row>
 			</div>
 
 			<md-divider ng-if="::!$last"></md-divider>

@@ -45,6 +45,15 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			});
 			$scope.hide = $location.path().indexOf('/edit') === 0;
 
+			$scope.showNotifications = function(ev) {
+				showPanel(
+					ev,
+					'/notifications/',
+					'.notifications-icon',
+					'<arb-response-mode-panel hide-title="true" num-to-display="100"></arb-response-mode-panel>'
+				);
+			};
+
 			$scope.showAchievements = function(ev) {
 				showPanel(
 					ev,
