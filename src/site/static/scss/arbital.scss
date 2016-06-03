@@ -1074,3 +1074,8 @@ arb-log-row, [arb-log-row] {
 	box-shadow: none !important;
 	border-radius: 0 !important;
 }
+
+.mathjax-div {
+	// Copied from .MathJax_Display
+	margin: 1em 0;
+}

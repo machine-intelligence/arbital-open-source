@@ -1091,4 +1091,7 @@ arb-log-row, [arb-log-row] {
   box-shadow: none !important;
   border-radius: 0 !important; }
 
+.mathjax-div {
+  margin: 1em 0; }
+
 /*# sourceMappingURL=arbital.css.map */
