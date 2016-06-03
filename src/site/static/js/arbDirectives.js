@@ -386,7 +386,11 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 
 				// If it's open, execute the "New page" click.
 				if ($scope.data.isOpen) {
-					arb.urlService.goToUrl('/edit/');
+					if ($event.ctrlKey) {
+						window.open('/edit/');
+					} else {
+						arb.urlService.goToUrl('/edit/');
+					}
 				}
 
 				// Toggle the menu.
