@@ -53,8 +53,12 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if page.Type != core.CommentPageType {
 		return pages.Fail("Not a comment", nil).Status(http.StatusBadRequest)
 	}
-
-	// TODO: Make sure the user has the right permissions to resolve this comment
+	if data.Unresolve {
+		// If we are reverting resolve, we need to be able to edit the comment
+		if !page.Permissions.Edit.Has {
+			return pages.Fail(page.Permissions.Edit.Reason, nil).Status(http.StatusForbidden)
+		}
+	}
 
 	// Get comment's parents
 	commentParentId, commentPrimaryPageId, err := core.GetCommentParents(db, data.PageId)
@@ -63,6 +67,17 @@ func resolveThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 	if commentParentId != data.PageId && commentParentId != "" {
 		return pages.Fail("Trying to resolve a reply", nil).Status(http.StatusBadRequest)
+	}
+
+	// Only users who have edit access to the comment's primary page can resolve it
+	if !data.Unresolve {
+		lens, err := core.LoadFullEdit(db, commentPrimaryPageId, u, nil)
+		if err != nil {
+			return pages.Fail("Couldn't load page", err)
+		}
+		if !lens.Permissions.Edit.Has {
+			return pages.Fail(lens.Permissions.Edit.Reason, nil).Status(http.StatusForbidden)
+		}
 	}
 
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
