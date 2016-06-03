@@ -33,3 +33,4 @@ CREATE TABLE pageToDomainSubmissions (
 ) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 
 alter table pageInfos add column featuredAt datetime not null;
+alter table pageInfos add column isResolved bool not null;

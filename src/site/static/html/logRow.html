@@ -203,6 +203,18 @@
 				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
 			</span>
 
+			<span ng-switch-when="resolvedThread">
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+				marked
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+				comment thread as resolved
+				<div>
+					<md-button ng-click="arb.pageService.resolveThread(goToPageId, true)">
+						Reopen
+					</md-button>
+				</div>
+			</span>
+
 			<span ng-switch-when="pageEdit">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				edited the page
@@ -314,6 +326,7 @@
 				<span ng-switch-when="pageEdit"></span>
 				<span ng-switch-when="topLevelComment"></span>
 				<span ng-switch-when="reply"></span>
+				<span ng-switch-when="resolvedThread"></span>
 				<span ng-switch-when="atMention"></span>
 				<span ng-switch-when="addedToGroup"></span>
 				<span ng-switch-when="removedFromGroup"></span>

@@ -476,6 +476,17 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		}
 	};
 
+	// Make the given comment thread as (un)resolved.
+	this.resolveThread = function(commentId, unresolve) {
+		var data = {
+			pageId: commentId,
+			unresolve: unresolve,
+		};
+		stateService.postData('/json/resolveThread/', data, function(data) {
+			 stateService.pageMap[commentId].isResolved = true;
+		});
+	};
+
 	// Approve the page that was submitted to the given domain.
 	this.approvePageToDomain = function(pageId, domainId, successFn, errorFn) {
 		var data = {

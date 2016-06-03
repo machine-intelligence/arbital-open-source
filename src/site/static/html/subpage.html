@@ -2,10 +2,17 @@
 		layout="column"
 		class="subpage-content full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-if="!isDeleted && (!page.isEditorComment || arb.stateService.getShowEditorComments())">
+		ng-if="!isDeleted && !page.isResolved && (!page.isEditorComment || arb.stateService.getShowEditorComments())">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center">
-		<md-icon ng-if="::!parentSubpageId">comment</md-icon>
+		<span ng-if="::!parentSubpageId && !page.isEditorComment">
+			<md-icon>comment</md-icon>
+			<md-toltip>Public comment</md-tooltip>
+		</span>
+		<span ng-if="::!parentSubpageId && page.isEditorComment">
+			<md-icon>rate_review</md-icon>
+			<md-tooltip>Editor comment</md-tooltip>
+		</span>
 		<span class="separator" ng-if="::!parentSubpageId"></span>
 
 		<!-- User name -->
@@ -26,6 +33,13 @@
 			</md-button>
 			<md-menu-content>
 
+				<!-- Permalink -->
+				<md-menu-item>
+					<md-button ng-href="{{::myUrl}}" aria-label="Permalink">
+						Permalink
+					</md-button>
+				</md-menu-item>
+
 				<!-- Edit comment -->
 				<md-menu-item ng-if="::(page.pageCreatorId === arb.userService.user.id)">
 					<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
@@ -36,19 +50,21 @@
 					</md-button>
 				</md-menu-item>
 
-				<!-- Permalink -->
-				<md-menu-item>
-					<md-button ng-href="{{::myUrl}}" aria-label="Permalink">
-						Permalink
-					</md-button>
-				</md-menu-item>
-
 				<!-- Mark comment as for editors only -->
 				<md-menu-item ng-if="(page.pageCreatorId === arb.userService.user.id || arb.userService.user.isAdmin) && !page.isEditorComment">
 					<md-button ng-click="showToEditorsOnly()"
 							ng-disabled="editing"
 							aria-label="Show to editors only">
 						Show to editors only
+					</md-button>
+				</md-menu-item>
+
+				<!-- Resolve comment thread -->
+				<md-menu-item ng-if="::(page.isEditorComment && !parentSubpageId && lens.permissions.edit.has)">
+					<md-button aria-label="Resolve comment thread"
+							ng-disabled="editing"
+							ng-click="resolveThread($event)">
+						Resolve thread
 					</md-button>
 				</md-menu-item>
 
