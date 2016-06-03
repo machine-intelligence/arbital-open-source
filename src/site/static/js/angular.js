@@ -427,7 +427,7 @@ app.run(function($http, $location, arb) {
 			.success($scope.getSuccessFunc(function(data) {
 				return {
 					title: 'Notifications',
-					content: $scope.newElement('<arb-response-mode-page></arb-response-mode-page>'),
+					content: $scope.newElement('<arb-bell-updates-page></arb-bell-updates-page>'),
 				};
 			}))
 			.error($scope.getErrorFunc('default'));

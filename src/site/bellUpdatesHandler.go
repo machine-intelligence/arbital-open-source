@@ -1,4 +1,4 @@
-// responseModeHandler.go serves the /notifications panel (which displays notifications, such as, 'Alexei replied to your comment').
+// bellUpdatesHandler.go serves the /notifications panel (which displays notifications, such as, 'Alexei replied to your comment').
 package site
 
 import (
@@ -10,25 +10,25 @@ import (
 	"zanaduu3/src/pages"
 )
 
-type responseModeData struct {
+type bellUpdatesData struct {
 	NumPagesToLoad int
 }
 
-var responseModeHandler = siteHandler{
+var bellUpdatesHandler = siteHandler{
 	URI:         "/json/notifications/",
-	HandlerFunc: responseModeHandlerFunc,
+	HandlerFunc: bellUpdatesHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
-func responseModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
+func bellUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	u := params.U
 	db := params.DB
 	returnData := core.NewHandlerData(u)
 
 	// Decode data
-	var data responseModeData
+	var data bellUpdatesData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
@@ -44,8 +44,8 @@ func responseModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 
 	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, rows)
 
-	// Load and update lastResponseModeView for this user
-	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastResponseModeView)
+	// Load and update lastBellUpdatesView for this user
+	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastBellUpdatesView)
 	if err != nil {
 		return pages.Fail("Error updating last response mode view", err)
 	}
