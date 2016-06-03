@@ -206,9 +206,11 @@
 			<span ng-switch-when="resolvedThread">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				marked
-				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
-				comment thread as resolved
-				<div ng-if="arb.stateService.pageMap[goToPageId].isResolved">
+				<span ng-if="::goToPage.pageCreatorId == arb.userService.user.id">your</span>
+				comment,
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>,
+				as resolved
+				<div ng-if="goToPage.isResolved">
 					<md-button ng-click="arb.pageService.resolveThread(goToPageId, true)">
 						Reopen
 					</md-button>
