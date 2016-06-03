@@ -65,6 +65,7 @@ type CurrentUser struct {
 	// Set to true if the user is a member of at least one domain
 	IsDomainMember                bool              `json:"isDomainMember"`
 	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
+	HasReceivedNotifications      bool              `json:"hasReceivedNotifications"`
 	UpdateCount                   int               `json:"updateCount"`
 	NewNotificationCount          int               `json:"newNotificationCount"`
 	NewAchievementCount           int               `json:"newAchievementCount"`
@@ -375,6 +376,13 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 			return fmt.Errorf("Couldn't process maintenance updates: %v", err)
 		}
 		u.HasReceivedMaintenanceUpdates = hasReceivedMaintenanceUpdates
+
+		// load whether the user has ever had any notifications
+		hasReceivedNotifications, err := LoadHasReceivedNotifications(db, u)
+		if err != nil {
+			return fmt.Errorf("Couldn't process notifications: %v", err)
+		}
+		u.HasReceivedNotifications = hasReceivedNotifications
 	}
 
 	// Now compute permissions
@@ -428,6 +436,15 @@ func LoadHasReceivedMaintenanceUpdates(db *database.DB, u *CurrentUser) (bool, e
 	}
 
 	return lifetimeMaintenanceUpdateCount > 0, nil
+}
+
+func LoadHasReceivedNotifications(db *database.DB, u *CurrentUser) (bool, error) {
+	lifetimeNotificationCount, err := LoadNotificationCount(db, u.Id, true)
+	if err != nil {
+		return false, fmt.Errorf("Error while retrieving notification count: %v", err)
+	}
+
+	return lifetimeNotificationCount > 0, nil
 }
 
 func init() {

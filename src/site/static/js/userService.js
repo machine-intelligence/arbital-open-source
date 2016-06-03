@@ -27,9 +27,7 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 
 	// Check if the user has received any notifications.
 	this.userHasReceivedNotifications = function() {
-		return true;
-		// ROGTODO: this:
-		// return this.user && this.user.hasReceivedNotifications;
+		return this.user && this.user.hasReceivedNotifications;
 	}
 
 	// Check if the user has received any maintenance updates.

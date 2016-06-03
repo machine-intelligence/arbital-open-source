@@ -24,16 +24,15 @@ app.directive('arbResponseModePanel', function($http, arb) {
 					$scope.lastView = data.result.lastView;
 				});
 
-			// ROGTODO: handle dismissal
-			// $scope.dismissRow = function(allRows, index) {
-			// 	var update = allRows[index].update;
-			// 	$http({method: 'POST', url: '/dismissUpdate/', data: JSON.stringify({
-			// 		id: update.id
-			// 	})});
+			$scope.dismissRow = function(allRows, index) {
+				var update = allRows[index].update;
+				$http({method: 'POST', url: '/dismissUpdate/', data: JSON.stringify({
+					id: update.id
+				})});
 
-			// 	// Remove this update from the list
-			// 	allRows.splice(index, 1);
-			// };
+				// Remove this update from the list
+				allRows.splice(index, 1);
+			};
 		},
 	};
 });
@@ -48,18 +47,17 @@ app.directive('arbNotificationRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			// ROGTODO: handle scope variables
-			// $scope.changeLog = $scope.modeRow.update.changeLog;
-			// $scope.byUserId = $scope.modeRow.update.byUserId;
-			// $scope.showUserLink = $scope.modeRow.update.subscribedToId != $scope.modeRow.update.byUserId;
-			// $scope.type = $scope.modeRow.update.type;
-			// $scope.markId = $scope.modeRow.update.markId;
-			// $scope.subscribedToId = $scope.modeRow.update.subscribedToId;
-			// $scope.goToPageId = $scope.modeRow.update.goToPageId;
-			// $scope.isRelatedPageAlive = $scope.modeRow.update.isGoToPageAlive;
-			// $scope.createdAt = $scope.modeRow.update.createdAt;
-			// $scope.repeated = $scope.modeRow.update.repeated;
-			// $scope.showDismissIcon = true;
+			$scope.changeLog = $scope.modeRow.update.changeLog;
+			$scope.byUserId = $scope.modeRow.update.byUserId;
+			$scope.showUserLink = $scope.modeRow.update.subscribedToId != $scope.modeRow.update.byUserId;
+			$scope.type = $scope.modeRow.update.type;
+			$scope.markId = $scope.modeRow.update.markId;
+			$scope.subscribedToId = $scope.modeRow.update.subscribedToId;
+			$scope.goToPageId = $scope.modeRow.update.goToPageId;
+			$scope.isRelatedPageAlive = $scope.modeRow.update.isGoToPageAlive;
+			$scope.createdAt = $scope.modeRow.update.createdAt;
+			$scope.repeated = $scope.modeRow.update.repeated;
+			$scope.showDismissIcon = true;
 		},
 	};
 });
