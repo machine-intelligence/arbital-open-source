@@ -36,7 +36,7 @@
 				layout-padding
 				layout="row"
 				layout-align="start center"
-				ng-if="page.domainIds.length <= 0 && !isSimpleEmbed">
+				ng-if="page.domainIds.length <= 0 && !page.isUser() && !page.isGroup() && !isSimpleEmbed">
 			<!-- Hasn't been submitted -->
 			<div ng-if="page.domainSubmissionsCount() <= 0">
 				This page is
