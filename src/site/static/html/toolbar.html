@@ -21,25 +21,14 @@
 				ng-if="::!isTinyScreen"></arb-autocomplete>
 		<span flex></span>
 
-		<!-- Updates -->
-		<md-button href="/updates/"
-				aria-label="Updates"
-				class="md-icon-button"
-				ng-if="arb.userService.user.id !== ''">
-			<md-icon ng-if="arb.userService.user.updateCount <= 0">notifications_none</md-icon>
-			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="arb.userService.user.updateCount > 0">notifications</md-icon>
-			<span ng-bind="arb.userService.user.updateCount" ng-if="arb.userService.user.updateCount > 0"></span>
-		</md-button>&nbsp;
-
 		<!-- Notifications -->
 		<md-button ng-click="showNotifications($event)"
 				aria-label="Notifications"
 				class="md-icon-button notifications-icon"
 				ng-if="arb.userService.user.id !== '' && arb.userService.userHasReceivedNotifications()">
-			<md-icon ng-if="arb.userService.user.newNotificationCount <= 0">comment</md-icon>
+			<md-icon ng-if="arb.userService.user.newNotificationCount <= 0">notifications_none</md-icon>
 			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="arb.userService.user.newNotificationCount > 0">comment</md-icon>
+				ng-if="arb.userService.user.newNotificationCount > 0">notifications</md-icon>
 			<span ng-bind="arb.userService.user.newNotificationCount" ng-if="arb.userService.user.newNotificationCount > 0"></span>
 		</md-button>&nbsp;
 
