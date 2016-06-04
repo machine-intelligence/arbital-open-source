@@ -298,7 +298,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// 	specificEdit: load page with this edit number
 	// 	editLimit: only load edits lower than this number
 	// 	createdAtLimit: only load edits that were created before this date
-	//  additionalPageIds: optional array of pages to load (e.g. for quick parent)
+	//	additionalPageIds: optional array of pages to load (e.g. for quick parent)
 	// 	skipProcessDataStep: if true, we don't process the data we get from the server
 	// 	convertPageIdsToAliases: false by default
 	// 	success: callback on success
