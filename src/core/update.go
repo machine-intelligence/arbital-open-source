@@ -375,6 +375,19 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	return resultData, nil
 }
 
+func GetNotificationUpdateTypes() []string {
+	return []string{
+		TopLevelCommentUpdateType,
+		ReplyUpdateType,
+		PageToDomainSubmissionUpdateType,
+		PageToDomainAcceptedUpdateType,
+		AtMentionUpdateType,
+		NewMarkUpdateType,
+		ResolvedMarkUpdateType,
+		AnsweredMarkUpdateType,
+	}
+}
+
 func GetMaintenanceUpdateTypes() []string {
 	return []string{
 		PageEditUpdateType,
