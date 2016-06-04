@@ -5,7 +5,7 @@
 		ng-mouseleave="mouseLeave()"
 		ng-if="!hideFab && arb.userService.userIsLoggedIn()">
 	<md-fab-trigger>
-		<md-button ng-click="triggerClicked($event)" class="md-fab" >
+		<md-button ng-click="triggerClicked($event)" class="md-fab" aria-label="New page">
 			<!-- When closed and not in the special inline response mode for mobile. -->
 			<md-icon class="fab-icon" ng-if="!data.isOpen && !showInlineVersion()">add</md-icon>
 
@@ -26,18 +26,6 @@
 		<md-button ng-href="{{editPageUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="editPageUrl">
 			<md-icon>create</md-icon>
 			<md-tooltip md-direction="left" md-visible="showTooltips">Edit this page (ALT+CTRL+E)</md-tooltip>
-		</md-button>
-		<md-button ng-href="{{childUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="childUrl">
-			<md-icon>child_care</md-icon>
-			<md-tooltip md-direction="left" md-visible="showTooltips">New child page (ALT+CTRL+C)</md-tooltip>
-		</md-button>
-		<md-button ng-href="{{lensUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="lensUrl">
-			<md-icon>lens</md-icon>
-			<md-tooltip md-direction="left" md-visible="showTooltips">New lens page (ALT+CTRL+N)</md-tooltip>
-		</md-button>
-		<md-button ng-href="{{questionUrl}}" class="md-fab md-raised md-mini md-accent" ng-if="questionUrl">
-			<md-icon>help</md-icon>
-			<md-tooltip md-direction="left" md-visible="showTooltips">New question page</md-tooltip>
 		</md-button>
 		<md-button ng-click="newQueryMark()" class="md-fab md-raised md-mini md-accent" ng-if="arb.stateService.primaryPage">
 			<md-icon md-svg-icon="cursor_pointer"></md-icon>

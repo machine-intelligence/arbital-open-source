@@ -22,10 +22,10 @@
 						</div>
 
 						<md-input-container>
-							<label ng-if="::!page.isLens()">Title</label>
-							<label ng-if="::page.isLens()">Lens title</label>
+							<label ng-if="!page.isLens()">Title</label>
+							<label ng-if="page.isLens()">Lens title</label>
 							<input ng-model="page.title"
-									md-maxlength="{{::(page.isLens() ? 50 : 100)}}"
+									md-maxlength="{{(page.isLens() ? 50 : 100)}}"
 									aria-label="Title"
 									autofocus>
 						</md-input-container>
@@ -117,13 +117,13 @@
 										</md-button>
 									</md-menu-item>
 									<md-menu-item>
-										<md-button class="wmd-new-child-button{{::page.pageId}}" ng-show="::page.isWiki()">
+										<md-button class="wmd-new-child-button{{::page.pageId}}" ng-show="page.isWiki()">
 											<md-icon>child_care</md-icon>
 											[New child link] | Ctrl+Shift+P
 										</md-button>
 									</md-menu-item>
 									<md-menu-item>
-										<md-button class="wmd-new-sibling-button{{::page.pageId}}" ng-show="::page.isWiki()">
+										<md-button class="wmd-new-sibling-button{{::page.pageId}}" ng-show="page.isWiki()">
 											<md-icon>people</md-icon>
 											[New sibling link] | Ctrl+Shift+S
 										</md-button>
@@ -288,28 +288,33 @@
 					<md-tab label="Primary">
 						<div class="editor-tab" flex>
 							<!-- Parents -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="parent"
+									quick-parent-id="{{::quickParentId}}"
 									force-edit-mode="true"
 									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Tags -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="tag"
 									force-edit-mode="true"
 									readonly="::!(page.isWiki() || page.isLens() || page.isQuestion())"></div>
 
 							<!-- Requirements -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="requirement"
 									force-edit-mode="true"
 									readonly="::!(page.isWiki() || page.isLens() || page.isQuestion())"></div>
 
 							<!-- Teaches -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="subject"
 									force-edit-mode="true"
@@ -341,7 +346,7 @@
 							</div>
 
 							<!-- List of strings (for questions) -->
-							<div ng-if="page.isQuestion()">
+							<div ng-if="::page.isQuestion()">
 								<div class="md-subhead">
 									<arb-page-title page-id="35z"
 											is-link="true"
@@ -373,7 +378,7 @@
 							</form>
 
 							<!-- Info about how many incoming marks there are -->
-							<div ng-if="page.isQuestion()">
+							<div ng-if="::page.isQuestion()">
 								<div class="md-subhead">
 									<arb-page-title page-id="370"
 											is-link="true"
@@ -389,7 +394,7 @@
 							<br>
 
 							<!-- Answers section -->
-							<div ng-if="page.isQuestion()">
+							<div ng-if="::page.isQuestion()">
 								<div class="md-subhead">
 									<arb-page-title page-id="187"
 											is-link="true"
@@ -482,11 +487,14 @@
 									</md-select>
 								</md-input-container>
 								<div class="md-caption" layout-margin flex>
-									<span ng-if="::page.isWiki()">
+									<span ng-if="page.isWiki()">
 										Standard wiki page
 									</span>
-									<span ng-if="::page.isLens()">
+									<span ng-if="page.isLens()">
 										A lens page is used to present the same material as another page but with a different emphasis
+									</span>
+									<span ng-if="page.isQuestion()">
+										A canonical question page
 									</span>
 								</div>
 							</div>

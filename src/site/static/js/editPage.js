@@ -31,6 +31,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.freezeEdit = false;
 			$scope.maxQuestionTextLength = 1000;
 
+			// Extract parentId from URL
+			$scope.quickParentId = $location.search().parentId;
+			$location.replace().search('parentId', undefined);
+
 			// Modify the page
 			$scope.page.text = arb.pageService.convertPageIdsToAliases($scope.page.text);
 			if ($scope.page.isLens()) {
@@ -129,12 +133,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
 			// Set up page types.
-			if ($scope.page.isQuestion()) {
-				$scope.pageTypes = {question: 'Question'};
-			} else if ($scope.page.isComment()) {
+			if ($scope.page.isComment()) {
 				$scope.pageTypes = {comment: 'Comment'};
-			} else if ($scope.page.isWiki() || $scope.page.isLens()) {
-				$scope.pageTypes = {wiki: 'Wiki page', lens: 'Lens page'};
+			} else if ($scope.page.isWiki() || $scope.page.isLens() || $scope.page.isQuestion()) {
+				$scope.pageTypes = {wiki: 'Wiki', lens: 'Lens', question: 'Question'};
 			}
 			if ($scope.page.isLens()) {
 				$scope.lensParent = arb.stateService.pageMap[$scope.page.parentIds[0]];

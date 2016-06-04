@@ -199,8 +199,10 @@ app.run(function($http, $location, arb) {
 
 			// Load the last edit for the pageAlias.
 			var loadEdit = function() {
+				var quickParentId = $location.search().parentId;
 				arb.pageService.loadEdit({
 					pageAlias: pageAlias,
+					additionalPageIds: quickParentId ? [quickParentId] : undefined,
 					success: $scope.getSuccessFunc(function() {
 						// Find the page in the editMap (have to search through it manually
 						// because we don't index pages by alias in editmap)
@@ -279,14 +281,13 @@ app.run(function($http, $location, arb) {
 			var getNewPage = function() {
 				var type = $location.search().type;
 				$location.replace().search('type', undefined);
-				var newParentIdString = $location.search().newParentId;
-				$location.replace().search('newParentId', undefined);
 				// Create a new page to edit
 				arb.pageService.getNewPage({
 					type: type,
-					parentIds: newParentIdString ? newParentIdString.split(',') : [],
 					success: function(newPageId) {
-						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId), true);
+						arb.urlService.goToUrl(arb.urlService.getEditPageUrl(newPageId, {
+							parentId: $location.search().parentId,
+						}), true);
 					},
 					error: $scope.getErrorFunc('newPage'),
 				});

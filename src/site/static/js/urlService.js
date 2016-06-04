@@ -187,6 +187,7 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	// options {
 	//	 includeHost: if true, include "https://" + host in the url
 	//	 markId: if set, resolve the given mark when publishing the page and show it
+	//	 parentId: if set, this will provide a quick option for adding the parent in editor
 	// }
 	this.getEditPageUrl = function(pageId, options) {
 		options = options || {};
@@ -201,6 +202,10 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 			url += url.indexOf('?') < 0 ? '?' : '&';
 			url += 'markId=' + options.markId;
 		}
+		if (options.parentId) {
+			url += url.indexOf('?') < 0 ? '?' : '&';
+			url += 'parentId=' + options.parentId;
+		}
 		if (options.includeHost) {
 			url = that.getDomainUrl() + url;
 		}
@@ -210,10 +215,14 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	// Get url to create a new page.
 	// options {
 	//	 includeHost: if true, include "https://" + host in the url
+	//	 parentId: if set, there will be a quick option to add this page as a parent
 	// }
 	this.getNewPageUrl = function(options) {
 		options = options || {};
 		var url = '/edit/';
+		if (options.parentId) {
+			url += '?parentId=' + options.parentId;
+		}
 		if (options.includeHost) {
 			url = that.getDomainUrl() + url;
 		}

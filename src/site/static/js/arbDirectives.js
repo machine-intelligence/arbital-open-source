@@ -351,7 +351,6 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.pageUrl = '/edit/';
 			$scope.isSmallScreen = !$mdMedia('gt-sm');
 			$scope.data = {
 				isOpen: false,
@@ -387,9 +386,9 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				// If it's open, execute the "New page" click.
 				if ($scope.data.isOpen) {
 					if ($event.ctrlKey) {
-						window.open('/edit/');
+						window.open($scope.newPageUrl);
 					} else {
-						arb.urlService.goToUrl('/edit/');
+						arb.urlService.goToUrl($scope.newPageUrl);
 					}
 				}
 
@@ -400,21 +399,16 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			// Compute what the urls should be on the compose buttons, and which ones
 			// should be visible.
 			var computeUrls = function() {
-				$scope.questionUrl = '/edit/?type=question';
+				$scope.newPageUrl = arb.urlService.getNewPageUrl({
+					parentId: arb.stateService.primaryPage ? arb.stateService.primaryPage.pageId : undefined,
+				});
+
 				$scope.editPageUrl = undefined;
-				$scope.childUrl = undefined;
-				$scope.lensUrl = undefined;
 				if (arb.stateService.primaryPage) {
-					var type = arb.stateService.primaryPage.type;
-					if (type === 'wiki' || type === 'group' || type === 'domain') {
-						$scope.questionUrl = '/edit/?newParentId=' + arb.stateService.primaryPage.pageId + '&type=question';
-						$scope.lensUrl = '/edit/?newParentId=' + arb.stateService.primaryPage.pageId + '&type=lens';
-						$scope.childUrl = '/edit/?newParentId=' + arb.stateService.primaryPage.pageId;
-					}
 					if ($location.search().l) {
-						$scope.editPageUrl = arb.urlService.getEditPageUrl($location.search().l);
+						$scope.editPageUrl = arb.urlService.getEditPageUrl($location.search().l)
 					} else {
-						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.stateService.primaryPage.pageId);
+						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.stateService.primaryPage.pageId)
 					}
 				}
 			};
@@ -445,10 +439,8 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			$(document).keyup(function(event) {
 				if (!event.ctrlKey || !event.altKey) return true;
 				$scope.$apply(function() {
-					if (event.keyCode == 80) arb.urlService.goToUrl('/edit/'); // P
+					if (event.keyCode == 80) arb.urlService.goToUrl($scope.newPageUrl); // P
 					else if (event.keyCode == 69 && $scope.editPageUrl) arb.urlService.goToUrl($scope.editPageUrl); // E
-					else if (event.keyCode == 67 && $scope.childUrl) arb.urlService.goToUrl($scope.childUrl); // C
-					else if (event.keyCode == 78 && $scope.lensUrl) arb.urlService.goToUrl($scope.lensUrl); // N
 					else if (event.keyCode == 81 && arb.stateService.primaryPage) $scope.newQueryMark(); // Q
 					else if (event.keyCode == 75) $scope.newFeedback(event); // K
 				});

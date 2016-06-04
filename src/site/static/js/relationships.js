@@ -8,6 +8,8 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 			pageId: '@',
 			type: '@',
 			readonly: '=',
+			// Optional. Id of the parent page for quick add
+			quickParentId: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -79,6 +81,11 @@ app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) 
 				}, function error(data) {
 					arb.popupService.showToast({text: 'Error removing the relationship: ' + data, isError: true});
 				});
+			};
+
+			$scope.addQuickParent = function() {
+				$scope.searchResultSelected({pageId: $scope.quickParentId});
+				$scope.quickParentId = undefined;
 			};
 		},
 	};
