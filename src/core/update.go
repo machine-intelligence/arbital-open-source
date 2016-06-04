@@ -383,6 +383,7 @@ func GetNotificationUpdateTypes() []string {
 		PageToDomainAcceptedUpdateType,
 		AtMentionUpdateType,
 		NewMarkUpdateType,
+		ResolvedThreadUpdateType,
 		ResolvedMarkUpdateType,
 		AnsweredMarkUpdateType,
 	}
