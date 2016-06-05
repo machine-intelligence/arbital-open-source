@@ -38,12 +38,12 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		return alias;
 	};
 
-	// If prefix is '+', capitalize the first letter of text. Otherwise lowercase it.
+	// If prefix is '-', lowercase the first letter of text. Otherwise capitalize it.
 	var getCasedText = function(text, prefix) {
-		if (prefix == '+') {
-			return text.substring(0, 1).toUpperCase() + text.substring(1);
+		if (prefix == '-') {
+			return text.substring(0, 1).toLowerCase() + text.substring(1);
 		}
-		return text.substring(0, 1).toLowerCase() + text.substring(1);
+		return text.substring(0, 1).toUpperCase() + text.substring(1);
 	};
 
 	// Pass in a pageId to create an editor for that page

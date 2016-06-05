@@ -37,6 +37,20 @@
 						custom-page-title="comment"></arb-page-title>
 			</span>
 
+			<span ng-switch-when="resolvedThread">
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+				marked
+				<span ng-if="::goToPage.pageCreatorId == arb.userService.user.id">your</span>
+				comment,
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>,
+				as resolved
+				<div ng-if="goToPage.isResolved">
+					<md-button ng-click="arb.pageService.resolveThread(goToPageId, true)">
+						Reopen
+					</md-button>
+				</div>
+			</span>
+
 			<div ng-switch-when="pageToDomainSubmission">
 				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
 				wants to add
