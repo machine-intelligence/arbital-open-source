@@ -1059,6 +1059,26 @@ arb-log-row, [arb-log-row] {
 	}
 }
 
+arb-list-sub-header,
+arb-explanation-request-row {
+	& md-list-item {
+		margin-bottom: 0px !important;
+		padding-top: 10px !important;
+	}
+}
+
+arb-explanation-request-row {
+	& md-list-item {
+		height: 32px;
+		line-height: 28px;
+		padding-bottom: 0px !important;
+	}
+
+	.md-button.md-icon-button {
+		padding: 0px;
+	}
+}
+
 @media (min-width: 1100px) {
 	.index-page-half {
 		margin: 0 20px;

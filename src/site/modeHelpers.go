@@ -24,6 +24,7 @@ const (
 	NotificationRowType      = "notification"
 
 	requestForEditTagParentPageId = "3zj"
+	MathDomainId                  = "1lw"
 )
 
 type modeRowData struct {
@@ -352,8 +353,6 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 
 	// For now, we want to only suggest pages in the math domain, or other domains you're explicitly
 	// subscribed to.
-	mathDomainId := "1lw"
-
 	subscribedDomains := database.NewQuery(`
 		SELECT subs.toId
 		FROM subscriptions AS subs
@@ -368,7 +367,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
 		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoField+`!=0
-			AND (pdp.domainId=?`, mathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
+			AND (pdp.domainId=?`, MathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
 		ORDER BY pi.`+pageInfoField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
