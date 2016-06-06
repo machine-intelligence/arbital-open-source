@@ -25,6 +25,11 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 		return this.user && this.user.id != '';
 	};
 
+	// Check if the user has received any notifications.
+	this.userHasReceivedNotifications = function() {
+		return this.user && this.user.hasReceivedNotifications;
+	}
+
 	// Check if the user has received any maintenance updates.
 	this.userHasReceivedMaintenanceUpdates = function() {
 		return this.user && this.user.hasReceivedMaintenanceUpdates;

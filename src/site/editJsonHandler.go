@@ -24,6 +24,9 @@ type editJsonData struct {
 	SpecificEdit   int
 	EditLimit      int
 	CreatedAtLimit string
+
+	// Optional pages to load as well (e.g. for making a quick parent)
+	AdditionalPageIds []string
 }
 
 // editJsonHandler handles the request.
@@ -98,16 +101,16 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 		}
 	}
 
-	// Load parents, tags, requirement, and lens pages (to display in Relationship tab)
-	core.AddPageIdToMap("3n", returnData.PageMap)
-	core.AddPageIdToMap("178", returnData.PageMap)
-	core.AddPageIdToMap("1ln", returnData.PageMap)
-	core.AddPageIdToMap("17b", returnData.PageMap)
-	core.AddPageIdToMap("35z", returnData.PageMap)
-	core.AddPageIdToMap("370", returnData.PageMap)
-	core.AddPageIdToMap("187", returnData.PageMap)
-	core.AddPageIdToMap("185", returnData.PageMap)
-	core.AddPageIdToMap("3hs", returnData.PageMap)
+	// Load additional pages (for which we need to display a greenlink)
+	if data.AdditionalPageIds == nil {
+		data.AdditionalPageIds = make([]string, 0)
+	}
+	data.AdditionalPageIds = append(data.AdditionalPageIds, "3n", "178", "1ln",
+		"17b", "35z", "370", "187", "185", "3hs")
+	for _, pageId := range data.AdditionalPageIds {
+		core.AddPageIdToMap(pageId, returnData.PageMap)
+	}
+
 	// Load data
 	core.AddPageToMap(pageId, returnData.PageMap, core.PrimaryEditLoadOptions)
 	core.AddPageIdToMap(p.EditGroupId, returnData.PageMap)
@@ -118,6 +121,9 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 
 	// We need to copy some data from the loaded live version to the edit
 	// NOTE: AAAAARGH! This is such an ugly workaround
+	// NOTE: a reminder when fixing this is that it's quite possible that we don't have
+	// the page in pageMap if it hasn't been published yet, so the only "page" on the FE
+	// is the one from editMap
 	livePage := returnData.PageMap[pageId]
 	p.LensIds = livePage.LensIds
 	p.ChildIds = livePage.ChildIds

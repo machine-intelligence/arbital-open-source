@@ -21,20 +21,20 @@
 				ng-if="::!isTinyScreen"></arb-autocomplete>
 		<span flex></span>
 
-		<!-- Updates -->
-		<md-button href="/updates/"
-				aria-label="Your updates"
-				class="md-icon-button"
-				ng-if="arb.userService.user.id !== ''">
-			<md-icon ng-if="arb.userService.user.updateCount <= 0">notifications_none</md-icon>
+		<!-- Notifications -->
+		<md-button ng-click="showNotifications($event)"
+				aria-label="Notifications"
+				class="md-icon-button notifications-icon"
+				ng-if="arb.userService.user.id !== '' && arb.userService.userHasReceivedNotifications()">
+			<md-icon ng-if="arb.userService.user.newNotificationCount <= 0">notifications_none</md-icon>
 			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="arb.userService.user.updateCount > 0">notifications</md-icon>
-			<span ng-bind="arb.userService.user.updateCount" ng-if="arb.userService.user.updateCount > 0"></span>
+				ng-if="arb.userService.user.newNotificationCount > 0">notifications</md-icon>
+			<span ng-bind="arb.userService.user.newNotificationCount" ng-if="arb.userService.user.newNotificationCount > 0"></span>
 		</md-button>&nbsp;
 
 		<!-- Achievement updates -->
 		<md-button ng-click="showAchievements($event)"
-				aria-label="Your achievements"
+				aria-label="Achievements"
 				class="md-icon-button achievements-icon"
 				ng-if="arb.userService.user.id !== ''">
 			<md-icon ng-if="arb.userService.user.newAchievementCount <= 0">sentiment_satisfied</md-icon>
@@ -45,7 +45,7 @@
 
 		<!-- Maintenance updates -->
 		<md-button ng-click="showMaintenanceUpdates($event)"
-				aria-label="Your maintenance updates"
+				aria-label="Maintenance updates"
 				class="md-icon-button maintenance-updates-icon"
 				ng-if="arb.userService.user.id !== '' && arb.userService.userHasReceivedMaintenanceUpdates()">
 			<md-icon ng-if="arb.userService.user.maintenanceUpdateCount <= 0">build</md-icon>

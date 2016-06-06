@@ -45,6 +45,15 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			});
 			$scope.hide = $location.path().indexOf('/edit') === 0;
 
+			$scope.showNotifications = function(ev) {
+				showPanel(
+					ev,
+					'/notifications/',
+					'.notifications-icon',
+					'<arb-updates-panel post-url="/json/notifications/" hide-title="true" num-to-display="100" more-link="/notifications"></arb-udpates-panel>'
+				);
+			};
+
 			$scope.showAchievements = function(ev) {
 				showPanel(
 					ev,
@@ -55,11 +64,12 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			};
 
 			$scope.showMaintenanceUpdates = function(ev) {
+				arb.userService.user.maintenanceUpdateCount = 0;
 				showPanel(
 					ev,
 					'/maintain/',
 					'.maintenance-updates-icon',
-					'<arb-maintenance-mode-panel hide-title="true" num-to-display="100"></arb-maintenance-mode-panel>'
+					'<arb-updates-panel post-url="/json/maintain/" hide-title="true" num-to-display="100" more-link="/maintain"></arb-updates-panel>'
 				);
 			};
 
@@ -82,7 +92,12 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					focusOnOpen: false,
 					zIndex: 200000,
 				};
-				$mdPanel.open(config);
+				var panel = $mdPanel.create(config);
+				panel.open();
+
+				$scope.$on('$locationChangeSuccess', function() {
+					panel.close();
+				});
 			}
 		},
 	};

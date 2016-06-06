@@ -67,6 +67,7 @@ func init() {
 	s.HandleFunc("/login/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/maintain/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/newsletter/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
+	s.HandleFunc("/notifications/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/read/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/requisites/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/pages/{alias:%s}/", core.AliasRegexpStr),
@@ -87,6 +88,7 @@ func init() {
 	// JSON handlers (API)
 	s.HandleFunc(adminDashboardPageHandler.URI, handlerWrapper(adminDashboardPageHandler)).Methods("POST")
 	s.HandleFunc(approvePageToDomainHandler.URI, handlerWrapper(approvePageToDomainHandler)).Methods("POST")
+	s.HandleFunc(bellUpdatesHandler.URI, handlerWrapper(bellUpdatesHandler)).Methods("POST")
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
 	s.HandleFunc(commentThreadHandler.URI, handlerWrapper(commentThreadHandler)).Methods("POST")
 	s.HandleFunc(continueWritingModeHandler.URI, handlerWrapper(continueWritingModeHandler)).Methods("POST")

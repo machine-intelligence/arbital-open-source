@@ -65,7 +65,9 @@ type CurrentUser struct {
 	// Set to true if the user is a member of at least one domain
 	IsDomainMember                bool              `json:"isDomainMember"`
 	HasReceivedMaintenanceUpdates bool              `json:"hasReceivedMaintenanceUpdates"`
+	HasReceivedNotifications      bool              `json:"hasReceivedNotifications"`
 	UpdateCount                   int               `json:"updateCount"`
+	NewNotificationCount          int               `json:"newNotificationCount"`
 	NewAchievementCount           int               `json:"newAchievementCount"`
 	MaintenanceUpdateCount        int               `json:"maintenanceUpdateCount"`
 	GroupIds                      []string          `json:"groupIds"`
@@ -306,29 +308,35 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 	return newLikeCount + newTaughtCount + newChangeLogLikeCount, nil
 }
 
-func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeAll bool) (int, error) {
-	maintenanceUpdateTypes := GetMaintenanceUpdateTypes()
+func LoadNotificationCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetNotificationUpdateTypes(), includeOldAndDismissed)
+}
 
+func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetMaintenanceUpdateTypes(), includeOldAndDismissed)
+}
+
+func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []string, includeOldAndDismissed bool) (int, error) {
 	var filterCondition string
-	if includeAll {
+	if includeOldAndDismissed {
 		filterCondition = "true"
 	} else {
 		filterCondition = "NOT seen AND NOT dismissed"
 	}
 
-	var maintenanceUpdateCount int
+	var updateCount int
 	row := database.NewQuery(`
 		SELECT COUNT(*)
 		FROM updates
 		WHERE userId=?`, userId).Add(`
-			AND type IN`).AddArgsGroupStr(maintenanceUpdateTypes).Add(`
+			AND type IN`).AddArgsGroupStr(updateTypes).Add(`
 			AND`).Add(filterCondition).ToStatement(db).QueryRow()
-	_, err := row.Scan(&maintenanceUpdateCount)
+	_, err := row.Scan(&updateCount)
 	if err != nil {
 		return -1, err
 	}
 
-	return maintenanceUpdateCount, err
+	return updateCount, err
 }
 
 // LoadUserTrust returns the trust that the user has in all domains.
@@ -368,6 +376,13 @@ func LoadUserTrust(db *database.DB, u *CurrentUser) error {
 			return fmt.Errorf("Couldn't process maintenance updates: %v", err)
 		}
 		u.HasReceivedMaintenanceUpdates = hasReceivedMaintenanceUpdates
+
+		// load whether the user has ever had any notifications
+		hasReceivedNotifications, err := LoadHasReceivedNotifications(db, u)
+		if err != nil {
+			return fmt.Errorf("Couldn't process notifications: %v", err)
+		}
+		u.HasReceivedNotifications = hasReceivedNotifications
 	}
 
 	// Now compute permissions
@@ -421,6 +436,15 @@ func LoadHasReceivedMaintenanceUpdates(db *database.DB, u *CurrentUser) (bool, e
 	}
 
 	return lifetimeMaintenanceUpdateCount > 0, nil
+}
+
+func LoadHasReceivedNotifications(db *database.DB, u *CurrentUser) (bool, error) {
+	lifetimeNotificationCount, err := LoadNotificationCount(db, u.Id, true)
+	if err != nil {
+		return false, fmt.Errorf("Error while retrieving notification count: %v", err)
+	}
+
+	return lifetimeNotificationCount > 0, nil
 }
 
 func init() {

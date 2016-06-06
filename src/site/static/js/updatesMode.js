@@ -1,22 +1,21 @@
 'use strict';
 
-// arb-maintenance-mode-panel directive displays a list of new maintenance updates
-app.directive('arbMaintenanceModePanel', function($http, arb) {
+// arb-updates-panel directive displays a list of new maintenance updates
+app.directive('arbUpdatesPanel', function($http, arb) {
 	return {
 		templateUrl: 'static/html/listPanel.html',
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
 			hideTitle: '=',
+			title: '@',
+			moreLink: '@',
+			postUrl: '@',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			arb.userService.user.maintenanceUpdateCount = 0;
-			$scope.title = 'Maintenance Updates';
-			$scope.moreLink = '/maintain';
-
-			arb.stateService.postData('/json/maintain/', {
+			arb.stateService.postData($scope.postUrl, {
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {
@@ -33,6 +32,31 @@ app.directive('arbMaintenanceModePanel', function($http, arb) {
 				// Remove this update from the list
 				allRows.splice(index, 1);
 			};
+		},
+	};
+});
+
+// arb-bell-update-row is the directive for showing an actionable update
+app.directive('arbBellUpdateRow', function(arb) {
+	return {
+		templateUrl: 'static/html/bellUpdateRow.html',
+		scope: {
+			modeRow: '=',
+			onDismiss: '&',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.changeLog = $scope.modeRow.update.changeLog;
+			$scope.byUserId = $scope.modeRow.update.byUserId;
+			$scope.showUserLink = $scope.modeRow.update.subscribedToId != $scope.modeRow.update.byUserId;
+			$scope.type = $scope.modeRow.update.type;
+			$scope.markId = $scope.modeRow.update.markId;
+			$scope.subscribedToId = $scope.modeRow.update.subscribedToId;
+			$scope.goToPageId = $scope.modeRow.update.goToPageId;
+			$scope.isRelatedPageAlive = $scope.modeRow.update.isGoToPageAlive;
+			$scope.createdAt = $scope.modeRow.update.createdAt;
+			$scope.repeated = $scope.modeRow.update.repeated;
+			$scope.showDismissIcon = true;
 		},
 	};
 });
@@ -58,6 +82,18 @@ app.directive('arbMaintenanceUpdateRow', function(arb) {
 			$scope.createdAt = $scope.modeRow.update.createdAt;
 			$scope.repeated = $scope.modeRow.update.repeated;
 			$scope.showDismissIcon = true;
+		},
+	};
+});
+
+// arb-bell-updates-page is for displaying the entire /notifications page
+app.directive('arbBellUpdatesPage', function($http, arb) {
+	return {
+		templateUrl: 'static/html/bellUpdatesPage.html',
+		scope: {
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
 		},
 	};
 });

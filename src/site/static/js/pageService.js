@@ -298,6 +298,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	// 	specificEdit: load page with this edit number
 	// 	editLimit: only load edits lower than this number
 	// 	createdAtLimit: only load edits that were created before this date
+	//	additionalPageIds: optional array of pages to load (e.g. for quick parent)
 	// 	skipProcessDataStep: if true, we don't process the data we get from the server
 	// 	convertPageIdsToAliases: false by default
 	// 	success: callback on success
@@ -315,8 +316,11 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 					specificEdit: options.specificEdit,
 					editLimit: options.editLimit,
 					createdAtLimit: options.createdAtLimit,
+					additionalPageIds: options.additionalPageIds,
 				},
-				{callCallbacks: !options.skipProcessDataStep},
+				{
+					callCallbacks: !options.skipProcessDataStep,
+				},
 				function(data) {
 					if (options.convertPageIdsToAliases) {
 						data.edits[options.pageAlias].text = that.convertPageIdsToAliases(data.edits[options.pageAlias].text);

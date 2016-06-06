@@ -51,10 +51,19 @@
 			on-select="searchResultSelected(result)"
 			ng-if="::!readonly"></arb-autocomplete>
 
-	<div ng-if="!relatesToItself && isSubjectType">
-		<md-button ng-click="teachItself()" ng-if="::!readonly">
+	<div ng-if="!relatesToItself && isSubjectType && !readonly">
+		<md-button ng-click="teachItself()">
 			<md-icon>add</md-icon>
 			Teaches itself
 		</md-button>
+	</div>
+
+	<div layout="row" layout-align="start center" ng-if="quickParentId && isParentType && !readonly">
+		<md-button class="md-icon-button" ng-click="addQuickParent()">
+			<md-icon>add</md-icon>
+		</md-button>
+		<arb-page-title page-id="{{::quickParentId}}"
+				is-link="true"
+				show-clickbait="true"></arb-page-title>
 	</div>
 </div>

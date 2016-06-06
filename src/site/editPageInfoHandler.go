@@ -72,6 +72,15 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.Type == core.CommentPageType {
 		data.EditGroupId = u.Id
 	}
+	if oldPage.WasPublished {
+		if (data.Type == core.WikiPageType || data.Type == core.LensPageType || data.Type == core.QuestionPageType) &&
+			(oldPage.Type == core.WikiPageType || oldPage.Type == core.LensPageType || oldPage.Type == core.QuestionPageType) {
+			// Allow type changing from wiki <-> lens <-> question
+		} else {
+			// Don't allow type changing
+			data.Type = oldPage.Type
+		}
+	}
 
 	// Error checking.
 	// Check the group settings
@@ -116,9 +125,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.VoteType = oldPage.VoteType
 	} else {
 		hasVote = data.VoteType != ""
-	}
-	if oldPage.WasPublished {
-		data.Type = oldPage.Type
 	}
 	// Enforce SortChildrenBy
 	if data.Type == core.CommentPageType {

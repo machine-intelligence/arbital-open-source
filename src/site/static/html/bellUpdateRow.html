@@ -1,0 +1,135 @@
+<div>
+	<div layout="row" layout-xs="column" layout-align="space-between center">
+
+		<div ng-switch="::type" ng-if="::(changeLog && changeLog.id)">
+			<div ng-switch-when="topLevelComment"></div>
+			<div ng-switch-when="reply"></div>
+			<div ng-switch-default>
+				<arb-likes likeable-type="changeLog"
+					likeable-id="{{::changeLog.id}}"
+					likeable="::changeLog"
+					is-stretched="true"
+					is-button="true"></arb-likes>
+			</div>
+		</div>
+
+		<div ng-switch="::type" flex>
+
+			<!-- Updates -->
+
+			<span ng-switch-when="topLevelComment">
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+				wrote a new comment:
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+			</span>
+
+			<span ng-switch-when="reply">
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+				wrote a new reply:
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+			</span>
+
+			<span ng-switch-when="atMention">
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+				mentioned you in a
+				<arb-page-title page-id="{{::goToPageId}}"
+						is-link="true"
+						custom-page-title="comment"></arb-page-title>
+			</span>
+
+			<span ng-switch-when="resolvedThread">
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+				marked
+				<span ng-if="::goToPage.pageCreatorId == arb.userService.user.id">your</span>
+				comment,
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>,
+				as resolved
+				<div ng-if="goToPage.isResolved">
+					<md-button ng-click="arb.pageService.resolveThread(goToPageId, true)">
+						Reopen
+					</md-button>
+				</div>
+			</span>
+
+			<div ng-switch-when="pageToDomainSubmission">
+				<arb-user-name user-id="{{::byUserId}}"></arb-user-name>
+				wants to add
+				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+				page to
+				<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
+				domain.
+				<div>
+					<md-button class="md-primary"
+							ng-click="arb.pageService.approvePageToDomain(goToPageId, update.subscribedToId)"
+							ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId == ''">
+						Approve
+					</md-button>
+					<span ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
+						This submission has been approved by
+						<arb-user-name user-id="{{::goToPage.domainSubmissions[update.subscribedToId].approverId}}"></arb-user-name>
+					</span>
+				</div>
+			</div>
+
+			<!-- Marks -->
+
+			<div ng-switch-when="newMark">
+				<div arb-query-info
+					mark-id="{{::markId}}"
+					ng-if="arb.markService.markMap[markId].type === 'query'"></div>
+				<div arb-mark-info
+						mark-id="{{::markId}}"
+						ng-if="arb.markService.markMap[markId].type !== 'query'"></div>
+			</div>
+
+			<div ng-switch-when="answeredMark">
+				<div arb-query-info mark-id="{{::markId}}"></div>
+			</div>
+
+			<div ng-switch-when="resolvedMark">
+				<div arb-mark-info mark-id="{{::markId}}"></div>
+			</div>
+
+			<!-- Unknown -->
+
+			<span ng-switch-default class="md-warn">
+				Unknown activity type: {{::type}}
+			</span>
+
+		</div>
+
+		<!-- RHS of the row -->
+		<div layout="row" layout-align="end center">
+			<!-- Link to the user who performed the action (if we haven't already) -->
+			<span ng-switch="::type">
+				<span ng-switch-when="topLevelComment"></span>
+				<span ng-switch-when="reply"></span>
+				<span ng-switch-when="atMention"></span>
+				<span ng-switch-when="pageToDomainSubmission"></span>
+				<span ng-switch-default>
+					<arb-user-name user-id="{{::byUserId}}" ng-if="::showUserLink && !!byUserId"></arb-user-name>
+					&nbsp;
+				</span>
+			</span>
+
+			<span class="md-caption nowrap" ng-bind="::(createdAt | relativeDateTime)"></span>
+			<md-button class="md-icon-button" ng-click="onDismiss()" ng-if="showDismissIcon">
+				<md-icon>close</md-icon>
+				<md-tooltip md-delay="500">Dismiss</md-tooltip>
+			</md-button>
+		</div>
+
+	</div>
+
+	<!-- Additional stuff -->
+	<div ng-switch="::type">
+		<span ng-switch-when="topLevelComment">
+			<div arb-collapsable-comment-thread comment-id="{{::goToPageId}}"></div>
+		</span>
+
+		<span ng-switch-when="reply">
+			<div arb-collapsable-comment-thread
+					comment-id="{{::goToPage.getTopLevelComment().pageId}}"></div>
+		</span>
+	</div>
+</div>

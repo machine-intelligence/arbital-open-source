@@ -118,6 +118,8 @@ func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonDa
 		}
 	}
 
-	editData := &editJsonData{PageAlias: pageId}
+	editData := &editJsonData{
+		PageAlias: pageId,
+	}
 	return editJsonInternalHandler(params, editData)
 }

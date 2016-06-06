@@ -51,7 +51,7 @@
 				</md-menu-item>
 
 				<!-- Mark comment as for editors only -->
-				<md-menu-item ng-if="(page.pageCreatorId === arb.userService.user.id || arb.userService.user.isAdmin) && !page.isEditorComment">
+				<md-menu-item ng-if="(page.permissions.edit.has || lens.permissions.edit.has) && !page.isEditorComment">
 					<md-button ng-click="showToEditorsOnly()"
 							ng-disabled="editing"
 							aria-label="Show to editors only">
@@ -69,7 +69,7 @@
 				</md-menu-item>
 
 				<!-- Delete comment -->
-				<md-menu-item ng-if="page.pageCreatorId === arb.userService.user.id || arb.userService.user.isAdmin">
+				<md-menu-item ng-if="page.permissions.delete.has">
 					<md-button ng-click="deleteSubpage()"
 							ng-disabled="editing"
 							aria-label="Delete comment">

@@ -55,11 +55,49 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	}
 	groupIds = append(groupIds, "\"\"")
 
-	escapedTerm := elastic.EscapeMatchTerm(data.Term)
+	data.Term = elastic.EscapeMatchTerm(data.Term)
 
-	optionalTermFilter := ""
+	// Filter by type of the page
+	mandatoryTypeFilter := ""
 	if data.PageType != "" {
-		optionalTermFilter = fmt.Sprintf(`{"term": { "type": "%s" } },`, elastic.EscapeMatchTerm(data.PageType))
+		mandatoryTypeFilter = fmt.Sprintf(`{"term": { "type": "%s" } },`, elastic.EscapeMatchTerm(data.PageType))
+	}
+
+	// To allow for partial matching on the last word, we have to split it off
+	lastSpaceIndex := strings.LastIndex(data.Term, " ")
+	textMatch := fmt.Sprintf(`
+		{
+			"match_phrase_prefix": { "title": "%[1]s" }
+		},
+		{
+			"match_phrase_prefix": { "clickbait": "%[1]s" }
+		},
+		{
+			"match_phrase_prefix": { "text": "%[1]s" }
+		},`, data.Term)
+	if lastSpaceIndex > 0 {
+		matchTerm := data.Term[:lastSpaceIndex]
+		prefixTerm := data.Term[lastSpaceIndex+1:]
+		textMatch = fmt.Sprintf(`
+		{
+			"match": { "title": "%[1]s" }
+		},
+		{
+			"match_phrase_prefix": { "title": "%[2]s" }
+		},
+		{
+			"match": { "clickbait": "%[1]s" }
+		},
+		{
+			"match_phrase_prefix": { "clickbait": "%[2]s" }
+		},
+		{
+			"match": { "text": "%[1]s" }
+		},
+		{
+			"match_phrase_prefix": { "text": "%[2]s" }
+		},
+		`, matchTerm, prefixTerm)
 	}
 
 	// Construct the search JSON
@@ -73,16 +111,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 						"should": [
 							{
 								"term": { "pageId": "%[3]s" }
-							},
-							{
-								"match": { "title": "%[3]s" }
-							},
-							{
-								"match": { "clickbait": "%[3]s" }
-							},
-							{
-								"match": { "text": "%[3]s" }
-							},
+							},`+textMatch+`
 							{
 								"match_phrase_prefix": { "alias": "%[3]s" }
 							},
@@ -99,7 +128,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 								"terms": { "type": ["comment"] }
 							}
 						],
-						"must": [`+optionalTermFilter+`
+						"must": [`+mandatoryTypeFilter+`
 							{
 								"terms": { "seeGroupId": [%[4]s] }
 							}
@@ -109,7 +138,7 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		"_source": []
-	}`, minSearchScore, searchSize, escapedTerm, strings.Join(groupIds, ","))
+	}`, minSearchScore, searchSize, data.Term, strings.Join(groupIds, ","))
 	return searchJsonInternalHandler(params, jsonStr)
 }
 

@@ -6,14 +6,14 @@
 			layout="column"
 			flex="{{::(fullView ? '50' : undefined)}}"
 			ng-show="!inPreview && (fullView || (!otherDiff && !sideEdit))">
-		<md-tabs ng-class="::{'hide-tabs': isComment}"
+		<md-tabs ng-class="::{'hide-tabs': page.isComment()}"
 				class="md-primary md-hue-2"
 				md-selected="selectedTab"
 				md-stretch-tabs="{{::(gtXSmallScreen ? 'always' : 'never')}}"
 				layout="column"
 				flex>
 			<!-- (0) Title tab -->
-			<md-tab label="Title" ng-disabled="::(isComment)">
+			<md-tab label="Title" ng-disabled="::(page.isComment())">
 				<div flex>
 					<div class="editor-tab" layout="column">
 						<div ng-if="!showAdvancedMode()">
@@ -22,9 +22,12 @@
 						</div>
 
 						<md-input-container>
-							<label ng-if="::!isLens">Title</label>
-							<label ng-if="::isLens">Lens title</label>
-							<input ng-model="page.title" md-maxlength="{{::(isLens ? 50 : 100)}}" aria-label="Title" autofocus>
+							<label ng-if="!page.isLens()">Title</label>
+							<label ng-if="page.isLens()">Lens title</label>
+							<input ng-model="page.title"
+									md-maxlength="{{(page.isLens() ? 50 : 100)}}"
+									aria-label="Title"
+									autofocus>
 						</md-input-container>
 						<md-input-container>
 							<label>Clickbait</label>
@@ -71,7 +74,7 @@
 							ng-show="!showInsertLink && !freezeEdit">
 						<md-button ng-class="{'md-primary': showSnapshotText}"
 									ng-click="toggleSnapshotting()"
-									ng-if="::!isComment">
+									ng-if="::!page.isComment()">
 							<md-icon>save</md-icon>
 							<md-tooltip md-delay="500">Snapshot</md-tooltip>
 						</md-button>
@@ -114,13 +117,13 @@
 										</md-button>
 									</md-menu-item>
 									<md-menu-item>
-										<md-button class="wmd-new-child-button{{::page.pageId}}" ng-show="::isWiki">
+										<md-button class="wmd-new-child-button{{::page.pageId}}" ng-show="page.isWiki()">
 											<md-icon>child_care</md-icon>
 											[New child link] | Ctrl+Shift+P
 										</md-button>
 									</md-menu-item>
 									<md-menu-item>
-										<md-button class="wmd-new-sibling-button{{::page.pageId}}" ng-show="::isWiki">
+										<md-button class="wmd-new-sibling-button{{::page.pageId}}" ng-show="page.isWiki()">
 											<md-icon>people</md-icon>
 											[New sibling link] | Ctrl+Shift+S
 										</md-button>
@@ -144,7 +147,7 @@
 							</md-button>
 
 							<!-- Menu with all the Arbital specific stuff -->
-							<md-menu ng-show="::gtSmallScreen && !isComment">
+							<md-menu ng-show="::gtSmallScreen && !page.isComment()">
 								<md-button ng-click="$mdOpenMenu($event)" aria-label="Arbital options">
 									<md-icon>more_vert</md-icon>
 									<md-tooltip md-delay="500">Arbital extensions</md-tooltip>
@@ -246,9 +249,9 @@
 							autofocus
 							flex
 							ng-disabled="freezeEdit"
-							ng-if="::!isQuestion"></textarea>
+							ng-if="::!page.isQuestion()"></textarea>
 
-					<div class="prevent-horizontal-scroll" layout="column" flex ng-if="::isQuestion">
+					<div class="prevent-horizontal-scroll" layout="column" flex ng-if="::page.isQuestion()">
 						<md-input-container class="question-text-container" flex>
 							<textarea id="wmd-input{{::page.pageId}}"
 								class="wmd-input"
@@ -273,7 +276,7 @@
 			</md-tab>
 
 			<!-- (2) Relationships tab -->
-			<md-tab label="Relationships" ng-disabled="::isComment" ng-if="showAdvancedMode()">
+			<md-tab label="Relationships" ng-disabled="::page.isComment()" ng-if="showAdvancedMode()">
 
 				<md-tabs class="md-primary"
 						md-selected="selectedRelationshipsTab"
@@ -285,35 +288,40 @@
 					<md-tab label="Primary">
 						<div class="editor-tab" flex>
 							<!-- Parents -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="parent"
+									quick-parent-id="{{::quickParentId}}"
 									force-edit-mode="true"
-									readonly="::!(isWiki || isQuestion)"></div>
+									readonly="::!(page.isWiki() || page.isQuestion())"></div>
 
 							<!-- Tags -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="tag"
 									force-edit-mode="true"
-									readonly="::!(isWiki || isLens || isQuestion)"></div>
+									readonly="::!(page.isWiki() || page.isLens() || page.isQuestion())"></div>
 
 							<!-- Requirements -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="requirement"
 									force-edit-mode="true"
-									readonly="::!(isWiki || isLens || isQuestion)"></div>
+									readonly="::!(page.isWiki() || page.isLens() || page.isQuestion())"></div>
 
 							<!-- Teaches -->
-							<div arb-relationships class="edit-relationship-div"
+							<div arb-relationships
+									class="edit-relationship-div"
 									page-id="{{::page.pageId}}"
 									type="subject"
 									force-edit-mode="true"
-									readonly="::!(isWiki || isLens)"></div>
+									readonly="::!(page.isWiki() || page.isLens())"></div>
 
 							<!-- Lens ordering -->
-							<div class="edit-relationship-div" ng-if="::!isLens">
+							<div class="edit-relationship-div" ng-if="::!page.isLens()">
 								<div class="md-subhead">
 									<!-- HARDCODED -->
 									<arb-page-title page-id="17b"
@@ -338,7 +346,7 @@
 							</div>
 
 							<!-- List of strings (for questions) -->
-							<div ng-if="isQuestion">
+							<div ng-if="::page.isQuestion()">
 								<div class="md-subhead">
 									<arb-page-title page-id="35z"
 											is-link="true"
@@ -370,7 +378,7 @@
 							</form>
 
 							<!-- Info about how many incoming marks there are -->
-							<div ng-if="isQuestion">
+							<div ng-if="::page.isQuestion()">
 								<div class="md-subhead">
 									<arb-page-title page-id="370"
 											is-link="true"
@@ -386,7 +394,7 @@
 							<br>
 
 							<!-- Answers section -->
-							<div ng-if="isQuestion">
+							<div ng-if="::page.isQuestion()">
 								<div class="md-subhead">
 									<arb-page-title page-id="187"
 											is-link="true"
@@ -414,7 +422,7 @@
 			</md-tab>
 
 			<!-- (3) Settings tab -->
-			<md-tab label="Settings" ng-disabled="::isComment || isGroup">
+			<md-tab label="Settings" ng-disabled="::page.isComment() || page.isGroup() || page.isDomain()">
 				<div layout="column" flex>
 					<md-content class="editor-tab" flex>
 						<div ng-if="::!showAdvancedMode()">
@@ -428,7 +436,7 @@
 
 						<div ng-if="showAdvancedMode()">
 							<!-- Alias -->
-							<div layout="row" ng-if="::(!isComment && !isGroup)">
+							<div layout="row" ng-if="::(!page.isComment() && !page.isGroup() && !page.isDomain())">
 								<div layout="column" flex>
 									<md-input-container>
 										<label>Alias</label>
@@ -479,24 +487,27 @@
 									</md-select>
 								</md-input-container>
 								<div class="md-caption" layout-margin flex>
-									<span ng-if="::isWiki">
+									<span ng-if="page.isWiki()">
 										Standard wiki page
 									</span>
-									<span ng-if="::isLens">
+									<span ng-if="page.isLens()">
 										A lens page is used to present the same material as another page but with a different emphasis
+									</span>
+									<span ng-if="page.isQuestion()">
+										A canonical question page
 									</span>
 								</div>
 							</div>
 
 							<!-- Show/hide vote -->
-							<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && isWiki && arb.userService.user.isAdmin)">
+							<div layout="row" layout-margin ng-if="::(page.lockedVoteType != '' && page.isWiki() && arb.userService.user.isAdmin)">
 								<md-switch ng-model="page.hasVote">
 									Show the {{::page.lockedVoteType}} voting bar
 								</md-switch>
 							</div>
 
 							<!-- Vote type -->
-							<div layout="row" ng-if="::(page.lockedVoteType == '' && !isQuestion && !isComment && arb.userService.user.isAdmin)">
+							<div layout="row" ng-if="::(page.lockedVoteType == '' && !page.isQuestion() && !page.isComment() && arb.userService.user.isAdmin)">
 								<md-input-container flex>
 									<label>Voting</label>
 									<md-select ng-model="page.voteType">
@@ -527,21 +538,21 @@
 							</div>
 
 							<!-- Is requisite -->
-							<div layout="row" layout-margin ng-if="::isWiki">
+							<div layout="row" layout-margin ng-if="::page.isWiki()">
 								<md-switch ng-model="page.isRequisite">
 									This page is used as a requisite
 								</md-switch>
 							</div>
 
 							<!-- Indirect teacher -->
-							<div layout="row" layout-margin ng-if="::isWiki">
+							<div layout="row" layout-margin ng-if="::page.isWiki()">
 								<md-switch ng-model="page.indirectTeacher">
 									This page teaches its requisites indirectly
 								</md-switch>
 							</div>
 
 							<!-- Merge question -->
-							<div layout="row" layout-margin ng-if="::isQuestion && !page.isDeleted">
+							<div layout="row" layout-margin ng-if="::page.isQuestion() && !page.isDeleted">
 								<div flex>
 									<arb-autocomplete class="insert-autocomplete"
 											placeholder="Find the question to merge into"
@@ -576,7 +587,7 @@
 			</md-tab>
 
 			<!-- (4) Changelog tab -->
-			<md-tab label="Changelog" ng-disabled="::(isComment)" ng-if="showAdvancedMode()">
+			<md-tab label="Changelog" ng-disabled="::(page.isComment())" ng-if="showAdvancedMode()">
 				<div class="md-caption" layout-padding ng-if="::(page.changeLogs.length <= 0)">No changes yet</div>
 				<md-list class="editor-tab" flex>
 					<md-list-item ng-repeat="(index,changeLog) in ::page.changeLogs">
@@ -606,7 +617,7 @@
 			</div>
 			<md-checkbox ng-model="page.isEditorCommentIntention"
 					aria-label="Is for editors only?"
-					ng-if="::isComment">
+					ng-if="::page.isComment()">
 				<span ng-if="::!gtXSmallScreen">For editors</span>
 				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
 			</md-checkbox>
@@ -654,7 +665,7 @@
 						ng-click="publishPage()"
 						ng-disabled="publishing || snapshotting">
 					<!-- Don't show for comments, because when inline comment gets created the tooltip remains -->
-					<md-tooltip md-delay="500" ng-if="::!isComment">Make this version live</md-tooltip>
+					<md-tooltip md-delay="500" ng-if="::!page.isComment()">Make this version live</md-tooltip>
 					{{::(page.isDeleted ? 'Republish' : 'Publish')}}
 				</md-button>
 				<span ng-if="pageInfoChanged()">

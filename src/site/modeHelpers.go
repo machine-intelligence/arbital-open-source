@@ -21,6 +21,7 @@ const (
 	DraftModeRowType         = "draft"
 	TaggedforEditModeRowType = "taggedForEdit"
 	MaintenanceUpdateRowType = "maintenanceUpdate"
+	NotificationRowType      = "notification"
 
 	requestForEditTagParentPageId = "3zj"
 	mathDomainId                  = "1lw"
@@ -74,6 +75,11 @@ type pageModeRow struct {
 }
 
 type maintenanceUpdateRow struct {
+	modeRowData
+	Update *core.UpdateEntry `json:"update"`
+}
+
+type notificationRow struct {
 	modeRowData
 	Update *core.UpdateEntry `json:"update"`
 }
@@ -546,6 +552,26 @@ func loadMaintenanceUpdateRows(db *database.DB, u *core.CurrentUser, returnData 
 	for _, ur := range updateRows {
 		mr := &maintenanceUpdateRow{
 			modeRowData: modeRowData{RowType: MaintenanceUpdateRowType, ActivityDate: ur.CreatedAt},
+			Update:      getUpdateEntryFromUpdateRow(ur, returnData.PageMap),
+		}
+		modeRows = append(modeRows, mr)
+	}
+	return modeRows, nil
+}
+
+func loadNotificationRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	modeRows := make(ModeRows, 0)
+
+	notificationUpdateTypes := core.GetNotificationUpdateTypes()
+
+	updateRows, err := core.LoadUpdateRows(db, u, returnData, false, notificationUpdateTypes, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load updates: %v", err)
+	}
+
+	for _, ur := range updateRows {
+		mr := &notificationRow{
+			modeRowData: modeRowData{RowType: NotificationRowType, ActivityDate: ur.CreatedAt},
 			Update:      getUpdateEntryFromUpdateRow(ur, returnData.PageMap),
 		}
 		modeRows = append(modeRows, mr)
