@@ -437,9 +437,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					var redLinkText = $element.text();
 					if (pageAlias == trimAlias(redLinkText)) {
 						var possibleModifier = $element.text().substring(0, 1);
-						if (possibleModifier == '+' || possibleModifier == '-') {
-							redLinkText = getCasedText(pageAlias, possibleModifier);
-						}
+						redLinkText = getCasedText(pageAlias, possibleModifier);
 						// Convert underscores to spaces for red [alias] links
 						$element.text(redLinkText.replace(/_/g, ' '));
 					}
