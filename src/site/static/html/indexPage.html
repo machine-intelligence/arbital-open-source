@@ -37,11 +37,12 @@
 			<md-button href="#"
 					class="tab-panel-tab"
 					ng-class="{'md-raised md-primary': writeTab==1}"
-					ng-click="selectWriteTab(1)">
+					ng-click="selectWriteTab(1)"
+					ng-if="showContinueWritingPanel">
 				Continue
 			</md-button>
 		</div>
-		<div arb-continue-writing-mode-panel hide-title="::true" ng-if="writeTab==1"></div>
 		<div arb-write-mode-panel hide-title="::true" ng-if="writeTab==0"></div>
+		<div arb-continue-writing-mode-panel hide-title="::true" ng-if="writeTab==1"></div>
 	</div>
 </div>

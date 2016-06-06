@@ -16,6 +16,12 @@ app.directive('arbIndex', function($http, arb) {
 			$scope.selectWriteTab = function(tab) {
 				$scope.writeTab = tab;
 			};
+
+			// Find out if we show the continueWriting panel
+			arb.stateService.postData('/json/continueWriting/', {},
+				function(data) {
+					$scope.showContinueWritingPanel = data.result.modeRows.length > 0;
+				});
 		},
 	};
 });
