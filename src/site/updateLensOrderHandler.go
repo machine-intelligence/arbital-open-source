@@ -58,7 +58,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail(permissionError, nil).Status(http.StatusForbidden)
 	}
 
-	// Computed which pages count as visited.
+	// Set up the lens indices
 	lensIndexValues := make([]interface{}, 0)
 	for pageId, index := range data.OrderMap {
 		lensIndexValues = append(lensIndexValues, pageId, index)
@@ -67,7 +67,7 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Begin the transaction.
 	var changeLogId int64
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		// Update the lens index.
+		// Update the lens indices.
 		statement := db.NewStatement(`
 			INSERT INTO pageInfos (pageId, lensIndex)
 			VALUES ` + database.ArgsPlaceholder(len(lensIndexValues), 2) + `
@@ -92,22 +92,22 @@ func updateLensOrderHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			return sessions.NewError("Couldn't get new changeLog id", err)
 		}
 
+		// Generate updates for users who are subscribed to the primary page
+		var task tasks.NewUpdateTask
+		task.UpdateType = core.ChangeLogUpdateType
+		task.UserId = u.Id
+		task.ChangeLogId = changeLogId
+		task.GroupByPageId = data.PageId
+		task.SubscribedToId = data.PageId
+		task.GoToPageId = data.PageId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			return sessions.NewError("Couldn't enqueue a task", err)
+		}
+
 		return nil
 	})
 	if err2 != nil {
 		return pages.FailWith(err2)
-	}
-
-	// Generate updates for users who are subscribed to the primary page
-	var task tasks.NewUpdateTask
-	task.UpdateType = core.ChangeLogUpdateType
-	task.UserId = u.Id
-	task.ChangeLogId = changeLogId
-	task.GroupByPageId = data.PageId
-	task.SubscribedToId = data.PageId
-	task.GoToPageId = data.PageId
-	if err := tasks.Enqueue(c, &task, nil); err != nil {
-		c.Errorf("Couldn't enqueue a task: %v", err)
 	}
 
 	return pages.Success(nil)

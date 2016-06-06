@@ -175,6 +175,12 @@ func VerifyEditPermissionsForMap(db *database.DB, pageMap map[string]*Page, u *C
 	if err != nil {
 		return "", fmt.Errorf("Couldn't load domains: %v", err)
 	}
+
+	err = LoadPages(db, u, pageMap)
+	if err != nil {
+		return "", fmt.Errorf("Couldn't load pages: %v", err)
+	}
+
 	ComputePermissionsForMap(db.C, pageMap, u)
 	for _, p := range pageMap {
 		if !p.Permissions.Edit.Has {
