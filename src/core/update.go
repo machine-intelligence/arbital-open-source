@@ -408,6 +408,10 @@ func GetMaintenanceUpdateTypes() []string {
 }
 
 func MarkUpdatesAsSeen(db *database.DB, userId string, updateIds []string) error {
+	if len(updateIds) <= 0 {
+		return nil
+	}
+
 	statement := database.NewQuery(`
 		UPDATE updates
 		SET seen=TRUE

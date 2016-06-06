@@ -55,7 +55,7 @@
 				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 				wants to add
 				<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-				page to
+				to the
 				<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 				domain.
 				<div>
@@ -64,7 +64,8 @@
 							ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId == ''">
 						Approve
 					</md-button>
-					<span ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
+					<!-- Check that goToPage exists, because it might have been deleted -->
+					<span ng-if="goToPage && goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
 						This submission has been approved by
 						<arb-user-name user-id="{{::goToPage.domainSubmissions[update.subscribedToId].approverId}}"></arb-user-name>
 					</span>
