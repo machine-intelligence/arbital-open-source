@@ -100,11 +100,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				}
 				return true;
 			};
-			$scope.showRequirementsPanel = !$scope.meetsAllRequirements();
-
-			$scope.showRequirements = function() {
-				$scope.showRequirementsPanel = true;
-			};
 
 			// Check if the user knows all the subjects
 			$scope.knowsAllSubjects = function() {
@@ -115,7 +110,13 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				}
 				return true;
 			};
-			$scope.showLearnedPanel = !$scope.knowsAllSubjects();
+
+			$scope.showLearnedPanel = false;
+			$scope.showRequirementsPanel = false;
+			$scope.showRequisites = function() {
+				$scope.showRequirementsPanel = true;
+				$scope.showLearnedPanel = true;
+			};
 
 			// Toggle all requirements
 			$scope.toggleRequirements = function() {

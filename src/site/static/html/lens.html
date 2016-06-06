@@ -35,6 +35,15 @@
 
 	<!-- Page's text. Populated by markdown. -->
 	<div class="lens-text-container">
+		<!-- Page title -->
+		<h1>
+			<md-icon class="page-title-icon" ng-if="::isUser">person</md-icon>
+			<md-icon class="page-title-icon" ng-if="::page.isQuestion()">help</md-icon>
+			<span class="md-display-3"
+					ng-class="::{'center-text': isTinyScreen, 'dynamic-hor-padding simple-embed-page-title': isSimpleEmbed}"
+					ng-bind="page.title"></span>
+		</h1>
+
 		<!-- Owner -->
 		<div class="author-list md-caption page-list-span" ng-if="::(page.editGroupId !== '' && !isSimpleEmbed)">
 			Owner:
@@ -66,11 +75,9 @@
 			</span>
 		</div>
 
-		<hr ng-if="(!isSimpleEmbed && subjectIds.length > 0) ||
-				(arb.stateService.pageMap[lensParentId].nextPageId !== '' || arb.stateService.pageMap[lensParentId].prevPageId !== '')">
 		<div layout-gt-xs="row" layout-align="start end">
 			<!-- Subjects taught -->
-			<div flex ng-if="::(!isSimpleEmbed && subjectIds.length > 0)">
+			<div flex ng-if="(!isSimpleEmbed && subjectIds.length > 0 && showLearnedPanel)">
 				<span class="md-subhead">
 					<md-icon>assignment</md-icon>
 					Did you learn
@@ -99,8 +106,6 @@
 				</md-button>
 			</div>
 
-			<div flex ng-if="::!(!isSimpleEmbed && subjectIds.length > 0)"></div>
-
 			<arb-next-prev page-id="{{::lensParentId}}"
 					extra-info="!showQuickContinue()"></arb-next-prev>
 		</div>
@@ -111,6 +116,29 @@
 			<span ng-repeat="(index, unlockedId) in unlockedIds">
 				<span class="comma" ng-if="index > 0">,</span>
 				<arb-page-title page-id="{{::unlockedId}}" is-link="true"></arb-page-title>
+			</span>
+		</div>
+
+		<hr>
+
+		<!-- Parents -->
+		<div class="page-list-span"
+				flex-order="{{::(isTinyScreen ? 1 : 0)}}"
+				ng-if="page.parentIds.length > 0 && !isSimpleEmbed">
+			<span>Parents:</span>
+			<span ng-repeat="(index, parentId) in page.parentIds">
+				<span class="comma" ng-if="index > 0">,</span>
+				<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+			</span>
+		</div>
+
+		<!-- Tags -->
+		<div class="page-list-span"
+				ng-if="selectedLens.taggedAsIds.length > 0 && !isSimpleEmbed">
+			<span>Tagged as:</span>
+			<span ng-repeat="(index, tagId) in selectedLens.taggedAsIds">
+				<span class="comma" ng-if="::(index > 0)">,</span>
+				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 			</span>
 		</div>
 	</div>

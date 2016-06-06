@@ -34,7 +34,7 @@ body {
 .beta-label {
 	position: relative;
 	font-size: 13px;
-	top: 17px;
+	top: 16px;
 	left: -15px;
 	opacity: 0.6;
 }
@@ -195,6 +195,10 @@ arb-index {
 	margin-right: auto;
 }
 
+.top-toolbar {
+	margin-bottom: 15px;
+}
+
 .dense-panel {
 	md-toolbar {
 		min-height: 0px;
@@ -248,6 +252,7 @@ arb-index {
 
 .next-prev-nav {
 	min-height: 50px;
+	padding: 0 10px;
 }
 
 // Hack to allow us to use 100% height inside dynamic-view
@@ -462,6 +467,11 @@ a:not(.md-button) {
 	font-size: 12px;
 	opacity: 0.5;
 	margin-top: 12px;
+
+	a {
+		color: rgba(0,0,0,0.87);
+		text-decoration: underline;
+	}
 }
 
 .edit-page-dialog {
@@ -528,6 +538,8 @@ arb-requisite-button, [arb-requisite-button] {
 // Menu for a lens (with like, subscribe, edit, etc. buttons)
 .lens-menu {
 	padding: 5px 0;
+	border-top: lightgray 1px solid;
+	border-bottom: lightgray 1px solid;
 }
 
 md-toast {
@@ -575,7 +587,7 @@ md-toast {
 @media (min-width: 960px) and (max-width: 1099px) {
 	$lens-padding: 90px;
 	.lens-text-container {
-		padding: 30px $lens-padding 60px;
+		padding: 10px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
 	}
@@ -593,7 +605,7 @@ md-toast {
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
-		padding: 40px $lens-padding 80px;
+		padding: 10px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
 	}
@@ -761,22 +773,16 @@ ins {
 }
 
 .page-tabs {
-	margin-top: 15px;
-
 	& > .page-tabs-holder {
 		//background-color: white !important;
-		border-bottom: $primary-hue-2 2px solid;
+		border-bottom: $primary-color 2px solid;
 
 		& > .md-button {
 			padding: 5px 35px;
-			color: $primary-hue-2 !important;
-			md-icon {
-				color: $primary-hue-2 !important;
-			}
 
 			&.active-tab {
-				background-color: $primary-hue-1;
-				border: $primary-hue-2 2px solid;
+				background-color: $primary-color;
+				color: white !important;
 				border-bottom: none;
 				border-radius: 0;
 			}

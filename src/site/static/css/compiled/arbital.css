@@ -411,7 +411,7 @@ body {
 .beta-label {
   position: relative;
   font-size: 13px;
-  top: 17px;
+  top: 16px;
   left: -15px;
   opacity: 0.6; }
 
@@ -512,6 +512,9 @@ arb-index {
   margin-left: auto;
   margin-right: auto; }
 
+.top-toolbar {
+  margin-bottom: 15px; }
+
 .dense-panel md-toolbar {
   min-height: 0px; }
 
@@ -547,7 +550,8 @@ arb-index {
     background-color: white; }
 
 .next-prev-nav {
-  min-height: 50px; }
+  min-height: 50px;
+  padding: 0 10px; }
 
 #dynamic-view {
   /* position: relative;
@@ -671,6 +675,9 @@ a:not(.md-button) {
   font-size: 12px;
   opacity: 0.5;
   margin-top: 12px; }
+  #footer a {
+    color: rgba(0, 0, 0, 0.87);
+    text-decoration: underline; }
 
 .edit-page-dialog {
   width: 90vw;
@@ -710,7 +717,9 @@ arb-requisite-button .md-button, [arb-requisite-button] .md-button {
     margin: 5px 0; }
 
 .lens-menu {
-  padding: 5px 0; }
+  padding: 5px 0;
+  border-top: lightgray 1px solid;
+  border-bottom: lightgray 1px solid; }
 
 md-toast md-icon {
   color: white; }
@@ -747,7 +756,7 @@ md-toast md-icon {
     box-sizing: border-box; } }
 @media (min-width: 960px) and (max-width: 1099px) {
   .lens-text-container {
-    padding: 30px 90px 60px;
+    padding: 10px 90px 60px;
     font-size: 18px;
     line-height: 26px; }
 
@@ -762,7 +771,7 @@ md-toast md-icon {
     box-sizing: border-box; } }
 @media (min-width: 1100px) {
   .lens-text-container {
-    padding: 40px 100px 80px;
+    padding: 10px 100px 80px;
     font-size: 18px;
     line-height: 30px; }
 
@@ -882,20 +891,15 @@ ins {
   z-index: 55;
   background-color: white; }
 
-.page-tabs {
-  margin-top: 15px; }
-  .page-tabs > .page-tabs-holder {
-    border-bottom: #00796B 2px solid; }
-    .page-tabs > .page-tabs-holder > .md-button {
-      padding: 5px 35px;
-      color: #00796B !important; }
-      .page-tabs > .page-tabs-holder > .md-button md-icon {
-        color: #00796B !important; }
-      .page-tabs > .page-tabs-holder > .md-button.active-tab {
-        background-color: #E0F2F1;
-        border: #00796B 2px solid;
-        border-bottom: none;
-        border-radius: 0; }
+.page-tabs > .page-tabs-holder {
+  border-bottom: #009688 2px solid; }
+  .page-tabs > .page-tabs-holder > .md-button {
+    padding: 5px 35px; }
+    .page-tabs > .page-tabs-holder > .md-button.active-tab {
+      background-color: #009688;
+      color: white !important;
+      border-bottom: none;
+      border-radius: 0; }
 
 .prevent-horizontal-scroll {
   overflow-x: hidden; }
