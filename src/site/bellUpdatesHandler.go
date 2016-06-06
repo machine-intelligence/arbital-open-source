@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"zanaduu3/src/core"
-	"zanaduu3/src/database"
 	"zanaduu3/src/pages"
 )
 
@@ -56,19 +55,15 @@ func bellUpdatesHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Pipeline error", err)
 	}
 
+	// Mark updates as seen.
 	updateIds := make([]string, 0)
 	for _, row := range rows {
-		updateIds = append(updateIds, row.(*notificationRow).Update.Id)
+		updateIds = append(updateIds, row.(*updateModeRow).Update.Id)
 	}
-
-	// Mark updates as seen.
-	statement := database.NewQuery(`
-		UPDATE updates
-		SET seen=TRUE
-		WHERE userId=?`, u.Id).Add(`
-			AND id IN`).AddArgsGroupStr(updateIds).ToStatement(db)
-	if _, err = statement.Exec(); err != nil {
+	err = core.MarkUpdatesAsSeen(db, u.Id, updateIds)
+	if err != nil {
 		return pages.Fail("Couldn't mark updates seen", err)
 	}
+
 	return pages.Success(returnData)
 }

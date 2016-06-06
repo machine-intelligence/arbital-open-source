@@ -12,7 +12,6 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			arb.userService.user.newAchievementCount = 0;
 			$scope.title = 'Achievements';
 			$scope.moreLink = '/achievements';
 
@@ -60,6 +59,23 @@ app.directive('arbReqsTaughtModeRow', function(arb) {
 			$scope.reqNames = formatReqsForDisplay($scope.modeRow.requisiteIds.map(function(pageMap) {
 				return arb.stateService.pageMap[pageMap].title;
 			}));
+		},
+	};
+});
+
+// arb-added-to-group-mode-row is the directive for showing that the user was added to a group
+app.directive('arbAddedToGroupModeRow', function(arb) {
+	return {
+		templateUrl: 'static/html/addedToGroupModeRow.html',
+		scope: {
+			modeRow: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.update = $scope.modeRow.update;
+			if ($scope.update.goToPageId) {
+				$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+			}
 		},
 	};
 });

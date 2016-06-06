@@ -1,237 +1,237 @@
 <div>
 	<div layout="row" layout-xs="column" layout-align="space-between center">
 
-		<div ng-if="::(changeLog && changeLog.id)">
-			<arb-likes likeable-type="changeLog"
-				likeable-id="{{::changeLog.id}}"
-				likeable="::changeLog"
+		<div ng-if="::(update.changeLog && update.changeLog.id)">
+			<arb-likes likeable-type="update.changeLog"
+				likeable-id="{{::update.changeLog.id}}"
+				likeable="::update.changeLog"
 				is-stretched="true"
 				is-button="true"></arb-likes>
 		</div>
 
-		<div ng-switch="::type" flex>
+		<div ng-switch="::update.type" flex>
 
 			<!-- Change log type is associated to the corresponding changeLog value and
 				changeLog's type determines the contents of the update -->
-			<span ng-switch-when="changeLog" ng-switch="::changeLog.type" flex>
+			<span ng-switch-when="changeLog" ng-switch="::update.changeLog.type" flex>
 				<span ng-switch-when="newParent">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					new parent:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteParent">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					parent removed:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newChild">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					new child:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newLens">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					new lens:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteChild">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					child removed:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newTag">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					new tag:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteTag">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					tag removed:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newUsedAsTag">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					used as tag for:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteUsedAsTag">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					not a tag for:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newRequirement">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					new requirement:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteRequirement">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					requirement removed:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newRequiredBy">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					required for:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteRequiredBy">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					not required for:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newSubject">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					teaches:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteSubject">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					doesn't teach:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="newTeacher">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					taught by:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="deleteTeacher">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					not taught by:
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="searchStringChange">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
-					<span ng-if="::changeLog.newSettingsValue">
-						search string added: <span ng-bind="::changeLog.newSettingsValue"></span>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
+					<span ng-if="::update.changeLog.newSettingsValue">
+						search string added: <span ng-bind="::update.changeLog.newSettingsValue"></span>
 					</span>
-					<span ng-if="::changeLog.oldSettingsValue">
-						search string removed: <span ng-bind="::changeLog.oldSettingsValue"></span>
+					<span ng-if="::update.changeLog.oldSettingsValue">
+						search string removed: <span ng-bind="::update.changeLog.oldSettingsValue"></span>
 					</span>
 				</span>
 
 				<span ng-switch-when="answerChange">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
-					<span ng-if="::changeLog.newSettingsValue">
-						answer added: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
+					<span ng-if="::update.changeLog.newSettingsValue">
+						answer added: <arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					</span>
-					<span ng-if="::changeLog.oldSettingsValue">
-						answer removed: <arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<span ng-if="::update.changeLog.oldSettingsValue">
+						answer removed: <arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					</span>
 				</span>
 
 				<span ng-switch-when="questionMerged">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					merged into
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="questionMergedReverse">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					merged into
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 				</span>
 
 				<span ng-switch-when="lensOrderChanged">
-					<arb-page-title page-id="{{::subscribedToId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					lens order changed.
 				</span>
 
 				<!-- Settings changes -->
 
 				<span ng-switch-when="newAlias">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					alias changed
-					from "{{::changeLog.oldSettingsValue}}"
-					to "{{::changeLog.newSettingsValue}}"
+					from "{{::update.changeLog.oldSettingsValue}}"
+					to "{{::update.changeLog.newSettingsValue}}"
 				</span>
 
 				<span ng-switch-when="newSortChildrenBy">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					child sort order changed
-					from "{{::changeLog.oldSettingsValue}}"
-					to "{{::changeLog.newSettingsValue}}"
+					from "{{::update.changeLog.oldSettingsValue}}"
+					to "{{::update.changeLog.newSettingsValue}}"
 				</span>
 
 				<span ng-switch-when="setVoteType">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					vote type changed
-					from "{{::changeLog.oldSettingsValue}}"
-					to "{{::changeLog.newSettingsValue}}"
+					from "{{::update.changeLog.oldSettingsValue}}"
+					to "{{::update.changeLog.newSettingsValue}}"
 				</span>
 
 				<span ng-switch-when="newEditGroup">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					edit group changed from
 					<!-- old edit group -->
-					<span ng-if="::(changeLog.oldSettingsValue == '')">none</span>
-					<span ng-if="::(changeLog.oldSettingsValue != '')">
-						<arb-page-title page-id="{{::changeLog.oldSettingsValue}}" is-link="true"></arb-page-title>
+					<span ng-if="::(update.changeLog.oldSettingsValue == '')">none</span>
+					<span ng-if="::(update.changeLog.oldSettingsValue != '')">
+						<arb-page-title page-id="{{::update.changeLog.oldSettingsValue}}" is-link="true"></arb-page-title>
 					</span>
 					to
 					<!-- new edit group -->
-					<span ng-if="::(changeLog.newSettingsValue == '')">none</span>
-					<span ng-if="::(changeLog.newSettingsValue != '')">
-						<arb-page-title page-id="{{::changeLog.newSettingsValue}}" is-link="true"></arb-page-title>
+					<span ng-if="::(update.changeLog.newSettingsValue == '')">none</span>
+					<span ng-if="::(update.changeLog.newSettingsValue != '')">
+						<arb-page-title page-id="{{::update.changeLog.newSettingsValue}}" is-link="true"></arb-page-title>
 					</span>
 				</span>
 
 				<span ng-switch-when="turnOnVote">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					probability bar shown
 				</span>
 
 				<span ng-switch-when="turnOffVote">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					probability bar hidden
 				</span>
 
 				<span ng-switch-when="pageInfoEdit">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					settings changed
 				</span>
 
 				<!-- Edits and snapshots -->
 
 				<span ng-switch-when="deletePage">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					deleted
 				</span>
 
 				<span ng-switch-when="undeletePage">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					republished
 				</span>
 
 				<span ng-switch-when="newEdit">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
-					new edit #{{::changeLog.edit}}
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+					new edit #{{::update.changeLog.edit}}
 				</span>
 
 				<span ng-switch-when="revertEdit">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
-					reverted to edit #{{::changeLog.edit}}
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+					reverted to edit #{{::update.changeLog.edit}}
 				</span>
 
 				<span ng-switch-when="newSnapshot">
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
-					new snapshot (edit #{{::changeLog.edit}})
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+					new snapshot (edit #{{::update.changeLog.edit}})
 				</span>
 
 			</span>
@@ -240,10 +240,10 @@
 
 			<span ng-switch-when="pageEdit">
 				<span>
-					<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
+					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 					edited
-					<span ng-if="::(repeated > 1)">
-						{{::repeated}} times
+					<span ng-if="::(update.repeated > 1)">
+						{{::update.repeated}} times
 					</span>
 				</span>
 			</span>
@@ -251,8 +251,8 @@
 			<!-- Unknown -->
 
 			<span ng-switch-default class="md-warn">
-				<arb-page-title page-id="{{::goToPageId}}" is-link="true"></arb-page-title>
-				unknown activity type: {{::type}}
+				<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+				unknown activity type: {{::update.type}}
 			</span>
 
 		</div>
@@ -261,11 +261,11 @@
 		<div layout="row" layout-align="end center">
 			<!-- Link to the user who performed the action -->
 			<span>
-				<arb-user-name user-id="{{::byUserId}}" ng-if="::showUserLink && !!byUserId"></arb-user-name>
+				<arb-user-name user-id="{{::update.byUserId}}" ng-if="::showUserLink && !!update.byUserId"></arb-user-name>
 				&nbsp;
 			</span>
 
-			<span class="md-caption nowrap" ng-bind="::(createdAt | relativeDateTime)"></span>
+			<span class="md-caption nowrap" ng-bind="::(update.createdAt | relativeDateTime)"></span>
 			<md-button class="md-icon-button" ng-click="onDismiss()" ng-if="showDismissIcon">
 				<md-icon>close</md-icon>
 				<md-tooltip md-delay="500">Dismiss</md-tooltip>
@@ -274,7 +274,7 @@
 
 	</div>
 
-	<div ng-if="::type == 'pageEdit'">
-		<arb-edit-diff change-log="::changeLog" num-edits="::repeated"></arb-edit-diff>
+	<div ng-if="::update.type == 'pageEdit'">
+		<arb-edit-diff change-log="::update.changeLog" num-edits="::update.repeated"></arb-edit-diff>
 	</div>
 </div>

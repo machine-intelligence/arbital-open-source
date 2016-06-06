@@ -16,7 +16,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 
 			$scope.toggleDiff = function(update) {
 				$scope.showDiff = !$scope.showDiff;
-			}
+			};
 
 			// Prepare to show the diff
 			var pageId = $scope.changeLog.pageId;
@@ -34,7 +34,7 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 					// Default to showing short diffs
 					$scope.showDiff = $scope.diffHtml.length < 500;
 				}
-			}
+			};
 
 			// Load thisEditText.
 			arb.pageService.loadEdit({

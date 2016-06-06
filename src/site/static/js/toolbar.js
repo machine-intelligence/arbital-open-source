@@ -46,6 +46,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			$scope.hide = $location.path().indexOf('/edit') === 0;
 
 			$scope.showNotifications = function(ev) {
+				arb.userService.user.newNotificationCount = 0;
 				showPanel(
 					ev,
 					'/notifications/',
@@ -55,6 +56,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			};
 
 			$scope.showAchievements = function(ev) {
+				arb.userService.user.newAchievementCount = 0;
 				showPanel(
 					ev,
 					'/achievements/',
@@ -92,8 +94,13 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					focusOnOpen: false,
 					zIndex: 200000,
 				};
-				$mdPanel.open(config);
-			}
+				var panel = $mdPanel.create(config);
+				panel.open();
+
+				$scope.$on('$locationChangeSuccess', function() {
+					panel.close();
+				});
+			};
 		},
 	};
 });

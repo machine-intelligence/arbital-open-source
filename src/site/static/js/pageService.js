@@ -377,7 +377,6 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		});
 	};
 
-
 	// Get a new page from the server.
 	// options {
 	//  type: type of the page to create
@@ -547,7 +546,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 			unresolve: unresolve,
 		};
 		stateService.postData('/json/resolveThread/', data, function(data) {
-			 stateService.pageMap[commentId].isResolved = !unresolve;
+			stateService.pageMap[commentId].isResolved = !unresolve;
 		});
 	};
 

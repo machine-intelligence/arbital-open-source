@@ -222,7 +222,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]+?~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
-					if (mathjaxText.substring(0, 4) == "~D~D") return whole;
+					if (mathjaxText.substring(0, 4) == '~D~D') return whole;
 					var encodedText = encodeURIComponent(mathjaxText);
 					var key = '$' + encodedText.substring(2, encodedText.length - 2) + '$';
 					var cachedValue = stateService.getMathjaxCacheValue(key);
@@ -538,7 +538,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				if (scope._mathQueue.length <= 0) return;
 				var $element = scope._mathQueue.shift();
 				var encodedMathjaxText = $element.attr('arb-math-compiler');
-				
+
 				// Try to read from cache
 				var cachedValue = stateService.getMathjaxCacheValue(encodedMathjaxText);
 				if (cachedValue) {

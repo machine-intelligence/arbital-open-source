@@ -157,6 +157,7 @@ func init() {
 	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
 	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")
+	s.HandleFunc(writeNewModeHandler.URI, handlerWrapper(writeNewModeHandler)).Methods("POST")
 
 	// Admin stuff
 	s.HandleFunc(adminTaskHandler.URI, handlerWrapper(adminTaskHandler)).Methods("GET")

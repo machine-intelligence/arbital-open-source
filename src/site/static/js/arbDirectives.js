@@ -14,6 +14,14 @@ app.directive('arbUserName', function(arb) {
 	};
 });
 
+// directive for a sub-header in a list
+app.directive('arbListSubHeader', function(arb) {
+	return {
+		templateUrl: 'static/html/listSubHeader.html',
+		transclude: true,
+	};
+});
+
 // intrasitePopover contains the popover body html.
 app.directive('arbIntrasitePopover', function($timeout, arb) {
 	return {
@@ -406,9 +414,9 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 				$scope.editPageUrl = undefined;
 				if (arb.stateService.primaryPage) {
 					if ($location.search().l) {
-						$scope.editPageUrl = arb.urlService.getEditPageUrl($location.search().l)
+						$scope.editPageUrl = arb.urlService.getEditPageUrl($location.search().l);
 					} else {
-						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.stateService.primaryPage.pageId)
+						$scope.editPageUrl = arb.urlService.getEditPageUrl(arb.stateService.primaryPage.pageId);
 					}
 				}
 			};

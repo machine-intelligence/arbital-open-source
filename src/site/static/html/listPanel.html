@@ -21,13 +21,17 @@
 						show-comment-count="true"
 						show-text-length="true"
 						ng-switch-when="page"></arb-page-row>
+
+				<!-- hedons -->
 				<arb-likes-mode-row mode-row="::modeRow" ng-switch-when="likes"></arb-likes-mode-row>
 				<arb-reqs-taught-mode-row mode-row="::modeRow" ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
+				<arb-added-to-group-mode-row mode-row="::modeRow" ng-switch-when="addedToGroup"></arb-added-to-group-mode-row>
+
 				<div arb-mark-info mark-id="{{::modeRow.markId}}" ng-switch-when="mark"></div>
 				<div arb-query-info mark-id="{{::modeRow.markId}}" ng-switch-when="query"></div>
 				<arb-comment-mode-row mode-row="::modeRow" ng-switch-when="comment"></arb-comment-mode-row>
 				<arb-draft-row mode-row="::modeRow" ng-switch-when="draft"></arb-draft-row>
-				<arb-tagged-for-edit-row mode-row="modeRow" ng-switch-when="taggedForEdit"></arb-tagged-for-edit-row>
+				<arb-tagged-for-edit-row mode-row="::modeRow" ng-switch-when="taggedForEdit"></arb-tagged-for-edit-row>
 				<arb-maintenance-update-row
 					mode-row="::modeRow"
 					ng-switch-when="maintenanceUpdate"
