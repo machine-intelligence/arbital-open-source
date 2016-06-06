@@ -73,6 +73,9 @@ app.directive('arbAddedToGroupModeRow', function(arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.update = $scope.modeRow.update;
+			if ($scope.update.goToPageId) {
+				$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+			}
 		},
 	};
 });

@@ -46,17 +46,13 @@ app.directive('arbBellUpdateRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.changeLog = $scope.modeRow.update.changeLog;
-			$scope.byUserId = $scope.modeRow.update.byUserId;
-			$scope.showUserLink = $scope.modeRow.update.subscribedToId != $scope.modeRow.update.byUserId;
-			$scope.type = $scope.modeRow.update.type;
-			$scope.markId = $scope.modeRow.update.markId;
-			$scope.subscribedToId = $scope.modeRow.update.subscribedToId;
-			$scope.goToPageId = $scope.modeRow.update.goToPageId;
-			$scope.isRelatedPageAlive = $scope.modeRow.update.isGoToPageAlive;
-			$scope.createdAt = $scope.modeRow.update.createdAt;
-			$scope.repeated = $scope.modeRow.update.repeated;
+			$scope.update = $scope.modeRow.update;
+			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
 			$scope.showDismissIcon = true;
+
+			if ($scope.update.goToPageId) {
+				$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+			}
 		},
 	};
 });
@@ -71,16 +67,8 @@ app.directive('arbMaintenanceUpdateRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.changeLog = $scope.modeRow.update.changeLog;
-			$scope.byUserId = $scope.modeRow.update.byUserId;
-			$scope.showUserLink = $scope.modeRow.update.subscribedToId != $scope.modeRow.update.byUserId;
-			$scope.type = $scope.modeRow.update.type;
-			$scope.markId = $scope.modeRow.update.markId;
-			$scope.subscribedToId = $scope.modeRow.update.subscribedToId;
-			$scope.goToPageId = $scope.modeRow.update.goToPageId;
-			$scope.isRelatedPageAlive = $scope.modeRow.update.isGoToPageAlive;
-			$scope.createdAt = $scope.modeRow.update.createdAt;
-			$scope.repeated = $scope.modeRow.update.repeated;
+			$scope.update = $scope.modeRow.update;
+			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
 			$scope.showDismissIcon = true;
 		},
 	};
