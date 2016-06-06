@@ -46,6 +46,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			$scope.hide = $location.path().indexOf('/edit') === 0;
 
 			$scope.showNotifications = function(ev) {
+				arb.userService.user.newNotificationCount = 0;
 				showPanel(
 					ev,
 					'/notifications/',
