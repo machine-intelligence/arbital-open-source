@@ -27,7 +27,7 @@ app.directive('arbContinueWritingModePanel', function($http, arb) {
 
 // arb-write-mode-panel displays a list of things that prompt a user
 // to contribute new content, like redlinks and requests
-app.directive('arbWriteModePanel', function($http, arb) {
+app.directive('arbWriteNewModePanel', function($http, arb) {
 	return {
 		templateUrl: 'static/html/writeNewPanel.html',
 		scope: {
