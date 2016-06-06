@@ -73,12 +73,14 @@ app.directive('arbExplanationRequestRow', function(arb) {
 	return {
 		templateUrl: 'static/html/explanationRequestRow.html',
 		scope: {
-			alias: '=',
-			refCount: '=',
+			alias: '@',
+			refCount: '@',
 		},
 		controller: function($scope) {
 			var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
+
+			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 		},
 	};
 });
