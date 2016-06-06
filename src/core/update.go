@@ -379,7 +379,7 @@ func GetAchievementUpdateTypes() []string {
 	return []string{
 		AddedToGroupUpdateType,
 		RemovedFromGroupUpdateType,
-		// InviteReceivedUpdateType,
+		InviteReceivedUpdateType,
 	}
 }
 

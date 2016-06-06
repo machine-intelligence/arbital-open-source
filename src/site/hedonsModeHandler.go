@@ -59,6 +59,12 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error loading achievement updates", err)
 	}
 
+	// Load pages
+	err = core.ExecuteLoadPipeline(db, returnData)
+	if err != nil {
+		return pages.Fail("Pipeline error", err)
+	}
+
 	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, changeLikesRows, reqsTaughtRows, updateRows)
 
 	// Load and update lastAchievementsView for this user
@@ -67,10 +73,9 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error updating last achievements view", err)
 	}
 
-	// Load pages
-	err = core.ExecuteLoadPipeline(db, returnData)
-	if err != nil {
-		return pages.Fail("Pipeline error", err)
+	// Set IsVisited on update rows (now that we've had a chance to load last visit times for pages)
+	for _, row := range updateRows {
+		setUpdateModeRowIsVisited(row.(*updateModeRow), returnData.PageMap)
 	}
 
 	// Mark updates as seen.

@@ -97,6 +97,20 @@ app.directive('arbRemovedFromGroupModeRow', function(arb) {
 	};
 });
 
+// arb-invite-received-mode-row is the directive for showing that the user was invited to a domain
+app.directive('arbInviteReceivedModeRow', function(arb) {
+	return {
+		templateUrl: 'static/html/inviteReceivedModeRow.html',
+		scope: {
+			modeRow: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.update = $scope.modeRow.update;
+		},
+	};
+});
+
 // arb-hedons-mode-page is for displaying the entire /achievements page
 app.directive('arbHedonsModePage', function($http, arb) {
 	return {
