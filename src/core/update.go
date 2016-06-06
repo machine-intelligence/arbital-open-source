@@ -378,7 +378,7 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 func GetAchievementUpdateTypes() []string {
 	return []string{
 		AddedToGroupUpdateType,
-		// RemovedFromGroupUpdateType,
+		RemovedFromGroupUpdateType,
 		// InviteReceivedUpdateType,
 	}
 }
