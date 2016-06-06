@@ -375,6 +375,14 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	return resultData, nil
 }
 
+func GetAchievementUpdateTypes() []string {
+	return []string{
+		AddedToGroupUpdateType,
+		// RemovedFromGroupUpdateType,
+		// InviteReceivedUpdateType,
+	}
+}
+
 func GetNotificationUpdateTypes() []string {
 	return []string{
 		TopLevelCommentUpdateType,
@@ -397,4 +405,14 @@ func GetMaintenanceUpdateTypes() []string {
 		QuestionMergedUpdateType,
 		QuestionMergedReverseUpdateType,
 	}
+}
+
+func MarkUpdatesAsSeen(db *database.DB, userId string, updateIds []string) error {
+	statement := database.NewQuery(`
+		UPDATE updates
+		SET seen=TRUE
+		WHERE userId=?`, userId).Add(`
+			AND id IN`).AddArgsGroupStr(updateIds).ToStatement(db)
+	_, err := statement.Exec()
+	return err
 }

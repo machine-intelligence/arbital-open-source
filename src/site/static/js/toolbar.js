@@ -56,6 +56,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 			};
 
 			$scope.showAchievements = function(ev) {
+				arb.userService.user.newAchievementCount = 0;
 				showPanel(
 					ev,
 					'/achievements/',

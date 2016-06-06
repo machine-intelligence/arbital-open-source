@@ -305,7 +305,12 @@ func LoadNewAchievementCount(db *database.DB, user *CurrentUser) (int, error) {
 		return -1, err
 	}
 
-	return newLikeCount + newTaughtCount + newChangeLogLikeCount, nil
+	newAchievementUpdateCount, err := LoadAchievementUpdateCount(db, user.Id, false)
+	if err != nil {
+		return -1, err
+	}
+
+	return newLikeCount + newTaughtCount + newChangeLogLikeCount + newAchievementUpdateCount, nil
 }
 
 func LoadNotificationCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
@@ -314,6 +319,10 @@ func LoadNotificationCount(db *database.DB, userId string, includeOldAndDismisse
 
 func LoadMaintenanceUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
 	return loadUpdateCountInternal(db, userId, GetMaintenanceUpdateTypes(), includeOldAndDismissed)
+}
+
+func LoadAchievementUpdateCount(db *database.DB, userId string, includeOldAndDismissed bool) (int, error) {
+	return loadUpdateCountInternal(db, userId, GetAchievementUpdateTypes(), includeOldAndDismissed)
 }
 
 func loadUpdateCountInternal(db *database.DB, userId string, updateTypes []string, includeOldAndDismissed bool) (int, error) {

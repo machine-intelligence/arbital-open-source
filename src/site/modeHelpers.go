@@ -74,12 +74,7 @@ type pageModeRow struct {
 	PageId string `json:"pageId"`
 }
 
-type maintenanceUpdateRow struct {
-	modeRowData
-	Update *core.UpdateEntry `json:"update"`
-}
-
-type notificationRow struct {
+type updateModeRow struct {
 	modeRowData
 	Update *core.UpdateEntry `json:"update"`
 }
@@ -496,43 +491,40 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 }
 
 func loadMaintenanceUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadUpdateRows(db, u, returnData, limit, MaintenanceUpdateRowType, core.GetMaintenanceUpdateTypes())
+}
+
+func loadNotificationRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadUpdateRows(db, u, returnData, limit, NotificationRowType, core.GetNotificationUpdateTypes())
+}
+
+func loadAchievementUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
+	return loadUpdateRows(db, u, returnData, limit, "", core.GetAchievementUpdateTypes())
+}
+
+func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int, modeRowType string, updateTypes []string) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 
-	maintenanceUpdateTypes := core.GetMaintenanceUpdateTypes()
-
-	updateRows, err := core.LoadUpdateRows(db, u, returnData, false, maintenanceUpdateTypes, limit)
+	updateRows, err := core.LoadUpdateRows(db, u, returnData, false, updateTypes, limit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
 	}
 
 	for _, ur := range updateRows {
-		mr := &maintenanceUpdateRow{
-			modeRowData: modeRowData{RowType: MaintenanceUpdateRowType, ActivityDate: ur.CreatedAt},
-			Update:      getUpdateEntryFromUpdateRow(ur, returnData.PageMap),
-		}
-		modeRows = append(modeRows, mr)
+		modeRows = append(modeRows, getUpdateModeRowFromUpdateRow(ur, returnData.PageMap, modeRowType))
 	}
 	return modeRows, nil
 }
 
-func loadNotificationRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	modeRows := make(ModeRows, 0)
-
-	notificationUpdateTypes := core.GetNotificationUpdateTypes()
-
-	updateRows, err := core.LoadUpdateRows(db, u, returnData, false, notificationUpdateTypes, limit)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load updates: %v", err)
+func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow, pageMap map[string]*core.Page, modeRowType string) *updateModeRow {
+	if modeRowType == "" {
+		modeRowType = updateRow.Type
 	}
 
-	for _, ur := range updateRows {
-		mr := &notificationRow{
-			modeRowData: modeRowData{RowType: NotificationRowType, ActivityDate: ur.CreatedAt},
-			Update:      getUpdateEntryFromUpdateRow(ur, returnData.PageMap),
-		}
-		modeRows = append(modeRows, mr)
+	return &updateModeRow{
+		modeRowData: modeRowData{RowType: modeRowType, ActivityDate: updateRow.CreatedAt},
+		Update:      getUpdateEntryFromUpdateRow(updateRow, pageMap),
 	}
-	return modeRows, nil
 }
 
 func getUpdateEntryFromUpdateRow(row *core.UpdateRow, pageMap map[string]*core.Page) *core.UpdateEntry {

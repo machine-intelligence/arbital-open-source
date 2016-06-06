@@ -54,7 +54,12 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.Fail("Error loading requisites taught", err)
 	}
 
-	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, changeLikesRows, reqsTaughtRows)
+	updateRows, err := loadAchievementUpdateRows(db, u, returnData, data.NumPagesToLoad)
+	if err != nil {
+		return pages.Fail("Error loading achievement updates", err)
+	}
+
+	returnData.ResultMap["modeRows"] = combineModeRows(data.NumPagesToLoad, likesRows, changeLikesRows, reqsTaughtRows, updateRows)
 
 	// Load and update lastAchievementsView for this user
 	returnData.ResultMap["lastView"], err = core.LoadAndUpdateLastView(db, u, core.LastAchievementsModeView)
@@ -66,6 +71,16 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
+	}
+
+	// Mark updates as seen.
+	updateIds := make([]string, 0)
+	for _, row := range updateRows {
+		updateIds = append(updateIds, row.(*updateModeRow).Update.Id)
+	}
+	err = core.MarkUpdatesAsSeen(db, u.Id, updateIds)
+	if err != nil {
+		return pages.Fail("Couldn't mark updates seen", err)
 	}
 
 	return pages.Success(returnData)
