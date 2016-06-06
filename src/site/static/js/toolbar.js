@@ -92,7 +92,12 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					focusOnOpen: false,
 					zIndex: 200000,
 				};
-				$mdPanel.open(config);
+				var panel = $mdPanel.create(config);
+				panel.open();
+
+				$scope.$on('$locationChangeSuccess', function() {
+					panel.close();
+				});
 			}
 		},
 	};
