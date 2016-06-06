@@ -34,9 +34,9 @@ body {
 .beta-label {
 	position: relative;
 	font-size: 13px;
+	top: 17px;
 	left: -15px;
-	top: 20px;
-	color: #cccccc;
+	opacity: 0.6;
 }
 
 .like-button {
@@ -170,9 +170,23 @@ arb-index {
 	margin-top: 20px;
 }
 
-.white-circle-background {
-	background: white;
-	border-radius: 100px;
+.toolbar-update-icon {
+	opacity: 0.5;
+
+	&.on {
+		opacity: 1.0;
+	}
+}
+
+.toolbar-update-count {
+	position: relative;
+	left: -14px;
+	top: -8px;
+	padding: 2px 3px;
+	background-color: $accent-hue-3;
+	color: rgba(255,255,255,1);
+	font-size: 12px;
+	border-radius: 2px;
 }
 
 .full-page-panel {
@@ -281,6 +295,21 @@ $toolbar-height: 64px;
 	height: auto;
 	white-space: normal;
 	line-height: 20px;
+}
+
+md-autocomplete {
+	::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+	  color: rgba(255,255,255,0.5);
+	}
+	::-moz-placeholder { /* Firefox 19+ */
+	  color: rgba(255,255,255,0.5);
+	}
+	:-ms-input-placeholder { /* IE 10+ */
+	  color: rgba(255,255,255,0.5);
+	}
+	:-moz-placeholder { /* Firefox 18- */
+	  color: rgba(255,255,255,0.5);
+	}
 }
 
 // Voting bar
@@ -1077,6 +1106,10 @@ arb-log-row, [arb-log-row] {
 .tab-panel-tab {
 	box-shadow: none !important;
 	border-radius: 0 !important;
+
+	&:not(.md-primary) {
+		background-color: white !important;
+	}
 }
 
 .mathjax-div {

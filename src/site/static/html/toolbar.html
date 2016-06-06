@@ -1,10 +1,11 @@
 <!-- Top toolbar appearing on every page -->
-<md-toolbar ng-class="{'md-tall': isTinyScreen, 'md-hue-3': arb.stateService.privateGroupId !== ''}"
+<md-toolbar class="md-hue-3"
+		ng-class="{'md-tall': isTinyScreen, 'md-accent': arb.stateService.privateGroupId !== ''}"
 		ng-if="!hide">
 	<div class="md-toolbar-tools">
 		<a ng-href="http://{{arb.urlService.getTopLevelDomain()}}">
 			<md-icon md-svg-icon="arbital_logo" class="arbital-logo"></md-icon>
-			<span class="beta-label">BETA</span>
+			<span class="beta-label">v0.2</span>
 		</a>
 
 		<a href="/"
@@ -25,33 +26,36 @@
 		<md-button ng-click="showNotifications($event)"
 				aria-label="Notifications"
 				class="md-icon-button notifications-icon"
-				ng-if="arb.userService.user.id !== '' && arb.userService.userHasReceivedNotifications()">
-			<md-icon ng-if="arb.userService.user.newNotificationCount <= 0">notifications_none</md-icon>
-			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="arb.userService.user.newNotificationCount > 0">notifications</md-icon>
-			<span ng-bind="arb.userService.user.newNotificationCount" ng-if="arb.userService.user.newNotificationCount > 0"></span>
+				ng-if="arb.userService.userIsLoggedIn() && arb.userService.userHasReceivedNotifications()">
+			<md-icon class="toolbar-update-icon"
+					ng-class="{on: arb.userService.user.newNotificationCount > 0}">notifications</md-icon>
+			<span class="toolbar-update-count"
+					ng-bind="arb.userService.user.newNotificationCount"
+					ng-if="arb.userService.user.newNotificationCount > 0"></span>
 		</md-button>&nbsp;
 
 		<!-- Achievement updates -->
 		<md-button ng-click="showAchievements($event)"
 				aria-label="Achievements"
 				class="md-icon-button achievements-icon"
-				ng-if="arb.userService.user.id !== ''">
-			<md-icon ng-if="arb.userService.user.newAchievementCount <= 0">sentiment_satisfied</md-icon>
-			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="arb.userService.user.newAchievementCount > 0">sentiment_very_satisfied</md-icon>
-			<span ng-bind="arb.userService.user.newAchievementCount" ng-if="arb.userService.user.newAchievementCount > 0"></span>
+				ng-if="arb.userService.userIsLoggedIn()">
+			<md-icon class="toolbar-update-icon"
+					ng-class="{on: arb.userService.user.newAchievementCount > 0}">favorite</md-icon>
+			<span class="toolbar-update-count"
+					ng-bind="arb.userService.user.newAchievementCount"
+					ng-if="arb.userService.user.newAchievementCount > 0"></span>
 		</md-button>&nbsp;
 
 		<!-- Maintenance updates -->
 		<md-button ng-click="showMaintenanceUpdates($event)"
 				aria-label="Maintenance updates"
 				class="md-icon-button maintenance-updates-icon"
-				ng-if="arb.userService.user.id !== '' && arb.userService.userHasReceivedMaintenanceUpdates()">
-			<md-icon ng-if="arb.userService.user.maintenanceUpdateCount <= 0">build</md-icon>
-			<md-icon class="md-accent md-hue-3 white-circle-background"
-				ng-if="arb.userService.user.maintenanceUpdateCount > 0">build</md-icon>
-			<span ng-bind="arb.userService.user.maintenanceUpdateCount" ng-if="arb.userService.user.maintenanceUpdateCount > 0"></span>
+				ng-if="arb.userService.userIsLoggedIn() && arb.userService.userHasReceivedMaintenanceUpdates()">
+			<md-icon class="toolbar-update-icon"
+					ng-class="{on: arb.userService.user.maintenanceUpdateCount > 0}">build</md-icon>
+			<span class="toolbar-update-count"
+					ng-bind="arb.userService.user.maintenanceUpdateCount"
+					ng-if="arb.userService.user.maintenanceUpdateCount > 0"></span>
 		</md-button>&nbsp;
 
 		<!-- Login/signup buttons -->
