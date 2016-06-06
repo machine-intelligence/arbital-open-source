@@ -1,0 +1,14 @@
+<md-list-item>
+	<div layout="row" flex>
+		<div layout-align="start center" flex>
+			{{::prettyName}}<span ng-if="::refCount">, referenced in {{::refCount}} pages</span>
+		</div>
+		<div layout-align="start center">
+			<md-button ng-href="/edit/{{::alias}}"
+					class="md-icon-button">
+				<md-icon>create</md-icon>
+			</md-button>
+		</div>
+	</div>
+</md-list-item>
+<md-divider></md-divider>

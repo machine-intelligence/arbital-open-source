@@ -14,6 +14,14 @@ app.directive('arbUserName', function(arb) {
 	};
 });
 
+// directive for a sub-header in a list
+app.directive('arbListSubHeader', function(arb) {
+	return {
+		templateUrl: 'static/html/listSubHeader.html',
+		transclude: true,
+	};
+});
+
 // intrasitePopover contains the popover body html.
 app.directive('arbIntrasitePopover', function($timeout, arb) {
 	return {

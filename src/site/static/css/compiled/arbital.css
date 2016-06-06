@@ -1078,6 +1078,16 @@ arb-log-row, [arb-log-row] {
 .list-panel md-list {
   padding-top: 5px; }
 
+arb-list-sub-header md-list-item {
+  margin-bottom: 0px !important;
+  padding-top: 10px !important; }
+
+arb-explanation-request-row md-list-item {
+  margin-bottom: 0px !important;
+  padding-bottom: 0px !important; }
+arb-explanation-request-row .md-button.md-icon-button {
+  padding: 0px; }
+
 @media (min-width: 1100px) {
   .index-page-half {
     margin: 0 20px; } }

@@ -24,7 +24,7 @@ const (
 	NotificationRowType      = "notification"
 
 	requestForEditTagParentPageId = "3zj"
-	mathDomainId                  = "1lw"
+	MathDomainId                  = "1lw"
 )
 
 type modeRowData struct {
@@ -367,7 +367,7 @@ func loadReadPagesModeRows(db *database.DB, returnData *core.CommonHandlerData, 
 		JOIN pageDomainPairs AS pdp ON pi.pageId=pdp.pageId
 		WHERE pi.type IN (?,?,?,?)`, core.WikiPageType, core.LensPageType, core.DomainPageType, core.QuestionPageType).Add(`
 			AND pi.`+pageInfoField+`!=0
-			AND (pdp.domainId=?`, mathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
+			AND (pdp.domainId=?`, MathDomainId).Add(`OR pdp.domainId IN(`).AddPart(subscribedDomains).Add(`))
 		ORDER BY pi.`+pageInfoField+` DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -455,50 +455,6 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 		Tags:          true,
 		AnswerCounts:  true,
 	}).Add(core.TitlePlusLoadOptions)
-
-	// Tags that mean a page should be edited
-	tagsForEdit, err := core.LoadMetaTags(db, requestForEditTagParentPageId)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't load meta tags: %v", err)
-	}
-
-	rows := database.NewQuery(`
-		SELECT pi.pageId,p.createdAt
-		FROM pagePairs AS pp
-		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
-		ON (pi.pageId=pp.childId)
-		JOIN pages AS p
-		ON (p.pageId = pi.pageId AND p.edit = pi.currentEdit)
-		WHERE pp.type=?`, core.TagPagePairType).Add(`
-			AND pp.parentId IN`).AddArgsGroupStr(tagsForEdit).Add(`
-			AND pi.createdBy=?`, returnData.User.Id).Add(`
-		GROUP BY pi.pageId
-		ORDER BY p.createdAt DESC
-		LIMIT ?`, limit).ToStatement(db).Query()
-	err = rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pageId, createdAt string
-		err := rows.Scan(&pageId, &createdAt)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		row := &pageModeRow{
-			modeRowData: modeRowData{RowType: TaggedforEditModeRowType, ActivityDate: createdAt},
-			PageId:      pageId,
-		}
-		modeRows = append(modeRows, row)
-		core.AddPageToMap(pageId, returnData.PageMap, pageLoadOptions)
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return modeRows, nil
-}
-
-// Load pages that are linked to but don't exist
-func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	modeRows := make(ModeRows, 0)
-	pageLoadOptions := (&core.PageLoadOptions{}).Add(core.TitlePlusLoadOptions)
 
 	// Tags that mean a page should be edited
 	tagsForEdit, err := core.LoadMetaTags(db, requestForEditTagParentPageId)

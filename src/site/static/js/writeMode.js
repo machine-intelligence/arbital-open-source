@@ -29,7 +29,7 @@ app.directive('arbContinueWritingModePanel', function($http, arb) {
 // to contribute new content, like redlinks and requests
 app.directive('arbWriteModePanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/listPanel.html',
+		templateUrl: 'static/html/writeNewPanel.html',
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
@@ -38,13 +38,11 @@ app.directive('arbWriteModePanel', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			$scope.title = 'Write new';
-
 			arb.stateService.postData('/json/writeNew/', {
 					numPagesToLoad: $scope.numToDisplay,
 				},
 				function(data) {
-					$scope.modeRows = data.result.modeRows;
+					$scope.redLinkRows = data.result.redLinks;
 				});
 		},
 	};
@@ -66,6 +64,21 @@ app.directive('arbTaggedForEditRow', function(arb) {
 		templateUrl: 'static/html/taggedForEditRow.html',
 		scope: {
 			modeRow: '=',
+		},
+	};
+});
+
+// arb-draft-mode-row is the directive for showing a user's draft
+app.directive('arbExplanationRequestRow', function(arb) {
+	return {
+		templateUrl: 'static/html/explanationRequestRow.html',
+		scope: {
+			alias: '=',
+			refCount: '=',
+		},
+		controller: function($scope) {
+			var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
+			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 		},
 	};
 });
