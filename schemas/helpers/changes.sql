@@ -34,3 +34,4 @@ CREATE TABLE pageToDomainSubmissions (
 
 alter table pageInfos add column featuredAt datetime not null;
 alter table pageInfos add column isResolved bool not null;
+create index pageId on visits (pageId);

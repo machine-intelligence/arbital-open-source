@@ -203,13 +203,19 @@ func (statement *Stmt) Exec(args ...interface{}) (sql.Result, error) {
 		}
 		args = statement.args
 	}
+
+	startTime := time.Now()
 	result, err := statement.stmt.Exec(args...)
 	statement.Close()
 	if err != nil {
 		statement.DB.C.Inc("sql_command_fail")
 		return nil, fmt.Errorf("Error while executing an sql statement:\n%v\n%v", statement, err)
 	}
-	statement.DB.C.Debugf("Executed SQL statement: %v\nwith args: %+v", statement, args)
+
+	duration := time.Since(startTime)
+	statement.DB.C.Infof(`Executed SQL statement: %v
+		With args: %+v
+		Operation took %v`, statement, args, duration)
 	return result, nil
 }
 
@@ -223,12 +229,19 @@ func (statement *Stmt) Query(args ...interface{}) *Rows {
 		}
 		args = statement.args
 	}
+
+	startTime := time.Now()
 	rows, err := statement.stmt.Query(args...)
 	if err != nil {
 		statement.DB.C.Inc("sql_command_fail")
 		statement.DB.C.Errorf("Error while querying:\n%v\n%v", statement, err)
 		return nil
 	}
+
+	duration := time.Since(startTime)
+	statement.DB.C.Infof(`Executed SQL statement: %v
+		With args: %+v
+		Operation took %v`, statement, args, duration)
 	return &Rows{rows: rows, stmt: statement, DB: statement.DB}
 }
 
