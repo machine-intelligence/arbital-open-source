@@ -83,6 +83,12 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
+
+		// Skip redlinks that are ids
+		if core.IsIdValid(redLinkAlias) {
+			return nil
+		}
+
 		row := &RedLinkRow{
 			RedLinkAlias: redLinkAlias,
 			RedLinkCount: redLinkCount,
