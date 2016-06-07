@@ -36,6 +36,13 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 				return $location.hash() === 'subpage-' + $scope.page.pageId;
 			};
 
+			// Return true if this comment should be shown
+			$scope.isSubpageVisible = function() {
+				if ($scope.isDeleted) return false;
+				if ($scope.page.isResolved && !$scope.isSelected()) return false;
+				return !$scope.page.isEditorComment || arb.stateService.getShowEditorComments();
+			};
+
 			// Called when the user collapses/expands this subpage
 			$scope.collapseToggle = function() {
 				$scope.isCollapsed = !$scope.isCollapsed;

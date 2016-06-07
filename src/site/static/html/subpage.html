@@ -2,7 +2,7 @@
 		layout="column"
 		class="subpage-content full-width md-whiteframe-2dp"
 		ng-class="{'selected-subpage': isSelected()}"
-		ng-if="!isDeleted && !page.isResolved && (!page.isEditorComment || arb.stateService.getShowEditorComments())">
+		ng-if="isSubpageVisible()">
 	<!-- Comment header -->
 	<div class="comment-header" layout="row" layout-align="start center">
 		<span ng-if="!parentSubpageId && !page.isEditorComment">
