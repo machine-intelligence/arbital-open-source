@@ -1,7 +1,7 @@
-<div layout="column" layout-gt-md="row">
+<div layout="column" layout-padding layout-gt-md="row">
 
 	<!-- Left half -->
-	<div class="index-page-half" flex>
+	<div flex>
 		<div class="tab-panel-header" layout="row" layout-align="start end">
 			<div class="tab-panel-title">Read</div>
 			<div flex></div>
@@ -23,7 +23,7 @@
 	</div>
 
 	<!-- Right half -->
-	<div class="index-page-half" flex ng-if="arb.userService.userIsLoggedIn()">
+	<div flex ng-if="arb.userService.userIsLoggedIn()">
 		<div class="tab-panel-header" layout="row" layout-align="start end">
 			<div class="tab-panel-title">Write</div>
 			<div flex></div>
