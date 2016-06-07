@@ -13,17 +13,16 @@
 					<span ng-if="::refCount">referenced in {{::refCount}} pages</span>
 				</div>
 				<div ng-if="expand">
-					<md-progress-circular md-mode="indeterminate" ng-if="!parents"></md-progress-circular>
-					<div ng-repeat="parentId in parents">
-						<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+					<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
+					<div ng-repeat="pageId in linkedByPageIds">
+						<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 	<div>
-		<md-button ng-href="{{editUrl}}"
-				class="md-icon-button">
+		<md-button ng-href="{{editUrl}}" class="md-icon-button">
 			<md-icon>create</md-icon>
 		</md-button>
 	</div>

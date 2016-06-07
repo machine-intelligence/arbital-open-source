@@ -45,7 +45,7 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 		SELECT l.parentId
 		FROM links AS l
 		JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS pi
-			ON (l.parentId=pi.pageId OR l.parentId=pi.alias)`)
+		ON (l.parentId=pi.pageId OR l.parentId=pi.alias)`)
 
 	if data.RestrictToMathDomain {
 		query.Add(`

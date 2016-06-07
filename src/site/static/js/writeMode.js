@@ -85,7 +85,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.toggleExpand = function() {
 				$scope.expand = !$scope.expand;
 
-				if ($scope.parents) return;
+				if ($scope.linkedByPageIds) return;
 
 				arb.stateService.postData('/json/moreRelationships/',
 					{
@@ -93,7 +93,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 						restrictToMathDomain: true,
 					},
 					function success(data) {
-						$scope.parents = data.result.moreRelationshipIds;
+						$scope.linkedByPageIds = data.result.moreRelationshipIds;
 					}
 				);
 			};
