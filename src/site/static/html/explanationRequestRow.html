@@ -1,15 +1,30 @@
-<md-list-item>
+<md-list-item layout="row" layout-align="start">
 	<div layout="row" flex>
-		<div layout-align="start center" flex>
-			<span ng-if="::refCount">"</span>{{::prettyName}}<span ng-if="::refCount">"</span>
-			<span ng-if="::refCount">referenced in {{::refCount}} pages</span>
+		<div layout="row">
+			<div ng-if="::refCount">
+				<md-button ng-click="toggleExpand()"
+						class="md-icon-button">
+					<md-icon>expand_more</md-icon>
+				</md-button>
+			</div>
+			<div layout="column">
+				<div>
+					<span ng-if="::refCount">"</span>{{::prettyName}}<span ng-if="::refCount">"</span>
+					<span ng-if="::refCount">referenced in {{::refCount}} pages</span>
+				</div>
+				<div ng-if="expand">
+					<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
+					<div ng-repeat="pageId in linkedByPageIds">
+						<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
+					</div>
+				</div>
+			</div>
 		</div>
-		<div layout-align="start center">
-			<md-button ng-href="{{editUrl}}"
-					class="md-icon-button">
-				<md-icon>create</md-icon>
-			</md-button>
-		</div>
+	</div>
+	<div>
+		<md-button ng-href="{{editUrl}}" class="md-icon-button">
+			<md-icon>create</md-icon>
+		</md-button>
 	</div>
 </md-list-item>
 <md-divider></md-divider>
