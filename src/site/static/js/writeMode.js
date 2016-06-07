@@ -89,7 +89,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 
 				arb.stateService.postData('/json/moreRelationships/',
 					{
-						pageIdOrAlias: $scope.alias,
+						pageAlias: $scope.alias,
 						restrictToMathDomain: true,
 					},
 					function success(data) {

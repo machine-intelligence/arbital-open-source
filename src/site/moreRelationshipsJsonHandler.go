@@ -11,7 +11,7 @@ import (
 )
 
 type moreRelationshipsJsonData struct {
-	PageIdOrAlias        string
+	PageAlias            string
 	RestrictToMathDomain bool
 }
 
@@ -36,7 +36,7 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
 	}
-	if !core.IsIdValid(data.PageIdOrAlias) && !core.IsAliasValid(data.PageIdOrAlias) {
+	if !core.IsAliasValid(data.PageAlias) {
 		return pages.Fail("Invalid page id or alias", nil).Status(http.StatusBadRequest)
 	}
 
@@ -53,7 +53,7 @@ func moreRelationshipsJsonHandler(params *pages.HandlerParams) *pages.Result {
 			ON pdp.pageId=l.parentId AND pdp.domainId=?`, MathDomainId)
 	}
 
-	query.Add(`WHERE l.childAlias=?`, data.PageIdOrAlias)
+	query.Add(`WHERE l.childAlias=?`, data.PageAlias)
 
 	rows := query.ToStatement(db).Query()
 	returnData.ResultMap["moreRelationshipIds"], err = core.LoadPageIds(rows, returnData.PageMap, core.TitlePlusLoadOptions)
