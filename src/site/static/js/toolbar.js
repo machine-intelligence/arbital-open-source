@@ -51,7 +51,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					ev,
 					'/notifications/',
 					'.notifications-icon',
-					'<arb-updates-panel post-url="/json/notifications/" hide-title="true" num-to-display="100" more-link="/notifications"></arb-udpates-panel>'
+					'<arb-updates-panel post-url="/json/notifications/" hide-title="true" num-to-display="20" more-link="/notifications"></arb-udpates-panel>'
 				);
 			};
 
@@ -61,7 +61,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					ev,
 					'/achievements/',
 					'.achievements-icon',
-					'<arb-hedons-mode-panel hide-title="true" num-to-display="100"></arb-hedons-mode-panel>'
+					'<arb-hedons-mode-panel hide-title="true" num-to-display="20"></arb-hedons-mode-panel>'
 				);
 			};
 
@@ -71,7 +71,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					ev,
 					'/maintain/',
 					'.maintenance-updates-icon',
-					'<arb-updates-panel post-url="/json/maintain/" hide-title="true" num-to-display="100" more-link="/maintain"></arb-updates-panel>'
+					'<arb-updates-panel post-url="/json/maintain/" hide-title="true" num-to-display="20" more-link="/maintain"></arb-updates-panel>'
 				);
 			};
 
