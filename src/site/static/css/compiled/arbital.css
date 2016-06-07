@@ -490,6 +490,7 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
     max-width: 1100px; }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 arb-index {
   margin-top: 20px; }
 
@@ -511,6 +512,8 @@ arb-index {
   font-size: 12px;
   border-radius: 2px; }
 =======
+=======
+>>>>>>> Stashed changes
 .white-circle-background {
   background: white;
   border-radius: 100px; }
