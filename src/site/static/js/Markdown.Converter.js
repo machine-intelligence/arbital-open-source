@@ -1449,6 +1449,8 @@ else
 
 			text = text.replace(/\\(\\)/g, escapeCharacters_callback);
 			text = text.replace(/\\([`*_{}\[\]()>#+-.!])/g, escapeCharacters_callback);
+			// NOTE: Alexei added this to have "\$" come out as "$"
+			text = text.replace(/\\~D/g, '~D');
 			return text;
 		}
 
