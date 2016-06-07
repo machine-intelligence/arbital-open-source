@@ -35,5 +35,8 @@ CREATE TABLE pageToDomainSubmissions (
 alter table pageInfos add column featuredAt datetime not null;
 alter table pageInfos add column isResolved bool not null;
 create index pageId on visits (pageId);
+create index userId on visits (userId);
+create index createdAt on updates (createdAt);
+create index userId on updates (userId);
 
 delete from updates where type="inviteReceived" and goToPageId="";

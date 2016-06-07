@@ -12,6 +12,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
+			$scope.selectedUpdatesButton = -1;
 
 			$scope.doAutofocus = function() {
 				return !arb.isTouchDevice && !arb.urlService.hasLoadedFirstPage;
@@ -51,8 +52,9 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					ev,
 					'/notifications/',
 					'.notifications-icon',
-					'<arb-updates-panel post-url="/json/notifications/" hide-title="true" num-to-display="100" more-link="/notifications"></arb-udpates-panel>'
+					'<arb-updates-panel post-url="/json/notifications/" hide-title="true" num-to-display="20" more-link="/notifications"></arb-udpates-panel>'
 				);
+				$scope.selectedUpdatesButton = 0;
 			};
 
 			$scope.showAchievements = function(ev) {
@@ -61,8 +63,9 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					ev,
 					'/achievements/',
 					'.achievements-icon',
-					'<arb-hedons-mode-panel hide-title="true" num-to-display="100"></arb-hedons-mode-panel>'
+					'<arb-hedons-mode-panel hide-title="true" num-to-display="20"></arb-hedons-mode-panel>'
 				);
+				$scope.selectedUpdatesButton = 1;
 			};
 
 			$scope.showMaintenanceUpdates = function(ev) {
@@ -71,8 +74,9 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					ev,
 					'/maintain/',
 					'.maintenance-updates-icon',
-					'<arb-updates-panel post-url="/json/maintain/" hide-title="true" num-to-display="100" more-link="/maintain"></arb-updates-panel>'
+					'<arb-updates-panel post-url="/json/maintain/" hide-title="true" num-to-display="20" more-link="/maintain"></arb-updates-panel>'
 				);
+				$scope.selectedUpdatesButton = 2;
 			};
 
 			var showPanel = function(ev, fullPageUrl, relPosElement, panelTemplate) {
@@ -87,12 +91,15 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 				var config = {
 					template: panelTemplate,
 					position: position,
-					panelClass: 'popover-panel',
+					panelClass: 'popover-panel md-whiteframe-dp8',
 					openFrom: ev,
 					clickOutsideToClose: true,
 					escapeToClose: true,
 					focusOnOpen: false,
 					zIndex: 200000,
+					onRemoving: function() {
+						$scope.selectedUpdatesButton = -1;
+					},
 				};
 				var panel = $mdPanel.create(config);
 				panel.open();

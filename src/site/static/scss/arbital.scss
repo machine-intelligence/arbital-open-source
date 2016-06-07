@@ -176,6 +176,11 @@ arb-index {
 	&.on {
 		opacity: 1.0;
 	}
+
+	&.selected {
+		opacity: 1.0;
+		color: rgba(255,255,255,1) !important;
+	}
 }
 
 .toolbar-update-count {
@@ -278,7 +283,7 @@ $toolbar-height: 64px;
 
 // Added to updates that the user hasn't seen yet
 .unseen-update {
-	border-left: $primary-hue-1 5px solid;
+	//border-left: $primary-hue-1 5px solid;
 }
 
 // MailChimp signup form
@@ -460,6 +465,16 @@ a:not(.md-button) {
 		&.red-todo-text {
 			background-color: #ffdddd;
 		};
+	}
+}
+
+.support-visited-links {
+	a:not(.md-button) {
+		&[page-id], &[user-id] {
+			&:visited {
+				color: $primary-hue-3;
+			}
+		}
 	}
 }
 
@@ -698,6 +713,20 @@ $triangle-size: 15px;
 	}
 }
 
+.panel-triangle-track {
+	position: relative;
+
+	.triangle {
+		position: relative;
+		width: 0;
+		height: 0;
+		left: 565px;
+		border-left: $triangle-size solid transparent;
+		border-right: $triangle-size solid transparent;
+		border-bottom: $triangle-size solid white;
+	}
+}
+
 // Person icon next to title on a user's /p/ page
 .page-title-icon {
 	font-size: 43px;
@@ -901,6 +930,11 @@ textarea {
 
 	.rhs-button {
 		margin: 5px 5px 0px 0px !important;
+	}
+
+	.rhs-dropdown-button {
+		width: 100%;
+		text-align: left;
 	}
 }
 

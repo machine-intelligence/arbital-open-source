@@ -496,6 +496,9 @@ arb-index {
   opacity: 0.5; }
   .toolbar-update-icon.on {
     opacity: 1.0; }
+  .toolbar-update-icon.selected {
+    opacity: 1.0;
+    color: white !important; }
 
 .toolbar-update-count {
   position: relative;
@@ -566,9 +569,6 @@ arb-index {
 .list > * {
   margin-top: 7px;
   margin-bottom: 7px; }
-
-.unseen-update {
-  border-left: #E0F2F1 5px solid; }
 
 #mc-signup .subscribe-header {
   margin-bottom: 0; }
@@ -670,6 +670,9 @@ a:not(.md-button) {
         color: #B71C1C; }
     a:not(.md-button)[page-id].red-todo-text, a:not(.md-button)[user-id].red-todo-text {
       background-color: #ffdddd; }
+
+.support-visited-links a:not(.md-button)[page-id]:visited, .support-visited-links a:not(.md-button)[user-id]:visited {
+  color: #004D40; }
 
 #footer {
   font-size: 12px;
@@ -836,6 +839,17 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
     .bottom-triangle-track .triangle-down.toolbarless-version {
       border-top: 15px solid whitesmoke; }
 
+.panel-triangle-track {
+  position: relative; }
+  .panel-triangle-track .triangle {
+    position: relative;
+    width: 0;
+    height: 0;
+    left: 565px;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 15px solid white; }
+
 .page-title-icon {
   font-size: 43px;
   line-height: 0.33;
@@ -978,6 +992,9 @@ textarea {
   position: absolute; }
   .rhs-buttons .rhs-button {
     margin: 5px 5px 0px 0px !important; }
+  .rhs-buttons .rhs-dropdown-button {
+    width: 100%;
+    text-align: left; }
 
 .resolved-mark {
   color: lightgray !important; }
