@@ -699,11 +699,15 @@ a:not(.md-button) {
   min-width: 300px; }
 
 arb-likes, .likes-in-autocomplete {
-  white-space: nowrap;
-  margin: 0 10px 0 0; }
+  margin: 0 10px 0 0;
+  white-space: nowrap; }
   arb-likes .like-icon, .likes-in-autocomplete .like-icon {
     min-width: 24px;
     margin-right: 2px !important; }
+  arb-likes .like-count, .likes-in-autocomplete .like-count {
+    color: #666;
+    font-weight: normal;
+    min-width: 16px; }
 
 [arb-page-list], .arb-page-list {
   margin-bottom: 4vw; }
@@ -1120,9 +1124,6 @@ arb-log-row, [arb-log-row] {
   text-align: center;
   border-radius: 15px; }
 
-.list-panel md-list {
-  padding-top: 5px; }
-
 arb-list-sub-header md-list-item,
 arb-explanation-request-row md-list-item {
   margin-bottom: 0px !important;
@@ -1133,6 +1134,22 @@ arb-explanation-request-row md-list-item {
   padding-bottom: 0px !important; }
 arb-explanation-request-row .md-button.md-icon-button {
   padding: 0px; }
+
+.page-row .clickbait {
+  min-width: 0px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap; }
+
+.list-panel md-list-item {
+  margin: 0px !important;
+  min-height: 42px !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important; }
+.list-panel div {
+  min-width: 0px; }
+.list-panel md-divider {
+  border-top-color: rgba(0, 0, 0, 0.04); }
 
 .tab-panel-header {
   border-bottom: #009688 3px solid; }

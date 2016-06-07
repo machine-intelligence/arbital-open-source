@@ -1,16 +1,18 @@
-<div layout="column" layout-gt-sm="row" flex>
+<div class="page-row" layout="row" layout-align="start center">
 
-	<arb-likes likeable-type="page" likeable-id="{{::page.pageId}}" ng-if="::!hideLikes"></arb-likes>
+	<arb-likes likeable-type="page"
+		likeable-id="{{::page.pageId}}"
+		ng-if="::!hideLikes"></arb-likes>
 
-	<div layout="column">
-		<div layout="column" layout-gt-sm="row">
-			<div flex>
+	<div layout="column" flex layout-align="center">
+		<div layout="row" layout-align="start">
+			<div layout="row" flex>
 				<arb-page-title page-id="{{::page.pageId}}"
 						is-link="true"
 						use-edit-map="::useEditMap"
 						flex></arb-page-title>
 			</div>
-			<div class="md-caption" layout-gt-xs="row" layout-align="start center">
+			<div class="md-caption" layout="row" layout-align="start center">
 				<span class="chip" ng-if="markAsDraft">
 					Draft
 				</span>
@@ -53,12 +55,10 @@
 					edited <span ng-bind="::(page.editCreatedAt | relativeDateTime)"></span>
 				</div>
 				<div style="white-space: nowrap" ng-if="::showCreatedAt">
-					<span class="separator"></span>
 					<span ng-bind="::(page.pageCreatedAt | relativeDateTime)"></span>
 				</div>
 			</div>
 		</div>
-
-		<div class="md-caption" ng-bind="::page.clickbait">
+		<div class="md-caption clickbait" ng-bind="::page.clickbait" flex>
 	</div>
 </div>
