@@ -18,8 +18,8 @@
 				New
 			</md-button>
 		</div>
-		<div arb-read-mode-panel hide-title="::true" type="featured" ng-if="readTab==0"></div>
-		<div arb-read-mode-panel hide-title="::true" type="new" ng-if="readTab==1"></div>
+		<div arb-read-mode-panel hide-title="::true" type="featured" is-full-page="true" ng-if="readTab==0"></div>
+		<div arb-read-mode-panel hide-title="::true" type="new"  is-full-page="true" ng-if="readTab==1"></div>
 	</div>
 
 	<!-- Right half -->
@@ -41,7 +41,7 @@
 				Continue
 			</md-button>
 		</div>
-		<div arb-write-new-mode-panel hide-title="::true" ng-if="writeTab==0"></div>
-		<div arb-continue-writing-mode-panel hide-title="::true" ng-if="writeTab==1"></div>
+		<div arb-write-new-mode-panel hide-title="::true"  is-full-page="true" ng-if="writeTab==0"></div>
+		<div arb-continue-writing-mode-panel hide-title="::true"  is-full-page="true" ng-if="writeTab==1"></div>
 	</div>
 </div>

@@ -91,7 +91,7 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 				var config = {
 					template: panelTemplate,
 					position: position,
-					panelClass: 'popover-panel',
+					panelClass: 'popover-panel md-whiteframe-dp8',
 					openFrom: ev,
 					clickOutsideToClose: true,
 					escapeToClose: true,
