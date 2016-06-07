@@ -511,23 +511,23 @@ func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.Commo
 	}
 
 	for _, ur := range updateRows {
-		modeRows = append(modeRows, getUpdateModeRowFromUpdateRow(ur, returnData.PageMap, modeRowType))
+		modeRows = append(modeRows, getUpdateModeRowFromUpdateRow(ur, modeRowType))
 	}
 	return modeRows, nil
 }
 
-func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow, pageMap map[string]*core.Page, modeRowType string) *updateModeRow {
+func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow, modeRowType string) *updateModeRow {
 	if modeRowType == "" {
 		modeRowType = updateRow.Type
 	}
 
 	return &updateModeRow{
 		modeRowData: modeRowData{RowType: modeRowType, ActivityDate: updateRow.CreatedAt},
-		Update:      getUpdateEntryFromUpdateRow(updateRow, pageMap),
+		Update:      getUpdateEntryFromUpdateRow(updateRow),
 	}
 }
 
-func getUpdateEntryFromUpdateRow(row *core.UpdateRow, pageMap map[string]*core.Page) *core.UpdateEntry {
+func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
 	entry := &core.UpdateEntry{
 		Id:              row.Id,
 		UserId:          row.UserId,
@@ -539,7 +539,6 @@ func getUpdateEntryFromUpdateRow(row *core.UpdateRow, pageMap map[string]*core.P
 		IsGoToPageAlive: row.IsGoToPageAlive,
 		MarkId:          row.MarkId,
 		CreatedAt:       row.CreatedAt,
-		IsVisited:       pageMap != nil && row.CreatedAt < pageMap[row.GoToPageId].LastVisit,
 		ChangeLog:       row.ChangeLog,
 	}
 	if entry.MarkId != "" {
@@ -547,4 +546,8 @@ func getUpdateEntryFromUpdateRow(row *core.UpdateRow, pageMap map[string]*core.P
 	}
 
 	return entry
+}
+
+func setUpdateModeRowIsVisited(modeRow *updateModeRow, pageMap map[string]*core.Page) {
+	modeRow.Update.IsVisited = pageMap != nil && modeRow.Update.CreatedAt < pageMap[modeRow.Update.GoToPageId].LastVisit
 }
