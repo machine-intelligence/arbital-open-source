@@ -211,7 +211,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 		if (isEditor) {
 			// Process $$mathjax$$ spans.
-			var mathjaxSpan2Regexp = new RegExp(notEscaped + '(~D~D[\\s\\S]+?[^\\\\]~D~D)', 'g');
+			var mathjaxSpan2Regexp = new RegExp(notEscaped + '(~D~D[\\s\\S]*?[^\\\\]~D~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpan2Regexp, function(whole, prefix, mathjaxText) {
 					var encodedText = encodeURIComponent(mathjaxText);
@@ -222,7 +222,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				});
 			});
 			// Process $mathjax$ spans.
-			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]+?[^\\\\]~D)', 'g');
+			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]*?[^\\\\]~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
 					if (mathjaxText.substring(0, 4) == '~D~D') return whole;
@@ -329,8 +329,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 						return prefix + '[' + text + '](' + url + ')';
 					} else {
 						var url = urlService.getPageUrl(alias, {includeHost: true});
-						return prefix + '[' + text + '](' + url + ')';
-					}
+						url = url.replace('"', '');
+						return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
+							text + '</a>';
+						}
 				} else {
 					return whole;
 				}
@@ -351,8 +353,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				} else {
 					var url = urlService.getPageUrl(trimmedAlias, {includeHost: true});
 					url = url.replace('"', '');
+					var text = getCasedText(trimmedAlias, firstAliasChar).replace('_', ' ');
 					return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
-						getCasedText(trimmedAlias, firstAliasChar) + '</a>';
+						 text + '</a>';
 				}
 			});
 		});
