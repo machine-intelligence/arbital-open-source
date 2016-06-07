@@ -496,6 +496,9 @@ arb-index {
   opacity: 0.5; }
   .toolbar-update-icon.on {
     opacity: 1.0; }
+  .toolbar-update-icon.selected {
+    opacity: 1.0;
+    color: white !important; }
 
 .toolbar-update-count {
   position: relative;
@@ -835,6 +838,17 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
     border-top: 15px solid whitesmoke; }
     .bottom-triangle-track .triangle-down.toolbarless-version {
       border-top: 15px solid whitesmoke; }
+
+.panel-triangle-track {
+  position: relative; }
+  .panel-triangle-track .triangle {
+    position: relative;
+    width: 0;
+    height: 0;
+    left: 565px;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 15px solid white; }
 
 .page-title-icon {
   font-size: 43px;

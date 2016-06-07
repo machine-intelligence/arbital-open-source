@@ -1,5 +1,9 @@
-<div class='list-panel md-whiteframe-1dp'
-		ng-class="{'full-page-panel': isFullPage, 'dense-panel': !isFullPage}"
+<div class="panel-triangle-track" ng-if="::!isFullPage">
+	<div class="triangle"></div>
+</div>
+<div class='list-panel'
+		ng-class="{'full-page-panel md-whiteframe-1dp': isFullPage,
+			'dense-panel md-whiteframe-8dp white-background': !isFullPage}"
 		ng-if="modeRows && modeRows.length != 0">
 	<!-- Header -->
 	<md-toolbar class="md-hue-2" ng-if="::title && !hideTitle">

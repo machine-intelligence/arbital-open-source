@@ -176,6 +176,11 @@ arb-index {
 	&.on {
 		opacity: 1.0;
 	}
+
+	&.selected {
+		opacity: 1.0;
+		color: rgba(255,255,255,1) !important;
+	}
 }
 
 .toolbar-update-count {
@@ -695,6 +700,20 @@ $triangle-size: 15px;
 		&.toolbarless-version {
 			border-top: $triangle-size solid whitesmoke;
 		}
+	}
+}
+
+.panel-triangle-track {
+	position: relative;
+
+	.triangle {
+		position: relative;
+		width: 0;
+		height: 0;
+		left: 565px;
+		border-left: $triangle-size solid transparent;
+		border-right: $triangle-size solid transparent;
+		border-bottom: $triangle-size solid white;
 	}
 }
 
