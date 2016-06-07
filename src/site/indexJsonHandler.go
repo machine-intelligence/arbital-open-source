@@ -22,10 +22,10 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(u).SetResetEverything()
 
-	// Show the "What is Arbital?" link
-	core.AddPageToMap("1k0", returnData.PageMap, core.TitlePlusLoadOptions)
-
 	// Load pages.
+	core.AddPageIdToMap("3d", returnData.PageMap)
+	core.AddPageIdToMap("1sl", returnData.PageMap)
+	core.AddPageIdToMap("1sm", returnData.PageMap)
 	err := core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

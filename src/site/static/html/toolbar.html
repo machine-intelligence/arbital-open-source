@@ -102,10 +102,13 @@
 		<md-subheader>
 			Your Account
 		</md-subheader>
-		<md-button href="/dashboard/" ng-click="toggleRightMenu()">Your Dashboard</md-button>
-		<md-button ng-href="/groups" ng-click="toggleRightMenu()">Your Groups</md-button>
-		<md-button ng-href="/requisites" ng-click="toggleRightMenu()">Your Requisites</md-button>
-		<md-button ng-href="/settings" ng-click="toggleRightMenu()">Your Settings</md-button>
+		<md-button href="/dashboard/" ng-click="toggleRightMenu()">Your dashboard</md-button>
+		<md-button ng-href="/discussion" ng-click="toggleRightMenu()">Your discussions</md-button>
+		<md-button ng-href="/groups"
+				ng-click="toggleRightMenu()"
+				ng-if="(arb.userService.user.groupIds.length > 1)">Your groups</md-button>
+		<md-button ng-href="/requisites" ng-click="toggleRightMenu()">Your requisites</md-button>
+		<md-button ng-href="/settings" ng-click="toggleRightMenu()">Your settings</md-button>
 		<md-divider></md-divider>
 
 		<!-- List of groups -->

@@ -42,8 +42,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	var getCasedText = function(text, prefix) {
 		if (prefix == '-') {
 			return text.substring(0, 1).toLowerCase() + text.substring(1);
+		} else if (prefix == '+') {
+			return text.substring(0, 1).toUpperCase() + text.substring(1);
 		}
-		return text.substring(0, 1).toUpperCase() + text.substring(1);
+		return text;
 	};
 
 	// Pass in a pageId to create an editor for that page
@@ -207,9 +209,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		// Process $mathjax$ spans.
 		if (isEditor) {
-			var mathjaxSpan2Regexp = new RegExp(notEscaped + '(~D~D[\\s\\S]+?~D~D)', 'g');
+			// Process $$mathjax$$ spans.
+			var mathjaxSpan2Regexp = new RegExp(notEscaped + '(~D~D[\\s\\S]*?[^\\\\]~D~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpan2Regexp, function(whole, prefix, mathjaxText) {
 					var encodedText = encodeURIComponent(mathjaxText);
@@ -219,7 +221,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					return prefix + '<div ' + style + 'class=\'mathjax-div\' arb-math-compiler="' + encodedText + '">&nbsp;</div>';
 				});
 			});
-			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]+?~D)', 'g');
+			// Process $mathjax$ spans.
+			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D[\\s\\S]*?[^\\\\]~D)', 'g');
 			converter.hooks.chain('preSpanGamut', function(text) {
 				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
 					if (mathjaxText.substring(0, 4) == '~D~D') return whole;
@@ -326,8 +329,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 						return prefix + '[' + text + '](' + url + ')';
 					} else {
 						var url = urlService.getPageUrl(alias, {includeHost: true});
-						return prefix + '[' + text + '](' + url + ')';
-					}
+						url = url.replace('"', '');
+						return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
+							text + '</a>';
+						}
 				} else {
 					return whole;
 				}
@@ -347,7 +352,10 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					return prefix + '[' + casedTitle + '](' + url + ')';
 				} else {
 					var url = urlService.getPageUrl(trimmedAlias, {includeHost: true});
-					return prefix + '[' + alias + '](' + url + ')';
+					url = url.replace('"', '');
+					var text = getCasedText(trimmedAlias, firstAliasChar).replace('_', ' ');
+					return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
+						 text + '</a>';
 				}
 			});
 		});
@@ -427,7 +435,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				} else {
 					// Normal healthy link!
 				}
-			} else {
+			} else if (!$element.hasClass('red-link')) {
 				// Mark as red link
 				$element.addClass('intrasite-link red-link').attr('page-id', pageAlias);
 				$element.attr('href', $element.attr('href').replace(/\/p\//, '/edit/'));

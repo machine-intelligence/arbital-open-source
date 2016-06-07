@@ -1,4 +1,4 @@
-<div class="panel-triangle-track" ng-if="::!isFullPage || !hideTitle">
+<div class="panel-triangle-track" ng-if="::!isFullPage">
 	<div class="triangle"></div>
 </div>
 <div class='list-panel'
@@ -6,10 +6,9 @@
 			'dense-panel white-background': !isFullPage}"
 		ng-if="modeRows && modeRows.length != 0">
 	<!-- Header -->
-	<md-toolbar class="md-hue-2" ng-if="::title && !hideTitle">
+	<md-toolbar class="md-hue-2" ng-if="::title && isFullPage">
 		<div class="md-toolbar-tools">
-			<span ng-bind="::title" flex></span>
-			<a ng-bind="::title" ng-href="{{::moreLink}}" flex></a>
+			<span ng-bind="::title"></span>
 		</div>
 	</md-toolbar>
 
