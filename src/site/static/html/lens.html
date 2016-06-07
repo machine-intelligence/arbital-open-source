@@ -134,9 +134,9 @@
 
 		<!-- Tags -->
 		<div class="page-list-span"
-				ng-if="selectedLens.taggedAsIds.length > 0 && !isSimpleEmbed">
+				ng-if="page.taggedAsIds.length > 0 && !isSimpleEmbed">
 			<span>Tagged as:</span>
-			<span ng-repeat="(index, tagId) in selectedLens.taggedAsIds">
+			<span ng-repeat="(index, tagId) in page.taggedAsIds">
 				<span class="comma" ng-if="::(index > 0)">,</span>
 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 			</span>
