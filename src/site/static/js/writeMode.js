@@ -81,6 +81,22 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
+
+			$scope.toggleExpand = function() {
+				$scope.expand = !$scope.expand;
+
+				if ($scope.linkedByPageIds) return;
+
+				arb.stateService.postData('/json/moreRelationships/',
+					{
+						pageAlias: $scope.alias,
+						restrictToMathDomain: true,
+					},
+					function success(data) {
+						$scope.linkedByPageIds = data.result.moreRelationshipIds;
+					}
+				);
+			};
 		},
 	};
 });
