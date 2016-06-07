@@ -1,3 +1,13 @@
+<div id="index-header" layout="row" layout-align="center center">
+	<div class="md-whiteframe-1dp">
+		<arb-page-title page-id="3d" is-link="true" custom-page-title="Arbital"></arb-page-title>
+		<span>is the best platform for</span>
+		<arb-page-title page-id="1sl" is-link="true" custom-page-title="crowdsourced"></arb-page-title>
+		<span class="comma">, intuitive math</span> 
+		<arb-page-title page-id="1sm" is-link="true" custom-page-title="explanations"></arb-page-title>
+		<span class="comma">.</span>
+	</div>
+</div>
 <div layout="column" layout-gt-md="row">
 
 	<!-- Left half -->
@@ -18,8 +28,18 @@
 				New
 			</md-button>
 		</div>
-		<div arb-read-mode-panel class="support-visited-links" hide-title="::true" type="featured" is-full-page="true" ng-if="readTab==0"></div>
-		<div arb-read-mode-panel class="support-visited-links" hide-title="::true" type="new"  is-full-page="true" ng-if="readTab==1"></div>
+		<div arb-read-mode-panel
+				class="support-visited-links"
+				hide-title="::true"
+				type="featured"
+				is-full-page="true"
+				ng-if="readTab==0"></div>
+		<div arb-read-mode-panel
+				class="support-visited-links"
+				hide-title="::true"
+				type="new"
+				is-full-page="true"
+				ng-if="readTab==1"></div>
 	</div>
 
 	<!-- Right half -->

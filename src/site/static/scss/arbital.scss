@@ -478,6 +478,28 @@ a:not(.md-button) {
 	}
 }
 
+#index-header {
+	width: 100%;
+	position: relative;
+	top: -35px;
+
+	& > div {
+		background: $primary-hue-3;
+		color: white !important;
+		padding: 5px 10px 10px;
+
+		& > span {
+			opacity: 0.7;
+		}
+
+		a {
+			opacity: 0.7;
+			color: white !important;
+			font-weight: bold;
+		}
+	}
+}
+
 #footer {
 	font-size: 12px;
 	opacity: 0.5;
