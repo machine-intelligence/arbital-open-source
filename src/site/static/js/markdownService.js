@@ -326,7 +326,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 						var url = urlService.getPageUrl(page.pageId, {includeHost: true});
 						return prefix + '[' + text + '](' + url + ')';
 					} else {
-						var url = urlService.getPageUrl(alias, {includeHost: true});
+						var url = urlService.getEditPageUrl(alias, {includeHost: true});
 						url = url.replace(/"/g, '');
 						return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
 							text + '</a>';
@@ -349,7 +349,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					var casedTitle = getCasedText(page.title, firstAliasChar);
 					return prefix + '[' + casedTitle + '](' + url + ')';
 				} else {
-					var url = urlService.getPageUrl(trimmedAlias, {includeHost: true});
+					var url = urlService.getEditPageUrl(trimmedAlias, {includeHost: true});
 					url = url.replace(/"/g, '');
 					var text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
 					return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
