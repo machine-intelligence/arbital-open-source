@@ -542,8 +542,8 @@ md-icon {
 }
 
 arb-likes, .likes-in-autocomplete {
-	white-space: nowrap;
 	margin: 0 10px 0 0;
+	white-space: nowrap;
 
 	// The thumbs icon
 	.like-icon {
@@ -554,6 +554,10 @@ arb-likes, .likes-in-autocomplete {
 
 	// Number of likes
 	.like-count {
+		color: #666;
+		font-weight: normal;
+		// Make room for two digits
+		min-width: 16px;
 	}
 }
 
@@ -1151,12 +1155,6 @@ arb-log-row, [arb-log-row] {
 	cursor: pointer;
 }
 
-.list-panel {
-	md-list {
-		padding-top: 5px;
-	}
-}
-
 arb-list-sub-header,
 arb-explanation-request-row {
 	& md-list-item {
@@ -1176,9 +1174,30 @@ arb-explanation-request-row {
 	}
 }
 
-@media (min-width: 1100px) {
-	.index-page-half {
-		margin: 0 20px;
+.page-row {
+
+	& .clickbait {
+	    min-width: 0px;
+	    overflow: hidden;
+		text-overflow: ellipsis;
+	    white-space: nowrap;
+	}
+}
+
+.list-panel {
+	& md-list-item {
+		margin: 0px !important;
+		min-height: 42px !important;
+		padding-top: 3px !important;
+		padding-bottom: 3px !important;
+	}
+
+	& div {
+		min-width: 0px;
+	}
+
+	md-divider {
+		border-top-color: rgba(0,0,0,0.04);
 	}
 }
 

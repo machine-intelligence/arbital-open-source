@@ -23,7 +23,6 @@ app.directive('arbReadModePanel', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.title = 'New';
 
 			arb.stateService.postData('/json/readMode/', {
 					type: $scope.type,

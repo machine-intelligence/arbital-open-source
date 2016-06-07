@@ -12,8 +12,6 @@ app.directive('arbContinueWritingModePanel', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 
-			$scope.title = 'Continue writing';
-
 			arb.stateService.postData('/json/continueWriting/', {
 					numPagesToLoad: $scope.numToDisplay,
 				},
