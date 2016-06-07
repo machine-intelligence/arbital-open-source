@@ -2,7 +2,6 @@
 		ng-class="::{'like-button': !isStretched}"
 		ng-click="likeClick()"
 		aria-label="Like"
-		layout="center end"
 		ng-if="::isButton">
 	<md-icon class="like-icon on" ng-if="likeable.myLikeValue > 0">thumb_up</md-icon>
 	<md-icon class="like-icon off" md-svg-icon="thumb_up_outline" ng-if="likeable.myLikeValue <= 0"></md-icon>

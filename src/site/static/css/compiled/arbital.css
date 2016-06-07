@@ -703,11 +703,6 @@ md-icon {
 .expand-icon-closed {
   -webkit-transform: rotate(-90deg) translateX(3px); }
 
-md-tooltip.multiline {
-  height: auto !important;
-  max-width: 400px;
-  white-space: pre !important; }
-
 .edit-page-dialog {
   width: 90vw;
   height: 90vh;
@@ -728,7 +723,6 @@ arb-likes, .likes-in-autocomplete {
   margin: 0 10px 0 0;
   white-space: nowrap; }
   arb-likes .like-icon, .likes-in-autocomplete .like-icon {
-    min-width: 24px;
     margin-right: 2px !important; }
   arb-likes .like-count, .likes-in-autocomplete .like-count {
     color: #666;
