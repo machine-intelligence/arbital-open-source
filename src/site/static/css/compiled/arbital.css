@@ -703,6 +703,11 @@ md-icon {
 .expand-icon-closed {
   -webkit-transform: rotate(-90deg) translateX(3px); }
 
+md-tooltip.multiline {
+  height: auto !important;
+  max-width: 400px;
+  white-space: pre !important; }
+
 .edit-page-dialog {
   width: 90vw;
   height: 90vh;
