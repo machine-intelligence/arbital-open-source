@@ -115,9 +115,9 @@
 		<span ng-if="showAnchor()">
 			selected the text below and
 		</span>
-		<span ng-if="isOnPage()">searched</span>
+		<span ng-if="isOnPage()">asked</span>
 		<a ng-href="{{::arb.urlService.getPageUrl(mark.pageId, {markId: markId})}}" ng-if="!isOnPage()">
-			searched
+			asked
 		</a>
 		for: <strong ng-bind="::mark.text"></strong>
 	</div>
