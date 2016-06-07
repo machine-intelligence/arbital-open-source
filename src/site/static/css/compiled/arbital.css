@@ -489,8 +489,6 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-explore-page > .capped-body-width {
     max-width: 1100px; }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 arb-index {
   margin-top: 20px; }
 
@@ -511,13 +509,6 @@ arb-index {
   color: white;
   font-size: 12px;
   border-radius: 2px; }
-=======
-=======
->>>>>>> Stashed changes
-.white-circle-background {
-  background: white;
-  border-radius: 100px; }
->>>>>>> Stashed changes
 
 .full-page-panel {
   max-width: 900px;
