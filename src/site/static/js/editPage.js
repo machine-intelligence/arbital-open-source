@@ -210,7 +210,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			$scope.moreRelationshipIds = undefined;
 			$scope.loadMoreRelationships = function() {
-				var data = {pageId: $scope.page.pageId};
+				var data = {pageIdOrAlias: $scope.page.pageId};
 				arb.stateService.postData('/json/moreRelationships/', data,
 					function success(data) {
 						$scope.moreRelationshipIds = data.result.moreRelationshipIds;

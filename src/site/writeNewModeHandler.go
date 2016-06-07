@@ -65,13 +65,13 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 
 	rows := database.NewQuery(`
 		SELECT l.childAlias,SUM(ISNULL(linkedPi.pageId)) AS count
-		FROM pageInfos as mathPi
-		JOIN pageDomainPairs as pdp
+		FROM `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS mathPi
+		JOIN pageDomainPairs AS pdp
 		ON pdp.pageId=mathPi.pageId
 			AND pdp.domainId=?`, MathDomainId).Add(`
-		JOIN links as l
+		JOIN links AS l
 		ON l.parentId=mathPi.pageId
-		LEFT JOIN pageInfos as linkedPi
+		LEFT JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS linkedPi
 		ON (l.childAlias=linkedPi.pageId OR l.childAlias=linkedPi.alias)
 		GROUP BY l.childAlias
 		ORDER BY count DESC
