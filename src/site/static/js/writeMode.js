@@ -8,7 +8,6 @@ app.directive('arbContinueWritingModePanel', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
-			hideTitle: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -33,7 +32,6 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
-			hideTitle: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

@@ -7,7 +7,6 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
-			hideTitle: '=',
 			title: '@',
 			moreLink: '@',
 			postUrl: '@',

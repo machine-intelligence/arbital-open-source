@@ -19,7 +19,6 @@ app.directive('arbReadModePanel', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
-			hideTitle: '=',
 			type: '@',
 		},
 		controller: function($scope) {

@@ -23,7 +23,6 @@ app.directive('arbDiscussionModePanel', function($http, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.title = 'Discussion';
-			$scope.moreLink = '/discussion';
 
 			arb.stateService.postData('/json/discussionMode/', {
 					numPagesToLoad: $scope.numToDisplay,

@@ -7,7 +7,6 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
-			hideTitle: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
