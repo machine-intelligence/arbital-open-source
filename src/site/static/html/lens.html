@@ -1,5 +1,5 @@
 <div layout="column">
-	<div ng-include="'static/html/lensToolbar.html'"></div>
+	<div class="md-whiteframe-2dp" ng-include="'static/html/lensToolbar.html'"></div>
 
 	<!-- Requirements -->
 	<div class="requirements-container"
@@ -144,7 +144,9 @@
 	</div>
 
 	<!-- Show the lens toolbar at the bottom too if the page is long enough. -->
-	<div ng-include="'static/html/lensToolbar.html'" ng-if="::(page.textLength > 1000)"></div>
+	<div class="md-whiteframe-2dp"
+			ng-include="'static/html/lensToolbar.html'"
+			ng-if="::(page.textLength > 1000)"></div>
 
 	<!-- Inline comments container -->
 	<div class="inline-comments-div" ng-show="::!isSimpleEmbed">

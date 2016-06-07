@@ -147,8 +147,7 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 	if parent.Type != core.CommentPageType && child.Type != core.CommentPageType &&
 		parent.Alias != "" && child.Alias != "" && !parent.IsDeleted && !child.IsDeleted {
 
-		err := tasks.EnqueueRelationshipUpdates(c, u.Id, parent.PageId, child.PageId,
-			newParentChangeLogId, newChildChangeLogId)
+		err := tasks.EnqueueNewParentUpdate(c, u.Id, child.PageId, parent.PageId, newParentChangeLogId)
 		if err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}

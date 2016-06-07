@@ -723,6 +723,7 @@ arb-likes, .likes-in-autocomplete {
   margin: 0 10px 0 0;
   white-space: nowrap; }
   arb-likes .like-icon, .likes-in-autocomplete .like-icon {
+    min-width: 24px;
     margin-right: 2px !important; }
   arb-likes .like-count, .likes-in-autocomplete .like-count {
     color: #666;
@@ -744,9 +745,7 @@ arb-requisite-button .md-button, [arb-requisite-button] .md-button {
     margin: 5px 0; }
 
 .lens-menu {
-  padding: 5px 0;
-  border-top: lightgray 1px solid;
-  border-bottom: lightgray 1px solid; }
+  padding: 5px 0; }
 
 md-toast md-icon {
   color: white; }
@@ -929,15 +928,13 @@ ins {
   z-index: 55;
   background-color: white; }
 
-.page-tabs > .page-tabs-holder {
-  border-bottom: #009688 2px solid; }
-  .page-tabs > .page-tabs-holder > .md-button {
-    padding: 5px 35px; }
-    .page-tabs > .page-tabs-holder > .md-button.active-tab {
-      background-color: #009688;
-      color: white !important;
-      border-bottom: none;
-      border-radius: 0; }
+.page-tabs > .page-tabs-holder > .md-button {
+  padding: 5px 35px; }
+  .page-tabs > .page-tabs-holder > .md-button.active-tab {
+    background-color: #009688;
+    color: white !important;
+    border-bottom: none;
+    border-radius: 0; }
 
 .prevent-horizontal-scroll {
   overflow-x: hidden; }
@@ -1139,10 +1136,11 @@ arb-log-row, [arb-log-row] {
   position: relative;
   top: -5px;
   background-color: #E0F2F1;
-  color: #009688;
+  border: #009688 1px solid;
   min-width: 20px;
   text-align: center;
-  border-radius: 15px; }
+  border-radius: 15px;
+  cursor: pointer; }
 
 arb-list-sub-header md-list-item,
 arb-explanation-request-row md-list-item {

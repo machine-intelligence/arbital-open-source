@@ -169,33 +169,13 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	return 0, nil
 }
 
-func EnqueueRelationshipUpdates(c sessions.Context, userId string,
-	parentId string, childId string, parentChangeLogId int64, childChangeLogId int64) error {
-	err := enqueueRelationshipUpdatesInternal(c, userId, parentId, childId, false, childChangeLogId)
-	if err != nil {
-		return err
-	}
-	// Note: we can't return an error if the second task fails, since the caller might
-	// rollback a transaction
-	// TODO: use GAE's function to enqueue multiple tasks at once
-	enqueueRelationshipUpdatesInternal(c, userId, parentId, childId, true, parentChangeLogId)
-	return nil
-}
-
-func enqueueRelationshipUpdatesInternal(c sessions.Context, userId string,
-	parentId string, childId string, updateIsForChild bool, changeLogId int64) error {
+func EnqueueNewParentUpdate(c sessions.Context, userId string, pageId string, parentId string, newParentChangeLogId int64) error {
 	var task NewUpdateTask
 	task.UserId = userId
-	task.ChangeLogId = changeLogId
+	task.ChangeLogId = newParentChangeLogId
 	task.UpdateType = core.ChangeLogUpdateType
-	if updateIsForChild {
-		task.GroupByPageId = childId
-		task.SubscribedToId = childId
-		task.GoToPageId = parentId
-	} else {
-		task.GroupByPageId = parentId
-		task.SubscribedToId = parentId
-		task.GoToPageId = childId
-	}
+	task.GroupByPageId = pageId
+	task.SubscribedToId = pageId
+	task.GoToPageId = parentId
 	return Enqueue(c, &task, nil)
 }
