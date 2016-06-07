@@ -81,7 +81,7 @@ app.directive('arbExplanationRequestRow', function(arb) {
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
 			$scope.toggleExpand = function() {
-				$scope.expand = !$scope.expand;
+				$scope.expanded = !$scope.expanded;
 
 				if ($scope.linkedByPageIds) return;
 

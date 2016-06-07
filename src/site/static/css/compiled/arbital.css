@@ -697,6 +697,12 @@ a:not(.md-button) {
     color: rgba(0, 0, 0, 0.87);
     text-decoration: underline; }
 
+md-icon {
+  transition: all 500ms ease; }
+
+.expand-icon-closed {
+  -webkit-transform: rotate(-90deg) translateX(3px); }
+
 .edit-page-dialog {
   width: 90vw;
   height: 90vh;

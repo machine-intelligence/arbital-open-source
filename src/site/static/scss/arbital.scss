@@ -511,6 +511,14 @@ a:not(.md-button) {
 	}
 }
 
+md-icon {
+	transition: all 500ms ease;
+}
+
+.expand-icon-closed {
+	-webkit-transform: rotate(-90deg) translateX(3px);
+}
+
 .edit-page-dialog {
 	width: 90vw;
 	height: 90vh;

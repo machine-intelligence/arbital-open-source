@@ -4,7 +4,7 @@
 			<div ng-if="::refCount">
 				<md-button ng-click="toggleExpand()"
 						class="md-icon-button">
-					<md-icon>expand_more</md-icon>
+					<arb-expand-icon expanded="expanded"></arb-expand-icon>
 				</md-button>
 			</div>
 			<div layout="column">
@@ -12,7 +12,7 @@
 					<span ng-if="::refCount">"</span>{{::prettyName}}<span ng-if="::refCount">"</span>
 					<span ng-if="::refCount">referenced in {{::refCount}} pages</span>
 				</div>
-				<div ng-if="expand">
+				<div ng-if="expanded">
 					<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
 					<div ng-repeat="pageId in linkedByPageIds">
 						<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
