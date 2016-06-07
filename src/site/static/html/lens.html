@@ -162,24 +162,27 @@
 					ng-mouseenter="toggleEditorFeedbackFab(true)"
 					ng-mouseleave="toggleEditorFeedbackFab(false)">
 				<md-fab-trigger>
-					<md-button class="rhs-button md-fab md-mini"
+					<md-button class="rhs-button md-fab md-mini md-primary md-hue-1"
 							arb-user-check="cool"
 							aria-label="Menu">
 						<md-icon>add</md-icon>
 					</md-button>
 				</md-fab-trigger>
 				<md-fab-actions ng-class="{'md-whiteframe-4dp white-background': isEditorFeedbackFabOpen}">
-					<md-button ng-click="newEditorMark('typo')"
+					<md-button class="rhs-dropdown-button"
+							ng-click="newEditorMark('typo')"
 							aria-label="Spelling/grammar">
 						<md-icon>rate_review</md-icon>
 						Spelling/grammar
 					</md-button>
-					<md-button ng-click="newQueryMark()"
+					<md-button class="rhs-dropdown-button"
+							ng-click="newQueryMark()"
 							aria-label="Question/objection">
 						<md-icon md-svg-icon="cursor_pointer"></md-icon>
 						Question/objection
 					</md-button>
-					<md-button ng-click="newInlineComment()"
+					<md-button class="rhs-dropdown-button"
+							ng-click="newInlineComment()"
 							aria-label="Comment">
 						<md-icon>comment</md-icon>
 						Comment

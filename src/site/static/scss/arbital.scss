@@ -283,7 +283,7 @@ $toolbar-height: 64px;
 
 // Added to updates that the user hasn't seen yet
 .unseen-update {
-	border-left: $primary-hue-1 5px solid;
+	//border-left: $primary-hue-1 5px solid;
 }
 
 // MailChimp signup form
@@ -465,6 +465,16 @@ a:not(.md-button) {
 		&.red-todo-text {
 			background-color: #ffdddd;
 		};
+	}
+}
+
+.support-visited-links {
+	a:not(.md-button) {
+		&[page-id], &[user-id] {
+			&:visited {
+				color: $primary-hue-3;
+			}
+		}
 	}
 }
 
@@ -920,6 +930,11 @@ textarea {
 
 	.rhs-button {
 		margin: 5px 5px 0px 0px !important;
+	}
+
+	.rhs-dropdown-button {
+		width: 100%;
+		text-align: left;
 	}
 }
 
