@@ -575,8 +575,6 @@ arb-requisite-button, [arb-requisite-button] {
 // Menu for a lens (with like, subscribe, edit, etc. buttons)
 .lens-menu {
 	padding: 5px 0;
-	border-top: lightgray 1px solid;
-	border-bottom: lightgray 1px solid;
 }
 
 md-toast {
@@ -826,7 +824,7 @@ ins {
 .page-tabs {
 	& > .page-tabs-holder {
 		//background-color: white !important;
-		border-bottom: $primary-color 2px solid;
+		//border-bottom: $primary-color 2px solid;
 
 		& > .md-button {
 			padding: 5px 35px;
@@ -1138,10 +1136,11 @@ arb-log-row, [arb-log-row] {
 	position: relative;
 	top: -5px;
 	background-color: $primary-hue-1;
-	color: $primary-color;
+	border: $primary-color 1px solid;
 	min-width: 20px;
 	text-align: center;
 	border-radius: 15px;
+	cursor: pointer;
 }
 
 .list-panel {

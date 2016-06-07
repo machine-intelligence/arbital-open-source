@@ -42,10 +42,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	var getCasedText = function(text, prefix) {
 		if (prefix == '-') {
 			return text.substring(0, 1).toLowerCase() + text.substring(1);
-		} else if (prefix == '+') {
-			return text.substring(0, 1).toUpperCase() + text.substring(1);
 		}
-		return text;
+		return text.substring(0, 1).toUpperCase() + text.substring(1);
 	};
 
 	// Pass in a pageId to create an editor for that page
@@ -329,7 +327,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 						return prefix + '[' + text + '](' + url + ')';
 					} else {
 						var url = urlService.getPageUrl(alias, {includeHost: true});
-						url = url.replace('"', '');
+						url = url.replace(/"/g, '');
 						return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
 							text + '</a>';
 						}
@@ -352,8 +350,8 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					return prefix + '[' + casedTitle + '](' + url + ')';
 				} else {
 					var url = urlService.getPageUrl(trimmedAlias, {includeHost: true});
-					url = url.replace('"', '');
-					var text = getCasedText(trimmedAlias, firstAliasChar).replace('_', ' ');
+					url = url.replace(/"/g, '');
+					var text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
 					return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
 						 text + '</a>';
 				}
