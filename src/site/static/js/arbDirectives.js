@@ -14,6 +14,16 @@ app.directive('arbUserName', function(arb) {
 	};
 });
 
+// directive for an expanded icon
+app.directive('arbExpandIcon', function(arb) {
+	return {
+		templateUrl: 'static/html/expandIcon.html',
+		scope: {
+			expanded: '=',
+		}
+	};
+});
+
 // directive for a sub-header in a list
 app.directive('arbListSubHeader', function(arb) {
 	return {
