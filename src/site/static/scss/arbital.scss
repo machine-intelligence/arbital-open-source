@@ -55,6 +55,7 @@ body {
 arb-markdown, [arb-markdown], .preview-area {
 	p {
 		margin-top: 0;
+		overflow-wrap: break-word;
 
 		&:empty {
 			margin: 0;
@@ -200,8 +201,11 @@ arb-index {
 	margin-right: auto;
 }
 
-.top-toolbar {
-	margin-bottom: 15px;
+
+@media (min-width: 960px) {
+	.top-toolbar {
+		margin-bottom: 15px;
+	}
 }
 
 .dense-panel {
@@ -487,6 +491,7 @@ a:not(.md-button) {
 		background: $primary-hue-3;
 		color: white !important;
 		padding: 5px 10px 10px;
+		z-index: 2;
 
 		& > span {
 			opacity: 0.7;
@@ -552,12 +557,14 @@ arb-likes, .likes-in-autocomplete {
 		margin-right: 2px !important;
 	}
 
-	// Number of likes
-	.like-count {
-		color: #666;
-		font-weight: normal;
-		// Make room for two digits
-		min-width: 16px;
+	.like-button, .icon-likes {
+		// Number of likes
+		.like-count {
+			color: #666;
+			font-weight: normal;
+			// Make room for two digits
+			min-width: 16px;
+		}
 	}
 }
 
