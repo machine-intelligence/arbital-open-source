@@ -18,9 +18,7 @@ type writeNewModeData struct {
 var writeNewModeHandler = siteHandler{
 	URI:         "/json/writeNew/",
 	HandlerFunc: writeNewModeHandlerFunc,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // Row to show a redLink

@@ -18,10 +18,12 @@ app.directive('arbIndex', function($http, arb) {
 			};
 
 			// Find out if we show the continueWriting panel
-			arb.stateService.postData('/json/continueWriting/', {},
-				function(data) {
-					$scope.showContinueWritingPanel = data.result.modeRows.length > 0;
-				});
+			if (arb.userService.userIsLoggedIn()) {
+				arb.stateService.postData('/json/continueWriting/', {},
+					function(data) {
+						$scope.showContinueWritingPanel = data.result.modeRows.length > 0;
+					});
+			}
 		},
 	};
 });
