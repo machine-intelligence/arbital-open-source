@@ -297,6 +297,12 @@ app.run(function($http, $location, arb) {
 			// TODO(alexei): have /newPage/ return /default/ data along with /edit/ data
 			$http({method: 'POST', url: '/json/default/'})
 			.success($scope.getSuccessFunc(function(data) {
+				// Redirect non-logged in users to sign up
+				if (!arb.userService.userIsLoggedIn()) {
+					arb.urlService.goToUrl("/signup?continueUrl=" + encodeURIComponent($location.url()), true);
+					return {};
+				}
+
 				if (pageAlias) {
 					loadEdit();
 				} else {

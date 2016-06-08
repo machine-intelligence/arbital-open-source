@@ -32,8 +32,9 @@ type InsertMaps []InsertMap
 // DB is our structure for the database. For convenience it wraps around the
 // sessions context.
 type DB struct {
-	db *sql.DB
-	C  sessions.Context
+	db        *sql.DB
+	C         sessions.Context
+	PrintInfo bool
 }
 
 type Stmt struct {
@@ -118,6 +119,7 @@ func GetDB(c sessions.Context) (*DB, error) {
 		return nil, fmt.Errorf("Couldn't open DB: %v", err)
 	}
 	db.C = c
+	db.PrintInfo = sessions.Live
 	return &db, nil
 }
 
@@ -213,9 +215,11 @@ func (statement *Stmt) Exec(args ...interface{}) (sql.Result, error) {
 	}
 
 	duration := time.Since(startTime)
-	statement.DB.C.Infof(`Executed SQL statement: %v
+	if statement.DB.PrintInfo {
+		statement.DB.C.Infof(`Executed SQL statement: %v
 		With args: %+v
 		Operation took %v`, statement, args, duration)
+	}
 	return result, nil
 }
 
@@ -239,9 +243,11 @@ func (statement *Stmt) Query(args ...interface{}) *Rows {
 	}
 
 	duration := time.Since(startTime)
-	statement.DB.C.Infof(`Executed SQL statement: %v
+	if statement.DB.PrintInfo {
+		statement.DB.C.Infof(`Executed SQL statement: %v
 		With args: %+v
 		Operation took %v`, statement, args, duration)
+	}
 	return &Rows{rows: rows, stmt: statement, DB: statement.DB}
 }
 

@@ -491,18 +491,18 @@ func loadTaggedForEditRows(db *database.DB, returnData *core.CommonHandlerData, 
 }
 
 func loadMaintenanceUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	return loadUpdateRows(db, u, returnData, limit, MaintenanceUpdateRowType, core.GetMaintenanceUpdateTypes())
+	return loadUpdateRows(db, u, returnData, limit, core.GetMaintenanceUpdateTypes())
 }
 
 func loadNotificationRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	return loadUpdateRows(db, u, returnData, limit, NotificationRowType, core.GetNotificationUpdateTypes())
+	return loadUpdateRows(db, u, returnData, limit, core.GetNotificationUpdateTypes())
 }
 
 func loadAchievementUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	return loadUpdateRows(db, u, returnData, limit, "", core.GetAchievementUpdateTypes())
+	return loadUpdateRows(db, u, returnData, limit, core.GetAchievementUpdateTypes())
 }
 
-func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int, modeRowType string, updateTypes []string) (ModeRows, error) {
+func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.CommonHandlerData, limit int, updateTypes []string) (ModeRows, error) {
 	modeRows := make(ModeRows, 0)
 
 	updateRows, err := core.LoadUpdateRows(db, u, returnData, false, updateTypes, limit)
@@ -511,18 +511,14 @@ func loadUpdateRows(db *database.DB, u *core.CurrentUser, returnData *core.Commo
 	}
 
 	for _, ur := range updateRows {
-		modeRows = append(modeRows, getUpdateModeRowFromUpdateRow(ur, modeRowType))
+		modeRows = append(modeRows, getUpdateModeRowFromUpdateRow(ur))
 	}
 	return modeRows, nil
 }
 
-func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow, modeRowType string) *updateModeRow {
-	if modeRowType == "" {
-		modeRowType = updateRow.Type
-	}
-
+func getUpdateModeRowFromUpdateRow(updateRow *core.UpdateRow) *updateModeRow {
 	return &updateModeRow{
-		modeRowData: modeRowData{RowType: modeRowType, ActivityDate: updateRow.CreatedAt},
+		modeRowData: modeRowData{RowType: updateRow.Type, ActivityDate: updateRow.CreatedAt},
 		Update:      getUpdateEntryFromUpdateRow(updateRow),
 	}
 }

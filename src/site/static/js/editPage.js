@@ -79,6 +79,13 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.selectedTab = 1;
 			}
 
+			// If this is a new page, and it had custom alias set, we can now set the title,
+			// since this won't affect tab selection.
+			if (!$scope.page.wasPublished && $scope.page.alias !== $scope.page.pageId) {
+				$scope.page.title = $scope.page.alias.substring(0, 1).toUpperCase() + $scope.page.alias.substring(1);
+				$scope.page.title = $scope.page.title.replace(/_/g, ' ');
+			}
+
 			// Set up markdown
 			$timeout(function() {
 				var $wmdPreview = $('#wmd-preview' + $scope.page.pageId);
@@ -93,7 +100,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Called when user selects a page from insert link input
 			$scope.insertLinkSelect = function(result) {
-				console.log('INSERT');
 				if (!$scope.insertLinkCallback) return;
 				var result = result;
 				$scope.showInsertLink = false;

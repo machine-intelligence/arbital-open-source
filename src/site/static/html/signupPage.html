@@ -45,17 +45,8 @@
 		<div class="md-warn" layout-margin ng-bind="normalError"></div>
 		<md-button class="md-primary md-raised"
 				type="submit"
-				toggle-on-submit
-				ng-if="!signupSuccess">
+				toggle-on-submit>
 			Sign up with email
 		</md-button>
-		<div ng-if="signupSuccess">
-			<div ng-if="isLive()">
-				Success! You should receive an email from us in a few minutes. Please click the link in it to verify your email address.
-			</div>
-			<div ng-if="!isLive()">
-				Success! You are ready to log in!
-			</div>
-		</div>
 	</form>
 </div>

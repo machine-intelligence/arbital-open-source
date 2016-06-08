@@ -13,8 +13,7 @@ app.directive('arbSignup', function($location, $http, arb) {
 			$scope.formSubmit = function(event) {
 				submitForm($(event.currentTarget), '/signup/', $scope.formData, function(r) {
 					$scope.$apply(function() {
-						$scope.signupSuccess = true;
-						$scope.normalError = undefined;
+						arb.urlService.goToUrl($location.search().continueUrl || '/');
 					});
 				}, function() {
 					$scope.$apply(function() {
@@ -32,7 +31,7 @@ app.directive('arbSignup', function($location, $http, arb) {
 						};
 						$http({method: 'POST', url: '/signup/', data: JSON.stringify(data)})
 						.success(function(data, status) {
-							window.location.href = $location.search().continueUrl || '/';
+							arb.urlService.goToUrl($location.search().continueUrl || '/');
 						})
 						.error(function(data, status) {
 							console.error('Error FB signup:'); console.log(data); console.log(status);

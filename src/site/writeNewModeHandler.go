@@ -18,9 +18,7 @@ type writeNewModeData struct {
 var writeNewModeHandler = siteHandler{
 	URI:         "/json/writeNew/",
 	HandlerFunc: writeNewModeHandlerFunc,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // Row to show a redLink
@@ -51,7 +49,6 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages
-	core.AddPageIdToMap("3hs", returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

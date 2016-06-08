@@ -49,8 +49,30 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load additional info for all pages
 	pageOptions := core.TitlePlusLoadOptions
 
-	// Monthly active users
+	// Submission funnel
 	rows := database.NewQuery(`
+		SELECT (
+			/* Users landing on front page */
+			SELECT COUNT(DISTINCT userId) FROM visits WHERE pageId=?`, indexHandlerUri).Add(`
+		), (
+			/* Users signing up */
+			SELECT COUNT(DISTINCT userId) FROM visits WHERE pageId=?`, indexHandlerUri).Add(`
+		), (
+			/* Users editing a page */
+		), (
+			/* Users publishing an edit */
+		), (
+			/* Users submitting to domain */
+		)`).ToStatement(db).Query()
+	returnData.ResultMap["author_filter"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
+		"Front page", "Signed up", "Edit page", "Publish", "Submit",
+	})
+	if err != nil {
+		return pages.Fail("Error while loading author filter", err)
+	}
+
+	// Monthly active users
+	rows = database.NewQuery(`
 		SELECT year(v.createdAt), month(v.createdAt), count(distinct u.id), count(distinct v.userId), count(distinct v.ipAddress)
 		FROM visits AS v
 		LEFT JOIN users as u ON v.userId=u.id
@@ -62,34 +84,6 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	})
 	if err != nil {
 		return pages.Fail("Error while loading MAUs", err)
-	}
-
-	// Visits
-	rows = database.NewQuery(`
-		SELECT year(createdAt), month(createdAt), count(*), -1, -1
-		FROM visits
-		WHERE createdAt>"2015-09-00"
-		GROUP BY 1, 2
-		ORDER BY 1 DESC, 2 DESC`).ToStatement(db).Query()
-	returnData.ResultMap["visit_count"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
-		"Year", "Month", "Count",
-	})
-	if err != nil {
-		return pages.Fail("Error while loading visits", err)
-	}
-
-	// Users who commented
-	rows = database.NewQuery(`
-		SELECT year(createdAt), month(createdAt), count(distinct createdBy), -1, -1
-		FROM`).AddPart(core.PageInfosTable(u)).Add(`AS pi
-		WHERE createdAt>"2015-09-00" AND pageId!=createdBy AND type=?`, core.CommentPageType).Add(`
-		GROUP BY 1, 2
-		ORDER BY 1 DESC, 2 DESC`).ToStatement(db).Query()
-	returnData.ResultMap["users_with_a_comment"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
-		"Year", "Month", "Count",
-	})
-	if err != nil {
-		return pages.Fail("Error while loading commenters", err)
 	}
 
 	// Users who created at least one page

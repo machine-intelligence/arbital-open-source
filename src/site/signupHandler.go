@@ -231,5 +231,9 @@ func signupHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.FailWith(err2)
 	}
 
-	return pages.Success(nil)
+	loginData := loginHandlerData{
+		Email:    data.Email,
+		Password: data.Password,
+	}
+	return loginHandlerInternalFunc(params, &loginData)
 }

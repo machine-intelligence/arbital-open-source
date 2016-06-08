@@ -36,11 +36,15 @@ func loginHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
+	return loginHandlerInternalFunc(params, &data)
+}
+
+func loginHandlerInternalFunc(params *pages.HandlerParams, data *loginHandlerData) *pages.Result {
 	if len(data.Email) <= 0 || len(data.Password) <= 0 {
 		return pages.Fail("Email and password have to be specified", nil).Status(http.StatusBadRequest)
 	}
 
-	err = stormpath.AuthenticateUser(params.C, data.Email, data.Password)
+	err := stormpath.AuthenticateUser(params.C, data.Email, data.Password)
 	if err != nil {
 		return pages.Fail("Invalid email or password", err)
 	}
