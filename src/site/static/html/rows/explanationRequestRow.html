@@ -3,14 +3,15 @@
 
 		<div ng-if="::refCount">
 			<md-button ng-click="toggleExpand()"
-					class="md-icon-button">
+					class="md-icon-button"
+					aria-label="Expand">
 				<arb-expand-icon expanded="expanded"></arb-expand-icon>
 			</md-button>
 		</div>
 
 		<div layout="column">
 			<div>
-				<strong>{{::prettyName}}</strong>
+				<span ng-if="::refCount">"</span>{{::prettyName}}<span ng-if="::refCount">"</span>
 				<span ng-if="::refCount">referenced in {{::refCount}} pages</span>
 			</div>
 			<div ng-if="expanded">

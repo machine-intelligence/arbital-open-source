@@ -26,6 +26,7 @@ func indexJsonHandler(params *pages.HandlerParams) *pages.Result {
 	core.AddPageIdToMap("3d", returnData.PageMap)
 	core.AddPageIdToMap("1sl", returnData.PageMap)
 	core.AddPageIdToMap("1sm", returnData.PageMap)
+	core.AddPageIdToMap("3hs", returnData.PageMap)
 	err := core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)

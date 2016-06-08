@@ -51,7 +51,6 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages
-	core.AddPageIdToMap("3hs", returnData.PageMap)
 	err = core.ExecuteLoadPipeline(db, returnData)
 	if err != nil {
 		return pages.Fail("Pipeline error", err)
