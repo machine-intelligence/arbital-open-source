@@ -585,7 +585,7 @@ app.directive('arbPageList', function(arb) {
 // Exists to share the template for a row in a md-list of pages
 app.directive('arbPageRow', function(arb) {
 	return {
-		templateUrl: 'static/html/pageRow.html',
+		templateUrl: 'static/html/rows/pageRow.html',
 		replace: true,
 		scope: {
 			pageId: '@',
@@ -716,7 +716,7 @@ app.directive('arbChangeLogEntry', function() {
 // Shared by the changelog and the updates page.
 app.directive('arbLogRow', function(arb) {
 	return {
-		templateUrl: 'static/html/logRow.html',
+		templateUrl: 'static/html/rows/logRow.html',
 		scope: {
 			changeLog: '=', // Optional changelog associated with this row
 			update: '=', // if this is shown in the updates page, this is the update object

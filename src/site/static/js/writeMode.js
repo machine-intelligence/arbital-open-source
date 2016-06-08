@@ -47,7 +47,7 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbDraftRow', function(arb) {
 	return {
-		templateUrl: 'static/html/draftRow.html',
+		templateUrl: 'static/html/rows/draftRow.html',
 		scope: {
 			modeRow: '=',
 		},
@@ -57,7 +57,7 @@ app.directive('arbDraftRow', function(arb) {
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbTaggedForEditRow', function(arb) {
 	return {
-		templateUrl: 'static/html/taggedForEditRow.html',
+		templateUrl: 'static/html/rows/taggedForEditRow.html',
 		scope: {
 			modeRow: '=',
 		},
@@ -67,7 +67,7 @@ app.directive('arbTaggedForEditRow', function(arb) {
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbExplanationRequestRow', function(arb) {
 	return {
-		templateUrl: 'static/html/explanationRequestRow.html',
+		templateUrl: 'static/html/rows/explanationRequestRow.html',
 		scope: {
 			alias: '@',
 			refCount: '@',

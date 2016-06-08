@@ -28,7 +28,7 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 // arb-likes-mode-row is the directive for showing who liked current user's stuff
 app.directive('arbLikesModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/likesModeRow.html',
+		templateUrl: 'static/html/rows/likesModeRow.html',
 		scope: {
 			modeRow: '=',
 		},
@@ -45,7 +45,7 @@ app.directive('arbLikesModeRow', function(arb) {
 // arb-reqs-taught-mode-row is the directive for showing who learned current user's reqs
 app.directive('arbReqsTaughtModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/reqsTaughtModeRow.html',
+		templateUrl: 'static/html/rows/reqsTaughtModeRow.html',
 		scope: {
 			modeRow: '=',
 		},
@@ -65,7 +65,7 @@ app.directive('arbReqsTaughtModeRow', function(arb) {
 // arb-added-to-group-mode-row is the directive for showing that the user was added to a group
 app.directive('arbAddedToGroupModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/addedToGroupModeRow.html',
+		templateUrl: 'static/html/rows/addedToGroupModeRow.html',
 		scope: {
 			modeRow: '=',
 		},
@@ -82,7 +82,7 @@ app.directive('arbAddedToGroupModeRow', function(arb) {
 // arb-removed-from-group-mode-row is the directive for showing that the user was removed from a group
 app.directive('arbRemovedFromGroupModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/removedFromGroupModeRow.html',
+		templateUrl: 'static/html/rows/removedFromGroupModeRow.html',
 		scope: {
 			modeRow: '=',
 		},
@@ -99,7 +99,7 @@ app.directive('arbRemovedFromGroupModeRow', function(arb) {
 // arb-invite-received-mode-row is the directive for showing that the user was invited to a domain
 app.directive('arbInviteReceivedModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/inviteReceivedModeRow.html',
+		templateUrl: 'static/html/rows/inviteReceivedModeRow.html',
 		scope: {
 			modeRow: '=',
 		},
