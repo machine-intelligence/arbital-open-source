@@ -531,9 +531,9 @@ arb-index {
     margin: 0px; }
 
 .chip {
-  background: #555555;
-  border-radius: 5px;
-  color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: #888;
   padding: 2px 6px; }
 
 .discussion-container {
@@ -1140,7 +1140,7 @@ arb-log-row, [arb-log-row] {
 
 arb-list-sub-header,
 arb-explanation-request-row {
-  color: #555; }
+  color: #444; }
   arb-list-sub-header .explanation-text,
   arb-explanation-request-row .explanation-text {
     padding-top: 10px;
@@ -1154,8 +1154,10 @@ arb-explanation-request-row {
 
 md-list-item .md-button.icon-first {
   margin-left: -12px; }
+md-list-item .md-button.icon-last {
+  margin-right: -12px; }
 
-.page-row .clickbait {
+.page-row .page-row-caption {
   min-width: 0px;
   overflow: hidden;
   text-overflow: ellipsis;
