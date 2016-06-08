@@ -614,9 +614,9 @@ app.filter('relativeDateTime', function() {
 			return moment.utc(input).fromNow();
 		}
 		if (moment.utc().year() == moment.utc(input).year()) {
-			return moment.utc(input).local().format('MMM DD');
+			return moment.utc(input).local().format('MMM D');
 		}
-		return moment.utc(input).local().format('MMM DD, YYYY');
+		return moment.utc(input).local().format('MMM D, YYYY');
 	};
 });
 app.filter('relativeDateTimeNoSuffix', function() {
