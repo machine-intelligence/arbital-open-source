@@ -699,12 +699,6 @@ a:not(.md-button) {
     color: rgba(0, 0, 0, 0.87);
     text-decoration: underline; }
 
-animate-icon {
-  transition: all 500ms ease; }
-
-.expand-icon-closed {
-  -webkit-transform: rotate(-90deg) translateX(3px); }
-
 .edit-page-dialog {
   width: 90vw;
   height: 90vh;
@@ -1144,15 +1138,22 @@ arb-log-row, [arb-log-row] {
   border-radius: 15px;
   cursor: pointer; }
 
-arb-list-sub-header md-list-item,
-arb-explanation-request-row md-list-item {
-  margin-bottom: 0px !important;
-  padding-top: 10px !important; }
+arb-list-sub-header,
+arb-explanation-request-row {
+  color: #555; }
+  arb-list-sub-header .explanation-text,
+  arb-explanation-request-row .explanation-text {
+    padding-top: 10px;
+    line-height: 24px; }
 
-arb-explanation-request-row md-list-item {
-  padding-bottom: 0px !important; }
-arb-explanation-request-row .md-button.md-icon-button {
-  padding: 0px; }
+.expand-icon {
+  transition: all 500ms ease; }
+
+.expand-icon-closed {
+  -webkit-transform: rotate(-90deg); }
+
+md-list-item .md-button.icon-first {
+  margin-left: -12px; }
 
 .page-row .clickbait {
   min-width: 0px;

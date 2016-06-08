@@ -1,12 +1,12 @@
 <md-list-item>
-	<div layout="row" layout-align="start center" flex>
+	<div layout="row" flex>
 		<div layout="row" flex>
 			<div ng-if="::refCount">
-				<md-button ng-click="toggleExpand()" class="md-icon-button">
+				<md-button ng-click="toggleExpand()" class="md-icon-button icon-first">
 					<arb-expand-icon expanded="expanded"></arb-expand-icon>
 				</md-button>
 			</div>
-			<div layout="column" flex>
+			<div class="explanation-text" layout="column" flex>
 				<div>
 					<span ng-if="::refCount">"</span>{{::prettyName}}<span ng-if="::refCount">"</span>
 					<span ng-if="::refCount">referenced in {{::refCount}} pages</span>

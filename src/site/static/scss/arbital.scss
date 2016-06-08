@@ -516,14 +516,6 @@ a:not(.md-button) {
 	}
 }
 
-animate-icon {
-	transition: all 500ms ease;
-}
-
-.expand-icon-closed {
-	-webkit-transform: rotate(-90deg) translateX(3px);
-}
-
 .edit-page-dialog {
 	width: 90vw;
 	height: 90vh;
@@ -1164,19 +1156,25 @@ arb-log-row, [arb-log-row] {
 
 arb-list-sub-header,
 arb-explanation-request-row {
-	& md-list-item {
-		margin-bottom: 0px !important;
-		padding-top: 10px !important;
+	color: #555;
+
+	.explanation-text {
+		padding-top: 10px;
+		line-height: 24px;
 	}
 }
 
-arb-explanation-request-row {
-	& md-list-item {
-		padding-bottom: 0px !important;
-	}
+.expand-icon {
+	transition: all 500ms ease;
+}
 
-	.md-button.md-icon-button {
-		padding: 0px;
+.expand-icon-closed {
+	-webkit-transform: rotate(-90deg);
+}
+
+md-list-item {
+	.md-button.icon-first {
+		margin-left: -12px;
 	}
 }
 
