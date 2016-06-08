@@ -523,7 +523,9 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 					if (scope.ignoreNextResult) return;
 					// Make sure that if the user clicked one of the results, we don't count
 					// it as a blur event.
-					if (scope.onBlur && $(event.relatedTarget).closest('md-virtual-repeat-container').length <= 0) {
+					// NOTE: that Firefox doesn't have event.relatedTarget
+					var relatedTarget = event.relatedTarget || event.originalEvent.explicitOriginalTarget;
+					if (scope.onBlur && $(relatedTarget).closest('md-virtual-repeat-container').length <= 0) {
 						scope.onBlur();
 					}
 				});

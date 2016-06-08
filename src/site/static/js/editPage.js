@@ -100,7 +100,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Called when user selects a page from insert link input
 			$scope.insertLinkSelect = function(result) {
-				console.log('INSERT');
 				if (!$scope.insertLinkCallback) return;
 				var result = result;
 				$scope.showInsertLink = false;
