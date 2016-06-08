@@ -38,7 +38,7 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 // arb-bell-update-row is the directive for showing an actionable update
 app.directive('arbBellUpdateRow', function(arb) {
 	return {
-		templateUrl: 'static/html/bellUpdateRow.html',
+		templateUrl: 'static/html/rows/bellUpdateRow.html',
 		scope: {
 			modeRow: '=',
 			onDismiss: '&',
@@ -59,7 +59,7 @@ app.directive('arbBellUpdateRow', function(arb) {
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
 	return {
-		templateUrl: 'static/html/maintenanceUpdateRow.html',
+		templateUrl: 'static/html/rows/maintenanceUpdateRow.html',
 		scope: {
 			modeRow: '=',
 			onDismiss: '&',

@@ -38,7 +38,7 @@ app.directive('arbDiscussionModePanel', function($http, arb) {
 // arb-comment-mode-row is the directive for a row of the arb-discussion-mode-panel
 app.directive('arbCommentModeRow', function($location, arb) {
 	return {
-		templateUrl: 'static/html/commentModeRow.html',
+		templateUrl: 'static/html/rows/commentModeRow.html',
 		scope: {
 			modeRow: '=',
 		},
