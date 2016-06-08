@@ -552,12 +552,14 @@ arb-likes, .likes-in-autocomplete {
 		margin-right: 2px !important;
 	}
 
-	// Number of likes
-	.like-count {
-		color: #666;
-		font-weight: normal;
-		// Make room for two digits
-		min-width: 16px;
+	.like-button, .icon-likes {
+		// Number of likes
+		.like-count {
+			color: #666;
+			font-weight: normal;
+			// Make room for two digits
+			min-width: 16px;
+		}
 	}
 }
 

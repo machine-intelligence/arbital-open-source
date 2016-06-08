@@ -725,7 +725,7 @@ arb-likes, .likes-in-autocomplete {
   arb-likes .like-icon, .likes-in-autocomplete .like-icon {
     min-width: 24px;
     margin-right: 2px !important; }
-  arb-likes .like-count, .likes-in-autocomplete .like-count {
+  arb-likes .like-button .like-count, arb-likes .icon-likes .like-count, .likes-in-autocomplete .like-button .like-count, .likes-in-autocomplete .icon-likes .like-count {
     color: #666;
     font-weight: normal;
     min-width: 16px; }
