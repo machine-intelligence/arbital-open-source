@@ -612,9 +612,11 @@ app.filter('relativeDateTime', function() {
 	return function(input) {
 		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
 			return moment.utc(input).fromNow();
-		} else {
-			return moment.utc(input).local().format('MMM Do, YYYY [at] LT');
 		}
+		if (moment.utc().year() == moment.utc(input).year()) {
+			return moment.utc(input).local().format('MMM D');
+		}
+		return moment.utc(input).local().format('MMM D, YYYY');
 	};
 });
 app.filter('relativeDateTimeNoSuffix', function() {
