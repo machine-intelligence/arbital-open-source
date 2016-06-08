@@ -54,7 +54,9 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					'.notifications-icon',
 					'<arb-updates-panel post-url="/json/notifications/" hide-title="true" num-to-display="20" more-link="/notifications"></arb-udpates-panel>'
 				);
-				$scope.selectedUpdatesButton = 0;
+				if (!arb.isTouchDevice) {
+					$scope.selectedUpdatesButton = 0;
+				}
 			};
 
 			$scope.showAchievements = function(ev) {
@@ -65,7 +67,9 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					'.achievements-icon',
 					'<arb-hedons-mode-panel hide-title="true" num-to-display="20"></arb-hedons-mode-panel>'
 				);
-				$scope.selectedUpdatesButton = 1;
+				if (!arb.isTouchDevice) {
+					$scope.selectedUpdatesButton = 1;
+				}
 			};
 
 			$scope.showMaintenanceUpdates = function(ev) {
@@ -76,7 +80,9 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 					'.maintenance-updates-icon',
 					'<arb-updates-panel post-url="/json/maintain/" hide-title="true" num-to-display="20" more-link="/maintain"></arb-updates-panel>'
 				);
-				$scope.selectedUpdatesButton = 2;
+				if (!arb.isTouchDevice) {
+					$scope.selectedUpdatesButton = 2;
+				}
 			};
 
 			var showPanel = function(ev, fullPageUrl, relPosElement, panelTemplate) {
