@@ -697,7 +697,7 @@ a:not(.md-button) {
     color: rgba(0, 0, 0, 0.87);
     text-decoration: underline; }
 
-md-icon {
+animate-icon {
   transition: all 500ms ease; }
 
 .expand-icon-closed {
