@@ -490,9 +490,6 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   arb-explore-page > .capped-body-width {
     max-width: 1100px; }
 
-arb-index {
-  margin-top: 20px; }
-
 .toolbar-update-icon {
   opacity: 0.5; }
   .toolbar-update-icon.on {
@@ -511,14 +508,14 @@ arb-index {
   font-size: 12px;
   border-radius: 2px; }
 
+.arbital-blurb {
+  text-align: right; }
+
 .full-page-panel {
   max-width: 900px;
   margin-left: auto;
   margin-right: auto; }
 
-@media (min-width: 960px) {
-  .top-toolbar {
-    margin-bottom: 15px; } }
 .dense-panel md-toolbar {
   min-height: 0px; }
 
@@ -676,20 +673,20 @@ a:not(.md-button) {
   color: #004D40; }
 
 #index-header {
-  width: 100%;
+  box-shadow: 0 1px 3px -3px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
   position: relative;
-  top: -35px; }
-  #index-header > div {
-    background: #004D40;
+  top: -10px;
+  background: #004D40;
+  color: white !important;
+  padding: 5px 10px 10px;
+  z-index: 2; }
+  #index-header span {
+    opacity: 0.7; }
+  #index-header a {
     color: white !important;
-    padding: 5px 10px 10px;
-    z-index: 2; }
-    #index-header > div > span {
-      opacity: 0.7; }
-    #index-header > div a {
-      opacity: 0.7;
-      color: white !important;
-      font-weight: bold; }
+    font-weight: bold; }
+  #index-header .comma {
+    margin-left: -4px; }
 
 #footer {
   font-size: 12px;
