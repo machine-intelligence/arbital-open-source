@@ -92,6 +92,10 @@ app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows
 );
 app.directive('arbPageToDomainUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/pageToDomainUpdateRow.html'));
 app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/atMentionUpdateRow.html'));
+app.directive('arbNewMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/newMarkUpdateRow.html'));
+app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/resolvedThreadUpdateRow.html'));
+app.directive('arbResolvedMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/resolvedMarkUpdateRow.html'));
+app.directive('arbAnsweredMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/answeredMarkUpdateRow.html'));
 
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
