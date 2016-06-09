@@ -153,6 +153,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		ON (updates.changeLogId = changeLogs.id)
 		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`
 			AND NOT updates.dismissed
+		HAVING isGoToPageAlive OR updates.type IN`).AddArgsGroupStr(getOkayToShowWhenGoToPageIsDeletedUpdateTypes()).Add(`
 		ORDER BY updates.createdAt DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
@@ -403,6 +404,13 @@ func GetMaintenanceUpdateTypes() []string {
 		ChangeLogUpdateType,
 		QuestionMergedUpdateType,
 		QuestionMergedReverseUpdateType,
+	}
+}
+
+func getOkayToShowWhenGoToPageIsDeletedUpdateTypes() []string {
+	return []string{
+		ChangeLogUpdateType,
+		PageEditUpdateType,
 	}
 }
 

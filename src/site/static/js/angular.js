@@ -596,7 +596,7 @@ app.filter('relativeDateTime', function() {
 		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
 			return moment.utc(input).fromNow();
 		}
-		if (moment.utc().year() == moment.utc(input).year()) {
+		if (moment.utc().diff(moment.utc(input), 'months') <= 10) {
 			return moment.utc(input).local().format('MMM D');
 		}
 		return moment.utc(input).local().format('MMM D, YYYY');

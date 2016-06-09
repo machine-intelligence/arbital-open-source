@@ -45,6 +45,19 @@ app.directive('arbCommentModeRow', function($location, arb) {
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.comment = arb.stateService.pageMap[$scope.modeRow.commentId];
+		},
+	};
+});
+
+// arb-comment-activity is the directive for a comment activity control (to be used in an activity row)
+app.directive('arbCommentActivity', function($location, arb) {
+	return {
+		templateUrl: 'static/html/rows/commentActivity.html',
+		scope: {
+			comment: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
 		},
 	};

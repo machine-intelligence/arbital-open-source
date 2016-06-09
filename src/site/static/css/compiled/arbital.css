@@ -531,9 +531,9 @@ arb-index {
     margin: 0px; }
 
 .chip {
-  background: #555555;
-  border-radius: 5px;
-  color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  color: #888;
   padding: 2px 6px; }
 
 .discussion-container {
@@ -698,12 +698,6 @@ a:not(.md-button) {
   #footer a {
     color: rgba(0, 0, 0, 0.87);
     text-decoration: underline; }
-
-animate-icon {
-  transition: all 500ms ease; }
-
-.expand-icon-closed {
-  -webkit-transform: rotate(-90deg) translateX(3px); }
 
 .edit-page-dialog {
   width: 90vw;
@@ -1144,22 +1138,33 @@ arb-log-row, [arb-log-row] {
   border-radius: 15px;
   cursor: pointer; }
 
-arb-list-sub-header md-list-item,
-arb-explanation-request-row md-list-item {
-  margin-bottom: 0px !important;
-  padding-top: 10px !important; }
+arb-list-sub-header,
+arb-explanation-request-row {
+  color: #444; }
+  arb-list-sub-header .explanation-text,
+  arb-explanation-request-row .explanation-text {
+    padding-top: 10px;
+    line-height: 24px; }
 
-arb-explanation-request-row md-list-item {
-  line-height: 40px;
-  padding-bottom: 0px !important; }
-arb-explanation-request-row .md-button.md-icon-button {
-  padding: 0px; }
+.expand-icon {
+  transition: all 500ms ease; }
 
-.page-row .clickbait {
+.expand-icon-closed {
+  -webkit-transform: rotate(-90deg); }
+
+md-list-item .md-button.icon-first {
+  margin-left: -12px; }
+md-list-item .md-button.icon-last {
+  margin-right: -12px; }
+
+.page-row .page-row-caption {
   min-width: 0px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap; }
+.page-row .page-row-metadata div + div:before {
+  content: "|";
+  padding: 0 10px; }
 
 .list-panel md-list-item {
   margin: 0px !important;
