@@ -102,6 +102,20 @@ app.directive('arbPageToDomainUpdateRow', function(arb) {
 	};
 });
 
+// arb-at-mention-update-row is the directive for showing an at-mention update
+app.directive('arbAtMentionUpdateRow', function(arb) {
+	return {
+		templateUrl: 'static/html/rows/atMentionUpdateRow.html',
+		scope: {
+			update: '=',
+			onDismiss: '&',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+		},
+	};
+});
+
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
 	return {
