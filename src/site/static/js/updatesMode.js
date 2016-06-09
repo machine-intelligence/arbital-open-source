@@ -42,7 +42,7 @@ app.directive('arbUpdateRow', function(arb) {
 		transclude: true,
 		scope: {
 			update: '=',
-			onDismiss: '&',
+			onDismiss: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
