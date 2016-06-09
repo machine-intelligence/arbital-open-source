@@ -84,9 +84,6 @@ func editJsonInternalHandler(params *pages.HandlerParams, data *editJsonData) *p
 			return pages.Fail("Trying to edit a public page. Go to arbital.com", err).Status(http.StatusBadRequest)
 		}
 	}
-	if !p.IsAutosave && !p.IsSnapshot {
-		p.PrevEdit = p.Edit
-	}
 
 	// If it's an autosave or a snapshot, we can't count on all links to be loaded,
 	// since they are not stored in the links table. So we manually extract them.
