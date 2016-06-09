@@ -1162,6 +1162,9 @@ md-list-item .md-button.icon-last {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap; }
+.page-row .page-row-metadata div + div:before {
+  content: "|";
+  padding: 0 10px; }
 
 .list-panel md-list-item {
   margin: 0px !important;

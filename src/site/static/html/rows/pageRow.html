@@ -20,9 +20,8 @@
 	</div>
 
 	<!-- Metadata and quick edit button -->
-	<div class="md-caption" layout="row" layout-align="start center">
+	<div class="md-caption page-row-metadata" layout="row" layout-align="start center">
 		<div style="white-space: nowrap" ng-if="::showRedLinkCount">
-			<span class="separator"></span>
 			<md-tooltip>Number of manual todos in text + number of broken links</md-tooltip>
 			<span ng-if="::(page.todoCount > 0 || page.redLinkCount > 0)">
 				<span ng-bind="::page.todoCount"></span> + <span ng-bind="::page.redLinkCount"></span>
@@ -32,16 +31,13 @@
 			</span>
 		</div>
 		<div style="white-space: nowrap" ng-if="::showTextLength">
-			<span class="separator"></span>
 			<span ng-bind="::(page.textLength | numSuffix)"></span> characters
 		</div>
 		<div style="white-space: nowrap" ng-if="::(page.type === 'question')">
-			<span class="separator"></span>
 			<md-icon>font_download</md-icon>
 			<span ng-bind="::page.answerCount"></span>
 		</div>
 		<div style="white-space: nowrap" ng-if="::showCommentCount && page.commentCount > 0">
-			<span class="separator"></span>
 			<md-icon>comment</md-icon>
 			<span ng-bind="::page.commentCount"></span>
 		</div>

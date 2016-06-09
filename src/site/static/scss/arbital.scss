@@ -1189,6 +1189,13 @@ md-list-item {
 		text-overflow: ellipsis;
 	    white-space: nowrap;
 	}
+
+	& .page-row-metadata {
+		div + div:before {
+	    	content: "|";
+			padding: 0 10px
+	    }
+	}
 }
 
 .list-panel {
