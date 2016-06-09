@@ -47,27 +47,6 @@ app.directive('arbUpdateRow', function(arb) {
 	};
 });
 
-// arb-bell-update-row is the directive for showing an actionable update
-app.directive('arbBellUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/bellUpdateRow.html',
-		scope: {
-			modeRow: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.update = $scope.modeRow.update;
-			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
-			$scope.showDismissIcon = true;
-
-			if ($scope.update.goToPageId) {
-				$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
-			}
-		},
-	};
-});
-
 var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 	return function(arb) {
 		return {
