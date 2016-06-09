@@ -167,10 +167,6 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
-arb-index {
-	margin-top: 20px;
-}
-
 .toolbar-update-icon {
 	opacity: 0.5;
 
@@ -199,13 +195,6 @@ arb-index {
 	max-width: 900px;
 	margin-left: auto;
 	margin-right: auto;
-}
-
-
-@media (min-width: 960px) {
-	.top-toolbar {
-		margin-bottom: 15px;
-	}
 }
 
 .dense-panel {
@@ -485,25 +474,26 @@ a:not(.md-button) {
 }
 
 #index-header {
-	width: 100%;
+	box-shadow: 0 1px 3px -3px rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
 	position: relative;
-	top: -35px;
+	top: -10px;
 
-	& > div {
-		background: $primary-hue-3;
+	background: $primary-hue-3;
+	color: white !important;
+	padding: 5px 10px 10px;
+	z-index: 2;
+
+	span {
+		opacity: 0.7;
+	}
+
+	a {
 		color: white !important;
-		padding: 5px 10px 10px;
-		z-index: 2;
+		font-weight: bold;
+	}
 
-		& > span {
-			opacity: 0.7;
-		}
-
-		a {
-			opacity: 0.7;
-			color: white !important;
-			font-weight: bold;
-		}
+	.comma {
+		margin-left: -4px;
 	}
 }
 

@@ -16,3 +16,4 @@
 /bower_components
 /node_modules
 /.sass-cache
+/src/site/static/css/compiled/*

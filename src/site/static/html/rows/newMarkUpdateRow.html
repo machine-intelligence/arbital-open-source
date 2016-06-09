@@ -1,0 +1,10 @@
+<arb-update-row update="::update" on-dismiss="::onDismiss">
+
+	<div arb-query-info
+		mark-id="{{::update.markId}}"
+		ng-if="::arb.markService.markMap[update.markId].type === 'query'"></div>
+	<div arb-mark-info
+			mark-id="{{::update.markId}}"
+			ng-if="::arb.markService.markMap[update.markId].type !== 'query'"></div>
+
+</arb-update-row>

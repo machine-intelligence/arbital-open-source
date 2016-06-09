@@ -42,12 +42,7 @@ app.directive('arbUpdateRow', function(arb) {
 		transclude: true,
 		scope: {
 			update: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
-			$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+			onDismiss: '=',
 		},
 	};
 });
@@ -73,34 +68,34 @@ app.directive('arbBellUpdateRow', function(arb) {
 	};
 });
 
-// arb-comment-update-row is the directive for showing a comment update
-app.directive('arbCommentUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/commentUpdateRow.html',
-		scope: {
-			update: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.comment = arb.stateService.pageMap[$scope.update.goToPageId];
-		},
+var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
+	return function(arb) {
+		return {
+			templateUrl: templateUrl,
+			scope: {
+				update: '=',
+				onDismiss: '&',
+			},
+			controller: function($scope) {
+				$scope.arb = arb;
+				$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+				if (controllerInternal) controllerInternal($scope);
+			},
+		};
 	};
-});
+}
 
-// arb-page-to-domain-update-row is the directive for showing a page-to-domain submission or acceptance update
-app.directive('arbPageToDomainUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/pageToDomainUpdateRow.html',
-		scope: {
-			update: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-		},
-	};
-});
+app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/commentUpdateRow.html',
+	function($scope) {
+		$scope.comment = $scope.arb.stateService.pageMap[$scope.update.goToPageId];
+	})
+);
+app.directive('arbPageToDomainUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/pageToDomainUpdateRow.html'));
+app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/atMentionUpdateRow.html'));
+app.directive('arbNewMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/newMarkUpdateRow.html'));
+app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/resolvedThreadUpdateRow.html'));
+app.directive('arbResolvedMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/resolvedMarkUpdateRow.html'));
+app.directive('arbAnsweredMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/answeredMarkUpdateRow.html'));
 
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
