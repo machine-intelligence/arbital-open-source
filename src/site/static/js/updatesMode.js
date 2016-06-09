@@ -71,6 +71,20 @@ app.directive('arbCommentUpdateRow', function(arb) {
 	};
 });
 
+// arb-page-to-domain-update-row is the directive for showing a page-to-domain submission or acceptance update
+app.directive('arbPageToDomainUpdateRow', function(arb) {
+	return {
+		templateUrl: 'static/html/rows/pageToDomainUpdateRow.html',
+		scope: {
+			update: '=',
+			onDismiss: '&',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+		},
+	};
+});
+
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
 	return {
