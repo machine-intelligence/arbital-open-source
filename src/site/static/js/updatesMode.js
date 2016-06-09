@@ -44,11 +44,6 @@ app.directive('arbUpdateRow', function(arb) {
 			update: '=',
 			onDismiss: '=',
 		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
-			$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
-		},
 	};
 });
 
@@ -73,48 +68,30 @@ app.directive('arbBellUpdateRow', function(arb) {
 	};
 });
 
-// arb-comment-update-row is the directive for showing a comment update
-app.directive('arbCommentUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/commentUpdateRow.html',
-		scope: {
-			update: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.comment = arb.stateService.pageMap[$scope.update.goToPageId];
-		},
+var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
+	return function(arb) {
+		return {
+			templateUrl: templateUrl,
+			scope: {
+				update: '=',
+				onDismiss: '&',
+			},
+			controller: function($scope) {
+				$scope.arb = arb;
+				$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+				if (controllerInternal) controllerInternal($scope);
+			},
+		};
 	};
-});
+}
 
-// arb-page-to-domain-update-row is the directive for showing a page-to-domain submission or acceptance update
-app.directive('arbPageToDomainUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/pageToDomainUpdateRow.html',
-		scope: {
-			update: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-		},
-	};
-});
-
-// arb-at-mention-update-row is the directive for showing an at-mention update
-app.directive('arbAtMentionUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/atMentionUpdateRow.html',
-		scope: {
-			update: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-		},
-	};
-});
+app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/commentUpdateRow.html',
+	function($scope) {
+		$scope.comment = $scope.arb.stateService.pageMap[$scope.update.goToPageId];
+	})
+);
+app.directive('arbPageToDomainUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/pageToDomainUpdateRow.html'));
+app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/atMentionUpdateRow.html'));
 
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
