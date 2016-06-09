@@ -248,14 +248,12 @@ app.directive('arbPageTitle', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			$scope.pageUrl = $scope.customLink ? $scope.customLink : arb.urlService.getPageUrl($scope.pageId);
+
 			$scope.page = arb.stateService.getPageFromSomeMap($scope.pageId, $scope.useEditMap);
-			$scope.pageUrl = $scope.customLink ? $scope.customLink : arb.urlService.getPageUrl($scope.page.pageId);
 
 			$scope.getTitle = function() {
-				if ($scope.customPageTitle) {
-					return $scope.customPageTitle;
-				}
-				return $scope.page.title;
+				return $scope.customPageTitle || $scope.page.title;
 			};
 		},
 	};
