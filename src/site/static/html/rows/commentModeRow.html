@@ -1,29 +1,10 @@
 <div flex>
 	<div layout="column" layout-gt-sm="row" layout-align-gt-sm="start center" flex>
 
-		<!-- New discussion thread -->
-		<div ng-if="::topLevelComment === comment" flex>
-			<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
-			commented on
-			<arb-page-title page-id="{{::comment.getCommentParentPage().pageId}}" is-link="true"></arb-page-title>
-			page:
-			<arb-page-title page-id="{{::comment.pageId}}" is-link="true"></arb-page-title>
-		</div>
-
-		<!-- New reply -->
-		<div ng-if="::topLevelComment !== comment" flex>
-			<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
-			replied to
-			<span ng-bind="::topLevelComment.pageCreatorId == arb.userService.user.id ? 'your' : 'a'"></span>
-			comment
-			<arb-page-title page-id="{{::topLevelComment.pageId}}" is-link="true"></arb-page-title>:
-			<arb-page-title page-id="{{::comment.pageId}}" is-link="true"></arb-page-title>
-		</div>
+		<div arb-comment-activity comment="::comment" flex></div>
 
 		<div class="md-caption" layout="row" layout-align="start center">
 			<span ng-bind="::(comment.pageCreatedAt | relativeDateTime)"></span>
 		</div>
 	</div>
-
-	<arb-collapsable-comment-thread comment-id="{{::topLevelComment.pageId}}"></arb-collapsable-comment-thread>
 </div>

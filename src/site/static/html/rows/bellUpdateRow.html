@@ -17,18 +17,6 @@
 
 			<!-- Updates -->
 
-			<span ng-switch-when="topLevelComment">
-				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-				wrote a new comment:
-				<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-			</span>
-
-			<span ng-switch-when="reply">
-				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-				wrote a new reply:
-				<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-			</span>
-
 			<span ng-switch-when="atMention">
 				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 				mentioned you in a

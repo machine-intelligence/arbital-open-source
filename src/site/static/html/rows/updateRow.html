@@ -1,0 +1,15 @@
+<div layout="row" layout-xs="column" layout-align="space-between center">
+
+	<!-- LHS of the row -->
+	<div ng-transclude></div>
+
+	<!-- RHS of the row -->
+	<div layout="row" layout-align="end center">
+		<span class="md-caption nowrap" ng-bind="::(update.createdAt | relativeDateTime)"></span>
+		<md-button class="md-icon-button" ng-click="onDismiss()">
+			<md-icon>close</md-icon>
+			<md-tooltip md-delay="500">Dismiss</md-tooltip>
+		</md-button>
+	</div>
+
+</div>
