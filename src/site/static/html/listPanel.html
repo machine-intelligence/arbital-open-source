@@ -51,6 +51,7 @@
 				<div ng-switch-when="answeredMark"
 					arb-answered-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
+
 				<!-- achievements -->
 				<arb-likes-mode-row mode-row="::modeRow" ng-switch-when="likes"></arb-likes-mode-row>
 				<arb-reqs-taught-mode-row mode-row="::modeRow" ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
@@ -58,12 +59,23 @@
 				<arb-removed-from-group-mode-row mode-row="::modeRow" ng-switch-when="removedFromGroup"></arb-removed-from-group-mode-row>
 				<arb-invite-received-mode-row mode-row="::modeRow" ng-switch-when="inviteReceived"></arb-invite-received-mode-row>
 
+
 				<!-- maintenance updates -->
-				<div arb-maintenance-update-row mode-row="::modeRow" ng-switch-when="pageEdit" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-maintenance-update-row mode-row="::modeRow" ng-switch-when="newLens" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-maintenance-update-row mode-row="::modeRow" ng-switch-when="changeLog" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-maintenance-update-row mode-row="::modeRow" ng-switch-when="questionMerged" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-maintenance-update-row mode-row="::modeRow" ng-switch-when="questionMergedReverse" on-dismiss="dismissRow(modeRows, index)"></div>
+				<div ng-switch-when="pageEdit"
+					arb-page-edit-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="newLens"
+					arb-maintenance-update-row mode-row="::modeRow" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="changeLog"
+					arb-maintenance-update-row mode-row="::modeRow" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="questionMerged"
+					arb-maintenance-update-row mode-row="::modeRow" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="questionMergedReverse"
+					arb-maintenance-update-row mode-row="::modeRow" on-dismiss="dismissRow(modeRows, index)"></div>
+
 
 				<div arb-mark-info mark-id="{{::modeRow.markId}}" ng-switch-when="mark"></div>
 				<div arb-query-info mark-id="{{::modeRow.markId}}" ng-switch-when="query"></div>
