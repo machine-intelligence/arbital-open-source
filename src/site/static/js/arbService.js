@@ -5,9 +5,10 @@ var isTouchDevice = 'ontouchstart' in window || // works in most browsers
 	(navigator.msMaxTouchPoints > 0);
 
 // Contains all the services.
-app.service('arb', function(autocompleteService, diffService, markService, markdownService, masteryService, pageService, pathService, popoverService, popupService, stateService, userService, urlService) {
+app.service('arb', function(analyticsService, autocompleteService, diffService, markService, markdownService, masteryService, pageService, pathService, popoverService, popupService, stateService, userService, urlService) {
 	var that = this;
 
+	that.analyticsService = analyticsService;
 	that.autocompleteService = autocompleteService;
 	that.diffService = diffService;
 	that.markService = markService;

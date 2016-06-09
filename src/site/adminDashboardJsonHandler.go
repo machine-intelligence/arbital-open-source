@@ -49,30 +49,8 @@ func adminDashboardPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	// Load additional info for all pages
 	pageOptions := core.TitlePlusLoadOptions
 
-	// Submission funnel
-	rows := database.NewQuery(`
-		SELECT (
-			/* Users landing on front page */
-			SELECT COUNT(DISTINCT userId) FROM visits WHERE pageId=?`, indexHandlerUri).Add(`
-		), (
-			/* Users signing up */
-			SELECT COUNT(DISTINCT userId) FROM visits WHERE pageId=?`, indexHandlerUri).Add(`
-		), (
-			/* Users editing a page */
-		), (
-			/* Users publishing an edit */
-		), (
-			/* Users submitting to domain */
-		)`).ToStatement(db).Query()
-	returnData.ResultMap["author_filter"], err = processRows(rows, returnData.PageMap, pageOptions, []string{
-		"Front page", "Signed up", "Edit page", "Publish", "Submit",
-	})
-	if err != nil {
-		return pages.Fail("Error while loading author filter", err)
-	}
-
 	// Monthly active users
-	rows = database.NewQuery(`
+	rows := database.NewQuery(`
 		SELECT year(v.createdAt), month(v.createdAt), count(distinct u.id), count(distinct v.userId), count(distinct v.ipAddress)
 		FROM visits AS v
 		LEFT JOIN users as u ON v.userId=u.id

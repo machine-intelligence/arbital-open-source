@@ -575,7 +575,6 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 					scope._processMathQueue(currentMathCounter);
 				} else {
 					$element.text(decodeURIComponent(encodedMathjaxText));
-					console.log(decodeURIComponent(encodedMathjaxText));
 					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $element.get(0)]);
 					MathJax.Hub.Queue(['_mathItemProcessed', scope, $element, encodedMathjaxText, currentMathCounter]);
 					MathJax.Hub.Queue(['_processMathQueue', scope, currentMathCounter]);

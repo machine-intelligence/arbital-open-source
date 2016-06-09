@@ -501,29 +501,6 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('primaryPage'));
 		},
 	});
-	arb.urlService.addUrlHandler('/pages/:alias', {
-		name: 'RedirectToPrimaryPage',
-		handler: function(args, $scope) {
-			// Get the primary page data
-			var postData = {
-				pageAlias: args.alias,
-			};
-			$http({method: 'POST', url: '/json/redirectToPrimaryPage/', data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data) {
-				var pageId = data;
-				if (!pageId) {
-					return {
-						title: 'Not Found',
-						error: 'Page doesn\'t exist, was deleted, or you don\'t have permission to view it.',
-					};
-				}
-				arb.urlService.goToUrl(arb.urlService.getPageUrl(pageId), true);
-				return {
-				};
-			}))
-			.error($scope.getErrorFunc('redirectToPrimaryPage'));
-		},
-	});
 	arb.urlService.addUrlHandler('/read/', {
 		name: 'ReadModePage',
 		handler: function(args, $scope) {

@@ -78,6 +78,10 @@ app.directive('arbExplanationRequestRow', function(arb) {
 
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
 
+			$scope.editLinkClicked = function(event) {
+				arb.analyticsService.reportEditLinkClick(event);
+			};
+
 			$scope.toggleExpand = function() {
 				$scope.expanded = !$scope.expanded;
 

@@ -57,7 +57,7 @@
 					class="tab-panel-tab"
 					ng-class="{'md-raised md-primary': writeTab==1}"
 					ng-click="selectWriteTab(1)"
-					ng-if="showContinueWritingPanel">
+					ng-if="arb.userService.userIsLoggedIn()">
 				Continue
 			</md-button>
 		</div>

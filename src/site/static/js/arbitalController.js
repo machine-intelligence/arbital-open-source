@@ -52,13 +52,6 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 		arb.popupService.hideNonpersistentPopup();
 	};
 
-	// Watch path changes and update Google Analytics
-	$scope.$watch(function() {
-		return $location.absUrl();
-	}, function() {
-		ga('send', 'pageview', $location.absUrl());
-	});
-
 	var $fixedOverlay = $('#fixed-overlay');
 	$scope.$watch(function() {
 		return $fixedOverlay.children().length;
@@ -172,6 +165,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 				}
 				document.title = result.title + 'Arbital';
 			}
+			arb.analyticsService.reportPageView();
 		};
 	};
 

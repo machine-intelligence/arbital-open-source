@@ -1,7 +1,7 @@
 'use strict';
 
 // User service.
-app.service('userService', function($http, $location, $rootScope, stateService) {
+app.service('userService', function($http, $location, $rootScope, analyticsService, stateService) {
 	var that = this;
 
 	// Logged in user.
@@ -15,6 +15,7 @@ app.service('userService', function($http, $location, $rootScope, stateService) 
 		if (data.resetEverything) {
 			that.userMap = {};
 			that.user = data.user;
+			analyticsService.setUserId(that.user.id);
 		}
 		$.extend(that.userMap, data.users);
 	};
