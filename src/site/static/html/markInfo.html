@@ -40,7 +40,7 @@
 	<arb-user-name user-id="{{mark.resolvedBy}}" ng-if="!mark.isResolvedByOwner"></arb-user-name>
 	<span ng-if="mark.isResolvedByOwner">
 		<span ng-if="mark.isCurrentUserOwned">you</span>
-		<span ng-if="mark.isCurrentUserOwned">the mark creator</span>
+		<span ng-if="!mark.isCurrentUserOwned">the mark creator</span>
 	</span>
 </div>
 
