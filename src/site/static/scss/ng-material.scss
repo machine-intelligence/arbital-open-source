@@ -118,7 +118,7 @@ span.md-warn {
 
 // Markdown header 2
 .md-display-1, .preview-area h2, arb-markdown h2 {
-	font-size: 1.5rem;
+	font-size: 1.8rem;
 	line-height: 1.7rem;
 	font-weight: 300;
 	margin-top: 2rem;
@@ -127,12 +127,12 @@ span.md-warn {
 
 // Markdown header 3
 .md-headline, .preview-area h3, arb-markdown h3 {
-	font-size: 1.3rem;
+	font-size: 1.5rem;
 	line-height: 1.5rem;
 	font-weight: 700;
 	margin-top: 1.5rem;
 	margin-bottom: 0.5rem;
-	color: #555555;
+	color: rgba(0,0,0,0.9);
 }
 
 .md-subhead {

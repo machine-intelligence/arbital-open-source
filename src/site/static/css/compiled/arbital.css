@@ -128,19 +128,19 @@ span.md-warn {
   margin-bottom: 0.75rem; }
 
 .md-display-1, .preview-area h2, arb-markdown h2 {
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   line-height: 1.7rem;
   font-weight: 300;
   margin-top: 2rem;
   margin-bottom: 0.75rem; }
 
 .md-headline, .preview-area h3, arb-markdown h3 {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   line-height: 1.5rem;
   font-weight: 700;
   margin-top: 1.5rem;
   margin-bottom: 0.5rem;
-  color: #555555; }
+  color: rgba(0, 0, 0, 0.9); }
 
 .md-subhead {
   font-weight: 700; }
@@ -578,16 +578,16 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   white-space: normal;
   line-height: 20px; }
 
-md-autocomplete ::-webkit-input-placeholder {
+md-toolbar md-autocomplete ::-webkit-input-placeholder {
   /* Chrome/Opera/Safari */
   color: rgba(255, 255, 255, 0.5); }
-md-autocomplete ::-moz-placeholder {
+md-toolbar md-autocomplete ::-moz-placeholder {
   /* Firefox 19+ */
   color: rgba(255, 255, 255, 0.5); }
-md-autocomplete :-ms-input-placeholder {
+md-toolbar md-autocomplete :-ms-input-placeholder {
   /* IE 10+ */
   color: rgba(255, 255, 255, 0.5); }
-md-autocomplete :-moz-placeholder {
+md-toolbar md-autocomplete :-moz-placeholder {
   /* Firefox 18- */
   color: rgba(255, 255, 255, 0.5); }
 
