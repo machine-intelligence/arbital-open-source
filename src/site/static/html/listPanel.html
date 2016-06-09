@@ -24,17 +24,32 @@
 						ng-switch-when="page"></arb-page-row>
 
 				<!-- bell updates -->
-				<div arb-comment-update-row update="::modeRow.update" ng-switch-when="topLevelComment" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-comment-update-row update="::modeRow.update" ng-switch-when="reply" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-page-to-domain-update-row update="::modeRow.update" ng-switch-when="pageToDomainSubmission"
-					on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-page-to-domain-update-row update="::modeRow.update" ng-switch-when="pageToDomainAccepted"
-					on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-at-mention-update-row update="::modeRow.update" ng-switch-when="atMention" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-new-mark-update-row update="::modeRow.update" ng-switch-when="newMark" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-resolved-thread-update-row update="::modeRow.update" ng-switch-when="resolvedThread" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-resolved-mark-update-row update="::modeRow.update" ng-switch-when="resolvedMark" on-dismiss="dismissRow(modeRows, index)"></div>
-				<div arb-answered-mark-update-row update="::modeRow.update" ng-switch-when="answeredMark" on-dismiss="dismissRow(modeRows, index)"></div>
+				<div ng-switch-when="topLevelComment"
+					arb-comment-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="reply"
+					arb-comment-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="pageToDomainSubmission"
+					arb-page-to-domain-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="pageToDomainAccepted"
+					arb-page-to-domain-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="atMention"
+					arb-at-mention-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="newMark"
+					arb-new-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="resolvedThread"
+					arb-resolved-thread-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="resolvedMark"
+					arb-resolved-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="answeredMark"
+					arb-answered-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<!-- achievements -->
 				<arb-likes-mode-row mode-row="::modeRow" ng-switch-when="likes"></arb-likes-mode-row>
