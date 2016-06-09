@@ -20,43 +20,37 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 
 			// Prepare to show the diff
 			var pageId = $scope.changeLog.pageId;
-			var thisEditNum = $scope.changeLog.edit;
-			var prevEditNum = thisEditNum - ($scope.numEdits || 1);
 
 			var thisEditText;
 			var prevEditText;
 
-			// Makes the diffHtml once both thisEditText and prevEditText have been loaded.
-			var makeDiffIfBothTextsLoaded = function() {
-				if (thisEditText && prevEditText) {
-					$scope.diffHtml = arb.diffService.getDiffHtml(thisEditText, prevEditText);
-
-					// Default to showing short diffs
-					$scope.showDiff = $scope.diffHtml.length < 500;
-				}
-			};
-
 			// Load thisEditText.
+			var thisEditNum = $scope.changeLog.edit;
 			arb.pageService.loadEdit({
 				pageAlias: pageId,
 				specificEdit: thisEditNum,
 				skipProcessDataStep: true,
 				convertPageIdsToAliases: true,
 				success: function(data) {
-					thisEditText = data.edits[pageId].text;
-					makeDiffIfBothTextsLoaded();
-				},
-			});
+					var edit = data.edits[pageId];
 
-			// Load prevEditText.
-			arb.pageService.loadEdit({
-				pageAlias: pageId,
-				specificEdit: prevEditNum,
-				skipProcessDataStep: true,
-				convertPageIdsToAliases: true,
-				success: function(data) {
-					prevEditText = data.edits[pageId].text;
-					makeDiffIfBothTextsLoaded();
+					thisEditText = edit.text;
+
+
+					// Load prevEditText.
+					var prevEditNum = $scope.numEdits != 1 ? (thisEditNum - $scope.numEdits) : edit.prevEdit;
+					arb.pageService.loadEdit({
+						pageAlias: pageId,
+						specificEdit: prevEditNum,
+						skipProcessDataStep: true,
+						convertPageIdsToAliases: true,
+						success: function(data) {
+							prevEditText = data.edits[pageId].text;
+
+							// Make the diff
+							$scope.diffHtml = arb.diffService.getDiffHtml(thisEditText, prevEditText);
+						},
+					});
 				},
 			});
 		},
