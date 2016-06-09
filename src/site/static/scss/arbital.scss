@@ -226,9 +226,9 @@ arb-index {
 }
 
 .chip {
-	background: #555555;
-	border-radius: 5px;
-	color: white;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	color: #888;
 	padding: 2px 6px;
 }
 
@@ -514,14 +514,6 @@ a:not(.md-button) {
 		color: rgba(0,0,0,0.87);
 		text-decoration: underline;
 	}
-}
-
-animate-icon {
-	transition: all 500ms ease;
-}
-
-.expand-icon-closed {
-	-webkit-transform: rotate(-90deg) translateX(3px);
 }
 
 .edit-page-dialog {
@@ -1164,30 +1156,45 @@ arb-log-row, [arb-log-row] {
 
 arb-list-sub-header,
 arb-explanation-request-row {
-	& md-list-item {
-		margin-bottom: 0px !important;
-		padding-top: 10px !important;
+	color: #444;
+
+	.explanation-text {
+		padding-top: 10px;
+		line-height: 24px;
 	}
 }
 
-arb-explanation-request-row {
-	& md-list-item {
-		line-height: 40px;
-		padding-bottom: 0px !important;
+.expand-icon {
+	transition: all 500ms ease;
+}
+
+.expand-icon-closed {
+	-webkit-transform: rotate(-90deg);
+}
+
+md-list-item {
+	.md-button.icon-first {
+		margin-left: -12px;
 	}
 
-	.md-button.md-icon-button {
-		padding: 0px;
+	.md-button.icon-last {
+		margin-right: -12px;
 	}
 }
 
 .page-row {
-
-	& .clickbait {
+	& .page-row-caption {
 	    min-width: 0px;
 	    overflow: hidden;
 		text-overflow: ellipsis;
 	    white-space: nowrap;
+	}
+
+	& .page-row-metadata {
+		div + div:before {
+	    	content: "|";
+			padding: 0 10px
+	    }
 	}
 }
 

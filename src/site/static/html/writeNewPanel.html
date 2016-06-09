@@ -1,4 +1,4 @@
-<div class='md-whiteframe-1dp'>
+<div class='md-whiteframe-1dp list-panel'>
 	<!-- Red links -->
 	<arb-list-sub-header>
 		Some <a ng-href="/explore/math">Math</a> pages are referencing concepts that Arbital doesn't have yet.
@@ -6,6 +6,7 @@
 		<arb-page-title page-id="3hs" is-link="true" custom-page-title="(How?)"></arb-page-title>
 	</arb-list-sub-header>
 
+	<md-progress-circular md-mode="indeterminate" ng-if="!redLinkRows" ng-cloak></md-progress-circular>
 	<arb-explanation-request-row ng-repeat="redLink in redLinkRows"
 		alias="{{::redLink.redLinkAlias}}"
 		ref-count="{{::redLink.redLinkCount}}"></arb-explanation-request-row>
