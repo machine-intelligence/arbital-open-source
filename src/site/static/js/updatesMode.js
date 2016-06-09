@@ -35,6 +35,23 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 	};
 });
 
+// arb-update-row is the directive for showing an update
+app.directive('arbUpdateRow', function(arb) {
+	return {
+		templateUrl: 'static/html/rows/updateRow.html',
+		transclude: true,
+		scope: {
+			update: '=',
+			onDismiss: '&',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
+			$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
+		},
+	};
+});
+
 // arb-bell-update-row is the directive for showing an actionable update
 app.directive('arbBellUpdateRow', function(arb) {
 	return {
@@ -122,23 +139,6 @@ app.directive('arbMaintenanceModePage', function($http, arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-		},
-	};
-});
-
-// arb-update-row is the directive for showing an update
-app.directive('arbUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/updateRow.html',
-		transclude: true,
-		scope: {
-			update: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
-			$scope.goToPage = arb.stateService.pageMap[$scope.update.goToPageId];
 		},
 	};
 });
