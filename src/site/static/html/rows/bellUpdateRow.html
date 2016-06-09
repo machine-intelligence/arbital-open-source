@@ -17,14 +17,6 @@
 
 			<!-- Updates -->
 
-			<span ng-switch-when="atMention">
-				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-				mentioned you in a
-				<arb-page-title page-id="{{::update.goToPageId}}"
-						is-link="true"
-						custom-page-title="comment"></arb-page-title>
-			</span>
-
 			<span ng-switch-when="resolvedThread">
 				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 				marked
