@@ -102,17 +102,18 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// brackets / parens.
 	// NOTE: each regexp should have two groups that captures stuff that comes before
 	// the alias, and then 0 or more groups that capture everything after
+	notInBackticks := "([^`]|$)"
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
-		regexp.MustCompile("(/p(?:ages)?/)(" + AliasRegexpStr + ")"),
+		regexp.MustCompile("(/p/)(" + AliasRegexpStr + ")" + notInBackticks),
 		// Find ids and aliases using [alias optional text] syntax.
-		regexp.MustCompile("(\\[[\\-\\+]?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(]|$)"),
+		regexp.MustCompile("(\\[[\\-\\+]?)(" + AliasRegexpStr + ")( [^\\]]*?)?(\\])([^(`]|$)"),
 		// Find ids and aliases using [text](alias) syntax.
-		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))"),
+		regexp.MustCompile("(\\[[^\\]]+?\\]\\()(" + AliasRegexpStr + ")(\\))" + notInBackticks),
 		// Find ids and aliases using [vote: alias] syntax.
-		regexp.MustCompile("(\\[vote: ?)(" + AliasRegexpStr + ")(\\])"),
+		regexp.MustCompile("(\\[vote: ?)(" + AliasRegexpStr + ")(\\])" + notInBackticks),
 		// Find ids and aliases using [@alias] syntax.
-		regexp.MustCompile("(\\[@)(" + AliasRegexpStr + ")(\\])([^(]|$)"),
+		regexp.MustCompile("(\\[@)(" + AliasRegexpStr + ")(\\])([^(`]|$)"),
 	}
 	for _, exp := range regexps {
 		extractLinks(exp)
