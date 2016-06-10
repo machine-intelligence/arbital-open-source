@@ -244,6 +244,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Whether we created a changeLog for this edit
 	var createEditChangeLog bool
 	// The ids of the changeLogs for updated relationships
+	newChildChangeLogIdMap := make(map[string]int64)
 	newParentChangeLogIdMap := make(map[string]int64)
 
 	// Begin the transaction.
@@ -324,11 +325,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 			// Now that we're publishing this page, create changeLogs for new relationships
 			for _, parent := range newParents {
-				_, err := addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
+				newChildChangeLogId, err := addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
 					data.PageId, true, false)
 				if err != nil {
 					return sessions.NewError("Couldn't create changeLog for new child", err)
 				}
+				newChildChangeLogIdMap[parent.PageId] = newChildChangeLogId
 			}
 			for _, child := range newChildren {
 				newParentChangeLogId, err := addNewParentToChangelog(tx, u.Id, child.PairType, child.PageType, child.PageId, child.CurrentEdit,
@@ -467,10 +469,16 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		// Generate "new relationship" updates for users who are subscribed to this page.
+		// Generate "new relationship" updates for users who are subscribed to related pages.
 		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
+			for _, parent := range newParents {
+				err := tasks.EnqueueRelationshipUpdate(c, u.Id, parent.PageId, data.PageId, newChildChangeLogIdMap[parent.PageId], true, parent.PairType)
+				if err != nil {
+					c.Errorf("Couldn't enqueue a task: %v", err)
+				}
+			}
 			for _, child := range newChildren {
-				err := tasks.EnqueueNewParentUpdate(c, u.Id, child.PageId, data.PageId, newParentChangeLogIdMap[child.PageId])
+				err := tasks.EnqueueRelationshipUpdate(c, u.Id, child.PageId, data.PageId, newParentChangeLogIdMap[child.PageId], false, child.PairType)
 				if err != nil {
 					c.Errorf("Couldn't enqueue a task: %v", err)
 				}

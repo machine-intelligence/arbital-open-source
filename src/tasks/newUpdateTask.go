@@ -169,13 +169,19 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 	return 0, nil
 }
 
-func EnqueueNewParentUpdate(c sessions.Context, userId string, pageId string, parentId string, newParentChangeLogId int64) error {
+func EnqueueRelationshipUpdate(c sessions.Context, userId string, pageId string, relatedPageId string, changeLogId int64,
+	subscribedToPageIsParent bool, pairType string) error {
+	// don't send updates for pages that are being used as tags or requirements
+	if subscribedToPageIsParent && (pairType == core.TagPagePairType || pairType == core.RequirementPagePairType) {
+		return nil
+	}
+
 	var task NewUpdateTask
 	task.UserId = userId
-	task.ChangeLogId = newParentChangeLogId
+	task.ChangeLogId = changeLogId
 	task.UpdateType = core.ChangeLogUpdateType
 	task.GroupByPageId = pageId
 	task.SubscribedToId = pageId
-	task.GoToPageId = parentId
+	task.GoToPageId = relatedPageId
 	return Enqueue(c, &task, nil)
 }
