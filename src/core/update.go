@@ -414,16 +414,12 @@ func getOkayToShowWhenGoToPageIsDeletedUpdateTypes() []string {
 	}
 }
 
-func MarkUpdatesAsSeen(db *database.DB, userId string, updateIds []string) error {
-	if len(updateIds) <= 0 {
-		return nil
-	}
-
+func MarkUpdatesAsSeen(db *database.DB, userId string, types []string) error {
 	statement := database.NewQuery(`
 		UPDATE updates
 		SET seen=TRUE
 		WHERE userId=?`, userId).Add(`
-			AND id IN`).AddArgsGroupStr(updateIds).ToStatement(db)
+			AND type IN`).AddArgsGroupStr(types).ToStatement(db)
 	_, err := statement.Exec()
 	return err
 }

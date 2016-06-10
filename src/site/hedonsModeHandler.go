@@ -83,7 +83,7 @@ func hedonsModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	for _, row := range updateRows {
 		updateIds = append(updateIds, row.(*updateModeRow).Update.Id)
 	}
-	err = core.MarkUpdatesAsSeen(db, u.Id, updateIds)
+	err = core.MarkUpdatesAsSeen(db, u.Id, core.GetAchievementUpdateTypes())
 	if err != nil {
 		return pages.Fail("Couldn't mark updates seen", err)
 	}
