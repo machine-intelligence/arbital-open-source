@@ -25,21 +25,16 @@ const (
 	NewPageByUserUpdateType          = "newPageByUser"
 	PageToDomainSubmissionUpdateType = "pageToDomainSubmission"
 	PageToDomainAcceptedUpdateType   = "pageToDomainAccepted"
-
-	// there's no deleteLens because there's no way to undo the association between a lens and its parent page
-	// (other than deleting the lens page)
-	NewLensUpdateType = "newLens"
-
-	AtMentionUpdateType             = "atMention"
-	AddedToGroupUpdateType          = "addedToGroup"
-	RemovedFromGroupUpdateType      = "removedFromGroup"
-	InviteReceivedUpdateType        = "inviteReceived"
-	NewMarkUpdateType               = "newMark"
-	ResolvedThreadUpdateType        = "resolvedThread"
-	ResolvedMarkUpdateType          = "resolvedMark"
-	AnsweredMarkUpdateType          = "answeredMark"
-	QuestionMergedUpdateType        = "questionMerged"
-	QuestionMergedReverseUpdateType = "questionMergedReverse"
+	AtMentionUpdateType              = "atMention"
+	AddedToGroupUpdateType           = "addedToGroup"
+	RemovedFromGroupUpdateType       = "removedFromGroup"
+	InviteReceivedUpdateType         = "inviteReceived"
+	NewMarkUpdateType                = "newMark"
+	ResolvedThreadUpdateType         = "resolvedThread"
+	ResolvedMarkUpdateType           = "resolvedMark"
+	AnsweredMarkUpdateType           = "answeredMark"
+	QuestionMergedUpdateType         = "questionMerged"
+	QuestionMergedReverseUpdateType  = "questionMergedReverse"
 )
 
 // UpdateRow is a row from updates table
@@ -400,7 +395,6 @@ func GetNotificationUpdateTypes() []string {
 func GetMaintenanceUpdateTypes() []string {
 	return []string{
 		PageEditUpdateType,
-		NewLensUpdateType,
 		ChangeLogUpdateType,
 		QuestionMergedUpdateType,
 		QuestionMergedReverseUpdateType,

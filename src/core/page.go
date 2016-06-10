@@ -35,10 +35,12 @@ const (
 	ApprovalVoteType    = "approval"
 
 	// Various events we log when a page changes
-	NewParentChangeLog          = "newParent"
-	DeleteParentChangeLog       = "deleteParent"
-	NewChildChangeLog           = "newChild"
-	DeleteChildChangeLog        = "deleteChild"
+	NewParentChangeLog    = "newParent"
+	DeleteParentChangeLog = "deleteParent"
+	NewChildChangeLog     = "newChild"
+	DeleteChildChangeLog  = "deleteChild"
+	// there's no deleteLens because there's no way to undo the association between a lens and its parent page
+	// (other than deleting the lens page)
 	NewLensChangeLog            = "newLens"
 	NewTagChangeLog             = "newTag"
 	DeleteTagChangeLog          = "deleteTag"
