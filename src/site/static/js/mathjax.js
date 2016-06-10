@@ -136,8 +136,8 @@ var InitMathjax = (function() {
 	//
 	function prepareWmdForMathJax(converterObject, editorObject, wmdId) {
 		if (!editorObject) {
-			converterObject.hooks.chain('preConversion',removeMath);
-			converterObject.hooks.chain('postConversion',replaceMath);
+			//converterObject.hooks.chain('preConversion',removeMath);
+			//converterObject.hooks.chain('postConversion',replaceMath);
 		}
 		/*if (editorObject) {
 			editorObject.hooks.chain('onPreviewRefresh', UpdateMJ);

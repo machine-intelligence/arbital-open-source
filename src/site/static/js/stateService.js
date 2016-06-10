@@ -173,4 +173,10 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 			delete mathjaxCache[minKey];
 		}
 	};
+
+	// Clear out all the mathjax cache
+	this.clearMathjaxCache = function() {
+		mathjaxCache = {};
+		mathjaxRecency = {};
+	};
 });
