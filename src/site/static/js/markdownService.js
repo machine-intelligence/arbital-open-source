@@ -376,7 +376,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(spaceTextRegexp, function(whole, prefix, text) {
 				var url = urlService.getNewPageUrl({includeHost: true});
-				return prefix + '<a href="' + url + '" class="intrasite-link red-link red-todo-text" page-id="">' +
+				return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
 					text + '</a>';
 			});
 		});
