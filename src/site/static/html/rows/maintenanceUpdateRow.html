@@ -136,18 +136,6 @@
 					</span>
 				</span>
 
-				<span ng-switch-when="questionMerged">
-					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
-					merged into
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-				</span>
-
-				<span ng-switch-when="questionMergedReverse">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					merged into
-					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
-				</span>
-
 				<span ng-switch-when="lensOrderChanged">
 					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 					lens order changed.

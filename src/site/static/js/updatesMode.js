@@ -76,6 +76,8 @@ app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc('static/ht
 app.directive('arbResolvedMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/resolvedMarkUpdateRow.html'));
 app.directive('arbAnsweredMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/answeredMarkUpdateRow.html'));
 app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/pageEditUpdateRow.html'));
+app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/questionMergedUpdateRow.html'));
+app.directive('arbQuestionMergedReverseUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/questionMergedReverseUpdateRow.html'));
 
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
