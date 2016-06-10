@@ -94,13 +94,16 @@ app.service('popupService', function($http, $compile, $location, $mdToast, $root
 			templateHtml += '</md-button>';
 		}
 		templateHtml += '</div></md-toast>';
-		$mdToast.show({
+		var toastOptions = {
 			template: templateHtml,
 			autoWrap: false,
 			parent: $('#fixed-overlay'),
-			scope: params.scope,
 			preserveScope: !!params.scope,
 			hideDelay: hideDelay,
-		});
+		};
+		if (params.scope) {
+			toastOptions.scope = params.scope;
+		}
+		$mdToast.show(toastOptions);
 	};
 });

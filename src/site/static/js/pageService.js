@@ -439,27 +439,13 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	//	childId: id of the child page
 	//	type: type of the relationships
 	// }
-	this.newPagePair = function(params, success, error) {
-		$http({method: 'POST', url: '/newPagePair/', data: JSON.stringify(params)})
-		.success(function(data, status) {
-			if (success) success(data);
-		})
-		.error(function(data, status) {
-			console.error('Error creating new page pair:'); console.error(data);
-			if (error) error(data);
-		});
+	this.newPagePair = function(params, successFn, errorFn) {
+		stateService.postDataWithoutProcessing('/newPagePair/', params, successFn, errorFn);
 	};
 	// Note: you also need to specify the type of the relationship here, sinc we
 	// don't want to accidentally delete the wrong type.
 	this.deletePagePair = function(params, success, error) {
-		$http({method: 'POST', url: '/deletePagePair/', data: JSON.stringify(params)})
-		.success(function(data, status) {
-			if (success) success(data);
-		})
-		.error(function(data, status) {
-			console.error('Error deleting a page pair:'); console.error(data);
-			if (error) error(data);
-		});
+		stateService.postDataWithoutProcessing('/deletePagePair/', params, successFn, errorFn);
 	};
 
 	// TODO: make these into page functions?
