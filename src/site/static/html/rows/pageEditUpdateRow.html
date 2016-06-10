@@ -1,13 +1,21 @@
 <arb-update-row update="::update" on-dismiss="::onDismiss">
 
-	<div>
-		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-		edited
-		<span ng-if="::(update.repeated > 1)">
-			{{::update.repeated}} times
+	<div layout="row">
+		<arb-likes likeable-type="changeLog"
+			likeable-id="{{::update.changeLog.id}}"
+			likeable="::update.changeLog"
+			is-stretched="true"
+			is-button="true"></arb-likes>
+
+		<span>
+			<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+			edited
+			<span ng-if="::(update.repeated > 1)">
+				{{::update.repeated}} times
+			</span>
+			by
+			<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 		</span>
-		by
-		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 	</div>
 
 	<arb-edit-diff change-log="::update.changeLog" num-edits="::update.repeated"></arb-edit-diff>
