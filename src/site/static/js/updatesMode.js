@@ -43,6 +43,7 @@ app.directive('arbUpdateRow', function(arb) {
 		scope: {
 			update: '=',
 			onDismiss: '=',
+			showLikeButton: '=',
 		},
 	};
 });
