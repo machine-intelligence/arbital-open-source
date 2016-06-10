@@ -192,7 +192,7 @@ app.directive('arbUserPopover', function($timeout, arb) {
 });
 
 // textPopover contains the popover body html.
-app.directive('arbTextPopover', function($timeout, arb) {
+app.directive('arbTextPopover', function($compile, $timeout, arb) {
 	return {
 		templateUrl: 'static/html/textPopover.html',
 		scope: {
@@ -208,6 +208,7 @@ app.directive('arbTextPopover', function($timeout, arb) {
 		},
 		link: function(scope, element, attrs) {
 			element.find('.popover-tab-body').html(decodeURIComponent(scope.encodedHtml));
+			arb.markdownService.compileChildren(scope, element);
 		},
 	};
 });
