@@ -26,6 +26,8 @@ var atAliasRegexp = new RegExp(notEscaped +
 // markdownService provides a constructor you can use to create a markdown converter,
 // either for converting markdown to text or editing.
 app.service('markdownService', function($compile, $timeout, pageService, userService, urlService, stateService) {
+	var that = this;
+
 	// Store an array of page aliases that failed to load, so that we don't keep trying to reload them
 	var failedPageAliases = {};
 
@@ -46,11 +48,58 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		return text.substring(0, 1).toUpperCase() + text.substring(1);
 	};
 
+	// Get the html for linking to the given alias. If alias is not found in page mape, the
+	// link will be red.
+	// text - optional text value for the url. If none is given, page's title will be used.
+	//	If page is not found, page's alias will be used.
+	var getLinkHtml = function(editor, alias, text) {
+		var firstAliasChar = alias.substring(0, 1);
+		var trimmedAlias = trimAlias(alias);
+		var classText = 'intrasite-link';
+		var page = stateService.pageMap[trimmedAlias];
+		if (page) {
+			var url = urlService.getPageUrl(page.pageId, {includeHost: true});
+			if (!text) {
+				text = getCasedText(page.title, firstAliasChar);
+			}
+			if (page.isDeleted) {
+				classText += ' red-link';
+			}
+			return '<a href="' + url + '" class="' + classText + '" page-id="' + page.pageId + '">' +
+				text + '</a>';
+		}
+		fetchLink(trimmedAlias, editor);
+		classText += ' red-link';
+		var url = urlService.getEditPageUrl(trimmedAlias, {includeHost: true});
+		if (!text) {
+			text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
+		}
+		return '<a href="' + url + '" class="' + classText + '" page-id="">' + text + '</a>';
+	};
+
+	// Get info from BE to render the given page alias
+	var fetchLink = function(pageAlias, editor) {
+		if (editor && !(pageAlias in failedPageAliases)) {
+			// Try to load the page
+			pageService.loadTitle(pageAlias, {
+				silentFail: true,
+				success: function() {
+					if (pageAlias in stateService.pageMap) {
+						editor.refreshPreview();
+					} else {
+						failedPageAliases[pageAlias] = true;
+					}
+				}
+			});
+		}
+	};
+
 	// Pass in a pageId to create an editor for that page
-	var createConverter = function(isEditor, pageId, postConversionCallback) {
+	var createConverter = function(scope, isEditor, pageId) {
 		// NOTE: not using $location, because we need port number
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
+		var editor = isEditor ? new Markdown.Editor(converter, pageId) : undefined;
 
 		// Process [summary(optional):markdown] blocks.
 		var summaryBlockRegexp = new RegExp('^\\[summary(\\([^)\n\r]+\\))?: ?([\\s\\S]+?)\\] *(?=\Z|\n\Z|\n\n)', 'gm');
@@ -207,53 +256,52 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			});
 		});
 
-		if (isEditor) {
-			var getMathjaxRegexp = function(isBlock) {
-				var regexp = '';
-				if (isBlock) {
-					regexp += '[\\s\\S]*?';
-				} else {
-					regexp += '[^\n]*?'; // spans don't include new line
-				}
-				regexp += '[^\\\\]';
-				return regexp;
-			};
-			// Process $$$mathjax$$$ spans (when you need to embed $...$ within)
-			var mathjaxSpan3Regexp = new RegExp(notEscaped + '(~D~D~D' + getMathjaxRegexp(false) + '~D~D~D)', 'g');
-			converter.hooks.chain('preSpanGamut', function(text) {
-				return text.replace(mathjaxSpan3Regexp, function(whole, prefix, mathjaxText) {
-					var encodedText = encodeURIComponent(mathjaxText.substring(6, mathjaxText.length - 6));
-					var key = '$' + encodedText + '$';
-					var cachedValue = stateService.getMathjaxCacheValue(key);
-					var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
-					return prefix + '<span ' + style + 'arb-math-compiler="' + key + '">&nbsp;</span>';
-				});
+		// Mathjax
+		var getMathjaxRegexp = function(isBlock) {
+			var regexp = '';
+			if (isBlock) {
+				regexp += '[\\s\\S]*?';
+			} else {
+				regexp += '[^\n]*?'; // spans don't include new line
+			}
+			regexp += '[^\\\\]';
+			return regexp;
+		};
+		// Process $$$mathjax$$$ spans (when you need to embed $...$ within)
+		var mathjaxSpan3Regexp = new RegExp(notEscaped + '(~D~D~D' + getMathjaxRegexp(false) + '~D~D~D)', 'g');
+		converter.hooks.chain('preSpanGamut', function(text) {
+			return text.replace(mathjaxSpan3Regexp, function(whole, prefix, mathjaxText) {
+				var encodedText = encodeURIComponent(mathjaxText.substring(6, mathjaxText.length - 6));
+				var key = '$' + encodedText + '$';
+				var cachedValue = stateService.getMathjaxCacheValue(key);
+				var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
+				return prefix + '<span ' + style + 'arb-math-compiler="' + key + '">&nbsp;</span>';
 			});
-			// Process $$mathjax$$ spans.
-			var mathjaxSpan2Regexp = new RegExp(notEscaped + '(~D~D' + getMathjaxRegexp(true) + '~D~D)', 'g');
-			converter.hooks.chain('preSpanGamut', function(text) {
-				return text.replace(mathjaxSpan2Regexp, function(whole, prefix, mathjaxText) {
-					if (mathjaxText.substring(0, 6) == '~D~D~D') return whole;
-					var encodedText = encodeURIComponent(mathjaxText.substring(4, mathjaxText.length - 4));
-					var key = '$$' + encodedText + '$$';
-					var cachedValue = stateService.getMathjaxCacheValue(key);
-					var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
-					return prefix + '<div ' + style + 'class=\'mathjax-div\' arb-math-compiler="' + key + '">&nbsp;</div>';
-				});
+		});
+		// Process $$mathjax$$ spans.
+		var mathjaxSpan2Regexp = new RegExp(notEscaped + '(~D~D' + getMathjaxRegexp(true) + '~D~D)', 'g');
+		converter.hooks.chain('preSpanGamut', function(text) {
+			return text.replace(mathjaxSpan2Regexp, function(whole, prefix, mathjaxText) {
+				if (mathjaxText.substring(0, 6) == '~D~D~D') return whole;
+				var encodedText = encodeURIComponent(mathjaxText.substring(4, mathjaxText.length - 4));
+				var key = '$$' + encodedText + '$$';
+				var cachedValue = stateService.getMathjaxCacheValue(key);
+				var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
+				return prefix + '<div ' + style + 'class=\'mathjax-div\' arb-math-compiler="' + key + '">&nbsp;</div>';
 			});
-			// Process $mathjax$ spans.
-			var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D' + getMathjaxRegexp(false) + '~D)', 'g');
-			converter.hooks.chain('preSpanGamut', function(text) {
-				return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
-					if (mathjaxText.substring(0, 4) == '~D~D') return whole;
-					var encodedText = encodeURIComponent(mathjaxText.substring(2, mathjaxText.length - 2));
-					var key = '$' + encodedText + '$';
-					var cachedValue = stateService.getMathjaxCacheValue(key);
-					var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
-					return prefix + '<span ' + style + 'arb-math-compiler="' + key + '">&nbsp;</span>';
-				});
+		});
+		// Process $mathjax$ spans.
+		var mathjaxSpanRegexp = new RegExp(notEscaped + '(~D' + getMathjaxRegexp(false) + '~D)', 'g');
+		converter.hooks.chain('preSpanGamut', function(text) {
+			return text.replace(mathjaxSpanRegexp, function(whole, prefix, mathjaxText) {
+				if (mathjaxText.substring(0, 4) == '~D~D') return whole;
+				var encodedText = encodeURIComponent(mathjaxText.substring(2, mathjaxText.length - 2));
+				var key = '$' + encodedText + '$';
+				var cachedValue = stateService.getMathjaxCacheValue(key);
+				var style = cachedValue ? ('style=\'' + cachedValue.style + ';display:inline-block;\' ') : '';
+				return prefix + '<span ' + style + 'arb-math-compiler="' + key + '">&nbsp;</span>';
 			});
-		}
+		});
 
 		// Process %note: markdown% spans.
 		var noteSpanRegexp = new RegExp(notEscaped + '(%+)note: ?([\\s\\S]+?)\\2', 'g');
@@ -327,8 +375,9 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'\\[ ([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(spaceTextRegexp, function(whole, prefix, text) {
-				var editUrl = urlService.getNewPageUrl({includeHost: true});
-				return prefix + '[' + text + '](' + editUrl + ')';
+				var url = urlService.getNewPageUrl({includeHost: true});
+				return prefix + '<a href="' + url + '" class="intrasite-link red-link red-todo-text" page-id="">' +
+					text + '</a>';
 			});
 		});
 
@@ -337,75 +386,44 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			return text.replace(forwardLinkRegexp, function(whole, prefix, alias, text) {
 				var matches = alias.match(anyUrlMatch);
 				if (matches) {
-					var url = matches[0];
-					return prefix + '[' + text + '](' + url + ')';
+					// This is just a normal url.
+					return prefix + '[' + text + '](' + matches[0] + ')';
 				}
 				matches = alias.match(aliasMatch);
-				if (matches && matches[0] == alias) {
-					alias = trimAlias(alias);
-					var page = stateService.pageMap[alias];
-					if (page) {
-						var url = urlService.getPageUrl(page.pageId, {includeHost: true});
-						return prefix + '[' + text + '](' + url + ')';
-					} else {
-						var url = urlService.getEditPageUrl(alias, {includeHost: true});
-						url = url.replace(/"/g, '');
-						return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
-							text + '</a>';
-						}
-				} else {
+				if (!matches || matches[0] != alias) {
+					// No alias match
 					return whole;
 				}
+				return prefix + getLinkHtml(editor, alias, text);
 			});
 		});
 
 		// Convert [alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(simpleLinkRegexp, function(whole, prefix, alias) {
-				var firstAliasChar = alias.substring(0, 1);
-				var trimmedAlias = trimAlias(alias);
-				var page = stateService.pageMap[trimmedAlias];
-				if (page) {
-					var url = urlService.getPageUrl(page.pageId, {includeHost: true});
-					// Match the page title's case to the alias's case
-					var casedTitle = getCasedText(page.title, firstAliasChar);
-					return prefix + '[' + casedTitle + '](' + url + ')';
-				} else {
-					var url = urlService.getEditPageUrl(trimmedAlias, {includeHost: true});
-					url = url.replace(/"/g, '');
-					var text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
-					return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
-						 text + '</a>';
-				}
+				return prefix + getLinkHtml(editor, alias);
 			});
 		});
 
 		// Convert [@alias] spans into links.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(atAliasRegexp, function(whole, prefix, alias) {
-				var page = stateService.pageMap[alias];
-				if (page) {
-					var url = urlService.getUserUrl(page.pageId, {includeHost: true});
-					return prefix + '[' + page.title + '](' + url + ')';
-				} else {
-					var url = urlService.getUserUrl(alias, {includeHost: true});
-					return prefix + '[' + alias + '](' + url + ')';
-				}
+				var html = getLinkHtml(editor, alias);
+				return prefix + html.replace('page-id', 'user-id').replace('intrasite-link', 'user-link');
 			});
 		});
 
 		if (isEditor) {
 			// Setup the editor stuff.
-			var editor = new Markdown.Editor(converter, pageId);
 			if (!userService.user.ignoreMathjax) {
 				InitMathjax(converter, editor, pageId);
 			}
+			var $wmdPreview = $('#wmd-preview' + pageId);
 			converter.hooks.chain('postConversion', function(text) {
-				if (postConversionCallback) {
-					postConversionCallback(function() {
-						editor.refreshPreview();
-					});
-				}
+				$timeout(function() {
+					that.processLinks(scope, $wmdPreview, true);
+					that.compileChildren(scope, $wmdPreview, true);
+				});
 				return text;
 			});
 
@@ -418,108 +436,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	};
 
 	// Process all the links in the give element.
-	// If refreshFunc is set, fetch page's we don't have yet, and call that function
-	// when one of them is loaded.
-	this.processLinks = function(scope, $pageText, refreshFunc) {
-		// Setup attributes for page links that are within our domain.
-		// NOTE: not using $location, because we need port number
-		var pageRe = new RegExp('^(?:https?:\/\/)?(?:www\.)?' + // match http and www stuff
-			getHostMatchRegex(window.location.host) + // match the url host part
-			'\/(?:p|edit)\/' + aliasMatch + '?' + // [1] capture page alias
-			'\/?' + // optional ending /
-			'(.*)'); // optional other stuff
-
-		// Setup attributes for user links that are within our domain.
-		var userRe = new RegExp('^(?:https?:\/\/)?(?:www\.)?' + // match http and www stuff
-			window.location.host + // match the url host part
-			'\/user\/' + aliasMatch + // [1] capture user alias
-			'(\/' + nakedAliasMatch + ')?' + // [2] optional alias
-			'\/?' + // optional ending /
-			'(.*)'); // optional other stuff
-
-		var processPageLink = function($element, href, pageAlias, searchParams) {
-			if (href == $element.text()) {
-				// This is a normal link and we should leave it as such
-				return;
-			}
-			pageAlias = pageAlias || '';
-			// Check if we are embedding a vote
-			if (searchParams.indexOf('embedVote') > 0) {
-				$element.attr('embed-vote-id', pageAlias).addClass('red-link');
-			} else if (pageAlias && pageAlias in stateService.pageMap) {
-				$element.addClass('intrasite-link').attr('page-id', pageAlias);
-				$element.attr('page-id', stateService.pageMap[pageAlias].pageId);
-				if (stateService.pageMap[pageAlias].isDeleted) {
-					// Link to a deleted page.
-					$element.addClass('red-link');
-				} else {
-					// Normal healthy link!
-				}
-			} else if (!$element.hasClass('red-link')) {
-				// Mark as red link
-				$element.addClass('intrasite-link red-link').attr('page-id', pageAlias);
-				$element.attr('href', $element.attr('href').replace(/\/p\//, '/edit/'));
-				if (refreshFunc && pageAlias === '') {
-					$element.addClass('red-todo-text');
-				} else {
-					var redLinkText = $element.text();
-					if (pageAlias == trimAlias(redLinkText)) {
-						var possibleModifier = $element.text().substring(0, 1);
-						redLinkText = getCasedText(pageAlias, possibleModifier);
-						// Convert underscores to spaces for red [alias] links
-						$element.text(redLinkText.replace(/_/g, ' '));
-					}
-				}
-				if (refreshFunc && !(pageAlias in failedPageAliases)) {
-					// Try to load the page
-					pageService.loadTitle(pageAlias, {
-						silentFail: true,
-						success: function() {
-							if (pageAlias in stateService.pageMap) {
-								refreshFunc();
-							} else {
-								failedPageAliases[pageAlias] = true;
-							}
-						}
-					});
-				}
-			}
-		};
-
-		$pageText.find('a').each(function(index, element) {
-			var $element = $(element);
-			var parts = $element.attr('href').match(pageRe);
-			if (parts !== null && !$element.hasClass('intrasite-link')) {
-				processPageLink($element, parts[0], parts[1], parts[2]);
-			}
-
-			parts = $element.attr('href').match(userRe);
-			if (parts !== null) {
-				var userAlias = parts[1];
-
-				if (!$element.hasClass('user-link')) {
-					$element.addClass('user-link').attr('user-id', userAlias);
-					if (userAlias in stateService.pageMap) {
-					} else {
-						// Mark as red link
-						$element.addClass('red-link');
-						if (refreshFunc && !(userAlias in failedPageAliases)) {
-							pageService.loadTitle(userAlias, {
-								silentFail: true,
-								success: function() {
-									if (userAlias in stateService.pageMap) {
-										refreshFunc();
-									} else {
-										failedPageAliases[userAlias] = true;
-									}
-								}
-							});
-						}
-					}
-				}
-			}
-		});
-
+	this.processLinks = function(scope, $pageText, isEditor) {
 		var index = 1; // start with 1, because masteryMap is at 0 (see pageService.js)
 		$pageText.find('arb-multiple-choice,arb-checkbox').each(function() {
 			$(this).attr('index', index++);
@@ -527,15 +444,12 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	};
 
 	// Compile all the children of arb-markdown
-	this.compileChildren = function(scope, $pageText, refreshFunc) {
+	this.compileChildren = function(scope, $pageText, isEditor) {
 		// NOTE: have to compile children individually because otherwise there is a bug
 		// with intrasite popovers in preview.
 		$pageText.children().each(function(index) {
 			$compile($(this))(scope);
 		});
-
-		if (!refreshFunc) return;
-		// For the editor, we do the whole song and dance to make MathJax preview really fast
 
 		// If first time around, set up the functions
 		if (scope._currentMathCounter === undefined) {
@@ -594,13 +508,14 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		}, scope._mathRenderPromise ? 500 : 0);
 	};
 
-	this.createConverter = function(pageId) {
-		return createConverter(false, pageId);
+	this.createConverter = function(scope, pageId) {
+		return createConverter(scope, false, pageId);
 	};
 
-	this.createEditConverter = function(pageId, postConversionCallback) {
+	this.createEditConverter = function(scope, pageId) {
 		failedPageAliases = {};
-		return createConverter(true, pageId, postConversionCallback);
+		stateService.clearMathjaxCache();
+		return createConverter(scope, true, pageId);
 	};
 });
 

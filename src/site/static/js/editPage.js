@@ -88,14 +88,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Set up markdown
 			$timeout(function() {
-				var $wmdPreview = $('#wmd-preview' + $scope.page.pageId);
-				// Initialize pagedown
-				arb.markdownService.createEditConverter($scope.page.pageId, function(refreshFunc) {
-					$timeout(function() {
-						arb.markdownService.processLinks($scope, $wmdPreview, refreshFunc);
-						arb.markdownService.compileChildren($scope, $wmdPreview, refreshFunc);
-					});
-				});
+				arb.markdownService.createEditConverter($scope, $scope.page.pageId);
 			});
 
 			// Called when user selects a page from insert link input

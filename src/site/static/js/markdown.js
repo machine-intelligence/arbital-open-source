@@ -22,7 +22,7 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 			// Convert page text to html.
 			// Note: converter takes pageId, which might not be set if we are displaying
 			// a mark, but it should be ok, since the mark doesn't have most markdown features.
-			var converter = arb.markdownService.createConverter(scope.pageId);
+			var converter = arb.markdownService.createConverter(scope, scope.pageId);
 			var text = '';
 			if (scope.page) {
 				if (scope.summaryName) {
@@ -52,8 +52,9 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 				arb.markdownService.processLinks(scope, $pageText);
 				element.removeClass('reveal-after-render');
 				$timeout(function() {
-					MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
-					MathJax.Hub.Queue(['compileChildren', arb.markdownService, scope, $pageText]);
+					//MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
+					//MathJax.Hub.Queue(['compileChildren', arb.markdownService, scope, $pageText]);
+					arb.markdownService.compileChildren(scope, $pageText);
 					// Highlight the anchorText for marks.
 					MathJax.Hub.Queue(function() {
 						if (scope.mark) {

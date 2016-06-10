@@ -228,19 +228,4 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		}
 		return url;
 	};
-
-	// Get url to the user page.
-	this.getUserUrl = function(userId, options) {
-		options = options || {};
-		var url = '';
-		if (userId in stateService.pageMap) {
-			url = that.getBaseUrl('p', userId, stateService.pageMap[userId].alias);
-		} else {
-			url = '/p/' + userId;
-		}
-		if (options.includeHost) {
-			url = that.getDomainUrl() + url;
-		}
-		return url;
-	};
 });
