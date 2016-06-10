@@ -508,9 +508,6 @@ arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-
   font-size: 12px;
   border-radius: 2px; }
 
-.arbital-blurb {
-  text-align: right; }
-
 .full-page-panel {
   max-width: 900px;
   margin-left: auto;
@@ -889,8 +886,8 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 
 arb-compose-fab {
   position: fixed;
-  right: 0;
-  bottom: 0;
+  right: -11px;
+  bottom: -10px;
   z-index: 50; }
 
 .fab-icon {

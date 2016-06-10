@@ -1,5 +1,6 @@
 <!-- Lens menu -->
-<div class="lens-menu"
+<div ng-if="true"
+		class="lens-menu"
 		layout="row"
 		layout-align-xs="start center"
 		ng-if="::!isSimpleEmbed">
@@ -18,22 +19,6 @@
 			is-stretched="::!isTinyScreen"
 			show-subscriber-count="::!isTinyScreen"
 			flex="25"></arb-subscribe>
-
-	<!-- Discussion -->
-	<div layout="column" layout-align="start center" flex="25">
-		<md-button href="#discussion"
-				ng-class="::{'md-icon-button': isTinyScreen}">
-			<md-icon>comment</md-icon>
-			<span ng-if="::!isTinyScreen">Discussion</span>
-		</md-button>
-		<ng-pluralize class="md-caption"
-				count="visibleCommentCount()" when="{
-					'0': 'No comments',
-					'one': '1 comment',
-					'other': '{} comments'}"
-				ng-if="::!isTinyScreen">
-		</ng-pluralize>
-	</div>
 
 	<!-- Edit -->
 	<div layout="column" layout-align="start center" flex="25">
