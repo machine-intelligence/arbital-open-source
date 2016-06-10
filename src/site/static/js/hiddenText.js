@@ -10,10 +10,12 @@ app.directive('arbHiddenText', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-
 			$scope.revealed = false;
-			$scope.reveal = function() {
-				$scope.revealed = true;
+		},
+		link: function(scope, element, attrs) {
+			scope.reveal = function() {
+				scope.revealed = true;
+				arb.markdownService.compileChildren(scope, element.find("[ng-transclude]"));
 			};
 		},
 	};
