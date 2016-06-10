@@ -97,6 +97,8 @@ type corePageData struct {
 	PageId                   string `json:"pageId"`
 	Edit                     int    `json:"edit"`
 	PrevEdit                 int    `json:"prevEdit"`
+	CurrentEdit              int    `json:"currentEdit"`
+	WasPublished             bool   `json:"wasPublished"`
 	Type                     string `json:"type"`
 	Title                    string `json:"title"`
 	Clickbait                string `json:"clickbait"`
@@ -159,11 +161,6 @@ type Page struct {
 	// === Full data. ===
 	// For pages that are displayed fully, we load more additional data.
 	// Edit number for the currently live version
-	CurrentEdit int `json:"currentEdit"`
-
-	// True iff there has ever been an edit that had isLiveEdit set for this page
-	WasPublished bool `json:"wasPublished"`
-
 	Votes []*Vote `json:"votes"`
 	// We don't allow users to change the vote type once a page has been published
 	// with a voteType!="" even once. If it has, this is the vote type it shall
