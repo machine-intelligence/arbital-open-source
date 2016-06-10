@@ -277,12 +277,15 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$timeout(function() {
 				// If we loaded an edit that's not based off of the current edit, freeze!
 				// Note: do this before we compute prevEditPageData, to make sure autosave goes through.
-				/*if ($scope.page.wasPublished && $scope.page.prevEdit != arb.stateService.getPage($scope.pageId).currentEdit) {
-					$scope.freezeEdit = true;
-					$scope.savePage(false, true);
-					var message = 'A new version was published. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
-					$scope.addMessage('obsoleteEdit', message, 'error');
-				}*/
+				if ($scope.page.wasPublished) {
+					var isThisEditLive = $scope.page.edit == $scope.page.currentEdit;
+					if (!isThisEditLive && $scope.page.prevEdit != $scope.page.currentEdit) {
+						$scope.freezeEdit = true;
+						$scope.savePage(false, true);
+						var message = 'A new version was published. To prevent edit conflicts, please refresh the page to see it. (A snapshot of your current state has been saved.)';
+						$scope.addMessage('obsoleteEdit', message, 'error');
+					}
+				}
 				// Compute prevEditPageData, so we don't fire off autosave when there were
 				// no changes made.
 				prevEditPageData = computeAutosaveData();
@@ -295,7 +298,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.page.text = $('#wmd-input' + $scope.pageId)[0].value;
 				var data = {
 					pageId: $scope.pageId,
-					prevEdit: $scope.page.prevEdit,
+					prevEdit: $scope.page.currentEdit,
 					currentEdit: $scope.page.currentEdit,
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
