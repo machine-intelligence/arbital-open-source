@@ -113,7 +113,8 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 	parentIsLive := parent.WasPublished && !parent.IsDeleted
 
 	// Update change logs
-	var newParentChangeLogId int64
+	var deletedChildChangeLogId int64
+	var deletedParentChangeLogId int64
 
 	if childIsLive {
 		hashmap := make(database.InsertMap)
@@ -128,9 +129,13 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 			core.SubjectPagePairType:     core.DeleteTeacherChangeLog,
 		}[pairType]
 		statement := tx.DB.NewInsertStatement("changeLogs", hashmap).WithTx(tx)
-		_, err := statement.Exec()
+		result, err := statement.Exec()
 		if err != nil {
 			return sessions.NewError("Couldn't insert new child change log", err)
+		}
+		deletedChildChangeLogId, err = result.LastInsertId()
+		if err != nil {
+			return sessions.NewError("Couldn't get changeLogId", err)
 		}
 	}
 
@@ -151,17 +156,24 @@ func deletePagePair(tx *database.Tx, userId string, pairType string, parent *cor
 		if err != nil {
 			return sessions.NewError("Couldn't insert new child change log", err)
 		}
-		newParentChangeLogId, err = result.LastInsertId()
+		deletedParentChangeLogId, err = result.LastInsertId()
 		if err != nil {
 			return sessions.NewError("Couldn't get changeLogId", err)
 		}
 	}
 
-	// Send updates for users subscribed to the child.
+	// Send updates for users subscribed to the parent or child.
 	if childIsLive && parentIsLive {
-		err := tasks.EnqueueNewParentUpdate(tx.DB.C, userId, child.PageId, parent.PageId, newParentChangeLogId)
+		// update for subscribers to parent, saying that a child has been removed
+		err := tasks.EnqueueRelationshipUpdate(tx.DB.C, userId, parent.PageId, child.PageId, deletedChildChangeLogId, true, pairType)
 		if err != nil {
-			return sessions.NewError("Couldn't enqueue new parent update", err)
+			return sessions.NewError("Couldn't enqueue relationship updates", err)
+		}
+
+		// update for subscribers to child, saying that a parent has been removed
+		err = tasks.EnqueueRelationshipUpdate(tx.DB.C, userId, child.PageId, parent.PageId, deletedParentChangeLogId, false, pairType)
+		if err != nil {
+			return sessions.NewError("Couldn't enqueue relationship updates", err)
 		}
 	}
 

@@ -107,6 +107,9 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		return pages.Fail(permissionError, nil).Status(http.StatusForbidden)
 	}
 
+	childIsLive := child.WasPublished && !child.IsDeleted
+	parentIsLive := parent.WasPublished && !parent.IsDeleted
+
 	// Ids of the changelogs created for this pagePair
 	var newChildChangeLogId int64
 	var newParentChangeLogId int64
@@ -123,14 +126,14 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 			return sessions.NewError("Couldn't insert pagePair", err)
 		}
 
-		if child.WasPublished && !child.IsDeleted {
+		if childIsLive {
 			newChildChangeLogId, err = addNewChildToChangelog(tx, u.Id, data.Type, child.Type, data.ParentId, parent.Edit,
 				data.ChildId, child.WasPublished, child.IsDeleted)
 			if err != nil {
 				return sessions.NewError("Couldn't add to changelog of parent", err)
 			}
 		}
-		if parent.WasPublished && !parent.IsDeleted {
+		if parentIsLive {
 			newParentChangeLogId, err = addNewParentToChangelog(tx, u.Id, data.Type, child.Type, data.ChildId, child.Edit,
 				data.ParentId, parent.WasPublished, parent.IsDeleted)
 			if err != nil {
@@ -145,9 +148,16 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 
 	// Generate updates for users who are subscribed to the parent/child pages.
 	if parent.Type != core.CommentPageType && child.Type != core.CommentPageType &&
-		parent.Alias != "" && child.Alias != "" && !parent.IsDeleted && !child.IsDeleted {
+		parent.Alias != "" && child.Alias != "" && parentIsLive && childIsLive {
 
-		err := tasks.EnqueueNewParentUpdate(c, u.Id, child.PageId, parent.PageId, newParentChangeLogId)
+		// update for subscribers to parent, saying that a new child has been added
+		err := tasks.EnqueueRelationshipUpdate(c, u.Id, parent.PageId, child.PageId, newChildChangeLogId, true, data.Type)
+		if err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
+		}
+
+		// update for subscribers to child, saying that a new parent has been added
+		err = tasks.EnqueueRelationshipUpdate(c, u.Id, child.PageId, parent.PageId, newParentChangeLogId, false, data.Type)
 		if err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
