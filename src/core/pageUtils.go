@@ -102,6 +102,9 @@ func StandardizeLinks(db *database.DB, text string) (string, error) {
 	// brackets / parens.
 	// NOTE: each regexp should have two groups that captures stuff that comes before
 	// the alias, and then 0 or more groups that capture everything after
+	// NOTE: we have to be careful about capturing too much around the link, because
+	// if we do, the second link in `[alias] [alias]` won't get captured. For this reason
+	// we check for backtick only right at the end of the expression.
 	notInBackticks := "([^`]|$)"
 	regexps := []*regexp.Regexp{
 		// Find directly encoded urls
