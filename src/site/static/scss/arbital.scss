@@ -53,6 +53,8 @@ body {
 }
 
 arb-markdown, [arb-markdown], .preview-area {
+	text-align: justify;
+
 	p {
 		margin-top: 0;
 		overflow-wrap: break-word;
@@ -455,11 +457,6 @@ a:not(.md-button) {
 				color: $warn-hue-3;
 			}
 		}
-
-		// Helper for coloring [ red text] links.
-		&.red-todo-text {
-			background-color: #ffdddd;
-		};
 	}
 }
 
