@@ -70,9 +70,12 @@
 				<div ng-switch-when="questionMergedReverse"
 					arb-question-merged-reverse-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
-				<div ng-switch-when="changeLog" ng-switch on="::isRelationshipChangeLogType(modeRow.update.changeLog.type)">
-					<div ng-switch-when="true"
+				<div ng-switch-when="changeLog" ng-switch="::getChangeLogCategory(modeRow.update.changeLog.type)">
+					<div ng-switch-when="relationship"
 						arb-relationship-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+					<div ng-switch-when="settings"
+						arb-settings-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
 					<div ng-switch-default
 						arb-maintenance-update-row mode-row="::modeRow" on-dismiss="dismissRow(modeRows, index)"></div>

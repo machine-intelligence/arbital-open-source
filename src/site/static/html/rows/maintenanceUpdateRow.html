@@ -34,65 +34,6 @@
 					</span>
 				</span>
 
-				<span ng-switch-when="lensOrderChanged">
-					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
-					lens order changed.
-				</span>
-
-				<!-- Settings changes -->
-
-				<span ng-switch-when="newAlias">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					alias changed
-					from "{{::update.changeLog.oldSettingsValue}}"
-					to "{{::update.changeLog.newSettingsValue}}"
-				</span>
-
-				<span ng-switch-when="newSortChildrenBy">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					child sort order changed
-					from "{{::update.changeLog.oldSettingsValue}}"
-					to "{{::update.changeLog.newSettingsValue}}"
-				</span>
-
-				<span ng-switch-when="setVoteType">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					vote type changed
-					from "{{::update.changeLog.oldSettingsValue}}"
-					to "{{::update.changeLog.newSettingsValue}}"
-				</span>
-
-				<span ng-switch-when="newEditGroup">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					edit group changed from
-					<!-- old edit group -->
-					<span ng-if="::(update.changeLog.oldSettingsValue == '')">none</span>
-					<span ng-if="::(update.changeLog.oldSettingsValue != '')">
-						<arb-page-title page-id="{{::update.changeLog.oldSettingsValue}}" is-link="true"></arb-page-title>
-					</span>
-					to
-					<!-- new edit group -->
-					<span ng-if="::(update.changeLog.newSettingsValue == '')">none</span>
-					<span ng-if="::(update.changeLog.newSettingsValue != '')">
-						<arb-page-title page-id="{{::update.changeLog.newSettingsValue}}" is-link="true"></arb-page-title>
-					</span>
-				</span>
-
-				<span ng-switch-when="turnOnVote">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					probability bar shown
-				</span>
-
-				<span ng-switch-when="turnOffVote">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					probability bar hidden
-				</span>
-
-				<span ng-switch-when="pageInfoEdit">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					settings changed
-				</span>
-
 				<!-- Edits and snapshots -->
 
 				<span ng-switch-when="deletePage">
