@@ -22,6 +22,7 @@ const (
 	ReplyUpdateType                  = "reply"
 	ChangeLogUpdateType              = "changeLog"
 	PageEditUpdateType               = "pageEdit"
+	PageEditProposalUpdateType       = "pageEditProposal"
 	NewPageByUserUpdateType          = "newPageByUser"
 	PageToDomainSubmissionUpdateType = "pageToDomainSubmission"
 	PageToDomainAcceptedUpdateType   = "pageToDomainAccepted"
@@ -395,6 +396,7 @@ func GetNotificationUpdateTypes() []string {
 func GetMaintenanceUpdateTypes() []string {
 	return []string{
 		PageEditUpdateType,
+		PageEditProposalUpdateType,
 		ChangeLogUpdateType,
 		QuestionMergedUpdateType,
 		QuestionMergedReverseUpdateType,

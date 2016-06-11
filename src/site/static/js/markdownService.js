@@ -95,7 +95,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	};
 
 	// Pass in a pageId to create an editor for that page
-	var createConverter = function(scope, isEditor, pageId) {
+	var createConverterInternal = function(scope, pageId, isEditor) {
 		// NOTE: not using $location, because we need port number
 		var host = window.location.host;
 		var converter = Markdown.getSanitizingConverter();
@@ -511,12 +511,12 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 	};
 
 	this.createConverter = function(scope, pageId) {
-		return createConverter(scope, false, pageId);
+		return createConverterInternal(scope, pageId);
 	};
 
 	this.createEditConverter = function(scope, pageId) {
 		failedPageAliases = {};
-		return createConverter(scope, true, pageId);
+		return createConverterInternal(scope, pageId, true);
 	};
 });
 

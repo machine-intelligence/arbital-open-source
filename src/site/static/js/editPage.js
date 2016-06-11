@@ -41,6 +41,19 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				$scope.page.title = $scope.page.lensTitle();
 			}
 
+			$scope.getPublishText = function() {
+				if ($scope.page.isDeleted) return "Republish";
+				if ($scope.page.permissions.edit.has) return "Publish";
+				if ($scope.page.permissions.proposeEdit.has) return "Propose";
+				return "";
+			};
+			$scope.getPublishTooltipText = function() {
+				if ($scope.page.isDeleted) return "Republish this page";
+				if ($scope.page.permissions.edit.has) return "Make this version live";
+				if ($scope.page.permissions.proposeEdit.has) return "Propose an edit to this page";
+				return "";
+			};
+
 			// Whether the editor should be in advanced mode.
 			$scope.showAdvancedMode = function() {
 				return arb.userService.user.isDomainMember || arb.userService.user.showAdvancedEditorMode;
@@ -233,13 +246,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if ($scope.page.wasPublished && !$scope.page.permissions.edit.has) {
-				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'error', true);
-			}
-			// Check group permissions
-			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {
-				$scope.addMessage('editGroup', 'You need to be part of ' +
-					arb.stateService.pageMap[$scope.page.editGroupId].title + ' group to edit this page', 'error', true);
+			if (!$scope.page.permissions.proposeEdit.has) {
+				$scope.addMessage('editLevel', $scope.page.permissions.proposeEdit.reason, 'error', true);
+			} else if (!$scope.page.permissions.edit.has) {
+				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'warning');
 			}
 			// Check if you've loaded an edit that's not currently live
 			if ($scope.page.edit !== $scope.page.currentEdit && $scope.isNormalEdit) {

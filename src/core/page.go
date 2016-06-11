@@ -57,6 +57,7 @@ const (
 	DeletePageChangeLog         = "deletePage"
 	UndeletePageChangeLog       = "undeletePage"
 	NewEditChangeLog            = "newEdit"
+	NewEditProposalChangeLog    = "newEditProposal"
 	RevertEditChangeLog         = "revertEdit"
 	NewSnapshotChangeLog        = "newSnapshot"
 	NewAliasChangeLog           = "newAlias"
@@ -1086,7 +1087,8 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		// If there is an autosave, load that.
 		// If there is are snapshots, only consider those that are based off of the currently live edit.
 		// Otherwise, load the currently live edit.
-		// Note: "z" is just a hack to make sure autosave is sorted to the top.
+		// Note: in ORDER BY, we use letters to make sure that some edits are sorted above all the
+		// edits that use createdAt
 		whereClause = database.NewQuery(`
 			p.edit=(
 				SELECT p.edit
@@ -1094,9 +1096,13 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 				JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 				ON (p.pageId=pi.pageId)
 				WHERE p.pageId=?`, pageId).Add(`
-					AND (p.prevEdit=pi.currentEdit OR p.edit=pi.currentEdit OR p.isAutosave) AND
-					(p.creatorId=? OR NOT (p.isSnapshot OR p.isAutosave))`, u.Id).Add(`
-				ORDER BY IF(p.isAutosave,"z",p.createdAt) DESC
+					AND (p.creatorId=? OR (NOT p.isSnapshot AND NOT p.isAutosave))`, u.Id).Add(`
+					/* To consider a snapshot, it has to be based on the current edit */
+					AND (NOT p.isSnapshot OR pi.currentEdit=0 OR p.prevEdit=pi.currentEdit)
+				/* From most to least preferred edits: autosave, (applicable) snapshot, currentEdit, anything else */
+				ORDER BY IF(p.isAutosave,"z",
+					IF(p.isSnapshot,"y",
+						IF(p.edit=pi.currentEdit,"x",p.createdAt))) DESC
 				LIMIT 1
 			)`)
 	}

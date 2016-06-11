@@ -663,13 +663,16 @@
 			<div ng-if="isPublishButtonVisible()">
 				<md-button class="md-primary md-raised"
 						ng-click="publishPage()"
-						ng-disabled="publishing || snapshotting">
+						ng-disabled="publishing || snapshotting"
+						ng-if="::getPublishText()">
 					<!-- Don't show for comments, because when inline comment gets created the tooltip remains -->
-					<md-tooltip md-delay="500" ng-if="::!page.isComment()">Make this version live</md-tooltip>
-					{{::(page.isDeleted ? 'Republish' : 'Publish')}}
+					<md-tooltip md-delay="500" ng-if="::!page.isComment()">{{::getPublishTooltipText()}}</md-tooltip>
+					{{::getPublishText()}}
 				</md-button>
 				<span ng-if="pageInfoChanged()">
-					<md-tooltip md-delay="500" md-direction="top">Page settings aren't autosaved</md-tooltip>
+					<md-tooltip md-delay="500" md-direction="top">
+						Setting changes will be lost if you navigate away
+					</md-tooltip>
 					<md-icon>warning</md-icon>
 				</span>
 			</div>

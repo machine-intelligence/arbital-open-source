@@ -115,12 +115,13 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 			JOIN pages as p
 			ON s.userId = p.creatorId
 			WHERE s.toId=? AND p.pageId=?`, task.SubscribedToId, task.SubscribedToId)
-	if !task.ForceMaintainersOnly && (task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
-		task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
-		task.UpdateType == core.AddedToGroupUpdateType || task.UpdateType == core.RemovedFromGroupUpdateType ||
-		task.UpdateType == core.InviteReceivedUpdateType || task.UpdateType == core.ResolvedMarkUpdateType ||
-		task.UpdateType == core.AnsweredMarkUpdateType) {
-		// This update can be shown to all users who are subsribed
+	if !task.ForceMaintainersOnly &&
+		(task.UpdateType == core.TopLevelCommentUpdateType || task.UpdateType == core.ReplyUpdateType ||
+			task.UpdateType == core.NewPageByUserUpdateType || task.UpdateType == core.AtMentionUpdateType ||
+			task.UpdateType == core.AddedToGroupUpdateType || task.UpdateType == core.RemovedFromGroupUpdateType ||
+			task.UpdateType == core.InviteReceivedUpdateType || task.UpdateType == core.ResolvedMarkUpdateType ||
+			task.UpdateType == core.AnsweredMarkUpdateType) {
+		// This update can be shown to all users who are subscribed
 	} else {
 		// This update is only for authors who explicitly opted into maintaining the page
 		query = query.Add(`AND s.asMaintainer`)
