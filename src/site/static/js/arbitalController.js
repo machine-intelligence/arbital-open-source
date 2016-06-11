@@ -153,6 +153,7 @@ app.controller('ArbitalCtrl', function($rootScope, $scope, $location, $timeout, 
 					showEverything();
 				}, 1000);
 
+				arb.stateService.clearMathjaxCache();
 				currentView = result.content;
 				$('[ng-view]').append(result.content.element);
 			}

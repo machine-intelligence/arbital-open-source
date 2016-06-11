@@ -516,7 +516,6 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 
 	this.createEditConverter = function(scope, pageId) {
 		failedPageAliases = {};
-		stateService.clearMathjaxCache();
 		return createConverter(scope, true, pageId);
 	};
 });
