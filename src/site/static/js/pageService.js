@@ -444,7 +444,7 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 	};
 	// Note: you also need to specify the type of the relationship here, sinc we
 	// don't want to accidentally delete the wrong type.
-	this.deletePagePair = function(params, success, error) {
+	this.deletePagePair = function(params, successFn, errorFn) {
 		stateService.postDataWithoutProcessing('/deletePagePair/', params, successFn, errorFn);
 	};
 
