@@ -22,8 +22,8 @@ app.directive('arbHiddenText', function($compile, $timeout, arb) {
 			});
 			scope.reveal = function() {
 				scope.revealed = true;
-				$(element).find("md-button").remove();
-				$(element).find(".display-none").removeClass("display-none");
+				$(element).find('md-button').remove();
+				$(element).find('.display-none').removeClass('display-none');
 			};
 		},
 	};

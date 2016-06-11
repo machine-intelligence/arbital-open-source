@@ -62,7 +62,7 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 			},
 		};
 	};
-}
+};
 
 app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/commentUpdateRow.html',
 	function($scope) {
