@@ -1137,8 +1137,13 @@ arb-log-row, [arb-log-row] {
 	margin-left: 16px;
 }
 
+[arb-hidden-text] {
+	margin-top: -10px;
+	margin-bottom: 15px;
+}
 .hidden-text {
-	border: gray 1px dashed;
+	background-color: whitesmoke;
+	padding: 15px 25px 5px;
 }
 
 .markdown-note {
