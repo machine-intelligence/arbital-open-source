@@ -16,14 +16,12 @@
 			<div class="tab-panel-title">Read</div>
 			<div flex></div>
 			<md-button href="#"
-					class="tab-panel-tab"
-					ng-class="{'md-raised md-primary': readTab==0}"
+					ng-class="{'active-tab': readTab==0}"
 					ng-click="selectReadTab(0)">
 				Featured
 			</md-button>
 			<md-button href="#"
-					class="tab-panel-tab"
-					ng-class="{'md-raised md-primary': readTab==1}"
+					ng-class="{'active-tab': readTab==1}"
 					ng-click="selectReadTab(1)">
 				New
 			</md-button>
@@ -48,14 +46,12 @@
 			<div class="tab-panel-title">Write</div>
 			<div flex></div>
 			<md-button href="#"
-					class="tab-panel-tab"
-					ng-class="{'md-raised md-primary': writeTab==0}"
+					ng-class="{'active-tab': writeTab==0}"
 					ng-click="selectWriteTab(0)">
 				New
 			</md-button>
 			<md-button href="#"
-					class="tab-panel-tab"
-					ng-class="{'md-raised md-primary': writeTab==1}"
+					ng-class="{'active-tab': writeTab==1}"
 					ng-click="selectWriteTab(1)"
 					ng-if="arb.userService.userIsLoggedIn()">
 				Continue

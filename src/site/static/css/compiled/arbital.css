@@ -929,13 +929,17 @@ ins {
   z-index: 55;
   background-color: white; }
 
-.page-tabs > .page-tabs-holder > .md-button {
-  padding: 5px 35px; }
-  .page-tabs > .page-tabs-holder > .md-button.active-tab {
-    background-color: #009688;
+.page-tabs .md-button,
+.tab-panel-header .md-button {
+  border-radius: 0; }
+  .page-tabs .md-button.active-tab,
+  .tab-panel-header .md-button.active-tab {
+    background-color: #009688 !important;
     color: white !important;
-    border-bottom: none;
-    border-radius: 0; }
+    border-bottom: none; }
+
+.page-tabs .md-button {
+  padding: 5px 35px; }
 
 .prevent-horizontal-scroll {
   overflow-x: hidden; }

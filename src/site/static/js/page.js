@@ -112,6 +112,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				switchingLenses = true;
 
 				var $pageLensBody = $(element).find('.page-lens-body');
+				scope.selectedLens = arb.stateService.pageMap[lensId];
 				$pageLensBody.animate({opacity: 0}, 400, 'swing', function() {
 					$timeout(function() {
 						$pageLensBody.animate({opacity: 1}, 400, 'swing', function() {
@@ -121,7 +122,6 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					if (scope.selectedLens || lensId !== scope.pageId) {
 						$location.search('l', lensId);
 					}
-					scope.selectedLens = arb.stateService.pageMap[lensId];
 					// A new lens became visible. Sometimes this happens when the user is going through
 					// a path and clicks "Next" at the bottom of the page. In this case we need to
 					// scroll upwards to have them start reading this lens

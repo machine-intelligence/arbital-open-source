@@ -832,21 +832,22 @@ ins {
 	background-color: white;
 }
 
-.page-tabs {
-	& > .page-tabs-holder {
-		//background-color: white !important;
-		//border-bottom: $primary-color 2px solid;
+.page-tabs,
+.tab-panel-header {
+	.md-button {
+		border-radius: 0;
 
-		& > .md-button {
-			padding: 5px 35px;
-
-			&.active-tab {
-				background-color: $primary-color;
-				color: white !important;
-				border-bottom: none;
-				border-radius: 0;
-			}
+		&.active-tab {
+			background-color: $primary-color !important;
+			color: white !important;
+			border-bottom: none;
 		}
+	}
+}
+
+.page-tabs {
+	.md-button {
+		padding: 5px 35px;
 	}
 }
 

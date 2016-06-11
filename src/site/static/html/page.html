@@ -58,7 +58,10 @@
 		<!-- Lens tabs -->
 		<div class="page-tabs md-whiteframe-1dp">
 			<!-- Tab labels -->
-			<div class="page-tabs-holder" layout="row" layout-xs="column" ng-if="::page.lensIds.length > 1">
+			<div class="page-tabs-holder tab-panel-header"
+					layout="row"
+					layout-xs="column"
+					ng-if="::page.lensIds.length > 1">
 				<md-button ng-repeat="lensId in ::page.lensIds"
 						ng-click="tabsClicked($event,lensId)"
 						ng-class="{'active-tab': lensId == selectedLens.pageId}"
@@ -69,7 +72,7 @@
 			</div>
 
 			<!-- Lens body -->
-			<div class="page-lens-body">
+			<div class="page-lens-body md-whiteframe-2dp">
 				<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
 					<div ng-style="{'min-height': 500}"
 							layout="column"
