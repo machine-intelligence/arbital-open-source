@@ -518,8 +518,10 @@ arb-markdown, [arb-markdown], .preview-area {
   margin-left: auto;
   margin-right: auto; }
 
-.dense-panel md-toolbar {
-  min-height: 0px; }
+.dense-panel {
+  font-size: 14px; }
+  .dense-panel md-toolbar {
+    min-height: 0px; }
 
 .popover-panel {
   width: 600px; }
