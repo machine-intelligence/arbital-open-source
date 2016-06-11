@@ -5,7 +5,15 @@
 app.service('diffService', function() {
 	var that = this;
 
-	this.getDiffHtml = function(thisText, thatText, opt_expandDiffs) {
+	// Return the title + clickbait + text from the given edit, ready to diff
+	this.getTextToDiff = function(edit) {
+		return 'Title: ' + edit.title + '\n' + 'Clickbait: ' + edit.clickbait + '\n\n' + edit.text;
+	};
+
+	// Return HTML corresponding to the diff between two texts.
+	this.getDiffHtml = function(thisEdit, thatEdit, opt_expandDiffs) {
+		var thisText = that.getTextToDiff(thisEdit);
+		var thatText = that.getTextToDiff(thatEdit);
 		var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
 		var diffs = dmp.diff_main(thatText, thisText);
 		dmp.diff_cleanupSemantic(diffs);
