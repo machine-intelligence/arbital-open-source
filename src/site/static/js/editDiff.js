@@ -36,7 +36,6 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 
 					thisEditText = edit.text;
 
-
 					// Load prevEditText.
 					var prevEditNum = $scope.numEdits != 1 ? (thisEditNum - $scope.numEdits) : edit.prevEdit;
 					arb.pageService.loadEdit({

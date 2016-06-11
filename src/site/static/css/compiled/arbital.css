@@ -286,6 +286,9 @@ md-list {
   padding-top: 0;
   padding-bottom: 0; }
 
+.display-none {
+  display: none; }
+
 .submit-form-error {
   padding: 10px; }
 
@@ -425,19 +428,21 @@ body {
   .nice-blockquote p, arb-markdown blockquote p, [arb-markdown] blockquote p, .preview-area blockquote p {
     padding: 10px 0; }
 
-arb-markdown p, [arb-markdown] p, .preview-area p {
-  margin-top: 0;
-  overflow-wrap: break-word; }
-  arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
-    margin: 0; }
-arb-markdown img, [arb-markdown] img, .preview-area img {
-  max-width: 100%; }
-arb-markdown ul, arb-markdown ol, [arb-markdown] ul, [arb-markdown] ol, .preview-area ul, .preview-area ol {
-  padding-left: 1.5em; }
-arb-markdown li p, [arb-markdown] li p, .preview-area li p {
-  overflow: inherit; }
-arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
-  margin-bottom: 0; }
+arb-markdown, [arb-markdown], .preview-area {
+  text-align: justify; }
+  arb-markdown p, [arb-markdown] p, .preview-area p {
+    margin-top: 0;
+    overflow-wrap: break-word; }
+    arb-markdown p:empty, [arb-markdown] p:empty, .preview-area p:empty {
+      margin: 0; }
+  arb-markdown img, [arb-markdown] img, .preview-area img {
+    max-width: 100%; }
+  arb-markdown ul, arb-markdown ol, [arb-markdown] ul, [arb-markdown] ol, .preview-area ul, .preview-area ol {
+    padding-left: 1.5em; }
+  arb-markdown li p, [arb-markdown] li p, .preview-area li p {
+    overflow: inherit; }
+  arb-markdown > :last-child, [arb-markdown] > :last-child, .preview-area > :last-child {
+    margin-bottom: 0; }
 
 .preview-area {
   padding: 0 15px 40vh;
@@ -663,16 +668,20 @@ a:not(.md-button) {
         color: #D32F2F; }
       a:not(.md-button)[page-id].red-link:active, a:not(.md-button)[user-id].red-link:active {
         color: #B71C1C; }
-    a:not(.md-button)[page-id].red-todo-text, a:not(.md-button)[user-id].red-todo-text {
-      background-color: #ffdddd; }
 
 .support-visited-links a:not(.md-button)[page-id]:visited, .support-visited-links a:not(.md-button)[user-id]:visited {
   color: #004D40; }
 
+@media (min-width: 960px) {
+  .top-toolbar {
+    margin-bottom: 15px; } }
+arb-index {
+  margin-top: -20px; }
+
 #index-header {
   box-shadow: 0 1px 3px -3px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
   position: relative;
-  top: -10px;
+  top: 0px;
   background: #004D40;
   color: white !important;
   padding: 5px 10px 10px;
@@ -1118,8 +1127,13 @@ arb-log-row, [arb-log-row] {
   padding-left: 10px;
   margin-left: 16px; }
 
+[arb-hidden-text] {
+  margin-top: -10px;
+  margin-bottom: 15px; }
+
 .hidden-text {
-  border: gray 1px dashed; }
+  background-color: whitesmoke;
+  padding: 15px 25px 5px; }
 
 .markdown-note {
   display: inline-block;
@@ -1187,6 +1201,6 @@ md-list-item .md-button.icon-last {
   margin: 1em 0; }
 
 .query-info-button-div {
-  min-width: 200px; }
+  min-width: 200px !important; }
 
 /*# sourceMappingURL=arbital.css.map */
