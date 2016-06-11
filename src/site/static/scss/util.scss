@@ -1,6 +1,10 @@
 // Random helpful classes we have for Arbital
 @import "constants.scss";
 
+.display-none {
+	display: none;
+}
+
 .submit-form-error {
 	padding: 10px;
 }

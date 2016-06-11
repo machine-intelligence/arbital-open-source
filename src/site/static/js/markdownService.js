@@ -167,12 +167,14 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			return text.replace(hiddenBlockRegexp, function(whole, bars, buttonText, text) {
 				var blockText = text + '\n\n';
 				var blockText = runBlockGamut(blockText);
-				if (isEditor) {
-					var html = '\n\n<div class=\'hidden-text\'>' + blockText + '\n\n</div>';
+				var divClass = 'hidden-text md-whiteframe-1dp';
+				if (!isEditor) {
+					divClass += ' display-none';
 				} else {
-					var html = '<div arb-hidden-text button-text=\'' + buttonText + '\'>' + blockText  + '\n\n</div>';
+					buttonText = '';
 				}
-				return html;
+				var html = '\n\n<div class=\'' + divClass + '\'>' + blockText + '\n\n</div>';
+				return '<div arb-hidden-text button-text=\'' + buttonText + '\'>' + html + '</div>';
 			});
 		});
 
