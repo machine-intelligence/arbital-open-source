@@ -52,6 +52,8 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 					case "deleteRequiredBy":
 					case "deleteSubject":
 					case "deleteTeacher":
+
+					case "answerChange":
 						return "relationship";
 
 					case "newAlias":
@@ -61,6 +63,7 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 					case "lensOrderChanged":
 					case "turnOnVote":
 					case "turnOffVote":
+					case "searchStringChange":
 						return "settings";
 				}
 				return false;

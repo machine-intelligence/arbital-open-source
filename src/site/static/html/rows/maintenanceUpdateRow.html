@@ -14,25 +14,6 @@
 			<!-- Change log type is associated to the corresponding changeLog value and
 				changeLog's type determines the contents of the update -->
 			<span ng-switch-when="changeLog" ng-switch="::update.changeLog.type" flex>
-				<span ng-switch-when="searchStringChange">
-					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
-					<span ng-if="::update.changeLog.newSettingsValue">
-						search string added: <span ng-bind="::update.changeLog.newSettingsValue"></span>
-					</span>
-					<span ng-if="::update.changeLog.oldSettingsValue">
-						search string removed: <span ng-bind="::update.changeLog.oldSettingsValue"></span>
-					</span>
-				</span>
-
-				<span ng-switch-when="answerChange">
-					<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
-					<span ng-if="::update.changeLog.newSettingsValue">
-						answer added: <arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					</span>
-					<span ng-if="::update.changeLog.oldSettingsValue">
-						answer removed: <arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					</span>
-				</span>
 
 				<!-- Edits and snapshots -->
 

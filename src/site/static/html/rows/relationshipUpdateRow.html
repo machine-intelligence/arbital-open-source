@@ -20,6 +20,11 @@
 		<span ng-switch-when="deleteRequiredBy">set</span>
 		<span ng-switch-when="deleteSubject">removed</span>
 		<span ng-switch-when="deleteTeacher">set</span>
+
+		<span ng-switch-when="answerChange">
+			<span ng-if="::update.changeLog.newSettingsValue">added</span>
+			<span ng-if="::update.changeLog.oldSettingsValue">removed</span>
+		</span>
 	</span>
 	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 	<span ng-switch="::update.changeLog.type">
@@ -41,6 +46,11 @@
 		<span ng-switch-when="deleteRequiredBy">as no longer requiring</span>
 		<span ng-switch-when="deleteSubject">from the list of subjects taught by</span>
 		<span ng-switch-when="deleteTeacher">as no longer a teacher of</span>
+
+		<span ng-switch-when="answerChange">as an answer for
+			<span ng-if="::update.changeLog.newSettingsValue">to</span>
+			<span ng-if="::update.changeLog.oldSettingsValue">for</span>
+		</span>
 	</span>
 	<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 
