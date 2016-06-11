@@ -31,6 +31,31 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 				// Remove this update from the list
 				allRows.splice(index, 1);
 			};
+
+			$scope.isRelationshipChangeLogType = function(changeLogType) {
+				switch (changeLogType) {
+					case "newParent":
+					case "newChild":
+					case "newLens":
+					case "newTag":
+					case "newUsedAsTag":
+					case "newRequirement":
+					case "newRequiredBy":
+					case "newSubject":
+					case "newTeacher":
+
+					case "deleteParent":
+					case "deleteChild":
+					case "deleteTag":
+					case "deleteUsedAsTag":
+					case "deleteRequirement":
+					case "deleteRequiredBy":
+					case "deleteSubject":
+					case "deleteTeacher":
+						return true;
+				}
+				return false;
+			};
 		},
 	};
 });
@@ -79,6 +104,7 @@ app.directive('arbAnsweredMarkUpdateRow', getUpdateRowDirectiveFunc('static/html
 app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/pageEditUpdateRow.html'));
 app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/questionMergedUpdateRow.html'));
 app.directive('arbQuestionMergedReverseUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/questionMergedReverseUpdateRow.html'));
+app.directive('arbRelationshipUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/relationshipUpdateRow.html'));
 
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
