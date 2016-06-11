@@ -54,26 +54,29 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		p.Permissions.Edit.Reason = "You don't have group permission to edit this page"
 		return
 	}
+
+	// The page creator can always edit the page
+	if p.PageCreatorId == u.Id {
+		p.Permissions.Edit.Has = true
+		return
+	}
+
 	// If a page hasn't been published, only the creator can edit it
 	if !p.WasPublished {
-		p.Permissions.Edit.Has = p.PageCreatorId == u.Id
-		if !p.Permissions.Edit.Has {
-			p.Permissions.Edit.Reason = "Can't edit an unpublished page you didn't create"
-		}
+		p.Permissions.Edit.Has = false
+		p.Permissions.Edit.Reason = "Can't edit an unpublished page you didn't create"
 		return
 	}
 	// If it's a comment, only the creator can edit it
 	if p.Type == CommentPageType {
-		p.Permissions.Edit.Has = p.PageCreatorId == u.Id
-		if !p.Permissions.Edit.Has {
-			p.Permissions.Edit.Reason = "Can't edit a comment you didn't create"
-		}
+		p.Permissions.Edit.Has = false
+		p.Permissions.Edit.Reason = "Can't edit a comment you didn't create"
 		return
 	}
 	// If the page is part of the general domain, only the creator and domain members
 	// can edit it.
 	if len(p.DomainIds) <= 0 {
-		p.Permissions.Edit.Has = p.PageCreatorId == u.Id || u.IsDomainMember
+		p.Permissions.Edit.Has = u.IsDomainMember
 		if !p.Permissions.Edit.Has {
 			p.Permissions.Edit.Reason = "Only the creator and domain members can edit an unlisted page"
 		}
