@@ -1,0 +1,8 @@
+<arb-update-row update="::update" on-dismiss="::onDismiss">
+
+	<div ng-switch="::markType">
+		<div ng-switch-when="query" arb-query-info mark-id="{{::update.markId}}"></div>
+		<div ng-switch-default arb-mark-info mark-id="{{::update.markId}}"></div>
+	</div>
+
+</arb-update-row>
