@@ -65,6 +65,10 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 					case "turnOffVote":
 					case "searchStringChange":
 						return "settings";
+
+					case "deletePage":
+					case "undeletePage":
+						return "deletedPage";
 				}
 				return false;
 			};
@@ -103,6 +107,7 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 };
 
 app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/atMentionUpdateRow.html'));
+app.directive('arbDeletedPageUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/deletedPageUpdateRow.html'));
 app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageEditUpdateRow.html'));
 app.directive('arbPageToDomainUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageToDomainUpdateRow.html'));
 app.directive('arbRelationshipUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/relationshipUpdateRow.html'));
@@ -130,23 +135,6 @@ app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc('static/ht
 		}
 	})
 );
-
-// arb-maintenance-update-row is the directive for showing a maintenance update
-app.directive('arbMaintenanceUpdateRow', function(arb) {
-	return {
-		templateUrl: 'static/html/rows/updates/maintenanceUpdateRow.html',
-		scope: {
-			modeRow: '=',
-			onDismiss: '&',
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.update = $scope.modeRow.update;
-			$scope.showUserLink = $scope.update.subscribedToId != $scope.update.byUserId;
-			$scope.showDismissIcon = true;
-		},
-	};
-});
 
 // arb-bell-updates-page is for displaying the entire /notifications page
 app.directive('arbBellUpdatesPage', function($http, arb) {
