@@ -58,7 +58,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		var classText = 'intrasite-link';
 		var page = stateService.pageMap[trimmedAlias];
 		if (page) {
-			var url = urlService.getPageUrl(page.pageId, {includeHost: true});
+			var url = urlService.getPageUrl(page.pageId);
 			if (!text) {
 				text = getCasedText(page.title, firstAliasChar);
 			}
@@ -70,7 +70,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		}
 		fetchLink(trimmedAlias, editor);
 		classText += ' red-link';
-		var url = urlService.getEditPageUrl(trimmedAlias, {includeHost: true});
+		var url = urlService.getEditPageUrl(trimmedAlias);
 		if (!text) {
 			text = getCasedText(trimmedAlias, firstAliasChar).replace(/_/g, ' ');
 		}
@@ -368,7 +368,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		// Process [vote:alias] spans.
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(voteEmbedRegexp, function(whole, prefix, alias) {
-				return prefix + '[Embedded ' + alias + ' vote. ](' + urlService.getPageUrl(alias, {includeHost: true}) + '/?embedVote=1)';
+				return prefix + '[Embedded ' + alias + ' vote. ](' + urlService.getPageUrl(alias) + '/?embedVote=1)';
 			});
 		});
 
@@ -377,7 +377,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				'\\[ ([^\\]]+?)\\]' + noParen, 'g');
 		converter.hooks.chain('preSpanGamut', function(text) {
 			return text.replace(spaceTextRegexp, function(whole, prefix, text) {
-				var url = urlService.getNewPageUrl({includeHost: true});
+				var url = urlService.getNewPageUrl();
 				return prefix + '<a href="' + url + '" class="intrasite-link red-link" page-id="">' +
 					text + '</a>';
 			});
