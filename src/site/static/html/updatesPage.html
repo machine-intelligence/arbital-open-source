@@ -35,13 +35,12 @@
 							go-to-page-id="{{::update.goToPageId}}"
 							is-related-page-alive="::update.isGoToPageAlive"
 							created-at="{{::update.createdAt}}"
-							repeated="::update.repeated"
 							show-dismiss-icon="::true"
 							on-dismiss="dismissUpdate(update, group.updates, index)"
 						></div>
 
 						<div ng-if="::update.type == 'pageEdit'">
-							<arb-edit-diff change-log="::update.changeLog" num-edits="::update.repeated"></arb-edit-diff>
+							<arb-edit-diff change-log="::update.changeLog"></arb-edit-diff>
 						 </div>
 					</div>
 					<md-divider ng-if="::!$last"></md-divider>

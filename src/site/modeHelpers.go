@@ -529,7 +529,6 @@ func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
 		UserId:          row.UserId,
 		ByUserId:        row.ByUserId,
 		Type:            row.Type,
-		Repeated:        1,
 		SubscribedToId:  row.SubscribedToId,
 		GoToPageId:      row.GoToPageId,
 		IsGoToPageAlive: row.IsGoToPageAlive,

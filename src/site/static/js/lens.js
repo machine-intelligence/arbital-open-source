@@ -26,29 +26,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.mastery = {has: false};
 			}
 
-			// Process click on showing the page diff button.
-			$scope.showingDiff = false;
-			$scope.diffHtml = undefined;
-			$scope.toggleDiff = function() {
-				$scope.showingDiff = !$scope.showingDiff;
-				if (!$scope.showingDiff) return;
-				if ($scope.diffHtml) return;
-
-				var earliest = $scope.page.lastVisit;
-				if (moment($scope.page.editCreatedAt).isBefore(earliest)) {
-					earliest = $scope.page.editCreatedAt;
-				}
-				// Load the edit from the server.
-				arb.pageService.loadEdit({
-					pageAlias: $scope.page.pageId,
-					createdAtLimit: earliest,
-					skipProcessDataStep: true,
-					success: function(data) {
-						$scope.diffHtml = arb.diffService.getDiffHtml($scope.page, data.edits[$scope.page.pageId]);
-					},
-				});
-			};
-
 			// Process click on "Subscribe as maintainer"
 			$scope.toggleMaintainerSub = function() {
 				$scope.page.isSubscribedAsMaintainer = !$scope.page.isSubscribedAsMaintainer;

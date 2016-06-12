@@ -728,7 +728,6 @@ app.directive('arbLogRow', function(arb) {
 			isRelatedPageAlive: '=',
 			markId: '@',
 			createdAt: '@',
-			repeated: '=',
 			showUserLink: '=',
 			showDismissIcon: '=',
 			onDismiss: '&',
