@@ -153,15 +153,6 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 				}
 			}
 
-			// Check if we should set the domain
-			if (page.seeGroupId != stateService.privateGroupId) {
-				if (page.seeGroupId !== '') {
-					url = that.getDomainUrl(stateService.pageMap[page.seeGroupId].alias) + url;
-				} else {
-					url = that.getDomainUrl() + url;
-				}
-			}
-
 			// Add markId argument
 			if (options.markId) {
 				url += url.indexOf('?') < 0 ? '?' : '&';
@@ -177,7 +168,11 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		}
 		var urlAlreadyHasDomain = url.length > 4 && url.substring(0,4) == 'http';
 		if (!urlAlreadyHasDomain && !options.noHost) {
-			url = that.getDomainUrl() + url;
+			if (page && page.seeGroupId !== '') {
+				url = that.getDomainUrl(stateService.pageMap[page.seeGroupId].alias) + url;
+			} else {
+				url = that.getDomainUrl() + url;
+			}
 		}
 		return url;
 	};
