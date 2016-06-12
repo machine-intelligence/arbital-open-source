@@ -49,10 +49,10 @@ app.directive('arbCommentModeRow', function($location, arb) {
 	};
 });
 
-// arb-comment-activity is the directive for a comment activity control (to be used in an activity row)
-app.directive('arbCommentActivity', function($location, arb) {
+// arb-comment-row-internal is the directive for the guts of a comment row
+app.directive('arbCommentRowInternal', function($location, arb) {
 	return {
-		templateUrl: 'static/html/rows/commentActivity.html',
+		templateUrl: 'static/html/rows/commentRowInternal.html',
 		scope: {
 			comment: '=',
 		},

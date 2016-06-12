@@ -75,7 +75,7 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 // arb-update-row is the directive for showing an update
 app.directive('arbUpdateRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/updateRow.html',
+		templateUrl: 'static/html/rows/updates/updateRow.html',
 		transclude: true,
 		scope: {
 			update: '=',
@@ -102,27 +102,39 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 	};
 };
 
-app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/commentUpdateRow.html',
+app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/atMentionUpdateRow.html'));
+app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageEditUpdateRow.html'));
+app.directive('arbPageToDomainUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageToDomainUpdateRow.html'));
+app.directive('arbRelationshipUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/relationshipUpdateRow.html'));
+app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/resolvedThreadUpdateRow.html'));
+app.directive('arbSettingsUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/settingsUpdateRow.html'));
+app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/commentUpdateRow.html',
 	function($scope) {
 		$scope.comment = $scope.arb.stateService.pageMap[$scope.update.goToPageId];
 	})
 );
-app.directive('arbPageToDomainUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/pageToDomainUpdateRow.html'));
-app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/atMentionUpdateRow.html'));
-app.directive('arbNewMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/newMarkUpdateRow.html'));
-app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/resolvedThreadUpdateRow.html'));
-app.directive('arbResolvedMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/resolvedMarkUpdateRow.html'));
-app.directive('arbAnsweredMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/answeredMarkUpdateRow.html'));
-app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/pageEditUpdateRow.html'));
-app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/questionMergedUpdateRow.html'));
-app.directive('arbQuestionMergedReverseUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/questionMergedReverseUpdateRow.html'));
-app.directive('arbRelationshipUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/relationshipUpdateRow.html'));
-app.directive('arbSettingsUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/settingsUpdateRow.html'));
+app.directive('arbMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/markUpdateRow.html',
+	function($scope) {
+		$scope.markType = $scope.arb.markService.markMap[$scope.update.markId].type;
+	})
+);
+app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/questionMergedUpdateRow.html',
+	function($scope) {
+		switch ($scope.update.type) {
+			case 'questionMerged':
+				$scope.acquireeId = update.subscribedToId;
+				$scope.acquirerId = update.goToPageId;
+			case 'questionMergedReverse':
+				$scope.acquireeId = update.goToPageId;
+				$scope.acquirerId = update.subscribedToId;
+		}
+	})
+);
 
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/maintenanceUpdateRow.html',
+		templateUrl: 'static/html/rows/updates/maintenanceUpdateRow.html',
 		scope: {
 			modeRow: '=',
 			onDismiss: '&',

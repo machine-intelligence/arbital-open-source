@@ -40,16 +40,16 @@
 					arb-at-mention-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="newMark"
-					arb-new-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+					arb-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="answeredMark"
+					arb-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="resolvedMark"
+					arb-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="resolvedThread"
 					arb-resolved-thread-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
-
-				<div ng-switch-when="resolvedMark"
-					arb-resolved-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
-
-				<div ng-switch-when="answeredMark"
-					arb-answered-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
 
 				<!-- achievements -->
@@ -68,7 +68,7 @@
 					arb-question-merged-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="questionMergedReverse"
-					arb-question-merged-reverse-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+					arb-question-merged-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="changeLog" ng-switch="::getChangeLogCategory(modeRow.update.changeLog.type)">
 					<div ng-switch-when="relationship"

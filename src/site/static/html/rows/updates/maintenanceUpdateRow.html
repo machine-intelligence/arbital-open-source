@@ -27,21 +27,6 @@
 					republished
 				</span>
 
-				<span ng-switch-when="newEdit">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					new edit #{{::update.changeLog.edit}}
-				</span>
-
-				<span ng-switch-when="revertEdit">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					reverted to edit #{{::update.changeLog.edit}}
-				</span>
-
-				<span ng-switch-when="newSnapshot">
-					<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-					new snapshot (edit #{{::update.changeLog.edit}})
-				</span>
-
 			</span>
 
 			<!-- Unknown -->
