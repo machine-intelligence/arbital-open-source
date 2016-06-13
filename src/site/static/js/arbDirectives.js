@@ -730,6 +730,7 @@ app.directive('arbLogRow', function(arb) {
 			isRelatedPageAlive: '=',
 			markId: '@',
 			createdAt: '@',
+			repeated: '=',
 			showUserLink: '=',
 			showDismissIcon: '=',
 			onDismiss: '&',
@@ -747,27 +748,10 @@ app.directive('arbLensToolbar', function(arb) {
 		scope: {
 			pageId: '@'
 		},
-		controller: function($scope, $element) {
+		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
-
-			// If we want it to appear in the page
-			// - remove the floater class
-			// If we want it to float
-			// - apply the floater class
-			// If the user is scrolling down
-			// - animate away
-			// If the user is scrolling up
-			// animate back
 		},
 	};
-});
-
-app.directive('mimicWidth', function(arb) {
-	return {
-		controller: function($scope, $element) {
-
-		},
-	}
 });
 

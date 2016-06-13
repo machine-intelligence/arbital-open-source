@@ -73,31 +73,34 @@
 
 			<!-- For each lens -->
 			<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
-				<!-- Lens body -->
-				<div class="md-whiteframe-2dp">
-					<div class="page-lens-body">
-						<div ng-style="{'min-height': 500}"
-								layout="column"
-								layout-align="center center"
-								ng-if="!isLoaded(lensId)">
-							<md-progress-circular md-mode="indeterminate"></md-progress-circular>
-						</div>
-						<arb-lens class="reveal-after-render"
-								page-id="{{::lensId}}"
-								lens-parent-id="{{::page.pageId}}"
-								is-simple-embed="::isSimpleEmbed"
-								ng-if="isLoaded(lensId)"></arb-lens>
-					</div>
-				</div>
-
 				<!-- Action bar -->
-				<arb-lens-toolbar page-id="{{::lensId}}"
-						ng-if="::!isSimpleEmbed"
-						class="lens-menu-floating md-whiteframe-6dp capped-body-width"
-						arb-mimic-width="lens-action-bar"></arb-lens-toolbar>
-				<arb-lens-toolbar id="lens-action-bar"
-						page-id="{{::lensId}}"
-						ng-if="::!isSimpleEmbed"></arb-lens-toolbar>
+				<div class="md-whiteframe-2dp">
+					<arb-lens-toolbar
+							page-id="{{::lensId}}"
+							ng-if="::!isSimpleEmbed"></arb-lens-toolbar>
+
+					<!-- Lens body -->
+					<div class="md-whiteframe-3dp">
+						<div class="page-lens-body">
+							<div ng-style="{'min-height': 500}"
+									layout="column"
+									layout-align="center center"
+									ng-if="!isLoaded(lensId)">
+								<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+							</div>
+							<arb-lens class="reveal-after-render"
+									page-id="{{::lensId}}"
+									lens-parent-id="{{::page.pageId}}"
+									is-simple-embed="::isSimpleEmbed"
+									ng-if="isLoaded(lensId)"></arb-lens>
+						</div>
+					</div>
+
+					<!-- Action bar -->
+					<arb-lens-toolbar
+							page-id="{{::lensId}}"
+							ng-if="::!isSimpleEmbed"></arb-lens-toolbar>
+				</div>
 			</div>
 
 		</div>

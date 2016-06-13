@@ -587,6 +587,8 @@ arb-requisite-button, [arb-requisite-button] {
 .lens-menu-floating {
     position: fixed;
     bottom: 0;
+    background: white;
+    width: 1100px;
     left: 50%;
     transform: translateX(-50%);
 }
@@ -600,7 +602,7 @@ md-toast {
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {
-		padding: 10px $lens-padding 20px;
+		padding: 20px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 20px;
 	}

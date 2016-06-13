@@ -748,6 +748,8 @@ arb-requisite-button .md-button, [arb-requisite-button] .md-button {
 .lens-menu-floating {
   position: fixed;
   bottom: 0;
+  background: white;
+  width: 1100px;
   left: 50%;
   transform: translateX(-50%); }
 
@@ -756,7 +758,7 @@ md-toast md-icon {
 
 @media (max-width: 599px) {
   .lens-text-container {
-    padding: 10px 5px 20px;
+    padding: 20px 5px 20px;
     font-size: 16px;
     line-height: 20px; }
 
