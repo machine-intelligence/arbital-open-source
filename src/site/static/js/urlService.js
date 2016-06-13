@@ -66,9 +66,8 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		subdomain = subdomain.toLowerCase();
 		if (isLive()) {
 			return 'https://' + subdomain + this.getTopLevelDomain();
-		} else {
-			return 'http://' + subdomain + this.getTopLevelDomain();
 		}
+		return 'http://' + subdomain + this.getTopLevelDomain();
 	};
 
 	this.getCurrentDomainUrl = function() {
@@ -109,8 +108,8 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	// Returns the url for the given page.
 	// options {
 	//	 permalink: if true, we'll include page's id, otherwise, we'll use alias
-	//	 includeHost: if true, include "https://" + host in the url
 	//	 useEditMap: if true, use edit map to retrieve info for this page
+	//	 noHost: if true, don't add the host part of the URL
 	//	 markId: if set, select the given mark on the page
 	//	 discussionHash: if true, jump to the discussion part of the page
 	//	 answersHash: if true, jump to the answers part of the page
@@ -149,17 +148,8 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 			} else if (page.isComment()) {
 				var parent = page.getCommentParentPage();
 				if (parent) {
-					url = that.getPageUrl(parent.pageId, {permalink: options.permalink});
+					url = that.getPageUrl(parent.pageId, {permalink: options.permalink, noHost: true});
 					url += '#subpage-' + pageId;
-				}
-			}
-
-			// Check if we should set the domain
-			if (page.seeGroupId != stateService.privateGroupId) {
-				if (page.seeGroupId !== '') {
-					url = that.getDomainUrl(stateService.pageMap[page.seeGroupId].alias) + url;
-				} else {
-					url = that.getDomainUrl() + url;
 				}
 			}
 
@@ -177,15 +167,18 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 			}
 		}
 		var urlAlreadyHasDomain = url.length > 4 && url.substring(0,4) == 'http';
-		if (options.includeHost && !urlAlreadyHasDomain) {
-			url = that.getDomainUrl() + url;
+		if (!urlAlreadyHasDomain && !options.noHost) {
+			if (page && page.seeGroupId !== '') {
+				url = that.getDomainUrl(stateService.pageMap[page.seeGroupId].alias) + url;
+			} else {
+				url = that.getDomainUrl() + url;
+			}
 		}
 		return url;
 	};
 
 	// Get url to edit the given page.
 	// options {
-	//	 includeHost: if true, include "https://" + host in the url
 	//	 markId: if set, resolve the given mark when publishing the page and show it
 	//	 parentId: if set, this will provide a quick option for adding the parent in editor
 	// }
@@ -206,15 +199,12 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 			url += url.indexOf('?') < 0 ? '?' : '&';
 			url += 'parentId=' + options.parentId;
 		}
-		if (options.includeHost) {
-			url = that.getDomainUrl() + url;
-		}
+		url = that.getDomainUrl() + url;
 		return url;
 	};
 
 	// Get url to create a new page.
 	// options {
-	//	 includeHost: if true, include "https://" + host in the url
 	//	 parentId: if set, there will be a quick option to add this page as a parent
 	// }
 	this.getNewPageUrl = function(options) {
@@ -223,9 +213,7 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 		if (options.parentId) {
 			url += '?parentId=' + options.parentId;
 		}
-		if (options.includeHost) {
-			url = that.getDomainUrl() + url;
-		}
+		url = that.getDomainUrl() + url;
 		return url;
 	};
 });

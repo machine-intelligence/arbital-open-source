@@ -15,7 +15,7 @@ app.service('diffService', function() {
 		var thisText = that.getTextToDiff(thisEdit);
 		var thatText = that.getTextToDiff(thatEdit);
 		var dmp = new diff_match_patch(); // jscs:ignore requireCapitalizedConstructors
-		var diffs = dmp.diff_main(thatText, thisText);
+		var diffs = dmp.diff_main(thisText, thatText);
 		dmp.diff_cleanupSemantic(diffs);
 
 		if (!opt_expandDiffs) {

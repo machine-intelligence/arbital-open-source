@@ -6,7 +6,6 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 		templateUrl: 'static/html/editDiff.html',
 		scope: {
 			changeLog: '=',
-			numEdits: '=', // Optional number of edits to group together in this diff. Defaults to 1.
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -28,17 +27,16 @@ app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 						var thisEdit = data.edits[pageId];
 
 						// Load prevEdit.
-						var prevEditNum = $scope.numEdits != 1 ? (thisEditNum - $scope.numEdits) : thisEdit.prevEdit;
 						arb.pageService.loadEdit({
 							pageAlias: pageId,
-							specificEdit: prevEditNum,
+							specificEdit: thisEdit.prevEdit,
 							skipProcessDataStep: true,
 							convertPageIdsToAliases: true,
 							success: function(data) {
 								var prevEdit = data.edits[pageId];
 
 								// Make the diff
-								$scope.diffHtml = arb.diffService.getDiffHtml(thisEdit, prevEdit);
+								$scope.diffHtml = arb.diffService.getDiffHtml(prevEdit, thisEdit);
 							},
 						});
 					},

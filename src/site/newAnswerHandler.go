@@ -96,7 +96,7 @@ func newAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Insert updates
 		var task tasks.NewUpdateTask
 		task.UserId = u.Id
-		task.GoToPageId = data.QuestionId
+		task.GoToPageId = data.AnswerPageId
 		task.SubscribedToId = data.QuestionId
 		task.UpdateType = core.ChangeLogUpdateType
 		task.GroupByPageId = data.QuestionId

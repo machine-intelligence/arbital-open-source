@@ -1028,6 +1028,9 @@
 					if (keyCode == 186 || keyCode == 59) { // ;
 						doClick(buttons.intralink);
 						return;
+					} else if (keyCode == 222) { // '
+						doClick(buttons.link);
+						return;
 					}
 					switch (keyCodeStr) {
 					case 'b':
@@ -1035,9 +1038,6 @@
 						break;
 					case 'i':
 						doClick(buttons.italic);
-						break;
-					case 'l':
-						doClick(buttons.link);
 						break;
 					case 'p':
 						doClick(buttons.newPage);
@@ -1589,7 +1589,7 @@
 					];
 				linkEnteredCallback('[multiple-choice(questionAlias): ', 'Multiple choice question?\n', suffix.join('\n') + '\n]\n\n');
 			} else {
-				linkEnteredCallback('[', that.getString('linkdescription'), '](https://arbital.com)');
+				linkEnteredCallback('[' + that.getString('linkdescription') + '](', 'https://arbital.com', ')');
 			}
 			return true;
 		}

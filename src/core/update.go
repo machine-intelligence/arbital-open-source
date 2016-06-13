@@ -70,7 +70,6 @@ type UpdateEntry struct {
 	UserId          string `json:"userId"`
 	ByUserId        string `json:"byUserId"`
 	Type            string `json:"type"`
-	Repeated        int    `json:"repeated"`
 	SubscribedToId  string `json:"subscribedToId"`
 	GoToPageId      string `json:"goToPageId"`
 	IsGoToPageAlive bool   `json:"isGoToPageAlive"`
@@ -231,17 +230,6 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 		}
 
 		createNewEntry := true
-		if row.Type == PageEditUpdateType {
-			// Check if this kind of update already exists
-			for _, entry := range group.Updates {
-				if entry.Type == row.Type && entry.SubscribedToId == row.SubscribedToId &&
-					entry.ByUserId == row.ByUserId {
-					createNewEntry = false
-					entry.Repeated++
-					break
-				}
-			}
-		}
 		if _, ok := pageMap[row.GoToPageId]; !ok {
 			createNewEntry = false
 		}
@@ -252,7 +240,6 @@ func ConvertUpdateRowsToGroups(rows []*UpdateRow, pageMap map[string]*Page) []*U
 				UserId:          row.UserId,
 				ByUserId:        row.ByUserId,
 				Type:            row.Type,
-				Repeated:        1,
 				SubscribedToId:  row.SubscribedToId,
 				GoToPageId:      row.GoToPageId,
 				IsGoToPageAlive: row.IsGoToPageAlive,

@@ -74,7 +74,7 @@ func deleteAnswerHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		// Insert updates
 		var task tasks.NewUpdateTask
 		task.UserId = u.Id
-		task.GoToPageId = answer.QuestionId
+		task.GoToPageId = answer.AnswerPageId
 		task.SubscribedToId = answer.QuestionId
 		task.UpdateType = core.ChangeLogUpdateType
 		task.GroupByPageId = answer.QuestionId
