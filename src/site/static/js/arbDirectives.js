@@ -611,13 +611,15 @@ app.directive('arbPageRow', function(arb) {
 
 app.directive('arbTag', function(arb) {
 	return {
-		template: '<span class="chip">{{tagName}}</span>',
+		template: '<a ng-href="{{url}}" class="chip">{{tagName}}</a>',
 		replace: true,
 		scope: {
 			tagId: '@',
 		},
 		controller: function($scope) {
-			$scope.tagName = arb.stateService.getPage($scope.tagId).title;
+			var tag = arb.stateService.getPage($scope.tagId);
+			$scope.tagName = tag.title;
+			$scope.url = arb.urlService.getPageUrl(tag.pageId)
 		},
 	};
 });
@@ -739,3 +741,34 @@ app.directive('arbLogRow', function(arb) {
 		},
 	};
 });
+
+app.directive('arbLensToolbar', function(arb) {
+	return {
+		templateUrl: 'static/html/lensToolbar.html',
+		scope: {
+			pageId: '@'
+		},
+		controller: function($scope, $element) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.pageId];
+
+			// If we want it to appear in the page
+			// - remove the floater class
+			// If we want it to float
+			// - apply the floater class
+			// If the user is scrolling down
+			// - animate away
+			// If the user is scrolling up
+			// animate back
+		},
+	};
+});
+
+app.directive('mimicWidth', function(arb) {
+	return {
+		controller: function($scope, $element) {
+
+		},
+	}
+});
+

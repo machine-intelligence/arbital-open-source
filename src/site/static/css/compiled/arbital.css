@@ -533,8 +533,8 @@ arb-markdown, [arb-markdown], .preview-area {
 
 .chip {
   border: 1px solid #ccc;
-  border-radius: 8px;
-  color: #888;
+  border-radius: 20px;
+  color: #888 !important;
   padding: 2px 6px; }
 
 .discussion-container {
@@ -745,8 +745,11 @@ arb-requisite-button .md-button, [arb-requisite-button] .md-button {
   .mastery-list-vertical > * {
     margin: 5px 0; }
 
-.lens-menu {
-  padding: 5px 0; }
+.lens-menu-floating {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%); }
 
 md-toast md-icon {
   color: white; }

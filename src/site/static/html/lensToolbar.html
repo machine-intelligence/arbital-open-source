@@ -1,28 +1,42 @@
 <!-- Lens menu -->
-<div ng-if="true"
-		class="lens-menu"
+<div ng-class="{
+				'md-whiteframe-6dp': floating
+			}"
 		layout="row"
-		layout-align-xs="start center"
-		ng-if="::!isSimpleEmbed">
-	<!-- Like -->
-	<div layout="column" layout-align="start center" flex="25">
-		<arb-likes class="no-right-margin"
-				likeable-type="page"
-				likeable-id="{{::page.pageId}}"
-				is-stretched="true"
-				is-button="true"></arb-likes>
-		<span class="md-caption" ng-bind="::('Seen by ' + page.viewCount)" ng-if="::!isTinyScreen"></span>
+		layout-align="start center"
+		layout-padding>
+
+	<!-- Tags -->
+	<span ng-if="page.taggedAsIds.length > 0">
+		<arb-tag ng-repeat="tag in page.taggedAsIds" tag-id="{{tag}}"></arb-tag>
+	</span>
+
+	<!-- Parents -->
+	<div class="page-list-span"
+			ng-if="page.parentIds.length > 0">
+		<span>Parents:</span>
+		<span ng-repeat="(index, parentId) in page.parentIds">
+			<span class="comma" ng-if="index > 0">,</span>
+			<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+		</span>
 	</div>
 
+	<div flex></div>
+
+	<!-- Like -->
+	<arb-likes class="no-right-margin"
+			likeable-type="page"
+			likeable-id="{{::pageId}}"
+			is-stretched="true"
+			is-button="true"></arb-likes>
+
 	<!-- Subscribe -->
-	<arb-subscribe page-id="{{::page.pageId}}"
-			is-stretched="::!isTinyScreen"
-			show-subscriber-count="::!isTinyScreen"
-			flex="25"></arb-subscribe>
+	<arb-subscribe page-id="{{::pageId}}"
+			is-stretched="::!isTinyScreen"></arb-subscribe>
 
 	<!-- Edit -->
-	<div layout="column" layout-align="start center" flex="25">
-		<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
+	<div layout="column" layout-align="start center">
+		<md-button ng-href="{{::arb.urlService.getEditPageUrl(pageId)}}"
 				ng-class="::{'md-icon-button': isTinyScreen}"
 				arb-user-check="cool">
 			<md-icon>create</md-icon>
@@ -49,8 +63,6 @@
 			<span ng-if="::!isTinyScreen">Link</span>
 		</md-button>
 	</div>
-
-	<div flex></div>
 
 	<!-- Menu with all the other stuff -->
 	<md-menu>
