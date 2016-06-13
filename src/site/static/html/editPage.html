@@ -90,7 +90,7 @@
 						<div class="separator"></div>
 						<md-button class="wmd-link-button{{::page.pageId}}">
 							<md-icon>insert_link</md-icon>
-							<md-tooltip md-delay="500">[hyper](link) | Ctrl+L</md-tooltip>
+							<md-tooltip md-delay="500">[hyper](link) | Ctrl+'</md-tooltip>
 						</md-button>
 						<md-button class="wmd-intralink-button{{::page.pageId}}">
 							<md-icon md-svg-icon="link_variant"></md-icon>
@@ -729,8 +729,6 @@
 
 		<!-- Diff between edits -->
 		<md-content layout-padding flex ng-if="otherDiff">
-			<h2 class="md-display-3" ng-bind="'(#' + otherDiff.edit + ') ' + otherDiff.title"></h2>
-			<h3 class="md-display-1" ng-bind="'Clickbait: ' + otherDiff.clickbait"></h3>
 			<div ng-bind-html="diffHtml"></div>
 		</md-content>
 		<div class="md-primary md-hue-2"

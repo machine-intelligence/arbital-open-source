@@ -77,7 +77,6 @@ console.log('bleh"')
 			$scope.tabsClicked = function($event, lensId) {
 				// Check if there was a CTRL+click on a tab
 				if ($event.ctrlKey) {
-					console.log(arb.urlService.getPageUrl(lensId));
 					window.open(arb.urlService.getPageUrl(lensId, {permalink: true}), '_blank');
 				} else {
 					$scope.tabSelect(lensId);

@@ -491,7 +491,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.diffExpanded = false;
 			// Refresh the diff edit text.
 			$scope.refreshDiff = function() {
-				$scope.diffHtml = arb.diffService.getDiffHtml($scope.otherDiff.text, $scope.page.text, $scope.diffExpanded);
+				$scope.diffHtml = arb.diffService.getDiffHtml($scope.otherDiff, $scope.page, $scope.diffExpanded);
 			};
 			$scope.toggleExpandDiff = function() {
 				$scope.diffExpanded = !$scope.diffExpanded;

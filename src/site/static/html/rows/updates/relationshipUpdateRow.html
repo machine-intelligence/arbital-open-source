@@ -1,6 +1,9 @@
 <arb-update-row update="::update" on-dismiss="::onDismiss" show-like-button="true">
 
+	<!-- a user -->
 	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+
+	<!-- set or unset -->
 	<span ng-switch="::update.changeLog.type">
 		<span ng-switch-when="newParent">added</span>
 		<span ng-switch-when="newChild">added</span>
@@ -20,8 +23,17 @@
 		<span ng-switch-when="deleteRequiredBy">set</span>
 		<span ng-switch-when="deleteSubject">removed</span>
 		<span ng-switch-when="deleteTeacher">set</span>
+
+		<span ng-switch-when="answerChange">
+			<span ng-if="::update.changeLog.newSettingsValue">added</span>
+			<span ng-if="::update.changeLog.oldSettingsValue">removed</span>
+		</span>
 	</span>
+
+	<!-- another page -->
 	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+
+	<!-- as being related to -->
 	<span ng-switch="::update.changeLog.type">
 		<span ng-switch-when="newParent">as a parent of</span>
 		<span ng-switch-when="newChild">as a child of</span>
@@ -41,7 +53,14 @@
 		<span ng-switch-when="deleteRequiredBy">as no longer requiring</span>
 		<span ng-switch-when="deleteSubject">from the list of subjects taught by</span>
 		<span ng-switch-when="deleteTeacher">as no longer a teacher of</span>
+
+		<span ng-switch-when="answerChange">as an answer for
+			<span ng-if="::update.changeLog.newSettingsValue">to</span>
+			<span ng-if="::update.changeLog.oldSettingsValue">for</span>
+		</span>
 	</span>
+
+	<!-- a page this user is subscribed to -->
 	<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
 
 </arb-update-row>
