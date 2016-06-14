@@ -31,6 +31,7 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 };
 
 app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/atMentionUpdateRow.html'));
+app.directive('arbDeletedPageUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/deletedPageUpdateRow.html'));
 app.directive('arbPageToDomainSubmissionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageToDomainSubmissionUpdateRow.html'));
 app.directive('arbPageToDomainAcceptedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageToDomainAcceptedUpdateRow.html'));
 app.directive('arbEditProposalAcceptedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/editProposalAcceptedUpdateRow.html'));

@@ -2,10 +2,9 @@
 
 	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 	marked
-	<span ng-if="::goToPage.pageCreatorId == arb.userService.user.id">your</span>
-	comment,
-	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>,
-	as resolved
+	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+	as resolved.
+
 	<div ng-if="goToPage.isResolved">
 		<md-button ng-click="arb.pageService.resolveThread(update.goToPageId, true)">
 			Reopen

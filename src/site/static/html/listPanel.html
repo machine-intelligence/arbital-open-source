@@ -120,10 +120,14 @@
 							update="::modeRow.update"
 							on-dismiss="dismissRow(modeRows, index)"></div>
 
-					<div ng-switch-default
-							arb-maintenance-update-row
-							mode-row="::modeRow"
+					<div ng-switch-when="deletedPage"
+							arb-deleted-page-update-row
+							update="::modeRow.update"
 							on-dismiss="dismissRow(modeRows, index)"></div>
+
+					<div ng-switch-default class="md-warn">
+						unknown activity type: {{::modeRow.update.changeLog.type}}
+					</div>
 				</div>
 
 

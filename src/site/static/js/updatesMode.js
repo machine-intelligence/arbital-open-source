@@ -66,6 +66,10 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 					case "turnOffVote":
 					case "searchStringChange":
 						return "settings";
+
+					case "deletePage":
+					case "undeletePage":
+						return "deletedPage";
 				}
 				return false;
 			};
