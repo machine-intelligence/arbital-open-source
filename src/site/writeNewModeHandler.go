@@ -11,6 +11,12 @@ import (
 	"zanaduu3/src/pages"
 )
 
+const (
+	// If there is a draft with a given alias that's at most X days old, we won't
+	// show the corresponding red link
+	hideRedLinkIfDraftExistsDays = 3 // days
+)
+
 type writeNewModeData struct {
 	NumPagesToLoad int
 }
@@ -60,7 +66,8 @@ func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
 // Load pages that are linked to but don't exist
 func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*RedLinkRow, error) {
 	redLinks := make([]*RedLinkRow, 0)
-
+	pageInfosTable := core.PageInfosTableWithOptions(returnData.User, &core.PageInfosOptions{Unpublished: true})
+	// NOTE: keep in mind that multiple pages can have the same alias, as long as only one page is published
 	rows := database.NewQuery(`
 		SELECT l.childAlias,SUM(ISNULL(linkedPi.pageId)) AS count
 		FROM `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS mathPi
@@ -71,6 +78,13 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		ON l.parentId=mathPi.pageId
 		LEFT JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS linkedPi
 		ON (l.childAlias=linkedPi.pageId OR l.childAlias=linkedPi.alias)
+		WHERE (
+			/* Make sure there is no recent draft with this alias, since that means
+				it's likely someone is alread working on this page. */
+			SELECT MIN(DATEDIFF(NOW(),unpublishedPi.createdAt))
+			FROM `).AddPart(pageInfosTable).Add(` AS unpublishedPi
+			WHERE unpublishedPi.alias=l.childAlias
+		) > ?`, hideRedLinkIfDraftExistsDays).Add(`
 		GROUP BY l.childAlias
 		ORDER BY count DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
