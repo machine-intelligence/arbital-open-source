@@ -128,9 +128,8 @@
 														as resolved
 														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "pageEdit"}}
-														This page's text was edited
-														{{if eq .Repeated 1}}by <a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>{{end}}
-														{{if gt .Repeated 1}}{{.Repeated}} times{{end}}
+														This page's text was edited by
+														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
 														({{RelativeDateTime .CreatedAt}})
 													{{else if eq .Type "changeLog"}}
 														Page was edited by
@@ -157,13 +156,6 @@
 														Your confusion mark has been answered.
 													{{else if eq .Type "inviteReceived"}}
 														You can now participate in one of the domains.
-													{{else if eq .Type "pageToDomainSubmission"}}
-														<a href="{{GetUserUrl .ByUserId}}" style="text-decoration: none;">{{GetUserName .ByUserId}}</a>
-														wants to add
-														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
-														page to
-														<a href="{{GetPageUrl .SubscribedToId}}" style="text-decoration: none;">{{GetPageTitle .SubscribedToId}}</a>
-														domain.
 													{{else if eq .Type "pageToDomainAccepted"}}
 														Congrats,
 														<a href="{{GetPageUrl .GoToPageId}}" style="text-decoration: none;">{{GetPageTitle .GoToPageId}}</a>
