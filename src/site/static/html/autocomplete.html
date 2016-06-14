@@ -38,6 +38,10 @@
 						<md-tooltip>This is a question page</md-tooltip>
 						help
 					</md-icon>
+					<md-icon class="no-margins" ng-if="result.page.isGroup()">
+						<md-tooltip>This is a user/group page</md-tooltip>
+						person
+					</md-icon>
 					<span>{{result.page.title}}</span>
 					<span ng-if="::arb.userService.user.isAdmin">&nbsp;&lt;{{result.score}}&gt;</span>
 				</div>
