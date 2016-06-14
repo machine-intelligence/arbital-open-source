@@ -306,6 +306,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
+					snapshotText: $scope.page.snapshotText,
 				};
 				if ($scope.page.isQuestion()) {
 					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;
@@ -321,9 +322,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// callback is called with the error (or undefined on success)
 			$scope.savePage = function(isAutosave, isSnapshot, callback, autosaveNotPerformedCallback) {
 				var data = computeAutosaveData();
-				if (isSnapshot) {
-					data.snapshotText = $scope.page.snapshotText;
-				}
 				if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
