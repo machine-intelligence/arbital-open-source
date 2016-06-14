@@ -358,6 +358,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Call the doneFn callback after the page has been fully published.
 			var publishPageDone = function() {
+				if (!$scope.page.permissions.edit.has) {
+					arb.popupService.showToast({text: 'Your proposal has been submitted.'});
+				}
 				$scope.doneFn({result: {
 					pageId: $scope.page.pageId,
 					alias: $scope.page.alias
@@ -370,27 +373,27 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					if (error) {
 						$scope.publishing = false;
 						$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
-					} else {
-						$scope.savePage(false, false, function(error) {
-							$scope.publishing = false;
-							if (error) {
-								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
-							} else if ($location.search().markId) {
-								// Update the mark as resolved
-								arb.markService.resolveMark({
-									markId: $location.search().markId,
-									resolvedPageId: $scope.pageId,
-								}, function success() {
-									arb.popupService.showToast({text: 'You resolved the query mark.'});
-									publishPageDone();
-								}, function error() {
-									publishPageDone();
-								});
-							} else {
-								publishPageDone();
-							}
-						});
+						return;
 					}
+					$scope.savePage(false, false, function(error) {
+						$scope.publishing = false;
+						if (error) {
+							$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
+						} else if ($location.search().markId) {
+							// Update the mark as resolved
+							arb.markService.resolveMark({
+								markId: $location.search().markId,
+								resolvedPageId: $scope.pageId,
+							}, function success() {
+								arb.popupService.showToast({text: 'You resolved the query mark.'});
+								publishPageDone();
+							}, function error() {
+								publishPageDone();
+							});
+						} else {
+							publishPageDone();
+						}
+					});
 				});
 			};
 

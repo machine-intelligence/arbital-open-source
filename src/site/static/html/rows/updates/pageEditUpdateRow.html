@@ -2,7 +2,12 @@
 
 	<div>
 		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-		was edited by
+		<span ng-if="update.changeLog.type !== 'newEditProposal'">
+			was edited by
+		</span>
+		<span ng-if="update.changeLog.type === 'newEditProposal'">
+			has a pending edit proposal from
+		</span>
 		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 	</div>
 

@@ -250,9 +250,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		if oldPage.WasPublished && isNewCurrentEdit {
 			// Clear previous isNewCurrentEdit
-			statement := tx.DB.NewStatement("UPDATE pages SET isCurrentEdit=false WHERE pageId=? AND isCurrentEdit").WithTx(tx)
+			statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
 			if _, err = statement.Exec(data.PageId); err != nil {
-				return sessions.NewError("Couldn't update isCurrentEdit", err)
+				return sessions.NewError("Couldn't update isLiveEdit", err)
 			}
 		}
 
