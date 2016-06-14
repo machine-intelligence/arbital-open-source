@@ -22,6 +22,7 @@ const (
 	ReplyUpdateType                  = "reply"
 	ChangeLogUpdateType              = "changeLog"
 	PageEditUpdateType               = "pageEdit"
+	EditProposalAcceptedUpdateType   = "editProposalAccepted"
 	NewPageByUserUpdateType          = "newPageByUser"
 	PageToDomainSubmissionUpdateType = "pageToDomainSubmission"
 	PageToDomainAcceptedUpdateType   = "pageToDomainAccepted"
@@ -181,7 +182,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		} else {
 			resultData.AddMark(row.MarkId)
 		}
-		if row.ChangeLog.Id != 0 {
+		if row.ChangeLog.Id != "" {
 			changeLogs = append(changeLogs, row.ChangeLog)
 		}
 
@@ -368,6 +369,8 @@ func GetAchievementUpdateTypes() []string {
 		AddedToGroupUpdateType,
 		RemovedFromGroupUpdateType,
 		InviteReceivedUpdateType,
+		PageToDomainAcceptedUpdateType,
+		EditProposalAcceptedUpdateType,
 	}
 }
 
@@ -376,7 +379,6 @@ func GetNotificationUpdateTypes() []string {
 		TopLevelCommentUpdateType,
 		ReplyUpdateType,
 		PageToDomainSubmissionUpdateType,
-		PageToDomainAcceptedUpdateType,
 		AtMentionUpdateType,
 		NewMarkUpdateType,
 		ResolvedThreadUpdateType,

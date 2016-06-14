@@ -1,0 +1,193 @@
+<div layout="row" layout-xs="column" layout-align="start start">
+
+	<div>
+		<arb-likes likeable-type="changeLog"
+			likeable-id="{{::changeLog.id}}"
+			likeable="::changeLog"
+			is-stretched="true"
+			is-button="true"></arb-likes>
+	</div>
+
+	<div ng-switch="changeLog.type" flex>
+
+		<span ng-switch-when="newParent">
+			New parent: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteParent">
+			Removed parent: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newChild">
+			New child: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newLens">
+			New lens: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteChild">
+			Removed child: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newTag">
+			New tag: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteTag">
+			Removed tag: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newUsedAsTag">
+			Used as tag for: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteUsedAsTag">
+			Not a tag for: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newRequirement">
+			New requirement: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteRequirement">
+			Removed requirement: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newRequiredBy">
+			Required for: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteRequiredBy">
+			Not required for: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newSubject">
+			Teaches: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteSubject">
+			Doesn't teach: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="newTeacher">
+			Taught by: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="deleteTeacher">
+			Not taught by: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+		</span>
+
+		<span ng-switch-when="searchStringChange">
+			<span ng-if="::changeLog.newSettingsValue">
+				Search string added: <span ng-bind="::changeLog.newSettingsValue"></span>
+			</span>
+			<span ng-if="::changeLog.oldSettingsValue">
+				Search string removed: <span ng-bind="::changeLog.oldSettingsValue"></span>
+			</span>
+		</span>
+
+		<span ng-switch-when="answerChange">
+			<span ng-if="::changeLog.newSettingsValue">
+				Answer added: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+			</span>
+			<span ng-if="::changeLog.oldSettingsValue">
+				Answer removed: <arb-page-title page-id="{{::auxPageId}}" is-link="true"></arb-page-title>
+			</span>
+		</span>
+
+		<span ng-switch-when="lensOrderChanged">
+			Lens order was changed.
+		</span>
+
+		<!-- Settings changes -->
+
+		<span ng-switch-when="newAlias">
+			Alias changed
+			from "{{::changeLog.oldSettingsValue}}"
+			to "{{::changeLog.newSettingsValue}}"
+		</span>
+
+		<span ng-switch-when="newSortChildrenBy">
+			Child sort order changed
+			from "{{::changeLog.oldSettingsValue}}"
+			to "{{::changeLog.newSettingsValue}}"
+		</span>
+
+		<span ng-switch-when="setVoteType">
+			Vote type changed
+			from "{{::changeLog.oldSettingsValue}}"
+			to "{{::changeLog.newSettingsValue}}"
+		</span>
+
+		<span ng-switch-when="newEditGroup">
+			Edit group changed from
+			<!-- old edit group -->
+			<span ng-if="::(changeLog.oldSettingsValue == '')">none</span>
+			<span ng-if="::(changeLog.oldSettingsValue != '')">
+				<arb-page-title page-id="{{::changeLog.oldSettingsValue}}" is-link="true"></arb-page-title>
+			</span>
+			to
+			<!-- new edit group -->
+			<span ng-if="::(changeLog.newSettingsValue == '')">none</span>
+			<span ng-if="::(changeLog.newSettingsValue != '')">
+				<arb-page-title page-id="{{::changeLog.newSettingsValue}}" is-link="true"></arb-page-title>
+			</span>
+		</span>
+
+		<span ng-switch-when="turnOnVote">
+			Probability bar shown
+		</span>
+
+		<span ng-switch-when="turnOffVote">
+			Probability bar hidden
+		</span>
+
+		<span ng-switch-when="pageInfoEdit">
+			Settings changed
+		</span>
+
+		<!-- Edits and snapshots -->
+
+		<span ng-switch-when="deletePage">
+			Deleted page
+		</span>
+
+		<span ng-switch-when="undeletePage">
+			Republished page
+		</span>
+
+		<span ng-switch-when="newEdit">
+			New edit #{{::changeLog.edit}}
+		</span>
+
+		<span ng-switch-when="newEditProposal">
+			New edit proposal (#{{::changeLog.edit}})
+			<md-button ng-click="approveProposal()">Approve</md-button>
+		</span>
+
+		<span ng-switch-when="revertEdit">
+			Reverted to edit #{{::changeLog.edit}}
+		</span>
+
+		<span ng-switch-when="newSnapshot">
+			New snapshot (edit #{{::changeLog.edit}})
+		</span>
+
+		<!-- Unknown -->
+
+		<span ng-switch-default class="md-warn">
+			Unknown activity type: {{::changeLog.type}}
+		</span>
+
+	</div>
+
+	<!-- RHS of the row -->
+	<div layout="row" layout-align="end center">
+		<!-- Link to the user who performed the action (if we haven't already) -->
+		<arb-user-name user-id="{{::byUserId}}" ng-if="::!!byUserId"></arb-user-name>
+		&nbsp; &nbsp;
+		<span class="md-caption nowrap" ng-bind="::(changeLog.createdAt | relativeDateTime)"></span>
+	</div>
+
+</div>

@@ -11,6 +11,7 @@ import (
 type Permissions struct {
 	DomainAccess Permission `json:"domainAccess"`
 	Edit         Permission `json:"edit"`
+	ProposeEdit  Permission `json:"proposeEdit"`
 	Delete       Permission `json:"delete"`
 
 	// Note that for comments, this means "can reply to this comment"
@@ -41,6 +42,21 @@ func (p *Page) computeDomainPermissions(c sessions.Context, u *CurrentUser) {
 }
 
 func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
+	// Compute proposeEdit reason after we compute edit permission
+	defer func() {
+		if p.IsDeleted {
+			p.Permissions.ProposeEdit.Has = false
+			p.Permissions.ProposeEdit.Reason = "This page is deleted"
+			return
+		}
+		if p.Permissions.Edit.Has {
+			p.Permissions.ProposeEdit.Has = true
+		}
+		if !p.Permissions.ProposeEdit.Has {
+			p.Permissions.ProposeEdit.Reason = p.Permissions.Edit.Reason
+		}
+	}()
+
 	// Check the page isn't locked by someone else
 	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
 		p.Permissions.Edit.Reason = "Can't change locked page"
@@ -51,7 +67,8 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		return
 	}
 	if IsIdValid(p.EditGroupId) && !u.IsMemberOfGroup(p.EditGroupId) {
-		p.Permissions.Edit.Reason = "You don't have group permission to edit this page"
+		p.Permissions.Edit.Reason = "You don't have group permission to edit this page, but you can propose edits"
+		p.Permissions.ProposeEdit.Has = true
 		return
 	}
 
@@ -78,7 +95,8 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 	if len(p.DomainIds) <= 0 {
 		p.Permissions.Edit.Has = u.IsDomainMember
 		if !p.Permissions.Edit.Has {
-			p.Permissions.Edit.Reason = "Only the creator and domain members can edit an unlisted page"
+			p.Permissions.Edit.Reason = "Only the creator and domain members can edit an unlisted page, but you can still propose edits"
+			p.Permissions.ProposeEdit.Has = true
 		}
 		return
 	}
@@ -90,7 +108,8 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		}
 	}
 	if !p.Permissions.Edit.Has {
-		p.Permissions.Edit.Reason = "Not enough reputation to edit this page"
+		p.Permissions.Edit.Reason = "Not enough reputation to edit this page, but you can still propose edits"
+		p.Permissions.ProposeEdit.Has = true
 	}
 }
 

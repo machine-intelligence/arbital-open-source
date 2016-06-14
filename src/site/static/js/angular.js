@@ -565,22 +565,6 @@ app.run(function($http, $location, arb) {
 			.error($scope.getErrorFunc('default'));
 		},
 	});
-	arb.urlService.addUrlHandler('/updates/', {
-		name: 'UpdatesPage',
-		handler: function(args, $scope) {
-			var postData = {};
-			// Get the updates data
-			$http({method: 'POST', url: '/json/updates/', data: JSON.stringify(postData)})
-			.success($scope.getSuccessFunc(function(data) {
-				$scope.updateGroups = data.result.updateGroups;
-				return {
-					title: 'Updates',
-					content: $scope.newElement('<arb-updates update-groups=\'::updateGroups\'></arb-updates>'),
-				};
-			}))
-			.error($scope.getErrorFunc('updates'));
-		},
-	});
 });
 
 // simpleDateTime filter converts our typical date&time string into local time.

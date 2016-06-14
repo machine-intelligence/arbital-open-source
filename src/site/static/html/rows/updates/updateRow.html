@@ -1,11 +1,11 @@
 <div layout="row" layout-xs="column" layout-align="space-between center">
 
 	<!-- LHS of the row -->
-	<arb-likes ng-if="showLikeButton"
-		likeable-type="changeLog"
+	<arb-likes likeable-type="changeLog"
 		likeable-id="{{::update.changeLog.id}}"
 		likeable="::update.changeLog"
-		is-button="true"></arb-likes>
+		is-button="true"
+		ng-if="showLikeButton"></arb-likes>
 
 	<!-- guts of the row -->
 	<div ng-transclude flex></div>

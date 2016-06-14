@@ -25,62 +25,109 @@
 
 				<!-- bell updates -->
 				<div ng-switch-when="topLevelComment"
-					arb-comment-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-comment-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="reply"
-					arb-comment-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-comment-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="pageToDomainSubmission"
-					arb-page-to-domain-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
-
-				<div ng-switch-when="pageToDomainAccepted"
-					arb-page-to-domain-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-page-to-domain-submission-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="atMention"
-					arb-at-mention-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-at-mention-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="newMark"
-					arb-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-mark-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="answeredMark"
-					arb-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-mark-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="resolvedMark"
-					arb-mark-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-mark-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="resolvedThread"
-					arb-resolved-thread-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-resolved-thread-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 
 				<!-- achievements -->
-				<arb-likes-mode-row mode-row="::modeRow" ng-switch-when="likes"></arb-likes-mode-row>
-				<arb-reqs-taught-mode-row mode-row="::modeRow" ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
-				<arb-added-to-group-mode-row mode-row="::modeRow" ng-switch-when="addedToGroup"></arb-added-to-group-mode-row>
-				<arb-removed-from-group-mode-row mode-row="::modeRow" ng-switch-when="removedFromGroup"></arb-removed-from-group-mode-row>
-				<arb-invite-received-mode-row mode-row="::modeRow" ng-switch-when="inviteReceived"></arb-invite-received-mode-row>
+				<arb-likes-mode-row mode-row="::modeRow"
+						ng-switch-when="likes"></arb-likes-mode-row>
+				<arb-reqs-taught-mode-row mode-row="::modeRow"
+						ng-switch-when="reqsTaught"></arb-reqs-taught-mode-row>
+				<arb-added-to-group-mode-row mode-row="::modeRow"
+						ng-switch-when="addedToGroup"></arb-added-to-group-mode-row>
+				<arb-removed-from-group-mode-row mode-row="::modeRow"
+						ng-switch-when="removedFromGroup"></arb-removed-from-group-mode-row>
+				<arb-invite-received-mode-row mode-row="::modeRow"
+						ng-switch-when="inviteReceived"></arb-invite-received-mode-row>
+
+				<div ng-switch-when="pageToDomainAccepted"
+						arb-page-to-domain-accepted-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="editProposalAccepted"
+						arb-edit-proposal-accepted-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 
 				<!-- maintenance updates -->
 				<div ng-switch-when="pageEdit"
-					arb-page-edit-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-page-edit-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
+
+				<div ng-switch-when="pageEditProposal"
+						arb-page-edit-proposal-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="questionMerged"
-					arb-question-merged-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-question-merged-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="questionMergedReverse"
-					arb-question-merged-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+						arb-question-merged-update-row
+						update="::modeRow.update"
+						on-dismiss="dismissRow(modeRows, index)"></div>
 
 				<div ng-switch-when="changeLog" ng-switch="::getChangeLogCategory(modeRow.update.changeLog.type)">
 					<div ng-switch-when="relationship"
-						arb-relationship-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+							arb-relationship-update-row
+							update="::modeRow.update"
+							on-dismiss="dismissRow(modeRows, index)"></div>
 
 					<div ng-switch-when="settings"
-						arb-settings-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+							arb-settings-update-row
+							update="::modeRow.update"
+							on-dismiss="dismissRow(modeRows, index)"></div>
 
 					<div ng-switch-when="deletedPage"
-						arb-deleted-page-update-row update="::modeRow.update" on-dismiss="dismissRow(modeRows, index)"></div>
+							arb-deleted-page-update-row
+							update="::modeRow.update"
+							on-dismiss="dismissRow(modeRows, index)"></div>
 
-					<div ng-switch-default class="md-warn">unknown activity type: {{::modeRow.update.changeLog.type}}</div>
+					<div ng-switch-default class="md-warn">
+						unknown activity type: {{::modeRow.update.changeLog.type}}
+					</div>
 				</div>
 
 

@@ -231,7 +231,7 @@ func loadLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limi
 }
 
 func loadChangeLikesModeRows(db *database.DB, returnData *core.CommonHandlerData, limit int) (ModeRows, error) {
-	hedonsRowMap := make(map[int]*likesModeRow, 0)
+	hedonsRowMap := make(map[string]*likesModeRow, 0)
 
 	rows := database.NewQuery(`
 		SELECT l.userId,cl.pageId,l.updatedAt,cl.id,cl.pageId,cl.type,cl.oldSettingsValue,cl.newSettingsValue,cl.edit
