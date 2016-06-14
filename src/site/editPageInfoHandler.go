@@ -175,6 +175,8 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Check if something is actually different from live edit
+	// NOTE: we do this as the last step before writing data, just so we can be sure
+	// exactly what date we'll be writing
 	if !oldPage.IsDeleted {
 		if data.Alias == oldPage.Alias &&
 			data.SortChildrenBy == oldPage.SortChildrenBy &&
@@ -192,6 +194,9 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Make sure the user has the right permissions to edit this page
+	// NOTE: check permissions AFTER checking if any data will be changed, becase we
+	// don't want to flag the user for not having correct permissions, when they are
+	// not actually changing anything
 	if !oldPage.Permissions.Edit.Has {
 		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}

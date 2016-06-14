@@ -229,6 +229,8 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	isMinorEdit := data.IsMinorEditStr == "on"
 
 	// Check if something is actually different from live edit
+	// NOTE: we do this as the last step before writing data, just so we can be sure
+	// exactly what date we'll be writing
 	if isNewCurrentEdit && oldPage.WasPublished && !oldPage.IsDeleted {
 		if data.Title == oldPage.Title &&
 			data.Clickbait == oldPage.Clickbait &&
