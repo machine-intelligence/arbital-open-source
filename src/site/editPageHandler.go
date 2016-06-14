@@ -428,14 +428,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// === Once the transaction has succeeded, we can't really fail on anything
 	// else. So we print out errors, but don't return an error. ===
 
-	if isNewCurrentEdit {
-		// Update elastic
-		var task tasks.UpdateElasticPageTask
-		task.PageId = data.PageId
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
-
+	if isPublicEdit {
 		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !isMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
 			var task tasks.NewUpdateTask
@@ -443,15 +436,24 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
 			task.ChangeLogId = editChangeLogId
+			task.GroupByPageId = data.PageId
 			if oldPage.IsDeleted {
 				task.UpdateType = core.ChangeLogUpdateType
 			} else {
 				task.UpdateType = core.PageEditUpdateType
 			}
-			task.GroupByPageId = data.PageId
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
+		}
+	}
+
+	if isNewCurrentEdit {
+		// Update elastic
+		var task tasks.UpdateElasticPageTask
+		task.PageId = data.PageId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
 		// Generate updates for users who are subscribed to the author.
@@ -532,21 +534,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if oldPage.IsDeleted || !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
 			task.PageId = data.PageId
-			if err := tasks.Enqueue(c, &task, nil); err != nil {
-				c.Errorf("Couldn't enqueue a task: %v", err)
-			}
-		}
-	} else if isPublicEdit {
-		// Generate "editProposal" update for users who are subscribed to this page.
-		if oldPage.WasPublished && createEditChangeLog && oldPage.Type != core.CommentPageType {
-			var task tasks.NewUpdateTask
-			task.UpdateType = core.PageEditProposalUpdateType
-			task.UserId = u.Id
-			task.GoToPageId = data.PageId
-			task.SubscribedToId = data.PageId
-			task.ChangeLogId = editChangeLogId
-			task.GroupByPageId = data.PageId
-			task.ForceMaintainersOnly = true
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}

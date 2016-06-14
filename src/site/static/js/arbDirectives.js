@@ -714,27 +714,27 @@ app.directive('arbChangeLogEntry', function() {
 	};
 });
 
-// Shared by the changelog and the updates page.
-app.directive('arbLogRow', function(arb) {
+// Row to show in the changelog tab
+app.directive('arbChangeLogRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/logRow.html',
+		templateUrl: 'static/html/rows/changeLogRow.html',
 		scope: {
-			changeLog: '=', // Optional changelog associated with this row
-			update: '=', // if this is shown in the updates page, this is the update object
+			changeLog: '=',
 			pageId: '@',
-			byUserId: '@',
-			type: '@',
-			goToPageId: '@',
-			isRelatedPageAlive: '=',
-			markId: '@',
-			createdAt: '@',
-			showUserLink: '=',
-			showDismissIcon: '=',
-			onDismiss: '&',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
-			$scope.goToPage = $scope.goToPageId ? arb.stateService.pageMap[$scope.goToPageId] : undefined;
+			$scope.byUserId = $scope.changeLog.userId;
+			$scope.auxPageId = $scope.changeLog.auxPageId;
+
+			$scope.approveProposal = function() {
+				$scope.arb.stateService.postDataWithoutProcessing('/json/approvePageEditProposal/', {
+					changeLogId: $scope.changeLog.id,
+				}, function(data) {
+					arb.popupService.showToast({text: 'Change accepted'});
+					location.reload();
+				});
+			};
 		},
 	};
 });
