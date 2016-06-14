@@ -78,13 +78,13 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		ON l.parentId=mathPi.pageId
 		LEFT JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS linkedPi
 		ON (l.childAlias=linkedPi.pageId OR l.childAlias=linkedPi.alias)
-		WHERE (
+		WHERE IFNULL((
 			/* Make sure there is no recent draft with this alias, since that means
 				it's likely someone is alread working on this page. */
 			SELECT MIN(DATEDIFF(NOW(),unpublishedPi.createdAt))
 			FROM `).AddPart(pageInfosTable).Add(` AS unpublishedPi
 			WHERE unpublishedPi.alias=l.childAlias
-		) > ?`, hideRedLinkIfDraftExistsDays).Add(`
+		),?) > ?`, hideRedLinkIfDraftExistsDays+1, hideRedLinkIfDraftExistsDays).Add(`
 		GROUP BY l.childAlias
 		ORDER BY count DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
