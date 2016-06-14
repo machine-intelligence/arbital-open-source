@@ -32,6 +32,9 @@ type editPageData struct {
 	AnchorText               string
 	AnchorOffset             int
 	IsEditorCommentIntention bool
+	// If set, the user wants this edit to be a proposal rather than actual edit,
+	// even if they have permissions
+	IsProposal bool
 	// Edit that FE thinks is the current edit
 	CurrentEdit int
 
@@ -139,7 +142,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// Make sure the user has the right permissions to edit this page
 	if !oldPage.Permissions.ProposeEdit.Has {
 		return pages.Fail("Can't edit: "+oldPage.Permissions.ProposeEdit.Reason, nil).Status(http.StatusBadRequest)
-	} else if !oldPage.Permissions.Edit.Has {
+	} else if !oldPage.Permissions.Edit.Has || data.IsProposal {
 		isNewCurrentEdit = false
 	}
 	if data.IsAutosave && data.IsSnapshot {
