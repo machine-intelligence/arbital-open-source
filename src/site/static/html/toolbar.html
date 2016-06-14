@@ -126,6 +126,12 @@
 		<md-divider></md-divider>
 
 		<md-button ng-click="logout()" id="logout">Log Out</md-button>
+
+		<br> <br> <br>
+		<div class="md-caption" layout-margin>
+			<p>Your user id: {{arb.userService.user.id}}</p>
+			<p>Your user alias: {{arb.stateService.pageMap[arb.userService.user.id].alias}}</p>
+		</div>
 	</md-content>
 </md-sidenav>
 
