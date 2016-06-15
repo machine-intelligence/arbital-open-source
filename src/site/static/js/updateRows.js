@@ -38,18 +38,7 @@ app.directive('arbEditProposalAcceptedUpdateRow', getUpdateRowDirectiveFunc('sta
 app.directive('arbRelationshipUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/relationshipUpdateRow.html'));
 app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/resolvedThreadUpdateRow.html'));
 app.directive('arbSettingsUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/settingsUpdateRow.html'));
-
-app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageEditUpdateRow.html',
-	function($scope) {
-		$scope.approveProposal = function() {
-			$scope.arb.stateService.postDataWithoutProcessing('/json/approvePageEditProposal/', {
-				changeLogId: $scope.update.changeLog.id,
-			}, function(data) {
-				$scope.update.changeLog.type = 'newEdit';
-			});
-		};
-	})
-);
+app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageEditUpdateRow.html'));
 
 app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/commentUpdateRow.html',
 	function($scope) {
