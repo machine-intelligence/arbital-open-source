@@ -759,7 +759,6 @@ app.directive('arbLensToolbar', function(arb, $window) {
 			angular.element($window).bind("scroll", function() {
 				var staticBarBottom = staticBar[0].getBoundingClientRect().bottom;
 				$scope.hideFloater = staticBarBottom <= document.documentElement.clientHeight;
-
 				$scope.$apply();
 			});
 		},
