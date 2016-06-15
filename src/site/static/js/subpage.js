@@ -20,7 +20,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 
 			// Check if the user has the permissions to reply to this comment. Permission
 			// can come from the comment or the lens
-			var canReply = function() {
+			$scope.canReply = function() {
 				return $scope.page.permissions.comment.has || $scope.lens.permissions.comment.has;
 			};
 

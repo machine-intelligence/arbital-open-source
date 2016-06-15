@@ -43,16 +43,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 					// The learning list specified this page specifically
 					return $scope.page.pageId;
 				}
-				// Select the hardest lens for which the user has met all requirements
-				var lastIndex = $scope.page.lensIds.length - 1;
-				var selectedLensId = $scope.page.lensIds[lastIndex];
-				for (var n = lastIndex - 1; n >= 0; n--) {
-					var lensId = $scope.page.lensIds[n];
-					if ($scope.hasAllReqs(lensId)) {
-						selectedLensId = lensId;
-					}
-				}
-				return selectedLensId;
+				return $scope.page.lensIds[0];
 			};
 
 			// Monitor URL to see if we need to switch lenses

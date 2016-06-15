@@ -98,8 +98,7 @@
 			<arb-subscribe page-id="{{::page.pageId}}"
 					show-subscriber-count="::!isTinyScreen"
 					ng-if="::!parentSubpageId && (page.editCreatorId != arb.userService.user.id)"></arb-subscribe>
-			<md-button class="md-primary"
-					aria-label="Reply to comment"
+			<md-button aria-label="Reply to comment"
 					ng-click="newReply()"
 					ng-disabled="newReplyId"
 					arb-user-check=""
