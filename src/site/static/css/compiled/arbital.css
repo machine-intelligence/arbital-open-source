@@ -758,7 +758,7 @@ md-toast md-icon {
 
 @media (max-width: 599px) {
   .lens-text-container {
-    padding: 20px 5px 20px;
+    padding: 30px 5px 20px;
     font-size: 16px;
     line-height: 20px; }
 

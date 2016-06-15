@@ -72,7 +72,7 @@ app.directive('arbPage', function($http, $location, $compile, $timeout, $interva
 				// Note that questions might have empty text.
 				return lensId in arb.stateService.pageMap && (arb.stateService.pageMap[lensId].text.length > 0 || arb.stateService.pageMap[lensId].isQuestion());
 			};
-console.log('bleh"')
+
 			// Called when there is a click inside the tabs
 			$scope.tabsClicked = function($event, lensId) {
 				// Check if there was a CTRL+click on a tab

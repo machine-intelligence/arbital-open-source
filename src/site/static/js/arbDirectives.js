@@ -742,15 +742,26 @@ app.directive('arbLogRow', function(arb) {
 	};
 });
 
-app.directive('arbLensToolbar', function(arb) {
+app.directive('arbLensToolbar', function(arb, $window) {
 	return {
-		templateUrl: 'static/html/lensToolbar.html',
+		templateUrl: 'static/html/lensToolbarWrapper.html',
 		scope: {
 			pageId: '@'
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
+
+			var staticBar = angular.element('#static-toolbar');
+			var floaterBar = angular.element('#floater-toolbar');
+
+			// Hide the floaterBar is the staticBar is visible
+			angular.element($window).bind("scroll", function() {
+				var staticBarBottom = staticBar[0].getBoundingClientRect().bottom;
+				$scope.hideFloater = staticBarBottom <= document.documentElement.clientHeight;
+
+				$scope.$apply();
+			});
 		},
 	};
 });
