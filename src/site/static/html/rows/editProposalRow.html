@@ -1,0 +1,19 @@
+<div class="full-width" layout="column">
+	<div layout="row" layout-align="start center">
+		<div flex>
+			<arb-user-name user-id="{{::changeLog.userId}}"></arb-user-name>
+			submitted an edit proposal to
+			<arb-page-title page-id="{{::changeLog.pageId}}" is-link="true"></arb-page-title>
+			{{::changeLog.createdAt | relativeDateTime}}.
+		</div>
+	
+		<div>
+			<md-button ng-click="arb.pageService.approveEditProposal(changeLog)"
+					ng-if="changeLog.type == 'newEditProposal'">Approve</md-button>
+			<span ng-if="changeLog.type != 'newEditProposal'">
+				Edit approved!
+			</span>
+		</div>
+	</div>
+	<arb-edit-diff change-log="::changeLog"></arb-edit-diff>
+</div>

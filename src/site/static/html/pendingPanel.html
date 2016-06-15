@@ -1,0 +1,33 @@
+<div class='md-whiteframe-1dp list-panel'>
+	<arb-list-sub-header>
+		New page submissions
+	</arb-list-sub-header>
+	<md-progress-circular md-mode="indeterminate" ng-if="!pageToDomainSubmissionRows" ng-cloak></md-progress-circular>
+	<md-list>
+		<div ng-repeat="submission in pageToDomainSubmissionRows">
+			<md-list-item arb-page-to-domain-submission-row
+					submission="::submission"
+					class="panel-list-item"></md-list-item>
+			<md-divider ng-if="::!$last"></md-divider>
+		</div>
+		<div class="md-caption" layout-padding ng-if="pageToDomainSubmissionRows.length <= 0">
+			None
+		</div>
+	</md-list>
+
+	<arb-list-sub-header>
+		Page edits proposals
+	</arb-list-sub-header>
+	<md-progress-circular md-mode="indeterminate" ng-if="!editProposalRows" ng-cloak></md-progress-circular>
+	<md-list>
+		<div ng-repeat="changeLog in editProposalRows">
+			<md-list-item arb-edit-proposal-row
+					change-log="::changeLog"
+					class="panel-list-item"></md-list-item>
+			<md-divider ng-if="::!$last"></md-divider>
+		</div>
+		<div class="md-caption" layout-padding ng-if="editProposalRows.length <= 0">
+			None
+		</div>
+	</md-list>
+</div>

@@ -257,11 +257,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 			if ($scope.page.wasPublished && $scope.page.isAutosave) {
 				$scope.addMessage('nonLiveEdit', 'Loaded an autosave which was last updated ' +
-					$filter('relativeDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
+					$filter('smartDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
 				$scope.addMessage('nonLiveEdit', 'Loaded a snapshot which was last updated ' +
-					$filter('relativeDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
+					$filter('smartDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			// Check if we loaded a live edit, but the user has a draft
 			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {

@@ -573,9 +573,9 @@ app.filter('simpleDateTime', function() {
 		return moment.utc(input).local().format('LT, l');
 	};
 });
-
-// relativeDateTime converts date&time into a relative string, e.g. "5 days ago"
-app.filter('relativeDateTime', function() {
+// smartDateTime converts date&time into a relative string or a date string
+// depending on how long the event was
+app.filter('smartDateTime', function() {
 	return function(input) {
 		if (moment.utc().diff(moment.utc(input), 'days') <= 7) {
 			return moment.utc(input).fromNow();
@@ -586,9 +586,10 @@ app.filter('relativeDateTime', function() {
 		return moment.utc(input).local().format('MMM D, YYYY');
 	};
 });
-app.filter('relativeDateTimeNoSuffix', function() {
+// relativeDateTime converts date&time into a relative string, e.g. "5 days ago"
+app.filter('relativeDateTime', function() {
 	return function(input) {
-		return moment.utc(input).fromNow(true);
+		return moment.utc(input).fromNow();
 	};
 });
 
