@@ -3,7 +3,7 @@
 // Directive for the entire primary page.
 app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb) {
 	return {
-		templateUrl: 'static/html/primaryPage.html',
+		templateUrl: versionUrl('static/html/primaryPage.html'),
 		scope: {
 			noFooter: '=',
 		},

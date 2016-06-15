@@ -3,7 +3,7 @@
 // Directive for the User page.
 app.directive('arbUserPage', function(arb) {
 	return {
-		templateUrl: 'static/html/userPage.html',
+		templateUrl: versionUrl('static/html/userPage.html'),
 		scope: {
 			userId: '@',
 			userPageData: '=',

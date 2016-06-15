@@ -3,7 +3,7 @@
 // arbNewsletter directive displays a way for the user to edit their newsletter preferences
 app.directive('arbNewsletter', function($http, arb) {
 	return {
-		templateUrl: 'static/html/newsletterPage.html',
+		templateUrl: versionUrl('static/html/newsletterPage.html'),
 		scope: {
 		},
 		controller: function($scope) {

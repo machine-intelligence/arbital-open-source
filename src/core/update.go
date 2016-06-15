@@ -22,6 +22,7 @@ const (
 	ReplyUpdateType                  = "reply"
 	ChangeLogUpdateType              = "changeLog"
 	PageEditUpdateType               = "pageEdit"
+	EditProposalAcceptedUpdateType   = "editProposalAccepted"
 	NewPageByUserUpdateType          = "newPageByUser"
 	PageToDomainSubmissionUpdateType = "pageToDomainSubmission"
 	PageToDomainAcceptedUpdateType   = "pageToDomainAccepted"
@@ -181,7 +182,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		} else {
 			resultData.AddMark(row.MarkId)
 		}
-		if row.ChangeLog.Id != 0 {
+		if row.ChangeLog.Id != "" {
 			changeLogs = append(changeLogs, row.ChangeLog)
 		}
 
@@ -281,9 +282,16 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	handlerData := NewHandlerData(u)
 
 	// Load updates and populate the maps
-	resultData.UpdateRows, err = LoadUpdateRows(db, u, handlerData, true, make([]string, 0), -1)
+	updateRows, err := LoadUpdateRows(db, u, handlerData, true, make([]string, 0), -1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load updates: %v", err)
+	}
+
+	// Filter update rows
+	for _, updateRow := range updateRows {
+		if updateRow.Type != PageToDomainSubmissionUpdateType {
+			resultData.UpdateRows = append(resultData.UpdateRows, updateRow)
+		}
 	}
 
 	// Check to make sure there are enough updates
@@ -317,7 +325,6 @@ func LoadUpdateEmail(db *database.DB, userId string) (resultData *UpdateData, re
 	}
 
 	funcMap := template.FuncMap{
-		//"UserFirstName": func() string { return u.Id },
 		"GetUserUrl": func(userId string) string {
 			return fmt.Sprintf(`%s/user/%s`, sessions.GetDomainForTestEmail(), userId)
 		},
@@ -362,6 +369,8 @@ func GetAchievementUpdateTypes() []string {
 		AddedToGroupUpdateType,
 		RemovedFromGroupUpdateType,
 		InviteReceivedUpdateType,
+		PageToDomainAcceptedUpdateType,
+		EditProposalAcceptedUpdateType,
 	}
 }
 
@@ -370,7 +379,6 @@ func GetNotificationUpdateTypes() []string {
 		TopLevelCommentUpdateType,
 		ReplyUpdateType,
 		PageToDomainSubmissionUpdateType,
-		PageToDomainAcceptedUpdateType,
 		AtMentionUpdateType,
 		NewMarkUpdateType,
 		ResolvedThreadUpdateType,

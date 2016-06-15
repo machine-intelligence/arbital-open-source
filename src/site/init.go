@@ -77,7 +77,6 @@ func init() {
 		pageHandlerWrapper(&pagePage)).Methods("GET", "HEAD")
 	s.HandleFunc("/settings/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc("/signup/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
-	s.HandleFunc("/updates/", pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/user/{alias:%s}/", core.AliasRegexpStr),
 		pageHandlerWrapper(&dynamicPage)).Methods("GET", "HEAD")
 	s.HandleFunc(fmt.Sprintf("/user/{alias:%s}/{alias2:%s}/", core.AliasRegexpStr, core.AliasRegexpStr),
@@ -87,6 +86,7 @@ func init() {
 	// JSON handlers (API)
 	s.HandleFunc(adminDashboardPageHandler.URI, handlerWrapper(adminDashboardPageHandler)).Methods("POST")
 	s.HandleFunc(approvePageToDomainHandler.URI, handlerWrapper(approvePageToDomainHandler)).Methods("POST")
+	s.HandleFunc(approvePageEditProposalHandler.URI, handlerWrapper(approvePageEditProposalHandler)).Methods("POST")
 	s.HandleFunc(bellUpdatesHandler.URI, handlerWrapper(bellUpdatesHandler)).Methods("POST")
 	s.HandleFunc(childrenHandler.URI, handlerWrapper(childrenHandler)).Methods("POST")
 	s.HandleFunc(commentThreadHandler.URI, handlerWrapper(commentThreadHandler)).Methods("POST")
@@ -153,7 +153,6 @@ func init() {
 	s.HandleFunc(updatePageObjectHandler.URI, handlerWrapper(updatePageObjectHandler)).Methods("POST")
 	s.HandleFunc(updateSettingsHandler.URI, handlerWrapper(updateSettingsHandler)).Methods("POST")
 	s.HandleFunc(updateSubscriptionHandler.URI, handlerWrapper(updateSubscriptionHandler)).Methods("POST")
-	s.HandleFunc(updatesHandler.URI, handlerWrapper(updatesHandler)).Methods("POST")
 	s.HandleFunc(userPopoverHandler.URI, handlerWrapper(userPopoverHandler)).Methods("POST")
 	s.HandleFunc(userSearchHandler.URI, handlerWrapper(userSearchHandler)).Methods("POST")
 	s.HandleFunc(writeNewModeHandler.URI, handlerWrapper(writeNewModeHandler)).Methods("POST")

@@ -1589,7 +1589,7 @@
 					];
 				linkEnteredCallback('[multiple-choice(questionAlias): ', 'Multiple choice question?\n', suffix.join('\n') + '\n]\n\n');
 			} else {
-				linkEnteredCallback('[' + that.getString('linkdescription') + '](', 'https://arbital.com', ')');
+				linkEnteredCallback('[', that.getString('linkdescription'), '](https://arbital.com)');
 			}
 			return true;
 		}

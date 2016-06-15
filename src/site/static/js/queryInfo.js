@@ -3,7 +3,7 @@
 // Directive for showing a window for creating/editing a query
 app.directive('arbQueryInfo', function($interval, arb) {
 	return {
-		templateUrl: 'static/html/queryInfo.html',
+		templateUrl: versionUrl('static/html/queryInfo.html'),
 		scope: {
 			// Id of the query mark that was created.
 			markId: '@',

@@ -57,6 +57,7 @@ const (
 	DeletePageChangeLog         = "deletePage"
 	UndeletePageChangeLog       = "undeletePage"
 	NewEditChangeLog            = "newEdit"
+	NewEditProposalChangeLog    = "newEditProposal"
 	RevertEditChangeLog         = "revertEdit"
 	NewSnapshotChangeLog        = "newSnapshot"
 	NewAliasChangeLog           = "newAlias"
@@ -265,7 +266,7 @@ func NewPage(pageId string) *Page {
 
 // ChangeLog describes a row from changeLogs table.
 type ChangeLog struct {
-	Id               int    `json:"id"`
+	Id               string `json:"id"`
 	PageId           string `json:"pageId"`
 	UserId           string `json:"userId"`
 	Edit             int    `json:"edit"`
@@ -966,14 +967,15 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 	for _, p := range sourcePageMap {
 		p.ChangeLogs = make([]*ChangeLog, 0)
 		rows := database.NewQuery(`
-		SELECT id,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
-		FROM changeLogs
-		WHERE pageId=?`, p.PageId).Add(`
-			AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
-		ORDER BY createdAt DESC`).ToStatement(db).Query()
+			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
+			FROM changeLogs
+			WHERE pageId=?`, p.PageId).Add(`
+				AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
+			ORDER BY createdAt DESC`).ToStatement(db).Query()
 		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var l ChangeLog
-			err := rows.Scan(&l.Id, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt, &l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
+			err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
+				&l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
 			if err != nil {
 				return fmt.Errorf("failed to scan a page log: %v", err)
 			}
@@ -998,13 +1000,37 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 	return nil
 }
 
+// LoadChangeLogsByIds loads the changelogs with given ids
+func LoadChangeLogsByIds(db *database.DB, ids []string, typeConstraint string) (map[string]*ChangeLog, error) {
+	changeLogs := make(map[string]*ChangeLog)
+	rows := database.NewQuery(`
+			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
+			FROM changeLogs
+			WHERE id IN`).AddArgsGroupStr(ids).Add(`
+				AND type=?`, typeConstraint).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var l ChangeLog
+		err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
+			&l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		changeLogs[l.Id] = &l
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load changeLogs: %v", err)
+	}
+	return changeLogs, nil
+}
+
 // Load LikeCount and MyLikeValue for a set of ChangeLogs
 func LoadLikesForChangeLogs(db *database.DB, currentUserId string, changeLogs []*ChangeLog) error {
 	if len(changeLogs) == 0 {
 		return nil
 	}
 
-	changeLogMap := make(map[int]*ChangeLog)
+	changeLogMap := make(map[string]*ChangeLog)
 	changeLogIds := make([]interface{}, 0)
 	for _, changeLog := range changeLogs {
 		changeLogMap[changeLog.Id] = changeLog
@@ -1020,7 +1046,7 @@ func LoadLikesForChangeLogs(db *database.DB, currentUserId string, changeLogs []
 		ON cl.likeableId=l.likeableId
 		WHERE cl.id IN`).AddArgsGroup(changeLogIds).ToStatement(db).Query()
 
-	var changeLogId int
+	var changeLogId string
 	var value int
 	var likeUserId string
 	var changeLog *ChangeLog
@@ -1083,10 +1109,6 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 			)`, pageId, options.LoadEditWithLimit)
 	} else if options.LoadNonliveEdit {
 		// Load the most recent edit we have for the current user.
-		// If there is an autosave, load that.
-		// If there is are snapshots, only consider those that are based off of the currently live edit.
-		// Otherwise, load the currently live edit.
-		// Note: "z" is just a hack to make sure autosave is sorted to the top.
 		whereClause = database.NewQuery(`
 			p.edit=(
 				SELECT p.edit
@@ -1094,9 +1116,14 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 				JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
 				ON (p.pageId=pi.pageId)
 				WHERE p.pageId=?`, pageId).Add(`
-					AND (p.prevEdit=pi.currentEdit OR p.edit=pi.currentEdit OR p.isAutosave) AND
-					(p.creatorId=? OR NOT (p.isSnapshot OR p.isAutosave))`, u.Id).Add(`
-				ORDER BY IF(p.isAutosave,"z",p.createdAt) DESC
+					AND (p.creatorId=? OR (NOT p.isSnapshot AND NOT p.isAutosave))`, u.Id).Add(`
+					/* To consider a snapshot, it has to be based on the current edit */
+					AND (NOT p.isSnapshot OR pi.currentEdit=0 OR p.prevEdit=pi.currentEdit)
+				/* From most to least preferred edits: autosave, (applicable) snapshot, currentEdit, anything else */
+				ORDER BY p.isAutosave DESC,
+					p.isSnapshot DESC,
+					p.edit=pi.currentEdit DESC,
+					p.createdAt DESC
 				LIMIT 1
 			)`)
 	}

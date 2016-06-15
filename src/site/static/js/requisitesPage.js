@@ -3,7 +3,7 @@
 // Directive for the Requisites page.
 app.directive('arbRequisitesPage', function(arb) {
 	return {
-		templateUrl: 'static/html/requisitesPage.html',
+		templateUrl: versionUrl('static/html/requisitesPage.html'),
 		scope: {
 		},
 		controller: function($scope) {

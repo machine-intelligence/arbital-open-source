@@ -32,6 +32,9 @@ type editPageData struct {
 	AnchorText               string
 	AnchorOffset             int
 	IsEditorCommentIntention bool
+	// If set, the user wants this edit to be a proposal rather than actual edit,
+	// even if they have permissions
+	IsProposal bool
 	// Edit that FE thinks is the current edit
 	CurrentEdit int
 
@@ -112,8 +115,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.Fail("Couldn't load additional page info", err)
 	}
 
+	// If this edit will be visible to the public
+	isPublicEdit := !data.IsAutosave && !data.IsSnapshot
+	// If this edit will replace the current edit
+	isNewCurrentEdit := isPublicEdit
+
 	// Edit number for this new edit will be one higher than the max edit we've had so far...
-	isLiveEdit := !data.IsAutosave && !data.IsSnapshot
 	newEditNum := oldPage.MaxEditEver + 1
 	if oldPage.IsDeleted {
 		newEditNum = data.CurrentEdit
@@ -133,8 +140,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Error checking.
 	// Make sure the user has the right permissions to edit this page
-	if !oldPage.Permissions.Edit.Has {
-		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
+	if !oldPage.Permissions.ProposeEdit.Has {
+		return pages.Fail("Can't edit: "+oldPage.Permissions.ProposeEdit.Reason, nil).Status(http.StatusBadRequest)
+	} else if !oldPage.Permissions.Edit.Has || data.IsProposal {
+		isNewCurrentEdit = false
 	}
 	if data.IsAutosave && data.IsSnapshot {
 		return pages.Fail("Can't set autosave and snapshot", nil).Status(http.StatusBadRequest)
@@ -147,7 +156,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		return pages.Fail("Don't have group permission to EVEN SEE this page", nil).Status(http.StatusBadRequest)
 	}
 	// Check validity of most options. (We are super permissive with autosaves.)
-	if isLiveEdit {
+	if isPublicEdit {
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
 			return pages.Fail("Need title", nil).Status(http.StatusBadRequest)
 		}
@@ -166,18 +175,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			return pages.Fail("Anchor offset out of bounds", nil).Status(http.StatusBadRequest)
 		}
 	}
-	if isLiveEdit {
-		// Process meta text
-		_, err := core.ParseMetaText(data.MetaText)
-		if err != nil {
-			return pages.Fail("Couldn't unmarshal meta-text", err)
-		}
-	}
 
 	// Load parents for comments
 	var commentParentId string
 	var commentPrimaryPageId string
-	if isLiveEdit && oldPage.Type == core.CommentPageType {
+	if isNewCurrentEdit && oldPage.Type == core.CommentPageType {
 		commentParentId, commentPrimaryPageId, err = core.GetCommentParents(db, data.PageId)
 		if err != nil {
 			return pages.Fail("Couldn't load comment's parents", err)
@@ -188,7 +190,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// relationships but is being published for the first time.
 	// Also send notifications if we undelete a page that has had new relationships created since it was deleted.
 	var newParents, newChildren []relatedPageData
-	if isLiveEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
+	if isNewCurrentEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
 		newParents, newChildren, err = getUnpublishedRelationships(db, u, data.PageId)
 		if err != nil {
 			return pages.Fail("Couldn't get new parents and children for page", err)
@@ -227,7 +229,9 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	isMinorEdit := data.IsMinorEditStr == "on"
 
 	// Check if something is actually different from live edit
-	if isLiveEdit && oldPage.WasPublished && !oldPage.IsDeleted {
+	// NOTE: we do this as the last step before writing data, just so we can be sure
+	// exactly what date we'll be writing
+	if isNewCurrentEdit && oldPage.WasPublished && !oldPage.IsDeleted {
 		if data.Title == oldPage.Title &&
 			data.Clickbait == oldPage.Clickbait &&
 			data.Text == oldPage.Text &&
@@ -249,13 +253,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
-		if isLiveEdit {
-			// Handle isLiveEdit and clearing previous isLiveEdit if necessary
-			if oldPage.WasPublished {
-				statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
-				if _, err = statement.Exec(data.PageId); err != nil {
-					return sessions.NewError("Couldn't update isLiveEdit for old edits", err)
-				}
+		if oldPage.WasPublished && isNewCurrentEdit {
+			// Clear previous isNewCurrentEdit
+			statement := tx.DB.NewStatement("UPDATE pages SET isLiveEdit=false WHERE pageId=? AND isLiveEdit").WithTx(tx)
+			if _, err = statement.Exec(data.PageId); err != nil {
+				return sessions.NewError("Couldn't update isLiveEdit", err)
 			}
 		}
 
@@ -270,7 +272,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["text"] = data.Text
 		hashmap["metaText"] = data.MetaText
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
-		hashmap["isLiveEdit"] = isLiveEdit
+		hashmap["isLiveEdit"] = isNewCurrentEdit
 		hashmap["isMinorEdit"] = isMinorEdit
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
@@ -285,7 +287,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Update summaries
-		if isLiveEdit {
+		if isNewCurrentEdit {
 			// Delete old page summaries
 			statement = database.NewQuery(`
 				DELETE FROM pageSummaries WHERE pageId=?`, data.PageId).ToTxStatement(tx)
@@ -302,7 +304,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		if isLiveEdit {
+		if isNewCurrentEdit {
 			// set pagePairs.everPublished where the current page is the child (and the parent is already published)
 			statement = database.NewQuery(`
 				UPDATE pagePairs, pageInfos SET pagePairs.everPublished = 1
@@ -345,11 +347,11 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		// Update pageInfos
 		hashmap = make(database.InsertMap)
 		hashmap["pageId"] = data.PageId
-		if isLiveEdit && oldPage.IsDeleted {
+		if isNewCurrentEdit && oldPage.IsDeleted {
 			hashmap["isDeleted"] = false
 			hashmap["mergedInto"] = ""
 		}
-		if !oldPage.WasPublished && isLiveEdit {
+		if !oldPage.WasPublished && isNewCurrentEdit {
 			hashmap["createdAt"] = database.Now()
 			hashmap["createdBy"] = u.Id
 		}
@@ -357,8 +359,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		if oldPage.MaxEditEver < newEditNum {
 			hashmap["maxEdit"] = newEditNum
 		}
-		if isLiveEdit {
+		if isNewCurrentEdit {
 			hashmap["currentEdit"] = newEditNum
+		}
+		if isPublicEdit {
 			hashmap["lockedUntil"] = database.Now()
 		} else if data.IsAutosave {
 			hashmap["lockedBy"] = u.Id
@@ -382,8 +386,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			hashmap["type"] = core.RevertEditChangeLog
 		} else if data.IsSnapshot {
 			hashmap["type"] = core.NewSnapshotChangeLog
-		} else if isLiveEdit {
+		} else if isNewCurrentEdit {
 			hashmap["type"] = core.NewEditChangeLog
+		} else if isPublicEdit {
+			hashmap["type"] = core.NewEditProposalChangeLog
 		} else {
 			createEditChangeLog = false
 		}
@@ -400,7 +406,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Subscribe this user to the page that they just created.
-		if isLiveEdit && !oldPage.WasPublished {
+		if !oldPage.WasPublished && isNewCurrentEdit {
 			toId := data.PageId
 			if oldPage.Type == core.CommentPageType && core.IsIdValid(commentParentId) {
 				toId = commentParentId // subscribe to the parent comment
@@ -412,7 +418,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Update the links table.
-		if isLiveEdit {
+		if isNewCurrentEdit {
 			err = core.UpdatePageLinks(tx, data.PageId, data.Text, sessions.GetDomain())
 			if err != nil {
 				return sessions.NewError("Couldn't update links", err)
@@ -427,14 +433,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	// === Once the transaction has succeeded, we can't really fail on anything
 	// else. So we print out errors, but don't return an error. ===
 
-	if isLiveEdit {
-		// Update elastic
-		var task tasks.UpdateElasticPageTask
-		task.PageId = data.PageId
-		if err := tasks.Enqueue(c, &task, nil); err != nil {
-			c.Errorf("Couldn't enqueue a task: %v", err)
-		}
-
+	if isPublicEdit {
 		// Generate "edit" update for users who are subscribed to this page.
 		if oldPage.WasPublished && !isMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
 			var task tasks.NewUpdateTask
@@ -442,15 +441,24 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			task.GoToPageId = data.PageId
 			task.SubscribedToId = data.PageId
 			task.ChangeLogId = editChangeLogId
+			task.GroupByPageId = data.PageId
 			if oldPage.IsDeleted {
 				task.UpdateType = core.ChangeLogUpdateType
 			} else {
 				task.UpdateType = core.PageEditUpdateType
 			}
-			task.GroupByPageId = data.PageId
 			if err := tasks.Enqueue(c, &task, nil); err != nil {
 				c.Errorf("Couldn't enqueue a task: %v", err)
 			}
+		}
+	}
+
+	if isNewCurrentEdit {
+		// Update elastic
+		var task tasks.UpdateElasticPageTask
+		task.PageId = data.PageId
+		if err := tasks.Enqueue(c, &task, nil); err != nil {
+			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
 
 		// Generate updates for users who are subscribed to the author.

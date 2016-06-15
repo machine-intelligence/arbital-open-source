@@ -20,6 +20,9 @@ CREATE TABLE users (
 	isTrusted BOOLEAN NOT NULL,
 	/* Date of the last updates email. */
 	updateEmailSentAt DATETIME NOT NULL,
+	/* Can only be set manually by an admin via DB console. Used for debugging.
+		The system will load the information for the given user, instead of this user. */
+	pretendToBeUserId VARCHAR(32) NOT NULL,
 
 	/* ============================= Settings ====================================
 	/* How frequently to send update emails. */

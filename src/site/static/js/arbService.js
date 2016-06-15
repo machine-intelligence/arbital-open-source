@@ -23,4 +23,5 @@ app.service('arb', function(analyticsService, autocompleteService, diffService, 
 	that.urlService = urlService;
 
 	this.isTouchDevice = isTouchDevice;
+	this.versionUrl = versionUrl;
 });

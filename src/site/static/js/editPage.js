@@ -4,7 +4,7 @@
 // Directive for the actual DOM elements which allows the user to edit a page.
 app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $http, $mdDialog, $mdMedia, arb) {
 	return {
-		templateUrl: 'static/html/editPage.html',
+		templateUrl: versionUrl('static/html/editPage.html'),
 		scope: {
 			pageId: '@',
 			// Whether or not this edit page is embedded in some column, and should be
@@ -40,6 +40,19 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			if ($scope.page.isLens()) {
 				$scope.page.title = $scope.page.lensTitle();
 			}
+
+			$scope.getPublishText = function() {
+				if ($scope.page.isDeleted) return "Republish";
+				if ($scope.page.permissions.edit.has) return "Publish";
+				if ($scope.page.permissions.proposeEdit.has) return "Propose";
+				return "";
+			};
+			$scope.getPublishTooltipText = function() {
+				if ($scope.page.isDeleted) return "Republish this page";
+				if ($scope.page.permissions.edit.has) return "Make this version live";
+				if ($scope.page.permissions.proposeEdit.has) return "Propose an edit to this page";
+				return "";
+			};
 
 			// Whether the editor should be in advanced mode.
 			$scope.showAdvancedMode = function() {
@@ -233,13 +246,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if ($scope.page.wasPublished && !$scope.page.permissions.edit.has) {
-				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'error', true);
-			}
-			// Check group permissions
-			if ($scope.page.editGroupId !== '' && !($scope.page.editGroupId in $scope.groupOptions)) {
-				$scope.addMessage('editGroup', 'You need to be part of ' +
-					arb.stateService.pageMap[$scope.page.editGroupId].title + ' group to edit this page', 'error', true);
+			if (!$scope.page.permissions.proposeEdit.has) {
+				$scope.addMessage('editLevel', $scope.page.permissions.proposeEdit.reason, 'error', true);
+			} else if (!$scope.page.permissions.edit.has) {
+				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'warning');
 			}
 			// Check if you've loaded an edit that's not currently live
 			if ($scope.page.edit !== $scope.page.currentEdit && $scope.isNormalEdit) {
@@ -296,6 +306,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					title: $scope.page.title,
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
+					snapshotText: $scope.page.snapshotText,
 				};
 				if ($scope.page.isQuestion()) {
 					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;
@@ -311,14 +322,12 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// callback is called with the error (or undefined on success)
 			$scope.savePage = function(isAutosave, isSnapshot, callback, autosaveNotPerformedCallback) {
 				var data = computeAutosaveData();
-				if (isSnapshot) {
-					data.snapshotText = $scope.page.snapshotText;
-				}
 				if (!isAutosave || JSON.stringify(data) !== JSON.stringify(prevEditPageData)) {
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
 					data.isEditorCommentIntention = $scope.page.isEditorCommentIntention;
+					data.isProposal = !$scope.page.permissions.edit.has;
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
 					$http({method: 'POST', url: '/editPage/', data: JSON.stringify(data)})
@@ -348,6 +357,9 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 
 			// Call the doneFn callback after the page has been fully published.
 			var publishPageDone = function() {
+				if (!$scope.page.permissions.edit.has) {
+					arb.popupService.showToast({text: 'Your proposal has been submitted.'});
+				}
 				$scope.doneFn({result: {
 					pageId: $scope.page.pageId,
 					alias: $scope.page.alias
@@ -360,27 +372,27 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					if (error) {
 						$scope.publishing = false;
 						$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
-					} else {
-						$scope.savePage(false, false, function(error) {
-							$scope.publishing = false;
-							if (error) {
-								$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
-							} else if ($location.search().markId) {
-								// Update the mark as resolved
-								arb.markService.resolveMark({
-									markId: $location.search().markId,
-									resolvedPageId: $scope.pageId,
-								}, function success() {
-									arb.popupService.showToast({text: 'You resolved the query mark.'});
-									publishPageDone();
-								}, function error() {
-									publishPageDone();
-								});
-							} else {
-								publishPageDone();
-							}
-						});
+						return;
 					}
+					$scope.savePage(false, false, function(error) {
+						$scope.publishing = false;
+						if (error) {
+							$scope.addMessage('publish', 'Publishing failed: ' + error, 'error');
+						} else if ($location.search().markId) {
+							// Update the mark as resolved
+							arb.markService.resolveMark({
+								markId: $location.search().markId,
+								resolvedPageId: $scope.pageId,
+							}, function success() {
+								arb.popupService.showToast({text: 'You resolved the query mark.'});
+								publishPageDone();
+							}, function error() {
+								publishPageDone();
+							});
+						} else {
+							publishPageDone();
+						}
+					});
 				});
 			};
 
@@ -652,7 +664,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 						parentIds = scope.page.parentIds;
 					}
 					$mdDialog.show({
-						templateUrl: 'static/html/editPageDialog.html',
+						templateUrl: versionUrl('static/html/editPageDialog.html'),
 						controller: 'EditPageDialogController',
 						autoWrap: false,
 						targetEvent: event,

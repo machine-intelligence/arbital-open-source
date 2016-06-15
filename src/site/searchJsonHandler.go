@@ -200,6 +200,10 @@ func searchJsonInternalHandler(params *pages.HandlerParams, query string) *pages
 					}
 				}
 			}
+			// Adjust the score if it's a user page
+			if page.Type == core.GroupPageType {
+				hit.Score *= 0.2
+			}
 		} else {
 			hit.Score = 0
 		}

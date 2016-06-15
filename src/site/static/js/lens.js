@@ -5,7 +5,7 @@
 app.directive('arbLens', function($http, $location, $compile, $timeout, $interval, $mdMedia, $mdBottomSheet, $rootScope,
 	arb) {
 	return {
-		templateUrl: 'static/html/lens.html',
+		templateUrl: versionUrl('static/html/lens.html'),
 		scope: {
 			pageId: '@',
 			lensParentId: '@',
@@ -485,7 +485,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// Called when the fab is clicked when text is selected.
 					scope.$on('fabClicked', function() {
 						$mdBottomSheet.show({
-							templateUrl: 'static/html/rhsButtons.html',
+							templateUrl: versionUrl('static/html/rhsButtons.html'),
 							controller: 'RhsButtonsController',
 							parent: '#fixed-overlay',
 						}).then(function(result) {

@@ -3,7 +3,7 @@
 // Directive for the Signup page.
 app.directive('arbSignup', function($location, $http, arb) {
 	return {
-		templateUrl: 'static/html/signupPage.html',
+		templateUrl: versionUrl('static/html/signupPage.html'),
 		scope: {
 		},
 		controller: function($scope) {

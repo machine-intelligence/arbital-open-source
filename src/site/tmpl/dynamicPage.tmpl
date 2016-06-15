@@ -51,6 +51,12 @@
 	<script src="/static/js/lib/js.cookie.js"></script>
 
 	<!-- General scripts -->
+	<script>
+		var versionId = '{{.VersionId}}';
+		var versionUrl = function(url) {
+			return url + '?' + versionId;
+		};
+	</script>
 	<script src="/static/js/angular.js?{{.VersionId}}"></script>
 
 	<script src="/static/js/analyticsService.js?{{.VersionId}}"></script>
@@ -104,7 +110,6 @@
 	<script src="/static/js/writeMode.js?{{.VersionId}}"></script>
 	<script src="/static/js/indexPage.js?{{.VersionId}}"></script>
 	<script src="/static/js/groupIndexPage.js?{{.VersionId}}"></script>
-	<script src="/static/js/updatesPage.js?{{.VersionId}}"></script>
 	<script src="/static/js/groupsPage.js?{{.VersionId}}"></script>
 	<script src="/static/js/userPage.js?{{.VersionId}}"></script>
 	<script src="/static/js/dashboardPage.js?{{.VersionId}}"></script>
@@ -119,6 +124,7 @@
 	<script src="/static/js/discussionMode.js?{{.VersionId}}"></script>
 	<script src="/static/js/newsletterPage.js?{{.VersionId}}"></script>
 	<script src="/static/js/explorePage.js?{{.VersionId}}"></script>
+	<script src="/static/js/updateRows.js?{{.VersionId}}"></script>
 	<script src="/static/js/updatesMode.js?{{.VersionId}}"></script>
 
 	<!-- Google Analytics -->
