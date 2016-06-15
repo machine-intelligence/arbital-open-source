@@ -144,6 +144,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.forceExpandSimilarPagesCount = 10;
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
+			// if this is a work in progress, load the saved edit summary, otherwise edit summary should be blank
+			// (that is, do *not* load the edit summary for the previous edit that we're working off of)
+			$scope.page.newEditSummary = $scope.isNormalEdit ? "" : $scope.page.editSummary;
+
 			// Set up page types.
 			if ($scope.page.isComment()) {
 				$scope.pageTypes = {comment: 'Comment'};
@@ -307,6 +311,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
 					snapshotText: $scope.page.snapshotText,
+					editSummary: $scope.page.newEditSummary,
 				};
 				if ($scope.page.isQuestion()) {
 					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;

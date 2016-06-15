@@ -25,6 +25,7 @@ type editPageData struct {
 	Text                     string
 	MetaText                 string
 	IsMinorEditStr           string
+	EditSummary              string
 	IsAutosave               bool
 	IsSnapshot               bool
 	SnapshotText             string
@@ -274,6 +275,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 		hashmap["isLiveEdit"] = isNewCurrentEdit
 		hashmap["isMinorEdit"] = isMinorEdit
+		hashmap["editSummary"] = data.EditSummary
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["snapshotText"] = data.SnapshotText

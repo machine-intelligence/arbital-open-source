@@ -629,6 +629,10 @@
 			</span>
 			<div class="no-margins" flex></div>
 
+			<md-input-container md-no-float ng-if="showAdvancedMode()">
+				<input placeholder="Edit summary" ng-model="page.newEditSummary" md-maxlength="200">
+			</md-input-container>
+
 			<div layout="row" layout-align="end center" flex ng-if="::gtXSmallScreen">
 				<div ng-if="autosaving">
 					Autosaving...

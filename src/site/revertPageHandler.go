@@ -65,6 +65,7 @@ func revertPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		Clickbait:                page.Clickbait,
 		Text:                     page.Text,
 		MetaText:                 page.MetaText,
+		EditSummary:              page.EditSummary,
 		AnchorContext:            page.AnchorContext,
 		AnchorText:               page.AnchorText,
 		AnchorOffset:             page.AnchorOffset,
