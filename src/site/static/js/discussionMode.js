@@ -3,7 +3,7 @@
 // arb-discussion-mode-page hosts the arb-discussion-mode-panel
 app.directive('arbDiscussionModePage', function($http, arb) {
 	return {
-		templateUrl: 'static/html/discussionModePage.html',
+		templateUrl: versionUrl('static/html/discussionModePage.html'),
 		scope: {
 		},
 		controller: function($scope) {
@@ -15,7 +15,7 @@ app.directive('arbDiscussionModePage', function($http, arb) {
 // arb-discussion-mode-panel directive displays a list of things to discussion in a panel
 app.directive('arbDiscussionModePanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/listPanel.html',
+		templateUrl: versionUrl('static/html/listPanel.html'),
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
@@ -38,7 +38,7 @@ app.directive('arbDiscussionModePanel', function($http, arb) {
 // arb-comment-mode-row is the directive for a row of the arb-discussion-mode-panel
 app.directive('arbCommentModeRow', function($location, arb) {
 	return {
-		templateUrl: 'static/html/rows/commentModeRow.html',
+		templateUrl: versionUrl('static/html/rows/commentModeRow.html'),
 		scope: {
 			modeRow: '=',
 		},
@@ -52,7 +52,7 @@ app.directive('arbCommentModeRow', function($location, arb) {
 // arb-comment-row-internal is the directive for the guts of a comment row
 app.directive('arbCommentRowInternal', function($location, arb) {
 	return {
-		templateUrl: 'static/html/rows/commentRowInternal.html',
+		templateUrl: versionUrl('static/html/rows/commentRowInternal.html'),
 		scope: {
 			comment: '=',
 		},

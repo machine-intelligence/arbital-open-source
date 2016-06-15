@@ -3,7 +3,7 @@
 // Directive for the Dashboard page.
 app.directive('arbDashboardPage', function(arb) {
 	return {
-		templateUrl: 'static/html/dashboardPage.html',
+		templateUrl: versionUrl('static/html/dashboardPage.html'),
 		scope: {
 			data: '='
 		},

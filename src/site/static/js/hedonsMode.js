@@ -3,7 +3,7 @@
 // arb-hedons-mode-panel directive displays a list of new hedonic updates
 app.directive('arbHedonsModePanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/listPanel.html',
+		templateUrl: versionUrl('static/html/listPanel.html'),
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
@@ -28,7 +28,7 @@ app.directive('arbHedonsModePanel', function($http, arb) {
 // arb-hedons-mode-page is for displaying the entire /achievements page
 app.directive('arbHedonsModePage', function($http, arb) {
 	return {
-		templateUrl: 'static/html/hedonsModePage.html',
+		templateUrl: versionUrl('static/html/hedonsModePage.html'),
 		scope: {
 		},
 		controller: function($scope) {

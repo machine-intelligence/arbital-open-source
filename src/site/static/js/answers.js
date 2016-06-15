@@ -3,7 +3,7 @@
 // Directive for the list of answers
 app.directive('arbAnswers', function($timeout, $http, $compile, arb) {
 	return {
-		templateUrl: 'static/html/answers.html',
+		templateUrl: versionUrl('static/html/answers.html'),
 		scope: {
 			pageId: '@',
 			// Variable that toggles whether to show the delete buttons

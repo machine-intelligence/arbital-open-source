@@ -3,7 +3,7 @@
 // arb-update-row is the directive for showing an update
 app.directive('arbUpdateRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/updates/updateRow.html',
+		templateUrl: versionUrl('static/html/rows/updates/updateRow.html'),
 		transclude: true,
 		scope: {
 			update: '=',
@@ -30,16 +30,16 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 	};
 };
 
-app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/atMentionUpdateRow.html'));
-app.directive('arbDeletedPageUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/deletedPageUpdateRow.html'));
-app.directive('arbPageToDomainSubmissionUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageToDomainSubmissionUpdateRow.html'));
-app.directive('arbPageToDomainAcceptedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageToDomainAcceptedUpdateRow.html'));
-app.directive('arbEditProposalAcceptedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/editProposalAcceptedUpdateRow.html'));
-app.directive('arbRelationshipUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/relationshipUpdateRow.html'));
-app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/resolvedThreadUpdateRow.html'));
-app.directive('arbSettingsUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/settingsUpdateRow.html'));
+app.directive('arbAtMentionUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/atMentionUpdateRow.html')));
+app.directive('arbDeletedPageUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/deletedPageUpdateRow.html')));
+app.directive('arbPageToDomainSubmissionUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/pageToDomainSubmissionUpdateRow.html')));
+app.directive('arbPageToDomainAcceptedUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/pageToDomainAcceptedUpdateRow.html')));
+app.directive('arbEditProposalAcceptedUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/editProposalAcceptedUpdateRow.html')));
+app.directive('arbRelationshipUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/relationshipUpdateRow.html')));
+app.directive('arbResolvedThreadUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/resolvedThreadUpdateRow.html')));
+app.directive('arbSettingsUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/settingsUpdateRow.html')));
 
-app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/pageEditUpdateRow.html',
+app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/pageEditUpdateRow.html'),
 	function($scope) {
 		$scope.approveProposal = function() {
 			$scope.arb.stateService.postDataWithoutProcessing('/json/approvePageEditProposal/', {
@@ -51,19 +51,19 @@ app.directive('arbPageEditUpdateRow', getUpdateRowDirectiveFunc('static/html/row
 	})
 );
 
-app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/commentUpdateRow.html',
+app.directive('arbCommentUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/commentUpdateRow.html'),
 	function($scope) {
 		$scope.comment = $scope.arb.stateService.pageMap[$scope.update.goToPageId];
 	})
 );
 
-app.directive('arbMarkUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/markUpdateRow.html',
+app.directive('arbMarkUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/markUpdateRow.html'),
 	function($scope) {
 		$scope.markType = $scope.arb.markService.markMap[$scope.update.markId].type;
 	})
 );
 
-app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc('static/html/rows/updates/questionMergedUpdateRow.html',
+app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc(versionUrl('static/html/rows/updates/questionMergedUpdateRow.html'),
 	function($scope) {
 		switch ($scope.update.type) {
 			case 'questionMerged':
@@ -79,7 +79,7 @@ app.directive('arbQuestionMergedUpdateRow', getUpdateRowDirectiveFunc('static/ht
 // arb-maintenance-update-row is the directive for showing a maintenance update
 app.directive('arbMaintenanceUpdateRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/updates/maintenanceUpdateRow.html',
+		templateUrl: versionUrl('static/html/rows/updates/maintenanceUpdateRow.html'),
 		scope: {
 			modeRow: '=',
 			onDismiss: '&',
@@ -96,7 +96,7 @@ app.directive('arbMaintenanceUpdateRow', function(arb) {
 // arb-likes-mode-row is the directive for showing who liked current user's stuff
 app.directive('arbLikesModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/likesModeRow.html',
+		templateUrl: versionUrl('static/html/rows/likesModeRow.html'),
 		scope: {
 			modeRow: '=',
 		},
@@ -113,7 +113,7 @@ app.directive('arbLikesModeRow', function(arb) {
 // arb-reqs-taught-mode-row is the directive for showing who learned current user's reqs
 app.directive('arbReqsTaughtModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/reqsTaughtModeRow.html',
+		templateUrl: versionUrl('static/html/rows/reqsTaughtModeRow.html'),
 		scope: {
 			modeRow: '=',
 		},
@@ -133,7 +133,7 @@ app.directive('arbReqsTaughtModeRow', function(arb) {
 // arb-added-to-group-mode-row is the directive for showing that the user was added to a group
 app.directive('arbAddedToGroupModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/addedToGroupModeRow.html',
+		templateUrl: versionUrl('static/html/rows/addedToGroupModeRow.html'),
 		scope: {
 			modeRow: '=',
 		},
@@ -150,7 +150,7 @@ app.directive('arbAddedToGroupModeRow', function(arb) {
 // arb-removed-from-group-mode-row is the directive for showing that the user was removed from a group
 app.directive('arbRemovedFromGroupModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/removedFromGroupModeRow.html',
+		templateUrl: versionUrl('static/html/rows/removedFromGroupModeRow.html'),
 		scope: {
 			modeRow: '=',
 		},
@@ -167,7 +167,7 @@ app.directive('arbRemovedFromGroupModeRow', function(arb) {
 // arb-invite-received-mode-row is the directive for showing that the user was invited to a domain
 app.directive('arbInviteReceivedModeRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/inviteReceivedModeRow.html',
+		templateUrl: versionUrl('static/html/rows/inviteReceivedModeRow.html'),
 		scope: {
 			modeRow: '=',
 		},

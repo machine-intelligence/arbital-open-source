@@ -3,7 +3,7 @@
 // Directive for the learn page.
 app.directive('arbLearnPage', function($location, $compile, arb) {
 	return {
-		templateUrl: 'static/html/learnPage.html',
+		templateUrl: versionUrl('static/html/learnPage.html'),
 		scope: {
 			pageIds: '=',
 			optionsMap: '=',
@@ -107,7 +107,7 @@ app.directive('arbLearnPage', function($location, $compile, arb) {
 // Directive for a recursive part of a learn.
 app.directive('arbLearnPart', function(arb, RecursionHelper) {
 	return {
-		templateUrl: 'static/html/learnPart.html',
+		templateUrl: versionUrl('static/html/learnPart.html'),
 		controller: function($scope) {
 			$scope.arb = arb;
 

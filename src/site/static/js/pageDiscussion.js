@@ -1,7 +1,7 @@
 // Directive to show the discussion section for a page
 app.directive('arbPageDiscussion', function($compile, $location, $timeout, arb) {
 	return {
-		templateUrl: 'static/html/pageDiscussion.html',
+		templateUrl: versionUrl('static/html/pageDiscussion.html'),
 		scope: {
 			pageId: '@',
 		},

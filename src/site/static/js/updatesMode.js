@@ -3,7 +3,7 @@
 // arb-updates-panel directive displays a list of new maintenance updates
 app.directive('arbUpdatesPanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/listPanel.html',
+		templateUrl: versionUrl('static/html/listPanel.html'),
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
@@ -80,7 +80,7 @@ app.directive('arbUpdatesPanel', function($http, arb) {
 // arb-bell-updates-page is for displaying the entire /notifications page
 app.directive('arbBellUpdatesPage', function($http, arb) {
 	return {
-		templateUrl: 'static/html/bellUpdatesPage.html',
+		templateUrl: versionUrl('static/html/bellUpdatesPage.html'),
 		scope: {
 		},
 		controller: function($scope) {
@@ -92,7 +92,7 @@ app.directive('arbBellUpdatesPage', function($http, arb) {
 // arb-maintenance-mode-page is for displaying the entire /maintain page
 app.directive('arbMaintenanceModePage', function($http, arb) {
 	return {
-		templateUrl: 'static/html/maintenanceModePage.html',
+		templateUrl: versionUrl('static/html/maintenanceModePage.html'),
 		scope: {
 		},
 		controller: function($scope) {
