@@ -3,7 +3,7 @@
 // userName directive displayes a user's name.
 app.directive('arbUserName', function(arb) {
 	return {
-		templateUrl: 'static/html/userName.html',
+		templateUrl: versionUrl('static/html/userName.html'),
 		scope: {
 			userId: '@',
 		},
@@ -17,7 +17,7 @@ app.directive('arbUserName', function(arb) {
 // directive for an expanded icon
 app.directive('arbExpandIcon', function(arb) {
 	return {
-		templateUrl: 'static/html/expandIcon.html',
+		templateUrl: versionUrl('static/html/expandIcon.html'),
 		scope: {
 			expanded: '=',
 		}
@@ -27,7 +27,7 @@ app.directive('arbExpandIcon', function(arb) {
 // directive for a sub-header in a list
 app.directive('arbListSubHeader', function(arb) {
 	return {
-		templateUrl: 'static/html/listSubHeader.html',
+		templateUrl: versionUrl('static/html/listSubHeader.html'),
 		transclude: true,
 	};
 });
@@ -35,7 +35,7 @@ app.directive('arbListSubHeader', function(arb) {
 // intrasitePopover contains the popover body html.
 app.directive('arbIntrasitePopover', function($timeout, arb) {
 	return {
-		templateUrl: 'static/html/intrasitePopover.html',
+		templateUrl: versionUrl('static/html/intrasitePopover.html'),
 		scope: {
 			pageId: '@',
 			direction: '@',
@@ -119,7 +119,7 @@ app.directive('arbIntrasitePopover', function($timeout, arb) {
 // userPopover contains the popover body html.
 app.directive('arbUserPopover', function($timeout, arb) {
 	return {
-		templateUrl: 'static/html/userPopover.html',
+		templateUrl: versionUrl('static/html/userPopover.html'),
 		scope: {
 			userId: '@',
 			direction: '@',
@@ -194,7 +194,7 @@ app.directive('arbUserPopover', function($timeout, arb) {
 // textPopover contains the popover body html.
 app.directive('arbTextPopover', function($compile, $timeout, arb) {
 	return {
-		templateUrl: 'static/html/textPopover.html',
+		templateUrl: versionUrl('static/html/textPopover.html'),
 		scope: {
 			encodedHtml: '@',
 			direction: '@',
@@ -231,7 +231,7 @@ app.directive('arbTextPopoverAnchor', function($timeout, arb) {
 // pageTitle displays page's title with optional meta info.
 app.directive('arbPageTitle', function(arb) {
 	return {
-		templateUrl: 'static/html/pageTitle.html',
+		templateUrl: versionUrl('static/html/pageTitle.html'),
 		scope: {
 			pageId: '@',
 			// Options override for the page's title
@@ -263,7 +263,7 @@ app.directive('arbPageTitle', function(arb) {
 // likes displays the likes button(s) for a page.
 app.directive('arbLikes', function($http, arb) {
 	return {
-		templateUrl: 'static/html/likes.html',
+		templateUrl: versionUrl('static/html/likes.html'),
 		scope: {
 			// The type of likeable, such as 'changeLog'.
 			likeableType: '@',
@@ -321,7 +321,7 @@ app.directive('arbLikes', function($http, arb) {
 // subscribe directive displays the button for subscribing to a page.
 app.directive('arbSubscribe', function($http, arb) {
 	return {
-		templateUrl: 'static/html/subscribe.html',
+		templateUrl: versionUrl('static/html/subscribe.html'),
 		scope: {
 			pageId: '@',
 			// If true, the button is not an icon button, but is a normal button with a label
@@ -363,7 +363,7 @@ app.directive('arbSubscribe', function($http, arb) {
 // composeFab is the FAB button in the bottom right corner used for creating new pages
 app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog, $rootScope, arb) {
 	return {
-		templateUrl: 'static/html/composeFab.html',
+		templateUrl: versionUrl('static/html/composeFab.html'),
 		scope: {
 		},
 		controller: function($scope) {
@@ -440,7 +440,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 			// New feedback button is clicked
 			$scope.newFeedback = function(event) {
 				$mdDialog.show({
-					templateUrl: 'static/html/feedbackDialog.html',
+					templateUrl: versionUrl('static/html/feedbackDialog.html'),
 					controller: 'FeedbackDialogController',
 					autoWrap: false,
 					targetEvent: event,
@@ -473,7 +473,7 @@ app.directive('arbComposeFab', function($location, $timeout, $mdMedia, $mdDialog
 // autocomplete searches for relevant pages as you do the search
 app.directive('arbAutocomplete', function($timeout, $q, arb) {
 	return {
-		templateUrl: 'static/html/autocomplete.html',
+		templateUrl: versionUrl('static/html/autocomplete.html'),
 		scope: {
 			// If true, the input will start out focused
 			doAutofocus: '=',
@@ -536,7 +536,7 @@ app.directive('arbAutocomplete', function($timeout, $q, arb) {
 // confirmButton is a button that ask for a confirmation when you press it
 app.directive('arbConfirmButton', function(arb) {
 	return {
-		templateUrl: 'static/html/confirmButton.html',
+		templateUrl: versionUrl('static/html/confirmButton.html'),
 		scope: {
 			buttonText: '@',
 			buttonBeforeConfirm: '@',
@@ -559,7 +559,7 @@ app.directive('arbConfirmButton', function(arb) {
 // Directive for the User page panel
 app.directive('arbPageList', function(arb) {
 	return {
-		templateUrl: 'static/html/pageList.html',
+		templateUrl: versionUrl('static/html/pageList.html'),
 		scope: {
 			pageIds: '=',
 			panelTitle: '@',
@@ -586,7 +586,7 @@ app.directive('arbPageList', function(arb) {
 // Exists to share the template for a row in a md-list of pages
 app.directive('arbPageRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/pageRow.html',
+		templateUrl: versionUrl('static/html/rows/pageRow.html'),
 		replace: true,
 		scope: {
 			pageId: '@',
@@ -648,7 +648,7 @@ app.directive('arbUserCheck', function($compile, $mdToast, arb) {
 // Directive for a button to toggle requisite state
 app.directive('arbRequisiteButton', function(arb) {
 	return {
-		templateUrl: 'static/html/requisiteButton.html',
+		templateUrl: versionUrl('static/html/requisiteButton.html'),
 		scope: {
 			requisiteId: '@',
 			// If true, don't show the checkbox
@@ -689,7 +689,7 @@ app.directive('arbRequisiteButton', function(arb) {
 // Directive for displaying next/prev buttons when learning.
 app.directive('arbNextPrev', function($location, arb) {
 	return {
-		templateUrl: 'static/html/nextPrev.html',
+		templateUrl: versionUrl('static/html/nextPrev.html'),
 		scope: {
 			pageId: '@',
 			// If true, show the expanded version of this directive
@@ -710,14 +710,14 @@ app.directive('arbNextPrev', function($location, arb) {
 // Directive for displaying individual changes in the changelog tab on the edit page.
 app.directive('arbChangeLogEntry', function() {
 	return {
-		templateUrl: 'static/html/changeLogEntry.html',
+		templateUrl: versionUrl('static/html/changeLogEntry.html'),
 	};
 });
 
 // Row to show in the changelog tab
 app.directive('arbChangeLogRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/changeLogRow.html',
+		templateUrl: versionUrl('static/html/rows/changeLogRow.html'),
 		scope: {
 			changeLog: '=',
 			pageId: '@',

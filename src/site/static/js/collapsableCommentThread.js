@@ -3,7 +3,7 @@
 // Directive for showing a comment thread that's collapsed behind a button
 app.directive('arbCollapsableCommentThread', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, arb, RecursionHelper) {
 	return {
-		templateUrl: 'static/html/collapsableCommentThread.html',
+		templateUrl: versionUrl('static/html/collapsableCommentThread.html'),
 		scope: {
 			commentId: '@',
 		},

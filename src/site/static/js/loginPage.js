@@ -3,7 +3,7 @@
 // Directive for the Login page.
 app.directive('arbLogin', function($location, $http, arb) {
 	return {
-		templateUrl: 'static/html/loginPage.html',
+		templateUrl: versionUrl('static/html/loginPage.html'),
 		scope: {
 			// True if the login is embe
 			isEmbedded: '=',

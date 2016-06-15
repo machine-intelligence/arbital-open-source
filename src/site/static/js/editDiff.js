@@ -3,7 +3,7 @@
 // Directive for showing a diff for a newEdit changeLog.
 app.directive('arbEditDiff', function($compile, $location, $rootScope, arb) {
 	return {
-		templateUrl: 'static/html/editDiff.html',
+		templateUrl: versionUrl('static/html/editDiff.html'),
 		scope: {
 			changeLog: '=',
 		},

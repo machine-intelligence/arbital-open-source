@@ -3,7 +3,7 @@
 // Directive for listing masteries and allowing the user to claim them.
 app.directive('arbMasteryList', function($timeout, $http, arb) {
 	return {
-		templateUrl: 'static/html/masteryList.html',
+		templateUrl: versionUrl('static/html/masteryList.html'),
 		scope: {
 			idsSource: '=',
 			// If true, don't show the checkboxes

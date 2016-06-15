@@ -3,7 +3,7 @@
 // arb-read-mode-page hosts the arb-read-mode-panel
 app.directive('arbReadModePage', function($http, arb) {
 	return {
-		templateUrl: 'static/html/readModePage.html',
+		templateUrl: versionUrl('static/html/readModePage.html'),
 		scope: {
 		},
 		controller: function($scope) {
@@ -15,7 +15,7 @@ app.directive('arbReadModePage', function($http, arb) {
 // arb-read-mode-panel directive displays a list of things to read in a panel
 app.directive('arbReadModePanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/listPanel.html',
+		templateUrl: versionUrl('static/html/listPanel.html'),
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',

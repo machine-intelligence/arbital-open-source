@@ -3,7 +3,7 @@
 // Directive for the Settings page.
 app.directive('arbSettingsInviteTab', function($http, $filter, arb) {
 	return {
-		templateUrl: 'static/html/settingsInviteTab.html',
+		templateUrl: versionUrl('static/html/settingsInviteTab.html'),
 		scope: {
 			domains: '=',
 			invitesSent: '=',

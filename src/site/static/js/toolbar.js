@@ -4,7 +4,7 @@
 app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $compile, $rootScope, $timeout,
 		$q, $mdMedia, arb) {
 	return {
-		templateUrl: 'static/html/toolbar.html',
+		templateUrl: versionUrl('static/html/toolbar.html'),
 		scope: {
 			loadingBarValue: '=',
 			currentUrl: '=',

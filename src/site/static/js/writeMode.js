@@ -4,7 +4,7 @@
 // to continue writing, like their drafts or stubs
 app.directive('arbContinueWritingModePanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/listPanel.html',
+		templateUrl: versionUrl('static/html/listPanel.html'),
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
@@ -26,7 +26,7 @@ app.directive('arbContinueWritingModePanel', function($http, arb) {
 // to contribute new content, like redlinks and requests
 app.directive('arbWriteNewModePanel', function($http, arb) {
 	return {
-		templateUrl: 'static/html/writeNewPanel.html',
+		templateUrl: versionUrl('static/html/writeNewPanel.html'),
 		scope: {
 			numToDisplay: '=',
 			isFullPage: '=',
@@ -96,7 +96,7 @@ app.directive('arbEditProposalRow', function(arb) {
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbDraftRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/draftRow.html',
+		templateUrl: versionUrl('static/html/rows/draftRow.html'),
 		scope: {
 			modeRow: '=',
 		},
@@ -106,7 +106,7 @@ app.directive('arbDraftRow', function(arb) {
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbTaggedForEditRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/taggedForEditRow.html',
+		templateUrl: versionUrl('static/html/rows/taggedForEditRow.html'),
 		scope: {
 			modeRow: '=',
 		},
@@ -116,7 +116,7 @@ app.directive('arbTaggedForEditRow', function(arb) {
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbExplanationRequestRow', function(arb) {
 	return {
-		templateUrl: 'static/html/rows/explanationRequestRow.html',
+		templateUrl: versionUrl('static/html/rows/explanationRequestRow.html'),
 		scope: {
 			alias: '@',
 			refCount: '@',

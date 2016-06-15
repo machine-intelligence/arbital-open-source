@@ -3,7 +3,7 @@
 // Directive for the Groups page.
 app.directive('arbGroupsPage', function($timeout, $http, arb) {
 	return {
-		templateUrl: 'static/html/groupsPage.html',
+		templateUrl: versionUrl('static/html/groupsPage.html'),
 		scope: {
 		},
 		controller: function($scope) {

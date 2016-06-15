@@ -3,7 +3,7 @@
 // Directive for editing the parents, tags, requirements, or subjects.
 app.directive('arbRelationships', function($q, $timeout, $interval, $http, arb) {
 	return {
-		templateUrl: 'static/html/relationships.html',
+		templateUrl: versionUrl('static/html/relationships.html'),
 		scope: {
 			pageId: '@',
 			type: '@',

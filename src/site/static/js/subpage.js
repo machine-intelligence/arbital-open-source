@@ -3,7 +3,7 @@
 // Directive for showing a subpage.
 app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $mdMedia, $anchorScroll, arb, RecursionHelper) {
 	return {
-		templateUrl: 'static/html/subpage.html',
+		templateUrl: versionUrl('static/html/subpage.html'),
 		scope: {
 			pageId: '@',  // id of this subpage
 			lensId: '@',  // id of the lens this subpage belongs to
@@ -20,7 +20,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 
 			// Check if the user has the permissions to reply to this comment. Permission
 			// can come from the comment or the lens
-			var canReply = function() {
+			$scope.canReply = function() {
 				return $scope.page.permissions.comment.has || $scope.lens.permissions.comment.has;
 			};
 
@@ -137,7 +137,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 // Directive for container holding an inline comment
 app.directive('arbInlineComment', function($compile, $timeout, $location, $mdToast, arb, RecursionHelper) {
 	return {
-		templateUrl: 'static/html/inlineComment.html',
+		templateUrl: versionUrl('static/html/inlineComment.html'),
 		scope: {
 			commentId: '@',
 			lensId: '@',  // id of the lens this comment belongs to

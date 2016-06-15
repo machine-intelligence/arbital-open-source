@@ -3,7 +3,7 @@
 // Directive for a checkbox
 app.directive('arbCheckbox', function($timeout, $http, $compile, arb) {
 	return {
-		templateUrl: 'static/html/checkbox.html',
+		templateUrl: versionUrl('static/html/checkbox.html'),
 		transclude: true,
 		scope: {
 			index: '@',
