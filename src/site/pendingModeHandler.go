@@ -1,4 +1,5 @@
-// Provide data for "pending" mode.
+// Provide data for "pending" mode, like what pages have been submitted to a domain or
+// what edits have be proposed but not approved yet.
 package site
 
 import (

@@ -965,7 +965,7 @@ func LoadLinkedMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 
 type ProcessChangeLogCallback func(db *database.DB, changeLog *ChangeLog) error
 
-// LoadChangeLogs loads the edit history for the given page.
+// LoadChangeLogs loads the change logs matching the given condition.
 func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, callback ProcessChangeLogCallback) error {
 	rows := database.NewQuery(`
 			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
@@ -985,7 +985,7 @@ func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, callback Pro
 	return nil
 }
 
-// LoadChangeLogsForPages loads the edit history for the given page.
+// LoadChangeLogsForPages loads the edit history for the given pages.
 func LoadChangeLogsForPages(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
 	sourcePageMap := options.ForPages
 	for _, p := range sourcePageMap {
