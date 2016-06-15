@@ -18,6 +18,12 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			$scope.isCollapsed = false;
 			$scope.isTinyScreen = !$mdMedia('gt-xs');
 
+			// Check if the user has the permissions to reply to this comment. Permission
+			// can come from the comment or the lens
+			var canReply = function() {
+				return $scope.page.permissions.comment.has || $scope.lens.permissions.comment.has;
+			};
+
 			// TODO: This should be refactored into getPageUrl
 			var url = arb.urlService.getPageUrl($scope.lensId);
 			var hashIndex = url.indexOf('#');

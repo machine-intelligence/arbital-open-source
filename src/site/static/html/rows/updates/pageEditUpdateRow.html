@@ -8,6 +8,7 @@
 		<span ng-if="update.changeLog.type === 'newEditProposal'">
 			has a pending edit proposal from
 		</span>
+		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 	</div>
 
 	<md-button ng-click="approveProposal()"

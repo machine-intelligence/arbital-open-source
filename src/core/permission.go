@@ -57,15 +57,16 @@ func (p *Page) computeEditPermissions(c sessions.Context, u *CurrentUser) {
 		}
 	}()
 
-	// Check the page isn't locked by someone else
 	if p.LockedUntil > database.Now() && p.LockedBy != u.Id {
 		p.Permissions.Edit.Reason = "Can't change locked page"
 		return
 	}
+
 	if IsIdValid(p.SeeGroupId) && !u.IsMemberOfGroup(p.SeeGroupId) {
 		p.Permissions.Edit.Reason = "You don't have group permission to EVEN SEE this page"
 		return
 	}
+
 	if IsIdValid(p.EditGroupId) && !u.IsMemberOfGroup(p.EditGroupId) {
 		p.Permissions.Edit.Reason = "You don't have group permission to edit this page, but you can propose edits"
 		p.Permissions.ProposeEdit.Has = true

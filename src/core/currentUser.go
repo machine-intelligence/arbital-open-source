@@ -161,6 +161,27 @@ func SaveCookie(w http.ResponseWriter, r *http.Request, email string) (string, e
 	return sessionId, nil
 }
 
+// Load user by id. If u object is given, load data into it. Otherwise create a new user object.
+func LoadCurrentUserFromDb(db *database.DB, userId string, u *CurrentUser) (*CurrentUser, error) {
+	if u == nil {
+		u = NewCurrentUser()
+	}
+	row := db.NewStatement(`
+		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
+		FROM users
+		WHERE id=?`).QueryRow(userId)
+	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
+		&u.ShowAdvancedEditorMode)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load user: %v", err)
+	} else if !exists {
+		return nil, fmt.Errorf("Couldn't find the user")
+	}
+	return u, nil
+}
+
 // loadUserFromDb tries to load the current user's info from the database. If
 // there is no data in the DB, but the user is logged in through AppEngine,
 // a new record is created.
@@ -185,18 +206,29 @@ func loadUserFromDb(w http.ResponseWriter, r *http.Request, db *database.DB) (*C
 		return u, err
 	}
 
+	var pretendToBeUserId string
 	row := db.NewStatement(`
-		SELECT id,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
+		SELECT id,pretendToBeUserId,fbUserId,email,firstName,lastName,isAdmin,isTrusted,
 			emailFrequency,emailThreshold,ignoreMathjax,showAdvancedEditorMode
 		FROM users
 		WHERE email=?`).QueryRow(cookie.Email)
-	exists, err := row.Scan(&u.Id, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
+	exists, err := row.Scan(&u.Id, &pretendToBeUserId, &u.FbUserId, &u.Email, &u.FirstName, &u.LastName,
 		&u.IsAdmin, &u.IsTrusted, &u.EmailFrequency, &u.EmailThreshold, &u.IgnoreMathjax,
 		&u.ShowAdvancedEditorMode)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve a user: %v", err)
 	} else if !exists {
 		return nil, fmt.Errorf("Couldn't find that email in DB")
+	}
+
+	// Admins can pretened to be certain users
+	if u.IsAdmin && pretendToBeUserId != "" {
+		u, err = LoadCurrentUserFromDb(db, pretendToBeUserId, u)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't pretend to be a user: %v", err)
+		} else if u == nil {
+			return nil, fmt.Errorf("Couldn't find user we are pretending to be")
+		}
 	}
 
 	if err := LoadUserGroupIds(db, u); err != nil {

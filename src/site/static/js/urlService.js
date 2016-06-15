@@ -48,21 +48,24 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	};
 
 	// Return the top level domain.
-	this.getTopLevelDomain = function() {
+	this.getTopLevelDomain = function(withHttpPrefix) {
 		if (isLive()) {
-			return 'arbital.com';
-		} else {
-			return 'localhost:8012';
+			var domain = 'arbital.com';
+			if (withHttpPrefix) return 'https://' + domain;
+			return domain;
 		}
+		var domain = 'localhost:8012';
+			if (withHttpPrefix) return 'http://' + domain;
+			return domain;
 	};
 
 	// Get a domain url (with optional subdomain)
 	this.getDomainUrl = function(subdomain) {
-		if (subdomain) {
-			subdomain += '.';
-		} else {
-			subdomain = '';
+		if (subdomain === undefined) {
+			// Use current domain
+			return that.getCurrentDomainUrl(true);
 		}
+		if (subdomain !== '') subdomain += '.';
 		subdomain = subdomain.toLowerCase();
 		if (isLive()) {
 			return 'https://' + subdomain + this.getTopLevelDomain();
@@ -185,8 +188,9 @@ app.service('urlService', function($http, $location, $rootScope, stateService) {
 	this.getEditPageUrl = function(pageId, options) {
 		options = options || {};
 		var url = '';
-		if (pageId in stateService.pageMap) {
-			url = that.getBaseUrl('edit', pageId, stateService.pageMap[pageId].alias);
+		var page = stateService.pageMap[pageId];
+		if (page) {
+			url = that.getBaseUrl('edit', pageId, page.alias);
 		} else {
 			url = '/edit/' + pageId + '/';
 		}
