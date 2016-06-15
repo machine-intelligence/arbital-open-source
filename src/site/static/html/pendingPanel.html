@@ -10,6 +10,9 @@
 					class="panel-list-item"></md-list-item>
 			<md-divider ng-if="::!$last"></md-divider>
 		</div>
+		<div class="md-caption" layout-padding ng-if="pageToDomainSubmissionRows.length <= 0">
+			None
+		</div>
 	</md-list>
 
 	<arb-list-sub-header>
@@ -22,6 +25,9 @@
 					change-log="::changeLog"
 					class="panel-list-item"></md-list-item>
 			<md-divider ng-if="::!$last"></md-divider>
+		</div>
+		<div class="md-caption" layout-padding ng-if="editProposalRows.length <= 0">
+			None
 		</div>
 	</md-list>
 </div>
