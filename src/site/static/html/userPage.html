@@ -1,25 +1,25 @@
 <div layout="column" class="capped-body-width">
 	<arb-primary-page class="reveal-after-render" no-footer="::true"></arb-primary-page>
 
-    <!-- User page specific-->
-    <div arb-page-list panel-title="Recently created comments"
+	<!-- User page specific-->
+	<div arb-page-list panel-title="Recently created comments"
 				show-created-at="true"
 				page-ids="::userPageData.recentlyCreatedCommentIds"
 				ng-if="::userId"></div>
-    <div arb-page-list panel-title="Recently created pages"
+	<div arb-page-list panel-title="Recently created pages"
 				show-created-at="true"
 				show-red-link-count="::(userId === arb.userService.user.id)"
 				show-text-length="::(userId === arb.userService.user.id)"
 				page-ids="::userPageData.recentlyCreatedIds"
 				ng-if="::userId"></div>
-    <div arb-page-list panel-title="Recently edited"
+	<div arb-page-list panel-title="Recently edited"
 				show-last-edit="true"
 				show-red-link-count="::(userId === arb.userService.user.id)"
 				show-text-length="::(userId === arb.userService.user.id)"
 				show-quick-edit-link="true"
 				page-ids="::userPageData.recentlyEditedIds"
 				ng-if="::userId"></div>
-    <div arb-page-list panel-title="Top pages"
+	<div arb-page-list panel-title="Top pages"
 				show-created-at="true"
 				page-ids="::userPageData.topPagesIds"
 				ng-if="::userId"></div>
