@@ -11,7 +11,7 @@
 		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
 	</div>
 
-	<md-button ng-click="approveProposal()"
+	<md-button ng-click="arb.pageService.approveEditProposal(update.changeLog)"
 			ng-if="update.changeLog.type == 'newEditProposal'">Approve</md-button>
 
 	<arb-edit-diff change-log="::update.changeLog"></arb-edit-diff>

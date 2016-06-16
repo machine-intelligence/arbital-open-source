@@ -726,15 +726,6 @@ app.directive('arbChangeLogRow', function(arb) {
 			$scope.arb = arb;
 			$scope.byUserId = $scope.changeLog.userId;
 			$scope.auxPageId = $scope.changeLog.auxPageId;
-
-			$scope.approveProposal = function() {
-				$scope.arb.stateService.postDataWithoutProcessing('/json/approvePageEditProposal/', {
-					changeLogId: $scope.changeLog.id,
-				}, function(data) {
-					arb.popupService.showToast({text: 'Change accepted'});
-					location.reload();
-				});
-			};
 		},
 	};
 });
