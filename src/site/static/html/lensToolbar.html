@@ -1,14 +1,13 @@
 <!-- Lens menu -->
-<div layout="row"
-		layout-align="start center"
+<div class="lens-menu"
+		layout="row"
+		layout-align="end center"
 		layout-padding>
-	<div flex></div>
-
 	<!-- Like -->
 	<arb-likes class="no-right-margin"
 			likeable-type="page"
 			likeable-id="{{::pageId}}"
-			is-stretched="true"
+			is-stretched="!isTinyScreen"
 			is-button="true"></arb-likes>
 
 	<!-- Subscribe -->

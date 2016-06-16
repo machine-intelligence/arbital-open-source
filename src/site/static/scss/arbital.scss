@@ -583,12 +583,17 @@ arb-requisite-button, [arb-requisite-button] {
 	}
 }
 
-// Menu for a lens (with like, subscribe, edit, etc. buttons)
+.lens-menu {
+	arb-likes {
+		margin: 0;
+	}
+}
+
 .lens-menu-floating {
     position: fixed;
     bottom: 0;
     background: white;
-    width: 1100px;
+	width: inherit;
     left: 50%;
     transform: translateX(-50%);
     -webkit-transition: .3s linear;
@@ -800,8 +805,8 @@ $triangle-size: 15px;
 // Compose fab that appears in the bottom right corner
 arb-compose-fab {
 	position: fixed;
-	right: -11px;
-    bottom: -10px;
+	right: -14px;
+    bottom: -18px;
 	z-index: $composeFabZ;
 }
 

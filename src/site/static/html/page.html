@@ -92,7 +92,8 @@
 					</div>
 
 					<!-- Parents and tags -->
-					<div layout="row"
+					<div layout="column"
+							layout-gt-sm="row"
 							layout-align="start center"
 							layout-padding>
 						<!-- Parents -->
@@ -106,9 +107,14 @@
 						</div>
 
 						<!-- Tags -->
-						<span class="md-caption" ng-if="page.taggedAsIds.length > 0" layout-padding>
-							<span><arb-tag ng-repeat="tag in page.taggedAsIds" tag-id="{{tag}}"></arb-tag></span>
-						</span>
+						<div class="page-list-span"
+				 				ng-if="page.taggedAsIds.length > 0 && !isSimpleEmbed">
+				 			<span>Tagged as:</span>
+				 			<span ng-repeat="(index, tagId) in page.taggedAsIds">
+				 				<span class="comma" ng-if="::(index > 0)">,</span>
+				 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
+				 			</span>
+				 		</div>
 					</div>
 				</div>
 

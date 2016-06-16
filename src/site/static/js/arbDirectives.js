@@ -744,15 +744,20 @@ app.directive('arbChangeLogRow', function(arb) {
 app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil) {
 	return {
 		templateUrl: versionUrl('static/html/lensToolbarWrapper.html'),
-		scope: {
-			pageId: '@'
-		},
+		scope: false,
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.page = arb.stateService.pageMap[$scope.pageId];
 
 			var staticBar = angular.element('#static-toolbar');
 			var floaterBar = angular.element('#floater-toolbar');
+
+			// Set the floater bar width to match the static bar
+			floaterBar.css('width', staticBar.css('width'));
+			angular.element($window).bind('resize', function() {
+				floaterBar.css('width', staticBar.css('width'));
+			});
+
 			var prevWindowY; // Used to tell if we're scrolling up or down
 			var translateY = angular.bind(null, $mdUtil.supplant, 'translate3d(0,{0}px,0)');
 
