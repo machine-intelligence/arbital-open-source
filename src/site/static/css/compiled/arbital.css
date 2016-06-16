@@ -1008,6 +1008,11 @@ textarea {
 .editor-tab {
   padding: 10px 20px 0px 20px; }
 
+.publishing-options-panel {
+  padding: 10px 20px 0px 20px;
+  background-color: white;
+  border-top: #00796B 5px solid; }
+
 .selected-subpage > .comment-header {
   background-color: #FFCCBC;
   border: #FF5722 1px solid; }

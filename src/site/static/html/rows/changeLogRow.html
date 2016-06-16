@@ -158,12 +158,13 @@
 		</span>
 
 		<span ng-switch-when="newEdit">
-			New edit #{{::changeLog.edit}}
+			<!-- in this case, newSettingsValue will be the edit summary -->
+			New edit #{{::changeLog.edit + (changeLog.newSettingsValue ? ':' : '')}} <i>{{::changeLog.newSettingsValue}}</i>
 		</span>
 
 		<span ng-switch-when="newEditProposal">
 			New edit proposal (#{{::changeLog.edit}})
-			<md-button ng-click="approveProposal()">Approve</md-button>
+			<md-button ng-click="arb.pageService.approveEditProposal(changeLog)">Approve</md-button>
 		</span>
 
 		<span ng-switch-when="revertEdit">
@@ -187,7 +188,7 @@
 		<!-- Link to the user who performed the action (if we haven't already) -->
 		<arb-user-name user-id="{{::byUserId}}" ng-if="::!!byUserId"></arb-user-name>
 		&nbsp; &nbsp;
-		<span class="md-caption nowrap" ng-bind="::(changeLog.createdAt | relativeDateTime)"></span>
+		<span class="md-caption nowrap" ng-bind="::(changeLog.createdAt | smartDateTime)"></span>
 	</div>
 
 </div>

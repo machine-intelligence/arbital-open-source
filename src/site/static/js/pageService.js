@@ -552,7 +552,17 @@ app.service('pageService', function($http, $compile, $location, $mdToast, $rootS
 		}, errorFn);
 	};
 
+	// Approve the edit proposal associated with the given changelog
+	this.approveEditProposal = function(changeLog) {
+		stateService.postDataWithoutProcessing('/json/approvePageEditProposal/', {
+			changeLogId: changeLog.id,
+		}, function(data) {
+			changeLog.type = 'newEdit';
+		});
+	};
+
 	// Look up the long version of a domain's name from id
+	// TODO: get rid of this, since we don't have "General" domain any more
 	this.getDomainName = function(domainId) {
 		if (domainId === '') {
 			return 'General';

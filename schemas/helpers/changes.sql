@@ -42,3 +42,5 @@ create index userId on updates (userId);
 delete from updates where type="inviteReceived" and goToPageId="";
 
 alter table users add column pretendToBeUserId VARCHAR(32) NOT NULL;
+
+alter table pages add column editSummary VARCHAR(512) NOT NULL after isMinorEdit;

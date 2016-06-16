@@ -44,6 +44,62 @@ app.directive('arbWriteNewModePanel', function($http, arb) {
 	};
 });
 
+// arb-pending-mode-panel displays a list of edits and pages that are pending approval.
+app.directive('arbPendingModePanel', function($http, arb) {
+	return {
+		templateUrl: 'static/html/pendingPanel.html',
+		scope: {
+			numToDisplay: '=',
+			isFullPage: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+
+			arb.stateService.postData('/json/pending/', {
+					numPagesToLoad: $scope.numToDisplay,
+				},
+				function(data) {
+					$scope.pageToDomainSubmissionRows = data.result.pageToDomainSubmissionRows;
+					$scope.editProposalRows = data.result.editProposalRows;
+				});
+		},
+	};
+});
+
+// arb-page-to-domain-submission-row is the directive for showing a page a user submitted to a domain
+app.directive('arbPageToDomainSubmissionRow', function(arb) {
+	return {
+		templateUrl: 'static/html/rows/pageToDomainSubmissionRow.html',
+		scope: {
+			submission: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.page = arb.stateService.pageMap[$scope.submission.pageId];
+		},
+	};
+});
+
+// arb-edit-proposal-row is the directive for showing a page a user submitted to a domain
+app.directive('arbEditProposalRow', function(arb) {
+	return {
+		templateUrl: 'static/html/rows/editProposalRow.html',
+		scope: {
+			changeLog: '=',
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
+			// Check if the edit was proposed for a version that's no longer live
+			$scope.page = arb.stateService.pageMap[$scope.changeLog.pageId];
+			$scope.isObsolete = $scope.page.currentEdit != $scope.page.editHistory[$scope.changeLog.edit].prevEdit;
+
+			$scope.showApprove = function() {
+				return $scope.changeLog.type == 'newEditProposal' && !$scope.isObsolete && $scope.page.permissions.edit.has;
+			};
+		},
+	};
+});
+
 // arb-draft-mode-row is the directive for showing a user's draft
 app.directive('arbDraftRow', function(arb) {
 	return {

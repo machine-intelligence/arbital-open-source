@@ -45,7 +45,7 @@ func newPageToDomainSubmissionHandlerFunc(params *pages.HandlerParams) *pages.Re
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 
-		// Create new invite
+		// Create new submission
 		hashmap := make(map[string]interface{})
 		hashmap["pageId"] = data.PageId
 		hashmap["domainId"] = data.DomainId

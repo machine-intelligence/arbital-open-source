@@ -144,6 +144,10 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			$scope.forceExpandSimilarPagesCount = 10;
 			$scope.isNormalEdit = !($scope.page.isSnapshot || $scope.page.isAutosave);
 
+			// if this is a work in progress, load the saved edit summary, otherwise edit summary should be blank
+			// (that is, do *not* load the edit summary for the previous edit that we're working off of)
+			$scope.page.newEditSummary = $scope.isNormalEdit ? "" : $scope.page.editSummary;
+
 			// Set up page types.
 			if ($scope.page.isComment()) {
 				$scope.pageTypes = {comment: 'Comment'};
@@ -246,7 +250,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if (!$scope.page.permissions.proposeEdit.has) {
+			if (!$scope.page.permissions.proposeEdit.has && !$scope.page.permissions.edit.has) {
 				$scope.addMessage('editLevel', $scope.page.permissions.proposeEdit.reason, 'error', true);
 			} else if (!$scope.page.permissions.edit.has) {
 				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'warning');
@@ -257,11 +261,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			}
 			if ($scope.page.wasPublished && $scope.page.isAutosave) {
 				$scope.addMessage('nonLiveEdit', 'Loaded an autosave which was last updated ' +
-					$filter('relativeDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
+					$filter('smartDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			if ($scope.page.wasPublished && $scope.page.isSnapshot) {
 				$scope.addMessage('nonLiveEdit', 'Loaded a snapshot which was last updated ' +
-					$filter('relativeDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
+					$filter('smartDateTime')(arb.stateService.primaryPage.editCreatedAt), 'warning');
 			}
 			// Check if we loaded a live edit, but the user has a draft
 			if ($scope.page.wasPublished && $scope.page.hasDraft && $scope.isNormalEdit) {
@@ -307,6 +311,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					clickbait: $scope.page.clickbait,
 					text: $scope.page.text,
 					snapshotText: $scope.page.snapshotText,
+					editSummary: $scope.page.newEditSummary,
 				};
 				if ($scope.page.isQuestion()) {
 					data.text = data.text.length > $scope.maxQuestionTextLength ? data.text.slice(-$scope.maxQuestionTextLength) : data.text;
@@ -593,6 +598,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				var originalPageInfo = arb.stateService.pageMap[$scope.pageId].getPageInfo();
 				var newPageInfo = $scope.page.getPageInfo();
 				return !angular.equals(originalPageInfo, newPageInfo);
+			};
+
+			$scope.showPublishingOptionsPanel = false;
+			$scope.togglePublishingOptionsPanel = function() {
+				$scope.showPublishingOptionsPanel = !$scope.showPublishingOptionsPanel;
 			};
 		},
 		link: function(scope, element, attrs) {

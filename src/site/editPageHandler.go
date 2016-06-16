@@ -25,6 +25,7 @@ type editPageData struct {
 	Text                     string
 	MetaText                 string
 	IsMinorEditStr           string
+	EditSummary              string
 	IsAutosave               bool
 	IsSnapshot               bool
 	SnapshotText             string
@@ -140,7 +141,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Error checking.
 	// Make sure the user has the right permissions to edit this page
-	if !oldPage.Permissions.ProposeEdit.Has {
+	if !oldPage.Permissions.ProposeEdit.Has && !oldPage.Permissions.Edit.Has {
 		return pages.Fail("Can't edit: "+oldPage.Permissions.ProposeEdit.Reason, nil).Status(http.StatusBadRequest)
 	} else if !oldPage.Permissions.Edit.Has || data.IsProposal {
 		isNewCurrentEdit = false
@@ -274,6 +275,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 		hashmap["isLiveEdit"] = isNewCurrentEdit
 		hashmap["isMinorEdit"] = isMinorEdit
+		hashmap["editSummary"] = data.EditSummary
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
 		hashmap["snapshotText"] = data.SnapshotText
@@ -382,14 +384,17 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["createdAt"] = database.Now()
 		if oldPage.IsDeleted {
 			hashmap["type"] = core.UndeletePageChangeLog
+			hashmap["newSettingsValue"] = data.EditSummary
 		} else if data.RevertToEdit != 0 {
 			hashmap["type"] = core.RevertEditChangeLog
 		} else if data.IsSnapshot {
 			hashmap["type"] = core.NewSnapshotChangeLog
 		} else if isNewCurrentEdit {
 			hashmap["type"] = core.NewEditChangeLog
+			hashmap["newSettingsValue"] = data.EditSummary
 		} else if isPublicEdit {
 			hashmap["type"] = core.NewEditProposalChangeLog
+			hashmap["newSettingsValue"] = data.EditSummary
 		} else {
 			createEditChangeLog = false
 		}

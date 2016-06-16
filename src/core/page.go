@@ -97,6 +97,7 @@ type corePageData struct {
 	// Any time we load a page, you can at least expect all this data.
 	PageId                   string `json:"pageId"`
 	Edit                     int    `json:"edit"`
+	EditSummary              string `json:"editSummary"`
 	PrevEdit                 int    `json:"prevEdit"`
 	CurrentEdit              int    `json:"currentEdit"`
 	WasPublished             bool   `json:"wasPublished"`
@@ -207,6 +208,9 @@ type Page struct {
 	// List of user ids who liked this page
 	IndividualLikes []string `json:"individualLikes"`
 
+	// Edit history for when we need to know which edits are based on which edits (key is 'edit' number)
+	EditHistory map[string]*EditInfo `json:"editHistory"`
+
 	// All domains this page has been submitted to (map key: domainId)
 	DomainSubmissions map[string]*PageToDomainSubmission `json:"domainSubmissions"`
 
@@ -257,6 +261,7 @@ func NewPage(pageId string) *Page {
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
 	p.Members = make(map[string]*Member)
+	p.EditHistory = make(map[string]*EditInfo)
 
 	// NOTE: we want permissions to be explicitly null so that if someone refers to them
 	// they get an error. The permissions are only set when they are also fully computed.
@@ -277,6 +282,12 @@ type ChangeLog struct {
 	NewSettingsValue string `json:"newSettingsValue"`
 	MyLikeValue      int    `json:"myLikeValue"`
 	LikeCount        int    `json:"likeCount"`
+}
+
+// Concise information about a particular edit
+type EditInfo struct {
+	Edit     int `json:"edit"`
+	PrevEdit int `json:"prevEdit"`
 }
 
 // Mastery is a page you should have mastered before you can understand another page.
@@ -512,9 +523,11 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load domains the pages have been submitted to
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.SubmittedTo })
-	err = LoadPageToDomainSubmissions(db, filteredPageMap, userMap)
+	err = LoadPageToDomainSubmissionsForPages(db, pageMap, userMap, &LoadDataOptions{
+		ForPages: filteredPageMap,
+	})
 	if err != nil {
-		return fmt.Errorf("LoadPageToDomainSubmissions failed: %v", err)
+		return fmt.Errorf("LoadPageToDomainSubmissionsForPages failed: %v", err)
 	}
 
 	// Load answers
@@ -593,11 +606,11 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load change logs
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ChangeLogs })
-	err = LoadChangeLogs(db, u.Id, pageMap, userMap, &LoadDataOptions{
+	err = LoadChangeLogsForPages(db, u.Id, pageMap, userMap, &LoadDataOptions{
 		ForPages: filteredPageMap,
 	})
 	if err != nil {
-		return fmt.Errorf("LoadChangeLogs failed: %v", err)
+		return fmt.Errorf("LoadChangeLogsForPages failed: %v", err)
 	}
 
 	// Load search strings
@@ -694,6 +707,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 	})
 	if err != nil {
 		return fmt.Errorf("LoadCreatorIds failed: %v", err)
+	}
+
+	// Load pages' edit history
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.EditHistory })
+	err = LoadEditHistory(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadEditHistory failed: %v", err)
 	}
 
 	// Add other pages we'll need
@@ -880,8 +900,9 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
-			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,pi.isRequisite,pi.indirectTeacher,
-			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,pi.isDeleted,pi.mergedInto,
+			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,
+			pi.isRequisite,pi.indirectTeacher,pi.currentEdit, p.isAutosave,p.isSnapshot,
+			p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN`).AddPart(pageInfosTable).Add(`AS pi
@@ -894,8 +915,8 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsEditorCommentIntention,
-			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher,
-			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.IsDeleted, &p.MergedInto,
+			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit,
+			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
 			return fmt.Errorf("Failed to scan a page: %v", err)
@@ -936,6 +957,31 @@ func LoadSummaries(db *database.DB, pageMap map[string]*Page) error {
 	return err
 }
 
+// LoadEditHistory loads edit histories for given pages
+func LoadEditHistory(db *database.DB, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT pageId,edit,prevEdit
+		FROM pages
+		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
+			AND NOT isSnapshot AND NOT isAutosave`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId string
+		var editInfo EditInfo
+		err := rows.Scan(&pageId, &editInfo.Edit, &editInfo.PrevEdit)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		pageMap[pageId].EditHistory[fmt.Sprintf("%d", editInfo.Edit)] = &editInfo
+		return nil
+	})
+	return err
+}
+
 // LoadLinkedMarkCounts loads the number of marks that link to these questions.
 func LoadLinkedMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 	if len(pageMap) <= 0 {
@@ -961,25 +1007,39 @@ func LoadLinkedMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 	return err
 }
 
-// LoadChangeLogs loads the edit history for the given page.
-func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
+type ProcessChangeLogCallback func(db *database.DB, changeLog *ChangeLog) error
+
+// LoadChangeLogs loads the change logs matching the given condition.
+func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, callback ProcessChangeLogCallback) error {
+	rows := database.NewQuery(`
+			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
+			FROM changeLogs`).AddPart(queryPart).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var l ChangeLog
+		err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
+			&l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
+		if err != nil {
+			return fmt.Errorf("failed to scan: %v", err)
+		}
+		return callback(db, &l)
+	})
+	if err != nil {
+		return fmt.Errorf("Couldn't load changeLogs: %v", err)
+	}
+	return nil
+}
+
+// LoadChangeLogsForPages loads the edit history for the given pages.
+func LoadChangeLogsForPages(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
 	sourcePageMap := options.ForPages
 	for _, p := range sourcePageMap {
 		p.ChangeLogs = make([]*ChangeLog, 0)
-		rows := database.NewQuery(`
-			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
-			FROM changeLogs
+		queryPart := database.NewQuery(`
 			WHERE pageId=?`, p.PageId).Add(`
 				AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
-			ORDER BY createdAt DESC`).ToStatement(db).Query()
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var l ChangeLog
-			err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
-				&l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
-			if err != nil {
-				return fmt.Errorf("failed to scan a page log: %v", err)
-			}
-			p.ChangeLogs = append(p.ChangeLogs, &l)
+			ORDER BY createdAt DESC`)
+		err := LoadChangeLogs(db, queryPart, func(db *database.DB, changeLog *ChangeLog) error {
+			p.ChangeLogs = append(p.ChangeLogs, changeLog)
 			return nil
 		})
 		if err != nil {
@@ -1003,19 +1063,11 @@ func LoadChangeLogs(db *database.DB, userId string, pageMap map[string]*Page, us
 // LoadChangeLogsByIds loads the changelogs with given ids
 func LoadChangeLogsByIds(db *database.DB, ids []string, typeConstraint string) (map[string]*ChangeLog, error) {
 	changeLogs := make(map[string]*ChangeLog)
-	rows := database.NewQuery(`
-			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
-			FROM changeLogs
+	queryPart := database.NewQuery(`
 			WHERE id IN`).AddArgsGroupStr(ids).Add(`
-				AND type=?`, typeConstraint).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var l ChangeLog
-		err := rows.Scan(&l.Id, &l.PageId, &l.UserId, &l.Edit, &l.Type, &l.CreatedAt,
-			&l.AuxPageId, &l.OldSettingsValue, &l.NewSettingsValue)
-		if err != nil {
-			return fmt.Errorf("Failed to scan: %v", err)
-		}
-		changeLogs[l.Id] = &l
+				AND type=?`, typeConstraint)
+	err := LoadChangeLogs(db, queryPart, func(db *database.DB, changeLog *ChangeLog) error {
+		changeLogs[changeLog.Id] = changeLog
 		return nil
 	})
 	if err != nil {
@@ -1132,7 +1184,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 			pi.alias,p.creatorId,pi.sortChildrenBy,pi.hasVote,pi.voteType,
 			p.createdAt,pi.seeGroupId,pi.editGroupId,pi.createdAt,
 			pi.createdBy,pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,
-			pi.isResolved,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,
+			pi.isResolved,p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset,
 			pi.currentEdit>0,pi.isDeleted,pi.mergedInto,pi.currentEdit,pi.maxEdit,pi.lockedBy,pi.lockedUntil,
 			pi.voteType,pi.isRequisite,pi.indirectTeacher
@@ -1146,7 +1198,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 		&p.HasVote, &p.VoteType, &p.EditCreatedAt, &p.SeeGroupId,
 		&p.EditGroupId, &p.PageCreatedAt, &p.PageCreatorId, &p.LensIndex,
 		&p.IsEditorComment, &p.IsEditorCommentIntention, &p.IsResolved,
-		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit,
+		&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary,
 		&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset, &p.WasPublished,
 		&p.IsDeleted, &p.MergedInto, &p.CurrentEdit, &p.MaxEditEver, &p.LockedBy, &p.LockedUntil, &p.LockedVoteType,
 		&p.IsRequisite, &p.IndirectTeacher)
@@ -1519,17 +1571,13 @@ func LoadLinks(db *database.DB, u *CurrentUser, pageMap map[string]*Page, option
 	return nil
 }
 
-// LoadPageToDomainSubmissions loads information about domains the pages have been submitted to
-func LoadPageToDomainSubmissions(db *database.DB, pageMap map[string]*Page, userMap map[string]*User) error {
-	pageIds := PageIdsListFromMap(pageMap)
-	if len(pageIds) <= 0 {
-		return nil
-	}
+type ProcessLoadPageToDomainSubmissionCallback func(db *database.DB, submission *PageToDomainSubmission) error
 
+// LoadPageToDomainSubmissions loads information the pages that have been submitted to a domain
+func LoadPageToDomainSubmissions(db *database.DB, queryPart *database.QueryPart, callback ProcessLoadPageToDomainSubmissionCallback) error {
 	rows := database.NewQuery(`
 		SELECT pageId,domainId,createdAt,submitterId,approvedAt,approverId
-		FROM pageToDomainSubmissions
-		WHERE pageId IN`).AddArgsGroup(pageIds).ToStatement(db).Query()
+		FROM pageToDomainSubmissions`).AddPart(queryPart).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var submission PageToDomainSubmission
 		err := rows.Scan(&submission.PageId, &submission.DomainId, &submission.CreatedAt,
@@ -1537,9 +1585,33 @@ func LoadPageToDomainSubmissions(db *database.DB, pageMap map[string]*Page, user
 		if err != nil {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
+		return callback(db, &submission)
+	})
+	return err
+}
+
+// LoadPageToDomainSubmissionsForPages loads information about domains the pages have been submitted to
+func LoadPageToDomainSubmissionsForPages(db *database.DB, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
+	if options == nil {
+		options = &LoadDataOptions{}
+	}
+
+	sourceMap := options.ForPages
+	if sourceMap == nil {
+		sourceMap = pageMap
+	}
+
+	pageIds := PageIdsListFromMap(sourceMap)
+	if len(pageIds) <= 0 {
+		return nil
+	}
+
+	queryPart := database.NewQuery(`WHERE pageId IN`).AddArgsGroup(pageIds)
+	err := LoadPageToDomainSubmissions(db, queryPart, func(db *database.DB, submission *PageToDomainSubmission) error {
+		AddPageIdToMap(submission.DomainId, pageMap)
 		AddUserToMap(submission.SubmitterId, userMap)
 		AddUserToMap(submission.ApproverId, userMap)
-		pageMap[submission.PageId].DomainSubmissions[submission.DomainId] = &submission
+		pageMap[submission.PageId].DomainSubmissions[submission.DomainId] = submission
 		return nil
 	})
 	return err
@@ -1547,18 +1619,16 @@ func LoadPageToDomainSubmissions(db *database.DB, pageMap map[string]*Page, user
 
 // LoadPageToDomainSubmission loads information about a specific page that was submitted to a specific domain
 func LoadPageToDomainSubmission(db *database.DB, pageId, domainId string) (*PageToDomainSubmission, error) {
-	row := database.NewQuery(`
-		SELECT pageId,domainId,createdAt,submitterId,approvedAt,approverId
-		FROM pageToDomainSubmissions
+	queryPart := database.NewQuery(`
 		WHERE pageId=?`, pageId).Add(`
-			AND domainId=?`, domainId).ToStatement(db).QueryRow()
-	var submission PageToDomainSubmission
-	_, err := row.Scan(&submission.PageId, &submission.DomainId, &submission.CreatedAt,
-		&submission.SubmitterId, &submission.ApprovedAt, &submission.ApproverId)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to scan: %v", err)
-	}
-	return &submission, nil
+			AND domainId=?`, domainId).Add(`
+		LIMIT 1`)
+	var resultSubmission *PageToDomainSubmission
+	err := LoadPageToDomainSubmissions(db, queryPart, func(db *database.DB, submission *PageToDomainSubmission) error {
+		resultSubmission = submission
+		return nil
+	})
+	return resultSubmission, err
 }
 
 // LoadAnswers loads the answers for the given pages, and adds the corresponding pages to the pageMap.

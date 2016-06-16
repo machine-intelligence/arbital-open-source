@@ -134,6 +134,7 @@ func init() {
 	s.HandleFunc(newsletterHandler.URI, handlerWrapper(newsletterHandler)).Methods("POST")
 	s.HandleFunc(parentsHandler.URI, handlerWrapper(parentsHandler)).Methods("POST")
 	s.HandleFunc(parentsSearchHandler.URI, handlerWrapper(parentsSearchHandler)).Methods("POST")
+	s.HandleFunc(pendingModeHandler.URI, handlerWrapper(pendingModeHandler)).Methods("POST")
 	s.HandleFunc(primaryPageHandler.URI, handlerWrapper(primaryPageHandler)).Methods("POST")
 	s.HandleFunc(readModeHandler.URI, handlerWrapper(readModeHandler)).Methods("POST")
 	s.HandleFunc(redirectToPrimaryPageHandler.URI, handlerWrapper(redirectToPrimaryPageHandler)).Methods("POST")

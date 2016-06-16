@@ -944,6 +944,12 @@ textarea {
 	padding: 10px 20px 0px 20px;
 }
 
+.publishing-options-panel {
+	padding: 10px 20px 0px 20px;
+	background-color: white;
+	border-top: #00796B 5px solid;
+}
+
 // Highlight subpages when they are selected
 .selected-subpage > .comment-header {
 	background-color: $accent-hue-1;
