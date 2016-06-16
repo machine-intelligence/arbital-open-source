@@ -474,7 +474,7 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 					// was to just check for selected text every so often.
 					$interval(function() {
 						if ($inlineCommentEditPage) return;
-						arb.stateService.lensTextSelected = !!processSelectedParagraphText();
+						arb.stateService.lensTextSelected = processSelectedParagraphText(element);
 						if (arb.stateService.lensTextSelected) {
 							// Cache the selection we found, because we are pretty much guaranteed to
 							// lose it as soon as the user clicks on anything.
@@ -500,8 +500,9 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 						// select a word/paragraph, then click again and the selection var is still
 						// the same (not cleared).
 						$timeout(function() {
-							scope.showRhsButtons = !!processSelectedParagraphText();
-							arb.stateService.lensTextSelected = !!processSelectedParagraphText();
+							var isLensTextSelected = processSelectedParagraphText(element);
+							scope.showRhsButtons = isLensTextSelected;
+							arb.stateService.lensTextSelected = isLensTextSelected;
 							if (scope.showRhsButtons) {
 								newInlineCommentButtonTop = event.pageY;
 							}
