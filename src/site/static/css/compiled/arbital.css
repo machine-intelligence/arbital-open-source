@@ -533,8 +533,8 @@ arb-markdown, [arb-markdown], .preview-area {
 
 .chip {
   border: 1px solid #ccc;
-  border-radius: 8px;
-  color: #888;
+  border-radius: 20px;
+  color: #888 !important;
   padding: 2px 6px; }
 
 .discussion-container {
@@ -745,15 +745,30 @@ arb-requisite-button .md-button, [arb-requisite-button] .md-button {
   .mastery-list-vertical > * {
     margin: 5px 0; }
 
-.lens-menu {
-  padding: 5px 0; }
+.lens-menu arb-likes {
+  margin: 0; }
+
+.lens-menu-floating {
+  position: fixed;
+  bottom: 0;
+  background: white;
+  width: inherit;
+  left: 50%;
+  transform: translateX(-50%);
+  -webkit-transition: .3s linear;
+  -moz-transition: .3s linear;
+  -o-transition: .3s linear;
+  transition: .3s linear; }
+
+.lens-menu-floater-hidden {
+  transform: translate(-50%, 100%); }
 
 md-toast md-icon {
   color: white; }
 
 @media (max-width: 599px) {
   .lens-text-container {
-    padding: 10px 5px 20px;
+    padding: 30px 5px 20px;
     font-size: 16px;
     line-height: 20px; }
 
@@ -897,8 +912,8 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 
 arb-compose-fab {
   position: fixed;
-  right: 0;
-  bottom: 0;
+  right: -14px;
+  bottom: -18px;
   z-index: 50; }
 
 .fab-icon {
@@ -929,13 +944,17 @@ ins {
   z-index: 55;
   background-color: white; }
 
-.page-tabs > .page-tabs-holder > .md-button {
-  padding: 5px 35px; }
-  .page-tabs > .page-tabs-holder > .md-button.active-tab {
-    background-color: #009688;
+.page-tabs .md-button,
+.tab-panel-header .md-button {
+  border-radius: 0; }
+  .page-tabs .md-button.active-tab,
+  .tab-panel-header .md-button.active-tab {
+    background-color: #009688 !important;
     color: white !important;
-    border-bottom: none;
-    border-radius: 0; }
+    border-bottom: none; }
+
+.page-tabs .md-button {
+  padding: 5px 35px; }
 
 .prevent-horizontal-scroll {
   overflow-x: hidden; }
@@ -1167,9 +1186,10 @@ arb-explanation-request-row {
 .expand-icon-closed {
   -webkit-transform: rotate(-90deg); }
 
-md-list-item .md-button.icon-first {
+.md-button.icon-first {
   margin-left: -12px; }
-md-list-item .md-button.icon-last {
+
+.md-button.icon-last {
   margin-right: -12px; }
 
 .page-row .page-row-caption {

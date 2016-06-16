@@ -219,8 +219,8 @@ arb-markdown, [arb-markdown], .preview-area {
 
 .chip {
 	border: 1px solid #ccc;
-	border-radius: 8px;
-	color: #888;
+	border-radius: 20px;
+	color: #888 !important;
 	padding: 2px 6px;
 }
 
@@ -583,9 +583,27 @@ arb-requisite-button, [arb-requisite-button] {
 	}
 }
 
-// Menu for a lens (with like, subscribe, edit, etc. buttons)
 .lens-menu {
-	padding: 5px 0;
+	arb-likes {
+		margin: 0;
+	}
+}
+
+.lens-menu-floating {
+	position: fixed;
+	bottom: 0;
+	background: white;
+	width: inherit;
+	left: 50%;
+	transform: translateX(-50%);
+	-webkit-transition: .3s linear;
+	-moz-transition: .3s linear;
+	-o-transition: .3s linear;
+	transition: .3s linear;
+}
+
+.lens-menu-floater-hidden {
+    transform: translate(-50%, 100%);
 }
 
 md-toast {
@@ -597,7 +615,7 @@ md-toast {
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {
-		padding: 10px $lens-padding 20px;
+		padding: 30px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 20px;
 	}
@@ -787,8 +805,8 @@ $triangle-size: 15px;
 // Compose fab that appears in the bottom right corner
 arb-compose-fab {
 	position: fixed;
-	right: 0;
-	bottom: 0;
+	right: -14px;
+	bottom: -18px;
 	z-index: $composeFabZ;
 }
 
@@ -832,21 +850,22 @@ ins {
 	background-color: white;
 }
 
-.page-tabs {
-	& > .page-tabs-holder {
-		//background-color: white !important;
-		//border-bottom: $primary-color 2px solid;
+.page-tabs,
+.tab-panel-header {
+	.md-button {
+		border-radius: 0;
 
-		& > .md-button {
-			padding: 5px 35px;
-
-			&.active-tab {
-				background-color: $primary-color;
-				color: white !important;
-				border-bottom: none;
-				border-radius: 0;
-			}
+		&.active-tab {
+			background-color: $primary-color !important;
+			color: white !important;
+			border-bottom: none;
 		}
+	}
+}
+
+.page-tabs {
+	.md-button {
+		padding: 5px 35px;
 	}
 }
 
@@ -1183,14 +1202,12 @@ arb-explanation-request-row {
 	-webkit-transform: rotate(-90deg);
 }
 
-md-list-item {
-	.md-button.icon-first {
-		margin-left: -12px;
-	}
+.md-button.icon-first {
+	margin-left: -12px;
+}
 
-	.md-button.icon-last {
-		margin-right: -12px;
-	}
+.md-button.icon-last {
+	margin-right: -12px;
 }
 
 .page-row {

@@ -1,43 +1,22 @@
 <!-- Lens menu -->
 <div class="lens-menu"
 		layout="row"
-		layout-align-xs="start center"
-		ng-if="::!isSimpleEmbed">
+		layout-align="start center"
+		layout-padding>
 	<!-- Like -->
-	<div layout="column" layout-align="start center" flex="25">
-		<arb-likes class="no-right-margin"
-				likeable-type="page"
-				likeable-id="{{::page.pageId}}"
-				is-stretched="true"
-				is-button="true"></arb-likes>
-		<span class="md-caption" ng-bind="::('Seen by ' + page.viewCount)" ng-if="::!isTinyScreen"></span>
-	</div>
+	<arb-likes class="no-right-margin"
+			likeable-type="page"
+			likeable-id="{{::pageId}}"
+			is-stretched="!isTinyScreen"
+			is-button="true"></arb-likes>
 
 	<!-- Subscribe -->
-	<arb-subscribe page-id="{{::page.pageId}}"
-			is-stretched="::!isTinyScreen"
-			show-subscriber-count="::!isTinyScreen"
-			flex="25"></arb-subscribe>
-
-	<!-- Discussion -->
-	<div layout="column" layout-align="start center" flex="25">
-		<md-button href="#discussion"
-				ng-class="::{'md-icon-button': isTinyScreen}">
-			<md-icon>comment</md-icon>
-			<span ng-if="::!isTinyScreen">Discussion</span>
-		</md-button>
-		<ng-pluralize class="md-caption"
-				count="visibleCommentCount()" when="{
-					'0': 'No comments',
-					'one': '1 comment',
-					'other': '{} comments'}"
-				ng-if="::!isTinyScreen">
-		</ng-pluralize>
-	</div>
+	<arb-subscribe page-id="{{::pageId}}"
+			is-stretched="::!isTinyScreen"></arb-subscribe>
 
 	<!-- Edit -->
-	<div layout="column" layout-align="start center" flex="25">
-		<md-button ng-href="{{::arb.urlService.getEditPageUrl(page.pageId)}}"
+	<div layout="column" layout-align="start center">
+		<md-button ng-href="{{::arb.urlService.getEditPageUrl(pageId)}}"
 				ng-class="::{'md-icon-button': isTinyScreen}"
 				arb-user-check="cool">
 			<md-icon>create</md-icon>
@@ -70,7 +49,7 @@
 	<!-- Menu with all the other stuff -->
 	<md-menu>
 		<!-- Trigger element is a md-button with an icon -->
-		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="More page actions">
+		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button icon-last" aria-label="More page actions">
 			<md-icon>more_vert</md-icon>
 		</md-button>
 		<md-menu-content>
