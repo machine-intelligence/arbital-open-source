@@ -74,19 +74,41 @@
 			<!-- For each lens -->
 			<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
 				<!-- Lens body -->
-				<div class="md-whiteframe-2dp">
-					<div class="page-lens-body">
-						<div ng-style="{'min-height': 500}"
-								layout="column"
-								layout-align="center center"
-								ng-if="!isLoaded(lensId)">
-							<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+				<div class="md-whiteframe-1dp">
+					<div class="md-whiteframe-1dp">
+						<div class="page-lens-body">
+							<div ng-style="{'min-height': 500}"
+									layout="column"
+									layout-align="center center"
+									ng-if="!isLoaded(lensId)">
+								<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+							</div>
+							<arb-lens class="reveal-after-render"
+									page-id="{{::lensId}}"
+									lens-parent-id="{{::page.pageId}}"
+									is-simple-embed="::isSimpleEmbed"
+									ng-if="isLoaded(lensId)"></arb-lens>
 						</div>
-						<arb-lens class="reveal-after-render"
-								page-id="{{::lensId}}"
-								lens-parent-id="{{::page.pageId}}"
-								is-simple-embed="::isSimpleEmbed"
-								ng-if="isLoaded(lensId)"></arb-lens>
+					</div>
+
+					<!-- Parents and tags -->
+					<div layout="row"
+							layout-align="start center"
+							layout-padding>
+						<!-- Parents -->
+						<div class="page-list-span"
+								ng-if="page.parentIds.length > 0" flex>
+							<span>Parents:</span>
+							<span ng-repeat="(index, parentId) in page.parentIds">
+								<span class="comma" ng-if="index > 0">,</span>
+								<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+							</span>
+						</div>
+
+						<!-- Tags -->
+						<span class="md-caption" ng-if="page.taggedAsIds.length > 0" layout-padding>
+							<span><arb-tag ng-repeat="tag in page.taggedAsIds" tag-id="{{tag}}"></arb-tag></span>
+						</span>
 					</div>
 				</div>
 

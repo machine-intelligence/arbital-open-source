@@ -2,22 +2,6 @@
 <div layout="row"
 		layout-align="start center"
 		layout-padding>
-
-	<!-- Tags -->
-	<span class="md-caption" ng-if="page.taggedAsIds.length > 0">
-		<arb-tag ng-repeat="tag in page.taggedAsIds" tag-id="{{tag}}"></arb-tag>
-	</span>
-
-	<!-- Parents -->
-	<div class="page-list-span"
-			ng-if="page.parentIds.length > 0">
-		<span>Parents:</span>
-		<span ng-repeat="(index, parentId) in page.parentIds">
-			<span class="comma" ng-if="index > 0">,</span>
-			<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
-		</span>
-	</div>
-
 	<div flex></div>
 
 	<!-- Like -->
