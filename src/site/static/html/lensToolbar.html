@@ -1,7 +1,7 @@
 <!-- Lens menu -->
 <div class="lens-menu"
 		layout="row"
-		layout-align="end center"
+		layout-align="start center"
 		layout-padding>
 	<!-- Like -->
 	<arb-likes class="no-right-margin"
@@ -44,10 +44,12 @@
 		</md-button>
 	</div>
 
+	<div flex></div>
+
 	<!-- Menu with all the other stuff -->
 	<md-menu>
 		<!-- Trigger element is a md-button with an icon -->
-		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="More page actions">
+		<md-button ng-click="$mdOpenMenu($event)" class="md-icon-button icon-last" aria-label="More page actions">
 			<md-icon>more_vert</md-icon>
 		</md-button>
 		<md-menu-content>

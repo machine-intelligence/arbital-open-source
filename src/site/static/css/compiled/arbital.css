@@ -1186,9 +1186,10 @@ arb-explanation-request-row {
 .expand-icon-closed {
   -webkit-transform: rotate(-90deg); }
 
-md-list-item .md-button.icon-first {
+.md-button.icon-first {
   margin-left: -12px; }
-md-list-item .md-button.icon-last {
+
+.md-button.icon-last {
   margin-right: -12px; }
 
 .page-row .page-row-caption {

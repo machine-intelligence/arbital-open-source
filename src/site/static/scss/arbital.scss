@@ -590,16 +590,16 @@ arb-requisite-button, [arb-requisite-button] {
 }
 
 .lens-menu-floating {
-    position: fixed;
-    bottom: 0;
-    background: white;
+	position: fixed;
+	bottom: 0;
+	background: white;
 	width: inherit;
-    left: 50%;
-    transform: translateX(-50%);
-    -webkit-transition: .3s linear;
-    -moz-transition: .3s linear;
-    -o-transition: .3s linear;
-    transition: .3s linear;
+	left: 50%;
+	transform: translateX(-50%);
+	-webkit-transition: .3s linear;
+	-moz-transition: .3s linear;
+	-o-transition: .3s linear;
+	transition: .3s linear;
 }
 
 .lens-menu-floater-hidden {
@@ -806,7 +806,7 @@ $triangle-size: 15px;
 arb-compose-fab {
 	position: fixed;
 	right: -14px;
-    bottom: -18px;
+	bottom: -18px;
 	z-index: $composeFabZ;
 }
 
@@ -1202,14 +1202,12 @@ arb-explanation-request-row {
 	-webkit-transform: rotate(-90deg);
 }
 
-md-list-item {
-	.md-button.icon-first {
-		margin-left: -12px;
-	}
+.md-button.icon-first {
+	margin-left: -12px;
+}
 
-	.md-button.icon-last {
-		margin-right: -12px;
-	}
+.md-button.icon-last {
+	margin-right: -12px;
 }
 
 .page-row {
