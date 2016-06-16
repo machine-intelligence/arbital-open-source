@@ -752,7 +752,7 @@ app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil) {
 			var prevWindowY; // Used to tell if we're scrolling up or down
 			var translateY = angular.bind(null, $mdUtil.supplant, 'translate3d(0,{0}px,0)');
 
-			angular.element($window).bind("scroll", function() {
+			var onScroll = function() {
 				// If we're scrolling down, cause the floaterBar to animate down
 				var currWindowY = $window.scrollY;
 				var scrollingDown = currWindowY > prevWindowY;
@@ -763,9 +763,10 @@ app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil) {
 				var staticBarVisible = staticBar[0].getBoundingClientRect().bottom <=
 						document.documentElement.clientHeight;
 				$scope.noFloater = staticBarVisible;
+			};
 
-				$scope.$apply();
-			});
+			angular.element($window).bind("scroll", onScroll);
+			onScroll();
 		},
 	};
 });
