@@ -67,7 +67,12 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 	lastSpaceIndex := strings.LastIndex(data.Term, " ")
 	textMatch := fmt.Sprintf(`
 		{
-			"match_phrase_prefix": { "title": "%[1]s" }
+			"match_phrase_prefix": {
+				"title": {
+					"query": "%[1]s",
+					"boost": 3
+				}
+			}
 		},
 		{
 			"match_phrase_prefix": { "clickbait": "%[1]s" }
@@ -80,10 +85,21 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 		prefixTerm := data.Term[lastSpaceIndex+1:]
 		textMatch = fmt.Sprintf(`
 		{
-			"match": { "title": "%[1]s" }
+			"match": {
+				"title": {
+					"query": "%[1]s",
+					"boost": 3
+				}
+			}
 		},
 		{
 			"match_phrase_prefix": { "title": "%[2]s" }
+			"match_phrase_prefix": {
+				"title": {
+					"query": "%[1]s",
+					"boost": 3
+				}
+			}
 		},
 		{
 			"match": { "clickbait": "%[1]s" }
