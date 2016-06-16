@@ -45,29 +45,19 @@
 		<div class="tab-panel-header" layout="row" layout-align="start end">
 			<div class="tab-panel-title">Write</div>
 			<div flex></div>
-<<<<<<< HEAD
-			<md-button href="#"
+			<md-button class="tab-panel-tab"
 					ng-class="{'active-tab': writeTab==0}"
 					ng-click="selectWriteTab(0)">
 				New
 			</md-button>
-			<md-button href="#"
+			<md-button class="tab-panel-tab"
 					ng-class="{'active-tab': writeTab==1}"
-=======
-			<md-button class="tab-panel-tab"
-					ng-class="{'md-raised md-primary': writeTab==0}"
-					ng-click="selectWriteTab(0)">
-				New
-			</md-button>
-			<md-button class="tab-panel-tab"
-					ng-class="{'md-raised md-primary': writeTab==1}"
->>>>>>> master
 					ng-click="selectWriteTab(1)"
 					ng-if="arb.userService.userIsLoggedIn()">
 				Continue
 			</md-button>
 			<md-button class="tab-panel-tab"
-					ng-class="{'md-raised md-primary': writeTab==2}"
+					ng-class="{'active-tab': writeTab==2}"
 					ng-click="selectWriteTab(2)"
 					ng-if="arb.userService.userIsLoggedIn()">
 				Pending
