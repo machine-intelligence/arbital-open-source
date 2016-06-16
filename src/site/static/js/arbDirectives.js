@@ -741,9 +741,9 @@ app.directive('arbChangeLogRow', function(arb) {
 	};
 });
 
-app.directive('arbLensToolbar', function(arb, $window) {
+app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil) {
 	return {
-		templateUrl: 'static/html/lensToolbarWrapper.html',
+		templateUrl: versionUrl('static/html/lensToolbarWrapper.html'),
 		scope: {
 			pageId: '@'
 		},
@@ -753,11 +753,21 @@ app.directive('arbLensToolbar', function(arb, $window) {
 
 			var staticBar = angular.element('#static-toolbar');
 			var floaterBar = angular.element('#floater-toolbar');
+			var prevWindowY; // Used to tell if we're scrolling up or down
+			var translateY = angular.bind(null, $mdUtil.supplant, 'translate3d(0,{0}px,0)');
 
-			// Hide the floaterBar is the staticBar is visible
 			angular.element($window).bind("scroll", function() {
-				var staticBarBottom = staticBar[0].getBoundingClientRect().bottom;
-				$scope.hideFloater = staticBarBottom <= document.documentElement.clientHeight;
+				// If we're scrolling down, cause the floaterBar to animate down
+				var currWindowY = $window.scrollY;
+				var scrollingDown = currWindowY > prevWindowY;
+				prevWindowY = currWindowY;
+				$scope.hideFloater = scrollingDown;
+
+				// If the staticBar is visible, hide the floater bar completely
+				var staticBarVisible = staticBar[0].getBoundingClientRect().bottom <=
+						document.documentElement.clientHeight;
+				$scope.noFloater = staticBarVisible;
+
 				$scope.$apply();
 			});
 		},

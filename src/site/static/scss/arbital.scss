@@ -591,6 +591,14 @@ arb-requisite-button, [arb-requisite-button] {
     width: 1100px;
     left: 50%;
     transform: translateX(-50%);
+    -webkit-transition: .3s linear;
+    -moz-transition: .3s linear;
+    -o-transition: .3s linear;
+    transition: .3s linear;
+}
+
+.lens-menu-floater-hidden {
+    transform: translate(-50%, 100%);
 }
 
 md-toast {
