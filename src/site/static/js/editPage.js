@@ -250,7 +250,7 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			};
 
 			// Check if the user can edit this page
-			if (!$scope.page.permissions.proposeEdit.has) {
+			if (!$scope.page.permissions.proposeEdit.has && !$scope.page.permissions.edit.has) {
 				$scope.addMessage('editLevel', $scope.page.permissions.proposeEdit.reason, 'error', true);
 			} else if (!$scope.page.permissions.edit.has) {
 				$scope.addMessage('editLevel', $scope.page.permissions.edit.reason, 'warning');

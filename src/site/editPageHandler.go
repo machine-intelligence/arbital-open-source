@@ -141,7 +141,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	// Error checking.
 	// Make sure the user has the right permissions to edit this page
-	if !oldPage.Permissions.ProposeEdit.Has {
+	if !oldPage.Permissions.ProposeEdit.Has && !oldPage.Permissions.Edit.Has {
 		return pages.Fail("Can't edit: "+oldPage.Permissions.ProposeEdit.Reason, nil).Status(http.StatusBadRequest)
 	} else if !oldPage.Permissions.Edit.Has || data.IsProposal {
 		isNewCurrentEdit = false
