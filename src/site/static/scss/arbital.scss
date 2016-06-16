@@ -629,6 +629,12 @@ md-toast {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
@@ -646,6 +652,12 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 		box-sizing: border-box;
+	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 	}
 }
 @media (min-width: 960px) and (max-width: 1099px) {
@@ -665,6 +677,12 @@ md-toast {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
@@ -682,6 +700,12 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 		box-sizing: border-box;
+	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 	}
 }
 
@@ -1164,12 +1188,15 @@ arb-log-row, [arb-log-row] {
 }
 
 [arb-hidden-text] {
-	margin-top: -10px;
 	margin-bottom: 15px;
 }
 .hidden-text {
 	background-color: whitesmoke;
-	padding: 15px 25px 5px;
+	margin-top: 10px;
+	padding-top: 15px;
+	padding-bottom: 5px;
+
+	box-shadow: inset 0 4px 3px -3px rgba(0,0,0,.2), inset 0 -4px 3px -3px rgba(0,0,0,.14);
 }
 
 .markdown-note {
