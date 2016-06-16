@@ -289,7 +289,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 				var key = '$$' + encodedText + '$$';
 				var cachedValue = stateService.getMathjaxCacheValue(key);
 				var style = cachedValue ? ('style=\'' + cachedValue.style + '\' ') : '';
-				return prefix + '<div ' + style + 'class=\'mathjax-div\' arb-math-compiler="' + key + '">&nbsp;</div>';
+				return prefix + '<span ' + style + 'class=\'mathjax-div\' arb-math-compiler="' + key + '">&nbsp;</span>';
 			});
 		});
 		// Process $mathjax$ spans.
