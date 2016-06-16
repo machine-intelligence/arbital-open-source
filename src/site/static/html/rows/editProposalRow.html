@@ -5,11 +5,15 @@
 			submitted an edit proposal to
 			<arb-page-title page-id="{{::changeLog.pageId}}" is-link="true"></arb-page-title>
 			{{::changeLog.createdAt | relativeDateTime}}.
+			<span ng-if="isObsolete">
+				A new version of the page has been published since then, so this change can only
+				be applied manually.
+			</span>
 		</div>
 	
 		<div>
 			<md-button ng-click="arb.pageService.approveEditProposal(changeLog)"
-					ng-if="changeLog.type == 'newEditProposal'">Approve</md-button>
+					ng-if="showApprove()">Approve</md-button>
 			<span ng-if="changeLog.type != 'newEditProposal'">
 				Edit approved!
 			</span>

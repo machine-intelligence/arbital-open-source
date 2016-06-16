@@ -89,6 +89,13 @@ app.directive('arbEditProposalRow', function(arb) {
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
+			// Check if the edit was proposed for a version that's no longer live
+			$scope.page = arb.stateService.pageMap[$scope.changeLog.pageId];
+			$scope.isObsolete = $scope.page.currentEdit != $scope.page.editHistory[$scope.changeLog.edit].prevEdit;
+
+			$scope.showApprove = function() {
+				return $scope.changeLog.type == 'newEditProposal' && !$scope.isObsolete && $scope.page.permissions.edit.has;
+			};
 		},
 	};
 });

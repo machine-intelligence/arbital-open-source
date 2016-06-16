@@ -57,6 +57,7 @@ type PageLoadOptions struct {
 	Mastery         bool
 	UsedAsMastery   bool
 	Creators        bool
+	EditHistory     bool
 
 	// Options for what fields to load from pages table
 	Text      bool

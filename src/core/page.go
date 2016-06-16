@@ -208,6 +208,9 @@ type Page struct {
 	// List of user ids who liked this page
 	IndividualLikes []string `json:"individualLikes"`
 
+	// Edit history for when we need to know which edits are based on which edits (key is 'edit' number)
+	EditHistory map[string]*EditInfo `json:"editHistory"`
+
 	// All domains this page has been submitted to (map key: domainId)
 	DomainSubmissions map[string]*PageToDomainSubmission `json:"domainSubmissions"`
 
@@ -258,6 +261,7 @@ func NewPage(pageId string) *Page {
 	p.Answers = make([]*Answer, 0)
 	p.SearchStrings = make(map[string]string)
 	p.Members = make(map[string]*Member)
+	p.EditHistory = make(map[string]*EditInfo)
 
 	// NOTE: we want permissions to be explicitly null so that if someone refers to them
 	// they get an error. The permissions are only set when they are also fully computed.
@@ -278,6 +282,12 @@ type ChangeLog struct {
 	NewSettingsValue string `json:"newSettingsValue"`
 	MyLikeValue      int    `json:"myLikeValue"`
 	LikeCount        int    `json:"likeCount"`
+}
+
+// Concise information about a particular edit
+type EditInfo struct {
+	Edit     int `json:"edit"`
+	PrevEdit int `json:"prevEdit"`
 }
 
 // Mastery is a page you should have mastered before you can understand another page.
@@ -699,6 +709,13 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 		return fmt.Errorf("LoadCreatorIds failed: %v", err)
 	}
 
+	// Load pages' edit history
+	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.EditHistory })
+	err = LoadEditHistory(db, filteredPageMap)
+	if err != nil {
+		return fmt.Errorf("LoadEditHistory failed: %v", err)
+	}
+
 	// Add other pages we'll need
 	AddUserGroupIdsToPageMap(u, pageMap)
 
@@ -883,8 +900,9 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 		SELECT p.pageId,p.edit,p.prevEdit,p.creatorId,p.createdAt,p.title,p.clickbait,`).AddPart(textSelect).Add(`,
 			length(p.text),p.metaText,pi.type,pi.hasVote,pi.voteType,
 			pi.alias,pi.createdAt,pi.createdBy,pi.sortChildrenBy,pi.seeGroupId,pi.editGroupId,
-			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,pi.isRequisite,pi.indirectTeacher,
-			p.isAutosave,p.isSnapshot,p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
+			pi.lensIndex,pi.isEditorComment,pi.isEditorCommentIntention,pi.isResolved,
+			pi.isRequisite,pi.indirectTeacher,pi.currentEdit, p.isAutosave,p.isSnapshot,
+			p.isLiveEdit,p.isMinorEdit,p.editSummary,pi.isDeleted,pi.mergedInto,
 			p.todoCount,p.snapshotText,p.anchorContext,p.anchorText,p.anchorOffset
 		FROM pages AS p
 		JOIN`).AddPart(pageInfosTable).Add(`AS pi
@@ -897,7 +915,7 @@ func LoadPagesWithOptions(db *database.DB, u *CurrentUser, pageMap map[string]*P
 			&p.Text, &p.TextLength, &p.MetaText, &p.Type, &p.HasVote,
 			&p.VoteType, &p.Alias, &p.PageCreatedAt, &p.PageCreatorId, &p.SortChildrenBy,
 			&p.SeeGroupId, &p.EditGroupId, &p.LensIndex, &p.IsEditorComment, &p.IsEditorCommentIntention,
-			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher,
+			&p.IsResolved, &p.IsRequisite, &p.IndirectTeacher, &p.CurrentEdit,
 			&p.IsAutosave, &p.IsSnapshot, &p.IsLiveEdit, &p.IsMinorEdit, &p.EditSummary, &p.IsDeleted, &p.MergedInto,
 			&p.TodoCount, &p.SnapshotText, &p.AnchorContext, &p.AnchorText, &p.AnchorOffset)
 		if err != nil {
@@ -934,6 +952,31 @@ func LoadSummaries(db *database.DB, pageMap map[string]*Page) error {
 			return fmt.Errorf("Failed to scan: %v", err)
 		}
 		pageMap[pageId].Summaries[name] = text
+		return nil
+	})
+	return err
+}
+
+// LoadEditHistory loads edit histories for given pages
+func LoadEditHistory(db *database.DB, pageMap map[string]*Page) error {
+	if len(pageMap) <= 0 {
+		return nil
+	}
+	pageIds := PageIdsListFromMap(pageMap)
+
+	rows := database.NewQuery(`
+		SELECT pageId,edit,prevEdit
+		FROM pages
+		WHERE pageId IN`).AddArgsGroup(pageIds).Add(`
+			AND NOT isSnapshot AND NOT isAutosave`).ToStatement(db).Query()
+	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var pageId string
+		var editInfo EditInfo
+		err := rows.Scan(&pageId, &editInfo.Edit, &editInfo.PrevEdit)
+		if err != nil {
+			return fmt.Errorf("Failed to scan: %v", err)
+		}
+		pageMap[pageId].EditHistory[fmt.Sprintf("%d", editInfo.Edit)] = &editInfo
 		return nil
 	})
 	return err

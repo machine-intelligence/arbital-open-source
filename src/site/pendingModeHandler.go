@@ -81,12 +81,17 @@ func loadPageToDomainSubmissionRows(db *database.DB, returnData *core.CommonHand
 func loadEditProposalRows(db *database.DB, returnData *core.CommonHandlerData, limit int) ([]*core.ChangeLog, error) {
 	changeLogs := make([]*core.ChangeLog, 0)
 
+	pageLoadOptions := (&core.PageLoadOptions{
+		DomainsAndPermissions: true,
+		EditHistory:           true,
+	}).Add(core.EmptyLoadOptions)
+
 	queryPart := database.NewQuery(`
 		WHERE type=?`, core.NewEditProposalChangeLog).Add(`
 		ORDER BY createdAt DESC
 		LIMIT ?`, limit)
 	err := core.LoadChangeLogs(db, queryPart, func(db *database.DB, changeLog *core.ChangeLog) error {
-		core.AddPageIdToMap(changeLog.PageId, returnData.PageMap)
+		core.AddPageToMap(changeLog.PageId, returnData.PageMap, pageLoadOptions)
 		core.AddUserToMap(changeLog.UserId, returnData.UserMap)
 		changeLogs = append(changeLogs, changeLog)
 		return nil
