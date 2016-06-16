@@ -679,7 +679,8 @@
 				<md-button class="md-icon-button"
 						ng-class="{'md-raised': showPublishingOptionsMenu}"
 						ng-click="togglePublishingOptionsMenu()"
-						aria-label="Publishing options">
+						aria-label="Publishing options"
+						ng-if="!page.isComment()">
 					<md-tooltip md-delay="500">Publishing options</md-tooltip>
 					<md-icon>more_vert</md-icon>
 				</md-button>
