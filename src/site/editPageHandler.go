@@ -384,14 +384,17 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["createdAt"] = database.Now()
 		if oldPage.IsDeleted {
 			hashmap["type"] = core.UndeletePageChangeLog
+			hashmap["newSettingsValue"] = data.EditSummary
 		} else if data.RevertToEdit != 0 {
 			hashmap["type"] = core.RevertEditChangeLog
 		} else if data.IsSnapshot {
 			hashmap["type"] = core.NewSnapshotChangeLog
 		} else if isNewCurrentEdit {
 			hashmap["type"] = core.NewEditChangeLog
+			hashmap["newSettingsValue"] = data.EditSummary
 		} else if isPublicEdit {
 			hashmap["type"] = core.NewEditProposalChangeLog
+			hashmap["newSettingsValue"] = data.EditSummary
 		} else {
 			createEditChangeLog = false
 		}

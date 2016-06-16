@@ -1,10 +1,20 @@
 <arb-update-row update="::update" on-dismiss="::onDismiss" show-like-button="true">
 
+	<!-- a user -->
 	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+
+	<!-- deleted or republished -->
 	<span ng-switch="::update.changeLog.type">
 		<span ng-switch-when="deletePage">deleted</span>
 		<span ng-switch-when="undeletePage">republished</span>
 	</span>
+
+	<!-- a page -->
 	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+
+	<!-- with this edit summary -->
+	<span ng-if="::update.changeLog.type == 'undeletePage' && update.changeLog.newSettingsValue">
+		&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
+	</span>
 
 </arb-update-row>

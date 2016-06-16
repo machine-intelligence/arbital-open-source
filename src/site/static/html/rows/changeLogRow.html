@@ -158,7 +158,8 @@
 		</span>
 
 		<span ng-switch-when="newEdit">
-			New edit #{{::changeLog.edit}}
+			<!-- in this case, newSettingsValue will be the edit summary -->
+			New edit #{{::changeLog.edit + (changeLog.newSettingsValue ? ':' : '')}} <i>{{::changeLog.newSettingsValue}}</i>
 		</span>
 
 		<span ng-switch-when="newEditProposal">
