@@ -598,6 +598,13 @@
 			</md-tab>
 		</md-tabs>
 
+		<div class="publishing-options-panel" layout="column" ng-if="showPublishingOptionsPanel">
+			<md-input-container>
+				<label>Edit summary</label>
+				<input ng-model="page.newEditSummary" md-maxlength="200">
+			</md-input-container>
+		</div>
+
 		<!-- Footer -->
 		<div class="edit-page-footer md-primary md-hue-2" layout="row" layout-align="start center" layout-margin>
 			<!-- Go back button -->
@@ -628,10 +635,6 @@
 				</md-tooltip>
 			</span>
 			<div class="no-margins" flex></div>
-
-			<md-input-container md-no-float ng-if="showAdvancedMode()">
-				<input placeholder="Edit summary" ng-model="page.newEditSummary" md-maxlength="200">
-			</md-input-container>
 
 			<div layout="row" layout-align="end center" flex ng-if="::gtXSmallScreen">
 				<div ng-if="autosaving">
@@ -672,6 +675,13 @@
 					<!-- Don't show for comments, because when inline comment gets created the tooltip remains -->
 					<md-tooltip md-delay="500" ng-if="::!page.isComment()">{{::getPublishTooltipText()}}</md-tooltip>
 					{{::getPublishText()}}
+				</md-button>
+				<md-button class="md-icon-button"
+						ng-class="{'md-raised': showPublishingOptionsMenu}"
+						ng-click="togglePublishingOptionsMenu()"
+						aria-label="Publishing options">
+					<md-tooltip md-delay="500">Publishing options</md-tooltip>
+					<md-icon>more_vert</md-icon>
 				</md-button>
 				<span ng-if="pageInfoChanged()">
 					<md-tooltip md-delay="500" md-direction="top">

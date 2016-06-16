@@ -599,6 +599,11 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 				var newPageInfo = $scope.page.getPageInfo();
 				return !angular.equals(originalPageInfo, newPageInfo);
 			};
+
+			$scope.showPublishingOptionsPanel = false;
+			$scope.togglePublishingOptionsPanel = function() {
+				$scope.showPublishingOptionsPanel = !$scope.showPublishingOptionsPanel;
+			};
 		},
 		link: function(scope, element, attrs) {
 			// Do autosave every so often.
