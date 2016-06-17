@@ -9,7 +9,7 @@ import (
 	"zanaduu3/src/pages"
 )
 
-// commentThreadData contains parameters passed in to create a page.
+// commentThreadData contains parameters passed in to load a comment thread.
 type commentThreadData struct {
 	CommentId string `json:"pageAlias"`
 }
@@ -19,7 +19,7 @@ var commentThreadHandler = siteHandler{
 	HandlerFunc: commentThreadHandlerFunc,
 }
 
-// commentThreadHandlerFunc handles requests to create a new page.
+// commentThreadHandlerFunc handles requests to load a comment thread.
 func commentThreadHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	db := params.DB
 	returnData := core.NewHandlerData(params.U)
