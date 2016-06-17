@@ -60,7 +60,7 @@
 
 		<!-- Login/signup buttons -->
 		<md-button ng-href="{{getSignupUrl()}}"
-				ng-if="arb.userService.user.id === ''">
+				ng-if="showSignupButton()">
 			Sign Up
 		</md-button>
 		<md-button ng-click="toggleRightMenu()"

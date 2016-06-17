@@ -29,6 +29,10 @@ app.directive('arbToolbar', function($mdSidenav, $http, $mdPanel, $location, $co
 				return '/signup/?continueUrl=' + encodeURIComponent($location.absUrl());
 			};
 
+			$scope.showSignupButton = function() {
+				return !arb.userService.userIsLoggedIn() && $location.path().indexOf('/signup/') != 0;
+			};
+
 			// Open RHS menu
 			$scope.toggleRightMenu = function() {
 				$mdSidenav('right').toggle();
