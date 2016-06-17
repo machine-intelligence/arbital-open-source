@@ -6,13 +6,13 @@
 		<md-icon ng-class="{on: isSubscribed()}" ng-if="!isSubscribedAsMaintainer()">visibility</md-icon>
 		<md-icon class="on" ng-if="isSubscribedAsMaintainer()">build</md-icon>
 		<span ng-if="::isStretched">Subscribe</span>
-		<md-tooltip md-delay="500" ng-if="!isSubscribed()">
+		<md-tooltip md-delay="500" md-direction="top" ng-if="!isSubscribed()">
 			Receive updates for comments on this page
 		</md-tooltip>
-		<md-tooltip md-delay="500" ng-if="isSubscribed() && !isSubscribedAsMaintainer()">
+		<md-tooltip md-delay="500" md-direction="top" ng-if="isSubscribed() && !isSubscribedAsMaintainer()">
 			You will receive updates for comments on this page
 		</md-tooltip>
-		<md-tooltip md-delay="500" ng-if="isSubscribed() && isSubscribedAsMaintainer()">
+		<md-tooltip md-delay="500" md-direction="top" ng-if="isSubscribed() && isSubscribedAsMaintainer()">
 			You will receive updates for comments, edits, and marks on this page
 		</md-tooltip>
 	</md-button>
