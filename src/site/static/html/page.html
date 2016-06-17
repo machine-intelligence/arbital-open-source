@@ -94,12 +94,12 @@
 							layout-gt-sm="row"
 							layout-align="start start"
 							layout-padding
-							ng-if="page.parentIds.length > 0 || (page.taggedAsIds.length > 0 && !isSimpleEmbed)">
+							ng-if="selectedLens.parentIds.length > 0 || (selectedLens.taggedAsIds.length > 0 && !isSimpleEmbed)">
 						<!-- Parents -->
 						<div layout-align="start center"
-								ng-if="page.parentIds.length > 0" flex>
+								ng-if="selectedLens.parentIds.length > 0" flex>
 							<span>Parents:</span>
-							<span ng-repeat="(index, parentId) in page.parentIds">
+							<span ng-repeat="(index, parentId) in selectedLens.parentIds">
 								<span class="comma" ng-if="index > 0">,</span>
 								<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
 							</span>
@@ -107,9 +107,9 @@
 
 						<!-- Tags -->
 						<div layout-align="start center"
-				 				ng-if="page.taggedAsIds.length > 0 && !isSimpleEmbed">
+				 				ng-if="selectedLens.taggedAsIds.length > 0 && !isSimpleEmbed">
 				 			<span>Tagged as:</span>
-				 			<span ng-repeat="(index, tagId) in page.taggedAsIds">
+				 			<span ng-repeat="(index, tagId) in selectedLens.taggedAsIds">
 				 				<span class="comma" ng-if="::(index > 0)">,</span>
 				 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
 				 			</span>
@@ -117,10 +117,10 @@
 					</div>
 				</div>
 
-				<!-- Action bar -->
-				<arb-lens-toolbar page-id="{{::lensId}}"></arb-lens-toolbar>
 			</div>
 
+			<!-- Action bar -->
+			<arb-lens-toolbar></arb-lens-toolbar>
 		</div>
 
 		<!-- Answers section -->
