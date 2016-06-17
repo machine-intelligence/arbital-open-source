@@ -8,6 +8,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			pageId: '@',  // id of this subpage
 			lensId: '@',  // id of the lens this subpage belongs to
 			parentSubpageId: '@',  // id of the parent subpage, if there is one
+			showEvenIfResolved: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
@@ -45,7 +46,7 @@ app.directive('arbSubpage', function($compile, $timeout, $location, $mdToast, $m
 			// Return true if this comment should be shown
 			$scope.isSubpageVisible = function() {
 				if ($scope.isDeleted) return false;
-				if ($scope.page.isResolved && !$scope.isSelected()) return false;
+				if ($scope.page.isResolved && !$scope.isSelected() && !$scope.showEvenIfResolved) return false;
 				return !$scope.page.isEditorComment || arb.stateService.getShowEditorComments();
 			};
 
