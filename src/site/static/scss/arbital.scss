@@ -615,7 +615,7 @@ md-toast {
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {
-		padding: 30px $lens-padding 20px;
+		padding: 20px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 20px;
 	}
@@ -639,7 +639,7 @@ md-toast {
 @media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
 	.lens-text-container {
-		padding: 10px $lens-padding 20px;
+		padding: 20px $lens-padding 20px;
 		font-size: 18px;
 		line-height: 22px;
 	}
@@ -663,7 +663,7 @@ md-toast {
 @media (min-width: 960px) and (max-width: 1099px) {
 	$lens-padding: 90px;
 	.lens-text-container {
-		padding: 10px $lens-padding 60px;
+		padding: 20px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
 	}
@@ -687,7 +687,7 @@ md-toast {
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
-		padding: 10px $lens-padding 80px;
+		padding: 20px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
 	}
