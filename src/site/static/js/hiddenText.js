@@ -15,15 +15,12 @@ app.directive('arbHiddenText', function($compile, $timeout, arb) {
 			$timeout(function() {
 				$(element).prepend($compile('<md-button class="md-primary md-hue-1 md-raised"' +
 					'ng-bind="buttonText"' +
-					'ng-click="reveal()"' +
-					'aria-label="{{buttonText}}"' +
-					'ng-if="!revealed">' +
+					'ng-click="toggle()"' +
+					'aria-label="{{buttonText}}">' +
 					'</md-button>')(scope));
 			});
-			scope.reveal = function() {
-				scope.revealed = true;
-				$(element).find('md-button').remove();
-				$(element).find('.display-none').removeClass('display-none');
+			scope.toggle = function() {
+				$(element).find('.hidden-text').toggleClass('display-none');
 			};
 		},
 	};

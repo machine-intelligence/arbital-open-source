@@ -167,7 +167,7 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 			return text.replace(hiddenBlockRegexp, function(whole, bars, buttonText, text) {
 				var blockText = text + '\n\n';
 				var blockText = runBlockGamut(blockText);
-				var divClass = 'hidden-text md-whiteframe-1dp';
+				var divClass = 'hidden-text';
 				if (!isEditor) {
 					divClass += ' display-none';
 				} else {

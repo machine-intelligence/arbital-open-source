@@ -1,14 +1,23 @@
 <arb-update-row update="::update" on-dismiss="::onDismiss" show-like-button="true">
 
 	<div>
-		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-		<span ng-if="update.changeLog.type !== 'newEditProposal'">
-			was edited by
-		</span>
-		<span ng-if="update.changeLog.type === 'newEditProposal'">
-			has a pending edit proposal from
-		</span>
+		<!-- a user -->
 		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+
+		<!-- made or proposed an edit -->
+		<span ng-switch="update.changeLog.type">
+			<span ng-switch-when="newEditProposal">proposed an edit to</span>
+			<span ng-switch-default>edited</span>
+		</span>
+
+		<!-- a page -->
+		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+
+		<!-- with this edit summary -->
+		<span ng-if="::update.changeLog.newSettingsValue">
+			&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
+		</span>
+
 	</div>
 
 	<md-button ng-click="arb.pageService.approveEditProposal(update.changeLog)"

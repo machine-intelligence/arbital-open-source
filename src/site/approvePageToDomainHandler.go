@@ -115,6 +115,12 @@ func approvePageToDomainHandlerFunc(params *pages.HandlerParams) *pages.Result {
 			}
 		}
 
+		// Subscribe the approver as a maintainer
+		err2 := addSubscription(tx, u.Id, data.PageId, true)
+		if err2 != nil {
+			return err2
+		}
+
 		return nil
 	})
 	if err2 != nil {

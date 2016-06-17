@@ -1,17 +1,16 @@
 <div id="subpage-{{::page.pageId}}" layout="{{::(isSingleColumn ? 'column' : 'row')}}">
+	<!-- Hash anchor -->
+	<a id="page-{{::page.pageId}}"></a>
+
 	<!-- Primary column -->
-	<div layout="column" flex>
-		<!-- Hash anchor -->
-		<a id="page-{{::page.pageId}}"></a>
+	<div layout="column" class="vertical-layout-padding" flex>
 
-		<div layout-gt-sm="row" layout-align-gt-sm="space-between end">
-
+		<div layout-gt-sm="row" layout-align-gt-sm="space-between end" ng-if="arb.pathService.path">
 			<div arb-next-prev page-id="{{::page.pageId}}" whiteframe="::true"></div>
 		</div>
 
 		<!-- For user page, display what domains this user has access to -->
-		<div class="page-list-span"
-				ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
+		<div ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
 			<span>Domains this user has access to:</span>
 			<span ng-repeat="(index, domainId) in ::page.domainMembershipIds">
 				<span class="comma" ng-if="index > 0">,</span>
@@ -21,7 +20,7 @@
 		</div>
 
 		<!-- Unlisted page -->
-		<div class="page-list-span md-whiteframe-1dp md-accent md-hue-1"
+		<div class="md-whiteframe-1dp md-accent md-hue-1"
 				layout-padding
 				layout="row"
 				layout-align="start center"
@@ -56,10 +55,13 @@
 		<!-- Voting container -->
 		<arb-vote-bar class="md-whiteframe-1dp" page-id="{{::page.pageId}}" ng-if="::page.hasVote"></arb-vote-bar>
 
-		<!-- Lens tabs -->
-		<div class="page-tabs md-whiteframe-1dp">
+		<!-- Lenses -->
+		<div class="md-whiteframe-1dp">
 			<!-- Tab labels -->
-			<div class="page-tabs-holder" layout="row" layout-xs="column" ng-if="::page.lensIds.length > 1">
+			<div class="page-tabs"
+					layout="row"
+					layout-xs="column"
+					ng-if="::page.lensIds.length > 1">
 				<md-button ng-repeat="lensId in ::page.lensIds"
 						ng-click="tabsClicked($event,lensId)"
 						ng-class="{'active-tab': lensId == selectedLens.pageId}"
@@ -69,22 +71,56 @@
 				</md-button>
 			</div>
 
-			<!-- Lens body -->
-			<div class="page-lens-body">
-				<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
-					<div ng-style="{'min-height': 500}"
-							layout="column"
-							layout-align="center center"
-							ng-if="!isLoaded(lensId)">
-						<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+			<!-- For each lens -->
+			<div ng-repeat="lensId in ::page.lensIds" ng-if="lensId === selectedLens.pageId">
+				<!-- Lens body -->
+				<div class="md-whiteframe-1dp">
+					<div class="md-whiteframe-1dp page-lens-body">
+						<div ng-style="{'min-height': 500}"
+								layout="column"
+								layout-align="center center"
+								ng-if="!isLoaded(lensId)">
+							<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+						</div>
+						<arb-lens class="reveal-after-render"
+								page-id="{{::lensId}}"
+								lens-parent-id="{{::page.pageId}}"
+								is-simple-embed="::isSimpleEmbed"
+								ng-if="isLoaded(lensId)"></arb-lens>
 					</div>
-					<arb-lens class="reveal-after-render"
-							page-id="{{::lensId}}"
-							lens-parent-id="{{::page.pageId}}"
-							is-simple-embed="::isSimpleEmbed"
-							ng-if="isLoaded(lensId)"></arb-lens>
+
+					<!-- Parents and tags -->
+					<div layout="column"
+							layout-gt-sm="row"
+							layout-align="start start"
+							layout-padding
+							ng-if="page.parentIds.length > 0 || (page.taggedAsIds.length > 0 && !isSimpleEmbed)">
+						<!-- Parents -->
+						<div layout-align="start center"
+								ng-if="page.parentIds.length > 0" flex>
+							<span>Parents:</span>
+							<span ng-repeat="(index, parentId) in page.parentIds">
+								<span class="comma" ng-if="index > 0">,</span>
+								<arb-page-title page-id="{{::parentId}}" is-link="true"></arb-page-title>
+							</span>
+						</div>
+
+						<!-- Tags -->
+						<div layout-align="start center"
+				 				ng-if="page.taggedAsIds.length > 0 && !isSimpleEmbed">
+				 			<span>Tagged as:</span>
+				 			<span ng-repeat="(index, tagId) in page.taggedAsIds">
+				 				<span class="comma" ng-if="::(index > 0)">,</span>
+				 				<arb-page-title page-id="{{::tagId}}" is-link="true"></arb-page-title>
+				 			</span>
+				 		</div>
+					</div>
 				</div>
+
+				<!-- Action bar -->
+				<arb-lens-toolbar page-id="{{::lensId}}"></arb-lens-toolbar>
 			</div>
+
 		</div>
 
 		<!-- Answers section -->

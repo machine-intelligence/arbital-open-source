@@ -219,8 +219,8 @@ arb-markdown, [arb-markdown], .preview-area {
 
 .chip {
 	border: 1px solid #ccc;
-	border-radius: 8px;
-	color: #888;
+	border-radius: 20px;
+	color: #888 !important;
 	padding: 2px 6px;
 }
 
@@ -471,16 +471,6 @@ a:not(.md-button) {
 	}
 }
 
-@media (min-width: 960px) {
-	.top-toolbar {
-		margin-bottom: 15px;
-	}
-}
-
-arb-index {
-	margin-top: -20px;
-}
-
 #index-header {
 	box-shadow: 0 1px 3px -3px rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
 	position: relative;
@@ -583,9 +573,27 @@ arb-requisite-button, [arb-requisite-button] {
 	}
 }
 
-// Menu for a lens (with like, subscribe, edit, etc. buttons)
 .lens-menu {
-	padding: 5px 0;
+	arb-likes {
+		margin: 0;
+	}
+}
+
+.lens-menu-floating {
+	position: fixed;
+	bottom: 0;
+	background: white;
+	width: inherit;
+	left: 50%;
+	transform: translateX(-50%);
+	-webkit-transition: .3s linear;
+	-moz-transition: .3s linear;
+	-o-transition: .3s linear;
+	transition: .3s linear;
+}
+
+.lens-menu-floater-hidden {
+    transform: translate(-50%, 100%);
 }
 
 md-toast {
@@ -597,7 +605,7 @@ md-toast {
 @media (max-width: 599px) {
 	$lens-padding: 5px;
 	.lens-text-container {
-		padding: 10px $lens-padding 20px;
+		padding: 20px $lens-padding 20px;
 		font-size: 16px;
 		line-height: 20px;
 	}
@@ -611,11 +619,17 @@ md-toast {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 600px) and (max-width: 959px) {
 	$lens-padding: 50px;
 	.lens-text-container {
-		padding: 10px $lens-padding 20px;
+		padding: 20px $lens-padding 20px;
 		font-size: 18px;
 		line-height: 22px;
 	}
@@ -629,11 +643,17 @@ md-toast {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 960px) and (max-width: 1099px) {
 	$lens-padding: 90px;
 	.lens-text-container {
-		padding: 10px $lens-padding 60px;
+		padding: 20px $lens-padding 60px;
 		font-size: 18px;
 		line-height: 26px;
 	}
@@ -647,11 +667,17 @@ md-toast {
 		padding-right: $lens-padding;
 		box-sizing: border-box;
 	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
+	}
 }
 @media (min-width: 1100px) {
 	$lens-padding: 100px;
 	.lens-text-container {
-		padding: 10px $lens-padding 80px;
+		padding: 20px $lens-padding 80px;
 		font-size: 18px;
 		line-height: 30px;
 	}
@@ -664,6 +690,12 @@ md-toast {
 		padding-left: $lens-padding;
 		padding-right: $lens-padding;
 		box-sizing: border-box;
+	}
+	.hidden-text {
+		margin-left: 0 - $lens-padding;
+		margin-right: 0 - $lens-padding;
+		padding-left: $lens-padding;
+		padding-right: $lens-padding;
 	}
 }
 
@@ -744,6 +776,12 @@ $triangle-size: 15px;
 	}
 }
 
+.vertical-layout-padding {
+	> * {
+		margin-top: 16px;
+	}
+}
+
 .panel-triangle-track {
 	position: relative;
 
@@ -787,8 +825,8 @@ $triangle-size: 15px;
 // Compose fab that appears in the bottom right corner
 arb-compose-fab {
 	position: fixed;
-	right: 0;
-	bottom: 0;
+	right: -14px;
+	bottom: -18px;
 	z-index: $composeFabZ;
 }
 
@@ -832,21 +870,22 @@ ins {
 	background-color: white;
 }
 
-.page-tabs {
-	& > .page-tabs-holder {
-		//background-color: white !important;
-		//border-bottom: $primary-color 2px solid;
+.page-tabs,
+.tab-panel-header {
+	.md-button {
+		border-radius: 0;
 
-		& > .md-button {
-			padding: 5px 35px;
-
-			&.active-tab {
-				background-color: $primary-color;
-				color: white !important;
-				border-bottom: none;
-				border-radius: 0;
-			}
+		&.active-tab {
+			background-color: $primary-color !important;
+			color: white !important;
+			border-bottom: none;
 		}
+	}
+}
+
+.page-tabs {
+	.md-button {
+		padding: 5px 35px;
 	}
 }
 
@@ -1145,12 +1184,15 @@ arb-log-row, [arb-log-row] {
 }
 
 [arb-hidden-text] {
-	margin-top: -10px;
 	margin-bottom: 15px;
 }
 .hidden-text {
 	background-color: whitesmoke;
-	padding: 15px 25px 5px;
+	margin-top: 10px;
+	padding-top: 15px;
+	padding-bottom: 5px;
+
+	box-shadow: inset 0 4px 3px -3px rgba(0,0,0,.2), inset 0 -4px 3px -3px rgba(0,0,0,.14);
 }
 
 .markdown-note {
@@ -1183,14 +1225,12 @@ arb-explanation-request-row {
 	-webkit-transform: rotate(-90deg);
 }
 
-md-list-item {
-	.md-button.icon-first {
-		margin-left: -12px;
-	}
+.md-button.icon-first {
+	margin-left: -12px;
+}
 
-	.md-button.icon-last {
-		margin-right: -12px;
-	}
+.md-button.icon-last {
+	margin-right: -12px;
 }
 
 .page-row {

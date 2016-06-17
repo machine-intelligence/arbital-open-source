@@ -158,12 +158,18 @@
 		</span>
 
 		<span ng-switch-when="newEdit">
-			New edit #{{::changeLog.edit}}
+			<!-- in this case, newSettingsValue will be the edit summary -->
+			New edit (#{{::changeLog.edit}})
+			<span ng-if="::changeLog.newSettingsValue">
+				&mdash; <i>{{::changeLog.newSettingsValue}}</i>
+			</span>
 		</span>
 
 		<span ng-switch-when="newEditProposal">
 			New edit proposal (#{{::changeLog.edit}})
-			<md-button ng-click="arb.pageService.approveEditProposal(changeLog)">Approve</md-button>
+			<span ng-if="::changeLog.newSettingsValue">
+				&mdash; <i>{{::changeLog.newSettingsValue}}</i>
+			</span>
 		</span>
 
 		<span ng-switch-when="revertEdit">

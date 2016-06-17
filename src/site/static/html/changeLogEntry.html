@@ -22,6 +22,10 @@
 			<md-tooltip md-delay="500">Diff with this edit</md-tooltip>
 			Diff
 		</md-button>
+		<md-button ng-click="arb.pageService.approveEditProposal(changeLog)" ng-if="changeLog.type === 'newEditProposal'">
+			<md-tooltip md-delay="500">Approve this edit</md-tooltip>
+			Approve
+		</md-button>
 	</div>
 
 	<div ng-if="(changeLog.type === 'newEdit' || changeLog.type === 'newSnapshot') && changeLog.edit === page.edit">

@@ -2,12 +2,15 @@
 	<!-- The primary page -->
 	<div arb-page page-id="{{::arb.stateService.primaryPage.pageId}}"></div>
 
+	<!-- Children pages -->
 	<div arb-page-list panel-title="Children"
 			show-created-at="::(page.sortChildrenBy === 'recentFirst' || page.sortChildrenBy === 'oldestFirst')"
 			show-comment-count="true"
 			show-text-length="true"
 			page-ids="::page.childIds"
 			ng-if="::page.childIds.length > 0"></div>
+
+	<!-- Related pages -->
 	<div arb-page-list panel-title="Related"
 			show-comment-count="true"
 			show-text-length="true"

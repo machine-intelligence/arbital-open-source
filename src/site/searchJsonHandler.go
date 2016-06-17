@@ -93,10 +93,9 @@ func searchJsonHandler(params *pages.HandlerParams) *pages.Result {
 			}
 		},
 		{
-			"match_phrase_prefix": { "title": "%[2]s" }
 			"match_phrase_prefix": {
 				"title": {
-					"query": "%[1]s",
+					"query": "%[2]s",
 					"boost": 3
 				}
 			}
