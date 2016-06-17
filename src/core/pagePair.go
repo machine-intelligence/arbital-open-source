@@ -214,13 +214,17 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 
 // Load full edit for both the parent and the child of the given page pair.
 func LoadFullEditsForPagePair(db *database.DB, pagePair *PagePair, u *CurrentUser) (*Page, *Page, error) {
-	parent, err := LoadFullEdit(db, pagePair.ParentId, u, &LoadEditOptions{LoadNonliveEdit: true})
+	editLoadOptions := &LoadEditOptions{
+		LoadNonliveEdit: true,
+		PreferLiveEdit:  true,
+	}
+	parent, err := LoadFullEdit(db, pagePair.ParentId, u, editLoadOptions)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while loading parent page: %v", err)
 	} else if parent == nil {
 		return nil, nil, fmt.Errorf("Parent page doesn't exist", nil)
 	}
-	child, err := LoadFullEdit(db, pagePair.ChildId, u, &LoadEditOptions{LoadNonliveEdit: true})
+	child, err := LoadFullEdit(db, pagePair.ChildId, u, editLoadOptions)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while loading child page: %v", err)
 	} else if child == nil {
