@@ -288,7 +288,9 @@ app.directive('arbLikes', function($http, arb) {
 				console.error('Unknown likeableType in arb-likes: ' + $scope.likeableType);
 			}
 			if (!$scope.likeable && $scope.likeableType == 'page') {
-				$scope.likeable = arb.stateService.pageMap[$scope.likeableId];
+				$scope.$watch('likeableId', function() {
+					$scope.likeable = arb.stateService.pageMap[$scope.likeableId];
+				});
 			}
 
 			// Sort individual likes by name.
@@ -732,41 +734,49 @@ app.directive('arbChangeLogRow', function(arb) {
 	};
 });
 
-app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil) {
+app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $compile) {
 	return {
 		templateUrl: versionUrl('static/html/lensToolbarWrapper.html'),
 		scope: false,
-		controller: function($scope) {
-			$scope.arb = arb;
-			$scope.page = arb.stateService.pageMap[$scope.pageId];
-
+		link: function(scope, element) {
 			var staticBar = angular.element('#static-toolbar');
 			var floaterBar = angular.element('#floater-toolbar');
 
-			// Set the floater bar width to match the static bar
-			floaterBar.css('width', staticBar.css('width'));
-			angular.element($window).bind('resize', function() {
+
+			// Control the width of the floater bar
+			var setFloaterWidth = function() {
 				floaterBar.css('width', staticBar.css('width'));
-			});
+			};
+			angular.element($window).bind('resize', setFloaterWidth);
+			staticBar.bind('resize', setFloaterWidth);
 
+
+			// Control the behavior of the floater bar
 			var prevWindowY; // Used to tell if we're scrolling up or down
-			var translateY = angular.bind(null, $mdUtil.supplant, 'translate3d(0,{0}px,0)');
-
 			var onScroll = function() {
 				// If we're scrolling down, cause the floaterBar to animate down
 				var currWindowY = $window.scrollY;
 				var scrollingDown = currWindowY > prevWindowY;
 				prevWindowY = currWindowY;
-				$scope.hideFloater = scrollingDown;
+				scope.hideFloater = scrollingDown;
 
-				// If the staticBar is visible, hide the floater bar completely
+				// If the bottom of the staticBar is visible, hide the floater bar completely
 				var staticBarVisible = staticBar[0].getBoundingClientRect().bottom <=
 						document.documentElement.clientHeight;
-				$scope.noFloater = staticBarVisible;
+				scope.noFloater = staticBarVisible;
 			};
-
 			angular.element($window).bind("scroll", onScroll);
-			onScroll();
+
+
+			var setUpLensToolbar = function() {
+				prevWindowY = 1000;
+				onScroll();
+				setFloaterWidth();
+			};
+			setUpLensToolbar();
+		},
+		controller: function($scope) {
+			$scope.arb = arb;
 		},
 	};
 });
