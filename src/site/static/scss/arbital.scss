@@ -471,16 +471,6 @@ a:not(.md-button) {
 	}
 }
 
-@media (min-width: 960px) {
-	.top-toolbar {
-		margin-bottom: 15px;
-	}
-}
-
-arb-index {
-	margin-top: -20px;
-}
-
 #index-header {
 	box-shadow: 0 1px 3px -3px rgba(0,0,0,.2),0 1px 1px 0 rgba(0,0,0,.14),0 2px 1px -1px rgba(0,0,0,.12);
 	position: relative;
@@ -783,6 +773,12 @@ $triangle-size: 15px;
 		&.toolbarless-version {
 			border-top: $triangle-size solid whitesmoke;
 		}
+	}
+}
+
+.vertical-layout-padding {
+	> * {
+		margin-top: 16px;
 	}
 }
 

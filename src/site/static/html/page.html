@@ -1,16 +1,16 @@
 <div id="subpage-{{::page.pageId}}" layout="{{::(isSingleColumn ? 'column' : 'row')}}">
-	<!-- Primary column -->
-	<div layout="column" flex>
-		<!-- Hash anchor -->
-		<a id="page-{{::page.pageId}}"></a>
+	<!-- Hash anchor -->
+	<a id="page-{{::page.pageId}}"></a>
 
-		<div layout-gt-sm="row" layout-align-gt-sm="space-between end">
+	<!-- Primary column -->
+	<div layout="column" class="vertical-layout-padding" flex>
+
+		<div layout-gt-sm="row" layout-align-gt-sm="space-between end" ng-if="arb.pathService.path">
 			<div arb-next-prev page-id="{{::page.pageId}}" whiteframe="::true"></div>
 		</div>
 
 		<!-- For user page, display what domains this user has access to -->
-		<div class="page-list-span"
-				ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
+		<div ng-if="::(page.isUser() && page.domainMembershipIds.length > 0 && !isSimpleEmbed)">
 			<span>Domains this user has access to:</span>
 			<span ng-repeat="(index, domainId) in ::page.domainMembershipIds">
 				<span class="comma" ng-if="index > 0">,</span>
@@ -20,7 +20,7 @@
 		</div>
 
 		<!-- Unlisted page -->
-		<div class="page-list-span md-whiteframe-1dp md-accent md-hue-1"
+		<div class="md-whiteframe-1dp md-accent md-hue-1"
 				layout-padding
 				layout="row"
 				layout-align="start center"
@@ -96,8 +96,7 @@
 							layout-padding
 							ng-if="page.parentIds.length > 0 || (page.taggedAsIds.length > 0 && !isSimpleEmbed)">
 						<!-- Parents -->
-						<div class="page-list-span"
-								layout-align="start center"
+						<div layout-align="start center"
 								ng-if="page.parentIds.length > 0" flex>
 							<span>Parents:</span>
 							<span ng-repeat="(index, parentId) in page.parentIds">
@@ -107,8 +106,7 @@
 						</div>
 
 						<!-- Tags -->
-						<div class="page-list-span"
-								layout-align="start center"
+						<div layout-align="start center"
 				 				ng-if="page.taggedAsIds.length > 0 && !isSimpleEmbed">
 				 			<span>Tagged as:</span>
 				 			<span ng-repeat="(index, tagId) in page.taggedAsIds">

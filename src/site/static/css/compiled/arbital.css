@@ -674,12 +674,6 @@ a:not(.md-button) {
 .support-visited-links a:not(.md-button)[page-id]:visited, .support-visited-links a:not(.md-button)[user-id]:visited {
   color: #004D40; }
 
-@media (min-width: 960px) {
-  .top-toolbar {
-    margin-bottom: 15px; } }
-arb-index {
-  margin-top: -20px; }
-
 #index-header {
   box-shadow: 0 1px 3px -3px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
   position: relative;
@@ -768,7 +762,7 @@ md-toast md-icon {
 
 @media (max-width: 599px) {
   .lens-text-container {
-    padding: 30px 5px 20px;
+    padding: 20px 5px 20px;
     font-size: 16px;
     line-height: 20px; }
 
@@ -789,7 +783,7 @@ md-toast md-icon {
     padding-right: 5px; } }
 @media (min-width: 600px) and (max-width: 959px) {
   .lens-text-container {
-    padding: 10px 50px 20px;
+    padding: 20px 50px 20px;
     font-size: 18px;
     line-height: 22px; }
 
@@ -810,7 +804,7 @@ md-toast md-icon {
     padding-right: 50px; } }
 @media (min-width: 960px) and (max-width: 1099px) {
   .lens-text-container {
-    padding: 10px 90px 60px;
+    padding: 20px 90px 60px;
     font-size: 18px;
     line-height: 26px; }
 
@@ -831,7 +825,7 @@ md-toast md-icon {
     padding-right: 90px; } }
 @media (min-width: 1100px) {
   .lens-text-container {
-    padding: 10px 100px 80px;
+    padding: 20px 100px 80px;
     font-size: 18px;
     line-height: 30px; }
 
@@ -901,6 +895,9 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
     border-top: 15px solid whitesmoke; }
     .bottom-triangle-track .triangle-down.toolbarless-version {
       border-top: 15px solid whitesmoke; }
+
+.vertical-layout-padding > * {
+  margin-top: 16px; }
 
 .panel-triangle-track {
   position: relative; }
