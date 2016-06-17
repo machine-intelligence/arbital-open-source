@@ -45,6 +45,7 @@ func processTask(c sessions.Context) error {
 		tasks.NewUpdateTask{},
 		tasks.PopulateElasticTask{},
 		tasks.PropagateDomainTask{},
+		tasks.PublishPagePairTask{},
 		tasks.ResetPasswordsTask{},
 		tasks.SendFeedbackEmailTask{},
 		tasks.SendInviteTask{},
@@ -53,6 +54,7 @@ func processTask(c sessions.Context) error {
 		tasks.UpdateElasticPageTask{},
 		tasks.UpdateFeaturedPagesTask{},
 		tasks.UpdateMetadataTask{},
+		tasks.UpdatePagePairsTask{},
 	}
 	taskPrototypeMap := make(map[string]tasks.QueueTask)
 	for _, prototype := range taskPrototypes {

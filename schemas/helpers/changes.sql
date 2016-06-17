@@ -44,3 +44,9 @@ delete from updates where type="inviteReceived" and goToPageId="";
 alter table users add column pretendToBeUserId VARCHAR(32) NOT NULL;
 
 alter table pages add column editSummary VARCHAR(512) NOT NULL after isMinorEdit;
+
+alter table pagePairs add column creatorId varchar(32) not null;
+alter table pagePairs add column createdAt datetime not null;
+update pagePairs set createdAt=now();
+update pagePairs set creatorId="198";
+update changeLogs set type="newChild" where type="newLens";

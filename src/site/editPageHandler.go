@@ -16,6 +16,10 @@ import (
 	"zanaduu3/src/tasks"
 )
 
+const (
+	CommentTitleLength = 50 // number of characters to extract from comment text to make its title
+)
+
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
 	PageId                   string
@@ -24,7 +28,7 @@ type editPageData struct {
 	Clickbait                string
 	Text                     string
 	MetaText                 string
-	IsMinorEditStr           string
+	IsMinorEdit              bool
 	EditSummary              string
 	IsAutosave               bool
 	IsSnapshot               bool
@@ -41,13 +45,6 @@ type editPageData struct {
 
 	// These parameters are only accepted from internal BE calls
 	RevertToEdit int `json:"-"`
-}
-
-type relatedPageData struct {
-	PairType    string
-	PageId      string
-	PageType    string
-	CurrentEdit int
 }
 
 var editPageHandler = siteHandler{
@@ -153,9 +150,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	if oldPage.SeeGroupId != seeGroupId && newEditNum != 1 {
 		return pages.Fail("Editing this page in incorrect private group", nil).Status(http.StatusBadRequest)
 	}
-	if core.IsIdValid(seeGroupId) && !u.IsMemberOfGroup(seeGroupId) {
-		return pages.Fail("Don't have group permission to EVEN SEE this page", nil).Status(http.StatusBadRequest)
-	}
 	// Check validity of most options. (We are super permissive with autosaves.)
 	if isPublicEdit {
 		if len(data.Title) <= 0 && oldPage.Type != core.CommentPageType {
@@ -187,17 +181,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 	}
 
-	// Load relationships so we can send notifications on a page that had
-	// relationships but is being published for the first time.
-	// Also send notifications if we undelete a page that has had new relationships created since it was deleted.
-	var newParents, newChildren []relatedPageData
-	if isNewCurrentEdit && (oldPage.IsDeleted || !oldPage.WasPublished) {
-		newParents, newChildren, err = getUnpublishedRelationships(db, u, data.PageId)
-		if err != nil {
-			return pages.Fail("Couldn't get new parents and children for page", err)
-		}
-	}
-
 	// Standardize text
 	data.Text = strings.Replace(data.Text, "\r\n", "\n", -1)
 	data.Text, err = core.StandardizeLinks(db, data.Text)
@@ -220,14 +203,12 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 		data.Title = fmt.Sprintf("%s: %s", parentTitle, data.Title)
 	} else if oldPage.Type == core.CommentPageType {
-		if len(data.Text) > 30 {
-			data.Title = fmt.Sprintf("\"%s...\"", data.Text[:27])
+		if len(data.Text) > CommentTitleLength {
+			data.Title = fmt.Sprintf("\"%s...\"", data.Text[:CommentTitleLength-3])
 		} else {
 			data.Title = fmt.Sprintf("\"%s\"", data.Text)
 		}
 	}
-
-	isMinorEdit := data.IsMinorEditStr == "on"
 
 	// Check if something is actually different from live edit
 	// NOTE: we do this as the last step before writing data, just so we can be sure
@@ -248,9 +229,6 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	var editChangeLogId int64
 	// Whether we created a changeLog for this edit
 	var createEditChangeLog bool
-	// The ids of the changeLogs for updated relationships
-	newChildChangeLogIdMap := make(map[string]int64)
-	newParentChangeLogIdMap := make(map[string]int64)
 
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
@@ -274,7 +252,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		hashmap["metaText"] = data.MetaText
 		hashmap["todoCount"] = core.ExtractTodoCount(data.Text)
 		hashmap["isLiveEdit"] = isNewCurrentEdit
-		hashmap["isMinorEdit"] = isMinorEdit
+		hashmap["isMinorEdit"] = data.IsMinorEdit
 		hashmap["editSummary"] = data.EditSummary
 		hashmap["isAutosave"] = data.IsAutosave
 		hashmap["isSnapshot"] = data.IsSnapshot
@@ -290,59 +268,20 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 		// Update summaries
 		if isNewCurrentEdit {
-			// Delete old page summaries
+			// Delete old summaries
 			statement = database.NewQuery(`
 				DELETE FROM pageSummaries WHERE pageId=?`, data.PageId).ToTxStatement(tx)
 			if _, err := statement.Exec(); err != nil {
 				return sessions.NewError("Couldn't delete existing page summaries", err)
 			}
 
+			// Insert new summaries
 			_, summaryValues := core.ExtractSummaries(data.PageId, data.Text)
 			statement = tx.DB.NewStatement(`
 				INSERT INTO pageSummaries (pageId,name,text)
 				VALUES ` + database.ArgsPlaceholder(len(summaryValues), 3)).WithTx(tx)
 			if _, err := statement.Exec(summaryValues...); err != nil {
 				return sessions.NewError("Couldn't insert page summaries", err)
-			}
-		}
-
-		if isNewCurrentEdit {
-			// set pagePairs.everPublished where the current page is the child (and the parent is already published)
-			statement = database.NewQuery(`
-				UPDATE pagePairs, pageInfos SET pagePairs.everPublished = 1
-				WHERE pagePairs.parentId = pageInfos.pageId
-					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
-					AND pagePairs.childId=?`, data.PageId).ToTxStatement(tx)
-			if _, err := statement.Exec(); err != nil {
-				return sessions.NewError("Couldn't set everPublished on pagePairs", err)
-			}
-
-			// set pagePairs.everPublished where the current page is the parent (and the child is already published)
-			statement = database.NewQuery(`
-				UPDATE pagePairs, pageInfos SET pagePairs.everPublished = 1
-				WHERE pagePairs.childId = pageInfos.pageId
-					AND pageInfos.currentEdit > 0 AND NOT pageInfos.isDeleted
-					AND pagePairs.parentId=?`, data.PageId).ToTxStatement(tx)
-			if _, err := statement.Exec(); err != nil {
-				return sessions.NewError("Couldn't set everPublished on pagePairs", err)
-			}
-
-			// Now that we're publishing this page, create changeLogs for new relationships
-			for _, parent := range newParents {
-				newChildChangeLogId, err := addNewChildToChangelog(tx, u.Id, parent.PairType, oldPage.Type, parent.PageId, parent.CurrentEdit,
-					data.PageId, true, false)
-				if err != nil {
-					return sessions.NewError("Couldn't create changeLog for new child", err)
-				}
-				newChildChangeLogIdMap[parent.PageId] = newChildChangeLogId
-			}
-			for _, child := range newChildren {
-				newParentChangeLogId, err := addNewParentToChangelog(tx, u.Id, child.PairType, child.PageType, child.PageId, child.CurrentEdit,
-					data.PageId, true, false)
-				if err != nil {
-					return sessions.NewError("Couldn't create changeLog for new parent", err)
-				}
-				newParentChangeLogIdMap[child.PageId] = newParentChangeLogId
 			}
 		}
 
@@ -440,7 +379,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 
 	if isPublicEdit {
 		// Generate "edit" update for users who are subscribed to this page.
-		if oldPage.WasPublished && !isMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
+		if oldPage.WasPublished && !data.IsMinorEdit && createEditChangeLog && oldPage.Type != core.CommentPageType {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.GoToPageId = data.PageId
@@ -467,7 +406,7 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 		}
 
 		// Generate updates for users who are subscribed to the author.
-		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType && !isMinorEdit {
+		if !oldPage.WasPublished && oldPage.Type != core.CommentPageType && !data.IsMinorEdit {
 			var task tasks.NewUpdateTask
 			task.UserId = u.Id
 			task.UpdateType = core.NewPageByUserUpdateType
@@ -482,26 +421,10 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
-		// Generate "new relationship" updates for users who are subscribed to related pages.
-		if (oldPage.IsDeleted || !oldPage.WasPublished) && oldPage.Type != core.CommentPageType {
-			for _, parent := range newParents {
-				err := tasks.EnqueueRelationshipUpdate(c, u.Id, parent.PageId, data.PageId, newChildChangeLogIdMap[parent.PageId], true, parent.PairType)
-				if err != nil {
-					c.Errorf("Couldn't enqueue a task: %v", err)
-				}
-			}
-			for _, child := range newChildren {
-				err := tasks.EnqueueRelationshipUpdate(c, u.Id, child.PageId, data.PageId, newParentChangeLogIdMap[child.PageId], false, child.PairType)
-				if err != nil {
-					c.Errorf("Couldn't enqueue a task: %v", err)
-				}
-			}
-		}
-
 		// Do some stuff for a new comment.
 		if !oldPage.WasPublished && oldPage.Type == core.CommentPageType {
 			// Send "new comment" updates.
-			if !isMinorEdit {
+			if !data.IsMinorEdit {
 				var task tasks.NewUpdateTask
 				task.UserId = u.Id
 				task.GroupByPageId = commentPrimaryPageId
@@ -540,6 +463,16 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 			}
 		}
 
+		// Create a task to check if any of the relationships need to be published
+		// TODO: condition: this page went from unpublished to published or deleted to undeleted
+		{
+			var task tasks.UpdatePagePairsTask
+			task.PageId = data.PageId
+			if err := tasks.Enqueue(c, &task, nil); err != nil {
+				c.Errorf("Couldn't enqueue a task: %v", err)
+			}
+		}
+
 		// Create a task to propagate the domain change to all children
 		if oldPage.IsDeleted || !oldPage.WasPublished {
 			var task tasks.PropagateDomainTask
@@ -551,58 +484,4 @@ func editPageInternalHandler(params *pages.HandlerParams, data *editPageData) *p
 	}
 
 	return pages.Success(returnData)
-}
-
-// Find all the relationships a given page is a part of, where the other page is published (and not deleted), but
-// where the relationship has not yet become public (e.g. because the given page was deleted or not-yet-published
-// when the relationship was created).
-func getUnpublishedRelationships(db *database.DB, u *core.CurrentUser, pageId string) ([]relatedPageData, []relatedPageData, error) {
-	parents := make([]relatedPageData, 0)
-	children := make([]relatedPageData, 0)
-
-	rows := database.NewQuery(`
-		SELECT pairType,otherId,otherIsParent,pi.type AS otherPageType,pi.currentEdit AS otherCurrentEdit
-		FROM (
-			SELECT parentId AS otherId, type AS pairType, true AS otherIsParent
-			FROM pagePairs
-			WHERE childId=?`, pageId).Add(`AND NOT everPublished
-			UNION
-			SELECT childId AS otherId, type AS pairType, false AS otherIsParent
-			FROM pagePairs
-			WHERE parentId=?`, pageId).Add(`AND NOT everPublished
-		) AS others
-		JOIN`).AddPart(core.PageInfosTableAll(u)).Add(`AS pi
-		ON pi.pageId=otherId
-		WHERE (otherId=?`, pageId).Add(`) OR
-		(
-			pi.currentEdit>0 AND NOT pi.isDeleted
-		)`).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var pairType, otherId, otherPageType string
-		var otherIsParent bool
-		var otherCurrentEdit int
-		err := rows.Scan(&pairType, &otherId, &otherIsParent, &otherPageType, &otherCurrentEdit)
-		if err != nil {
-			return fmt.Errorf("failed to scan for page pairs: %v", err)
-		}
-
-		otherPageData := relatedPageData{
-			PairType:    pairType,
-			PageId:      otherId,
-			PageType:    otherPageType,
-			CurrentEdit: otherCurrentEdit,
-		}
-
-		if otherIsParent {
-			parents = append(parents, otherPageData)
-		} else {
-			children = append(children, otherPageData)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to load parents and children: %v", err)
-	}
-
-	return parents, children, nil
 }

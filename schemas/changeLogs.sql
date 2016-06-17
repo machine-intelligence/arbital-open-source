@@ -14,7 +14,7 @@ CREATE TABLE changeLogs (
 	/* The affected page. FK into pages. */
 	pageId VARCHAR(32) NOT NULL,
 
-	/* Edit number of the affected page. Partial FK into pages. */
+	/* Optional edit number of the affected page. Partial FK into pages. */
 	edit INT NOT NULL,
 
 	/* Type of update */
