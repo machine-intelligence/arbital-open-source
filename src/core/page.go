@@ -1113,6 +1113,8 @@ type LoadEditOptions struct {
 	// If true, the last edit will be loaded for the given user, even if it's an
 	// autosave or a snapshot.
 	LoadNonliveEdit bool
+	// If true, when we load a non-live edit, we'll try to load the live edit first
+	PreferLiveEdit bool
 
 	// If set, we'll load this edit of the page
 	LoadSpecificEdit int
@@ -1149,6 +1151,22 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 				WHERE pageId=? AND edit<? AND NOT isSnapshot AND NOT isAutosave
 			)`, pageId, options.LoadEditWithLimit)
 	} else if options.LoadNonliveEdit {
+		orderClause := database.NewQuery(`
+			/* From most to least preferred edits: autosave, (applicable) snapshot, currentEdit, anything else */
+			ORDER BY p.isAutosave DESC,
+				p.isSnapshot DESC,
+				p.edit=pi.currentEdit DESC,
+				p.createdAt DESC
+		`)
+		if options.PreferLiveEdit {
+			orderClause = database.NewQuery(`
+			/* From most to least preferred edits: autosave, (applicable) snapshot, currentEdit, anything else */
+			ORDER BY p.edit=pi.currentEdit DESC,
+				p.isAutosave DESC,
+				p.isSnapshot DESC,
+				p.createdAt DESC
+		`)
+		}
 		// Load the most recent edit we have for the current user.
 		whereClause = database.NewQuery(`
 			p.edit=(
@@ -1159,12 +1177,7 @@ func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadE
 				WHERE p.pageId=?`, pageId).Add(`
 					AND (p.creatorId=? OR (NOT p.isSnapshot AND NOT p.isAutosave))`, u.Id).Add(`
 					/* To consider a snapshot, it has to be based on the current edit */
-					AND (NOT p.isSnapshot OR pi.currentEdit=0 OR p.prevEdit=pi.currentEdit)
-				/* From most to least preferred edits: autosave, (applicable) snapshot, currentEdit, anything else */
-				ORDER BY p.isAutosave DESC,
-					p.isSnapshot DESC,
-					p.edit=pi.currentEdit DESC,
-					p.createdAt DESC
+					AND (NOT p.isSnapshot OR pi.currentEdit=0 OR p.prevEdit=pi.currentEdit)`).AddPart(orderClause).Add(`
 				LIMIT 1
 			)`)
 	}
@@ -2283,36 +2296,6 @@ func LoadAliasToPageIdMap(db *database.DB, u *CurrentUser, aliases []string) (ma
 		aliasToIdMap[strings.ToLower(pageId)] = strings.ToLower(pageId)
 	}
 	return aliasToIdMap, nil
-}
-
-// LoadOldAliasToPageId converts the given old (base 10) page alias to page id.
-func LoadOldAliasToPageId(db *database.DB, u *CurrentUser, alias string) (string, bool, error) {
-	aliasToUse := alias
-
-	rows := database.NewQuery(`
-		SELECT base10id,base36id
-		FROM base10tobase36
-		WHERE base10id=?`, alias).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var base10Id string
-		var base36Id string
-		err := rows.Scan(&base10Id, &base36Id)
-		if err != nil {
-			return fmt.Errorf("failed to scan: %v", err)
-		}
-		aliasToUse = base36Id
-		return nil
-	})
-	if err != nil {
-		return "", false, fmt.Errorf("Couldn't convert base10Id=>base36Id", err)
-	}
-
-	pageId, ok, err := LoadAliasToPageId(db, u, aliasToUse)
-	if err != nil {
-		return "", false, fmt.Errorf("Couldn't convert alias", err)
-	}
-
-	return pageId, ok, nil
 }
 
 // LoadAliasToPageId converts the given page alias to page id.

@@ -57,15 +57,15 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load the published page.
-	oldPage, err := core.LoadFullEdit(db, data.PageId, u, nil)
+	editLoadOptions := &core.LoadEditOptions{
+		LoadNonliveEdit: true,
+		PreferLiveEdit:  true,
+	}
+	oldPage, err := core.LoadFullEdit(db, data.PageId, u, editLoadOptions)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
-		// Likely the page hasn't been published yet, so let's load the unpublished version.
-		oldPage, err = core.LoadFullEdit(db, data.PageId, u, &core.LoadEditOptions{LoadNonliveEdit: true})
-		if err != nil || oldPage == nil {
-			return pages.Fail("Couldn't load the old page2", err)
-		}
+		return pages.Fail("Couldn't find the old page", err)
 	}
 
 	// Fix some data.
