@@ -6,7 +6,6 @@ import (
 
 	"zanaduu3/src/core"
 	"zanaduu3/src/database"
-	"zanaduu3/src/sessions"
 )
 
 // NewUpdateTask is the object that's put into the daemon queue.
@@ -168,21 +167,4 @@ func (task NewUpdateTask) Execute(db *database.DB) (delay int, err error) {
 		return -1, fmt.Errorf("Couldn't process subscriptions: %v", err)
 	}
 	return 0, nil
-}
-
-func EnqueueRelationshipUpdate(c sessions.Context, userId string, pageId string, relatedPageId string, changeLogId int64,
-	subscribedToPageIsParent bool, pairType string) error {
-	// don't send updates for pages that are being used as tags or requirements
-	if subscribedToPageIsParent && (pairType == core.TagPagePairType || pairType == core.RequirementPagePairType) {
-		return nil
-	}
-
-	var task NewUpdateTask
-	task.UserId = userId
-	task.ChangeLogId = changeLogId
-	task.UpdateType = core.ChangeLogUpdateType
-	task.GroupByPageId = pageId
-	task.SubscribedToId = pageId
-	task.GoToPageId = relatedPageId
-	return Enqueue(c, &task, nil)
 }

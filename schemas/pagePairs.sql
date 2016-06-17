@@ -20,6 +20,12 @@ CREATE TABLE pagePairs (
 		is the child.*/
 	type VARCHAR(32) NOT NULL,
 
+	/* Id of the user who added this relationships. FK into pages. */
+	creatorId VARCHAR(32) NOT NULL,
+
+	/* When this relationship was created. */
+	createAt DATETIME NOT NULL,
+
 	/* A pair is considered published the first time its parent and child
 		are both published and not deleted. (Once everPublisehd is set to
 		true, it does not going back to being false even if its parent

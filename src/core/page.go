@@ -18,12 +18,6 @@ const (
 	GroupPageType    = "group"
 	DomainPageType   = "domain"
 
-	// Various types of page connections.
-	ParentPagePairType      = "parent"
-	TagPagePairType         = "tag"
-	RequirementPagePairType = "requirement"
-	SubjectPagePairType     = "subject"
-
 	// Options for sorting page's children.
 	RecentFirstChildSortingOption  = "recentFirst"
 	OldestFirstChildSortingOption  = "oldestFirst"
@@ -35,13 +29,10 @@ const (
 	ApprovalVoteType    = "approval"
 
 	// Various events we log when a page changes
-	NewParentChangeLog    = "newParent"
-	DeleteParentChangeLog = "deleteParent"
-	NewChildChangeLog     = "newChild"
-	DeleteChildChangeLog  = "deleteChild"
-	// there's no deleteLens because there's no way to undo the association between a lens and its parent page
-	// (other than deleting the lens page)
-	NewLensChangeLog            = "newLens"
+	NewParentChangeLog          = "newParent"
+	DeleteParentChangeLog       = "deleteParent"
+	NewChildChangeLog           = "newChild"
+	DeleteChildChangeLog        = "deleteChild"
 	NewTagChangeLog             = "newTag"
 	DeleteTagChangeLog          = "deleteTag"
 	NewUsedAsTagChangeLog       = "newUsedAsTag"
@@ -1789,80 +1780,6 @@ func LoadMarkData(db *database.DB, pageMap map[string]*Page, userMap map[string]
 	return err
 }
 
-type LoadChildIdsOptions struct {
-	// If set, the children will be loaded for these pages, but added to the
-	// map passed in as the argument.
-	ForPages map[string]*Page
-	// Type of children to load
-	Type string
-	// Type of the child relationship to follow
-	PagePairType string
-	// Load options to set for the new pages
-	LoadOptions *PageLoadOptions
-}
-
-// LoadChildIds loads the page ids for all the children of the pages in the given pageMap.
-func LoadChildIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadChildIdsOptions) error {
-	sourcePageMap := options.ForPages
-	if len(sourcePageMap) <= 0 {
-		return nil
-	}
-
-	pairTypeFilter := ""
-	if options.PagePairType != "" {
-		pairTypeFilter = "type = '" + options.PagePairType + "' AND"
-	}
-
-	pageTypeFilter := ""
-	if options.Type != "" {
-		pageTypeFilter = "AND pi.type = '" + options.Type + "'"
-	}
-
-	pageIds := PageIdsListFromMap(sourcePageMap)
-	rows := database.NewQuery(`
-		SELECT pp.parentId,pp.childId,pp.type,pi.type
-		FROM (
-			SELECT id,parentId,childId,type
-			FROM pagePairs
-			WHERE`).Add(pairTypeFilter).Add(`parentId IN`).AddArgsGroup(pageIds).Add(`
-		) AS pp
-		JOIN`).AddPart(PageInfosTable(u)).Add(`AS pi
-		ON pi.pageId=pp.childId`).Add(pageTypeFilter).ToStatement(db).Query()
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId string
-		var ppType string
-		var piType string
-		err := rows.Scan(&parentId, &childId, &ppType, &piType)
-		if err != nil {
-			return fmt.Errorf("failed to scan for page pairs: %v", err)
-		}
-		newPage := AddPageToMap(childId, pageMap, options.LoadOptions)
-
-		parent := sourcePageMap[parentId]
-		if piType == LensPageType {
-			parent.LensIds = append(parent.LensIds, newPage.PageId)
-			newPage.ParentIds = append(newPage.ParentIds, parent.PageId)
-		} else if piType == CommentPageType {
-			parent.CommentIds = append(parent.CommentIds, newPage.PageId)
-		} else if piType == QuestionPageType {
-			parent.QuestionIds = append(parent.QuestionIds, newPage.PageId)
-		} else if piType == WikiPageType && ppType == ParentPagePairType {
-			parent.ChildIds = append(parent.ChildIds, childId)
-			parent.HasChildren = true
-			if parent.LoadOptions.HasGrandChildren {
-				newPage.LoadOptions.SubpageCounts = true
-			}
-			if parent.LoadOptions.RedLinkCountForChildren {
-				newPage.LoadOptions.RedLinkCount = true
-			}
-		} else if piType == WikiPageType && ppType == TagPagePairType {
-			parent.RelatedIds = append(parent.RelatedIds, childId)
-		}
-		return nil
-	})
-	return err
-}
-
 // Given a parent page that collects meta tags, load all its children.
 func LoadMetaTags(db *database.DB, parentId string) ([]string, error) {
 	pageMap := make(map[string]*Page)
@@ -1967,100 +1884,6 @@ func LoadTaggedAsIds(db *database.DB, pageMap map[string]*Page, options *LoadChi
 		return nil
 	})
 	return err
-}
-
-type LoadParentIdsOptions struct {
-	// If set, the parents will be loaded for these pages, but added to the
-	// map passed in as the argument.
-	ForPages map[string]*Page
-	// Load whether or not each parent has parents of its own.
-	LoadHasParents bool
-	// Type of the parent relationship to follow
-	PagePairType string
-	// Load options to set for the new pages
-	LoadOptions *PageLoadOptions
-	// Mastery map to populate with masteries necessary for a requirement
-	MasteryMap map[string]*Mastery
-}
-
-// LoadParentIds loads the page ids for all the parents of the pages in the given pageMap.
-func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, options *LoadParentIdsOptions) error {
-	sourcePageMap := options.ForPages
-	if len(sourcePageMap) <= 0 {
-		return nil
-	}
-
-	pairTypeFilter := ""
-	if options.PagePairType != "" {
-		pairTypeFilter = "type = '" + options.PagePairType + "' AND"
-	}
-
-	pageIds := PageIdsListFromMap(sourcePageMap)
-	newPages := make(map[string]*Page)
-	rows := database.NewQuery(`
-		SELECT pp.parentId,pp.childId,pp.type
-		FROM (
-			SELECT id,parentId,childId,type
-			FROM pagePairs
-			WHERE `).Add(pairTypeFilter).Add(`childId IN`).AddArgsGroup(pageIds).Add(`
-		) AS pp
-		JOIN`).AddPart(PageInfosTableAll(u)).Add(`AS pi
-		ON (pi.pageId=pp.parentId)
-		WHERE (pi.currentEdit>0 AND NOT pi.isDeleted) OR pp.parentId=pp.childId
-		`).ToStatement(db).Query()
-
-	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var parentId, childId string
-		var ppType string
-		err := rows.Scan(&parentId, &childId, &ppType)
-		if err != nil {
-			return fmt.Errorf("failed to scan for page pairs: %v", err)
-		}
-		newPage := AddPageToMap(parentId, pageMap, options.LoadOptions)
-		childPage := sourcePageMap[childId]
-
-		if ppType == ParentPagePairType {
-			childPage.ParentIds = append(childPage.ParentIds, parentId)
-			childPage.HasParents = true
-			newPages[newPage.PageId] = newPage
-		} else if ppType == RequirementPagePairType {
-			childPage.RequirementIds = append(childPage.RequirementIds, parentId)
-			options.MasteryMap[parentId] = &Mastery{PageId: parentId}
-		} else if ppType == TagPagePairType {
-			childPage.TaggedAsIds = append(childPage.TaggedAsIds, parentId)
-		} else if ppType == SubjectPagePairType {
-			childPage.SubjectIds = append(childPage.SubjectIds, parentId)
-			options.MasteryMap[parentId] = &Mastery{PageId: parentId}
-		}
-		return nil
-	})
-	if err != nil {
-		return fmt.Errorf("Failed to load parents: %v", err)
-	}
-
-	// Load if parents have parents
-	if options.LoadHasParents && len(newPages) > 0 {
-		pageIds = PageIdsListFromMap(newPages)
-		rows := database.NewQuery(`
-			SELECT childId,sum(1)
-			FROM pagePairs
-			WHERE type=?`, ParentPagePairType).Add(`AND childId IN`).AddArgsGroup(pageIds).Add(`
-			GROUP BY 1`).ToStatement(db).Query()
-		err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-			var pageId string
-			var parents int
-			err := rows.Scan(&pageId, &parents)
-			if err != nil {
-				return fmt.Errorf("failed to scan for grandparents: %v", err)
-			}
-			pageMap[pageId].HasParents = parents > 0
-			return nil
-		})
-		if err != nil {
-			return fmt.Errorf("Failed to load grandparents: %v", err)
-		}
-	}
-	return nil
 }
 
 // LoadCommentIds loads ids of all the comments for the pages in the given pageMap.
