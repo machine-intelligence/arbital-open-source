@@ -39,22 +39,18 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 		return pages.Fail("Couldn't decode json", err).Status(http.StatusBadRequest)
 	}
 
-	var pageId string
-	var newCurrentEdit int
-
 	// Load the changelog
 	changelogs, err := core.LoadChangeLogsByIds(db, []string{data.ChangeLogId}, core.NewEditProposalChangeLog)
 	if err != nil {
 		return pages.Fail("Couldn't load changelog", err)
-	} else if changeLog, ok := changelogs[data.ChangeLogId]; !ok {
+	}
+	changeLog, ok := changelogs[data.ChangeLogId]
+	if !ok {
 		return pages.Fail("Couldn't find changelog", nil).Status(http.StatusBadRequest)
-	} else {
-		pageId = changeLog.PageId
-		newCurrentEdit = changeLog.Edit
 	}
 
 	// Load the published page.
-	oldPage, err := core.LoadFullEdit(db, pageId, u, nil)
+	oldPage, err := core.LoadFullEdit(db, changeLog.PageId, u, nil)
 	if err != nil {
 		return pages.Fail("Couldn't load the old page", err)
 	} else if oldPage == nil {
@@ -66,12 +62,20 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 		return pages.Fail("Can't edit: "+oldPage.Permissions.Edit.Reason, nil).Status(http.StatusBadRequest)
 	}
 
+	// Load the proposed edit
+	proposedEdit, err := core.LoadFullEdit(db, changeLog.PageId, u, &core.LoadEditOptions{LoadSpecificEdit: changeLog.Edit})
+	if err != nil {
+		return pages.Fail("Couldn't load the proposed edit", err)
+	} else if proposedEdit == nil {
+		return pages.Fail("Couldn't find the proposed edit", err)
+	}
+
 	// Begin the transaction.
 	err2 := db.Transaction(func(tx *database.Tx) sessions.Error {
 		// Update pageInfos
 		hashmap := make(database.InsertMap)
-		hashmap["pageId"] = pageId
-		hashmap["currentEdit"] = newCurrentEdit
+		hashmap["pageId"] = proposedEdit.PageId
+		hashmap["currentEdit"] = proposedEdit.Edit
 		statement := tx.DB.NewInsertStatement("pageInfos", hashmap, "currentEdit").WithTx(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pageInfos", err)
@@ -79,8 +83,8 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 
 		// Update pages
 		statement = database.NewQuery(`
-			UPDATE pages SET isLiveEdit=(edit=?)`, newCurrentEdit).Add(`
-			WHERE pageId=?`, pageId).ToTxStatement(tx)
+			UPDATE pages SET isLiveEdit=(edit=?)`, proposedEdit.Edit).Add(`
+			WHERE pageId=?`, proposedEdit.PageId).ToTxStatement(tx)
 		if _, err = statement.Exec(); err != nil {
 			return sessions.NewError("Couldn't update pages", err)
 		}
@@ -95,20 +99,27 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 		}
 
 		// Add an update for the user who submitted the edit
-		hashmap = make(map[string]interface{})
-		hashmap["userId"] = oldPage.EditCreatorId
-		hashmap["byUserId"] = u.Id
-		hashmap["type"] = core.EditProposalAcceptedUpdateType
-		hashmap["groupByPageId"] = pageId
-		hashmap["subscribedToId"] = pageId
-		hashmap["goToPageId"] = pageId
-		hashmap["changeLogId"] = data.ChangeLogId
-		hashmap["createdAt"] = database.Now()
-		statement = tx.DB.NewInsertStatement("updates", hashmap).WithTx(tx)
-		if _, err := statement.Exec(); err != nil {
-			return sessions.NewError("Couldn't create new update: %v", err)
+		if changeLog.UserId != u.Id {
+			hashmap = make(map[string]interface{})
+			hashmap["userId"] = changeLog.UserId
+			hashmap["byUserId"] = u.Id
+			hashmap["type"] = core.EditProposalAcceptedUpdateType
+			hashmap["groupByPageId"] = proposedEdit.PageId
+			hashmap["subscribedToId"] = proposedEdit.PageId
+			hashmap["goToPageId"] = proposedEdit.PageId
+			hashmap["changeLogId"] = data.ChangeLogId
+			hashmap["createdAt"] = database.Now()
+			statement = tx.DB.NewInsertStatement("updates", hashmap).WithTx(tx)
+			if _, err := statement.Exec(); err != nil {
+				return sessions.NewError("Couldn't create new update: %v", err)
+			}
 		}
-		return nil
+
+		// Update the links table.
+		err = core.UpdatePageLinks(tx, proposedEdit.PageId, proposedEdit.Text, sessions.GetDomain())
+		if err != nil {
+			return sessions.NewError("Couldn't update links", err)
+		}
 
 		return nil
 	})
@@ -117,9 +128,9 @@ func approvePageEditProposalHandlerFunc(params *pages.HandlerParams) *pages.Resu
 	}
 
 	// Update elastic search index.
-	if oldPage.WasPublished {
+	if proposedEdit.WasPublished {
 		var task tasks.UpdateElasticPageTask
-		task.PageId = pageId
+		task.PageId = proposedEdit.PageId
 		if err := tasks.Enqueue(c, &task, nil); err != nil {
 			c.Errorf("Couldn't enqueue a task: %v", err)
 		}
