@@ -79,7 +79,10 @@ func newPagePairHandlerInternal(params *pages.HandlerParams, data *newPagePairDa
 		ChildId:  data.ChildId,
 		Type:     data.Type,
 	}
-	parent, child, err := core.LoadFullPagesForPair(db, pagePair, u)
+	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u)
+	if err != nil {
+		return pages.Fail("Error loading pagePair pages", err)
+	}
 
 	// Check edit permissions
 	permissionError, err := core.CanAffectRelationship(c, parent, child, data.Type)

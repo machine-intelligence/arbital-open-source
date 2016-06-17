@@ -212,30 +212,19 @@ func LoadParentIds(db *database.DB, pageMap map[string]*Page, u *CurrentUser, op
 	return nil
 }
 
-// Load full edit for both the parent and the child of the given page pair. Fall back
-// to loading unpublished edits if the user is given
-func LoadFullPagesForPair(db *database.DB, pagePair *PagePair, u *CurrentUser) (*Page, *Page, error) {
-	parent, err := LoadFullEdit(db, pagePair.ParentId, u, nil)
+// Load full edit for both the parent and the child of the given page pair.
+func LoadFullEditsForPagePair(db *database.DB, pagePair *PagePair, u *CurrentUser) (*Page, *Page, error) {
+	parent, err := LoadFullEdit(db, pagePair.ParentId, u, &LoadEditOptions{LoadNonliveEdit: true})
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while loading parent page: %v", err)
 	} else if parent == nil {
-		parent, err = LoadFullEdit(db, pagePair.ParentId, u, &LoadEditOptions{LoadNonliveEdit: true})
-		if err != nil {
-			return nil, nil, fmt.Errorf("Error while loading parent page (2): %v", err)
-		} else if parent == nil {
-			return nil, nil, fmt.Errorf("Parent page doesn't exist", nil)
-		}
+		return nil, nil, fmt.Errorf("Parent page doesn't exist", nil)
 	}
-	child, err := LoadFullEdit(db, pagePair.ChildId, u, nil)
+	child, err := LoadFullEdit(db, pagePair.ChildId, u, &LoadEditOptions{LoadNonliveEdit: true})
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error while loading child page: %v", err)
 	} else if child == nil {
-		child, err = LoadFullEdit(db, pagePair.ChildId, u, &LoadEditOptions{LoadNonliveEdit: true})
-		if err != nil {
-			return nil, nil, fmt.Errorf("Error while loading child page (2): %v", err)
-		} else if child == nil {
-			return nil, nil, fmt.Errorf("Child page doesn't exist", nil)
-		}
+		return nil, nil, fmt.Errorf("Child page doesn't exist", nil)
 	}
 	return parent, child, nil
 }

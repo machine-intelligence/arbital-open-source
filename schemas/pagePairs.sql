@@ -24,7 +24,7 @@ CREATE TABLE pagePairs (
 	creatorId VARCHAR(32) NOT NULL,
 
 	/* When this relationship was created. */
-	createAt DATETIME NOT NULL,
+	createdAt DATETIME NOT NULL,
 
 	/* A pair is considered published the first time its parent and child
 		are both published and not deleted. (Once everPublisehd is set to

@@ -80,21 +80,21 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 		}
 
 		// Add change log entries to both pages
-		newParentChangeLogId, err := addNewRelationshipToParentChangeLog(tx, pagePair, false)
+		parentChangeLogId, err := addNewRelationshipToParentChangeLog(tx, pagePair, false)
 		if err != nil {
 			return sessions.NewError("Couldn't add to changelog of parent", err)
 		}
-		newChildChangeLogId, err := addNewRelationshipToParentChangeLog(tx, pagePair, true)
+		childChangeLogId, err := addNewRelationshipToParentChangeLog(tx, pagePair, true)
 		if err != nil {
 			return sessions.NewError("Couldn't add to changelog of child", err)
 		}
 
 		// Update people subscribed to either page
-		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, newParentChangeLogId, false)
+		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, parentChangeLogId, false)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 		}
-		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, newChildChangeLogId, true)
+		err = EnqueuePagePairUpdate(tx.DB.C, pagePair, childChangeLogId, true)
 		if err != nil {
 			tx.DB.C.Errorf("Couldn't enqueue a task: %v", err)
 		}
@@ -117,29 +117,29 @@ func (task PublishPagePairTask) Execute(db *database.DB) (delay int, err error) 
 }
 
 // Give page pair type, return what change log type should be for the parent's change log entry.
-// If reverseType is set, then for the child's change log entry.
-func getChangeLogTypeForPagePair(pairType string, reverseType bool) (string, error) {
+// If forChild is set, then for the child's change log entry.
+func getChangeLogTypeForPagePair(pairType string, forChild bool) (string, error) {
 	switch pairType {
 	case core.ParentPagePairType:
-		if reverseType {
+		if forChild {
 			return core.NewParentChangeLog, nil
 		} else {
 			return core.NewChildChangeLog, nil
 		}
 	case core.TagPagePairType:
-		if reverseType {
+		if forChild {
 			return core.NewTagChangeLog, nil
 		} else {
 			return core.NewUsedAsTagChangeLog, nil
 		}
 	case core.RequirementPagePairType:
-		if reverseType {
+		if forChild {
 			return core.NewRequirementChangeLog, nil
 		} else {
 			return core.NewRequiredByChangeLog, nil
 		}
 	case core.SubjectPagePairType:
-		if reverseType {
+		if forChild {
 			return core.NewSubjectChangeLog, nil
 		} else {
 			return core.NewTeacherChangeLog, nil
@@ -150,15 +150,15 @@ func getChangeLogTypeForPagePair(pairType string, reverseType bool) (string, err
 }
 
 // Update parent's changelog to refrect this new page pair.
-// If flipRelationship is passed, will update child's changelog instead.
-func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePair, flipRelationship bool) (int64, error) {
-	entryType, err := getChangeLogTypeForPagePair(pagePair.Type, flipRelationship)
+// If forChild is passed, will update child's changelog instead.
+func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePair, forChild bool) (int64, error) {
+	entryType, err := getChangeLogTypeForPagePair(pagePair.Type, forChild)
 	if err != nil {
 		return 0, fmt.Errorf("Could not get changelog type for relationship: %v", err)
 	}
 
 	hashmap := make(database.InsertMap)
-	if !flipRelationship {
+	if !forChild {
 		hashmap["pageId"] = pagePair.ParentId
 		hashmap["auxPageId"] = pagePair.ChildId
 	} else {
@@ -180,10 +180,10 @@ func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePai
 }
 
 // Add an update to the queue about the pagePair being added to the parent's changeLog.
-// If flipRelationship is set, the update is about child's changeLog.
-func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, changeLogId int64, flipRelationship bool) error {
+// If forChild is set, the update is about child's changeLog.
+func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, changeLogId int64, forChild bool) error {
 	// Don't send updates for pages that are being used as tags or requirements
-	if flipRelationship && (pagePair.Type == core.TagPagePairType || pagePair.Type == core.RequirementPagePairType) {
+	if forChild && (pagePair.Type == core.TagPagePairType || pagePair.Type == core.RequirementPagePairType) {
 		return nil
 	}
 
@@ -191,7 +191,7 @@ func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, changeLo
 	task.UserId = pagePair.CreatorId
 	task.ChangeLogId = changeLogId
 	task.UpdateType = core.ChangeLogUpdateType
-	if !flipRelationship {
+	if !forChild {
 		task.GroupByPageId = pagePair.ParentId
 		task.SubscribedToId = pagePair.ParentId
 		task.GoToPageId = pagePair.ChildId

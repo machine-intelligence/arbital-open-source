@@ -62,7 +62,10 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	}
 
 	// Load pages
-	parent, child, err := core.LoadFullPagesForPair(db, pagePair, u)
+	parent, child, err := core.LoadFullEditsForPagePair(db, pagePair, u)
+	if err != nil {
+		return pages.Fail("Error loading pagePair pages", err)
+	}
 
 	// Check edit permissions
 	permissionError, err := core.CanAffectRelationship(c, parent, child, pagePair.Type)

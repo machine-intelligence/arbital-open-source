@@ -37,7 +37,7 @@ func (task UpdatePagePairsTask) Execute(db *database.DB) (delay int, err error) 
 	c.Infof("==== UPDATE RELATIONSHIPS START ====")
 	defer c.Infof("==== UPDATE RELATIONSHIPS COMPLETED ====")
 
-	// Load relationships which haven't ben published yet
+	// Load relationships which haven't been published yet
 	queryPart := database.NewQuery(`
 		WHERE (childId=? OR parentId=?)`, task.PageId, task.PageId).Add(`
 			AND NOT everPublished`)

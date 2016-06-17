@@ -1122,10 +1122,8 @@ type LoadEditOptions struct {
 	CreatedAtLimit string
 }
 
-// LoadFullEdit loads and returns a page with the given id from the database.
-// If the page is deleted, minimum amount of data will be returned.
-// If userId is given, the last edit of the given pageId will be returned. It
-// might be an autosave or a snapshot, and thus not the current live page.
+// LoadFullEdit loads and returns an edit for the given page id from the DB. It
+// also computes the permissions for the edit.
 // If the page couldn't be found, (nil, nil) will be returned.
 func LoadFullEdit(db *database.DB, pageId string, u *CurrentUser, options *LoadEditOptions) (*Page, error) {
 	if options == nil {
