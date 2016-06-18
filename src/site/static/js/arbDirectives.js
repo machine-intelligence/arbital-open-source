@@ -734,7 +734,7 @@ app.directive('arbChangeLogRow', function(arb) {
 	};
 });
 
-app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $compile) {
+app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $compile, $timeout) {
 	return {
 		templateUrl: versionUrl('static/html/lensToolbarWrapper.html'),
 		scope: false,
@@ -765,15 +765,19 @@ app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $co
 						document.documentElement.clientHeight;
 				scope.noFloater = staticBarVisible;
 			};
-			angular.element($window).bind("scroll", onScroll);
+			angular.element($window).bind('scroll', onScroll);
 
 
 			var setUpLensToolbar = function() {
-				prevWindowY = 1000;
-				onScroll();
-				setFloaterWidth();
+				$timeout(function() {
+					prevWindowY = 1000;
+					onScroll();
+					setFloaterWidth();
+				});
 			};
 			setUpLensToolbar();
+			angular.element($window).bind('click', setUpLensToolbar);
+			console.log('bleh');
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
