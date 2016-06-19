@@ -18,9 +18,7 @@ type moreRelationshipsJsonData struct {
 var moreRelationshipsHandler = siteHandler{
 	URI:         "/json/moreRelationships/",
 	HandlerFunc: moreRelationshipsJsonHandler,
-	Options: pages.PageOptions{
-		RequireLogin: true,
-	},
+	Options:     pages.PageOptions{},
 }
 
 // moreRelationshipsJsonHandler handles the request.
