@@ -26,20 +26,6 @@ app.directive('arbLens', function($http, $location, $compile, $timeout, $interva
 				$scope.mastery = {has: false};
 			}
 
-			// Process click on "Subscribe as maintainer"
-			$scope.toggleMaintainerSub = function() {
-				$scope.page.isSubscribedAsMaintainer = !$scope.page.isSubscribedAsMaintainer;
-				if ($scope.page.isSubscribedAsMaintainer) {
-					$scope.page.isSubscribed = true;
-				}
-
-				$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
-					toId: $scope.pageId,
-					isSubscribed: $scope.page.isSubscribed,
-					asMaintainer: $scope.page.isSubscribedAsMaintainer,
-				})});
-			};
-
 			// Compute how many visible comments there are.
 			$scope.visibleCommentCount = function() {
 				var count = 0;

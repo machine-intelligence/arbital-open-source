@@ -6,10 +6,11 @@
 	<md-icon class="like-icon on" ng-if="likeable.myLikeValue > 0">thumb_up</md-icon>
 	<md-icon class="like-icon" md-svg-icon="thumb_up_outline" ng-if="likeable.myLikeValue <= 0"></md-icon>
 	<span class="like-count">{{likeable.likeCount + likeable.myLikeValue}}</span>
-	<md-tooltip class="unlimited" md-direction="top"
+	<md-tooltip class="unlimited"
+			md-direction="top"
 			ng-if="likeable.individualLikes.length > 0 && !arb.isTouchDevice">
 		<span ng-repeat="userId in likeable.individualLikes">{{arb.userService.getFullName(userId) + '\n'}}</span>
-	<md-tooltip>
+	</md-tooltip>
 </md-button>
 <span class="icon-likes" layout="row" layout="center end" ng-if="::!isButton">
 	<md-icon class="like-icon on" ng-if="likeable.myLikeValue > 0">thumb_up</md-icon>

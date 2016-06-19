@@ -734,14 +734,30 @@ app.directive('arbChangeLogRow', function(arb) {
 	};
 });
 
-app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $compile, $timeout) {
+app.directive('arbLensToolbar', function($window, $mdConstant, $mdUtil, $compile, $timeout, $http, arb) {
 	return {
 		templateUrl: versionUrl('static/html/lensToolbarWrapper.html'),
 		scope: false,
+		controller: function($scope) {
+			$scope.arb = arb;
+
+			// Process click on "Subscribe as maintainer"
+			$scope.toggleMaintainerSub = function() {
+				$scope.selectedLens.isSubscribedAsMaintainer = !$scope.selectedLens.isSubscribedAsMaintainer;
+				if ($scope.selectedLens.isSubscribedAsMaintainer) {
+					$scope.selectedLens.isSubscribed = true;
+				}
+
+				$http({method: 'POST', url: '/updateSubscription/', data: JSON.stringify({
+					toId: $scope.selectedLens.pageId,
+					isSubscribed: $scope.selectedLens.isSubscribed,
+					asMaintainer: $scope.selectedLens.isSubscribedAsMaintainer,
+				})});
+			};
+		},
 		link: function(scope, element) {
 			var staticBar = angular.element('#static-toolbar');
 			var floaterBar = angular.element('#floater-toolbar');
-
 
 			// Control the width of the floater bar
 			var setFloaterWidth = function() {
@@ -749,7 +765,6 @@ app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $co
 			};
 			angular.element($window).bind('resize', setFloaterWidth);
 			staticBar.bind('resize', setFloaterWidth);
-
 
 			// Control the behavior of the floater bar
 			var prevWindowY; // Used to tell if we're scrolling up or down
@@ -767,7 +782,6 @@ app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $co
 			};
 			angular.element($window).bind('scroll', onScroll);
 
-
 			var setUpLensToolbar = function() {
 				$timeout(function() {
 					prevWindowY = 1000;
@@ -777,10 +791,6 @@ app.directive('arbLensToolbar', function(arb, $window, $mdConstant, $mdUtil, $co
 			};
 			setUpLensToolbar();
 			angular.element($window).bind('click', setUpLensToolbar);
-			console.log('bleh');
-		},
-		controller: function($scope) {
-			$scope.arb = arb;
 		},
 	};
 });
