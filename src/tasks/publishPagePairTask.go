@@ -152,6 +152,9 @@ func getChangeLogTypeForPagePair(pairType string, forChild bool) (string, error)
 // Update parent's changelog to refrect this new page pair.
 // If forChild is passed, will update child's changelog instead.
 func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePair, forChild bool) (int64, error) {
+	if (pagePair.Type == core.TagPagePairType || pagePair.Type == core.RequirementPagePairType) && !forChild {
+		return 0, nil
+	}
 	entryType, err := getChangeLogTypeForPagePair(pagePair.Type, forChild)
 	if err != nil {
 		return 0, fmt.Errorf("Could not get changelog type for relationship: %v", err)
@@ -182,8 +185,11 @@ func addNewRelationshipToParentChangeLog(tx *database.Tx, pagePair *core.PagePai
 // Add an update to the queue about the pagePair being added to the parent's changeLog.
 // If forChild is set, the update is about child's changeLog.
 func EnqueuePagePairUpdate(c sessions.Context, pagePair *core.PagePair, changeLogId int64, forChild bool) error {
+	if changeLogId == 0 {
+		return nil
+	}
 	// Don't send updates for pages that are being used as tags or requirements
-	if forChild && (pagePair.Type == core.TagPagePairType || pagePair.Type == core.RequirementPagePairType) {
+	if (pagePair.Type == core.TagPagePairType || pagePair.Type == core.RequirementPagePairType) && !forChild {
 		return nil
 	}
 

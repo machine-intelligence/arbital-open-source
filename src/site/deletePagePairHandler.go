@@ -147,7 +147,7 @@ func deletePagePairHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		return pages.FailWith(err2)
 	}
 
-	if pagePair.Type == core.ParentPagePairType || pagePair.Type == core.TagPagePairType {
+	if pagePair.Type == core.ParentPagePairType {
 		// Create a task to propagate the domain change to all children
 		var task tasks.PropagateDomainTask
 		task.PageId = pagePair.ChildId
