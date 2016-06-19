@@ -501,13 +501,16 @@ app.service('markdownService', function($compile, $timeout, pageService, userSer
 		scope._currentMathCounter++;
 
 		// Go through all mathjax elements, and queue them up
-		$pageText.find('[arb-math-compiler]').each(function() {
-			scope._mathQueue.push($(this));
+		// Delay to wait for $compile to finish.
+		$timeout(function() {
+			$pageText.find('[arb-math-compiler]').each(function() {
+				scope._mathQueue.push($(this));
+			});
+			$timeout.cancel(scope._mathRenderPromise);
+			scope._mathRenderPromise = $timeout(function() {
+				scope._processMathQueue(scope._currentMathCounter);
+			}, scope._mathRenderPromise ? 500 : 0);
 		});
-		$timeout.cancel(scope._mathRenderPromise);
-		scope._mathRenderPromise = $timeout(function() {
-			scope._processMathQueue(scope._currentMathCounter);
-		}, scope._mathRenderPromise ? 500 : 0);
 	};
 
 	this.createConverter = function(scope, pageId) {
