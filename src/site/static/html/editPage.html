@@ -624,7 +624,7 @@
 			</div>
 			<md-checkbox ng-model="page.isEditorCommentIntention"
 					aria-label="Is for editors only?"
-					ng-if="::page.isComment()">
+					ng-if="::page.isComment() && page.getTopLevelComment() === page">
 				<span ng-if="::!gtXSmallScreen">For editors</span>
 				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
 			</md-checkbox>
