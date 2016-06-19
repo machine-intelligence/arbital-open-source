@@ -597,7 +597,7 @@ func ExecuteLoadPipeline(db *database.DB, data *CommonHandlerData) error {
 
 	// Load change logs
 	filteredPageMap = filterPageMap(pageMap, func(p *Page) bool { return p.LoadOptions.ChangeLogs })
-	err = LoadChangeLogsForPages(db, u.Id, pageMap, userMap, &LoadDataOptions{
+	err = LoadChangeLogsForPages(db, u.Id, data, &LoadDataOptions{
 		ForPages: filteredPageMap,
 	})
 	if err != nil {
@@ -1001,7 +1001,7 @@ func LoadLinkedMarkCounts(db *database.DB, pageMap map[string]*Page) error {
 type ProcessChangeLogCallback func(db *database.DB, changeLog *ChangeLog) error
 
 // LoadChangeLogs loads the change logs matching the given condition.
-func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, callback ProcessChangeLogCallback) error {
+func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, resultData *CommonHandlerData, callback ProcessChangeLogCallback) error {
 	rows := database.NewQuery(`
 			SELECT id,pageId,userId,edit,type,createdAt,auxPageId,oldSettingsValue,newSettingsValue
 			FROM changeLogs`).AddPart(queryPart).ToStatement(db).Query()
@@ -1012,6 +1012,10 @@ func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, callback Pro
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
 		}
+		if resultData != nil {
+			AddUserToMap(l.UserId, resultData.UserMap)
+			AddPageToMap(l.AuxPageId, resultData.PageMap, TitlePlusIncludeDeletedLoadOptions)
+		}
 		return callback(db, &l)
 	})
 	if err != nil {
@@ -1021,7 +1025,7 @@ func LoadChangeLogs(db *database.DB, queryPart *database.QueryPart, callback Pro
 }
 
 // LoadChangeLogsForPages loads the edit history for the given pages.
-func LoadChangeLogsForPages(db *database.DB, userId string, pageMap map[string]*Page, userMap map[string]*User, options *LoadDataOptions) error {
+func LoadChangeLogsForPages(db *database.DB, userId string, resultData *CommonHandlerData, options *LoadDataOptions) error {
 	sourcePageMap := options.ForPages
 	for _, p := range sourcePageMap {
 		p.ChangeLogs = make([]*ChangeLog, 0)
@@ -1029,18 +1033,12 @@ func LoadChangeLogsForPages(db *database.DB, userId string, pageMap map[string]*
 			WHERE pageId=?`, p.PageId).Add(`
 				AND (userId=? OR type!=?)`, userId, NewSnapshotChangeLog).Add(`
 			ORDER BY createdAt DESC`)
-		err := LoadChangeLogs(db, queryPart, func(db *database.DB, changeLog *ChangeLog) error {
+		err := LoadChangeLogs(db, queryPart, resultData, func(db *database.DB, changeLog *ChangeLog) error {
 			p.ChangeLogs = append(p.ChangeLogs, changeLog)
 			return nil
 		})
 		if err != nil {
 			return fmt.Errorf("Couldn't load changeLogs: %v", err)
-		}
-
-		// Process change logs
-		for _, log := range p.ChangeLogs {
-			userMap[log.UserId] = &User{Id: log.UserId}
-			AddPageToMap(log.AuxPageId, pageMap, TitlePlusIncludeDeletedLoadOptions)
 		}
 
 		err = LoadLikesForChangeLogs(db, userId, p.ChangeLogs)
@@ -1057,7 +1055,7 @@ func LoadChangeLogsByIds(db *database.DB, ids []string, typeConstraint string) (
 	queryPart := database.NewQuery(`
 			WHERE id IN`).AddArgsGroupStr(ids).Add(`
 				AND type=?`, typeConstraint)
-	err := LoadChangeLogs(db, queryPart, func(db *database.DB, changeLog *ChangeLog) error {
+	err := LoadChangeLogs(db, queryPart, nil, func(db *database.DB, changeLog *ChangeLog) error {
 		changeLogs[changeLog.Id] = changeLog
 		return nil
 	})
@@ -1088,17 +1086,15 @@ func LoadLikesForChangeLogs(db *database.DB, currentUserId string, changeLogs []
 		JOIN changeLogs as cl
 		ON cl.likeableId=l.likeableId
 		WHERE cl.id IN`).AddArgsGroup(changeLogIds).ToStatement(db).Query()
-
-	var changeLogId string
-	var value int
-	var likeUserId string
-	var changeLog *ChangeLog
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
+		var changeLogId string
+		var value int
+		var likeUserId string
 		err := rows.Scan(&changeLogId, &likeUserId, &value)
 		if err != nil {
 			return fmt.Errorf("failed to load likes for a changelog: %v", err)
 		}
-		changeLog = changeLogMap[changeLogId]
+		changeLog := changeLogMap[changeLogId]
 		if likeUserId == currentUserId {
 			changeLog.MyLikeValue = value
 		} else {

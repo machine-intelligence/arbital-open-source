@@ -121,12 +121,14 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		Parents: true, // to show comment threads properly
 	}).Add(TitlePlusIncludeDeletedLoadOptions)
 
-	updateRows := make([]*UpdateRow, 0, 0)
-	changeLogs := make([]*ChangeLog, 0)
+	updateRows := make([]*UpdateRow, 0)
+	changeLogIds := make([]string, 0)
+	changeLogMap := make(map[string]*ChangeLog)
 
 	rows := database.NewQuery(`
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.seen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
+			updates.changeLogId,
 			(
 				SELECT !isDeleted
 				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
@@ -136,16 +138,8 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 				SELECT !isDeleted
 				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
 				WHERE updates.goToPageId = pageId), false
-			) AS isGoToPageAlive,
-			COALESCE(changeLogs.id, 0),
-			COALESCE(changeLogs.pageId, 0),
-			COALESCE(changeLogs.type, ''),
-			COALESCE(changeLogs.oldSettingsValue, ''),
-			COALESCE(changeLogs.newSettingsValue, ''),
-			COALESCE(changeLogs.edit, 0)
+			) AS isGoToPageAlive
 		FROM updates
-		LEFT JOIN changeLogs
-		ON (updates.changeLogId = changeLogs.id)
 		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`
 			AND NOT updates.dismissed
 		HAVING isGoToPageAlive OR updates.type IN`).AddArgsGroupStr(getOkayToShowWhenGoToPageIsDeletedUpdateTypes()).Add(`
@@ -153,16 +147,14 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
 		var row UpdateRow
-		var changeLog ChangeLog
+		var changeLogId string
 		err := rows.Scan(&row.Id, &row.UserId, &row.ByUserId, &row.CreatedAt, &row.Type,
 			&row.Seen, &row.GroupByPageId, &row.GroupByUserId, &row.SubscribedToId,
-			&row.GoToPageId, &row.MarkId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive,
-			&changeLog.Id, &changeLog.PageId, &changeLog.Type, &changeLog.OldSettingsValue,
-			&changeLog.NewSettingsValue, &changeLog.Edit)
+			&row.GoToPageId, &row.MarkId, &changeLogId, &row.IsGroupByObjectAlive, &row.IsGoToPageAlive)
 		if err != nil {
 			return fmt.Errorf("failed to scan an update: %v", err)
 		}
-		row.ChangeLog = &changeLog
+
 		AddPageToMap(row.GoToPageId, resultData.PageMap, goToPageLoadOptions)
 		AddPageToMap(row.GroupByPageId, resultData.PageMap, groupLoadOptions)
 		AddPageToMap(row.SubscribedToId, resultData.PageMap, groupLoadOptions)
@@ -182,8 +174,16 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		} else {
 			resultData.AddMark(row.MarkId)
 		}
-		if row.ChangeLog.Id != "" {
-			changeLogs = append(changeLogs, row.ChangeLog)
+
+		// Process the change log
+		if changeLogId != "" {
+			changeLog, ok := changeLogMap[changeLogId]
+			if !ok {
+				changeLog = &ChangeLog{Id: changeLogId}
+				changeLogMap[changeLogId] = changeLog
+				changeLogIds = append(changeLogIds, changeLogId)
+			}
+			row.ChangeLog = changeLog
 		}
 
 		updateRows = append(updateRows, &row)
@@ -193,9 +193,22 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		return nil, fmt.Errorf("error while loading updates: %v", err)
 	}
 
-	err = LoadLikesForChangeLogs(db, u.Id, changeLogs)
-	if err != nil {
-		return nil, fmt.Errorf("error while loading likes for changelogs: %v", err)
+	// Load the changelogs
+	if len(changeLogIds) > 0 {
+		changeLogs := make([]*ChangeLog, 0)
+		queryPart := database.NewQuery(`WHERE id IN`).AddArgsGroupStr(changeLogIds)
+		err = LoadChangeLogs(db, queryPart, resultData, func(db *database.DB, changeLog *ChangeLog) error {
+			*changeLogMap[changeLog.Id] = *changeLog
+			changeLogs = append(changeLogs, changeLogMap[changeLog.Id])
+			return nil
+		})
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't load changlogs: %v", err)
+		}
+		err = LoadLikesForChangeLogs(db, u.Id, changeLogs)
+		if err != nil {
+			return nil, fmt.Errorf("error while loading likes for changelogs: %v", err)
+		}
 	}
 
 	return updateRows, nil

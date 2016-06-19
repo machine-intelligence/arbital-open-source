@@ -90,9 +90,8 @@ func loadEditProposalRows(db *database.DB, returnData *core.CommonHandlerData, l
 		WHERE type=?`, core.NewEditProposalChangeLog).Add(`
 		ORDER BY createdAt DESC
 		LIMIT ?`, limit)
-	err := core.LoadChangeLogs(db, queryPart, func(db *database.DB, changeLog *core.ChangeLog) error {
+	err := core.LoadChangeLogs(db, queryPart, returnData, func(db *database.DB, changeLog *core.ChangeLog) error {
 		core.AddPageToMap(changeLog.PageId, returnData.PageMap, pageLoadOptions)
-		core.AddUserToMap(changeLog.UserId, returnData.UserMap)
 		changeLogs = append(changeLogs, changeLog)
 		return nil
 	})
