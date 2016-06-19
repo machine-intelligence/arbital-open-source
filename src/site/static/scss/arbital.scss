@@ -5,7 +5,7 @@
 
 body {
 	overflow-x: hidden;
-	background-color: whitesmoke;
+	background-color: $background-color;
 }
 
 // Fix we need to apply to the body for most pages (where content just scrolls down)

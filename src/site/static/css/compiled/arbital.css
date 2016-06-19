@@ -396,7 +396,7 @@ md-list {
 
 body {
   overflow-x: hidden;
-  background-color: whitesmoke; }
+  background-color: #f7f7f7; }
 
 .body-fix {
   height: auto; }
