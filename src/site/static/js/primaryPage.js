@@ -13,5 +13,10 @@ app.directive('arbPrimaryPage', function($compile, $location, $timeout, arb) {
 			$scope.page.childIds.sort(arb.pageService.getChildSortFunc($scope.page.sortChildrenBy));
 			$scope.page.relatedIds.sort(arb.pageService.getChildSortFunc('likes'));
 		},
+		link: function(scope, element, attrs) {
+			if (scope.page.domainIds.indexOf('1lw') >= 0) {
+				element.addClass('math-background');
+			}
+		},
 	};
 });
