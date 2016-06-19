@@ -107,9 +107,6 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	if data.VoteType != "" && data.VoteType != core.ProbabilityVoteType && data.VoteType != core.ApprovalVoteType {
 		return pages.Fail("Invalid vote type value", nil).Status(http.StatusBadRequest)
 	}
-	if data.IsEditorCommentIntention && data.Type != core.CommentPageType {
-		return pages.Fail("Can't set editor-comment for non-comments", nil).Status(http.StatusBadRequest)
-	}
 
 	// Data correction. Rewrite the data structure so that we can just use it
 	// in a straight-forward way to populate the database.
@@ -126,6 +123,10 @@ func editPageInfoHandlerFunc(params *pages.HandlerParams) *pages.Result {
 		data.SortChildrenBy = core.RecentFirstChildSortingOption
 	} else if data.Type == core.QuestionPageType {
 		data.SortChildrenBy = core.LikesChildSortingOption
+	}
+	// Check IsEditorCommentIntention
+	if data.IsEditorCommentIntention && data.Type != core.CommentPageType {
+		data.IsEditorCommentIntention = false
 	}
 
 	// Make sure alias is valid
