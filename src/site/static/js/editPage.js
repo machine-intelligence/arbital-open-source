@@ -331,7 +331,6 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 					prevEditPageData = $.extend({}, data);
 					data.isAutosave = isAutosave;
 					data.isSnapshot = isSnapshot;
-					data.isEditorCommentIntention = $scope.page.isEditorCommentIntention;
 					data.isProposal = !$scope.page.permissions.edit.has;
 					// Send the data to the server.
 					// TODO: if the call takes too long, we should show a warning.
@@ -586,6 +585,8 @@ app.directive('arbEditPage', function($location, $filter, $timeout, $interval, $
 			// Save the page info.
 			// callback is called with a potential error message when the server replies
 			$scope.savePageInfo = function(callback) {
+				// NOTE: for now, all comments will be editor-only.
+				$scope.page.isEditorCommentIntention = true;
 				arb.pageService.savePageInfo($scope.page, callback);
 			};
 

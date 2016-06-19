@@ -622,12 +622,13 @@
 					<md-tooltip md-delay="500">Go to live view</md-tooltip>
 				</md-button>
 			</div>
+			<!-- NOTE: for now, all comments are editor only
 			<md-checkbox ng-model="page.isEditorCommentIntention"
 					aria-label="Is for editors only?"
 					ng-if="::page.isComment() && page.getTopLevelComment() === page">
 				<span ng-if="::!gtXSmallScreen">For editors</span>
 				<span ng-if="::gtXSmallScreen">Show comment to page editors only</span>
-			</md-checkbox>
+			</md-checkbox>-->
 			<span ng-if="page.isComment() && !page.isEditorCommentIntention && !page.getCommentParentPage().permissions.comment.has">
 				<md-icon>info</md-icon>
 				<md-tooltip md-delay="500">

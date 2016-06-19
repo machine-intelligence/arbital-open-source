@@ -22,21 +22,20 @@ const (
 
 // editPageData contains parameters passed in to create a page.
 type editPageData struct {
-	PageId                   string
-	PrevEdit                 int
-	Title                    string
-	Clickbait                string
-	Text                     string
-	MetaText                 string
-	IsMinorEdit              bool
-	EditSummary              string
-	IsAutosave               bool
-	IsSnapshot               bool
-	SnapshotText             string
-	AnchorContext            string
-	AnchorText               string
-	AnchorOffset             int
-	IsEditorCommentIntention bool
+	PageId        string
+	PrevEdit      int
+	Title         string
+	Clickbait     string
+	Text          string
+	MetaText      string
+	IsMinorEdit   bool
+	EditSummary   string
+	IsAutosave    bool
+	IsSnapshot    bool
+	SnapshotText  string
+	AnchorContext string
+	AnchorText    string
+	AnchorOffset  int
 	// If set, the user wants this edit to be a proposal rather than actual edit,
 	// even if they have permissions
 	IsProposal bool
