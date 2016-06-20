@@ -842,11 +842,11 @@ else
 			//  Header 2
 			//  --------
 			//
-			text = text.replace(/^(.+)[ \t]*\n=+[ \t]*\n+/gm,
+			text = text.replace(/^(.+)[ \t]*\n===+[ \t]*\n+/gm,
 			function(wholeMatch, m1) { return '<h1>' + _RunSpanGamut(m1) + '</h1>\n\n'; }
 			);
 
-			text = text.replace(/^(.+)[ \t]*\n-+[ \t]*\n+/gm,
+			text = text.replace(/^(.+)[ \t]*\n---+[ \t]*\n+/gm,
 			function(matchFound, m1) { return '<h2>' + _RunSpanGamut(m1) + '</h2>\n\n'; }
 			);
 
