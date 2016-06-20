@@ -529,12 +529,41 @@ arb-markdown, [arb-markdown], .preview-area {
     min-height: 0px; }
 
 .popover-panel {
+  margin-top: 12px;
   width: 600px; }
   .popover-panel md-list {
     height: 400px;
     overflow-y: scroll; }
   .popover-panel md-card {
     margin: 0px; }
+
+.popover-panel:before {
+  box-shadow: inherit; }
+
+.popover-panel:before,
+.popover-panel:after {
+  content: '';
+  display: block;
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  background: #fff;
+  -webkit-transform: rotate(45deg);
+  -moz-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  -o-transform: rotate(45deg);
+  transform: rotate(45deg); }
+
+.popover-panel:before {
+  z-index: -1; }
+
+.popover-panel.arrow-top:before,
+.popover-panel.arrow-top:after {
+  bottom: 100%;
+  right: 13px;
+  margin-bottom: -8px;
+  border-bottom: 0;
+  border-right: 0; }
 
 .chip {
   border: 1px solid #ccc;
@@ -903,17 +932,6 @@ arb-intrasite-popover, arb-user-popover, arb-text-popover {
 
 .vertical-layout-padding > * {
   margin-top: 16px; }
-
-.panel-triangle-track {
-  position: relative; }
-  .panel-triangle-track .triangle {
-    position: relative;
-    width: 0;
-    height: 0;
-    left: 565px;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-bottom: 15px solid white; }
 
 .page-title-icon {
   font-size: 43px;
