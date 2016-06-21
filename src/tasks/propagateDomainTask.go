@@ -83,18 +83,20 @@ func propagateDomainToPage(db *database.DB, pageId string, pageMap map[string]bo
 		// whether or not it's a root page for some domain
 		rows = database.NewQuery(`
 			(
-				SELECT pd.domainId,pi.seeGroupId
-				FROM pageDomainPairs AS pd
-				JOIN pagePairs AS pp
-				ON (pp.parentId=pd.pageId AND pp.type=?)`, core.ParentPagePairType).Add(`
-				JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
-				ON (pd.pageId=pi.pageId)
-				WHERE pp.childId=?`, pageId).Add(`
+				/* get the domains (and see-groups) of parents */
+				SELECT pdp.domainId, pi.seeGroupId
+				FROM (
+					SELECT parentId AS pageId
+					FROM pagePairs AS pp
+					WHERE pp.childId=?`, pageId).Add(`AND pp.type=?`, core.ParentPagePairType).Add(`
+				) AS parents
+				JOIN pageDomainPairs AS pdp ON pdp.pageId=parents.pageId
+				JOIN`).AddPart(core.PageInfosTable(nil)).Add(`AS pi ON pi.pageId=parents.pageId
 			) UNION (
-				SELECT pi2.pageId,pi2.seeGroupId
-				FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi2
-				WHERE pi2.pageId=?`, pageId).Add(`
-					AND pi2.type=?`, core.DomainPageType).Add(`
+				/* include the given page, if it's the root of a domain */
+				SELECT pi.pageId, pi.seeGroupId
+				FROM`).AddPart(core.PageInfosTable(nil)).Add(`AS pi
+				WHERE pi.pageId=?`, pageId).Add(`AND pi.type=?`, core.DomainPageType).Add(`
 			)`).ToStatement(db).Query()
 		err = rows.Process(func(db *database.DB, rows *database.Rows) error {
 			var domainId, seeGroupId string
