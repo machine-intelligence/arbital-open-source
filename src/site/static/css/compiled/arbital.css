@@ -538,9 +538,17 @@ arb-markdown, [arb-markdown], .preview-area {
     height: 24px;
     width: 24px; }
 
-arb-update-row arb-expand-icon {
-  margin-left: -8px; }
-arb-update-row .md-button.dismiss-button {
+arb-update-row .md-button.expand-button,
+.dense-panel .md-button.expand-button {
+  margin-left: -8px;
+  margin-top: -4px; }
+arb-update-row .update-row-guts,
+arb-update-row .expand-button-container,
+.dense-panel .update-row-guts,
+.dense-panel .expand-button-container {
+  min-height: 32px; }
+arb-update-row .md-button.dismiss-button,
+.dense-panel .md-button.dismiss-button {
   margin-right: -4px;
   margin-top: -4px; }
 
@@ -1180,10 +1188,13 @@ arb-log-row, [arb-log-row] {
   margin-bottom: 15px; }
 
 .hidden-text {
-  background-color: whitesmoke;
   margin-top: 10px;
   padding-top: 15px;
-  padding-bottom: 5px;
+  padding-bottom: 5px; }
+
+.hidden-text,
+.expand-tray {
+  background-color: whitesmoke;
   box-shadow: inset 0 4px 3px -3px rgba(0, 0, 0, 0.2), inset 0 -4px 3px -3px rgba(0, 0, 0, 0.14); }
 
 .markdown-note {
@@ -1246,6 +1257,13 @@ md-icon.icon-first {
 .dense-panel md-list-item,
 .popover-panel md-list-item {
   padding-left: 16px !important; }
+.dense-panel .expand-tray,
+.popover-panel .expand-tray {
+  margin-left: -16px;
+  padding-left: 16px;
+  margin-right: -16px;
+  padding-right: 16px;
+  margin-bottom: -3px; }
 
 .popover-panel {
   margin-top: 12px;
@@ -1293,6 +1311,8 @@ md-icon.icon-first {
     min-height: 42px !important;
     padding-top: 3px !important;
     padding-bottom: 3px !important; }
+  .list-panel .update-primary-row {
+    min-height: 39px; }
   .list-panel div {
     min-width: 0px; }
   .list-panel md-divider {

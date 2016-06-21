@@ -55,11 +55,16 @@ app.directive('arbCommentRowInternal', function($location, arb) {
 		templateUrl: versionUrl('static/html/rows/commentRowInternal.html'),
 		scope: {
 			comment: '=',
-			expanded: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
+
+			arb.pageService.loadCommentThread($scope.comment.pageId, {
+				success: function() {
+					$scope.threadLoaded = true;
+				},
+			});
 		},
 	};
 });

@@ -8,17 +8,32 @@ app.directive('arbUpdateRow', function(arb) {
 		scope: {
 			update: '=',
 			onDismiss: '=',
-			showLikeButton: '=',
-			showExpandIcon: '=',
-			expanded: '='
 		},
 	};
 });
 
-// directive for an update timestamp
-app.directive('arbUpdateRowExpandContent', function(arb) {
+// directive for an update expand button
+app.directive('arbUpdateRowExpandButton', function(arb) {
 	return {
-		transclude: true,
+		templateUrl: versionUrl('static/html/rows/updates/updateRowExpandButton.html'),
+		scope: false,
+		require: '^updateRow'
+	}
+});
+
+// directive for an update like button
+app.directive('arbUpdateRowLikeButton', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/rows/updates/updateRowLikeButton.html'),
+		scope: false,
+		require: '^updateRow'
+	}
+});
+
+// directive for an update dismiss button
+app.directive('arbUpdateRowDismissButton', function(arb) {
+	return {
+		templateUrl: versionUrl('static/html/rows/updates/updateRowDismissButton.html'),
 		scope: false,
 		require: '^updateRow'
 	}
@@ -40,7 +55,6 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 			scope: {
 				update: '=',
 				onDismiss: '&',
-				expanded: '=',
 			},
 			controller: function($scope) {
 				$scope.arb = arb;

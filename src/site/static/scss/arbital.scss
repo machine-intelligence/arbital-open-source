@@ -226,9 +226,16 @@ arb-markdown, [arb-markdown], .preview-area {
 	}
 }
 
-arb-update-row {
-	arb-expand-icon {
+arb-update-row,
+.dense-panel {
+	.md-button.expand-button {
 		margin-left: -8px;
+		margin-top: -4px;
+	}
+
+	.update-row-guts,
+	.expand-button-container {
+		min-height: 32px;
 	}
 
 	.md-button.dismiss-button {
@@ -1192,12 +1199,16 @@ arb-log-row, [arb-log-row] {
 [arb-hidden-text] {
 	margin-bottom: 15px;
 }
+
 .hidden-text {
-	background-color: whitesmoke;
 	margin-top: 10px;
 	padding-top: 15px;
 	padding-bottom: 5px;
+}
 
+.hidden-text,
+.expand-tray {
+	background-color: whitesmoke;
 	box-shadow: inset 0 4px 3px -3px rgba(0,0,0,.2), inset 0 -4px 3px -3px rgba(0,0,0,.14);
 }
 
@@ -1281,6 +1292,14 @@ md-icon.icon-first {
 	md-list-item {
 		padding-left: 16px !important;
 	}
+
+	.expand-tray {
+		margin-left: -16px;
+		padding-left: 16px;
+		margin-right: -16px;
+		padding-right: 16px;
+		margin-bottom: -3px;
+	}
 }
 
 .popover-panel {
@@ -1336,6 +1355,10 @@ md-icon.icon-first {
 		min-height: 42px !important;
 		padding-top: 3px !important;
 		padding-bottom: 3px !important;
+	}
+
+	.update-primary-row {
+		min-height: 39px;
 	}
 
 	& div {

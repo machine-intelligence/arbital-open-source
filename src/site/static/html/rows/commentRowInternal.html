@@ -1,28 +1,38 @@
-<!-- New discussion thread -->
-<div ng-if="::topLevelComment === comment" flex>
-	<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
-	commented
-	<arb-page-title page-id="{{::comment.pageId}}" is-link="true"></arb-page-title>
-	on
-	<arb-page-title page-id="{{::comment.getCommentParentPage().pageId}}" is-link="true"></arb-page-title>
-</div>
+<div layout="column">
+	<div layout="row" layout-align="start center">
+		<arb-update-row-expand-button></arb-update-row-expand-button>
 
-<!-- New reply -->
-<div ng-if="::topLevelComment !== comment" flex>
-	<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
-	replied
-	<arb-page-title page-id="{{::comment.pageId}}" is-link="true"></arb-page-title>
-	to
-	<span ng-bind="::topLevelComment.pageCreatorId == arb.userService.user.id ? 'your' : 'a'"></span>
-	comment:
-	<arb-page-title page-id="{{::topLevelComment.pageId}}" is-link="true"></arb-page-title>
-</div>
+		<!-- New discussion thread -->
+		<div ng-if="::topLevelComment === comment" flex>
+			<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
+			commented
+			<arb-page-title page-id="{{::comment.pageId}}" is-link="true"></arb-page-title>
+			on
+			<arb-page-title page-id="{{::comment.getCommentParentPage().pageId}}" is-link="true"></arb-page-title>
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
 
-<div ng-if="expanded">
-	<md-progress-circular md-mode="indeterminate" ng-if="!threadLoaded"></md-progress-circular>
-	<div arb-subpage class="reveal-after-render"
-			lens-id="{{::comment.getCommentParentPage().pageId}}"
-			page-id="{{::topLevelComment.pageId}}"
-			show-even-if-resolved="true"
-			ng-if="threadLoaded"></div>
+		<!-- New reply -->
+		<div ng-if="::topLevelComment !== comment" flex>
+			<arb-user-name user-id="{{::comment.pageCreatorId}}"></arb-user-name>
+			replied
+			<arb-page-title page-id="{{::comment.pageId}}" is-link="true"></arb-page-title>
+			to
+			<span ng-bind="::topLevelComment.pageCreatorId == arb.userService.user.id ? 'your' : 'a'"></span>
+			comment:
+			<arb-page-title page-id="{{::topLevelComment.pageId}}" is-link="true"></arb-page-title>
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
+
+		<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+	</div>
+
+	<div ng-if="expanded">
+		<md-progress-circular md-mode="indeterminate" ng-if="!threadLoaded"></md-progress-circular>
+		<div arb-subpage class="reveal-after-render"
+				lens-id="{{::comment.getCommentParentPage().pageId}}"
+				page-id="{{::topLevelComment.pageId}}"
+				show-even-if-resolved="true"
+				ng-if="threadLoaded"></div>
+	</div>
 </div>
