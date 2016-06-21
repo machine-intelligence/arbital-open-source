@@ -1,9 +1,7 @@
 <md-list-item>
 	<div layout="row" flex>
 		<div ng-if="::refCount">
-			<md-button ng-click="toggleExpand()" class="md-icon-button icon-first" aria-label="Expand">
-				<arb-expand-icon expanded="expanded"></arb-expand-icon>
-			</md-button>
+			<arb-expand-icon expanded="wrapper.expanded"></arb-expand-icon>
 		</div>
 		<div class="explanation-text" layout="column" flex>
 			<div>

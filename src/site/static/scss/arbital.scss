@@ -199,63 +199,42 @@ arb-markdown, [arb-markdown], .preview-area {
 	border-radius: 2px;
 }
 
-.full-page-panel {
-	max-width: 900px;
-	margin-left: auto;
-	margin-right: auto;
+.md-button.md-icon-button.remove-extra-space {
+	padding: 0 !important;
+	min-height: 0px;
 }
 
-.dense-panel {
-	font-size: 14px;
-	md-toolbar {
-		min-height: 0px;
+.md-button.md-icon-button.s20 {
+	height: 20px;
+	width: 20px;
+
+	md-icon {
+		font-size: 20px;
+		height: 20px;
+		width: 20px;
 	}
 }
 
-.popover-panel {
-	margin-top: 12px;
+.md-button.md-icon-button.s24 {
+	height: 24px;
+	width: 24px;
 
-	md-list {
-		height: 400px;
-		overflow-y: scroll;
+	md-icon {
+		font-size: 24px;
+		height: 24px;
+		width: 24px;
 	}
-	md-card {
-		margin: 0px;
+}
+
+arb-update-row {
+	arb-expand-icon {
+		margin-left: -8px;
 	}
-	width: 600px;
-}
 
-
-.popover-panel:before {
-
-	box-shadow: inherit;
-}
-
-.popover-panel:before,
-.popover-panel:after {
-	content: '';
-	display: block;
-	position: absolute;
-	width: 15px;
-	height: 15px;
-	background: #fff;
-	-webkit-transform: rotate(45deg);
-	-moz-transform: rotate(45deg);
-	-ms-transform: rotate(45deg);
-	-o-transform: rotate(45deg);
-	transform: rotate(45deg);
-}
-
-.popover-panel:before {
-	z-index: -1;
-}
-.popover-panel.arrow-top:before,
-.popover-panel.arrow-top:after {
-  bottom: 100%;
-  right: 13px;
-  margin-bottom: -8px;
-  border-bottom: 0;
-  border-right: 0;
+	.md-button.dismiss-button {
+		margin-right: -4px;
+		margin-top: -4px;
+	}
 }
 
 .chip {
@@ -1252,12 +1231,19 @@ arb-explanation-request-row {
 	-webkit-transform: rotate(-90deg);
 }
 
-.md-button.icon-first {
+.md-button.icon-first,
+md-icon.icon-first {
 	margin-left: -12px;
 }
 
-.md-button.icon-last {
+.md-button.icon-last,
+.md-icon.icon-last {
 	margin-right: -12px;
+}
+
+.md-icon.s24 {
+  width: 24px;
+  height: 24px;
 }
 
 .page-row {
@@ -1276,6 +1262,74 @@ arb-explanation-request-row {
 	}
 }
 
+.dense-panel {
+	font-size: 14px;
+	md-toolbar {
+		min-height: 0px;
+	}
+}
+
+.dense-panel,
+.popover-panel {
+	arb-user-name,
+	arb-page-title {
+		a {
+			font-weight: 500;
+			color: black !important;
+		}
+	}
+	md-list-item {
+		padding-left: 16px !important;
+	}
+}
+
+.popover-panel {
+	margin-top: 12px;
+
+	md-list {
+		height: 400px;
+		overflow-y: scroll;
+	}
+	md-card {
+		margin: 0px;
+	}
+	width: 600px;
+}
+
+
+.popover-panel:before {
+	box-shadow: inherit;
+}
+
+// BEGIN STYLES FOR POPOVER PANEL TRIANGLES
+.popover-panel:before,
+.popover-panel:after {
+	content: '';
+	display: block;
+	position: absolute;
+	width: 15px;
+	height: 15px;
+	background: #fff;
+	-webkit-transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-ms-transform: rotate(45deg);
+	-o-transform: rotate(45deg);
+	transform: rotate(45deg);
+}
+
+.popover-panel:before {
+	z-index: -1;
+}
+.popover-panel.arrow-top:before,
+.popover-panel.arrow-top:after {
+	bottom: 100%;
+	right: 13px;
+	margin-bottom: -8px;
+	border-bottom: 0;
+	border-right: 0;
+}
+// END STYLES FOR POPOVER PANEL TRIANGLES
+
 .list-panel {
 	& md-list-item {
 		margin: 0px !important;
@@ -1291,6 +1345,10 @@ arb-explanation-request-row {
 	md-divider {
 		border-top-color: rgba(0,0,0,0.04);
 	}
+
+	max-width: 900px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .tab-panel-header {

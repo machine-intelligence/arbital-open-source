@@ -1,7 +1,6 @@
-<div class='list-panel'
+<div class='list-panel md-whiteframe-1dp white-background'
 		ng-class="{
-				'full-page-panel md-whiteframe-1dp': isFullPage,
-				'dense-panel white-background': !isFullPage,
+				'dense-panel': !isFullPage || isSmallScreen,
 			}"
 		ng-if="modeRows && modeRows.length != 0">
 	<!-- Header -->

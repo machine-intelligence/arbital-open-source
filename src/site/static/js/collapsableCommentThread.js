@@ -6,6 +6,8 @@ app.directive('arbCollapsableCommentThread', function($compile, $timeout, $locat
 		templateUrl: versionUrl('static/html/collapsableCommentThread.html'),
 		scope: {
 			commentId: '@',
+			externalExpanded: '=',
+			showButton: '=',
 		},
 		controller: function($scope) {
 			$scope.arb = arb;

@@ -1,22 +1,27 @@
-<div layout="row" layout-xs="column" layout-align="space-between center">
+<div layout="column">
+	<div layout="row" layout-align="start start" flex>
+		<arb-expand-icon ng-if="showExpandIcon"></arb-expand-icon>
+{{expanded}}
 
-	<!-- LHS of the row -->
-	<arb-likes likeable-type="changeLog"
-		likeable-id="{{::update.changeLog.id}}"
-		likeable="::update.changeLog"
-		is-button="true"
-		ng-if="showLikeButton"></arb-likes>
+		<!-- Likes -->
+		<arb-likes likeable-type="changeLog"
+			likeable-id="{{::update.changeLog.id}}"
+			likeable="::update.changeLog"
+			is-button="true"
+			ng-if="showLikeButton"></arb-likes>
 
-	<!-- guts of the row -->
-	<div ng-transclude flex></div>
+		<!-- Guts of the row -->
+		<div layout="column" layout-align="center start" flex>
+			<div ng-transclude></div>
+		</div>
 
-	<!-- RHS of the row -->
-	<div layout="row" layout-align="end center">
-		<span class="md-caption nowrap" ng-bind="::(update.createdAt | smartDateTime)"></span>
-		<md-button class="md-icon-button" ng-click="onDismiss()">
-			<md-icon>close</md-icon>
-			<md-tooltip md-delay="500">Dismiss</md-tooltip>
-		</md-button>
+		<!-- Dismiss button -->
+		<div layout="column" layout-align="start end">
+			<md-button class="md-icon-button dismiss-button remove-extra-space s20" ng-click="onDismiss()">
+				<md-icon>close</md-icon>
+				<md-tooltip md-delay="500">Dismiss</md-tooltip>
+			</md-button>
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
 	</div>
-
 </div>

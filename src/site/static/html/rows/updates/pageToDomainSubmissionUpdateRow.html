@@ -1,20 +1,17 @@
 <arb-update-row update="::update" on-dismiss="::onDismiss">
-	<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-	wants to add
-	<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-	to the
-	<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true"></arb-page-title>
-	domain.
-	<div>
-		<md-button class="md-primary"
-				ng-click="arb.pageService.approvePageToDomain(update.goToPageId, update.subscribedToId)"
-				ng-if="goToPage.domainSubmissions[update.subscribedToId].approverId == ''">
-			Approve
-		</md-button>
-		<!-- Check that goToPage exists, because it might have been deleted -->
-		<span ng-if="goToPage && goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
-			This submission has been approved by
-			<arb-user-name user-id="{{::goToPage.domainSubmissions[update.subscribedToId].approverId}}"></arb-user-name>
-		</span>
+	<div layout="row" layout-align="start center">
+		<div layout="column">
+			<div>
+				<arb-user-name user-id="{{::update.byUserId}}">
+				</arb-user-name> wants to add <arb-page-title page-id="{{::update.goToPageId}}" is-link="true">
+				</arb-page-title>to the<arb-page-title page-id="{{::update.subscribedToId}}" is-link="true">
+				</arb-page-title>domain.
+				<!-- Check that goToPage exists, because it might have been deleted -->
+				<span ng-if="goToPage && goToPage.domainSubmissions[update.subscribedToId].approverId != ''">
+					This submission has been approved by
+					<arb-user-name user-id="{{::goToPage.domainSubmissions[update.subscribedToId].approverId}}"></arb-user-name>
+				</span>
+			</div>
+		</div>
 	</div>
 </arb-update-row>

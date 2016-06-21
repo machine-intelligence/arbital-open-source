@@ -9,8 +9,28 @@ app.directive('arbUpdateRow', function(arb) {
 			update: '=',
 			onDismiss: '=',
 			showLikeButton: '=',
+			showExpandIcon: '=',
+			expanded: '='
 		},
 	};
+});
+
+// directive for an update timestamp
+app.directive('arbUpdateRowExpandContent', function(arb) {
+	return {
+		transclude: true,
+		scope: false,
+		require: '^updateRow'
+	}
+});
+
+// directive for an update timestamp
+app.directive('arbUpdateTimestamp', function(arb) {
+	return {
+		template: '<span class="md-caption nowrap" ng-bind="::(update.createdAt | smartDateTime)"></span>',
+		scope: false,
+		require: '^updateRow'
+	}
 });
 
 var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
@@ -20,6 +40,7 @@ var getUpdateRowDirectiveFunc = function(templateUrl, controllerInternal) {
 			scope: {
 				update: '=',
 				onDismiss: '&',
+				expanded: '=',
 			},
 			controller: function($scope) {
 				$scope.arb = arb;
