@@ -1,17 +1,5 @@
 'use strict';
 
-// arb-update-row is the directive for showing an update
-app.directive('arbUpdateRow', function(arb) {
-	return {
-		templateUrl: versionUrl('static/html/rows/updates/updateRow.html'),
-		transclude: true,
-		scope: {
-			update: '=',
-			onDismiss: '=',
-		},
-	};
-});
-
 // directive for an update expand button
 app.directive('arbUpdateRowExpandButton', function(arb) {
 	return {
