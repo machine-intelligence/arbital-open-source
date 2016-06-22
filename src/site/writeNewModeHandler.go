@@ -2,6 +2,7 @@
 package site
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -29,8 +30,9 @@ var writeNewModeHandler = siteHandler{
 
 // Row to show a redLink
 type RedLinkRow struct {
-	RedLinkAlias string `json:"redLinkAlias"`
-	RedLinkCount string `json:"redLinkCount"`
+	core.Likeable
+	Alias    string `json:"alias"`
+	RefCount string `json:"refCount"`
 }
 
 func writeNewModeHandlerFunc(params *pages.HandlerParams) *pages.Result {
@@ -69,7 +71,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 	pageInfosTable := core.PageInfosTableWithOptions(returnData.User, &core.PageInfosOptions{Unpublished: true})
 	// NOTE: keep in mind that multiple pages can have the same alias, as long as only one page is published
 	rows := database.NewQuery(`
-		SELECT l.childAlias,SUM(ISNULL(linkedPi.pageId)) AS count
+		SELECT l.childAlias,rl.likeableId,SUM(ISNULL(linkedPi.pageId)) AS count
 		FROM `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS mathPi
 		JOIN pageDomainPairs AS pdp
 		ON pdp.pageId=mathPi.pageId
@@ -78,6 +80,8 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 		ON l.parentId=mathPi.pageId
 		LEFT JOIN `).AddPart(core.PageInfosTable(returnData.User)).Add(` AS linkedPi
 		ON (l.childAlias=linkedPi.pageId OR l.childAlias=linkedPi.alias)
+		LEFT JOIN redLinks AS rl
+		ON (l.childAlias=rl.alias)
 		WHERE IFNULL((
 			/* Make sure there is no recent draft with this alias, since that means
 				it's likely someone is alread working on this page. */
@@ -85,30 +89,52 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 			FROM `).AddPart(pageInfosTable).Add(` AS unpublishedPi
 			WHERE unpublishedPi.alias=l.childAlias
 		),?) > ?`, hideRedLinkIfDraftExistsDays+1, hideRedLinkIfDraftExistsDays).Add(`
-		GROUP BY l.childAlias
+		GROUP BY 1,2
 		ORDER BY count DESC
 		LIMIT ?`, limit).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var redLinkAlias, redLinkCount string
-		err := rows.Scan(&redLinkAlias, &redLinkCount)
+		var alias, refCount string
+		var likeableId sql.NullInt64
+		err := rows.Scan(&alias, &likeableId, &refCount)
 		if err != nil {
 			return fmt.Errorf("failed to scan: %v", err)
-		}
-
-		// Skip redlinks that are ids
-		if core.IsIdValid(redLinkAlias) {
+		} else if core.IsIdValid(alias) {
+			// Skip redlinks that are ids
 			return nil
 		}
 
 		row := &RedLinkRow{
-			RedLinkAlias: redLinkAlias,
-			RedLinkCount: redLinkCount,
+			Likeable: *core.NewLikeable(core.RedLinkLikeableType),
+			Alias:    alias,
+			RefCount: refCount,
+		}
+		if likeableId.Valid {
+			row.LikeableId = likeableId.Int64
 		}
 		redLinks = append(redLinks, row)
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Couldn't load red links: %v", err)
 	}
-	return redLinks, nil
+
+	// Load likes
+	likeablesMap := make(map[int64]*core.Likeable)
+	for _, redLink := range redLinks {
+		if redLink.LikeableId != 0 {
+			likeablesMap[redLink.LikeableId] = &redLink.Likeable
+		}
+	}
+	err = core.LoadLikes(db, returnData.User, likeablesMap, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't load red link like count: %v", err)
+	}
+	// Remove red links that are downvoted
+	trimmedRedLinks := make([]*RedLinkRow, 0)
+	for _, redLink := range redLinks {
+		if redLink.DislikeCount >= 0 && redLink.MyLikeValue >= 0 {
+			trimmedRedLinks = append(trimmedRedLinks, redLink)
+		}
+	}
+	return trimmedRedLinks, nil
 }

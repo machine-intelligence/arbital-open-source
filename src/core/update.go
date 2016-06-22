@@ -129,16 +129,16 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		SELECT updates.id,updates.userId,updates.byUserId,updates.createdAt,updates.type,updates.seen,
 			updates.groupByPageId,updates.groupByUserId,updates.subscribedToId,updates.goToPageId,updates.markId,
 			updates.changeLogId,
-			(
-				SELECT !isDeleted
-				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
-				WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)
-			) AS isGroupByObjectAlive,
 			COALESCE((
 				SELECT !isDeleted
 				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
-				WHERE updates.goToPageId = pageId), false
-			) AS isGoToPageAlive
+				WHERE pageId IN (updates.groupByPageId, updates.groupByUserId)
+			), false) AS isGroupByObjectAlive,
+			COALESCE((
+				SELECT !isDeleted
+				FROM`).AddPart(PageInfosTableWithOptions(u, &PageInfosOptions{Deleted: true})).Add(`AS pi
+				WHERE updates.goToPageId = pageId
+			), false) AS isGoToPageAlive
 		FROM updates
 		WHERE updates.userId=?`, u.Id).AddPart(emailFilter).AddPart(updateTypeFilter).Add(`
 			AND NOT updates.dismissed
@@ -205,7 +205,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't load changlogs: %v", err)
 		}
-		err = LoadLikesForChangeLogs(db, u.Id, changeLogs)
+		err = LoadLikesForChangeLogs(db, u, changeLogs)
 		if err != nil {
 			return nil, fmt.Errorf("error while loading likes for changelogs: %v", err)
 		}

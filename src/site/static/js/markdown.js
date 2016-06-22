@@ -52,8 +52,6 @@ app.directive('arbMarkdown', function($compile, $timeout, arb) {
 				arb.markdownService.processLinks(scope, $pageText);
 				element.removeClass('reveal-after-render');
 				$timeout(function() {
-					//MathJax.Hub.Queue(['Typeset', MathJax.Hub, $pageText.get(0)]);
-					//MathJax.Hub.Queue(['compileChildren', arb.markdownService, scope, $pageText]);
 					arb.markdownService.compileChildren(scope, $pageText);
 					// Highlight the anchorText for marks.
 					MathJax.Hub.Queue(function() {

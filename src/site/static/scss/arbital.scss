@@ -1229,8 +1229,11 @@ arb-explanation-request-row {
 	color: #444;
 
 	.explanation-text {
-		padding-top: 10px;
-		line-height: 24px;
+		line-height: 38px;
+
+		.expanded-list {
+			line-height: normal;
+		}
 	}
 }
 

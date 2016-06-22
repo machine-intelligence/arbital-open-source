@@ -126,9 +126,12 @@ app.directive('arbExplanationRequestRow', function(arb) {
 		templateUrl: versionUrl('static/html/rows/explanationRequestRow.html'),
 		scope: {
 			alias: '@',
-			refCount: '@',
+			row: '=',
 		},
 		controller: function($scope) {
+			$scope.arb = arb;
+			$scope.alias = $scope.alias || $scope.row.alias;
+
 			var aliasWithSpaces = $scope.alias.replace(/_/g, ' ');
 			$scope.prettyName = aliasWithSpaces.charAt(0).toUpperCase() + aliasWithSpaces.slice(1);
 			$scope.editUrl = arb.urlService.getEditPageUrl($scope.alias);
@@ -138,15 +141,25 @@ app.directive('arbExplanationRequestRow', function(arb) {
 				arb.analyticsService.reportEditLinkClick(event);
 			};
 
-			arb.stateService.postData('/json/moreRelationships/',
-				{
-					pageAlias: $scope.alias,
-					restrictToMathDomain: true,
-				},
-				function success(data) {
-					$scope.linkedByPageIds = data.result.moreRelationshipIds;
-				}
-			);
+			$scope.toggleExpand = function() {
+				$scope.expanded = !$scope.expanded;
+
+				if ($scope.linkedByPageIds) return;
+
+				arb.stateService.postData('/json/moreRelationships/',
+					{
+						pageAlias: $scope.alias,
+						restrictToMathDomain: true,
+					},
+					function success(data) {
+						$scope.linkedByPageIds = data.result.moreRelationshipIds;
+					}
+				);
+			};
+
+			$scope.stopSuggesting = function() {
+				arb.stateService.processLikeClick($scope.row, $scope.row.alias, -1);
+			};
 		},
 	};
 });

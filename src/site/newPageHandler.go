@@ -1,4 +1,4 @@
-// newPageJsonHandler.go creates and returns a new page
+// newPageHandler.go creates and returns a new page
 package site
 
 import (
@@ -13,24 +13,24 @@ import (
 
 var newPageHandler = siteHandler{
 	URI:         "/json/newPage/",
-	HandlerFunc: newPageJsonHandler,
+	HandlerFunc: newPageHandlerFunc,
 	Options: pages.PageOptions{
 		RequireLogin: true,
 	},
 }
 
-// newPageJsonData contains parameters passed in via the request.
-type newPageJsonData struct {
+// newPageData contains parameters passed in via the request.
+type newPageData struct {
 	Type            string
 	ParentIds       []string
 	IsEditorComment bool
 	Alias           string
 }
 
-// newPageJsonHandler handles the request.
-func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
+// newPageHandlerFunc handles the request.
+func newPageHandlerFunc(params *pages.HandlerParams) *pages.Result {
 	// Decode data
-	var data newPageJsonData
+	var data newPageData
 	err := json.NewDecoder(params.R.Body).Decode(&data)
 	if err != nil {
 		return pages.Fail("Couldn't decode request", err).Status(http.StatusBadRequest)
@@ -39,10 +39,10 @@ func newPageJsonHandler(params *pages.HandlerParams) *pages.Result {
 	if err != nil {
 		data.Type = core.WikiPageType
 	}
-	return newPageJsonInternalHandler(params, &data)
+	return newPageInternalHandler(params, &data)
 }
 
-func newPageJsonInternalHandler(params *pages.HandlerParams, data *newPageJsonData) *pages.Result {
+func newPageInternalHandler(params *pages.HandlerParams, data *newPageData) *pages.Result {
 	db := params.DB
 	u := params.U
 

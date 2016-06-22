@@ -1,29 +1,46 @@
-<md-list-item>
-	<div layout="row" flex>
-		<div ng-if="::refCount">
-			<arb-expand-icon expanded="wrapper.expanded"></arb-expand-icon>
+<md-list-item layout="row" layout-align="start start" ng-if="!row || row.myLikeValue >= 0">
+	<div layout="row" layout-align="start start" flex>
+
+		<div ng-if="::row.refCount">
+			<arb-likes class="no-right-margin"
+					object-id="{{::row.alias}}"
+					likeable="row"
+					is-button="true"
+					is-plus-one="true"></arb-likes>
 		</div>
+
 		<div class="explanation-text" layout="column" flex>
-			<div>
-				<span ng-if="::refCount">"</span>{{::prettyName}}<span ng-if="::refCount">"</span>
-				<span ng-if="::refCount">referenced in {{::refCount}} pages</span>
+			<div layout="row" layout-align="start start">
+				<div>
+					<span ng-if="::row.refCount">"</span>{{::prettyName}}<span ng-if="::row.refCount">"</span>
+					<span ng-if="::row.refCount">referenced in {{::row.refCount}} pages</span>
+				</div>
+				<md-button ng-click="toggleExpand()"
+						class="md-icon-button icon-last"
+						aria-label="Expand"
+						ng-if="::row.refCount">
+					<arb-expand-icon expanded="expanded"></arb-expand-icon>
+				</md-button>
 			</div>
-			<div ng-if="expanded">
+			<div class="expanded-list" ng-if="expanded">
 				<md-progress-circular md-mode="indeterminate" ng-if="!linkedByPageIds"></md-progress-circular>
 				<div ng-repeat="pageId in linkedByPageIds">
 					<arb-page-title page-id="{{::pageId}}" is-link="true"></arb-page-title>
 				</div>
+				<md-button ng-click="stopSuggesting()" ng-if="::arb.userService.user.isAdmin">
+					Don't suggest this alias to public
+				</md-button>
 			</div>
 		</div>
 	</div>
 
 	<div>
 		<md-button ng-href="{{editUrl}}"
-				class="md-icon-button icon-last"
+				class="md-icon-button icon-first"
 				ng-click="editLinkClicked($event)"
 				aria-label="Create page">
 			<md-icon>create</md-icon>
 		</md-button>
 	</div>
-	<md-divider></md-divider>
 </md-list-item>
+<md-divider></md-divider>

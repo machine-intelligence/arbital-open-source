@@ -94,7 +94,7 @@
 
 		<!-- Footer -->
 		<div class="comment-footer" layout="row" layout-align="start start" ng-if="!editing">
-			<arb-likes likeable-type="page" likeable-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
+			<arb-likes object-id="{{::page.pageId}}" is-button="true" is-stretched="true"></arb-likes>
 			<arb-subscribe page-id="{{::page.pageId}}"
 					show-subscriber-count="::!isTinyScreen"
 					ng-if="::!parentSubpageId && (page.editCreatorId != arb.userService.user.id)"></arb-subscribe>

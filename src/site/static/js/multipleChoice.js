@@ -144,6 +144,11 @@ app.directive('arbMultipleChoice', function($timeout, $http, $compile, arb) {
 					console.log('Restored saved choice for ' + scope.objectAlias + ':' + scope.choice);
 				}
 			}
+
+			$timeout(function() {
+				// Process all math.
+				arb.markdownService.compileChildren(scope, element, true);
+			});
 		},
 	};
 });
