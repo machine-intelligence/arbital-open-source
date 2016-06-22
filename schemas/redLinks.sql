@@ -3,7 +3,7 @@ CREATE TABLE redLinks (
 	/* Alias of the red link. */
 	alias VARCHAR(64) NOT NULL,
 
-	/* Id by which we track requests. Partial FK into likes. */
+	/* Id by which we track likes. Partial FK into likes. */
 	likeableId BIGINT NOT NULL,
 
 	/* Date this entry was created. */

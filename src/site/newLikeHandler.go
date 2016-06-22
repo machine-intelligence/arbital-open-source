@@ -13,14 +13,16 @@ import (
 
 // newLikeData contains data given to us in the request.
 type newLikeData struct {
-	// If LikeableId is given, we'll modify the corresponding likeable directly, ignoring id
+	// If likeableId is given, we'll modify the corresponding likeable directly, ignoring objectId
 	LikeableId int64 `json:"likeableId,string"`
-	// If objectId is given, we'll look up likeableId in the appropriate table (based on LikeableType)
-	// For example, if likeableType=='page', the objectId is the corresponding pageId
-	ObjectId string
 
+	// If likeableId is missing, we'll use objectId to look it up in the appropriate
+	// table (based on likeableType)
+	// For example, if likeableType=='page', the objectId is the corresponding pageId
+	ObjectId     string
 	LikeableType string // Eg 'changelog', 'page'
-	Value        int
+
+	Value int
 }
 
 var newLikeHandler = siteHandler{

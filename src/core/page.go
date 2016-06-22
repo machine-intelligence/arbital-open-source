@@ -28,11 +28,6 @@ const (
 	ProbabilityVoteType = "probability"
 	ApprovalVoteType    = "approval"
 
-	// Possible likeable types
-	ChangeLogLikeableType = "changeLog"
-	PageLikeableType      = "page"
-	RedLinkLikeableType   = "redLink"
-
 	// Various events we log when a page changes
 	NewParentChangeLog          = "newParent"
 	DeleteParentChangeLog       = "deleteParent"
@@ -130,7 +125,7 @@ type corePageData struct {
 	MetaText string `json:"metaText"`
 }
 
-// NewPage returns a pointer to a new corePageData object created with the given page id
+// NewCorePageData returns a pointer to a new corePageData object created with the given page id
 func NewCorePageData(pageId string) *corePageData {
 	data := &corePageData{PageId: pageId}
 	data.Likeable = *NewLikeable(PageLikeableType)
@@ -267,7 +262,7 @@ type Vote struct {
 }
 
 type Likeable struct {
-	LikeableId   string `json:"likeableId"`
+	LikeableId   int64  `json:"likeableId,string"`
 	LikeableType string `json:"likeableType"`
 	MyLikeValue  int    `json:"myLikeValue"`
 	LikeCount    int    `json:"likeCount"`
@@ -1099,9 +1094,9 @@ func LoadChangeLogsByIds(db *database.DB, ids []string, typeConstraint string) (
 
 // Load LikeCount and MyLikeValue for a set of ChangeLogs
 func LoadLikesForChangeLogs(db *database.DB, u *CurrentUser, changeLogs []*ChangeLog) error {
-	likeablesMap := make(map[string]*Likeable)
+	likeablesMap := make(map[int64]*Likeable)
 	for _, changeLog := range changeLogs {
-		if changeLog.LikeableId != "" {
+		if changeLog.LikeableId != 0 {
 			likeablesMap[changeLog.LikeableId] = &changeLog.Likeable
 		}
 	}
@@ -1240,12 +1235,12 @@ func LoadPageIds(rows *database.Rows, pageMap map[string]*Page, loadOptions *Pag
 }
 
 // LoadLikes loads likes corresponding to the given likeable objects.
-func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[string]*Likeable, individualLikesPageMap map[string]*Likeable, userMap map[string]*User) error {
+func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[int64]*Likeable, individualLikesPageMap map[int64]*Likeable, userMap map[string]*User) error {
 	if len(likeablesMap) <= 0 {
 		return nil
 	}
 
-	likeableIds := make([]string, 0)
+	likeableIds := make([]interface{}, 0)
 	for id, _ := range likeablesMap {
 		likeableIds = append(likeableIds, id)
 	}
@@ -1253,9 +1248,10 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[string]*Likeabl
 	rows := database.NewQuery(`
 		SELECT likeableId,userId,value
 		FROM likes
-		WHERE likeableId IN`).AddArgsGroupStr(likeableIds).ToStatement(db).Query()
+		WHERE likeableId IN`).AddArgsGroup(likeableIds).ToStatement(db).Query()
 	err := rows.Process(func(db *database.DB, rows *database.Rows) error {
-		var likeableId, userId string
+		var likeableId int64
+		var userId string
 		var value int
 		err := rows.Scan(&likeableId, &userId, &value)
 		if err != nil {
@@ -1293,15 +1289,15 @@ func LoadLikes(db *database.DB, u *CurrentUser, likeablesMap map[string]*Likeabl
 
 // LoadLikesForPages loads likes corresponding to the given pages and updates the pages.
 func LoadLikesForPages(db *database.DB, u *CurrentUser, pageMap map[string]*Page, individualLikesPageMap map[string]*Page, userMap map[string]*User) error {
-	likeablesMap := make(map[string]*Likeable)
+	likeablesMap := make(map[int64]*Likeable)
 	for _, page := range pageMap {
-		if page.LikeableId != "" {
+		if page.LikeableId != 0 {
 			likeablesMap[page.LikeableId] = &page.Likeable
 		}
 	}
-	individualLikeablesMap := make(map[string]*Likeable)
+	individualLikeablesMap := make(map[int64]*Likeable)
 	for _, page := range individualLikesPageMap {
-		if page.LikeableId != "" {
+		if page.LikeableId != 0 {
 			individualLikeablesMap[page.LikeableId] = &page.Likeable
 		}
 	}

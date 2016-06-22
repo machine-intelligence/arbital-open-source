@@ -100,7 +100,7 @@ app.service('stateService', function($http, $compile, $location, $mdToast, $root
 			likeable.myLikeValue = Math.min(1, 1 - likeable.myLikeValue);
 		}
 		var data = {
-			likeableId: likeable.likeableId === "" ? "0" : likeable.likeableId,
+			likeableId: likeable.likeableId,
 			objectId: objectId,
 			likeableType: likeable.likeableType,
 			value: likeable.myLikeValue,

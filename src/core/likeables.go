@@ -7,6 +7,13 @@ import (
 	"zanaduu3/src/database"
 )
 
+const (
+	// Possible likeable types
+	ChangeLogLikeableType = "changeLog"
+	PageLikeableType      = "page"
+	RedLinkLikeableType   = "redLink"
+)
+
 // Get the likeableId of the given likeable. If it doesn't have one, create one for it.
 // Returns the likeableId of the likeable.
 func GetOrCreateLikeableId(tx *database.Tx, likeableType string, id string) (int64, error) {

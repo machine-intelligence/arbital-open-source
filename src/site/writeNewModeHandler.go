@@ -109,7 +109,7 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 			RefCount: refCount,
 		}
 		if likeableId.Valid {
-			row.LikeableId = fmt.Sprintf("%d", likeableId.Int64)
+			row.LikeableId = likeableId.Int64
 		}
 		redLinks = append(redLinks, row)
 		return nil
@@ -119,9 +119,9 @@ func loadRedLinkRows(db *database.DB, returnData *core.CommonHandlerData, limit 
 	}
 
 	// Load likes
-	likeablesMap := make(map[string]*core.Likeable)
+	likeablesMap := make(map[int64]*core.Likeable)
 	for _, redLink := range redLinks {
-		if redLink.LikeableId != "" {
+		if redLink.LikeableId != 0 {
 			likeablesMap[redLink.LikeableId] = &redLink.Likeable
 		}
 	}
