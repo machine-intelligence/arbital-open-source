@@ -79,6 +79,7 @@ type UpdateEntry struct {
 	// True if the user has gone to the GoToPage
 	IsVisited bool   `json:"isVisited"`
 	CreatedAt string `json:"createdAt"`
+	Seen      bool   `json:"seen"`
 }
 
 // UpdateGroup is a collection of updates groupped by the context page.

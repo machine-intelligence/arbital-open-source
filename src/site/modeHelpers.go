@@ -535,6 +535,7 @@ func getUpdateEntryFromUpdateRow(row *core.UpdateRow) *core.UpdateEntry {
 		MarkId:          row.MarkId,
 		CreatedAt:       row.CreatedAt,
 		ChangeLog:       row.ChangeLog,
+		Seen:            row.Seen,
 	}
 	if entry.MarkId != "" {
 		entry.ByUserId = ""
