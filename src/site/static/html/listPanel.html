@@ -1,7 +1,6 @@
-<div class='list-panel'
+<div class='list-panel md-whiteframe-1dp white-background'
 		ng-class="{
-				'full-page-panel md-whiteframe-1dp': isFullPage,
-				'dense-panel white-background': !isFullPage,
+				'dense-panel': !isFullPage || isSmallScreen,
 			}"
 		ng-if="modeRows && modeRows.length != 0">
 	<!-- Header -->
@@ -16,6 +15,8 @@
 		<md-list-item ng-repeat="(index, modeRow) in modeRows | orderBy:'-activityDate' | limitTo:numToDisplay"
 				class="panel-list-item"
 				ng-class="{'unseen-update': modeRow.activityDate > lastView}">
+
+			<!-- {{modeRow.rowType}} -->
 
 			<div ng-switch="::modeRow.rowType" flex>
 				<arb-page-row page-id="{{::modeRow.pageId}}"

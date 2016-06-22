@@ -55,10 +55,19 @@ app.directive('arbCommentRowInternal', function($location, arb) {
 		templateUrl: versionUrl('static/html/rows/commentRowInternal.html'),
 		scope: {
 			comment: '=',
+			onDismiss: '&',
+			update: '=', // optional, used to display the time of the comment
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
 			$scope.topLevelComment = $scope.comment.getTopLevelComment();
+
+			$scope.threadLoaded = false;
+			arb.pageService.loadCommentThread($scope.topLevelComment.pageId, {
+				success: function() {
+					$scope.threadLoaded = true;
+				},
+			});
 		},
 	};
 });

@@ -18,9 +18,7 @@ app.directive('arbUserName', function(arb) {
 app.directive('arbExpandIcon', function(arb) {
 	return {
 		templateUrl: versionUrl('static/html/expandIcon.html'),
-		scope: {
-			expanded: '=',
-		}
+		scope: false,
 	};
 });
 

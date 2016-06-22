@@ -1,28 +1,34 @@
-<arb-update-row update="::update" on-dismiss="::onDismiss" show-like-button="true">
+<div layout="column">
+	<div layout="row" layout-align="start center">
+		<div layout="row" layout-align="start center" flex>
+			<arb-update-row-expand-button></arb-update-row-expand-button>
 
-	<div>
-		<!-- a user -->
-		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+			<!-- a user -->
+			<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>&nbsp;
 
-		<!-- made or proposed an edit -->
-		<span ng-switch="update.changeLog.type">
-			<span ng-switch-when="newEditProposal">proposed an edit to</span>
-			<span ng-switch-default>edited</span>
-		</span>
+			<!-- made or proposed an edit -->
+			<span ng-switch="update.changeLog.type">
+				<span ng-switch-when="newEditProposal">proposed an edit to</span>
+				<span ng-switch-default>edited</span>
+			</span>&nbsp;
 
-		<!-- to a page -->
-		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+			<!-- to a page -->
+			<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
 
-		<!-- with this edit summary -->
-		<span ng-if="::update.changeLog.newSettingsValue">
-			&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
-		</span>
+			<!-- with this edit summary -->
+			<span ng-if="::update.changeLog.newSettingsValue">
+				&mdash; <i>{{::update.changeLog.newSettingsValue}}</i>
+			</span>&nbsp;
 
+			<arb-update-timestamp></arb-update-timestamp>
+		</div>
+		<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
 	</div>
 
-	<md-button ng-click="arb.pageService.approveEditProposal(update.changeLog)"
+	<div class="expand-tray" ng-if="expanded">
+		<arb-edit-diff change-log="::update.changeLog" just-diff="true"></arb-edit-diff>
+		<md-button ng-click="arb.pageService.approveEditProposal(update.changeLog)"
 			ng-if="update.changeLog.type == 'newEditProposal'">Approve</md-button>
-
-	<arb-edit-diff change-log="::update.changeLog"></arb-edit-diff>
-
-</arb-update-row>
+		<arb-update-row-like-button></arb-update-row-like-button>
+	</div>
+</div>
