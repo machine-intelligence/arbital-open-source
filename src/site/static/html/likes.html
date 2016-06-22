@@ -1,11 +1,16 @@
 <md-button arb-user-check
-		ng-class="::{'like-button': !isStretched}"
-		ng-click="likeClick()"
+		ng-class="::{'like-button': !isStretched, 'plus-one-button': isPlusOne}"
+		ng-click="arb.stateService.processLikeClick(likeable, objectId)"
 		aria-label="Like"
 		ng-if="::isButton">
-	<md-icon class="like-icon on" ng-if="likeable.myLikeValue > 0">thumb_up</md-icon>
-	<md-icon class="like-icon" md-svg-icon="thumb_up_outline" ng-if="likeable.myLikeValue <= 0"></md-icon>
-	<span class="like-count">{{likeable.likeCount + likeable.myLikeValue}}</span>
+	<md-icon class="like-icon on"
+			ng-if="!isPlusOne && likeable.myLikeValue > 0">thumb_up</md-icon>
+	<md-icon class="like-icon"
+			md-svg-icon="thumb_up_outline"
+			ng-if="!isPlusOne && likeable.myLikeValue <= 0"></md-icon>
+	<span class="like-count">
+		<span ng-if="isPlusOne && (likeable.likeCount + likeable.myLikeValue) >= 0">+</span>{{likeable.likeCount + likeable.myLikeValue}}
+	</span>
 	<md-tooltip class="unlimited"
 			md-direction="top"
 			ng-if="likeable.individualLikes.length > 0 && !arb.isTouchDevice">

@@ -45,7 +45,7 @@
 							<span class="black-font">Similar pages</span>
 						</md-subheader>
 						<md-list-item layout="row" ng-repeat="(index,similarPage) in similarPages">
-							<arb-likes likeable-type="page" likeable-id="{{::similarPage.pageId}}"></arb-likes>
+							<arb-likes object-id="{{::similarPage.pageId}}"></arb-likes>
 							<arb-page-title page-id="{{::similarPage.pageId}}" is-link="true" show-clickbait="true"></arb-page-title>
 						</md-list-item>
 					</md-list>

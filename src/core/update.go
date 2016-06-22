@@ -205,7 +205,7 @@ func LoadUpdateRows(db *database.DB, u *CurrentUser, resultData *CommonHandlerDa
 		if err != nil {
 			return nil, fmt.Errorf("Couldn't load changlogs: %v", err)
 		}
-		err = LoadLikesForChangeLogs(db, u.Id, changeLogs)
+		err = LoadLikesForChangeLogs(db, u, changeLogs)
 		if err != nil {
 			return nil, fmt.Errorf("error while loading likes for changelogs: %v", err)
 		}

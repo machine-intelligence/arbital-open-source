@@ -1,8 +1,7 @@
 <div layout="row" layout-xs="column" layout-align="space-between center">
 
 	<!-- LHS of the row -->
-	<arb-likes likeable-type="changeLog"
-		likeable-id="{{::update.changeLog.id}}"
+	<arb-likes object-id="{{::update.changeLog.id}}"
 		likeable="::update.changeLog"
 		is-button="true"
 		ng-if="showLikeButton"></arb-likes>
