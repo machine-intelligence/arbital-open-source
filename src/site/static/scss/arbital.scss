@@ -307,7 +307,7 @@ $toolbar-height: 64px;
 
 // Added to updates that the user hasn't seen yet
 .unseen-update {
-	//border-left: $primary-hue-1 5px solid;
+	background: $primary-hue-1;
 }
 
 // MailChimp signup form
