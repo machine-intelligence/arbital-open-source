@@ -16,6 +16,8 @@
 				class="panel-list-item"
 				ng-class="{'unseen-update': modeRow.activityDate > lastView}">
 
+			<!-- {{modeRow.rowType}} -->
+
 			<div ng-switch="::modeRow.rowType" flex>
 				<arb-page-row page-id="{{::modeRow.pageId}}"
 						show-created-at="true"

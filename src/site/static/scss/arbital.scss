@@ -241,6 +241,7 @@ arb-update-row,
 	.md-button.dismiss-button {
 		margin-right: -4px;
 		margin-top: -4px;
+		margin-left: 8px;
 	}
 }
 
@@ -1283,6 +1284,17 @@ md-icon.icon-first {
 	}
 }
 
+.list-panel {
+	.expand-tray {
+		margin-left: -16px;
+		padding-left: 16px;
+		margin-right: -16px;
+		padding-right: 16px;
+		margin-bottom: -3px;
+		padding-bottom: 20px;
+	}
+}
+
 .dense-panel,
 .popover-panel {
 	arb-user-name,
@@ -1305,6 +1317,8 @@ md-icon.icon-first {
 		padding-bottom: 20px;
 	}
 }
+
+
 
 .popover-panel {
 	margin-top: 12px;

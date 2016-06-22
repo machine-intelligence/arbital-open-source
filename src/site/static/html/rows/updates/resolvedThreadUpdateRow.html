@@ -1,12 +1,10 @@
-<arb-update-row update="::update" on-dismiss="::onDismiss">
-	<div layout="row" layout-align="start center">
-		<div layout="column" flex>
-			<div>
-				<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
-				marked
-				<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
-				as resolved.
-			</div>
-		</div>
+<div layout="row" layout-align="start center">
+	<div flex>
+		<arb-user-name user-id="{{::update.byUserId}}"></arb-user-name>
+		marked
+		<arb-page-title page-id="{{::update.goToPageId}}" is-link="true"></arb-page-title>
+		as resolved.
+		<arb-update-timestamp></arb-update-timestamp>
 	</div>
-</arb-update-row>
+	<arb-update-row-dismiss-button></arb-update-row-dismiss-button>
+</div>

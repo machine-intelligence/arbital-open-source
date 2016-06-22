@@ -550,7 +550,8 @@ arb-update-row .expand-button-container,
 arb-update-row .md-button.dismiss-button,
 .dense-panel .md-button.dismiss-button {
   margin-right: -4px;
-  margin-top: -4px; }
+  margin-top: -4px;
+  margin-left: 8px; }
 
 .chip {
   border: 1px solid #ccc;
@@ -1249,6 +1250,14 @@ md-icon.icon-first {
   font-size: 14px; }
   .dense-panel md-toolbar {
     min-height: 0px; }
+
+.list-panel .expand-tray {
+  margin-left: -16px;
+  padding-left: 16px;
+  margin-right: -16px;
+  padding-right: 16px;
+  margin-bottom: -3px;
+  padding-bottom: 20px; }
 
 .dense-panel arb-user-name a,
 .dense-panel arb-page-title a,

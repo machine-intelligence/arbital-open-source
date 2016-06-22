@@ -55,6 +55,8 @@ app.directive('arbCommentRowInternal', function($location, arb) {
 		templateUrl: versionUrl('static/html/rows/commentRowInternal.html'),
 		scope: {
 			comment: '=',
+			onDismiss: '&',
+			update: '=', // optional, used to display the time of the comment
 		},
 		controller: function($scope) {
 			$scope.arb = arb;
